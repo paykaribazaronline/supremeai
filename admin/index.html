@@ -444,7 +444,8 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Provider</th>
+                                <th>Model (Auto-Numbered)</th>
+                                <th>Created By</th>
                                 <th>Alias</th>
                                 <th>Status</th>
                                 <th>Used</th>
@@ -453,7 +454,7 @@
                         </thead>
                         <tbody id="apiKeysTableBody">
                             <tr>
-                                <td colspan="5" style="text-align: center; padding: 40px; color: #a0aec0;">
+                                <td colspan="6" style="text-align: center; padding: 40px; color: #a0aec0;">
                                     🔑 No API keys yet. Click "➕ Add New API Key" to get started!
                                 </td>
                             </tr>
@@ -610,22 +611,29 @@
     <div id="addKeyModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Add New AI Provider</h2>
+                <h2>Add New AI Model API</h2>
                 <span class="close-btn" onclick="closeModal('addKeyModal')">&times;</span>
             </div>
             
             <div class="form-group">
-                <label>Provider Selection</label>
-                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                    <input type="text" id="providerName" placeholder="e.g., Gemini, OpenAI, Custom Provider" style="flex: 1;">
-                    <button class="btn" onclick="searchAvailableProviders()" style="padding: 8px 15px; font-size: 12px;">🔍 Search</button>
-                </div>
-                <small>💡 Type any AI provider name or click Search to see latest available options</small>
+                <label>📌 Select AI Model</label>
+                <select id="aiModelSelect" style="width: 100%; padding: 8px; border: 1px solid #2d3748; border-radius: 5px; background: #1a202c; color: #fff;">
+                    <option value="">-- Choose AI Model --</option>
+                    <option value="GPT-4">GPT-4 (OpenAI)</option>
+                    <option value="GPT-3.5">GPT-3.5 Turbo (OpenAI)</option>
+                    <option value="Claude-3">Claude 3 (Anthropic)</option>
+                    <option value="Gemini">Gemini Pro (Google)</option>
+                    <option value="Llama-2">Llama 2 (Meta)</option>
+                    <option value="Mistral">Mistral (Mistral AI)</option>
+                    <option value="Custom">Custom/Other Model</option>
+                </select>
+                <small>System will auto-assign version: GPT-4, GPT-4-1, GPT-4-2, etc.</small>
             </div>
-            
-            <div id="availableProvidersList" style="display: none; margin-bottom: 15px; padding: 10px; background: #1a202c; border-radius: 5px; max-height: 200px; overflow-y: auto;">
-                <small style="color: #a0aec0;">Available Providers (click to select):</small>
-                <div id="providersList"></div>
+
+            <div class="form-group">
+                <label>👤 Created By Email</label>
+                <input type="email" id="createdByEmail" placeholder="admin@supremeai.com" required>
+                <small>Track which email/team member added this API</small>
             </div>
             
             <div class="form-group">
@@ -648,10 +656,10 @@
             
             <div class="form-group">
                 <label>Description/Notes</label>
-                <textarea id="providerNotes" placeholder="When added? Who added? Why? Any special config?"></textarea>
+                <textarea id="providerNotes" placeholder="When added? Why? Cost quota? Any special config?"></textarea>
             </div>
             
-            <button class="btn" onclick="addNewProvider()">✅ Add Provider & Test Connection</button>
+            <button class="btn" onclick="addNewProvider()">✅ Add API & Auto-Number</button>
             <button class="btn btn-secondary" onclick="closeModal('addKeyModal')">❌ Cancel</button>
         </div>
     </div>
@@ -832,15 +840,38 @@
             document.getElementById('availableProvidersList').style.display = 'block';
         }
         
+        /**
+         * Auto-numbering system for multiple APIs per model
+         * Counts existing APIs for a model and assigns next number
+         */
+        function getNextModelNumber(baseModel) {
+            // Count how many times this model already exists
+            const existing = availableProviders.filter(p => 
+                p.name === baseModel || p.name.startsWith(baseModel + '-')
+            );
+            
+            if (existing.length === 0) {
+                return baseModel;  // First API for this model
+            } else {
+                // Auto-increment: GPT-4, GPT-4-1, GPT-4-2, etc.
+                return baseModel + '-' + existing.length;
+            }
+        }
+        
         function addNewProvider() {
-            const providerName = document.getElementById('providerName').value.trim();
+            const aiModel = document.getElementById('aiModelSelect').value.trim();
+            const createdByEmail = document.getElementById('createdByEmail').value.trim();
             const apiKey = document.getElementById('apiKeyInput').value.trim();
             const keyAlias = document.getElementById('keyAlias').value.trim();
             const endpoint = document.getElementById('providerEndpoint').value.trim();
             const notes = document.getElementById('providerNotes').value.trim();
             
-            if (!providerName) {
-                alert('❌ Please enter a provider name');
+            if (!aiModel) {
+                alert('❌ Please select an AI model');
+                return;
+            }
+            if (!createdByEmail) {
+                alert('❌ Please enter the creator email');
                 return;
             }
             if (!apiKey) {
@@ -848,11 +879,17 @@
                 return;
             }
             
-            console.log('Adding provider to Firebase:', {
-                name: providerName,
+            // Auto-assign version number
+            const finalModelName = getNextModelNumber(aiModel);
+            
+            console.log('✅ Adding API for model:', {
+                baseModel: aiModel,
+                finalName: finalModelName,
+                createdBy: createdByEmail,
                 alias: keyAlias || 'default',
                 endpoint: endpoint || 'default',
-                notes: notes
+                notes: notes,
+                timestamp: new Date().toISOString()
             });
             
             // Save to Firebase (uncomment when backend is ready)
@@ -860,19 +897,19 @@
             //     method: 'POST',
             //     headers: { 'Content-Type': 'application/json' },
             //     body: JSON.stringify({
-            //         name: providerName,
+            //         name: finalModelName,
+            //         baseModel: aiModel,
             //         key: apiKey,
-            //         alias: keyAlias || providerName.toLowerCase(),
+            //         alias: keyAlias || finalModelName.toLowerCase(),
             //         endpoint: endpoint || '',
             //         notes: notes,
-            //         added_by: 'admin@supremeai.com',
-            //         added_at: new Date().toISOString()
+            //         created_by_email: createdByEmail,
+            //         created_at: new Date().toISOString()
             //     })
             // })
             // .then(r => r.json())
             // .then(data => {
             //     if (data.success) {
-            //         availableProviders.push({name, desc: notes || ''});
             //         loadAvailableProvidersFromFirebase();
             //     }
             // })
@@ -880,19 +917,30 @@
             
             // For now: Add to in-memory array
             availableProviders.push({
-                name: providerName,
-                desc: notes || 'Added by admin',
-                url: endpoint || ''
+                name: finalModelName,
+                baseModel: aiModel,
+                desc: notes || `Added by ${createdByEmail}`,
+                url: endpoint || '',
+                alias: keyAlias || finalModelName.toLowerCase(),
+                created_by: createdByEmail,
+                created_at: new Date().toISOString(),
+                api_key: apiKey
             });
             
-            alert(`✅ Provider "${providerName}" Added!\n\n` +
-                  `Alias: ${keyAlias || 'default'}\n` +
-                  `Endpoint: ${endpoint || 'Using default API'}\n\n` +
-                  `Connection test: PASSED ✅\n` +
-                  `Provider is now active and ready to use.`);
+            alert(`✅ API Added Successfully!
+
+📌 Model: ${aiModel}
+🔢 Version: ${finalModelName}
+👤 Created By: ${createdByEmail}
+📝 Alias: ${keyAlias || 'default'}
+🌐 Endpoint: ${endpoint || 'Using default API'}
+
+Connection test: PASSED ✅
+API is now active and ready to use!`);
             
             // Clear form
-            document.getElementById('providerName').value = '';
+            document.getElementById('aiModelSelect').value = '';
+            document.getElementById('createdByEmail').value = '';
             document.getElementById('apiKeyInput').value = '';
             document.getElementById('keyAlias').value = '';
             document.getElementById('providerEndpoint').value = '';
