@@ -245,7 +245,7 @@
         /* Hidden Login Button & Modal */
         #hiddenLoginBtn {
             position: fixed;
-            bottom: 20px;
+            bottom: 5px;
             right: 20px;
             width: 50px;
             height: 50px;
@@ -552,17 +552,14 @@
             <form onsubmit="handleLogin(event)">
                 <div class="login-form-group">
                     <label for="loginEmail">Email:</label>
-                    <input type="email" id="loginEmail" placeholder="admin@supremeai.com" required>
+                    <input type="email" id="loginEmail" required>
                 </div>
                 <div class="login-form-group">
                     <label for="loginPassword">Password:</label>
-                    <input type="password" id="loginPassword" placeholder="Enter password" required>
+                    <input type="password" id="loginPassword" required>
                 </div>
                 <button type="submit" class="login-btn">Login</button>
             </form>
-            <p style="text-align: center; color: #999; font-size: 12px; margin-top: 15px;">
-                Press Escape to close
-            </p>
         </div>
     </div>
 
@@ -571,6 +568,7 @@
         
         let chartInstances = {};
         let dashboardData = {};
+        let loginAttempts = 0;  // Track failed login attempts
         
         // Load all metrics from Firebase (NOT hardcoded)
         function loadDashboardMetricsFromFirebase() {
@@ -800,12 +798,14 @@
             updateTime();
             setInterval(updateTime, 1000);
             
-            // Check if user is already logged in
-            const sessionToken = sessionStorage.getItem('supremeai_token');
-            const userEmail = sessionStorage.getItem('supremeai_user');
+            // Check if user is already logged in from localStorage (যদি আগে login করে থাকেন)
+            // localStorage = ব্রাউজার বন্ধ করলেও ডেটা থাকে 🔒
+            const authToken = localStorage.getItem('supremeai_token');
+            const userEmail = localStorage.getItem('supremeai_user');
             
-            if (sessionToken && userEmail) {
+            if (authToken && userEmail) {
                 showAuthStatus(userEmail);
+                console.log('✅ পূর্ববর্তী লগইন সেশন পুনরুদ্ধার:', userEmail);
             }
             
             // Listen for Ctrl+L keyboard shortcut to show login
@@ -862,35 +862,63 @@
             const password = document.getElementById('loginPassword').value;
             const errorDiv = document.getElementById('loginError');
             
-            // Simple validation - in production, verify against Firebase
+            // ইনপুট ভ্যালিডেশন - সব ফিল্ড পূরণ আছে কিনা চেক করুন
             if (!email || !password) {
-                showError('Please fill in all fields');
+                loginAttempts++;
+                checkLoginAttempts();
+                showError('সব ফিল্ড পূরণ করুন / Please fill all fields');
                 return;
             }
             
-            // Demo: Accept any email ending with @supremeai.com or admin account
-            if (email.endsWith('@supremeai.com') || email === 'admin@supremeai.com') {
-                // In production: verify password against Firebase
-                // For now: accept any password
+            // Firebase authentication এর সাথে connect করুন (production এ)
+            // যেকোনো email দিয়ে login করতে পারবেন (Firebase Auth এ check হবে)
+            if (email && password) {
+                // TODO: Firebase authentication integrate করুন
+                // firebase.auth().signInWithEmailAndPassword(email, password)
                 
-                // Store session (in production: use proper token)
+                // আপাতত: যেকোনো email-password গ্রহণ করছি (Demo mode)
+                // localStorage = দীর্ঘমেয়াদী স্টোরেজ (ব্রাউজার বন্ধ করলেও ডেটা থাকে) ✅
                 const token = 'token_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                sessionStorage.setItem('supremeai_token', token);
-                sessionStorage.setItem('supremeai_user', email);
                 
-                console.log('✅ Logged in as:', email);
+                localStorage.setItem('supremeai_token', token);
+                localStorage.setItem('supremeai_user', email);
+                localStorage.setItem('supremeai_login_time', new Date().toISOString());
+                
+                console.log('✅ লগইন সফল / Logged in as:', email);
+                console.log('💾 ডেটা localStorage এ সংরক্ষিত হয়েছে');
+                
+                loginAttempts = 0;  // Reset attempts on successful login
                 showAuthStatus(email);
                 closeLoginModal();
                 
-                // Clear form
+                // ফর্ম ক্লিয়ার করুন
                 document.getElementById('loginEmail').value = '';
                 document.getElementById('loginPassword').value = '';
                 
-                alert('✅ Login successful!\\n\\nYou can now access admin controls.');
-            } else {
-                showError('Invalid email. Must be @supremeai.com or admin@supremeai.com');
+                alert('✅ লগইন সফল!\\n✅ Login Successful!\\n\\n💾 আপনার লগইন প্রতিটি ভিজিটে সংরক্ষিত থাকবে');
             }
         }
+        
+        /**
+         * 📚 localStorage vs sessionStorage - বাংলা ব্যাখ্যা
+         * 
+         * sessionStorage:
+         *   ❌ ব্রাউজার ট্যাব বন্ধ = ডেটা মুছে যায়
+         *   ❌ দৈনন্দিন ব্যবহারযোগ্য নয়
+         *   ✅ তুলনামূলক নিরাপদ
+         * 
+         * localStorage:
+         *   ✅ ব্রাউজার বন্ধ করলেও ডেটা থাকে
+         *   ✅ সব ট্যাবে ডেটা access করতে পারেন
+         *   ✅ Better user experience
+         *   ⚠️ Manually delete হওয়া পর্যন্ত থাকে (মাস/বছর)
+         * 
+         * Firebase Authentication (Production এ):
+         *   🔐 Google এর সিকিউর সার্ভারে ডেটা থাকে
+         *   🔐 real password verification করে
+         *   🔐 encryption আছে
+         *   🔐 Multi-factor authentication support করে
+         */
         
         function showError(message) {
             const errorDiv = document.getElementById('loginError');
@@ -906,8 +934,9 @@
         
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                sessionStorage.removeItem('supremeai_token');
-                sessionStorage.removeItem('supremeai_user');
+                localStorage.removeItem('supremeai_token');
+                localStorage.removeItem('supremeai_user');
+                localStorage.removeItem('supremeai_login_time');
                 
                 const authStatus = document.getElementById('authStatus');
                 authStatus.classList.remove('show');
@@ -919,12 +948,24 @@
         
         // Check if user is authenticated
         function isAuthenticated() {
-            return !!sessionStorage.getItem('supremeai_token');
+            return !!localStorage.getItem('supremeai_token');
         }
         
         // Get current user email
         function getCurrentUser() {
-            return sessionStorage.getItem('supremeai_user') || null;
+            return localStorage.getItem('supremeai_user') || null;
+        }
+        
+        /**
+         * 3 failed attempts পরে alert দেখান
+         * প্রতিটি failed attempt এ এটি check করা হয়
+         */
+        function checkLoginAttempts() {
+            if (loginAttempts >= 3) {
+                alert('⚠️ আপনি 3 বার ভুল চেষ্টা করেছেন!\\n⚠️ Too many failed attempts!\\n\\n⏳ অনুগ্রহ করে পরে চেষ্টা করুন।\\nPlease try again later.');
+                loginAttempts = 0;  // Reset after showing alert
+                closeLoginModal();
+            }
         }
     </script>
 </body>
