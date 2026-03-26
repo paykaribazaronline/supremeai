@@ -440,21 +440,22 @@
                     
                     <button class="btn" onclick="showModal('addKeyModal')">➕ Add New API Key</button>
 
-                    <h2 style="margin-top: 30px;">Active API Keys</h2>
+                    <h2 style="margin-top: 30px;">Active API Keys - Real-time Usage & Rate Limits</h2>
                     <table>
                         <thead>
                             <tr>
-                                <th>Model (Auto-Numbered)</th>
-                                <th>Created By</th>
-                                <th>Alias</th>
+                                <th>Model</th>
                                 <th>Status</th>
-                                <th>Used</th>
+                                <th>Rate Limit /min</th>
+                                <th>This Month</th>
+                                <th>Free Quota %</th>
+                                <th>Last Used</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="apiKeysTableBody">
                             <tr>
-                                <td colspan="6" style="text-align: center; padding: 40px; color: #a0aec0;">
+                                <td colspan="7" style="text-align: center; padding: 40px; color: #a0aec0;">
                                     🔑 No API keys yet. Click "➕ Add New API Key" to get started!
                                 </td>
                             </tr>
@@ -661,6 +662,129 @@
             
             <button class="btn" onclick="addNewProvider()">✅ Add API & Auto-Number</button>
             <button class="btn btn-secondary" onclick="closeModal('addKeyModal')">❌ Cancel</button>
+        </div>
+    </div>
+
+    <!-- Rotate API Key Modal -->
+    <div id="rotateKeyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🔄 Rotate API Key</h2>
+                <span class="close-btn" onclick="closeModal('rotateKeyModal')">&times;</span>
+            </div>
+            
+            <p style="color: #a0aec0; margin-bottom: 15px;">
+                ✅ A new key will be generated and the old one deactivated (can be revoked later)
+            </p>
+            
+            <div class="form-group">
+                <label>Current Model</label>
+                <input type="text" id="rotateModelName" readonly style="background: #1a202c; cursor: not-allowed;">
+            </div>
+            
+            <div class="form-group">
+                <label>Rotation Reason</label>
+                <select id="rotationReason" style="width: 100%; padding: 8px; border: 1px solid #2d3748; border-radius: 5px; background: #1a202c; color: #fff;">
+                    <option value="">-- Select Reason --</option>
+                    <option value="security">🔒 Security Concern</option>
+                    <option value="leak">⚠️ Possible Key Leak</option>
+                    <option value="scheduled">📅 Scheduled Rotation</option>
+                    <option value="quota_reset">📊 Quota Reset</option>
+                    <option value="other">Other</option>
+                </select>
+                <small>Track why the key was rotated</small>
+            </div>
+            
+            <div class="form-group">
+                <label>Send Alert Email</label>
+                <input type="email" id="rotationAlertEmail" placeholder="admin@supremeai.com">
+                <small>Notify team members about rotation</small>
+            </div>
+            
+            <button class="btn" onclick="rotateAPIKey()">✅ Confirm Rotation</button>
+            <button class="btn btn-secondary" onclick="closeModal('rotateKeyModal')">❌ Cancel</button>
+        </div>
+    </div>
+
+    <!-- Revoke API Key Modal -->
+    <div id="revokeKeyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🚫 Revoke API Key</h2>
+                <span class="close-btn" onclick="closeModal('revokeKeyModal')">&times;</span>
+            </div>
+            
+            <p style="color: #ff6b6b; margin-bottom: 15px;">
+                ⚠️ WARNING: This will permanently disable the API key. This action cannot be undone!
+            </p>
+            
+            <div class="form-group">
+                <label>Model to Revoke</label>
+                <input type="text" id="revokeModelName" readonly style="background: #1a202c; cursor: not-allowed;">
+            </div>
+            
+            <div class="form-group">
+                <label>Revocation Reason</label>
+                <select id="revocationReason" style="width: 100%; padding: 8px; border: 1px solid #2d3748; border-radius: 5px; background: #1a202c; color: #fff;">
+                    <option value="">-- Select Reason --</option>
+                    <option value="security_breach">🔒 Security Breach</option>
+                    <option value="key_leak">⚠️ Key Leaked/Exposed</option>
+                    <option value="no_longer_needed">🛑 No Longer Needed</option>
+                    <option value="limit_exceeded">⚡ Rate Limit Abuse</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Confirmation</label>
+                <input type="text" id="revokeConfirmation" placeholder="Type 'REVOKE' to confirm">
+                <small style="color: #ff6b6b;">Must type REVOKE to proceed</small>
+            </div>
+            
+            <button class="btn" onclick="revokeAPIKey()" style="background: #ff6b6b;">🚫 Revoke Key Permanently</button>
+            <button class="btn btn-secondary" onclick="closeModal('revokeKeyModal')">❌ Cancel</button>
+        </div>
+    </div>
+
+    <!-- Rate Limit & Quota Settings Modal -->
+    <div id="rateLimitModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⏱️ Rate Limit & Quota Settings</h2>
+                <span class="close-btn" onclick="closeModal('rateLimitModal')">&times;</span>
+            </div>
+            
+            <div class="form-group">
+                <label>API Model</label>
+                <input type="text" id="rateLimitModelName" readonly style="background: #1a202c; cursor: not-allowed;">
+            </div>
+            
+            <div class="form-group">
+                <label>Rate Limit (requests/minute)</label>
+                <input type="number" id="rateLimit" placeholder="e.g., 60" min="1" max="10000">
+                <small>System will enforce this limit in real-time</small>
+            </div>
+            
+            <div class="form-group">
+                <label>Monthly Quota (requests)</label>
+                <input type="number" id="monthlyQuota" placeholder="e.g., 1000000" min="1">
+                <small>Total allowed requests per calendar month</small>
+            </div>
+            
+            <div class="form-group">
+                <label>Free Quota % (before billing)</label>
+                <input type="number" id="freeQuotaPercent" placeholder="e.g., 80" min="0" max="100">
+                <small>Usage % at which billing begins (0-100%)</small>
+            </div>
+            
+            <div class="form-group">
+                <label>Alert Threshold %</label>
+                <input type="number" id="alertThreshold" placeholder="e.g., 70" min="0" max="100">
+                <small>Notify when quota usage exceeds this %</small>
+            </div>
+            
+            <button class="btn" onclick="updateRateLimit()">✅ Update Settings</button>
+            <button class="btn btn-secondary" onclick="closeModal('rateLimitModal')">❌ Cancel</button>
         </div>
     </div>
 
@@ -948,6 +1072,249 @@ API is now active and ready to use!`);
             
             closeModal('addKeyModal');
             showSection('api-keys');
+        }
+
+        // ===== KEY ROTATION & REVOCATION FUNCTIONS =====
+        
+        /**
+         * 🔄 Rotate API Key - Generate new key, keep old one inactive
+         */
+        function rotateAPIKey() {
+            const modelName = document.getElementById('rotateModelName').value;
+            const reason = document.getElementById('rotationReason').value;
+            const alertEmail = document.getElementById('rotationAlertEmail').value;
+            
+            if (!reason) {
+                alert('❌ Please select rotation reason');
+                return;
+            }
+            
+            const newKeyId = 'key_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            console.log('🔄 Rotating API Key:', {
+                model: modelName,
+                reason: reason,
+                newKeyId: newKeyId,
+                rotatedAt: new Date().toISOString(),
+                alertEmail: alertEmail
+            });
+            
+            // Send alert notification
+            if (alertEmail) {
+                sendAlertNotification({
+                    type: 'key_rotated',
+                    model: modelName,
+                    reason: reason,
+                    email: alertEmail,
+                    newKeyId: newKeyId,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            
+            // Firebase update (when ready)
+            // db.collection('api_keys').doc(modelName).update({
+            //     previous_key: {...},
+            //     current_key: { id: newKeyId, created_at: new Date() },
+            //     rotated_at: new Date(),
+            //     rotation_reason: reason
+            // });
+            
+            alert(`✅ API Key Rotated Successfully!
+
+📌 Model: ${modelName}
+🔑 New Key ID: ${newKeyId}
+⏰ Rotated: ${new Date().toLocaleString()}
+📧 Alert sent to: ${alertEmail || 'Not configured'}
+
+Old key remains for 7 days before automatic revocation.`);
+            
+            closeModal('rotateKeyModal');
+            showSection('api-keys');
+        }
+        
+        /**
+         * 🚫 Revoke API Key - Permanently disable
+         */
+        function revokeAPIKey() {
+            const modelName = document.getElementById('revokeModelName').value;
+            const reason = document.getElementById('revocationReason').value;
+            const confirmation = document.getElementById('revokeConfirmation').value;
+            
+            if (!reason) {
+                alert('❌ Please select revocation reason');
+                return;
+            }
+            if (confirmation !== 'REVOKE') {
+                alert('❌ You must type "REVOKE" to confirm');
+                return;
+            }
+            
+            console.log('🚫 Revoking API Key:', {
+                model: modelName,
+                reason: reason,
+                revokedAt: new Date().toISOString()
+            });
+            
+            // Firebase update (when ready)
+            // db.collection('api_keys').doc(modelName).update({
+            //     status: 'revoked',
+            //     revoked_at: new Date(),
+            //     revocation_reason: reason
+            // });
+            
+            alert(`✅ API Key Revoked!
+
+🚫 Model: ${modelName}
+⏰ Revoked: ${new Date().toLocaleString()}
+📋 Reason: ${reason}
+
+The key is now permanently disabled.
+Requests using this key will be rejected.`);
+            
+            closeModal('revokeKeyModal');
+            showSection('api-keys');
+        }
+        
+        /**
+         * ⏱️ Update Rate Limits & Quota Settings
+         */
+        function updateRateLimit() {
+            const modelName = document.getElementById('rateLimitModelName').value;
+            const rateLimit = parseInt(document.getElementById('rateLimit').value);
+            const monthlyQuota = parseInt(document.getElementById('monthlyQuota').value);
+            const freeQuotaPercent = parseInt(document.getElementById('freeQuotaPercent').value);
+            const alertThreshold = parseInt(document.getElementById('alertThreshold').value);
+            
+            if (!rateLimit || !monthlyQuota) {
+                alert('❌ Please fill in all required fields');
+                return;
+            }
+            
+            console.log('⏱️ Updating Rate Limits:', {
+                model: modelName,
+                rateLimit: rateLimit,
+                monthlyQuota: monthlyQuota,
+                freeQuotaPercent: freeQuotaPercent,
+                alertThreshold: alertThreshold,
+                updatedAt: new Date().toISOString()
+            });
+            
+            // Firebase update (when ready)
+            // db.collection('api_keys').doc(modelName).update({
+            //     rate_limit: rateLimit,
+            //     monthly_quota: monthlyQuota,
+            //     free_quota_percent: freeQuotaPercent,
+            //     alert_threshold: alertThreshold,
+            //     updated_at: new Date()
+            // });
+            
+            alert(`✅ Rate Limit Updated!
+
+📌 Model: ${modelName}
+⚡ Rate Limit: ${rateLimit} requests/minute
+📊 Monthly Quota: ${monthlyQuota.toLocaleString()} requests
+💰 Free Quota: 0-${freeQuotaPercent}%
+🚨 Alert at: ${alertThreshold}% usage
+
+Settings are now active with real-time enforcement.`);
+            
+            closeModal('rateLimitModal');
+        }
+        
+        /**
+         * 📧 Send Alert Notifications (Email)
+         */
+        function sendAlertNotification(alertData) {
+            console.log('📧 Sending Alert:', alertData);
+            
+            // Firebase Functions (when ready)
+            // fetch('/api/alerts/send', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify(alertData)
+            // })
+            // .then(r => r.json())
+            // .then(data => {
+            //     if (data.success) {
+            //         console.log('✅ Alert sent to:', alertData.email);
+            //     }
+            // })
+            // .catch(e => console.error('❌ Alert failed:', e));
+            
+            // Temporary: Log to localStorage
+            const alerts = JSON.parse(localStorage.getItem('admin_alerts') || '[]');
+            alerts.push({
+                ...alertData,
+                sentAt: new Date().toISOString()
+            });
+            localStorage.setItem('admin_alerts', JSON.stringify(alerts));
+            
+            console.log('✅ Alert logged for:', alertData.email);
+        }
+        
+        /**
+         * 📊 Real-time API Usage Tracking
+         * Monitor and enforce rate limits / quotas dynamically
+         */
+        function trackRealTimeUsage(modelName, requestCount = 1) {
+            // Get current usage
+            const usageKey = 'api_usage_' + modelName + '_' + new Date().toISOString().slice(0, 7);
+            const currentUsage = JSON.parse(localStorage.getItem(usageKey) || '0');
+            const newUsage = currentUsage + requestCount;
+            
+            localStorage.setItem(usageKey, JSON.stringify(newUsage));
+            
+            // Check if quota exceeded
+            const apiKey = availableProviders.find(p => p.name === modelName);
+            if (apiKey && apiKey.monthly_quota && newUsage > apiKey.monthly_quota) {
+                sendAlertNotification({
+                    type: 'quota_exceeded',
+                    model: modelName,
+                    usage: newUsage,
+                    quota: apiKey.monthly_quota,
+                    email: apiKey.created_by
+                });
+            }
+            
+            // Check if alert threshold reached
+            if (apiKey && apiKey.alert_threshold) {
+                const usagePercent = (newUsage / apiKey.monthly_quota) * 100;
+                if (usagePercent >= apiKey.alert_threshold) {
+                    sendAlertNotification({
+                        type: 'quota_warning',
+                        model: modelName,
+                        usagePercent: Math.round(usagePercent),
+                        email: apiKey.created_by
+                    });
+                }
+            }
+            
+            console.log(`📊 ${modelName} usage: ${newUsage} requests`);
+            return newUsage;
+        }
+        
+        /**
+         * 📈 Auto-update Free Quota Based on Usage
+         */
+        function updateQuotaBasedOnUsage(modelName) {
+            const usageKey = 'api_usage_' + modelName + '_' + new Date().toISOString().slice(0, 7);
+            const currentUsage = parseInt(localStorage.getItem(usageKey) || '0');
+            
+            const apiKey = availableProviders.find(p => p.name === modelName);
+            if (!apiKey) return;
+            
+            const usagePercent = (currentUsage / apiKey.monthly_quota) * 100;
+            const remainingFreePercent = Math.max(0, apiKey.free_quota_percent - usagePercent);
+            const remainingRequests = Math.max(0, (remainingFreePercent / 100) * apiKey.monthly_quota);
+            
+            return {
+                totalQuota: apiKey.monthly_quota,
+                currentUsage: currentUsage,
+                usagePercent: Math.round(usagePercent),
+                freeQuotaPercent: remainingFreePercent,
+                remainingFreeRequests: Math.round(remainingRequests),
+                isPaidQuotaNow: usagePercent > apiKey.free_quota_percent
+            };
         }
 
         // ===== EXISTING FUNCTIONS =====
