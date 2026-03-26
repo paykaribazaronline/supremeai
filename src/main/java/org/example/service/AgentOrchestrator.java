@@ -32,6 +32,8 @@ public class AgentOrchestrator {
     
     // Phase 5 Services (Multi-Account Support)
     private final AIAccountManager accountManager;
+    private final BudgetManager budgetManager;
+    private final PublicAIRouter publicRouter;
     
     private final ExecutorService executor = Executors.newFixedThreadPool(8);
     private final Map<String, Agent> agentPool = new HashMap<>();
@@ -58,6 +60,8 @@ public class AgentOrchestrator {
         
         // Initialize Phase 5 (Multi-Account Support)
         this.accountManager = new AIAccountManager(firebase);
+        this.budgetManager = new BudgetManager(accountManager, firebase);
+        this.publicRouter = new PublicAIRouter(accountManager, budgetManager, aiService, firebase);
         
         this.memoryManager.setFirebaseService(firebase);
         initializeAgentPool();
@@ -103,6 +107,28 @@ public class AgentOrchestrator {
      */
     public AIAccountManager getAccountManager() {
         return accountManager;
+    }
+    
+    /**
+     * Get budget manager for monitoring
+     */
+    public BudgetManager getBudgetManager() {
+        return budgetManager;
+    }
+    
+    /**
+     * ⚡ PRIMARY: Route request through public AI system
+     * Handles multi-account selection, fallback, budget enforcement
+     */
+    public PublicAIRouter.RouterResponse routeAIRequest(String provider, String prompt, Map<String, String> metadata) {
+        return publicRouter.routeRequest(provider, prompt, metadata);
+    }
+    
+    /**
+     * Get public router for direct access
+     */
+    public PublicAIRouter getPublicRouter() {
+        return publicRouter;
     }
     
     public void processProjectRequirement(String projectId, String requirementDesc) {

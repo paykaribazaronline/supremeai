@@ -209,6 +209,27 @@ public class AIAccountManager {
         return getActiveAccountsForProvider(provider);
     }
     
+    /**
+     * Get next available account (for fallback on current account failure)
+     */
+    public AIAccount getNextAvailableAccount(String provider, String currentAccountId) {
+        List<AIAccount> fallback = getFallbackChain(provider);
+        
+        for (AIAccount acc : fallback) {
+            if (!acc.getAccountId().equals(currentAccountId) && 
+                acc.isActive() && 
+                acc.isBudgetAvailable() && 
+                acc.isQuotaAvailable()) {
+                
+                System.out.println("🔄 Rotating to account: " + acc.getAccountId());
+                return acc;
+            }
+        }
+        
+        System.out.println("❌ No fallback accounts available for rotation");
+        return null;
+    }
+    
     // ========== USAGE TRACKING ==========
     
     /**
