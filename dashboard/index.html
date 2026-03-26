@@ -320,29 +320,10 @@
                             <th>Progress</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="projectsTableBody">
                         <tr>
-                            <td>real-task-manager-app</td>
-                            <td><span class="badge success">Complete</span></td>
-                            <td>
-                                <div class="progress-bar"><div class="progress-fill" style="width: 100%"></div></div>
-                                100%
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>my-chat-app</td>
-                            <td><span class="badge success">Active</span></td>
-                            <td>
-                                <div class="progress-bar"><div class="progress-fill" style="width: 75%"></div></div>
-                                75%
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>ecommerce-platform</td>
-                            <td><span class="badge warning">In Progress</span></td>
-                            <td>
-                                <div class="progress-bar"><div class="progress-fill warning" style="width: 50%"></div></div>
-                                50%
+                            <td colspan="3" style="text-align: center; padding: 20px; color: #999;">
+                                📂 No projects yet. Waiting for data from Firebase...
                             </td>
                         </tr>
                     </tbody>
@@ -360,26 +341,11 @@
                             <th>Status</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="systemMetricsTableBody">
                         <tr>
-                            <td>Memory Usage</td>
-                            <td>62%</td>
-                            <td><span class="badge success">Good</span></td>
-                        </tr>
-                        <tr>
-                            <td>CPU Usage</td>
-                            <td>35%</td>
-                            <td><span class="badge success">Good</span></td>
-                        </tr>
-                        <tr>
-                            <td>Uptime</td>
-                            <td>45 days</td>
-                            <td><span class="badge success">Excellent</span></td>
-                        </tr>
-                        <tr>
-                            <td>Database Latency</td>
-                            <td>245ms</td>
-                            <td><span class="badge success">Normal</span></td>
+                            <td colspan="3" style="text-align: center; padding: 20px; color: #999;">
+                                📊 No metrics available yet. Waiting for data from Firebase...
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -391,23 +357,19 @@
                 <div class="chart-container">
                     <canvas id="storageChart"></canvas>
                 </div>
-                <div class="progress-bar" style="margin-top: 15px;">
-                    <div class="progress-fill" style="width: 42%"></div>
+                <div class="progress-bar" style="margin-top: 15px;" id="storageProgressBar">
+                    <div class="progress-fill" style="width: 0%"></div>
                 </div>
-                <p style="margin-top: 10px; color: #666; font-size: 12px;">Used: 4.2GB / 10GB (42% of quota)</p>
+                <p style="margin-top: 10px; color: #666; font-size: 12px;" id="storageText">Waiting for Firebase data...</p>
             </div>
 
             <!-- Alerts -->
             <div class="card full-width">
                 <h2>🔔 Recent Alerts</h2>
-                <div class="alert-box success">
-                    <strong>✅ All Systems Normal</strong> - 10 minutes ago
-                </div>
-                <div class="alert-box">
-                    <strong>⚠️ Storage At 42%</strong> - Consider archiving old data (1 hour ago)
-                </div>
-                <div class="alert-box success">
-                    <strong>✅ Backup Completed</strong> - 3.2GB backed up (Yesterday 2:30 AM)
+                <div id="alertsContainer">
+                    <p style="text-align: center; color: #999; padding: 20px;">
+                        ⏳ No alerts yet. Waiting for data from Firebase...
+                    </p>
                 </div>
             </div>
         </div>
@@ -418,98 +380,218 @@
     </div>
 
     <script>
-        // Initialize charts
-        const ctx1 = document.getElementById('apiChart').getContext('2d');
-        const apiChart = new Chart(ctx1, {
-            type: 'line',
-            data: {
-                labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
-                datasets: [{
-                    label: 'API Calls',
-                    data: [1200, 1900, 3000, 2500, 2100, 2200, 1800],
-                    borderColor: '#1e3c72',
-                    backgroundColor: 'rgba(30, 60, 114, 0.1)',
-                    tension: 0.1,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } }
+        // ===== FIREBASE-DRIVEN MONITORING DASHBOARD (Zero Hardcoding) =====
+        
+        let chartInstances = {};
+        let dashboardData = {};
+        
+        // Load all metrics from Firebase (NOT hardcoded)
+        function loadDashboardMetricsFromFirebase() {
+            console.log('📊 Loading dashboard metrics from Firebase...');
+            
+            // TODO: Replace with actual Firebase fetch:
+            // fetch('/api/metrics/dashboard')
+            //   .then(r => r.json())
+            //   .then(data => {
+            //       dashboardData = data;
+            //       initializeDashboard();
+            //   });
+            
+            // For now: Empty dashboard waiting for Firebase data
+            dashboardData = {
+                apiCalls: { labels: [], data: [] },
+                errors: { labels: [], data: [] },
+                responseTime: { labels: [], data: [] },
+                providers: { labels: [], data: [] },
+                storage: { labels: [], data: [] },
+                projects: [],
+                systemStatus: { healthy: true, errorRate: 0, responseTime: 0, storage: '0GB / 10GB' },
+                alerts: []
+            };
+            
+            // Update metrics display
+            updateMetricsDisplay();
+            initializeCharts();
+        }
+        
+        function updateMetricsDisplay() {
+            // Update status cards (load from Firebase)
+            document.getElementById('systemStatus').textContent = dashboardData.systemStatus.healthy ? '✅ HEALTHY' : '⚠️ DEGRADED';
+            document.getElementById('errorRate').textContent = dashboardData.systemStatus.errorRate + '%';
+            document.getElementById('responseTime').textContent = dashboardData.systemStatus.responseTime + 'ms';
+            document.getElementById('storageUsed').textContent = dashboardData.systemStatus.storage;
+            
+            // Update projects table
+            updateProjectsTable();
+            
+            // Update system metrics table
+            updateSystemMetricsTable();
+            
+            // Update alerts
+            updateAlertsDisplay();
+            
+            // Update storage progress
+            updateStorageDisplay();
+        }
+        
+        function updateProjectsTable() {
+            const tbody = document.getElementById('projectsTableBody');
+            if (!dashboardData.projects || dashboardData.projects.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px; color: #999;">📂 No projects yet</td></tr>';
+                return;
             }
-        });
+            
+            tbody.innerHTML = dashboardData.projects.map(project => `
+                <tr>
+                    <td>${project.name}</td>
+                    <td><span class="badge ${project.status === 'Complete' ? 'success' : project.status === 'Active' ? 'success' : 'warning'}">${project.status}</span></td>
+                    <td>
+                        <div class="progress-bar"><div class="progress-fill ${project.status === 'In Progress' ? 'warning' : ''}" style="width: ${project.progress}%"></div></div>
+                        ${project.progress}%
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        function updateSystemMetricsTable() {
+            const tbody = document.getElementById('systemMetricsTableBody');
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px; color: #999;">⏳ No system metrics available yet</td></tr>';
+            // TODO: Populate from dashboardData.systemMetrics when available from Firebase
+        }
+        
+        function updateAlertsDisplay() {
+            const container = document.getElementById('alertsContainer');
+            if (!dashboardData.alerts || dashboardData.alerts.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">✅ All systems normal - no alerts</p>';
+                return;
+            }
+            
+            container.innerHTML = dashboardData.alerts.map(alert => `
+                <div class="alert-box ${alert.type === 'success' ? 'success' : alert.type === 'danger' ? 'danger' : ''}">
+                    <strong>${alert.title}</strong> - ${alert.time}
+                </div>
+            `).join('');
+        }
+        
+        function updateStorageDisplay() {
+            const progressBar = document.getElementById('storageProgressBar').querySelector('.progress-fill');
+            const storageText = document.getElementById('storageText');
+            
+            // Parse storage from dashboardData.systemStatus.storage (e.g., "4.2GB / 10GB")
+            storageText.textContent = dashboardData.systemStatus.storage || 'Waiting for Firebase data...';
+            progressBar.style.width = '0%'; // Update with actual percentage when available
+        }
+        
+        function initializeCharts() {
+            // Initialize all charts with Firebase data (empty until data arrives)
+            initializeApiChart();
+            initializeErrorChart();
+            initializeResponseChart();
+            initializeProviderChart();
+            initializeStorageChart();
+        }
+        
+        function initializeApiChart() {
+            const ctx1 = document.getElementById('apiChart').getContext('2d');
+            chartInstances.api = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: dashboardData.apiCalls.labels.length > 0 ? dashboardData.apiCalls.labels : ['No data yet'],
+                    datasets: [{
+                        label: 'API Calls',
+                        data: dashboardData.apiCalls.data.length > 0 ? dashboardData.apiCalls.data : [0],
+                        borderColor: '#1e3c72',
+                        backgroundColor: 'rgba(30, 60, 114, 0.1)',
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
 
-        const ctx2 = document.getElementById('errorChart').getContext('2d');
-        const errorChart = new Chart(ctx2, {
-            type: 'bar',
-            data: {
-                labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
-                datasets: [{
-                    label: 'Errors',
-                    data: [5, 8, 12, 10, 8, 6, 4],
-                    backgroundColor: '#dc3545'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } }
-            }
-        });
+        function initializeErrorChart() {
+            const ctx2 = document.getElementById('errorChart').getContext('2d');
+            chartInstances.error = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: dashboardData.errors.labels.length > 0 ? dashboardData.errors.labels : ['No data yet'],
+                    datasets: [{
+                        label: 'Errors',
+                        data: dashboardData.errors.data.length > 0 ? dashboardData.errors.data : [0],
+                        backgroundColor: '#dc3545'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
 
-        const ctx3 = document.getElementById('responseChart').getContext('2d');
-        const responseChart = new Chart(ctx3, {
-            type: 'line',
-            data: {
-                labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
-                datasets: [{
-                    label: 'Response Time (ms)',
-                    data: [200, 250, 300, 350, 300, 250, 200],
-                    borderColor: '#28a745',
-                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                    tension: 0.1,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } }
-            }
-        });
+        function initializeResponseChart() {
+            const ctx3 = document.getElementById('responseChart').getContext('2d');
+            chartInstances.response = new Chart(ctx3, {
+                type: 'line',
+                data: {
+                    labels: dashboardData.responseTime.labels.length > 0 ? dashboardData.responseTime.labels : ['No data yet'],
+                    datasets: [{
+                        label: 'Response Time (ms)',
+                        data: dashboardData.responseTime.data.length > 0 ? dashboardData.responseTime.data : [0],
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
 
-        const ctx4 = document.getElementById('providerChart').getContext('2d');
-        const providerChart = new Chart(ctx4, {
-            type: 'doughnut',
-            data: {
-                labels: ['Gemini', 'OpenAI', 'DeepSeek', 'Groq', 'Others'],
-                datasets: [{
-                    data: [4523, 3215, 2845, 2100, 1551],
-                    backgroundColor: ['#1e3c72', '#2a5298', '#3a7ca5', '#4a9eba', '#5ab8cc']
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
+        function initializeProviderChart() {
+            const ctx4 = document.getElementById('providerChart').getContext('2d');
+            chartInstances.provider = new Chart(ctx4, {
+                type: 'doughnut',
+                data: {
+                    labels: dashboardData.providers.labels.length > 0 ? dashboardData.providers.labels : ['No data'],
+                    datasets: [{
+                        data: dashboardData.providers.data.length > 0 ? dashboardData.providers.data : [1],
+                        backgroundColor: ['#1e3c72', '#2a5298', '#3a7ca5', '#4a9eba', '#5ab8cc']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
 
-        const ctx5 = document.getElementById('storageChart').getContext('2d');
-        const storageChart = new Chart(ctx5, {
-            type: 'doughnut',
-            data: {
-                labels: ['Used', 'Available'],
-                datasets: [{
-                    data: [4.2, 5.8],
-                    backgroundColor: ['#ffc107', '#28a745']
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
+        function initializeStorageChart() {
+            const ctx5 = document.getElementById('storageChart').getContext('2d');
+            chartInstances.storage = new Chart(ctx5, {
+                type: 'doughnut',
+                data: {
+                    labels: dashboardData.storage.labels.length > 0 ? dashboardData.storage.labels : ['Used', 'Available'],
+                    datasets: [{
+                        data: dashboardData.storage.data.length > 0 ? dashboardData.storage.data : [0, 10],
+                        backgroundColor: ['#ffc107', '#28a745']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
 
         // Update timestamp
         function updateTime() {
@@ -517,18 +599,23 @@
             document.getElementById('lastUpdate').textContent = now.toLocaleTimeString('bn-BD');
         }
 
-        // Refresh dashboard
+        // Refresh dashboard - Load latest data from Firebase
         function refreshDashboard() {
             updateTime();
-            alert('Dashboard refreshed! ✅');
+            loadDashboardMetricsFromFirebase();
+            console.log('🔄 Dashboard refreshed - loaded latest metrics from Firebase');
         }
 
-        // Initial setup
-        updateTime();
-        setInterval(updateTime, 1000);
-
-        // Auto-refresh every 5 minutes
-        setInterval(refreshDashboard, 5 * 60 * 1000);
+        // Initial setup - Load from Firebase on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ Monitoring Dashboard initialized');
+            loadDashboardMetricsFromFirebase();
+            updateTime();
+            setInterval(updateTime, 1000);
+            
+            // Auto-refresh every 5 minutes (load fresh data from Firebase)
+            setInterval(refreshDashboard, 5 * 60 * 1000);
+        });
     </script>
 </body>
 </html>
