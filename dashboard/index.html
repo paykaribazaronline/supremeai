@@ -303,11 +303,21 @@
 
         .login-form-group input {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
+            padding: 12px;
+            border: 2px solid #ddd;
             border-radius: 5px;
             font-family: inherit;
             box-sizing: border-box;
+            font-size: 16px;
+            background: #ffffff;
+            color: #333;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        .login-form-group input::placeholder {
+            color: #999;
+            opacity: 1;
         }
 
         .login-form-group input:focus {
@@ -326,6 +336,13 @@
             cursor: pointer;
             font-weight: 600;
             font-size: 16px;
+            opacity: 1 !important;
+            visibility: visible !important;
+            margin-top: 10px;
+        }
+        
+        .login-btn:hover {
+            background: #2a5298;
         }
 
         .login-btn:hover {
@@ -531,8 +548,12 @@
         <div class="login-modal-content">
             <div class="login-error" id="loginError"></div>
             <form onsubmit="handleLogin(event)">
-                <input type="email" id="loginEmail" placeholder="Email" required style="opacity: 1; margin-bottom: 10px;">
-                <input type="password" id="loginPassword" placeholder="Password" required style="opacity: 1; margin-bottom: 10px;">
+                <div class="login-form-group">
+                    <input type="email" id="loginEmail" placeholder="Email" required style="opacity: 1;">
+                </div>
+                <div class="login-form-group">
+                    <input type="password" id="loginPassword" placeholder="Password" required style="opacity: 1;">
+                </div>
                 <button type="submit" class="login-btn" style="opacity: 1;">Login</button>
             </form>
         </div>
