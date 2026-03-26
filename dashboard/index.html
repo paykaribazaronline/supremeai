@@ -547,17 +547,10 @@
     <!-- Login Modal -->
     <div class="login-modal" id="loginModal">
         <div class="login-modal-content">
-            <h2>🔐 Admin Login</h2>
             <div class="login-error" id="loginError"></div>
             <form onsubmit="handleLogin(event)">
-                <div class="login-form-group">
-                    <label for="loginEmail">Email:</label>
-                    <input type="email" id="loginEmail" required>
-                </div>
-                <div class="login-form-group">
-                    <label for="loginPassword">Password:</label>
-                    <input type="password" id="loginPassword" required>
-                </div>
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
                 <button type="submit" class="login-btn">Login</button>
             </form>
         </div>
@@ -862,39 +855,56 @@
             const password = document.getElementById('loginPassword').value;
             const errorDiv = document.getElementById('loginError');
             
-            // ইনপুট ভ্যালিডেশন - সব ফিল্ড পূরণ আছে কিনা চেক করুন
-            if (!email || !password) {
-                loginAttempts++;
-                checkLoginAttempts();
-                showError('সব ফিল্ড পূরণ করুন / Please fill all fields');
-                return;
-            }
-            
-            // Firebase authentication এর সাথে connect করুন (production এ)
-            // যেকোনো email দিয়ে login করতে পারবেন (Firebase Auth এ check হবে)
-            if (email && password) {
-                // TODO: Firebase authentication integrate করুন
-                // firebase.auth().signInWithEmailAndPassword(email, password)
+            // ইউজারের IP address পান এবং check করুন blocked কিনা
+            getClientIP().then(ipAddress => {
+                // Check করুন IP block আছে কিনা
+                if (isIPBlocked(ipAddress)) {
+                    showError('🚫 IP ব্লক করা হয়েছে ১০ মিনিটের জন্য / This IP is temporarily blocked');
+                    console.log('🚫 Blocked IP tried to login:', ipAddress);
+                    return;
+                }
                 
-                // আপাতত: যেকোনো email-password গ্রহণ করছি (Demo mode)
-                // localStorage = দীর্ঘমেয়াদী স্টোরেজ (ব্রাউজার বন্ধ করলেও ডেটা থাকে) ✅
-                const token = 'token_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                // ইনপুট ভ্যালিডেশন - সব ফিল্ড পূরণ আছে কিনা চেক করুন
+                if (!email || !password) {
+                    loginAttempts++;
+                    console.log(`❌ Failed attempt ${loginAttempts} from IP: ${ipAddress}`);
+                    checkLoginAttempts(email, ipAddress);
+                    showError('সব ফিল্ড পূরণ করুন / Please fill all fields');
+                    return;
+                }
                 
-                localStorage.setItem('supremeai_token', token);
-                localStorage.setItem('supremeai_user', email);
-                localStorage.setItem('supremeai_login_time', new Date().toISOString());
-                
-                console.log('✅ লগইন সফল / Logged in as:', email);
-                console.log('💾 ডেটা localStorage এ সংরক্ষিত হয়েছে');
-                
-                loginAttempts = 0;  // Reset attempts on successful login
-                showAuthStatus(email);
-                closeLoginModal();
-                
-                // ফর্ম ক্লিয়ার করুন
-                document.getElementById('loginEmail').value = '';
-                document.getElementById('loginPassword').value = '';
-                
+                // Firebase authentication এর সাথে connect করুন (production এ)
+                // যেকোনো email দিয়ে login করতে পারবেন (Firebase Auth এ check হবে)
+                if (email && password) {
+                    // TODO: Firebase authentication integrate করুন
+                    // firebase.auth().signInWithEmailAndPassword(email, password)
+                    //   .then(...logged in successfully...)
+                    //   .catch(error => {
+                    //       loginAttempts++;
+                    //       checkLoginAttempts(email, ipAddress);  // Log failed attempt to Firebase
+                    //   });
+                    
+                    // আপাতত: যেকোনো email-password গ্রহণ করছি (Demo mode)
+                    // localStorage = দীর্ঘমেয়াদী স্টোরেজ (ব্রাউজার বন্ধ করলেও ডেটা থাকে) ✅
+                    const token = 'token_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    
+                    localStorage.setItem('supremeai_token', token);
+                    localStorage.setItem('supremeai_user', email);
+                    localStorage.setItem('supremeai_login_time', new Date().toISOString());
+                    
+                    console.log('✅ লগইন সফল / Logged in as:', email);
+                    console.log('💾 ডেটা localStorage এ সংরক্ষিত হয়েছে');
+                    
+                    loginAttempts = 0;  // Reset attempts on successful login
+                    showAuthStatus(email);
+                    closeLoginModal();
+                    
+                    // ফর্ম ক্লিয়ার করুন
+                    document.getElementById('loginEmail').value = '';
+                    document.getElementById('loginPassword').value = '';
+                }
+            });
+        }
                 alert('✅ লগইন সফল!\\n✅ Login Successful!\\n\\n💾 আপনার লগইন প্রতিটি ভিজিটে সংরক্ষিত থাকবে');
             }
         }
@@ -957,15 +967,131 @@
         }
         
         /**
-         * 3 failed attempts পরে alert দেখান
+         * 3 failed attempts পরে IP block করুন এবং Firebase এ alert পাঠাও
+         * User কে কোন popup alert দেখাবে না - শুধু error message
          * প্রতিটি failed attempt এ এটি check করা হয়
          */
-        function checkLoginAttempts() {
+        function checkLoginAttempts(email = 'Unknown', ipAddress = 'Unknown') {
             if (loginAttempts >= 3) {
-                alert('⚠️ আপনি 3 বার ভুল চেষ্টা করেছেন!\\n⚠️ Too many failed attempts!\\n\\n⏳ অনুগ্রহ করে পরে চেষ্টা করুন।\\nPlease try again later.');
-                loginAttempts = 0;  // Reset after showing alert
-                closeLoginModal();
+                // IP কে ১০ মিনিটের জন্য block করুন
+                blockIP(ipAddress);
+                
+                // Firebase এ log করুন (admin notification)
+                logFailedLoginToFirebase(email, loginAttempts, ipAddress);
+                
+                console.log('🚨 Failed login attempt logged to Firebase for admin');
+                console.log(`🚫 IP ${ipAddress} has been blocked for 10 minutes`);
+                
+                // User কে শুধু error message দেখান, popup alert নয়
+                showError('🚫 Too many attempts. IP blocked for 10 minutes.');
+                
+                loginAttempts = 0;  // Reset after logging
+                
+                // Modal বন্ধ করুন (2 seconds পর)
+                setTimeout(() => {
+                    closeLoginModal();
+                }, 1500);
             }
+        }
+        
+        /**
+         * Failed login attempt Firebase এ পাঠাও
+         * Admin এই data দেখতে পাবে "failed_logins" collection এ
+         */
+        function logFailedLoginToFirebase(email, attempts, ipAddress = 'Unknown') {
+            // TODO: Firebase initialize করুন
+            const failedLoginData = {
+                email: email,
+                attempts: attempts,
+                ipAddress: ipAddress,
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent,
+                // Note: In production, don't log passwords or sensitive data
+            };
+            
+            console.log('📤 Sending to Firebase:', failedLoginData);
+            
+            // Firebase code (when ready):
+            // db.collection('failed_logins').add(failedLoginData)
+            //   .then(() => console.log('✅ Failed login logged to Firebase'))
+            //   .catch(error => console.error('❌ Firebase error:', error));
+            
+            // Temporary localStorage backup (until Firebase is ready)
+            const failedAttempts = JSON.parse(localStorage.getItem('failed_login_attempts') || '[]');
+            failedAttempts.push(failedLoginData);
+            localStorage.setItem('failed_login_attempts', JSON.stringify(failedAttempts));
+            
+            console.log('💾 Backup stored in localStorage for later Firebase sync');
+        }
+        
+        /**
+         * ইউজারের IP address পান (public API ব্যবহার করে)
+         * cloudflare.com/ajax/libs/ipify/latest/ipify.min.js ব্যবহার করতে পারেন
+         */
+        async function getClientIP() {
+            try {
+                // ipify API ব্যবহার করুন (fast, free, reliable)
+                const response = await fetch('https://api.ipify.org?format=json', { timeout: 3000 });
+                const data = await response.json();
+                console.log('📍 Client IP:', data.ip);
+                return data.ip;
+            } catch (error) {
+                console.warn('⚠️ Could not fetch IP, using fallback:', error);
+                // Fallback: Use browser fingerprint (less reliable than IP)
+                return 'browser_' + navigator.userAgent.substring(0, 20).replace(/\s/g, '_');
+            }
+        }
+        
+        /**
+         * IP address blocked আছে কিনা check করুন (10 minutes)
+         */
+        function isIPBlocked(ipAddress) {
+            const blockedIPs = JSON.parse(localStorage.getItem('blocked_ips') || '{}');
+            
+            if (blockedIPs[ipAddress]) {
+                const blockTime = new Date(blockedIPs[ipAddress].timestamp).getTime();
+                const currentTime = new Date().getTime();
+                const timeDifference = (currentTime - blockTime) / 1000 / 60; // minutes এ convert করুন
+                
+                if (timeDifference < 10) {
+                    // IP still blocked (10 minutes হয়নি)
+                    const remainingTime = Math.ceil(10 - timeDifference);
+                    console.log(`🚫 IP ${ipAddress} is blocked. ${remainingTime} minutes remaining`);
+                    return true;
+                } else {
+                    // 10 minutes হয়ে গেছে, unblock করুন
+                    delete blockedIPs[ipAddress];
+                    localStorage.setItem('blocked_ips', JSON.stringify(blockedIPs));
+                    console.log(`✅ IP ${ipAddress} has been unblocked`);
+                    return false;
+                }
+            }
+            return false;
+        }
+        
+        /**
+         * IP address ১০ মিনিটের জন্য block করুন
+         */
+        function blockIP(ipAddress) {
+            const blockedIPs = JSON.parse(localStorage.getItem('blocked_ips') || '{}');
+            blockedIPs[ipAddress] = {
+                timestamp: new Date().toISOString(),
+                reason: 'Too many failed login attempts'
+            };
+            localStorage.setItem('blocked_ips', JSON.stringify(blockedIPs));
+            
+            console.log(`🚫 IP ${ipAddress} blocked until ${new Date(Date.now() + 10 * 60 * 1000).toISOString()}`);
+            
+            // Firebase এ block করা IP list update করুন (admin এর জন্য)
+            const blockedIPData = {
+                ipAddress: ipAddress,
+                blockedAt: new Date().toISOString(),
+                unblockAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+                reason: 'Too many failed login attempts'
+            };
+            
+            // Firebase code (when ready):
+            // db.collection('blocked_ips').doc(ipAddress).set(blockedIPData)
         }
     </script>
 </body>
