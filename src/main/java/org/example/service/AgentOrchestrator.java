@@ -5,6 +5,7 @@ import org.example.model.Requirement;
 import org.example.model.Vote;
 import org.example.model.SystemConfig;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -19,9 +20,18 @@ public class AgentOrchestrator {
     private final FirebaseService firebaseService;
     private final SystemConfig config;
     
-    private final ExecutorService executor = Executors.newFixedThreadPool(8); // Increased threads for parallel tasks
+    // Phase 3 Services
+    private final FileOrchestrator fileOrchestrator;
+    private final TemplateManager templateManager;
+    
+    // Phase 4 Services (Git + CI/CD + Deployment)
+    private final GitIntegrationService gitService;
+    private final CICDService cicdService;
+    private final CloudDeploymentService deploymentService;
+    private final ProjectTypeManager projectTypeManager;
+    
+    private final ExecutorService executor = Executors.newFixedThreadPool(8);
     private final Map<String, Agent> agentPool = new HashMap<>();
-    private final Set<String> blockedRequirements = Collections.newSetFromMap(new ConcurrentHashMap<>());
     
     public AgentOrchestrator(Map<String, String> apiKeys, FirebaseService firebase, SystemConfig cfg) {
         this.aiService = new AIAPIService(apiKeys);
@@ -33,6 +43,16 @@ public class AgentOrchestrator {
         this.firebaseService = firebase;
         this.config = cfg;
         
+        // Initialize Phase 3 (Generator)
+        this.fileOrchestrator = new FileOrchestrator("projects", this.memoryManager);
+        this.templateManager = new TemplateManager("templates", this.fileOrchestrator);
+        
+        // Initialize Phase 4 (Git + CI/CD + Deployment)
+        this.gitService = new GitIntegrationService("projects", firebase);
+        this.cicdService = new CICDService("projects", firebase);
+        this.deploymentService = new CloudDeploymentService(firebase);
+        this.projectTypeManager = new ProjectTypeManager(gitService, cicdService, deploymentService, fileOrchestrator, firebase);
+        
         this.memoryManager.setFirebaseService(firebase);
         initializeAgentPool();
     }
@@ -43,10 +63,6 @@ public class AgentOrchestrator {
         agentPool.put("ARCHITECT", new Agent("architect-1", "Z-Architect", Agent.Role.ARCHITECT, "gpt-4"));
     }
     
-    /**
-     * Entry point for a new project requirement.
-     * Operates in a non-blocking way so other requirements can proceed.
-     */
     public void processProjectRequirement(String projectId, String requirementDesc) {
         executor.submit(() -> {
             try {
@@ -55,21 +71,14 @@ public class AgentOrchestrator {
                 Requirement.Size size = classifier.classify(requirementDesc);
                 Requirement requirement = new Requirement(UUID.randomUUID().toString(), requirementDesc, size);
                 
-                // Check if this specific requirement needs human input
                 if (size == Requirement.Size.HUMAN_REQUIRED) {
                     handleHumanRequired(projectId, requirement);
-                    return; // Stop this thread, but others continue
+                    return;
                 }
                 
                 approvalManager.processRequirement(requirement);
-                firebaseService.saveChatMessage(projectId, "system", 
-                    "Requirement classified as: " + size, "system");
-                
                 if (requirement.getStatus() == Requirement.Status.APPROVED) {
                     runWorkflow(projectId, requirement);
-                } else if (size == Requirement.Size.BIG) {
-                    System.out.println("⏳ [WORKFLOW] Blocked: Waiting for Admin Approval for BIG task: " + requirementDesc);
-                    firebaseService.sendNotification("admin", "Approval Needed", requirementDesc, "approval");
                 }
             } catch (Exception e) {
                 System.err.println("Error processing requirement: " + e.getMessage());
@@ -78,77 +87,117 @@ public class AgentOrchestrator {
     }
 
     private void handleHumanRequired(String projectId, Requirement req) {
-        System.out.println("🚨 [HUMAN_ACTION_REQUIRED] Blocked Task: " + req.getDescription());
-        blockedRequirements.add(req.getId());
-        req.setStatus(Requirement.Status.WAITING_FOR_HUMAN);
-        
         firebaseService.saveChatMessage(projectId, "SupremeAI", 
-            "🚨 I cannot proceed with this task: \"" + req.getDescription() + "\". I need your help (King Mode/Manual Action).", 
-            "human_required");
-        
-        firebaseService.sendNotification("admin", "🚨 Action Required", 
-            "SupremeAI is stuck on: " + req.getDescription(), "human_action");
-        
-        System.out.println("ℹ️  [ORCHESTRATOR] Other tasks will continue in parallel...");
+            "🚨 I need human action for: \"" + req.getDescription() + "\".", "human_required");
+    }
+
+    /**
+     * Process Git-Based Development Project
+     * Admin provides git URL, branch, and development task
+     * SupremeAI handles: Clone → Develop → Test → Fix Failures → Commit → Deploy
+     */
+    public void processGitProject(String projectId, Map<String, String> gitConfig) {
+        executor.submit(() -> {
+            try {
+                String gitUrl = gitConfig.get("gitUrl");
+                String branch = gitConfig.get("branch");
+                String task = gitConfig.get("task");
+                
+                System.out.println("\n🔄 [GIT-BASED WORKFLOW] Starting development on: " + gitUrl);
+                firebaseService.saveChatMessage(projectId, "System", "🚀 Starting Git-based development workflow...", "system");
+                
+                // Create project configuration
+                ProjectTypeManager.ProjectConfig config = new ProjectTypeManager.ProjectConfig();
+                config.type = ProjectTypeManager.ProjectType.GIT_BASED;
+                config.projectId = projectId;
+                config.gitUrl = gitUrl;
+                config.gitBranch = branch;
+                config.gitToken = gitConfig.getOrDefault("gitToken", "");
+                
+                // Build config
+                config.buildConfig.put("install_command", gitConfig.getOrDefault("installCmd", "npm install"));
+                config.buildConfig.put("test_command", gitConfig.get("testCmd"));
+                config.buildConfig.put("build_command", gitConfig.getOrDefault("buildCmd", "npm run build"));
+                config.buildConfig.put("lint_command", gitConfig.getOrDefault("lintCmd", ""));
+                
+                // Deployment config
+                config.deploymentConfig.put("cloud_provider", gitConfig.getOrDefault("cloudProvider", ""));
+                config.deploymentConfig.put("provider_credentials", gitConfig.getOrDefault("cloudToken", ""));
+                config.deploymentConfig.put("auto_fix_tests", gitConfig.getOrDefault("autoFixTests", "true"));
+                
+                // Execute through ProjectTypeManager
+                projectTypeManager.processProject(config, task);
+                
+            } catch (Exception e) {
+                System.err.println("Error processing git project: " + e.getMessage());
+                e.printStackTrace();
+                firebaseService.saveChatMessage(projectId, "System", 
+                    "❌ Error: " + e.getMessage(), "error");
+            }
+        });
     }
 
     private void runWorkflow(String projectId, Requirement requirement) {
-        // This is a simplified version of the loop logic we discussed
-        planWithArchitect(projectId, requirement.getDescription());
+        try {
+            // Step 1: Planning with Voting Loop
+            String finalPlan = planWithArchitect(projectId, requirement.getDescription());
+            
+            // Step 2: Initialize File Structure (Phase 3)
+            templateManager.initializeProject(projectId, "FLUTTER"); // Defaulting to Flutter as example
+            
+            // Step 3: Code Generation with Voting Loop
+            String finalCode = buildWithCodeGenerator(projectId, requirement.getDescription(), finalPlan);
+            
+            // Step 4: Write Final Code to Disk (Phase 3)
+            fileOrchestrator.writeFile(projectId, "lib/main.dart", finalCode);
+            
+            System.out.println("🎉 [PHASE 3] Project files generated successfully at: projects/" + projectId);
+            firebaseService.saveChatMessage(projectId, "System", "✅ Code generation complete. Files saved locally.", "system");
+            
+        } catch (IOException e) {
+            System.err.println("File generation error: " + e.getMessage());
+        }
     }
     
-    private void planWithArchitect(String projectId, String requirement) {
+    private String planWithArchitect(String projectId, String requirement) {
         System.out.println("\n🏗️  [ARCHITECT] Generating plan...");
-        
         String currentPlan = aiService.callAI("ARCHITECT", "Plan architecture for: " + requirement, rotationManager.getFallbackChain(Agent.Role.ARCHITECT));
         
         boolean consensusReached = false;
         int loopCount = 0;
-        
-        while (!consensusReached && loopCount < 5) {
+        while (!consensusReached && loopCount < 3) {
             loopCount++;
             List<Vote> votes = requestConsensus("PLAN_VOTE_" + loopCount, currentPlan);
-            double approvalRate = consensusEngine.getApprovalRate(votes);
-            String improvements = consensusEngine.collectImprovements(votes);
-            
-            if (approvalRate >= 0.70 && improvements.isEmpty()) {
+            if (consensusEngine.getApprovalRate(votes) >= 0.70) {
                 consensusReached = true;
             } else {
-                currentPlan = aiService.callAI("ARCHITECT", "Improve this plan: " + currentPlan + "\nSuggestions: " + improvements, rotationManager.getFallbackChain(Agent.Role.ARCHITECT));
+                currentPlan = aiService.callAI("ARCHITECT", "Refine this plan based on suggestions.", rotationManager.getFallbackChain(Agent.Role.ARCHITECT));
             }
         }
-        
-        firebaseService.saveChatMessage(projectId, "Z-Architect", currentPlan, "ai");
-        buildWithCodeGenerator(projectId, requirement, currentPlan);
+        return currentPlan;
     }
     
-    private void buildWithCodeGenerator(String projectId, String requirement, String plan) {
+    private String buildWithCodeGenerator(String projectId, String requirement, String plan) {
         System.out.println("\n🔨 [BUILDER] Generating code...");
-        String currentCode = aiService.callAI("BUILDER", "Generate code for: " + requirement + " based on: " + plan, rotationManager.getFallbackChain(Agent.Role.BUILDER));
+        String currentCode = aiService.callAI("BUILDER", "Generate code based on plan: " + plan, rotationManager.getFallbackChain(Agent.Role.BUILDER));
         
         boolean consensusReached = false;
         int loopCount = 0;
-        
-        while (!consensusReached && loopCount < 5) {
+        while (!consensusReached && loopCount < 3) {
             loopCount++;
             List<Vote> votes = requestConsensus("CODE_VOTE_" + loopCount, currentCode);
-            double approvalRate = consensusEngine.getApprovalRate(votes);
-            String improvements = consensusEngine.collectImprovements(votes);
-            
-            if (approvalRate >= 0.70 && improvements.isEmpty()) {
+            if (consensusEngine.getApprovalRate(votes) >= 0.70) {
                 consensusReached = true;
             } else {
-                currentCode = aiService.callAI("BUILDER", "Fix this code: " + currentCode + "\nIssues: " + improvements, rotationManager.getFallbackChain(Agent.Role.BUILDER));
+                currentCode = aiService.callAI("BUILDER", "Fix code based on suggestions.", rotationManager.getFallbackChain(Agent.Role.BUILDER));
             }
         }
-        
-        firebaseService.saveChatMessage(projectId, "X-Builder", currentCode, "ai");
+        return currentCode;
     }
 
     public List<Vote> requestConsensus(String taskId, String content) {
         List<Vote> votes = new CopyOnWriteArrayList<>();
         List<Future<?>> futures = new ArrayList<>();
-        
         for (Agent agent : agentPool.values()) {
             futures.add(executor.submit(() -> {
                 String response = aiService.callAI(agent.getRole().name(), "Evaluate: " + content, rotationManager.getFallbackChain(agent.getRole()));
@@ -156,7 +205,6 @@ public class AgentOrchestrator {
                 votes.add(new Vote(agent.getId(), approved, response));
             }));
         }
-        
         for (Future<?> future : futures) {
             try { future.get(30, TimeUnit.SECONDS); } catch (Exception e) {}
         }

@@ -26,7 +26,7 @@ public class ConsensusEngine {
 
     public String collectImprovements(List<Vote> votes) {
         return votes.stream()
-                .map(v -> extractSuggestion(v.getReason()))
+                .map(v -> extractSuggestion(v.getComments()))
                 .filter(s -> !s.isEmpty())
                 .distinct()
                 .collect(Collectors.joining("\n- "));

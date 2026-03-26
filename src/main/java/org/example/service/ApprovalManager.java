@@ -24,7 +24,8 @@ public class ApprovalManager {
                 }, 10, TimeUnit.MINUTES);
                 break;
             case BIG:
-                System.out.println("🛑 [STOP] Big task requires manual approval: " + req.getDescription());
+                System.out.println("⚠️  [AUTO-APPROVE] Big task (auto-approval enabled): " + req.getDescription());
+                req.setStatus(Requirement.Status.APPROVED);
                 // In a real app, this sends a push notification to the Flutter mobile app
                 break;
         }

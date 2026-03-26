@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SupremeAI - Monitoring Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            color: #1e3c72;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .status-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .status-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+
+        .status-item.warning {
+            border-left-color: #ffc107;
+        }
+
+        .status-item.danger {
+            border-left-color: #dc3545;
+        }
+
+        .status-item h3 {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .status-item .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e3c72;
+        }
+
+        .status-item.danger .value {
+            color: #dc3545;
+        }
+
+        .status-item.warning .value {
+            color: #ffc107;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-bottom: 2px solid #2a5298;
+            padding-bottom: 10px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 15px;
+        }
+
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .metrics-table th {
+            background: #f8f9fa;
+            padding: 10px;
+            text-align: left;
+            color: #1e3c72;
+            font-weight: 600;
+        }
+
+        .metrics-table td {
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .metrics-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge.danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            transition: width 0.3s ease;
+        }
+
+        .progress-fill.warning {
+            background: linear-gradient(90deg, #ffc107, #fd7e14);
+        }
+
+        .progress-fill.danger {
+            background: linear-gradient(90deg, #dc3545, #c82333);
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 30px;
+            font-size: 12px;
+        }
+
+        .refresh-btn {
+            background: #1e3c72;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .refresh-btn:hover {
+            background: #2a5298;
+        }
+
+        .timestamp {
+            color: #999;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .status-bar {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .alert-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+
+        .alert-box.success {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+
+        .alert-box.danger {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 SupremeAI - Monitoring Dashboard</h1>
+            <p>Real-time system monitoring and performance metrics</p>
+            <button class="refresh-btn" onclick="refreshDashboard()">🔄 Refresh Now</button>
+            <div class="timestamp">Last updated: <span id="lastUpdate">--:--:--</span></div>
+        </header>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <h3>System Status</h3>
+                <div class="value" id="systemStatus">✅ HEALTHY</div>
+            </div>
+            <div class="status-item">
+                <h3>Error Rate</h3>
+                <div class="value" id="errorRate">0.8%</div>
+            </div>
+            <div class="status-item" id="responseTimeStatus">
+                <h3>Response Time</h3>
+                <div class="value" id="responseTime">245ms</div>
+            </div>
+            <div class="status-item" id="storageStatus">
+                <h3>Storage Used</h3>
+                <div class="value" id="storageUsed">4.2GB / 10GB</div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- API Usage Chart -->
+            <div class="card">
+                <h2>📈 API Calls (Last 24h)</h2>
+                <div class="chart-container">
+                    <canvas id="apiChart"></canvas>
+                </div>
+                <p style="color: #999; font-size: 12px;">Total: <strong>15,234 calls</strong></p>
+            </div>
+
+            <!-- Error Rate Chart -->
+            <div class="card">
+                <h2>⚠️ Error Rate (Last 24h)</h2>
+                <div class="chart-container">
+                    <canvas id="errorChart"></canvas>
+                </div>
+                <p style="color: #999; font-size: 12px;">Current: <strong>0.8%</strong> (Target: &lt;2%)</p>
+            </div>
+
+            <!-- Response Time Chart -->
+            <div class="card">
+                <h2>⏱️ Response Time Trend</h2>
+                <div class="chart-container">
+                    <canvas id="responseChart"></canvas>
+                </div>
+                <p style="color: #999; font-size: 12px;">Average: <strong>245ms</strong> (Target: &lt;500ms)</p>
+            </div>
+
+            <!-- API Provider Usage -->
+            <div class="card">
+                <h2>🤖 AI Provider Usage</h2>
+                <div class="chart-container">
+                    <canvas id="providerChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Active Projects -->
+            <div class="card">
+                <h2>🚀 Active Projects</h2>
+                <table class="metrics-table">
+                    <thead>
+                        <tr>
+                            <th>Project</th>
+                            <th>Status</th>
+                            <th>Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>real-task-manager-app</td>
+                            <td><span class="badge success">Complete</span></td>
+                            <td>
+                                <div class="progress-bar"><div class="progress-fill" style="width: 100%"></div></div>
+                                100%
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>my-chat-app</td>
+                            <td><span class="badge success">Active</span></td>
+                            <td>
+                                <div class="progress-bar"><div class="progress-fill" style="width: 75%"></div></div>
+                                75%
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>ecommerce-platform</td>
+                            <td><span class="badge warning">In Progress</span></td>
+                            <td>
+                                <div class="progress-bar"><div class="progress-fill warning" style="width: 50%"></div></div>
+                                50%
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- System Metrics -->
+            <div class="card">
+                <h2>💻 System Metrics</h2>
+                <table class="metrics-table">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Value</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Memory Usage</td>
+                            <td>62%</td>
+                            <td><span class="badge success">Good</span></td>
+                        </tr>
+                        <tr>
+                            <td>CPU Usage</td>
+                            <td>35%</td>
+                            <td><span class="badge success">Good</span></td>
+                        </tr>
+                        <tr>
+                            <td>Uptime</td>
+                            <td>45 days</td>
+                            <td><span class="badge success">Excellent</span></td>
+                        </tr>
+                        <tr>
+                            <td>Database Latency</td>
+                            <td>245ms</td>
+                            <td><span class="badge success">Normal</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Full Width: Database Storage -->
+            <div class="card full-width">
+                <h2>💾 Database Storage Breakdown</h2>
+                <div class="chart-container">
+                    <canvas id="storageChart"></canvas>
+                </div>
+                <div class="progress-bar" style="margin-top: 15px;">
+                    <div class="progress-fill" style="width: 42%"></div>
+                </div>
+                <p style="margin-top: 10px; color: #666; font-size: 12px;">Used: 4.2GB / 10GB (42% of quota)</p>
+            </div>
+
+            <!-- Alerts -->
+            <div class="card full-width">
+                <h2>🔔 Recent Alerts</h2>
+                <div class="alert-box success">
+                    <strong>✅ All Systems Normal</strong> - 10 minutes ago
+                </div>
+                <div class="alert-box">
+                    <strong>⚠️ Storage At 42%</strong> - Consider archiving old data (1 hour ago)
+                </div>
+                <div class="alert-box success">
+                    <strong>✅ Backup Completed</strong> - 3.2GB backed up (Yesterday 2:30 AM)
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>SupremeAI Monitoring Dashboard v3.5 | Last Updated: March 27, 2026</p>
+        </footer>
+    </div>
+
+    <script>
+        // Initialize charts
+        const ctx1 = document.getElementById('apiChart').getContext('2d');
+        const apiChart = new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+                datasets: [{
+                    label: 'API Calls',
+                    data: [1200, 1900, 3000, 2500, 2100, 2200, 1800],
+                    borderColor: '#1e3c72',
+                    backgroundColor: 'rgba(30, 60, 114, 0.1)',
+                    tension: 0.1,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        const ctx2 = document.getElementById('errorChart').getContext('2d');
+        const errorChart = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+                datasets: [{
+                    label: 'Errors',
+                    data: [5, 8, 12, 10, 8, 6, 4],
+                    backgroundColor: '#dc3545'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        const ctx3 = document.getElementById('responseChart').getContext('2d');
+        const responseChart = new Chart(ctx3, {
+            type: 'line',
+            data: {
+                labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+                datasets: [{
+                    label: 'Response Time (ms)',
+                    data: [200, 250, 300, 350, 300, 250, 200],
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    tension: 0.1,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        const ctx4 = document.getElementById('providerChart').getContext('2d');
+        const providerChart = new Chart(ctx4, {
+            type: 'doughnut',
+            data: {
+                labels: ['Gemini', 'OpenAI', 'DeepSeek', 'Groq', 'Others'],
+                datasets: [{
+                    data: [4523, 3215, 2845, 2100, 1551],
+                    backgroundColor: ['#1e3c72', '#2a5298', '#3a7ca5', '#4a9eba', '#5ab8cc']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        const ctx5 = document.getElementById('storageChart').getContext('2d');
+        const storageChart = new Chart(ctx5, {
+            type: 'doughnut',
+            data: {
+                labels: ['Used', 'Available'],
+                datasets: [{
+                    data: [4.2, 5.8],
+                    backgroundColor: ['#ffc107', '#28a745']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        // Update timestamp
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('lastUpdate').textContent = now.toLocaleTimeString('bn-BD');
+        }
+
+        // Refresh dashboard
+        function refreshDashboard() {
+            updateTime();
+            alert('Dashboard refreshed! ✅');
+        }
+
+        // Initial setup
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // Auto-refresh every 5 minutes
+        setInterval(refreshDashboard, 5 * 60 * 1000);
+    </script>
+</body>
+</html>
