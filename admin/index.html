@@ -1070,6 +1070,7 @@ API is now active and ready to use!`);
             document.getElementById('providerEndpoint').value = '';
             document.getElementById('providerNotes').value = '';
             
+            renderAPIKeysTable(); // Update table with new key
             closeModal('addKeyModal');
             showSection('api-keys');
         }
@@ -1316,6 +1317,79 @@ Settings are now active with real-time enforcement.`);
                 isPaidQuotaNow: usagePercent > apiKey.free_quota_percent
             };
         }
+        
+        /**
+         * 📊 Render API Keys Table with Action Buttons
+         */
+        function renderAPIKeysTable() {
+            const tbody = document.getElementById('apiKeysTableBody');
+            
+            if (availableProviders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #a0aec0;">🔑 No API keys yet. Click "➕ Add New API Key" to get started!</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = availableProviders.map((apiKey, index) => {
+                const usage = updateQuotaBasedOnUsage(apiKey.name);
+                const lastUsed = localStorage.getItem('api_last_used_' + apiKey.name) || 'Never';
+                
+                return `
+                    <tr>
+                        <td><strong>${apiKey.name}</strong>${apiKey.alias ? ` (${apiKey.alias})` : ''}</td>
+                        <td><span style="background: #28a745; color: #fff; padding: 3px 8px; border-radius: 3px; font-size: 12px;">✅ Active</span></td>
+                        <td>${apiKey.rate_limit || '100'} req/min</td>
+                        <td>${usage ? usage.currentUsage.toLocaleString() + '/' + usage.totalQuota.toLocaleString() : 'N/A'}</td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 5px;">
+                                <span style="width: 50px; background: #2d3748; border-radius: 3px; height: 20px; overflow: hidden;">
+                                    <div style="height: 100%; width: ${usage ? usage.freeQuotaPercent : 0}%; background: linear-gradient(90deg, #4299e1, #38a169); transition: all 0.3s;"></div>
+                                </span>
+                                <span style="font-size: 12px; color: #a0aec0;">${usage ? Math.round(usage.freeQuotaPercent) : 0}%</span>
+                            </div>
+                        </td>
+                        <td style="font-size: 12px; color: #a0aec0;">${lastUsed}</td>
+                        <td style="display: flex; gap: 5px; flex-wrap: wrap;">
+                            <button class="btn" style="padding: 4px 8px; font-size: 11px;" onclick="openRotateKeyModal('${apiKey.name}')">🔄 Rotate</button>
+                            <button class="btn" style="padding: 4px 8px; font-size: 11px; background: #ff6b6b;" onclick="openRevokeKeyModal('${apiKey.name}')">🚫 Revoke</button>
+                            <button class="btn" style="padding: 4px 8px; font-size: 11px;" onclick="openRateLimitModal('${apiKey.name}')">⏱️ Quota</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        /**
+         * Open Rotate Modal with Model Pre-filled
+         */
+        function openRotateKeyModal(modelName) {
+            document.getElementById('rotateModelName').value = modelName;
+            document.getElementById('rotationReason').value = '';
+            document.getElementById('rotationAlertEmail').value = '';
+            showModal('rotateKeyModal');
+        }
+        
+        /**
+         * Open Revoke Modal with Model Pre-filled
+         */
+        function openRevokeKeyModal(modelName) {
+            document.getElementById('revokeModelName').value = modelName;
+            document.getElementById('revocationReason').value = '';
+            document.getElementById('revokeConfirmation').value = '';
+            showModal('revokeKeyModal');
+        }
+        
+        /**
+         * Open Rate Limit Modal with Model Pre-filled
+         */
+        function openRateLimitModal(modelName) {
+            const apiKey = availableProviders.find(p => p.name === modelName);
+            document.getElementById('rateLimitModelName').value = modelName;
+            document.getElementById('rateLimit').value = apiKey?.rate_limit || '100';
+            document.getElementById('monthlyQuota').value = apiKey?.monthly_quota || '1000000';
+            document.getElementById('freeQuotaPercent').value = apiKey?.free_quota_percent || '80';
+            document.getElementById('alertThreshold').value = apiKey?.alert_threshold || '70';
+            showModal('rateLimitModal');
+        }
 
         // ===== EXISTING FUNCTIONS =====
         function showSection(sectionId) {
@@ -1344,6 +1418,12 @@ Settings are now active with real-time enforcement.`);
                 'settings': 'Settings'
             };
             document.getElementById('pageTitle').textContent = titles[sectionId] || 'Dashboard';
+            
+            // Render table for API Keys section
+            if (sectionId === 'api-keys') {
+                renderAPIKeysTable();
+            }
+        }
         }
 
         function showModal(modalId) {
