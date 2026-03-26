@@ -30,6 +30,9 @@ public class AgentOrchestrator {
     private final CloudDeploymentService deploymentService;
     private final ProjectTypeManager projectTypeManager;
     
+    // Phase 5 Services (Multi-Account Support)
+    private final AIAccountManager accountManager;
+    
     private final ExecutorService executor = Executors.newFixedThreadPool(8);
     private final Map<String, Agent> agentPool = new HashMap<>();
     
@@ -53,6 +56,9 @@ public class AgentOrchestrator {
         this.deploymentService = new CloudDeploymentService(firebase);
         this.projectTypeManager = new ProjectTypeManager(gitService, cicdService, deploymentService, fileOrchestrator, firebase);
         
+        // Initialize Phase 5 (Multi-Account Support)
+        this.accountManager = new AIAccountManager(firebase);
+        
         this.memoryManager.setFirebaseService(firebase);
         initializeAgentPool();
     }
@@ -61,6 +67,42 @@ public class AgentOrchestrator {
         agentPool.put("BUILDER", new Agent("builder-1", "X-Builder", Agent.Role.BUILDER, "deepseek"));  
         agentPool.put("REVIEWER", new Agent("reviewer-1", "Y-Reviewer", Agent.Role.REVIEWER, "claude"));
         agentPool.put("ARCHITECT", new Agent("architect-1", "Z-Architect", Agent.Role.ARCHITECT, "gpt-4"));
+    }
+    
+    /**
+     * ⚡ MULTI-ACCOUNT SUPPORT: Select best account for API call
+     * Checks: Budget, Quota, Rate Limit, Health
+     * Auto-rotates on failure
+     */
+    public String selectBestAccountForProvider(String provider) {
+        org.example.model.AIAccount account = accountManager.selectBestAccount(provider);
+        if (account == null) {
+            System.out.println("⚠️ No available accounts for " + provider);
+            return null;
+        }
+        return account.getAccountId();
+    }
+    
+    /**
+     * Record successful API usage (for billing & tracking)
+     */
+    public void recordAccountUsage(String accountId, String provider, double costIncurred, int responseTimeMs) {
+        accountManager.recordSuccess(accountId, costIncurred, responseTimeMs);
+        System.out.println("✅ Usage recorded: " + accountId + " (+$" + String.format("%.3f", costIncurred) + ")");
+    }
+    
+    /**
+     * Record failed API call (for health scoring & auto-ban)
+     */
+    public void recordAccountFailure(String accountId, String reason) {
+        accountManager.recordFailure(accountId, reason);
+    }
+    
+    /**
+     * Get account manager for admin operations
+     */
+    public AIAccountManager getAccountManager() {
+        return accountManager;
     }
     
     public void processProjectRequirement(String projectId, String requirementDesc) {
