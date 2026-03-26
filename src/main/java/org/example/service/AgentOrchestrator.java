@@ -35,6 +35,12 @@ public class AgentOrchestrator {
     private final BudgetManager budgetManager;
     private final PublicAIRouter publicRouter;
     
+    // Phase 6 Services (Hybrid Data Collection)
+    private final QuotaTracker quotaTracker;
+    private final APIDataCollector apiDataCollector;
+    private final BrowserDataCollector browserDataCollector;
+    private final HybridDataCollector hybridDataCollector;
+    
     private final ExecutorService executor = Executors.newFixedThreadPool(8);
     private final Map<String, Agent> agentPool = new HashMap<>();
     
@@ -62,6 +68,12 @@ public class AgentOrchestrator {
         this.accountManager = new AIAccountManager(firebase);
         this.budgetManager = new BudgetManager(accountManager, firebase);
         this.publicRouter = new PublicAIRouter(accountManager, budgetManager, aiService, firebase);
+        
+        // Initialize Phase 6 (Hybrid Data Collection)
+        this.quotaTracker = new QuotaTracker(firebase);
+        this.apiDataCollector = new APIDataCollector(quotaTracker, firebase);
+        this.browserDataCollector = new BrowserDataCollector(quotaTracker, firebase);
+        this.hybridDataCollector = new HybridDataCollector(apiDataCollector, browserDataCollector, quotaTracker, firebase);
         
         this.memoryManager.setFirebaseService(firebase);
         initializeAgentPool();
@@ -129,6 +141,42 @@ public class AgentOrchestrator {
      */
     public PublicAIRouter getPublicRouter() {
         return publicRouter;
+    }
+    
+    /**
+     * Get quota tracker (Phase 6)
+     */
+    public QuotaTracker getQuotaTracker() {
+        return quotaTracker;
+    }
+    
+    /**
+     * Get hybrid data collector (Phase 6)
+     * Main entry point for data collection with API-first, browser-fallback
+     */
+    public HybridDataCollector getHybridDataCollector() {
+        return hybridDataCollector;
+    }
+    
+    /**
+     * ⚡ Collect GitHub data via API primary, browser fallback
+     */
+    public HybridDataCollector.HybridResult collectGitHubData(String owner, String repo) {
+        return hybridDataCollector.collectGitHubData(owner, repo);
+    }
+    
+    /**
+     * Collect Vercel deployment status
+     */
+    public HybridDataCollector.HybridResult collectVercelStatus(String projectId) {
+        return hybridDataCollector.collectVercelStatus(projectId);
+    }
+    
+    /**
+     * Collect Firebase project status
+     */
+    public HybridDataCollector.HybridResult collectFirebaseStatus() {
+        return hybridDataCollector.collectFirebaseStatus();
     }
     
     public void processProjectRequirement(String projectId, String requirementDesc) {
