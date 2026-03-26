@@ -797,43 +797,7 @@
             console.log('🔄 Dashboard refreshed - loaded latest metrics from Firebase');
         }
 
-        // Initial setup - Load from Firebase on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('✅ Monitoring Dashboard initialized');
-            loadDashboardMetricsFromFirebase();
-            updateTime();
-            setInterval(updateTime, 1000);
-            
-            // Check if user is already logged in from localStorage (যদি আগে login করে থাকেন)
-            // localStorage = ব্রাউজার বন্ধ করলেও ডেটা থাকে 🔒
-            const authToken = localStorage.getItem('supremeai_token');
-            const userEmail = localStorage.getItem('supremeai_user');
-            
-            if (authToken && userEmail) {
-                showAuthStatus(userEmail);
-                console.log('✅ পূর্ববর্তী লগইন সেশন পুনরুদ্ধার:', userEmail);
-            }
-            
-            // Listen for Ctrl+L keyboard shortcut to show login
-            document.addEventListener('keydown', function(e) {
-                if ((e.ctrlKey || e.metaKey) && (e.key === 'l' || e.key === 'L')) {
-                    e.preventDefault();
-                    showLoginModal();
-                }
-            });
-            
-            // Listen for Escape key to close login modal
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closeLoginModal();
-                }
-            });
-            
-            // Auto-refresh every 5 minutes (load fresh data from Firebase)
-            setInterval(refreshDashboard, 5 * 60 * 1000);
-        });
-        
-        // ===== AUTHENTICATION FUNCTIONS =====
+        // ===== AUTHENTICATION FUNCTIONS (GLOBAL - MUST BE BEFORE DOMContentLoaded) =====
         
         function showLoginModal() {
             const modal = document.getElementById('loginModal');
@@ -904,30 +868,6 @@
                 }
             });
         }
-                alert('✅ লগইন সফল!\\n✅ Login Successful!\\n\\n💾 আপনার লগইন প্রতিটি ভিজিটে সংরক্ষিত থাকবে');
-            }
-        }
-        
-        /**
-         * 📚 localStorage vs sessionStorage - বাংলা ব্যাখ্যা
-         * 
-         * sessionStorage:
-         *   ❌ ব্রাউজার ট্যাব বন্ধ = ডেটা মুছে যায়
-         *   ❌ দৈনন্দিন ব্যবহারযোগ্য নয়
-         *   ✅ তুলনামূলক নিরাপদ
-         * 
-         * localStorage:
-         *   ✅ ব্রাউজার বন্ধ করলেও ডেটা থাকে
-         *   ✅ সব ট্যাবে ডেটা access করতে পারেন
-         *   ✅ Better user experience
-         *   ⚠️ Manually delete হওয়া পর্যন্ত থাকে (মাস/বছর)
-         * 
-         * Firebase Authentication (Production এ):
-         *   🔐 Google এর সিকিউর সার্ভারে ডেটা থাকে
-         *   🔐 real password verification করে
-         *   🔐 encryption আছে
-         *   🔐 Multi-factor authentication support করে
-         */
         
         function showError(message) {
             const errorDiv = document.getElementById('loginError');
@@ -1092,6 +1032,42 @@
             // Firebase code (when ready):
             // db.collection('blocked_ips').doc(ipAddress).set(blockedIPData)
         }
+
+        // Initial setup - Load from Firebase on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ Monitoring Dashboard initialized');
+            loadDashboardMetricsFromFirebase();
+            updateTime();
+            setInterval(updateTime, 1000);
+            
+            // Check if user is already logged in from localStorage (যদি আগে login করে থাকেন)
+            // localStorage = ব্রাউজার বন্ধ করলেও ডেটা থাকে 🔒
+            const authToken = localStorage.getItem('supremeai_token');
+            const userEmail = localStorage.getItem('supremeai_user');
+            
+            if (authToken && userEmail) {
+                showAuthStatus(userEmail);
+                console.log('✅ পূর্ববর্তী লগইন সেশন পুনরুদ্ধার:', userEmail);
+            }
+            
+            // Listen for Ctrl+L keyboard shortcut to show login
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && (e.key === 'l' || e.key === 'L')) {
+                    e.preventDefault();
+                    showLoginModal();
+                }
+            });
+            
+            // Listen for Escape key to close login modal
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeLoginModal();
+                }
+            });
+            
+            // Auto-refresh every 5 minutes (load fresh data from Firebase)
+            setInterval(refreshDashboard, 5 * 60 * 1000);
+        });
     </script>
 </body>
 </html>
