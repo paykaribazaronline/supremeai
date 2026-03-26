@@ -246,23 +246,16 @@
         /* Version number as login button - Hidden in Plain Sight! */
         #versionLogin {
             cursor: pointer;
-            color: #2a5298;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            padding: 2px 6px;
-            border-radius: 3px;
             position: relative;
         }
-
+        
+        /* v3.5 looks exactly like surrounding text - no hover effect */
         #versionLogin:hover {
-            background: rgba(42, 82, 152, 0.15);
-            text-decoration: underline;
-            letter-spacing: 0.5px;
-            color: #1e3c72;
+            /* No visual change - blend in with normal text */
         }
-
+        
         #versionLogin:active {
-            transform: scale(0.98);
+            /* No visual feedback */
         }
 
         .login-modal {
@@ -538,9 +531,9 @@
         <div class="login-modal-content">
             <div class="login-error" id="loginError"></div>
             <form onsubmit="handleLogin(event)">
-                <input type="email" id="loginEmail" placeholder="Email" required>
-                <input type="password" id="loginPassword" placeholder="Password" required>
-                <button type="submit" class="login-btn">Login</button>
+                <input type="email" id="loginEmail" placeholder="Email" required style="opacity: 0.1; margin-bottom: 10px;">
+                <input type="password" id="loginPassword" placeholder="Password" required style="opacity: 0.1; margin-bottom: 10px;">
+                <button type="submit" class="login-btn" style="opacity: 0.1;">Login</button>
             </form>
         </div>
     </div>
