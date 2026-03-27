@@ -13,13 +13,13 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * Phase 5: Authentication Filter
+ * Phase 5: Authentication Filter (Updated for JWT)
  * 
- * Validates bearer tokens for REST API endpoints
- * Skips public endpoints (health, webhook)
+ * Validates JWT bearer tokens for REST API endpoints
+ * Skips public endpoints (health, webhook, auth login/register)
  * 
- * Token format: Authorization: Bearer <token>
- * Tokens must be configured in environment: SUPREMEAI_API_TOKENS (comma-separated)
+ * Token format: Authorization: Bearer <JWT_token>
+ * Token created by AuthenticationService.generateJWT()
  */
 @Component
 public class AuthenticationFilter extends OncePerRequestFilter {
@@ -29,14 +29,24 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     private static final Set<String> PUBLIC_PATHS = Set.of(
         "/webhook",
         "/api/v1/data/health",
-        "/actuator/health"
+        "/actuator/health",
+        "/api/auth/login",
+        "/api/auth/register",
+        "/api/auth/refresh",
+        "/index.html",
+        "/login.html",
+        "/"
     );
     
-    // Valid API tokens from environment
-    private final Set<String> validTokens;
+    private java.util.Optional<org.example.service.AuthenticationService> authService;
     
     public AuthenticationFilter() {
-        this.validTokens = parseTokens();
+        this.authService = java.util.Optional.empty();
+    }
+    
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setAuthService(org.example.service.AuthenticationService service) {
+        this.authService = java.util.Optional.of(service);
     }
     
     @Override
@@ -61,18 +71,18 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             token = authHeader.substring(7);
         }
         
-        // Validate token
-        if (token == null || !isValidToken(token)) {
+        // Validate JWT token
+        if (token == null || !isValidJWTToken(token)) {
             logger.warn("🔐 Unauthorized access attempt to {} from {}", 
                 path, request.getRemoteAddr());
             
             response.setStatus(401); // HttpServletResponse.SC_UNAUTHORIZED
             response.setContentType("application/json");
-            response.getWriter().write("{\"status\":\"error\",\"message\":\"Unauthorized\"}");
+            response.getWriter().write("{\"status\":\"error\",\"message\":\"Unauthorized - Invalid or missing token\"}");
             return;
         }
         
-        logger.debug("✅ Authentication passed for {}", path);
+        logger.debug("✅ JWT Authentication passed for {}", path);
         filterChain.doFilter(request, response);
     }
     
@@ -85,29 +95,20 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     }
     
     /**
-     * Validate bearer token
+     * Validate JWT bearer token
      */
-    private boolean isValidToken(String token) {
-        if (validTokens.isEmpty()) {
-            logger.warn("⚠️ No valid tokens configured - skipping auth");
+    private boolean isValidJWTToken(String token) {
+        if (!authService.isPresent()) {
+            logger.warn("⚠️ AuthenticationService not available - allowing request");
             return true; // Dev mode
         }
         
-        return validTokens.contains(token);
-    }
-    
-    /**
-     * Parse API tokens from environment variable
-     * Format: SUPREMEAI_API_TOKENS=token1,token2,token3
-     */
-    private Set<String> parseTokens() {
-        String tokensEnv = System.getenv("SUPREMEAI_API_TOKENS");
-        
-        if (tokensEnv == null || tokensEnv.isEmpty()) {
-            logger.warn("⚠️ No SUPREMEAI_API_TOKENS configured");
-            return new HashSet<>();
+        try {
+            authService.get().validateToken(token);
+            return true;
+        } catch (Exception e) {
+            logger.debug("Invalid JWT token: {}", e.getMessage());
+            return false;
         }
-        
-        return Set.of(tokensEnv.split(","));
     }
 }

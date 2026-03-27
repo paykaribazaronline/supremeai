@@ -60,6 +60,8 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.mockito:mockito-core:5.7.0")
     testImplementation("org.mockito:mockito-junit-jupiter:5.7.0")
+    testImplementation("org.springframework.boot:spring-boot-starter-test:3.2.3")
+    testImplementation("org.springframework.security:spring-security-test:6.2.1")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

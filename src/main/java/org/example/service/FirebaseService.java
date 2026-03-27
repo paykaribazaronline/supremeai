@@ -139,4 +139,112 @@ public class FirebaseService {
     public void sendNotification(String userId, String title, String message, String type) {
         System.out.println("🔔 Notification sent to " + userId + ": " + title);
     }
+    
+    // ============ USER MANAGEMENT METHODS ============
+    
+    /**
+     * Save user to Firebase Realtime Database
+     */
+    public void saveUser(org.example.model.User user) throws Exception {
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("username", user.getUsername());
+        userMap.put("email", user.getEmail());
+        userMap.put("passwordHash", user.getPasswordHash());
+        userMap.put("role", user.getRole());
+        userMap.put("active", user.isActive());
+        userMap.put("createdAt", user.getCreatedAt());
+        userMap.put("lastLogin", user.getLastLogin());
+        userMap.put("permissions", user.getPermissions());
+        
+        String userId = user.getId() != null ? user.getId() : user.getUsername();
+        db.getReference("users").child(userId).setValueAsync(userMap).get();
+        
+        System.out.println("✅ User saved to Firebase: " + user.getUsername());
+    }
+    
+    /**
+     * Get user by username
+     */
+    public org.example.model.User getUserByUsername(String username) throws Exception {
+        DataSnapshot snapshot = db.getReference("users")
+            .orderByChild("username")
+            .equalTo(username)
+            .limitToFirst(1)
+            .get()
+            .get();
+        
+        if (snapshot.exists()) {
+            for (DataSnapshot user : snapshot.getChildren()) {
+                org.example.model.User u = user.getValue(org.example.model.User.class);
+                if (u != null) {
+                    u.setId(user.getKey());
+                    return u;
+                }
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Get user by ID
+     */
+    public org.example.model.User getUserById(String userId) throws Exception {
+        DataSnapshot snapshot = db.getReference("users").child(userId).get().get();
+        
+        if (snapshot.exists()) {
+            org.example.model.User user = snapshot.getValue(org.example.model.User.class);
+            if (user != null) {
+                user.setId(userId);
+                return user;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Update user
+     */
+    public void updateUser(org.example.model.User user) throws Exception {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("username", user.getUsername());
+        updates.put("email", user.getEmail());
+        updates.put("passwordHash", user.getPasswordHash());
+        updates.put("role", user.getRole());
+        updates.put("active", user.isActive());
+        updates.put("lastLogin", user.getLastLogin());
+        updates.put("permissions", user.getPermissions());
+        
+        String userId = user.getId() != null ? user.getId() : user.getUsername();
+        db.getReference("users").child(userId).updateChildrenAsync(updates).get();
+        
+        System.out.println("✅ User updated in Firebase: " + user.getUsername());
+    }
+    
+    /**
+     * Get all users
+     */
+    public java.util.List<org.example.model.User> getAllUsers() throws Exception {
+        java.util.List<org.example.model.User> users = new ArrayList<>();
+        
+        DataSnapshot snapshot = db.getReference("users").get().get();
+        if (snapshot.exists()) {
+            for (DataSnapshot user : snapshot.getChildren()) {
+                org.example.model.User u = user.getValue(org.example.model.User.class);
+                if (u != null) {
+                    u.setId(user.getKey());
+                    users.add(u);
+                }
+            }
+        }
+        
+        return users;
+    }
+    
+    /**
+     * Delete user
+     */
+    public void deleteUser(String userId) throws Exception {
+        db.getReference("users").child(userId).removeValueAsync().get();
+        System.out.println("✅ User deleted from Firebase: " + userId);
+    }
 }
