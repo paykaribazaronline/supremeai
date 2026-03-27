@@ -30,7 +30,7 @@
         .card h2 { color: #1e3c72; margin-bottom: 15px; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
 
         /* Form Styling */
-        .control-group { margin-bottom: 15px; }
+        .control-group { margin-bottom: 15px; position: relative; }
         .control-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #555; }
         .control-group input, .control-group select {
             width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;
@@ -41,6 +41,17 @@
         }
         .action-btn:hover { background: #2a5298; }
         .action-btn.secondary { background: #28a745; margin-top: 10px; }
+        .action-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        /* Search Results Styling */
+        .search-results {
+            position: absolute; top: 100%; left: 0; right: 0; background: white;
+            border: 1px solid #ddd; border-radius: 0 0 5px 5px; z-index: 10; max-height: 200px;
+            overflow-y: auto; display: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .search-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; }
+        .search-item:hover { background: #f0f7ff; }
+        .search-item:last-child { border-bottom: none; }
 
         .metrics-table { width: 100%; border-collapse: collapse; font-size: 14px; }
         .metrics-table th { background: #f8f9fa; padding: 10px; text-align: left; }
@@ -58,6 +69,7 @@
             position: fixed; bottom: 20px; right: 20px; padding: 15px 25px;
             background: #28a745; color: white; border-radius: 5px; display: none; z-index: 2000;
         }
+        .notification.error { background: #dc3545; }
     </style>
 </head>
 <body>
@@ -93,19 +105,19 @@
 
                 <h2 style="margin-top: 25px;">🔑 Update API Keys</h2>
                 <div class="control-group">
-                    <label>Select Provider</label>
-                    <select id="keyProvider">
-                        <option value="DEEPSEEK">DEEPSEEK</option>
-                        <option value="GROQ">GROQ</option>
-                        <option value="CLAUDE">CLAUDE</option>
-                        <option value="GPT4">GPT-4</option>
-                    </select>
+                    <label>Search AI Model/Provider</label>
+                    <input type="text" id="aiSearchInput" placeholder="Search e.g. GPT, Claude, Llama..." oninput="searchAIModels()">
+                    <div id="searchResults" class="search-results"></div>
+                </div>
+                <div class="control-group">
+                    <label>Provider Name</label>
+                    <input type="text" id="keyProvider" placeholder="DEEPSEEK, GROQ, etc." readonly>
                 </div>
                 <div class="control-group">
                     <label>New API Key</label>
                     <input type="password" id="inputApiKey" placeholder="sk-...">
                 </div>
-                <button class="action-btn" onclick="updateApiKey()">Save API Key</button>
+                <button id="apiKeyBtn" class="action-btn" onclick="updateApiKey()">Verify & Save API Key</button>
             </div>
 
             <!-- Project Monitoring -->
@@ -163,6 +175,18 @@
         const auth = firebase.auth();
         const db = firebase.database();
 
+        // Preset List of AI Providers for Search
+        const aiProviders = [
+            { name: "DEEPSEEK", query: "DeepSeek Coder, Chat" },
+            { name: "GROQ", query: "Mixtral, Llama 3 (Groq)" },
+            { name: "CLAUDE", query: "Anthropic Claude 3.5 Sonnet" },
+            { name: "GPT4", query: "OpenAI GPT-4o, GPT-4" },
+            { name: "GEMINI", query: "Google Gemini 1.5 Pro" },
+            { name: "MISTRAL", query: "Mistral Large, Small" },
+            { name: "PERPLEXITY", query: "Perplexity AI API" },
+            { name: "COHERE", query: "Command R+" }
+        ];
+
         auth.onAuthStateChanged((user) => {
             if (user) {
                 document.getElementById('authStatus').style.display = 'block';
@@ -183,6 +207,40 @@
                     err.textContent = "❌ " + e.message;
                     err.style.display = 'block';
                 });
+        }
+
+        function searchAIModels() {
+            const input = document.getElementById('aiSearchInput').value.toUpperCase();
+            const resultsDiv = document.getElementById('searchResults');
+
+            if (!input) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+
+            const filtered = aiProviders.filter(p =>
+                p.name.includes(input) || p.query.toUpperCase().includes(input)
+            );
+
+            if (filtered.length > 0) {
+                resultsDiv.innerHTML = filtered.map(p => `
+                    <div class="search-item" onclick="selectProvider('${p.name}')">
+                        <strong>${p.name}</strong> - <span style="color:#666">${p.query}</span>
+                    </div>
+                `).join('');
+                resultsDiv.style.display = 'block';
+            } else {
+                resultsDiv.innerHTML = `<div class="search-item" onclick="selectProvider('${input}')">
+                    Use Custom Provider: <strong>${input}</strong>
+                </div>`;
+                resultsDiv.style.display = 'block';
+            }
+        }
+
+        function selectProvider(name) {
+            document.getElementById('keyProvider').value = name;
+            document.getElementById('aiSearchInput').value = name;
+            document.getElementById('searchResults').style.display = 'none';
         }
 
         function startLiveSync() {
@@ -229,15 +287,67 @@
                 .then(() => showNotify("Threshold updated!"));
         }
 
-        function updateApiKey() {
+        async function verifyApiKey(provider, key) {
+            const endpoints = {
+                'DEEPSEEK': 'https://api.deepseek.com/v1/models',
+                'GROQ': 'https://api.groq.com/openai/v1/models',
+                'GPT4': 'https://api.openai.com/v1/models',
+                'CLAUDE': 'https://api.anthropic.com/v1/messages'
+            };
+
+            const url = endpoints[provider];
+            if (!url) return true; // Default to valid if unknown
+
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${key}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                return !(response.status === 401 || response.status === 403);
+            } catch (e) {
+                console.warn("Validation request failed:", e);
+                return true;
+            }
+        }
+
+        async function updateApiKey() {
             const provider = document.getElementById('keyProvider').value;
             const key = document.getElementById('inputApiKey').value;
-            if(!key) return alert("Please enter a key!");
+            const btn = document.getElementById('apiKeyBtn');
+            const user = auth.currentUser;
 
-            db.ref('config/api_keys').child(provider).set(key)
+            if(!provider || !key) return alert("Please select a provider and enter a key!");
+
+            btn.disabled = true;
+            btn.textContent = "Verifying Key...";
+
+            const isValid = await verifyApiKey(provider, key);
+
+            if (!isValid) {
+                btn.disabled = false;
+                btn.textContent = "Verify & Save API Key";
+                return showNotify("Invalid API Key! Verification failed.", true);
+            }
+
+            const dataToSave = {
+                key: key,
+                addedBy: user ? user.email : 'Unknown',
+                updatedAt: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            db.ref('config/api_keys').child(provider).set(dataToSave)
                 .then(() => {
                     document.getElementById('inputApiKey').value = "";
-                    showNotify(provider + " Key updated!");
+                    document.getElementById('aiSearchInput').value = "";
+                    document.getElementById('keyProvider').value = "";
+                    showNotify(provider + " Key Verified & Saved!");
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.textContent = "Verify & Save API Key";
                 });
         }
 
@@ -259,12 +369,20 @@
             });
         }
 
-        function showNotify(msg) {
+        function showNotify(msg, isError = false) {
             const n = document.getElementById('notification');
-            n.textContent = "✅ " + msg;
+            n.textContent = (isError ? "❌ " : "✅ ") + msg;
+            n.className = isError ? "notification error" : "notification";
             n.style.display = 'block';
-            setTimeout(() => n.style.display = 'none', 3000);
+            setTimeout(() => n.style.display = 'none', 4000);
         }
+
+        // Close search results when clicking outside
+        window.addEventListener('click', function(e) {
+            if (!document.getElementById('aiSearchInput').contains(e.target)) {
+                document.getElementById('searchResults').style.display = 'none';
+            }
+        });
     </script>
 </body>
 </html>
