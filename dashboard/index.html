@@ -269,6 +269,7 @@
             z-index: 1000;
             align-items: center;
             justify-content: center;
+            overflow: auto;
         }
 
         .login-modal.active {
@@ -282,12 +283,17 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             max-width: 400px;
             width: 90%;
+            position: relative;
+            z-index: 1001;
         }
 
         .login-modal-content h2 {
             color: #1e3c72;
-            margin-bottom: 20px;
+            margin: 0 0 10px 0;
             text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
         }
 
         .login-form-group {
@@ -296,9 +302,10 @@
 
         .login-form-group label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             color: #333;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 14px;
         }
 
         .login-form-group input {
@@ -309,10 +316,13 @@
             font-family: inherit;
             box-sizing: border-box;
             font-size: 16px;
-            background: #ffffff;
-            color: #333;
+            background: #ffffff !important;
+            color: #333 !important;
             opacity: 1 !important;
             visibility: visible !important;
+            z-index: 1001 !important;
+            position: relative;
+            transition: border-color 0.3s ease;
         }
 
         .login-form-group input::placeholder {
@@ -336,27 +346,19 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            opacity: 1 !important;
-            visibility: visible !important;
-            padding: 12px;
-            background: #1e3c72;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 16px;
-            opacity: 1 !important;
-            visibility: visible !important;
             margin-top: 10px;
+            transition: background 0.3s ease;
+            opacity: 1 !important;
+            visibility: visible !important;
+            z-index: 1001;
         }
         
         .login-btn:hover {
             background: #2a5298;
         }
-
-        .login-btn:hover {
-            background: #2a5298;
+        
+        .login-btn:active {
+            transform: scale(0.98);
         }
 
         .login-error {
@@ -548,23 +550,26 @@
     </div>
 
     <!-- Auth Status Display -->
-    <div class="auth-status" id="authStatus">
+    <div class="auth-status" id="authStatus" style="position: fixed; top: 20px; right: 20px; background: white; padding: 10px 15px; border-radius: 5px; font-size: 12px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); z-index: 99; display: none; align-items: center; gap: 10px;">
         <span class="user-email" id="userEmail">Admin</span>
         <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
 
     <!-- Login Modal -->
-    <div class="login-modal" id="loginModal">
-        <div class="login-modal-content">
-            <div class="login-error" id="loginError"></div>
-            <form onsubmit="handleLogin(event)">
-                <div class="login-form-group">
-                    <input type="email" id="loginEmail" placeholder="Email" required style="opacity: 1;">
+    <div class="login-modal" id="loginModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center;">
+        <div class="login-modal-content" style="background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); max-width: 400px; width: 90%; position: relative; z-index: 10000;">
+            <h2 style="color: #1e3c72; margin: 0 0 20px 0; text-align: center; font-size: 24px; font-weight: 700;">SupremeAI Admin Login</h2>
+            <div class="login-error" id="loginError" style="display: none; background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px;"></div>
+            <form onsubmit="handleLogin(event)" style="width: 100%;">
+                <div class="login-form-group" style="margin-bottom: 15px;">
+                    <label for="loginEmail" style="display: block; margin-bottom: 8px; color: #333; font-weight: 600; font-size: 14px;">Email Address</label>
+                    <input type="email" id="loginEmail" placeholder="admin@supremeai.com" required style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 5px; font-size: 16px; background: #ffffff; color: #333; box-sizing: border-box; display: block;">
                 </div>
-                <div class="login-form-group">
-                    <input type="password" id="loginPassword" placeholder="Password" required style="opacity: 1;">
+                <div class="login-form-group" style="margin-bottom: 15px;">
+                    <label for="loginPassword" style="display: block; margin-bottom: 8px; color: #333; font-weight: 600; font-size: 14px;">Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password" required style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 5px; font-size: 16px; background: #ffffff; color: #333; box-sizing: border-box; display: block;">
                 </div>
-                <button type="submit" class="login-btn" style="opacity: 1;">Login</button>
+                <button type="submit" class="login-btn" style="width: 100%; padding: 12px; background: #1e3c72; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px;">Login</button>
             </form>
         </div>
     </div>
@@ -801,14 +806,14 @@
         
         function showLoginModal() {
             const modal = document.getElementById('loginModal');
-            modal.classList.add('active');
+            modal.style.display = 'flex';
             document.getElementById('loginEmail').focus();
         }
         
         function closeLoginModal() {
             const modal = document.getElementById('loginModal');
-            modal.classList.remove('active');
-            document.getElementById('loginError').classList.remove('show');
+            modal.style.display = 'none';
+            document.getElementById('loginError').style.display = 'none';
         }
         
         function handleLogin(event) {
@@ -872,13 +877,13 @@
         function showError(message) {
             const errorDiv = document.getElementById('loginError');
             errorDiv.textContent = '❌ ' + message;
-            errorDiv.classList.add('show');
+            errorDiv.style.display = 'block';
         }
         
         function showAuthStatus(email) {
             const authStatus = document.getElementById('authStatus');
             document.getElementById('userEmail').textContent = email;
-            authStatus.classList.add('show');
+            authStatus.style.display = 'flex';
         }
         
         function logout() {
@@ -888,7 +893,7 @@
                 localStorage.removeItem('supremeai_login_time');
                 
                 const authStatus = document.getElementById('authStatus');
-                authStatus.classList.remove('show');
+                authStatus.style.display = 'none';
                 
                 console.log('✅ Logged out');
                 alert('✅ Logged out successfully');
