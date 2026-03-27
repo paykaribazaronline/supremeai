@@ -94,7 +94,7 @@
 
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyC1b1UPogvLoAshIWm9YQJ8_RR0UxCO7i8",
+            apiKey: "AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8",
             authDomain: "supremeai-a.firebaseapp.com",
             databaseURL: "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/",
             projectId: "supremeai-a",
@@ -159,6 +159,7 @@
             auth.signInWithEmailAndPassword(email, password)
                 .then(() => { loginAttempts = 0; })
                 .catch((error) => {
+                    console.error("Login Failed:", error.code, error.message);
                     loginAttempts++;
                     if (loginAttempts >= 3) {
                         const blockedIPs = JSON.parse(localStorage.getItem('blocked_ips') || '{}');
