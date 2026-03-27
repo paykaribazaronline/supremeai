@@ -1,6 +1,6 @@
 package org.example.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +34,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CloudFunctionHandler {
     private static final Logger logger = LoggerFactory.getLogger(CloudFunctionHandler.class);
     
-    private static final ObjectMapper mapper = new ObjectMapper();
+    // ObjectMapper for JSON parsing
+    // Note: mapper field removed as it's not currently used
+    // private static final ObjectMapper mapper = new ObjectMapper();
     
     // Rate limiting: requests per minute per IP
     private static final Map<String, RateLimitBucket> rateLimitBuckets = new ConcurrentHashMap<>();
@@ -155,7 +157,6 @@ public class CloudFunctionHandler {
                 }
                 
                 case "firebase" -> {
-                    String projectId = queryParams.get("projectId");
                     // Note: Firebase status collection doesn't require projectId
                     // It collects status for the current project
                     

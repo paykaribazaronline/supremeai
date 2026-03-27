@@ -8,7 +8,7 @@ import org.example.model.SystemConfig;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
+
 
 public class AgentOrchestrator {
     private final AIAPIService aiService;
@@ -45,6 +45,11 @@ public class AgentOrchestrator {
     private final DataCollectorService dataCollectorService;
     private final WebhookListener webhookListener;
     private final AdminMessagePusher adminMessagePusher;
+
+    // 🚀 NEW: Intelligence & Safety Services
+    private final InternetSearchService searchService;
+    private final SafeZoneManager safeZoneManager;
+    private final AutoSuggestionService autoSuggestionService;
     
     private final ExecutorService executor = Executors.newFixedThreadPool(8);
     private final Map<String, Agent> agentPool = new HashMap<>();
@@ -58,6 +63,11 @@ public class AgentOrchestrator {
         this.memoryManager = new MemoryManager();
         this.firebaseService = firebase;
         this.config = cfg;
+        
+        // Initialize Intelligence & Safety
+        this.searchService = new InternetSearchService(apiKeys.getOrDefault("TAVILY", ""));
+        this.safeZoneManager = new SafeZoneManager();
+        this.autoSuggestionService = new AutoSuggestionService(aiService);
         
         // Initialize Phase 3 (Generator)
         this.fileOrchestrator = new FileOrchestrator("projects", this.memoryManager);
@@ -95,107 +105,29 @@ public class AgentOrchestrator {
         agentPool.put("ARCHITECT", new Agent("architect-1", "Z-Architect", Agent.Role.ARCHITECT, "gpt-4"));
     }
     
+    // ... (rest of the existing methods)
+
     /**
-     * ⚡ MULTI-ACCOUNT SUPPORT: Select best account for API call
-     * Checks: Budget, Quota, Rate Limit, Health
-     * Auto-rotates on failure
+     * ⚡ ENHANCED WORKFLOW: Internet Search + SafeZone + Suggestions
      */
-    public String selectBestAccountForProvider(String provider) {
-        org.example.model.AIAccount account = accountManager.selectBestAccount(provider);
-        if (account == null) {
-            System.out.println("⚠️ No available accounts for " + provider);
-            return null;
-        }
-        return account.getAccountId();
-    }
-    
-    /**
-     * Record successful API usage (for billing & tracking)
-     */
-    public void recordAccountUsage(String accountId, String provider, double costIncurred, int responseTimeMs) {
-        accountManager.recordSuccess(accountId, costIncurred, responseTimeMs);
-        System.out.println("✅ Usage recorded: " + accountId + " (+$" + String.format("%.3f", costIncurred) + ")");
-    }
-    
-    /**
-     * Record failed API call (for health scoring & auto-ban)
-     */
-    public void recordAccountFailure(String accountId, String reason) {
-        accountManager.recordFailure(accountId, reason);
-    }
-    
-    /**
-     * Get account manager for admin operations
-     */
-    public AIAccountManager getAccountManager() {
-        return accountManager;
-    }
-    
-    /**
-     * Get budget manager for monitoring
-     */
-    public BudgetManager getBudgetManager() {
-        return budgetManager;
-    }
-    
-    /**
-     * ⚡ PRIMARY: Route request through public AI system
-     * Handles multi-account selection, fallback, budget enforcement
-     */
-    public PublicAIRouter.RouterResponse routeAIRequest(String provider, String prompt, Map<String, String> metadata) {
-        return publicRouter.routeRequest(provider, prompt, metadata);
-    }
-    
-    /**
-     * Get public router for direct access
-     */
-    public PublicAIRouter getPublicRouter() {
-        return publicRouter;
-    }
-    
-    /**
-     * Get quota tracker (Phase 6)
-     */
-    public QuotaTracker getQuotaTracker() {
-        return quotaTracker;
-    }
-    
-    /**
-     * Get hybrid data collector (Phase 6)
-     * Main entry point for data collection with API-first, browser-fallback
-     */
-    public HybridDataCollector getHybridDataCollector() {
-        return hybridDataCollector;
-    }
-    
-    /**
-     * ⚡ Collect GitHub data via API primary, browser fallback
-     */
-    public HybridDataCollector.HybridResult collectGitHubData(String owner, String repo) {
-        return hybridDataCollector.collectGitHubData(owner, repo);
-    }
-    
-    /**
-     * Collect Vercel deployment status
-     */
-    public HybridDataCollector.HybridResult collectVercelStatus(String projectId) {
-        return hybridDataCollector.collectVercelStatus(projectId);
-    }
-    
-    /**
-     * Collect Firebase project status
-     */
-    public HybridDataCollector.HybridResult collectFirebaseStatus() {
-        return hybridDataCollector.collectFirebaseStatus();
-    }
-    
     public void processProjectRequirement(String projectId, String requirementDesc) {
         executor.submit(() -> {
             try {
                 System.out.println("\n🚀 [ORCHESTRATOR] Analyzing requirement: " + requirementDesc);
                 
+                // 1. Generate Auto-Suggestions
+                List<String> suggestions = autoSuggestionService.suggest(requirementDesc);
+                firebaseService.saveChatMessage(projectId, "SupremeAI", 
+                    "💡 Suggestions: " + String.join(", ", suggestions), "suggestion");
+
+                // 2. Internet Search for context (e.g. latest API changes)
+                List<InternetSearchService.SearchResult> research = searchService.search(requirementDesc);
+                String enhancedContext = research.isEmpty() ? "" : 
+                    "\n\nLatest research findings:\n" + research.get(0).snippet;
+
                 Requirement.Size size = classifier.classify(requirementDesc);
-                Requirement requirement = new Requirement(UUID.randomUUID().toString(), requirementDesc, size);
+                Requirement requirement = new Requirement(UUID.randomUUID().toString(), 
+                    requirementDesc + enhancedContext, size);
                 
                 if (size == Requirement.Size.HUMAN_REQUIRED) {
                     handleHumanRequired(projectId, requirement);
@@ -204,7 +136,8 @@ public class AgentOrchestrator {
                 
                 approvalManager.processRequirement(requirement);
                 if (requirement.getStatus() == Requirement.Status.APPROVED) {
-                    runWorkflow(projectId, requirement);
+                    // 3. Execution in SafeZone
+                    safeZoneManager.executeInSafeZone(projectId, () -> runWorkflow(projectId, requirement));
                 }
             } catch (Exception e) {
                 System.err.println("Error processing requirement: " + e.getMessage());
@@ -274,6 +207,12 @@ public class AgentOrchestrator {
             // Step 3: Code Generation with Voting Loop
             String finalCode = buildWithCodeGenerator(projectId, requirement.getDescription(), finalPlan);
             
+            // 🚨 SAFETY CHECK before writing
+            if (!safeZoneManager.isSafe(finalCode)) {
+                firebaseService.saveChatMessage(projectId, "SafeZone", "🚫 Blocked code write due to security risk.", "warning");
+                return;
+            }
+
             // Step 4: Write Final Code to Disk (Phase 3)
             fileOrchestrator.writeFile(projectId, "lib/main.dart", finalCode);
             
@@ -284,6 +223,8 @@ public class AgentOrchestrator {
             System.err.println("File generation error: " + e.getMessage());
         }
     }
+    
+    // ... (rest of the existing methods)
     
     private String planWithArchitect(String projectId, String requirement) {
         System.out.println("\n🏗️  [ARCHITECT] Generating plan...");
@@ -336,48 +277,36 @@ public class AgentOrchestrator {
         }
         return votes;
     }
-    
-    /**
-     * Get data collector service (Phase 7 - REST API layer)
-     * Exposes HybridDataCollector via clean REST endpoints
-     */
-    public DataCollectorService getDataCollectorService() {
-        return dataCollectorService;
-    }
-    
-    /**
-     * Get webhook listener (Phase 7)
-     * Handles GitHub webhooks and triggers data collection
-     */
-    public WebhookListener getWebhookListener() {
-        return webhookListener;
-    }
-    
-    /**
-     * Get admin message pusher (Phase 7)
-     * Sends real-time updates to admin dashboard
-     */
-    public AdminMessagePusher getAdminMessagePusher() {
-        return adminMessagePusher;
-    }
-    
-    /**
-     * Push data update to admin dashboard
-     */
-    public void pushDataUpdateToAdmin(String source, String identifier, 
-                                      Map<String, Object> data, long collectionTimeMs) {
-        adminMessagePusher.pushDataUpdate(source, identifier, data, collectionTimeMs);
-    }
-    
-    /**
-     * Push alert to admin dashboard
-     */
-    public void pushAlertToAdmin(String alertType, String title, String message,
-                                 Map<String, Object> metadata) {
-        adminMessagePusher.pushAlert(alertType, title, message, metadata);
-    }
 
     public void shutdown() {
         executor.shutdown();
     }
+    
+    // ... (remaining getters)
+    public String selectBestAccountForProvider(String provider) {
+        org.example.model.AIAccount account = accountManager.selectBestAccount(provider);
+        return account != null ? account.getAccountId() : null;
+    }
+    public void recordAccountUsage(String accountId, String provider, double costIncurred, int responseTimeMs) {
+        accountManager.recordSuccess(accountId, costIncurred, responseTimeMs);
+    }
+    public void recordAccountFailure(String accountId, String reason) {
+        accountManager.recordFailure(accountId, reason);
+    }
+    public AIAccountManager getAccountManager() { return accountManager; }
+    public BudgetManager getBudgetManager() { return budgetManager; }
+    public PublicAIRouter.RouterResponse routeAIRequest(String provider, String prompt, Map<String, String> metadata) {
+        return publicRouter.routeRequest(provider, prompt, metadata);
+    }
+    public PublicAIRouter getPublicRouter() { return publicRouter; }
+    public QuotaTracker getQuotaTracker() { return quotaTracker; }
+    public HybridDataCollector getHybridDataCollector() { return hybridDataCollector; }
+    public HybridDataCollector.HybridResult collectGitHubData(String owner, String repo) { return hybridDataCollector.collectGitHubData(owner, repo); }
+    public HybridDataCollector.HybridResult collectVercelStatus(String projectId) { return hybridDataCollector.collectVercelStatus(projectId); }
+    public HybridDataCollector.HybridResult collectFirebaseStatus() { return hybridDataCollector.collectFirebaseStatus(); }
+    public DataCollectorService getDataCollectorService() { return dataCollectorService; }
+    public WebhookListener getWebhookListener() { return webhookListener; }
+    public AdminMessagePusher getAdminMessagePusher() { return adminMessagePusher; }
+    public void pushDataUpdateToAdmin(String s, String i, Map<String, Object> d, long t) { adminMessagePusher.pushDataUpdate(s, i, d, t); }
+    public void pushAlertToAdmin(String a, String t, String m, Map<String, Object> mt) { adminMessagePusher.pushAlert(a, t, m, mt); }
 }

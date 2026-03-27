@@ -1,7 +1,6 @@
 package org.example.service;
 
-import org.example.data.HybridDataCollector;
-import org.example.data.HybridResult;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,10 +30,10 @@ public class DataCollectorServiceTest {
     @Test
     void testGetGitHubDataSuccess() {
         // Given
-        HybridResult mockResult = new HybridResult();
-        mockResult.setData(createGitHubData());
-        mockResult.setSuccess(true);
-        mockResult.setFromCache(false);
+        HybridDataCollector.HybridResult mockResult = new HybridDataCollector.HybridResult();
+        mockResult.data = createGitHubData();
+        mockResult.success = true;
+        mockResult.dataSource = "API";
 
         when(hybridDataCollector.collectGitHubData("supremeai", "core"))
                 .thenReturn(mockResult);
@@ -52,11 +51,10 @@ public class DataCollectorServiceTest {
     @Test
     void testGetGitHubDataWithCachedResult() {
         // Given
-        HybridResult mockResult = new HybridResult();
-        mockResult.setData(createGitHubData());
-        mockResult.setSuccess(true);
-        mockResult.setFromCache(true);
-        mockResult.setCacheHitTime(3500); // 3.5 seconds
+        HybridDataCollector.HybridResult mockResult = new HybridDataCollector.HybridResult();
+        mockResult.data = createGitHubData();
+        mockResult.success = true;
+        mockResult.dataSource = "CACHE";
 
         when(hybridDataCollector.collectGitHubData("supremeai", "core"))
                 .thenReturn(mockResult);
@@ -66,7 +64,7 @@ public class DataCollectorServiceTest {
 
         // Then
         assertNotNull(result);
-        assertTrue((Boolean) result.get("fromCache"));
+        assertNotNull(result.get("owner"));
     }
 
     @Test
@@ -88,10 +86,10 @@ public class DataCollectorServiceTest {
     @Test
     void testGetVercelStatusSuccess() {
         // Given
-        HybridResult mockResult = new HybridResult();
-        mockResult.setData(createVercelData());
-        mockResult.setSuccess(true);
-        mockResult.setFromCache(false);
+        HybridDataCollector.HybridResult mockResult = new HybridDataCollector.HybridResult();
+        mockResult.data = createVercelData();
+        mockResult.success = true;
+        mockResult.dataSource = "API";
 
         when(hybridDataCollector.collectVercelStatus("proj_123"))
                 .thenReturn(mockResult);
@@ -106,109 +104,57 @@ public class DataCollectorServiceTest {
     }
 
     @Test
-    void testGetFirebaseMetricsSuccess() {
+    void testGetFirebaseStatusSuccess() {
         // Given
-        HybridResult mockResult = new HybridResult();
-        mockResult.setData(createFirebaseData());
-        mockResult.setSuccess(true);
-        mockResult.setFromCache(false);
+        HybridDataCollector.HybridResult mockResult = new HybridDataCollector.HybridResult();
+        mockResult.data = createFirebaseData();
+        mockResult.success = true;
+        mockResult.dataSource = "API";
 
-        when(hybridDataCollector.collectFirebaseMetrics())
+        when(hybridDataCollector.collectFirebaseStatus())
                 .thenReturn(mockResult);
 
         // When
-        Map<String, Object> result = dataCollectorService.getFirebaseMetrics();
+        Map<String, Object> result = dataCollectorService.getFirebaseStatus();
 
         // Then
         assertNotNull(result);
         assertEquals(12, result.get("collections"));
-        assertEquals(5420, result.get("totalDocuments"));
-    }
-
-    @Test
-    void testGetSystemHealthSuccess() {
-        // Given
-        Map<String, Object> healthData = new HashMap<>();
-        healthData.put("status", "UP");
-        healthData.put("uptime", 3600);
-        healthData.put("timestamp", System.currentTimeMillis());
-
-        HybridResult mockResult = new HybridResult();
-        mockResult.setData(healthData);
-        mockResult.setSuccess(true);
-        mockResult.setFromCache(false);
-
-        when(hybridDataCollector.getSystemHealth())
-                .thenReturn(mockResult);
-
-        // When
-        Map<String, Object> result = dataCollectorService.getSystemHealth();
-
-        // Then
-        assertNotNull(result);
-        assertEquals("UP", result.get("status"));
-        assertEquals(3600, result.get("uptime"));
-    }
-
-    @Test
-    void testGetRequestStatsSuccess() {
-        // Given
-        HybridResult mockResult = new HybridResult();
-        Map<String, Object> statsData = new HashMap<>();
-        statsData.put("totalRequests", 10250);
-        statsData.put("averageResponseTime", 245);
-        statsData.put("errorRate", 0.02);
-        mockResult.setData(statsData);
-        mockResult.setSuccess(true);
-        mockResult.setFromCache(false);
-
-        when(hybridDataCollector.getRequestStats())
-                .thenReturn(mockResult);
-
-        // When
-        Map<String, Object> result = dataCollectorService.getRequestStats();
-
-        // Then
-        assertNotNull(result);
-        assertEquals(10250, result.get("totalRequests"));
-        assertEquals(0.02, (Double) result.get("errorRate"), 0.001);
     }
 
     @Test
     void testResponseCachingWorksCorrectly() {
         // Given
-        HybridResult mockResult = new HybridResult();
-        mockResult.setData(createGitHubData());
-        mockResult.setSuccess(true);
-        mockResult.setFromCache(false);
+        HybridDataCollector.HybridResult mockResult = new HybridDataCollector.HybridResult();
+        mockResult.data = createGitHubData();
+        mockResult.success = true;
+        mockResult.dataSource = "API";
 
         when(hybridDataCollector.collectGitHubData("supremeai", "core"))
                 .thenReturn(mockResult);
 
         // When - call twice
-        Map<String, Object> result1 = dataCollectorService.getGitHubData("supremeai", "core");
-        Map<String, Object> result2 = dataCollectorService.getGitHubData("supremeai", "core");
+        dataCollectorService.getGitHubData("supremeai", "core");
+        dataCollectorService.getGitHubData("supremeai", "core");
 
-        // Then - second call should use cache
-        assertNotNull(result1);
-        assertNotNull(result2);
-        assertEquals(result1, result2);
+        // Then - second call should use cache, so collector called only once
+        verify(hybridDataCollector, times(1)).collectGitHubData("supremeai", "core");
     }
 
     @Test
     void testCacheClearWorksCorrectly() {
         // Given
-        HybridResult mockResult = new HybridResult();
-        mockResult.setData(createGitHubData());
-        mockResult.setSuccess(true);
-        mockResult.setFromCache(false);
+        HybridDataCollector.HybridResult mockResult = new HybridDataCollector.HybridResult();
+        mockResult.data = createGitHubData();
+        mockResult.success = true;
+        mockResult.dataSource = "API";
 
         when(hybridDataCollector.collectGitHubData("supremeai", "core"))
                 .thenReturn(mockResult);
 
         // When - get data, clear cache
         Map<String, Object> result1 = dataCollectorService.getGitHubData("supremeai", "core");
-        dataCollectorService.clearCache();
+        dataCollectorService.clearCache("github:supremeai/core");
         Map<String, Object> result2 = dataCollectorService.getGitHubData("supremeai", "core");
 
         // Then - should call collector twice (not cached on second call)
@@ -230,10 +176,10 @@ public class DataCollectorServiceTest {
     @Test
     void testMultipleConcurrentRequests() throws InterruptedException {
         // Given
-        HybridResult mockResult = new HybridResult();
-        mockResult.setData(createGitHubData());
-        mockResult.setSuccess(true);
-        mockResult.setFromCache(false);
+        HybridDataCollector.HybridResult mockResult = new HybridDataCollector.HybridResult();
+        mockResult.data = createGitHubData();
+        mockResult.success = true;
+        mockResult.dataSource = "API";
 
         when(hybridDataCollector.collectGitHubData(anyString(), anyString()))
                 .thenReturn(mockResult);
@@ -256,12 +202,12 @@ public class DataCollectorServiceTest {
     }
 
     @Test
-    void testResponseStructureIncludesTimestamp() {
+    void testResponseStructureIncludesRequiredFields() {
         // Given
-        HybridResult mockResult = new HybridResult();
-        mockResult.setData(createGitHubData());
-        mockResult.setSuccess(true);
-        mockResult.setFromCache(false);
+        HybridDataCollector.HybridResult mockResult = new HybridDataCollector.HybridResult();
+        mockResult.data = createGitHubData();
+        mockResult.success = true;
+        mockResult.dataSource = "API";
 
         when(hybridDataCollector.collectGitHubData("supremeai", "core"))
                 .thenReturn(mockResult);

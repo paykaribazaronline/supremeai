@@ -84,7 +84,7 @@ public class APIErrorHandler {
      */
     private static boolean isRetryable(Throwable throwable) {
         String message = throwable.getMessage() != null ? throwable.getMessage() : "";
-        String cause = throwable.getCause() != null ? throwable.getCause().getMessage() : "";
+        String causeMessage = throwable.getCause() != null ? throwable.getCause().getMessage() : "";
         
         // Retry on these conditions
         if (message.contains("429") || message.contains("rate limit")) {

@@ -1,7 +1,7 @@
 package org.example.service;
 
 import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.WriteResult;
+
 import com.google.firebase.cloud.FirestoreClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

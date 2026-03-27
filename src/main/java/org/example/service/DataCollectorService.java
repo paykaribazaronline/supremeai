@@ -1,8 +1,11 @@
 package org.example.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.selfhealing.SelfHealingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,11 +28,15 @@ import java.util.concurrent.ConcurrentHashMap;
  * GET /api/data/firebase/{projectId} - Firebase metrics
  * GET /api/status - System health
  */
+@Service
 public class DataCollectorService {
     private static final Logger logger = LoggerFactory.getLogger(DataCollectorService.class);
     
     private final HybridDataCollector hybridDataCollector;
     private final ObjectMapper mapper = new ObjectMapper();
+    
+    @Autowired(required = false)
+    private SelfHealingService selfHealingService;
     
     // Request cache: avoid duplicate calls within 30 seconds
     private final Map<String, CachedResponse> cache = new ConcurrentHashMap<>();
@@ -256,6 +263,56 @@ public class DataCollectorService {
     private void trackRequest(String key, String outcome) {
         stats.computeIfAbsent(key, k -> new RequestStats())
             .record(outcome);
+    }
+    
+    // ========== Self-Healing Wrapper Methods ==========
+    
+    /**
+     * Get GitHub data with self-healing protection (circuit breaker, retry, monitoring)
+     */
+    public Map<String, Object> getGitHubDataWithHealing(String owner, String repo) throws Exception {
+        if (selfHealingService == null) {
+            logger.warn("Self-healing not available, using direct method");
+            return getGitHubData(owner, repo);
+        }
+        
+        return selfHealingService.executeWithHealing(
+            "github-api",
+            "fetch-" + owner + "-" + repo,
+            () -> getGitHubData(owner, repo)
+        );
+    }
+    
+    /**
+     * Get Vercel status with self-healing protection
+     */
+    public Map<String, Object> getVercelStatusWithHealing(String projectId) throws Exception {
+        if (selfHealingService == null) {
+            logger.warn("Self-healing not available, using direct method");
+            return getVercelStatus(projectId);
+        }
+        
+        return selfHealingService.executeWithHealing(
+            "vercel-api",
+            "fetch-" + projectId,
+            () -> getVercelStatus(projectId)
+        );
+    }
+    
+    /**
+     * Get Firebase status with self-healing protection
+     */
+    public Map<String, Object> getFirebaseStatusWithHealing() throws Exception {
+        if (selfHealingService == null) {
+            logger.warn("Self-healing not available, using direct method");
+            return getFirebaseStatus();
+        }
+        
+        return selfHealingService.executeWithHealing(
+            "firebase-db",
+            "fetch-status",
+            () -> getFirebaseStatus()
+        );
     }
     
     // ========== Inner Classes ==========

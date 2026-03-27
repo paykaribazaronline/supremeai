@@ -28,6 +28,10 @@ public class ApprovalManager {
                 req.setStatus(Requirement.Status.APPROVED);
                 // In a real app, this sends a push notification to the Flutter mobile app
                 break;
+            case HUMAN_REQUIRED:
+                System.out.println("🔴 [HUMAN REVIEW] This task requires human review: " + req.getDescription());
+                // Notify admin/human reviewer to manually approve or reject
+                break;
         }
     }
 

@@ -215,16 +215,15 @@ public class WebhookControllerTest {
     @Test
     void testWebhookConcurrentDeliveries() throws Exception {
         // Given - 3 different deliveries with different IDs
-        String sig1 = generateHmacSignature(testPayload, TEST_SECRET);
-        String sig2 = generateHmacSignature(testPayload, TEST_SECRET);
-        String sig3 = generateHmacSignature(testPayload, TEST_SECRET);
+        // Generate signatures for testing
+        String sig = generateHmacSignature(testPayload, TEST_SECRET);
 
         // When & Then - all should be accepted
         for (int i = 1; i <= 3; i++) {
             mockMvc.perform(post("/webhook/github")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(testPayload)
-                    .header("X-Hub-Signature-256", sig1)
+                    .header("X-Hub-Signature-256", sig)
                     .header("X-GitHub-Event", "pull_request")
                     .header("X-GitHub-Delivery", "concurrent-" + i))
                     .andExpect(status().isAccepted());

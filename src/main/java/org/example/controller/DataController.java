@@ -50,7 +50,7 @@ public class DataController {
         try {
             logger.info("📡 REST: GitHub data request for {}/{}", owner, repo);
             
-            Map<String, Object> data = dataCollectorService.getGitHubData(owner, repo);
+            Map<String, Object> data = dataCollectorService.getGitHubDataWithHealing(owner, repo);
             
             // Push to admin dashboard (non-blocking)
             try {
@@ -85,7 +85,7 @@ public class DataController {
         try {
             logger.info("📡 REST: Vercel status request for {}", projectId);
             
-            Map<String, Object> data = dataCollectorService.getVercelStatus(projectId);
+            Map<String, Object> data = dataCollectorService.getVercelStatusWithHealing(projectId);
             
             // Push to admin dashboard (non-blocking)
             try {
@@ -119,7 +119,7 @@ public class DataController {
         try {
             logger.info("📡 REST: Firebase status request");
             
-            Map<String, Object> data = dataCollectorService.getFirebaseStatus();
+            Map<String, Object> data = dataCollectorService.getFirebaseStatusWithHealing();
             
             // Push to admin dashboard (non-blocking)
             try {

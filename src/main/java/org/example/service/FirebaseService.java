@@ -5,13 +5,14 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.*;
+import org.example.model.Requirement;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+
 
 public class FirebaseService {
     private FirebaseDatabase db;
@@ -278,5 +279,40 @@ public class FirebaseService {
     public void deleteUser(String userId) throws Exception {
         db.getReference("users").child(userId).removeValueAsync();
         System.out.println("✅ User deleted from Firebase: " + userId);
+    }
+
+    // ============ REQUIREMENT MANAGEMENT METHODS ============
+
+    public void saveRequirement(Requirement req) {
+        db.getReference("requirements").child(req.getId()).setValueAsync(req);
+        System.out.println("📋 Requirement saved to RTDB: " + req.getId());
+    }
+
+    public List<Requirement> getAllRequirements() throws Exception {
+        CompletableFuture<List<Requirement>> future = new CompletableFuture<>();
+        db.getReference("requirements").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                List<Requirement> reqs = new ArrayList<>();
+                if (snapshot.exists()) {
+                    for (DataSnapshot data : snapshot.getChildren()) {
+                        Requirement r = data.getValue(Requirement.class);
+                        if (r != null) {
+                            reqs.add(r);
+                        }
+                    }
+                }
+                future.complete(reqs);
+            }
+            @Override
+            public void onCancelled(DatabaseError error) {
+                future.completeExceptionally(error.toException());
+            }
+        });
+        return future.get();
+    }
+
+    public void updateRequirementStatus(String id, Requirement.Status status) {
+        db.getReference("requirements").child(id).child("status").setValueAsync(status);
     }
 }
