@@ -239,6 +239,16 @@ public class AuthenticationService {
     }
     
     /**
+     * Public method to hash password for Firebase export
+     * Used by utility endpoints to generate hashes for manual user creation
+     */
+    public String hashPasswordForExport(String password) {
+        return hashPassword(password);
+    }
+    
+    // ============ PRIVATE HELPER METHODS ============
+    
+    /**
      * Get signing key for JWT
      */
     private Key getSigningKey() {

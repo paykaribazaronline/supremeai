@@ -1,7 +1,6 @@
 plugins {
     id("java")
-    id("org.springframework.boot") version "3.2.3"
-    id("io.spring.dependency-management") version "1.1.4"
+    id("application")
 }
 
 group = "org.example"
@@ -82,10 +81,10 @@ tasks.test {
     useJUnitPlatform()
 }
 
-// Task to run the Spring Boot application
-tasks.register<JavaExec>("runApp") {
+application {
     mainClass.set("org.example.Application")
-    classpath = sourceSets["main"].runtimeClasspath
-    jvmArgs = listOf("-Dspring.profiles.active=default")
 }
+
+tasks.named<JavaExec>("run") {
+    jvmArgs = listOf("-Dspring.profiles.active=default")
 }

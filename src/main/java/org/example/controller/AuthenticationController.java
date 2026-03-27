@@ -302,6 +302,116 @@ public class AuthenticationController {
         }
     }
     
+    /**
+     * POST /api/auth/bootstrap
+     * Register the FIRST admin user (no authentication required)
+     * If users already exist, requires admin authentication
+     * 
+     * Body: {
+     *   "username": "admin",
+     *   "email": "admin@example.com",
+     *   "password": "secure_password"
+     * }
+     */
+    @PostMapping("/bootstrap")
+    public ResponseEntity<?> bootstrap(
+            @RequestBody Map<String, String> request,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            String username = request.get("username");
+            String email = request.get("email");
+            String password = request.get("password");
+            
+            if (username == null || email == null || password == null) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("status", "error", "message", "All fields required"));
+            }
+            
+            // Check if any users exist
+            List<User> existingUsers = authService.getAllUsers();
+            if (existingUsers != null && !existingUsers.isEmpty()) {
+                // If users exist, require admin authentication
+                User currentUser = extractUserFromToken(authHeader);
+                if (currentUser == null) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("status", "error", "message", "Users already exist. Admin authentication required."));
+                }
+            }
+            
+            User user = authService.registerUser(username, email, password);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", "First admin user registered successfully");
+            response.put("user", new AuthToken.UserResponse(user));
+            
+            logger.info("✅ Bootstrap: First admin registered: {}", username);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("❌ Bootstrap registration failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("status", "error", "message", e.getMessage()));
+        }
+    }
+
+    /**
+     * POST /api/auth/hash-password
+     * Generate BCrypt hash for a password (for Firebase manual user creation)
+     * 
+     * Body: {
+     *   "password": "your_password"
+     * }
+     * 
+     * Response: {
+     *   "password": "your_password",
+     *   "hash": "$2a$10$...",
+     *   "note": "Use this hash as 'passwordHash' field in Firebase"
+     * }
+     */
+    @PostMapping("/hash-password")
+    public ResponseEntity<?> hashPassword(@RequestBody Map<String, String> request) {
+        try {
+            String password = request.get("password");
+            if (password == null || password.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("status", "error", "message", "Password required"));
+            }
+            
+            if (password.length() < 6) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("status", "error", "message", "Password must be at least 6 characters"));
+            }
+            
+            String hash = authService.hashPasswordForExport(password);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("password", password);
+            response.put("hash", hash);
+            response.put("note", "Use this hash as 'passwordHash' field in Firebase users collection");
+            response.put("firebase_template", Map.of(
+                "username", "your_username",
+                "email", "user@example.com",
+                "passwordHash", hash,
+                "active", true,
+                "role", "admin",
+                "permissions", List.of(),
+                "createdAt", System.currentTimeMillis(),
+                "lastLogin", 0L
+            ));
+            
+            logger.info("✅ Password hash generated");
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("❌ Hash generation failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("status", "error", "message", e.getMessage()));
+        }
+    }
+
     // ============ PRIVATE HELPER METHODS ============
     
     /**

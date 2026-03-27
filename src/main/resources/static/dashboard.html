@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SupremeAI - Monitoring Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333; min-height: 100vh; padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header {
+            background: rgba(255, 255, 255, 0.95); padding: 20px;
+            border-radius: 10px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .status-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .status-item { background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745; }
+        .value { font-size: 24px; font-weight: bold; color: #1e3c72; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .metrics-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .metrics-table th { background: #f8f9fa; padding: 10px; text-align: left; }
+        .metrics-table td { padding: 10px; border-bottom: 1px solid #e0e0e0; }
+        .progress-bar { width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #28a745; }
+        .login-modal {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.8); z-index: 1000; align-items: center; justify-content: center;
+        }
+        .login-modal-content { background: white; padding: 40px; border-radius: 10px; width: 90%; max-width: 400px; }
+        .login-form-group { margin-bottom: 15px; }
+        .login-form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+        .login-form-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; }
+        .login-btn { width: 100%; padding: 12px; background: #1e3c72; color: white; border: none; border-radius: 5px; font-weight: 600; cursor: pointer; }
+        .login-error { background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px; display: none; font-size: 13px; }
+        .auth-status { position: fixed; top: 20px; right: 20px; background: white; padding: 10px 15px; border-radius: 5px; display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 SupremeAI - Monitoring Dashboard</h1>
+            <p>Real-time system monitoring</p>
+            <div id="lastUpdate" style="font-size: 12px; color: #999; margin-top: 10px;">Last updated: --:--:--</div>
+        </header>
+
+        <div class="status-bar">
+            <div class="status-item"><h3>System Status</h3><div class="value" id="systemStatus">CHECKING...</div></div>
+            <div class="status-item"><h3>Projects</h3><div class="value" id="projectCount">0</div></div>
+        </div>
+
+        <div class="dashboard-grid" style="margin-top: 20px;">
+            <div class="card" style="grid-column: 1 / -1;">
+                <h2>🚀 Active Projects</h2>
+                <table class="metrics-table">
+                    <thead><tr><th>Project Name</th><th>Status</th><th>Progress</th></tr></thead>
+                    <tbody id="projectsTableBody">
+                        <tr><td colspan="3" style="text-align: center; padding: 20px; color: #999;">লগইন করার পর ডাটা লোড হবে...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="auth-status" id="authStatus">
+        <span id="userEmail"></span>
+        <button onclick="firebase.auth().signOut()" style="margin-left:10px; background:#dc3545; color:white; border:none; padding:3px 8px; border-radius:3px; cursor:pointer;">Logout</button>
+    </div>
+
+    <div class="login-modal" id="loginModal">
+        <div class="login-modal-content">
+            <h2 style="margin-bottom: 20px; text-align: center;">Admin Login</h2>
+            <div class="login-error" id="loginError"></div>
+            <form onsubmit="handleLogin(event)">
+                <div class="login-form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="login-form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit" class="login-btn">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC1b1UPogvLoAshIWm9YQJ8_RR0UxCO7i8",
+            authDomain: "supremeai-a.firebaseapp.com",
+            databaseURL: "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "supremeai-a",
+            storageBucket: "supremeai-a.firebasestorage.app",
+            messagingSenderId: "565236080752",
+            appId: "1:565236080752:web:572bb9313db9afb355d4b5",
+            measurementId: "G-KR71G4S1BR"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+
+        let loginAttempts = 0;
+
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                document.getElementById('authStatus').style.display = 'flex';
+                document.getElementById('userEmail').textContent = user.email;
+                document.getElementById('loginModal').style.display = 'none';
+                startLiveSync();
+            } else {
+                document.getElementById('authStatus').style.display = 'none';
+                document.getElementById('loginModal').style.display = 'flex';
+            }
+        });
+
+        async function getClientIP() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip;
+            } catch (error) { return 'unknown'; }
+        }
+
+        function isIPBlocked(ip) {
+            const blockedIPs = JSON.parse(localStorage.getItem('blocked_ips') || '{}');
+            if (blockedIPs[ip]) {
+                const blockTime = new Date(blockedIPs[ip]).getTime();
+                const now = new Date().getTime();
+                if (now - blockTime < 10 * 60 * 1000) return true;
+                delete blockedIPs[ip];
+                localStorage.setItem('blocked_ips', JSON.stringify(blockedIPs));
+            }
+            return false;
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.style.display = 'none';
+
+            const ip = await getClientIP();
+            if (isIPBlocked(ip)) {
+                errorDiv.textContent = '🚫 আইপি ব্লকড। ১০ মিনিট পর চেষ্টা করুন।';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then(() => { loginAttempts = 0; })
+                .catch((error) => {
+                    loginAttempts++;
+                    if (loginAttempts >= 3) {
+                        const blockedIPs = JSON.parse(localStorage.getItem('blocked_ips') || '{}');
+                        blockedIPs[ip] = new Date().toISOString();
+                        localStorage.setItem('blocked_ips', JSON.stringify(blockedIPs));
+                        errorDiv.textContent = '🚨 আইপি ব্লকড করা হয়েছে ১০ মিনিটের জন্য।';
+                    } else {
+                        errorDiv.textContent = "❌ " + error.message;
+                    }
+                    errorDiv.style.display = 'block';
+                });
+        }
+
+        function startLiveSync() {
+            document.getElementById('systemStatus').textContent = "✅ CONNECTED";
+            db.ref('projects').on('value', (snapshot) => {
+                const projects = snapshot.val();
+                const tbody = document.getElementById('projectsTableBody');
+                if (!projects) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px;">কোনো প্রজেক্ট পাওয়া যায়নি।</td></tr>';
+                    document.getElementById('projectCount').textContent = "0";
+                    return;
+                }
+
+                let html = '';
+                let count = 0;
+                Object.keys(projects).forEach(key => {
+                    const p = projects[key];
+                    count++;
+                    html += `<tr>
+                        <td>${p.name || 'Unnamed'}</td>
+                        <td>${p.status || 'N/A'}</td>
+                        <td>
+                            <div class="progress-bar"><div class="progress-fill" style="width: ${p.progress || 0}%"></div></div>
+                            ${p.progress || 0}%
+                        </td>
+                    </tr>`;
+                });
+                tbody.innerHTML = html;
+                document.getElementById('projectCount').textContent = count;
+                document.getElementById('lastUpdate').textContent = "Last updated: " + new Date().toLocaleTimeString();
+            });
+        }
+    </script>
+</body>
+</html>
