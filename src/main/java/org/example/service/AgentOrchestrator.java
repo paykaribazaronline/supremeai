@@ -46,10 +46,11 @@ public class AgentOrchestrator {
     private final WebhookListener webhookListener;
     private final AdminMessagePusher adminMessagePusher;
 
-    // 🚀 NEW: Intelligence & Safety Services
+    // 🚀 Intelligence, Safety & Self-Analysis Services
     private final InternetSearchService searchService;
     private final SafeZoneManager safeZoneManager;
     private final AutoSuggestionService autoSuggestionService;
+    private final SelfGitAnalyzer selfGitAnalyzer;
     
     private final ExecutorService executor = Executors.newFixedThreadPool(8);
     private final Map<String, Agent> agentPool = new HashMap<>();
@@ -68,6 +69,7 @@ public class AgentOrchestrator {
         this.searchService = new InternetSearchService(apiKeys.getOrDefault("TAVILY", ""));
         this.safeZoneManager = new SafeZoneManager();
         this.autoSuggestionService = new AutoSuggestionService(aiService);
+        this.selfGitAnalyzer = new SelfGitAnalyzer(".");
         
         // Initialize Phase 3 (Generator)
         this.fileOrchestrator = new FileOrchestrator("projects", this.memoryManager);
@@ -105,7 +107,33 @@ public class AgentOrchestrator {
         agentPool.put("ARCHITECT", new Agent("architect-1", "Z-Architect", Agent.Role.ARCHITECT, "gpt-4"));
     }
     
-    // ... (rest of the existing methods)
+    /**
+     * 🕵️ SELF-ANALYSIS: SupremeAI analyzes its own development evolution
+     */
+    public void runSelfDiagnostic() {
+        System.out.println("\n🕵️ [SELF-DIAGNOSTIC] Running Git evolution analysis...");
+        
+        // 1. Analyze recent history
+        List<Map<String, String>> history = selfGitAnalyzer.analyzeSelfHistory(5);
+        System.out.println("📜 Recent Evolution (Commit History):");
+        history.forEach(c -> System.out.println("  [" + c.get("hash") + "] " + c.get("message")));
+
+        // 2. Identify Hotspots
+        Map<String, Integer> hotspots = selfGitAnalyzer.identifyHotspots();
+        System.out.println("🔥 Top Development Hotspots (Most modified files):");
+        hotspots.entrySet().stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .limit(5)
+                .forEach(h -> System.out.println("  " + h.getKey() + ": " + h.getValue() + " changes"));
+
+        // 3. Check status
+        Map<String, String> status = selfGitAnalyzer.checkSelfStatus();
+        if (Boolean.parseBoolean(status.get("is_dirty"))) {
+            System.out.println("⚠️ System state is 'Dirty' (Uncommitted work detected).");
+        } else {
+            System.out.println("✅ System state is 'Clean'. Ready for deployment.");
+        }
+    }
 
     /**
      * ⚡ ENHANCED WORKFLOW: Internet Search + SafeZone + Suggestions
@@ -224,8 +252,6 @@ public class AgentOrchestrator {
         }
     }
     
-    // ... (rest of the existing methods)
-    
     private String planWithArchitect(String projectId, String requirement) {
         System.out.println("\n🏗️  [ARCHITECT] Generating plan...");
         String currentPlan = aiService.callAI("ARCHITECT", "Plan architecture for: " + requirement, rotationManager.getFallbackChain(Agent.Role.ARCHITECT));
@@ -273,7 +299,7 @@ public class AgentOrchestrator {
             }));
         }
         for (Future<?> future : futures) {
-            try { future.get(30, TimeUnit.SECONDS); } catch (Exception e) {}
+            try { future.get(30, TimeUnit.SECONDS); } catch (TimeUnitException e) {}
         }
         return votes;
     }
@@ -282,7 +308,7 @@ public class AgentOrchestrator {
         executor.shutdown();
     }
     
-    // ... (remaining getters)
+    // Getters
     public String selectBestAccountForProvider(String provider) {
         org.example.model.AIAccount account = accountManager.selectBestAccount(provider);
         return account != null ? account.getAccountId() : null;
