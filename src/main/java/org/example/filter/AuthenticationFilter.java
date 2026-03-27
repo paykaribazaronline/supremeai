@@ -31,6 +31,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         "/api/v1/data/health",
         "/actuator/health",
         "/api/auth/login",
+        "/api/auth/bootstrap",
+        "/api/auth/hash-password",
         "/api/auth/register",
         "/api/auth/refresh",
         "/index.html",

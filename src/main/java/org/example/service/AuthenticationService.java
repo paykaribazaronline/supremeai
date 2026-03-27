@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.Claims;
 import java.security.Key;
@@ -216,12 +215,12 @@ public class AuthenticationService {
      */
     private String generateJWT(User user) {
         return Jwts.builder()
-            .setSubject(user.getUsername())
+            .subject(user.getUsername())
             .claim("userId", user.getId())
             .claim("role", user.getRole())
-            .setIssuedAt(new Date())
-            .setExpiration(new Date(System.currentTimeMillis() + TimeUnit.HOURS.toMillis(TOKEN_EXPIRATION_HOURS)))
-            .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+            .issuedAt(new Date())
+            .expiration(new Date(System.currentTimeMillis() + TimeUnit.HOURS.toMillis(TOKEN_EXPIRATION_HOURS)))
+            .signWith(getSigningKey())
             .compact();
     }
     
@@ -230,11 +229,11 @@ public class AuthenticationService {
      */
     private String generateRefreshToken(User user) {
         return Jwts.builder()
-            .setSubject(user.getUsername())
+            .subject(user.getUsername())
             .claim("type", "refresh")
-            .setIssuedAt(new Date())
-            .setExpiration(new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(REFRESH_TOKEN_EXPIRATION_DAYS)))
-            .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+            .issuedAt(new Date())
+            .expiration(new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(REFRESH_TOKEN_EXPIRATION_DAYS)))
+            .signWith(getSigningKey())
             .compact();
     }
     

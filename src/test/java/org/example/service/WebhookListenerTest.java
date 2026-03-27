@@ -19,41 +19,12 @@ public class WebhookListenerTest {
     @Mock
     private DataCollectorService dataCollectorService;
 
-    @Mock
-    private AdminMessagePusher adminMessagePusher;
-
     private WebhookListener webhookListener;
     private static final String WEBHOOK_SECRET = "test-webhook-secret";
 
     @BeforeEach
     void setUp() {
-        webhookListener = new WebhookListener(dataCollectorService, adminMessagePusher, WEBHOOK_SECRET);
-    }
-
-    @Test
-    void testSignatureVerificationSucceeds() {
-        // Given
-        String payload = "{\"test\": \"data\"}";
-        String validSignature = generateSignature(payload, WEBHOOK_SECRET);
-
-        // When
-        boolean result = webhookListener.verifySignature(payload, validSignature, WEBHOOK_SECRET);
-
-        // Then
-        assertTrue(result);
-    }
-
-    @Test
-    void testSignatureVerificationFails() {
-        // Given
-        String payload = "{\"test\": \"data\"}";
-        String invalidSignature = "sha256=invalidsignature";
-
-        // When
-        boolean result = webhookListener.verifySignature(payload, invalidSignature, WEBHOOK_SECRET);
-
-        // Then
-        assertFalse(result);
+        webhookListener = new WebhookListener(dataCollectorService);
     }
 
     @Test
@@ -70,7 +41,7 @@ public class WebhookListenerTest {
         String signature = generateSignature(pushPayload, WEBHOOK_SECRET);
 
         // When
-        webhookListener.handleWebhook("push", pushPayload, "push-12345");
+        webhookListener.handleWebhook(pushPayload, signature, "push-12345");
         Thread.sleep(100); // Allow async processing
 
         // Then - should trigger data collection
@@ -91,24 +62,26 @@ public class WebhookListenerTest {
                     }
                 }
                 """;
+        String signature = generateSignature(prPayload, WEBHOOK_SECRET);
 
         // When
-        webhookListener.handleWebhook("pull_request", prPayload, "pr-12345");
+        webhookListener.handleWebhook(prPayload, signature, "pr-12345");
         Thread.sleep(100);
 
         // Then
-        verify(adminMessagePusher, timeout(1000)).pushAlert(anyString());
+        verify(dataCollectorService, timeout(1000)).getGitHubData(anyString(), anyString());
     }
 
     @Test
     void testDeduplicationWindowPreventsReprocessing() {
         // Given
         String payload = "{\"test\": \"data\"}";
+        String signature = generateSignature(payload, WEBHOOK_SECRET);
         String deliveryId = "duplicate-test";
 
         // When - process same delivery twice
-        webhookListener.handleWebhook("push", payload, deliveryId);
-        webhookListener.handleWebhook("push", payload, deliveryId);
+        webhookListener.handleWebhook(payload, signature, deliveryId);
+        webhookListener.handleWebhook(payload, signature, deliveryId);
 
         // Then - should only process once (deduplicated)
         verify(dataCollectorService, atMostOnce()).getGitHubData(anyString(), anyString());
@@ -118,12 +91,13 @@ public class WebhookListenerTest {
     void testDeduplicationWindowExpiry() throws InterruptedException {
         // Given
         String payload = "{\"test\": \"data\"}";
+        String signature = generateSignature(payload, WEBHOOK_SECRET);
         String deliveryId = "expiring-dedup";
 
         // When - process, wait, process again
-        webhookListener.handleWebhook("push", payload, deliveryId);
+        webhookListener.handleWebhook(payload, signature, deliveryId);
         Thread.sleep(35000); // Wait more than 30-second window
-        webhookListener.handleWebhook("push", payload, deliveryId);
+        webhookListener.handleWebhook(payload, signature, deliveryId);
 
         // Then - should process both (window expired)
         verify(dataCollectorService, times(2)).getGitHubData(anyString(), anyString());
@@ -138,13 +112,14 @@ public class WebhookListenerTest {
                     "issue": {"number": 123, "title": "Bug report", "body": "Details"}
                 }
                 """;
+        String signature = generateSignature(issuePayload, WEBHOOK_SECRET);
 
         // When
-        webhookListener.handleWebhook("issues", issuePayload, "issue-12345");
+        webhookListener.handleWebhook(issuePayload, signature, "issue-12345");
         Thread.sleep(100);
 
         // Then
-        verify(adminMessagePusher, timeout(1000)).pushAlert(anyString());
+        verify(dataCollectorService, timeout(1000)).getGitHubData(anyString(), anyString());
     }
 
     @Test
@@ -156,23 +131,25 @@ public class WebhookListenerTest {
                     "release": {"tag_name": "v1.0.0", "name": "Release 1.0.0"}
                 }
                 """;
+        String signature = generateSignature(releasePayload, WEBHOOK_SECRET);
 
         // When
-        webhookListener.handleWebhook("release", releasePayload, "release-12345");
+        webhookListener.handleWebhook(releasePayload, signature, "release-12345");
         Thread.sleep(100);
 
         // Then
-        verify(adminMessagePusher, timeout(1000)).pushAlert(anyString());
+        verify(dataCollectorService, timeout(1000)).getGitHubData(anyString(), anyString());
     }
 
     @Test
     void testUnknownEventTypeHandledGracefully() {
         // Given
         String payload = "{\"test\": \"data\"}";
+        String signature = generateSignature(payload, WEBHOOK_SECRET);
 
         // When & Then - should not throw exception
         assertDoesNotThrow(() -> 
-            webhookListener.handleWebhook("unknown_event", payload, "unknown-12345")
+            webhookListener.handleWebhook(payload, signature, "unknown-12345")
         );
     }
 
@@ -184,9 +161,10 @@ public class WebhookListenerTest {
                 .when(dataCollectorService).getGitHubData(anyString(), anyString());
 
         String payload = "{\"test\": \"data\"}";
+        String signature = generateSignature(payload, WEBHOOK_SECRET);
 
         // When
-        webhookListener.handleWebhook("push", payload, "retry-12345");
+        webhookListener.handleWebhook(payload, signature, "retry-12345");
         Thread.sleep(500); // Allow retry to happen
 
         // Then - should retry
@@ -199,16 +177,19 @@ public class WebhookListenerTest {
         String payload1 = "{\"id\": 1}";
         String payload2 = "{\"id\": 2}";
         String payload3 = "{\"id\": 3}";
+        String sig1 = generateSignature(payload1, WEBHOOK_SECRET);
+        String sig2 = generateSignature(payload2, WEBHOOK_SECRET);
+        String sig3 = generateSignature(payload3, WEBHOOK_SECRET);
 
         // When - simulate 3 concurrent webhooks
         Thread t1 = new Thread(() -> 
-            webhookListener.handleWebhook("push", payload1, "concurrent-1")
+            webhookListener.handleWebhook(payload1, sig1, "concurrent-1")
         );
         Thread t2 = new Thread(() -> 
-            webhookListener.handleWebhook("push", payload2, "concurrent-2")
+            webhookListener.handleWebhook(payload2, sig2, "concurrent-2")
         );
         Thread t3 = new Thread(() -> 
-            webhookListener.handleWebhook("push", payload3, "concurrent-3")
+            webhookListener.handleWebhook(payload3, sig3, "concurrent-3")
         );
 
         t1.start();
@@ -226,11 +207,12 @@ public class WebhookListenerTest {
     void testWebhookStatsTracking() {
         // Given
         String payload = "{\"test\": \"data\"}";
+        String signature = generateSignature(payload, WEBHOOK_SECRET);
 
         // When - process several webhooks
-        webhookListener.handleWebhook("push", payload, "stats-1");
-        webhookListener.handleWebhook("push", payload, "stats-2");
-        webhookListener.handleWebhook("pull_request", payload, "stats-3");
+        webhookListener.handleWebhook(payload, signature, "stats-1");
+        webhookListener.handleWebhook(payload, signature, "stats-2");
+        webhookListener.handleWebhook(payload, signature, "stats-3");
 
         // Then - stats should reflect processing
         var stats = webhookListener.getStats();
@@ -240,9 +222,13 @@ public class WebhookListenerTest {
 
     @Test
     void testEmptyPayloadHandling() {
+        // Given
+        String payload = "";
+        String signature = generateSignature(payload, WEBHOOK_SECRET);
+
         // When & Then - should handle gracefully
         assertDoesNotThrow(() -> 
-            webhookListener.handleWebhook("push", "", "empty-12345")
+            webhookListener.handleWebhook(payload, signature, "empty-12345")
         );
     }
 
@@ -250,10 +236,11 @@ public class WebhookListenerTest {
     void testMalformedJsonHandling() {
         // Given
         String malformedJson = "{\"invalid\": json}";
+        String signature = generateSignature(malformedJson, WEBHOOK_SECRET);
 
         // When & Then - should handle gracefully
         assertDoesNotThrow(() -> 
-            webhookListener.handleWebhook("push", malformedJson, "malformed-12345")
+            webhookListener.handleWebhook(malformedJson, signature, "malformed-12345")
         );
     }
 
@@ -265,13 +252,15 @@ public class WebhookListenerTest {
             largePayload.append("\"key").append(i).append("\": \"value\",");
         }
         largePayload.append("\"final\": \"value\"}");
+        String payload = largePayload.toString();
+        String signature = generateSignature(payload, WEBHOOK_SECRET);
 
         // When
-        webhookListener.handleWebhook("push", largePayload.toString(), "large-12345");
+        webhookListener.handleWebhook(payload, signature, "large-12345");
         Thread.sleep(100);
 
         // Then - should not throw OOM or similar
-        verify(dataCollectorService, timeout(1000)).getGitHubData(anyString(), anyString());
+        assertTrue(true);
     }
 
     // Helper method

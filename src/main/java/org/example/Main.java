@@ -26,9 +26,12 @@ public class Main {
             SystemConfig config = new SystemConfig();
             if (cloudConfig != null && !cloudConfig.isEmpty()) {
                 if (cloudConfig.containsKey("consensusThreshold")) {
-                    config.setConsensusThreshold((Double) cloudConfig.get("consensusThreshold"));
+                    Object threshold = cloudConfig.get("consensusThreshold");
+                    if (threshold instanceof Number) {
+                        config.setConsensusThreshold(((Number) threshold).doubleValue());
+                    }
                 }
-                System.out.println("✅ Configuration loaded from Firestore.");
+                System.out.println("✅ Configuration loaded from Firebase Realtime Database.");
             } else {
                 config.setConsensusThreshold(0.70); // Default: King's 70% rule
                 System.out.println("⚠️  Cloud config not found, using defaults.");
@@ -40,7 +43,6 @@ public class Main {
             }
 
             // ========== LOAD API KEYS ==========
-            // Priority: 1. Firebase (Securely stored), 2. Environment Variables
             Map<String, String> apiKeys = loadAPIKeys(firebase);
 
             AgentOrchestrator orchestrator = new AgentOrchestrator(apiKeys, firebase, config);
@@ -77,60 +79,36 @@ public class Main {
     }
 
     /**
-     * Load API keys dynamically from Firestore (admin-controlled)
-     * 
-     * Priority:
-     * 1. Firestore (Admin-managed list - SINGLE SOURCE OF TRUTH)
-     * 2. Environment Variables (Fallback for each provider found in Firestore)
-     * 
-     * Admin can add NEW providers anytime via dashboard without code changes.
+     * Load API keys dynamically from Firebase (admin-controlled)
      */
     private static Map<String, String> loadAPIKeys(FirebaseService firebase) {
         Map<String, String> apiKeys = new HashMap<>();
         
-        // 1. Load provider list from Firestore (ADMIN CONTROLS THIS)
-        Map<String, Object> firebaseProviders = firebase.getSystemConfig("api_providers");
+        // 1. Load from "api_keys" node (Admin Controlled via Dashboard)
+        Map<String, Object> cloudKeys = firebase.getSystemConfig("api_keys");
         
-        if (firebaseProviders != null && !firebaseProviders.isEmpty()) {
-            System.out.println("🔍 Found " + firebaseProviders.size() + " configured AI providers:");
-            
-            for (Map.Entry<String, Object> entry : firebaseProviders.entrySet()) {
-                String providerName = entry.getKey();
-                Object providerConfig = entry.getValue();
-                
-                System.out.println("  • " + providerName);
-                
-                if (providerConfig instanceof Map) {
-                    Map<String, Object> config = (Map<String, Object>) providerConfig;
-                    String key = (String) config.get("key");
-                    if (key != null && !key.isEmpty()) {
-                        apiKeys.put(providerName, key);
-                        System.out.println("    ✅ Key loaded from Firestore");
-                    }
-                } else if (providerConfig instanceof String) {
-                    apiKeys.put(providerName, (String) providerConfig);
-                    System.out.println("    ✅ Key loaded from Firestore");
-                }
+        if (cloudKeys != null && !cloudKeys.isEmpty()) {
+            System.out.println("🔍 Found " + cloudKeys.size() + " API Keys in Firebase:");
+            for (Map.Entry<String, Object> entry : cloudKeys.entrySet()) {
+                apiKeys.put(entry.getKey(), String.valueOf(entry.getValue()));
+                System.out.println("  • " + entry.getKey() + ": [LOADED]");
             }
         }
         
-        // 2. Fallback to environment variables (for any provider)
-        for (String provider : apiKeys.keySet()) {
-            if (apiKeys.get(provider) == null || apiKeys.get(provider).isEmpty()) {
-                String envKey = System.getenv(provider.toUpperCase() + "_API_KEY");
+        // 2. Fallback to Environment Variables
+        String[] providers = {"DEEPSEEK", "GROQ", "CLAUDE", "GPT4", "GEMINI"};
+        for (String p : providers) {
+            if (!apiKeys.containsKey(p)) {
+                String envKey = System.getenv(p + "_API_KEY");
                 if (envKey != null && !envKey.isEmpty()) {
-                    apiKeys.put(provider, envKey);
-                    System.out.println("    ✅ Key loaded from Environment: " + provider.toUpperCase() + "_API_KEY");
+                    apiKeys.put(p, envKey);
+                    System.out.println("  • " + p + ": [LOADED FROM ENV]");
                 }
             }
         }
         
         if (apiKeys.isEmpty()) {
-            System.err.println("\n⚠️  WARNING: No AI providers configured in Firestore!");
-            System.err.println("   → Admin must use dashboard to add providers:");
-            System.err.println("   → http://localhost:8001 → AI Providers → Add New");
-        } else {
-            System.out.println("\n✅ Total providers ready: " + apiKeys.size());
+            System.err.println("\n⚠️  WARNING: No API keys found! Update them via Dashboard.");
         }
         
         return apiKeys;

@@ -1,30 +1,23 @@
 package org.example.service;
 
-import com.google.cloud.firestore.Firestore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class AdminMessagePusherSimpleTest {
-
-    @Mock
-    private Firestore firestore;
 
     private AdminMessagePusher adminMessagePusher;
 
     @BeforeEach
     void setUp() {
-        adminMessagePusher = new AdminMessagePusher(firestore);
+        adminMessagePusher = new AdminMessagePusher();
     }
 
     @Test
@@ -48,7 +41,7 @@ public class AdminMessagePusherSimpleTest {
 
         // When & Then
         assertDoesNotThrow(() -> 
-            adminMessagePusher.pushAlert(alertMessage)
+            adminMessagePusher.pushAlert("warning", "Alert", alertMessage, new HashMap<>())
         );
     }
 
@@ -61,7 +54,7 @@ public class AdminMessagePusherSimpleTest {
 
         // When & Then
         assertDoesNotThrow(() -> 
-            adminMessagePusher.pushStats(stats)
+            adminMessagePusher.pushStatsUpdate("request_stats", stats)
         );
     }
 
@@ -74,7 +67,7 @@ public class AdminMessagePusherSimpleTest {
 
         // When & Then
         assertDoesNotThrow(() -> 
-            adminMessagePusher.pushEvent(event)
+            adminMessagePusher.pushWebhookEvent("delivery-123", "webhook", "owner", "repo", true)
         );
     }
 
@@ -91,7 +84,7 @@ public class AdminMessagePusherSimpleTest {
                 for (int i = 0; i < messagesPerThread; i++) {
                     Map<String, Object> data = new HashMap<>();
                     data.put("thread", Thread.currentThread().getId());
-                    adminMessagePusher.pushAlert("Concurrent test");
+                    adminMessagePusher.pushAlert("warning", "Concurrent Test", "Concurrent test alert", data);
                 }
             });
             threads[t].start();
@@ -111,7 +104,7 @@ public class AdminMessagePusherSimpleTest {
         // When & Then
         assertDoesNotThrow(() -> {
             adminMessagePusher.pushDataUpdate("NULL", "Null Test", null, System.currentTimeMillis());
-            adminMessagePusher.pushAlert(null);
+            adminMessagePusher.pushAlert("error", "Null Alert", "Test alert", new HashMap<>());
         });
     }
 
@@ -120,7 +113,7 @@ public class AdminMessagePusherSimpleTest {
         // When & Then
         assertDoesNotThrow(() -> {
             adminMessagePusher.pushDataUpdate("EMPTY", "Empty", new HashMap<>(), System.currentTimeMillis());
-            adminMessagePusher.pushStats(new HashMap<>());
+            adminMessagePusher.pushStatsUpdate("stats", new HashMap<>());
         });
     }
 
@@ -128,9 +121,9 @@ public class AdminMessagePusherSimpleTest {
     void testMultipleMessageTypes() throws InterruptedException {
         // When
         adminMessagePusher.pushDataUpdate("DATA", "Data", new HashMap<>(), System.currentTimeMillis());
-        adminMessagePusher.pushAlert("Alert");
-        adminMessagePusher.pushStats(new HashMap<>());
-        adminMessagePusher.pushEvent(new HashMap<>());
+        adminMessagePusher.pushAlert("info", "Test Alert", "Alert message", new HashMap<>());
+        adminMessagePusher.pushStatsUpdate("stats", new HashMap<>());
+        adminMessagePusher.pushWebhookEvent("delivery-456", "push", "owner", "repo", true);
 
         Thread.sleep(100);
 
