@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.Claims;
 import java.security.Key;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -113,12 +114,13 @@ public class AuthenticationService {
      */
     public User validateToken(String token) throws Exception {
         try {
-            String username = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
+            Claims claims = Jwts.parser()
+                .verifyWith((javax.crypto.SecretKey) getSigningKey())
                 .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+                .parseSignedClaims(token)
+                .getPayload();
+            
+            String username = claims.getSubject();
             
             User user = getUserByUsername(username);
             if (user == null || !user.isActive()) {

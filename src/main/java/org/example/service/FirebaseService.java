@@ -157,8 +157,7 @@ public class FirebaseService {
         userMap.put("permissions", user.getPermissions());
         
         String userId = user.getId() != null ? user.getId() : user.getUsername();
-        db.getReference("users").child(userId).setValueAsync(userMap).get();
-        
+        db.getReference("users").child(userId).setValueAsync(userMap);
         System.out.println("✅ User saved to Firebase: " + user.getUsername());
     }
     
@@ -166,39 +165,62 @@ public class FirebaseService {
      * Get user by username
      */
     public org.example.model.User getUserByUsername(String username) throws Exception {
-        DataSnapshot snapshot = db.getReference("users")
-            .orderByChild("username")
-            .equalTo(username)
-            .limitToFirst(1)
-            .get()
-            .get();
+        CompletableFuture<org.example.model.User> future = new CompletableFuture<>();
         
-        if (snapshot.exists()) {
-            for (DataSnapshot user : snapshot.getChildren()) {
-                org.example.model.User u = user.getValue(org.example.model.User.class);
-                if (u != null) {
-                    u.setId(user.getKey());
-                    return u;
+        db.getReference("users").orderByChild("username").equalTo(username).limitToFirst(1)
+            .addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot snapshot) {
+                    org.example.model.User result = null;
+                    if (snapshot.exists()) {
+                        for (DataSnapshot userData : snapshot.getChildren()) {
+                            org.example.model.User u = userData.getValue(org.example.model.User.class);
+                            if (u != null) {
+                                u.setId(userData.getKey());
+                                result = u;
+                                break;
+                            }
+                        }
+                    }
+                    future.complete(result);
                 }
-            }
-        }
-        return null;
+                
+                @Override
+                public void onCancelled(DatabaseError error) {
+                    future.completeExceptionally(error.toException());
+                }
+            });
+        
+        return future.get();
     }
     
     /**
      * Get user by ID
      */
     public org.example.model.User getUserById(String userId) throws Exception {
-        DataSnapshot snapshot = db.getReference("users").child(userId).get().get();
+        CompletableFuture<org.example.model.User> future = new CompletableFuture<>();
         
-        if (snapshot.exists()) {
-            org.example.model.User user = snapshot.getValue(org.example.model.User.class);
-            if (user != null) {
-                user.setId(userId);
-                return user;
+        db.getReference("users").child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                org.example.model.User result = null;
+                if (snapshot.exists()) {
+                    org.example.model.User user = snapshot.getValue(org.example.model.User.class);
+                    if (user != null) {
+                        user.setId(userId);
+                        result = user;
+                    }
+                }
+                future.complete(result);
             }
-        }
-        return null;
+            
+            @Override
+            public void onCancelled(DatabaseError error) {
+                future.completeExceptionally(error.toException());
+            }
+        });
+        
+        return future.get();
     }
     
     /**
@@ -215,8 +237,7 @@ public class FirebaseService {
         updates.put("permissions", user.getPermissions());
         
         String userId = user.getId() != null ? user.getId() : user.getUsername();
-        db.getReference("users").child(userId).updateChildrenAsync(updates).get();
-        
+        db.getReference("users").child(userId).updateChildrenAsync(updates);
         System.out.println("✅ User updated in Firebase: " + user.getUsername());
     }
     
@@ -224,27 +245,38 @@ public class FirebaseService {
      * Get all users
      */
     public java.util.List<org.example.model.User> getAllUsers() throws Exception {
-        java.util.List<org.example.model.User> users = new ArrayList<>();
+        CompletableFuture<java.util.List<org.example.model.User>> future = new CompletableFuture<>();
         
-        DataSnapshot snapshot = db.getReference("users").get().get();
-        if (snapshot.exists()) {
-            for (DataSnapshot user : snapshot.getChildren()) {
-                org.example.model.User u = user.getValue(org.example.model.User.class);
-                if (u != null) {
-                    u.setId(user.getKey());
-                    users.add(u);
+        db.getReference("users").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                java.util.List<org.example.model.User> users = new ArrayList<>();
+                if (snapshot.exists()) {
+                    for (DataSnapshot userData : snapshot.getChildren()) {
+                        org.example.model.User u = userData.getValue(org.example.model.User.class);
+                        if (u != null) {
+                            u.setId(userData.getKey());
+                            users.add(u);
+                        }
+                    }
                 }
+                future.complete(users);
             }
-        }
+            
+            @Override
+            public void onCancelled(DatabaseError error) {
+                future.completeExceptionally(error.toException());
+            }
+        });
         
-        return users;
+        return future.get();
     }
     
     /**
      * Delete user
      */
     public void deleteUser(String userId) throws Exception {
-        db.getReference("users").child(userId).removeValueAsync().get();
+        db.getReference("users").child(userId).removeValueAsync();
         System.out.println("✅ User deleted from Firebase: " + userId);
     }
 }

@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SupremeAI - Monitoring Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Firebase SDKs (v9 Compat Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -224,38 +228,9 @@
             }
         }
 
-        .alert-box {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-        }
-
-        .alert-box.success {
-            background: #d4edda;
-            border-left-color: #28a745;
-        }
-
-        .alert-box.danger {
-            background: #f8d7da;
-            border-left-color: #dc3545;
-        }
-
-        /* Hidden Login Button & Modal */
-        /* Version number as login button - Hidden in Plain Sight! */
         #versionLogin {
             cursor: pointer;
             position: relative;
-        }
-        
-        /* v3.5 looks exactly like surrounding text - no hover effect */
-        #versionLogin:hover {
-            /* No visual change - blend in with normal text */
-        }
-        
-        #versionLogin:active {
-            /* No visual feedback */
         }
 
         .login-modal {
@@ -289,11 +264,10 @@
 
         .login-modal-content h2 {
             color: #1e3c72;
-            margin: 0 0 10px 0;
+            margin: 0 0 20px 0;
             text-align: center;
             font-size: 24px;
             font-weight: 700;
-            letter-spacing: 0.5px;
         }
 
         .login-form-group {
@@ -316,24 +290,6 @@
             font-family: inherit;
             box-sizing: border-box;
             font-size: 16px;
-            background: #ffffff !important;
-            color: #333 !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-            z-index: 1001 !important;
-            position: relative;
-            transition: border-color 0.3s ease;
-        }
-
-        .login-form-group input::placeholder {
-            color: #999;
-            opacity: 1;
-        }
-
-        .login-form-group input:focus {
-            outline: none;
-            border-color: #1e3c72;
-            box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
         }
 
         .login-btn {
@@ -348,17 +304,10 @@
             cursor: pointer;
             margin-top: 10px;
             transition: background 0.3s ease;
-            opacity: 1 !important;
-            visibility: visible !important;
-            z-index: 1001;
         }
         
         .login-btn:hover {
             background: #2a5298;
-        }
-        
-        .login-btn:active {
-            transform: scale(0.98);
         }
 
         .login-error {
@@ -368,10 +317,6 @@
             border-radius: 5px;
             margin-bottom: 15px;
             display: none;
-        }
-
-        .login-error.show {
-            display: block;
         }
 
         .auth-status {
@@ -387,17 +332,6 @@
             display: none;
         }
 
-        .auth-status.show {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .auth-status .user-email {
-            color: #1e3c72;
-            font-weight: 600;
-        }
-
         .logout-btn {
             background: #dc3545;
             color: white;
@@ -406,10 +340,7 @@
             border-radius: 3px;
             cursor: pointer;
             font-size: 11px;
-        }
-
-        .logout-btn:hover {
-            background: #c82333;
+            margin-left: 10px;
         }
     </style>
 </head>
@@ -430,15 +361,15 @@
             </div>
             <div class="status-item">
                 <h3>Error Rate</h3>
-                <div class="value" id="errorRate">0.8%</div>
+                <div class="value" id="errorRate">0.0%</div>
             </div>
             <div class="status-item" id="responseTimeStatus">
                 <h3>Response Time</h3>
-                <div class="value" id="responseTime">245ms</div>
+                <div class="value" id="responseTime">0ms</div>
             </div>
             <div class="status-item" id="storageStatus">
                 <h3>Storage Used</h3>
-                <div class="value" id="storageUsed">4.2GB / 10GB</div>
+                <div class="value" id="storageUsed">0GB / 10GB</div>
             </div>
         </div>
 
@@ -450,7 +381,6 @@
                 <div class="chart-container">
                     <canvas id="apiChart"></canvas>
                 </div>
-                <p style="color: #999; font-size: 12px;">Total: <strong>15,234 calls</strong></p>
             </div>
 
             <!-- Error Rate Chart -->
@@ -459,7 +389,6 @@
                 <div class="chart-container">
                     <canvas id="errorChart"></canvas>
                 </div>
-                <p style="color: #999; font-size: 12px;">Current: <strong>0.8%</strong> (Target: &lt;2%)</p>
             </div>
 
             <!-- Response Time Chart -->
@@ -468,10 +397,9 @@
                 <div class="chart-container">
                     <canvas id="responseChart"></canvas>
                 </div>
-                <p style="color: #999; font-size: 12px;">Average: <strong>245ms</strong> (Target: &lt;500ms)</p>
             </div>
 
-            <!-- API Provider Usage -->
+            <!-- AI Provider Usage -->
             <div class="card">
                 <h2>🤖 AI Provider Usage</h2>
                 <div class="chart-container">
@@ -493,7 +421,7 @@
                     <tbody id="projectsTableBody">
                         <tr>
                             <td colspan="3" style="text-align: center; padding: 20px; color: #999;">
-                                📂 No projects yet. Waiting for data from Firebase...
+                                📂 Loading projects from Realtime Database...
                             </td>
                         </tr>
                     </tbody>
@@ -514,23 +442,11 @@
                     <tbody id="systemMetricsTableBody">
                         <tr>
                             <td colspan="3" style="text-align: center; padding: 20px; color: #999;">
-                                📊 No metrics available yet. Waiting for data from Firebase...
+                                📊 Loading metrics...
                             </td>
                         </tr>
                     </tbody>
                 </table>
-            </div>
-
-            <!-- Full Width: Database Storage -->
-            <div class="card full-width">
-                <h2>💾 Database Storage Breakdown</h2>
-                <div class="chart-container">
-                    <canvas id="storageChart"></canvas>
-                </div>
-                <div class="progress-bar" style="margin-top: 15px;" id="storageProgressBar">
-                    <div class="progress-fill" style="width: 0%"></div>
-                </div>
-                <p style="margin-top: 10px; color: #666; font-size: 12px;" id="storageText">Waiting for Firebase data...</p>
             </div>
 
             <!-- Alerts -->
@@ -538,541 +454,251 @@
                 <h2>🔔 Recent Alerts</h2>
                 <div id="alertsContainer">
                     <p style="text-align: center; color: #999; padding: 20px;">
-                        ⏳ No alerts yet. Waiting for data from Firebase...
+                        ⏳ Waiting for alerts...
                     </p>
                 </div>
             </div>
         </div>
 
         <footer>
-            <p>SupremeAI Monitoring Dashboard <span id="versionLogin" onclick="showLoginModal()" title="Admin Login (Ctrl+L or click here)">v3.5</span> | Last Updated: March 27, 2026</p>
+            <p>SupremeAI Monitoring Dashboard <span id="versionLogin" onclick="showLoginModal()">v3.5</span> | Last Updated: 2024</p>
         </footer>
     </div>
 
     <!-- Auth Status Display -->
-    <div class="auth-status" id="authStatus" style="position: fixed; top: 20px; right: 20px; background: white; padding: 10px 15px; border-radius: 5px; font-size: 12px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); z-index: 99; display: none; align-items: center; gap: 10px;">
+    <div class="auth-status" id="authStatus">
         <span class="user-email" id="userEmail">Admin</span>
         <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
 
     <!-- Login Modal -->
-    <div class="login-modal" id="loginModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center;">
-        <div class="login-modal-content" style="background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); max-width: 400px; width: 90%; position: relative; z-index: 10000;">
-            <h2 style="color: #1e3c72; margin: 0 0 20px 0; text-align: center; font-size: 24px; font-weight: 700;">SupremeAI Admin Login</h2>
-            <div class="login-error" id="loginError" style="display: none; background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px;"></div>
-            <form onsubmit="handleLogin(event)" style="width: 100%;">
-                <div class="login-form-group" style="margin-bottom: 15px;">
-                    <label for="loginEmail" style="display: block; margin-bottom: 8px; color: #333; font-weight: 600; font-size: 14px;">Email Address</label>
-                    <input type="email" id="loginEmail" placeholder="admin@supremeai.com" required style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 5px; font-size: 16px; background: #ffffff; color: #333; box-sizing: border-box; display: block;">
+    <div class="login-modal" id="loginModal">
+        <div class="login-modal-content">
+            <h2>SupremeAI Admin Login</h2>
+            <div class="login-error" id="loginError"></div>
+            <form onsubmit="handleLogin(event)">
+                <div class="login-form-group">
+                    <label for="loginEmail">Email Address</label>
+                    <input type="email" id="loginEmail" placeholder="admin@supremeai.com" required>
                 </div>
-                <div class="login-form-group" style="margin-bottom: 15px;">
-                    <label for="loginPassword" style="display: block; margin-bottom: 8px; color: #333; font-weight: 600; font-size: 14px;">Password</label>
-                    <input type="password" id="loginPassword" placeholder="Enter your password" required style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 5px; font-size: 16px; background: #ffffff; color: #333; box-sizing: border-box; display: block;">
+                <div class="login-form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password" required>
                 </div>
-                <button type="submit" class="login-btn" style="width: 100%; padding: 12px; background: #1e3c72; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px;">Login</button>
+                <button type="submit" class="login-btn">Login</button>
+                <button type="button" onclick="closeLoginModal()" style="width:100%; margin-top:5px; background:none; border:none; color:#666; cursor:pointer;">Cancel</button>
             </form>
         </div>
     </div>
 
     <script>
-        // ===== FIREBASE-DRIVEN MONITORING DASHBOARD (Zero Hardcoding) =====
-        
+        // FIREBASE CONFIG INTEGRATED FROM SCREENSHOT
+        const firebaseConfig = {
+            apiKey: "AIzaSyC1b1UPogwLoAshIWm9YQJ8_RR0UxCO7i8",
+            authDomain: "supremeai-a.firebaseapp.com",
+            databaseURL: "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "supremeai-a",
+            storageBucket: "supremeai-a.firebasestorage.app",
+            messagingSenderId: "565236080752",
+            appId: "1:565236080752:web:572bb9313db9afb355d4b5",
+            measurementId: "G-KR71G4S1BR"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+
         let chartInstances = {};
-        let dashboardData = {};
-        let loginAttempts = 0;  // Track failed login attempts
-        
-        // Load all metrics from Firebase (NOT hardcoded)
-        function loadDashboardMetricsFromFirebase() {
-            console.log('📊 Loading dashboard metrics from Firebase...');
-            
-            // TODO: Replace with actual Firebase fetch:
-            // fetch('/api/metrics/dashboard')
-            //   .then(r => r.json())
-            //   .then(data => {
-            //       dashboardData = data;
-            //       initializeDashboard();
-            //   });
-            
-            // For now: Empty dashboard waiting for Firebase data
-            dashboardData = {
-                apiCalls: { labels: [], data: [] },
-                errors: { labels: [], data: [] },
-                responseTime: { labels: [], data: [] },
-                providers: { labels: [], data: [] },
-                storage: { labels: [], data: [] },
-                projects: [],
-                systemStatus: { healthy: true, errorRate: 0, responseTime: 0, storage: '0GB / 10GB' },
-                alerts: []
-            };
-            
-            // Update metrics display
-            updateMetricsDisplay();
-            initializeCharts();
-        }
-        
-        function updateMetricsDisplay() {
-            // Update status cards (load from Firebase)
-            document.getElementById('systemStatus').textContent = dashboardData.systemStatus.healthy ? '✅ HEALTHY' : '⚠️ DEGRADED';
-            document.getElementById('errorRate').textContent = dashboardData.systemStatus.errorRate + '%';
-            document.getElementById('responseTime').textContent = dashboardData.systemStatus.responseTime + 'ms';
-            document.getElementById('storageUsed').textContent = dashboardData.systemStatus.storage;
-            
-            // Update projects table
-            updateProjectsTable();
-            
-            // Update system metrics table
-            updateSystemMetricsTable();
-            
-            // Update alerts
-            updateAlertsDisplay();
-            
-            // Update storage progress
-            updateStorageDisplay();
-        }
-        
-        function updateProjectsTable() {
-            const tbody = document.getElementById('projectsTableBody');
-            if (!dashboardData.projects || dashboardData.projects.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px; color: #999;">📂 No projects yet</td></tr>';
-                return;
+        let loginAttempts = 0;
+
+        // Authentication State Observer
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                console.log('✅ User logged in:', user.email);
+                showAuthStatus(user.email);
+                closeLoginModal();
+                startLiveSync();
+            } else {
+                console.log('👤 No user logged in');
+                document.getElementById('authStatus').style.display = 'none';
+                showLoginModal();
             }
-            
-            tbody.innerHTML = dashboardData.projects.map(project => `
-                <tr>
-                    <td>${project.name}</td>
-                    <td><span class="badge ${project.status === 'Complete' ? 'success' : project.status === 'Active' ? 'success' : 'warning'}">${project.status}</span></td>
-                    <td>
-                        <div class="progress-bar"><div class="progress-fill ${project.status === 'In Progress' ? 'warning' : ''}" style="width: ${project.progress}%"></div></div>
-                        ${project.progress}%
-                    </td>
-                </tr>
-            `).join('');
-        }
-        
-        function updateSystemMetricsTable() {
-            const tbody = document.getElementById('systemMetricsTableBody');
-            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px; color: #999;">⏳ No system metrics available yet</td></tr>';
-            // TODO: Populate from dashboardData.systemMetrics when available from Firebase
-        }
-        
-        function updateAlertsDisplay() {
-            const container = document.getElementById('alertsContainer');
-            if (!dashboardData.alerts || dashboardData.alerts.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">✅ All systems normal - no alerts</p>';
-                return;
-            }
-            
-            container.innerHTML = dashboardData.alerts.map(alert => `
-                <div class="alert-box ${alert.type === 'success' ? 'success' : alert.type === 'danger' ? 'danger' : ''}">
-                    <strong>${alert.title}</strong> - ${alert.time}
-                </div>
-            `).join('');
-        }
-        
-        function updateStorageDisplay() {
-            const progressBar = document.getElementById('storageProgressBar').querySelector('.progress-fill');
-            const storageText = document.getElementById('storageText');
-            
-            // Parse storage from dashboardData.systemStatus.storage (e.g., "4.2GB / 10GB")
-            storageText.textContent = dashboardData.systemStatus.storage || 'Waiting for Firebase data...';
-            progressBar.style.width = '0%'; // Update with actual percentage when available
-        }
-        
-        function initializeCharts() {
-            // Initialize all charts with Firebase data (empty until data arrives)
-            initializeApiChart();
-            initializeErrorChart();
-            initializeResponseChart();
-            initializeProviderChart();
-            initializeStorageChart();
-        }
-        
-        function initializeApiChart() {
-            const ctx1 = document.getElementById('apiChart').getContext('2d');
-            chartInstances.api = new Chart(ctx1, {
-                type: 'line',
-                data: {
-                    labels: dashboardData.apiCalls.labels.length > 0 ? dashboardData.apiCalls.labels : ['No data yet'],
-                    datasets: [{
-                        label: 'API Calls',
-                        data: dashboardData.apiCalls.data.length > 0 ? dashboardData.apiCalls.data : [0],
-                        borderColor: '#1e3c72',
-                        backgroundColor: 'rgba(30, 60, 114, 0.1)',
-                        tension: 0.1,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
+        });
 
-        function initializeErrorChart() {
-            const ctx2 = document.getElementById('errorChart').getContext('2d');
-            chartInstances.error = new Chart(ctx2, {
-                type: 'bar',
-                data: {
-                    labels: dashboardData.errors.labels.length > 0 ? dashboardData.errors.labels : ['No data yet'],
-                    datasets: [{
-                        label: 'Errors',
-                        data: dashboardData.errors.data.length > 0 ? dashboardData.errors.data : [0],
-                        backgroundColor: '#dc3545'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
-
-        function initializeResponseChart() {
-            const ctx3 = document.getElementById('responseChart').getContext('2d');
-            chartInstances.response = new Chart(ctx3, {
-                type: 'line',
-                data: {
-                    labels: dashboardData.responseTime.labels.length > 0 ? dashboardData.responseTime.labels : ['No data yet'],
-                    datasets: [{
-                        label: 'Response Time (ms)',
-                        data: dashboardData.responseTime.data.length > 0 ? dashboardData.responseTime.data : [0],
-                        borderColor: '#28a745',
-                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                        tension: 0.1,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
-
-        function initializeProviderChart() {
-            const ctx4 = document.getElementById('providerChart').getContext('2d');
-            chartInstances.provider = new Chart(ctx4, {
-                type: 'doughnut',
-                data: {
-                    labels: dashboardData.providers.labels.length > 0 ? dashboardData.providers.labels : ['No data'],
-                    datasets: [{
-                        data: dashboardData.providers.data.length > 0 ? dashboardData.providers.data : [1],
-                        backgroundColor: ['#1e3c72', '#2a5298', '#3a7ca5', '#4a9eba', '#5ab8cc']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
-        }
-
-        function initializeStorageChart() {
-            const ctx5 = document.getElementById('storageChart').getContext('2d');
-            chartInstances.storage = new Chart(ctx5, {
-                type: 'doughnut',
-                data: {
-                    labels: dashboardData.storage.labels.length > 0 ? dashboardData.storage.labels : ['Used', 'Available'],
-                    datasets: [{
-                        data: dashboardData.storage.data.length > 0 ? dashboardData.storage.data : [0, 10],
-                        backgroundColor: ['#ffc107', '#28a745']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
-        }
-
-        // Update timestamp
-        function updateTime() {
-            const now = new Date();
-            document.getElementById('lastUpdate').textContent = now.toLocaleTimeString('bn-BD');
-        }
-
-        // Refresh dashboard - Load latest data from Firebase
-        function refreshDashboard() {
-            updateTime();
-            loadDashboardMetricsFromFirebase();
-            console.log('🔄 Dashboard refreshed - loaded latest metrics from Firebase');
-        }
-
-        // ===== AUTHENTICATION FUNCTIONS (GLOBAL - MUST BE BEFORE DOMContentLoaded) =====
-        
-        function showLoginModal() {
-            const modal = document.getElementById('loginModal');
-            modal.style.display = 'flex';
-            document.getElementById('loginEmail').focus();
-        }
-        
-        function closeLoginModal() {
-            const modal = document.getElementById('loginModal');
-            modal.style.display = 'none';
-            document.getElementById('loginError').style.display = 'none';
-        }
-        
-        function handleLogin(event) {
+        async function handleLogin(event) {
             event.preventDefault();
-            
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
             const errorDiv = document.getElementById('loginError');
-            
-            // ইউজারের IP address পান এবং check করুন blocked কিনা
-            getClientIP().then(ipAddress => {
-                // Check করুন IP block আছে কিনা
-                if (isIPBlocked(ipAddress)) {
-                    showError('🚫 IP ব্লক করা হয়েছে ১০ মিনিটের জন্য / This IP is temporarily blocked');
-                    console.log('🚫 Blocked IP tried to login:', ipAddress);
-                    return;
-                }
-                
-                // ইনপুট ভ্যালিডেশন - সব ফিল্ড পূরণ আছে কিনা চেক করুন
-                if (!email || !password) {
+
+            errorDiv.style.display = 'none';
+
+            // IP Blocking logic
+            const ipAddress = await getClientIP();
+            if (isIPBlocked(ipAddress)) {
+                showError('🚫 এই আইপিটি সাময়িকভাবে ব্লক করা হয়েছে। ১০ মিনিট পর আবার চেষ্টা করুন।');
+                return;
+            }
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    loginAttempts = 0;
+                    console.log('Login success');
+                })
+                .catch((error) => {
                     loginAttempts++;
-                    console.log(`❌ Failed attempt ${loginAttempts} from IP: ${ipAddress}`);
                     checkLoginAttempts(email, ipAddress);
-                    showError('সব ফিল্ড পূরণ করুন / Please fill all fields');
-                    return;
-                }
-                
-                // Firebase authentication এর সাথে connect করুন (production এ)
-                // যেকোনো email দিয়ে login করতে পারবেন (Firebase Auth এ check হবে)
-                if (email && password) {
-                    // TODO: Firebase authentication integrate করুন
-                    // firebase.auth().signInWithEmailAndPassword(email, password)
-                    //   .then(...logged in successfully...)
-                    //   .catch(error => {
-                    //       loginAttempts++;
-                    //       checkLoginAttempts(email, ipAddress);  // Log failed attempt to Firebase
-                    //   });
-                    
-                    // আপাতত: যেকোনো email-password গ্রহণ করছি (Demo mode)
-                    // localStorage = দীর্ঘমেয়াদী স্টোরেজ (ব্রাউজার বন্ধ করলেও ডেটা থাকে) ✅
-                    const token = 'token_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                    
-                    localStorage.setItem('supremeai_token', token);
-                    localStorage.setItem('supremeai_user', email);
-                    localStorage.setItem('supremeai_login_time', new Date().toISOString());
-                    
-                    console.log('✅ লগইন সফল / Logged in as:', email);
-                    console.log('💾 ডেটা localStorage এ সংরক্ষিত হয়েছে');
-                    
-                    loginAttempts = 0;  // Reset attempts on successful login
-                    showAuthStatus(email);
-                    closeLoginModal();
-                    
-                    // ফর্ম ক্লিয়ার করুন
-                    document.getElementById('loginEmail').value = '';
-                    document.getElementById('loginPassword').value = '';
-                }
-            });
+                    errorDiv.textContent = '❌ ' + error.message;
+                    errorDiv.style.display = 'block';
+                });
         }
-        
-        function showError(message) {
-            const errorDiv = document.getElementById('loginError');
-            errorDiv.textContent = '❌ ' + message;
-            errorDiv.style.display = 'block';
+
+        function logout() {
+            auth.signOut();
         }
-        
+
+        function showLoginModal() {
+            document.getElementById('loginModal').style.display = 'flex';
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').style.display = 'none';
+        }
+
         function showAuthStatus(email) {
             const authStatus = document.getElementById('authStatus');
             document.getElementById('userEmail').textContent = email;
             authStatus.style.display = 'flex';
         }
-        
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                localStorage.removeItem('supremeai_token');
-                localStorage.removeItem('supremeai_user');
-                localStorage.removeItem('supremeai_login_time');
-                
-                const authStatus = document.getElementById('authStatus');
-                authStatus.style.display = 'none';
-                
-                console.log('✅ Logged out');
-                alert('✅ Logged out successfully');
-            }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.textContent = '❌ ' + message;
+            errorDiv.style.display = 'block';
         }
-        
-        // Check if user is authenticated
-        function isAuthenticated() {
-            return !!localStorage.getItem('supremeai_token');
-        }
-        
-        // Get current user email
-        function getCurrentUser() {
-            return localStorage.getItem('supremeai_user') || null;
-        }
-        
-        /**
-         * 3 failed attempts পরে IP block করুন এবং Firebase এ alert পাঠাও
-         * User কে কোন popup alert দেখাবে না - শুধু error message
-         * প্রতিটি failed attempt এ এটি check করা হয়
-         */
-        function checkLoginAttempts(email = 'Unknown', ipAddress = 'Unknown') {
-            if (loginAttempts >= 3) {
-                // IP কে ১০ মিনিটের জন্য block করুন
-                blockIP(ipAddress);
-                
-                // Firebase এ log করুন (admin notification)
-                logFailedLoginToFirebase(email, loginAttempts, ipAddress);
-                
-                console.log('🚨 Failed login attempt logged to Firebase for admin');
-                console.log(`🚫 IP ${ipAddress} has been blocked for 10 minutes`);
-                
-                // User কে শুধু error message দেখান, popup alert নয়
-                showError('🚫 Too many attempts. IP blocked for 10 minutes.');
-                
-                loginAttempts = 0;  // Reset after logging
-                
-                // Modal বন্ধ করুন (2 seconds পর)
-                setTimeout(() => {
-                    closeLoginModal();
-                }, 1500);
-            }
-        }
-        
-        /**
-         * Failed login attempt Firebase এ পাঠাও
-         * Admin এই data দেখতে পাবে "failed_logins" collection এ
-         */
-        function logFailedLoginToFirebase(email, attempts, ipAddress = 'Unknown') {
-            // TODO: Firebase initialize করুন
-            const failedLoginData = {
-                email: email,
-                attempts: attempts,
-                ipAddress: ipAddress,
-                timestamp: new Date().toISOString(),
-                userAgent: navigator.userAgent,
-                // Note: In production, don't log passwords or sensitive data
-            };
-            
-            console.log('📤 Sending to Firebase:', failedLoginData);
-            
-            // Firebase code (when ready):
-            // db.collection('failed_logins').add(failedLoginData)
-            //   .then(() => console.log('✅ Failed login logged to Firebase'))
-            //   .catch(error => console.error('❌ Firebase error:', error));
-            
-            // Temporary localStorage backup (until Firebase is ready)
-            const failedAttempts = JSON.parse(localStorage.getItem('failed_login_attempts') || '[]');
-            failedAttempts.push(failedLoginData);
-            localStorage.setItem('failed_login_attempts', JSON.stringify(failedAttempts));
-            
-            console.log('💾 Backup stored in localStorage for later Firebase sync');
-        }
-        
-        /**
-         * ইউজারের IP address পান (public API ব্যবহার করে)
-         * cloudflare.com/ajax/libs/ipify/latest/ipify.min.js ব্যবহার করতে পারেন
-         */
+
+        // IP Blocking Functions
         async function getClientIP() {
             try {
-                // ipify API ব্যবহার করুন (fast, free, reliable)
-                const response = await fetch('https://api.ipify.org?format=json', { timeout: 3000 });
+                const response = await fetch('https://api.ipify.org?format=json');
                 const data = await response.json();
-                console.log('📍 Client IP:', data.ip);
                 return data.ip;
             } catch (error) {
-                console.warn('⚠️ Could not fetch IP, using fallback:', error);
-                // Fallback: Use browser fingerprint (less reliable than IP)
-                return 'browser_' + navigator.userAgent.substring(0, 20).replace(/\s/g, '_');
+                console.warn('IP fetch failed, using fallback');
+                return 'unknown-' + Math.random().toString(36).substr(2, 9);
             }
         }
-        
-        /**
-         * IP address blocked আছে কিনা check করুন (10 minutes)
-         */
-        function isIPBlocked(ipAddress) {
+
+        function isIPBlocked(ip) {
             const blockedIPs = JSON.parse(localStorage.getItem('blocked_ips') || '{}');
-            
-            if (blockedIPs[ipAddress]) {
-                const blockTime = new Date(blockedIPs[ipAddress].timestamp).getTime();
-                const currentTime = new Date().getTime();
-                const timeDifference = (currentTime - blockTime) / 1000 / 60; // minutes এ convert করুন
-                
-                if (timeDifference < 10) {
-                    // IP still blocked (10 minutes হয়নি)
-                    const remainingTime = Math.ceil(10 - timeDifference);
-                    console.log(`🚫 IP ${ipAddress} is blocked. ${remainingTime} minutes remaining`);
-                    return true;
-                } else {
-                    // 10 minutes হয়ে গেছে, unblock করুন
-                    delete blockedIPs[ipAddress];
-                    localStorage.setItem('blocked_ips', JSON.stringify(blockedIPs));
-                    console.log(`✅ IP ${ipAddress} has been unblocked`);
-                    return false;
-                }
+            if (blockedIPs[ip]) {
+                const blockTime = new Date(blockedIPs[ip]).getTime();
+                const now = new Date().getTime();
+                if (now - blockTime < 10 * 60 * 1000) return true;
+                delete blockedIPs[ip];
+                localStorage.setItem('blocked_ips', JSON.stringify(blockedIPs));
             }
             return false;
         }
-        
-        /**
-         * IP address ১০ মিনিটের জন্য block করুন
-         */
-        function blockIP(ipAddress) {
-            const blockedIPs = JSON.parse(localStorage.getItem('blocked_ips') || '{}');
-            blockedIPs[ipAddress] = {
-                timestamp: new Date().toISOString(),
-                reason: 'Too many failed login attempts'
-            };
-            localStorage.setItem('blocked_ips', JSON.stringify(blockedIPs));
-            
-            console.log(`🚫 IP ${ipAddress} blocked until ${new Date(Date.now() + 10 * 60 * 1000).toISOString()}`);
-            
-            // Firebase এ block করা IP list update করুন (admin এর জন্য)
-            const blockedIPData = {
-                ipAddress: ipAddress,
-                blockedAt: new Date().toISOString(),
-                unblockAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-                reason: 'Too many failed login attempts'
-            };
-            
-            // Firebase code (when ready):
-            // db.collection('blocked_ips').doc(ipAddress).set(blockedIPData)
+
+        function checkLoginAttempts(email, ip) {
+            if (loginAttempts >= 3) {
+                const blockedIPs = JSON.parse(localStorage.getItem('blocked_ips') || '{}');
+                blockedIPs[ip] = new Date().toISOString();
+                localStorage.setItem('blocked_ips', JSON.stringify(blockedIPs));
+
+                // Log failed attempt to Firebase
+                db.ref('security/failed_logins').push({
+                    email: email,
+                    ip: ip,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    attempts: loginAttempts
+                });
+
+                showError('🚨 অনেকবার ভুল পাসওয়ার্ড দেওয়া হয়েছে। আপনার আইপি ১০ মিনিটের জন্য ব্লক করা হয়েছে।');
+                setTimeout(closeLoginModal, 2000);
+                loginAttempts = 0;
+            }
         }
 
-        // Initial setup - Load from Firebase on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('✅ Monitoring Dashboard initialized');
-            loadDashboardMetricsFromFirebase();
-            updateTime();
-            setInterval(updateTime, 1000);
+        // Real-time Data Sync
+        function startLiveSync() {
+            // Listen for Projects
+            db.ref('projects').on('value', (snapshot) => {
+                const projects = snapshot.val();
+                updateProjectsTable(projects);
+            });
+
+            // Listen for Config/Metrics
+            db.ref('config').on('value', (snapshot) => {
+                const config = snapshot.val();
+                console.log('⚙️ Config updated:', config);
+            });
             
-            // Check if user is already logged in from localStorage (যদি আগে login করে থাকেন)
-            // localStorage = ব্রাউজার বন্ধ করলেও ডেটা থাকে 🔒
-            const authToken = localStorage.getItem('supremeai_token');
-            const userEmail = localStorage.getItem('supremeai_user');
-            
-            if (authToken && userEmail) {
-                showAuthStatus(userEmail);
-                console.log('✅ পূর্ববর্তী লগইন সেশন পুনরুদ্ধার:', userEmail);
+            refreshDashboard();
+        }
+
+        function updateProjectsTable(projects) {
+            const tbody = document.getElementById('projectsTableBody');
+            if (!projects) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px; color: #999;">📂 No projects found in database</td></tr>';
+                return;
             }
-            
-            // Listen for Ctrl+L keyboard shortcut to show login
-            document.addEventListener('keydown', function(e) {
-                if ((e.ctrlKey || e.metaKey) && (e.key === 'l' || e.key === 'L')) {
-                    e.preventDefault();
-                    showLoginModal();
-                }
+
+            let html = '';
+            Object.keys(projects).forEach(key => {
+                const p = projects[key];
+                html += `
+                    <tr>
+                        <td>${p.name || 'Unnamed Project'}</td>
+                        <td><span class="badge ${p.status === 'planning' ? 'warning' : 'success'}">${p.status || 'unknown'}</span></td>
+                        <td>
+                            <div class="progress-bar"><div class="progress-fill" style="width: ${p.progress || 0}%"></div></div>
+                            ${p.progress || 0}%
+                        </td>
+                    </tr>
+                `;
             });
-            
-            // Listen for Escape key to close login modal
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closeLoginModal();
-                }
+            tbody.innerHTML = html;
+        }
+
+        function refreshDashboard() {
+            const now = new Date();
+            document.getElementById('lastUpdate').textContent = now.toLocaleTimeString();
+        }
+
+        // Initialize empty charts
+        window.onload = () => {
+            initializeCharts();
+            setInterval(refreshDashboard, 5000);
+        };
+
+        function initializeCharts() {
+            const chartConfigs = [
+                { id: 'apiChart', type: 'line', label: 'API Calls', color: '#1e3c72' },
+                { id: 'errorChart', type: 'bar', label: 'Errors', color: '#dc3545' },
+                { id: 'responseChart', type: 'line', label: 'Latency (ms)', color: '#28a745' },
+                { id: 'providerChart', type: 'doughnut', label: 'Providers', colors: ['#1e3c72', '#2a5298', '#3a7ca5'] }
+            ];
+
+            chartConfigs.forEach(conf => {
+                const ctx = document.getElementById(conf.id).getContext('2d');
+                chartInstances[conf.id] = new Chart(ctx, {
+                    type: conf.type,
+                    data: {
+                        labels: ['1h', '2h', '3h'],
+                        datasets: [{
+                            label: conf.label,
+                            data: [0, 0, 0],
+                            borderColor: conf.color,
+                            backgroundColor: conf.colors || 'transparent'
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
             });
-            
-            // Auto-refresh every 5 minutes (load fresh data from Firebase)
-            setInterval(refreshDashboard, 5 * 60 * 1000);
-        });
+        }
     </script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 package org.example.model;
 
 import com.google.cloud.firestore.annotation.DocumentId;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * User Model for Authentication
@@ -17,6 +19,8 @@ public class User {
     private boolean active;
     private long createdAt;
     private long lastLogin;
+    private String role;  // "admin" or other roles
+    private List<String> permissions;  // list of permission strings
     
     public User() {}
     
@@ -26,6 +30,8 @@ public class User {
         this.passwordHash = passwordHash;
         this.active = true;
         this.createdAt = System.currentTimeMillis();
+        this.role = "admin";
+        this.permissions = new ArrayList<>();
     }
     
     // Getters & Setters
@@ -83,5 +89,21 @@ public class User {
 
     public void setLastLogin(long lastLogin) {
         this.lastLogin = lastLogin;
+    }
+
+    public String getRole() {
+        return role != null ? role : "admin";
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public List<String> getPermissions() {
+        return permissions != null ? permissions : new ArrayList<>();
+    }
+
+    public void setPermissions(List<String> permissions) {
+        this.permissions = permissions;
     }
 }

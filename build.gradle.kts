@@ -1,6 +1,7 @@
 plugins {
     id("java")
-    id("application")
+    id("org.springframework.boot") version "3.2.3"
+    id("io.spring.dependency-management") version "1.1.4"
 }
 
 group = "org.example"
@@ -35,6 +36,11 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.4.14")
     implementation("ch.qos.logback:logback-core:1.4.14")
 
+    // JWT Authentication
+    implementation("io.jsonwebtoken:jjwt-api:0.12.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5")
+
     // Configuration Management - EXTERNALIZED CONFIG
     implementation("org.springframework.boot:spring-boot-configuration-processor:3.2.3")
     implementation("org.springframework.boot:spring-boot-starter-web:3.2.3")
@@ -65,24 +71,21 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-application {
-    mainClass.set("org.example.Main")
-}
-
 // Configure UTF-8 encoding for all compilation tasks
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
+    sourceCompatibility = "17"
+    targetCompatibility = "17"
 }
 
 tasks.test {
     useJUnitPlatform()
 }
 
-tasks.jar {
-    manifest {
-        attributes(
-            "Main-Class" to "org.example.Main",
-            "Implementation-Version" to project.version
-        )
-    }
+// Task to run the Spring Boot application
+tasks.register<JavaExec>("runApp") {
+    mainClass.set("org.example.Application")
+    classpath = sourceSets["main"].runtimeClasspath
+    jvmArgs = listOf("-Dspring.profiles.active=default")
+}
 }
