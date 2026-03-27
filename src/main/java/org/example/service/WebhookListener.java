@@ -43,11 +43,15 @@ import java.util.concurrent.*;
  * - release: releases published
  * - repository: repo metadata changes
  */
+@Service
 public class WebhookListener {
     private static final Logger logger = LoggerFactory.getLogger(WebhookListener.class);
     
     private final DataCollectorService collectorService;
     private final ObjectMapper mapper = new ObjectMapper();
+    
+    @Autowired(required = false)
+    private SelfHealingService selfHealingService;
     
     // Webhook secret for HMAC verification
     private final String webhookSecret = System.getenv("GITHUB_WEBHOOK_SECRET");
@@ -207,36 +211,80 @@ public class WebhookListener {
         logger.info("⚙️ Processing webhook: {} from {}/{}", 
             event.eventType, event.owner, event.repo);
         
-        // Route based on event type
-        switch (event.eventType) {
-            case "push" -> {
-                logger.info("📤 Code pushed to {}/{}", event.owner, event.repo);
-                // Trigger data collection
-                collectorService.getGitHubData(event.owner, event.repo);
+        long startTime = System.currentTimeMillis();
+        
+        try {
+            // Route based on event type
+            switch (event.eventType) {
+                case "push" -> {
+                    logger.info("📤 Code pushed to {}/{}", event.owner, event.repo);
+                    // Trigger data collection with self-healing
+                    if (collectorService != null) {
+                        try {
+                            collectorService.getGitHubDataWithHealing(event.owner, event.repo);
+                        } catch (Exception e) {
+                            logger.warn("Webhook processing: {}", e.getMessage());
+                        }
+                    }
+                }
+                
+                case "opened" -> {
+                    logger.info("🆕 PR/Issue opened in {}/{}", event.owner, event.repo);
+                    if (collectorService != null) {
+                        try {
+                            collectorService.getGitHubDataWithHealing(event.owner, event.repo);
+                        } catch (Exception e) {
+                            logger.warn("Webhook processing: {}", e.getMessage());
+                        }
+                    }
+                }
+                
+                case "closed" -> {
+                    logger.info("✅ PR/Issue closed in {}/{}", event.owner, event.repo);
+                    if (collectorService != null) {
+                        try {
+                            collectorService.getGitHubDataWithHealing(event.owner, event.repo);
+                        } catch (Exception e) {
+                            logger.warn("Webhook processing: {}", e.getMessage());
+                        }
+                    }
+                }
+                
+                case "published" -> {
+                    logger.info("🎉 Release published in {}/{}", event.owner, event.repo);
+                    if (collectorService != null) {
+                        try {
+                            collectorService.getGitHubDataWithHealing(event.owner, event.repo);
+                        } catch (Exception e) {
+                            logger.warn("Webhook processing: {}", e.getMessage());
+                        }
+                    }
+                }
+                
+                case "edited" -> {
+                    logger.debug("✏️ Content edited in {}/{}", event.owner, event.repo);
+                }
+                
+                default -> {
+                    logger.debug("📌 Webhook event: {} (no action)", event.eventType);
+                }
             }
             
-            case "opened" -> {
-                logger.info("🆕 PR/Issue opened in {}/{}", event.owner, event.repo);
-                collectorService.getGitHubData(event.owner, event.repo);
+            // Record success in health monitor
+            if (selfHealingService != null) {
+                long responseTime = System.currentTimeMillis() - startTime;
+                selfHealingService.getOrCreateHealthMonitor("webhook-listener")
+                    .recordSuccess(responseTime);
             }
             
-            case "closed" -> {
-                logger.info("✅ PR/Issue closed in {}/{}", event.owner, event.repo);
-                collectorService.getGitHubData(event.owner, event.repo);
+        } catch (Exception e) {
+            // Record failure in health monitor
+            if (selfHealingService != null) {
+                long responseTime = System.currentTimeMillis() - startTime;
+                selfHealingService.getOrCreateHealthMonitor("webhook-listener")
+                    .recordFailure(responseTime);
             }
-            
-            case "published" -> {
-                logger.info("🎉 Release published in {}/{}", event.owner, event.repo);
-                collectorService.getGitHubData(event.owner, event.repo);
-            }
-            
-            case "edited" -> {
-                logger.debug("✏️ Content edited in {}/{}", event.owner, event.repo);
-            }
-            
-            default -> {
-                logger.debug("📌 Webhook event: {} (no action)", event.eventType);
-            }
+            throw e;
         }
         
         // Store webhook event in Firebase for audit trail
