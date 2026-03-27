@@ -41,6 +41,11 @@ public class AgentOrchestrator {
     private final BrowserDataCollector browserDataCollector;
     private final HybridDataCollector hybridDataCollector;
     
+    // Phase 7 Services (Cloud Functions & Admin Integration)
+    private final DataCollectorService dataCollectorService;
+    private final WebhookListener webhookListener;
+    private final AdminMessagePusher adminMessagePusher;
+    
     private final ExecutorService executor = Executors.newFixedThreadPool(8);
     private final Map<String, Agent> agentPool = new HashMap<>();
     
@@ -74,6 +79,11 @@ public class AgentOrchestrator {
         this.apiDataCollector = new APIDataCollector(quotaTracker, firebase);
         this.browserDataCollector = new BrowserDataCollector(quotaTracker, firebase);
         this.hybridDataCollector = new HybridDataCollector(apiDataCollector, browserDataCollector, quotaTracker, firebase);
+        
+        // Initialize Phase 7 (Cloud Functions & Admin Integration)
+        this.dataCollectorService = new DataCollectorService(hybridDataCollector);
+        this.webhookListener = new WebhookListener(dataCollectorService);
+        this.adminMessagePusher = new AdminMessagePusher();
         
         this.memoryManager.setFirebaseService(firebase);
         initializeAgentPool();
@@ -325,6 +335,46 @@ public class AgentOrchestrator {
             try { future.get(30, TimeUnit.SECONDS); } catch (Exception e) {}
         }
         return votes;
+    }
+    
+    /**
+     * Get data collector service (Phase 7 - REST API layer)
+     * Exposes HybridDataCollector via clean REST endpoints
+     */
+    public DataCollectorService getDataCollectorService() {
+        return dataCollectorService;
+    }
+    
+    /**
+     * Get webhook listener (Phase 7)
+     * Handles GitHub webhooks and triggers data collection
+     */
+    public WebhookListener getWebhookListener() {
+        return webhookListener;
+    }
+    
+    /**
+     * Get admin message pusher (Phase 7)
+     * Sends real-time updates to admin dashboard
+     */
+    public AdminMessagePusher getAdminMessagePusher() {
+        return adminMessagePusher;
+    }
+    
+    /**
+     * Push data update to admin dashboard
+     */
+    public void pushDataUpdateToAdmin(String source, String identifier, 
+                                      Map<String, Object> data, long collectionTimeMs) {
+        adminMessagePusher.pushDataUpdate(source, identifier, data, collectionTimeMs);
+    }
+    
+    /**
+     * Push alert to admin dashboard
+     */
+    public void pushAlertToAdmin(String alertType, String title, String message,
+                                 Map<String, Object> metadata) {
+        adminMessagePusher.pushAlert(alertType, title, message, metadata);
     }
 
     public void shutdown() {
