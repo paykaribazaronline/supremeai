@@ -37,6 +37,8 @@ dependencies {
 
     // Configuration Management - EXTERNALIZED CONFIG
     implementation("org.springframework.boot:spring-boot-configuration-processor:3.2.3")
+    implementation("org.springframework.boot:spring-boot-starter-web:3.2.3")
+    implementation("org.springframework.boot:spring-boot-starter-security:3.2.3")
     
     // Resilience & Error Handling
     implementation("io.github.resilience4j:resilience4j-core:2.1.0")
