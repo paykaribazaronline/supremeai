@@ -48,6 +48,14 @@ public class DataCollectorService {
      * Returns: stars, forks, open issues, recent commits, language distribution
      */
     public Map<String, Object> getGitHubData(String owner, String repo) {
+        // Validate parameters
+        if (owner == null || owner.trim().isEmpty()) {
+            throw new IllegalArgumentException("GitHub owner cannot be null or empty");
+        }
+        if (repo == null || repo.trim().isEmpty()) {
+            throw new IllegalArgumentException("GitHub repo cannot be null or empty");
+        }
+        
         String cacheKey = "github:" + owner + "/" + repo;
         
         // Check cache first
@@ -59,25 +67,21 @@ public class DataCollectorService {
         }
         
         logger.info("📡 Fetching GitHub data for {}/{}", owner, repo);
-        try {
-            HybridDataCollector.HybridResult result = hybridDataCollector.collectGitHubData(owner, repo);
-            Map<String, Object> response = convertHybridResultToMap(result);
-            
-            // Cache the result
-            cache.put(cacheKey, new CachedResponse(response));
-            trackRequest(cacheKey, "success");
-            
-            return response;
-        } catch (Exception e) {
-            logger.error("❌ Failed to fetch GitHub data for {}/{}", owner, repo, e);
-            trackRequest(cacheKey, "error");
-            
-            return Map.of(
-                "status", "error",
-                "message", e.getMessage(),
-                "timestamp", System.currentTimeMillis()
-            );
+        
+        HybridDataCollector.HybridResult result = hybridDataCollector.collectGitHubData(owner, repo);
+        
+        // Extract data directly from result (not wrapped)
+        @SuppressWarnings("unchecked")
+        Map<String, Object> response = (Map<String, Object>) result.data;
+        if (response == null) {
+            response = new LinkedHashMap<>();
         }
+        
+        // Cache the result
+        cache.put(cacheKey, new CachedResponse(response));
+        trackRequest(cacheKey, "success");
+        
+        return response;
     }
     
     /**
@@ -85,6 +89,11 @@ public class DataCollectorService {
      * Returns: deployment status, build time, response time, uptime
      */
     public Map<String, Object> getVercelStatus(String projectId) {
+        // Validate parameters
+        if (projectId == null || projectId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Vercel projectId cannot be null or empty");
+        }
+        
         String cacheKey = "vercel:" + projectId;
         
         CachedResponse cached = cache.get(cacheKey);
@@ -95,24 +104,20 @@ public class DataCollectorService {
         }
         
         logger.info("📡 Fetching Vercel status for {}", projectId);
-        try {
-            HybridDataCollector.HybridResult result = hybridDataCollector.collectVercelStatus(projectId);
-            Map<String, Object> response = convertHybridResultToMap(result);
-            
-            cache.put(cacheKey, new CachedResponse(response));
-            trackRequest(cacheKey, "success");
-            
-            return response;
-        } catch (Exception e) {
-            logger.error("❌ Failed to fetch Vercel status for {}", projectId, e);
-            trackRequest(cacheKey, "error");
-            
-            return Map.of(
-                "status", "error",
-                "message", e.getMessage(),
-                "timestamp", System.currentTimeMillis()
-            );
+        
+        HybridDataCollector.HybridResult result = hybridDataCollector.collectVercelStatus(projectId);
+        
+        // Extract data directly from result (not wrapped)
+        @SuppressWarnings("unchecked")
+        Map<String, Object> response = (Map<String, Object>) result.data;
+        if (response == null) {
+            response = new LinkedHashMap<>();
         }
+        
+        cache.put(cacheKey, new CachedResponse(response));
+        trackRequest(cacheKey, "success");
+        
+        return response;
     }
     
     /**
@@ -130,24 +135,20 @@ public class DataCollectorService {
         }
         
         logger.info("📡 Fetching Firebase status");
-        try {
-            HybridDataCollector.HybridResult result = hybridDataCollector.collectFirebaseStatus();
-            Map<String, Object> response = convertHybridResultToMap(result);
-            
-            cache.put(cacheKey, new CachedResponse(response));
-            trackRequest(cacheKey, "success");
-            
-            return response;
-        } catch (Exception e) {
-            logger.error("❌ Failed to fetch Firebase status", e);
-            trackRequest(cacheKey, "error");
-            
-            return Map.of(
-                "status", "error",
-                "message", e.getMessage(),
-                "timestamp", System.currentTimeMillis()
-            );
+        
+        HybridDataCollector.HybridResult result = hybridDataCollector.collectFirebaseStatus();
+        
+        // Extract data directly from result (not wrapped)
+        @SuppressWarnings("unchecked")
+        Map<String, Object> response = (Map<String, Object>) result.data;
+        if (response == null) {
+            response = new LinkedHashMap<>();
         }
+        
+        cache.put(cacheKey, new CachedResponse(response));
+        trackRequest(cacheKey, "success");
+        
+        return response;
     }
     
     /**

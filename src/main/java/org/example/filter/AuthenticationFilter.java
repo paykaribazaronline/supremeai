@@ -2,6 +2,7 @@ package org.example.filter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -17,8 +18,9 @@ import java.util.*;
  * 
  * Validates JWT bearer tokens for REST API endpoints
  * Skips public endpoints (health, webhook, auth login/register)
+ * Also accepts simple test tokens from supremeai.api.tokens config for testing
  * 
- * Token format: Authorization: Bearer <JWT_token>
+ * Token format: Authorization: Bearer <JWT_token> or Authorization: Bearer <test-token>
  * Token created by AuthenticationService.generateJWT()
  */
 @Component
@@ -40,7 +42,11 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         "/"
     );
     
+    @Value("${supremeai.api.tokens:}")
+    private String configuredTokens;
+    
     private java.util.Optional<org.example.service.AuthenticationService> authService;
+    private Set<String> validTestTokens = new HashSet<>();
     
     public AuthenticationFilter() {
         this.authService = java.util.Optional.empty();
@@ -49,6 +55,17 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     public void setAuthService(org.example.service.AuthenticationService service) {
         this.authService = java.util.Optional.of(service);
+        initializeTestTokens();
+    }
+    
+    private void initializeTestTokens() {
+        if (configuredTokens != null && !configuredTokens.isEmpty()) {
+            String[] tokens = configuredTokens.split(",");
+            for (String token : tokens) {
+                validTestTokens.add(token.trim());
+            }
+            logger.debug("✅ Test tokens configured: {} tokens available", tokens.length);
+        }
     }
     
     @Override
@@ -57,7 +74,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                                    FilterChain filterChain) throws ServletException, IOException {
         
         String path = request.getRequestURI();
-        String method = request.getMethod();
+        // Extract request method - available for future use
+        // String method = request.getMethod();
         
         // Skip authentication for public paths
         if (isPublicPath(path)) {
@@ -73,8 +91,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             token = authHeader.substring(7);
         }
         
-        // Validate JWT token
-        if (token == null || !isValidJWTToken(token)) {
+        // Validate token (JWT or test token)
+        if (token == null || !isValidToken(token)) {
             logger.warn("🔐 Unauthorized access attempt to {} from {}", 
                 path, request.getRemoteAddr());
             
@@ -84,7 +102,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         
-        logger.debug("✅ JWT Authentication passed for {}", path);
+        logger.debug("✅ Authentication passed for {}", path);
         filterChain.doFilter(request, response);
     }
     
@@ -94,6 +112,20 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     private boolean isPublicPath(String path) {
         return PUBLIC_PATHS.stream()
             .anyMatch(path::startsWith);
+    }
+    
+    /**
+     * Validate token - accepts JWT tokens or configured test tokens
+     */
+    private boolean isValidToken(String token) {
+        // Check if it's a configured test token first (faster path)
+        if (validTestTokens.contains(token)) {
+            logger.debug("✅ Test token validated");
+            return true;
+        }
+        
+        // Fall back to JWT validation
+        return isValidJWTToken(token);
     }
     
     /**

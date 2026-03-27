@@ -52,19 +52,24 @@ public class DataController {
             
             Map<String, Object> data = dataCollectorService.getGitHubData(owner, repo);
             
-            // Push to admin dashboard
-            adminMessagePusher.pushDataUpdate("github", owner + "/" + repo, data, 0);
+            // Push to admin dashboard (non-blocking)
+            try {
+                adminMessagePusher.pushDataUpdate("github", owner + "/" + repo, data, 0);
+            } catch (Exception e) {
+                logger.warn("⚠️ Failed to push GitHub data to dashboard", e);
+            }
             
-            return ResponseEntity.ok(data);
+            // Wrap in response envelope
+            return ResponseEntity.ok(createSuccessResponse(data));
             
+        } catch (IllegalArgumentException e) {
+            logger.error("❌ Invalid parameters for GitHub data", e);
+            return ResponseEntity.badRequest()
+                .body(createErrorResponse(e.getMessage()));
         } catch (Exception e) {
             logger.error("❌ GitHub data collection failed", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of(
-                    "status", "error",
-                    "message", e.getMessage(),
-                    "timestamp", System.currentTimeMillis()
-                ));
+                .body(createErrorResponse(e.getMessage()));
         }
     }
     
@@ -82,19 +87,24 @@ public class DataController {
             
             Map<String, Object> data = dataCollectorService.getVercelStatus(projectId);
             
-            // Push to admin dashboard
-            adminMessagePusher.pushDataUpdate("vercel", projectId, data, 0);
+            // Push to admin dashboard (non-blocking)
+            try {
+                adminMessagePusher.pushDataUpdate("vercel", projectId, data, 0);
+            } catch (Exception e) {
+                logger.warn("⚠️ Failed to push Vercel data to dashboard", e);
+            }
             
-            return ResponseEntity.ok(data);
+            // Wrap in response envelope
+            return ResponseEntity.ok(createSuccessResponse(data));
             
+        } catch (IllegalArgumentException e) {
+            logger.error("❌ Invalid parameters for Vercel status", e);
+            return ResponseEntity.badRequest()
+                .body(createErrorResponse(e.getMessage()));
         } catch (Exception e) {
             logger.error("❌ Vercel status collection failed", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of(
-                    "status", "error",
-                    "message", e.getMessage(),
-                    "timestamp", System.currentTimeMillis()
-                ));
+                .body(createErrorResponse(e.getMessage()));
         }
     }
     
@@ -111,19 +121,20 @@ public class DataController {
             
             Map<String, Object> data = dataCollectorService.getFirebaseStatus();
             
-            // Push to admin dashboard
-            adminMessagePusher.pushDataUpdate("firebase", "default", data, 0);
+            // Push to admin dashboard (non-blocking)
+            try {
+                adminMessagePusher.pushDataUpdate("firebase", "default", data, 0);
+            } catch (Exception e) {
+                logger.warn("⚠️ Failed to push Firebase data to dashboard", e);
+            }
             
-            return ResponseEntity.ok(data);
+            // Wrap in response envelope
+            return ResponseEntity.ok(createSuccessResponse(data));
             
         } catch (Exception e) {
             logger.error("❌ Firebase status collection failed", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of(
-                    "status", "error",
-                    "message", e.getMessage(),
-                    "timestamp", System.currentTimeMillis()
-                ));
+                .body(createErrorResponse(e.getMessage()));
         }
     }
     
@@ -138,16 +149,12 @@ public class DataController {
             
             Map<String, Object> health = dataCollectorService.getSystemHealth();
             
-            return ResponseEntity.ok(health);
+            return ResponseEntity.ok(createSuccessResponse(health));
             
         } catch (Exception e) {
             logger.error("❌ Health check failed", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of(
-                    "status", "unhealthy",
-                    "error", e.getMessage(),
-                    "timestamp", System.currentTimeMillis()
-                ));
+                .body(createErrorResponse(e.getMessage()));
         }
     }
     
@@ -164,16 +171,12 @@ public class DataController {
             
             Map<String, Object> stats = dataCollectorService.getRequestStats();
             
-            return ResponseEntity.ok(stats);
+            return ResponseEntity.ok(createSuccessResponse(stats));
             
         } catch (Exception e) {
             logger.error("❌ Stats retrieval failed", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of(
-                    "status", "error",
-                    "message", e.getMessage(),
-                    "timestamp", System.currentTimeMillis()
-                ));
+                .body(createErrorResponse(e.getMessage()));
         }
     }
     
@@ -191,19 +194,36 @@ public class DataController {
             
             dataCollectorService.clearCache(key);
             
-            return ResponseEntity.ok(Map.of(
-                "status", "success",
-                "message", "Cache cleared for: " + key,
-                "timestamp", System.currentTimeMillis()
-            ));
+            return ResponseEntity.ok(createSuccessResponse(Map.of(
+                "message", "Cache cleared for: " + key
+            )));
             
         } catch (Exception e) {
             logger.error("❌ Cache clear failed", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of(
-                    "status", "error",
-                    "message", e.getMessage()
-                ));
+                .body(createErrorResponse(e.getMessage()));
         }
+    }
+    
+    // ========== Helper Methods ==========
+    
+    /**
+     * Create standardized success response envelope
+     */
+    private Map<String, Object> createSuccessResponse(Map<String, Object> data) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("data", data);
+        response.put("timestamp", System.currentTimeMillis());
+        return response;
+    }
+    
+    /**
+     * Create standardized error response envelope
+     */
+    private Map<String, Object> createErrorResponse(String errorMessage) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("error", errorMessage);
+        response.put("timestamp", System.currentTimeMillis());
+        return response;
     }
 }
