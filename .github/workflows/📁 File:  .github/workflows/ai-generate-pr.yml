@@ -46,7 +46,6 @@ jobs:
           echo "APP_ID=${{ env.APP_ID }}"
           mkdir -p "generated-apps/${{ env.APP_ID }}"
           
-          # Create base Android structure
           cat > "generated-apps/${{ env.APP_ID }}/build.gradle" << 'EOF'
           plugins {
               id 'com.android.application'
