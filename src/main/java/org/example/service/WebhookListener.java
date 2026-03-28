@@ -221,7 +221,7 @@ public class WebhookListener {
                     // Trigger data collection with self-healing
                     if (collectorService != null) {
                         try {
-                            collectorService.getGitHubDataWithHealing(event.owner, event.repo);
+                            collectorService.getGitHubData(event.owner, event.repo);
                         } catch (Exception e) {
                             logger.warn("Webhook processing: {}", e.getMessage());
                         }
@@ -232,7 +232,7 @@ public class WebhookListener {
                     logger.info("🆕 PR/Issue opened in {}/{}", event.owner, event.repo);
                     if (collectorService != null) {
                         try {
-                            collectorService.getGitHubDataWithHealing(event.owner, event.repo);
+                            collectorService.getGitHubData(event.owner, event.repo);
                         } catch (Exception e) {
                             logger.warn("Webhook processing: {}", e.getMessage());
                         }
@@ -243,7 +243,7 @@ public class WebhookListener {
                     logger.info("✅ PR/Issue closed in {}/{}", event.owner, event.repo);
                     if (collectorService != null) {
                         try {
-                            collectorService.getGitHubDataWithHealing(event.owner, event.repo);
+                            collectorService.getGitHubData(event.owner, event.repo);
                         } catch (Exception e) {
                             logger.warn("Webhook processing: {}", e.getMessage());
                         }
@@ -254,7 +254,7 @@ public class WebhookListener {
                     logger.info("🎉 Release published in {}/{}", event.owner, event.repo);
                     if (collectorService != null) {
                         try {
-                            collectorService.getGitHubDataWithHealing(event.owner, event.repo);
+                            collectorService.getGitHubData(event.owner, event.repo);
                         } catch (Exception e) {
                             logger.warn("Webhook processing: {}", e.getMessage());
                         }
@@ -346,7 +346,7 @@ public class WebhookListener {
      */
     public Map<String, Object> getStats() {
         return Map.of(
-            "total_webhooks", totalWebhooksReceived,
+            "totalReceived", totalWebhooksReceived,
             "successfully_processed", totalProcessed,
             "failed", totalFailed,
             "pending_retry", failureQueue.size(),

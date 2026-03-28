@@ -51,9 +51,15 @@ public class AdminMessagePusher {
     private static final long BATCH_TIMEOUT_MS = 5000; // 5 seconds
     
     public AdminMessagePusher() {
-        this.db = FirestoreClient.getFirestore();
+        Firestore firestoreInstance = null;
+        try {
+            firestoreInstance = FirestoreClient.getFirestore();
+        } catch (Exception e) {
+            logger.warn("⚠️ Firestore not available — AdminMessagePusher running in no-op mode: {}", e.getMessage());
+        }
+        this.db = firestoreInstance;
         logger.info("✅ Admin Message Pusher initialized");
-        
+
         // Start batch processor
         startBatchProcessor();
     }
@@ -62,19 +68,17 @@ public class AdminMessagePusher {
      * Push data collection result to admin dashboard
      * Called when data is successfully collected
      */
-    public void pushDataUpdate(String source, String identifier, 
+    public void pushDataUpdate(String source, String identifier,
                                Map<String, Object> data, long collectionTimeMs) {
-        AdminMessage message = new AdminMessage(
-            AdminMessageType.DATA_UPDATE,
-            Map.of(
-                "source", source,
-                "identifier", identifier,
-                "data", data,
-                "collection_time_ms", collectionTimeMs,
-                "timestamp", System.currentTimeMillis()
-            )
-        );
-        
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("source", source);
+        payload.put("identifier", identifier);
+        payload.put("data", data != null ? data : new LinkedHashMap<>());
+        payload.put("collection_time_ms", collectionTimeMs);
+        payload.put("timestamp", System.currentTimeMillis());
+
+        AdminMessage message = new AdminMessage(AdminMessageType.DATA_UPDATE, payload);
+
         try {
             messageQueue.offer(message);
             logger.debug("📨 Data update queued: {} from {}", identifier, source);
@@ -201,7 +205,13 @@ public class AdminMessagePusher {
         if (batch.isEmpty()) {
             return;
         }
-        
+
+        if (db == null) {
+            logger.debug("🚫 Firestore not available — dropping batch of {} messages", batch.size());
+            totalMessagesFailed += batch.size();
+            return;
+        }
+
         try {
             logger.info("📤 Flushing batch of {} messages to Firestore", batch.size());
             

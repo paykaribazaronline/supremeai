@@ -23,7 +23,8 @@ import org.springframework.context.annotation.ComponentScan;
     "org.example.filter",
     "org.example.exception",
     "org.example.config",
-    "org.example.routing"
+    "org.example.routing",
+    "org.example.selfhealing"
 })
 public class Application {
     
