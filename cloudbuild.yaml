@@ -1,0 +1,50 @@
+steps:
+  # Step 1: Build Docker image for main system
+  - name: 'gcr.io/cloud-builders/docker'
+    id: build_supremeai
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/supremeai:$SHORT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/supremeai:latest'
+      - '-f'
+      - 'Dockerfile'
+      - '.'
+    env:
+      - 'CLOUDBUILD_IMAGES=gcr.io/$PROJECT_ID/supremeai:$SHORT_SHA'
+
+  # Step 2: Push Docker image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: push_supremeai
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/supremeai:$SHORT_SHA'
+    waitFor: ['build_supremeai']
+
+  # Step 3: Deploy to Cloud Run
+  - name: 'gcr.io/cloud-builders/run'
+    id: deploy_supremeai
+    args:
+      - 'deploy'
+      - 'supremeai'
+      - '--image=gcr.io/$PROJECT_ID/supremeai:$SHORT_SHA'
+      - '--region=us-central1'
+      - '--platform=managed'
+      - '--port=8080'
+      - '--memory=1Gi'
+      - '--cpu=1'
+      - '--timeout=3600'
+      - '--max-instances=10'
+      - '--allow-unauthenticated'
+      - '--set-env-vars=FIREBASE_CONFIG_PATH=/secrets/firebase-service-account.json'
+    env:
+      - 'CLOUDSDK_RUN_REGION=us-central1'
+    waitFor: ['push_supremeai']
+
+images:
+  - 'gcr.io/$PROJECT_ID/supremeai:$SHORT_SHA'
+  - 'gcr.io/$PROJECT_ID/supremeai:latest'
+
+timeout: '3600s'
+machineType: 'N1_HIGHCPU_8'
