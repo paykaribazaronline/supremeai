@@ -39,14 +39,14 @@ Examples:
 
 function Write-Status {
     param([string]$Message)
-    Write-Host "`n✓ $Message" -ForegroundColor Green
+    Write-Host "`n[OK] $Message" -ForegroundColor Green
 }
 
 function Write-Section {
     param([string]$Title)
-    Write-Host "`n════════════════════════════════════════" -ForegroundColor Cyan
+    Write-Host "`n========================================" -ForegroundColor Cyan
     Write-Host "  $Title" -ForegroundColor Cyan
-    Write-Host "════════════════════════════════════════" -ForegroundColor Cyan
+    Write-Host "========================================" -ForegroundColor Cyan
 }
 
 function Check-Prerequisites {
@@ -57,7 +57,7 @@ function Check-Prerequisites {
         docker --version | Out-Null
         Write-Status "Docker is installed"
     } catch {
-        Write-Host "✗ Docker not found. Please install Docker Desktop." -ForegroundColor Red
+        Write-Host "[ERROR] Docker not found. Please install Docker Desktop." -ForegroundColor Red
         exit 1
     }
     
@@ -72,7 +72,7 @@ function Check-Prerequisites {
             Write-Host "Please download from: https://cloud.google.com/sdk/docs/install-sdk" -ForegroundColor Yellow
             exit 1
         } else {
-            Write-Host "✗ Google Cloud SDK not found. Use -InstallSDK flag." -ForegroundColor Red
+            Write-Host "[ERROR] Google Cloud SDK not found. Use -InstallSDK flag." -ForegroundColor Red
             exit 1
         }
     }
@@ -82,7 +82,7 @@ function Check-Prerequisites {
         git --version | Out-Null
         Write-Status "Git is installed"
     } catch {
-        Write-Host "✗ Git not found. Please install Git." -ForegroundColor Red
+        Write-Host "[ERROR] Git not found. Please install Git." -ForegroundColor Red
         exit 1
     }
     
@@ -91,7 +91,7 @@ function Check-Prerequisites {
         java -version 2>&1 | Out-Null
         Write-Status "Java is installed"
     } catch {
-        Write-Host "✗ Java not found. Please install Java 17+." -ForegroundColor Red
+        Write-Host "[ERROR] Java not found. Please install Java 17+." -ForegroundColor Red
         exit 1
     }
 }
@@ -247,27 +247,22 @@ function Show-Summary {
         Write-Host "Admin Dashboard: $AdminUrl" -ForegroundColor Green
     }
     
-    Write-Host @"
-
-Next Steps:
-1. Verify services are running:
-   - Test main system health: $($MainUrl)/api/v1/system/health
-   - Test admin health: $($AdminUrl)/api/admin/dashboard/health
-
-2. Configure custom domains (optional):
-   - gcloud run domain-mappings create --service=supremeai --domain=api.supremeai.dev
-   - gcloud run domain-mappings create --service=supremeai-admin --domain=admin.supremeai.dev
-
-3. Setup monitoring:
-   - View logs: gcloud logging read "resource.type=cloud_run_revision" --limit 100
-   - Monitor: https://console.cloud.google.com/monitoring
-
-4. Configure secrets:
-   - gcloud secrets create firebase-service-account --data-file=service-account.json
-   - gcloud secrets create jwt-secret --data-file=jwt-secret.txt
-
-Documentation: https://cloud.google.com/run/docs
-"@
+    Write-Host ""
+    Write-Host "Next Steps:" -ForegroundColor Yellow
+    Write-Host "1. Verify services are running:"
+    Write-Host "   - Main system health: $MainUrl/api/v1/system/health"
+    Write-Host "   - Admin dashboard health: $AdminUrl/api/admin/dashboard/health"
+    Write-Host ""
+    Write-Host "2. Configure custom domains (optional):"
+    Write-Host "   gcloud run domain-mappings create --service=supremeai --domain=api.supremeai.dev"
+    Write-Host "   gcloud run domain-mappings create --service=supremeai-admin --domain=admin.supremeai.dev"
+    Write-Host ""
+    Write-Host "3. Setup monitoring:"
+    Write-Host "   gcloud logging read 'resource.type=cloud_run_revision' --limit 100"
+    Write-Host "   https://console.cloud.google.com/monitoring"
+    Write-Host ""
+    Write-Host "Documentation: https://cloud.google.com/run/docs"
+    Write-Host ""
 }
 
 # Main execution
@@ -301,6 +296,6 @@ try {
     Show-Summary -MainUrl $mainUrl -AdminUrl $adminUrl
     
 } catch {
-    Write-Host "`n✗ Error: $_" -ForegroundColor Red
+    Write-Host "[ERROR] $_" -ForegroundColor Red
     exit 1
 }
