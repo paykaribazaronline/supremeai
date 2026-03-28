@@ -16,12 +16,14 @@ import org.springframework.context.annotation.ComponentScan;
  * - Servlet: DispatcherServlet
  */
 @SpringBootApplication
+@org.springframework.boot.context.properties.EnableConfigurationProperties
 @ComponentScan(basePackages = {
     "org.example.controller",
     "org.example.service",
     "org.example.filter",
     "org.example.exception",
-    "org.example.config"
+    "org.example.config",
+    "org.example.routing"
 })
 public class Application {
     
