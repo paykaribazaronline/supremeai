@@ -37,14 +37,15 @@ public class RestExceptionHandler {
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<?> handleNotFound(NoHandlerFoundException e, WebRequest request) {
         logger.debug("❌ Endpoint not found: {} {}", e.getHttpMethod(), e.getRequestURL());
-        
+
         Map<String, Object> error = new LinkedHashMap<>();
         error.put("status", "error");
         error.put("code", "NOT_FOUND");
+        error.put("error", "not found: " + e.getRequestURL());
         error.put("message", "Endpoint not found");
         error.put("path", e.getRequestURL());
         error.put("timestamp", System.currentTimeMillis());
-        
+
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
     
@@ -54,13 +55,14 @@ public class RestExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<?> handleIllegalArgument(IllegalArgumentException e, WebRequest request) {
         logger.debug("⚠️ Invalid argument: {}", e.getMessage());
-        
+
         Map<String, Object> error = new LinkedHashMap<>();
         error.put("status", "error");
         error.put("code", "INVALID_ARGUMENT");
+        error.put("error", e.getMessage());
         error.put("message", e.getMessage());
         error.put("timestamp", System.currentTimeMillis());
-        
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
     
