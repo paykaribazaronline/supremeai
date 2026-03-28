@@ -299,7 +299,16 @@ public class AgentOrchestrator {
             }));
         }
         for (Future<?> future : futures) {
-            try { future.get(30, TimeUnit.SECONDS); } catch (TimeUnitException e) {}
+            try {
+    future.get(30, TimeUnit.SECONDS);
+} catch (java.util.concurrent.TimeoutException e) {
+    // Handle timeout
+} catch (InterruptedException e) {
+    Thread.currentThread().interrupt();
+} catch (ExecutionException e) {
+    // Handle execution error
+}
+
         }
         return votes;
     }
