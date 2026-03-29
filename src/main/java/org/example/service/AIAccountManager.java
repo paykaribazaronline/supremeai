@@ -163,4 +163,50 @@ public class AIAccountManager {
     public int getTotalAccountCount() {
         return getAllAccounts().size();
     }
+
+    /**
+     * Add a new account to the system
+     */
+    public void addAccount(AIAccount account) {
+        if (account == null) {
+            throw new IllegalArgumentException("Account cannot be null");
+        }
+        addAccountToMemory(account);
+        // Save to Firebase
+        firebaseService.updateAPIKey(account.getProvider(), account.getApiKey());
+        System.out.println("  ✅ Account added: " + account.getAccountId());
+    }
+
+    /**
+     * Print health report for all accounts
+     */
+    public void printHealthReport() {
+        System.out.println("\n\n🏥 AI ACCOUNT HEALTH REPORT");
+        System.out.println("═".repeat(50));
+        
+        if (accountsByProvider.isEmpty()) {
+            System.out.println("  ⚠️  No accounts configured");
+            return;
+        }
+
+        for (String provider : accountsByProvider.keySet()) {
+            List<AIAccount> accounts = accountsByProvider.get(provider);
+            System.out.println("\n📊 " + provider + " (" + accounts.size() + " accounts)");
+            System.out.println("─".repeat(50));
+            
+            for (AIAccount account : accounts) {
+                String status = account.isActive() ? "✅" : "❌";
+                String banned = account.isBanned() ? " [BANNED]" : "";
+                System.out.println("  " + status + " " + account.getAccountId() + banned);
+                System.out.println("     Status: " + account.getStatus());
+                System.out.println("     Budget: " + String.format("%.2f", account.getBudgetUsed()) + " / " + String.format("%.2f", account.getBudgetLimit()));
+                System.out.println("     Quota: " + account.getQuotaRemaining() + " remaining");
+            }
+        }
+        
+        System.out.println("\n═".repeat(50));
+        System.out.println("Total Accounts: " + getTotalAccountCount());
+        System.out.println("Active Accounts: " + getAllAccounts().stream().filter(AIAccount::isActive).count());
+        System.out.println("════════════════════════════════════════════════\n");
+    }
 }
