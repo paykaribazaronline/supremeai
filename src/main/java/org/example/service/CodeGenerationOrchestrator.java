@@ -35,6 +35,9 @@ public class CodeGenerationOrchestrator {
     @Autowired(required = false)
     private AgentOrchestrator agentOrchestrator;
 
+    @Autowired(required = false)
+    private ExecutionLogManager logManager;
+
     private static final ObjectMapper mapper = new ObjectMapper();
     private final Map<String, GenerationMetrics> generationHistory = new HashMap<>();
 
@@ -153,6 +156,15 @@ public class CodeGenerationOrchestrator {
             result.put("error", e.getMessage());
         }
 
+        // Log generation event
+        if (logManager != null) {
+            boolean success = "generated".equals(metrics.status);
+            logManager.logGeneration(projectId, componentName, "REACT", 
+                System.currentTimeMillis() - metrics.startTime, success, 
+                metrics.selectedAgent != null ? metrics.selectedAgent : "GROQ", 
+                metrics.validationScore);
+        }
+
         result.put("timestamp", System.currentTimeMillis());
         return result;
     }
@@ -205,6 +217,13 @@ public class CodeGenerationOrchestrator {
             result.put("error", e.getMessage());
         }
 
+        // Log generation event
+        if (logManager != null) {
+            boolean success = "generated".equals(result.get("status"));
+            logManager.logGeneration(projectId, serviceName, "NODEJS", 
+                System.currentTimeMillis(), success, "GROQ", 100.0);
+        }
+
         result.put("timestamp", System.currentTimeMillis());
         return result;
     }
@@ -234,6 +253,13 @@ public class CodeGenerationOrchestrator {
         } catch (Exception e) {
             result.put("status", "failed");
             result.put("error", e.getMessage());
+        }
+
+        // Log generation event
+        if (logManager != null) {
+            boolean success = "generated".equals(result.get("status"));
+            logManager.logGeneration(projectId, modelName, framework, 
+                System.currentTimeMillis(), success, "GROQ", 100.0);
         }
 
         result.put("timestamp", System.currentTimeMillis());
@@ -279,6 +305,18 @@ public class CodeGenerationOrchestrator {
             result.put("error", e.getMessage());
         }
 
+        // Log validation event
+        if (logManager != null) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> validation = (Map<String, Object>) result.get("validation");
+            boolean isValid = validation != null && (Boolean) validation.get("isValid");
+            if (logManager != null) {
+                logManager.logValidation(projectId, framework, isValid, 
+                    validation != null ? (Integer) validation.get("totalIssues") : 0, 
+                    validation != null ? (Double) validation.get("validationScore") : 0.0);
+            }
+        }
+
         result.put("timestamp", System.currentTimeMillis());
         return result;
     }
@@ -308,6 +346,13 @@ public class CodeGenerationOrchestrator {
         } catch (Exception e) {
             result.put("status", "failed");
             result.put("error", e.getMessage());
+        }
+
+        // Log generation event
+        if (logManager != null) {
+            boolean success = "generated".equals(result.get("status"));
+            logManager.logGeneration(projectId, utilityName, framework, 
+                System.currentTimeMillis(), success, "GROQ", 100.0);
         }
 
         result.put("timestamp", System.currentTimeMillis());
@@ -357,6 +402,13 @@ public class CodeGenerationOrchestrator {
         result.put("successRate", components.isEmpty() ? 0 : (successCount * 100 / components.size()));
         result.put("generated", generated);
         result.put("timestamp", System.currentTimeMillis());
+
+        // Log batch generation event
+        if (logManager != null) {
+            double successRate = components.isEmpty() ? 0 : (successCount * 100.0 / components.size());
+            logManager.logGeneration(projectId, "batch-" + components.size(), framework, 
+                System.currentTimeMillis(), successCount > 0, "GROQ", successRate);
+        }
 
         return result;
     }
