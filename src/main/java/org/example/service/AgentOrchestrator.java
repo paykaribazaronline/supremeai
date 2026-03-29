@@ -1,4 +1,4 @@
-package org.example.service;
+﻿package org.example.service;
 
 import org.example.model.Agent;
 import org.example.model.Requirement;
@@ -46,7 +46,7 @@ public class AgentOrchestrator {
     private final WebhookListener webhookListener;
     private final AdminMessagePusher adminMessagePusher;
 
-    // 🚀 Intelligence, Safety & Self-Analysis Services
+    // ≡ƒÜÇ Intelligence, Safety & Self-Analysis Services
     private final InternetSearchService searchService;
     private final SafeZoneManager safeZoneManager;
     private final AutoSuggestionService autoSuggestionService;
@@ -108,19 +108,19 @@ public class AgentOrchestrator {
     }
     
     /**
-     * 🕵️ SELF-ANALYSIS: SupremeAI analyzes its own development evolution
+     * ≡ƒò╡∩╕Å SELF-ANALYSIS: SupremeAI analyzes its own development evolution
      */
     public void runSelfDiagnostic() {
-        System.out.println("\n🕵️ [SELF-DIAGNOSTIC] Running Git evolution analysis...");
+        System.out.println("\n≡ƒò╡∩╕Å [SELF-DIAGNOSTIC] Running Git evolution analysis...");
         
         // 1. Analyze recent history
         List<Map<String, String>> history = selfGitAnalyzer.analyzeSelfHistory(5);
-        System.out.println("📜 Recent Evolution (Commit History):");
+        System.out.println("≡ƒô£ Recent Evolution (Commit History):");
         history.forEach(c -> System.out.println("  [" + c.get("hash") + "] " + c.get("message")));
 
         // 2. Identify Hotspots
         Map<String, Integer> hotspots = selfGitAnalyzer.identifyHotspots();
-        System.out.println("🔥 Top Development Hotspots (Most modified files):");
+        System.out.println("≡ƒöÑ Top Development Hotspots (Most modified files):");
         hotspots.entrySet().stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
                 .limit(5)
@@ -129,24 +129,24 @@ public class AgentOrchestrator {
         // 3. Check status
         Map<String, String> status = selfGitAnalyzer.checkSelfStatus();
         if (Boolean.parseBoolean(status.get("is_dirty"))) {
-            System.out.println("⚠️ System state is 'Dirty' (Uncommitted work detected).");
+            System.out.println("ΓÜá∩╕Å System state is 'Dirty' (Uncommitted work detected).");
         } else {
-            System.out.println("✅ System state is 'Clean'. Ready for deployment.");
+            System.out.println("Γ£à System state is 'Clean'. Ready for deployment.");
         }
     }
 
     /**
-     * ⚡ ENHANCED WORKFLOW: Internet Search + SafeZone + Suggestions
+     * ΓÜí ENHANCED WORKFLOW: Internet Search + SafeZone + Suggestions
      */
     public void processProjectRequirement(String projectId, String requirementDesc) {
         executor.submit(() -> {
             try {
-                System.out.println("\n🚀 [ORCHESTRATOR] Analyzing requirement: " + requirementDesc);
+                System.out.println("\n≡ƒÜÇ [ORCHESTRATOR] Analyzing requirement: " + requirementDesc);
                 
                 // 1. Generate Auto-Suggestions
                 List<String> suggestions = autoSuggestionService.suggest(requirementDesc);
                 firebaseService.saveChatMessage(projectId, "SupremeAI", 
-                    "💡 Suggestions: " + String.join(", ", suggestions), "suggestion");
+                    "≡ƒÆí Suggestions: " + String.join(", ", suggestions), "suggestion");
 
                 // 2. Internet Search for context (e.g. latest API changes)
                 List<InternetSearchService.SearchResult> research = searchService.search(requirementDesc);
@@ -175,13 +175,13 @@ public class AgentOrchestrator {
 
     private void handleHumanRequired(String projectId, Requirement req) {
         firebaseService.saveChatMessage(projectId, "SupremeAI", 
-            "🚨 I need human action for: \"" + req.getDescription() + "\".", "human_required");
+            "≡ƒÜ¿ I need human action for: \"" + req.getDescription() + "\".", "human_required");
     }
 
     /**
      * Process Git-Based Development Project
      * Admin provides git URL, branch, and development task
-     * SupremeAI handles: Clone → Develop → Test → Fix Failures → Commit → Deploy
+     * SupremeAI handles: Clone ΓåÆ Develop ΓåÆ Test ΓåÆ Fix Failures ΓåÆ Commit ΓåÆ Deploy
      */
     public void processGitProject(String projectId, Map<String, String> gitConfig) {
         executor.submit(() -> {
@@ -190,8 +190,8 @@ public class AgentOrchestrator {
                 String branch = gitConfig.get("branch");
                 String task = gitConfig.get("task");
                 
-                System.out.println("\n🔄 [GIT-BASED WORKFLOW] Starting development on: " + gitUrl);
-                firebaseService.saveChatMessage(projectId, "System", "🚀 Starting Git-based development workflow...", "system");
+                System.out.println("\n≡ƒöä [GIT-BASED WORKFLOW] Starting development on: " + gitUrl);
+                firebaseService.saveChatMessage(projectId, "System", "≡ƒÜÇ Starting Git-based development workflow...", "system");
                 
                 // Create project configuration
                 ProjectTypeManager.ProjectConfig config = new ProjectTypeManager.ProjectConfig();
@@ -219,7 +219,7 @@ public class AgentOrchestrator {
                 System.err.println("Error processing git project: " + e.getMessage());
                 e.printStackTrace();
                 firebaseService.saveChatMessage(projectId, "System", 
-                    "❌ Error: " + e.getMessage(), "error");
+                    "Γ¥î Error: " + e.getMessage(), "error");
             }
         });
     }
@@ -235,17 +235,17 @@ public class AgentOrchestrator {
             // Step 3: Code Generation with Voting Loop
             String finalCode = buildWithCodeGenerator(projectId, requirement.getDescription(), finalPlan);
             
-            // 🚨 SAFETY CHECK before writing
+            // ≡ƒÜ¿ SAFETY CHECK before writing
             if (!safeZoneManager.isSafe(finalCode)) {
-                firebaseService.saveChatMessage(projectId, "SafeZone", "🚫 Blocked code write due to security risk.", "warning");
+                firebaseService.saveChatMessage(projectId, "SafeZone", "≡ƒÜ½ Blocked code write due to security risk.", "warning");
                 return;
             }
 
             // Step 4: Write Final Code to Disk (Phase 3)
             fileOrchestrator.writeFile(projectId, "lib/main.dart", finalCode);
             
-            System.out.println("🎉 [PHASE 3] Project files generated successfully at: projects/" + projectId);
-            firebaseService.saveChatMessage(projectId, "System", "✅ Code generation complete. Files saved locally.", "system");
+            System.out.println("≡ƒÄë [PHASE 3] Project files generated successfully at: projects/" + projectId);
+            firebaseService.saveChatMessage(projectId, "System", "Γ£à Code generation complete. Files saved locally.", "system");
             
         } catch (IOException e) {
             System.err.println("File generation error: " + e.getMessage());
@@ -253,7 +253,7 @@ public class AgentOrchestrator {
     }
     
     private String planWithArchitect(String projectId, String requirement) {
-        System.out.println("\n🏗️  [ARCHITECT] Generating plan...");
+        System.out.println("\n≡ƒÅù∩╕Å  [ARCHITECT] Generating plan...");
         String currentPlan = aiService.callAI("ARCHITECT", "Plan architecture for: " + requirement, rotationManager.getFallbackChain(Agent.Role.ARCHITECT));
         
         boolean consensusReached = false;
@@ -271,7 +271,7 @@ public class AgentOrchestrator {
     }
     
     private String buildWithCodeGenerator(String projectId, String requirement, String plan) {
-        System.out.println("\n🔨 [BUILDER] Generating code...");
+        System.out.println("\n≡ƒö¿ [BUILDER] Generating code...");
         String currentCode = aiService.callAI("BUILDER", "Generate code based on plan: " + plan, rotationManager.getFallbackChain(Agent.Role.BUILDER));
         
         boolean consensusReached = false;
@@ -299,7 +299,16 @@ public class AgentOrchestrator {
             }));
         }
         for (Future<?> future : futures) {
-            try { future.get(30, TimeUnit.SECONDS); } catch (TimeUnitException e) {}
+            try {
+    future.get(30, TimeUnit.SECONDS);
+} catch (java.util.concurrent.TimeoutException e) {
+    // Handle timeout
+} catch (InterruptedException e) {
+    Thread.currentThread().interrupt();
+} catch (ExecutionException e) {
+    // Handle execution error
+}
+
         }
         return votes;
     }
