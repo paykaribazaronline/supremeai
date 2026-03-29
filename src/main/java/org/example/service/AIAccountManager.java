@@ -130,4 +130,37 @@ public class AIAccountManager {
         }
         return null;
     }
+
+    /**
+     * Get fallback chain for a provider (for rotation)
+     */
+    public List<AIAccount> getFallbackChain(String provider) {
+        return getActiveAccountsForProvider(provider);
+    }
+
+    /**
+     * Check and auto-unblock banned accounts
+     */
+    public void checkAndUnblockAccounts() {
+        for (AIAccount account : getAllAccounts()) {
+            if (account.isBanned() && account.shouldAutoUnblock()) {
+                account.reactivate();
+                System.out.println("  ✅ Auto-unblocked: " + account.getAccountId());
+            }
+        }
+    }
+
+    /**
+     * Get count of accounts for a provider
+     */
+    public int getAccountCountForProvider(String provider) {
+        return getAccountsForProvider(provider).size();
+    }
+
+    /**
+     * Get total account count across all providers
+     */
+    public int getTotalAccountCount() {
+        return getAllAccounts().size();
+    }
 }
