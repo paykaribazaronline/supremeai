@@ -34,12 +34,12 @@ public class CodeGenerationOrchestratorTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        orchestrator = new CodeGenerationOrchestrator();
-        orchestrator.aiApiService = aiApiService;
-        orchestrator.fileOrchestrator = fileOrchestrator;
-        orchestrator.validationService = validationService;
-        orchestrator.fixingSuggestor = fixingSuggestor;
-    }
+        orchestrator = new CodeGenerationOrchestrator(
+            aiApiService,
+            fileOrchestrator,
+            validationService,
+            fixingSuggestor
+        );
 
     @Test
     @DisplayName("Generate React Component Successfully")

@@ -25,9 +25,7 @@ public class CodeValidationServiceTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        validationService = new CodeValidationService();
-        validationService.fileOrchestrator = fileOrchestrator;
-    }
+        validationService = new CodeValidationService(fileOrchestrator);
 
     @Test
     @DisplayName("Validate React Project Successfully")

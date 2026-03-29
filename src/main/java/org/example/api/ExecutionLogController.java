@@ -25,6 +25,19 @@ public class ExecutionLogController {
     private ExecutionLogManager logManager;
 
     /**
+     * Default constructor for Spring injection
+     */
+    public ExecutionLogController() {
+    }
+
+    /**
+     * Constructor for dependency injection (especially for testing)
+     */
+    public ExecutionLogController(ExecutionLogManager logManager) {
+        this.logManager = logManager;
+    }
+
+    /**
      * Get metrics for a specific project
      * GET /api/execution-logs/project/{projectId}
      */

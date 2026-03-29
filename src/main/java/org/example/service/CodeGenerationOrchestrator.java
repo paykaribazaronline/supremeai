@@ -41,6 +41,25 @@ public class CodeGenerationOrchestrator {
     private static final ObjectMapper mapper = new ObjectMapper();
     private final Map<String, GenerationMetrics> generationHistory = new HashMap<>();
 
+    /**
+     * Default constructor for Spring injection
+     */
+    public CodeGenerationOrchestrator() {
+    }
+
+    /**
+     * Constructor for dependency injection (especially for testing)
+     */
+    public CodeGenerationOrchestrator(AIAPIService aiApiService, 
+                                     FileOrchestrator fileOrchestrator,
+                                     CodeValidationService validationService,
+                                     ErrorFixingSuggestor fixingSuggestor) {
+        this.aiApiService = aiApiService;
+        this.fileOrchestrator = fileOrchestrator;
+        this.validationService = validationService;
+        this.fixingSuggestor = fixingSuggestor;
+    }
+
     // Generation tracking data structure
     public static class GenerationMetrics {
         public String projectId;

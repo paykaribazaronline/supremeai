@@ -17,6 +17,19 @@ public class CodeValidationService {
     @Autowired
     private FileOrchestrator fileOrchestrator;
 
+    /**
+     * Default constructor for Spring injection
+     */
+    public CodeValidationService() {
+    }
+
+    /**
+     * Constructor for dependency injection (especially for testing)
+     */
+    public CodeValidationService(FileOrchestrator fileOrchestrator) {
+        this.fileOrchestrator = fileOrchestrator;
+    }
+
     public enum ErrorSeverity {
         CRITICAL, ERROR, WARNING, INFO
     }

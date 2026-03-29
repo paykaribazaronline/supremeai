@@ -25,8 +25,7 @@ public class ErrorFixingSuggestorTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        fixingSuggestor = new ErrorFixingSuggestor();
-        fixingSuggestor.fileOrchestrator = fileOrchestrator;
+        fixingSuggestor = new ErrorFixingSuggestor(fileOrchestrator, mock(TemplateManager.class));
     }
 
     @Test

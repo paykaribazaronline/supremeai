@@ -25,6 +25,17 @@ public class ErrorFixingSuggestor {
     private TemplateManager templateManager;
 
     /**
+     * Constructor for dependency injection (especially for testing)
+     */
+    public ErrorFixingSuggestor() {
+    }
+
+    public ErrorFixingSuggestor(FileOrchestrator fileOrchestrator, TemplateManager templateManager) {
+        this.fileOrchestrator = fileOrchestrator;
+        this.templateManager = templateManager;
+    }
+
+    /**
      * Suggest fixes for validation issues
      */
     public Map<String, Object> suggestFixes(String projectId, String templateType, 
@@ -427,7 +438,7 @@ public class ErrorFixingSuggestor {
 
     // ==================== Helper Methods ====================
 
-    private boolean isAutoFixable(String code) {
+    public boolean isAutoFixable(String code) {
         return switch (code) {
             case "MISSING_DEPENDENCY", "MISSING_SPRING_BOOT", "MISSING_MAIN",
                  "MISSING_IMPORTS", "MISSING_VERSION", "INDENTATION_ERROR",

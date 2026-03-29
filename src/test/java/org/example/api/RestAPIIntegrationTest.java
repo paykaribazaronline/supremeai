@@ -31,10 +31,8 @@ public class RestAPIIntegrationTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        generationController = new CodeGenerationController();
-        generationController.orchestrator = orchestrator;
-        logController = new ExecutionLogController();
-        logController.logManager = logManager;
+        generationController = new CodeGenerationController(orchestrator);
+        logController = new ExecutionLogController(logManager);
     }
 
     @Test

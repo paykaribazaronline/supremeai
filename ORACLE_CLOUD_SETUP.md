@@ -5,7 +5,9 @@
 ---
 
 ## 🛠️ Step 1: ওরাকেল ক্লাউড অ্যাকাউন্ট ও CLI
-1. **OCI অ্যাকাউন্ট:** [oracle.com/cloud/free](https://www.oracle.com/cloud/free/) এ গিয়ে একটি অ্যাকাউন্ট খুলুন।
+1. **OCI অ্যাকাউন্ট:** [oracle.com/cloud/free](https://www.oracle.com/cloud/free/) এ গিয়ে অ্যাকাউন্ট খুলুন।
+   - **Home Region:** আপনার জন্য **Singapore** সবথেকে ভালো (স্ক্রিনশট অনুযায়ী)।
+   - **Account Name:** `niloyjoy7`
 2. **OCI CLI ইনস্টল (Windows):**
    ```powershell
    (New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.ps1', 'install.ps1');
@@ -24,7 +26,8 @@
 ### Compute Instance (VM) তৈরি:
 SupremeAI রান করার জন্য একটি "Always Free" ARM Instance (4 OCPUs, 24GB RAM) বেছে নিন।
 - **Image:** Oracle Linux 8 বা Ubuntu 22.04
-- **Shape:** VM.Standard.A1.Flex
+- **Shape:** VM.Standard.A1.Flex (ARM Ampere)
+- **💡 প্রো-টিপ:** সিঙ্গাপুর রিজিয়নে অনেক সময় ARM খালি থাকে না, সেক্ষেত্রে কয়েকবার চেষ্টা করতে হতে পারে অথবা regular AMD instance ব্যবহার করতে পারেন।
 
 ### ভেরিয়েবল সেটআপ:
 ```bash
@@ -45,9 +48,10 @@ sudo systemctl start docker
 2. একটি Repository তৈরি করুন (নাম দিন: `supremeai/core`).
 3. ডকার লগইন:
    ```bash
-   docker login <region-key>.ocir.io
+   # সিঙ্গাপুরের জন্য region-key সাধারণত 'ap-singapore-1'
+   docker login ap-singapore-1.ocir.io
    # Username: <tenancy-namespace>/<username>
-   # Password: <Auth Token (User settings থেকে জেনারেট করা)>
+   # Password: <Auth Token>
    ```
 
 ---
@@ -57,29 +61,17 @@ sudo systemctl start docker
 আপনার লোকাল মেশিন থেকে ইমেজ পুশ করুন:
 ```powershell
 # ইমেজ বিল্ড
-docker build -t <region>.ocir.io/<namespace>/supremeai:v1 .
+docker build -t ap-singapore-1.ocir.io/<namespace>/supremeai:v1 .
 
 # ওরাকেল ক্লাউডে পুশ
-docker push <region>.ocir.io/<namespace>/supremeai:v1
-```
-
-VM এ গিয়ে রান করুন:
-```bash
-docker run -d -p 8080:8080 \
-  -e FIREBASE_CONFIG_PATH=/app/service-account.json \
-  -v $(pwd)/service-account.json:/app/service-account.json \
-  <region>.ocir.io/<namespace>/supremeai:v1
+docker push ap-singapore-1.ocir.io/<namespace>/supremeai:v1
 ```
 
 ---
 
-## 🛡️ Step 5: নেটওয়ার্ক সিকিউরিটি (VCN)
-OCI কনসোলে গিয়ে আপনার Instance এর **Ingress Rules** এ পোর্ট `8080` ওপেন করতে হবে:
-- **Source CIDR:** `0.0.0.0/0`
-- **IP Protocol:** `TCP`
-- **Destination Port Range:** `8080`
+## 🛡️ Step 5: সিকিউরিটি রুলস (VCN)
+OCI কনসোলে গিয়ে আপনার **Security List** এ পোর্ট `8080` এবং `443` ওপেন করতে হবে যাতে আপনার অ্যাডমিন অ্যাপ ক্লাউডের সাথে কথা বলতে পারে।
 
 ---
 
-## 🎯 সারাংশ
-ওরাকেল ক্লাউড ব্যবহার করলে আপনি শক্তিশালী রিসোর্স একদম ফ্রিতে পাবেন। আপনার `CloudDeploymentService.java` ফাইলে এখন OCI সাপোর্ট যোগ করা হচ্ছে।
+**নোট:** অ্যাকাউন্ট ভেরিফিকেশনের জন্য আপনার ইমেইল এবং পেমেন্ট কার্ড (যদি চায়) প্রস্তুত রাখুন। 🚀

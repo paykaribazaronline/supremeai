@@ -24,6 +24,19 @@ public class CodeGenerationController {
     private CodeGenerationOrchestrator orchestrator;
 
     /**
+     * Default constructor for Spring injection
+     */
+    public CodeGenerationController() {
+    }
+
+    /**
+     * Constructor for dependency injection (especially for testing)
+     */
+    public CodeGenerationController(CodeGenerationOrchestrator orchestrator) {
+        this.orchestrator = orchestrator;
+    }
+
+    /**
      * Generate a React component
      * POST /api/generation/react-component
      */
