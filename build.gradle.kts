@@ -1,6 +1,8 @@
 plugins {
     id("java")
     id("application")
+    id("org.springframework.boot") version "3.2.3"
+    id("io.spring.dependency-management") version "1.1.4"
 }
 
 group = "org.example"
@@ -87,4 +89,8 @@ application {
 
 tasks.named<JavaExec>("run") {
     jvmArgs = listOf("-Dspring.profiles.active=default")
+}
+
+tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+    mainClass.set("org.example.Application")
 }

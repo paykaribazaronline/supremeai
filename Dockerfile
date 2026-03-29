@@ -1,5 +1,5 @@
 # Step 1: Build the Java application using Gradle
-FROM gradle:8.5-jdk17 AS build
+FROM gradle:8.7-jdk17 AS build
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
 RUN gradle build --no-daemon -x test
