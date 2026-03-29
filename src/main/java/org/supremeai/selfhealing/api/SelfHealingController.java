@@ -6,12 +6,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.supremeai.selfhealing.repair.AutoCodeRepairAgent;
+import org.supremeai.selfhealing.adaptive.AdaptiveThresholdEngine;
+import org.supremeai.selfhealing.phoenix.ComponentRegenerator;
 import java.util.*;
 
 /**
  * SelfHealingController: Phoenix Edition
  * 
  * Enhanced REST API for autonomous self-healing, self-learning, and self-rebuilding
+ * 
+ * Phoenix agents are optional - enabled via supremeai.selfhealing.phoenix.enabled property
  */
 @RestController
 @RequestMapping("/api/v1/self-healing")
@@ -19,8 +24,15 @@ public class SelfHealingController {
     
     private static final Logger log = LoggerFactory.getLogger(SelfHealingController.class);
     
-    // Phoenix agent dependencies would go here
-    // Currently disabled during build optimization
+    // Phoenix agent dependencies - optional, may be null if disabled
+    @Autowired(required = false)
+    private AutoCodeRepairAgent autoRepairAgent;
+    
+    @Autowired(required = false)
+    private AdaptiveThresholdEngine adaptiveEngine;
+    
+    @Autowired(required = false)
+    private ComponentRegenerator phoenixRegenerator;
     
     /**
      * GET /api/v1/self-healing/status
@@ -29,14 +41,19 @@ public class SelfHealingController {
     @GetMapping("/status")
     public ResponseEntity<Map<String, Object>> getSystemStatus() {
         try {
+            boolean phoenixEnabled = autoRepairAgent != null && adaptiveEngine != null && phoenixRegenerator != null;
+            
             Map<String, Object> status = new HashMap<>();
             status.put("timestamp", System.currentTimeMillis());
             status.put("status", "healthy");
             status.put("selfHealingEnabled", true);
-            status.put("autoRepairAvailable", true);
-            status.put("adaptiveEngineAvailable", true);
-            status.put("phoenixRegenerationAvailable", true);
-            status.put("message", "System operational with full self-healing capability");
+            status.put("autoRepairAvailable", autoRepairAgent != null);
+            status.put("adaptiveEngineAvailable", adaptiveEngine != null);
+            status.put("phoenixRegenerationAvailable", phoenixRegenerator != null);
+            status.put("phoenixFullyEnabled", phoenixEnabled);
+            status.put("message", phoenixEnabled ? 
+                "System operational with FULL Phoenix self-healing capability" : 
+                "System operational with BASIC self-healing (Phoenix disabled)");
             
             return ResponseEntity.ok(status);
         } catch (Exception e) {
