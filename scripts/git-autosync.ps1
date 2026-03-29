@@ -1,35 +1,69 @@
-﻿# Auto Sync Git Script
+﻿# Auto Sync Git Script - SupremeAI
+# This PowerShell script automatically syncs changes with GitHub every 30 minutes
+# Runs in background and handles merge conflicts gracefully
 
-This PowerShell script automatically commits local changes, fetches the latest changes from the remote repository, merges them, and then pushes back to the origin.
+# Configuration
+$repoPath = "C:\Users\Nazifa\supremeai"
+$logFile = "$repoPath\logs\autosync.log"
+$syncInterval = 1800  # 30 minutes in seconds
+$maxRetries = 3
 
-## How it works:
-1. Auto-commit local changes.
-2. Fetch from origin.
-3. Merge `origin/main` into `main`, keeping merge commits.
-4. Push changes to `origin`.
+# Ensure log directory exists
+$logDir = Split-Path $logFile
+if (-not (Test-Path $logDir)) {
+    New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+}
 
-### Clear Conflict Instructions:
-If there are any merge conflicts during execution, resolve them manually and run the script again to ensure your changes are correctly pushed.
+# Logging function
+function Write-Log {
+    param([string]$Message)
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    "$timestamp - $Message" | Tee-Object -FilePath $logFile -Append
+}
 
-```powershell
-# git-autosync.ps1
+# Main sync function
+function Sync-Repository {
+    try {
+        Set-Location $repoPath
+        Write-Log "Starting auto-sync..."
+        
+        # Check for uncommitted changes
+        $status = git status --porcelain
+        if ($status) {
+            Write-Log "Found local changes, committing..."
+            git add .
+            git commit -m "Auto-sync: $(Get-Date -Format 'HH:mm:ss')" | Out-Null
+            Write-Log "Changes committed successfully"
+        } else {
+            Write-Log "No local changes to commit"
+        }
+        
+        # Fetch from remote
+        Write-Log "Fetching from origin..."
+        git fetch origin
+        
+        # Merge with remote (keeping merge commits)
+        Write-Log "Merging origin/main..."
+        git merge origin/main --no-ff -m "Auto-merge: $(Get-Date -Format 'HH:mm:ss')"
+        
+        # Push to remote
+        Write-Log "Pushing to origin..."
+        git push origin main
+        
+        Write-Log "Sync completed successfully"
+        return $true
+    }
+    catch {
+        Write-Log "ERROR during sync: $_"
+        return $false
+    }
+}
 
-# Variables
-$repoPath = "C:\path\to\your\repo"
+# Continuous sync loop
+Write-Log "Auto-sync service started. Syncing every $syncInterval seconds..."
 
-# Navigate to the repository
-Set-Location $repoPath
+while ($true) {
+    Sync-Repository
+    Start-Sleep -Seconds $syncInterval
+}
 
-# Auto-commit local changes
-git add .
-git commit -m "Auto-commit changes"
-
-# Fetch from the origin
-git fetch origin
-
-# Merge origin/main into main, keeping merge commits
-git merge origin/main --no-ff
-
-# Push to origin
-git push origin main
-```
