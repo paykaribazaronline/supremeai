@@ -40,6 +40,7 @@ public class CodeGenerationOrchestratorTest {
             validationService,
             fixingSuggestor
         );
+    }
 
     @Test
     @DisplayName("Generate React Component Successfully")

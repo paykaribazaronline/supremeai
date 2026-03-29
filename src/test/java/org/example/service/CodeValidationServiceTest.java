@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import java.util.*;
+import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -26,10 +27,11 @@ public class CodeValidationServiceTest {
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         validationService = new CodeValidationService(fileOrchestrator);
+    }
 
     @Test
     @DisplayName("Validate React Project Successfully")
-    public void testValidateReactProjectSuccess() {
+    public void testValidateReactProjectSuccess() throws IOException {
         String projectId = "test-project";
         
         when(fileOrchestrator.fileExists(projectId, "package.json")).thenReturn(true);
@@ -46,7 +48,7 @@ public class CodeValidationServiceTest {
 
     @Test
     @DisplayName("Detect Missing React Dependencies")
-    public void testDetectMissingReactDependencies() {
+    public void testDetectMissingReactDependencies() throws IOException {
         String projectId = "test-project";
         
         when(fileOrchestrator.fileExists(projectId, "package.json")).thenReturn(true);
@@ -63,7 +65,7 @@ public class CodeValidationServiceTest {
 
     @Test
     @DisplayName("Validate Node.js Project")
-    public void testValidateNodeProjectSuccess() {
+    public void testValidateNodeProjectSuccess() throws IOException {
         String projectId = "test-project";
         
         when(fileOrchestrator.fileExists(projectId, "package.json")).thenReturn(true);
@@ -79,7 +81,7 @@ public class CodeValidationServiceTest {
 
     @Test
     @DisplayName("Validate Python Project")
-    public void testValidatePythonProject() {
+    public void testValidatePythonProject() throws IOException {
         String projectId = "test-project";
         
         when(fileOrchestrator.fileExists(projectId, "requirements.txt")).thenReturn(true);
@@ -108,7 +110,7 @@ public class CodeValidationServiceTest {
 
     @Test
     @DisplayName("Detect Configuration File Issues")
-    public void testDetectConfigurationIssues() {
+    public void testDetectConfigurationIssues() throws IOException {
         String projectId = "test-project";
         
         when(fileOrchestrator.fileExists(projectId, "tsconfig.json")).thenReturn(false);
@@ -132,7 +134,7 @@ public class CodeValidationServiceTest {
 
     @Test
     @DisplayName("Validate Multiple Files")
-    public void testValidateMultipleFiles() {
+    public void testValidateMultipleFiles() throws IOException {
         String projectId = "test-project";
         List<Map<String, Object>> files = new ArrayList<>();
         
@@ -150,7 +152,7 @@ public class CodeValidationServiceTest {
 
     @Test
     @DisplayName("Identify Code Issues by Severity")
-    public void testSeverityLevelDetection() {
+    public void testSeverityLevelDetection() throws IOException {
         String projectId = "test-project";
 
         Map<String, Object> result = validationService.validateProject(projectId, "REACT");

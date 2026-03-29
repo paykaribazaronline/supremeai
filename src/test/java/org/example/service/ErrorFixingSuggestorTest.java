@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import java.util.*;
+import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -79,7 +80,7 @@ public class ErrorFixingSuggestorTest {
 
     @Test
     @DisplayName("Apply Fixes to Project")
-    public void testApplyFixesToProject() {
+    public void testApplyFixesToProject() throws IOException {
         String projectId = "test-project";
         String framework = "REACT";
         List<Map<String, Object>> issues = new ArrayList<>();
