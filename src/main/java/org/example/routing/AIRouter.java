@@ -1,4 +1,4 @@
-﻿package org.example.routing;
+package org.example.routing;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
