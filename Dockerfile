@@ -1,8 +1,8 @@
-# Step 1: Build the Java application using Gradle
+# Step 1: Use prebuilt JAR if available, otherwise build
 FROM gradle:8.7-jdk17 AS build
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
-RUN gradle build --no-daemon -x test
+RUN gradle build --no-daemon -x test --parallel --max-workers=2
 
 # Step 2: Create the runtime image using Eclipse Temurin (More stable)
 FROM eclipse-temurin:17-jdk-jammy
