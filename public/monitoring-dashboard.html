@@ -246,70 +246,166 @@
     </div>
 
     <script>
-        async function refreshAll() {
-            const [health, stats, alerts] = await Promise.all([
-                fetch('/api/metrics/health').then(r => r.json()),
-                fetch('/api/metrics/stats').then(r => r.json()),
-                fetch('/api/alerts').then(r => r.json())
-            ]);
+        let ws = null;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 10;
+        const reconnectDelay = 3000; // 3 seconds
+
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws/metrics`;
             
-            updateHealth(health);
-            updateStats(stats);
-            updateAlerts(alerts);
-            updateTimestamp();
+            try {
+                ws = new WebSocket(wsUrl);
+                
+                ws.onopen = function() {
+                    console.log('✓ WebSocket connected to metrics stream');
+                    reconnectAttempts = 0;
+                    updateConnectionStatus(true);
+                };
+                
+                ws.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        
+                        if (data.type === 'METRICS') {
+                            updateHealth(data.metrics);
+                        } else if (data.type === 'STATS') {
+                            updateStats(data.stats);
+                        } else if (data.type === 'ALERT') {
+                            updateAlerts(data.alerts);
+                        }
+                        
+                        updateTimestamp();
+                    } catch (e) {
+                        console.error('Error processing WebSocket message:', e);
+                    }
+                };
+                
+                ws.onerror = function(error) {
+                    console.error('WebSocket error:', error);
+                    updateConnectionStatus(false);
+                };
+                
+                ws.onclose = function() {
+                    console.log('WebSocket closed, attempting to reconnect...');
+                    updateConnectionStatus(false);
+                    
+                    if (reconnectAttempts < maxReconnectAttempts) {
+                        reconnectAttempts++;
+                        setTimeout(connectWebSocket, reconnectDelay);
+                    } else {
+                        console.warn('Max reconnection attempts reached, falling back to HTTP polling');
+                        startHttpPolling();
+                    }
+                };
+            } catch (e) {
+                console.error('Failed to create WebSocket:', e);
+                startHttpPolling();
+            }
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusEl = document.getElementById('status-indicator');
+            if (connected) {
+                statusEl.className = 'status-indicator status-up';
+                document.getElementById('status-text').textContent = 'CONNECTED';
+            } else {
+                statusEl.className = 'status-indicator status-degraded';
+                document.getElementById('status-text').textContent = 'RECONNECTING...';
+            }
+        }
+
+        async function refreshAll() {
+            try {
+                const [health, stats, alerts] = await Promise.all([
+                    fetch('/api/metrics/health').then(r => r.json()),
+                    fetch('/api/metrics/stats').then(r => r.json()),
+                    fetch('/api/alerts').then(r => r.json())
+                ]);
+                
+                updateHealth(health);
+                updateStats(stats);
+                updateAlerts(alerts);
+                updateTimestamp();
+            } catch (e) {
+                console.error('HTTP polling error:', e);
+            }
+        }
+
+        function startHttpPolling() {
+            console.log('Starting HTTP polling fallback (5s interval)');
+            setInterval(refreshAll, 5000);
+            refreshAll();
         }
         
         function updateHealth(health) {
-            document.getElementById('uptime').textContent = formatUptime(health.uptime_ms);
-            document.getElementById('heap-used').textContent = health.memory.heap_used_mb.toFixed(1) + ' MB';
-            document.getElementById('heap-max').textContent = health.memory.heap_max_mb.toFixed(1) + ' MB';
+            document.getElementById('uptime').textContent = formatUptime(health.uptime_ms || health.uptime || 0);
             
-            const heapPercent = (health.memory.heap_used_mb / health.memory.heap_max_mb) * 100;
-            document.getElementById('heap-progress').style.width = heapPercent + '%';
+            if (health.memory) {
+                document.getElementById('heap-used').textContent = (health.memory.heap_used_mb || 0).toFixed(1) + ' MB';
+                document.getElementById('heap-max').textContent = (health.memory.heap_max_mb || 0).toFixed(1) + ' MB';
+                
+                const heapPercent = health.memory.heap_max_mb > 0 ? 
+                    (health.memory.heap_used_mb / health.memory.heap_max_mb) * 100 : 0;
+                document.getElementById('heap-progress').style.width = heapPercent + '%';
+            }
             
             const statusEl = document.getElementById('status-indicator');
             const statusText = document.getElementById('status-text');
-            if (health.status === 'UP') {
+            if (health.status === 'UP' && reconnectAttempts === 0) {
                 statusEl.className = 'status-indicator status-up';
                 statusText.textContent = 'UP';
-            } else {
+            } else if (statusText.textContent !== 'RECONNECTING...') {
                 statusEl.className = 'status-indicator status-degraded';
                 statusText.textContent = 'DEGRADED';
             }
             
-            document.getElementById('total-requests').textContent = health.requests.total;
-            document.getElementById('success-rate').textContent = health.requests.success_rate.toFixed(1) + '%';
-            document.getElementById('success-progress').style.width = health.requests.success_rate + '%';
+            if (health.requests) {
+                document.getElementById('total-requests').textContent = health.requests.total || 0;
+                document.getElementById('success-rate').textContent = (health.requests.success_rate || 0).toFixed(1) + '%';
+                document.getElementById('success-progress').style.width = (health.requests.success_rate || 0) + '%';
+            }
             
             if (health.latency) {
-                document.getElementById('avg-latency').textContent = health.latency.average_ms.toFixed(0) + ' ms';
-                document.getElementById('p95-latency').textContent = health.latency.p95_ms + ' ms';
-                document.getElementById('max-latency').textContent = health.latency.max_ms + ' ms';
+                document.getElementById('avg-latency').textContent = (health.latency.average_ms || 0).toFixed(0) + ' ms';
+                document.getElementById('p95-latency').textContent = (health.latency.p95_ms || 0) + ' ms';
+                document.getElementById('max-latency').textContent = (health.latency.max_ms || 0) + ' ms';
             }
         }
         
         function updateStats(stats) {
-            document.getElementById('successful-gen').textContent = stats.successful;
-            document.getElementById('failed-gen').textContent = stats.failed;
-            document.getElementById('error-rate').textContent = stats.error_rate.toFixed(1) + '%';
+            if (!stats) return;
             
-            const frameworkHtml = Object.entries(stats.by_framework)
-                .map(([fw, s]) => `
-                    <div class="metric">
-                        <span class="metric-label">${fw}</span>
-                        <span class="metric-value">${s.count} (${s.average_time_ms.toFixed(0)}ms avg)</span>
-                    </div>
-                `).join('');
-            document.getElementById('framework-stats').innerHTML = frameworkHtml || '<p>No data yet</p>';
+            document.getElementById('successful-gen').textContent = stats.successful || 0;
+            document.getElementById('failed-gen').textContent = stats.failed || 0;
+            document.getElementById('error-rate').textContent = (stats.error_rate || 0).toFixed(1) + '%';
+            
+            const frameworkHtml = stats.by_framework ? 
+                Object.entries(stats.by_framework)
+                    .map(([fw, s]) => `
+                        <div class="metric">
+                            <span class="metric-label">${fw}</span>
+                            <span class="metric-value">${s.count} (${(s.average_time_ms || 0).toFixed(0)}ms avg)</span>
+                        </div>
+                    `).join('')
+                : '<p>No data yet</p>';
+            document.getElementById('framework-stats').innerHTML = frameworkHtml;
         }
         
         function updateAlerts(alerts) {
-            document.getElementById('alert-count').textContent = alerts.count;
-            document.getElementById('critical-count').textContent = alerts.alerts.filter(a => a.severity === 'CRITICAL').length;
+            if (!alerts) return;
             
-            const recentHtml = alerts.alerts.slice(0, 5).map(a => `
-                <div class="alert-box ${a.severity.toLowerCase()}">
-                    <strong>${a.severity}:</strong> ${a.message}
+            const alertCount = Array.isArray(alerts) ? alerts.length : (alerts.count || 0);
+            const alertList = Array.isArray(alerts) ? alerts : (alerts.alerts || []);
+            
+            document.getElementById('alert-count').textContent = alertCount;
+            document.getElementById('critical-count').textContent = 
+                alertList.filter(a => a.severity === 'CRITICAL').length;
+            
+            const recentHtml = alertList.slice(0, 5).map(a => `
+                <div class="alert-box ${(a.severity || 'INFO').toLowerCase()}">
+                    <strong>${a.severity || 'INFO'}:</strong> ${a.message || a.title || 'Unknown alert'}
                 </div>
             `).join('');
             document.getElementById('recent-alerts').innerHTML = recentHtml || '<p style="color: green;">✓ No active alerts</p>';
@@ -327,9 +423,16 @@
             document.getElementById('last-update').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
         }
         
-        // Auto-refresh every 5 seconds
-        setInterval(refreshAll, 5000);
-        refreshAll();
+        // Initialize WebSocket connection
+        window.addEventListener('DOMContentLoaded', function() {
+            connectWebSocket();
+        });
+        
+        // Fallback manual refresh button
+        function manualRefresh() {
+            console.log('Manual refresh triggered');
+            refreshAll();
+        }
     </script>
 </body>
 </html>
