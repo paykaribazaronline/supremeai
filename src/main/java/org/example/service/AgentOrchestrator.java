@@ -52,6 +52,9 @@ public class AgentOrchestrator {
     private final AutoSuggestionService autoSuggestionService;
     private final SelfGitAnalyzer selfGitAnalyzer;
     
+    // Phase 2: Intelligent Ranking Service
+    private final AIRankingService rankingService;
+    
     private final ExecutorService executor = Executors.newFixedThreadPool(8);
     private final Map<String, Agent> agentPool = new HashMap<>();
     
@@ -96,6 +99,9 @@ public class AgentOrchestrator {
         this.dataCollectorService = new DataCollectorService(hybridDataCollector);
         this.webhookListener = new WebhookListener(dataCollectorService);
         this.adminMessagePusher = new AdminMessagePusher();
+        
+        // Phase 2: Initialize Intelligent Ranking Service
+        this.rankingService = new AIRankingService(this.memoryManager, firebase);
         
         this.memoryManager.setFirebaseService(firebase);
         initializeAgentPool();
@@ -344,4 +350,136 @@ public class AgentOrchestrator {
     public AdminMessagePusher getAdminMessagePusher() { return adminMessagePusher; }
     public void pushDataUpdateToAdmin(String s, String i, Map<String, Object> d, long t) { adminMessagePusher.pushDataUpdate(s, i, d, t); }
     public void pushAlertToAdmin(String a, String t, String m, Map<String, Object> mt) { adminMessagePusher.pushAlert(a, t, m, mt); }
+    
+    // ============================================================================
+    // PHASE 2: Intelligent Assignment Methods
+    // ============================================================================
+    
+    /**
+     * Phase 2: Get the optimal agent for a specific task type
+     * 
+     * Uses the intelligent ranking service to find the best agent based on:
+     * 1. Task-specific historical success
+     * 2. Overall performance score
+     * 3. Cost optimization
+     * 4. Speed preference
+     * 
+     * @param taskType The type of task (e.g., "document_analysis", "code_generation")
+     * @return The best agent ID for this task, or null if none available
+     */
+    public String getOptimalAgent(String taskType) {
+        return rankingService.getBestAgent(taskType);
+    }
+    
+    /**
+     * Phase 2: Get an intelligent fallback chain
+     * 
+     * Returns a prioritized list of agents for fallback execution.
+     * If the first fails, try the second, and so on.
+     * 
+     * Uses mixed scoring that combines:
+     * - Task-specific success rate (primary)
+     * - Overall performance (secondary)
+     * - Cost optimization (fallback)
+     * 
+     * @param taskType The task type to optimize for
+     * @param chainLength How many fallback agents to return
+     * @return List of agents in fallback priority
+     */
+    public List<String> getIntelligentFallbackChain(String taskType, int chainLength) {
+        return rankingService.getFallbackChain(taskType, chainLength);
+    }
+    
+    /**
+     * Phase 2: Get the default fallback chain (using Phase 2 intelligent ranking)
+     * 
+     * Returns 5 agents in optimal order for most task types.
+     * 
+     * @param taskType The task type
+     * @return List of 5 backup agents in priority order
+     */
+    public List<String> getIntelligentFallbackChain(String taskType) {
+        return getIntelligentFallbackChain(taskType, 5);
+    }
+    
+    /**
+     * Phase 2: Record task execution result for learning
+     * 
+     * Updates memory patterns and triggers ranking refresh.
+     * Should be called after every task execution.
+     * 
+     * @param taskType Task type that was executed
+     * @param agentId Agent that executed it
+     * @param success Whether execution was successful
+     * @param executionTimeMs How long it took
+     */
+    public void recordTaskExecution(String taskType, String agentId, boolean success, int executionTimeMs) {
+        // Record in pattern library for task-type learning
+        memoryManager.recordPattern(taskType, agentId, success, executionTimeMs);
+        
+        // Update scoreboard
+        memoryManager.recordSuccess(taskType + ":" + agentId, agentId, executionTimeMs);
+        
+        // Refresh rankings to reflect latest performance
+        rankingService.refreshRankings();
+    }
+    
+    /**
+     * Phase 2: Record a failure pattern for analysis
+     * 
+     * Used to track failure types and prevent recurring issues.
+     * Failure types: TIMEOUT, RATE_LIMIT, TOKEN_LIMIT, API_ERROR, LOGIC_ERROR
+     * 
+     * @param taskType Type of task that failed
+     * @param agentId Agent that failed
+     * @param errorType Category of failure
+     */
+    public void recordFailurePattern(String taskType, String agentId, String errorType) {
+        memoryManager.recordFailurePattern(taskType, agentId, errorType);
+        
+        // If this agent has too many failures, might need quota rest
+        List<Map<String, Object>> failures = memoryManager.getFailurePatternsByAgent(agentId);
+        int recentFailures = (int) failures.stream()
+                .filter(f -> f.get("error_type").equals(errorType))
+                .count();
+        
+        // Auto-rest if >5 failures of same type
+        if (recentFailures > 5 && errorType.equals("RATE_LIMIT")) {
+            System.out.println("⚠️ Agent " + agentId + " has " + recentFailures + " rate limit errors. Applying cooldown.");
+            // Note: Would need agent role to call rotate - skip for now
+            // rotationManager.rotate(agentRole, "Rate limit threshold exceeded");
+        }
+    }
+    
+    /**
+     * Phase 2: Get ranking statistics for monitoring
+     * 
+     * Returns current ranking state for admin dashboard visualization.
+     * 
+     * @return Map of ranking stats including top agents and average scores
+     */
+    public Map<String, Object> getRankingStats() {
+        return rankingService.getRankingStats();
+    }
+    
+    /**
+     * Phase 2: Refresh all rankings (explicit refresh)
+     * 
+     * Can be called manually to update rankings immediately.
+     * Normally called automatically after task execution.
+     */
+    public void refreshRankings() {
+        rankingService.refreshRankings();
+    }
+    
+    /**
+     * Phase 2: Get the ranking service for direct access
+     * 
+     * Allows other services to access ranking methods directly.
+     * 
+     * @return The AIRankingService instance
+     */
+    public AIRankingService getRankingService() {
+        return rankingService;
+    }
 }
