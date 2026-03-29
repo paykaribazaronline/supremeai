@@ -47,9 +47,12 @@ jobs:
         run: ./gradlew clean build --info --stacktrace --no-daemon
         env:
           GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
+          SUPREMEAI_SELFHEALING_PHOENIX_ENABLED: 'true'
 
       - name: ✅ Run tests
         run: ./gradlew test --info --stacktrace --no-daemon
+        env:
+          SUPREMEAI_SELFHEALING_PHOENIX_ENABLED: 'true'
 
       - name: 📊 Generate test report
         if: always()
