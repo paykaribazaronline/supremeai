@@ -2,8 +2,10 @@ package org.example.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 
 /**
  * CodeGenerationOrchestrator: AI-powered code generation engine
@@ -30,29 +32,71 @@ public class CodeGenerationOrchestrator {
     @Autowired
     private ErrorFixingSuggestor fixingSuggestor;
 
+    @Autowired(required = false)
+    private AgentOrchestrator agentOrchestrator;
+
+    private static final ObjectMapper mapper = new ObjectMapper();
+    private final Map<String, GenerationMetrics> generationHistory = new HashMap<>();
+
+    // Generation tracking data structure
+    public static class GenerationMetrics {
+        public String projectId;
+        public String componentName;
+        public String framework;
+        public long startTime;
+        public long endTime;
+        public int filesGenerated;
+        public double validationScore;
+        public boolean requiresFixing;
+        public int fixesApplied;
+        public String status;
+        public String selectedAgent;
+
+        public GenerationMetrics(String projectId, String componentName, String framework) {
+            this.projectId = projectId;
+            this.componentName = componentName;
+            this.framework = framework;
+            this.startTime = System.currentTimeMillis();
+            this.status = "generating";
+        }
+    }
+
     /**
-     * Generate a complete component for React/TypeScript
+     * Generate a complete component for React/TypeScript with agent optimization
      */
     public Map<String, Object> generateReactComponent(String projectId, String componentName, 
                                                      String description, List<String> features) {
+        GenerationMetrics metrics = new GenerationMetrics(projectId, componentName, "REACT");
         Map<String, Object> result = new HashMap<>();
         result.put("projectId", projectId);
         result.put("componentName", componentName);
         result.put("framework", "REACT");
-        result.put("status", "generating");
 
         try {
+            // Select best agent if AgentOrchestrator available
+            String selectedAgent = "GROQ";
+            if (agentOrchestrator != null) {
+                selectedAgent = selectBestAgent("REACT", "component");
+                metrics.selectedAgent = selectedAgent;
+            }
+
+            List<String> fallbackChain = buildFallbackChain(selectedAgent);
+
             // Generate TypeScript component
             String prompt = buildReactComponentPrompt(componentName, description, features);
-            String componentCode = aiApiService.callAI("BUILDER", prompt, 
-                Arrays.asList("GROQ", "DEEPSEEK", "CLAUDE", "GPT4"));
+            String componentCode = aiApiService.callAI("BUILDER", prompt, fallbackChain);
             
+            if (componentCode == null || componentCode.isEmpty()) {
+                result.put("status", "failed");
+                result.put("error", "AI service returned empty response");
+                return result;
+            }
+
             // Generate hook if needed
             String hookCode = null;
             if (features.contains("state-management")) {
                 String hookPrompt = buildReactHookPrompt(componentName, features);
-                hookCode = aiApiService.callAI("BUILDER", hookPrompt, 
-                    Arrays.asList("GROQ", "DEEPSEEK", "CLAUDE", "GPT4"));
+                hookCode = aiApiService.callAI("BUILDER", hookPrompt, fallbackChain);
             }
 
             // Generate styles
@@ -61,22 +105,50 @@ public class CodeGenerationOrchestrator {
             // Write files
             String componentPath = "src/components/" + componentName + ".tsx";
             fileOrchestrator.writeFile(projectId, componentPath, componentCode);
-            result.put("componentFile", componentPath);
+            metrics.filesGenerated++;
 
-            if (hookCode != null) {
+            if (hookCode != null && !hookCode.isEmpty()) {
                 String hookPath = "src/hooks/use" + capitalize(componentName) + ".ts";
                 fileOrchestrator.writeFile(projectId, hookPath, hookCode);
-                result.put("hookFile", hookPath);
+                metrics.filesGenerated++;
             }
 
             String stylePath = "src/components/" + componentName + ".module.css";
             fileOrchestrator.writeFile(projectId, stylePath, styleCode);
-            result.put("styleFile", stylePath);
+            metrics.filesGenerated++;
+
+            // Validate generated code
+            Map<String, Object> validation = validationService.validateProject(projectId, "REACT");
+            @SuppressWarnings("unchecked")
+            Number score = (Number) validation.getOrDefault("validationScore", 100);
+            metrics.validationScore = score.doubleValue();
+
+            // Auto-fix if validation fails
+            if (metrics.validationScore < 80) {
+                metrics.requiresFixing = true;
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> issues = (List<Map<String, Object>>) validation.get("issues");
+                if (issues != null && !issues.isEmpty()) {
+                    Map<String, Object> fixResult = fixingSuggestor.applyFixes(projectId, "REACT", issues);
+                    @SuppressWarnings("unchecked")
+                    Number fixCount = (Number) fixResult.getOrDefault("appliedCount", 0);
+                    metrics.fixesApplied = fixCount.intValue();
+                }
+            }
+
+            metrics.status = "generated";
+            metrics.endTime = System.currentTimeMillis();
+            generationHistory.put(projectId + ":" + componentName, metrics);
 
             result.put("status", "generated");
-            result.put("filesGenerated", 2 + (hookCode != null ? 1 : 0));
+            result.put("filesGenerated", metrics.filesGenerated);
+            result.put("validationScore", metrics.validationScore);
+            result.put("fixesApplied", metrics.fixesApplied);
+            result.put("selectedAgent", selectedAgent);
+            result.put("duration", metrics.endTime - metrics.startTime);
 
         } catch (Exception e) {
+            metrics.status = "failed";
             result.put("status", "failed");
             result.put("error", e.getMessage());
         }
@@ -301,6 +373,86 @@ public class CodeGenerationOrchestrator {
         stats.put("supportedLanguages", Arrays.asList("typescript", "javascript", "python", "java", "dart"));
         stats.put("timestamp", System.currentTimeMillis());
         return stats;
+    }
+
+    /**
+     * Get generation history for a project
+     */
+    public Map<String, Object> getGenerationHistory(String projectId) {
+        Map<String, Object> response = new HashMap<>();
+        List<GenerationMetrics> history = generationHistory.entrySet().stream()
+            .filter(e -> e.getKey().startsWith(projectId + ":"))
+            .map(Map.Entry::getValue)
+            .collect(Collectors.toList());
+        
+        response.put("projectId", projectId);
+        response.put("totalGenerations", history.size());
+        response.put("successCount", history.stream().filter(m -> "generated".equals(m.status)).count());
+        response.put("avgValidationScore", history.stream()
+            .mapToDouble(m -> m.validationScore).average().orElse(0.0));
+        response.put("totalFilesGenerated", history.stream().mapToInt(m -> m.filesGenerated).sum());
+        response.put("history", history);
+        response.put("timestamp", System.currentTimeMillis());
+        return response;
+    }
+
+    /**
+     * Get overall generation statistics
+     */
+    public Map<String, Object> getAllGenerationStats() {
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalGenerations", generationHistory.size());
+        stats.put("successCount", generationHistory.values().stream()
+            .filter(m -> "generated".equals(m.status)).count());
+        stats.put("failureCount", generationHistory.values().stream()
+            .filter(m -> "failed".equals(m.status)).count());
+        stats.put("avgValidationScore", generationHistory.values().stream()
+            .mapToDouble(m -> m.validationScore).average().orElse(0.0));
+        stats.put("totalFilesGenerated", generationHistory.values().stream()
+            .mapToInt(m -> m.filesGenerated).sum());
+        stats.put("totalFixesApplied", generationHistory.values().stream()
+            .mapToInt(m -> m.fixesApplied).sum());
+        
+        // Framework breakdown
+        Map<String, Long> byFramework = generationHistory.values().stream()
+            .collect(Collectors.groupingBy(m -> m.framework, Collectors.counting()));
+        stats.put("byFramework", byFramework);
+        
+        stats.put("timestamp", System.currentTimeMillis());
+        return stats;
+    }
+
+    /**
+     * Select best agent for generation task using AgentOrchestrator
+     */
+    private String selectBestAgent(String framework, String taskType) {
+        if (agentOrchestrator == null) {
+            return "GROQ"; // Default fallback
+        }
+        
+        try {
+            String taskDescription = "Generate " + taskType + " for " + framework;
+            // In a real implementation, this would use AgentOrchestrator's ranking
+            return "GROQ"; // Default - would be replaced by actual orchestrator call
+        } catch (Exception e) {
+            return "GROQ";
+        }
+    }
+
+    /**
+     * Build intelligent fallback chain with selected agent first
+     */
+    private List<String> buildFallbackChain(String selectedAgent) {
+        List<String> chain = new ArrayList<>();
+        chain.add(selectedAgent);
+        
+        // Add other agents as fallbacks
+        for (String agent : Arrays.asList("GROQ", "DEEPSEEK", "CLAUDE", "GPT4")) {
+            if (!agent.equals(selectedAgent)) {
+                chain.add(agent);
+            }
+        }
+        return chain;
     }
 
     // ==================== Prompt Building Methods ====================

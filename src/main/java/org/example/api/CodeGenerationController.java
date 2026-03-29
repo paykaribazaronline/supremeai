@@ -215,6 +215,43 @@ public class CodeGenerationController {
         response.put("timestamp", System.currentTimeMillis());
         return response;
     }
+    /**
+     * Get generation history for a project
+     * GET /api/generation/history/{projectId}
+     */
+    @GetMapping("/history/{projectId}")
+    public Map<String, Object> getGenerationHistory(@PathVariable String projectId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Map<String, Object> history = orchestrator.getGenerationHistory(projectId);
+            response.put("success", true);
+            response.put("data", history);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("error", e.getMessage());
+        }
+        response.put("timestamp", System.currentTimeMillis());
+        return response;
+    }
+
+    /**
+     * Get overall generation statistics across all projects
+     * GET /api/generation/analytics
+     */
+    @GetMapping("/analytics")
+    public Map<String, Object> getGenerationAnalytics() {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Map<String, Object> stats = orchestrator.getAllGenerationStats();
+            response.put("success", true);
+            response.put("analytics", stats);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("error", e.getMessage());
+        }
+        response.put("timestamp", System.currentTimeMillis());
+        return response;
+    }
 
     /**
      * Get supported frameworks
