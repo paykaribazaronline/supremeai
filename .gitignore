@@ -95,6 +95,18 @@ yarn-error.log*
 .rts2_cache_umd/
 
 # ========================================
+# BUILD & TEST OUTPUT (must not be committed)
+# ========================================
+build_output.txt
+test_output.txt
+test_full.txt
+failures_summary.txt
+phase5_build.txt
+*_build.txt
+*_output.txt
+*_summary.txt
+
+# ========================================
 # TEMPORARY & CACHE FILES
 # ========================================
 *.tmp
