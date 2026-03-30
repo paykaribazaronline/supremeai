@@ -15,12 +15,15 @@ services:
     runtime: docker
     dockerContext: .
     dockerfilePath: ./Dockerfile
-    plan: starter
+    plan: free
     region: oregon
     branch: main
     healthCheckPath: /actuator/health
     autoDeploy: yes
     envVars:
+      # PORT is injected automatically by Render; explicitly set for clarity
+      - key: PORT
+        value: "8080"
       # Firebase project configuration (non-secret)
       - key: FIREBASE_PROJECT_ID
         value: supremeai-a

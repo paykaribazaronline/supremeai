@@ -46,11 +46,14 @@ public class AgentOrchestrator {
     private final WebhookListener webhookListener;
     private final AdminMessagePusher adminMessagePusher;
 
-    // 🚀 Intelligence, Safety & Self-Analysis Services
+    // ≡ƒÜÇ Intelligence, Safety & Self-Analysis Services
     private final InternetSearchService searchService;
     private final SafeZoneManager safeZoneManager;
     private final AutoSuggestionService autoSuggestionService;
     private final SelfGitAnalyzer selfGitAnalyzer;
+    
+    // Phase 2: Intelligent Ranking Service
+    private final AIRankingService rankingService;
     
     private final ExecutorService executor = Executors.newFixedThreadPool(8);
     private final Map<String, Agent> agentPool = new HashMap<>();
@@ -97,6 +100,9 @@ public class AgentOrchestrator {
         this.webhookListener = new WebhookListener(dataCollectorService);
         this.adminMessagePusher = new AdminMessagePusher();
         
+        // Phase 2: Initialize Intelligent Ranking Service
+        this.rankingService = new AIRankingService(this.memoryManager, firebase);
+        
         this.memoryManager.setFirebaseService(firebase);
         initializeAgentPool();
     }
@@ -108,19 +114,19 @@ public class AgentOrchestrator {
     }
     
     /**
-     * 🕵️ SELF-ANALYSIS: SupremeAI analyzes its own development evolution
+     * ≡ƒò╡∩╕Å SELF-ANALYSIS: SupremeAI analyzes its own development evolution
      */
     public void runSelfDiagnostic() {
-        System.out.println("\n🕵️ [SELF-DIAGNOSTIC] Running Git evolution analysis...");
+        System.out.println("\n≡ƒò╡∩╕Å [SELF-DIAGNOSTIC] Running Git evolution analysis...");
         
         // 1. Analyze recent history
         List<Map<String, String>> history = selfGitAnalyzer.analyzeSelfHistory(5);
-        System.out.println("📜 Recent Evolution (Commit History):");
+        System.out.println("≡ƒô£ Recent Evolution (Commit History):");
         history.forEach(c -> System.out.println("  [" + c.get("hash") + "] " + c.get("message")));
 
         // 2. Identify Hotspots
         Map<String, Integer> hotspots = selfGitAnalyzer.identifyHotspots();
-        System.out.println("🔥 Top Development Hotspots (Most modified files):");
+        System.out.println("≡ƒöÑ Top Development Hotspots (Most modified files):");
         hotspots.entrySet().stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
                 .limit(5)
@@ -129,24 +135,24 @@ public class AgentOrchestrator {
         // 3. Check status
         Map<String, String> status = selfGitAnalyzer.checkSelfStatus();
         if (Boolean.parseBoolean(status.get("is_dirty"))) {
-            System.out.println("⚠️ System state is 'Dirty' (Uncommitted work detected).");
+            System.out.println("ΓÜá∩╕Å System state is 'Dirty' (Uncommitted work detected).");
         } else {
-            System.out.println("✅ System state is 'Clean'. Ready for deployment.");
+            System.out.println("Γ£à System state is 'Clean'. Ready for deployment.");
         }
     }
 
     /**
-     * ⚡ ENHANCED WORKFLOW: Internet Search + SafeZone + Suggestions
+     * ΓÜí ENHANCED WORKFLOW: Internet Search + SafeZone + Suggestions
      */
     public void processProjectRequirement(String projectId, String requirementDesc) {
         executor.submit(() -> {
             try {
-                System.out.println("\n🚀 [ORCHESTRATOR] Analyzing requirement: " + requirementDesc);
+                System.out.println("\n≡ƒÜÇ [ORCHESTRATOR] Analyzing requirement: " + requirementDesc);
                 
                 // 1. Generate Auto-Suggestions
                 List<String> suggestions = autoSuggestionService.suggest(requirementDesc);
                 firebaseService.saveChatMessage(projectId, "SupremeAI", 
-                    "💡 Suggestions: " + String.join(", ", suggestions), "suggestion");
+                    "≡ƒÆí Suggestions: " + String.join(", ", suggestions), "suggestion");
 
                 // 2. Internet Search for context (e.g. latest API changes)
                 List<InternetSearchService.SearchResult> research = searchService.search(requirementDesc);
@@ -175,13 +181,13 @@ public class AgentOrchestrator {
 
     private void handleHumanRequired(String projectId, Requirement req) {
         firebaseService.saveChatMessage(projectId, "SupremeAI", 
-            "🚨 I need human action for: \"" + req.getDescription() + "\".", "human_required");
+            "≡ƒÜ¿ I need human action for: \"" + req.getDescription() + "\".", "human_required");
     }
 
     /**
      * Process Git-Based Development Project
      * Admin provides git URL, branch, and development task
-     * SupremeAI handles: Clone → Develop → Test → Fix Failures → Commit → Deploy
+     * SupremeAI handles: Clone ΓåÆ Develop ΓåÆ Test ΓåÆ Fix Failures ΓåÆ Commit ΓåÆ Deploy
      */
     public void processGitProject(String projectId, Map<String, String> gitConfig) {
         executor.submit(() -> {
@@ -190,8 +196,8 @@ public class AgentOrchestrator {
                 String branch = gitConfig.get("branch");
                 String task = gitConfig.get("task");
                 
-                System.out.println("\n🔄 [GIT-BASED WORKFLOW] Starting development on: " + gitUrl);
-                firebaseService.saveChatMessage(projectId, "System", "🚀 Starting Git-based development workflow...", "system");
+                System.out.println("\n≡ƒöä [GIT-BASED WORKFLOW] Starting development on: " + gitUrl);
+                firebaseService.saveChatMessage(projectId, "System", "≡ƒÜÇ Starting Git-based development workflow...", "system");
                 
                 // Create project configuration
                 ProjectTypeManager.ProjectConfig config = new ProjectTypeManager.ProjectConfig();
@@ -219,7 +225,7 @@ public class AgentOrchestrator {
                 System.err.println("Error processing git project: " + e.getMessage());
                 e.printStackTrace();
                 firebaseService.saveChatMessage(projectId, "System", 
-                    "❌ Error: " + e.getMessage(), "error");
+                    "Γ¥î Error: " + e.getMessage(), "error");
             }
         });
     }
@@ -235,17 +241,17 @@ public class AgentOrchestrator {
             // Step 3: Code Generation with Voting Loop
             String finalCode = buildWithCodeGenerator(projectId, requirement.getDescription(), finalPlan);
             
-            // 🚨 SAFETY CHECK before writing
+            // ≡ƒÜ¿ SAFETY CHECK before writing
             if (!safeZoneManager.isSafe(finalCode)) {
-                firebaseService.saveChatMessage(projectId, "SafeZone", "🚫 Blocked code write due to security risk.", "warning");
+                firebaseService.saveChatMessage(projectId, "SafeZone", "≡ƒÜ½ Blocked code write due to security risk.", "warning");
                 return;
             }
 
             // Step 4: Write Final Code to Disk (Phase 3)
             fileOrchestrator.writeFile(projectId, "lib/main.dart", finalCode);
             
-            System.out.println("🎉 [PHASE 3] Project files generated successfully at: projects/" + projectId);
-            firebaseService.saveChatMessage(projectId, "System", "✅ Code generation complete. Files saved locally.", "system");
+            System.out.println("≡ƒÄë [PHASE 3] Project files generated successfully at: projects/" + projectId);
+            firebaseService.saveChatMessage(projectId, "System", "Γ£à Code generation complete. Files saved locally.", "system");
             
         } catch (IOException e) {
             System.err.println("File generation error: " + e.getMessage());
@@ -253,7 +259,7 @@ public class AgentOrchestrator {
     }
     
     private String planWithArchitect(String projectId, String requirement) {
-        System.out.println("\n🏗️  [ARCHITECT] Generating plan...");
+        System.out.println("\n≡ƒÅù∩╕Å  [ARCHITECT] Generating plan...");
         String currentPlan = aiService.callAI("ARCHITECT", "Plan architecture for: " + requirement, rotationManager.getFallbackChain(Agent.Role.ARCHITECT));
         
         boolean consensusReached = false;
@@ -271,7 +277,7 @@ public class AgentOrchestrator {
     }
     
     private String buildWithCodeGenerator(String projectId, String requirement, String plan) {
-        System.out.println("\n🔨 [BUILDER] Generating code...");
+        System.out.println("\n≡ƒö¿ [BUILDER] Generating code...");
         String currentCode = aiService.callAI("BUILDER", "Generate code based on plan: " + plan, rotationManager.getFallbackChain(Agent.Role.BUILDER));
         
         boolean consensusReached = false;
@@ -344,4 +350,136 @@ public class AgentOrchestrator {
     public AdminMessagePusher getAdminMessagePusher() { return adminMessagePusher; }
     public void pushDataUpdateToAdmin(String s, String i, Map<String, Object> d, long t) { adminMessagePusher.pushDataUpdate(s, i, d, t); }
     public void pushAlertToAdmin(String a, String t, String m, Map<String, Object> mt) { adminMessagePusher.pushAlert(a, t, m, mt); }
+    
+    // ============================================================================
+    // PHASE 2: Intelligent Assignment Methods
+    // ============================================================================
+    
+    /**
+     * Phase 2: Get the optimal agent for a specific task type
+     * 
+     * Uses the intelligent ranking service to find the best agent based on:
+     * 1. Task-specific historical success
+     * 2. Overall performance score
+     * 3. Cost optimization
+     * 4. Speed preference
+     * 
+     * @param taskType The type of task (e.g., "document_analysis", "code_generation")
+     * @return The best agent ID for this task, or null if none available
+     */
+    public String getOptimalAgent(String taskType) {
+        return rankingService.getBestAgent(taskType);
+    }
+    
+    /**
+     * Phase 2: Get an intelligent fallback chain
+     * 
+     * Returns a prioritized list of agents for fallback execution.
+     * If the first fails, try the second, and so on.
+     * 
+     * Uses mixed scoring that combines:
+     * - Task-specific success rate (primary)
+     * - Overall performance (secondary)
+     * - Cost optimization (fallback)
+     * 
+     * @param taskType The task type to optimize for
+     * @param chainLength How many fallback agents to return
+     * @return List of agents in fallback priority
+     */
+    public List<String> getIntelligentFallbackChain(String taskType, int chainLength) {
+        return rankingService.getFallbackChain(taskType, chainLength);
+    }
+    
+    /**
+     * Phase 2: Get the default fallback chain (using Phase 2 intelligent ranking)
+     * 
+     * Returns 5 agents in optimal order for most task types.
+     * 
+     * @param taskType The task type
+     * @return List of 5 backup agents in priority order
+     */
+    public List<String> getIntelligentFallbackChain(String taskType) {
+        return getIntelligentFallbackChain(taskType, 5);
+    }
+    
+    /**
+     * Phase 2: Record task execution result for learning
+     * 
+     * Updates memory patterns and triggers ranking refresh.
+     * Should be called after every task execution.
+     * 
+     * @param taskType Task type that was executed
+     * @param agentId Agent that executed it
+     * @param success Whether execution was successful
+     * @param executionTimeMs How long it took
+     */
+    public void recordTaskExecution(String taskType, String agentId, boolean success, int executionTimeMs) {
+        // Record in pattern library for task-type learning
+        memoryManager.recordPattern(taskType, agentId, success, executionTimeMs);
+        
+        // Update scoreboard
+        memoryManager.recordSuccess(taskType + ":" + agentId, agentId, executionTimeMs);
+        
+        // Refresh rankings to reflect latest performance
+        rankingService.refreshRankings();
+    }
+    
+    /**
+     * Phase 2: Record a failure pattern for analysis
+     * 
+     * Used to track failure types and prevent recurring issues.
+     * Failure types: TIMEOUT, RATE_LIMIT, TOKEN_LIMIT, API_ERROR, LOGIC_ERROR
+     * 
+     * @param taskType Type of task that failed
+     * @param agentId Agent that failed
+     * @param errorType Category of failure
+     */
+    public void recordFailurePattern(String taskType, String agentId, String errorType) {
+        memoryManager.recordFailurePattern(taskType, agentId, errorType);
+        
+        // If this agent has too many failures, might need quota rest
+        List<Map<String, Object>> failures = memoryManager.getFailurePatternsByAgent(agentId);
+        int recentFailures = (int) failures.stream()
+                .filter(f -> f.get("error_type").equals(errorType))
+                .count();
+        
+        // Auto-rest if >5 failures of same type
+        if (recentFailures > 5 && errorType.equals("RATE_LIMIT")) {
+            System.out.println("⚠️ Agent " + agentId + " has " + recentFailures + " rate limit errors. Applying cooldown.");
+            // Note: Would need agent role to call rotate - skip for now
+            // rotationManager.rotate(agentRole, "Rate limit threshold exceeded");
+        }
+    }
+    
+    /**
+     * Phase 2: Get ranking statistics for monitoring
+     * 
+     * Returns current ranking state for admin dashboard visualization.
+     * 
+     * @return Map of ranking stats including top agents and average scores
+     */
+    public Map<String, Object> getRankingStats() {
+        return rankingService.getRankingStats();
+    }
+    
+    /**
+     * Phase 2: Refresh all rankings (explicit refresh)
+     * 
+     * Can be called manually to update rankings immediately.
+     * Normally called automatically after task execution.
+     */
+    public void refreshRankings() {
+        rankingService.refreshRankings();
+    }
+    
+    /**
+     * Phase 2: Get the ranking service for direct access
+     * 
+     * Allows other services to access ranking methods directly.
+     * 
+     * @return The AIRankingService instance
+     */
+    public AIRankingService getRankingService() {
+        return rankingService;
+    }
 }

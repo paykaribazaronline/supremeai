@@ -1,11 +1,11 @@
-# Step 1: Build the Java application
-FROM gradle:8.5-jdk17 AS build
+# Step 1: Use prebuilt JAR if available, otherwise build
+FROM gradle:8.7-jdk17 AS build
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
-RUN gradle build --no-daemon -x test
+RUN gradle build --no-daemon -x test --parallel --max-workers=2
 
-# Step 2: Create the runtime image
-FROM openjdk:17-jdk-slim
+# Step 2: Create the runtime image using Eclipse Temurin (More stable)
+FROM eclipse-temurin:17-jdk-jammy
 
 # Install git (required for GitIntegrationService)
 RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
@@ -14,15 +14,11 @@ RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 # Copy the built jar from the build stage
+# Note: Ensure the jar filename matches. If it has a version, use a wildcard.
 COPY --from=build /home/gradle/src/build/libs/*.jar app.jar
 
 # Expose the port Spring Boot runs on
 EXPOSE 8080
-
-# Environment variables (to be provided by Cloud Provider)
-# ENV FIREBASE_SERVICE_ACCOUNT_JSON=""
-# ENV TAVILY_API_KEY=""
-# ENV OPENAI_API_KEY=""
 
 # Start the application
 ENTRYPOINT ["java", "-jar", "app.jar"]

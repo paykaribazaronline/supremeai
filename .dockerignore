@@ -1,0 +1,88 @@
+# ========================================
+# DOCKER BUILD IGNORE
+# Exclude unnecessary files from Docker image
+# ========================================
+
+# Version Control
+.git/
+.github/
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+LICENSE
+
+# IDE & Editor
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+
+# Build Artifacts
+build/
+out/
+target/
+*.class
+*.jar
+*.war
+
+# Gradle
+.gradle/
+gradlew.bat.backup
+gradle/wrapper/dists/
+gradle-wrapper.jar.backup
+
+# Logs
+*.log
+supremeai.log
+npm-debug.log*
+yarn-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+.Trashes
+
+# Environment & Credentials
+.env
+.env.local
+local.properties
+service-account.json
+*.key
+*.pem
+
+# Project Temp Files
+projects/
+test_output.txt
+test_full.txt
+failures_summary.txt
+build_output.txt
+phase5_build.txt
+memory.json
+
+# Node (if applicable)
+node_modules/
+npm-cache/
+yarn-cache/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Cache
+.cache/
+.gradle/
+
+# Misc
+.git
+.gitignore
+*.orig
+*.swp
+*~
