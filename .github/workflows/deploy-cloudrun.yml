@@ -1,0 +1,151 @@
+# Google Cloud Run — CI/CD Deployment Pipeline
+#
+# Required GitHub Secrets:
+#   GCP_PROJECT_ID                       - Google Cloud project ID (supremeai-a)
+#   GCP_SA_KEY                           - Service account JSON key with roles:
+#                                            roles/run.admin
+#                                            roles/storage.admin
+#                                            roles/iam.serviceAccountUser
+#                                            roles/secretmanager.admin
+#   FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A - Firebase service account JSON (already configured)
+
+name: 🚀 Deploy to Google Cloud Run
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: false
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+env:
+  GCP_REGION: us-central1
+  SERVICE_NAME: supremeai
+
+jobs:
+  deploy:
+    name: 🐳 Build & Deploy to Cloud Run
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔐 Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: ☁️ Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: 🐳 Configure Docker for Google Container Registry
+        run: gcloud auth configure-docker gcr.io --quiet
+
+      - name: 🔨 Build Docker image
+        run: |
+          docker build \
+            -t "gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }}" \
+            -t "gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:latest" \
+            .
+
+      - name: 📤 Push image to Google Container Registry
+        run: |
+          docker push "gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
+          docker push "gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:latest"
+
+      - name: 🔑 Sync Firebase credentials to Secret Manager
+        run: |
+          FIREBASE_SA='${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}'
+          if [ -z "$FIREBASE_SA" ]; then
+            echo "⚠️  FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A not set — skipping Secret Manager sync"
+            exit 0
+          fi
+          PROJECT="${{ secrets.GCP_PROJECT_ID }}"
+          SECRET_NAME="firebase-service-account-json"
+          if gcloud secrets describe "$SECRET_NAME" --project="$PROJECT" 2>/dev/null; then
+            printf '%s' "$FIREBASE_SA" | gcloud secrets versions add "$SECRET_NAME" \
+              --data-file=- --project="$PROJECT"
+            echo "✅ Firebase SA secret version updated in Secret Manager"
+          else
+            printf '%s' "$FIREBASE_SA" | gcloud secrets create "$SECRET_NAME" \
+              --data-file=- --replication-policy=automatic --project="$PROJECT"
+            echo "✅ Firebase SA secret created in Secret Manager"
+          fi
+        continue-on-error: true
+
+      - name: 🚀 Deploy to Cloud Run
+        run: |
+          PROJECT="${{ secrets.GCP_PROJECT_ID }}"
+          IMAGE="gcr.io/$PROJECT/${{ env.SERVICE_NAME }}:${{ github.sha }}"
+
+          # Reference Secret Manager secret if it exists
+          SECRET_FLAG=""
+          if gcloud secrets describe firebase-service-account-json \
+              --project="$PROJECT" 2>/dev/null; then
+            SECRET_FLAG="--update-secrets=FIREBASE_SERVICE_ACCOUNT_JSON=firebase-service-account-json:latest"
+          fi
+
+          gcloud run deploy "${{ env.SERVICE_NAME }}" \
+            --image="$IMAGE" \
+            --region="${{ env.GCP_REGION }}" \
+            --platform=managed \
+            --port=8080 \
+            --memory=1Gi \
+            --cpu=1 \
+            --max-instances=10 \
+            --timeout=3600 \
+            --allow-unauthenticated \
+            --update-env-vars="FIREBASE_PROJECT_ID=supremeai-a,FIREBASE_DATABASE_URL=https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/" \
+            $SECRET_FLAG \
+            --project="$PROJECT" \
+            --quiet
+          echo "✅ Cloud Run deployment complete"
+
+      - name: 🌐 Get service URL
+        id: get-url
+        run: |
+          URL=$(gcloud run services describe "${{ env.SERVICE_NAME }}" \
+            --region="${{ env.GCP_REGION }}" \
+            --project="${{ secrets.GCP_PROJECT_ID }}" \
+            --format='value(status.url)')
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "🌐 Service URL: $URL"
+
+      - name: 🏥 Health check
+        run: |
+          echo "Waiting 20 seconds for the service to warm up..."
+          sleep 20
+          URL="${{ steps.get-url.outputs.url }}"
+          HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" \
+            "$URL/actuator/health" || echo "000")
+          echo "Health check HTTP status: $HTTP_CODE"
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Cloud Run service is healthy!"
+          else
+            echo "⚠️  Health check returned $HTTP_CODE — service may still be initializing"
+          fi
+        continue-on-error: true
+
+      - name: 📊 Deployment summary
+        if: always()
+        run: |
+          echo "## ☁️ Google Cloud Run Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🏷️ Image | \`gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🌐 URL | ${{ steps.get-url.outputs.url }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📍 Region | ${{ env.GCP_REGION }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔑 Project | ${{ secrets.GCP_PROJECT_ID }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔢 SHA | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY

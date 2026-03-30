@@ -2,7 +2,7 @@
 # Automates the entire deployment process to Google Cloud Run
 
 param(
-    [string]$ProjectId = "supremeai-production",
+    [string]$ProjectId = "supremeai-a",
     [string]$Region = "us-central1",
     [string]$ImageTag = "1.0.0",
     [switch]$DeployMain,
