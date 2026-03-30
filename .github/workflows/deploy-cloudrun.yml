@@ -53,16 +53,20 @@ jobs:
       - name: 🐳 Configure Docker for Google Container Registry
         run: gcloud auth configure-docker gcr.io --quiet
 
+      - name: 🔖 Set short SHA
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
       - name: 🔨 Build Docker image
         run: |
           docker build \
-            -t "gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }}" \
+            -t "gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ steps.vars.outputs.sha_short }}" \
             -t "gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:latest" \
             .
 
       - name: 📤 Push image to Google Container Registry
         run: |
-          docker push "gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
+          docker push "gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ steps.vars.outputs.sha_short }}"
           docker push "gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:latest"
 
       - name: 🔑 Sync Firebase credentials to Secret Manager
@@ -88,7 +92,7 @@ jobs:
       - name: 🚀 Deploy to Cloud Run
         run: |
           PROJECT="${{ secrets.GCP_PROJECT_ID }}"
-          IMAGE="gcr.io/$PROJECT/${{ env.SERVICE_NAME }}:${{ github.sha }}"
+          IMAGE="gcr.io/$PROJECT/${{ env.SERVICE_NAME }}:${{ steps.vars.outputs.sha_short }}"
 
           # Reference Secret Manager secret if it exists
           SECRET_FLAG=""
@@ -144,8 +148,8 @@ jobs:
           echo "## ☁️ Google Cloud Run Deployment" >> $GITHUB_STEP_SUMMARY
           echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| 🏷️ Image | \`gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🏷️ Image | \`gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ steps.vars.outputs.sha_short }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| 🌐 URL | ${{ steps.get-url.outputs.url }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 📍 Region | ${{ env.GCP_REGION }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🔑 Project | ${{ secrets.GCP_PROJECT_ID }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🔢 SHA | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔢 SHA | \`${{ github.sha }}\` (short: \`${{ steps.vars.outputs.sha_short }}\`)" >> $GITHUB_STEP_SUMMARY
