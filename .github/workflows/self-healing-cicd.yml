@@ -41,16 +41,26 @@ jobs:
       - name: Get system health status
         id: health
         run: |
-          HEALTH=$(curl -s ${{ env.API_BASE_URL }}/api/v1/self-healing/status)
-          echo "health=$HEALTH" >> $GITHUB_OUTPUT
-          echo "Health Status: $HEALTH"
+          if [ -z "$API_BASE_URL" ]; then
+            echo "⚠️  API_BASE_URL not configured - skipping health check"
+            echo "health={}" >> $GITHUB_OUTPUT
+          else
+            HEALTH=$(curl -sf "$API_BASE_URL/api/v1/self-healing/status" || echo '{"status":"unreachable"}')
+            echo "health=$HEALTH" >> $GITHUB_OUTPUT
+            echo "Health Status: $HEALTH"
+          fi
       
       - name: Check critical metrics
         id: metrics
         run: |
-          METRICS=$(curl -s ${{ env.API_BASE_URL }}/api/v1/self-healing/metrics)
-          echo "metrics=$METRICS" >> $GITHUB_OUTPUT
-          echo "Metrics: $METRICS"
+          if [ -z "$API_BASE_URL" ]; then
+            echo "⚠️  API_BASE_URL not configured - skipping metrics check"
+            echo "metrics={}" >> $GITHUB_OUTPUT
+          else
+            METRICS=$(curl -sf "$API_BASE_URL/api/v1/self-healing/metrics" || echo '{}')
+            echo "metrics=$METRICS" >> $GITHUB_OUTPUT
+            echo "Metrics: $METRICS"
+          fi
       
       - name: Analyze system health
         run: |
@@ -63,14 +73,18 @@ jobs:
       
       - name: Store health snapshot
         run: |
-          curl -X POST ${{ env.API_BASE_URL }}/api/v1/self-healing/health-snapshot \
-            -H "Authorization: Bearer ${{ env.ADMIN_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "timestamp": '$(($(date +%s)*1000))',
-              "source": "github_actions",
-              "trigger": "scheduled_health_check"
-            }' || true
+          if [ -z "$API_BASE_URL" ]; then
+            echo "⚠️  API_BASE_URL not configured - skipping health snapshot"
+          else
+            curl -X POST "$API_BASE_URL/api/v1/self-healing/health-snapshot" \
+              -H "Authorization: Bearer $ADMIN_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "timestamp": '$(($(date +%s)*1000))',
+                "source": "github_actions",
+                "trigger": "scheduled_health_check"
+              }' || true
+          fi
 
   # ==============================================================================
   # PHASE 2: Failure Prediction & Prevention
@@ -88,11 +102,16 @@ jobs:
       - name: Get failure predictions
         id: predictions
         run: |
-          PREDICTIONS=$(curl -s ${{ env.API_BASE_URL }}/api/v1/self-healing/predictions \
-            -H "Authorization: Bearer ${{ env.ADMIN_TOKEN }}")
-          echo "predictions=$PREDICTIONS" >> $GITHUB_OUTPUT
-          echo "Predictions Retrieved:"
-          echo "$PREDICTIONS" | jq '.'
+          if [ -z "$API_BASE_URL" ]; then
+            echo "⚠️  API_BASE_URL not configured - skipping predictions"
+            echo "predictions={\"predictions\":[]}" >> $GITHUB_OUTPUT
+          else
+            PREDICTIONS=$(curl -sf "$API_BASE_URL/api/v1/self-healing/predictions" \
+              -H "Authorization: Bearer $ADMIN_TOKEN" || echo '{"predictions":[]}')
+            echo "predictions=$PREDICTIONS" >> $GITHUB_OUTPUT
+            echo "Predictions Retrieved:"
+            echo "$PREDICTIONS" | jq '.'
+          fi
       
       - name: Analyze high-confidence predictions
         run: |
@@ -108,11 +127,15 @@ jobs:
       
       - name: Preemptive failover for critical services
         run: |
+          if [ -z "$API_BASE_URL" ]; then
+            echo "⚠️  API_BASE_URL not configured - skipping failover"
+            exit 0
+          fi
           PREDICTIONS='${{ steps.predictions.outputs.predictions }}'
           echo "$PREDICTIONS" | jq -r '.predictions[] | select(.probability > 0.8) | .provider' | while read provider; do
             echo "Preemptively failing over: $provider"
-            curl -X POST ${{ env.API_BASE_URL }}/api/v1/self-healing/failover \
-              -H "Authorization: Bearer ${{ env.ADMIN_TOKEN }}" \
+            curl -X POST "$API_BASE_URL/api/v1/self-healing/failover" \
+              -H "Authorization: Bearer $ADMIN_TOKEN" \
               -d "{\"provider\": \"$provider\", \"reason\": \"predictive_failover\"}" || true
           done
 
@@ -142,7 +165,7 @@ jobs:
       
       - name: Verify artifact
         run: |
-          if [ -f "build/libs/*.jar" ]; then
+          if ls build/libs/*.jar 2>/dev/null | grep -q .; then
             echo "✅ Artifact built successfully"
             ls -lh build/libs/
           else
@@ -167,23 +190,33 @@ jobs:
         id: failures
         run: |
           # Get last failed test or component
-          FAILED_COMPONENT=$(curl -s ${{ env.API_BASE_URL }}/api/v1/self-healing/last-failure \
-            -H "Authorization: Bearer ${{ env.ADMIN_TOKEN }}")
-          echo "failed_component=$FAILED_COMPONENT" >> $GITHUB_OUTPUT
+          if [ -z "$API_BASE_URL" ]; then
+            echo "⚠️  API_BASE_URL not configured"
+            echo "failed_component={}" >> $GITHUB_OUTPUT
+          else
+            FAILED_COMPONENT=$(curl -sf "$API_BASE_URL/api/v1/self-healing/last-failure" \
+              -H "Authorization: Bearer $ADMIN_TOKEN" || echo '{}')
+            echo "failed_component=$FAILED_COMPONENT" >> $GITHUB_OUTPUT
+          fi
       
       - name: Trigger auto-repair
         run: |
           echo "🔧 Initiating AI auto-repair for failed component..."
           
-          REPAIR_RESULT=$(curl -s -X POST ${{ env.API_BASE_URL }}/api/v1/self-healing/auto-repair \
-            -H "Authorization: Bearer ${{ env.ADMIN_TOKEN }}" \
+          if [ -z "$API_BASE_URL" ]; then
+            echo "⚠️  API_BASE_URL not configured - cannot trigger auto-repair"
+            exit 0
+          fi
+          
+          REPAIR_RESULT=$(curl -sf -X POST "$API_BASE_URL/api/v1/self-healing/auto-repair" \
+            -H "Authorization: Bearer $ADMIN_TOKEN" \
             -H "Content-Type: application/json" \
             -d '{
               "component": "DefaultComponent",
               "error": "Failure detected via CI/CD",
               "stackTrace": "GitHub Actions health check failed",
               "context": "Automated repair triggered by CI/CD pipeline"
-            }')
+            }' || echo '{"status":"unavailable"}')
           
           echo "Repair Result:"
           echo "$REPAIR_RESULT" | jq '.'
@@ -201,7 +234,11 @@ jobs:
           echo "Verifying repair..."
           sleep 10
           
-          HEALTH=$(curl -s ${{ env.API_BASE_URL }}/api/v1/self-healing/status)
+          if [ -z "$API_BASE_URL" ]; then
+            echo "⚠️  API_BASE_URL not configured - skipping verification"
+            exit 0
+          fi
+          HEALTH=$(curl -sf "$API_BASE_URL/api/v1/self-healing/status" || echo '{"status":"unknown"}')
           echo "System status after repair: $HEALTH" | jq '.'
 
   # ==============================================================================
@@ -221,13 +258,18 @@ jobs:
         run: |
           echo "🧠 Starting self-improvement cycle..."
           
-          IMPROVE_RESULT=$(curl -s -X POST ${{ env.API_BASE_URL }}/api/v1/self-healing/improve \
-            -H "Authorization: Bearer ${{ env.ADMIN_TOKEN }}" \
+          if [ -z "$API_BASE_URL" ]; then
+            echo "⚠️  API_BASE_URL not configured - skipping pattern analysis"
+            exit 0
+          fi
+          
+          IMPROVE_RESULT=$(curl -sf -X POST "$API_BASE_URL/api/v1/self-healing/improve" \
+            -H "Authorization: Bearer $ADMIN_TOKEN" \
             -H "Content-Type: application/json" \
             -d '{
               "action": "analyze_patterns",
               "autoApply": false
-            }')
+            }' || echo '{"status":"unavailable"}')
           
           echo "Self-improvement initiated:"
           echo "$IMPROVE_RESULT" | jq '.'
@@ -236,8 +278,13 @@ jobs:
         run: |
           echo "📊 Fetching updated ML predictions..."
           
-          PREDICTIONS=$(curl -s ${{ env.API_BASE_URL }}/api/v1/self-healing/predictions \
-            -H "Authorization: Bearer ${{ env.ADMIN_TOKEN }}")
+          if [ -z "$API_BASE_URL" ]; then
+            echo "⚠️  API_BASE_URL not configured - skipping predictions"
+            exit 0
+          fi
+          
+          PREDICTIONS=$(curl -sf "$API_BASE_URL/api/v1/self-healing/predictions" \
+            -H "Authorization: Bearer $ADMIN_TOKEN" || echo '{"predictions":[]}')
           
           echo "Current predictions:"
           echo "$PREDICTIONS" | jq '.predictions[] | {provider: .provider, probability: .probability}'
@@ -247,8 +294,13 @@ jobs:
           echo "📈 Improvement Metrics Report"
           echo "=============================="
           
-          curl -s ${{ env.API_BASE_URL }}/api/v1/self-healing/metrics \
-            -H "Authorization: Bearer ${{ env.ADMIN_TOKEN }}" | jq '.'
+          if [ -z "$API_BASE_URL" ]; then
+            echo "⚠️  API_BASE_URL not configured - skipping metrics report"
+            exit 0
+          fi
+          
+          curl -sf "$API_BASE_URL/api/v1/self-healing/metrics" \
+            -H "Authorization: Bearer $ADMIN_TOKEN" | jq '.' || echo "Metrics unavailable"
 
   # ==============================================================================
   # PHASE 6: Phoenix Regeneration (Manual trigger only)
@@ -274,10 +326,15 @@ jobs:
         run: |
           echo "🔥 Triggering Phoenix regeneration..."
           
-          REGEN_RESULT=$(curl -s -X POST \
-            ${{ env.API_BASE_URL }}/api/v1/self-healing/regenerate/DefaultService \
-            -H "Authorization: Bearer ${{ env.ADMIN_TOKEN }}" \
-            -H "Content-Type: application/json")
+          if [ -z "$API_BASE_URL" ]; then
+            echo "❌ API_BASE_URL not configured - cannot trigger Phoenix regeneration"
+            exit 1
+          fi
+          
+          REGEN_RESULT=$(curl -sf -X POST \
+            "$API_BASE_URL/api/v1/self-healing/regenerate/DefaultService" \
+            -H "Authorization: Bearer $ADMIN_TOKEN" \
+            -H "Content-Type: application/json" || echo '{"status":"FAILED"}')
           
           echo "Regeneration Result:"
           echo "$REGEN_RESULT" | jq '.'
@@ -327,18 +384,20 @@ jobs:
       
       - name: Upload metrics
         run: |
-          curl -X POST ${{ env.API_BASE_URL }}/api/v1/self-healing/ci-cd-metrics \
-            -H "Authorization: Bearer ${{ env.ADMIN_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "runId": "${{ github.run_id }}",
-              "timestamp": '$(($(date +%s)*1000))',
-              "workflow": "self-healing-cicd",
-              "status": "${{ job.status }}",
-              "healthCheck": "${{ needs.health-check.result }}",
-              "predictions": "${{ needs.predictions.result }}",
-              "compilation": "${{ needs.compile.result }}"
-            }' || true
+          if [ -n "$API_BASE_URL" ]; then
+            curl -X POST "$API_BASE_URL/api/v1/self-healing/ci-cd-metrics" \
+              -H "Authorization: Bearer $ADMIN_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "runId": "${{ github.run_id }}",
+                "timestamp": '$(($(date +%s)*1000))',
+                "workflow": "self-healing-cicd",
+                "status": "${{ job.status }}",
+                "healthCheck": "${{ needs.health-check.result }}",
+                "predictions": "${{ needs.predictions.result }}",
+                "compilation": "${{ needs.compile.result }}"
+              }' || true
+          fi
       
       - name: Summary
         run: |

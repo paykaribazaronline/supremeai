@@ -1,0 +1,213 @@
+name: AI Generate App PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_name:
+        description: 'App name'
+        required: true
+      app_type:
+        description: 'App type (ecommerce/delivery/service)'
+        required: true
+        default: 'ecommerce'
+      description:
+        description: 'Detailed description'
+        required: true
+
+env:
+  APP_ID: app-${{ github.run_id }}-${{ github.run_attempt }}
+
+jobs:
+  generate-and-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Create app structure
+        run: |
+          echo "APP_ID=${{ env.APP_ID }}"
+          mkdir -p "generated-apps/${{ env.APP_ID }}"
+          
+          cat > "generated-apps/${{ env.APP_ID }}/build.gradle" << 'EOF'
+          plugins {
+              id 'com.android.application'
+              id 'org.jetbrains.kotlin.android'
+              id 'com.google.gms.google-services'
+          }
+          
+          android {
+              namespace 'com.paykaribazar.generatedapp'
+              compileSdk 34
+              
+              defaultConfig {
+                  applicationId "com.paykaribazar.generatedapp"
+                  minSdk 24
+                  targetSdk 34
+                  versionCode 1
+                  versionName "1.0.0"
+              }
+              
+              buildTypes {
+                  release {
+                      minifyEnabled true
+                      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
+                  }
+              }
+          }
+          
+          dependencies {
+              implementation 'androidx.core:core-ktx:1.12.0'
+              implementation 'androidx.appcompat:appcompat:1.6.1'
+              implementation 'com.google.android.material:material:1.11.0'
+              implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+              implementation platform('com.google.firebase:firebase-bom:32.7.0')
+              implementation 'com.google.firebase:firebase-firestore'
+              implementation 'com.google.firebase:firebase-auth'
+          }
+          EOF
+
+      - name: Generate MainActivity.kt
+        run: |
+          mkdir -p "generated-apps/${{ env.APP_ID }}/src/main/java/com/paykaribazar/generatedapp"
+          
+          cat > "generated-apps/${{ env.APP_ID }}/src/main/java/com/paykaribazar/generatedapp/MainActivity.kt" << 'EOF'
+          package com.paykaribazar.generatedapp
+          
+          import android.os.Bundle
+          import androidx.appcompat.app.AppCompatActivity
+          import com.google.firebase.firestore.FirebaseFirestore
+          
+          class MainActivity : AppCompatActivity() {
+              
+              private lateinit var db: FirebaseFirestore
+              
+              override fun onCreate(savedInstanceState: Bundle?) {
+                  super.onCreate(savedInstanceState)
+                  setContentView(R.layout.activity_main)
+                  
+                  db = FirebaseFirestore.getInstance()
+                  setupUI()
+              }
+              
+              private fun setupUI() {
+                  // AI generated UI will be inserted here
+              }
+          }
+          EOF
+
+      - name: Generate layout XML
+        run: |
+          mkdir -p "generated-apps/${{ env.APP_ID }}/src/main/res/layout"
+          
+          cat > "generated-apps/${{ env.APP_ID }}/src/main/res/layout/activity_main.xml" << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <androidx.constraintlayout.widget.ConstraintLayout 
+              xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+          
+              <TextView
+                  android:id="@+id/tvTitle"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="Paykari Bazar App"
+                  android:textSize="24sp"
+                  app:layout_constraintTop_toTopOf="parent"
+                  app:layout_constraintStart_toStartOf="parent"
+                  app:layout_constraintEnd_toEndOf="parent"
+                  android:layout_marginTop="32dp"/>
+          
+          </androidx.constraintlayout.widget.ConstraintLayout>
+          EOF
+
+      - name: Generate README for app
+        run: |
+          cat > "generated-apps/${{ env.APP_ID }}/README.md" << EOF
+          # ${{ github.event.inputs.app_name }}
+          
+          **Type:** ${{ github.event.inputs.app_type }}  
+          **Generated:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")  
+          **Generated By:** SupremeAI v3.1
+          
+          ## Description
+          ${{ github.event.inputs.description }}
+          
+          ## Build Instructions
+          \`\`\`bash
+          ./gradlew build
+          ./gradlew assembleRelease
+          \`\`\`
+          
+          ## Next Steps
+          1. Review code in this PR
+          2. Test with: \`./gradlew connectedAndroidTest\`
+          3. Approve and merge
+          4. Download APK from Actions artifacts
+          5. Release to Play Store manually
+          EOF
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "🤖 AI Generated: ${{ github.event.inputs.app_name }}"
+          title: "🤖 AI App: ${{ github.event.inputs.app_name }} [${{ github.event.inputs.app_type }}]"
+          body: |
+            ## 🚀 AI Generated App Ready for Review
+            
+            | Property | Value |
+            |----------|-------|
+            | **App Name** | ${{ github.event.inputs.app_name }} |
+            | **Type** | ${{ github.event.inputs.app_type }} |
+            | **App ID** | ${{ env.APP_ID }} |
+            
+            ### 📋 Description
+            ${{ github.event.inputs.description }}
+            
+            ### 📁 Files Location
+            \`generated-apps/${{ env.APP_ID }}/\`
+            
+            ### ✅ Review Checklist
+            - [ ] Code structure reviewed
+            - [ ] Firebase config checked
+            - [ ] UI matches description
+            - [ ] Build passes
+            - [ ] Tests added/updated
+            
+            ### 🎯 Next Steps
+            1. Review files in \`generated-apps/${{ env.APP_ID }}/\`
+            2. Comment for changes → AI will revise
+            3. Approve → Merge to main
+            4. Build APK in Actions
+            5. Download and release to Play Store
+            
+            ---
+            *Generated by SupremeAI v3.1*
+          branch: ai-app/${{ env.APP_ID }}
+          delete-branch: false
+          labels: ai-generated, needs-review
+
+      - name: Output PR URL
+        run: |
+          echo "✅ PR created successfully"
+          echo "App ID: ${{ env.APP_ID }}"
+          echo "Review at: https://github.com/${{ github.repository }}/pulls"
