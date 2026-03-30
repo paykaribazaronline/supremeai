@@ -57,17 +57,31 @@ jobs:
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
+      - name: 🔑 Resolve GCP Project ID
+        id: project
+        run: |
+          PROJECT="${{ secrets.GCP_PROJECT_ID }}"
+          if [ -z "$PROJECT" ]; then
+            PROJECT=$(gcloud config get-value project 2>/dev/null)
+          fi
+          if [ -z "$PROJECT" ]; then
+            echo "❌ ERROR: GCP_PROJECT_ID secret is not set and could not be detected from gcloud config."
+            exit 1
+          fi
+          echo "project_id=$PROJECT" >> $GITHUB_OUTPUT
+          echo "✅ Using GCP project: $PROJECT"
+
       - name: 🔨 Build Docker image
         run: |
           docker build \
-            -t "gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ steps.vars.outputs.sha_short }}" \
-            -t "gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:latest" \
+            -t "gcr.io/${{ steps.project.outputs.project_id }}/${{ env.SERVICE_NAME }}:${{ steps.vars.outputs.sha_short }}" \
+            -t "gcr.io/${{ steps.project.outputs.project_id }}/${{ env.SERVICE_NAME }}:latest" \
             .
 
       - name: 📤 Push image to Google Container Registry
         run: |
-          docker push "gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ steps.vars.outputs.sha_short }}"
-          docker push "gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:latest"
+          docker push "gcr.io/${{ steps.project.outputs.project_id }}/${{ env.SERVICE_NAME }}:${{ steps.vars.outputs.sha_short }}"
+          docker push "gcr.io/${{ steps.project.outputs.project_id }}/${{ env.SERVICE_NAME }}:latest"
 
       - name: 🔑 Sync Firebase credentials to Secret Manager
         run: |
@@ -76,7 +90,7 @@ jobs:
             echo "⚠️  FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A not set — skipping Secret Manager sync"
             exit 0
           fi
-          PROJECT="${{ secrets.GCP_PROJECT_ID }}"
+          PROJECT="${{ steps.project.outputs.project_id }}"
           SECRET_NAME="firebase-service-account-json"
           if gcloud secrets describe "$SECRET_NAME" --project="$PROJECT" 2>/dev/null; then
             printf '%s' "$FIREBASE_SA" | gcloud secrets versions add "$SECRET_NAME" \
@@ -91,7 +105,7 @@ jobs:
 
       - name: 🚀 Deploy to Cloud Run
         run: |
-          PROJECT="${{ secrets.GCP_PROJECT_ID }}"
+          PROJECT="${{ steps.project.outputs.project_id }}"
           IMAGE="gcr.io/$PROJECT/${{ env.SERVICE_NAME }}:${{ steps.vars.outputs.sha_short }}"
 
           # Reference Secret Manager secret if it exists
@@ -122,7 +136,7 @@ jobs:
         run: |
           URL=$(gcloud run services describe "${{ env.SERVICE_NAME }}" \
             --region="${{ env.GCP_REGION }}" \
-            --project="${{ secrets.GCP_PROJECT_ID }}" \
+            --project="${{ steps.project.outputs.project_id }}" \
             --format='value(status.url)')
           echo "url=$URL" >> $GITHUB_OUTPUT
           echo "🌐 Service URL: $URL"
@@ -148,8 +162,8 @@ jobs:
           echo "## ☁️ Google Cloud Run Deployment" >> $GITHUB_STEP_SUMMARY
           echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| 🏷️ Image | \`gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ steps.vars.outputs.sha_short }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🏷️ Image | \`gcr.io/${{ steps.project.outputs.project_id }}/${{ env.SERVICE_NAME }}:${{ steps.vars.outputs.sha_short }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| 🌐 URL | ${{ steps.get-url.outputs.url }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 📍 Region | ${{ env.GCP_REGION }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🔑 Project | ${{ secrets.GCP_PROJECT_ID }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔑 Project | ${{ steps.project.outputs.project_id }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🔢 SHA | \`${{ github.sha }}\` (short: \`${{ steps.vars.outputs.sha_short }}\`)" >> $GITHUB_STEP_SUMMARY
