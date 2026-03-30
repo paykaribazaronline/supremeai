@@ -1,20 +1,165 @@
-# Java/Gradle
+# ========================================
+# JAVA & GRADLE BUILD ARTIFACTS
+# ========================================
 .gradle/
+.gradle
 build/
+out/
 bin/
+dist/
+*.jar
+*.war
+*.class
+*.classpath
+*.jar
+*.zip
 
-# IDEs
+# Gradle
+.gradle/
+gradle/wrapper/dists/
+gradlew.bat.backup
+
+# Build output
+target/
+*.class
+*.log
+
+# ========================================
+# IDE & EDITOR FILES
+# ========================================
 .idea/
 *.iml
+*.ipr
+*.iws
 .vscode/
+.vscode
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
 
-# Security & Credentials (MANDATORY)
+# ========================================
+# SECURITY & CREDENTIALS (⚠️ CRITICAL)
+# Never commit these files!
+# ========================================
 .env
+.env.local
+.env.*.local
 local.properties
 service-account.json
 src/main/resources/service-account.json
+*.key
+*.pem
+*.pub
+*.crt
+*.csr
+*.p12
+*.pfx
+*.jks
+secrets/
+credentials/
+firebase-key.json
+google-cloud-key.json
 
-# Logs & Temporary Files
+# API Keys & Tokens (Examples - replace with your actual secrets)
+# FIREBASE_API_KEY=
+# GEMINI_API_KEY=
+# DEEPSEEK_API_KEY=
+# DATABASE_URL=
+# SLACK_WEBHOOK_URL=
+# DISCORD_WEBHOOK_URL=
+# TWILIO_AUTH_TOKEN=
+
+# ========================================
+# LOGS & TEMPORARY FILES
+# ========================================
 *.log
+*.log.*
+supremeai.log
+logs/
 memory.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.fusebox/
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_esm/
+.rts2_cache_umd/
+
+# ========================================
+# BUILD & TEST OUTPUT (must not be committed)
+# ========================================
+build_output.txt
+test_output.txt
+test_full.txt
+failures_summary.txt
+phase5_build.txt
+*_build.txt
+*_output.txt
+*_summary.txt
+
+# ========================================
+# TEMPORARY & CACHE FILES
+# ========================================
+*.tmp
+*.temp
+*.cache
+.cache/
+node_modules/
+npm-cache/
+yarn-cache/
+.grunt/
+dist/
+
+# ========================================
+# OS SPECIFIC
+# ========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# ========================================
+# PROJECT SPECIFIC
+# ========================================
 projects/
+test_output.txt
+test_full.txt
+failures_summary.txt
+build_output.txt
+phase5_build.txt
+
+# ========================================
+# DOCKER VOLUMES & ARTIFACTS
+# ========================================
+docker-compose.override.yml
+.dockerignore.bak
+
+# ========================================
+# COVERAGE REPORTS
+# ========================================
+coverage/
+*.lcov
+.nyc_output/
+
+# ========================================
+# DATABASE FILES
+# ========================================
+*.db
+*.sqlite
+*.sqlite3
+data/
+postgres_data/
+firebase-exports/

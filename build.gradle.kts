@@ -2,6 +2,8 @@ plugins {
     id("java")
     id("application")
     id("jacoco")
+    id("org.springframework.boot") version "3.2.3"
+    id("io.spring.dependency-management") version "1.1.4"
 }
 
 group = "org.example"
@@ -45,6 +47,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-configuration-processor:3.2.3")
     implementation("org.springframework.boot:spring-boot-starter-web:3.2.3")
     implementation("org.springframework.boot:spring-boot-starter-security:3.2.3")
+    implementation("org.springframework.boot:spring-boot-starter-websocket:3.2.3")
     
     // Resilience & Error Handling
     implementation("io.github.resilience4j:resilience4j-core:2.1.0")
@@ -97,4 +100,8 @@ application {
 
 tasks.named<JavaExec>("run") {
     jvmArgs = listOf("-Dspring.profiles.active=default")
+}
+
+tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+    mainClass.set("org.example.Application")
 }
