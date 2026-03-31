@@ -15,14 +15,17 @@ The Self-Healing system is a comprehensive framework for automatic error recover
 ### Core Components
 
 #### 1. CircuitBreaker
+
 Pattern: **Fail-fast with automatic recovery**
 
 States:
+
 - **CLOSED**: Normal operation, passes requests through
 - **OPEN**: Fails fast, prevents overwhelming failed service
 - **HALF_OPEN**: Testing if service recovered
 
 Configuration:
+
 ```properties
 circuit.breaker.failure.threshold=5       # Failures before opening
 circuit.breaker.timeout.seconds=30        # Duration before retry
@@ -30,18 +33,21 @@ circuit.breaker.success.threshold=2       # Successes to close
 ```
 
 Usage:
+
 ```java
 CircuitBreaker breaker = selfHealingService.getOrCreateCircuitBreaker("github-api");
 T result = breaker.execute(() -> callGitHubAPI());
 ```
 
 #### 2. RetryStrategy
+
 Pattern: **Exponential backoff with jitter**
 
 Retry sequence: 100ms, 200ms, 400ms, 800ms (capped at 5s)
 Jitter: ±10% randomness to prevent thundering herd
 
 Configuration:
+
 ```properties
 retry.max.attempts=3
 retry.initial.delay.ms=100
@@ -51,29 +57,35 @@ retry.jitter.factor=0.1
 ```
 
 Selective retry logic:
+
 - ✅ Retries: timeouts, connection errors, temporarily unavailable
 - ❌ Doesn't retry: authentication errors, not found, invalid arguments
 
 Usage:
+
 ```java
 RetryStrategy retry = selfHealingService.getOrCreateRetryStrategy("api-call");
 T result = retry.execute(() -> callAPI());
 ```
 
 #### 3. HealthMonitor
+
 Tracks service health by:
+
 - Error rates
 - Response times
 - Consecutive failures
 - State transitions
 
 Health states:
+
 - **HEALTHY**: Normal operation (<10% error rate)
 - **DEGRADED**: Issues detected (10-20% error rate)
 - **CRITICAL**: Severe issues (>20% error rate or 5+ failures)
 - **RECOVERING**: In recovery process
 
 Configuration:
+
 ```properties
 health.check.interval.seconds=10
 health.failure.threshold=3        # Failures for degraded state
@@ -83,6 +95,7 @@ response.time.threshold.ms=2000   # Slow response threshold
 ```
 
 Usage:
+
 ```java
 HealthMonitor monitor = selfHealingService.getOrCreateHealthMonitor("data-collector");
 monitor.recordSuccess(responseTimeMs);
@@ -93,7 +106,9 @@ HealthMonitor.HealthMetrics metrics = monitor.getMetrics();
 ```
 
 #### 4. SelfHealingService (Orchestrator)
+
 Central hub that coordinates all components:
+
 - Manages circuit breakers, retry strategies, health monitors
 - Executes operations with full protection: `executeWithHealing()`
 - Performs periodic health checks
@@ -101,6 +116,7 @@ Central hub that coordinates all components:
 - Provides diagnostics
 
 Configuration:
+
 ```properties
 auto.recovery.check.interval.seconds=30
 recovery.attempt.timeout.seconds=15
@@ -108,6 +124,7 @@ max.recovery.attempts=5
 ```
 
 Usage:
+
 ```java
 @Autowired
 private SelfHealingService selfHealing;
@@ -121,13 +138,16 @@ Map<String, Object> data = selfHealing.executeWithHealing(
 ```
 
 #### 5. CacheRecoveryManager
+
 Manages cache layer health:
+
 - Detect stale cache entries (TTL exceeded)
 - Detect corrupted data (validation)
 - Automatic cleanup and invalidation
 - Cache statistics and corruption ratio
 
 Configuration:
+
 ```properties
 cache.ttl.seconds=1800               # 30 minutes default TTL
 cache.stale.threshold.seconds=60     # Additional grace period
@@ -135,6 +155,7 @@ cache.corruption.ratio.threshold=0.2 # 20% = alert
 ```
 
 Usage:
+
 ```java
 CacheRecoveryManager cacheRecovery = new CacheRecoveryManager("github-cache", 30_000);
 cacheRecovery.put("owner:repo", data);
@@ -191,6 +212,7 @@ public class SelfHealingConfig {
 ### Step 3: Wrap Service Methods with Self-Healing
 
 **Before:**
+
 ```java
 public Map<String, Object> getGitHubData(String owner, String repo) {
     HybridDataCollector.HybridResult result = 
@@ -200,6 +222,7 @@ public Map<String, Object> getGitHubData(String owner, String repo) {
 ```
 
 **After:**
+
 ```java
 public Map<String, Object> getGitHubData(String owner, String repo) {
     return selfHealingService.executeWithHealing(
@@ -217,39 +240,50 @@ public Map<String, Object> getGitHubData(String owner, String repo) {
 ## API Endpoints
 
 ### System Health
+
 ```http
 GET /api/v1/self-healing/system-health
 ```
+
 Returns comprehensive system health report including all circuit breakers and service metrics.
 
 ### Service Diagnostics
+
 ```http
 GET /api/v1/self-healing/service/{serviceName}
 ```
+
 Get detailed diagnostics for a specific service including:
+
 - Circuit breaker state
 - Health metrics
 - Event history
 
 ### Circuit Breaker Status
+
 ```http
 GET /api/v1/self-healing/circuit-breaker/{serviceName}
 ```
+
 Get live circuit breaker state and failure counts.
 
 ### Start/Stop Self-Healing
+
 ```http
 POST /api/v1/self-healing/start
 POST /api/v1/self-healing/stop
 ```
 
 ### Trigger Recovery
+
 ```http
 POST /api/v1/self-healing/recover/{serviceName}
 ```
+
 Manually trigger recovery for a service.
 
 ### Self-Healing Health Check
+
 ```http
 GET /api/v1/self-healing/health
 ```
@@ -257,6 +291,7 @@ GET /api/v1/self-healing/health
 ## Configuration Reference
 
 ### SelfHealingConfig.java
+
 All configuration constants in one place:
 
 ```java
@@ -286,6 +321,7 @@ MAX_RECOVERY_ATTEMPTS = 5
 ## Monitoring & Diagnostics
 
 ### System Health Report
+
 ```json
 {
   "status": "success",
@@ -308,6 +344,7 @@ MAX_RECOVERY_ATTEMPTS = 5
 ```
 
 ### Service Diagnostics
+
 ```json
 {
   "serviceName": "github-collector",
@@ -329,11 +366,14 @@ MAX_RECOVERY_ATTEMPTS = 5
 ## Best Practices
 
 ### 1. Choose Right Thresholds
+
 - Lower thresholds = faster recovery but more false positives
 - Higher thresholds = slower recovery but fewer interruptions
 
 ### 2. Register All Recovery Handlers
+
 Each service should have a recovery handler that knows how to recover it:
+
 ```java
 selfHealingService.registerRecoveryHandler("service-name", 
     () -> {
@@ -346,16 +386,20 @@ selfHealingService.registerRecoveryHandler("service-name",
 ```
 
 ### 3. Monitor Circuit Breakers
+
 High OPEN/HALF_OPEN states indicate problems. Investigate root causes.
 
 ### 4. Use executeWithHealing() for External Services
+
 Wrap calls to:
+
 - External APIs (GitHub, Vercel, Firebase)
 - Databases
 - Message queues
 - Any remote service
 
 ### 5. Cache Recovery Integration
+
 ```java
 CacheRecoveryManager cacheRecovery = new CacheRecoveryManager("service-cache", TTL_MS);
 
@@ -376,6 +420,7 @@ All self-healing events use emoji prefixes for quick identification:
 - 🚨 `ALERT_PREFIX` - Critical alerts
 
 Example log flow:
+
 ```
 🔧 Created health monitor for service: github-collector
 ⚠️ Health state changed for github-collector: HEALTHY → DEGRADED
@@ -394,6 +439,7 @@ Example log flow:
 ## Testing Self-Healing
 
 ### Unit Tests
+
 ```java
 @Test
 public void testCircuitBreakerOpensAfterFailures() {
@@ -409,6 +455,7 @@ public void testCircuitBreakerOpensAfterFailures() {
 ```
 
 ### Integration Tests
+
 ```java
 @Test
 public void testSelfHealingExecution() {

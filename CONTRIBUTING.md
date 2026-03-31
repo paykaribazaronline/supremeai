@@ -11,11 +11,13 @@ We are committed to providing a welcoming and inspiring community for all. Pleas
 ## 📋 Quick Start
 
 ### Prerequisites
+
 - **Java:** JDK 17+
 - **Gradle:** 8.7+ (bundled with project)
 - **Git:** Latest version
 
 ### Development Setup
+
 ```bash
 # Clone the repository
 git clone https://github.com/paykaribazaronline/supremeai.git
@@ -36,6 +38,7 @@ cd supremeai
 ## 🌿 Git Workflow
 
 ### Branch Naming Convention
+
 ```bash
 # Features
 feature/x-builder/agent-consensus
@@ -55,6 +58,7 @@ refactor/migrate-to-java17
 ```
 
 ### Commit Message Convention
+
 Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```bash
@@ -78,6 +82,7 @@ git commit -m "test: add comprehensive coverage for MLIntelligenceService"
 ```
 
 ### Pull Request Workflow
+
 ```bash
 # 1. Create feature branch
 git checkout -b feature/your-feature origin/main
@@ -103,12 +108,14 @@ git push origin feature/your-feature
 ## ✅ Code Quality Standards
 
 ### Java Code Style
+
 - **Indentation:** 4 spaces
 - **Line Length:** Max 120 characters
 - **Naming:** camelCase for variables, PascalCase for classes
 - **Documentation:** JavaDoc for public methods
 
-### Example:
+### Example
+
 ```java
 /**
  * Detects anomalies in metric stream using Z-score analysis.
@@ -123,6 +130,7 @@ public Map<String, Object> detectAnomalies(String metricName, List<Double> value
 ```
 
 ### Testing Requirements
+
 - **Unit Tests:** Write tests for all public methods
 - **Integration Tests:** Test service interactions
 - **Coverage Target:** Minimum 75% code coverage
@@ -143,7 +151,9 @@ public Map<String, Object> detectAnomalies(String metricName, List<Double> value
 ## 🐛 Reporting Issues
 
 ### Bug Report
+
 Use the [Bug Report Template](.github/ISSUE_TEMPLATE/bug_report.md):
+
 - **Title:** [BUG] Brief description
 - **Agent:** Specify which agent (X-Builder/Y-Reviewer/Z-Architect)
 - **Steps to Reproduce:** Clear reproduction steps
@@ -151,7 +161,9 @@ Use the [Bug Report Template](.github/ISSUE_TEMPLATE/bug_report.md):
 - **Environment:** Java version, OS, etc.
 
 ### Feature Request
+
 Use the [Feature Request Template](.github/ISSUE_TEMPLATE/feature_request.md):
+
 - **Title:** [FEATURE] Brief description
 - **Use Case:** Why this feature is needed
 - **Proposed Solution:** How it should work
@@ -162,6 +174,7 @@ Use the [Feature Request Template](.github/ISSUE_TEMPLATE/feature_request.md):
 ## 🚀 Development Phases
 
 ### Current Status (Phase 5)
+
 - ✅ **Phase 1:** Foundation & Core Services
 - ✅ **Phase 2:** Intelligence System (Ranking, Analysis)
 - ✅ **Phase 3:** App Generator (Complete)
@@ -170,6 +183,7 @@ Use the [Feature Request Template](.github/ISSUE_TEMPLATE/feature_request.md):
 - ✅ **Phase 5:** Advanced Analytics & ML Intelligence
 
 ### Contributing to a Phase
+
 1. Check [Phase Roadmap](PROJECT_ROADMAP.md)
 2. Verify no one else is working on the same task
 3. Comment on related issue: "I'm working on this"
@@ -181,12 +195,14 @@ Use the [Feature Request Template](.github/ISSUE_TEMPLATE/feature_request.md):
 ## 📝 Documentation
 
 ### Updating Documentation
+
 - Update relevant `.md` files when adding features
 - Keep API documentation in sync with code
 - Add examples for new endpoints
 - Update CHANGELOG.md with breaking changes
 
 ### Adding API Documentation
+
 ```markdown
 ## POST /api/intelligence/ml/detect-anomalies
 Detects anomalies in metric stream using 3-sigma Z-score method.
@@ -200,6 +216,7 @@ Detects anomalies in metric stream using 3-sigma Z-score method.
 ```
 
 **Response:**
+
 ```json
 {
   "metric": "memory_usage",
@@ -212,6 +229,7 @@ Detects anomalies in metric stream using 3-sigma Z-score method.
   ]
 }
 ```
+
 ```
 
 ---
@@ -234,6 +252,7 @@ export DATABASE_URL=postgres://...
 ```
 
 ### Security Review Checklist
+
 - [ ] No secrets in code
 - [ ] Input validation on all endpoints
 - [ ] SQL injection prevention
@@ -247,6 +266,7 @@ export DATABASE_URL=postgres://...
 ## 🧪 Testing Checklist
 
 Before submitting a PR:
+
 ```bash
 # 1. Run all tests
 ./gradlew test
@@ -272,6 +292,7 @@ Before submitting a PR:
 ## 🚀 Docker & Deployment
 
 ### Local Docker Testing
+
 ```bash
 # Build Docker image
 docker build -t supremeai:latest .
@@ -283,6 +304,7 @@ docker run -p 8080:8080 \
 ```
 
 ### Deployment Test
+
 - Test on local Docker first
 - Test on Render staging environment
 - Test on Google Cloud staging
@@ -293,18 +315,21 @@ docker run -p 8080:8080 \
 ## 👥 Team Roles
 
 ### Maintainers
+
 - Review PRs
 - Merge to main
 - Release new versions
 - Make architectural decisions
 
 ### Contributors
+
 - Submit PRs for features/fixes
 - Report issues
 - Improve documentation
 - Help review other PRs
 
 ### Community
+
 - Ask questions in discussions
 - Report bugs
 - Request features
@@ -324,6 +349,7 @@ docker run -p 8080:8080 \
 ## 🎉 Recognition
 
 Contributors are recognized in:
+
 - CHANGELOG.md (for each release)
 - GitHub Contributors page
 - Release notes

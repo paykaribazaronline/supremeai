@@ -3,6 +3,7 @@
 ## Our Commitment
 
 SupremeAI is committed to providing a welcoming and inspiring community for all people, regardless of:
+
 - Background or identity
 - Experience level
 - Gender identity and expression
@@ -23,24 +24,28 @@ We pledge to create an environment of psychological safety where everyone feels 
 ## Expected Behavior
 
 ### Be Respectful
+
 - Use inclusive language
 - Respect differing viewpoints and experiences
 - Gracefully accept constructive criticism
 - Focus on what is best for the community
 
 ### Be Collaborative
+
 - Share knowledge and expertise
 - Help others succeed
 - Contribute your unique perspective
 - Build on others' work constructively
 
 ### Be Professional
+
 - Keep discussions on topic
 - Follow the contribution guidelines
 - Report issues respectfully
 - Assume good intent
 
 ### Be Inclusive
+
 - Welcome newcomers
 - Help with onboarding
 - Acknowledge good ideas from anyone
@@ -53,6 +58,7 @@ We pledge to create an environment of psychological safety where everyone feels 
 Harassment and discrimination will not be tolerated:
 
 ### Examples of Unacceptable Behavior
+
 - Discriminatory jokes or language
 - Unwelcome sexual advances
 - Personal attacks or insults
@@ -70,6 +76,7 @@ Harassment and discrimination will not be tolerated:
 ## Reporting & Enforcement
 
 ### How to Report
+
 If you witness or experience unacceptable behavior:
 
 1. **Document it:** Note specific messages, times, and screenshots if possible
@@ -78,6 +85,7 @@ If you witness or experience unacceptable behavior:
 4. **Allow time:** Expect a response within 72 hours
 
 ### What Happens After Reporting
+
 - Your report will be investigated promptly and confidentially
 - All involved parties will be given opportunity to respond
 - Action will be taken to resolve the situation
@@ -85,7 +93,9 @@ If you witness or experience unacceptable behavior:
 - You will be protected from retaliation
 
 ### Enforcement Actions
+
 Violations may result in:
+
 - Warning and discussion
 - Temporary restriction from community
 - Permanent removal from community
@@ -96,6 +106,7 @@ Violations may result in:
 ## Scope
 
 This Code of Conduct applies to:
+
 - GitHub Issues and Discussions
 - Pull Requests and Code Reviews
 - Email communications
@@ -108,6 +119,7 @@ This Code of Conduct applies to:
 ## Contact
 
 For Code of Conduct violations or concerns:
+
 - **Email:** [conduct@supremeai.project](mailto:conduct@supremeai.project)
 - **Response Time:** Within 72 hours
 - **Confidentiality:** All reports are handled confidentially

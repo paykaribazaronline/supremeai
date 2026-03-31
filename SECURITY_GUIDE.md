@@ -7,6 +7,7 @@
 ## 1. OVERVIEW
 
 This document covers security implementation across the supremeai system. The architecture follows a **defense-in-depth** strategy with:
+
 - **Layer 1:** Authentication & Authorization
 - **Layer 2:** Secret Management & Encryption
 - **Layer 3:** API Security & Rate Limiting
@@ -23,6 +24,7 @@ This document covers security implementation across the supremeai system. The ar
 **Problem:** Hardcoded API keys in source code are a critical security risk.
 
 **Solution:** Google Cloud Secret Manager
+
 ```java
 // Use SecretManager.java for all API keys
 SecretManager secretManager = new SecretManager("supremeai");
@@ -37,6 +39,7 @@ String openaiKey = secretManager.getSecret("openai-api-key");
 ### 2.2 Secret Storage
 
 **Store these in Google Cloud Secret Manager:**
+
 ```
 supremeai/deepseek-api-key
 supremeai/groq-api-key
@@ -48,6 +51,7 @@ supremeai/encryption-master-key
 ```
 
 **Local Development (application-local.properties):**
+
 ```properties
 # NEVER commit API keys
 # Use environment variables for local development
@@ -60,12 +64,14 @@ dev.openai.key=${OPENAI_KEY}
 ### 2.3 Key Rotation
 
 **Recommended Schedule:**
+
 - API keys: Every 90 days
 - Database credentials: Every 30 days
 - JWT signing keys: Every 180 days
 - Master encryption key: Every 365 days
 
 **Rotation Process:**
+
 1. Create new secret version in Secret Manager
 2. Update application configuration
 3. Deploy to staging, verify works
@@ -99,6 +105,7 @@ AuditLogger.logEvent("AUTH_SUCCESS", "user@example.com");    // Safe
 The system has admin-only endpoints (e.g., create agents, approve requirements).
 
 **Required Before Production:**
+
 ```java
 // Add AdminAuthFilter.java
 public class AdminAuthFilter implements Filter {
@@ -134,6 +141,7 @@ public class AdminAuthFilter implements Filter {
 ### 3.2 Token-Based Authentication
 
 **Recommended:** Firebase Authentication
+
 ```java
 // Already integrated in FirebaseService
 private static final FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
@@ -180,6 +188,7 @@ if (!hasRole(userId, AdminRole.ADMIN)) {
 RateLimitingService.java uses token bucket algorithm.
 
 **Configuration (application.properties):**
+
 ```properties
 # Rate limiting
 ratelimit.user.tokens.per_minute=100
@@ -188,6 +197,7 @@ ratelimit.admin.tokens.per_minute=500
 ```
 
 **Usage:**
+
 ```java
 RateLimitingService rateLimiter = new RateLimitingService(100, 1000);
 
@@ -199,12 +209,14 @@ if (!rateLimiter.allowUserRequest(userId)) {
 ### 4.2 DDoS Protection
 
 **Network Level (GCP):**
+
 - Enable Cloud Armor
 - Set rate-based rules
 - Geo-blocking if applicable
 - Bot detection
 
 **Application Level:**
+
 ```properties
 # Aggressive rate limiting for suspicious behavior
 ratelimit.initial_requests_per_minute=10
@@ -315,6 +327,7 @@ public void approveRequirement(String requirementId, String approverEmail) {
 ### 6.1 What to Audit
 
 AuditLogger.java currently logs:
+
 - Requirement classification decisions
 - Approval/rejection events
 - Agent assignments
@@ -327,6 +340,7 @@ AuditLogger.java currently logs:
 ### 6.2 Audit Log Format
 
 Each entry contains:
+
 ```json
 {
     "timestamp": "2026-03-26T15:30:45.123Z",
@@ -348,6 +362,7 @@ Each entry contains:
 ### 6.3 Audit Log Retention
 
 **Configuration (logback.xml):**
+
 ```xml
 <!-- Audit logs: keep for 90 days -->
 <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
@@ -364,6 +379,7 @@ Each entry contains:
 ### 7.1 What to Reveal
 
 **✅ Safe to show users:**
+
 ```
 "An error occurred while processing your request. Please try again later."
 "Service temporarily unavailable. Please retry in 5 minutes."
@@ -371,6 +387,7 @@ Each entry contains:
 ```
 
 **❌ Never show users:**
+
 ```
 "NullPointerException at line 45"
 "Database connection timeout"
@@ -404,11 +421,13 @@ public String executeWithResilience(Supplier<String> operation, String operation
 ### 8.1 Data at Rest
 
 **Firebase Firestore:**
+
 - Automatically encrypted by Google (encryption at rest)
 - Use Secret Manager for master keys
 - Consider field-level encryption for sensitive data
 
 **Recommended:** Encrypt sensitive fields using Tink
+
 ```java
 // For truly sensitive data (passwords, etc.)
 String encrypted = encryptionService.encrypt(sensitiveData);
@@ -419,6 +438,7 @@ String decrypted = encryptionService.decrypt(encrypted);
 ### 8.2 Data in Transit
 
 **All Communication:**
+
 - Use HTTPS/TLS 1.3
 - Pin certificates for external APIs
 - Verify SSL certificates
@@ -438,6 +458,7 @@ OkHttpClient client = new OkHttpClient.Builder()
 ### 9.1 Keep Dependencies Updated
 
 **Current secure versions (from build.gradle.kts):**
+
 ```
 Firebase Admin: 9.2.0+  ✅
 OkHttp: 4.12.0+        ✅
@@ -447,6 +468,7 @@ Resilience4j: 2.1.0+   ✅
 ```
 
 **Check for updates monthly:**
+
 ```bash
 ./gradlew dependencyUpdates
 ```
@@ -460,6 +482,7 @@ Resilience4j: 2.1.0+   ✅
 ### 9.3 CVE Scanning
 
 Use OWASP Dependency Check:
+
 ```bash
 ./gradlew dependencyCheckAggregate
 ```
@@ -471,6 +494,7 @@ Use OWASP Dependency Check:
 ### 10.1 GDPR Compliance
 
 If processing EU user data:
+
 - [ ] Data retention policy documented (90-day audit log)
 - [ ] User consent for tracking
 - [ ] Right to be forgotten implemented
@@ -480,6 +504,7 @@ If processing EU user data:
 ### 10.2 SOC 2 Compliance
 
 For enterprise customers:
+
 - [ ] Access control (role-based)
 - [ ] Audit logging (implemented)
 - [ ] Encryption (in transit + at rest)
@@ -489,6 +514,7 @@ For enterprise customers:
 ### 10.3 Data Residency
 
 If required:
+
 ```properties
 # GCP Firestore region
 firebase.database.region=us-central1  # or required region
@@ -502,11 +528,13 @@ firebase.storage.region=US
 ### 11.1 Firewall Rules
 
 **Inbound:**
+
 - Allow: HTTPS (443)
 - Allow: HTTP (80) - redirect to HTTPS
 - Deny: All other ports
 
 **Outbound:**
+
 - Allow: API provider IPs (whitelist)
 - Allow: GCP services (Secret Manager, etc.)
 - Deny: All other destinations
@@ -525,6 +553,7 @@ cloud.run.vpc.connector=supremeai-connector
 ### 12.1 Security Metrics
 
 Monitor these metrics:
+
 ```
 - authentication_failures_per_minute
 - rate_limit_violations_per_hour
@@ -537,6 +566,7 @@ Monitor these metrics:
 ### 12.2 Security Alerts
 
 Set up alerts for:
+
 ```
 IF authentication_failures > 5 in 1 minute → ALERT
 IF rate_limit_violations > 10 in 1 hour → ALERT
@@ -551,6 +581,7 @@ IF unauthorized_access_attempts > 0 → ALERT (immediate escalation)
 ### 13.1 Security Incident Checklist
 
 When an incident occurs:
+
 1. [ ] Immediately stop access (revoke tokens, block IPs)
 2. [ ] Isolate affected systems
 3. [ ] Preserve evidence and logs
@@ -596,16 +627,19 @@ incident.escalation.time.minutes=15
 ## 15. SECURITY RESOURCES
 
 ### Documentation
+
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [Google Cloud Security Best Practices](https://cloud.google.com/security/best-practices)
 - [Firebase Security Rules](https://firebase.google.com/docs/firestore/security/start)
 
 ### Tools
+
 - [OWASP Dependency Check](https://owasp.org/www-project-dependency-check/)
 - [Snyk](https://snyk.io/) - Vulnerability scanning
 - [Twistlock](https://www.paloaltonetworks.com/) - Container security
 
 ### Training
+
 - OWASP Secure Coding
 - Google Cloud Security Fundamentals
 - Firebase Security course
@@ -616,6 +650,7 @@ incident.escalation.time.minutes=15
 **Status:** Phase 1 Security Implementation Complete
 
 **Next Steps:**
+
 1. Implement InputValidator.java
 2. Add AdminAuthFilter
 3. Deploy to staging

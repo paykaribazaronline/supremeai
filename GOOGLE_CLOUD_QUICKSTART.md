@@ -3,6 +3,7 @@
 ## 5-Minute Quick Start
 
 ### Prerequisites
+
 - Google Cloud account (https://cloud.google.com)
 - Docker installed
 - Google Cloud SDK (gcloud CLI)
@@ -10,6 +11,7 @@
 ### Step 1: Install Google Cloud SDK (if not already installed)
 
 **Windows PowerShell (as Administrator):**
+
 ```powershell
 # Using Chocolatey
 choco install google-cloud-sdk
@@ -18,6 +20,7 @@ choco install google-cloud-sdk
 ```
 
 **Verify:**
+
 ```powershell
 gcloud --version
 ```
@@ -48,6 +51,7 @@ gcloud auth configure-docker
 ### Step 4: Deploy Using Automated Script
 
 **Option A: Deploy Both Systems**
+
 ```powershell
 cd c:\Users\Nazifa\supremeai
 
@@ -60,11 +64,13 @@ cd c:\Users\Nazifa\supremeai
 ```
 
 **Option B: Deploy Only Main System**
+
 ```powershell
 .\deploy-to-gcp.ps1 -DeployMain
 ```
 
 **Option C: Deploy Only Admin**
+
 ```powershell
 cd c:\Users\Nazifa\supremeai-admin
 ..\supremeai\deploy-to-gcp.ps1 -DeployAdmin
@@ -154,19 +160,23 @@ gcloud run deploy supremeai-admin \
 ## Common Issues & Solutions
 
 ### Docker build fails: "gradle command not found"
+
 - Solution: Run from project root where `gradlew` exists
 - The Dockerfile uses `./gradlew` to build
 
 ### Push fails: "authentication required"
+
 ```powershell
 gcloud auth configure-docker --quiet
 ```
 
 ### Service deployment timeout
+
 - Increase timeout in CLI or wait for image to build
 - Check `gcloud run services describe [SERVICE] --region us-central1`
 
 ### Out of quota
+
 - Check Google Cloud Console
 - May need to upgrade billing account
 
@@ -290,6 +300,7 @@ gcloud beta run exec --container [CONTAINER_NAME] --service supremeai --region u
 ---
 
 ## Documentation
+
 - Cloud Run: https://cloud.google.com/run/docs
 - Firestore: https://firebase.google.com/docs/firestore
 - Cloud Build: https://cloud.google.com/build/docs

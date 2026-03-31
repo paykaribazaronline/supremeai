@@ -5,12 +5,14 @@
 To deploy SupremeAI to Google Cloud, you need to install 2 tools:
 
 ### **1. Docker Desktop** (15 minutes to install & restart)
+
 - **Download:** https://www.docker.com/products/docker-desktop
 - **Or:** `choco install docker-desktop` (if using Chocolatey)
 - **After install:** Restart your computer
 - **Verify:** `docker --version`
 
 ### **2. Google Cloud SDK** (10 minutes to install)
+
 - **Download:** https://cloud.google.com/sdk/docs/install-sdk
 - **Or:** `choco install google-cloud-sdk` (if using Chocolatey)
 - **After install:** Run PowerShell as Admin and verify: `gcloud --version`
@@ -20,6 +22,7 @@ To deploy SupremeAI to Google Cloud, you need to install 2 tools:
 ## 🎯 Once Prerequisites Are Installed
 
 ### **Step 1: Login to Google Cloud**
+
 ```powershell
 gcloud auth login
 
@@ -29,22 +32,26 @@ gcloud auth login
 ```
 
 ### **Step 2: Create Google Cloud Project**
+
 ```powershell
 gcloud projects create supremeai-production --name="SupremeAI Production"
 gcloud config set project supremeai-production
 ```
 
 ### **Step 3: Enable Required APIs**
+
 ```powershell
 gcloud services enable run.googleapis.com firestore.googleapis.com cloudbuild.googleapis.com containerregistry.googleapis.com --quiet
 ```
 
 ### **Step 4: Configure Docker**
+
 ```powershell
 gcloud auth configure-docker
 ```
 
 ### **Step 5: Deploy Everything** (Automated)
+
 ```powershell
 cd c:\Users\Nazifa\supremeai
 .\deploy-to-gcp.ps1 -DeployBoth
@@ -84,18 +91,21 @@ cd c:\Users\Nazifa\supremeai
 ## 🎯 What You'll Get After Deployment
 
 ✅ **Main System URL:** `https://supremeai-xxxxx.run.app`
+
 - Full REST API available
 - Database connected
 - Health monitoring active
 - Auto-scaling enabled
 
 ✅ **Admin Dashboard URL:** `https://supremeai-admin-xxxxx.run.app`
+
 - User management
 - Provider configuration
 - System monitoring
 - Audit logging
 
 ✅ **Live System**
+
 - Accessible from anywhere
 - HTTPS/SSL automatic
 - Auto-scales based on traffic
@@ -114,6 +124,7 @@ cd c:\Users\Nazifa\supremeai
 ## 📞 Need Help?
 
 If you get stuck:
+
 1. Check `DEPLOYMENT_SETUP_CHECKLIST.md` for detailed steps
 2. Check `GCP_DEPLOYMENT_COMPLETE.md` for full guide
 3. Check `GOOGLE_CLOUD_QUICKSTART.md` for quick reference

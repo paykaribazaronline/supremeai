@@ -3,6 +3,7 @@
 ## 🎯 What You Just Got
 
 A complete **admin-only login system** that:
+
 - ✅ Protects both localhost (8001) and web host
 - ✅ Uses JWT tokens (secure, industry standard)
 - ✅ Auto-refreshes tokens (stays logged in for 7 days)
@@ -15,22 +16,26 @@ A complete **admin-only login system** that:
 ## ⚡ 3-Step Startup
 
 ### Step 1: Build the Project
+
 ```bash
 cd c:\Users\Nazifa\supremeai
 .\gradlew build
 ```
 
 ### Step 2: Run the Application
+
 ```bash
 .\gradlew run
 ```
 
 Server starts:
+
 - Admin Dashboard: http://localhost:8001
 - Monitoring: http://localhost:8000
 - API Backend: http://localhost:8080
 
 ### Step 3: Create First Admin
+
 Open a terminal/PowerShell and run:
 
 ```PowerShell
@@ -47,6 +52,7 @@ Invoke-WebRequest -Uri "http://localhost:8080/api/auth/register" `
 ```
 
 **Or use cURL:**
+
 ```bash
 curl -X POST http://localhost:8080/api/auth/register \
   -H "Content-Type: application/json" \
@@ -130,6 +136,7 @@ User stays logged in for 7 days even after browser close
 ## 🎮 Testing the System
 
 ### Test 1: Login
+
 ```bash
 curl -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
@@ -137,6 +144,7 @@ curl -X POST http://localhost:8080/api/auth/login \
 ```
 
 Response (save the `token`):
+
 ```json
 {
   "status": "success",
@@ -153,12 +161,14 @@ Response (save the `token`):
 ```
 
 ### Test 2: Use Token in Protected Endpoint
+
 ```bash
 curl -X GET http://localhost:8080/api/auth/me \
   -H "Authorization: Bearer <PASTE_TOKEN_HERE>"
 ```
 
 ### Test 3: Create Another Admin
+
 ```bash
 curl -X POST http://localhost:8080/api/auth/register \
   -H "Content-Type: application/json" \
@@ -175,6 +185,7 @@ curl -X POST http://localhost:8080/api/auth/register \
 ## 🌍 Localhost vs Web Host
 
 ### Localhost (Development)
+
 ```
 Login Page:    http://localhost:8001/login.html
 Admin Panel:   http://localhost:8001/admin/
@@ -183,6 +194,7 @@ API:           http://localhost:8080/api/...
 ```
 
 ### Web Host (Production)
+
 ```
 Login Page:    https://your-domain.com/login.html
 Admin Panel:   https://your-domain.com/admin/
@@ -196,20 +208,26 @@ API:           https://your-domain.com/api/...
 ## 🔧 Configuration
 
 ### Optional: Change Demo Password
+
 Edit and rebuild:
+
 ```bash
 ./gradlew run  # Uses default "supremeai123"
 ```
 
 ### Optional: Change JWT Secret
+
 Set environment variable before running:
+
 ```bash
 export JWT_SECRET="your-32-char-minimum-secret-key"
 .\gradlew run
 ```
 
 ### Optional: Firebase Config
+
 Set before running:
+
 ```bash
 export FIREBASE_SERVICE_ACCOUNT_JSON='{...your json...}'
 .\gradlew run
@@ -246,15 +264,17 @@ export FIREBASE_SERVICE_ACCOUNT_JSON='{...your json...}'
 ## 📚 Documentation
 
 For complete details, see:
+
 - **[AUTHENTICATION_GUIDE.md](AUTHENTICATION_GUIDE.md)** - Full authentication system docs
 - **[README.md](README.md)** - Project overview
 - **[ADMIN_OPERATIONS_GUIDE.md](ADMIN_OPERATIONS_GUIDE.md)** - Admin operations manual
 
 ---
 
-## 🚀 Ready to Use!
+## 🚀 Ready to Use
 
 Your SupremeAI system is now:
+
 1. ✅ Protected by login authentication
 2. ✅ Admin-controlled features
 3. ✅ Works on localhost AND web host

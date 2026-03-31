@@ -29,7 +29,7 @@ for cloud-native applications. Built with Spring Boot 3.2, Firebase,
 and Google Cloud Platform.
 ```
 
-6. Click **Save**
+1. Click **Save**
 
 ### Step 2: Add Repository Topics
 
@@ -55,9 +55,10 @@ machine-learning
 devops
 ```
 
-4. Click outside the input to save
+1. Click outside the input to save
 
 **Why these topics?**
+
 - **ai, artificial-intelligence, llm** → AI researcher discoverability
 - **android, firebase, google-cloud-platform** → Platform-specific searches
 - **spring-boot, java17** → Java ecosystem visibility
@@ -76,25 +77,29 @@ devops
 4. Enable these protections:
 
 #### Required Status Checks
+
 - ✅ **Require status checks to pass before merging**
   - Select: `build` (from java-ci.yml)
   - Select: `security scan` (from java-ci.yml)
   - Select: `code coverage` (from java-ci.yml)
 
 #### Code Review
+
 - ✅ **Require a pull request before merging**
   - Required approvals: `1`
   - ✅ **Dismiss stale pull request approvals when new commits are pushed**
 
 #### Protections
+
 - ✅ **Require branches to be up to date before merging**
 - ✅ **Require code reviews before merging**
 - ✅ **Require status checks to pass**
 - ✅ **Restrict who can push to matching branches** (select yourself as maintainer)
 
-5. Click **Create**
+1. Click **Create**
 
 **Why these rules?**
+
 - Prevents direct commits to main
 - Ensures CI/CD pipeline passes
 - Requires peer review
@@ -128,6 +133,7 @@ These are already configured in your `.github/workflows/java-ci.yml`:
 ✅ **Coverage reports** → Codecov integration
 
 **To view these:**
+
 1. Go to **Security** tab
 2. Check "Dependabot alerts"
 3. Check "Code scanning alerts"
@@ -181,6 +187,7 @@ Your repository already has:
 ✅ SECURITY.md
 
 **To view Community Health Score:**
+
 1. Go to **Insights** → **Community**
 2. You should see 100% or near-100% coverage
 
@@ -209,6 +216,7 @@ Your repository already has:
 3. Click **Set up discussions**
 
 **Default categories:**
+
 - 📣 Announcements
 - 💬 General
 - 💡 Ideas
@@ -259,8 +267,8 @@ Report vulnerabilities to security (at) supremeai.dev
 See [SECURITY.md](SECURITY.md) for full disclosure procedures.
 ```
 
-6. ✅ **Set as the latest release**
-7. Click **Publish release**
+1. ✅ **Set as the latest release**
+2. Click **Publish release**
 
 ---
 
@@ -297,17 +305,20 @@ See [SECURITY.md](SECURITY.md) for full disclosure procedures.
 ## Next Steps
 
 ### Immediate (1-2 minutes)
+
 1. Add repository description + topics
 2. Create first release (v3.0.0)
 
 ### Short-term (5 minutes)
+
 3. Configure branch protection rules
-4. Enable Dependabot
+2. Enable Dependabot
 
 ### Long-term (After community interest)
+
 5. Monitor discussions/issues
-6. Celebrate first contributors
-7. Plan Phase 6 with community feedback
+2. Celebrate first contributors
+3. Plan Phase 6 with community feedback
 
 ---
 

@@ -78,6 +78,7 @@ AI-Team: App ready! 🎉
 → All requirements met
 
 ⚙️ APPROVAL SYSTEM
+
 | Requirement Size | Example | Action |
 | :--- | :--- | :--- |
 | Small | Dark mode, icon change, animation | Auto-approve |
@@ -85,10 +86,12 @@ AI-Team: App ready! 🎉
 | Big | Payment gateway, AI chatbot, database change | Stop, wait manual |
 
 Admin Settings:
+
 - Auto-approve threshold: Small/Medium/Big/None
 - Notification: Immediate/Digest/Off
 
 🤖 AI AGENT CONFIGURATION
+
 | Role | Primary | Fallback 1 | Fallback 2 |
 | :--- | :--- | :--- | :--- |
 | X-Builder | DeepSeek | Groq | Together AI |
@@ -96,17 +99,20 @@ Admin Settings:
 | Z-Architect | GPT-4 | Claude | Groq |
 
 Rotation Triggers:
+
 - Quota > 80%: Warning
 - Quota 100%: Auto rotate
 - API 429/403: Rotate + VPN switch
 - 3 fails same task: Demote AI
 
 Safezone:
+
 - Admin marked AI stays in pool
 - Never goes to fallback
 - Protected from auto-ranking
 
 📱 ADMIN MOBILE APP
+
 | Screen | Features |
 | :--- | :--- |
 | Dashboard | Active projects, quick actions |
@@ -117,12 +123,14 @@ Safezone:
 | History | Past projects, analytics |
 
 Notifications:
+
 - New requirement needs approval
 - Project complete
 - Quota warning
 - Error alert
 
 🔥 CLOUD INFRASTRUCTURE
+
 | Firebase Service | Use | Free Limit |
 | :--- | :--- | :--- |
 | Authentication | Admin login | 10K/month |
@@ -140,6 +148,7 @@ Notifications:
 | Proton VPN | IP rotation | Unlimited |
 
 📅 IMPLEMENTATION ROADMAP
+
 | Phase | Day | Task |
 | :--- | :--- | :--- |
 | Phase 1: Foundation | 1-2 | Firebase setup, Auth |
@@ -175,6 +184,7 @@ Notifications:
 | | 69-70 | Soft launch & feedback |
 
 🛡️ SECURITY
+
 | Layer | Protection |
 | :--- | :--- |
 | Auth | Firebase Auth, 2FA optional |
@@ -185,6 +195,7 @@ Notifications:
 | Approval | Manual gate for big changes |
 
 📊 SUCCESS METRICS
+
 | Metric | Target |
 | :--- | :--- |
 | App generation time | < 30 min |
@@ -195,6 +206,7 @@ Notifications:
 | Max concurrent apps | 50+ |
 
 🚀 FINAL DELIVERABLES
+
 - Cloud AI System (Firebase Functions)
 - Admin Mobile App (Flutter - Android/iOS)
 - App Generator (Flutter/React templates)
@@ -223,18 +235,21 @@ MANDATORY RULE: NEW DETAILED PLANS MUST BE STORED IN SEPARATE FILES (e.g. plans/
 | 2024-05-20 16:30 | AI Rules | Update | Dynamic AI Orchestration: Admin chooses models; missing API keys trigger HUMAN_REQUIRED instead of failing. |
 
 👑 ADMIN SUPREMACY (KING MODE)
+
 - **Decision Overwrite:** The Admin can manually override any "Consensus" or "Approval" result.
 - **Direct Intervention:** The Admin can pause the voting loop and provide a final decision.
 - **Rule Supremacy:** Admin manual input takes precedence over any pre-defined AI thresholds.
 - **Execution:** Logs as "KING_OVERWRITE" and proceeds immediately.
 
 🗣️ COMMUNICATION RULES (NEW v3.5)
+
 - **Language:** AI will always communicate in **Bangla**.
 - **Simplicity:** Explanations will be **short and easy** to understand for the Admin.
 - **Collaboration:** AI must actively discuss and seek feedback from the Admin for significant choices.
 - **Documentation:** All technical steps will be documented as before, but the chat summary will be in Bangla.
 
 🤖 DYNAMIC AI ORCHESTRATION (NEW v3.7)
+
 - **Admin Choice:** অ্যাডমিন প্রতিটি কাজের (Plan, Code, Review) জন্য আলাদা মডেল বেছে নিতে পারেন।
 - **Missing Key Logic:** যদি কোনো মডেলের API কী না থাকে, সিস্টেম সেটি নিজে থেকে ব্যবহার করার চেষ্টা করবে না। পরিবর্তে এটি '🚨 WAITING_FOR_HUMAN' মোডে চলে যাবে এবং অ্যাডমিনকে জানাবে।
 - **Flexibility:** কোনো নির্দিষ্ট AI ব্যবহার করা বাধ্যতামূলক নয়। অ্যাডমিন যা দেবেন, সিস্টেম তা দিয়েই সেরাটা করার চেষ্টা করবে।

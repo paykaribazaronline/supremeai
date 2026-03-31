@@ -184,6 +184,7 @@
 ## 📋 ENVIRONMENT-SPECIFIC CHECKLIST
 
 ### Local Development
+
 - [x] Code compiles without errors
 - [x] Unit tests pass
 - [ ] Integration tests pass
@@ -191,6 +192,7 @@
 - [ ] Logging visible in console
 
 ### Staging Environment
+
 - [ ] Firebase project created
 - [ ] Cloud Functions deployed
 - [ ] API keys in Secret Manager
@@ -201,6 +203,7 @@
 - [ ] Security audit passed
 
 ### Production Environment
+
 - [ ] All staging tests passed
 - [ ] Monitoring dashboards live
 - [ ] Alerting configured
@@ -246,6 +249,7 @@
 ## 🎯 DEPLOYMENT STEPS
 
 ### Pre-Deployment
+
 1. [ ] Run full test suite (>80% coverage)
 2. [ ] Code review completed
 3. [ ] Security audit passed
@@ -254,6 +258,7 @@
 6. [ ] Alert thresholds configured
 
 ### Deployment
+
 1. [ ] Deploy to staging first
 2. [ ] Run smoke tests
 3. [ ] Monitor metrics
@@ -262,6 +267,7 @@
 6. [ ] Monitor closely for 24 hours
 
 ### Post-Deployment
+
 1. [ ] Verify all systems operational
 2. [ ] Check error rates
 3. [ ] Monitor API quotas
@@ -273,7 +279,8 @@
 
 ## 📞 SUPPORT & RUNBOOK
 
-### On-Call Runbook Must Include:
+### On-Call Runbook Must Include
+
 - [ ] Alert responses and actions
 - [ ] Escalation procedures
 - [ ] Common issues and fixes
@@ -282,7 +289,8 @@
 - [ ] Contact information for teams
 - [ ] Emergency procedures
 
-### Key Metrics to Monitor:
+### Key Metrics to Monitor
+
 - [ ] Error rate
 - [ ] API quotas remaining
 - [ ] Circuit breaker status

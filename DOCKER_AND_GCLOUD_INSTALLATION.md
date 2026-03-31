@@ -3,10 +3,12 @@
 ## 📋 Prerequisites Check
 
 **Already Installed:** ✅
+
 - Git (2.53.0)
 - Java 17 (LTS)
 
 **Need to Install:** ❌
+
 - Docker Desktop
 - Google Cloud SDK
 
@@ -89,6 +91,7 @@ gcloud auth login
 ```
 
 This will:
+
 1. Open your default web browser
 2. Show Google login page
 3. You login with your Google account
@@ -182,7 +185,7 @@ docker ps
 
 ---
 
-## 🚀 Ready to Deploy!
+## 🚀 Ready to Deploy
 
 Once all verifications pass, you can deploy:
 
@@ -198,15 +201,18 @@ cd c:\Users\Nazifa\supremeai
 ### Docker Issues
 
 **Problem:** "Docker command not found"
+
 - **Solution:** Restart PowerShell/CMD, or restart computer if just installed
 
 **Problem:** "Cannot connect to Docker daemon"
-- **Solution:** 
+
+- **Solution:**
   1. Open Docker Desktop (search in Start menu)
   2. Wait for icon in system tray to show "Docker is running"
   3. Try docker --version again
 
 **Problem:** "WSL 2 installation required"
+
 - **Solution:**
   1. Docker installer will prompt you to enable WSL 2
   2. It will install Windows subsystem for Linux automatically
@@ -216,18 +222,21 @@ cd c:\Users\Nazifa\supremeai
 ### Google Cloud SDK Issues
 
 **Problem:** "gcloud command not found"
+
 - **Solution:**
   1. Restart PowerShell/CMD
   2. If still doesn't work: Add SDK to PATH
   3. Run `$env:Path -split ';' | Select-String 'google'` to check
 
 **Problem:** "Authentication failed"
+
 - **Solution:**
   1. Run: `gcloud auth login --browser-only`
   2. If still fails, check internet connection
   3. Try from different browser
 
 **Problem:** "Project creation failed"
+
 - **Solution:**
   1. Ensure you have active Google Cloud account
   2. Check you have billing enabled
@@ -255,6 +264,7 @@ cd c:\Users\Nazifa\supremeai
 ## 📞 Support
 
 If you get stuck:
+
 1. Read the error message carefully
 2. Check the Troubleshooting section above
 3. Google Cloud docs: https://cloud.google.com/docs

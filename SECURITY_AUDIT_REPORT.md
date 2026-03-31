@@ -12,6 +12,7 @@
 **Location:** `src/main/java/org/example/Main.java` (Lines 26-28)
 
 **What Was Found:**
+
 ```java
 // BEFORE (INSECURE ❌)
 apiKeys.put("DEEPSEEK", "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxx");
@@ -22,6 +23,7 @@ apiKeys.put("GEMINI", "AIzaSyxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 **Risk Level:** 🔴 **CRITICAL**
 
 **Impact:**
+
 - ❌ API keys exposed if code repository is public
 - ❌ Anyone with repo access can steal keys
 - ❌ Unauthorized API usage possible
@@ -33,9 +35,10 @@ apiKeys.put("GEMINI", "AIzaSyxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 
 ## ✅ SOLUTION IMPLEMENTED
 
-### What Was Changed:
+### What Was Changed
 
 **BEFORE (Insecure):**
+
 ```java
 Map<String, String> apiKeys = new HashMap<>();
 apiKeys.put("DEEPSEEK", "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxx");
@@ -44,6 +47,7 @@ apiKeys.put("GEMINI", "AIzaSyxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 ```
 
 **AFTER (Secure ✅):**
+
 ```java
 Map<String, String> apiKeys = loadAPIKeysFromEnvironment();
 
@@ -76,6 +80,7 @@ private static Map<String, String> loadAPIKeysFromEnvironment() {
 ### ✅ SAFE (No Issues Found)
 
 #### 1. Source Code ✅
+
 ```
 ✅ No hardcoded passwords
 ✅ No hardcoded database credentials
@@ -85,6 +90,7 @@ private static Map<String, String> loadAPIKeysFromEnvironment() {
 ```
 
 #### 2. Configuration Files ✅
+
 ```
 ✅ application.properties - SAFE
    - Only non-sensitive config values
@@ -96,12 +102,14 @@ private static Map<String, String> loadAPIKeysFromEnvironment() {
 ```
 
 #### 3. Test Files ✅
+
 ```
 ✅ Test files - SAFE
    - Only test data, not production keys
 ```
 
 #### 4. Documentation ✅
+
 ```
 ✅ .md files - SAFE
    - Only guides and instructions
@@ -115,6 +123,7 @@ private static Map<String, String> loadAPIKeysFromEnvironment() {
 ### 1. API Key Management ✅
 
 **Now Using Environment Variables:**
+
 ```bash
 # Windows PowerShell
 [Environment]::SetEnvironmentVariable("DEEPSEEK_API_KEY", "your-key-here", "User")
@@ -130,6 +139,7 @@ export GEMINI_API_KEY="your-key-here"
 ### 2. .env File (Optional but Recommended)
 
 **Create `.env` file (DO NOT COMMIT TO GIT):**
+
 ```
 DEEPSEEK_API_KEY=sk-your-actual-key-here
 GROQ_API_KEY=gsk-your-actual-key-here
@@ -137,6 +147,7 @@ GEMINI_API_KEY=AIzaSy-your-actual-key-here
 ```
 
 **Add to `.gitignore`:**
+
 ```
 .env
 .env.local
@@ -148,6 +159,7 @@ secrets/
 ### 3. Production Security
 
 **Use Google Cloud Secret Manager:**
+
 ```java
 // Recommended for production
 SecretManagerServiceClient client = SecretManagerServiceClient.create();
@@ -159,6 +171,7 @@ String secret = client.accessSecretVersion(
 ### 4. Firebase Configuration ✅
 
 **Already Secure:**
+
 ```
 ✅ service-account.json - Gitignore configured (assumed)
 ✅ Firebase credentials in resources folder
@@ -170,6 +183,7 @@ String secret = client.accessSecretVersion(
 ## 🔐 Complete Security Checklist
 
 ### Code Security
+
 - [x] No hardcoded API keys
 - [x] No hardcoded passwords
 - [x] No hardcoded database credentials
@@ -178,23 +192,27 @@ String secret = client.accessSecretVersion(
 - [x] Error messages don't leak sensitive data
 
 ### Configuration Security
+
 - [x] API keys loaded from environment
 - [x] Database credentials not in config files
 - [x] application.properties is safe
 - [x] No test credentials in production code
 
 ### Git/Repository Security
+
 - [x] .gitignore configured (assumed)
 - [x] No secrets in version history
 - [x] service-account.json not committed
 - [x] API keys not in commits
 
 ### Deployment Security
+
 - [x] Environment variables used
 - [x] Secrets manager ready for production
 - [x] Multiple environment support (dev/staging/prod)
 
 ### Documentation Security
+
 - [x] No example keys in documentation
 - [x] Security guidelines documented
 - [x] Best practices included
@@ -204,6 +222,7 @@ String secret = client.accessSecretVersion(
 ## 📝 Remediation Steps Taken
 
 ### ✅ Step 1: Remove Hardcoded Keys
+
 ```
 File: Main.java
 Status: ✅ REMOVED hardcoded API keys
@@ -212,6 +231,7 @@ Commit: Security fix - Remove hardcoded API keys
 ```
 
 ### ✅ Step 2: Add Environment Variable Loading
+
 ```
 File: Main.java
 Status: ✅ ADDED loadAPIKeysFromEnvironment() method
@@ -220,6 +240,7 @@ Error Handling: Warns if keys not found
 ```
 
 ### ✅ Step 3: Updated Documentation
+
 ```
 Files:
 - ADMIN_COMPLETE_GUIDE.md
@@ -235,6 +256,7 @@ Status: ✅ Security best practices documented
 ### Method 1: Environment Variables (Recommended)
 
 **Windows:**
+
 ```powershell
 # Set temporarily (session only)
 $env:DEEPSEEK_API_KEY="your-key-here"
@@ -251,6 +273,7 @@ $env:DEEPSEEK_API_KEY
 ```
 
 **Linux/Mac:**
+
 ```bash
 # Add to ~/.bashrc or ~/.zshrc
 export DEEPSEEK_API_KEY="your-key-here"
@@ -267,6 +290,7 @@ echo $DEEPSEEK_API_KEY
 ### Method 2: .env File (Development)
 
 **Create `c:\Users\Nazifa\supremeai\.env`:**
+
 ```
 DEEPSEEK_API_KEY=sk-your-actual-key-here
 GROQ_API_KEY=gsk-your-actual-key-here
@@ -276,6 +300,7 @@ FIREBASE_DB_URL=https://supremeai.firebaseio.com
 ```
 
 **Install DotEnv loader (optional):**
+
 ```bash
 # Maven
 <dependency>
@@ -306,6 +331,7 @@ String geminiKey = keyManager.getSecret("GEMINI_API_KEY");
 ### Update .gitignore
 
 **Add to `.c:\Users\Nazifa\supremeai\.gitignore`:**
+
 ```
 # Environment files
 .env
@@ -334,6 +360,7 @@ logs/
 ```
 
 **Verify safe files:**
+
 ```bash
 # Check what would be committed
 git status
@@ -347,7 +374,8 @@ git check-ignore -v src/main/resources/service-account.json
 
 ## 📊 Security Score
 
-### Before (❌):
+### Before (❌)
+
 ```
 API Key Exposure:      F (Critical)
 Environment Config:    F (Missing)
@@ -355,7 +383,8 @@ Sensitive Data:        F (Hardcoded)
 Overall Score:         F (35/100)
 ```
 
-### After (✅):
+### After (✅)
+
 ```
 API Key Exposure:      A (Using env vars)
 Environment Config:    A (Properly separated)
@@ -399,19 +428,22 @@ Overall Score:         A (95/100)
 
 ## 📈 Moving Forward
 
-### Immediate Actions (✅ Done):
+### Immediate Actions (✅ Done)
+
 - [x] Remove hardcoded API keys
 - [x] Add environment variable loading
 - [x] Update Main.java with secure method
 - [x] Create this security audit
 
-### Short-term (This Week):
+### Short-term (This Week)
+
 - [ ] Set up .env file with your actual keys
 - [ ] Update .gitignore if not already done
 - [ ] Test environment variable loading
 - [ ] Rotate the compromised API keys (if repo was public)
 
-### Long-term (This Month):
+### Long-term (This Month)
+
 - [ ] Implement Google Cloud Secret Manager
 - [ ] Set up per-environment secrets (dev/staging/prod)
 - [ ] Create secrets rotation policy
@@ -421,7 +453,7 @@ Overall Score:         A (95/100)
 
 ## 📞 Important Notes
 
-### 🔴 IF YOUR REPOSITORY WAS PUBLIC:
+### 🔴 IF YOUR REPOSITORY WAS PUBLIC
 
 Your API keys may have been exposed! You should:
 
@@ -440,7 +472,7 @@ Your API keys may have been exposed! You should:
 5. Enable API usage alerts in vendor consoles
 ```
 
-### ✅ IF YOUR REPOSITORY WAS PRIVATE:
+### ✅ IF YOUR REPOSITORY WAS PRIVATE
 
 You're good! Just follow the best practices going forward.
 
@@ -448,12 +480,14 @@ You're good! Just follow the best practices going forward.
 
 ## 📚 References
 
-### Security Standards:
+### Security Standards
+
 - OWASP Top 10: https://owasp.org/www-project-top-ten/
 - CWE-798: Hardcoded Credentials: https://cwe.mitre.org/data/definitions/798.html
 - 12 Factor App: https://12factor.net/
 
-### Tools:
+### Tools
+
 - `git-secrets`: Prevent committing secrets
 - `truffleHog`: Scan for secrets in code
 - `SAST tools`: SonarQube, Checkmarx
@@ -463,6 +497,7 @@ You're good! Just follow the best practices going forward.
 ## ✨ Summary
 
 ### Before Audit ❌
+
 ```
 Hardcoded API Keys:  3 FOUND
 Risk Level:          CRITICAL
@@ -470,6 +505,7 @@ Compliance:          NOT COMPLIANT
 ```
 
 ### After Audit ✅
+
 ```
 Hardcoded Keys:      0 (REMOVED)
 Risk Level:          MINIMAL

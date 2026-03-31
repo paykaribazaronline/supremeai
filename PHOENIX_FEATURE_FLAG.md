@@ -12,11 +12,13 @@ The Phoenix self-healing layer (Level 5) is now **optional and configurable** vi
 ## Quick Start
 
 ### Enable Phoenix (Default)
+
 ```properties
 supremeai.selfhealing.phoenix.enabled=true
 ```
 
 ### Disable Phoenix (Basic Healing Only)
+
 ```properties
 supremeai.selfhealing.phoenix.enabled=false
 ```
@@ -36,18 +38,21 @@ Each agent is decorated with `@ConditionalOnProperty` - they only load if the fe
 ## Configuration
 
 ### application.properties (Production)
+
 ```properties
 # Enable full Phoenix self-healing
 supremeai.selfhealing.phoenix.enabled=true
 ```
 
 ### application-basic.properties (Basic Mode)
+
 ```properties
 # Disable Phoenix agents  
 supremeai.selfhealing.phoenix.enabled=false
 ```
 
 ### application-test.properties (Testing)
+
 ```properties
 # Can be either - tests work with both modes
 supremeai.selfhealing.phoenix.enabled=true
@@ -58,6 +63,7 @@ supremeai.selfhealing.phoenix.enabled=true
 The `/api/v1/self-healing/status` endpoint reports Phoenix availability:
 
 ### Phoenix Enabled
+
 ```json
 {
   "status": "healthy",
@@ -71,6 +77,7 @@ The `/api/v1/self-healing/status` endpoint reports Phoenix availability:
 ```
 
 ### Phoenix Disabled
+
 ```json
 {
   "status": "healthy",
@@ -86,6 +93,7 @@ The `/api/v1/self-healing/status` endpoint reports Phoenix availability:
 ## API Endpoints
 
 ### Auto-Repair (Requires Phoenix Enabled)
+
 ```bash
 POST /api/v1/self-healing/auto-repair
 Content-Type: application/json
@@ -99,6 +107,7 @@ Content-Type: application/json
 ```
 
 ### Service Regeneration (Requires Phoenix Enabled)
+
 ```bash
 POST /api/v1/self-healing/regenerate/{service}
 Authorization: Bearer <admin-token>
@@ -108,12 +117,14 @@ POST /api/v1/self-healing/regenerate/ExecutionLogManager
 ```
 
 ### Failure Predictions (Requires Phoenix Enabled)
+
 ```bash
 GET /api/v1/self-healing/predictions
 Authorization: Bearer <engineer-token>
 ```
 
 ### Self-Improvement (Requires Phoenix Enabled)
+
 ```bash
 POST /api/v1/self-healing/improve
 Content-Type: application/json
@@ -142,26 +153,31 @@ SPRING_APPLICATION_JSON='{"supremeai":{"selfhealing":{"phoenix":{"enabled":true}
 ## Advantages of Feature Flag Approach
 
 ### ✅ Gradual Rollout
+
 - Deploy code with Phoenix disabled
 - Gradually enable in specific environments/regions
 - Monitor metrics before full rollout
 
 ### ✅ A/B Testing
+
 - Run with Phoenix enabled for 10% of traffic
 - Compare repair success rates with basic healing
 - Measure performance impact before full adoption
 
 ### ✅ Emergency Fallback
+
 - If Phoenix causes issues, disable instantly via config
 - No code redeployment needed
 - Rollback is just a config change
 
 ### ✅ Safe Testing
+
 - Integration tests can run with Phoenix disabled
 - Unit tests don't wait for agent initialization
 - Faster test suite execution
 
 ### ✅ Flexible Deployment
+
 - Deploy one image to all environments
 - Control behavior via configuration
 - No need for separate builds
@@ -182,6 +198,7 @@ supremeai_prediction_accuracy        # ML prediction success rate
 ## Build Status
 
 ✅ **Build Successful** (as of commit b84673f)
+
 - 3 Phoenix agents: ✅ Restored
 - Feature flag support: ✅ Added
 - Compilation issues: ✅ Fixed
