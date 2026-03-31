@@ -1,10 +1,13 @@
 package org.example.config;
 
+import org.example.model.SystemConfig;
 import org.example.service.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Phase 5: Spring Configuration for Services
@@ -30,6 +33,31 @@ public class ServiceConfiguration {
     public FirebaseService firebaseService() {
         logger.info("🔧 Initializing Firebase Service...");
         return new FirebaseService();
+    }
+    
+    /**
+     * Initialize System Configuration
+     * Provides default system settings for Agent Orchestration
+     */
+    @Bean
+    public SystemConfig systemConfig() {
+        logger.info("🔧 Initializing System Configuration...");
+        SystemConfig config = new SystemConfig();
+        config.setAgentCount(5);
+        config.setConsensusThreshold(0.6);
+        config.setRotationEnabled(true);
+        config.setVpnEnabled(false);
+        return config;
+    }
+    
+    /**
+     * Initialize API Keys Map
+     * Provides default empty map for API key management
+     */
+    @Bean
+    public Map<String, String> apiKeys() {
+        logger.info("🔧 Initializing API Keys Map...");
+        return new HashMap<>();
     }
     
     /**
