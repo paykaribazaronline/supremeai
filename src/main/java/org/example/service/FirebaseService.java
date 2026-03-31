@@ -7,6 +7,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.*;
 import org.example.model.Requirement;
 import org.example.model.User;
+import org.springframework.stereotype.Service;
+import jakarta.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.IOException;
@@ -14,63 +16,71 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
+@Service
 public class FirebaseService {
     private FirebaseDatabase db;
     private FirebaseAuth auth;
     private static final String DATABASE_URL = "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/";
     
     public FirebaseService() {
-        try { initializeFirebase(null); } catch (Exception e) { e.printStackTrace(); }
+        // Default constructor for Spring
     }
 
-    public FirebaseService(String credentialsPath) {
-        try { initializeFirebase(credentialsPath); } catch (Exception e) { e.printStackTrace(); }
+    @PostConstruct
+    public void init() {
+        try {
+            initializeFirebase(null);
+        } catch (Exception e) {
+            System.err.println("⚠️ Firebase initialization failed: " + e.getMessage());
+        }
     }
-    
-    private void initializeFirebase(String credentialsPath) throws IOException {
+
+    private synchronized void initializeFirebase(String credentialsPath) throws IOException {
         if (FirebaseApp.getApps().isEmpty()) {
             InputStream serviceAccount = null;
             String envConfig = System.getenv("FIREBASE_SERVICE_ACCOUNT_JSON");
+            
             if (envConfig != null && !envConfig.isEmpty()) {
                 serviceAccount = new ByteArrayInputStream(envConfig.getBytes(StandardCharsets.UTF_8));
             } else if (credentialsPath != null) {
                 serviceAccount = getClass().getResourceAsStream(credentialsPath);
             }
 
-            if (serviceAccount == null) throw new IOException("No Firebase credentials found.");
+            FirebaseOptions.Builder builder = FirebaseOptions.builder()
+                    .setDatabaseUrl(DATABASE_URL);
+
+            if (serviceAccount != null) {
+                builder.setCredentials(GoogleCredentials.fromStream(serviceAccount));
+            } else {
+                // Fallback to default GCP credentials if running on Cloud Run
+                builder.setCredentials(GoogleCredentials.getApplicationDefault());
+            }
             
-            FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                    .setDatabaseUrl(DATABASE_URL)
-                    .build();
-            
-            FirebaseApp.initializeApp(options);
+            FirebaseApp.initializeApp(builder.build());
         }
         this.db = FirebaseDatabase.getInstance();
         this.auth = FirebaseAuth.getInstance();
     }
 
     /**
-     * 🚀 FIX: Multi-API Key Support
-     * Updates specific keys without overwriting the entire node.
+     * 🚀 Multi-API Key Support
      */
     public void updateAPIKey(String modelName, String apiKey) {
-        // Path: config/api_keys/GEMINI_1, config/api_keys/GEMINI_2, etc.
         db.getReference("config").child("api_keys").child(modelName).setValueAsync(apiKey);
         System.out.println("✅ API Key updated in Firebase for: " + modelName);
     }
 
     public void saveSystemConfig(String configId, Map<String, Object> config) {
         db.getReference("config").child(configId).updateChildrenAsync(config);
-        System.out.println("⚙️ System configuration '" + configId + "' updated.");
     }
 
-    // ... (rest of existing methods: saveUser, getAllRequirements, etc.)
     public String createProject(String name, String description, String summary) {
         DatabaseReference projectsRef = db.getReference("projects").push();
         String projectId = projectsRef.getKey();
         Map<String, Object> projectData = new HashMap<>();
         projectData.put("name", name);
+        projectData.put("description", description);
+        projectData.put("summary", summary);
         projectData.put("status", "planning");
         projectData.put("createdAt", System.currentTimeMillis());
         projectsRef.setValueAsync(projectData);
@@ -122,29 +132,12 @@ public class FirebaseService {
         db.getReference("projects").child(projectId).child("chat").push().setValueAsync(chatData);
     }
 
-    // ==================== User Management Methods ====================
-
-    /**
-     * Save user to Firebase
-     */
     public void saveUser(User user) {
         if (user != null && user.getId() != null) {
             db.getReference("users").child(user.getId()).setValueAsync(user);
         }
     }
 
-    /**
-     * Update user in Firebase
-     */
-    public void updateUser(User user) {
-        if (user != null && user.getId() != null) {
-            db.getReference("users").child(user.getId()).setValueAsync(user);
-        }
-    }
-
-    /**
-     * Get user by username
-     */
     public User getUserByUsername(String username) {
         try {
             CompletableFuture<User> future = new CompletableFuture<>();
@@ -162,44 +155,12 @@ public class FirebaseService {
                         future.complete(null);
                     }
                     @Override
-                    public void onCancelled(DatabaseError error) {
-                        future.completeExceptionally(error.toException());
-                    }
+                    public void onCancelled(DatabaseError error) { future.completeExceptionally(error.toException()); }
                 });
             return future.get();
-        } catch (Exception e) {
-            System.err.println("Error getting user by username: " + e.getMessage());
-            return null;
-        }
+        } catch (Exception e) { return null; }
     }
 
-    /**
-     * Get user by ID
-     */
-    public User getUserById(String userId) {
-        try {
-            CompletableFuture<User> future = new CompletableFuture<>();
-            db.getReference("users").child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot snapshot) {
-                    User user = snapshot.getValue(User.class);
-                    future.complete(user);
-                }
-                @Override
-                public void onCancelled(DatabaseError error) {
-                    future.completeExceptionally(error.toException());
-                }
-            });
-            return future.get();
-        } catch (Exception e) {
-            System.err.println("Error getting user by ID: " + e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * Get all users
-     */
     public List<User> getAllUsers() {
         try {
             CompletableFuture<List<User>> future = new CompletableFuture<>();
@@ -210,28 +171,17 @@ public class FirebaseService {
                     if (snapshot.exists()) {
                         for (DataSnapshot data : snapshot.getChildren()) {
                             User user = data.getValue(User.class);
-                            if (user != null) {
-                                users.add(user);
-                            }
+                            if (user != null) users.add(user);
                         }
                     }
                     future.complete(users);
                 }
-                @Override
-                public void onCancelled(DatabaseError error) {
-                    future.completeExceptionally(error.toException());
-                }
+                @Override public void onCancelled(DatabaseError error) { future.completeExceptionally(error.toException()); }
             });
             return future.get();
-        } catch (Exception e) {
-            System.err.println("Error getting all users: " + e.getMessage());
-            return new ArrayList<>();
-        }
+        } catch (Exception e) { return new ArrayList<>(); }
     }
 
-    /**
-     * Send notification
-     */
     public void sendNotification(String recipient, String title, String message, String type) {
         Map<String, Object> notification = new HashMap<>();
         notification.put("recipient", recipient);
