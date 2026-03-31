@@ -6,7 +6,8 @@
 
 ---
 
-## ০. শুরু করার আগে আপনার যা দরকার:
+## ০. শুরু করার আগে আপনার যা দরকার
+
 - একটি Windows/Mac/Linux কম্পিউটার
 - Google Account (Firebase এর জন্য)
 - কিছু API keys (Gemini, ChatGPT ইত্যাদি)
@@ -17,6 +18,7 @@
 ## 📱 PHASE 1: Device এ Setup
 
 ### Step 1️⃣ - Java ইনস্টল করুন
+
 ```bash
 # Windows এ জাভা ইনস্টল করুন (JDK 17+)
 # Download from: https://www.oracle.com/java/technologies/downloads/
@@ -28,6 +30,7 @@ java -version
 ```
 
 ### Step 2️⃣ - SupremeAI কোড Download করুন
+
 ```bash
 # যেখানে আপনি কাজ করতে চান:
 cd C:\Users\YourName\Desktop
@@ -38,6 +41,7 @@ cd supremeai
 ```
 
 ### Step 3️⃣ - Android Studio ইনস্টল করুন (Flutter এর জন্য)
+
 ```bash
 # ডাউনলোড: https://developer.android.com/studio
 # Windows এ হবে সবচেয়ে সহজ
@@ -50,6 +54,7 @@ flutter --version
 ```
 
 ### Step 4️⃣ - প্রথমবার Build করুন
+
 ```bash
 cd c:\Users\YourName\supremeai
 
