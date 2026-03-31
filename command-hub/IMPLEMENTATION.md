@@ -11,6 +11,7 @@ CommandHub is a comprehensive command orchestration platform for SupremeAI. It p
 
 ## Architecture
 
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Admin/User Layer                         │
@@ -91,25 +92,34 @@ CommandResult result = executor.execute(       // Execute with validation
 System health and metrics:
 
 #### health-check
+
+
 - Status: **SYNC**
 - Permission: `view.health`
 - Returns: Overall system health
+
 ```bash
 supcmd exec health-check
 ```
 
 #### quota-status
+
+
 - Status: **SYNC**
 - Permission: `view.quotas`
 - Returns: Quota usage for all providers
+
 ```bash
 supcmd exec quota-status
 ```
 
 #### metrics
+
+
 - Status: **SYNC**
 - Permission: `view.metrics`
 - Returns: System performance metrics
+
 ```bash
 supcmd exec metrics
 ```
@@ -119,32 +129,40 @@ supcmd exec metrics
 Data collection and synchronization:
 
 #### refresh-github
+
 - Status: **ASYNC**
 - Permission: `execute.refresh`
 - Params: owner, repo
+
 ```bash
 supcmd exec refresh-github -p owner supremeai -p repo core
 ```
 
 #### refresh-vercel
+
 - Status: **ASYNC**
 - Permission: `execute.refresh`
 - Params: projectId
+
 ```bash
 supcmd exec refresh-vercel -p projectId my-project
 ```
 
 #### refresh-firebase
+
 - Status: **ASYNC**
 - Permission: `execute.refresh`
+
 ```bash
 supcmd exec refresh-firebase
 ```
 
 #### refresh-all
+
 - Status: **ASYNC**
 - Permission: `execute.refresh`
 - Refreshes all data sources in parallel
+
 ```bash
 supcmd exec refresh-all
 ```
