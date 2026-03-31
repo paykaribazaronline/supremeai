@@ -230,9 +230,9 @@ public class ZetaFinanceAgent {
         scenarios.put("worst_case", worstCase);
         
         // Probability-weighted expected outcome
-        double expectedMonthly = (bestCase.get("probability") * (double) bestCase.get("monthly_cost")) +
-                               (baseCase.get("probability") * (double) baseCase.get("monthly_cost")) +
-                               (worstCase.get("probability") * (double) worstCase.get("monthly_cost"));
+        double expectedMonthly = ((double) bestCase.get("probability") * (double) bestCase.get("monthly_cost")) +
+                               ((double) baseCase.get("probability") * (double) baseCase.get("monthly_cost")) +
+                               ((double) worstCase.get("probability") * (double) worstCase.get("monthly_cost"));
         
         scenarios.put("probability_weighted_forecast", Map.of(
             "monthly_cost", expectedMonthly,
