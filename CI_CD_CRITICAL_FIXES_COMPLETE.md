@@ -30,6 +30,7 @@ Fixed 6 critical CI/CD workflow issues affecting deployment reliability, quality
 **File:** `.github/workflows/java-ci.yml`
 
 **Change:**
+
 ```yaml
 # BEFORE (❌ Tests silently pass even if broken)
 - name: ✅ Run tests
@@ -43,6 +44,7 @@ Fixed 6 critical CI/CD workflow issues affecting deployment reliability, quality
 ```
 
 **Impact:**
+
 - ✅ Quality gate enforcement activated
 - ✅ Broken tests no longer hidden
 - ✅ Deployment blocked until tests pass
@@ -57,17 +59,20 @@ Fixed 6 critical CI/CD workflow issues affecting deployment reliability, quality
 **File:** `GCP_IAM_PERMISSIONS_FIX.md` (NEW)
 
 **Problem:**
+
 - Service account: `github-action-1192200658@supremeai-a.iam.gserviceaccount.com`
 - Has `roles/run.viewer` but needs `roles/run.admin`
 - Missing `roles/secretmanager.admin` entirely
 
 **Error Messages:**
+
 ```
 PERMISSION_DENIED: roles/run.admin
 PERMISSION_DENIED: roles/secretmanager.admin
 ```
 
 **Solution (CLI):**
+
 ```bash
 gcloud projects add-iam-policy-binding supremeai-a \
   --member="serviceAccount:github-action-1192200658@supremeai-a.iam.gserviceaccount.com" \
@@ -79,6 +84,7 @@ gcloud projects add-iam-policy-binding supremeai-a \
 ```
 
 **Solution (GCP Console):**
+
 1. Open [GCP IAM Console](https://console.cloud.google.com/iam-admin/iam)
 2. Find service account: `github-action-1192200658@supremeai-a`
 3. Add roles: `Cloud Run Admin` + `Secret Manager Admin`
@@ -93,6 +99,7 @@ gcloud projects add-iam-policy-binding supremeai-a \
 **File:** `.github/workflows/self-healing-cicd.yml`
 
 **Change:**
+
 ```yaml
 # BEFORE (❌ Runs every 5 minutes)
 schedule:
@@ -104,17 +111,20 @@ schedule:
 ```
 
 **Cost Savings:**
+
 - **Before:** 288 runs/day × 30 days = 8,640 runs/month @ ~$0.005-0.012/run = **~$50-100/month**
 - **After:** 24 runs/day × 30 days = 720 runs/month @ ~$0.005-0.012/run = **~$5-10/month**
 - **Annual Savings:** ~$540-1,080
 
 **Health Check Frequency:**
+
 ```
 Every 5 minutes:   ████████████████████████████ (too frequent)
 Hourly (new):      ████ (still robust, reduces noise)
 ```
 
 **Impact:**
+
 - ✅ 91.7% reduction in workflow runs
 - ✅ 90% cost reduction
 - ✅ Still catches failures within 1 hour
