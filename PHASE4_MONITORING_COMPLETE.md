@@ -1,17 +1,21 @@
 # 🚀 Phase 4: Advanced Monitoring & Performance
+
 **Status:** ✅ IMPLEMENTED & DEPLOYED  
 **Date:** March 29, 2026  
 **Commit:** d6e0ada
 
 ## Overview
+
 Phase 4 adds comprehensive real-time monitoring, performance optimization, and automated alerting to ensure production reliability and visibility.
 
 ## ✅ Implemented Components
 
 ### 1. MetricsService
+
 **Location:** `src/main/java/org/example/service/MetricsService.java`
 
 Tracks real-time system health:
+
 - **Memory Metrics:** Heap usage, max capacity, committed memory
 - **CPU Metrics:** Process CPU usage, system load, available processors
 - **Request Metrics:** Total requests, success rate, error count
@@ -25,9 +29,11 @@ Map<String, Object> health = metricsService.getSystemHealth();
 ```
 
 ### 2. CacheService
+
 **Location:** `src/main/java/org/example/service/CacheService.java`
 
 High-performance in-memory caching:
+
 - Configurable TTL (Time To Live) per entry
 - Automatic expiration handling
 - LRU access logging
@@ -41,9 +47,11 @@ cacheService.invalidatePattern("config:.*");
 ```
 
 ### 3. AlertingService
+
 **Location:** `src/main/java/org/example/service/AlertingService.java`
 
 Proactive system monitoring with alerting:
+
 - **Alert Levels:** INFO, WARNING, ERROR, CRITICAL
 - **Automatic Triggers:**
   - Memory usage > 85%
@@ -61,6 +69,7 @@ alertingService.resolveAlert(alertId);
 ## 📡 REST API Endpoints
 
 ### Metrics Endpoints
+
 ```bash
 # System health (memory, CPU, requests, latency)
 GET /api/metrics/health
@@ -76,6 +85,7 @@ GET /api/metrics/status
 ```
 
 ### Alerts Endpoints
+
 ```bash
 # Get all active alerts
 GET /api/alerts
@@ -105,10 +115,12 @@ POST /api/alerts/create
 ```
 
 ## 📊 Monitoring Dashboard
+
 **Location:** `public/monitoring-dashboard.html`  
 **Access:** `/public/monitoring-dashboard.html` or `/monitoring-dashboard.html`
 
 Real-time monitoring dashboard with:
+
 - System status & uptime
 - Memory usage visualization
 - Request metrics & success rate
@@ -118,6 +130,7 @@ Real-time monitoring dashboard with:
 - Auto-refresh every 5 seconds
 
 **Features:**
+
 - 📊 Live metric updates
 - 🎯 Color-coded alerts (warning, error, critical)
 - 📈 Progress bars for utilization
@@ -127,6 +140,7 @@ Real-time monitoring dashboard with:
 ## 🔗 Integration Points
 
 ### With CodeGenerationOrchestrator
+
 ```java
 @Autowired
 private MetricsService metricsService;
@@ -144,6 +158,7 @@ public Map<String, Object> generateReactComponent(...) {
 ```
 
 ### With CacheService
+
 ```java
 // Cache frequently accessed configuration
 cacheService.put("provider:config", providerConfig, 600000); // 10m TTL
@@ -172,21 +187,25 @@ var cachedConfig = cacheService.get("provider:config");
 ## 📝 Usage Examples
 
 ### Monitor System Health
+
 ```bash
 curl http://localhost:8080/api/metrics/health | jq
 ```
 
 ### Track Generation Performance
+
 ```bash
 curl http://localhost:8080/api/metrics/stats | jq '.by_framework'
 ```
 
 ### Check Active Alerts
+
 ```bash
 curl http://localhost:8080/api/alerts
 ```
 
 ### View Real-Time Dashboard
+
 ```
 Open browser: http://localhost:8080/public/monitoring-dashboard.html
 ```
@@ -194,15 +213,18 @@ Open browser: http://localhost:8080/public/monitoring-dashboard.html
 ## 🔧 Configuration Options
 
 **MetricsService:**
+
 - Request latency history: Limited to 1000 samples
 - Metric reset: On service restart
 
 **CacheService:**
+
 - Default TTL: 5 minutes
 - Max cache entries: Unlimited (memory-limited)
 - Access logging: Last 50 keys tracked for LRU
 
 **AlertingService:**
+
 - Alert history: Last 500 alerts
 - Memory threshold: 85%
 - Error rate threshold: 10%
@@ -210,16 +232,19 @@ Open browser: http://localhost:8080/public/monitoring-dashboard.html
 ## 🎯 Next Phase Enhancements
 
 ### Phase 4.1: WebSocket Real-Time Updates
+
 - Push metric updates to clients
 - Live alert notifications
 - Reduce polling overhead
 
 ### Phase 4.2: Distributed Metrics
+
 - Multi-instance aggregation
 - Cross-service monitoring
 - Centralized dashboard
 
 ### Phase 4.3: Alerting Integration
+
 - Email notifications
 - Slack/Teams webhooks
 - PagerDuty integration
@@ -228,6 +253,7 @@ Open browser: http://localhost:8080/public/monitoring-dashboard.html
 ## ✅ Testing Phase 4
 
 ### Local Testing
+
 ```bash
 # Build Phase 4
 ./gradlew build
@@ -243,6 +269,7 @@ open http://localhost:8080/public/monitoring-dashboard.html
 ```
 
 ### Load Testing
+
 ```bash
 # Generate traffic to populate metrics
 for i in {1..100}; do
@@ -256,6 +283,7 @@ curl http://localhost:8080/api/metrics/stats
 ## 📊 Dashboard Screenshots
 
 **Real-Time Monitoring:**
+
 - Live uptime counter
 - Memory bar chart with limits
 - Request success rate progress
@@ -266,17 +294,20 @@ curl http://localhost:8080/api/metrics/stats
 ## 🚀 Deployment
 
 Phase 4 is already deployed to:
+
 - ✅ **Render:** https://supremeai-service.onrender.com
 - ✅ **Firebase Hosting:** Via GitHub Actions
 - ✅ **Local:** `http://localhost:8080`
 
 Dashboard URLs:
+
 ```
 Local: http://localhost:8080/public/monitoring-dashboard.html
 Render: https://supremeai-service.onrender.com/public/monitoring-dashboard.html
 ```
 
 ## 📚 Related Files
+
 - `MetricsService.java` - Core metrics tracking
 - `CacheService.java` - Performance caching
 - `AlertingService.java` - Alert management  

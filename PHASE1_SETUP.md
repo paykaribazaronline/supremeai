@@ -125,6 +125,7 @@ src/main/java/org/example/
 ## 🌐 API CONFIGURATION
 
 ### DeepSeek Setup
+
 ```java
 // API: https://api.deepseek.com/v1/chat/completions
 // Free tier: 50 requests/day
@@ -133,6 +134,7 @@ AIAPIService.callAI("BUILDER", prompt, List.of("DEEPSEEK", "GROQ", "TOGETHER_AI"
 ```
 
 ### Groq Setup
+
 ```java
 // API: https://api.groq.com/openai/v1/chat/completions
 // Free tier: 1M tokens/day
@@ -141,6 +143,7 @@ AIAPIService.callAI("ARCHITECT", prompt, List.of("GROQ", "CLAUDE", "GPT4"))
 ```
 
 ### Anthropic (Claude) Setup
+
 ```java
 // API: https://api.anthropic.com/v1/messages
 // Model: claude-3-sonnet-20240229
@@ -148,6 +151,7 @@ AIAPIService.callAI("ARCHITECT", prompt, List.of("GROQ", "CLAUDE", "GPT4"))
 ```
 
 ### OpenAI (GPT-4) Setup
+
 ```java
 // API: https://api.openai.com/v1/chat/completions
 // Model: gpt-4
@@ -255,6 +259,7 @@ See `PHASE2_ROADMAP.md` for details.
 ## 📞 TROUBLESHOOTING
 
 ### Firebase Connection Fails
+
 ```bash
 # Verify credentials
 firebase login
@@ -265,11 +270,13 @@ cat local.properties | grep firebase.credentials
 ```
 
 ### API Rate Limits Triggered
+
 - Check `AIAPIService.java` line ~180 for fallback logic
 - Ensure RotationManager is triggered on 429/403
 - Fallback chain: DeepSeek → Groq → Together AI → (etc)
 
 ### Memory File Not Persisting
+
 - Check file path: `memory.json` created in project root
 - Verify write permissions: `chmod 666 memory.json`
 - Monitor output for `IOException` in console

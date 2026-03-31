@@ -40,11 +40,13 @@ Step 5: Watch it work! (- min)
 ### ✅ STEP 1: Open Admin Dashboard (30 seconds)
 
 **In your browser, go to:**
+
 ```
 http://localhost:8001
 ```
 
 **You should see:**
+
 - Black/dark theme interface
 - Left sidebar menu
 - Main dashboard with stats
@@ -59,6 +61,7 @@ http://localhost:8001
 **Left Menu → Click "🔑 API Key Manager"**
 
 You'll see:
+
 ```
 ┌─────────────────────────────────────┐
 │ API Key Manager                     │
@@ -73,6 +76,7 @@ You'll see:
 **Click "➕ Add New API Key"**
 
 A popup form appears. Fill it:
+
 ```
 ┌─────────────────────────────────────┐
 │ Add New API Key                     │
@@ -107,6 +111,7 @@ A popup form appears. Fill it:
 **Left Menu → Click "📦 Projects"**
 
 You'll see:
+
 ```
 ┌─────────────────────────────────────┐
 │ Projects                            │
@@ -121,6 +126,7 @@ You'll see:
 **Click "➕ Create New Project"**
 
 Form appears:
+
 ```
 ┌─────────────────────────────────────┐
 │ Create New Project                  │
@@ -153,6 +159,7 @@ Form appears:
 **Left Menu → Click "🤖 AI Agents"**
 
 You'll see:
+
 ```
 ┌─────────────────────────────────────┐
 │ AI Agent Assignment                 │
@@ -167,6 +174,7 @@ You'll see:
 **Click "➕ Assign New Agent"**
 
 Form appears:
+
 ```
 ┌─────────────────────────────────────┐
 │ Assign AI Agent                     │
@@ -199,11 +207,13 @@ Form appears:
 ### ✅ STEP 5: Watch It Work! (0 seconds, just observe)
 
 **Now open Monitoring Dashboard:**
+
 ```
 http://localhost:8000
 ```
 
 You'll see:
+
 ```
 ┌─────────────────────────────────────┐
 │ SupremeAI Monitoring Dashboard      │
@@ -234,6 +244,7 @@ You'll see:
 ```
 
 **Watch as:**
+
 1. Architect designs the app (~2 min)
 2. Builder generates code (~5 min)
 3. Reviewer tests everything (~3 min)
@@ -242,9 +253,10 @@ You'll see:
 
 ---
 
-## 🎉 YOU DID IT!
+## 🎉 YOU DID IT
 
 In just 5 minutes, you:
+
 - ✅ Opened admin dashboard
 - ✅ Added API key (system can now work)
 - ✅ Created your first project
@@ -297,20 +309,23 @@ Generated Files:
 
 ## 🎯 QUICK TIPS
 
-### Bookmark These URLs:
+### Bookmark These URLs
+
 ```
 Admin:  http://localhost:8001  (👑 Main interface)
 Monitor: http://localhost:8000  (👁️ Watch progress)
 ```
 
-### Save These Ever:
+### Save These Ever
+
 ```
 API Keys:     Keep SAFE, never share
 Project Names: Can be anything descriptive
 Framework:    Flutter is most complete
 ```
 
-### Remember:
+### Remember
+
 ```
 ✓ Each project gets its own AI team (Arch + Builder + Reviewer)
 ✓ Whole process takes ~5 minutes per project
@@ -323,35 +338,41 @@ Framework:    Flutter is most complete
 ## ❓ FAQ - QUICK ANSWERS
 
 **Q: Where's my generated code?**
+
 ```
 A: In Admin Dashboard → Projects → Click your project
    Or in file system: c:\Users\Nazifa\supremeai\projects\
 ```
 
 **Q: How long does a project take?**
+
 ```
 A: ~5 minutes if API working
    Or ~30 min if slow internet
 ```
 
 **Q: Can I run multiple projects?**
+
 ```
 A: Yes! Each gets its own AI team
    Create another project and assign AI
 ```
 
 **Q: What if something goes wrong?**
+
 ```
 A: Check monitoring dashboard for error logs
    All errors showing there
 ```
 
 **Q: Can I stop a running project?**
+
 ```
 A: Yes! Admin Dashboard → Projects → Stop
 ```
 
 **Q: Where do I get an API key?**
+
 ```
 A: Gemini: https://ai.google.dev (Free)
    OpenAI: https://platform.openai.com
@@ -362,21 +383,24 @@ A: Gemini: https://ai.google.dev (Free)
 
 ## 🚀 NEXT: WHAT TO DO AFTER THIS
 
-### Immediate (Next 30 min):
+### Immediate (Next 30 min)
+
 ```
 ☐ Check generated code quality
 ☐ Review monitoring dashboard
 ☐ Try creating another project
 ```
 
-### Today (Before end of day):
+### Today (Before end of day)
+
 ```
 ☐ Read ADMIN_OPERATIONS_GUIDE.md (15 min)
 ☐ Configure email alerts (if needed)
 ☐ Create 3-5 test projects
 ```
 
-### This Week:
+### This Week
+
 ```
 ☐ Set up Firebase backup
 ☐ Configure project templates
@@ -389,6 +413,7 @@ A: Gemini: https://ai.google.dev (Free)
 ## 📞 STILL STUCK?
 
 ### Can't find a button?
+
 ```
 → Check if you're on right page (Admin Dashboard: :8001)
 → Try refreshing the page
@@ -396,6 +421,7 @@ A: Gemini: https://ai.google.dev (Free)
 ```
 
 ### API key not working?
+
 ```
 → Verify key is correct
 → Verify it's from right provider (Gemini, OpenAI, etc.)
@@ -403,6 +429,7 @@ A: Gemini: https://ai.google.dev (Free)
 ```
 
 ### Dashboards not loading?
+
 ```
 → Check URLs: :8001 (Admin) and :8000 (Monitor)
 → Check if servers running

@@ -6,7 +6,8 @@
 
 ---
 
-## ০. শুরু করার আগে আপনার যা দরকার:
+## ০. শুরু করার আগে আপনার যা দরকার
+
 - একটি Windows/Mac/Linux কম্পিউটার
 - Google Account (Firebase এর জন্য)
 - কিছু API keys (Gemini, ChatGPT ইত্যাদি)
@@ -17,6 +18,7 @@
 ## 📱 PHASE 1: Device এ Setup
 
 ### Step 1️⃣ - Java ইনস্টল করুন
+
 ```bash
 # Windows এ জাভা ইনস্টল করুন (JDK 17+)
 # Download from: https://www.oracle.com/java/technologies/downloads/
@@ -28,6 +30,7 @@ java -version
 ```
 
 ### Step 2️⃣ - SupremeAI কোড Download করুন
+
 ```bash
 # যেখানে আপনি কাজ করতে চান:
 cd C:\Users\YourName\Desktop
@@ -38,6 +41,7 @@ cd supremeai
 ```
 
 ### Step 3️⃣ - Android Studio ইনস্টল করুন (Flutter এর জন্য)
+
 ```bash
 # ডাউনলোড: https://developer.android.com/studio
 # Windows এ হবে সবচেয়ে সহজ
@@ -50,6 +54,7 @@ flutter --version
 ```
 
 ### Step 4️⃣ - প্রথমবার Build করুন
+
 ```bash
 cd c:\Users\YourName\supremeai
 
@@ -130,6 +135,7 @@ JSON ফাইল ডাউনলোড হবে
 ```
 
 **এই ফাইল আপনার Local Device এ রেখে দিন:**
+
 ```
 c:\Users\YourName\supremeai\src\main\resources\service-account.json
 ```
@@ -141,6 +147,7 @@ Firestore Database → Rules ট্যাব
 ```
 
 Paste করুন এই rules:
+
 ```typescript
 rules_version = '2';
 service cloud.firestore {
@@ -197,6 +204,7 @@ Publish করুন। ✅
 ### Step 4: Keys সেট করুন Device এ
 
 **Windows PowerShell খুলুন:**
+
 ```powershell
 # Environment variables সেট করুন:
 [Environment]::SetEnvironmentVariable("GEMINI_API_KEY", "আপনার-key-এখানে", "User")
@@ -208,6 +216,7 @@ Exit
 ```
 
 **অথবা `.env` ফাইলে রাখুন:**
+
 ```
 # c:\Users\YourName\supremeai\.env
 
@@ -220,9 +229,10 @@ DEEPSEEK_API_KEY=sk-xxx...
 
 ## 📊 PHASE 4: Daily Admin কাজ
 
-### প্রতিদিন যা করবেন:
+### প্রতিদিন যা করবেন
 
-#### ✅ Morning Checklist (সকালে):
+#### ✅ Morning Checklist (সকালে)
+
 ```
 1. Firebase Console খুলুন
    → Projects section দেখুন
@@ -237,7 +247,8 @@ DEEPSEEK_API_KEY=sk-xxx...
    → বড় হয়ে যাচ্ছে কিনা দেখুন
 ```
 
-#### 🏃 Afternoon (যখন Users কাজ করছে):
+#### 🏃 Afternoon (যখন Users কাজ করছে)
+
 ```
 1. Database Monitor করুন
    → কোন slow query আছে কিনা
@@ -248,7 +259,8 @@ DEEPSEEK_API_KEY=sk-xxx...
    → Fix করা লাগবে কিনা
 ```
 
-#### 🛡️ Evening (সন্ধ্যায়):
+#### 🛡️ Evening (সন্ধ্যায়)
+
 ```
 1. Security check:
    → কেউ আনঅথরাইজড access চেষ্টা করেছে কিনা
@@ -319,7 +331,7 @@ Memory: 512 MB বা বেশি
 
 ## 🎯 PHASE 6: Admin Dashboard (Daily Commands)
 
-### Local Device এ Quick Commands:
+### Local Device এ Quick Commands
 
 ```powershell
 # Build করুন
@@ -346,14 +358,16 @@ Memory: 512 MB বা বেশি
 
 ## 📈 PHASE 7: Monitoring Dashboard Setup
 
-### Firebase এ Real-time Dashboard দেখতে:
+### Firebase এ Real-time Dashboard দেখতে
 
 **স্টেপ:**
+
 1. Firebase Console খুলুন
 2. Realtime Database → "Data" tab
 3. দেখুন live updates
 
 **বা Google Cloud Monitoring:**
+
 ```
 Google Cloud Console
 ↓
@@ -372,7 +386,7 @@ Add:
 
 ## 💾 PHASE 8: Backup Strategy
 
-### Daily Backup (প্রতিদিন 2 AM এ automatic):
+### Daily Backup (প্রতিদিন 2 AM এ automatic)
 
 **Setup করুন Cloud Functions এ:**
 
@@ -400,6 +414,7 @@ exports.dailyBackup = functions.pubsub
 ```
 
 Deploy করুন:
+
 ```bash
 firebase deploy --only functions:dailyBackup
 ```
@@ -408,7 +423,7 @@ firebase deploy --only functions:dailyBackup
 
 ## 🔐 PHASE 9: Security Checklist
 
-### প্রতি সপ্তাহে (Weekly):
+### প্রতি সপ্তাহে (Weekly)
 
 - [ ] Firestore rules update করুন
 - [ ] API keys rotate করুন
@@ -416,7 +431,7 @@ firebase deploy --only functions:dailyBackup
 - [ ] Unauthorized attempts check করুন
 - [ ] Database backup verify করুন
 
-### প্রতি মাসে (Monthly):
+### প্রতি মাসে (Monthly)
 
 - [ ] Performance report generate করুন
 - [ ] Cost analysis করুন (Firebase expenses)
@@ -427,7 +442,7 @@ firebase deploy --only functions:dailyBackup
 
 ## 📱 PHASE 10: Mobile এ Flutter App চালান
 
-### একবার সব setup হয়ে গেলে:
+### একবার সব setup হয়ে গেলে
 
 ```bash
 cd c:\Users\YourName\supremeai\supremeai

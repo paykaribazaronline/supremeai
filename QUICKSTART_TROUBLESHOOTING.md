@@ -7,33 +7,39 @@
 ## 1. QUICK START (5 Minutes)
 
 ### Step 1: Verify Java Installation
+
 ```powershell
 java -version
 # Should show: java version "17" or higher
 ```
 
 ### Step 2: Build the Project
+
 ```powershell
 cd c:\Users\Nazifa\supremeai
 .\gradlew build
 ```
 
 **Expected Output:**
+
 ```
 BUILD SUCCESSFUL in 15s
 ```
 
 ### Step 3: Check Configuration
+
 ```powershell
 cat src/main/resources/application.properties
 ```
 
 ### Step 4: Run Unit Tests
+
 ```powershell
 .\gradlew test
 ```
 
 **Expected Output:**
+
 ```
 BUILD SUCCESSFUL in 20s
 2 tests passed
@@ -46,11 +52,13 @@ BUILD SUCCESSFUL in 20s
 ### Issue 1: Gradle Build Fails
 
 **Error:**
+
 ```
 Error: Could not find or load main class
 ```
 
 **Solution:**
+
 ```powershell
 # Clean and rebuild
 .\gradlew clean build --refresh-dependencies
@@ -67,11 +75,13 @@ java -version  # Must be 17+
 ### Issue 2: Firebase Not Connected
 
 **Error:**
+
 ```
 Failed to initialize FirebaseApp
 ```
 
 **Solution 1: Check Google Cloud Credentials**
+
 ```powershell
 # Windows: Check environment variable
 $env:GOOGLE_APPLICATION_CREDENTIALS
@@ -82,6 +92,7 @@ $env:GOOGLE_APPLICATION_CREDENTIALS = "C:\path\to\service-account-key.json"
 ```
 
 **Solution 2: Use Firebase Emulator (Local Development)**
+
 ```powershell
 # Install Firebase CLI
 npm install -g firebase-tools
@@ -99,11 +110,13 @@ firebase emulators:start
 ### Issue 3: API Keys Not Working
 
 **Error:**
+
 ```
 Unauthorized: Invalid API key
 ```
 
 **Solution:**
+
 ```powershell
 # 1. Verify API key is in Google Cloud Secret Manager
 gcloud secrets list --project=supremeai
@@ -121,11 +134,13 @@ $env:GROQ_KEY = "your-key-here"
 ### Issue 4: Rate Limiting Errors
 
 **Error:**
+
 ```
 429 Too Many Requests
 ```
 
 **Solution:**
+
 ```powershell
 # Check configuration
 cat src/main/resources/application.properties | Select-String "ratelimit"
@@ -142,17 +157,20 @@ cat src/main/resources/application.properties | Select-String "ratelimit"
 ### Issue 5: Tests Fail
 
 **Error:**
+
 ```
 org.junit.ComparisonFailure: expected:<success> but was:<error>
 ```
 
 **Solution 1: Check Dependencies**
+
 ```powershell
 .\gradlew dependencies | grep -i junit
 # Should show: junit:junit-bom:5.9.3 or higher
 ```
 
 **Solution 2: Run in Isolation**
+
 ```powershell
 # Run single test
 .\gradlew test --tests APIErrorHandlerTest
@@ -162,6 +180,7 @@ org.junit.ComparisonFailure: expected:<success> but was:<error>
 ```
 
 **Solution 3: Clean Test Cache**
+
 ```powershell
 .\gradlew cleanTest test
 ```
@@ -171,11 +190,13 @@ org.junit.ComparisonFailure: expected:<success> but was:<error>
 ### Issue 6: Logback Not Logging
 
 **Error:**
+
 ```
 No output from AuditLogger
 ```
 
 **Solution:**
+
 ```powershell
 # 1. Verify logback.xml exists
 Test-Path src/main/resources/logback.xml
@@ -197,11 +218,13 @@ Test-Path src/main/resources/logback.xml
 ### Issue 7: Metrics Not Collecting
 
 **Error:**
+
 ```
 MetricsService returns empty map
 ```
 
 **Solution:**
+
 ```powershell
 # 1. Verify Micrometer is in build.gradle.kts
 .\gradlew dependencies | grep -i micrometer
@@ -248,17 +271,20 @@ git push origin feature-branch
 ### Running the Application
 
 **Option 1: Using Gradle**
+
 ```powershell
 .\gradlew run
 ```
 
 **Option 2: Direct Java Execution**
+
 ```powershell
 .\gradlew build
 java -cp "build\classes\java\main;build\resources\main" org.example.Main
 ```
 
 **Option 3: IDE Execution**
+
 - Open in IntelliJ IDEA
 - Right-click Main.java
 - Click "Run Main.main()"
@@ -296,6 +322,7 @@ git commit -m "Feature: My new feature"
 ### Debugging Tips
 
 **Enable Debug Logging:**
+
 ```properties
 # In application.properties
 logging.level.org.example=DEBUG
@@ -303,6 +330,7 @@ logging.level.com.google.firebase=DEBUG
 ```
 
 **Breakpoint Debugging (IDEA):**
+
 ```
 1. Left-click line number to set breakpoint
 2. Right-click Main.java → Debug 'Main'
@@ -311,6 +339,7 @@ logging.level.com.google.firebase=DEBUG
 ```
 
 **Print Debugging:**
+
 ```java
 // Good for quick debugging
 System.out.println("DEBUG: agentScore = " + agentScore);
@@ -341,6 +370,7 @@ java -cp "build\classes\java\main" org.example.Main 2>&1 | Select-String "durati
 ### Optimize if Needed
 
 **Slow API Calls (> 5 seconds):**
+
 ```java
 // Check timeout in application.properties
 api.timeout.seconds=30  // May be too high for some APIs
@@ -354,6 +384,7 @@ if (cachedResult != null) return cachedResult;
 ```
 
 **Slow Consensus (> 10 seconds):**
+
 ```java
 // Check agent pool size
 consensus.thread.pool.size=10  // May be too small
@@ -366,6 +397,7 @@ consensus.timeout.seconds=30
 ```
 
 **Slow Requirement Classification (> 3 seconds):**
+
 ```java
 // Use caching for patterns
 cache.put("description_pattern_1", "SMALL");
@@ -542,6 +574,7 @@ java -Xloggc:gc.log -cp "build\classes\java\main" org.example.Main
 ### Debug Information to Gather
 
 When reporting issues, include:
+
 ```
 1. Full error message and stack trace
 2. OS and Java version: java -version
@@ -646,6 +679,7 @@ java -cp build\classes\java\main org.example.Main  # Direct execution
 **Status:** Ready for Team Distribution
 
 **Quick Links:**
+
 - [Full Documentation](README.md)
 - [Architecture Guide](PHASE1_ARCHITECTURE.md)
 - [Security Guide](SECURITY_GUIDE.md)

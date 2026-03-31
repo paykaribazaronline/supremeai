@@ -19,6 +19,7 @@ http://localhost:8001
 ## ⭐ 5 THINGS YOU CAN NOW DO
 
 ### 1. Add ANY AI Provider (Search)
+
 ```
 Form: "Select Provider"
 Type: "Mistral"
@@ -29,6 +30,7 @@ Add: Paste key → Done ✅
 ```
 
 ### 2. Add Custom Provider (Manual)
+
 ```
 Form: "Select Provider"
 Type: "MyLocalAI"
@@ -39,6 +41,7 @@ Result: Added & ready to use ✅
 ```
 
 ### 3. Test Provider Connection
+
 ```
 Adding provider automatically tests:
 ✅ Connection works?
@@ -48,6 +51,7 @@ Result shows: Success or Failed
 ```
 
 ### 4. Switch Provider Instantly
+
 ```
 Project using: OpenAI
 Change to: Claude 3
@@ -57,6 +61,7 @@ Code changes: ZERO ✅
 ```
 
 ### 5. Remove Old Provider
+
 ```
 Provider: "old-gemini-key"
 Action: Click "Remove"
@@ -69,6 +74,7 @@ Cleanup: Done ✅
 ## 🎯 COMMON SCENARIOS
 
 ### Scenario 1: Add Gemini
+
 ```
 Step 1: Open http://localhost:8001
 Step 2: API Key Manager → Add Provider
@@ -84,6 +90,7 @@ Restart needed: No
 ```
 
 ### Scenario 2: Add Custom/Local AI
+
 ```
 Step 1: Open http://localhost:8001
 Step 2: API Key Manager → Add Provider
@@ -99,6 +106,7 @@ Privacy: 100%
 ```
 
 ### Scenario 3: Switch From OpenAI to Claude
+
 ```
 Step 1: Dashboard → Projects
 Step 2: Find your project
@@ -112,6 +120,7 @@ Restart: Not needed
 ```
 
 ### Scenario 4: Quota Exceeded - Use Backup
+
 ```
 Current: OpenAI quota hit today
 Solution: Switch to backup provider
@@ -130,6 +139,7 @@ Cost: Minimal (shorter quota wait)
 ## 🔍 FIND NEW AI PROVIDERS
 
 ### Option 1: Use Dashboard Search
+
 ```
 1. Type provider name in search box
 2. Click: "🔍 Search"
@@ -139,6 +149,7 @@ Cost: Minimal (shorter quota wait)
 ```
 
 ### Option 2: Manual Discovery
+
 ```
 Visit these sites for latest AI:
 - https://huggingface.co
@@ -151,6 +162,7 @@ Find API → Get key → Add to dashboard
 ```
 
 ### Option 3: Monitor AI News
+
 ```
 Subscribe to:
 - AI researcher newsletters
@@ -209,6 +221,7 @@ v3.8: Provider performance metrics
 ## ⚡ POWER TIPS
 
 ### Tip 1: Always Have Backup
+
 ```
 Main: Gemini API (primary)
 Backup: Claude 3 (if Gemini down)
@@ -218,6 +231,7 @@ Zero downtime ✓
 ```
 
 ### Tip 2: Document Why Added
+
 ```
 When adding provider, note:
 - "Added March 27 - 40% cheaper than OpenAI"
@@ -228,6 +242,7 @@ Helps you remember later ✓
 ```
 
 ### Tip 3: Rotate Keys Monthly
+
 ```
 Schedule once a month:
 1. Generate new key in provider portal
@@ -238,6 +253,7 @@ Schedule once a month:
 ```
 
 ### Tip 4: Monitor Usage
+
 ```
 Check weekly:
 - API calls per provider
@@ -249,6 +265,7 @@ Optimize & save money ✓
 ```
 
 ### Tip 5: Stay Current
+
 ```
 Each week:
 - Check AI news
@@ -264,6 +281,7 @@ Always ahead of curve ✓
 ## 🆘 QUICK TROUBLESHOOTING
 
 ### Provider Not Working?
+
 ```
 Check 1: Is key correct? (Copy-paste fresh)
 Check 2: Is key valid? (Check provider site)
@@ -273,6 +291,7 @@ Check 5: Check logs (Dashboard → Audit Logs)
 ```
 
 ### Can't Find Provider?
+
 ```
 Type full name: "Gemini API" (not just "Gemini")
 Search for it: Click "🔍 Search"
@@ -280,6 +299,7 @@ Add manually: If not in list
 ```
 
 ### Form Won't Submit?
+
 ```
 Check 1: Provider name not empty? ✓
 Check 2: API key not empty? ✓
@@ -289,6 +309,7 @@ Try 5: Different browser
 ```
 
 ### System Using Old Key?
+
 ```
 Old key removed but system still using it?
 Solution:

@@ -10,6 +10,7 @@
 ### 🔴 CRITICAL ALERTS (Immediate Action Required)
 
 #### Alert 1: High Error Rate
+
 ```yaml
 name: "High Error Rate Alert"
 metric: "error_rate"
@@ -26,6 +27,7 @@ response_time: "5 minutes"
 ```
 
 #### Alert 2: API Quota Limit Exceeded
+
 ```yaml
 name: "API Quota Exceeded"
 metric: "api_quota_usage"
@@ -41,6 +43,7 @@ response_time: "Immediate"
 ```
 
 #### Alert 3: Database Connection Lost
+
 ```yaml
 name: "Firebase Connection Lost"
 metric: "firebase_connection_status"
@@ -57,6 +60,7 @@ response_time: "Immediate"
 ```
 
 #### Alert 4: Storage Limit Exceeded
+
 ```yaml
 name: "Storage Quota Exceeded"
 metric: "storage_used"
@@ -72,6 +76,7 @@ response_time: "1 hour"
 ```
 
 #### Alert 5: Response Time Degradation
+
 ```yaml
 name: "Severe Response Time Degradation"
 metric: "response_time"
@@ -92,6 +97,7 @@ response_time: "15 minutes"
 ### 🟠 WARNING ALERTS (Monitor Closely)
 
 #### Alert 1: Elevated Error Rate
+
 ```yaml
 name: "Elevated Error Rate"
 metric: "error_rate"
@@ -108,6 +114,7 @@ response_time: "1 hour"
 ```
 
 #### Alert 2: High Memory Usage
+
 ```yaml
 name: "High Memory Usage"
 metric: "memory_usage"
@@ -124,6 +131,7 @@ response_time: "30 minutes"
 ```
 
 #### Alert 3: Slow Database Queries
+
 ```yaml
 name: "Slow Database Queries"
 metric: "db_query_time"
@@ -140,6 +148,7 @@ response_time: "1 hour"
 ```
 
 #### Alert 4: API Quota Usage High
+
 ```yaml
 name: "API Quota Usage High"
 metric: "api_quota_usage"
@@ -155,6 +164,7 @@ response_time: "2 hours"
 ```
 
 #### Alert 5: Storage Approaching Limit
+
 ```yaml
 name: "Storage Approaching Limit"
 metric: "storage_used"
@@ -173,6 +183,7 @@ response_time: "24 hours"
 ### 🔵 INFO ALERTS (For Awareness)
 
 #### Alert 1: Daily Summary Report
+
 ```yaml
 name: "Daily Performance Summary"
 metric: "daily_metrics"
@@ -185,6 +196,7 @@ severity: "INFO"
 ```
 
 #### Alert 2: Weekly Performance Report
+
 ```yaml
 name: "Weekly Performance Report"
 metric: "weekly_metrics"
@@ -197,6 +209,7 @@ severity: "INFO"
 ```
 
 #### Alert 3: New Project Created
+
 ```yaml
 name: "New Project Notification"
 metric: "project_created"
@@ -208,6 +221,7 @@ severity: "INFO"
 ```
 
 #### Alert 4: Backup Completed
+
 ```yaml
 name: "Backup Completed Successfully"
 metric: "backup_status"
@@ -223,6 +237,7 @@ severity: "INFO"
 ## Notification Channels
 
 ### Email Configuration
+
 ```yaml
 email:
   from: "alerts@supremeai.com"
@@ -235,6 +250,7 @@ email:
 ```
 
 ### SMS Configuration
+
 ```yaml
 sms:
   provider: "Twilio"
@@ -247,6 +263,7 @@ sms:
 ```
 
 ### Slack Configuration
+
 ```yaml
 slack:
   webhook_url: "${SLACK_WEBHOOK_URL}"
@@ -257,6 +274,7 @@ slack:
 ```
 
 ### Firebase Cloud Messaging
+
 ```yaml
 fcm:
   enabled: true
@@ -272,6 +290,7 @@ fcm:
 ## Alert Escalation Policy
 
 ### Level 1: Automatic (First 15 minutes)
+
 ```
 Email → Admin
 Dashboard → Red Alert
@@ -279,6 +298,7 @@ Create Ticket → Incident Management
 ```
 
 ### Level 2: Manual Review (15-30 minutes)
+
 ```
 If no resolution:
 → Send SMS Notification
@@ -287,6 +307,7 @@ If no resolution:
 ```
 
 ### Level 3: Escalation (30+ minutes)
+
 ```
 If no resolution yet:
 → Page Engineering Manager
@@ -299,7 +320,7 @@ If no resolution yet:
 
 ## Alert Response Procedures
 
-### For Critical Alerts:
+### For Critical Alerts
 
 ```
 1. ACKNOWLEDGE (0-1 min)
@@ -322,7 +343,7 @@ If no resolution yet:
    - Perform post-mortem
 ```
 
-### For Warning Alerts:
+### For Warning Alerts
 
 ```
 1. MONITOR (0-30 min)

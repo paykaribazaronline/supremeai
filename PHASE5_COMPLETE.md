@@ -16,9 +16,11 @@ Phase 5 delivers comprehensive analytics persistence, multi-channel notification
 ## 📊 Phase 5 Services (4 Files, 1,120+ Lines)
 
 ### 1. **PersistentAnalyticsService.java** (350+ lines)
+
 **Purpose:** Store and analyze historical metrics in Firestore
 
 **Inner Classes:**
+
 - `MetricsSnapshot` — Captures moment-in-time metrics (timestamp, memory, CPU, requests, success rate, latency)
 - `TimeSeriesData` — Collection of metric values over time
 
@@ -37,21 +39,25 @@ Phase 5 delivers comprehensive analytics persistence, multi-channel notification
 | `clearOldSnapshots(retentionDays)` | Cleanup old snapshots per policy | boolean |
 
 **Features:**
+
 - 📦 Synchronized snapshots list (max 1000 recent)
 - 📈 DoubleSummaryStatistics for aggregations
 - 🔄 Async Firestore persistence
 - 🗂️ Retention policy support (configurable days)
 
 **Integration:**
+
 - `@Autowired MetricsService` — Real-time metrics source
 - Firestore for cloud persistence
 
 ---
 
 ### 2. **NotificationService.java** (300+ lines)
+
 **Purpose:** Multi-channel alert delivery (Email, Slack, Discord, SMS)
 
 **Inner Classes:**
+
 - `NotificationConfig` — Channel configuration (type, endpoint, apiKey, enabled, recipients list)
 
 **Core Methods:**
@@ -68,6 +74,7 @@ Phase 5 delivers comprehensive analytics persistence, multi-channel notification
 | `addRecipient(channel, recipient)` | Register recipients | void |
 
 **Features:**
+
 - 📱 4 notification channels configurable via environment variables
 - 🔼 Escalation policies by severity:
   - CRITICAL → All channels
@@ -78,6 +85,7 @@ Phase 5 delivers comprehensive analytics persistence, multi-channel notification
 - 📝 Notification history with 1000-log limit
 
 **Environment Variables:**
+
 ```properties
 SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
 DISCORD_WEBHOOK_URL=https://discordapp.com/api/webhooks/...
@@ -88,9 +96,11 @@ MAIL_API_KEY=your_sendgrid_key
 ---
 
 ### 3. **MLIntelligenceService.java** (350+ lines)
+
 **Purpose:** Machine Learning for anomaly detection, failure prediction, auto-scaling
 
 **Inner Classes:**
+
 - `AnomalyPoint` — Anomaly detection result with Z-score, threshold classification, anomaly type
 
 **Core Methods:**
@@ -105,6 +115,7 @@ MAIL_API_KEY=your_sendgrid_key
 | `calculateLinearRegression(values)` | Helper | Slope & intercept |
 
 **Features:**
+
 - 📊 Z-score statistical method for outlier detection (2.5-sigma threshold)
 - 📈 Linear regression (least squares) for trend prediction
 - 🎯 Confidence calculation from score differentials
@@ -112,6 +123,7 @@ MAIL_API_KEY=your_sendgrid_key
 - ⚖️ Auto-scaling policy templates (SCALE_UP_AGGRESSIVE, SCALE_UP, MAINTAIN)
 
 **Anomaly Thresholds:**
+
 ```
   Z-Score < 2.5-sigma   → NORMAL
   Z-Score 2.5-3-sigma   → MILD_ANOMALY (caution)
@@ -119,6 +131,7 @@ MAIL_API_KEY=your_sendgrid_key
 ```
 
 **Auto-Scaling Rules:**
+
 ```
   Memory:  Scale if (peak > avg * 1.8) OR (avg > 80%)
   CPU:     Scale if > 75% utilization
@@ -129,6 +142,7 @@ MAIL_API_KEY=your_sendgrid_key
 ---
 
 ### 4. **PersistentAnalyticsController.java** (120+ lines)
+
 **Purpose:** REST API for historical analytics and exports
 
 **Endpoints (8 Total):**
@@ -160,6 +174,7 @@ GET  /api/analytics/compare?p1Start=ISO&p1End=ISO&p2Start=ISO&p2End=ISO
 ```
 
 **Features:**
+
 - ✅ LocalDateTime ISO parsing with error handling
 - 📥 CSV content-disposition headers for downloads
 - 🔍 BadRequest responses for invalid input
@@ -170,6 +185,7 @@ GET  /api/analytics/compare?p1Start=ISO&p1End=ISO&p2Start=ISO&p2End=ISO
 ## 🔔 Phase 5 Controllers (2 Files, 280+ Lines)
 
 ### 5. **NotificationController.java** (160+ lines)
+
 **REST API for managing and sending notifications**
 
 **Endpoints (8 Total):**
@@ -208,6 +224,7 @@ POST /api/notifications/recipient?channel=EMAIL&recipient=...
 ---
 
 ### 6. **MLIntelligenceController.java** (120+ lines)
+
 **REST API for ML predictions and intelligence**
 
 **Endpoints (6 Total):**
@@ -265,6 +282,7 @@ GET  /api/intelligence/ml/anomaly-summary
 ## 🚀 Deployment & Testing
 
 ### Build Status
+
 ```
 ✅ Build Successful
    Time: 23 seconds
@@ -276,12 +294,14 @@ GET  /api/intelligence/ml/anomaly-summary
 ### Testing Endpoints
 
 **1. Test Analytics API:**
+
 ```bash
 curl -X GET "http://localhost:8080/api/analytics/trend?metric=memory&hours=24" \
   -H "Content-Type: application/json"
 ```
 
 **2. Test Notification:**
+
 ```bash
 curl -X POST "http://localhost:8080/api/notifications/slack" \
   -H "Content-Type: application/json" \
@@ -294,6 +314,7 @@ curl -X POST "http://localhost:8080/api/notifications/slack" \
 ```
 
 **3. Test ML Anomaly Detection:**
+
 ```bash
 curl -X POST "http://localhost:8080/api/intelligence/ml/detect-anomalies" \
   -H "Content-Type: application/json" \
@@ -307,13 +328,15 @@ curl -X POST "http://localhost:8080/api/intelligence/ml/detect-anomalies" \
 
 ## 📈 Architecture Improvements
 
-### Before Phase 5:
+### Before Phase 5
+
 - ❌ Real-time metrics lost after server restart
 - ❌ No trend analysis or historical comparison
 - ❌ Manual provider selection
 - ❌ Limited anomaly detection
 
-### After Phase 5:
+### After Phase 5
+
 - ✅ Persistent historical metrics via Firestore
 - ✅ Z-score trend analysis & period comparison
 - ✅ ML-based anomaly detection (3-sigma)
@@ -342,12 +365,14 @@ curl -X POST "http://localhost:8080/api/intelligence/ml/detect-anomalies" \
 ## 🎯 What's Next?
 
 **Phase 6: Advanced Visualization**
+
 - [ ] Heatmaps for performance distribution
 - [ ] Anomaly timeline visualization
 - [ ] Prediction confidence graphs
 - [ ] Real-time trend lines on dashboard
 
 **Phase 7: Advanced Automation**
+
 - [ ] Self-healing triggers based on ML predictions
 - [ ] Automatic emergency scaling decisions
 - [ ] Root cause analysis automation

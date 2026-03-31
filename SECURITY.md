@@ -22,9 +22,11 @@ We release patches for security vulnerabilities for the following versions:
 **DO NOT** open a public issue for security vulnerabilities. Instead:
 
 ### Step 1: Contact Securely
+
 Email your security report to: **[security@supremeai.project](mailto:security@supremeai.project)**
 
 Include:
+
 - **Title:** Brief description of vulnerability
 - **Type:** (e.g., SQL Injection, XSS, Authentication Bypass, DOS, etc.)
 - **Components:** Which parts are affected
@@ -35,6 +37,7 @@ Include:
 - **Your Contact:** Email for follow-up
 
 ### Step 2: Expect Response
+
 - **Initial Response:** Within 48 hours
 - **Status Updates:** Every 5 business days
 - **Resolution Timeline:** 7-30 days depending on severity
@@ -45,6 +48,7 @@ Include:
 ## 🔐 Vulnerability Classifications
 
 ### 🔴 Critical
+
 - **Impact:** System compromise, data breach, complete DoS
 - **Response Time:** 24 hours
 - **Examples:** Remote code execution, authentication bypass, SQL injection
@@ -56,6 +60,7 @@ Disclosure: 30 days after patch
 ```
 
 ### 🟠 High
+
 - **Impact:** Significant security risk
 - **Response Time:** 2-3 days
 - **Examples:** Privilege escalation, sensitive data exposure
@@ -67,6 +72,7 @@ Disclosure: 60 days after patch
 ```
 
 ### 🟡 Medium
+
 - **Impact:** Moderate security risk
 - **Response Time:** 1-2 weeks
 - **Examples:** Information disclosure, weak authentication
@@ -78,6 +84,7 @@ Disclosure: 90 days after patch
 ```
 
 ### 🟢 Low
+
 - **Impact:** Minor security issue
 - **Response Time:** 1 month
 - **Examples:** Deprecated function usage, weak defaults
@@ -95,6 +102,7 @@ Disclosure: 90 days after patch
 ### For Users & Administrators
 
 **Environment Variables**
+
 ```bash
 # ✅ DO: Use environment variables for secrets
 export FIREBASE_SERVICE_ACCOUNT=$(cat service-account.json | base64)
@@ -105,6 +113,7 @@ const API_KEY = "sk-1234567890abcdef";  // NEVER!
 ```
 
 **Credential Management**
+
 ```bash
 # ✅ DO: Keep credentials in .env (local only)
 # ✅ DO: Use GitHub Secrets for CI/CD
@@ -113,6 +122,7 @@ const API_KEY = "sk-1234567890abcdef";  // NEVER!
 ```
 
 **API Key Rotation**
+
 ```
 - Rotate all API keys every 90 days
 - Immediately rotate if compromised
@@ -121,6 +131,7 @@ const API_KEY = "sk-1234567890abcdef";  // NEVER!
 ```
 
 **Network Security**
+
 ```bash
 # Use HTTPS only in production
 # Enable CORS only for trusted origins
@@ -131,6 +142,7 @@ const API_KEY = "sk-1234567890abcdef";  // NEVER!
 ### For Contributors
 
 **Code Security Checklist**
+
 - [ ] No hardcoded credentials or secrets
 - [ ] Input validation on all endpoints
 - [ ] SQL injection prevention (use parameterized queries)
@@ -143,6 +155,7 @@ const API_KEY = "sk-1234567890abcdef";  // NEVER!
 - [ ] Dependencies are from trusted sources
 
 **Before Committing**
+
 ```bash
 # Scan for secrets
 git diff HEAD | grep -E "password|key|secret|token|credential"
@@ -158,6 +171,7 @@ git log --all -S 'FIREBASE_API_KEY' --oneline
 ```
 
 **Review Process**
+
 ```
 1. Code review for security issues
 2. Dependency vulnerability scan
@@ -171,17 +185,20 @@ git log --all -S 'FIREBASE_API_KEY' --oneline
 ## 🔍 Security Testing
 
 ### Automated Testing
+
 - **Dependency Scanning:** Gradle dependencyCheck plugin
 - **Static Analysis:** SpotBugs, CheckStyle
 - **Secret Scanning:** TruffleHog in CI/CD
 - **Container Scanning:** Docker image vulnerability scan
 
 ### Manual Testing
+
 - **Penetration Testing:** Quarterly by security team
 - **Security Audit:** Annually or after major changes
 - **Code Review:** All PRs reviewed for security
 
 ### GitHub Security Features
+
 - ✅ Enabled: Dependabot alerts
 - ✅ Enabled: Secret scanning
 - ✅ Enabled: Code scanning (CodeQL)
@@ -246,6 +263,7 @@ We appreciate your help in keeping SupremeAI secure! Your responsible disclosure
 ## 📋 Acknowledgments
 
 Security researchers and contributors who have responsibly disclosed vulnerabilities will be credited in:
+
 - Security advisories
 - Release notes
 - Hall of fame (if desired)
