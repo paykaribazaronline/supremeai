@@ -118,17 +118,19 @@ public class FixApplier {
     /**
      * Log the outcome of applying a fix
      */
-    private void logFixOutcome(String decisionId, String result, float successMetric, String agent) {
+    private void logFixOutcome(String decisionId, String result, double successMetric, String agent) {
         try {
             // Record the outcome decision
+            String[] patterns = result.equals("SUCCESS") ? 
+                new String[]{"auto-fix", "error-detection", agent.toLowerCase()} :
+                new String[]{"auto-fix-failed", agent.toLowerCase()};
+            
             decisionLogger.recordDecisionOutcome(
                 decisionId,
                 result,  // SUCCESS, FAILURE, PARTIAL
+                "Fix outcome recorded by " + agent,
                 successMetric,
-                // Patterns to learn from
-                result.equals("SUCCESS") ? 
-                    List.of("auto-fix", "error-detection", agent.toLowerCase()) :
-                    List.of("auto-fix-failed", agent.toLowerCase())
+                patterns
             );
         } catch (Exception e) {
             // Log failure if outcome recording fails
@@ -151,8 +153,9 @@ public class FixApplier {
                 decisionLogger.recordDecisionOutcome(
                     fix.decisionId,
                     "ROLLED_BACK",
-                    0.0f,
-                    List.of("rollback")
+                    "Fix was rolled back",
+                    0.0,
+                    "rollback"
                 );
                 
                 return true;
