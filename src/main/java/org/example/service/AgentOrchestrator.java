@@ -4,12 +4,14 @@ import org.example.model.Agent;
 import org.example.model.Requirement;
 import org.example.model.Vote;
 import org.example.model.SystemConfig;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 
 
+@Service
 public class AgentOrchestrator {
     private final AIAPIService aiService;
     private final ConsensusEngine consensusEngine;
