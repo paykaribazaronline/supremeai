@@ -11,7 +11,6 @@ CommandHub is a comprehensive command orchestration platform for SupremeAI. It p
 
 ## Architecture
 
-
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Admin/User Layer                         │
@@ -93,7 +92,6 @@ System health and metrics:
 
 #### health-check
 
-
 - Status: **SYNC**
 - Permission: `view.health`
 - Returns: Overall system health
@@ -104,7 +102,6 @@ supcmd exec health-check
 
 #### quota-status
 
-
 - Status: **SYNC**
 - Permission: `view.quotas`
 - Returns: Quota usage for all providers
@@ -114,7 +111,6 @@ supcmd exec quota-status
 ```
 
 #### metrics
-
 
 - Status: **SYNC**
 - Permission: `view.metrics`
