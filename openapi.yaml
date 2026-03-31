@@ -1,0 +1,636 @@
+openapi: 3.0.3
+info:
+  title: SupremeAI API
+  description: |
+    SupremeAI Platform API for managing AI agents, projects, providers, and webhooks.
+    
+    ## Features
+    - API versioning (v1 deprecated, v2 current)
+    - Webhook management with exponential backoff retry logic
+    - Request/response batching for efficient API usage
+    - Rate limiting and comprehensive security
+    - Enhanced error handling and observability
+    
+    ## Authentication
+    All API requests require a valid JWT token in the Authorization header:
+    ```
+    Authorization: Bearer <your_jwt_token>
+    ```
+    
+    ## Rate Limiting
+    API requests are rate limited:
+    - 100 requests per minute per user
+    - 1000 requests per hour per project
+    
+    Rate limit headers in responses:
+    - `X-RateLimit-Limit`: Request limit
+    - `X-RateLimit-Remaining`: Remaining requests
+    - `X-RateLimit-Reset`: Unix timestamp when limit resets
+    
+  version: 2.0.0
+  contact:
+    name: SupremeAI Support
+    url: https://supremeai.example.com/support
+    email: support@supremeai.example.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: https://api.supremeai.example.com/api
+    description: Production server
+  - url: https://staging-api.supremeai.example.com/api
+    description: Staging server
+  - url: http://localhost:8080/api
+    description: Development server
+
+tags:
+  - name: API Information
+    description: API version and information endpoints
+  - name: Webhooks
+    description: Webhook management and operations
+  - name: Batch Operations
+    description: Batch request processing
+
+paths:
+  /:
+    get:
+      tags:
+        - API Information
+      summary: Get API Root Information
+      description: Returns information about the API, current version, and available versions
+      operationId: getAPIRoot
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "SupremeAI API"
+                  currentVersion:
+                    type: string
+                    example: "v2"
+                  versions:
+                    type: array
+                    items:
+                      type: string
+                    example: ["v1", "v2"]
+                  documentation:
+                    type: string
+                    example: "/api/docs"
+
+  /v1/info:
+    get:
+      tags:
+        - API Information
+      summary: Get API v1 Information (Deprecated)
+      description: Returns information about the legacy v1 API. This version is deprecated, please upgrade to v2.
+      operationId: getAPIInfoV1
+      deprecated: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                    example: "v1"
+                  deprecated:
+                    type: string
+                    example: "This version is deprecated. Please upgrade to v2."
+                  endpoints:
+                    type: array
+                    items:
+                      type: string
+                    example: ["/api/v1/projects", "/api/v1/agents", "/api/v1/metrics"]
+
+  /v2/info:
+    get:
+      tags:
+        - API Information
+      summary: Get API v2 Information
+      description: Returns information about the current v2 API with all available features
+      operationId: getAPIInfoV2
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                    example: "v2"
+                  features:
+                    type: array
+                    items:
+                      type: string
+                    example: 
+                      - "Webhooks with retry logic"
+                      - "Request/response batching"
+                      - "Enhanced error handling"
+                  endpoints:
+                    type: array
+                    items:
+                      type: string
+                    example: ["/api/v2/projects", "/api/v2/webhooks", "/api/v2/batch"]
+
+  /v2/webhooks:
+    post:
+      tags:
+        - Webhooks
+      summary: Register a Webhook
+      description: Register a new webhook for receiving event notifications
+      operationId: registerWebhook
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookRequest'
+      responses:
+        '201':
+          description: Webhook created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+        '400':
+          description: Invalid webhook configuration
+        '401':
+          description: Unauthorized
+        '429':
+          description: Too many requests
+
+    get:
+      tags:
+        - Webhooks
+      summary: List Webhooks
+      description: Retrieve all webhooks for the authenticated user
+      operationId: listWebhooks
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of webhooks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Webhook'
+        '401':
+          description: Unauthorized
+        '429':
+          description: Too many requests
+
+  /v2/webhooks/{webhookId}:
+    get:
+      tags:
+        - Webhooks
+      summary: Get Webhook Details
+      description: Retrieve details of a specific webhook
+      operationId: getWebhook
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: webhookId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Webhook details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Webhook not found
+        '429':
+          description: Too many requests
+
+    delete:
+      tags:
+        - Webhooks
+      summary: Delete Webhook
+      description: Delete a webhook permanently
+      operationId: deleteWebhook
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: webhookId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Webhook deleted successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Webhook not found
+        '429':
+          description: Too many requests
+
+  /v2/webhooks/{webhookId}/test:
+    post:
+      tags:
+        - Webhooks
+      summary: Test Webhook
+      description: Send a test webhook payload to verify webhook configuration
+      operationId: testWebhook
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: webhookId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                test:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: "This is a test webhook"
+      responses:
+        '200':
+          description: Test webhook sent successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Webhook not found
+        '429':
+          description: Too many requests
+
+  /v2/batch:
+    post:
+      tags:
+        - Batch Operations
+      summary: Create Batch
+      description: Create a new batch operation for combining multiple API requests
+      operationId: createBatch
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "my-batch-operation"
+      responses:
+        '201':
+          description: Batch created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  batchId:
+                    type: string
+                    format: uuid
+                  batchName:
+                    type: string
+                  status:
+                    type: string
+                    enum: [created]
+        '400':
+          description: Invalid batch configuration
+        '401':
+          description: Unauthorized
+        '429':
+          description: Too many requests
+
+    get:
+      tags:
+        - Batch Operations
+      summary: List Batches
+      description: Retrieve all batches for the authenticated user
+      operationId: listBatches
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of batches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BatchOperation'
+        '401':
+          description: Unauthorized
+        '429':
+          description: Too many requests
+
+  /v2/batch/{batchId}:
+    get:
+      tags:
+        - Batch Operations
+      summary: Get Batch Details
+      description: Retrieve details of a specific batch
+      operationId: getBatch
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: batchId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Batch details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchOperation'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Batch not found
+        '429':
+          description: Too many requests
+
+  /v2/batch/{batchId}/requests:
+    post:
+      tags:
+        - Batch Operations
+      summary: Add Request to Batch
+      description: Add a new request to an existing batch
+      operationId: addRequestToBatch
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: batchId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Request added successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Batch not found
+        '429':
+          description: Too many requests
+
+  /v2/batch/{batchId}/execute:
+    post:
+      tags:
+        - Batch Operations
+      summary: Execute Batch
+      description: Execute all requests in a batch and receive aggregated responses
+      operationId: executeBatch
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: batchId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Batch executed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  batchId:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    enum: [completed]
+                  requestCount:
+                    type: integer
+                  responseCount:
+                    type: integer
+                  completedAt:
+                    type: integer
+                    format: int64
+        '401':
+          description: Unauthorized
+        '404':
+          description: Batch not found
+        '429':
+          description: Too many requests
+
+  /v2/batch/{batchId}/cancel:
+    post:
+      tags:
+        - Batch Operations
+      summary: Cancel Batch
+      description: Cancel a pending batch operation
+      operationId: cancelBatch
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: batchId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Batch cancelled successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Batch not found
+        '429':
+          description: Too many requests
+
+  /v2/batch/completed:
+    delete:
+      tags:
+        - Batch Operations
+      summary: Clear Completed Batches
+      description: Delete all completed batch records
+      operationId: clearCompletedBatches
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Completed batches cleared
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  clearedCount:
+                    type: integer
+                  message:
+                    type: string
+        '401':
+          description: Unauthorized
+        '429':
+          description: Too many requests
+
+components:
+  schemas:
+    Webhook:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique webhook identifier
+        projectId:
+          type: string
+          description: Associated project ID
+        url:
+          type: string
+          format: uri
+          description: Webhook endpoint URL
+        events:
+          type: array
+          items:
+            type: string
+          description: List of events to subscribe to
+          example: ["project.created", "agent.updated"]
+        secretKey:
+          type: string
+          description: Secret key for webhook signature validation
+        active:
+          type: boolean
+          description: Whether the webhook is active
+        createdAt:
+          type: string
+          format: date-time
+          description: Webhook creation timestamp
+        lastDeliveryAt:
+          type: string
+          format: date-time
+          description: Last successful delivery timestamp
+        lastDeliveryStatus:
+          type: string
+          description: Status of last delivery attempt
+        retryAttempts:
+          type: integer
+          description: Number of retry attempts for failed deliveries
+        successfulDeliveries:
+          type: integer
+          description: Count of successful deliveries
+        failedDeliveries:
+          type: integer
+          description: Count of failed deliveries
+      required:
+        - id
+        - projectId
+        - url
+        - events
+        - active
+        - createdAt
+
+    WebhookRequest:
+      type: object
+      properties:
+        projectId:
+          type: string
+          description: Associated project ID
+        url:
+          type: string
+          format: uri
+          description: Webhook endpoint URL
+        events:
+          type: array
+          items:
+            type: string
+          description: List of events to subscribe to
+        secretKey:
+          type: string
+          description: Secret key for webhook signature validation
+      required:
+        - projectId
+        - url
+        - events
+
+    BatchOperation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique batch identifier
+        name:
+          type: string
+          description: Batch operation name
+        requestCount:
+          type: integer
+          description: Total number of requests in batch
+        responseCount:
+          type: integer
+          description: Number of responses returned
+        completed:
+          type: boolean
+          description: Whether batch execution is complete
+        cancelled:
+          type: boolean
+          description: Whether batch was cancelled
+        createdAt:
+          type: integer
+          format: int64
+          description: Batch creation timestamp (milliseconds)
+        completedAt:
+          type: integer
+          format: int64
+          description: Batch completion timestamp (milliseconds)
+      required:
+        - id
+        - name
+        - requestCount
+        - responseCount
+        - completed
+        - createdAt
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for API authentication
