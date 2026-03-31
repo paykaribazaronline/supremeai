@@ -8,6 +8,7 @@ import DecisionHistory from './components/DecisionHistory';
 import KingModePanel from './components/KingModePanel';
 import AuditLog from './components/AuditLog';
 import ThreeDashboard from './components/ThreeDashboard';
+import CostDashboard from './components/CostDashboard';
 
 const App: React.FC = () => {
     return (
@@ -24,6 +25,7 @@ const App: React.FC = () => {
                     <Route path="/history" component={DecisionHistory} />
                     <Route path="/kingmode" component={KingModePanel} />
                     <Route path="/audit" component={AuditLog} />
+                    <Route path="/costs" component={CostDashboard} />
                 </Switch>
             </div>
         </Router>
