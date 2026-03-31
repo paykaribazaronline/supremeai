@@ -1,107 +1,154 @@
 # Deployment Automation Guide
 
+
 ## Overview
 
 The Deployment Automation system provides comprehensive support for managing application deployments across multiple environments, including Docker containerization, Kubernetes orchestration, and deployment lifecycle management. This system is designed for enterprise-grade deployment reliability, scalability, and auditability.
 
+
 ## Architecture
+
 
 ### Core Components
 
 1. **DeploymentService** - Manages deployment lifecycle and versioning
+
 2. **KubernetesService** - Orchestrates Kubernetes deployments and pod management
+
 3. **DockerIntegrationService** - Handles Docker image building and registry operations
+
 4. **CICDPipelineService** - Orchestrates multi-stage CI/CD pipeline execution
+
 
 ## DeploymentService
 
 The DeploymentService manages the complete deployment lifecycle from creation through success or rollback.
 
+
 ### Key Features
 
+
 - **Deployment Lifecycle Management**: PENDING → IN_PROGRESS → SUCCESS/FAILED/ROLLED_BACK
+
 - **Version Management**: Application version registering and tracking
+
 - **Event Tracking**: Comprehensive deployment event logging
+
 - **Statistics**: Success rates and deployment metrics
+
 
 ### API Reference
 
+
 #### Create Deployment
+
 ```java
 DeploymentRecord createDeployment(String appName, String version, String environment)
+
 ```
 
 **Parameters:**
+
 - `appName`: Application name
+
 - `version`: Application version (e.g., "1.0.0")
+
 - `environment`: Target environment (e.g., "production", "staging")
 
 **Returns:** `DeploymentRecord` with deployment ID and initial status PENDING
 
 **Example:**
+
 ```java
+
 DeploymentRecord deployment = deploymentService.createDeployment(
     "myapp",
     "2.0.0",
     "production"
 );
+
 ```
 
+
 #### Get Deployment
+
 ```java
 DeploymentRecord getDeployment(String deploymentId)
+
 ```
 
 **Returns:** Deployment record with current status and metadata
 
+
 #### List Deployments
+
 ```java
 Collection<DeploymentRecord> listDeployments()
+
 ```
 
 **Returns:** All active deployments
 
+
 #### List by Application
+
 ```java
 List<DeploymentRecord> listDeploymentsByApplication(String appName)
+
 ```
 
 **Returns:** All deployments for specific application
 
+
 #### List by Environment
+
 ```java
 List<DeploymentRecord> listDeploymentsByEnvironment(String environment)
+
 ```
 
 **Returns:** All deployments in specific environment
 
+
 #### Start Deployment
+
 ```java
 void startDeployment(String deploymentId)
+
 ```
 
 Transitions deployment from PENDING to IN_PROGRESS. Call this after creating deployment.
 
+
 #### Complete Deployment
+
 ```java
 void completeDeployment(String deploymentId)
+
 ```
 
 Transitions deployment from IN_PROGRESS to SUCCESS.
 
+
 #### Fail Deployment
+
 ```java
 void failDeployment(String deploymentId, String reason)
+
 ```
 
 Transitions deployment from IN_PROGRESS to FAILED with failure reason.
 
+
 #### Rollback Deployment
+
 ```java
 void rollbackDeployment(String deploymentId, String previousVersion)
+
 ```
 
 Transitions to ROLLED_BACK status, restoring previous version.
+
 
 ### Deployment States
 
@@ -113,61 +160,87 @@ Transitions to ROLLED_BACK status, restoring previous version.
 | FAILED | Deployment encountered error | None |
 | ROLLED_BACK | Deployment rolled back to previous version | None |
 
+
 ### Version Management
 
+
 #### Register Version
+
 ```java
 ApplicationVersion registerVersion(String appName, String version, 
                                  String artifactUrl, String releaseNotes)
+
 ```
 
 **Example:**
+
 ```java
+
 ApplicationVersion v2 = deploymentService.registerVersion(
     "myapp",
     "2.0.0",
     "https://releases.example.com/myapp-2.0.0.jar",
     "Added new features X, Y, Z"
 );
+
 ```
 
+
 #### Get Latest Version
+
 ```java
 ApplicationVersion getLatestVersion(String appName)
+
 ```
 
 Returns most recent version registered for application.
 
+
 #### List Application Versions
+
 ```java
 List<ApplicationVersion> listVersionsForApplication(String appName)
+
 ```
 
 Returns all versions sorted by release date (newest first).
 
+
 ### Event Tracking
 
+
 #### Get Deployment Events
+
 ```java
 List<DeploymentEvent> getDeploymentEvents(String deploymentId)
+
 ```
 
 Returns all events for deployment in chronological order.
 
 **Event Fields:**
+
 - `eventType`: Type of event (CREATED, STARTED, COMPLETED, FAILED, ROLLED_BACK)
+
 - `message`: Event description
+
 - `timestamp`: When event occurred
+
 
 ### Statistics
 
+
 #### Get Deployment Statistics
+
 ```java
 Map<String, Object> getDeploymentStats()
+
 ```
 
 **Returns:**
+
 ```json
+
 {
   "totalDeployments": 150,
   "successfulDeployments": 142,
@@ -176,105 +249,156 @@ Map<String, Object> getDeploymentStats()
   "totalVersions": 25,
   "generatedAt": 1700000000000
 }
+
 ```
+
 
 ## KubernetesService
 
 Manages Kubernetes deployment, pod, and service orchestration.
 
+
 ### Key Features
 
+
 - **Deployment Management**: Create, scale, and update K8s deployments
+
 - **Pod Lifecycle**: Create pods, update status, track health
+
 - **Service Management**: Create K8s services and manage endpoints
+
 - **Cluster Health**: Real-time cluster health metrics
+
 
 ### API Reference
 
+
 #### Create Deployment
+
 ```java
 K8sDeployment createDeployment(String name, String namespace, 
                                String imageUrl, int replicas)
+
 ```
 
 **Parameters:**
+
 - `name`: Deployment name
+
 - `namespace`: K8s namespace (e.g., "default", "production")
+
 - `imageUrl`: Container image URL (e.g., "myapp:1.0.0")
+
 - `replicas`: Desired replica count
 
 **Example:**
+
 ```java
+
 K8sDeployment deployment = kubernetesService.createDeployment(
     "myapp-deployment",
     "production",
     "docker.io/myapp:2.0.0",
     3
 );
+
 ```
 
+
 #### Scale Deployment
+
 ```java
 void scaleDeployment(String deploymentId, int replicas)
+
 ```
 
 Dynamically adjust replica count.
 
+
 #### Update Deployment Image
+
 ```java
 void updateDeploymentImage(String deploymentId, String newImageUrl)
+
 ```
 
 Performs rolling update with new container image.
 
+
 ### Pod Management
 
+
 #### Create Pod
+
 ```java
 K8sPod createPod(String podName, String namespace, 
                  String deploymentId, String containerImage)
+
 ```
 
+
 #### Update Pod Status
+
 ```java
 void updatePodStatus(String podId, String status)
+
 ```
 
 **Pod Status Lifecycle:** Pending → Running → Terminated
 
+
 #### List Pods by Deployment
+
 ```java
 List<K8sPod> listPodsByDeployment(String deploymentId)
+
 ```
+
 
 ### Service Management
 
+
 #### Create Service
+
 ```java
 K8sService createService(String serviceName, String namespace, 
                          int port, String selector)
+
 ```
 
 **Parameters:**
+
 - `serviceName`: Service name
+
 - `namespace`: K8s namespace
+
 - `port`: Service port
+
 - `selector`: Label selector for pod routing (e.g., "app=myapp")
 
+
 #### List Services
+
 ```java
 Collection<K8sService> listServices()
+
 ```
+
 
 ### Cluster Health
 
+
 #### Get Cluster Health
+
 ```java
 Map<String, Object> getClusterHealth()
+
 ```
 
 **Returns:**
+
 ```json
+
 {
   "totalPods": 15,
   "runningPods": 13,
@@ -284,96 +408,138 @@ Map<String, Object> getClusterHealth()
   "totalDeployments": 5,
   "totalServices": 3
 }
+
 ```
+
 
 ## DockerIntegrationService
 
 Manages Docker image building, tagging, and registry operations.
 
+
 ### Key Features
 
+
 - **Image Building**: Build Docker images from Dockerfile
+
 - **Image Tagging**: Create alternative tags for existing images
+
 - **Registry Operations**: Push images to Docker registries
+
 - **Image Validation**: Verify image integrity
+
 
 ### API Reference
 
+
 #### Build Image
+
 ```java
 DockerImage buildImage(String imageName, String tag, 
                       String dockerfilePath, String buildContext)
+
 ```
 
 **Parameters:**
+
 - `imageName`: Image name (e.g., "myapp")
+
 - `tag`: Image tag (e.g., "1.0.0", "latest")
+
 - `dockerfilePath`: Path to Dockerfile
+
 - `buildContext`: Build context directory
 
 **Example:**
+
 ```java
+
 DockerImage image = dockerService.buildImage(
     "myapp",
     "2.0.0",
     "/src/Dockerfile",
     "/src"
 );
+
 ```
 
+
 #### Tag Image
+
 ```java
 DockerImage tagImage(String sourceImageId, String newTag)
+
 ```
 
 Creates new tag pointing to existing image (e.g., "latest" pointing to "2.0.0").
 
+
 #### Push to Registry
+
 ```java
 void pushImageToRegistry(String imageId, String registry, 
                         String username, String password)
+
 ```
 
 **Parameters:**
+
 - `registry`: Registry URL (e.g., "docker.io", "quay.io")
+
 - `username`: Registry credentials username
+
 - `password`: Registry credentials password
 
 **Example:**
+
 ```java
+
 dockerService.pushImageToRegistry(
     image.imageId,
     "docker.io",
     "username",
     "token"
 );
+
 ```
 
+
 #### Validate Image
+
 ```java
 boolean validateImage(String imageId)
+
 ```
 
 Checks image exists and is accessible.
 
+
 ### Build Job Management
 
+
 #### Get Build Job
+
 ```java
 BuildJob getBuildJob(String buildJobId)
+
 ```
 
 Returns build job details including logs.
 
+
 #### Get Build Logs
+
 ```java
 List<String> getBuildLogs(String buildJobId)
+
 ```
 
 Returns timestamped build logs.
 
 **Example Log Output:**
+
 ```
+
 [2024-01-15 10:30:45] Starting Docker build for myapp:2.0.0
 [2024-01-15 10:30:46] Dockerfile: /src/Dockerfile
 [2024-01-15 10:30:47] Build context: /src
@@ -384,26 +550,37 @@ Returns timestamped build logs.
 [2024-01-15 10:31:02] Layer 4/5: setting up entrypoint
 [2024-01-15 10:31:05] Layer 5/5: finalizing image
 [2024-01-15 10:31:10] Build completed successfully
+
 ```
+
 
 ### Image Cleanup
 
+
 #### Cleanup Old Images
+
 ```java
 void cleanupOldImages(String imageName, int keepCount)
+
 ```
 
 Removes old versions, keeping only most recent N.
 
+
 ### Image Statistics
 
+
 #### Get Image Stats
+
 ```java
 Map<String, Object> getImageStats()
+
 ```
 
 **Returns:**
+
 ```json
+
 {
   "totalImages": 25,
   "readyImages": 20,
@@ -413,32 +590,46 @@ Map<String, Object> getImageStats()
   "averageImageSize": 1717986918,
   "generatedAt": 1700000000000
 }
+
 ```
+
 
 ## CICDPipelineService
 
 Manages multi-stage CI/CD pipeline orchestration.
+
 
 ### Architecture
 
 The CI/CD Pipeline consists of 6 standard stages executed sequentially:
 
 1. **Checkout** - Clone repository and check out branch
+
 2. **Build** - Compile and package application
+
 3. **Test** - Execute unit and integration tests
+
 4. **Security Scan** - Run security vulnerability scanning
+
 5. **Docker** - Build Docker image and push to registry
+
 6. **Deployment** - Deploy to target environment
+
 
 ### API Reference
 
+
 #### Create Pipeline
+
 ```java
 PipelineExecution createPipeline(PipelineConfig config)
+
 ```
 
 **PipelineConfig:**
+
 ```java
+
 public static class PipelineConfig {
     public String pipelineName;
     public String gitRepo;
@@ -449,17 +640,23 @@ public static class PipelineConfig {
     public boolean failOnSecurityIssues = false;
     public Map<String, String> environment = new HashMap<>();
 }
+
 ```
 
+
 #### Execute Pipeline
+
 ```java
 PipelineExecutionResult executePipeline(PipelineExecution execution, 
                                        PipelineConfig config)
+
 ```
 
 Executes all pipeline stages sequentially. Returns result with per-stage details.
 
+
 ### Pipeline Execution Result
+
 
 ```json
 {
@@ -502,18 +699,25 @@ Executes all pipeline stages sequentially. Returns result with per-stage details
     }
   ]
 }
+
 ```
+
 
 ### Webhook Handling
 
+
 #### Handle Git Webhook
+
 ```java
 WebhookResult handleGitWebhook(WebhookPayload payload)
+
 ```
 
 Auto-triggers pipeline on push events to monitored branch.
 
+
 ## Best Practices
+
 
 ### Deployment Strategy
 
@@ -532,6 +736,7 @@ Auto-triggers pipeline on push events to monitored branch.
    - Register versions before deployment
    - Test rollback procedures
 
+
 ### Performance Optimization
 
 1. **Image Size Management**
@@ -549,33 +754,47 @@ Auto-triggers pipeline on push events to monitored branch.
    - Cache Docker layers
    - Use incremental builds
 
+
 ## Configuration
+
 
 ### Environment Variables
 
+
 ```properties
+
 # Deployment
+
 deployment.max-concurrent=10
 deployment.timeout-seconds=3600
 deployment.retention-days=30
 
+
 # Kubernetes
+
 kubernetes.max-pod-retries=3
 kubernetes.health-check-interval-ms=5000
 kubernetes.scaling-cooldown-ms=30000
 
+
 # Docker
+
 docker.registry-timeout-seconds=300
 docker.build-timeout-minutes=30
 docker.cleanup-schedule=0 2 * * *
 
+
 # CI/CD
+
 cicd.concurrent-pipelines=5
 cicd.stage-timeout-minutes=60
 cicd.artifact-retention-days=7
+
 ```
 
+
 ## Monitoring & Observability
+
 
 ### Key Metrics
 
@@ -603,60 +822,94 @@ cicd.artifact-retention-days=7
    - Test pass rate
    - Security scan findings
 
+
 ### Alerting
 
 Configure alerts for:
+
 - Deployment failures
+
 - Pod health below 80%
+
 - Image build failures
+
 - Pipeline execution timeouts
+
 - Registry push errors
 
+
 ## Troubleshooting
+
 
 ### Deployment Issues
 
 **Problem: Deployment stuck in IN_PROGRESS**
+
 - Check pod health status
+
 - Verify resource availability
+
 - Review deployment logs
+
 - Consider rollback
 
 **Problem: Version not found**
+
 - Verify version was registered
+
 - Check application name spelling
+
 - List versions for application
+
 
 ### Kubernetes Issues
 
 **Problem: Pods not transitioning to Running**
+
 - Check cluster health
+
 - Verify image availability
+
 - Check resource quotas
+
 - Review pod logs
 
 **Problem: Service endpoints not routing traffic**
+
 - Verify selector matches pod labels
+
 - Check pod health status
+
 - Verify port configuration
+
 
 ### Docker Issues
 
 **Problem: Image build failure**
+
 - Check Dockerfile syntax
+
 - Verify build context path
+
 - Review build logs
+
 - Verify dependency availability
 
 **Problem: Push to registry fails**
+
 - Verify registry credentials
+
 - Check network connectivity
+
 - Verify registry URL format
+
 - Check image size limits
+
 
 ## REST API Endpoints
 
 The DeploymentController exposes comprehensive REST APIs:
+
 
 ```
 POST   /api/deployment/deployments
@@ -701,11 +954,15 @@ POST   /api/deployment/docker/images/{imageName}/cleanup
 
 GET    /api/deployment/stats/deployments
 GET    /api/deployment/stats/images
+
 ```
+
 
 ## Example Workflows
 
+
 ### Complete Deployment Workflow
+
 
 ```java
 // 1. Register new version
@@ -744,9 +1001,12 @@ deploymentService.completeDeployment(deployment.deploymentId);
 
 // 9. Get stats
 Map<String, Object> stats = deploymentService.getDeploymentStats();
+
 ```
 
+
 ### CI/CD Pipeline Workflow
+
 
 ```java
 // 1. Configure pipeline
@@ -766,11 +1026,16 @@ CICDPipelineService.PipelineExecutionResult result =
 
 // 4. Check results
 System.out.println("Status: " + result.overallStatus);
+
 System.out.println("Duration: " + result.duration + "ms");
+
 for (CICDPipelineService.StageResult stage : result.stages) {
     System.out.println(stage.stageName + ": " + stage.success);
+
 }
+
 ```
+
 
 ## Version History
 

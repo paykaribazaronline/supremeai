@@ -5,9 +5,13 @@
 This is not traditional software. This is a **self-aware system** that:
 
 - 🔄 **Detects** failures in real-time
+
 - 🧠 **Learns** from failure patterns
+
 - 🔧 **Auto-repairs** itself without human intervention
+
 - 📈 **Improves** performance based on usage data
+
 - 🏗️ **Self-rebuilds** damaged components from scratch
 
 ---
@@ -17,6 +21,7 @@ This is not traditional software. This is a **self-aware system** that:
 ### Layer 1: Real-Time Failure Detection (Every 10 seconds)
 
 ```
+
 Health Check Interval: 10 seconds
 Monitor: ${health_endpoints}
   └─ /api/v1/health (overall system)
@@ -30,11 +35,13 @@ Failure Detection:
   ✓ Response time > 10s → DEGRADED (orange)
   ✓ No response (timeout) → CRITICAL (red)
   ✓ Error rate > 5% → UNHEALTHY
+
 ```
 
 ### Layer 2: Automatic Circuit Breaking
 
 ```
+
 State Transition Diagram:
 
 CLOSED (Healthy)
@@ -47,11 +54,13 @@ HALF_OPEN (Test single request)
 
 This prevents cascading failures automatically.
 System operates at reduced capacity, never completely down.
+
 ```
 
 ### Layer 3: Multi-Provider Failover
 
 ```
+
 Primary Provider: GitHub API
   ↓ (fails)
 Fallback 1: Vercel API
@@ -63,11 +72,13 @@ Fallback 3: Local Cache (auto-sync when available)
 Key: User never knows provider changed
      Data consistency maintained
      Performance gracefully degrades
+
 ```
 
 ### Layer 4: Intelligent Retry Logic
 
 ```
+
 Exponential Backoff Strategy:
 
 Attempt 1: Immediate
@@ -84,11 +95,13 @@ Attempt 4: Wait 4 seconds (2^2)
 
 System never gives up on first failure.
 Transient failures automatically resolved.
+
 ```
 
 ### Layer 5: Self-Healing Handlers
 
 ```
+
 When Circuit Breaker Opens:
   1. Log failure with timestamp + context
   2. Activate recovery handler for that provider
@@ -103,6 +116,7 @@ Recovery Handler Actions:
   - Reconnect database
   - Reinitialize connection pools
   - Warmup service with test requests
+
 ```
 
 ---
@@ -112,6 +126,7 @@ Recovery Handler Actions:
 ### Machine Learning Integration
 
 ```
+
 Input: System events + failures + response times
   ↓
 ML Model: Anomaly Detection (Isolation Forest)
@@ -121,11 +136,13 @@ Output: Predict failures before they occur
 Detection Window: 1-5 minutes before actual failure
 Action: Preemptively failover to healthy provider
 Result: User sees zero impact
+
 ```
 
 ### Adaptive Performance Tuning
 
 ```
+
 Week 1:
   - Default timeouts = 5s
   - Monitor all requests
@@ -141,11 +158,13 @@ Week 3:
   - Pre-warm cache at 7:50 AM
   
 Result: System learns optimal configuration for YOUR use cases
+
 ```
 
 ### Pattern Recognition
 
 ```
+
 System tracks:
   1. Provider reliability by time of day
   2. Peak traffic periods
@@ -158,6 +177,7 @@ Uses:
   - Predict which provider will fail next
   - Optimize database queries based on usage patterns
   - Auto-adjust cache TTL based on hit rates
+
 ```
 
 ---
@@ -167,6 +187,7 @@ Uses:
 ### The Self-Healing Loop
 
 ```
+
 Stage 1: Detect Corruption
   └─ Checksum validation on every data read
   └─ Schema version checks
@@ -186,11 +207,13 @@ Stage 4: Restore to Production
   └─ Gradually shift traffic back to rebuilt component
   └─ Monitor for new issues
   └─ Update health status
+
 ```
 
 ### Database Self-Repair
 
 ```
+
 Scenario: Database corrupted (rare but possible)
 
 Traditional System: Manual intervention, 2-3 hour recovery
@@ -222,11 +245,13 @@ Self-Rebuilding System: Automatic, <1 minute recovery
    - Cache warmed automatically
 
 Result: <60 second recovery, zero user impact
+
 ```
 
 ### Code Self-Healing
 
 ```
+
 Scenario: Bug found in production (memory leak, infinite loop)
 
 Traditional System: Deploy hotfix, restart service, 5-10 minute downtime
@@ -262,11 +287,13 @@ Self-Rebuilding System: Auto-detect, isolate, recover in <1 minute
    - Zero downtime deployment
 
 Result: System continues operating while code repairs itself
+
 ```
 
 ### Cache Self-Correction
 
 ```
+
 Scenario: Cache becomes inconsistent with database
 
 Traditional System: Manual cache invalidation, stale data served
@@ -289,6 +316,7 @@ Self-Rebuilding System: Automatic detection and refresh
    - Increase write-through frequency
    
 Result: Invisible to users, system self-corrects
+
 ```
 
 ---
@@ -298,6 +326,7 @@ Result: Invisible to users, system self-corrects
 ### Mode 1: Self-Healing Mode (Active 24/7)
 
 ```
+
 Purpose: Maintain availability during failures
   ✓ Circuit breakers
   ✓ Failover handlers
@@ -307,11 +336,13 @@ Purpose: Maintain availability during failures
 Action: Automatic recovery (no human needed)
 Response Time: < 1 minute
 Success Rate: > 99% of failures auto-resolved
+
 ```
 
 ### Mode 2: Self-Learning Mode (Active During Normal Operation)
 
 ```
+
 Purpose: Improve system from experience
   ✓ Pattern detection
   ✓ ML model training
@@ -321,11 +352,13 @@ Purpose: Improve system from experience
 Action: Gradual optimization (no impact on current operation)
 Learning Time: Needs 7-14 days for solid patterns
 Result: System gets better every day
+
 ```
 
 ### Mode 3: Self-Rebuilding Mode (Triggered on Errors)
 
 ```
+
 Purpose: Fix corrupted or broken components
   ✓ Data validation
   ✓ Component isolation
@@ -335,11 +368,13 @@ Purpose: Fix corrupted or broken components
 Action: Targeted recovery (only broken parts)
 Response Time: < 5 minutes for major rebuilds
 Impact: Minimal (usually zero user impact)
+
 ```
 
 ### Mode 4: Self-Improvement Mode (Planned Optimization)
 
 ```
+
 Purpose: Proactive system enhancement
   ✓ Code refactoring on non-critical paths
   ✓ Index optimization in database
@@ -349,6 +384,7 @@ Purpose: Proactive system enhancement
 Action: Scheduled during low-traffic windows
 Windows: 2-4 AM, weekends
 Result: Better performance, same code
+
 ```
 
 ---
@@ -387,6 +423,7 @@ public class HealthSensorController {
         }
     }
 }
+
 ```
 
 ### Sensor 2: ML Anomaly Detector
@@ -415,6 +452,7 @@ public class AnomalyDetectionService {
         }
     }
 }
+
 ```
 
 ### Sensor 3: Data Integrity Validator
@@ -450,6 +488,7 @@ public class DataIntegrityService {
         cache.setChecksum(key, newChecksum);
     }
 }
+
 ```
 
 ### Sensor 4: Performance Adaptive Tuning
@@ -483,6 +522,7 @@ public class AdaptivePerformanceTuning {
         }
     }
 }
+
 ```
 
 ### Sensor 5: Self-Rebuilding Orchestrator
@@ -553,6 +593,7 @@ public class SelfRebuildingOrchestrator {
         }
     }
 }
+
 ```
 
 ---
@@ -562,6 +603,7 @@ public class SelfRebuildingOrchestrator {
 ### Real-Time Dashboards
 
 ```
+
 Dashboard 1: System Health
 ┌─────────────────────────────────────┐
 │ System Status: HEALTHY ✓            │
@@ -595,11 +637,13 @@ Dashboard 3: ML Predictions
 │  ⚠️  Cache hit rate declining     │
 │ → Taking preventive actions...     │
 └─────────────────────────────────────┘
+
 ```
 
 ### Metrics That Matter
 
 ```
+
 1. MTTD (Mean Time To Detect)
    Target: < 30 seconds
    Actual: 12 seconds (4x better)
@@ -619,6 +663,7 @@ Dashboard 3: ML Predictions
 5. Zero User Impact Events
    Target: > 90%
    Actual: 96% (automated recovery)
+
 ```
 
 ---
@@ -626,6 +671,7 @@ Dashboard 3: ML Predictions
 ## Part 7: The Virtuous Cycle
 
 ```
+
 Day 1:
   - System deployed
   - Starts monitoring (sensor network active)
@@ -642,6 +688,7 @@ Day 8-14:
   - Configuration auto-adjusts
   - Availability reaches 99.9%+
   
+
 Day 15+:
   - ML model highly accurate
   - Zero-touch operation possible
@@ -653,6 +700,7 @@ Month 2:
   - Response times 20% faster
   - Resource utilization optimal
   - Operational excellence achieved
+
 ```
 
 ---
@@ -662,25 +710,33 @@ Month 2:
 ### Tier 1: Reliability
 
 - ✅ Availability: > 99.97%
+
 - ✅ MTTR: < 1 minute
+
 - ✅ False alerts: < 2%
 
 ### Tier 2: Performance
 
 - ✅ Response time improvement: +20%
+
 - ✅ Throughput increase: +15%
+
 - ✅ Resource optimization: -30%
 
 ### Tier 3: Resilience
 
 - ✅ Provider failures handled: 100%
+
 - ✅ Data corruption detected/fixed: 100%
+
 - ✅ User impact from failures: 0%
 
 ### Tier 4: Intelligence
 
 - ✅ Anomalies detected: 100%
+
 - ✅ Failures predicted: 85%+
+
 - ✅ Auto-optimization suggestions: Daily
 
 ---
@@ -688,7 +744,9 @@ Month 2:
 ## Deployment Command
 
 ```powershell
+
 # Deploy self-healing system
+
 docker run \
   -e ENABLE_SELF_HEALING=true \
   -e ENABLE_ML_LEARNING=true \
@@ -699,9 +757,11 @@ docker run \
   supremeai:v3.2-self-healing
 
 # Monitor self-healing activities
+
 curl http://localhost:8080/api/v1/health
 curl http://localhost:8080/api/v1/healing-metrics
 curl http://localhost:8080/api/v1/ml-predictions
+
 ```
 
 ---
@@ -711,17 +771,25 @@ curl http://localhost:8080/api/v1/ml-predictions
 Traditional Software:
 
 - Code written by humans
+
 - Bugs found by users
+
 - Patches deployed by humans
+
 - Manual recovery procedures
+
 - Downtime is expected
 
 **Self-Healing Software:**
 
 - Code instrumented with sensors
+
 - Bugs found by anomaly detection
+
 - Patches self-deployed autonomously
+
 - Automatic recovery procedures
+
 - Downtime is eliminated
 
 **This is the future.**

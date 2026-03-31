@@ -11,6 +11,7 @@
 ### Previously (v3.5)
 
 ```
+
 Admin describes app
   ↓
 SupremeAI generates code
@@ -18,14 +19,17 @@ SupremeAI generates code
 Files saved locally
   ↓
 Done!
+
 ```
 
 ### Now (v4.0)
 
 ```
+
 ✅ WORKFLOW 1: Code Generation (from scratch)
 ✅ WORKFLOW 2: Git-Based Development (existing repos)
 ✅ WORKFLOW 3: Maintenance (bug fixes, refactoring)
+
 ```
 
 ---
@@ -37,6 +41,7 @@ Done!
 **Admin:** "Build a task management app"
 
 ```
+
 Architect → Design
 Builder → Generate Code
 Reviewer → Quality Check
@@ -46,6 +51,7 @@ Tests: PASS ✅
 Deploy to Cloud
   ↓
 App Live: https://myapp.com
+
 ```
 
 ---
@@ -55,6 +61,7 @@ App Live: https://myapp.com
 **Admin:** "Clone my repo, add payment feature, test, and deploy"
 
 ```
+
 Admin Dashboard:
 ├─ Enter Git URL: https://github.com/you/myapp
 ├─ Enter Branch: feat-payments
@@ -112,6 +119,7 @@ System Workflow:
       All tests passing
       Changes in Git
       Deployed to production
+
 ```
 
 ---
@@ -121,10 +129,15 @@ System Workflow:
 | Aspect | Code Generation | Git-Based |
 |--------|---|---|
 | **What** | Build from scratch | Work with existing code |
+
 | **Source** | New files | Your git repo |
+
 | **Stack** | Pre-configured | Auto-detected |
+
 | **Tests** | Basic tests | YOUR tests run |
+
 | **Commit** | To new repo | To your repo |
+
 | **Use Case** | New projects | Features, fixes, refactoring |
 
 ---
@@ -134,6 +147,7 @@ System Workflow:
 ### For Git-Based Projects, Admin Specifies
 
 ```
+
 1. Git Repository:
    URL: https://github.com/username/reponame
    (Any Git service: GitHub, GitLab, Bitbucket, Gitea)
@@ -159,6 +173,7 @@ System Workflow:
    provider_credentials: API keys, tokens, configs
    deployment_region: (if applicable)
    domain: (if custom domain)
+
 ```
 
 ---
@@ -170,6 +185,7 @@ System Workflow:
 **Your Current Situation:**
 
 ```
+
 GitHub: github.com/yourcompany/saas-app
 ├─ Branch: main (production)
 ├─ Branch: develop (staging)
@@ -177,6 +193,7 @@ GitHub: github.com/yourcompany/saas-app
 
 Technologies:
 ├─ Node.js + Express
+
 ├─ PostgreSQL
 ├─ Jest tests
 ├─ Jest coverage tracking
@@ -203,11 +220,13 @@ Desired Process:
   → AI: Deploys to Vercel
   → Done!
   → Time: 5-10 minutes (just testing)
+
 ```
 
 **Using SupremeAI 4.0:**
 
 ```
+
 Step 1: Admin Dashboard
   http://localhost:8001
   → Click: "🔄 Git Projects"
@@ -269,6 +288,7 @@ Step 5: Production Deployment
   Admin merges: develop → main
   System auto-deploys to: https://app.yourcompany.com
   ✅ Live!
+
 ```
 
 ---
@@ -285,6 +305,7 @@ gitService.commitChanges(projectId, message)
 gitService.pushToOrigin(projectId, branch, credentials)
 gitService.createPullRequest(projectId, from, to, title, desc, token)
 gitService.getRepositoryStatus(projectId)
+
 ```
 
 ### 2. CICDService.java
@@ -297,6 +318,7 @@ BuildResult result = cicdService.runPipeline(projectId, config)
   // - Checks code coverage
   // - Builds project
   // - Runs quality checks
+
 ```
 
 ### 3. CloudDeploymentService.java
@@ -310,6 +332,7 @@ DeploymentResult result = deploymentService.deploy(projectId, config)
   // - Vercel (Next.js/React)
   // - Netlify (Static/Jamstack)
   // - Kubernetes
+
 ```
 
 ### 4. ProjectTypeManager.java
@@ -319,6 +342,7 @@ Handles both:
   - CODE_GENERATION (new projects from scratch)
   - GIT_BASED (work with existing repos)
   - MAINTENANCE (bug fixes, refactoring)
+
 ```
 
 ---
@@ -330,28 +354,33 @@ Handles both:
 **Before (Manual):**
 
 ```
+
 Dev writes code
   → Dev runs: npm test locally
   → Commit & push
   → GitHub Actions runs tests
   → Wait 5 minutes
   → See results
+
 ```
 
 **Now (Automatic):**
 
 ```
+
 AI writes code
   → AI immediately runs: npm test
   → AI sees results in 2 seconds
   → If FAIL: AI reads error, fixes code, reruns
   → If PASS: AI commits & deploys
   → Done!
+
 ```
 
 ### Coverage Checks
 
 ```
+
 AI checks: % coverage
 Your threshold: 80%
 If coverage < 80%: AI adds more tests
@@ -362,6 +391,7 @@ Example:
   Failed tests: 0 ✅ PASS
   Lint errors: 0 ✅ PASS
   → PROCEED TO DEPLOYMENT ✅
+
 ```
 
 ---
@@ -371,35 +401,45 @@ Example:
 ### GCP (Google Cloud)
 
 ```
+
 App Engine: gcloud app deploy
 Cloud Run: gcloud run deploy
+
 ```
 
 ### AWS (Amazon)
 
 ```
+
 Lambda: aws lambda update-function-code
 Elastic Beanstalk: eb deploy
+
 ```
 
 ### Azure (Microsoft)
 
 ```
+
 App Service: az webapp up
+
 ```
 
 ### Vercel (Recommended for Next.js/React)
 
 ```
+
 vercel deploy --prod
 Live in seconds!
+
 ```
 
 ### Kubernetes
 
 ```
+
 kubectl apply -f k8s/
 kubectl rollout status
+
 ```
 
 ---
@@ -409,6 +449,7 @@ kubectl rollout status
 ### Page: "🔄 Git Projects"
 
 ```
+
 Dashboard
 ├─ 📊 Stats
 │  ├─ Total Git Projects: 8
@@ -435,6 +476,7 @@ Dashboard
    │  ├─ Provider (GCP/AWS/Vercel/etc)
    │  └─ Credentials
    └─ [🚀 Start Development]
+
 ```
 
 ---
@@ -444,17 +486,20 @@ Dashboard
 ### For Code Generation (Existing)
 
 ```
+
 1. Admin Dashboard
 2. Click: "📝 New Code Project"
 3. Description: "Build a task manager"
 4. Framework: Select (Flutter, Node.js, etc.)
 5. Click: "🚀 Generate"
 6. ✅ Done!
+
 ```
 
 ### For Git-Based (New)
 
 ```
+
 1. Admin Dashboard
 2. Click: "🔄 New Git Project"
 3. URL: Your GitHub/GitLab repo
@@ -462,8 +507,10 @@ Dashboard
 5. Task: "Add authentication", "Fix bug X", "Refactor"
 6. Build Config: Test/build commands
 7. Deploy Config: Cloud provider + credentials
+
 8. Click: "🚀 Start Development"
 9. ✅ AI clones, develops, tests, commits, deploys!
+
 ```
 
 ---
@@ -473,22 +520,31 @@ Dashboard
 ### Git Credentials
 
 - ✅ Stored encrypted in Firebase
+
 - ✅ Never logged to console
+
 - ✅ Used only for git operations
+
 - ✅ Can revoke anytime in admin dashboard
 
 ### API Tokens
 
 - ✅ Cloud provider tokens encrypted
+
 - ✅ Vercel tokens secured
+
 - ✅ GitHub tokens protected
+
 - ✅ Audit log of all uses
 
 ### Code Privacy
 
 - ✅ Code stays in your repositories
+
 - ✅ No code stored in SupremeAI system
+
 - ✅ Only metadata tracked
+
 - ✅ Audit trail of all changes
 
 ---
@@ -498,7 +554,9 @@ Dashboard
 ### Example 1: Add Feature to Existing App
 
 ```
+
 Your app: React + Firebase web app
+
 Current repo: github.com/user/webapp
 Task: "Add dark mode"
 
@@ -515,11 +573,13 @@ Result (5 minutes):
   ✅ Code in Git at feat-dark-mode branch
   ✅ PR created for review
   ✅ Preview live at vercel.app
+
 ```
 
 ### Example 2: Fix Critical Bug
 
 ```
+
 Your app: Node.js API
 Bug: Login endpoint returning 500 errors
 Affected: 2% of users
@@ -537,11 +597,13 @@ Result (3 minutes):
   ✅ Fixed and tested
   ✅ Deployed to production immediately
   ✅ Alert: "Bug fixed - 500 errors now zero"
+
 ```
 
 ### Example 3: Refactor Legacy Code
 
 ```
+
 Your app: Old Node.js monolith
 Task: "Refactor user service to use async/await"
 
@@ -558,6 +620,7 @@ Result (8 minutes):
   ✅ Linting: 0 issues
   ✅ Coverage maintained
   ✅ Ready to merge
+
 ```
 
 ---
@@ -567,15 +630,18 @@ Result (8 minutes):
 ### When to Use Code Generation
 
 ```
+
 ✅ Starting a new project
 ✅ Creating new prototype
 ✅ Building side project
 ✅ No existing codebase
+
 ```
 
 ### When to Use Git-Based
 
 ```
+
 ✅ Adding feature to existing app
 ✅ Fixing bugs in production
 ✅ Refactoring code
@@ -583,11 +649,13 @@ Result (8 minutes):
 ✅ Performance optimization
 ✅ Code migration
 ✅ Any work on existing repos
+
 ```
 
 ### Git Branch Strategy
 
 ```
+
 main (production)
   ↑ Merge after testing
 develop (staging)
@@ -596,16 +664,19 @@ feat-* (feature branches)
   ← Created by SupremeAI
 hotfix-* (bug fixes)
   ← Created by SupremeAI
+
 ```
 
 ### Deployment Strategy
 
 ```
+
 1. Feature branch → Test deploy (Vercel preview)
 2. PR → Code review → Approve
 3. Merge to develop → Staging deploy
 4. Staging test → Approve
 5. Merge to main → Production deploy ✅
+
 ```
 
 ---
@@ -615,6 +686,7 @@ hotfix-* (bug fixes)
 ### Admin sees real-time
 
 ```
+
 🔄 [DEVELOPMENT] Cloning repository...
    ✅ Cloned successfully
 
@@ -644,6 +716,7 @@ hotfix-* (bug fixes)
    - PR: #42 created
    - Live Preview: https://...
    - Ready to merge!
+
 ```
 
 ---
@@ -653,32 +726,38 @@ hotfix-* (bug fixes)
 ### Before
 
 ```
+
 ❌ Time: 2-3 days per feature
 ❌ Manual: Dev writes code manually
 ❌ Testing: Hours of testing
 ❌ Review: Code review delays
 ❌ Deploy: Manual deployment steps
+
 ```
 
 ### After (with Git-Based)
 
 ```
+
 ✅ Time: 5-10 minutes per feature
 ✅ Automatic: AI writes code
 ✅ Testing: Instant (all YOUR tests run)
 ✅ Review: AI provides clean codereview
 ✅ Deploy: Auto-deploys if tests pass
+
 ```
 
 ### Result
 
 ```
+
 10x faster development
 Less manual work
 Higher code quality (AI Reviewer checks)
 Zero human errors
 Always tested before deploy
 Continuous deployment ready
+
 ```
 
 ---
@@ -688,6 +767,7 @@ Continuous deployment ready
 ### Try it Now
 
 ```
+
 1. Open Admin Dashboard: http://localhost:8001
 2. Click: "🔄 Git Projects"
 3. Create new git project:
@@ -696,8 +776,10 @@ Continuous deployment ready
    - Task: "Simple feature description"
    - Build config: Your npm/gradle/etc commands
    - Cloud: Vercel (easiest)
+
 4. Click: "🚀 Start"
 5. Watch magic happen!
+
 ```
 
 ---

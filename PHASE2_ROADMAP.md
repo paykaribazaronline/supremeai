@@ -11,10 +11,15 @@
 Transform from static agent assignment to **intelligent auto-optimization**:
 
 1. **Performance Learning** — Track AI success/failure patterns
+
 2. **Auto-Ranking** — Dynamically rank agents by performance
+
 3. **Optimal Assignment** — Assign best AI per task type
+
 4. **Smart Rotation** — Rotate on quotas with fallback intelligence
+
 5. **Cost Optimization** — Prefer cheaper models when quality equal
+
 6. **Failure Analysis** — Learn from failures to prevent repeats
 
 ---
@@ -49,17 +54,23 @@ Transform from static agent assignment to **intelligent auto-optimization**:
     "cost_optimized": ["groq", "deepseek", "together_ai", "claude"]
   }
 }
+
 ```
 
 ### Scoring Algorithm
 
 ```
+
 Agent_Score = (Success_Rate × 0.5) - (Failure_Rate × 0.3) + (Speed_Bonus × 0.2)
 
 Where:
+
 - Success_Rate = successes / (successes + failures)
+
 - Failure_Rate = failures / (successes + failures)
+
 - Speed_Bonus = max(0, 1 - (avg_time / baseline_time))
+
 ```
 
 ---
@@ -75,9 +86,12 @@ Where:
   - `calculateAgentScore(agentId)` — Compute performance score
   - `getTopKAgents(taskType, k)` — Get best K agents for task
   - `recordTaskFailure(taskId, agentId, errorType)` — Log failures
+
 - [ ] Add failure categorization:
   - `TIMEOUT`, `RATE_LIMIT`, `TOKEN_LIMIT`, `API_ERROR`, `LOGIC_ERROR`
+
 - [ ] Implement cost tracking per API provider
+
 - [ ] Unit tests for scoring algorithm
 
 #### **Days 17-18: Agent Ranking System**
@@ -87,7 +101,9 @@ Where:
   - `rankAgentsByTaskType(taskType)` — Task-specific ranking
   - `rankAgentsByCost()` — Cost-optimized ranking
   - `rankAgentsBySpeed()` — Speed-optimized ranking
+
 - [ ] Implement ranking persistence to Firestore
+
 - [ ] Create admin API to view rankings:
   - `GET /api/rankings` — All rankings
   - `GET /api/rankings/{taskType}` — Task-specific
@@ -100,10 +116,12 @@ Where:
   - `assignOptimalAgent(taskType)` — Smart assignment
   - `assignOptimalAgents(taskType, count)` — Multi-agent assignment
   - `assignWithFallback(taskType)` — Assignment with fallback
+
 - [ ] Implement assignment logging:
   - Track why agent was assigned
   - Store assignment decision tree
   - Enable A/B testing different strategies
+
 - [ ] Create assignment evaluation:
   - `evaluateAssignmentQuality()` — Was it a good choice?
   - Feed back into scoring
@@ -115,9 +133,11 @@ Where:
   - Prefer top performers as fallbacks
   - Avoid repeatedly rotating same agent
   - Track rotation history per agent
+
 - [ ] Implement quota prediction:
   - `predictQuotaExhaustion(agentId)` — Time to quota limit
   - `preemptiveRotate()` — Rotate before quota hit
+
 - [ ] VPN integration:
   - `switchVPN(provider)` — Rotate IP address
   - `trackVPNBans()` — Track IP bans
@@ -130,6 +150,7 @@ Where:
   - Protect from auto-demotion
   - Always available in fallback
   - Higher ranking bonus
+
 - [ ] Create SafeZone API:
   - `markSafeZone(agentId)` — Protect agent
   - `removeSafeZone(agentId)` — Unprotect
@@ -143,6 +164,7 @@ Where:
   - Record success/failure
   - Update rankings
   - Influence next assignment
+
 - [ ] Implement continuous improvement:
   - Track improvement rate per task type
   - Alert on degradation
@@ -152,9 +174,13 @@ Where:
 #### **Days 27-28: Testing & Documentation**
 
 - [ ] Unit tests for ranking algorithm
+
 - [ ] Integration tests for assignment flow
+
 - [ ] E2E tests with 10+ task variations
+
 - [ ] Performance benchmarking
+
 - [ ] Write Phase 2 completion guide
 
 ---
@@ -226,6 +252,7 @@ public class MemoryManager {
         saveMemory();
     }
 }
+
 ```
 
 ### 2. New AIRankingService
@@ -290,6 +317,7 @@ public class AIRankingService {
         firebaseService.saveSystemConfig("ai_rankings", rankings);
     }
 }
+
 ```
 
 ### 3. Enhanced AgentOrchestrator
@@ -322,6 +350,7 @@ public List<String> getIntelligentFallbackChain(String taskType) {
     
     return chain;
 }
+
 ```
 
 ---
@@ -377,6 +406,7 @@ public List<String> getIntelligentFallbackChain(String taskType) {
 ## 📊 ARCHITECTURE AFTER PHASE 2
 
 ```
+
 ┌─────────────────────────────────────────┐
 │ LAYER 4: DECISION MAKING                │
 │ ├─ Agent Ranking Service (NEW)          │
@@ -396,6 +426,7 @@ public List<String> getIntelligentFallbackChain(String taskType) {
 │ ├─ VPN Rotation (Enhanced)              │
 │ └─ Fallback Chains (Enhanced)           │
 └─────────────────────────────────────────┘
+
 ```
 
 ---
@@ -403,10 +434,15 @@ public List<String> getIntelligentFallbackChain(String taskType) {
 ## 🎯 ENTRY REQUIREMENTS FOR PHASE 2
 
 - ✅ Phase 1 complete with Firebase deployed
+
 - ✅ 5+ successful end-to-end workflows executed
+
 - ✅ Performance baseline established
+
 - ✅ Memory system tested and validated
+
 - ✅ All existing tests passing
+
 - ✅ Team familiar with Phase 1 codebase
 
 ---
@@ -416,8 +452,11 @@ public List<String> getIntelligentFallbackChain(String taskType) {
 After Phase 2 completion:
 
 - Intelligent agent assignment working
+
 - Automatic learning from successes/failures
+
 - Cost-optimized workflows
+
 - **Ready for:** Code generation templates and CI/CD
 
 See `PHASE3_ROADMAP.md` (coming soon)

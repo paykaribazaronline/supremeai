@@ -3,9 +3,13 @@
 ## ✅ FIXED Issues
 
 1. **UTF-8 Encoding** - Added to build.gradle.kts
+
 2. **RateLimitingService** - Replaced bucket4j with custom TokenBucket impl
+
 3. **MetricsService** - Fixed Timer class ambiguity with fully qualified names
+
 4. **APIErrorHandler** - Removed incorrect getInstance() calls
+
 5. **SystemConfig** - Changed consensusThreshold from String to double
 
 ## ⏳ REMAINING Issues  
@@ -17,8 +21,10 @@
 
 ```java
 // In Agent.java - currently expects: Agent(id, name, role, preferredAI)
+
 public enum Role { BUILDER, REVIEWER, ARCHITECT }
 // Usage: new Agent("builder-1", "X-Builder", Role.BUILDER, "deepseek");
+
 ```
 
 ### 2. Requirement Model Constructor  
@@ -29,6 +35,7 @@ public enum Role { BUILDER, REVIEWER, ARCHITECT }
 ```java
 // Current constructor expects extra params
 // Likely needs: Requirement(id, description, size, createdAt, status)
+
 ```
 
 ### 3. AIPool Methods
@@ -38,6 +45,7 @@ public enum Role { BUILDER, REVIEWER, ARCHITECT }
 
 ```java
 // Likely should be: getTop10() and getSafezone()
+
 ```
 
 ### 4. RotationManager API
@@ -53,6 +61,7 @@ public enum Role { BUILDER, REVIEWER, ARCHITECT }
 ```java
 // Should probably be: com.google.api.gax.rpc.ApiException
 // or: com.google.cloud.secretmanager.v1.SecretManagerServiceClient.ApiException
+
 ```
 
 ## Recommended Next Steps
@@ -74,9 +83,13 @@ public enum Role { BUILDER, REVIEWER, ARCHITECT }
 To proceed, choose your approach and update the model classes accordingly.
 
 ```bash
+
 # Current status:
+
 .\gradlew build  # FAILS - multiple type mismatches
+
 .\gradlew compileJava  # Shows all errors
+
 ```
 
 **Recommendation:** Fix the model classes first, as they're the foundation for all services.

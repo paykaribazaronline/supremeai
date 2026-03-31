@@ -5,13 +5,21 @@
 A complete **admin-only authentication system** with:
 
 - ✅ Login page (`login.html`)
+
 - ✅ JWT token-based authentication
+
 - ✅ Admin user registration (admin creates other admins)
+
 - ✅ Secure password hashing (BCrypt)
+
 - ✅ Token refresh mechanism (7-day expiration)
+
 - ✅ Firebase integration for user storage
+
 - ✅ REST API endpoints
+
 - ✅ Browser auto-protection (redirects to login if not authenticated)
+
 - ✅ Works on **localhost and web host** automatically
 
 ---
@@ -29,11 +37,13 @@ Content-Type: application/json
   "email": "admin@supremeai.com",
   "password": "supremeai123"
 }
+
 ```
 
 **Response:**
 
 ```json
+
 {
   "status": "success",
   "message": "Admin user registered successfully",
@@ -43,6 +53,7 @@ Content-Type: application/json
     "email": "admin@supremeai.com"
   }
 }
+
 ```
 
 ### Step 2: Login at Login Page
@@ -50,13 +61,16 @@ Content-Type: application/json
 Open browser:
 
 - **Localhost:** http://localhost:8001/login.html
+
 - **Web Host:** https://your-domain.com/login.html
 
 Enter credentials:
 
 ```
+
 Username: admin
 Password: supremeai123
+
 ```
 
 ### Step 3: Access Admin Dashboard
@@ -64,6 +78,7 @@ Password: supremeai123
 After login, you're redirected to:
 
 - **Localhost:** http://localhost:8001/admin
+
 - **Web Host:** https://your-domain.com/admin
 
 ---
@@ -87,7 +102,9 @@ After login, you're redirected to:
 All other endpoints (`/api/...`) require:
 
 ```
+
 Authorization: Bearer <JWT_TOKEN>
+
 ```
 
 ---
@@ -95,6 +112,7 @@ Authorization: Bearer <JWT_TOKEN>
 ## 🔐 Login & Token Flow
 
 ```
+
 User Browser                    SupremeAI Server
     |                                  |
     |--1. POST /api/auth/login-------->|
@@ -116,12 +134,15 @@ User Browser                    SupremeAI Server
     |<-----6. New JWT Token------------|
     |       Valid for 24 more hours    |
     |                                  |
+
 ```
 
 ### Token Expiration
 
 - **Access Token (JWT):** 24 hours
+
 - **Refresh Token:** 7 days
+
 - **Auto-refresh:** Browser automatically refreshes when token expires
 
 ---
@@ -129,22 +150,32 @@ User Browser                    SupremeAI Server
 ## 📁 File Structure
 
 ```
+
 SupremeAI/
 ├── login.html                          # Login page
+
 ├── admin/index.html                    # Admin dashboard
+
 ├── src/main/java/org/example/
 │   ├── model/
 │   │   ├── User.java                   # Admin user model
+
 │   │   └── AuthToken.java              # JWT token response
+
 │   ├── service/
 │   │   └── AuthenticationService.java  # JWT + user logic
+
 │   ├── controller/
 │   │   └── AuthenticationController.java # /api/auth endpoints
+
 │   ├── filter/
 │   │   └── AuthenticationFilter.java   # JWT validation filter
+
 │   └── Application.java                # Spring Boot app
+
 └── src/main/resources/static/js/
     └── auth-helper.js                  # Frontend token management
+
 ```
 
 ---
@@ -169,12 +200,15 @@ const data = await response.json();
 
 // Logout
 AuthHelper.logout();  // Clears tokens and redirects to /login.html
+
 ```
 
 ### cURL (Command Line)
 
 ```bash
+
 # Step 1: Login
+
 curl -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"supremeai123"}'
@@ -182,13 +216,16 @@ curl -X POST http://localhost:8080/api/auth/login \
 # Response includes: token, refreshToken, user
 
 # Step 2: Use token in API calls
+
 curl -X GET http://localhost:8080/api/v1/data/health \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 
 # Step 3: Refresh token (when expires)
+
 curl -X POST http://localhost:8080/api/auth/refresh \
   -H "Content-Type: application/json" \
   -d '{"refreshToken":"YOUR_REFRESH_TOKEN"}'
+
 ```
 
 ---
@@ -206,6 +243,7 @@ curl -X POST http://localhost:8080/api/auth/register \
     "email": "newadmin@supremeai.com",
     "password": "secure_password_123"
   }'
+
 ```
 
 ---
@@ -215,8 +253,11 @@ curl -X POST http://localhost:8080/api/auth/register \
 The `auth-helper.js` file automatically:
 
 1. **Checks token status** on every API call
+
 2. **Refreshes token** if expired (using refresh token)
+
 3. **Retries failed request** with new token
+
 4. **Redirects to login** if refresh fails
 
 No manual handling needed!
@@ -228,18 +269,22 @@ No manual handling needed!
 ### Localhost (Development)
 
 ```
+
 Login:      http://localhost:8001/login.html
 Admin:      http://localhost:8001/admin
 Monitoring: http://localhost:8000
 API:        http://localhost:8080/api/...
+
 ```
 
 ### Web Host (Production)
 
 ```
+
 Login:      https://your-domain.com/login.html
 Admin:      https://your-domain.com/admin
 API:        https://your-domain.com/api/...
+
 ```
 
 **Same authentication works on both!** Token is stored in `localStorage`.
@@ -251,11 +296,17 @@ API:        https://your-domain.com/api/...
 | Feature | Details |
 |---------|---------|
 | **Password Hashing** | BCrypt (salted + hashed) |
+
 | **JWT Tokens** | HS256 algorithm, signed with server key |
+
 | **Token Expiration** | 24h access, 7d refresh (auto-expiration) |
+
 | **HTTPS** | Use in production (auto-upgrade from HTTP) |
+
 | **Firebase** | User data encrypted at rest |
+
 | **Public Endpoints** | Only `/login`, `/register`, `/refresh`, `/health` |
+
 | **Private Endpoints** | All require valid JWT token |
 
 ---
@@ -263,11 +314,15 @@ API:        https://your-domain.com/api/...
 ## 🛠️ Environment Variables (Optional)
 
 ```bash
+
 # JWT signing key (change in production)
+
 export JWT_SECRET="your-secret-key-32-chars-minimum"
 
 # Firebase config
+
 export FIREBASE_SERVICE_ACCOUNT_JSON='{...json...}'
+
 ```
 
 ---
@@ -277,6 +332,7 @@ export FIREBASE_SERVICE_ACCOUNT_JSON='{...json...}'
 ### Users Collection
 
 ```
+
 users/
 ├── admin/
 │   ├── username: "admin"
@@ -287,6 +343,7 @@ users/
 │   └── lastLogin: 1711699200000
 └── newadmin/
     └── (same structure)
+
 ```
 
 ---
@@ -296,25 +353,33 @@ users/
 ### "401 Unauthorized"
 
 - Token expired → Click "Logout" and login again
+
 - Invalid token → Clear `localStorage` and refresh page
+
 - Missing header → Ensure `Authorization: Bearer TOKEN` format
 
 ### "User not found"
 
 - Username is case-sensitive
+
 - Check spelling in database
+
 - Register new user if needed
 
 ### Token Not Refreshing
 
 - Refresh token expired → Must login again
+
 - Check network tab for `/api/auth/refresh` response
+
 - Clear `localStorage` if corrupted
 
 ### Can't Access Admin Dashboard
 
 - Must be logged in first (redirects to `/login.html`)
+
 - Check browser console for errors
+
 - Verify Firebase is initialized
 
 ---
@@ -322,10 +387,15 @@ users/
 ## 🎯 Next Steps
 
 1. **Set initial admin credentials** securely
+
 2. **Register additional admin accounts** as needed
+
 3. **Change JWT_SECRET** in production
+
 4. **Enable HTTPS** on web host
+
 5. **Monitor admin_logs** for suspicious activity
+
 6. **Rotate passwords quarterly**
 
 ---

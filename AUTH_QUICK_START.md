@@ -5,10 +5,15 @@
 A complete **admin-only login system** that:
 
 - ✅ Protects both localhost (8001) and web host
+
 - ✅ Uses JWT tokens (secure, industry standard)
+
 - ✅ Auto-refreshes tokens (stays logged in for 7 days)
+
 - ✅ Works offline after login
+
 - ✅ Stores user data in Firebase
+
 - ✅ Professional login page included
 
 ---
@@ -20,18 +25,22 @@ A complete **admin-only login system** that:
 ```bash
 cd c:\Users\Nazifa\supremeai
 .\gradlew build
+
 ```
 
 ### Step 2: Run the Application
 
 ```bash
 .\gradlew run
+
 ```
 
 Server starts:
 
 - Admin Dashboard: http://localhost:8001
+
 - Monitoring: http://localhost:8000
+
 - API Backend: http://localhost:8080
 
 ### Step 3: Create First Admin
@@ -49,14 +58,17 @@ Invoke-WebRequest -Uri "http://localhost:8080/api/auth/register" `
     -Method Post `
     -Headers @{"Content-Type"="application/json"} `
     -Body $body
+
 ```
 
 **Or use cURL:**
 
 ```bash
+
 curl -X POST http://localhost:8080/api/auth/register \
   -H "Content-Type: application/json" \
   -d "{\"username\":\"admin\",\"email\":\"admin@supremeai.com\",\"password\":\"supremeai123\"}"
+
 ```
 
 ---
@@ -67,6 +79,7 @@ curl -X POST http://localhost:8080/api/auth/register \
 2. Enter:
    - Username: `admin`
    - Password: `supremeai123`
+
 3. Click **Sign In**
 4. Redirected to admin dashboard automatically
 
@@ -87,6 +100,7 @@ curl -X POST http://localhost:8080/api/auth/register \
 ## 🔐 How It Works
 
 ```
+
 User enters credentials
         ↓
 Server validates password (BCrypt)
@@ -100,6 +114,7 @@ All API calls include: Authorization: Bearer <TOKEN>
 Token auto-refreshes when needed (7d refresh token)
         ↓
 User stays logged in for 7 days even after browser close
+
 ```
 
 ---
@@ -107,6 +122,7 @@ User stays logged in for 7 days even after browser close
 ## 📊 Architecture
 
 ```
+
 ┌─────────────────────────────────────────┐
 │ Browser (localhost:8001 / web host)    │
 │ ├── login.html (public)                 │
@@ -129,6 +145,7 @@ User stays logged in for 7 days even after browser close
 │ Firebase Realtime Database               │
 │ └── users/ (stores admin accounts)       │
 └──────────────────────────────────────────┘
+
 ```
 
 ---
@@ -141,6 +158,7 @@ User stays logged in for 7 days even after browser close
 curl -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"supremeai123"}'
+
 ```
 
 Response (save the `token`):
@@ -158,6 +176,7 @@ Response (save the `token`):
     "email": "admin@supremeai.com"
   }
 }
+
 ```
 
 ### Test 2: Use Token in Protected Endpoint
@@ -165,6 +184,7 @@ Response (save the `token`):
 ```bash
 curl -X GET http://localhost:8080/api/auth/me \
   -H "Authorization: Bearer <PASTE_TOKEN_HERE>"
+
 ```
 
 ### Test 3: Create Another Admin
@@ -178,6 +198,7 @@ curl -X POST http://localhost:8080/api/auth/register \
     "email": "admin2@supremeai.com",
     "password": "secure123"
   }'
+
 ```
 
 ---
@@ -187,18 +208,22 @@ curl -X POST http://localhost:8080/api/auth/register \
 ### Localhost (Development)
 
 ```
+
 Login Page:    http://localhost:8001/login.html
 Admin Panel:   http://localhost:8001/admin/
 Monitoring:    http://localhost:8000/
 API:           http://localhost:8080/api/...
+
 ```
 
 ### Web Host (Production)
 
 ```
+
 Login Page:    https://your-domain.com/login.html
 Admin Panel:   https://your-domain.com/admin/
 API:           https://your-domain.com/api/...
+
 ```
 
 **Same code, same authentication. Zero configuration needed!**
@@ -213,6 +238,7 @@ Edit and rebuild:
 
 ```bash
 ./gradlew run  # Uses default "supremeai123"
+
 ```
 
 ### Optional: Change JWT Secret
@@ -222,6 +248,7 @@ Set environment variable before running:
 ```bash
 export JWT_SECRET="your-32-char-minimum-secret-key"
 .\gradlew run
+
 ```
 
 ### Optional: Firebase Config
@@ -231,6 +258,7 @@ Set before running:
 ```bash
 export FIREBASE_SERVICE_ACCOUNT_JSON='{...your json...}'
 .\gradlew run
+
 ```
 
 ---
@@ -238,13 +266,21 @@ export FIREBASE_SERVICE_ACCOUNT_JSON='{...your json...}'
 ## ✅ Verification Checklist
 
 - [ ] Server running on 8080
+
 - [ ] Can visit http://localhost:8001/login.html
+
 - [ ] Can login with admin/supremeai123
+
 - [ ] Redirected to admin dashboard after login
+
 - [ ] Can see user name in top-right corner
+
 - [ ] "Logout" button works
+
 - [ ] All dashboard features accessible
+
 - [ ] API calls work with JWT token
+
 - [ ] Token auto-refreshes on expiration
 
 ---
@@ -266,7 +302,9 @@ export FIREBASE_SERVICE_ACCOUNT_JSON='{...your json...}'
 For complete details, see:
 
 - **[AUTHENTICATION_GUIDE.md](AUTHENTICATION_GUIDE.md)** - Full authentication system docs
+
 - **[README.md](README.md)** - Project overview
+
 - **[ADMIN_OPERATIONS_GUIDE.md](ADMIN_OPERATIONS_GUIDE.md)** - Admin operations manual
 
 ---

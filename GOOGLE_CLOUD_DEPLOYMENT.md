@@ -5,9 +5,13 @@
 ### Prerequisites Checklist
 
 - [ ] Google Cloud account with billing enabled
+
 - [ ] Firebase project configured
+
 - [ ] Docker installed locally
+
 - [ ] Google Cloud SDK (gcloud CLI) to be installed
+
 - [ ] Both SupremeAI and Admin projects ready
 
 ---
@@ -19,6 +23,7 @@
 **Option A: Using Installer (Recommended)**
 
 1. Download: https://cloud.google.com/sdk/docs/install-sdk
+
 2. Select Windows 64-bit installer
 3. Run the downloaded `.exe` file
 4. Follow installation wizard
@@ -27,20 +32,27 @@
 **Option B: Using Chocolatey**
 
 ```powershell
+
 # Run as Administrator
+
 choco install google-cloud-sdk
+
 ```
 
 **Option C: Using PowerShell (Skip step 1 if using above)**
 
 ```powershell
+
 # Download Cloud SDK
+
 $url = "https://dl.google.com/dl/cloudsdk/channels/rapid/GoogleCloudSDKInstaller.exe"
 $out = "$env:TEMP\GoogleCloudSDKInstaller.exe"
 Invoke-WebRequest -Uri $url -OutFile $out
 
 # Run installer
+
 & $out
+
 ```
 
 ### Verify Installation
@@ -49,11 +61,17 @@ Invoke-WebRequest -Uri $url -OutFile $out
 gcloud --version
 
 # Expected output:
+
 # Google Cloud SDK [VERSION]
+
 # app-engine-python [VERSION]
+
 # bq [VERSION]
+
 # core [VERSION]
+
 # gsutil [VERSION]
+
 ```
 
 ---
@@ -61,26 +79,37 @@ gcloud --version
 ## Step 2: Initialize Google Cloud SDK
 
 ```powershell
+
 # Initialize gcloud
+
 gcloud init
 
 # You will be prompted:
+
 # 1. Login to Google account
+
 # 2. Create new project or select existing
+
 # 3. Set default region
+
 ```
 
 ### Quick Setup
 
 ```powershell
+
 # Login
+
 gcloud auth login
 
 # Set default project
+
 gcloud config set project supremeai-production
 
 # Verify configuration
+
 gcloud config list
+
 ```
 
 ---
@@ -101,25 +130,33 @@ gcloud config list
 gcloud projects create supremeai-production \
   --name="SupremeAI Production" \
   --set-as-default
+
 ```
 
 ### Enable Required APIs
 
 ```powershell
+
 # Enable Cloud Run API
+
 gcloud services enable run.googleapis.com
 
 # Enable Firestore API
+
 gcloud services enable firestore.googleapis.com
 
 # Enable Cloud Build API
+
 gcloud services enable cloudbuild.googleapis.com
 
 # Enable Container Registry
+
 gcloud services enable containerregistry.googleapis.com
 
 # Enable Service Usage API
+
 gcloud services enable serviceusage.googleapis.com
+
 ```
 
 ---
@@ -127,23 +164,32 @@ gcloud services enable serviceusage.googleapis.com
 ## Step 4: Configure Firebase Project
 
 ```powershell
+
 # Install Firebase CLI
+
 npm install -g firebase-tools
 
 # Verify installation
+
 firebase --version
 
 # Login to Firebase
+
 firebase login
 
 # Initialize Firebase in your project
+
 cd c:\Users\Nazifa\supremeai
 firebase init
 
 # Select:
+
 # - Firestore
+
 # - Cloud Functions
+
 # - Hosting
+
 ```
 
 ---
@@ -155,46 +201,59 @@ firebase init
 **Create Dockerfile:**
 
 ```dockerfile
+
 FROM openjdk:17-slim
 
 WORKDIR /app
 
 # Copy gradlew and gradle
+
 COPY gradlew .
 COPY gradle gradle
 
 # Copy build configs
+
 COPY build.gradle.kts .
 COPY settings.gradle.kts .
 
 # Copy source code
+
 COPY src src
 
 # Build application
+
 RUN ./gradlew build -x test
 
 # Extract JAR
+
 RUN cp build/libs/*.jar app.jar
 
 # Expose port
+
 EXPOSE 8080
 
 # Set environment
+
 ENV JAVA_OPTS="-XX:+UseG1GC -XX:MaxRAMPercentage=75.0"
 
 # Run application
+
 ENTRYPOINT ["java", "-jar", "app.jar"]
+
 ```
 
 **Build Docker image:**
 
 ```powershell
+
 cd c:\Users\Nazifa\supremeai
 
 docker build -t gcr.io/supremeai-production/supremeai:1.0.0 .
 
 # Verify image
+
 docker images | grep supremeai
+
 ```
 
 ### For Admin Dashboard
@@ -202,6 +261,7 @@ docker images | grep supremeai
 **Create Dockerfile for Admin:**
 
 ```dockerfile
+
 FROM openjdk:17-slim
 
 WORKDIR /app
@@ -221,17 +281,21 @@ EXPOSE 8080
 ENV JAVA_OPTS="-XX:+UseG1GC -XX:MaxRAMPercentage=75.0"
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
+
 ```
 
 **Build Docker image:**
 
 ```powershell
+
 cd c:\Users\Nazifa\supremeai-admin
 
 docker build -t gcr.io/supremeai-production/supremeai-admin:1.0.0 .
 
 # Verify image
+
 docker images | grep admin
+
 ```
 
 ---
@@ -241,24 +305,33 @@ docker images | grep admin
 ### Setup Authentication
 
 ```powershell
+
 # Configure Docker authentication
+
 gcloud auth configure-docker
 
 # Verify authentication
+
 docker ps
+
 ```
 
 ### Push Images
 
 ```powershell
+
 # Push main system image
+
 docker push gcr.io/supremeai-production/supremeai:1.0.0
 
 # Push admin image
+
 docker push gcr.io/supremeai-production/supremeai-admin:1.0.0
 
 # Verify pushed images
+
 gcloud container images list
+
 ```
 
 ---
@@ -279,6 +352,7 @@ gcloud run deploy supremeai \
   --max-instances 10 \
   --no-allow-unauthenticated \
   --set-env-vars FIREBASE_CONFIG_PATH=/secrets/firebase-service-account.json,JWT_SECRET=your-secret-key,DATABASE_URL=your-firestore-url
+
 ```
 
 ### Deploy Admin Dashboard
@@ -295,16 +369,21 @@ gcloud run deploy supremeai-admin \
   --max-instances 5 \
   --no-allow-unauthenticated \
   --set-env-vars FIREBASE_CONFIG_PATH=/secrets/firebase-service-account.json,JWT_SECRET=your-secret-key,MAIN_SYSTEM_URL=https://supremeai-xxxxxxx.run.app
+
 ```
 
 ### Get Service URLs
 
 ```powershell
+
 # Get supremeai URL
+
 gcloud run services describe supremeai --region us-central1 --format='value(status.url)'
 
 # Get admin URL
+
 gcloud run services describe supremeai-admin --region us-central1 --format='value(status.url)'
+
 ```
 
 ---
@@ -314,7 +393,9 @@ gcloud run services describe supremeai-admin --region us-central1 --format='valu
 ### Using Secret Manager
 
 ```powershell
+
 # Create secrets
+
 gcloud secrets create firebase-service-account \
   --replication-policy="automatic" \
   --data-file="path/to/service-account.json"
@@ -323,9 +404,11 @@ gcloud secrets create jwt-secret \
   --replication-policy="automatic"
 
 # Grant Cloud Run access
+
 gcloud projects add-iam-policy-binding supremeai-production \
   --member=serviceAccount:supremeai@supremeai-production.iam.gserviceaccount.com \
   --role=roles/secretmanager.secretAccessor
+
 ```
 
 ### Mount Secrets in Cloud Run
@@ -336,6 +419,7 @@ gcloud run deploy supremeai \
   --region us-central1 \
   --update-secrets=FIREBASE_CONFIG_PATH=firebase-service-account:latest \
   --update-secrets=JWT_SECRET=jwt-secret:latest
+
 ```
 
 ---
@@ -354,6 +438,7 @@ gcloud run domain-mappings create \
   --service=supremeai-admin \
   --domain=admin.supremeai.dev \
   --region=us-central1
+
 ```
 
 ### Configure DNS
@@ -369,18 +454,27 @@ gcloud run domain-mappings create \
 ## Step 10: Setup Firestore Database
 
 ```powershell
+
 # Create Firestore database
+
 gcloud firestore databases create \
   --region=us-central1 \
   --type=firestore-native
 
 # Collections will auto-create when first written to:
+
 # - admin_users
+
 # - ai_providers
+
 # - ai_agents
+
 # - projects
+
 # - audit_logs
+
 # - quotas
+
 ```
 
 ---
@@ -417,23 +511,28 @@ steps:
 
 images:
   - 'gcr.io/$PROJECT_ID/supremeai:$SHORT_SHA'
+
 ```
 
 ### Enable Cloud Build Trigger
 
 ```powershell
+
 # Connect GitHub repository
+
 gcloud builds connect --repository-name=supremeai \
   --repository-owner=paykaribazaronline \
   --region=us-central1
 
 # Create trigger
+
 gcloud builds triggers create github \
   --repo-name=supremeai \
   --repo-owner=paykaribazaronline \
   --name=supremeai-build \
   --branch-pattern=^main$ \
   --build-config=cloudbuild.yaml
+
 ```
 
 ---
@@ -443,29 +542,36 @@ gcloud builds triggers create github \
 ### View Logs
 
 ```powershell
+
 # View supremeai logs
+
 gcloud logging read \
   "resource.type=cloud_run_revision AND resource.labels.service_name=supremeai" \
   --limit 50 \
   --format json
 
 # View admin logs
+
 gcloud logging read \
   "resource.type=cloud_run_revision AND resource.labels.service_name=supremeai-admin" \
   --limit 50 \
   --format json
+
 ```
 
 ### Setup Monitoring
 
 ```powershell
+
 # Create uptime check
+
 gcloud monitoring uptime-checks create \
   --display-name="SupremeAI API" \
   --resource-type=uptime-url \
   --monitored-resource-labels=host=api.supremeai.dev \
   --http-check-path=/api/v1/system/health \
   --period=60
+
 ```
 
 ---
@@ -473,15 +579,19 @@ gcloud monitoring uptime-checks create \
 ## Step 13: Database Backup & Recovery
 
 ```powershell
+
 # Enable automatic backups
+
 gcloud firestore backups create \
   --collection-ids=admin_users,ai_providers,ai_agents,projects \
   --region=us-central1
 
 # Restore from backup
+
 gcloud firestore restore \
   --backup=projects/supremeai-production/locations/us-central1/backups/[BACKUP_ID] \
   --collection-ids=admin_users,ai_providers
+
 ```
 
 ---
@@ -489,20 +599,35 @@ gcloud firestore restore \
 ## Deployment Checklist
 
 - [ ] Google Cloud SDK installed
+
 - [ ] Google Cloud project created
+
 - [ ] Firebase project initialized
+
 - [ ] APIs enabled (Cloud Run, Firestore, etc.)
+
 - [ ] Docker images built
+
 - [ ] Docker images pushed to GCR
+
 - [ ] Services deployed to Cloud Run
+
 - [ ] Environment variables/secrets configured
+
 - [ ] Custom domains configured
+
 - [ ] DNS records updated
+
 - [ ] Firestore database created
+
 - [ ] Cloud Build configured
+
 - [ ] Monitoring/logging setup
+
 - [ ] Backups enabled
+
 - [ ] SSL certificates working
+
 - [ ] Load testing completed
 
 ---
@@ -513,6 +638,7 @@ gcloud firestore restore \
 |---------|-------|--------------|
 | Cloud Run | 2 services × 1GB × 1CPU | ~$20-40 |
 | Firestore | 1M reads + 1M writes | ~$10-30 |
+
 | Cloud Storage | 10GB | ~$0.20 |
 | Cloud Build | 50 builds × 15min | ~$2 |
 | Secret Manager | 1 secret | ~$0.06 |
@@ -525,37 +651,51 @@ gcloud firestore restore \
 ### Service Unreachable
 
 ```powershell
+
 # Check service status
+
 gcloud run services describe supremeai --region us-central1
 
 # View recent revisions
+
 gcloud run revisions list --service=supremeai --region=us-central1
 
 # Check logs for errors
+
 gcloud logging read "resource.type=cloud_run_revision" --limit 100
+
 ```
 
 ### Database Connection Issues
 
 ```powershell
+
 # Verify Firestore database exists
+
 gcloud firestore databases list
 
 # Check IAM permissions
+
 gcloud projects get-iam-policy supremeai-production
+
 ```
 
 ### Image Push Failures
 
 ```powershell
+
 # Re-authenticate Docker
+
 gcloud auth configure-docker
 
 # Verify image exists
+
 docker images | grep supremeai
 
 # Retry push
+
 docker push gcr.io/supremeai-production/supremeai:1.0.0
+
 ```
 
 ---
