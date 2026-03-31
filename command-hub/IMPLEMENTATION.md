@@ -3,6 +3,7 @@
 ## Overview
 
 CommandHub is a comprehensive command orchestration platform for SupremeAI. It provides:
+
 - **Core Framework** - Java-based command pattern implementation
 - **REST API** - HTTP endpoints for command execution
 - **CLI Tool** - Python CLI for admin use
@@ -279,13 +280,11 @@ python3 command-hub/cli/supcmd.py
 
 ### Basic Commands
 
-
 **Health Check**
 ```bash
 supcmd health                     # Check API server
 supcmd exec health-check          # Execute health-check command
 ```
-
 
 **List Commands**
 ```bash
@@ -295,7 +294,6 @@ supcmd list --type SYNC                        # By type
 ```
 
 
-**Get Command Info**
 ```bash
 supcmd info health-check
 supcmd info refresh-github
@@ -303,7 +301,6 @@ supcmd info refresh-github
 
 
 **Execute Commands**
-```bash
 # Simple execution
 supcmd exec health-check
 
