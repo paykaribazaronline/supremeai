@@ -32,6 +32,9 @@ jobs:
     name: Build Flutter Admin App
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+
     steps:
       - name: ⬇️ Checkout Code
         uses: actions/checkout@v4
@@ -66,6 +69,9 @@ jobs:
   build-java-backend:
     name: Build Java Backend & Dashboard
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
 
     steps:
       - name: ⬇️ Checkout Code
@@ -142,6 +148,10 @@ jobs:
     needs: [build-flutter-admin, build-java-backend]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    permissions:
+      contents: read
+      deployments: write
 
     steps:
       - name: ⬇️ Checkout Code
@@ -227,6 +237,9 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     continue-on-error: true
+
+    permissions:
+      contents: read
 
     steps:
       - name: ⬇️ Checkout Code
