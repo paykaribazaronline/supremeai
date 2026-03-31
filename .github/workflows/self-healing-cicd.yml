@@ -6,7 +6,9 @@ on:
   pull_request:
     branches: [main, develop]
   schedule:
-    - cron: '*/5 * * * *'  # Every 5 minutes - continuous health monitoring
+    - cron: '0 * * * *'  # Every hour (24 runs/day) - continuous health monitoring
+    # Previous: '*/5 * * * *' (every 5 min = 288 runs/day = ~$50-100/month)
+    # Current: '0 * * * *' (hourly = 24 runs/day = ~$5-10/month)
   workflow_dispatch:
     inputs:
       trigger:
@@ -24,6 +26,11 @@ env:
   API_BASE_URL: ${{ secrets.API_BASE_URL }}
   ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
   LOG_LEVEL: INFO
+
+  # ⚠️ REQUIRED GITHUB SECRETS (add in GitHub Settings → Secrets & variables → Repository secrets):
+  # - API_BASE_URL: https://supremeai-xxxxx.run.app (your Cloud Run URL)
+  # - ADMIN_TOKEN: <your-jwt-admin-token> (get from POST /api/auth/login response)
+  # Without these secrets, health checks will be SKIPPED (exit code 0, appears passing)
 
 jobs:
   # ==============================================================================
