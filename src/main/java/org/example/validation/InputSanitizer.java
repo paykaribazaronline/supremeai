@@ -171,6 +171,12 @@ public class InputSanitizer {
             return null;
         }
         
+        // Check length limit (RFC 5321)
+        if (email.length() > 254) {
+            logger.warn("Email too long (max 254 chars)");
+            return null;
+        }
+        
         // Basic email pattern validation
         String emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
         if (!email.matches(emailPattern)) {
