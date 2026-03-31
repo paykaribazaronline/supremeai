@@ -1,4 +1,8 @@
 ﻿# Supreme AI - Build, Test & Deploy Workflow
+#
+# Firebase permissions for FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A:
+#   roles/firebasehosting.admin ✅ granted
+
 name: Supreme AI - Build & Deploy
 
 on:

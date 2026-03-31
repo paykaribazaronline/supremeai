@@ -14,8 +14,8 @@
 #     roles/secretmanager.secretAccessor ← granted automatically on each run (step below)
 #   This allows the Cloud Run service to read FIREBASE_SERVICE_ACCOUNT_JSON at runtime.
 #
-#   FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A must have (set by Firebase CLI auto-config):
-#     roles/firebasehosting.admin        ← for firebase-hosting-merge / PR deploy workflows
+#   FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A must have:
+#     roles/firebasehosting.admin        ✅ granted — for firebase-hosting-merge / PR deploy workflows
 
 name: 🚀 Deploy to Google Cloud Run
 
