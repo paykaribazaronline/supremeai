@@ -1,7 +1,7 @@
 // Environment configuration for SupremeAI Admin App
 
 class Environment {
-  // Production Cloud Run URL
+  // Production Cloud Run URL - connects to the backend service
   static const String baseUrl = 'https://supremeai-565236080752.us-central1.run.app';
   
   // Local Development URL (uncomment to use local backend)
