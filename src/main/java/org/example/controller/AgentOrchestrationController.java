@@ -49,6 +49,9 @@ public class AgentOrchestrationController {
     @Autowired
     private KappaEvolutionAgent kappaAgent;
 
+    @Autowired
+    private FirebaseService firebaseService;
+
     // ==================== PHASE 7: Generators & Publishers ====================
 
     @PostMapping("/phase7/generate-ios")
@@ -109,39 +112,78 @@ public class AgentOrchestrationController {
 
     @GetMapping("/phase9/track-costs")
     public ResponseEntity<Map<String, Object>> trackCosts() {
-        return ResponseEntity.ok(deltaAgent.trackCosts());
+        Map<String, Object> report = deltaAgent.trackCosts();
+        firebaseService.saveCostReport(report);
+        
+        // Check for budget alerts
+        double currentSpend = (double) report.getOrDefault("total_monthly_spend", 0.0);
+        if (firebaseService.isBudgetExceeded(currentSpend)) {
+            report.put("ALERT", "BUDGET_EXCEEDED");
+            firebaseService.sendNotification("admin", "Budget Alert", "Monthly spend has exceeded limits!", "URGENT");
+        }
+        
+        return ResponseEntity.ok(report);
     }
 
     @PostMapping("/phase9/optimize-resources")
     public ResponseEntity<Map<String, Object>> optimizeResources(@RequestBody Map<String, Object> request) {
-        return ResponseEntity.ok(epsilonAgent.optimizeResources());
+        Map<String, Object> recommendations = epsilonAgent.optimizeResources();
+        firebaseService.saveOptimizationRecommendations(recommendations);
+        return ResponseEntity.ok(recommendations);
     }
 
     @PostMapping("/phase9/plan-budget")
     public ResponseEntity<Map<String, Object>> planBudget(@RequestBody Map<String, Object> request) {
-        return ResponseEntity.ok(zetaAgent.planBudget());
+        Map<String, Object> budgetPlan = zetaAgent.planBudget();
+        firebaseService.saveBudgetPlan(budgetPlan);
+        return ResponseEntity.ok(budgetPlan);
+    }
+
+    @PostMapping("/phase9/run-scenario")
+    public ResponseEntity<Map<String, Object>> runScenario(@RequestBody Map<String, Object> request) {
+        String name = (String) request.getOrDefault("scenarioName", "Default Growth");
+        double scale = ((Number) request.getOrDefault("scaleFactor", 1.2)).doubleValue();
+        return ResponseEntity.ok(zetaAgent.runScenario(name, scale));
     }
 
     // ==================== PHASE 10: Self-Improvement ====================
 
     @PostMapping("/phase10/evolve-agents")
     public ResponseEntity<Map<String, Object>> evolveAgents(@RequestBody Map<String, Object> request) {
-        return ResponseEntity.ok(etaAgent.evolveAgents());
+        Map<String, Object> report = etaAgent.evolveAgents();
+        firebaseService.saveEvolutionReport(report);
+        return ResponseEntity.ok(report);
     }
 
     @PostMapping("/phase10/learn-patterns")
     public ResponseEntity<Map<String, Object>> learnPatterns(@RequestBody Map<String, Object> request) {
-        return ResponseEntity.ok(thetaAgent.learnPatterns());
+        Map<String, Object> report = thetaAgent.learnPatterns();
+        if (report.containsKey("top_patterns")) {
+            List<Map<String, Object>> patterns = (List<Map<String, Object>>) report.get("top_patterns");
+            patterns.forEach(firebaseService::saveLearnedPattern);
+        }
+        return ResponseEntity.ok(report);
     }
 
-    @PostMapping("/phase10/manage-knowledge")
-    public ResponseEntity<Map<String, Object>> manageKnowledge(@RequestBody Map<String, Object> request) {
+    @GetMapping("/phase10/knowledge-base")
+    public ResponseEntity<Map<String, Object>> manageKnowledge() {
         return ResponseEntity.ok(iotaAgent.manageKnowledge());
     }
 
     @PostMapping("/phase10/evolve-consensus")
     public ResponseEntity<Map<String, Object>> evolveConsensus(@RequestBody Map<String, Object> request) {
-        return ResponseEntity.ok(kappaAgent.evolveConsensus());
+        Map<String, Object> report = kappaAgent.evolveConsensus();
+        // If a variant is ready for promotion, we could automatically update the config
+        if (report.containsKey("promotion_status")) {
+             Map<String, Object> promotion = (Map<String, Object>) report.get("promotion_status");
+             if ("READY_FOR_PROMOTION".equals(promotion.get("status"))) {
+                 // Logic to update main_config via firebaseService
+                 Map<String, Object> newConfig = new HashMap<>();
+                 newConfig.put("active_variant", promotion.get("pending_promotion"));
+                 firebaseService.updateActiveSystemConfig(newConfig);
+             }
+        }
+        return ResponseEntity.ok(report);
     }
 
     // ==================== Status & Health ====================
@@ -162,8 +204,8 @@ public class AgentOrchestrationController {
     public ResponseEntity<Map<String, Object>> health() {
         Map<String, Object> health = new HashMap<>();
         health.put("status", "UP");
-        health.put("endpoints", 18);
-        health.put("version", "6.0-Phase7-10");
+        health.put("endpoints", 20);
+        health.put("version", "10.0-Self-Improvement-Complete");
         health.put("timestamp", System.currentTimeMillis());
         return ResponseEntity.ok(health);
     }

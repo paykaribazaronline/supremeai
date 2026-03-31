@@ -226,4 +226,76 @@ public class FirebaseService {
             return null;
         }
     }
+
+    // ==================== PHASE 9: COST INTELLIGENCE PERSISTENCE ====================
+
+    /**
+     * Save cost report to Firebase
+     */
+    public void saveCostReport(Map<String, Object> report) {
+        db.getReference("intelligence").child("costs").push().setValueAsync(report);
+    }
+
+    /**
+     * Save optimization recommendations to Firebase
+     */
+    public void saveOptimizationRecommendations(Map<String, Object> recommendations) {
+        db.getReference("intelligence").child("optimizations").push().setValueAsync(recommendations);
+    }
+
+    /**
+     * Save budget plan to Firebase
+     */
+    public void saveBudgetPlan(Map<String, Object> budgetPlan) {
+        db.getReference("intelligence").child("budgets").child("active_plan").setValueAsync(budgetPlan);
+    }
+
+    /**
+     * Check if a budget limit is exceeded
+     */
+    public boolean isBudgetExceeded(double currentSpend) {
+        try {
+            CompletableFuture<Double> future = new CompletableFuture<>();
+            db.getReference("intelligence").child("budgets").child("active_plan").child("annual_total_limit")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            future.complete(snapshot.getValue(Double.class));
+                        } else {
+                            future.complete(100000.0); // Default high limit
+                        }
+                    }
+                    @Override
+                    public void onCancelled(DatabaseError error) { future.complete(100000.0); }
+                });
+            return currentSpend > future.get();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    // ==================== PHASE 10: SELF-IMPROVEMENT PERSISTENCE ====================
+
+    /**
+     * Save evolution generation report
+     */
+    public void saveEvolutionReport(Map<String, Object> report) {
+        db.getReference("evolution").child("generations").push().setValueAsync(report);
+    }
+
+    /**
+     * Save learned patterns (Knowledge Base)
+     */
+    public void saveLearnedPattern(Map<String, Object> pattern) {
+        db.getReference("evolution").child("patterns").push().setValueAsync(pattern);
+    }
+
+    /**
+     * Update active system configuration based on consensus
+     */
+    public void updateActiveSystemConfig(Map<String, Object> newConfig) {
+        db.getReference("config").child("main_config").updateChildrenAsync(newConfig);
+        db.getReference("evolution").child("logs").push().setValueAsync(Collections.singletonMap("event", "SYSTEM_CONFIG_UPDATED_BY_CONSENSUS"));
+    }
 }
