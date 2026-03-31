@@ -227,6 +227,15 @@ public class FirebaseService {
         }
     }
 
+    // ==================== PHASE 8: SECURITY AUDIT PERSISTENCE ====================
+
+    /**
+     * Save security audit report to Firebase
+     */
+    public void saveSecurityAudit(Map<String, Object> report) {
+        db.getReference("security").child("audits").push().setValueAsync(report);
+    }
+
     // ==================== PHASE 9: COST INTELLIGENCE PERSISTENCE ====================
 
     /**

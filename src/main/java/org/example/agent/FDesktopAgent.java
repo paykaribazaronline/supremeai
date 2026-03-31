@@ -40,7 +40,7 @@ public class FDesktopAgent {
         // Generate common frontend
         output.setMainIndex(generateMainIndex(request));
         output.setMainWindow(generateMainWindow(request));
-        output.setIPC(generateIPC(request));
+        output.setIpc(generateIPC(request));
 
         // Generate system integration
         output.setMenuBar(generateMenuBar(request));
@@ -51,7 +51,7 @@ public class FDesktopAgent {
 
         // Generate tests
         output.setSystemTests(generateSystemTests(request));
-        output.setE2ETests(generateE2ETests(request));
+        output.setE2eTests(generateE2ETests(request));
 
         // Generate build configuration
         output.setBuildConfig(generateBuildConfig(request));
@@ -515,18 +515,18 @@ public class FDesktopAgent {
         private LocalDateTime timestamp;
         private String projectName;
         private String platform;
-        
+
         // Tauri-specific
         private String tauriConf;
         private String rustMain;
         private String rustCommands;
         private String tauriInvoke;
-        
+
         // Electron-specific
         private String electronMain;
         private String electronPreload;
         private String electronPackageJson;
-        
+
         // Common
         private String mainIndex;
         private String mainWindow;
@@ -537,7 +537,7 @@ public class FDesktopAgent {
         private String systemTests;
         private String e2eTests;
         private String buildConfig;
-        
+
         private boolean generationSuccess;
         private String statusMessage;
         private int linesOfCode;
