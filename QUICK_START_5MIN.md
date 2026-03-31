@@ -9,6 +9,7 @@
 ## 📌 TL;DR - START HERE
 
 ```
+
 Step 1: Open Admin Dashboard (1 min)
         👉 http://localhost:8001
 
@@ -31,6 +32,7 @@ Step 4: Assign AI (1 min)
 Step 5: Watch it work! (- min)
         👉 http://localhost:8000 (Monitoring)
         👉 Watch AI build your app in real-time
+
 ```
 
 ---
@@ -42,14 +44,19 @@ Step 5: Watch it work! (- min)
 **In your browser, go to:**
 
 ```
+
 http://localhost:8001
+
 ```
 
 **You should see:**
 
 - Black/dark theme interface
+
 - Left sidebar menu
+
 - Main dashboard with stats
+
 - "Welcome to SupremeAI Admin Dashboard" heading
 
 **✓ Success:** Page loads and looks professional
@@ -63,6 +70,7 @@ http://localhost:8001
 You'll see:
 
 ```
+
 ┌─────────────────────────────────────┐
 │ API Key Manager                     │
 ├─────────────────────────────────────┤
@@ -71,6 +79,7 @@ You'll see:
 │ Active API Keys:                    │
 │ (Should be empty or show samples)   │
 └─────────────────────────────────────┘
+
 ```
 
 **Click "➕ Add New API Key"**
@@ -78,6 +87,7 @@ You'll see:
 A popup form appears. Fill it:
 
 ```
+
 ┌─────────────────────────────────────┐
 │ Add New API Key                     │
 ├─────────────────────────────────────┤
@@ -92,14 +102,18 @@ A popup form appears. Fill it:
 │                                     │
 │ [✅ Save & Test]                    │ ← Click
 └─────────────────────────────────────┘
+
 ```
 
 **Fill in the form:**
 
 1. **Provider:** Select "Gemini" (easiest to get key for)
+
 2. **Key Name:** Type "my-first-key"
+
 3. **API Key:** Paste your actual API key
    - Don't have one? Get free at: https://ai.google.dev
+
 4. **Click:** "✅ Save & Test"
 
 **✓ Success:** Message says "✅ Key added and verified!"
@@ -113,6 +127,7 @@ A popup form appears. Fill it:
 You'll see:
 
 ```
+
 ┌─────────────────────────────────────┐
 │ Projects                            │
 ├─────────────────────────────────────┤
@@ -121,6 +136,7 @@ You'll see:
 │ Active Projects:                    │
 │ (List of projects with details)     │
 └─────────────────────────────────────┘
+
 ```
 
 **Click "➕ Create New Project"**
@@ -128,6 +144,7 @@ You'll see:
 Form appears:
 
 ```
+
 ┌─────────────────────────────────────┐
 │ Create New Project                  │
 ├─────────────────────────────────────┤
@@ -141,13 +158,17 @@ Form appears:
 │                                     │
 │ [✅ Create Project]                 │
 └─────────────────────────────────────┘
+
 ```
 
 **Fill in:**
 
 1. **Project Name:** Type "My First App"
+
 2. **Description:** Type "A test task management app"
+
 3. **Framework:** Select "Flutter"
+
 4. **Click:** "✅ Create Project"
 
 **✓ Success:** Message says "✅ Project created: My First App"
@@ -161,6 +182,7 @@ Form appears:
 You'll see:
 
 ```
+
 ┌─────────────────────────────────────┐
 │ AI Agent Assignment                 │
 ├─────────────────────────────────────┤
@@ -169,6 +191,7 @@ You'll see:
 │ Active Assignments:                 │
 │ (List of AI assignments)            │
 └─────────────────────────────────────┘
+
 ```
 
 **Click "➕ Assign New Agent"**
@@ -176,6 +199,7 @@ You'll see:
 Form appears:
 
 ```
+
 ┌─────────────────────────────────────┐
 │ Assign AI Agent                     │
 ├─────────────────────────────────────┤
@@ -190,14 +214,18 @@ Form appears:
 ├─────────────────────────────────────┤
 │ [🚀 Assign & Start]                 │
 └─────────────────────────────────────┘
+
 ```
 
 **Fill in:**
 
 1. **Project:** Select "My First App"
+
 2. **Role:** Select "Architect" (begins design phase)
    - Options: Architect → Builder → Reviewer
+
 3. **AI Agent:** Leave default (recommended)
+
 4. **Click:** "🚀 Assign & Start"
 
 **✓ Success:** Message says "🚀 Assignment started! AI begins planning..."
@@ -209,12 +237,15 @@ Form appears:
 **Now open Monitoring Dashboard:**
 
 ```
+
 http://localhost:8000
+
 ```
 
 You'll see:
 
 ```
+
 ┌─────────────────────────────────────┐
 │ SupremeAI Monitoring Dashboard      │
 └─────────────────────────────────────┘
@@ -241,11 +272,13 @@ You'll see:
 │ • API Calls: 12                     │
 │ • Tokens Used: 1,234                │
 └─────────────────────────────────────┘
+
 ```
 
 **Watch as:**
 
 1. Architect designs the app (~2 min)
+
 2. Builder generates code (~5 min)
 3. Reviewer tests everything (~3 min)
 4. Files written to disk
@@ -258,9 +291,13 @@ You'll see:
 In just 5 minutes, you:
 
 - ✅ Opened admin dashboard
+
 - ✅ Added API key (system can now work)
+
 - ✅ Created your first project
+
 - ✅ Assigned AI to build it
+
 - ✅ Watched it work in real-time
 
 ---
@@ -268,6 +305,7 @@ In just 5 minutes, you:
 ## 📋 WHAT HAPPENED BEHIND THE SCENES
 
 ```
+
 Timeline of Events:
 
 [00:00] You clicked "Assign & Start"
@@ -303,6 +341,7 @@ Generated Files:
   ✅ Generated Android app
   ✅ README with setup guide
   ✅ Deployment instructions
+
 ```
 
 ---
@@ -312,25 +351,32 @@ Generated Files:
 ### Bookmark These URLs
 
 ```
+
 Admin:  http://localhost:8001  (👑 Main interface)
 Monitor: http://localhost:8000  (👁️ Watch progress)
+
 ```
 
 ### Save These Ever
 
 ```
+
 API Keys:     Keep SAFE, never share
 Project Names: Can be anything descriptive
 Framework:    Flutter is most complete
+
 ```
 
 ### Remember
 
 ```
+
 ✓ Each project gets its own AI team (Arch + Builder + Reviewer)
+
 ✓ Whole process takes ~5 minutes per project
 ✓ Check monitoring dashboard to watch live
 ✓ All generated code goes to: projects/{project-name}/
+
 ```
 
 ---
@@ -340,43 +386,55 @@ Framework:    Flutter is most complete
 **Q: Where's my generated code?**
 
 ```
+
 A: In Admin Dashboard → Projects → Click your project
    Or in file system: c:\Users\Nazifa\supremeai\projects\
+
 ```
 
 **Q: How long does a project take?**
 
 ```
+
 A: ~5 minutes if API working
    Or ~30 min if slow internet
+
 ```
 
 **Q: Can I run multiple projects?**
 
 ```
+
 A: Yes! Each gets its own AI team
    Create another project and assign AI
+
 ```
 
 **Q: What if something goes wrong?**
 
 ```
+
 A: Check monitoring dashboard for error logs
    All errors showing there
+
 ```
 
 **Q: Can I stop a running project?**
 
 ```
+
 A: Yes! Admin Dashboard → Projects → Stop
+
 ```
 
 **Q: Where do I get an API key?**
 
 ```
+
 A: Gemini: https://ai.google.dev (Free)
    OpenAI: https://platform.openai.com
    etc.
+
 ```
 
 ---
@@ -386,26 +444,32 @@ A: Gemini: https://ai.google.dev (Free)
 ### Immediate (Next 30 min)
 
 ```
+
 ☐ Check generated code quality
 ☐ Review monitoring dashboard
 ☐ Try creating another project
+
 ```
 
 ### Today (Before end of day)
 
 ```
+
 ☐ Read ADMIN_OPERATIONS_GUIDE.md (15 min)
 ☐ Configure email alerts (if needed)
 ☐ Create 3-5 test projects
+
 ```
 
 ### This Week
 
 ```
+
 ☐ Set up Firebase backup
 ☐ Configure project templates
 ☐ Rotate API key (security)
 ☐ Review audit logs
+
 ```
 
 ---
@@ -415,28 +479,35 @@ A: Gemini: https://ai.google.dev (Free)
 ### Can't find a button?
 
 ```
+
 → Check if you're on right page (Admin Dashboard: :8001)
 → Try refreshing the page
 → Try different browser
+
 ```
 
 ### API key not working?
 
 ```
+
 → Verify key is correct
 → Verify it's from right provider (Gemini, OpenAI, etc.)
 → Try again with fresh key
+
 ```
 
 ### Dashboards not loading?
 
 ```
+
 → Check URLs: :8001 (Admin) and :8000 (Monitor)
 → Check if servers running
 → Open terminal and verify no errors
+
 ```
 
 **Still issues?**  
+
 Check: `STATUS_LIVE.md` or `ADMIN_OPERATIONS_GUIDE.md`
 
 ---
@@ -446,11 +517,17 @@ Check: `STATUS_LIVE.md` or `ADMIN_OPERATIONS_GUIDE.md`
 Before you go:
 
 - [ ] Admin Dashboard opened? (http://localhost:8001)
+
 - [ ] API Key added? (Check API Key Manager)
+
 - [ ] Project created? (Check Projects)
+
 - [ ] AI assigned? (Check AI Agents)
+
 - [ ] Monitoring dashboard opened? (http://localhost:8000)
+
 - [ ] Saw project progress? (Screen updated)
+
 - [ ] Read this entire guide? (25% chance 😄)
 
 **If all YES → You're ready!**  
@@ -459,6 +536,7 @@ Before you go:
 ---
 
 ```
+
 🎉 CONGRATULATIONS! 🎉
 
 You've successfully:
@@ -473,6 +551,7 @@ You're now an official SupremeAI Admin!
 Ready to build unlimited apps in minutes.
 
 Welcome to the future of code generation! 🚀
+
 ```
 
 ---

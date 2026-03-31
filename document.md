@@ -24,6 +24,7 @@ Core Philosophy: "AI works, admin watches, approves when needed"
 │ ├─ Y-Reviewer: Bug detection             │
 │ ├─ Z-Architect: Planning & decisions     │
 │ ├─ Scalable: 3 to 300+ agents            │
+
 │ └─ Fallback chain: Auto-switch on quota/ban│
 ├─────────────────────────────────────────┤
 │ LAYER 3: APP GENERATOR                  │
@@ -39,12 +40,14 @@ Core Philosophy: "AI works, admin watches, approves when needed"
 │ ├─ Approve/Reject/Modify controls        │
 │ ├─ Auto-approve settings                 │
 │ └─ Final delivery: APK + Web link          │
+
 ├─────────────────────────────────────────┤
 │ LAYER 5: OUTPUT & MONITORING            │
 │ ├─ Vercel/Firebase Hosting (Web)         │
 │ ├─ Play Store Internal (Android)         │
 │ ├─ Progress reports in chat               │
 │ └─ Alert system (Email + In-App)         │
+
 └─────────────────────────────────────────┘
 
 💬 CHAT-BASED WORKFLOW
@@ -81,6 +84,7 @@ AI-Team: App ready! 🎉
 
 | Requirement Size | Example | Action |
 | :--- | :--- | :--- |
+
 | Small | Dark mode, icon change, animation | Auto-approve |
 | Medium | New screen, form validation | Notify, 10min auto |
 | Big | Payment gateway, AI chatbot, database change | Stop, wait manual |
@@ -88,12 +92,14 @@ AI-Team: App ready! 🎉
 Admin Settings:
 
 - Auto-approve threshold: Small/Medium/Big/None
+
 - Notification: Immediate/Digest/Off
 
 🤖 AI AGENT CONFIGURATION
 
 | Role | Primary | Fallback 1 | Fallback 2 |
 | :--- | :--- | :--- | :--- |
+
 | X-Builder | DeepSeek | Groq | Together AI |
 | Y-Reviewer | Claude | GPT-4 | DeepSeek |
 | Z-Architect | GPT-4 | Claude | Groq |
@@ -101,20 +107,26 @@ Admin Settings:
 Rotation Triggers:
 
 - Quota > 80%: Warning
+
 - Quota 100%: Auto rotate
+
 - API 429/403: Rotate + VPN switch
+
 - 3 fails same task: Demote AI
 
 Safezone:
 
 - Admin marked AI stays in pool
+
 - Never goes to fallback
+
 - Protected from auto-ranking
 
 📱 ADMIN MOBILE APP
 
 | Screen | Features |
 | :--- | :--- |
+
 | Dashboard | Active projects, quick actions |
 | Chat | All AI messages, approvals |
 | New Project | Template select, requirements |
@@ -125,14 +137,18 @@ Safezone:
 Notifications:
 
 - New requirement needs approval
+
 - Project complete
+
 - Quota warning
+
 - Error alert
 
 🔥 CLOUD INFRASTRUCTURE
 
 | Firebase Service | Use | Free Limit |
 | :--- | :--- | :--- |
+
 | Authentication | Admin login | 10K/month |
 | Firestore | Chat, configs, memory | 50K reads/day |
 | Cloud Functions | AI controller | 2M invocations |
@@ -141,6 +157,7 @@ Notifications:
 
 | External Service | Use | Free Limit |
 | :--- | :--- | :--- |
+
 | GitHub | Repo hosting | Unlimited public |
 | Vercel | Web deploy | 100GB bandwidth |
 | DeepSeek | AI | 50 req/day |
@@ -151,6 +168,7 @@ Notifications:
 
 | Phase | Day | Task |
 | :--- | :--- | :--- |
+
 | Phase 1: Foundation | 1-2 | Firebase setup, Auth |
 | | 3-4 | Cloud Functions skeleton |
 | | 5-6 | Basic AI integration (DeepSeek) |
@@ -187,6 +205,7 @@ Notifications:
 
 | Layer | Protection |
 | :--- | :--- |
+
 | Auth | Firebase Auth, 2FA optional |
 | API Keys | Encrypted, monthly rotation |
 | VPN | Auto-switch, 3 providers |
@@ -198,6 +217,7 @@ Notifications:
 
 | Metric | Target |
 | :--- | :--- |
+
 | App generation time | < 30 min |
 | Success rate | > 95% |
 | Admin approval needed | < 20% of tasks |
@@ -208,21 +228,27 @@ Notifications:
 🚀 FINAL DELIVERABLES
 
 - Cloud AI System (Firebase Functions)
+
 - Admin Mobile App (Flutter - Android/iOS)
+
 - App Generator (Flutter/React templates)
+
 - Auto CI/CD (GitHub + Vercel + Play Store)
+
 - Documentation (Setup, API, User guide)
 
 "AI কাজ করে, Admin দেখে, Approve করে, APK পায়" 🎉
 
 ---
 🕒 UPGRADE LOG & RULES
+
 MANDATORY RULE: DO NOT REMOVE ANY LINES FROM THIS DOCUMENT.
 MANDATORY RULE: APPEND ALL UPGRADES AND NEW PLANS WITH TIMESTAMPS.
 MANDATORY RULE: NEW DETAILED PLANS MUST BE STORED IN SEPARATE FILES (e.g. plans/phase3.md).
 
 | Timestamp | Module | Upgrade Type | Description |
 | :--- | :--- | :--- | :--- |
+
 | 2024-05-20 14:00 | System | Documentation | Established Immutable Document Rules. |
 | 2024-05-20 14:05 | MemoryManager | Feature | Added Firebase Cloud Sync for shared AI memory. |
 | 2024-05-20 14:10 | SelfOptimizer | Feature | Added Dependency Scanning for auto-efficiency upgrades. |
@@ -237,19 +263,27 @@ MANDATORY RULE: NEW DETAILED PLANS MUST BE STORED IN SEPARATE FILES (e.g. plans/
 👑 ADMIN SUPREMACY (KING MODE)
 
 - **Decision Overwrite:** The Admin can manually override any "Consensus" or "Approval" result.
+
 - **Direct Intervention:** The Admin can pause the voting loop and provide a final decision.
+
 - **Rule Supremacy:** Admin manual input takes precedence over any pre-defined AI thresholds.
+
 - **Execution:** Logs as "KING_OVERWRITE" and proceeds immediately.
 
 🗣️ COMMUNICATION RULES (NEW v3.5)
 
 - **Language:** AI will always communicate in **Bangla**.
+
 - **Simplicity:** Explanations will be **short and easy** to understand for the Admin.
+
 - **Collaboration:** AI must actively discuss and seek feedback from the Admin for significant choices.
+
 - **Documentation:** All technical steps will be documented as before, but the chat summary will be in Bangla.
 
 🤖 DYNAMIC AI ORCHESTRATION (NEW v3.7)
 
 - **Admin Choice:** অ্যাডমিন প্রতিটি কাজের (Plan, Code, Review) জন্য আলাদা মডেল বেছে নিতে পারেন।
+
 - **Missing Key Logic:** যদি কোনো মডেলের API কী না থাকে, সিস্টেম সেটি নিজে থেকে ব্যবহার করার চেষ্টা করবে না। পরিবর্তে এটি '🚨 WAITING_FOR_HUMAN' মোডে চলে যাবে এবং অ্যাডমিনকে জানাবে।
+
 - **Flexibility:** কোনো নির্দিষ্ট AI ব্যবহার করা বাধ্যতামূলক নয়। অ্যাডমিন যা দেবেন, সিস্টেম তা দিয়েই সেরাটা করার চেষ্টা করবে।

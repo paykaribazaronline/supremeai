@@ -24,26 +24,32 @@
 **Step 1: Go to Firebase Console**
 
 ```
+
 👉 https://console.firebase.google.com
+
 ```
 
 **Step 2: Create New Project**
 
 ```
+
 Click: "Add Project"
 Project Name: "supremeai-production"
 Organization: (Your company)
 Google Analytics: ✅ Enable
 Region: asia-south1 (Close to Bangladesh)
 Click: "Create Project"
+
 ```
 
 **Step 3: Wait for Project Creation**
 
 ```
+
 ⏳ 3-5 minutes
 Status: "Creating your Firebase project..."
 ✅ Complete: "Your Firebase project is ready"
+
 ```
 
 ### Phase 2: Setup Firestore Database
@@ -51,13 +57,16 @@ Status: "Creating your Firebase project..."
 **Step 1: Create Firestore**
 
 ```
+
 Left Menu → "Build" → "Firestore Database"
 Click: "Create Database"
+
 ```
 
 **Step 2: Configure Database**
 
 ```
+
 Security Rules:
 �
  Start in production mode
@@ -66,27 +75,34 @@ Location:
   asia-south1 (Bangladesh nearest)
 
 Click: "Create"
+
 ```
 
 **Step 3: Create Database Collections**
 
 ```
+
 Collection 1: "projects"
 ├── Fields Needed:
 │   ├── projectId (string)
 │   ├── name (string)
 │   ├── description (string)
 │   ├── status (string) - PENDING/APPROVED/RUNNING/COMPLETED
+
 │   ├── createdAt (timestamp)
 │   ├── assignedAI (string) - AI agent ID
+
 │   ├── progress (number) - 0-100%
+
 │   └── result (string)
 
 Collection 2: "api_keys"
 ├── Fields:
 │   ├── keyId (string)
 │   ├── provider (string) - GEMINI/OPENAI/DEEPSEEK/GROQ
+
 │   ├── key (string) - ENCRYPTED
+
 │   ├── isActive (boolean)
 │   ├── createdAt (timestamp)
 │   ├── rotatedAt (timestamp)
@@ -97,6 +113,7 @@ Collection 3: "ai_agents"
 │   ├── agentId (string)
 │   ├── name (string)
 │   ├── role (string) - BUILDER/REVIEWER/ARCHITECT
+
 │   ├── model (string)
 │   ├── isActive (boolean)
 │   ├── tasksCompleted (number)
@@ -111,6 +128,7 @@ Collection 4: "admin_logs"
 │   ├── timestamp (timestamp)
 │   ├── details (map)
 │   └── status (string)
+
 ```
 
 ### Phase 3: Setup Authentication
@@ -118,25 +136,31 @@ Collection 4: "admin_logs"
 **Step 1: Enable Auth Methods**
 
 ```
+
 Left Menu → "Build" → "Authentication"
 Click: "Get Started"
+
 ```
 
 **Step 2: Enable Sign-in Methods**
 
 ```
+
 ✅ Email/Password
 ✅ Google
 ✅ Anonymous (for testing)
+
 ```
 
 **Step 3: Add Admin User**
 
 ```
+
 Users Tab → "Add User"
 Email: admin@supremeai.com
 Password: (Generate strong password)
 Custom Claims: {"role": "admin"}
+
 ```
 
 ### Phase 4: Setup Cloud Storage
@@ -144,13 +168,16 @@ Custom Claims: {"role": "admin"}
 **Step 1: Create Storage**
 
 ```
+
 Left Menu → "Build" → "Storage"
 Click: "Get Started"
+
 ```
 
 **Step 2: Configure Rules**
 
 ```
+
 In Production mode
 
 Rules:
@@ -165,6 +192,7 @@ service firebase.storage {
     }
   }
 }
+
 ```
 
 ### Phase 5: Setup Cloud Functions
@@ -172,21 +200,27 @@ service firebase.storage {
 **Step 1: Install Firebase Tools**
 
 ```bash
+
 npm install -g firebase-tools
 firebase login
+
 ```
 
 **Step 2: Initialize Functions**
 
 ```bash
+
 cd c:\Users\Nazifa\supremeai
 firebase init functions
+
 ```
 
 **Step 3: Deploy Cloud Functions**
 
 ```bash
+
 firebase deploy --only functions
+
 ```
 
 ### Phase 6: Setup Cloud Messaging (for Mobile Alerts)
@@ -194,16 +228,20 @@ firebase deploy --only functions
 **Step 1: Generate Keys**
 
 ```
+
 Project Settings → Cloud Messaging
 Copy: Server API Key
 Copy: Sender ID
+
 ```
 
 **Step 2: Store in Environment**
 
 ```bash
+
 [Environment]::SetEnvironmentVariable("FCM_SERVER_KEY", "your-key-here", "User")
 [Environment]::SetEnvironmentVariable("FCM_SENDER_ID", "your-id-here", "User")
+
 ```
 
 ---
@@ -219,8 +257,10 @@ Copy: Sender ID
 **Interface:**
 
 ```
+
 ┌─────────────────────────────────────────┐
 │   SUPREMEAI ADMIN - API KEY MANAGER    │
+
 ├─────────────────────────────────────────┤
 │                                         │
 │  Add New API Key                        │
@@ -243,6 +283,7 @@ Copy: Sender ID
 │  └─────────────────────────────────┘   │
 │                                         │
 └─────────────────────────────────────────┘
+
 ```
 
 #### Method 2: Android App (Mobile)
@@ -252,8 +293,10 @@ Copy: Sender ID
 **Features:**
 
 ```
+
 📱 Screens:
 ├── Login (Email + Password)
+
 ├── Dashboard
 │   ├── Active Projects
 │   ├── System Status
@@ -271,11 +314,13 @@ Copy: Sender ID
     ├── Notifications
     ├── Preferences
     └── Logout
+
 ```
 
 **Usage Flow:**
 
 ```
+
 1. Open App
 2. Login with admin@supremeai.com
 3. Tab: "API Keys"
@@ -285,6 +330,7 @@ Copy: Sender ID
 7. Name: "production-gemini"
 8. Press: "Save & Test"
 9. ✅ Key Added Successfully
+
 ```
 
 #### Method 3: REST API (Programmatic)
@@ -294,6 +340,7 @@ Copy: Sender ID
 **Add API Key (POST):**
 
 ```bash
+
 curl -X POST https://api.supremeai.com/v1/admin/api-keys \
   -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
   -H "Content-Type: application/json" \
@@ -313,11 +360,13 @@ Response:
   "status": "ACTIVE",
   "createdAt": "2026-03-27T10:15:30Z"
 }
+
 ```
 
 **Get API Keys (GET):**
 
 ```bash
+
 curl -X GET https://api.supremeai.com/v1/admin/api-keys \
   -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
 
@@ -336,24 +385,29 @@ Response:
     ...
   ]
 }
+
 ```
 
 **Rotate API Key (PUT):**
 
 ```bash
+
 curl -X PUT https://api.supremeai.com/v1/admin/api-keys/{keyId}/rotate \
   -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "newKey": "NEW_KEY_HERE"
   }'
+
 ```
 
 **Disable API Key (DELETE):**
 
 ```bash
+
 curl -X DELETE https://api.supremeai.com/v1/admin/api-keys/{keyId} \
   -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
+
 ```
 
 ---
@@ -365,6 +419,7 @@ curl -X DELETE https://api.supremeai.com/v1/admin/api-keys/{keyId} \
 #### Step 1: Dashboard - View Active Projects
 
 ```
+
 Admin Dashboard → Projects Tab
 
 ┌──────────────────────────────────────────┐
@@ -396,11 +451,13 @@ Admin Dashboard → Projects Tab
 │    [VIEW RESULTS] [ARCHIVE]              │
 │                                          │
 └──────────────────────────────────────────┘
+
 ```
 
 #### Step 2: Click "ASSIGN AI" Button
 
 ```
+
 Dialog: Select AI Agent
 
 ┌───────────────────────────────────────────┐
@@ -417,8 +474,11 @@ Dialog: Select AI Agent
 │                                           │
 │ Builder Preference:                       │
 │ ○ X-Builder (DeepSeek) - 98.5% success   │
+
 │ ○ Y-Builder (Groq) - 96.2% success       │
+
 │ ○ Z-Builder (Together) - 94.1% success   │
+
 │                                           │
 │ Performance Score:                        │
 │ X-Builder: ████████████░░ 95/100         │
@@ -429,33 +489,41 @@ Dialog: Select AI Agent
 │                                           │
 │ Reviewer Preference:                      │
 │ ○ Y-Reviewer (Claude) - 99.2% success    │
+
 │ ○ X-Reviewer (GPT-4) - 97.8% success     │
+
 │                                           │
 ├───────────────────────────────────────────┤
 │                                           │
 │ Architect Preference:                     │
 │ ○ Z-Architect (GPT-4) - 99.5% success    │
+
 │ ○ X-Architect (Claude) - 98.1% success   │
+
 │                                           │
 │           [ASSIGN] [CANCEL]               │
 │                                           │
 └───────────────────────────────────────────┘
+
 ```
 
 #### Step 3: Select AI Agents
 
 ```
+
 Choose your combination:
 ✅ BUILDER:   X-Builder (DeepSeek)
 ✅ REVIEWER:  Y-Reviewer (Claude)
 ✅ ARCHITECT: Z-Architect (GPT-4)
 
 ✅ [ASSIGN] Button
+
 ```
 
 #### Step 4: Confirm & Start
 
 ```
+
 Confirmation Dialog:
 
 ✅ AI AGENTS ASSIGNED
@@ -470,11 +538,13 @@ Start Time: Now
 Estimated Completion: 2-3 hours
 
 [CONFIRM & START] [EDIT] [CANCEL]
+
 ```
 
 #### Step 5: Monitor Progress
 
 ```
+
 Real-time Progress:
 
 Project: real-task-manager-app
@@ -498,6 +568,7 @@ Agents at Work:
 
 Overall Progress: ▓▓▓░░░░░░░ 20%
 ETA: 2 hours 45 minutes
+
 ```
 
 ---
@@ -511,6 +582,7 @@ ETA: 2 hours 45 minutes
 #### 1. Quick Stats
 
 ```
+
 ┌─────────────────────────────────────────┐
 │         SUPREMEAI ADMIN DASHBOARD       │
 ├─────────────────────────────────────────┤
@@ -521,41 +593,57 @@ ETA: 2 hours 45 minutes
 │  AI Agents: 3 running    Avg Time: 2h   │
 │                                         │
 └─────────────────────────────────────────┘
+
 ```
 
 #### 2. API Key Manager
 
 - View all API keys
+
 - Add new keys
+
 - Rotate/disable keys
+
 - Monitor usage per provider
 
 #### 3. Project Management
 
 - View all projects
+
 - Assign AI agents
+
 - Monitor progress
+
 - View results
 
 #### 4. AI Agent Status
 
 - Show running agents
+
 - Performance metrics
+
 - Task history
+
 - Success rates
 
 #### 5. System Health
 
 - Firebase status
+
 - API quota usage
+
 - Error rate
+
 - Response times
 
 #### 6. Audit Logs
 
 - All admin actions
+
 - Timestamps
+
 - Details
+
 - Status
 
 ---
@@ -565,6 +653,7 @@ ETA: 2 hours 45 minutes
 ### ✅ Morning Tasks (9 AM)
 
 ```
+
 □ Check Dashboard Status
   - System Health: Should be GREEN
   - Error Rate: Should be < 2%
@@ -584,11 +673,13 @@ ETA: 2 hours 45 minutes
   - Mark system as "Ready for Day"
   - Brief team on tasks
   - Check notifications
+
 ```
 
 ### 🏃 Throughout Day
 
 ```
+
 □ Monitor Active Projects
   - Check every 2 hours
   - Ensure smooth progress
@@ -608,11 +699,13 @@ ETA: 2 hours 45 minutes
   - Email notifications
   - SMS alerts
   - Slack messages
+
 ```
 
 ### 🛡️ Evening Tasks (6 PM)
 
 ```
+
 □ End Day Report
   - How many projects today?
   - Success rate?
@@ -637,11 +730,13 @@ ETA: 2 hours 45 minutes
   - Export data
   - Verify backup
   - Store safely
+
 ```
 
 ### 📅 Weekly Tasks (Friday)
 
 ```
+
 □ Weekly Report Generation
   - Performance metrics
   - Success rates
@@ -667,11 +762,13 @@ ETA: 2 hours 45 minutes
   - Share metrics
   - Discuss issues
   - Plan next week
+
 ```
 
 ### 🎯 Monthly Tasks
 
 ```
+
 □ Security Audit
   - Review all access logs
   - Check for threats
@@ -696,6 +793,7 @@ ETA: 2 hours 45 minutes
   - Next month goals
   - Resource allocation
   - Budget review
+
 ```
 
 ---
@@ -705,6 +803,7 @@ ETA: 2 hours 45 minutes
 ### Scenario 1: High Error Rate (> 10%)
 
 ```
+
 IMMEDIATE ACTIONS:
 1. Check error logs: Firebase Console → Functions → Logs
 2. Identify error pattern
@@ -717,11 +816,13 @@ REMEDIATION:
 □ Check Firebase connection
 □ Clear cache/logs
 □ Contact API providers if issue persists
+
 ```
 
 ### Scenario 2: API Key Compromised
 
 ```
+
 IMMEDIATE ACTIONS:
 1. Go to API provider console
 2. Revoke the key
@@ -739,11 +840,13 @@ WITHIN 24 HOURS:
 □ Report to security team
 □ Update documentation
 □ Implement preventive measures
+
 ```
 
 ### Scenario 3: Firebase Down
 
 ```
+
 IMMEDIATE ACTIONS:
 1. Verify: https://firebase.google.com/status
 2. Wait for Google to fix (usually 5-30 mins)
@@ -760,11 +863,13 @@ AFTER RESTORATION:
 □ Verify consistency
 □ Resume normal operations
 □ Post-mortem analysis
+
 ```
 
 ### Scenario 4: Too Many Requests (Rate Limited)
 
 ```
+
 IMMEDIATE ACTIONS:
 1. Check quota in Firebase Console
 2. See which API exceeded limit
@@ -780,6 +885,7 @@ LONG-TERM:
 □ Optimize queries
 □ Batch requests
 □ Monitor usage trending
+
 ```
 
 ---
@@ -789,25 +895,41 @@ LONG-TERM:
 ### Before Starting Admin Role
 
 - [ ] Read this entire document
+
 - [ ] Set up Firebase account
+
 - [ ] Generate personal API keys
+
 - [ ] Access Admin Dashboard
+
 - [ ] Practice adding API key
+
 - [ ] Practice assigning AI
+
 - [ ] Monitor test project
+
 - [ ] Check monitoring dashboard
+
 - [ ] Read security audit report
+
 - [ ] Understand emergency procedures
 
 ### Hands-on Practice
 
 - [ ] Create test project
+
 - [ ] Assign all 3 AI agents
+
 - [ ] Monitor completion
+
 - [ ] Check generated code
+
 - [ ] Review audit logs
+
 - [ ] Test API key rotation
+
 - [ ] Generate a report
+
 - [ ] Restore from backup
 
 ### Ready to Go Live
@@ -821,38 +943,49 @@ Once all above done, you're ready! 🎉
 ### Important URLs
 
 ```
+
 Firebase Console:    https://console.firebase.google.com
 Google Cloud:        https://console.cloud.google.com
 Admin Dashboard:     http://localhost:8001/admin
 Monitoring:          http://localhost:8000
 API Documentation:   Your local docs/api.md
+
 ```
 
 ### Important Commands
 
 ```bash
+
 # Start system
+
 .\gradlew run
 
 # Start admin dashboard
+
 python -m http.server 8001 --directory admin
 
 # Start monitoring
+
 python -m http.server 8000 --directory dashboard
 
 # View logs
+
 firebase functions:log
 
 # Deploy changes
+
 firebase deploy --only functions
+
 ```
 
 ### Emergency Contacts
 
 ```
+
 On-call: Your Phone
 Manager: Manager Email
 Firebase Support: support@firebase.google.com
+
 ```
 
 ---
@@ -862,6 +995,7 @@ Firebase Support: support@firebase.google.com
 You're a good admin when:
 
 ```
+
 ✅ Error rate consistently < 2%
 ✅ All projects complete on time
 ✅ AI agents running smoothly
@@ -869,9 +1003,11 @@ You're a good admin when:
 ✅ Daily reports generated
 ✅ Zero security incidents
 ✅ 95%+ success rate
+
 ✅ Fast problem resolution
 ✅ Team confident in system
 ✅ Backups verified monthly
+
 ```
 
 ---
@@ -881,12 +1017,19 @@ You're a good admin when:
 **You now have everything you need to:**
 
 - ✅ Setup Firebase completely
+
 - ✅ Manage API keys from any device
+
 - ✅ Assign AI agents to projects
+
 - ✅ Monitor system health
+
 - ✅ Handle emergencies
+
 - ✅ Run daily operations
+
 - ✅ Generate reports
+
 - ✅ Maintain security
 
 **Start with:** Setting up your API keys in Admin Dashboard

@@ -9,10 +9,15 @@
 This document covers security implementation across the supremeai system. The architecture follows a **defense-in-depth** strategy with:
 
 - **Layer 1:** Authentication & Authorization
+
 - **Layer 2:** Secret Management & Encryption
+
 - **Layer 3:** API Security & Rate Limiting
+
 - **Layer 4:** Input Validation & Injection Prevention
+
 - **Layer 5:** Audit Logging & Monitoring
+
 - **Layer 6:** Network & Transport Security
 
 ---
@@ -34,6 +39,7 @@ String deepseekKey = secretManager.getSecret("deepseek-api-key");
 String groqKey = secretManager.getSecret("groq-api-key");
 String anthropicKey = secretManager.getSecret("anthropic-api-key");
 String openaiKey = secretManager.getSecret("openai-api-key");
+
 ```
 
 ### 2.2 Secret Storage
@@ -41,6 +47,7 @@ String openaiKey = secretManager.getSecret("openai-api-key");
 **Store these in Google Cloud Secret Manager:**
 
 ```
+
 supremeai/deepseek-api-key
 supremeai/groq-api-key
 supremeai/anthropic-api-key
@@ -48,17 +55,22 @@ supremeai/openai-api-key
 supremeai/firebase-service-account-key
 supremeai/jwt-signing-key
 supremeai/encryption-master-key
+
 ```
 
 **Local Development (application-local.properties):**
 
 ```properties
+
 # NEVER commit API keys
+
 # Use environment variables for local development
+
 dev.deepseek.key=${DEEPSEEK_KEY}
 dev.groq.key=${GROQ_KEY}
 dev.anthropic.key=${ANTHROPIC_KEY}
 dev.openai.key=${OPENAI_KEY}
+
 ```
 
 ### 2.3 Key Rotation
@@ -66,13 +78,17 @@ dev.openai.key=${OPENAI_KEY}
 **Recommended Schedule:**
 
 - API keys: Every 90 days
+
 - Database credentials: Every 30 days
+
 - JWT signing keys: Every 180 days
+
 - Master encryption key: Every 365 days
 
 **Rotation Process:**
 
 1. Create new secret version in Secret Manager
+
 2. Update application configuration
 3. Deploy to staging, verify works
 4. Deploy to production
@@ -85,14 +101,18 @@ dev.openai.key=${OPENAI_KEY}
 ```java
 // ❌ NEVER log these
 System.out.println("API Key: " + apiKey);                    // WRONG
+
 logger.info("Token: " + token);                              // WRONG
+
 logger.debug("Password: " + password);                       // WRONG
+
 System.out.println("response: " + json);                     // Risky
 
 // ✅ DO THIS instead
 AuditLogger.logAPICall("deepseek-api", "request-sent");      // Safe
 logger.info("API call succeeded");                           // Safe
 AuditLogger.logEvent("AUTH_SUCCESS", "user@example.com");    // Safe
+
 ```
 
 ---
@@ -107,6 +127,7 @@ The system has admin-only endpoints (e.g., create agents, approve requirements).
 **Required Before Production:**
 
 ```java
+
 // Add AdminAuthFilter.java
 public class AdminAuthFilter implements Filter {
     @Override
@@ -136,6 +157,7 @@ public class AdminAuthFilter implements Filter {
         chain.doFilter(request, response);
     }
 }
+
 ```
 
 ### 3.2 Token-Based Authentication
@@ -155,6 +177,7 @@ public void verifyAdminToken(String token) {
         throw new SecurityException("Invalid token");
     }
 }
+
 ```
 
 ### 3.3 Role-Based Access Control (RBAC)
@@ -176,6 +199,7 @@ public enum AdminRole {
 if (!hasRole(userId, AdminRole.ADMIN)) {
     throw new UnauthorizedException("Insufficient permissions");
 }
+
 ```
 
 ---
@@ -190,20 +214,25 @@ RateLimitingService.java uses token bucket algorithm.
 **Configuration (application.properties):**
 
 ```properties
+
 # Rate limiting
+
 ratelimit.user.tokens.per_minute=100
 ratelimit.project.tokens.per_hour=1000
 ratelimit.admin.tokens.per_minute=500
+
 ```
 
 **Usage:**
 
 ```java
+
 RateLimitingService rateLimiter = new RateLimitingService(100, 1000);
 
 if (!rateLimiter.allowUserRequest(userId)) {
     return HttpStatus.TOO_MANY_REQUESTS; // 429
 }
+
 ```
 
 ### 4.2 DDoS Protection
@@ -211,17 +240,23 @@ if (!rateLimiter.allowUserRequest(userId)) {
 **Network Level (GCP):**
 
 - Enable Cloud Armor
+
 - Set rate-based rules
+
 - Geo-blocking if applicable
+
 - Bot detection
 
 **Application Level:**
 
 ```properties
+
 # Aggressive rate limiting for suspicious behavior
+
 ratelimit.initial_requests_per_minute=10
 ratelimit.escalating_factor=1.5
 ratelimit.max_memory_per_user=10mb
+
 ```
 
 ### 4.3 CORS Configuration
@@ -245,6 +280,7 @@ public class CorsConfig {
         };
     }
 }
+
 ```
 
 ---
@@ -301,6 +337,7 @@ public class InputValidator {
         }
     }
 }
+
 ```
 
 ### 5.2 Usage in Services
@@ -318,6 +355,7 @@ public void approveRequirement(String requirementId, String approverEmail) {
     InputValidator.validateEmail(approverEmail);
     // ... continue
 }
+
 ```
 
 ---
@@ -329,12 +367,19 @@ public void approveRequirement(String requirementId, String approverEmail) {
 AuditLogger.java currently logs:
 
 - Requirement classification decisions
+
 - Approval/rejection events
+
 - Agent assignments
+
 - API calls to external services
+
 - Configuration changes
+
 - Authentication attempts
+
 - Rate limit violations
+
 - Security events
 
 ### 6.2 Audit Log Format
@@ -357,6 +402,7 @@ Each entry contains:
         "approval_time_ms": 45
     }
 }
+
 ```
 
 ### 6.3 Audit Log Retention
@@ -364,12 +410,15 @@ Each entry contains:
 **Configuration (logback.xml):**
 
 ```xml
+
 <!-- Audit logs: keep for 90 days -->
+
 <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
     <fileNamePattern>logs/audit-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
     <maxHistory>90</maxHistory>  <!-- 90 days -->
     <maxFileSize>100MB</maxFileSize>
 </rollingPolicy>
+
 ```
 
 ---
@@ -381,18 +430,22 @@ Each entry contains:
 **✅ Safe to show users:**
 
 ```
+
 "An error occurred while processing your request. Please try again later."
 "Service temporarily unavailable. Please retry in 5 minutes."
 "Too many requests. Please slow down."
+
 ```
 
 **❌ Never show users:**
 
 ```
+
 "NullPointerException at line 45"
 "Database connection timeout"
 "API key expired"
 "Stack trace with code paths"
+
 ```
 
 ### 7.2 Implementation in APIErrorHandler
@@ -412,6 +465,7 @@ public String executeWithResilience(Supplier<String> operation, String operation
         throw new APIException("Internal server error"); // Safe message
     }
 }
+
 ```
 
 ---
@@ -423,7 +477,9 @@ public String executeWithResilience(Supplier<String> operation, String operation
 **Firebase Firestore:**
 
 - Automatically encrypted by Google (encryption at rest)
+
 - Use Secret Manager for master keys
+
 - Consider field-level encryption for sensitive data
 
 **Recommended:** Encrypt sensitive fields using Tink
@@ -433,6 +489,7 @@ public String executeWithResilience(Supplier<String> operation, String operation
 String encrypted = encryptionService.encrypt(sensitiveData);
 firebaseService.saveEncrypted(requirementId, encrypted);
 String decrypted = encryptionService.decrypt(encrypted);
+
 ```
 
 ### 8.2 Data in Transit
@@ -440,7 +497,9 @@ String decrypted = encryptionService.decrypt(encrypted);
 **All Communication:**
 
 - Use HTTPS/TLS 1.3
+
 - Pin certificates for external APIs
+
 - Verify SSL certificates
 
 ```java
@@ -449,6 +508,7 @@ OkHttpClient client = new OkHttpClient.Builder()
     .sslSocketFactory(createSSLSocketFactory())
     .hostnameVerifier(OkHostnameVerifier.INSTANCE)
     .build();
+
 ```
 
 ---
@@ -460,23 +520,32 @@ OkHttpClient client = new OkHttpClient.Builder()
 **Current secure versions (from build.gradle.kts):**
 
 ```
+
 Firebase Admin: 9.2.0+  ✅
+
 OkHttp: 4.12.0+        ✅
+
 Jackson: 2.15.2+       ✅
+
 Logback: 1.4.7+        ✅
+
 Resilience4j: 2.1.0+   ✅
+
 ```
 
 **Check for updates monthly:**
 
 ```bash
+
 ./gradlew dependencyUpdates
+
 ```
 
 ### 9.2 Remove Unused Dependencies
 
 ```bash
 ./gradlew dependencies | grep "^.*unresolvedDependencies"
+
 ```
 
 ### 9.3 CVE Scanning
@@ -485,6 +554,7 @@ Use OWASP Dependency Check:
 
 ```bash
 ./gradlew dependencyCheckAggregate
+
 ```
 
 ---
@@ -496,9 +566,13 @@ Use OWASP Dependency Check:
 If processing EU user data:
 
 - [ ] Data retention policy documented (90-day audit log)
+
 - [ ] User consent for tracking
+
 - [ ] Right to be forgotten implemented
+
 - [ ] Data breach notification process
+
 - [ ] Privacy policy updated
 
 ### 10.2 SOC 2 Compliance
@@ -506,9 +580,13 @@ If processing EU user data:
 For enterprise customers:
 
 - [ ] Access control (role-based)
+
 - [ ] Audit logging (implemented)
+
 - [ ] Encryption (in transit + at rest)
+
 - [ ] Change management (documented)
+
 - [ ] Risk assessment (quarterly)
 
 ### 10.3 Data Residency
@@ -516,9 +594,13 @@ For enterprise customers:
 If required:
 
 ```properties
+
 # GCP Firestore region
+
 firebase.database.region=us-central1  # or required region
+
 firebase.storage.region=US
+
 ```
 
 ---
@@ -530,20 +612,27 @@ firebase.storage.region=US
 **Inbound:**
 
 - Allow: HTTPS (443)
+
 - Allow: HTTP (80) - redirect to HTTPS
+
 - Deny: All other ports
 
 **Outbound:**
 
 - Allow: API provider IPs (whitelist)
+
 - Allow: GCP services (Secret Manager, etc.)
+
 - Deny: All other destinations
 
 ### 11.2 VPC Configuration
 
 ```properties
+
 # Cloud Run via VPC connector (if applicable)
+
 cloud.run.vpc.connector=supremeai-connector
+
 ```
 
 ---
@@ -555,12 +644,19 @@ cloud.run.vpc.connector=supremeai-connector
 Monitor these metrics:
 
 ```
+
 - authentication_failures_per_minute
+
 - rate_limit_violations_per_hour
+
 - api_calls_with_errors
+
 - circuit_breaker_state_changes
+
 - unauthorized_access_attempts
+
 - database_transaction_failures
+
 ```
 
 ### 12.2 Security Alerts
@@ -568,10 +664,12 @@ Monitor these metrics:
 Set up alerts for:
 
 ```
+
 IF authentication_failures > 5 in 1 minute → ALERT
 IF rate_limit_violations > 10 in 1 hour → ALERT
 IF circuit_breaker_open for > 5 minutes → ALERT
 IF unauthorized_access_attempts > 0 → ALERT (immediate escalation)
+
 ```
 
 ---
@@ -597,10 +695,13 @@ When an incident occurs:
 ### 13.2 Breach Notification
 
 ```properties
+
 # Contacts for security incidents
+
 security.contact.email=security@example.com
 security.contact.phone=+1-xxx-xxx-xxxx
 incident.escalation.time.minutes=15
+
 ```
 
 ---
@@ -608,18 +709,31 @@ incident.escalation.time.minutes=15
 ## 14. SECURITY CHECKLIST
 
 - [x] API keys in Secret Manager
+
 - [x] Structured logging (no secrets)
+
 - [x] Audit logging enabled
+
 - [x] Rate limiting enabled
+
 - [ ] Input validation implemented
+
 - [ ] Admin authentication required
+
 - [ ] CORS configured
+
 - [ ] TLS for all connections
+
 - [ ] Token expiration configured
+
 - [ ] HTTPS enforced
+
 - [ ] Dependencies updated
+
 - [ ] CVE scanning active
+
 - [ ] Monitoring configured
+
 - [ ] Incident response plan documented
 
 ---
@@ -629,19 +743,25 @@ incident.escalation.time.minutes=15
 ### Documentation
 
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
+
 - [Google Cloud Security Best Practices](https://cloud.google.com/security/best-practices)
+
 - [Firebase Security Rules](https://firebase.google.com/docs/firestore/security/start)
 
 ### Tools
 
 - [OWASP Dependency Check](https://owasp.org/www-project-dependency-check/)
+
 - [Snyk](https://snyk.io/) - Vulnerability scanning
+
 - [Twistlock](https://www.paloaltonetworks.com/) - Container security
 
 ### Training
 
 - OWASP Secure Coding
+
 - Google Cloud Security Fundamentals
+
 - Firebase Security course
 
 ---
@@ -652,6 +772,7 @@ incident.escalation.time.minutes=15
 **Next Steps:**
 
 1. Implement InputValidator.java
+
 2. Add AdminAuthFilter
 3. Deploy to staging
 4. Run security audit

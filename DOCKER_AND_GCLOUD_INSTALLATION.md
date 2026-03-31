@@ -5,11 +5,13 @@
 **Already Installed:** ✅
 
 - Git (2.53.0)
+
 - Java 17 (LTS)
 
 **Need to Install:** ❌
 
 - Docker Desktop
+
 - Google Cloud SDK
 
 ---
@@ -20,6 +22,7 @@
 
 1. Go to: **https://www.docker.com/products/docker-desktop**
 2. Click **"Download for Windows"**
+
 3. Choose your Windows version:
    - Windows 11/10 Pro/Enterprise: Use WSL 2 backend (recommended)
    - Windows Home: Will automatically use WSL 2
@@ -29,18 +32,24 @@
 1. Run the downloaded `Docker Desktop Installer.exe`
 2. Check the box: **"Install required Windows components for WSL 2"**
 3. Click **Install**
+
 4. **IMPORTANT:** When installation completes, restart your computer
+
 5. After restart, Docker Desktop should autostart
 6. Wait for Docker icon in system tray to show "Docker is running"
 
 ### Verify Docker Installation
 
 ```powershell
+
 # Open NEW PowerShell window after restart
+
 docker --version
 
 # Expected output:
+
 # Docker version 25.0.0 (or later), build e758fe5
+
 ```
 
 If you see the version, Docker is installed! ✅
@@ -53,6 +62,7 @@ If you see the version, Docker is installed! ✅
 
 1. Go to: **https://cloud.google.com/sdk/docs/install-sdk**
 2. Click **Windows 64-bit Interactive Installer**
+
 3. Save the file: `google-cloud-sdk-installer.exe`
 
 ### Installation Steps
@@ -62,6 +72,7 @@ If you see the version, Docker is installed! ✅
 3. Choose installation location (default is fine: `C:\Program Files (x86)\Google\Cloud SDK`)
 4. Check box: **"Start Google Cloud SDK Shell"**
 5. Click **Install**
+
 6. Wait for installation to complete (5-10 minutes)
 7. Uncheck "Start Google Cloud SDK Shell" and click **Finish**
 8. **IMPORTANT:** Open a NEW PowerShell window (don't use the SDK shell)
@@ -69,13 +80,19 @@ If you see the version, Docker is installed! ✅
 ### Verify Google Cloud SDK Installation
 
 ```powershell
+
 # Open NEW PowerShell window (CMD Prompt or PowerShell)
+
 gcloud --version
 
 # Expected output:
+
 # Google Cloud SDK 476.0.0 (or later)
+
 # bq 2.1.0
+
 # ...
+
 ```
 
 If you see the version, gcloud is installed! ✅
@@ -88,6 +105,7 @@ If you see the version, gcloud is installed! ✅
 
 ```powershell
 gcloud auth login
+
 ```
 
 This will:
@@ -105,6 +123,7 @@ This will:
 gcloud auth list
 
 # Should show your email as active
+
 ```
 
 ---
@@ -115,6 +134,7 @@ gcloud auth list
 
 ```powershell
 gcloud projects create supremeai-production --name="SupremeAI Production"
+
 ```
 
 ### Set as Default Project
@@ -123,8 +143,11 @@ gcloud projects create supremeai-production --name="SupremeAI Production"
 gcloud config set project supremeai-production
 
 # Verify it's set:
+
 gcloud config list
+
 # Should show: project = supremeai-production
+
 ```
 
 ---
@@ -138,6 +161,7 @@ gcloud services enable `
   cloudbuild.googleapis.com `
   containerregistry.googleapis.com `
   --quiet
+
 ```
 
 This enables the services needed for deployment.
@@ -150,6 +174,7 @@ This enables the services needed for deployment.
 gcloud auth configure-docker
 
 # When prompted, type 'y' and press Enter
+
 ```
 
 This allows Docker to push images to Google Container Registry.
@@ -161,26 +186,39 @@ This allows Docker to push images to Google Container Registry.
 After all steps, verify everything works:
 
 ```powershell
+
 # 1. Verify Docker
+
 docker --version
+
 # Should show: Docker version 25.0.0 (or later)
 
 # 2. Verify Google Cloud SDK
+
 gcloud --version
+
 # Should show: Google Cloud SDK 476.0.0 (or later)
 
 # 3. Verify Google Cloud Authentication
+
 gcloud auth list
+
 # Should show your email
 
 # 4. Verify Project is Set
+
 gcloud config list
+
 # Should show: project = supremeai-production
 
 # 5. Test Docker daemon
+
 docker ps
+
 # Should show: CONTAINER ID, IMAGE, COMMAND, etc. headers
+
 # (No error messages)
+
 ```
 
 ---
@@ -192,6 +230,7 @@ Once all verifications pass, you can deploy:
 ```powershell
 cd c:\Users\Nazifa\supremeai
 .\deploy-to-gcp.ps1 -DeployBoth
+
 ```
 
 ---
@@ -277,26 +316,34 @@ If you get stuck:
 Once installation is complete:
 
 ```powershell
+
 # 1. Verify all tools installed
+
 docker --version
 gcloud --version
 
 # 2. Login to Google Cloud
+
 gcloud auth login
 
 # 3. Setup project
+
 gcloud projects create supremeai-production --name="SupremeAI Production"
 gcloud config set project supremeai-production
 
 # 4. Enable APIs
+
 gcloud services enable run.googleapis.com firestore.googleapis.com cloudbuild.googleapis.com containerregistry.googleapis.com --quiet
 
 # 5. Configure Docker
+
 gcloud auth configure-docker --quiet
 
 # 6. Deploy!
+
 cd c:\Users\Nazifa\supremeai
 .\deploy-to-gcp.ps1 -DeployBoth
+
 ```
 
 You'll be live in ~15 minutes! 🚀
