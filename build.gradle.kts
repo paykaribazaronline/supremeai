@@ -29,6 +29,7 @@ dependencies {
     implementation("com.google.auth:google-auth-library-oauth2-http:1.14.0")
     implementation("com.google.cloud:google-cloud-core:2.40.0")
     implementation("com.google.cloud:google-cloud-secretmanager:2.40.0")
+    implementation("com.google.cloud:google-cloud-bigquery:2.31.0")
 
     // HTTP Client for AI APIs
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
