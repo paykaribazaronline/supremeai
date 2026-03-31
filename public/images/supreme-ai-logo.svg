@@ -1,0 +1,63 @@
+<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient definitions -->
+  <defs>
+    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5B2DFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3D00FF;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00D4FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00B8E6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Crown -->
+  <g id="crown">
+    <!-- Base band -->
+    <path d="M 150 350 Q 150 400 200 420 L 600 420 Q 650 400 650 350 L 650 300 Q 650 280 630 280 L 170 280 Q 150 280 150 300 Z" 
+          fill="url(#purpleGrad)" stroke="url(#purpleGrad)" stroke-width="2"/>
+    
+    <!-- Left point -->
+    <g>
+      <circle cx="220" cy="140" r="20" fill="url(#purpleGrad)"/>
+      <path d="M 240 250 L 220 160 L 200 250" fill="url(#purpleGrad)" stroke="url(#purpleGrad)" stroke-width="2" stroke-linejoin="round"/>
+    </g>
+    
+    <!-- Left-center point -->
+    <g>
+      <circle cx="350" cy="80" r="20" fill="url(#purpleGrad)"/>
+      <path d="M 370 260 L 350 100 L 330 260" fill="url(#purpleGrad)" stroke="url(#purpleGrad)" stroke-width="2" stroke-linejoin="round"/>
+    </g>
+    
+    <!-- Center point (tallest) -->
+    <g>
+      <circle cx="400" cy="30" r="22" fill="url(#purpleGrad)"/>
+      <path d="M 420 280 L 400 50 L 380 280" fill="url(#purpleGrad)" stroke="url(#purpleGrad)" stroke-width="2" stroke-linejoin="round"/>
+    </g>
+    
+    <!-- Right-center point -->
+    <g>
+      <circle cx="450" cy="80" r="20" fill="url(#purpleGrad)"/>
+      <path d="M 430 260 L 450 100 L 470 260" fill="url(#purpleGrad)" stroke="url(#purpleGrad)" stroke-width="2" stroke-linejoin="round"/>
+    </g>
+    
+    <!-- Right point -->
+    <g>
+      <circle cx="580" cy="140" r="20" fill="url(#purpleGrad)"/>
+      <path d="M 560 250 L 580 160 L 600 250" fill="url(#purpleGrad)" stroke="url(#purpleGrad)" stroke-width="2" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Diamond connectors -->
+    <path d="M 240 250 L 350 240 L 380 280 L 350 260 Z" fill="url(#purpleGrad)" opacity="0.8"/>
+    <path d="M 370 260 L 400 240 L 420 280 L 400 260 Z" fill="url(#purpleGrad)" opacity="0.8"/>
+    <path d="M 430 260 L 450 240 L 600 250 L 470 260 Z" fill="url(#purpleGrad)" opacity="0.8"/>
+  </g>
+
+  <!-- Text: "Supreme" -->
+  <text x="400" y="520" font-family="Arial, sans-serif" font-size="120" font-weight="bold" 
+        text-anchor="middle" fill="url(#purpleGrad)">Supreme</text>
+  
+  <!-- Text: "AI" -->
+  <text x="560" y="520" font-family="Arial, sans-serif" font-size="120" font-weight="bold" 
+        text-anchor="start" fill="url(#cyanGrad)">AI</text>
+</svg>
