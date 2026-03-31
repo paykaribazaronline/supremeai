@@ -53,6 +53,7 @@ Phoenix Flow (SELF-HEALING):
 **Role:** Analyzes failures and automatically repairs code without restart
 
 **Process:**
+
 ```
 1. Exception detected in production
    ↓
@@ -74,6 +75,7 @@ Phoenix Flow (SELF-HEALING):
 ```
 
 **Key Methods:**
+
 ```java
 // Main entry point
 RepairResult attemptAutoRepair(String component, Exception error, String context)
@@ -88,6 +90,7 @@ String commitAndDeploy(String component, CodeFixSuggestion fix, RootCauseAnalysi
 ```
 
 **Example Fix Scenario:**
+
 ```
 ExecutionLogManager crashes with NullPointerException
   ↓
@@ -114,6 +117,7 @@ Monitor: Log entries now flowing correctly
 **Role:** Machine learning-based system tuning and failure prediction
 
 **Adaptation Cycle** (Runs hourly):
+
 ```
 1. Analyze historical failure data (last 7 days)
    ↓
@@ -132,6 +136,7 @@ Monitor: Log entries now flowing correctly
 ```
 
 **Threshold Tuning Logic:**
+
 ```java
 High failure rate (>30%):
   circuitBreakerFailureThreshold = 8   (was 5)
@@ -151,6 +156,7 @@ Low failure rate (<10%):
 ```
 
 **Prediction Accuracy:**
+
 - High-risk predictions (>80% probability): 94% accurate
 - Medium-risk predictions (60-80%): 87% accurate
 - Low-risk predictions (40-60%): 72% accurate
@@ -162,11 +168,13 @@ Low failure rate (<10%):
 **Role:** Completely rebuild dead services using AI agents
 
 **When to Use:**
+
 - Service completely unresponsive (all failover mechanisms exhausted)
 - Core functionality broken beyond repair
 - Needs fresh start without manual intervention
 
 **Regeneration Process:**
+
 ```
 Service completely down
   ↓
@@ -208,6 +216,7 @@ Step 6: Commit to Git
 ```
 
 **Confidence Scoring Formula:**
+
 ```
 Confidence = (InterfaceMatch × 0.40) + 
              (DependencySatisfaction × 0.30) + 
@@ -241,6 +250,7 @@ Below threshold: Escalate to admin for manual approval
 ### Core Self-Healing Endpoints
 
 #### 1. Check System Status
+
 ```http
 GET /api/v1/self-healing/status
 Authorization: Bearer {token}
@@ -257,6 +267,7 @@ Response:
 ```
 
 #### 2. Trigger Auto-Repair
+
 ```http
 POST /api/v1/self-healing/auto-repair
 Authorization: Bearer {token}
@@ -283,6 +294,7 @@ Response:
 ```
 
 #### 3. Phoenix Regenerate Service
+
 ```http
 POST /api/v1/self-healing/regenerate/{service}
 Authorization: Bearer {token}
@@ -301,6 +313,7 @@ Response:
 ```
 
 #### 4. Get ML Failure Predictions
+
 ```http
 GET /api/v1/self-healing/predictions
 Authorization: Bearer {token}
@@ -330,6 +343,7 @@ Response:
 ```
 
 #### 5. Trigger Self-Improvement
+
 ```http
 POST /api/v1/self-healing/improve
 Authorization: Bearer {token}
@@ -352,6 +366,7 @@ Response:
 ```
 
 #### 6. Get System Metrics
+
 ```http
 GET /api/v1/self-healing/metrics
 Authorization: Bearer {token}
@@ -370,6 +385,7 @@ Response:
 ```
 
 #### 7. Get Current Configuration
+
 ```http
 GET /api/v1/self-healing/config
 Authorization: Bearer {token}
@@ -394,6 +410,7 @@ Response:
 ## Implementation Details
 
 ### AutoCodeRepairAgent Configuration
+
 ```properties
 # application.properties
 supremeai.selfhealing.autorepair.enabled=true
@@ -407,6 +424,7 @@ supremeai.selfhealing.autorepair.rollback-on-test-failure=true
 ```
 
 ### AdaptiveThresholdEngine Configuration
+
 ```properties
 supremeai.selfhealing.adaptive.enabled=true
 supremeai.selfhealing.adaptive.analysis-cycle-ms=3600000  # 1 hour
@@ -418,6 +436,7 @@ supremeai.selfhealing.adaptive.prediction-confidence-threshold=0.80
 ```
 
 ### ComponentRegenerator Configuration
+
 ```properties
 supremeai.selfhealing.phoenix.enabled=true
 supremeai.selfhealing.phoenix.confidence-threshold=0.75
@@ -509,6 +528,7 @@ workflow_dispatch:
 ## Success Metrics
 
 ### System Availability
+
 ```
 Target: > 99.9%
 Current: [Will be measured after deployment]
@@ -516,6 +536,7 @@ Calculation: Uptime / (Uptime + Downtime) × 100
 ```
 
 ### Mean Time To Detect (MTTD)
+
 ```
 Target: < 30 seconds
 Method: Health checks every 10 seconds, ML anomaly detection
@@ -523,6 +544,7 @@ In production: [Measured in milliseconds]
 ```
 
 ### Mean Time To Recovery (MTTR)
+
 ```
 Target: < 1 minute (vs. 30 minutes manual)
 Breakdown:
@@ -534,6 +556,7 @@ Breakdown:
 ```
 
 ### Auto-Repair Success Rate
+
 ```
 Target: > 90%
 Definition: Repairs that execute, test, and deploy successfully
@@ -541,6 +564,7 @@ Tracks: Success / (Success + Failures + Escalations)
 ```
 
 ### Phoenix Regeneration Success Rate
+
 ```
 Target: > 85%
 Definition: Service rebuilds that come online with confidence > 75%
@@ -548,6 +572,7 @@ Tracks: Successful regenerations / total regeneration attempts
 ```
 
 ### Adaptive Engine Accuracy
+
 ```
 Target: > 85%
 Definition: ML predictions that correctly identified failures
@@ -559,6 +584,7 @@ Tracks: Correct predictions / total predictions
 ## Deployment Checklist
 
 ### Pre-Deployment
+
 - [ ] Merge PR #1 (Spring lifecycle fixes) to main
 - [ ] Review all Phoenix agent implementations
 - [ ] Verify AI agent integrations are configured
@@ -569,6 +595,7 @@ Tracks: Correct predictions / total predictions
 - [ ] Set up logging for all repair actions
 
 ### Deployment
+
 - [ ] Create release tag: `git tag -a v3.1.0 -m "..."`
 - [ ] Push to GitHub: `git push origin v3.1.0`
 - [ ] Trigger GitHub release in Actions
@@ -577,6 +604,7 @@ Tracks: Correct predictions / total predictions
 - [ ] Confirm metrics are being collected
 
 ### Post-Deployment Monitoring (First 24 Hours)
+
 - [ ] Health check passing consistently
 - [ ] No false positive predictions
 - [ ] Compilation succeeding
@@ -585,6 +613,7 @@ Tracks: Correct predictions / total predictions
 - [ ] Admin alerts working
 
 ### Post-Deployment (First Week)
+
 - [ ] Validate MTTD < 30 seconds
 - [ ] Observe first auto-repair execution
 - [ ] Evaluate adaptive engine accuracy
@@ -653,6 +682,7 @@ Resolution:
 ### Emergency Escalation to Admin
 
 **When to escalate:**
+
 - Consensus score < 50% (no clear fix)
 - Confidence score < 60% (unsafe to regenerate)
 - Multiple auto-repair attempts failing
@@ -661,6 +691,7 @@ Resolution:
 - Prediction accuracy < 70%
 
 **Escalation Process:**
+
 ```
 1. System detects issue
 2. Sends immediate alert to admin
@@ -678,6 +709,7 @@ Resolution:
 The Phoenix layer gives your system true autonomy. Level 6 (Evolver) is the final frontier:
 
 ### Evolver Capabilities
+
 - 🧬 Self-architect new features based on user feedback
 - 📊 Design microservices based on performance data
 - 🔄 Auto-generate API endpoints from usage patterns
@@ -686,6 +718,7 @@ The Phoenix layer gives your system true autonomy. Level 6 (Evolver) is the fina
 - 📈 Scale infrastructure automatically based on predictions
 
 ### Timeline
+
 - **Q2 2026:** Level 6 research & planning
 - **Q3 2026:** Proof of concept implementation
 - **Q4 2026:** Production rollout of Evolver capabilities

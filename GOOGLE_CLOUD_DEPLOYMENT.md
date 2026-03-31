@@ -3,6 +3,7 @@
 ## Complete Setup for Deploying to Google Cloud
 
 ### Prerequisites Checklist
+
 - [ ] Google Cloud account with billing enabled
 - [ ] Firebase project configured
 - [ ] Docker installed locally
@@ -16,6 +17,7 @@
 ### Install on Windows 10/11
 
 **Option A: Using Installer (Recommended)**
+
 1. Download: https://cloud.google.com/sdk/docs/install-sdk
 2. Select Windows 64-bit installer
 3. Run the downloaded `.exe` file
@@ -23,6 +25,7 @@
 5. Accept default installation path: `C:\Program Files (x86)\Google\Cloud SDK`
 
 **Option B: Using Chocolatey**
+
 ```powershell
 # Run as Administrator
 choco install google-cloud-sdk
@@ -41,6 +44,7 @@ Invoke-WebRequest -Uri $url -OutFile $out
 ```
 
 ### Verify Installation
+
 ```powershell
 gcloud --version
 
@@ -67,6 +71,7 @@ gcloud init
 ```
 
 ### Quick Setup
+
 ```powershell
 # Login
 gcloud auth login
@@ -83,6 +88,7 @@ gcloud config list
 ## Step 3: Create Google Cloud Project
 
 ### Via Console (Recommended)
+
 1. Go to: https://console.cloud.google.com/
 2. Click "Select a Project" → "New Project"
 3. Name: `supremeai-production`
@@ -90,6 +96,7 @@ gcloud config list
 5. Click "Create"
 
 ### Via CLI
+
 ```powershell
 gcloud projects create supremeai-production \
   --name="SupremeAI Production" \
@@ -97,6 +104,7 @@ gcloud projects create supremeai-production \
 ```
 
 ### Enable Required APIs
+
 ```powershell
 # Enable Cloud Run API
 gcloud services enable run.googleapis.com
@@ -145,6 +153,7 @@ firebase init
 ### For Main SupremeAI System
 
 **Create Dockerfile:**
+
 ```dockerfile
 FROM openjdk:17-slim
 
@@ -178,6 +187,7 @@ ENTRYPOINT ["java", "-jar", "app.jar"]
 ```
 
 **Build Docker image:**
+
 ```powershell
 cd c:\Users\Nazifa\supremeai
 
@@ -190,6 +200,7 @@ docker images | grep supremeai
 ### For Admin Dashboard
 
 **Create Dockerfile for Admin:**
+
 ```dockerfile
 FROM openjdk:17-slim
 
@@ -213,6 +224,7 @@ ENTRYPOINT ["java", "-jar", "app.jar"]
 ```
 
 **Build Docker image:**
+
 ```powershell
 cd c:\Users\Nazifa\supremeai-admin
 
@@ -227,6 +239,7 @@ docker images | grep admin
 ## Step 6: Push Docker Images to Google Container Registry
 
 ### Setup Authentication
+
 ```powershell
 # Configure Docker authentication
 gcloud auth configure-docker
@@ -236,6 +249,7 @@ docker ps
 ```
 
 ### Push Images
+
 ```powershell
 # Push main system image
 docker push gcr.io/supremeai-production/supremeai:1.0.0
@@ -284,6 +298,7 @@ gcloud run deploy supremeai-admin \
 ```
 
 ### Get Service URLs
+
 ```powershell
 # Get supremeai URL
 gcloud run services describe supremeai --region us-central1 --format='value(status.url)'
@@ -328,6 +343,7 @@ gcloud run deploy supremeai \
 ## Step 9: Setup Custom Domain & SSL
 
 ### Add Custom Domain
+
 ```powershell
 gcloud run domain-mappings create \
   --service=supremeai \
@@ -341,6 +357,7 @@ gcloud run domain-mappings create \
 ```
 
 ### Configure DNS
+
 1. Go to Cloud Console
 2. Cloud Run → Manage Custom Domains
 3. Note the CNAME values
@@ -403,6 +420,7 @@ images:
 ```
 
 ### Enable Cloud Build Trigger
+
 ```powershell
 # Connect GitHub repository
 gcloud builds connect --repository-name=supremeai \
@@ -423,6 +441,7 @@ gcloud builds triggers create github \
 ## Step 12: Monitoring & Logging
 
 ### View Logs
+
 ```powershell
 # View supremeai logs
 gcloud logging read \
@@ -438,6 +457,7 @@ gcloud logging read \
 ```
 
 ### Setup Monitoring
+
 ```powershell
 # Create uptime check
 gcloud monitoring uptime-checks create \
@@ -503,6 +523,7 @@ gcloud firestore restore \
 ## Troubleshooting
 
 ### Service Unreachable
+
 ```powershell
 # Check service status
 gcloud run services describe supremeai --region us-central1
@@ -515,6 +536,7 @@ gcloud logging read "resource.type=cloud_run_revision" --limit 100
 ```
 
 ### Database Connection Issues
+
 ```powershell
 # Verify Firestore database exists
 gcloud firestore databases list
@@ -524,6 +546,7 @@ gcloud projects get-iam-policy supremeai-production
 ```
 
 ### Image Push Failures
+
 ```powershell
 # Re-authenticate Docker
 gcloud auth configure-docker

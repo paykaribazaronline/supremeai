@@ -22,11 +22,13 @@
 ### Phase 1: Create Firebase Project
 
 **Step 1: Go to Firebase Console**
+
 ```
 👉 https://console.firebase.google.com
 ```
 
 **Step 2: Create New Project**
+
 ```
 Click: "Add Project"
 Project Name: "supremeai-production"
@@ -37,6 +39,7 @@ Click: "Create Project"
 ```
 
 **Step 3: Wait for Project Creation**
+
 ```
 ⏳ 3-5 minutes
 Status: "Creating your Firebase project..."
@@ -46,12 +49,14 @@ Status: "Creating your Firebase project..."
 ### Phase 2: Setup Firestore Database
 
 **Step 1: Create Firestore**
+
 ```
 Left Menu → "Build" → "Firestore Database"
 Click: "Create Database"
 ```
 
 **Step 2: Configure Database**
+
 ```
 Security Rules:
 �
@@ -111,12 +116,14 @@ Collection 4: "admin_logs"
 ### Phase 3: Setup Authentication
 
 **Step 1: Enable Auth Methods**
+
 ```
 Left Menu → "Build" → "Authentication"
 Click: "Get Started"
 ```
 
 **Step 2: Enable Sign-in Methods**
+
 ```
 ✅ Email/Password
 ✅ Google
@@ -124,6 +131,7 @@ Click: "Get Started"
 ```
 
 **Step 3: Add Admin User**
+
 ```
 Users Tab → "Add User"
 Email: admin@supremeai.com
@@ -134,12 +142,14 @@ Custom Claims: {"role": "admin"}
 ### Phase 4: Setup Cloud Storage
 
 **Step 1: Create Storage**
+
 ```
 Left Menu → "Build" → "Storage"
 Click: "Get Started"
 ```
 
 **Step 2: Configure Rules**
+
 ```
 In Production mode
 
@@ -160,18 +170,21 @@ service firebase.storage {
 ### Phase 5: Setup Cloud Functions
 
 **Step 1: Install Firebase Tools**
+
 ```bash
 npm install -g firebase-tools
 firebase login
 ```
 
 **Step 2: Initialize Functions**
+
 ```bash
 cd c:\Users\Nazifa\supremeai
 firebase init functions
 ```
 
 **Step 3: Deploy Cloud Functions**
+
 ```bash
 firebase deploy --only functions
 ```
@@ -179,6 +192,7 @@ firebase deploy --only functions
 ### Phase 6: Setup Cloud Messaging (for Mobile Alerts)
 
 **Step 1: Generate Keys**
+
 ```
 Project Settings → Cloud Messaging
 Copy: Server API Key
@@ -186,6 +200,7 @@ Copy: Sender ID
 ```
 
 **Step 2: Store in Environment**
+
 ```bash
 [Environment]::SetEnvironmentVariable("FCM_SERVER_KEY", "your-key-here", "User")
 [Environment]::SetEnvironmentVariable("FCM_SENDER_ID", "your-id-here", "User")
@@ -202,6 +217,7 @@ Copy: Sender ID
 **Access:** `http://localhost:8001/admin`
 
 **Interface:**
+
 ```
 ┌─────────────────────────────────────────┐
 │   SUPREMEAI ADMIN - API KEY MANAGER    │
@@ -234,6 +250,7 @@ Copy: Sender ID
 **App Name:** SupremeAI Admin
 
 **Features:**
+
 ```
 📱 Screens:
 ├── Login (Email + Password)
@@ -257,6 +274,7 @@ Copy: Sender ID
 ```
 
 **Usage Flow:**
+
 ```
 1. Open App
 2. Login with admin@supremeai.com
@@ -274,6 +292,7 @@ Copy: Sender ID
 **Endpoint:** `https://api.supremeai.com/v1/admin/api-keys`
 
 **Add API Key (POST):**
+
 ```bash
 curl -X POST https://api.supremeai.com/v1/admin/api-keys \
   -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
@@ -297,6 +316,7 @@ Response:
 ```
 
 **Get API Keys (GET):**
+
 ```bash
 curl -X GET https://api.supremeai.com/v1/admin/api-keys \
   -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
@@ -319,6 +339,7 @@ Response:
 ```
 
 **Rotate API Key (PUT):**
+
 ```bash
 curl -X PUT https://api.supremeai.com/v1/admin/api-keys/{keyId}/rotate \
   -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
@@ -329,6 +350,7 @@ curl -X PUT https://api.supremeai.com/v1/admin/api-keys/{keyId}/rotate \
 ```
 
 **Disable API Key (DELETE):**
+
 ```bash
 curl -X DELETE https://api.supremeai.com/v1/admin/api-keys/{keyId} \
   -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
@@ -484,9 +506,10 @@ ETA: 2 hours 45 minutes
 
 ### Dashboard URL: `http://localhost:8001/admin`
 
-### Key Sections:
+### Key Sections
 
 #### 1. Quick Stats
+
 ```
 ┌─────────────────────────────────────────┐
 │         SUPREMEAI ADMIN DASHBOARD       │
@@ -501,30 +524,35 @@ ETA: 2 hours 45 minutes
 ```
 
 #### 2. API Key Manager
+
 - View all API keys
 - Add new keys
 - Rotate/disable keys
 - Monitor usage per provider
 
 #### 3. Project Management
+
 - View all projects
 - Assign AI agents
 - Monitor progress
 - View results
 
 #### 4. AI Agent Status
+
 - Show running agents
 - Performance metrics
 - Task history
 - Success rates
 
 #### 5. System Health
+
 - Firebase status
 - API quota usage
 - Error rate
 - Response times
 
 #### 6. Audit Logs
+
 - All admin actions
 - Timestamps
 - Details
@@ -758,7 +786,7 @@ LONG-TERM:
 
 ## 🎓 Admin Training Checklist
 
-### Before Starting Admin Role:
+### Before Starting Admin Role
 
 - [ ] Read this entire document
 - [ ] Set up Firebase account
@@ -771,7 +799,7 @@ LONG-TERM:
 - [ ] Read security audit report
 - [ ] Understand emergency procedures
 
-### Hands-on Practice:
+### Hands-on Practice
 
 - [ ] Create test project
 - [ ] Assign all 3 AI agents
@@ -782,7 +810,7 @@ LONG-TERM:
 - [ ] Generate a report
 - [ ] Restore from backup
 
-### Ready to Go Live:
+### Ready to Go Live
 
 Once all above done, you're ready! 🎉
 
@@ -790,7 +818,8 @@ Once all above done, you're ready! 🎉
 
 ## 📞 Quick Reference
 
-### Important URLs:
+### Important URLs
+
 ```
 Firebase Console:    https://console.firebase.google.com
 Google Cloud:        https://console.cloud.google.com
@@ -799,7 +828,8 @@ Monitoring:          http://localhost:8000
 API Documentation:   Your local docs/api.md
 ```
 
-### Important Commands:
+### Important Commands
+
 ```bash
 # Start system
 .\gradlew run
@@ -817,7 +847,8 @@ firebase functions:log
 firebase deploy --only functions
 ```
 
-### Emergency Contacts:
+### Emergency Contacts
+
 ```
 On-call: Your Phone
 Manager: Manager Email
@@ -845,9 +876,10 @@ You're a good admin when:
 
 ---
 
-## 🎖️ You're All Set!
+## 🎖️ You're All Set
 
 **You now have everything you need to:**
+
 - ✅ Setup Firebase completely
 - ✅ Manage API keys from any device
 - ✅ Assign AI agents to projects

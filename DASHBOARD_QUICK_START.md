@@ -9,6 +9,7 @@
 ## 📊 Dashboard Access
 
 ### 🌐 Local Web Dashboard
+
 ```
 URL: http://localhost:8000
 Browser: Chrome, Firefox, Edge
@@ -17,6 +18,7 @@ Status: ✅ RUNNING
 ```
 
 ### 📱 Mobile Access
+
 ```
 Same Network:
 http://<your-computer-ip>:8000
@@ -30,6 +32,7 @@ Use VPN or expose port 8000
 ## 🚀 Quick Start Commands
 
 ### Start Dashboard
+
 ```bash
 # Method 1: Python (Recommended - Already Running!)
 cd c:\Users\Nazifa\supremeai\dashboard
@@ -45,6 +48,7 @@ cd C:\Users\Nazifa\supremeai\dashboard
 ```
 
 ### Stop Dashboard
+
 ```bash
 # Find the process
 netstat -ano | findstr :8000
@@ -54,6 +58,7 @@ taskkill /PID <PID> /F
 ```
 
 ### View Dashboard Logs
+
 ```bash
 # Show dashboard server logs
 Get-Content c:\Users\Nazifa\supremeai\dashboard\server.log -Tail 50
@@ -115,6 +120,7 @@ Get-Content c:\Users\Nazifa\supremeai\dashboard\server.log -Tail 50
 ## 🔔 Alert Types
 
 ### ⏰ Auto-Refresh
+
 ```
 Dashboard refreshes every:
 - 1 minute (metrics)
@@ -123,6 +129,7 @@ Dashboard refreshes every:
 ```
 
 ### 📱 Notifications
+
 ```
 Alert notifications via:
 - Email ✅
@@ -136,6 +143,7 @@ Alert notifications via:
 ## 🎯 Daily Monitoring Tasks
 
 ### ✅ Morning Checklist (9 AM)
+
 ```
 ☐ Open dashboard: http://localhost:8000
 ☐ Check System Status (should be GREEN)
@@ -145,6 +153,7 @@ Alert notifications via:
 ```
 
 ### 🏃 Afternoon (2 PM)
+
 ```
 ☐ Monitor active projects
 ☐ Check response times
@@ -153,6 +162,7 @@ Alert notifications via:
 ```
 
 ### 🛡️ Evening (6 PM)
+
 ```
 ☐ Verify all systems running
 ☐ Check for any warnings
@@ -162,9 +172,10 @@ Alert notifications via:
 
 ---
 
-## 🚨 What to Do If...
+## 🚨 What to Do If
 
 ### Dashboard Won't Load
+
 ```bash
 # Check if server is running
 netstat -ano | findstr :8000
@@ -178,6 +189,7 @@ Ctrl + Shift + Delete
 ```
 
 ### Metric Not Updating
+
 ```bash
 # Check Firebase connection
 firebase status
@@ -190,6 +202,7 @@ http://localhost:8000/api/metrics
 ```
 
 ### High Error Rate Alert
+
 ```bash
 1. Check error logs
 2. Review Firebase console
@@ -198,6 +211,7 @@ http://localhost:8000/api/metrics
 ```
 
 ### Storage Approaching Limit
+
 ```bash
 1. Go to Firebase Console
 2. Review old projects
@@ -211,6 +225,7 @@ http://localhost:8000/api/metrics
 ## 📊 Key Metrics Explained
 
 ### Error Rate (%)
+
 ```
 What: Percentage of failed API calls
 Good: < 1%
@@ -220,6 +235,7 @@ How to Fix: Check error logs, review API keys
 ```
 
 ### Response Time (ms)
+
 ```
 What: Average time for database queries
 Good: < 200ms
@@ -229,6 +245,7 @@ How to Fix: Optimize queries, scale resources
 ```
 
 ### Storage Used (GB)
+
 ```
 What: Total database size
 Good: < 5GB
@@ -238,6 +255,7 @@ How to Fix: Archive old data, delete unused projects
 ```
 
 ### API Quota Usage (%)
+
 ```
 What: Percentage of daily API calls used
 Good: < 50%
@@ -263,7 +281,9 @@ How to Fix: Optimize API usage, request increase
 ## 🔧 Customizing Dashboard
 
 ### Change Update Frequency
+
 Edit `dashboard/config.json`:
+
 ```json
 {
   "refresh_interval": 60000,  // milliseconds
@@ -273,13 +293,17 @@ Edit `dashboard/config.json`:
 ```
 
 ### Add New Metrics
+
 Edit `dashboard/index.html`:
+
 1. Find `<canvas id="yourChart"></canvas>`
 2. Add your chart
 3. Update JavaScript section (scroll to bottom)
 
 ### Change Theme Colors
+
 Search for these colors in HTML:
+
 ```
 Primary: #1e3c72
 Secondary: #2a5298
@@ -293,7 +317,9 @@ Danger: #dc3545
 ## 📞 Support & Troubleshooting
 
 ### Problem: Can't access dashboard
+
 **Solution:**
+
 ```bash
 # Check port 8000 is free
 netstat -ano | findstr :8000
@@ -306,7 +332,9 @@ Windows Defender Firewall → Allow port 8000
 ```
 
 ### Problem: Metrics are old/stale
+
 **Solution:**
+
 ```bash
 # Restart Java app
 .\gradlew run
@@ -318,7 +346,9 @@ firebase test
 ```
 
 ### Problem: Alerts not firing
+
 **Solution:**
+
 ```bash
 # Check notification channels
 Firebase Console → Project Settings → Notifications
@@ -333,7 +363,8 @@ firebase functions:call testAlert
 
 ## 🎓 Learning Resources
 
-### For More Info Read:
+### For More Info Read
+
 ```
 1. MONITORING_DASHBOARD.md      - Complete guide
 2. ALERT_CONFIGURATION.md        - Alert setup
@@ -341,7 +372,8 @@ firebase functions:call testAlert
 4. PRODUCTION_READINESS.md       - Production setup
 ```
 
-### Firebase Console:
+### Firebase Console
+
 ```
 Dashboard: https://console.firebase.google.com
 Monitoring: https://console.cloud.google.com/monitoring
@@ -352,7 +384,8 @@ Logs: https://console.firebase.google.com/project/_/functions/logs
 
 ## 📋 Monitoring Checklist
 
-### Setup Complete? Check:
+### Setup Complete? Check
+
 - [ ] Dashboard loads at http://localhost:8000
 - [ ] System Status shows ✅ GREEN
 - [ ] Charts are displaying data
@@ -368,7 +401,7 @@ Logs: https://console.firebase.google.com/project/_/functions/logs
 
 ## 🚀 Next Steps
 
-### Recommended Actions:
+### Recommended Actions
 
 1. **✅ NOW:** Open dashboard and explore
 2. **🔔 Tomorrow:** Set up email alerts
@@ -381,6 +414,7 @@ Logs: https://console.firebase.google.com/project/_/functions/logs
 ## 💡 Pro Tips
 
 ### Tip 1: Create Bookmarks
+
 ```
 Bookmark these URLs:
 - Dashboard: http://localhost:8000
@@ -389,6 +423,7 @@ Bookmark these URLs:
 ```
 
 ### Tip 2: Set Calendar Reminders
+
 ```
 9 AM - Check dashboard
 2 PM - Review metrics
@@ -396,6 +431,7 @@ Bookmark these URLs:
 ```
 
 ### Tip 3: Use Multiple Monitors
+
 ```
 Monitor 1: Dashboard (http://localhost:8000)
 Monitor 2: Firebase Console
@@ -403,6 +439,7 @@ Monitor 3: Editor/IDE
 ```
 
 ### Tip 4: Create Mobile Alarm
+
 ```
 If critical alert → Sound alarm
 If warning alert → Notification
