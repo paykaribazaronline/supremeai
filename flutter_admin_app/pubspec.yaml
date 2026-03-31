@@ -60,11 +60,10 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   
-  # Uncomment when asset directories are created
-  # assets:
-  #   - assets/images/
-  #   - assets/icons/
-  #   - assets/animations/
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/animations/
   
   # Uncomment when font files are added
   # fonts:
