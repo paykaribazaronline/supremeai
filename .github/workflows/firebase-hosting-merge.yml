@@ -24,6 +24,10 @@ on:
     branches:
       - main
 
+# Opt into Node.js 24 (Node.js 20 sunset: June 2, 2026)
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  
 # ==========================================
 # STAGE 1: Build Flutter Admin App
 # ==========================================
