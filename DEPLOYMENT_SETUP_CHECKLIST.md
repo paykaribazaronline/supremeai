@@ -446,3 +446,6 @@ Write-Host "- Total: ~\$25-45/month"
 
 ## Status Update
 Last tested: 04/01/2026 04:52:45
+
+## GCP Service Account Fix
+Updated GCP_SA_KEY secret with github-action-1192200658 credentials - 2026-04-01 05:06:43
