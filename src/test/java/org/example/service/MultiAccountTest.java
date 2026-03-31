@@ -12,7 +12,7 @@ public class MultiAccountTest {
         System.out.println("\n🧪 ===== PHASE 1: MULTI-ACCOUNT SYSTEM TEST =====\n");
         
         // Mock Firebase service
-        FirebaseService firebase = new FirebaseService("");
+        FirebaseService firebase = new FirebaseService();
         
         // Initialize Account Manager
         AIAccountManager accountManager = new AIAccountManager(firebase);
