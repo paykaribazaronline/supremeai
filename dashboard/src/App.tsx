@@ -7,6 +7,7 @@ import ProgressMonitor from './components/ProgressMonitor';
 import DecisionHistory from './components/DecisionHistory';
 import KingModePanel from './components/KingModePanel';
 import AuditLog from './components/AuditLog';
+import ThreeDashboard from './components/ThreeDashboard';
 
 const App: React.FC = () => {
     return (
@@ -16,6 +17,7 @@ const App: React.FC = () => {
                     {/* Sidebar navigation here */}
                 </nav>
                 <Switch>
+                    <Route path="/dashboard/3d" component={ThreeDashboard} />
                     <Route path="/chat" component={ChatWithAI} />
                     <Route path="/command" component={CommandPanel} />
                     <Route path="/progress" component={ProgressMonitor} />

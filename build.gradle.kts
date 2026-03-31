@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "org.example"
-version = "3.0-Phase1"
+version = "6.0-Phase6-Week1-2"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
