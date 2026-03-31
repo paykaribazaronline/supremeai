@@ -64,6 +64,7 @@ CommandHub is a comprehensive command orchestration platform for SupremeAI. It p
 The foundation for all commands:
 
 **Command.java** - Base interface
+
 ```java
 public interface Command {
     String getName();
@@ -77,6 +78,7 @@ public interface Command {
 ```
 
 **CommandExecutor.java** - Registry and dispatcher
+
 ```java
 executor.register(command);                    // Register command
 CommandResult result = executor.execute(       // Execute with validation
@@ -221,6 +223,7 @@ Response:
 ```
 
 ### 3. Get Command Details
+
 ```bash
 GET /api/commands/refresh-github
 
@@ -253,6 +256,7 @@ Response:
 ```
 
 ### 4. Health Check
+
 ```bash
 GET /api/commands/health
 
@@ -263,6 +267,7 @@ Commands service is healthy
 ## CLI Usage
 
 ### Installation
+
 ```bash
 # Copy supcmd.py to /usr/local/bin or add to PATH
 cp command-hub/cli/supcmd.py /usr/local/bin/supcmd
@@ -274,11 +279,13 @@ python3 command-hub/cli/supcmd.py
 
 ### Basic Commands
 
+
 **Health Check**
 ```bash
 supcmd health                     # Check API server
 supcmd exec health-check          # Execute health-check command
 ```
+
 
 **List Commands**
 ```bash
@@ -287,11 +294,13 @@ supcmd list --category MONITORING              # By category
 supcmd list --type SYNC                        # By type
 ```
 
+
 **Get Command Info**
 ```bash
 supcmd info health-check
 supcmd info refresh-github
 ```
+
 
 **Execute Commands**
 ```bash
@@ -306,6 +315,7 @@ supcmd exec health-check --token YOUR_API_TOKEN
 ```
 
 **Authentication**
+
 ```bash
 # Save token for future use
 supcmd login YOUR_API_TOKEN
@@ -315,6 +325,7 @@ supcmd health
 ```
 
 ### Using Different API Server
+
 ```bash
 supcmd --url http://prod-api.example.com:8080 exec health-check
 ```
@@ -375,6 +386,7 @@ supcmd --url http://prod-api.example.com:8080 exec health-check
 ### Adding to Spring Boot Application
 
 **1. Create beans in configuration:**
+
 ```java
 @Configuration
 public class CommandHubConfig {
@@ -408,6 +420,7 @@ public class CommandHubConfig {
 ```
 
 **2. Inject into controller:**
+
 ```java
 @RestController
 @RequestMapping("/api/commands")
@@ -431,6 +444,7 @@ public class CommandController {
 
 ## Security Considerations
 
+
 ### 1. Permission Model
 ```java
 // Commands define required permissions
@@ -446,6 +460,7 @@ if (!context.hasPermission(perm)) {
 ```
 
 ### 2. Role-Based Access Control (RBAC)
+
 ```java
 // Context tracks user roles
 context.hasRole("ADMIN")    // Full access
@@ -469,6 +484,7 @@ context.hasRole("VIEWER")   // Read-only
 ## Testing
 
 ### Unit Tests (Planned)
+
 ```java
 @Test
 public void testHealthCheckCommand() {
@@ -486,6 +502,7 @@ public void testHealthCheckCommand() {
 ```
 
 ### Integration Tests (Planned)
+
 ```bash
 # Test REST API
 curl -X POST http://localhost:8080/api/commands/execute \
@@ -504,6 +521,7 @@ supcmd exec health-check
 ## Troubleshooting
 
 ### CLI Connection Issues
+
 ```bash
 # Check API server is running
 supcmd health
@@ -516,6 +534,7 @@ supcmd login INVALID_TOKEN
 ```
 
 ### Command Execution Failures
+
 ```bash
 # Get command details
 supcmd info command-name
@@ -526,6 +545,7 @@ supcmd info command-name
 # Validate parameters
 # Review parameter schema from 'supcmd info'
 ```
+
 
 ### API Server Issues
 ```bash
