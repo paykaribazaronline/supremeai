@@ -5,6 +5,8 @@ import org.example.model.Requirement;
 import org.example.model.Vote;
 import org.example.model.SystemConfig;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
@@ -13,6 +15,7 @@ import java.util.concurrent.*;
 
 @Service
 public class AgentOrchestrator {
+    private static final Logger logger = LoggerFactory.getLogger(AgentOrchestrator.class);
     private final AIAPIService aiService;
     private final ConsensusEngine consensusEngine;
     private final ApprovalManager approvalManager;
@@ -61,6 +64,11 @@ public class AgentOrchestrator {
     private final Map<String, Agent> agentPool = new HashMap<>();
     
     public AgentOrchestrator(Map<String, String> apiKeys, FirebaseService firebase, SystemConfig cfg) {
+        this(apiKeys, firebase, cfg, null);
+    }
+    
+    @org.springframework.beans.factory.annotation.Autowired
+    public AgentOrchestrator(Map<String, String> apiKeys, FirebaseService firebase, SystemConfig cfg, AdminMessagePusher adminMessagePusher) {
         this.aiService = new AIAPIService(apiKeys);
         this.consensusEngine = new ConsensusEngine(0.70);
         this.approvalManager = new ApprovalManager();
@@ -100,7 +108,7 @@ public class AgentOrchestrator {
         // Initialize Phase 7 (Cloud Functions & Admin Integration)
         this.dataCollectorService = new DataCollectorService(hybridDataCollector);
         this.webhookListener = new WebhookListener(dataCollectorService);
-        this.adminMessagePusher = new AdminMessagePusher();
+        this.adminMessagePusher = adminMessagePusher != null ? adminMessagePusher : new AdminMessagePusher();
         
         // Phase 2: Initialize Intelligent Ranking Service
         this.rankingService = new AIRankingService(this.memoryManager, firebase);
