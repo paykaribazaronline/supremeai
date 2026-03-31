@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SupremeAI Phase 4 - Monitoring Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            color: white;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { font-size: 1.1em; opacity: 0.9; }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+        
+        .card-title { font-size: 1.2em; font-weight: 600; margin-bottom: 15px; color: #2a5298; }
+        .metric { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .metric:last-child { border-bottom: none; }
+        .metric-label { font-size: 0.95em; color: #666; }
+        .metric-value { 
+            font-size: 1.3em; 
+            font-weight: 600; 
+            color: #2a5298;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #FFC107);
+            animation: slide 0.5s ease-in-out;
+        }
+        
+        .alert-box {
+            background: #fff3cd;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .alert-box.error { background: #f8d7da; border-left-color: #f44336; }
+        .alert-box.critical { background: #f5222d; color: white; border-left-color: #c41d7f; }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-up { background: #4CAF50; }
+        .status-degraded { background: #FFC107; }
+        .status-down { background: #f44336; }
+        
+        .refresh-btn {
+            background: #2a5298;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 10px 0;
+        }
+        .refresh-btn:hover { background: #1e3c72; }
+        
+        .timestamp {
+            font-size: 0.85em;
+            color: #999;
+            margin-top: 10px;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .two-column { grid-column: span 2; }
+        
+        @keyframes slide { from { width: 0; } to { width: 100%; } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        .updating { animation: pulse 1.5s infinite; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 SupremeAI Monitoring Dashboard</h1>
+            <p>Phase 4: Real-time system health and performance metrics</p>
+            <button class="refresh-btn" onclick="refreshAll()">🔄 Refresh Now</button>
+        </div>
+        
+        <!-- System Status -->
+        <div class="grid">
+            <div class="card">
+                <div class="card-title">System Status</div>
+                <div class="metric">
+                    <span class="metric-label">Uptime</span>
+                    <span class="metric-value" id="uptime">--</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Status</span>
+                    <span class="metric-value">
+                        <span class="status-indicator status-up" id="status-indicator"></span>
+                        <span id="status-text">UP</span>
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Memory -->
+            <div class="card">
+                <div class="card-title">Memory Usage</div>
+                <div class="metric">
+                    <span class="metric-label">Heap Used</span>
+                    <span class="metric-value" id="heap-used">-- MB</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="heap-progress" style="width: 0%"></div>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Max</span>
+                    <span class="metric-value" id="heap-max">-- MB</span>
+                </div>
+            </div>
+            
+            <!-- Requests -->
+            <div class="card">
+                <div class="card-title">Request Metrics</div>
+                <div class="metric">
+                    <span class="metric-label">Total Requests</span>
+                    <span class="metric-value" id="total-requests">0</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Success Rate</span>
+                    <span class="metric-value" id="success-rate">--</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="success-progress" style="width: 0%; background: linear-gradient(90deg, #4CAF50, #8BC34A);"></div>
+                </div>
+            </div>
+            
+            <!-- Latency -->
+            <div class="card">
+                <div class="card-title">Response Latency</div>
+                <div class="metric">
+                    <span class="metric-label">Average</span>
+                    <span class="metric-value" id="avg-latency">-- ms</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">P95</span>
+                    <span class="metric-value" id="p95-latency">-- ms</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Max</span>
+                    <span class="metric-value" id="max-latency">-- ms</span>
+                </div>
+            </div>
+            
+            <!-- Generation Stats -->
+            <div class="card">
+                <div class="card-title">Generation Stats</div>
+                <div class="metric">
+                    <span class="metric-label">Successful</span>
+                    <span class="metric-value" id="successful-gen">0</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Failed</span>
+                    <span class="metric-value" id="failed-gen">0</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Error Rate</span>
+                    <span class="metric-value" id="error-rate">--</span>
+                </div>
+            </div>
+            
+            <!-- Alerts Summary -->
+            <div class="card">
+                <div class="card-title">Active Alerts</div>
+                <div class="metric">
+                    <span class="metric-label">Total Alerts</span>
+                    <span class="metric-value" id="alert-count">0</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Critical</span>
+                    <span class="metric-value" id="critical-count">0</span>
+                </div>
+                <div id="alert-summary"></div>
+            </div>
+        </div>
+        
+        <!-- Frameworks Stats -->
+        <div class="chart-container">
+            <div class="card-title">Generation by Framework</div>
+            <div id="framework-stats"></div>
+        </div>
+        
+        <!-- Recent Alerts -->
+        <div class="chart-container">
+            <div class="card-title">Recent Alerts</div>
+            <div id="recent-alerts"></div>
+        </div>
+        
+        <div class="timestamp" id="last-update"></div>
+    </div>
+
+    <script>
+        let ws = null;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 10;
+        const reconnectDelay = 3000; // 3 seconds
+
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws/metrics`;
+            
+            try {
+                ws = new WebSocket(wsUrl);
+                
+                ws.onopen = function() {
+                    console.log('✓ WebSocket connected to metrics stream');
+                    reconnectAttempts = 0;
+                    updateConnectionStatus(true);
+                };
+                
+                ws.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        
+                        if (data.type === 'METRICS') {
+                            updateHealth(data.metrics);
+                        } else if (data.type === 'STATS') {
+                            updateStats(data.stats);
+                        } else if (data.type === 'ALERT') {
+                            updateAlerts(data.alerts);
+                        }
+                        
+                        updateTimestamp();
+                    } catch (e) {
+                        console.error('Error processing WebSocket message:', e);
+                    }
+                };
+                
+                ws.onerror = function(error) {
+                    console.error('WebSocket error:', error);
+                    updateConnectionStatus(false);
+                };
+                
+                ws.onclose = function() {
+                    console.log('WebSocket closed, attempting to reconnect...');
+                    updateConnectionStatus(false);
+                    
+                    if (reconnectAttempts < maxReconnectAttempts) {
+                        reconnectAttempts++;
+                        setTimeout(connectWebSocket, reconnectDelay);
+                    } else {
+                        console.warn('Max reconnection attempts reached, falling back to HTTP polling');
+                        startHttpPolling();
+                    }
+                };
+            } catch (e) {
+                console.error('Failed to create WebSocket:', e);
+                startHttpPolling();
+            }
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusEl = document.getElementById('status-indicator');
+            if (connected) {
+                statusEl.className = 'status-indicator status-up';
+                document.getElementById('status-text').textContent = 'CONNECTED';
+            } else {
+                statusEl.className = 'status-indicator status-degraded';
+                document.getElementById('status-text').textContent = 'RECONNECTING...';
+            }
+        }
+
+        async function refreshAll() {
+            try {
+                const [health, stats, alerts] = await Promise.all([
+                    fetch('/api/metrics/health').then(r => r.json()),
+                    fetch('/api/metrics/stats').then(r => r.json()),
+                    fetch('/api/alerts').then(r => r.json())
+                ]);
+                
+                updateHealth(health);
+                updateStats(stats);
+                updateAlerts(alerts);
+                updateTimestamp();
+            } catch (e) {
+                console.error('HTTP polling error:', e);
+            }
+        }
+
+        function startHttpPolling() {
+            console.log('Starting HTTP polling fallback (5s interval)');
+            setInterval(refreshAll, 5000);
+            refreshAll();
+        }
+        
+        function updateHealth(health) {
+            document.getElementById('uptime').textContent = formatUptime(health.uptime_ms || health.uptime || 0);
+            
+            if (health.memory) {
+                document.getElementById('heap-used').textContent = (health.memory.heap_used_mb || 0).toFixed(1) + ' MB';
+                document.getElementById('heap-max').textContent = (health.memory.heap_max_mb || 0).toFixed(1) + ' MB';
+                
+                const heapPercent = health.memory.heap_max_mb > 0 ? 
+                    (health.memory.heap_used_mb / health.memory.heap_max_mb) * 100 : 0;
+                document.getElementById('heap-progress').style.width = heapPercent + '%';
+            }
+            
+            const statusEl = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+            if (health.status === 'UP' && reconnectAttempts === 0) {
+                statusEl.className = 'status-indicator status-up';
+                statusText.textContent = 'UP';
+            } else if (statusText.textContent !== 'RECONNECTING...') {
+                statusEl.className = 'status-indicator status-degraded';
+                statusText.textContent = 'DEGRADED';
+            }
+            
+            if (health.requests) {
+                document.getElementById('total-requests').textContent = health.requests.total || 0;
+                document.getElementById('success-rate').textContent = (health.requests.success_rate || 0).toFixed(1) + '%';
+                document.getElementById('success-progress').style.width = (health.requests.success_rate || 0) + '%';
+            }
+            
+            if (health.latency) {
+                document.getElementById('avg-latency').textContent = (health.latency.average_ms || 0).toFixed(0) + ' ms';
+                document.getElementById('p95-latency').textContent = (health.latency.p95_ms || 0) + ' ms';
+                document.getElementById('max-latency').textContent = (health.latency.max_ms || 0) + ' ms';
+            }
+        }
+        
+        function updateStats(stats) {
+            if (!stats) return;
+            
+            document.getElementById('successful-gen').textContent = stats.successful || 0;
+            document.getElementById('failed-gen').textContent = stats.failed || 0;
+            document.getElementById('error-rate').textContent = (stats.error_rate || 0).toFixed(1) + '%';
+            
+            const frameworkHtml = stats.by_framework ? 
+                Object.entries(stats.by_framework)
+                    .map(([fw, s]) => `
+                        <div class="metric">
+                            <span class="metric-label">${fw}</span>
+                            <span class="metric-value">${s.count} (${(s.average_time_ms || 0).toFixed(0)}ms avg)</span>
+                        </div>
+                    `).join('')
+                : '<p>No data yet</p>';
+            document.getElementById('framework-stats').innerHTML = frameworkHtml;
+        }
+        
+        function updateAlerts(alerts) {
+            if (!alerts) return;
+            
+            const alertCount = Array.isArray(alerts) ? alerts.length : (alerts.count || 0);
+            const alertList = Array.isArray(alerts) ? alerts : (alerts.alerts || []);
+            
+            document.getElementById('alert-count').textContent = alertCount;
+            document.getElementById('critical-count').textContent = 
+                alertList.filter(a => a.severity === 'CRITICAL').length;
+            
+            const recentHtml = alertList.slice(0, 5).map(a => `
+                <div class="alert-box ${(a.severity || 'INFO').toLowerCase()}">
+                    <strong>${a.severity || 'INFO'}:</strong> ${a.message || a.title || 'Unknown alert'}
+                </div>
+            `).join('');
+            document.getElementById('recent-alerts').innerHTML = recentHtml || '<p style="color: green;">✓ No active alerts</p>';
+        }
+        
+        function formatUptime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            return `${hours}h ${minutes}m ${seconds}s`;
+        }
+        
+        function updateTimestamp() {
+            document.getElementById('last-update').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+        }
+        
+        // Initialize WebSocket connection
+        window.addEventListener('DOMContentLoaded', function() {
+            connectWebSocket();
+        });
+        
+        // Fallback manual refresh button
+        function manualRefresh() {
+            console.log('Manual refresh triggered');
+            refreshAll();
+        }
+    </script>
+</body>
+</html>
