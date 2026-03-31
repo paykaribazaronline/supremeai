@@ -262,6 +262,174 @@ exports.updateProgress = functions.https.onRequest(async (req, res) => {
     }
 });
 
+// ============ PAYKARI BAZAR SYNC ============
+
+/**
+ * HTTP trigger: Upload a scraped product to the Paykari Bazar product hub.
+ *
+ * POST body (JSON):
+ * {
+ *   "source":    "Chaldal",          // external site name
+ *   "category":  "Vegetables",       // product category
+ *   "productId": "12345",            // source-side product id
+ *   "name":      "Fresh Tomato 1kg", // display name
+ *   "price":     80.00,              // retail price in BDT
+ *   "imageUrl":  "https://..."       // optional
+ * }
+ *
+ * Firestore path written: hub → data → products → {sku}
+ * Endpoint: https://region-supremeai.cloudfunctions.net/uploadToPaykariBazar
+ */
+exports.uploadToPaykariBazar = functions.https.onRequest(async (req, res) => {
+    try {
+        const { source, category, productId, name, price, imageUrl } = req.body;
+
+        if (!source || !category || !productId || !name || price === undefined) {
+            return res.status(400).json({
+                error: "Missing required fields: source, category, productId, name, price",
+            });
+        }
+
+        // Wholesale discount — 10 % off retail (mirrors Java service)
+        const WHOLESALE_DISCOUNT = 0.10;
+        const retailPrice    = Math.round(parseFloat(price) * 100) / 100;
+        const wholesalePrice = Math.round(retailPrice * (1 - WHOLESALE_DISCOUNT) * 100) / 100;
+
+        // Shop code mapping — mirrors Java SHOP_CODES
+        const SHOP_CODES = {
+            "Chaldal":        "CH",
+            "Shwapno":        "SW",
+            "Daily Shopping": "DS",
+        };
+        const shopCode = SHOP_CODES[source] || source.toUpperCase().replace(/[^A-Z0-9_\-]/g, "_");
+
+        // Canonical SKU: PB-{SHOP_CODE}-{PRODUCT_ID}
+        const sku    = `PB-${shopCode}-${String(productId).toUpperCase().replace(/[^A-Z0-9_\-]/g, "_")}`;
+        const shopId = `SHOP_${shopCode}`;
+        const catId  = `CAT_${category.toUpperCase().replace(/[^A-Z0-9]/g, "_")}`;
+
+        // ── Ensure Shop entry ──────────────────────────────────────────────
+        const shopRef = db.collection("hub").doc("data").collection("shops").doc(shopId);
+        const shopDoc = await shopRef.get();
+        if (!shopDoc.exists) {
+            await shopRef.set({
+                shopId,
+                name:      source,
+                code:      shopCode,
+                type:      "SUPPLIER",
+                platform:  "external",
+                isActive:  true,
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                createdBy: "supremeai",
+            });
+            console.log(`🏪 Created shop: ${shopId}`);
+        }
+
+        // ── Ensure Category entry ──────────────────────────────────────────
+        const catRef = db.collection("hub").doc("data").collection("categories").doc(catId);
+        const catDoc = await catRef.get();
+        if (!catDoc.exists) {
+            await catRef.set({
+                categoryId: catId,
+                name:       category,
+                isActive:   true,
+                createdAt:  admin.firestore.FieldValue.serverTimestamp(),
+                createdBy:  "supremeai",
+            });
+            console.log(`🗂️ Created category: ${catId}`);
+        }
+
+        // ── Write product to hub / data / products ─────────────────────────
+        const productData = {
+            sku,
+            name,
+            source,
+            shopId,
+            category,
+            retailPrice,
+            wholesalePrice,
+            currency:    "BDT",
+            imageUrl:    imageUrl || "",
+            isAvailable: true,
+            syncedAt:    admin.firestore.FieldValue.serverTimestamp(),
+            syncedBy:    "supremeai",
+        };
+
+        await db.collection("hub").doc("data").collection("products").doc(sku).set(productData);
+
+        console.log(`📦 Synced to Paykari Bazar: ${name} → ${sku}`);
+        res.json({
+            success:        true,
+            sku,
+            shopId,
+            retailPrice,
+            wholesalePrice,
+            message:        `Product synced to Paykari Bazar hub`,
+        });
+    } catch (error) {
+        console.error("❌ Error uploading to Paykari Bazar:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * Scheduled trigger: Batch sync — refreshes all products collected by
+ * SupremeAI into the Paykari Bazar product hub every 6 hours.
+ *
+ * Reads from:  supremeai_data/scraped_products (staging collection)
+ * Writes to:   hub/data/products
+ */
+exports.syncPaykariBazarProducts = functions.pubsub
+    .schedule("0 */6 * * *")
+    .onRun(async (context) => {
+        const WHOLESALE_DISCOUNT = 0.10;
+        const SHOP_CODES = { Chaldal: "CH", Shwapno: "SW", "Daily Shopping": "DS" };
+
+        const snapshot = await db.collection("supremeai_data")
+            .doc("scraped_products")
+            .collection("pending")
+            .get();
+
+        let synced = 0;
+        let failed = 0;
+
+        for (const doc of snapshot.docs) {
+            try {
+                const { source, category, productId, name, price, imageUrl } = doc.data();
+                const shopCode      = SHOP_CODES[source] || source.toUpperCase().replace(/[^A-Z0-9_\-]/g, "_");
+                const sku           = `PB-${shopCode}-${String(productId).toUpperCase().replace(/[^A-Z0-9_\-]/g, "_")}`;
+                const retailPrice   = Math.round(parseFloat(price) * 100) / 100;
+                const wholesalePrice = Math.round(retailPrice * (1 - WHOLESALE_DISCOUNT) * 100) / 100;
+
+                await db.collection("hub").doc("data").collection("products").doc(sku).set({
+                    sku,
+                    name,
+                    source,
+                    shopId:         `SHOP_${shopCode}`,
+                    category,
+                    retailPrice,
+                    wholesalePrice,
+                    currency:       "BDT",
+                    imageUrl:       imageUrl || "",
+                    isAvailable:    true,
+                    syncedAt:       admin.firestore.FieldValue.serverTimestamp(),
+                    syncedBy:       "supremeai-scheduler",
+                }, { merge: true });
+
+                // Mark as processed
+                await doc.ref.update({ status: "synced", syncedAt: admin.firestore.FieldValue.serverTimestamp() });
+                synced++;
+            } catch (err) {
+                console.error(`❌ Failed to sync product ${doc.id}:`, err.message);
+                await doc.ref.update({ status: "failed", error: err.message });
+                failed++;
+            }
+        }
+
+        console.log(`✅ Paykari Bazar batch sync complete: ${synced} synced, ${failed} failed`);
+        return null;
+    });
+
 // ============ HELPER: VPN SWITCHING ============
 
 async function switchVPN(agentId) {
