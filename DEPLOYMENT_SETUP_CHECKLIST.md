@@ -17,6 +17,7 @@
    ```
 
 **Alternative (Chocolatey):**
+
 ```powershell
 # Run as Administrator
 choco install docker-desktop
@@ -35,11 +36,13 @@ choco install docker-desktop
 5. Allow PowerShell startup script
 
 **Verify Installation:**
+
 ```powershell
 gcloud --version
 ```
 
 **Alternative (Chocolatey):**
+
 ```powershell
 # Run as Administrator
 choco install google-cloud-sdk
@@ -48,6 +51,7 @@ choco install google-cloud-sdk
 ---
 
 ### 3. **Install Java 17+** (Usually Already Installed)
+
 ```powershell
 java -version
 # Should show Java 17 or higher
@@ -90,6 +94,7 @@ foreach ($tool in $tools) {
 Once prerequisites are installed, run:
 
 ### Step 1: Login to Google Cloud
+
 ```powershell
 gcloud auth login
 
@@ -98,6 +103,7 @@ gcloud auth login
 ```
 
 ### Step 2: Create Project
+
 ```powershell
 # Create new project
 gcloud projects create supremeai-production --name="SupremeAI Production"
@@ -110,6 +116,7 @@ gcloud config list
 ```
 
 ### Step 3: Enable Required APIs
+
 ```powershell
 gcloud services enable run.googleapis.com \
   firestore.googleapis.com \
@@ -123,6 +130,7 @@ gcloud services list --enabled
 ```
 
 ### Step 4: Configure Docker Authentication
+
 ```powershell
 gcloud auth configure-docker
 
@@ -155,6 +163,7 @@ cd c:\Users\Nazifa\supremeai
 ### Option B: **Manual Step-by-Step Deployment**
 
 #### Deploy Main System
+
 ```powershell
 cd c:\Users\Nazifa\supremeai
 
@@ -189,6 +198,7 @@ Write-Host "`n✓ Main System deployed: $mainUrl" -ForegroundColor Green
 ```
 
 #### Deploy Admin Dashboard
+
 ```powershell
 cd c:\Users\Nazifa\supremeai-admin
 
@@ -265,7 +275,9 @@ gcloud firestore databases list
 ## 🐛 Troubleshooting
 
 ### Issue: "Docker image not found"
+
 **Solution:**
+
 ```powershell
 # Verify image was built
 docker images | grep supremeai
@@ -275,14 +287,18 @@ docker build -t gcr.io/supremeai-production/supremeai:1.0.0 .
 ```
 
 ### Issue: "Authentication required for push"
+
 **Solution:**
+
 ```powershell
 # Re-configure Docker authentication
 gcloud auth configure-docker --quiet
 ```
 
 ### Issue: "Cloud Run deployment timeout"
+
 **Solution:**
+
 ```powershell
 # Check service status
 gcloud run services describe supremeai --region us-central1
@@ -295,7 +311,9 @@ gcloud logging read "resource.type=cloud_run_revision AND resource.labels.servic
 ```
 
 ### Issue: "Permission denied"
+
 **Solution:**
+
 ```powershell
 # Ensure project is set correctly
 gcloud config set project supremeai-production
@@ -309,6 +327,7 @@ gcloud projects get-iam-policy supremeai-production
 ## 📝 Post-Deployment Configuration
 
 ### 1. Configure Custom Domain (Optional)
+
 ```powershell
 # Map custom domain to main service
 gcloud run domain-mappings create \
@@ -321,6 +340,7 @@ gcloud run domain-mappings describe api.supremeai.dev
 ```
 
 ### 2. Setup Environment Secrets (Optional)
+
 ```powershell
 # Create secrets
 gcloud secrets create firebase-service-account \
@@ -336,6 +356,7 @@ gcloud run services update supremeai \
 ```
 
 ### 3. Enable Cloud Monitoring (Optional)
+
 ```powershell
 # View metrics in Cloud Console
 # https://console.cloud.google.com/monitoring

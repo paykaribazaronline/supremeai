@@ -99,6 +99,7 @@ SERVER_PORT                  8080
 ## 🔗 After Deployment
 
 ### Your Live Service
+
 ```
 URL: https://supremeai.onrender.com
 API: https://supremeai.onrender.com/api/v1/...
@@ -106,6 +107,7 @@ Health: https://supremeai.onrender.com/actuator/health
 ```
 
 ### Test It
+
 ```bash
 # Check service is running
 curl https://supremeai.onrender.com/actuator/health
@@ -115,11 +117,13 @@ curl https://supremeai.onrender.com/actuator/health
 ```
 
 ### View Logs
+
 1. Click on your service in Render dashboard
 2. Go to **"Logs"** tab
 3. See real-time deployment and runtime logs
 
 ### Manage Service
+
 1. **Restart:** Click "⋯" → "Restart"
 2. **Redeploy:** Push to GitHub (auto-deploys)
 3. **Stop:** Click "⋯" → "Suspend"
@@ -138,6 +142,7 @@ curl https://supremeai.onrender.com/actuator/health
 | **Custom Domain** | Not on free tier |
 
 ### Note on Auto-Sleep
+
 - Service sleeps after 15 minutes of inactivity
 - First request wakes it up (~30 seconds)
 - **Solution:** Add monitoring to keep alive
@@ -155,6 +160,7 @@ git push origin main
 ```
 
 Render automatically:
+
 1. Detects the push
 2. Pulls latest code
 3. Builds Docker image
@@ -166,6 +172,7 @@ Render automatically:
 ## 📈 Upgrade Path (Later)
 
 ### When You Need More
+
 - **More uptime:** Use Render Pro ($7/month) - no auto-sleep
 - **More power:** Increase instance size ($20+/month)
 - **High availability:** Multiple instances ($50+/month)
@@ -176,23 +183,30 @@ Render automatically:
 ## 🆘 Troubleshooting
 
 ### Service fails to build
+
 **Check logs:**
+
 1. Go to "Events" tab
 2. Look for error messages
 3. Ensure `Dockerfile` exists in repo root
 
 ### Port binding error
+
 **Solution:** Render automatically sets PORT=10000
+
 - Update logs show: "Listening on port 10000"
 - This is normal - Render routes traffic
 
 ### Service crashes after startup
+
 **Check logs for:**
+
 - Missing environment variables
 - Database connection issues
 - Memory limits (increase if needed)
 
 ### Out of memory
+
 - **Fix:** Upgrade to Pro tier ($7/month)
 - **Or:** Optimize application
 
@@ -209,14 +223,16 @@ Render automatically:
 
 ---
 
-## 🎉 You're Live!
+## 🎉 You're Live
 
 Once deployed, share your SupremeAI instance:
+
 ```
 https://supremeai.onrender.com
 ```
 
 Next, you can:
+
 1. **Monitor:** Add alerts and logging
 2. **Optimize:** Reduce startup time
 3. **Scale:** Upgrade plan as needed

@@ -1,4 +1,5 @@
 # 🔧 GCP Cloud Run Deployment - Permission Fix Guide
+
 **Error:** `denied: Permission 'artifactregistry.repositories.uploadArtifacts' denied`  
 **Date:** March 31, 2026  
 **Status:** Fixing GCP IAM permissions for Docker push
@@ -15,6 +16,7 @@ Error: denied: Permission 'artifactregistry.repositories.uploadArtifacts' denied
 ```
 
 ### Root Cause
+
 The service account running GitHub Actions doesn't have permission to push to Artifact Registry.
 
 ---
@@ -22,11 +24,13 @@ The service account running GitHub Actions doesn't have permission to push to Ar
 ## ✅ Solution: Fix GCP IAM Permissions
 
 ### Step 1: Verify GCP Project
+
 1. Go to https://console.cloud.google.com
 2. Select project: **supremeai-a**
 3. Note the project ID for later
 
 ### Step 2: Create/Find Service Account
+
 1. Go to: **IAM & Admin** → **Service Accounts**
 2. Look for: `github-actions` or `cloud-build` service account
 3. If it doesn't exist:
@@ -36,6 +40,7 @@ The service account running GitHub Actions doesn't have permission to push to Ar
    - Click **Create and Continue**
 
 ### Step 3: Grant Required IAM Roles
+
 Select your service account, click **Manage roles** (or **Grant Access** tab):
 
 **Add these roles:**
@@ -47,10 +52,12 @@ Select your service account, click **Manage roles** (or **Grant Access** tab):
 | **Service Account User** | Use the service account | Required for Cloud Run |
 
 **Or use Editor role (for testing):**
+
 - Easier: Just assign **Editor** role for now
 - Later: Restrict to specific roles above
 
 ### Step 4: Create & Download Service Account Key
+
 1. In **Service Accounts**, click your service account
 2. Go to **Keys** tab
 3. Click **Add Key** → **Create new key**
@@ -60,6 +67,7 @@ Select your service account, click **Manage roles** (or **Grant Access** tab):
 ⚠️ **Keep this file secure!** Don't commit to GitHub.
 
 ### Step 5: Add to GitHub Secrets
+
 1. Go to GitHub repo → **Settings** → **Secrets and variables** → **Actions**
 2. Click **New repository secret**
 3. Name: `GCP_SA_KEY`
@@ -67,6 +75,7 @@ Select your service account, click **Manage roles** (or **Grant Access** tab):
 5. Click **Add secret**
 
 ### Step 6: Update GitHub Workflow (if needed)
+
 Check `.github/workflows/deploy-cloudrun.yml` to ensure it uses the secret:
 
 ```yaml
@@ -93,7 +102,7 @@ After completing steps above:
    - Go to repo → **Actions** tab
    - Click latest workflow run
    - Watch deployment logs
-   - Should see successful Docker push: ✅ 
+   - Should see successful Docker push: ✅
 
 3. **Verify Cloud Run deployment**:
    ```bash
@@ -112,6 +121,7 @@ After completing steps above:
 ## 🆘 Troubleshooting
 
 ### Still Getting Permission Denied?
+
 1. **Wait 30 seconds** for IAM changes to propagate
 2. **Check service account has correct roles:**
    ```bash
@@ -126,6 +136,7 @@ After completing steps above:
    - Click "**Update**" and paste key again (if old)
 
 ### Docker Login Failing?
+
 ```bash
 # Authenticate locally first (for debugging)
 gcloud auth configure-docker gcr.io
@@ -133,7 +144,9 @@ docker push gcr.io/supremeai-a/supremeai:latest
 ```
 
 ### Artifact Registry Not Found?
+
 Enable API:
+
 ```bash
 gcloud services enable artifactregistry.googleapis.com
 gcloud services enable cloudrun.googleapis.com
@@ -157,6 +170,7 @@ gcloud services enable cloudbuild.googleapis.com
 ---
 
 ## ⏱️ Time to Fix
+
 - Estimated total time: **10-15 minutes**
 - GitHub Actions re-run: **5-10 minutes**
 - GCP Cloud Run deploy: **2-3 minutes**
@@ -204,12 +218,14 @@ GitHub Actions Workflow Triggers
 ## 📞 Still Having Issues?
 
 Common solutions:
+
 - **Permission denied:** Wait 30 sec for IAM propagation, or regenerate service account key
 - **Build fails:** Check Java compilation errors in GitHub Actions logs
 - **Cloud Run deploy fails:** Check logs with `gcloud run deployments describe supremeai`
 - **Health endpoint unreachable:** Verify port 8080 is set in Dockerfile/application.properties
 
 Run this to check deployment status:
+
 ```bash
 gcloud run describe supremeai --region us-central1
 ```

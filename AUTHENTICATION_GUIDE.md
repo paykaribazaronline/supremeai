@@ -3,6 +3,7 @@
 ## ✅ What's Implemented
 
 A complete **admin-only authentication system** with:
+
 - ✅ Login page (`login.html`)
 - ✅ JWT token-based authentication
 - ✅ Admin user registration (admin creates other admins)
@@ -31,6 +32,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -46,10 +48,12 @@ Content-Type: application/json
 ### Step 2: Login at Login Page
 
 Open browser:
+
 - **Localhost:** http://localhost:8001/login.html
 - **Web Host:** https://your-domain.com/login.html
 
 Enter credentials:
+
 ```
 Username: admin
 Password: supremeai123
@@ -58,6 +62,7 @@ Password: supremeai123
 ### Step 3: Access Admin Dashboard
 
 After login, you're redirected to:
+
 - **Localhost:** http://localhost:8001/admin
 - **Web Host:** https://your-domain.com/admin
 
@@ -80,6 +85,7 @@ After login, you're redirected to:
 ### All Other Endpoints
 
 All other endpoints (`/api/...`) require:
+
 ```
 Authorization: Bearer <JWT_TOKEN>
 ```
@@ -220,6 +226,7 @@ No manual handling needed!
 ## 🌍 Localhost vs Web Host
 
 ### Localhost (Development)
+
 ```
 Login:      http://localhost:8001/login.html
 Admin:      http://localhost:8001/admin
@@ -228,6 +235,7 @@ API:        http://localhost:8080/api/...
 ```
 
 ### Web Host (Production)
+
 ```
 Login:      https://your-domain.com/login.html
 Admin:      https://your-domain.com/admin
@@ -267,6 +275,7 @@ export FIREBASE_SERVICE_ACCOUNT_JSON='{...json...}'
 ## 📊 Database Structure (Firebase)
 
 ### Users Collection
+
 ```
 users/
 ├── admin/
@@ -285,21 +294,25 @@ users/
 ## ❓ Troubleshooting
 
 ### "401 Unauthorized"
+
 - Token expired → Click "Logout" and login again
 - Invalid token → Clear `localStorage` and refresh page
 - Missing header → Ensure `Authorization: Bearer TOKEN` format
 
 ### "User not found"
+
 - Username is case-sensitive
 - Check spelling in database
 - Register new user if needed
 
 ### Token Not Refreshing
+
 - Refresh token expired → Must login again
 - Check network tab for `/api/auth/refresh` response
 - Clear `localStorage` if corrupted
 
 ### Can't Access Admin Dashboard
+
 - Must be logged in first (redirects to `/login.html`)
 - Check browser console for errors
 - Verify Firebase is initialized
@@ -320,6 +333,7 @@ users/
 ## 📞 Support
 
 For issues with authentication:
+
 1. Check browser DevTools → Console for errors
 2. Check server logs for `/api/auth/...` calls
 3. Verify Firebase connection

@@ -10,7 +10,7 @@
 
 এই গাইড আপনাকে SupremeAI এর জন্য একটি সম্পূর্ণ monitoring system সেটআপ করতে সাহায্য করবে।
 
-### যা Monitor করা হবে:
+### যা Monitor করা হবে
 
 ```
 ✅ API Usage (প্রতিটি AI provider এর ব্যবহার)
@@ -55,6 +55,7 @@
 ### Step 2️⃣ - Firestore এ Metrics যোগ করুন
 
 **Firestore এ যান:**
+
 ```
 Firebase Console → Firestore Database
 ↓
@@ -68,6 +69,7 @@ Settings Tab
 **আপনার Dashboard এ যোগ করুন এই widgets:**
 
 #### Widget 1: Firestore Read Operations
+
 ```
 Metric Type: Firestore Writes/Reads
 Filter: All Operations
@@ -76,6 +78,7 @@ Period: 1 minute
 ```
 
 #### Widget 2: API Response Time
+
 ```
 Metric Type: Cloud Functions Execution Time
 Filter: All Functions
@@ -85,6 +88,7 @@ Unit: milliseconds
 ```
 
 #### Widget 3: Error Rate
+
 ```
 Metric Type: Cloud Functions Errors
 Filter: All Functions
@@ -93,6 +97,7 @@ Period: 1 minute
 ```
 
 #### Widget 4: Storage Usage
+
 ```
 Metric Type: Firestore Document Count
 Filter: Collection = all
@@ -106,11 +111,13 @@ Aggregation: Sum
 ### Step 1️⃣ - Dashboard HTML ফাইল তৈরি করুন
 
 ফাইল location:
+
 ```
 c:\Users\Nazifa\supremeai\dashboard\index.html
 ```
 
 HTML Dashboard এ থাকবে:
+
 - Real-time metrics
 - API usage charts
 - Error rate graphs
@@ -135,9 +142,10 @@ http://localhost:8000
 
 ## 📊 PHASE 3: Key Metrics & Alerts
 
-### সবচেয়ে গুরুত্বপূর্ণ মেট্রিক্স:
+### সবচেয়ে গুরুত্বপূর্ণ মেট্রিক্স
 
 #### 1. API Success Rate
+
 ```
 Formula: (Successful Calls / Total Calls) × 100
 Target: > 95%
@@ -145,6 +153,7 @@ Alert If: < 90%
 ```
 
 #### 2. Average Response Time
+
 ```
 Metric: Firestore Query Response Time
 Target: < 500ms
@@ -152,6 +161,7 @@ Alert If: > 2000ms
 ```
 
 #### 3. Daily API Quota Usage
+
 ```
 Metric: API Calls Per Day
 Target: < 80% of limit
@@ -159,6 +169,7 @@ Alert If: > 90% of limit
 ```
 
 #### 4. Database Size
+
 ```
 Metric: Firestore Storage Used
 Target: < 5GB
@@ -166,6 +177,7 @@ Alert If: > 9GB
 ```
 
 #### 5. Error Rate
+
 ```
 Formula: (Failed Calls / Total Calls) × 100
 Target: < 2%
@@ -279,7 +291,7 @@ public class MetricsCollector {
 
 ## 📋 PHASE 6: Daily Monitoring Checklist
 
-### ✅ প্রতিদিন সকালে (Morning - 9 AM):
+### ✅ প্রতিদিন সকালে (Morning - 9 AM)
 
 ```bash
 □ Firebase Console খুলুন
@@ -291,6 +303,7 @@ public class MetricsCollector {
 ```
 
 **Command:**
+
 ```bash
 # Firebase metrics দেখুন:
 firebase firestore:indexes:list
@@ -299,7 +312,7 @@ firebase firestore:indexes:list
 gsutil du -s projects/your-project/data
 ```
 
-### 🏃 দুপুরে (Afternoon - 2 PM):
+### 🏃 দুপুরে (Afternoon - 2 PM)
 
 ```bash
 □ Active projects count চেক করুন
@@ -308,7 +321,7 @@ gsutil du -s projects/your-project/data
 □ কোন slow queries আছে কিনা
 ```
 
-### 🛡️ সন্ধ্যায় (Evening - 6 PM):
+### 🛡️ সন্ধ্যায় (Evening - 6 PM)
 
 ```bash
 □ Daily summary তৈরি করুন
@@ -317,7 +330,7 @@ gsutil du -s projects/your-project/data
 □ Any optimization opportunities খুঁজুন
 ```
 
-### 🌙 রাতে (Night - 11 PM):
+### 🌙 রাতে (Night - 11 PM)
 
 ```bash
 □ Backup verify করুন
@@ -379,7 +392,7 @@ Success Rate: 96.8%
 
 ## 🔔 PHASE 8: Alert Thresholds
 
-### Critical Alerts (অবিলম্বে সতর্ক করুন):
+### Critical Alerts (অবিলম্বে সতর্ক করুন)
 
 ```
 1. Error Rate > 10%
@@ -398,7 +411,7 @@ Success Rate: 96.8%
    Action: Failover to backup DB
 ```
 
-### Warning Alerts (দ্রুত খেয়াল রাখুন):
+### Warning Alerts (দ্রুত খেয়াল রাখুন)
 
 ```
 1. Error Rate > 5%
@@ -414,7 +427,7 @@ Success Rate: 96.8%
    Review memory leaks
 ```
 
-### Info Alerts (তথ্যের জন্য):
+### Info Alerts (তথ্যের জন্য)
 
 ```
 1. Daily report summary
@@ -428,7 +441,7 @@ Success Rate: 96.8%
 
 ## 🎯 PHASE 9: Performance Targets
 
-### Target Metrics:
+### Target Metrics
 
 | Metric | Target | Acceptable | Warning |
 |--------|--------|-----------|---------|
@@ -443,7 +456,7 @@ Success Rate: 96.8%
 
 ## 📈 PHASE 10: Weekly/Monthly Reports
 
-### Weekly Report (প্রতি শুক্রবার):
+### Weekly Report (প্রতি শুক্রবার)
 
 ```
 WEEKLY PERFORMANCE SUMMARY
@@ -476,7 +489,7 @@ Recommendations:
 ═════════════════════════════════════
 ```
 
-### Monthly Report (মাসের শেষে):
+### Monthly Report (মাসের শেষে)
 
 ```
 MONTHLY PERFORMANCE REPORT
@@ -512,7 +525,7 @@ Next Month Goals:
 
 ## 🛠️ PHASE 11: Setup Commands
 
-### Quick Setup (এক কমান্ডে সবকিছু):
+### Quick Setup (এক কমান্ডে সবকিছু)
 
 ```bash
 # 1. Navigate to project
@@ -529,7 +542,7 @@ python -m http.server 8000 --directory .
 # http://localhost:8000
 ```
 
-### Enable Firebase Monitoring:
+### Enable Firebase Monitoring
 
 ```bash
 # Install Firebase CLI tools
@@ -549,7 +562,7 @@ firebase functions:log
 
 ## 📱 PHASE 12: Mobile Alerts Setup
 
-### Firebase Cloud Messaging Setup:
+### Firebase Cloud Messaging Setup
 
 ```
 Firebase Console → Cloud Messaging
@@ -562,6 +575,7 @@ Add to your monitoring service
 ```
 
 **Alert যাবে mobile app এ real-time:**
+
 - High error rates
 - Quota limits reached
 - Performance degradation
@@ -571,7 +585,7 @@ Add to your monitoring service
 
 ## ✅ Final Checklist
 
-### Setup সম্পূর্ণ করার আগে:
+### Setup সম্পূর্ণ করার আগে
 
 - [ ] Google Cloud Monitoring enabled
 - [ ] Dashboard created and configured
@@ -588,7 +602,7 @@ Add to your monitoring service
 
 ## 🚀 Next Steps
 
-### Monitoring Dashboard চেক করতে:
+### Monitoring Dashboard চেক করতে
 
 ```bash
 # Local dashboard:
@@ -601,7 +615,7 @@ https://console.cloud.google.com/monitoring
 https://console.firebase.google.com
 ```
 
-### Alert Test করতে:
+### Alert Test করতে
 
 ```bash
 # Trigger test alert:

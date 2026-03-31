@@ -104,6 +104,7 @@ Response sent to user
 **Purpose**: AI-powered code generation with intelligent orchestration
 
 **Key Methods**:
+
 ```java
 // Component generation
 generateReactComponent(projectId, componentName, description, features)
@@ -120,6 +121,7 @@ getAllGenerationStats()
 ```
 
 **Features**:
+
 - AI model selection via AgentOrchestrator
 - Automatic fallback chain (GROQ → DEEPSEEK → CLAUDE → GPT4)
 - Real-time validation scoring
@@ -131,6 +133,7 @@ getAllGenerationStats()
 **Purpose**: Multi-framework code quality validation
 
 **Supported Frameworks**:
+
 - React/TypeScript
 - Node.js/Express
 - Flutter/Dart
@@ -138,6 +141,7 @@ getAllGenerationStats()
 - Java/Spring
 
 **Validation Checks**:
+
 - Dependency validation (missing packages)
 - Configuration file validation
 - File structure validation
@@ -151,6 +155,7 @@ getAllGenerationStats()
 **Purpose**: Automatic error detection and repair
 
 **Auto-Fixable Error Types** (10):
+
 1. MISSING_DEPENDENCY - Adds to package.json/requirements.txt
 2. MISSING_SPRING_BOOT - Adds Spring Boot starter
 3. MISSING_MAIN - Creates main entry point
@@ -163,6 +168,7 @@ getAllGenerationStats()
 10. INVALID_JSON - Validates JSON
 
 **Methods**:
+
 ```java
 suggestFixes(projectId, framework, issues)
 applyFixes(projectId, framework, issues)
@@ -174,6 +180,7 @@ isAutoFixable(errorCode)
 **Purpose**: Comprehensive execution tracking and analytics
 
 **Features**:
+
 - Event logging (Generation, Validation, ErrorFix, AgentSelection)
 - Project-level metrics
 - System-wide statistics
@@ -182,6 +189,7 @@ isAutoFixable(errorCode)
 - Historical analysis
 
 **Metrics Tracked**:
+
 - Generation duration (ms)
 - Validation scores
 - Agent selection patterns
@@ -195,6 +203,7 @@ isAutoFixable(errorCode)
 ### Generation Endpoints (10)
 
 #### 1. Generate React Component
+
 ```http
 POST /api/generation/react-component
 ?projectId=myproject&componentName=Button&description=A button&features=responsive,accessible
@@ -215,6 +224,7 @@ Response:
 ```
 
 #### 2. Generate Node Service
+
 ```http
 POST /api/generation/node-service
 ?projectId=myproject&serviceName=UserService&description=User management&methods=create,read
@@ -223,12 +233,14 @@ Response: { service, routes, tests generated }
 ```
 
 #### 3. Generate Model
+
 ```http
 POST /api/generation/model?projectId=myproject&modelName=User&framework=NODEJS
 Body: { "fields": { "id": "string", "name": "string" }, "relations": ["Project"] }
 ```
 
 #### 4. Generate & Validate (Auto-Fix)
+
 ```http
 POST /api/generation/validate-and-generate
 ?projectId=myproject&moduleName=Button&framework=REACT&description=...
@@ -237,6 +249,7 @@ Response: { validation results, fixes applied }
 ```
 
 #### 5. Batch Generation
+
 ```http
 POST /api/generation/batch?projectId=myproject&framework=REACT
 Body: [
@@ -253,6 +266,7 @@ Response: {
 ```
 
 #### 6. Get Generation Statistics
+
 ```http
 GET /api/generation/stats
 
@@ -265,6 +279,7 @@ Response: {
 ```
 
 #### 7. Get Generation History
+
 ```http
 GET /api/generation/history/{projectId}
 
@@ -278,6 +293,7 @@ Response: {
 ```
 
 #### 8. Get Overall Analytics
+
 ```http
 GET /api/generation/analytics
 
@@ -291,6 +307,7 @@ Response: {
 ```
 
 #### 9. Get Supported Frameworks
+
 ```http
 GET /api/generation/frameworks
 
@@ -301,6 +318,7 @@ Response: {
 ```
 
 #### 10. Health Check
+
 ```http
 GET /api/generation/health
 
@@ -310,6 +328,7 @@ Response: { "status": "healthy", "service": "CodeGenerationOrchestrator" }
 ### Execution Logs Endpoints (6)
 
 #### 1. Get Project Metrics
+
 ```http
 GET /api/execution-logs/project/{projectId}
 
@@ -324,6 +343,7 @@ Response: {
 ```
 
 #### 2. Get System Metrics
+
 ```http
 GET /api/execution-logs/system
 
@@ -337,6 +357,7 @@ Response: {
 ```
 
 #### 3. Get Daily Metrics
+
 ```http
 GET /api/execution-logs/daily/2024-03-29
 
@@ -350,6 +371,7 @@ Response: {
 ```
 
 #### 4. Get Performance Trends
+
 ```http
 GET /api/execution-logs/trends/7
 
@@ -364,11 +386,13 @@ Response: {
 ```
 
 #### 5. Export Logs
+
 ```http
 GET /api/execution-logs/export?outputPath=./logs.csv
 ```
 
 #### 6. Cleanup Old Logs
+
 ```http
 POST /api/execution-logs/cleanup/30
 ```
@@ -535,27 +559,35 @@ public class FirebaseConfig {
 ### Common Issues
 
 #### Issue: "AI API returns null"
+
 **Solution**: Check fallback chain configuration and API keys
+
 ```java
 List<String> chain = Arrays.asList("GROQ", "DEEPSEEK", "CLAUDE", "GPT4");
 // Ensure at least one API key is configured
 ```
 
 #### Issue: "Validation score < 80"
+
 **Solution**: Manual review and apply fixes
+
 ```bash
 curl "http://localhost:8080/api/generation/validate-and-generate" \
   -d "projectId=myapp&moduleName=Component&framework=REACT&description=..."
 ```
 
 #### Issue: "File not found in project"
+
 **Solution**: Verify project structure via FileOrchestrator
+
 ```bash
 curl "http://localhost:8080/api/projects/myapp/files"
 ```
 
 #### Issue: "Build times > 10 seconds"
+
 **Solution**: Enable Gradle configuration cache
+
 ```gradle
 org.gradle.caching=true
 org.gradle.configuration-cache=true
@@ -616,6 +648,7 @@ Future v2.0 will be available at `/api/v2/...` alongside v1.0 for 6 months.
 ### Contact
 
 For issues or questions:
+
 1. Check logs: `./execution_logs/`
 2. Review test cases: `src/test/java/org/example/`
 3. Consult source documentation: `src/main/java/org/example/`
