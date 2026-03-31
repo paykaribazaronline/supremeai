@@ -19,7 +19,7 @@ on:
   workflow_dispatch:
 
 env:
-  FLUTTER_VERSION: '3.27.0'
+  FLUTTER_VERSION: '3.29.3'
   FIREBASE_PROJECT: 'supremeai-565236080752'
 
 jobs:
