@@ -77,8 +77,10 @@ Week 11-12: Integration & Testing (500 LOC)
 | **LOC** | +6,000 |
 | **Agents** | D (iOS), E (Web), F (Desktop), G (Publish) |
 | **Total Agents** | 6 → 10 |
-| **Key Deliverables** | iOS generator, Web generators (React/Vue/Angular), Desktop (Tauri/Electron), Auto-publishing |
-| **Success Metric** | 4-platform builds, Play Store/App Store publishing automated, 95%+ parity |
+| **Key Deliverables** | iOS generator, Web generators (React/Vue/Angular), Desktop (Tauri/Electron), Web auto-publishing |
+| **Artifact Export** | ✅ Android APK/AAB, iOS .xcarchive (for owner to submit to stores) |
+| **Success Metric** | 4-platform code generation, Web publishing automated, Build artifacts exportable, 95%+ parity |
+| **⚠️ PUBLISH SCOPE** | Web ONLY (Firebase Hosting) — Native app store publishing by real owner |
 | **Budget** | $15,950 (3 months + contractors) |
 | **Team** | 2.8 FTE |
 | **Documentation** | Q3_2026_PHASE7_IMPLEMENTATION.md |
@@ -88,9 +90,9 @@ Week 11-12: Integration & Testing (500 LOC)
 Week 1-2:  iOS Generator (1,500 LOC)
 Week 3-4:  Web Generator (1,200 LOC)
 Week 5-6:  Desktop Generator (1,000 LOC)
-Week 7-8:  Play Store Auto-Publish (800 LOC)
-Week 9-10: App Store Auto-Publish (800 LOC)
-Week 11-12: Cross-Platform Sync (700 LOC)
+Week 7-8:  Web Publishing + Android Export (800 LOC)
+Week 9-10: iOS Export + Cross-Platform Parity (800 LOC)
+Week 11-12: CI/CD Orchestration (700 LOC)
 ```
 
 ---

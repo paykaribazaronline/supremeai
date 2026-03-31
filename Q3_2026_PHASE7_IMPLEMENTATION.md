@@ -260,176 +260,180 @@ INSTALLER & DISTRIBUTION
 
 ---
 
-#### Week 7-8: Play Store Auto-Publish
-**Deliverable:** Automated Google Play Store publishing with staged rollout  
-**Success Metric:** API upload + metadata auto-publish
+#### Week 7-8: Web Publishing & Android Export
+**Deliverable:** Automated web app publishing + exportable Android build artifacts  
+**Success Metric:** Web app auto-deploys to Firebase Hosting, Android APK/AAB available for export
+
+⚠️ **NOTE:** Android Play Store publishing handled by real app owner. System generates build artifacts & metadata for owner to submit.
 
 ##### Week 7 Tasks
 ```
-FASTLANE INTEGRATION (Java - 250 LOC)
-├── FastlaneConfigGenerator.java
-│   ├── Fastfile generation
-│   ├── Buildfile configuration
-│   ├── Appfile setup
-│   ├── Metadata structure
-│   └── Screenshot organization
-├── PlayStoreMetadata.java
-│   ├── App name & description
-│   ├── Screenshots (5+ languages)
-│   ├── Release notes
-│   ├── App category
-│   ├── Target audience
-│   ├── Content rating
-│   └── Privacy policy
-└── VersionManagement.java
-    ├── Auto-increment version code
-    ├── Semantic versioning
-    ├── Version tracking
-    └── Release history
+WEB PUBLISHING AUTOMATION (Java - 250 LOC)
+├── WebPublishingService.java
+│   ├── Firebase Hosting deployment
+│   ├── Build optimization (minify, compress)
+│   ├── CDN cache invalidation
+│   ├── Version tagging
+│   └── Automatic rollback capability
+├── DeploymentValidator.java
+│   ├── Pre-deploy health checks
+│   ├── Build artifact validation
+│   ├── DNS verification
+│   ├── HTTPS certificate check
+│   └── Performance baselines
+└── CloudflareIntegration.java (optional)
+    ├── DNS management
+    ├── WAF rules
+    ├── Analytics collection
+    └── Cache management
 
-FIREBASE CONFIGURATION
-├── Collection: app_store_metadata
-│   ├── Fields: app_name, description, screenshots, languages
-│   └── Localization for 10+ languages
-└── Collection: publish_logs
-    ├── Fields: attempt_number, status, error, timestamp
-    └── Audit trail for all publishes
+WEB DEPLOYMENT PIPELINE
+├── Collection: web_deployments
+│   ├── Fields: version, status, timestamp, url, performance_metrics
+│   └── Auto-cleanup (retain last 10 versions)
+└── Collection: deployment_logs
+    ├── Fields: deployment_id, status, error_details, automated_rollback
+    └── TTL: 90 days
 ```
 
 ##### Week 8 Tasks
 ```
-STAGED ROLLOUT SYSTEM (Java - 300 LOC)
-├── RolloutManager.java
-│   ├── Phase 1: 5% of users
-│   ├── Phase 2: 25% of users
-│   ├── Phase 3: 100% release
-│   ├── Delay between phases (48h)
-│   ├── Rollback triggers
-│   └── Metrics collection
-├── CrashMonitor.java
-│   ├── Firebase Crashlytics integration
-│   ├── Crash rate threshold (>0.5% triggers rollback)
-│   ├── ANR (Application Not Responding) detection
-│   ├── Performance regression detection
-│   └── Automatic rollback initiation
-├── MetricsCollector.java
-│   ├── User adoption rate
-│   ├── Crash reports
-│   ├── Session stability
-│   ├── Performance metrics
-│   └── Feature usage
-└── Tests (80 LOC)
-    └── Rollout logic tests
+ANDROID BUILD EXPORT SYSTEM (Java - 300 LOC)
+├── BuildArtifactGenerator.java
+│   ├── Generate release APK
+│   ├── Generate Android App Bundle (AAB)
+│   ├── Digital signature configuration
+│   ├── Build versioning (auto-increment)
+│   └── Artifact metadata generation
+├── AndroidMetadataExporter.java
+│   ├── Play Store metadata (for owner)
+│   ├── Screenshots & promotional assets
+│   ├── Release notes template
+│   ├── Privacy policy extraction
+│   ├── Permissions summary
+│   └── Content rating guidance
+└── BuildManifestGenerator.java
+    ├── App information summary
+    ├── Dependency list
+    ├── Build configuration
+    ├── Testing recommendations
+    └── Submission checklist for owner
 
-AUTOMATED PUBLISHING WORKFLOW
-├── Pre-publish checks
-│   ├── Code signing verification
-│   ├── Version conflict detection
-│   ├── Release notes completeness
-│   ├── Screenshot validation
-│   └── Privacy policy check
-├── Publishing steps
-│   ├── Build APK/AAB
-│   ├── Run final tests
-│   ├── Upload to Play Console
-│   ├── Configure metadata
-│   ├── Set rollout percentage
-│   └── Submit for review (if first)
-└── Post-publish monitoring
-    ├── Track deployment progress
-    ├── Monitor crash reports
-    ├── Alert on issues
-    └── Auto-rollback if needed
+ARTIFACT EXPORT FORMAT
+├── Directory: /exports/{projectId}/{version}/
+│   ├── app-release.apk (unsigned)
+│   ├── app-release-signed.apk (owner signs)
+│   ├── app-release.aab (unsigned)
+│   ├── metadata.json (Play Store submission fields)
+│   ├── publish-checklist.md (owner's submission guide)
+│   ├── OWNER_INSTRUCTIONS.md (step-by-step Play Store upload)
+│   └── screenshots/ (auto-generated demo screenshots)
 ```
 
 **Deliverable Checklist:**
-- [ ] Fastlane fully configured
-- [ ] Metadata can be generated automatically
-- [ ] Screenshots auto-captured (with UI automation)
-- [ ] Version auto-incremented correctly
-- [ ] Play Store API authenticated
-- [ ] Staged rollout functioning (5% → 25% → 100%)
-- [ ] Crash monitoring integrated
-- [ ] Auto-rollback tested & working
+- [ ] Web publishing fully automated to Firebase Hosting
+- [ ] Pre-deploy validation checks passing
+- [ ] Rollback mechanism tested & working
+- [ ] Android APK/AAB artifacts export working
+- [ ] Metadata JSON generated for owner's use
+- [ ] Owner instruction guide complete
+- [ ] Build signing configuration documented
+- [ ] Export tested with real app
 
 ---
 
 ### September 2026: App Store & Cross-Platform Sync
 **Focus:** iOS publishing, feature parity across platforms
 
-#### Week 9-10: App Store Auto-Publish
-**Deliverable:** TestFlight beta → Production app release  
-**Success Metric:** TestFlight upload + App Store release automated
+#### Week 9-10: iOS Build Export & Cross-Platform Sync
+**Deliverable:** Exportable iOS build artifacts + cross-platform feature testing  
+**Success Metric:** iOS IPA export functional, feature parity verified across platforms
+
+⚠️ **NOTE:** iOS App Store publishing handled by real app owner. System generates iOS artifacts & submission guide for owner to publish.
 
 ##### Week 9 Tasks
 ```
-APP STORE CONNECT INTEGRATION (Java - 250 LOC)
-├── AppStoreConnectAuthenticator.java
-│   ├── JWT token generation (Apple ID)
-│   ├── Session management
-│   ├── Rate limiting handling
-│   └── Error recovery
-├── AppStoreMetadataGenerator.java
-│   ├── App information
-│   ├── Release notes (auto-generated)
-│   ├── Screenshots & previews
-│   ├── Promotional artwork
-│   ├── Keywords & categories
-│   └── Privacy policy URL
-├── TestFlightManager.java
-│   ├── Build upload to TestFlight
-│   ├── Beta tester assignment
-│   ├── Review submission workflow
-│   ├── Feedback collection
-│   └── Build release tracking
-└── Tests (50 LOC)
-    └── ASC API interaction tests
+iOS BUILD EXPORT SYSTEM (Java - 250 LOC)
+├── iOSBuildArtifactGenerator.java
+│   ├── Generate Xcode .xcarchive
+│   ├── Create provisioning profiles config
+│   ├── Code signing configuration
+│   ├── Build versioning & increment
+│   └── Artifact metadata generation
+├── iOSMetadataExporter.java
+│   ├── App Store metadata (for owner)
+│   ├── Screenshots & preview assets
+│   ├── Release notes template
+│   ├── Privacy policy extraction
+│   ├── Content rating mapping
+│   ├── Localization preparation (10+ languages)
+│   └── Accessibility compliance checklist
+└── AppStoreSubmissionGuide.java
+    ├── Generate OWNER_INSTRUCTIONS_IOS.md
+    ├── Code signing requirements
+    ├── Provisioning profile setup steps
+    ├── TestFlight beta testing guide
+    ├── App Store submission checklist
+    └── Common rejection reasons (reference)
+
+iOS ARTIFACT EXPORT FORMAT
+├── Directory: /exports/{projectId}/{version}/
+│   ├── App.xcarchive (unsigned, for owner to sign)
+│   ├── build-metadata.json (App Store Connect fields)
+│   ├── provisioning-config.json (profile requirements)
+│   ├── OWNER_INSTRUCTIONS_IOS.md (step-by-step guide)
+│   ├── screenshots-ios/ (auto-generated for each language)
+│   ├── localization/ (Release notes in 10+ languages)
+│   └── TESTFLIGHT_BETA_GUIDE.md (beta testing setup)
 ```
 
 ##### Week 10 Tasks
 ```
-PRODUCTION RELEASE WORKFLOW (Java - 250 LOC)
-├── ProductionReleaseManager.java
-│   ├── PhaseReleaseScheduler
-│   │   ├── Manual to immediate
-│   │   ├── Scheduled release date
-│   │   ├── Phased release (10%/25%/50%/100%)
-│   │   └── Rollback capability
-│   ├── ReviewCompliance.java
-│   │   ├── Guidelines check
-│   │   ├── Content rating
-│   │   ├── Privacy compliance
-│   │   └── App Store policies
-│   └── ReleaseMonitoring.java
-│       ├── Crash rate tracking
-│       ├── User rating monitoring
-│       ├── Performance metrics
-│       └── Review sentiment analysis
+CROSS-PLATFORM PARITY VALIDATION (Java - 300 LOC)
+├── PlatformFeatureComparator.java
+│   ├── Feature matrix across all platforms
+│   ├── UI/UX consistency checker
+│   ├── API compatibility validator
+│   ├── Performance variance measurement
+│   └── Generate parity report
+├── SharedCodeOptimizer.java
+│   ├── Identify duplicated logic
+│   ├── Extract shared components library
+│   ├── Generate platform-specific wrappers
+│   ├── Measure code reuse percentage
+│   └── Report optimization opportunities
+└── ParityTestSuite.java
+    ├── Cross-platform scenario tests
+    ├── Feature parity assertions
+    ├── Performance baselines
+    ├── Accessibility compliance
+    └── Security verification
 
-VERSION MANAGEMENT
-├── Build number auto-increment
-├── Marketing version updates
-├── Release note generation
-├── Version history tracking
-└── Compatibility matrix (iOS version support)
-
-MONITORING & AUTO-ROLLBACK
-├── Crash rate threshold (1% limit)
-├── Performance degradation detection
-├── User review sentiment (4.0+ star minimum)
-├── Automatic rollback to previous version
-└── Incident notification system
+PARITY REPORTING
+├── Collection: parity_reports
+│   ├── Fields: project_id, feature_matrix, parity_score, platform_deltas
+│   └── Generated after each build
+└── Parity Scorecard
+    ├── Overall parity: >95% target
+    ├── Feature parity by platform
+    ├── UI consistency score
+    ├── Performance variance (target: <10%)
+    ├── Code reuse percentage
+    └── Missing/Deferred features (flagged)
 ```
 
 **Deliverable Checklist:**
-- [ ] App Store Connect authentication working
-- [ ] Metadata generation complete & accurate
-- [ ] TestFlight upload automated
-- [ ] Beta tester assignment working
-- [ ] Production release scheduling functional
-- [ ] Phased rollout (10% → 25% → 50% → 100%)
-- [ ] Crash monitoring & auto-rollback tested
-- [ ] Monitoring dashboard live
+- [ ] iOS .xcarchive export working & tested
+- [ ] Code signing requirements documented
+- [ ] Provisioning profile config generated for owner
+- [ ] App Store metadata JSON complete
+- [ ] Owner instruction guide comprehensive
+- [ ] Screenshots auto-generated for all languages
+- [ ] TestFlight beta setup guide included
+- [ ] Cross-platform parity >95% achieved
+- [ ] Shared code library extraction complete
+- [ ] Performance variance <10% verified
+- [ ] Accessibility tested across platforms
 
 ---
 
@@ -506,11 +510,13 @@ VERSION SYNCHRONIZATION
 - [ ] iOS generator complete & functional
 - [ ] Web generators (React/Vue/Angular) complete
 - [ ] Desktop generators (Tauri/Electron) complete
-- [ ] Play Store publishing automated
-- [ ] App Store publishing automated
+- [ ] Web publishing automated (Firebase Hosting)
+- [ ] Android build artifacts exportable for owner
+- [ ] iOS build artifacts exportable for owner
 - [ ] Feature parity > 95% across platforms
 - [ ] Shared codebase optimized (>60% code reuse)
 - [ ] CI/CD pipeline unified for 6 platforms
+- [ ] ⚠️ Owner instruction guides for Android & iOS submission included
 - [ ] 6,000+ LOC written
 - [ ] 80%+ test coverage
 - [ ] All documentation complete
@@ -546,18 +552,32 @@ curl -X POST http://localhost:8080/api/generate \
 
 ---
 
-### August 31: Desktop Apps Live
-**Requirement:** Win/Mac/Linux builds available
+### August 31: Web Publishing & Android Export Live
+**Requirement:** Web apps deploy automatically, Android artifacts exportable
 
 **Verification:**
 ```bash
-# Check desktop builds
-ls -la releases/
+# Test web publishing
+curl -X POST http://localhost:8080/api/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "appName": "TestApp",
+    "platform": "web",
+    "publishTarget": "firebase"
+  }'
+
+# Expected: 
+# - Deployed to Firebase Hosting
+# - URL returned with live app
+# - Metrics tracked
+
+# Check Android export
+ls -la exports/testapp/android/
 # Should show:
-# - windows-x64.exe
-# - macos-arm64.dmg
-# - linux-x64.AppImage
-# All signed & functional
+# - app-release.apk
+# - app-release.aab
+# - metadata.json
+# - OWNER_INSTRUCTIONS.md
 ```
 
 **Decision:** ✅ **GO** / ❌ **NO-GO**
@@ -567,10 +587,12 @@ ls -la releases/
 ### September 30: PHASE 7 LAUNCH - Multi-Platform Complete
 **Requirements:**
 1. All 10 agents operational
-2. 4 platforms publishing automatically
-3. 6,000+ LOC written
-4. Feature parity > 95%
-5. Zero critical bugs
+2. 6 platforms generating code (Android, iOS, Web, Desktop, Windows, macOS, Linux)
+3. Web publishing fully automated
+4. Artifact export working for native platforms
+5. 6,000+ LOC written
+6. Feature parity > 95%
+7. Zero critical bugs
 
 **Verification Checklist:**
 ```
@@ -580,13 +602,14 @@ AGENTS (10 Total)
 ✅ D (iOS), E (Web), F (Desktop)
 ✅ G (Publishing)
 
-PLATFORMS
-✅ Android - APK/AAB to Play Store
-✅ iOS - IPA to App Store + TestFlight
-✅ Web - React/Vue/Angular to Firebase Hosting
-✅ Desktop - Windows/Mac/Linux to GitHub Releases
-✅ Staged rollout working
-✅ Auto-rollback functional
+PLATFORMS & CODE GENERATION
+✅ Android - APK/AAB artifacts exported (owner submits to Play Store)
+✅ iOS - IPA artifacts exported (owner submits to App Store)
+✅ Web - React/Vue/Angular auto-deployed to Firebase Hosting
+✅ Desktop - Windows/Mac/Linux builds available
+✅ Web publishing fully automated
+✅ Rollback capability functional
+✅ Owner instruction guides complete (Android & iOS)
 
 CODE QUALITY
 ✅ 6,000+ LOC written
@@ -603,11 +626,14 @@ PARITY
 ✅ API compatibility verified
 ✅ Version synchronization working
 
-DOCUMENTATION
-✅ Platform-specific guides
-✅ CI/CD documentation
-✅ Cross-platform architecture docs
-✅ Troubleshooting guides
+ARTIFACTS & DOCUMENTATION
+✅ All 6 platforms building successfully
+✅ Android APK/AAB export with submission guide
+✅ iOS .xcarchive export with submission guide
+✅ Web apps live at Firebase Hosting URLs
+✅ Desktop builds signed & distributable
+✅ Owner instruction guides for native app stores
+✅ Comprehensive platform-specific documentation
 ✅ Video tutorials (6 videos)
 ```
 
@@ -630,11 +656,12 @@ Total:                         | 2.8 FTE |
 ### Budget Breakdown - Q3 2026
 | Category | July | Aug | Sep | Total |
 |----------|------|------|------|-------|
-| Cloud (GCP/Firebase/Apple/Google) | $300 | $400 | $500 | $1,200 |
-| Developer Accounts (Apple, Google) | - | $100 | - | $100 |
-| Tools/Services | $75 | $75 | $100 | $250 |
+| Cloud (GCP/Firebase) | $300 | $400 | $500 | $1,200 |
+| Development Tools | $75 | $75 | $100 | $250 |
 | Contractor (1.5 FTE @ $40/hr) | $4,800 | $4,800 | $4,800 | $14,400 |
 | **Q3 Total** | **$5,175** | **$5,375** | **$5,400** | **$15,950** |
+
+**Note:** Apple & Google Developer Account costs are **NOT included** — owner who submits apps to stores will cover these. SupremeAI only generates the artifacts.
 
 **Total Q2 + Q3:** $10,650 + $15,950 = **$26,600 (6-month investment)**
 
@@ -642,12 +669,20 @@ Total:                         | 2.8 FTE |
 
 ## CRITICAL DEPENDENCIES - Q3 2026
 
-### External Dependencies
-1. **Apple Developer Account** - Required for iOS signing ($99/year)
-2. **Google Play Developer Account** - Required for Play Store ($25 one-time)
-3. **Code Signing Certificates** - Apple, Google platform requirements
-4. **Xcode Command Line Tools** - For macOS builds
-5. **Fastlane** - Distribution tool (npm install)
+### External Dependencies (SupremeAI Side)
+1. **Xcode Command Line Tools** - For building iOS .xcarchive
+2. **Android SDK** - For building APK/AAB
+3. **Gradle** - Already in use
+4. **Node.js & npm** - For web builds
+5. **Firebase Hosting** - For web deployment
+
+### App Owner Responsibilities (After Phase 7)
+1. **Apple Developer Account** - For iOS App Store submission ($99/year)
+2. **Google Play Developer Account** - For Android Play Store submission ($25 one-time)
+3. **Code Signing Certificates** - Owner signs iOS builds with their certs
+4. **App Store provisioning profiles** - Owner sets up with their account
+5. **Play Store signing key** - Owner provides for Android signing
+6. **Legal/Privacy policies** - Owner provides for store submission
 
 ### Internal Dependencies
 1. **Phase 6 completion** - Dashboard & agents must be working
