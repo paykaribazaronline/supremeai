@@ -160,77 +160,47 @@ jobs:
           name: dashboard-build
           path: dashboard-build/
 
-      - name: 🛠️ Create combined_deploy Directory
+      - name: 🛠️ Create combined_deploy Directory Structure
         run: |
           # Create root combined_deploy folder
-          mkdir -p combined_deploy
-          
-          # List downloaded artifacts
-          echo "=== Flutter Admin Build Contents ==="
-          ls -la flutter-admin-build/ || echo "No Flutter build"
-          echo ""
-          echo "=== Dashboard Build Contents ==="
-          ls -la dashboard-build/ || echo "No Dashboard build"
-
-      - name: 📋 Copy Dashboard Files to combined_deploy
-        run: |
-          # Copy main dashboard files (from public/ or dist/)
-          if [ -d "public" ]; then
-            echo "✅ Copying from public/ directory..."
-            cp -r public/* combined_deploy/ 2>/dev/null || true
-          elif [ -d "dist" ]; then
-            echo "✅ Copying from dist/ directory..."
-            cp -r dist/* combined_deploy/ 2>/dev/null || true
-          elif [ -d "dashboard-build/public" ]; then
-            echo "✅ Copying from dashboard-build/public/ directory..."
-            cp -r dashboard-build/public/* combined_deploy/ 2>/dev/null || true
-          elif [ -d "dashboard-build/dist" ]; then
-            echo "✅ Copying from dashboard-build/dist/ directory..."
-            cp -r dashboard-build/dist/* combined_deploy/ 2>/dev/null || true
-          else
-            echo "⚠️ No main dashboard build found. Creating basic structure..."
-            mkdir -p combined_deploy
-            cp firebase.json combined_deploy/ 2>/dev/null || true
-          fi
-          
-          echo ""
-          echo "=== combined_deploy directory after dashboard copy ==="
-          ls -la combined_deploy/ || echo "Combined deploy is empty"
-
-      - name: 🔗 Create admin subdirectory & Copy Flutter Files
-        run: |
-          # Create admin folder
           mkdir -p combined_deploy/admin
           
-          # Copy Flutter web files to admin subfolder
+          # Copy dashboard files to root
+          if [ -d "public" ]; then
+            echo "✅ Copying from public/ to combined_deploy root..."
+            cp -r public/* combined_deploy/ 2>/dev/null || true
+            rm -f combined_deploy/admin 2>/dev/null || true
+            mkdir -p combined_deploy/admin
+          fi
+          
+          # Copy Flutter build to admin subfolder
           if [ -d "flutter-admin-build" ] && [ "$(ls -A flutter-admin-build)" ]; then
             echo "✅ Copying Flutter build to combined_deploy/admin/..."
             cp -r flutter-admin-build/* combined_deploy/admin/
           else
-            echo "❌ Flutter build is empty!"
+            echo "❌ Flutter build is missing!"
             exit 1
           fi
           
+          # Verify structure
           echo ""
           echo "=== Final combined_deploy structure ==="
-          find combined_deploy -type f | head -20
-          echo "..."
-
-      - name: 📝 Verify firebase.json Configuration
-        run: |
-          echo "=== Verifying firebase.json ==="
-          cat firebase.json | jq '.hosting'
+          ls -la combined_deploy/
           echo ""
-          echo "✅ Firebase configuration verified"
+          echo "=== admin subfolder ==="
+          ls -la combined_deploy/admin/ | head -10
+          echo ""
+          
+          # Ensure firebase.json is in combined_deploy
+          cp firebase.json combined_deploy/
 
       - name: 🚀 Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}
-          channelId: live
           projectId: supremeai-a
-          entryPoint: ./
+          channelId: live
         env:
           FIREBASE_CLI_EXPERIMENTS: webframeworks
 
