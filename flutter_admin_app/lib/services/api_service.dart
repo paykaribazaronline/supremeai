@@ -91,7 +91,7 @@ class ApiService {
 
       return ApiResponse<T>(
         success: false,
-        error: response.data?['message'] ?? 'Unknown error',
+        error: _extractErrorMessage(response.data),
         statusCode: response.statusCode,
       );
     } on DioException catch (e) {
@@ -121,7 +121,7 @@ class ApiService {
 
       return ApiResponse<T>(
         success: false,
-        error: response.data?['message'] ?? 'Unknown error',
+        error: _extractErrorMessage(response.data),
         statusCode: response.statusCode,
       );
     } on DioException catch (e) {
@@ -151,7 +151,7 @@ class ApiService {
 
       return ApiResponse<T>(
         success: false,
-        error: response.data?['message'] ?? 'Unknown error',
+        error: _extractErrorMessage(response.data),
         statusCode: response.statusCode,
       );
     } on DioException catch (e) {
@@ -179,7 +179,7 @@ class ApiService {
 
       return ApiResponse<T>(
         success: false,
-        error: response.data?['message'] ?? 'Unknown error',
+        error: _extractErrorMessage(response.data),
         statusCode: response.statusCode,
       );
     } on DioException catch (e) {
@@ -195,7 +195,7 @@ class ApiService {
     } else if (e.type == DioExceptionType.receiveTimeout) {
       errorMessage = 'Request timeout. Server is not responding.';
     } else if (e.type == DioExceptionType.badResponse) {
-      errorMessage = e.response?.data?['message'] ?? 'Server error occurred.';
+      errorMessage = _extractErrorMessage(e.response?.data) ?? 'Server error occurred.';
     } else if (e.type == DioExceptionType.unknown) {
       errorMessage = 'Network error. Please check your connection.';
     } else {
@@ -209,6 +209,25 @@ class ApiService {
       error: errorMessage,
       statusCode: e.response?.statusCode,
     );
+  }
+
+  String? _extractErrorMessage(dynamic responseData) {
+    if (responseData == null) {
+      return null;
+    }
+    
+    // If it's a Map, try to extract 'message' field
+    if (responseData is Map<String, dynamic>) {
+      return responseData['message'] as String?;
+    }
+    
+    // If it's a String, return it directly
+    if (responseData is String) {
+      return responseData;
+    }
+    
+    // Otherwise try to convert to string
+    return responseData.toString();
   }
 
   void _handleUnauthorized() {

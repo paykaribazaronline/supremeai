@@ -17,7 +17,7 @@ public class Main {
             System.out.println("\n⚙️  SYSTEM INITIALIZING...");
             
             // Firebase setup (Uses FIREBASE_SERVICE_ACCOUNT_JSON env var or /service-account.json resource)
-            FirebaseService firebase = new FirebaseService("/service-account.json");
+            FirebaseService firebase = new FirebaseService();
             
             // ========== LOAD CONFIGURATION FROM FIREBASE ==========
             System.out.println("📥 Loading configuration from Cloud...");

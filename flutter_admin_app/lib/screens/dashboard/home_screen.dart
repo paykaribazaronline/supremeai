@@ -312,21 +312,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const Divider(),
                   ListTile(
-                    leading: const Icon(Icons.person_outline),
+                    leading: const Icon(Icons.person_outlined),
                     title: const Text('Profile'),
                     onTap: () {
                       Navigator.pop(context);
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.settings_outline),
+                    leading: const Icon(Icons.settings_outlined),
                     title: const Text('Settings'),
                     onTap: () {
                       Navigator.pop(context);
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.help_outline),
+                    leading: const Icon(Icons.help),
                     title: const Text('Help'),
                     onTap: () {
                       Navigator.pop(context);
