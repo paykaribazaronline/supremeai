@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SupremeAI 3D Visualization Dashboard - Phase 6</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            overflow: hidden;
+        }
+
+        #container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 15px 20px;
+            border-bottom: 1px solid #00aa00;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        #header h1 {
+            font-size: 24px;
+            color: #00ff88;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        #stats {
+            display: flex;
+            gap: 30px;
+            font-size: 12px;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .stat-label {
+            color: #888;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            color: #00ff88;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+
+        #viewport {
+            flex: 1;
+            position: relative;
+            background: radial-gradient(circle at center, #0f0f1e 0%, #0a0a0a 100%);
+        }
+
+        #canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #info-panel {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            background: rgba(26, 26, 46, 0.95);
+            border: 1px solid #00aa00;
+            border-radius: 8px;
+            padding: 20px;
+            width: 320px;
+            max-height: 50%;
+            overflow-y: auto;
+            z-index: 50;
+            box-shadow: 0 8px 32px rgba(0, 255, 136, 0.1);
+        }
+
+        #info-panel h3 {
+            color: #00ff88;
+            margin-bottom: 15px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #2a2a4a;
+            font-size: 12px;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #888;
+        }
+
+        .info-value {
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+
+        #control-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(26, 26, 46, 0.95);
+            border: 1px solid #00aa00;
+            border-radius: 8px;
+            padding: 15px;
+            width: 250px;
+            z-index: 50;
+            box-shadow: 0 8px 32px rgba(0, 255, 136, 0.1);
+        }
+
+        #control-panel h3 {
+            color: #00ff88;
+            margin-bottom: 12px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-group {
+            margin-bottom: 10px;
+        }
+
+        .control-label {
+            display: block;
+            color: #888;
+            font-size: 11px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .control-input {
+            width: 100%;
+            padding: 6px 10px;
+            background: #1a1a2e;
+            border: 1px solid #2a4a3a;
+            color: #00ff88;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: 'Courier New', monospace;
+        }
+
+        button {
+            width: 100%;
+            padding: 8px 12px;
+            background: #004d26;
+            border: 1px solid #00aa00;
+            color: #00ff88;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            margin-bottom: 5px;
+        }
+
+        button:hover {
+            background: #006633;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        #status {
+            position: absolute;
+            bottom: 80px;
+            right: 20px;
+            color: #00ff88;
+            font-size: 12px;
+            background: rgba(26, 26, 46, 0.95);
+            padding: 10px 15px;
+            border: 1px solid #00aa00;
+            border-radius: 4px;
+            text-align: right;
+        }
+
+        /* Scrollbar styling */
+        #info-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #info-panel::-webkit-scrollbar-track {
+            background: #1a1a2e;
+            border-radius: 10px;
+        }
+
+        #info-panel::-webkit-scrollbar-thumb {
+            background: #00aa00;
+            border-radius: 10px;
+        }
+
+        #info-panel::-webkit-scrollbar-thumb:hover {
+            background: #00ff88;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="header">
+            <h1>🎨 SupremeAI 3D Visualization Dashboard</h1>
+            <div id="stats">
+                <div class="stat">
+                    <span class="stat-label">FPS</span>
+                    <span class="stat-value" id="fps">60</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Render Time</span>
+                    <span class="stat-value" id="render-time">8ms</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Active Nodes</span>
+                    <span class="stat-value" id="node-count">12</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">WebSocket</span>
+                    <span class="stat-value" id="ws-status">Connected</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="viewport">
+            <canvas id="canvas"></canvas>
+
+            <div id="info-panel">
+                <h3>Active Agents</h3>
+                <div id="agent-list">
+                    <div class="info-row">
+                        <span class="info-label">Architect</span>
+                        <span class="info-value">▮ Active</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Builder</span>
+                        <span class="info-value">▮ Active</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Reviewer</span>
+                        <span class="info-value">▮ Active</span>
+                    </div>
+                </div>
+                <h3 style="margin-top: 20px;">Consensus Voting</h3>
+                <div id="voting-info">
+                    <div class="info-row">
+                        <span class="info-label">Total Votes</span>
+                        <span class="info-value">3</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Agreed</span>
+                        <span class="info-value">2</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Progress</span>
+                        <span class="info-value">66.7%</span>
+                    </div>
+                </div>
+                <h3 style="margin-top: 20px;">Recent Decisions</h3>
+                <div id="decisions-log" style="font-size: 11px; max-height: 150px; overflow-y: auto;">
+                    <div class="info-row">
+                        <span class="info-label">Auto-fix applied</span>
+                        <span class="info-value">✓</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="control-panel">
+                <h3>Controls</h3>
+                <div class="control-group">
+                    <label class="control-label">Rotation Speed</label>
+                    <input type="range" id="rotation-speed" class="control-input" min="0" max="10" value="2" style="padding: 2px;">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Zoom Level</label>
+                    <input type="range" id="zoom-level" class="control-input" min="50" max="300" value="150" style="padding: 2px;">
+                </div>
+                <button id="reset-view">Reset View</button>
+                <button id="toggle-agents">Toggle Agents</button>
+                <button id="toggle-animation">Pause Animation</button>
+            </div>
+
+            <div id="status">
+                <div id="fps-display">FPS: 60</div>
+                <div id="memory-display">Memory: 0MB</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // ================== PHASE 6: 3D VISUALIZATION SYSTEM ==================
+        // Real-time 3D rendering of SupremeAI decision flow, agent coordination, and build pipeline
+        // Target: <100ms render, 60+ FPS
+        
+        class VisualizationSystem {
+            constructor() {
+                this.canvas = document.getElementById('canvas');
+                this.scene = null;
+                this.camera = null;
+                this.renderer = null;
+                this.controls = {};
+                this.animationRunning = true;
+                this.rotation = { x: 0, y: 0 };
+                this.rotationSpeed = 0.002;
+                this.nodes = [];
+                this.edges = [];
+                this.agents = [];
+                this.frameCount = 0;
+                this.lastTime = performance.now();
+                this.fps = 60;
+
+                this.wsUrl = this.getWebSocketUrl();
+                this.websocket = null;
+                this.isConnected = false;
+
+                this.init();
+                this.setupWebSocket();
+                this.setupEventListeners();
+                this.animate();
+            }
+
+            getWebSocketUrl() {
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                return `${protocol}//${window.location.host}/ws/visualization`;
+            }
+
+            init() {
+                // Scene setup
+                this.scene = new THREE.Scene();
+                this.scene.background = new THREE.Color(0x0a0a0a);
+                this.scene.fog = new THREE.Fog(0x0a0a0a, 500, 1500);
+
+                // Camera setup
+                const width = this.canvas.clientWidth;
+                const height = this.canvas.clientHeight;
+                this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 2000);
+                this.camera.position.set(0, 60, 120);
+                this.camera.lookAt(0, 0, 0);
+
+                // Renderer setup
+                this.renderer = new THREE.WebGLRenderer({ 
+                    canvas: this.canvas, 
+                    antialias: true, 
+                    powerPreference: 'high-performance' 
+                });
+                this.renderer.setSize(width, height);
+                this.renderer.setPixelRatio(window.devicePixelRatio);
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFShadowShadowMap;
+
+                // Lighting
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+                this.scene.add(ambientLight);
+
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(100, 200, 100);
+                directionalLight.castShadow = true;
+                directionalLight.shadow.camera.left = -200;
+                directionalLight.shadow.camera.right = 200;
+                directionalLight.shadow.camera.top = 200;
+                directionalLight.shadow.camera.bottom = -200;
+                this.scene.add(directionalLight);
+
+                // Grid floor
+                this.createGridFloor();
+
+                // Create static scene elements
+                this.createRootNode();
+                this.createServiceNetwork();
+                this.createAgentOrbit();
+                this.createConsensusIndicator();
+
+                // Handle window resize
+                window.addEventListener('resize', () => this.onWindowResize());
+            }
+
+            createGridFloor() {
+                const gridHelper = new THREE.GridHelper(300, 30, 0x004d26, 0x003d1a);
+                gridHelper.position.y = -50;
+                this.scene.add(gridHelper);
+            }
+
+            createRootNode() {
+                const geometry = new THREE.IcosahedronGeometry(3, 4);
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: 0x00aa00,
+                    emissive: 0x00ff88,
+                    shininess: 100
+                });
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                this.scene.add(mesh);
+
+                // Glow effect for root node
+                const glowGeometry = new THREE.IcosahedronGeometry(4, 4);
+                const glowMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x00aa00,
+                    transparent: true,
+                    opacity: 0.2,
+                    wireframe: false
+                });
+                const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+                this.scene.add(glow);
+
+                // Animate glow
+                this.rootNodeGlow = glow;
+            }
+
+            createServiceNetwork() {
+                const services = ['AuthService', 'APIService', 'StorageService', 'NotificationService'];
+                const group = new THREE.Group();
+
+                services.forEach((service, i) => {
+                    const angle = (2 * Math.PI * i) / services.length;
+                    const x = Math.cos(angle) * 70;
+                    const z = Math.sin(angle) * 70;
+
+                    // Service node
+                    const geometry = new THREE.BoxGeometry(8, 8, 8);
+                    const material = new THREE.MeshPhongMaterial({ 
+                        color: 0x0088ff,
+                        emissive: 0x0055ff,
+                        shininess: 60
+                    });
+                    const mesh = new THREE.Mesh(geometry, material);
+                    mesh.position.set(x, 20, z);
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    mesh.userData = { type: 'service', name: service };
+                    group.add(mesh);
+
+                    // Connection line to root
+                    const lineGeometry = new THREE.BufferGeometry();
+                    lineGeometry.setAttribute('position', new THREE.BufferAttribute(
+                        new Float32Array([0, 0, 0, x, 20, z]), 3
+                    ));
+                    const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00aa00, linewidth: 2 });
+                    const line = new THREE.Line(lineGeometry, lineMaterial);
+                    group.add(line);
+                });
+
+                this.serviceGroup = group;
+                this.scene.add(group);
+            }
+
+            createAgentOrbit() {
+                const agents = ['Architect', 'Builder', 'Reviewer'];
+                const group = new THREE.Group();
+
+                agents.forEach((agent, i) => {
+                    const angle = (2 * Math.PI * i) / agents.length;
+                    const theta = Math.PI / 4; // 45 degrees elevation
+                    const radius = 120;
+                    const x = Math.sin(theta) * Math.cos(angle) * radius;
+                    const y = Math.cos(theta) * radius;
+                    const z = Math.sin(theta) * Math.sin(angle) * radius;
+
+                    // Agent node
+                    const geometry = new THREE.SphereGeometry(5, 32, 32);
+                    const material = new THREE.MeshPhongMaterial({
+                        color: 0x00ffaa,
+                        emissive: 0x00ff88,
+                        shininess: 80
+                    });
+                    const mesh = new THREE.Mesh(geometry, material);
+                    mesh.position.set(x, y, z);
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+                    mesh.userData = { type: 'agent', name: agent, index: i };
+                    group.add(mesh);
+                });
+
+                this.agentGroup = group;
+                this.scene.add(group);
+            }
+
+            createConsensusIndicator() {
+                const geometry = new THREE.TorusGeometry(30, 2, 16, 100);
+                const material = new THREE.MeshPhongMaterial({
+                    color: 0x00ff00,
+                    emissive: 0x00aa00,
+                    shininess: 100
+                });
+                const torus = new THREE.Mesh(geometry, material);
+                torus.position.y = 50;
+                torus.rotationX = Math.PI / 3;
+                this.consensusIndicator = torus;
+                this.scene.add(torus);
+            }
+
+            setupWebSocket() {
+                try {
+                    this.websocket = new WebSocket(this.wsUrl);
+
+                    this.websocket.onopen = () => {
+                        console.log('✓ WebSocket connected to visualization');
+                        this.isConnected = true;
+                        document.getElementById('ws-status').textContent = 'Connected';
+                        document.getElementById('ws-status').style.color = '#00ff88';
+
+                        // Request initial scene data
+                        this.websocket.send(JSON.stringify({ action: 'request_frame' }));
+                    };
+
+                    this.websocket.onmessage = (event) => {
+                        try {
+                            const data = JSON.parse(event.data);
+                            if (data.type === 'frame_update') {
+                                this.updateVisualization(data);
+                            }
+                        } catch (e) {
+                            console.warn('WebSocket message parse error:', e);
+                        }
+                    };
+
+                    this.websocket.onerror = (error) => {
+                        console.error('WebSocket error:', error);
+                        document.getElementById('ws-status').textContent = 'Error';
+                        document.getElementById('ws-status').style.color = '#ff5555';
+                    };
+
+                    this.websocket.onclose = () => {
+                        console.log('WebSocket disconnected');
+                        this.isConnected = false;
+                        document.getElementById('ws-status').textContent = 'Disconnected';
+                        document.getElementById('ws-status').style.color = '#ff8844';
+                        // Attempt reconnect after 3 seconds
+                        setTimeout(() => this.setupWebSocket(), 3000);
+                    };
+                } catch (e) {
+                    console.error('WebSocket setup error:', e);
+                    // Fall back to REST API polling
+                    this.startRESTPolling();
+                }
+            }
+
+            startRESTPolling() {
+                setInterval(() => {
+                    fetch('/api/v1/visualization/frame')
+                        .then(r => r.json())
+                        .then(data => this.updateVisualization(data))
+                        .catch(e => console.warn('REST polling error:', e));
+                }, 33); // ~30 FPS
+            }
+
+            updateVisualization(frameData) {
+                if (frameData.buildFlow && frameData.buildFlow.agents) {
+                    document.getElementById('node-count').textContent = frameData.buildFlow.agents.length;
+                }
+            }
+
+            setupEventListeners() {
+                document.getElementById('rotation-speed').addEventListener('input', (e) => {
+                    this.rotationSpeed = parseFloat(e.target.value) * 0.0005;
+                });
+
+                document.getElementById('zoom-level').addEventListener('input', (e) => {
+                    const zoom = parseFloat(e.target.value);
+                    this.camera.position.z = zoom;
+                });
+
+                document.getElementById('reset-view').addEventListener('click', () => {
+                    this.camera.position.set(0, 60, 120);
+                    this.camera.lookAt(0, 0, 0);
+                });
+
+                document.getElementById('toggle-agents').addEventListener('click', () => {
+                    this.agentGroup.visible = !this.agentGroup.visible;
+                });
+
+                document.getElementById('toggle-animation').addEventListener('click', (e) => {
+                    this.animationRunning = !this.animationRunning;
+                    e.target.textContent = this.animationRunning ? 'Pause Animation' : 'Resume Animation';
+                });
+
+                window.addEventListener('keydown', (e) => {
+                    if (e.key === 'r') this.camera.position.set(0, 60, 120);
+                    if (e.key === ' ') this.animationRunning = !this.animationRunning;
+                });
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+
+                if (this.animationRunning) {
+                    // Rotate service network
+                    this.serviceGroup.rotation.y += this.rotationSpeed;
+
+                    // Rotate agent orbit
+                    this.agentGroup.rotation.z += this.rotationSpeed * 0.7;
+
+                    // Pulse root node glow
+                    const time = performance.now() * 0.001;
+                    this.rootNodeGlow.scale.set(
+                        1 + 0.3 * Math.sin(time * 2),
+                        1 + 0.3 * Math.sin(time * 2),
+                        1 + 0.3 * Math.sin(time * 2)
+                    );
+
+                    // Rotate consensus indicator
+                    this.consensusIndicator.rotation.z += 0.005;
+                }
+
+                // Render
+                const startTime = performance.now();
+                this.renderer.render(this.scene, this.camera);
+                const renderTime = performance.now() - startTime;
+
+                // Update FPS
+                this.frameCount++;
+                const currentTime = performance.now();
+                if (currentTime - this.lastTime >= 1000) {
+                    this.fps = this.frameCount;
+                    document.getElementById('fps').textContent = this.fps;
+                    document.getElementById('fps-display').textContent = `FPS: ${this.fps}`;
+                    this.frameCount = 0;
+                    this.lastTime = currentTime;
+                }
+
+                document.getElementById('render-time').textContent = Math.round(renderTime) + 'ms';
+            }
+
+            onWindowResize() {
+                const width = this.canvas.clientWidth;
+                const height = this.canvas.clientHeight;
+                this.camera.aspect = width / height;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(width, height);
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            new VisualizationSystem();
+        });
+    </script>
+</body>
+</html>
