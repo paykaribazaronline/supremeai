@@ -32,6 +32,7 @@ Fixed 6 critical CI/CD workflow issues affecting deployment reliability, quality
 **Change:**
 
 ```yaml
+
 # BEFORE (❌ Tests silently pass even if broken)
 - name: ✅ Run tests
   run: ./gradlew test --info --stacktrace --no-daemon
@@ -194,6 +195,7 @@ Phase 10: Self-Improvement (4 agents)
 ```
 
 **Workflow Structure:**
+
 ```
 security-agents (Phase 8)
         ↓
@@ -236,6 +238,7 @@ integration-summary
 | `ADMIN_TOKEN` | `eyJhbGc...` | Login to API: `POST /api/auth/login` |
 
 **Without these:**
+
 ```bash
 # Current behavior (breaks silently):
 if [ -z "$API_BASE_URL" ]; then
@@ -245,6 +248,7 @@ fi
 ```
 
 **After setup:**
+
 ```bash
 # Expected behavior (actually runs):
 Health Status: {"status":"healthy","uptime":14234,"errors":0}
@@ -253,6 +257,7 @@ Metrics: {"mttr": 4.23, "mttd": 8.15, "availability": 99.8}
 ```
 
 **Setup Steps:**
+
 1. Copy Cloud Run URL: `gcloud run services describe supremeai --region=us-central1`
 2. Log in to get token: `curl -X POST $URL/api/auth/login`
 3. Add secrets to GitHub Settings → Secrets → Repository secrets
