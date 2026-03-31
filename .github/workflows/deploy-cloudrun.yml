@@ -3,10 +3,10 @@
 # Required GitHub Secrets:
 #   GCP_PROJECT_ID                       - Google Cloud project ID (supremeai-a)
 #   GCP_SA_KEY                           - Service account JSON key with roles:
-#                                            roles/run.admin
-#                                            roles/storage.admin
-#                                            roles/iam.serviceAccountUser
-#                                            roles/secretmanager.admin
+#                                            roles/run.admin            ← REQUIRED (currently only run.viewer — upgrade needed)
+#                                            roles/storage.admin        ✅ granted
+#                                            roles/iam.serviceAccountUser ✅ granted
+#                                            roles/secretmanager.admin  ← REQUIRED for Firebase secret sync
 #   FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A - Firebase service account JSON (already configured)
 
 name: 🚀 Deploy to Google Cloud Run
