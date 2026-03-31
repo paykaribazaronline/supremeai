@@ -5,7 +5,7 @@
   "targets": {
     "supremeai-565236080752": {
       "hosting": {
-        "main-dashboard": ["supremeai-a"],
+        "main-dashboard": ["supremeai-565236080752"],
         "flutter-admin": ["supremeai-565236080752"]
       }
     }
