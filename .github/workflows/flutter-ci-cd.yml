@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - develop
+      - 'feature/**'
     paths:
       - 'flutter_admin_app/**'
       - '.github/workflows/flutter-ci-cd.yml'
@@ -14,13 +15,14 @@ on:
     branches:
       - main
       - develop
+      - 'feature/**'
     paths:
       - 'flutter_admin_app/**'
   workflow_dispatch:
 
 env:
   FLUTTER_VERSION: '3.27.0'
-  FIREBASE_PROJECT: 'supremeai-565236080752'
+  FIREBASE_PROJECT: 'supremeai-a'
 
 jobs:
   # ==========================================
@@ -35,7 +37,7 @@ jobs:
     
     steps:
       - name: ⬇️ Checkout code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -78,7 +80,7 @@ jobs:
         working-directory: flutter_admin_app
         run: |
           echo "🏗️ Building web app..."
-          flutter build web --release --no-pub --base-href /
+          flutter build web --release --no-pub --base-href "/admin/"
           echo "✅ Web build completed"
           du -sh build/web/
           find build/web/ -type f | wc -l
@@ -115,10 +117,10 @@ jobs:
     needs: flutter-build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.flutter-build.outputs.build-status == 'success'
-    
+
     steps:
       - name: ⬇️ Checkout code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
 
       - name: 🐦 Set up Flutter
         uses: subosito/flutter-action@v2
@@ -134,7 +136,7 @@ jobs:
       - name: 🏗️ Build Web App
         working-directory: flutter_admin_app
         run: |
-          flutter build web --release --no-pub --base-href /
+          flutter build web --release --no-pub --base-href "/admin/"
           echo "Web build size: $(du -sh build/web | cut -f1)"
 
       - name: 📥 Download artifact
@@ -156,21 +158,22 @@ jobs:
           cat .firebaserc
 
       - name: 🚀 Deploy to Firebase
-        if: ${{ secrets.FIREBASE_TOKEN }}
+        if: env.HAS_FIREBASE_TOKEN == 'true'
         run: |
           echo "🚀 Deploying Flutter Admin App to Firebase Hosting..."
           firebase deploy \
             --project=${{ env.FIREBASE_PROJECT }} \
-            --only=hosting:flutter-admin \
+            --only=hosting \
             --token=${{ secrets.FIREBASE_TOKEN }} \
             --non-interactive \
             --debug
           echo "✅ Firebase deployment completed"
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          HAS_FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN != '' }}
 
       - name: ⚠️ Firebase Token Not Configured
-        if: ${{ !secrets.FIREBASE_TOKEN }}
+        if: env.HAS_FIREBASE_TOKEN != 'true'
         run: |
           echo "⚠️  FIREBASE_TOKEN secret is not configured"
           echo ""
@@ -186,7 +189,7 @@ jobs:
         run: |
           echo "✅ **Deployment Successful!**"
           echo ""
-          echo "🌐 Live URL: https://supremeai-565236080752.web.app/admin/"
+          echo "🌐 Live URL: https://supremeai-a.web.app/admin/"
           echo "📊 Firebase Project: ${{ env.FIREBASE_PROJECT }}"
           echo "⏰ Deployment Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
@@ -210,10 +213,10 @@ jobs:
     needs: flutter-build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
+
     steps:
       - name: ⬇️ Checkout code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
 
       - name: 🐦 Set up Flutter
         uses: subosito/flutter-action@v2
@@ -283,10 +286,10 @@ jobs:
     name: Code Quality & Notifications
     runs-on: ubuntu-latest
     if: always()
-    
+
     steps:
       - name: ⬇️ Checkout code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
 
       - name: 🐦 Set up Flutter
         uses: subosito/flutter-action@v2
@@ -342,4 +345,3 @@ jobs:
               body: '✅ **Flutter Build Successful!**\n\n📦 **Artifacts Generated:**\n- Web app build (ready for Firebase)\n- Android APK & AAB files\n\n🌐 **Preview:** https://supremeai-565236080752.web.app/admin/'
             })
         continue-on-error: true
-
