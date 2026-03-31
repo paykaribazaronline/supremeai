@@ -19,7 +19,7 @@ jobs:
     
     steps:
       - name: ⬇️ Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0  # Full history for better analysis
 
@@ -82,7 +82,7 @@ jobs:
     
     steps:
       - name: ⬇️ Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: ☕ Set up JDK 17
         uses: actions/setup-java@v4
@@ -113,7 +113,7 @@ jobs:
     
     steps:
       - name: ⬇️ Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: 🐳 Set up Docker
         uses: docker/setup-buildx-action@v3
@@ -134,7 +134,7 @@ jobs:
     
     steps:
       - name: ⬇️ Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: 📝 Validate Markdown
         uses: nosborn/github-action-markdown-cli@v3.3.0
