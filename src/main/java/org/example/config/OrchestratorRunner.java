@@ -20,8 +20,8 @@ public class OrchestratorRunner implements CommandLineRunner {
         System.out.println("\n🤖 Starting SupremeAI Cloud Orchestrator...");
         
         try {
-            // Firebase setup
-            FirebaseService firebase = new FirebaseService("/service-account.json");
+            // Firebase setup (Spring automatically provides instance)
+            FirebaseService firebase = new FirebaseService();
             
             // Load configuration
             Map<String, Object> cloudConfig = firebase.getSystemConfig("main_config");

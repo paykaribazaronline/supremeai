@@ -29,7 +29,7 @@ public class ServiceConfiguration {
     @Bean
     public FirebaseService firebaseService() {
         logger.info("🔧 Initializing Firebase Service...");
-        return new FirebaseService("/service-account.json");
+        return new FirebaseService();
     }
     
     /**

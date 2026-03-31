@@ -192,4 +192,38 @@ public class FirebaseService {
         notification.put("read", false);
         db.getReference("notifications").push().setValueAsync(notification);
     }
+
+    /**
+     * Update user in Firebase
+     */
+    public void updateUser(User user) {
+        if (user != null && user.getId() != null) {
+            db.getReference("users").child(user.getId()).setValueAsync(user);
+        }
+    }
+
+    /**
+     * Get user by ID from Firebase
+     */
+    public User getUserById(String userId) {
+        try {
+            CompletableFuture<User> future = new CompletableFuture<>();
+            db.getReference("users").child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        User user = snapshot.getValue(User.class);
+                        future.complete(user);
+                    } else {
+                        future.complete(null);
+                    }
+                }
+                @Override
+                public void onCancelled(DatabaseError error) { future.completeExceptionally(error.toException()); }
+            });
+            return future.get();
+        } catch (Exception e) {
+            return null;
+        }
+    }
 }

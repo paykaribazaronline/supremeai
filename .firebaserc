@@ -1,5 +1,13 @@
 {
   "projects": {
-    "default": "supremeai-a"
+    "default": "supremeai-565236080752"
+  },
+  "targets": {
+    "supremeai-565236080752": {
+      "hosting": {
+        "main-dashboard": ["supremeai-a"],
+        "flutter-admin": ["supremeai-565236080752"]
+      }
+    }
   }
 }
