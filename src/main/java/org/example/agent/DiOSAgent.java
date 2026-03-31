@@ -55,7 +55,7 @@ public class DiOSAgent {
         output.setUnitTests(generateUnitTests(request));
 
         // Generate UI tests
-        output.setUITests(generateUITests(request));
+        output.setUiTests(generateUITests(request));
 
         output.setGenerationSuccess(true);
         output.setStatusMessage("iOS SwiftUI project generated successfully");

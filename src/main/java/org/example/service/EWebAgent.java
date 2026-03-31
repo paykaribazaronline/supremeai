@@ -57,7 +57,7 @@ public class EWebAgent {
             for (String pageName : spec.getPages()) {
                 String pageCode = reactGenerator.generatePage(
                     pageName,
-                    spec.getPageSpecifications().get(pageName)
+                    (PageSpec) spec.getPageSpecifications().get(pageName)
                 );
                 generatedPages.add(pageCode);
             }

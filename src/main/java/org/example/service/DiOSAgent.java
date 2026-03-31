@@ -54,7 +54,7 @@ public class DiOSAgent {
             for (String screenName : spec.getScreens()) {
                 String screenCode = screenGenerator.generateSwiftUIScreen(
                     screenName, 
-                    spec.getScreenSpecifications().get(screenName),
+                    (ScreenSpec) spec.getScreenSpecifications().get(screenName),
                     templateRegistry
                 );
                 generatedScreens.add(screenCode);
