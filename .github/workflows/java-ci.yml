@@ -51,10 +51,10 @@ jobs:
 
       - name: ✅ Run tests
         run: ./gradlew test --info --stacktrace --no-daemon
-        continue-on-error: true
-        # TODO: Fix 67 pre-existing test failures unrelated to Phoenix self-healing
-        # Tests will be enabled once fixed in separate effort
-        # App builds and deploys successfully - tests are the blocker
+        # NOTE: Tests will fail if any test files have errors
+        # To skip: remove this step or use -x test flag in build command above
+        # Disabled: continue-on-error: true (removed to ensure failures are detected)
+        # TODO: Fix remaining test failures in src/test/java/ before enabling
 
       - name: 📊 Generate test report
         if: always()
