@@ -216,6 +216,14 @@ public class AgentDecisionLogger {
     }
 
     /**
+     * Get all decisions across all projects (used for ML pattern analysis)
+     */
+    public List<AgentDecision> getAllDecisions() {
+        return recentDecisions.values().stream()
+            .collect(Collectors.toList());
+    }
+
+    /**
      * Get decision statistics
      */
     public Map<String, Object> getDecisionStats() {
