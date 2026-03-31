@@ -8,6 +8,15 @@ const axios = require("axios");
 admin.initializeApp();
 const db = admin.firestore();
 
+function getBackendBaseUrl() {
+    const configuredUrl =
+        process.env.SUPREMEAI_BACKEND_URL ||
+        (functions.config().supremeai && functions.config().supremeai.backend_url);
+
+    const baseUrl = configuredUrl || "http://127.0.0.1:8080";
+    return baseUrl.replace(/\/+$/, "");
+}
+
 // ============ REQUIREMENT PROCESSING ============
 
 /**
@@ -23,7 +32,7 @@ exports.processRequirement = functions.https.onRequest(async (req, res) => {
         }
         
         // Call Java backend to classify
-        const classificationUrl = `http://localhost:8080/classify`;
+        const classificationUrl = `${getBackendBaseUrl()}/classify`;
         const classifyResponse = await axios.post(classificationUrl, { description });
         const size = classifyResponse.data.size; // SMALL, MEDIUM, or BIG
         
@@ -109,7 +118,7 @@ exports.approveRequirement = functions.https.onRequest(async (req, res) => {
             const { projectId, description } = req_doc.data();
             
             // Call Java backend orchestrator
-            const orchestrateUrl = `http://localhost:8080/orchestrate`;
+            const orchestrateUrl = `${getBackendBaseUrl()}/orchestrate`;
             await axios.post(orchestrateUrl, {
                 projectId,
                 requirementDescription: description,

@@ -61,6 +61,28 @@ public class WebhookManager {
         
         return webhookId;
     }
+
+    /**
+     * Register a pre-built webhook model and return the stored instance.
+     */
+    public Webhook registerWebhook(Webhook webhook) {
+        String webhookId = UUID.randomUUID().toString();
+
+        webhook.setId(webhookId);
+        if (webhook.getCreatedAt() == null) {
+            webhook.setCreatedAt(Instant.now());
+        }
+        if (webhook.getEvents() == null) {
+            webhook.setEvents(new String[0]);
+        }
+        if (!webhook.isActive()) {
+            webhook.setActive(true);
+        }
+
+        webhooks.put(webhookId, webhook);
+        logger.info("Webhook registered: {} for project: {}", webhookId, webhook.getProjectId());
+        return webhook;
+    }
     
     /**
      * Send webhook event with automatic retry
@@ -176,6 +198,11 @@ public class WebhookManager {
         triggerWebhook(webhookId, "test.event", testPayload);
         logger.info("Test webhook sent: {}", webhookId);
     }
+
+    public void testWebhook(String webhookId, Map<String, Object> payload) {
+        triggerWebhook(webhookId, "test.event", payload);
+        logger.info("Custom test webhook sent: {}", webhookId);
+    }
     
     /**
      * Get webhook
@@ -191,6 +218,10 @@ public class WebhookManager {
         return webhooks.values().stream()
             .filter(w -> w.getProjectId().equals(projectId))
             .toList();
+    }
+
+    public List<Webhook> listWebhooks() {
+        return new ArrayList<>(webhooks.values());
     }
     
     /**
