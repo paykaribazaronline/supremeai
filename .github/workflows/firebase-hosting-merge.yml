@@ -1,9 +1,19 @@
-﻿# Supreme AI - Build, Test & Deploy Workflow
+﻿# Supreme AI - Firebase Hosting Deploy with Unified Domain
 #
 # Firebase permissions for FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A:
 #   roles/firebasehosting.admin ✅ granted
+#
+# This workflow:
+# 1. Builds Flutter Admin App with --base-href "/admin/"
+# 2. Builds Main Dashboard (React/HTML)
+# 3. Combines both into combined_deploy folder
+# 4. Deploys to Firebase Hosting
+#
+# Final structure:
+# - https://supremeai-a.web.app/ (Main Dashboard)
+# - https://supremeai-a.web.app/admin/ (Flutter Admin App)
 
-name: Supreme AI - Build & Deploy
+name: Supreme AI - Firebase Unified Hosting Deploy
 
 on:
   push:
@@ -15,25 +25,60 @@ on:
       - main
 
 # ==========================================
-# STAGE 1: Build + Test (with retry)
+# STAGE 1: Build Flutter Admin App
 # ==========================================
 jobs:
-  build-and-test:
-    name: Build & Test
+  build-flutter-admin:
+    name: Build Flutter Admin App
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: Checkout Code
+      - name: ⬇️ Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: 🐦 Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.0'
+          channel: stable
+          cache: true
+
+      - name: 📦 Get Flutter Dependencies
+        run: |
+          cd flutter_admin_app
+          flutter pub get
+
+      - name: 🔨 Build Flutter Web with Admin Prefix
+        run: |
+          cd flutter_admin_app
+          flutter build web --base-href "/admin/" --release
+
+      - name: 📤 Upload Flutter Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-admin-build
+          path: flutter_admin_app/build/web/
+          retention-days: 1
+
+  # ==========================================
+  # STAGE 2: Build Backend & Main Dashboard
+  # ==========================================
+  build-java-backend:
+    name: Build Java Backend & Dashboard
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout Code
+        uses: actions/checkout@v4
+
+      - name: ☕ Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
 
-      - name: Cache Gradle Dependencies
+      - name: 📦 Cache Gradle Dependencies
         uses: actions/cache@v4
         with:
           path: |
@@ -43,10 +88,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Grant execute permission for gradlew
+      - name: 🔐 Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build with Gradle (with retry)
+      - name: 🔨 Build with Gradle (with retry)
         uses: nick-fields/retry@v3
         with:
           timeout_minutes: 15
@@ -54,7 +99,7 @@ jobs:
           retry_on: error
           command: ./gradlew clean build -x test --info
 
-      - name: Run Tests (with retry)
+      - name: ✅ Run Tests (with retry)
         uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
@@ -63,14 +108,14 @@ jobs:
           command: ./gradlew test --info
         continue-on-error: true
 
-      - name: Upload Build Reports
+      - name: 📊 Upload Build Reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: build-reports
           path: build/reports/
 
-      - name: Upload Test Results
+      - name: 📊 Upload Test Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -79,66 +124,151 @@ jobs:
             build/test-results/
             build/reports/tests/
 
+      - name: 📤 Upload Dashboard (if exists)
+        if: hashFiles('public/**', 'dist/**') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-build
+          path: |
+            public/
+            dist/
+          retention-days: 1
+
   # ==========================================
-  # STAGE 2: Deploy to Firebase
+  # STAGE 3: Combine & Deploy to Firebase
   # ==========================================
-  deploy-firebase:
-    name: Deploy to Firebase
-    needs: build-and-test
+  deploy-firebase-unified:
+    name: Combine & Deploy to Firebase
+    needs: [build-flutter-admin, build-java-backend]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
+
     steps:
-      - name: Checkout Code
+      - name: ⬇️ Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - name: 📥 Download Flutter Admin Build
+        uses: actions/download-artifact@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: gradle
+          name: flutter-admin-build
+          path: flutter-admin-build/
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: 📥 Download Dashboard Build (if exists)
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: dashboard-build
+          path: dashboard-build/
 
-      - name: Build JAR for Deployment
-        run: ./gradlew build -x test
+      - name: 🛠️ Create combined_deploy Directory
+        run: |
+          # Create root combined_deploy folder
+          mkdir -p combined_deploy
+          
+          # List downloaded artifacts
+          echo "=== Flutter Admin Build Contents ==="
+          ls -la flutter-admin-build/ || echo "No Flutter build"
+          echo ""
+          echo "=== Dashboard Build Contents ==="
+          ls -la dashboard-build/ || echo "No Dashboard build"
 
-      - name: Deploy to Firebase Hosting
+      - name: 📋 Copy Dashboard Files to combined_deploy
+        run: |
+          # Copy main dashboard files (from public/ or dist/)
+          if [ -d "public" ]; then
+            echo "✅ Copying from public/ directory..."
+            cp -r public/* combined_deploy/ 2>/dev/null || true
+          elif [ -d "dist" ]; then
+            echo "✅ Copying from dist/ directory..."
+            cp -r dist/* combined_deploy/ 2>/dev/null || true
+          elif [ -d "dashboard-build/public" ]; then
+            echo "✅ Copying from dashboard-build/public/ directory..."
+            cp -r dashboard-build/public/* combined_deploy/ 2>/dev/null || true
+          elif [ -d "dashboard-build/dist" ]; then
+            echo "✅ Copying from dashboard-build/dist/ directory..."
+            cp -r dashboard-build/dist/* combined_deploy/ 2>/dev/null || true
+          else
+            echo "⚠️ No main dashboard build found. Creating basic structure..."
+            mkdir -p combined_deploy
+            cp firebase.json combined_deploy/ 2>/dev/null || true
+          fi
+          
+          echo ""
+          echo "=== combined_deploy directory after dashboard copy ==="
+          ls -la combined_deploy/ || echo "Combined deploy is empty"
+
+      - name: 🔗 Create admin subdirectory & Copy Flutter Files
+        run: |
+          # Create admin folder
+          mkdir -p combined_deploy/admin
+          
+          # Copy Flutter web files to admin subfolder
+          if [ -d "flutter-admin-build" ] && [ "$(ls -A flutter-admin-build)" ]; then
+            echo "✅ Copying Flutter build to combined_deploy/admin/..."
+            cp -r flutter-admin-build/* combined_deploy/admin/
+          else
+            echo "❌ Flutter build is empty!"
+            exit 1
+          fi
+          
+          echo ""
+          echo "=== Final combined_deploy structure ==="
+          find combined_deploy -type f | head -20
+          echo "..."
+
+      - name: 📝 Verify firebase.json Configuration
+        run: |
+          echo "=== Verifying firebase.json ==="
+          cat firebase.json | jq '.hosting'
+          echo ""
+          echo "✅ Firebase configuration verified"
+
+      - name: 🚀 Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}
           channelId: live
           projectId: supremeai-a
+          entryPoint: ./
+        env:
+          FIREBASE_CLI_EXPERIMENTS: webframeworks
 
-      - name: Verify Firebase Deployment
-        run: echo "✅ Firebase deployment completed"
+      - name: ✅ Verify Firebase Deployment
+        run: |
+          echo "=================================================="
+          echo "Firebase Unified Hosting Deployment Complete!"
+          echo "=================================================="
+          echo ""
+          echo "🌐 Main Dashboard: https://supremeai-a.web.app/"
+          echo "🛠️ Admin Dashboard: https://supremeai-a.web.app/admin/"
+          echo ""
+          echo "✅ Deployment successful"
 
   # ==========================================
-  # STAGE 3: Notifications
+  # STAGE 4: Notifications
   # ==========================================
   notify:
-    name: Send Notifications
-    needs: [build-and-test, deploy-firebase]
+    name: Send Deployment Notifications
+    needs: [build-flutter-admin, build-java-backend, deploy-firebase-unified]
     runs-on: ubuntu-latest
     if: always()
-    
+
     steps:
-      - name: Checkout Code
+      - name: ⬇️ Checkout Code
         uses: actions/checkout@v4
 
-      - name: Prepare Notification
+      - name: 📢 Prepare Notification
         id: notify_prep
         run: |
-          BUILD_STATUS="${{ needs.build-and-test.result }}"
-          DEPLOY_STATUS="${{ needs.deploy-firebase.result }}"
+          FLUTTER_STATUS="${{ needs.build-flutter-admin.result }}"
+          JAVA_STATUS="${{ needs.build-java-backend.result }}"
+          DEPLOY_STATUS="${{ needs.deploy-firebase-unified.result }}"
           
-          if [ "$BUILD_STATUS" = "success" ] && [ "$DEPLOY_STATUS" = "success" ]; then
+          if [ "$FLUTTER_STATUS" = "success" ] && [ "$JAVA_STATUS" = "success" ] && [ "$DEPLOY_STATUS" = "success" ]; then
             echo "status=✅ SUCCESS" >> $GITHUB_OUTPUT
             echo "color=28a745" >> $GITHUB_OUTPUT
-          elif [ "$BUILD_STATUS" = "success" ]; then
+          elif [ "$FLUTTER_STATUS" = "success" ] && [ "$JAVA_STATUS" = "success" ]; then
             echo "status=⚠️ BUILD OK, DEPLOY SKIPPED" >> $GITHUB_OUTPUT
             echo "color=ffc107" >> $GITHUB_OUTPUT
           else
@@ -146,19 +276,28 @@ jobs:
             echo "color=dc3545" >> $GITHUB_OUTPUT
           fi
 
-      - name: Log Summary
+      - name: 📋 Log Deployment Summary
         run: |
           echo "=================================================="
-          echo "Supreme AI CI/CD Pipeline Summary"
+          echo "Supreme AI - Unified Firebase Hosting Deploy"
           echo "=================================================="
-          echo "Build Status: ${{ needs.build-and-test.result }}"
-          echo "Deploy Status: ${{ needs.deploy-firebase.result }}"
+          echo ""
+          echo "Flutter Admin Build: ${{ needs.build-flutter-admin.result }}"
+          echo "Java Backend Build:  ${{ needs.build-java-backend.result }}"
+          echo "Firebase Deploy:     ${{ needs.deploy-firebase-unified.result }}"
+          echo ""
           echo "Commit: ${{ github.sha }}"
           echo "Branch: ${{ github.ref }}"
+          echo ""
           echo "=================================================="
           echo ""
           echo "${{ steps.notify_prep.outputs.status }}"
           echo ""
-          echo "✅ Workflow complete. View details:"
+          echo "📍 Main: https://supremeai-a.web.app/"
+          echo "📍 Admin: https://supremeai-a.web.app/admin/"
+          echo ""
+          echo "View workflow details:"
           echo "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo ""
+          echo "==================================================
 
