@@ -49,6 +49,14 @@ jobs:
       - name: 🔧 Flutter version check
         run: flutter --version
 
+      - name: 🧹 Clean pub cache & clear build
+        working-directory: flutter_admin_app
+        run: |
+          echo "🧹 Clearing pub cache..."
+          flutter pub cache clean --force || true
+          rm -f pubspec.lock || true
+          echo "✅ Cache cleaned"
+
       - name: 📦 Install dependencies
         working-directory: flutter_admin_app
         run: |
