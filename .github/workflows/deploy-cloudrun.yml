@@ -71,17 +71,17 @@ jobs:
           echo "project_id=$PROJECT" >> $GITHUB_OUTPUT
           echo "✅ Using GCP project: $PROJECT"
 
+      - name: ⚙️ Enable Artifact Registry API
+        run: |
+          gcloud services enable artifactregistry.googleapis.com \
+            --project="${{ steps.project.outputs.project_id }}" --quiet
+
       - name: 🔨 Build Docker image
         run: |
           docker build \
             -t "gcr.io/${{ steps.project.outputs.project_id }}/${{ env.SERVICE_NAME }}:${{ steps.vars.outputs.sha_short }}" \
             -t "gcr.io/${{ steps.project.outputs.project_id }}/${{ env.SERVICE_NAME }}:latest" \
             .
-
-      - name: ⚙️ Enable Artifact Registry API
-        run: |
-          gcloud services enable artifactregistry.googleapis.com \
-            --project="${{ steps.project.outputs.project_id }}" --quiet
 
       - name: 📤 Push image to Google Container Registry
         run: |
