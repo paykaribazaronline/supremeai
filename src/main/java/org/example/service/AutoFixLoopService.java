@@ -151,14 +151,9 @@ public class AutoFixLoopService {
             successfulFixes.incrementAndGet();
             logger.info("✅ Auto-Fix: Fix applied successfully - {}", bestCandidate.description);
             
-            // Log decision
-            executionLogManager.logDecision("AUTO_FIX", new HashMap<String, Object>() {{
-                put("fixId", attempt.id);
-                put("technique", bestCandidate.technique);
-                put("confidence", bestCandidate.confidence);
-                put("description", bestCandidate.description);
-                put("error", error.substring(0, Math.min(200, error.length())));
-            }});
+            // Log for audit trail
+            logger.debug("Auto-fix decision: technique={}, confidence={}, description={}", 
+                bestCandidate.technique, bestCandidate.confidence, bestCandidate.description);
             
         } catch (Exception e) {
             logger.error("❌ Auto-Fix: Exception during fix loop", e);
@@ -354,4 +349,8 @@ public class AutoFixLoopService {
      */
     public List<FixAttempt> getRecentAttempts(int limit) {
         return recentAttempts.values().stream()
-                .sorted((a, b) -> Long.compare
+                .sorted((a, b) -> Long.compare(b.timestamp, a.timestamp))
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+}
