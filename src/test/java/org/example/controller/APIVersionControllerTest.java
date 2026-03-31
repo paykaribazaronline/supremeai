@@ -1,11 +1,11 @@
 package org.example.controller;
 
 import org.example.api.APIVersionController;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -16,12 +16,15 @@ import static org.hamcrest.Matchers.*;
  * API Version Controller Test
  * Tests API versioning and endpoint routing
  */
-@WebMvcTest(APIVersionController.class)
 @DisplayName("API Version Controller Tests")
 public class APIVersionControllerTest {
-    
-    @Autowired
+
     private MockMvc mockMvc;
+
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders.standaloneSetup(new APIVersionController()).build();
+    }
     
     @Test
     @DisplayName("GET /api returns version info")
