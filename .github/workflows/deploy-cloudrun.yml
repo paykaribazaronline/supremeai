@@ -72,10 +72,6 @@ jobs:
           echo "✅ Using GCP project: $PROJECT"
 
       - name: ⚙️ Enable Artifact Registry API
-        # সার্ভিস অ্যাকাউন্টের serviceusage.services.enable অনুমতি না থাকলেও
-        # (API ইতিমধ্যে সক্রিয় থাকতে পারে), ওয়ার্কফ্লো যেন বন্ধ না হয়।
-        # PERMISSION_DENIED ত্রুটি এড়াতে continue-on-error: true ব্যবহার করা হয়েছে।
-        continue-on-error: true
         run: |
           gcloud services enable artifactregistry.googleapis.com \
             --project="${{ steps.project.outputs.project_id }}" --quiet
