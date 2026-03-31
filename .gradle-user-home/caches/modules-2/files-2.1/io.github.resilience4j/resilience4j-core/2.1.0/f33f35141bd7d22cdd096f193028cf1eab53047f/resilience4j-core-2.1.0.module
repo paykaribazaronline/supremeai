@@ -1,0 +1,69 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "io.github.resilience4j",
+    "module": "resilience4j-core",
+    "version": "2.1.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "7.4.2"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "resilience4j-core-2.1.0.jar",
+          "url": "resilience4j-core-2.1.0.jar",
+          "size": 77389,
+          "sha512": "b0a18808784c7f33953fb949b1aeeccfe2ea565ae043ed5d125e9f29872dc084b78e7350e1bc082d22de1113c98d0d95d3a0acd56e003fcae5aab01e86dc46f2",
+          "sha256": "3c279de9c066215d04b89cc8864996660a05815ab47202089726aac7f3bd96fe",
+          "sha1": "edebba65e2778e666a5e0832ee3210f85d1c2873",
+          "md5": "dd2b0a9d3cfdd30ebdf24bc5e765953a"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.30"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "resilience4j-core-2.1.0.jar",
+          "url": "resilience4j-core-2.1.0.jar",
+          "size": 77389,
+          "sha512": "b0a18808784c7f33953fb949b1aeeccfe2ea565ae043ed5d125e9f29872dc084b78e7350e1bc082d22de1113c98d0d95d3a0acd56e003fcae5aab01e86dc46f2",
+          "sha256": "3c279de9c066215d04b89cc8864996660a05815ab47202089726aac7f3bd96fe",
+          "sha1": "edebba65e2778e666a5e0832ee3210f85d1c2873",
+          "md5": "dd2b0a9d3cfdd30ebdf24bc5e765953a"
+        }
+      ]
+    }
+  ]
+}
