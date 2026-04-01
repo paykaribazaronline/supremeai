@@ -25,7 +25,8 @@ on:
       - main
 
 env:
-  NODE_VERSION: '24'  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  
+  NODE_VERSION: '24'
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  
 # ==========================================
 # STAGE 1: Build Flutter Admin App
 # ==========================================
