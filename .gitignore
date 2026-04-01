@@ -134,7 +134,7 @@ Desktop.ini
 # ========================================
 # PROJECT SPECIFIC
 # ========================================
-projects/
+/projects/
 test_output.txt
 test_full.txt
 failures_summary.txt
