@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Service
+@SuppressWarnings("deprecation")
 public class ServerMetricsService {
     
     private static final Logger logger = LoggerFactory.getLogger(ServerMetricsService.class);

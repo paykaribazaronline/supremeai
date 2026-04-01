@@ -23,6 +23,8 @@ on:
           - analyze_patterns
 
 env:
+  NODE_VERSION: '24'
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   API_BASE_URL: ${{ secrets.API_BASE_URL }}
   ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
   LOG_LEVEL: INFO
