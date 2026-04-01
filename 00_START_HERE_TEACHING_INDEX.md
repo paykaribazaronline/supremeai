@@ -237,15 +237,19 @@ Time: 10 minutes
 → HOW_TO_BUILD_APPS_FROM_PLANS.md (10 steps)
 
 ### **"Show me the Java code"**
+
 → TEACHING_BACKEND_IMPLEMENTATION.md (models, services, controllers)
 
 ### **"What's the implementation plan?"**
+
 → TEACHING_SYSTEM_COMPLETE_ROADMAP.md (3-week timeline)
 
 ### **"How do AI providers vote?"**
+
 → FIREBASE_SCHEMA_APP_GENERATION.md (architectures collection)
 
 ### **"What's the pre-push checklist?"**
+
 → TEACHING_SYSTEM_COMPLETE_ROADMAP.md (8-point verification)
 
 ---
@@ -268,26 +272,31 @@ Time: 10 minutes
 ## 🚀 Implementation Checklist
 
 ### **Before Reading Code**
+
 - [ ] Read TEACHING_SYSTEM_SUMMARY.md
 - [ ] Read TEACHING_AND_LEARNING_SYSTEM.md
 - [ ] Review FIREBASE_SCHEMA_APP_GENERATION.md
 
 ### **Before Setting Up Firebase**
+
 - [ ] Read FIREBASE_SCHEMA_APP_GENERATION.md completely
 - [ ] Understand all 8 collections
 - [ ] Review sample documents
 
 ### **Before Writing Java Code**
+
 - [ ] Read TEACHING_BACKEND_IMPLEMENTATION.md
 - [ ] Understand model structure
 - [ ] Review service architecture
 
 ### **Before First Deployment**
+
 - [ ] Read TEACHING_SYSTEM_COMPLETE_ROADMAP.md
 - [ ] Understand 3-week timeline
 - [ ] Check pre-push verification (8 points)
 
 ### **Before Git Push**
+
 - [ ] All 8 pre-push checks pass
 - [ ] Learnings saved to Firebase
 - [ ] AI performance updated
