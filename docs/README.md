@@ -16,7 +16,9 @@ This is the **single source of truth** covering:
 - Cost management strategy
 - Complete roadmap
 
----
+**Also see:**
+- 📋 [Documentation Standards](./DOCUMENTATION_STANDARDS.md) - Rules for new docs
+- ⚙️ [Configuration Quick Reference](./01-SETUP-DEPLOYMENT/CONFIG_QUICK_REFERENCE.md)
 
 ## 🚀 Quick Start
 
