@@ -1,7 +1,17 @@
-# Distributed Tracing & Failover System
+# ⚠️ DEPRECATED - See ARCHITECTURE_AND_IMPLEMENTATION.md
+
+**This document has been consolidated into:** `ARCHITECTURE_AND_IMPLEMENTATION.md`
+
+**Relevant sections:**
+- [Enterprise Resilience Layer](#enterprise-resilience-layer)
+- [Quick Reference](#quick-reference)
+
+---
+
+# Distributed Tracing & Failover System (ARCHIVED)
 
 **Version:** 1.0  
-**Status:** ✅ Production Ready  
+**Status:** ✅ CONSOLIDATED
 **Date:** April 2, 2026
 
 ## সিস্টেম আর্কিটেকচার
