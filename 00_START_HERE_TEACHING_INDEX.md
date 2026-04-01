@@ -9,6 +9,7 @@
 ### **START HERE** 👈
 
 📄 **TEACHING_SYSTEM_SUMMARY.md** (Main Overview)
+
 - What we built (summary of all 7 documents)
 - Quick reference for each document's purpose
 - 3-week implementation timeline
@@ -183,6 +184,7 @@ Time: 10 minutes
 ## 📚 Reading Order & Time Commitment
 
 ### **OPTION 1: Quick Overview (1 hour)**
+
 1. TEACHING_SYSTEM_SUMMARY.md (10 min) ← Start here
 2. TEACHING_SYSTEM_COMPLETE_ROADMAP.md (30 min) ← Big picture
 3. HOW_TO_BUILD_APPS_FROM_PLANS.md (20 min) - Skim only
@@ -192,6 +194,7 @@ Time: 10 minutes
 ---
 
 ### **OPTION 2: Full Understanding (2.5 hours)**
+
 1. TEACHING_SYSTEM_SUMMARY.md (10 min)
 2. TEACHING_AND_LEARNING_SYSTEM.md (20 min)
 3. FIREBASE_SCHEMA_APP_GENERATION.md (25 min)
@@ -205,6 +208,7 @@ Time: 10 minutes
 ---
 
 ### **OPTION 3: Fast Implementation (Copy-Paste, 3 weeks)**
+
 1. TEACHING_SYSTEM_SUMMARY.md (10 min)
 2. TEACHING_BACKEND_IMPLEMENTATION.md (40 min - reading)
 3. Start coding following the roadmap (2 weeks)
@@ -217,15 +221,19 @@ Time: 10 minutes
 ## 🎯 Document Cross-References
 
 ### **"How do we learn from errors?"**
+
 → TEACHING_AND_LEARNING_SYSTEM.md (p.1-3)
 
 ### **"Where is data stored?"**
+
 → FIREBASE_SCHEMA_APP_GENERATION.md (all collections)
 
 ### **"What errors have we seen before?"**
+
 → SOLUTIONS_DATABASE_PHASE8.md (8 critical errors)
 
 ### **"How does app generation work?"**
+
 → HOW_TO_BUILD_APPS_FROM_PLANS.md (10 steps)
 
 ### **"Show me the Java code"**
