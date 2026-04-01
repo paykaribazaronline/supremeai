@@ -283,6 +283,7 @@ python3 command-hub/cli/supcmd.py
 ### Basic Commands
 
 **Health Check**
+
 ```bash
 supcmd health                     # Check API server
 supcmd exec health-check          # Execute health-check command
@@ -368,6 +369,7 @@ supcmd --url http://prod-api.example.com:8080 exec health-check
 - ⏳ Config file management
 
 ### Phase 5: Dashboard (Pending)
+
 - ⏳ React/Vue web application
 - ⏳ Command execution UI
 - ⏳ Real-time monitoring
@@ -375,12 +377,14 @@ supcmd --url http://prod-api.example.com:8080 exec health-check
 - ⏳ WebSocket integration
 
 ### Phase 6: Message Queue (Pending)
+
 - ⏳ RabbitMQ/Redis setup
 - ⏳ AsyncCommandWorker
 - ⏳ Job persistence
 - ⏳ Status tracking
 
 ### Phase 7: Production Hardening (Pending)
+
 - ⏳ Comprehensive testing
 - ⏳ Performance optimization
 - ⏳ Scaling and load balancing
@@ -450,8 +454,8 @@ public class CommandController {
 
 ## Security Considerations
 
-
 ### 1. Permission Model
+
 ```java
 // Commands define required permissions
 String[] getRequiredPermissions()  // ["view.health", "execute.refresh"]
