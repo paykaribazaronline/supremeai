@@ -3,8 +3,6 @@ package org.example.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import java.util.*;
-import java.util.concurrent.*;
 
 /**
  * Hot Reload Service
@@ -14,7 +12,6 @@ import java.util.concurrent.*;
 public class HotReloadService {
     private static final Logger logger = LoggerFactory.getLogger(HotReloadService.class);
     
-    private static final String CLASS_PATH = "build/classes/java/main";
     private ClassLoader customClassLoader;
     
     /**

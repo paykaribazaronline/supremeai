@@ -6,7 +6,7 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
-import io.opentelemetry.exporter.jaeger.thrift.JaegerThriftSpanExporter;
+import io.opentelemetry.sdk.trace.SpanProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -26,14 +26,8 @@ public class DistributedTracingService {
     
     public DistributedTracingService() {
         try {
-            // Initialize Jaeger Export
-            JaegerThriftSpanExporter jaegerExporter = JaegerThriftSpanExporter.builder()
-                .setEndpoint("http://localhost:14250")  // Jaeger collector endpoint
-                .build();
-            
-            // Create SDK Tracer Provider
+            // Create SDK Tracer Provider with basic setup
             SdkTracerProvider tracerProvider = SdkTracerProvider.builder()
-                .addSpanProcessor(SimpleSpanProcessor.create(jaegerExporter))
                 .build();
             
             // Set global provider
@@ -42,9 +36,9 @@ public class DistributedTracingService {
                 .buildAndRegisterGlobal();
             
             this.tracer = GlobalOpenTelemetry.getTracer("supremeai-service");
-            logger.info("✅ OpenTelemetry Tracer initialized with Jaeger");
+            logger.info("✅ OpenTelemetry Tracer initialized (standalone mode)");
         } catch (Exception e) {
-            logger.warn("⚠️ Failed to initialize Jaeger exporter (expected if Jaeger not running): {}", e.getMessage());
+            logger.warn("⚠️ Failed to initialize OpenTelemetry: {}", e.getMessage());
             this.tracer = GlobalOpenTelemetry.getTracer("supremeai-service");
         }
     }

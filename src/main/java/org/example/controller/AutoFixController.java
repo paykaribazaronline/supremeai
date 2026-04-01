@@ -27,12 +27,6 @@ public class AutoFixController {
     @Autowired(required = false)
     private AutoFixDecisionIntegrator decisionIntegrator;
     
-    @Autowired(required = false)
-    private ErrorDetector errorDetector;
-    
-    @Autowired(required = false)
-    private ErrorAnalyzer errorAnalyzer;
-    
     private final Map<String, AutoFixDecisionIntegrator.IntegratedFixResult> integratedResults = 
         new ConcurrentHashMap<>();
 
