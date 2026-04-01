@@ -169,6 +169,7 @@ supcmd exec refresh-all
 ## REST API Usage
 
 ### 1. Execute Command
+
 ```bash
 POST /api/commands/execute
 
@@ -203,6 +204,7 @@ Response (202 for async):
 ```
 
 ### 2. List Commands
+
 ```bash
 GET /api/commands/list?category=MONITORING&type=SYNC
 
@@ -287,29 +289,33 @@ supcmd exec health-check          # Execute health-check command
 ```
 
 **List Commands**
+
 ```bash
 supcmd list                                    # List all
 supcmd list --category MONITORING              # By category
 supcmd list --type SYNC                        # By type
 ```
 
+**Execute Commands**
 
 ```bash
-supcmd info health-check
-supcmd info refresh-github
+supcmd exec health-check
 ```
 
+**With parameters**
 
-**Execute Commands**
-# Simple execution
-supcmd exec health-check
-
-# With parameters
+```bash
 supcmd exec refresh-github -p owner supremeai -p repo core
+```
 
-# With authentication
+**With authentication**
+
+```bash
 supcmd exec health-check --token YOUR_API_TOKEN
 ```
+
+# Simple execution
+
 
 **Authentication**
 
