@@ -45,7 +45,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: Get system health status
         id: health
@@ -106,7 +106,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: Get failure predictions
         id: predictions
@@ -158,7 +158,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -193,7 +193,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: Get failed component details
         id: failures
@@ -261,7 +261,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: Trigger pattern analysis
         run: |
@@ -322,7 +322,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: Confirm regeneration
         run: |
@@ -419,3 +419,4 @@ jobs:
           echo "  • Adaptive threshold tuning"
           echo "  • Phoenix service regeneration (on-demand)"
           echo "  • Self-improving architecture"
+

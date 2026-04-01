@@ -36,7 +36,7 @@ jobs:
     
     steps:
       - name: ⬇️ Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -122,7 +122,7 @@ jobs:
     
     steps:
       - name: ⬇️ Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: 🐦 Set up Flutter
         uses: subosito/flutter-action@v2
@@ -219,7 +219,7 @@ jobs:
     
     steps:
       - name: ⬇️ Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: 🐦 Set up Flutter
         uses: subosito/flutter-action@v2
@@ -292,7 +292,7 @@ jobs:
     
     steps:
       - name: ⬇️ Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: 🐦 Set up Flutter
         uses: subosito/flutter-action@v2
@@ -348,4 +348,5 @@ jobs:
               body: '✅ **Flutter Build Successful!**\n\n📦 **Artifacts Generated:**\n- Web app build (ready for Firebase)\n- Android APK & AAB files\n\n🌐 **Preview:** https://supremeai-565236080752.web.app/admin/'
             })
         continue-on-error: true
+
 
