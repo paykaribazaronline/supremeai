@@ -1,22 +1,38 @@
 package org.example.config;
 
+import org.example.resilience.FailoverProvider;
+import org.example.resilience.FailoverRegistry;
+import org.example.resilience.CircuitBreakerManager;
+import org.example.resilience.HealthCheckService;
+import org.example.resilience.RetryStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Failover Configuration
- * Manages fallback strategies and automatic recovery mechanisms
- * Ensures high availability by routing to healthy endpoints
+ * Failover Configuration - Enterprise Resilience Setup
+ * Manages backend providers, circuit breakers, and recovery mechanisms
+ * এন্টারপ্রাইজ-লেভেল রেসিলিয়েন্স সেটআপ
  */
 @Configuration
 public class FailoverConfiguration {
     private static final Logger logger = LoggerFactory.getLogger(FailoverConfiguration.class);
+    
+    @Autowired(required = false)
+    private FailoverRegistry failoverRegistry;
+    
+    @Autowired(required = false)
+    private CircuitBreakerManager circuitBreakerManager;
+    
+    @Autowired(required = false)
+    private HealthCheckService healthCheckService;
+    
+    @Autowired(required = false)
+    private RetryStrategy retryStrategy;
     
     /**
      * Failover provider management service
