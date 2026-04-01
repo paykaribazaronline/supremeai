@@ -1,0 +1,19 @@
+Filename,Type,Count,Primary_Location,Secondary_Locations,Status,Action_Recommended,Priority,Notes
+build.gradle.kts,Build Configuration,5,build.gradle.kts,supremeai/android/build.gradle.kts; supremeai/android/app/build.gradle.kts; flutter_admin_app/android/build.gradle.kts; flutter_admin_app/android/app/build.gradle.kts,Different Content,Keep Separate,High,Project-specific configurations for different modules
+gradle.properties,Build Configuration,4,gradle/wrapper/gradle-wrapper.properties,flutter_admin_app/android/gradle.properties; supremeai/android/gradle.properties,Similar Content,Review & Consolidate,Medium,Check if Android properties identical; extract common SDK settings
+gradle-wrapper.properties,Build Configuration,3+,gradle/wrapper/gradle-wrapper.properties,flutter_admin_app/android/gradle/wrapper/gradle-wrapper.properties; supremeai/android/gradle/wrapper/gradle-wrapper.properties,Similar Content,Verify Gradle Versions,Medium,Ensure all projects use same Gradle version
+README.md,Documentation,3+,README.md,command-hub/README.md; supremeai/README.md; flutter_admin_app/README.md; docs/README.md,Different Content,Keep Separate,Low,Project-specific documentation; maintain local clarity
+pubspec.yaml,Flutter Config,2,supremeai/pubspec.yaml,flutter_admin_app/pubspec.yaml,Different Content,Keep Separate,Low,Different Flutter apps with different dependencies
+analysis_options.yaml,Dart/Flutter Config,2,supremeai/analysis_options.yaml,flutter_admin_app/analysis_options.yaml,Identical Content,Consolidate to Template,Medium,Create shared Dart linting configuration
+QUICK_REFERENCE.md,Documentation,2+,command-hub/QUICK_REFERENCE.md,flutter_admin_app/QUICK_REFERENCE.md,Different Content,Keep Separate,Low,Project-specific reference materials
+SETUP_GUIDE.md,Documentation,2+,flutter_admin_app/SETUP_GUIDE.md,supremeai/SETUP_GUIDE.md (if present),Different Content,Keep Separate,Low,Project-specific setup instructions
+AndroidManifest.xml,Android Config,2+,supremeai/android/app/src/main/AndroidManifest.xml,flutter_admin_app/android/app/src/main/AndroidManifest.xml,Different Content,Keep Separate,High,Different app packages; never consolidate
+build.gradle,Android Build,2+,supremeai/android/build.gradle,flutter_admin_app/android/build.gradle,Similar Content,Extract Common Config,Medium,Extract common dependencies to central location
+gc.properties,Gradle Cache,6+,Various .gradle-user-home/caches/ locations,Multiple cache directories,Auto-Generated,Delete Cache,High,Safe to delete; run 'gradle clean' to regenerate
+firebase.json,Firebase Config,1+,firebase.json,firebase-test-creds.json (separate),Sensitive Data,Keep Separate,High,Never consolidate credentials; use environment variables
+application.properties,App Config,2,src/main/resources/application.properties,src/test/resources/application-test.properties,Different Env,Keep Separate,Low,Intentionally different for test vs. production
+*.yml,CI/CD Workflows,7,.github/workflows/supreme-agents-ci.yml,Multiple workflow files,Similar Patterns,Extract Reusable Jobs,Medium,Create GitHub Actions reusable workflow templates
+.java files,Source Code,265 total,Various under src/,Multiple packages,Different Classes,Standard Structure,N/A,No duplicates; each file serves unique class
+.properties (cache),Gradle Cache,Multiple,Various .gradle-user-home/ locations,Multiple nested paths,Auto-Generated,Delete Cache,High,Remove entire .gradle-user-home directory
+DEPLOYMENT_*.md,Documentation,Variable,Various deployment guides,Multiple locations,Project-Specific,Review,Low,Check for consolidation opportunities
+index.html,Web UI,2+,dashboard.html,login.html,Similar Structure,Extract Template,Low,Share HTML template if possible

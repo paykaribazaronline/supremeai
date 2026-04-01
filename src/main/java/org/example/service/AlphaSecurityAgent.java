@@ -1,4 +1,4 @@
-package org.supremeai.agents.phase8;
+package org.example.service;
 
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;

@@ -48,7 +48,7 @@ public class SelfEvolutionOrchestrator {
         firebaseService.saveEvolutionReport(evolutionReport);
 
         // 4. Evaluate Meta-Consensus & Apply improvements
-        Map<String, Object> consensusReport = kappaAgent.evolveConsensus();
+        Map<String, Object> consensusReport = kappaAgent.orchestrateEvolution();
         processConsensus(consensusReport);
 
         logger.info("✓ Daily Self-Evolution Cycle completed successfully.");
@@ -76,7 +76,7 @@ public class SelfEvolutionOrchestrator {
         Map<String, Object> state = new LinkedHashMap<>();
         state.put("evolution_cycle", "ACTIVE");
         state.put("eta_meta", etaAgent.evolveAgents());
-        state.put("kappa_consensus", kappaAgent.evolveConsensus());
+        state.put("kappa_consensus", kappaAgent.orchestrateEvolution());
         return state;
     }
 }
