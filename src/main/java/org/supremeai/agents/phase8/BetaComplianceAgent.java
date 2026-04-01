@@ -209,9 +209,17 @@ public class BetaComplianceAgent {
     private List<Map<String, Object>> collectIssues(Map<String, Object> gdpr, Map<String, Object> ccpa, Map<String, Object> soc2) {
         List<Map<String, Object>> allIssues = new ArrayList<>();
         
-        addIssuesByRegulation(allIssues, "GDPR", (List<String>) gdpr.get("issues"));
-        addIssuesByRegulation(allIssues, "CCPA", (List<String>) ccpa.get("issues"));
-        addIssuesByRegulation(allIssues, "SOC2", (List<String>) soc2.get("issues"));
+        @SuppressWarnings("unchecked")
+        List<String> gdprIssues = (List<String>) gdpr.get("issues");
+        addIssuesByRegulation(allIssues, "GDPR", gdprIssues);
+        
+        @SuppressWarnings("unchecked")
+        List<String> ccpaIssues = (List<String>) ccpa.get("issues");
+        addIssuesByRegulation(allIssues, "CCPA", ccpaIssues);
+        
+        @SuppressWarnings("unchecked")
+        List<String> soc2Issues = (List<String>) soc2.get("issues");
+        addIssuesByRegulation(allIssues, "SOC2", soc2Issues);
         
         return allIssues;
     }

@@ -78,8 +78,10 @@ public class SelfGitAnalyzer {
             // Get current branch
             ProcessBuilder pbBranch = new ProcessBuilder("git", "rev-parse", "--abbrev-ref", "HEAD");
             pbBranch.directory(new File(repoRoot));
-            String branch = new BufferedReader(new InputStreamReader(pbBranch.start().getInputStream())).readLine();
-            statusMap.put("branch", branch != null ? branch : "unknown");
+            try (BufferedReader brBranch = new BufferedReader(new InputStreamReader(pbBranch.start().getInputStream()))) {
+                String branch = brBranch.readLine();
+                statusMap.put("branch", branch != null ? branch : "unknown");
+            }
             
         } catch (Exception e) {
             System.err.println("❌ Status check error: " + e.getMessage());

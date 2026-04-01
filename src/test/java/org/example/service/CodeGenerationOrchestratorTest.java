@@ -8,7 +8,6 @@ import org.mockito.MockitoAnnotations;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 /**
  * CodeGenerationOrchestrator Unit Tests
@@ -67,31 +66,14 @@ public class CodeGenerationOrchestratorTest {
     @Test
     @DisplayName("Generate Node Service with Routes")
     public void testGenerateNodeService() {
-        String projectId = "test-project";
-        String serviceName = "UserService";
-        String description = "User management service";
-        List<String> methods = Arrays.asList("create", "read", "update", "delete");
-
-        /*when(aiApiService.callAI(anyString(), anyString(), anyList()))
-            .thenReturn("export class UserService { create() {} read() {} }");
-        
-        Map<String, Object> result = orchestrator.generateNodeService(projectId, serviceName, description, methods);
-
-        assertEquals("generated", result.get("status"));
-        assertEquals(3, result.get("filesGenerated")); // Service, routes, tests
-        */
+        // Test code commented out - placeholder for future test
     }
 
     @Test
     @DisplayName("Generate and Validate Module with Auto-Fix")
     public void testGenerateAndValidateWithAutoFix() {
-        String projectId = "test-project";
-        String moduleName = "Button";
-        String framework = "REACT";
-        String description = "Button component";
-
-        /*when(validationService.validateProject(projectId, framework))
-            .thenReturn(createInvalidValidationResult());
+        // Test code commented out - placeholder for future test
+    }
         
         when(fixingSuggestor.applyFixes(projectId, framework, anyList()))
             .thenReturn(createFixResult());

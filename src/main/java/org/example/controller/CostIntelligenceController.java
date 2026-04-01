@@ -19,9 +19,6 @@ public class CostIntelligenceController {
     @Autowired(required = false)
     private RealCostIntelligenceService realCostService;
 
-    @Autowired(required = false)
-    private CostIntelligenceService costService;
-
     /**
      * Fetch real multi-cloud costs from GCP/AWS/Azure
      * GET /api/v1/cost-intelligence/multi-cloud?startDate=2024-01-01&endDate=2024-01-31

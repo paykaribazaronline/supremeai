@@ -93,6 +93,7 @@ public class AIProviderDiscoveryService {
         if (allProviders != null && allProviders.containsKey(providerName)) {
             Object provider = allProviders.get(providerName);
             if (provider instanceof Map) {
+                @SuppressWarnings("unchecked")
                 Map<String, Object> config = (Map<String, Object>) provider;
                 config.put("key", newApiKey);
                 config.put("updated_at", System.currentTimeMillis());
@@ -150,6 +151,7 @@ public class AIProviderDiscoveryService {
         provider.status = "configured";
         
         if (config instanceof Map) {
+            @SuppressWarnings("unchecked")
             Map<String, Object> cfg = (Map<String, Object>) config;
             provider.url = (String) cfg.get("url");
             provider.status = (String) cfg.getOrDefault("status", "active");

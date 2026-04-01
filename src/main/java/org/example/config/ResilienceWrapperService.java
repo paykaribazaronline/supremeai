@@ -32,13 +32,13 @@ public class ResilienceWrapperService {
     @Autowired(required = false)
     private FailoverConfiguration.FailoverService failoverService;
     
-    @Autowired(required = false, name = "aiApiCircuitBreaker")
+    @Autowired(required = false)
     private CircuitBreaker aiApiCircuitBreaker;
     
-    @Autowired(required = false, name = "externalApiCircuitBreaker")
+    @Autowired(required = false)
     private CircuitBreaker externalApiCircuitBreaker;
     
-    @Autowired(required = false, name = "databaseCircuitBreaker")
+    @Autowired(required = false)
     private CircuitBreaker databaseCircuitBreaker;
     
     /**
