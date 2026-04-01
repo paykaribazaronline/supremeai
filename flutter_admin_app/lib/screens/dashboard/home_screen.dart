@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/constants.dart';
 import '../../providers/auth_provider.dart';
+import '../projects/projects_list_screen.dart';
+import '../metrics_screen.dart';
+import '../settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -15,6 +18,52 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      body: _buildBody(),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() => _selectedIndex = index);
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard),
+            label: 'Dashboard',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.folder),
+            label: 'Projects',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.show_chart),
+            label: 'Metrics',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    switch (_selectedIndex) {
+      case 0:
+        return _buildDashboardTab();
+      case 1:
+        return const ProjectsListScreen();
+      case 2:
+        return const MetricsScreen();
+      case 3:
+        return const SettingsScreen();
+      default:
+        return _buildDashboardTab();
+    }
+  }
+
+  Widget _buildDashboardTab() {
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppConstants.appName),
@@ -38,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Welcome Section
                 _buildWelcomeSection(authProvider),
                 const SizedBox(height: AppConstants.paddingXLarge),
-                
+
                 // Dashboard Cards
                 const Text(
                   'Dashboard',
@@ -50,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: AppConstants.paddingMedium),
                 _buildDashboardCards(),
                 const SizedBox(height: AppConstants.paddingXLarge),
-                
+
                 // Quick Actions
                 const Text(
                   'Quick Actions',
@@ -66,19 +115,12 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigate to create project
-        },
-        backgroundColor: Color(AppConstants.primaryColor),
-        child: const Icon(Icons.add),
-      ),
     );
   }
 
   Widget _buildWelcomeSection(AuthProvider authProvider) {
     final userName = authProvider.currentUser?['name'] ?? 'Admin';
-    
+
     return Container(
       padding: const EdgeInsets.all(AppConstants.paddingLarge),
       decoration: BoxDecoration(
@@ -148,16 +190,14 @@ class _HomeScreenState extends State<HomeScreen> {
         'color': AppConstants.warningColor,
       },
       {
-        'title': 'API Calls Today',
-        'count': '1,234',
-        'icon': Icons.trending_up_outlined,
-        'color': AppConstants.infoColor,
+        'title': 'System Health',
+        'count': '98%',
+        'icon': Icons.favorite,
+        'color': AppConstants.successColor,
       },
     ];
 
     return GridView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         crossAxisSpacing: AppConstants.paddingMedium,
@@ -165,42 +205,73 @@ class _HomeScreenState extends State<HomeScreen> {
         childAspectRatio: 1.2,
       ),
       itemCount: cards.length,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         final card = cards[index];
-        return Container(
-          padding: const EdgeInsets.all(AppConstants.paddingMedium),
-          decoration: BoxDecoration(
-            color: Color(card['color'] as int).withOpacity(0.1),
-            borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
-            border: Border.all(
-              color: Color(card['color'] as int).withOpacity(0.3),
-            ),
+        return _buildDashboardCard(
+          title: card['title'] as String,
+          count: card['count'] as String,
+          icon: card['icon'] as IconData,
+          color: card['color'] as int,
+        );
+      },
+    );
+  }
+
+  Widget _buildDashboardCard({
+    required String title,
+    required String count,
+    required IconData icon,
+    required int color,
+  }) {
+    return  Card(
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(color).withOpacity(0.1),
+              Color(color).withOpacity(0.05),
+            ],
           ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppConstants.paddingMedium),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                card['icon'] as IconData,
-                color: Color(card['color'] as int),
-                size: 28,
+              Container(
+                padding: const EdgeInsets.all(AppConstants.paddingSmall),
+                decoration: BoxDecoration(
+                  color: Color(color).withOpacity(0.2),
+                  borderRadius:
+                      BorderRadius.circular(AppConstants.radiusMedium),
+                ),
+                child: Icon(
+                  icon,
+                  color: Color(color),
+                  size: 24,
+                ),
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    card['count'].toString(),
-                    style: TextStyle(
-                      fontSize: AppConstants.headingFontSize,
+                    count,
+                    style: const TextStyle(
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Color(card['color'] as int),
                     ),
                   ),
-                  const SizedBox(height: AppConstants.paddingXSmall),
+                  const SizedBox(height: 4),
                   Text(
-                    card['title'].toString(),
+                    title,
                     style: const TextStyle(
-                      fontSize: AppConstants.bodyFontSize,
+                      fontSize: 12,
                       color: Colors.grey,
                     ),
                   ),
@@ -208,84 +279,83 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
   Widget _buildQuickActions(BuildContext context) {
-    final actions = [
-      {
-        'label': 'Create Project',
-        'icon': Icons.create_outlined,
-        'onTap': () {},
-      },
-      {
-        'label': 'Add AI Provider',
-        'icon': Icons.add_circle_outline,
-        'onTap': () {},
-      },
-      {
-        'label': 'View Metrics',
-        'icon': Icons.bar_chart_outlined,
-        'onTap': () {},
-      },
-      {
-        'label': 'Settings',
-        'icon': Icons.settings_outlined,
-        'onTap': () {},
-      },
-    ];
+    return Column(
+      children: [
+        _buildActionButton(
+          title: 'Create Project',
+          subtitle: 'Start a new project',
+          icon: Icons.add_circle,
+          color: Color(AppConstants.primaryColor),
+          onTap: () {
+            setState(() => _selectedIndex = 1);
+          },
+        ),
+        const SizedBox(height: AppConstants.paddingMedium),
+        _buildActionButton(
+          title: 'View Metrics',
+          subtitle: 'System performance',
+          icon: Icons.analytics,
+          color: Color(AppConstants.secondaryColor),
+          onTap: () {
+            setState(() => _selectedIndex = 2);
+          },
+        ),
+        const SizedBox(height: AppConstants.paddingMedium),
+        _buildActionButton(
+          title: 'System Settings',
+          subtitle: 'Configure system',
+          icon: Icons.tune,
+          color: Color(AppConstants.warningColor),
+          onTap: () {
+            setState(() => _selectedIndex = 3);
+          },
+        ),
+      ],
+    );
+  }
 
-    return GridView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: AppConstants.paddingMedium,
-        mainAxisSpacing: AppConstants.paddingMedium,
-        childAspectRatio: 1.5,
-      ),
-      itemCount: actions.length,
-      itemBuilder: (context, index) {
-        final action = actions[index];
-        return InkWell(
-          onTap: action['onTap'] as VoidCallback,
-          borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Color(AppConstants.primaryColor).withOpacity(0.05),
-              borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
-              border: Border.all(
-                color: Color(AppConstants.primaryColor).withOpacity(0.2),
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  action['icon'] as IconData,
-                  color: Color(AppConstants.primaryColor),
-                  size: 32,
-                ),
-                const SizedBox(height: AppConstants.paddingSmall),
-                Text(
-                  action['label'].toString(),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: AppConstants.bodyFontSize,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
+  Widget _buildActionButton({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      child: ListTile(
+        leading: Container(
+          padding: const EdgeInsets.all(AppConstants.paddingSmall),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
           ),
-        );
-      },
+          child: Icon(
+            icon,
+            color: color,
+          ),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(subtitle),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+        onTap: onTap,
+      ),
     );
   }
 
   void _showProfileMenu(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final userName = authProvider.currentUser?['name'] ?? 'Admin';
+    final userEmail = authProvider.currentUser?['email'] ?? 'admin@supremeai.com';
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -293,91 +363,48 @@ class _HomeScreenState extends State<HomeScreen> {
           top: Radius.circular(AppConstants.radiusLarge),
         ),
       ),
-      builder: (BuildContext context) {
-        return Consumer<AuthProvider>(
-          builder: (context, authProvider, _) {
-            return SizedBox(
-              height: 250,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(AppConstants.paddingLarge),
-                    child: Text(
-                      authProvider.currentUser?['email'] ?? 'Admin',
-                      style: const TextStyle(
-                        fontSize: AppConstants.subtitleFontSize,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const Divider(),
-                  ListTile(
-                    leading: const Icon(Icons.person_outlined),
-                    title: const Text('Profile'),
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.settings_outlined),
-                    title: const Text('Settings'),
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.help),
-                    title: const Text('Help'),
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const Divider(),
-                  ListTile(
-                    leading: const Icon(Icons.logout, color: Colors.red),
-                    title: const Text(
-                      'Logout',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _handleLogout(context, authProvider);
-                    },
-                  ),
-                ],
+      builder: (context) => SizedBox(
+        height: 250,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppConstants.paddingLarge),
+              child: Text(
+                userName,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _handleLogout(BuildContext context, AuthProvider authProvider) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Logout'),
-          content: const Text('Are you sure you want to logout?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
             ),
-            ElevatedButton(
-              onPressed: () async {
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppConstants.paddingMedium),
+              child: Text(
+                userEmail,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text('Profile'),
+              onTap: () {
                 Navigator.pop(context);
-                await authProvider.logout();
-                if (mounted) {
-                  Navigator.of(context).pushReplacementNamed('/login');
-                }
+                setState(() => _selectedIndex = 3);
               },
-              child: const Text('Logout'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text('Logout', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                Navigator.pop(context);
+                authProvider.logout();
+                Navigator.of(context).pushReplacementNamed('/login');
+              },
             ),
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 }

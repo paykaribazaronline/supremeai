@@ -18,12 +18,23 @@ import java.util.concurrent.atomic.AtomicReference;
 public class SystemLearningService {
     private static final Logger logger = LoggerFactory.getLogger(SystemLearningService.class);
     
-    @Autowired
+    @Autowired(required = false)
     private FirebaseDatabase firebaseDb;
     
     private static final String LEARNINGS_PATH = "system/learnings";
     private static final String PATTERNS_PATH = "system/patterns";
     private Map<String, SystemLearning> learningsCache = new ConcurrentHashMap<>();
+    
+    /**
+     * Check if Firebase is available
+     */
+    private boolean isFirebaseAvailable() {
+        if (firebaseDb == null) {
+            logger.warn("⚠️ Firebase not configured - using in-memory learning cache only");
+            return false;
+        }
+        return true;
+    }
     
     /**
      * Record an error for learning
@@ -98,6 +109,9 @@ public class SystemLearningService {
      * Get solutions for a category
      */
     public List<String> getSolutionsFor(String category) {
+        if (!isFirebaseAvailable()) {
+            return new ArrayList<>();
+        }
         try {
             DatabaseReference ref = firebaseDb.getReference(LEARNINGS_PATH);
             AtomicReference<List<String>> solutions = new AtomicReference<>(new ArrayList<>());
@@ -134,6 +148,9 @@ public class SystemLearningService {
      * Get all critical requirements
      */
     public List<SystemLearning> getCriticalRequirements() {
+        if (!isFirebaseAvailable()) {
+            return new ArrayList<>();
+        }
         try {
             DatabaseReference ref = firebaseDb.getReference(LEARNINGS_PATH);
             List<SystemLearning> requirements = new ArrayList<>();
@@ -181,6 +198,11 @@ public class SystemLearningService {
      */
     public Map<String, Object> getLearningStats() {
         Map<String, Object> stats = new HashMap<>();
+        
+        if (!isFirebaseAvailable()) {
+            stats.put("status", "firebase-unavailable");
+            return stats;
+        }
         
         try {
             DatabaseReference ref = firebaseDb.getReference(LEARNINGS_PATH);
@@ -232,12 +254,22 @@ public class SystemLearningService {
     // ========== PRIVATE HELPERS ==========
     
     private void saveLearning(SystemLearning learning) throws Exception {
+        if (!isFirebaseAvailable()) {
+            logger.debug("⚠️ Firebase unavailable, storing in memory cache only");
+            learningsCache.put(learning.getId(), learning);
+            return;
+        }
         DatabaseReference ref = firebaseDb.getReference(LEARNINGS_PATH).push();
         ref.setValueAsync(learning);
         learningsCache.put(learning.getId(), learning);
     }
     
     private void updateLearning(SystemLearning learning) throws Exception {
+        if (!isFirebaseAvailable()) {
+            logger.debug("⚠️ Firebase unavailable, updating memory cache only");
+            learningsCache.put(learning.getId(), learning);
+            return;
+        }
         DatabaseReference ref = firebaseDb.getReference(LEARNINGS_PATH + "/" + learning.getId());
         ref.setValueAsync(learning);
         learningsCache.put(learning.getId(), learning);

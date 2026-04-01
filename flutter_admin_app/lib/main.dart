@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'config/constants.dart';
-import 'config/environment.dart';
 import 'services/storage_service.dart';
 import 'providers/auth_provider.dart';
+import 'providers/projects_provider.dart';
+import 'providers/metrics_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/dashboard/home_screen.dart';
@@ -20,6 +21,12 @@ void main() async {
       providers: [
         ChangeNotifierProvider(
           create: (context) => AuthProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => ProjectsProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => MetricsProvider(),
         ),
       ],
       child: const SupremeAIAdminApp(),
