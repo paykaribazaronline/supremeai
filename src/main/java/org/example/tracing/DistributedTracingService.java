@@ -25,8 +25,10 @@ public class DistributedTracingService {
     private final Map<String, TraceMetadata> traces = new ConcurrentHashMap<>();
     
     public DistributedTracingService() {
+        Tracer tempTracer;
+        
         try {
-            // Create SDK Tracer Provider with basic setup
+            // Initialize OpenTelemetry SDK
             SdkTracerProvider tracerProvider = SdkTracerProvider.builder()
                 .build();
             
@@ -35,12 +37,14 @@ public class DistributedTracingService {
                 .setTracerProvider(tracerProvider)
                 .buildAndRegisterGlobal();
             
-            this.tracer = GlobalOpenTelemetry.getTracer("supremeai-service");
+            tempTracer = GlobalOpenTelemetry.getTracer("supremeai-service");
             logger.info("✅ OpenTelemetry Tracer initialized (standalone mode)");
         } catch (Exception e) {
             logger.warn("⚠️ Failed to initialize OpenTelemetry: {}", e.getMessage());
-            this.tracer = GlobalOpenTelemetry.getTracer("supremeai-service");
+            tempTracer = GlobalOpenTelemetry.getTracer("supremeai-service");
         }
+        
+        this.tracer = tempTracer;
     }
     
     /**
@@ -70,13 +74,9 @@ public class DistributedTracingService {
     public void addSpanEvent(String eventName, Map<String, String> attributes) {
         Span span = TracingContext.getCurrentSpan();
         if (span != null) {
-            span.addEvent(eventName, io.opentelemetry.api.common.Attributes.builder()
-                .putAll(attributes.entrySet().stream()
-                    .collect(java.util.stream.Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue
-                    )))
-                .build());
+            var attributesBuilder = io.opentelemetry.api.common.Attributes.builder();
+            attributes.forEach(attributesBuilder::put);
+            span.addEvent(eventName, attributesBuilder.build());
             logger.debug("📊 Span event: {} | Attributes: {}", eventName, attributes);
         }
     }

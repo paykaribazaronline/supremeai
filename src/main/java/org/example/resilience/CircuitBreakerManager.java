@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Callable;
+import java.util.function.Supplier;
 
 /**
  * Circuit Breaker Manager Service
@@ -70,13 +70,14 @@ public class CircuitBreakerManager {
     /**
      * Execute function with circuit breaker protection
      */
-    public <T> T executeWithCircuitBreaker(String name, java.util.function.Callable<T> callable) throws Exception {
+    public <T> T executeWithCircuitBreaker(String name, java.util.function.Supplier<T> supplier) throws Exception {
         CircuitBreaker breaker = getOrCreateCircuitBreaker(name);
         CircuitBreakerStats stat = stats.get(name);
         
         long startTime = System.currentTimeMillis();
         try {
-            T result = breaker.executeCallable(callable);
+            // Convert supplier to callable
+            T result = breaker.executeCallable(() -> supplier.get());
             long duration = System.currentTimeMillis() - startTime;
             if (stat != null) {
                 stat.recordSuccess(duration);
@@ -108,7 +109,6 @@ public class CircuitBreakerManager {
             put("state", breaker.getState().toString());
             put("failure_rate", breaker.getMetrics().getFailureRate());
             put("slow_call_rate", breaker.getMetrics().getSlowCallRate());
-            put("total_calls", breaker.getMetrics().getNumberOfTotalCalls());
             put("successful_calls", breaker.getMetrics().getNumberOfSuccessfulCalls());
             put("failed_calls", breaker.getMetrics().getNumberOfFailedCalls());
             put("not_permitted_calls", breaker.getMetrics().getNumberOfNotPermittedCalls());

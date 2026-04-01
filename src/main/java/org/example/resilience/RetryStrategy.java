@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Callable;
+import java.util.function.Supplier;
 
 /**
  * Retry Strategy Service
@@ -43,7 +43,7 @@ public class RetryStrategy {
             .waitDuration(Duration.ofMillis(initialDelayMs))
             .intervalFunction(io.github.resilience4j.core.IntervalFunction
                 .ofExponentialBackoff(initialDelayMs, multiplier))
-            .retryOnException(Exception::new)
+            .retryOnException(e -> !(e instanceof RuntimeException))  // Retry on checked exceptions
             .build();
         
         return registry.retry(name, config);
@@ -52,7 +52,7 @@ public class RetryStrategy {
     /**
      * Execute with adaptive retry
      */
-    public <T> T executeWithRetry(String name, java.util.function.Callable<T> callable) throws Exception {
+    public <T> T executeWithRetry(String name, java.util.function.Supplier<T> supplier) throws Exception {
         Retry retry = getOrCreateRetry(name, 3, 500, 2.0);
         RetryStats stat = stats.computeIfAbsent(name, k -> new RetryStats(name));
         
@@ -64,7 +64,7 @@ public class RetryStrategy {
             long startTime = System.currentTimeMillis();
             
             try {
-                T result = retry.executeCallable(callable);
+                T result = supplier.get();  // Use supplier.get() instead of retry.executeCallable
                 long duration = System.currentTimeMillis() - startTime;
                 stat.recordSuccess(attempt, duration);
                 logger.info("✅ Retry succeeded on attempt {} for {}", attempt, name);

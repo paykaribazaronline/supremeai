@@ -129,7 +129,7 @@ public class ResilienceWrapperService {
                         if (failoverService != null) {
                             failoverService.markEndpointUnhealthy(endpoint, e.getMessage());
                         }
-                        throw e;
+                        throw new RuntimeException(e);
                     }
                 },
                 fallback

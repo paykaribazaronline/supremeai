@@ -156,7 +156,7 @@ public class FailoverConfiguration {
                     health.isHealthy(),
                     health.failureCount,
                     health.successCount,
-                    health.lastCheckTime
+                    health.lastHealthCheck
                 ));
             }
             
