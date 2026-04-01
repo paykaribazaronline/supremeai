@@ -2,6 +2,7 @@ package org.example.resilience;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
@@ -17,6 +18,7 @@ import java.util.function.Supplier;
  * @author SupremeAI
  * @version 2.0 Enterprise
  */
+@Service
 public class FailoverManager {
     private static final Logger logger = LoggerFactory.getLogger(FailoverManager.class);
     

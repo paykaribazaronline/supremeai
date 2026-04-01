@@ -22,7 +22,8 @@ import java.util.Map;
     "org.example.config",
     "org.example.resilience",
     "org.example.tracing",
-    "org.example.filter"
+    "org.example.filter",
+    "com.supremeai.teaching"
 })
 @RestController
 public class Application {
