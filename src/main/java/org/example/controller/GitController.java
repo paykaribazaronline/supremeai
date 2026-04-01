@@ -134,6 +134,12 @@ public class GitController {
             
             String branch = request.getOrDefault("branch", "main");
             
+            // ✅ VALIDATE: Branch name only alphanumeric, dots, slashes, hyphens
+            if (!branch.matches("^[a-zA-Z0-9._/-]+$")) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("status", "error", "message", "Invalid branch name: " + branch));
+            }
+            
             if (adminControlService.requiresApproval()) {
                 adminControlService.createPendingAction(
                     org.example.model.PendingAction.ActionType.PUSH,
