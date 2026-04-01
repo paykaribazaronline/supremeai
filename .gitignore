@@ -49,9 +49,10 @@ Thumbs.db
 # SECURITY & CREDENTIALS (⚠️ CRITICAL)
 # Never commit these files!
 # ========================================
+# Ignore ALL environment files except the template
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 local.properties
 service-account.json
 src/main/resources/service-account.json
