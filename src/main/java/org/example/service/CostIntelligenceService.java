@@ -57,7 +57,7 @@ public class CostIntelligenceService {
         Map<String, Object> fullReport = new LinkedHashMap<>();
         fullReport.put("current_costs", deltaAgent.trackCosts());
         fullReport.put("optimizations", epsilonAgent.optimizeResources());
-        fullReport.put("budget_plan", zetaAgent.planBudget());
+        fullReport.put("budget_plan", zetaAgent.forecastFinances());
         fullReport.put("generated_at", System.currentTimeMillis());
         return fullReport;
     }

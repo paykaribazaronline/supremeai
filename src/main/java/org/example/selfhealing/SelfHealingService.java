@@ -1,5 +1,6 @@
 package org.example.selfhealing;
 
+import org.example.resilience.RetryStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -101,7 +102,7 @@ public class SelfHealingService {
                 @Override
                 public T get() {
                     try {
-                        return retry.execute(operation);
+                        return retry.executeWithRetry(fullName, operation);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
@@ -221,7 +222,7 @@ public class SelfHealingService {
     }
     
     public RetryStrategy getOrCreateRetryStrategy(String operationName) {
-        return retryStrategies.computeIfAbsent(operationName, k -> new RetryStrategy(k));
+        return retryStrategies.computeIfAbsent(operationName, k -> new RetryStrategy());
     }
     
     public HealthMonitor getOrCreateHealthMonitor(String serviceName) {

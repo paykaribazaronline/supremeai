@@ -134,16 +134,14 @@ public class AgentOrchestrationController {
 
     @PostMapping("/phase9/plan-budget")
     public ResponseEntity<Map<String, Object>> planBudget(@RequestBody Map<String, Object> request) {
-        Map<String, Object> budgetPlan = zetaAgent.planBudget();
+        Map<String, Object> budgetPlan = zetaAgent.forecastFinances();
         firebaseService.saveBudgetPlan(budgetPlan);
         return ResponseEntity.ok(budgetPlan);
     }
 
     @PostMapping("/phase9/run-scenario")
     public ResponseEntity<Map<String, Object>> runScenario(@RequestBody Map<String, Object> request) {
-        String name = (String) request.getOrDefault("scenarioName", "Default Growth");
-        double scale = ((Number) request.getOrDefault("scaleFactor", 1.2)).doubleValue();
-        return ResponseEntity.ok(zetaAgent.runScenario(name, scale));
+        return ResponseEntity.ok(zetaAgent.forecastFinances());
     }
 
     // ==================== PHASE 10: Self-Improvement ====================
@@ -172,7 +170,7 @@ public class AgentOrchestrationController {
 
     @PostMapping("/phase10/evolve-consensus")
     public ResponseEntity<Map<String, Object>> evolveConsensus(@RequestBody Map<String, Object> request) {
-        Map<String, Object> report = kappaAgent.evolveConsensus();
+        Map<String, Object> report = kappaAgent.orchestrateEvolution();
         // If a variant is ready for promotion, we could automatically update the config
         if (report.containsKey("promotion_status")) {
              Map<String, Object> promotion = (Map<String, Object>) report.get("promotion_status");
