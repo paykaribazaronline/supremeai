@@ -1,6 +1,16 @@
-# Enterprise Resilience Implementation Summary
+# ⚠️ DEPRECATED - See ARCHITECTURE_AND_IMPLEMENTATION.md
 
-## সফলভাবে যুক্ত হয়েছে (April 2, 2026)
+**This document has been consolidated into:** `ARCHITECTURE_AND_IMPLEMENTATION.md`
+
+**Relevant sections:**
+- [Enterprise Resilience Layer](#enterprise-resilience-layer)
+- [Implementation Roadmap](#implementation-roadmap)
+
+---
+
+# Enterprise Resilience Implementation Summary (ARCHIVED)
+
+## সফলভাবে যুক্ত হয়েছে (April 2, 2026) - CONSOLIDATED
 
 ### ✅ Distributed Tracing System
 - **OpenTelemetry integration** with Jaeger backend

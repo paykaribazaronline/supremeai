@@ -2,6 +2,22 @@
 
 Complete documentation for the SupremeAI multi-agent system organized by category.
 
+---
+
+## 🎯 **START HERE: Master Architecture Document**
+
+👉 **[ARCHITECTURE_AND_IMPLEMENTATION.md](../ARCHITECTURE_AND_IMPLEMENTATION.md)** ← Read this first!
+
+This is the **single source of truth** covering:
+- System overview and components
+- Enterprise resilience layer (tracing, failover, circuit breaker)
+- Limitations and resolutions
+- AI role assignment and routing
+- Cost management strategy
+- Complete roadmap
+
+---
+
 ## 🚀 Quick Start
 
 - **[Start Here (Next 5 Minutes)](./00-START-HERE/)** - Getting started quickly
