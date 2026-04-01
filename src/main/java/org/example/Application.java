@@ -3,6 +3,7 @@ package org.example;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,7 +11,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {
+    "org.example.service",
+    "org.example.controller",  // Our REST Controllers (QuotaController, UserTierController, etc.)
+    "org.example.config"       // Spring Configuration
+    // Explicitly excluding: org.example.api (legacy controllers with missing dependencies)
+})
 @RestController
 public class Application {
     
