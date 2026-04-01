@@ -130,6 +130,7 @@ static const String baseUrl = 'https://supremeai-565236080752.us-central1.run.ap
 ## 🛠️ Key Features
 
 ### ✅ Authentication
+
 - [x] Login with JWT tokens
 - [x] User registration (admin only)
 - [x] Token refresh mechanism
@@ -137,6 +138,7 @@ static const String baseUrl = 'https://supremeai-565236080752.us-central1.run.ap
 - [x] Session management
 
 ### ✅ Dashboard
+
 - [x] Welcome screen with user info
 - [x] Real-time stats cards
 - [x] Quick action buttons
@@ -144,6 +146,7 @@ static const String baseUrl = 'https://supremeai-565236080752.us-central1.run.ap
 - [x] Logout functionality
 
 ### 📋 API Service Features
+
 - [x] Automatic token injection
 - [x] Request/response logging
 - [x] Error handling with custom messages
@@ -152,6 +155,7 @@ static const String baseUrl = 'https://supremeai-565236080752.us-central1.run.ap
 - [x] Singleton pattern for efficiency
 
 ### 💾 Storage Service
+
 - [x] Token management (get/save/clear)
 - [x] User data persistence
 - [x] Generic key-value storage

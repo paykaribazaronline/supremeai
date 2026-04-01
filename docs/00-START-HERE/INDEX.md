@@ -3,6 +3,7 @@
 ## ⚡ Get Started in 5 Minutes
 
 ### 1. **Clone & Setup** (1 min)
+
 ```bash
 git clone https://github.com/paykaribazaronline/supremeai.git
 cd supremeai
@@ -22,6 +23,7 @@ flutter pub get
 ```
 
 ### 3. **Configure Environment** (1 min)
+
 ```bash
 # Copy example environment file
 cp .env.example .env

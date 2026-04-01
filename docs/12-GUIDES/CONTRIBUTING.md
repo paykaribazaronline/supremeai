@@ -244,6 +244,7 @@ Detects anomalies in metric stream using 3-sigma Z-score method.
 - Private keys (`.pem`, `.key`)
 
 ### Use Environment Variables
+
 ```bash
 # Instead of hardcoding
 export FIREBASE_SERVICE_ACCOUNT=$(cat service-account.json | base64)
