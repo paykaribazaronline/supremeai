@@ -2,6 +2,7 @@ package org.example.controller;
 
 import org.example.service.SelfExtender;
 import org.example.service.AuthenticationService;
+import org.example.service.RequestQueueService;
 import org.example.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,9 +27,12 @@ public class SelfExtensionController {
     @Autowired
     private AuthenticationService authService;
     
+    @Autowired
+    private RequestQueueService requestQueue;
+    
     /**
      * POST /api/extend/requirement
-     * Submit a requirement for SupremeAI to implement
+     * Submit a requirement for SupremeAI to implement (ADMIN ONLY)
      */
     @PostMapping("/requirement")
     public ResponseEntity<?> submitRequirement(
@@ -41,32 +45,41 @@ public class SelfExtensionController {
                     .body(Map.of("status", "error", "message", "Auth required"));
             }
             
+            // ✅ CHECK: Is user ADMIN?
+            if (!user.getRole().equals("ADMIN")) {
+                logger.warn("❌ Non-admin user {} tried to extend system", user.getUsername());
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("status", "error", "message", "Admin access required"));
+            }
+            
             String requirement = request.get("requirement");
             if (requirement == null || requirement.isEmpty()) {
                 return ResponseEntity.badRequest()
                     .body(Map.of("status", "error", "message", "Requirement text required"));
             }
             
-            logger.info("👤 User {} submitted requirement: {}", user.getUsername(), requirement);
+            // ✅ Generate unique ID to prevent duplicates
+            String requirementId = requirement.hashCode() + "_" + System.currentTimeMillis();
             
-            // Process asynchronously
-            boolean success = selfExtender.implementRequirement(requirement);
+            logger.info("👑 Admin {} submitted requirement: {}", user.getUsername(), requirement);
             
-            if (success) {
-                return ResponseEntity.ok(Map.of(
-                    "status", "success",
-                    "message", "Requirement implemented successfully",
-                    "user", user.getUsername(),
-                    "requirement", requirement,
-                    "timestamp", System.currentTimeMillis()
-                ));
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(
-                        "status", "error",
-                        "message", "Failed to implement requirement"
-                    ));
-            }
+            // ✅ Queue request to prevent race conditions
+            requestQueue.queueExtensionRequest(requirementId, () -> {
+                boolean success = selfExtender.implementRequirement(requirement);
+                if (success) {
+                    logger.info("✅ Requirement implemented: {}", requirementId);
+                } else {
+                    logger.error("❌ Failed to implement: {}", requirementId);
+                }
+            });
+            
+            return ResponseEntity.accepted().body(Map.of(
+                "status", "queued",
+                "message", "Requirement queued for implementation",
+                "requirementId", requirementId,
+                "user", user.getUsername(),
+                "timestamp", System.currentTimeMillis()
+            ));
             
         } catch (Exception e) {
             logger.error("❌ Requirement submission error: {}", e.getMessage());

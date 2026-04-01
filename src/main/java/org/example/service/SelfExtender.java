@@ -26,6 +26,12 @@ public class SelfExtender {
     @Autowired
     private SystemLearningService learningService;
     
+    @Autowired
+    private HotReloadService hotReloadService;
+    
+    @Autowired
+    private RequestQueueService requestQueueService;
+    
     private static final String SRC_PATH = "src/main/java/org/example";
     
     /**
@@ -133,6 +139,19 @@ public class SelfExtender {
             
             if (exitCode == 0) {
                 logger.info("✅ Compilation successful!");
+                // ✅ TRY: Hot-reload the new code
+                boolean hotReloaded = hotReloadService.loadNewClass(
+                    "org.example.service.SelfExtender", 
+                    "build/classes/java/main"
+                );
+                
+                if (hotReloaded) {
+                    logger.info("⚡ Hot-reload successful - new code loaded");
+                } else {
+                    logger.warn("⚠️ Hot-reload failed - restart required");
+                    hotReloadService.gracefulRestart();
+                }
+                
                 return true;
             } else {
                 logger.error("❌ Compilation failed with code: {}", exitCode);
