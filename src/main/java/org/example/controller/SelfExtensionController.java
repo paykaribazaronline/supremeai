@@ -3,6 +3,8 @@ package org.example.controller;
 import org.example.service.SelfExtender;
 import org.example.service.AuthenticationService;
 import org.example.service.RequestQueueService;
+import org.example.service.UserQuotaService;
+import org.example.service.QuotaService;
 import org.example.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +32,12 @@ public class SelfExtensionController {
     @Autowired
     private RequestQueueService requestQueue;
     
+    @Autowired
+    private UserQuotaService userQuotaService; // NEW: Check user tier quota
+    
+    @Autowired
+    private QuotaService quotaService; // NEW: Check provider quotas
+    
     /**
      * POST /api/extend/requirement
      * Submit a requirement for SupremeAI to implement (ADMIN ONLY)
@@ -52,6 +60,21 @@ public class SelfExtensionController {
                     .body(Map.of("status", "error", "message", "Admin access required"));
             }
             
+            // ✅ NEW: Check user quota tier
+            if (!userQuotaService.canCreateApp(user.getUsername())) {
+                Map<String, Object> quota = userQuotaService.getQuotaStatus(user.getUsername());
+                logger.warn("❌ User {} hit app creation limit for today", user.getUsername());
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(Map.of("status", "error", "message", "App creation limit exceeded for today", "quotaDetails", quota));
+            }
+            
+            // ✅ NEW: Check provider quotas
+            if (quotaService.shouldUseFallback()) {
+                logger.warn("⚠️ Provider quotas critically low - less than 5 AIs have quota");
+                return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(Map.of("status", "error", "message", "System quota critically low. Please try again later."));
+            }
+            
             String requirement = request.get("requirement");
             if (requirement == null || requirement.isEmpty()) {
                 return ResponseEntity.badRequest()
@@ -68,6 +91,8 @@ public class SelfExtensionController {
                 boolean success = selfExtender.implementRequirement(requirement);
                 if (success) {
                     logger.info("✅ Requirement implemented: {}", requirementId);
+                    // Record the app creation in user quota
+                    userQuotaService.recordAppCreation(user.getUsername());
                 } else {
                     logger.error("❌ Failed to implement: {}", requirementId);
                 }

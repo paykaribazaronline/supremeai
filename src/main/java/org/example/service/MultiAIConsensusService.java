@@ -27,6 +27,9 @@ public class MultiAIConsensusService {
     @Autowired
     private QuotaService quotaService; // NEW: Track API quota usage
     
+    @Autowired
+    private UserQuotaService userQuotaService; // NEW: Track user tier quotas
+    
     private static final int CONSENSUS_THRESHOLD = 70; // Require 70% agreement
     private static final int AI_REQUEST_TIMEOUT_SEC = 5;
     private Map<String, ConsensusFeedback> feedbackHistory = new ConcurrentHashMap<>();
@@ -46,6 +49,36 @@ public class MultiAIConsensusService {
     );
     
     private Map<String, ConsensusVote> voteHistory = new ConcurrentHashMap<>();
+    
+    /**
+     * Ask all AI providers with user quota checking
+     * NEW: Checks if user has quota for consensus voting
+     */
+    public ConsensusVote askAllAI(String userId, String question) {
+        // Check user quota FIRST
+        if (!userQuotaService.canMakeRequest(userId)) {
+            Map<String, Object> quota = userQuotaService.getQuotaStatus(userId);
+            logger.warn("❌ User {} quota exceeded for consensus voting", userId);
+            
+            // Return error vote
+            ConsensusVote errorVote = new ConsensusVote();
+            errorVote.setQuestion(question);
+            errorVote.setWinningResponse("[QUOTA_EXCEEDED] User " + userId + " has exceeded quota limit");
+            errorVote.setConfidenceScore(0.0);
+            return errorVote;
+        }
+        
+        // User has quota, proceed with consensus
+        ConsensusVote vote = askAllAI(question);
+        
+        if (vote != null && !vote.getWinningResponse().contains("[QUOTA_EXCEEDED]")) {
+            // Record the API request for user quota
+            userQuotaService.recordRequest(userId);
+            logger.info("✅ Recorded consensus request for user {}", userId);
+        }
+        
+        return vote;
+    }
     
     /**
      * Ask all AI providers and get consensus
