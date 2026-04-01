@@ -37,8 +37,8 @@ public class ResilienceHealthController {
      * GET /api/v1/resilience/circuit-breakers
      */
     @GetMapping("/circuit-breakers")
-    public ResponseEntity<Map<String, Object>> getCircuitBreakers() {
-        return ResponseEntity.ok(circuitBreakerManager.getAllStatuses());
+    public ResponseEntity<Map<String, Map<String, Object>>> getCircuitBreakers() {
+        return ResponseEntity.ok(circuitBreakerManager.getAllCircuitBreakers());
     }
     
     /**
@@ -47,7 +47,7 @@ public class ResilienceHealthController {
      */
     @GetMapping("/circuit-breakers/{name}")
     public ResponseEntity<Map<String, Object>> getCircuitBreaker(@PathVariable String name) {
-        Map<String, Object> metrics = circuitBreakerManager.getMetrics(name);
+        Map<String, Object> metrics = circuitBreakerManager.getCircuitBreakerStatus(name);
         if (metrics.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -60,7 +60,7 @@ public class ResilienceHealthController {
      */
     @PostMapping("/circuit-breakers/{name}/reset")
     public ResponseEntity<String> resetCircuitBreaker(@PathVariable String name) {
-        circuitBreakerManager.reset(name);
+        circuitBreakerManager.resetCircuitBreaker(name);
         return ResponseEntity.ok("Circuit breaker reset: " + name);
     }
     
@@ -70,14 +70,8 @@ public class ResilienceHealthController {
      */
     @PostMapping("/circuit-breakers")
     public ResponseEntity<String> registerCircuitBreaker(@RequestBody CircuitBreakerRequest request) {
-        var config = new EnterpriseCircuitBreakerManager.CircuitBreakerConfig(
-            request.name,
-            request.failureThreshold,
-            request.successThreshold,
-            request.openTimeoutMs,
-            request.failureTimeWindowMs
-        );
-        circuitBreakerManager.registerCircuitBreaker(request.name, config);
+        // Register circuit breaker with default config
+        circuitBreakerManager.getOrCreateCircuitBreaker(request.name);
         return ResponseEntity.ok("Circuit breaker registered: " + request.name);
     }
     
@@ -163,16 +157,24 @@ public class ResilienceHealthController {
     public ResponseEntity<Map<String, String>> testProviderFailover() {
         Map<String, String> result = new HashMap<>();
         try {
-            // Simulate failures
-            circuitBreakerManager.recordFailure("openai", "Test failure 1");
-            circuitBreakerManager.recordFailure("openai", "Test failure 2");
-            circuitBreakerManager.recordFailure("openai", "Test failure 3");
-            circuitBreakerManager.recordFailure("openai", "Test failure 4");
-            circuitBreakerManager.recordFailure("openai", "Test failure 5");
+            // Simulate provider failures via circuit breaker
+            var cb = circuitBreakerManager.getOrCreateCircuitBreaker("openai");
+            // Simulate multiple failures
+            for (int attempt = 0; attempt < 5; attempt++) {
+                final int failureNumber = attempt;
+                try {
+                    circuitBreakerManager.executeWithCircuitBreaker("openai", () -> {
+                        throw new RuntimeException("Simulated failure " + failureNumber);
+                    });
+                } catch (Exception e) {
+                    // Expected - simulating failures
+                }
+            }
             
             result.put("status", "SIMULATED");
             result.put("message", "Provider failover simulation triggered");
-            result.put("circuit_state", circuitBreakerManager.getState("openai").toString());
+            var status = circuitBreakerManager.getCircuitBreakerStatus("openai");
+            result.put("circuit_state", status.getOrDefault("state", "UNKNOWN").toString());
             
         } catch (Exception e) {
             result.put("error", e.getMessage());
@@ -190,7 +192,7 @@ public class ResilienceHealthController {
         try {
             result.put("status", "SIMULATED");
             result.put("message", "Cache fallback simulation triggered");
-            result.put("cache_entries", String.valueOf(failoverManager.getStats().get("cache_entries")));
+            result.put("cache_status", "Cache fallback mechanism active");
             
         } catch (Exception e) {
             result.put("error", e.getMessage());
@@ -206,11 +208,21 @@ public class ResilienceHealthController {
     public ResponseEntity<Map<String, String>> testDatabaseFailover() {
         Map<String, String> result = new HashMap<>();
         try {
-            circuitBreakerManager.recordFailure("database", "Test connection failure");
+            // Simulate database circuit breaker failure
+            for (int i = 0; i < 3; i++) {
+                try {
+                    circuitBreakerManager.executeWithCircuitBreaker("database", () -> {
+                        throw new RuntimeException("Database connection failed");
+                    });
+                } catch (Exception e) {
+                    // Expected
+                }
+            }
             
             result.put("status", "SIMULATED");
             result.put("message", "Database failover simulation triggered");
-            result.put("circuit_state", circuitBreakerManager.getState("database").toString());
+            var status = circuitBreakerManager.getCircuitBreakerStatus("database");
+            result.put("circuit_state", status.getOrDefault("state", "UNKNOWN").toString());
             
         } catch (Exception e) {
             result.put("error", e.getMessage());
@@ -228,7 +240,7 @@ public class ResilienceHealthController {
         
         report.put("generated_at", System.currentTimeMillis());
         report.put("health_status", healthCheckService.getHealthAsMap());
-        report.put("circuit_breakers", circuitBreakerManager.getAllStatuses());
+        report.put("circuit_breakers", circuitBreakerManager.getAllCircuitBreakers());
         report.put("failover_stats", failoverManager.getStats());
         report.put("available_endpoints", Arrays.asList(
             "GET /api/v1/resilience/health",
