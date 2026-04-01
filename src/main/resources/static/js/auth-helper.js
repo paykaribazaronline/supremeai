@@ -65,6 +65,7 @@ const AuthHelper = {
         localStorage.removeItem('supremeai_refresh_token');
         localStorage.removeItem('supremeai_user');
         localStorage.removeItem('supremeai_remembered_username');
+        localStorage.removeItem('supremeai_remembered_password');
         window.location.href = '/login.html';
     },
     
