@@ -357,6 +357,50 @@ public class AuthenticationController {
     }
 
     /**
+     * GET /api/auth/init
+     * Initialize system with default admin user if none exist
+     * Creates: admin@supremeai.com / admin123 (change on first login!)
+     */
+    @GetMapping("/init")
+    public ResponseEntity<?> initializeDefaultUser() {
+        try {
+            List<User> existingUsers = authService.getAllUsers();
+            
+            if (existingUsers != null && !existingUsers.isEmpty()) {
+                return ResponseEntity.ok(Map.of(
+                    "status", "already_initialized",
+                    "message", "System already initialized with " + existingUsers.size() + " user(s)",
+                    "users", existingUsers.size()
+                ));
+            }
+            
+            // Create default admin user
+            User defaultUser = authService.registerUser(
+                "admin",
+                "admin@supremeai.com",
+                "supremeai123"
+            );
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", "Default admin user created");
+            response.put("username", "admin");
+            response.put("email", "admin@supremeai.com");
+            response.put("password", "supremeai123");
+            response.put("note", "⚠️ Change password immediately after first login!");
+            response.put("user", new AuthToken.UserResponse(defaultUser));
+            
+            logger.info("✅ Default admin user created: admin@supremeai.com");
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("❌ Initialization failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("status", "error", "message", e.getMessage()));
+        }
+    }
+
+    /**
      * POST /api/auth/hash-password
      * Generate BCrypt hash for a password (for Firebase manual user creation)
      * 

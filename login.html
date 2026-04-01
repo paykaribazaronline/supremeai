@@ -298,12 +298,33 @@
         const usernameInput = document.getElementById('username');
         const passwordInput = document.getElementById('password');
 
-        // Load remembered username
-        window.addEventListener('DOMContentLoaded', () => {
+        // Load remembered credentials if remember me was checked
+        window.addEventListener('DOMContentLoaded', async () => {
+            // First, check if system is initialized
+            try {
+                const initResponse = await fetch('/api/auth/init');
+                const initData = await initResponse.json();
+                if (initData.status === 'success') {
+                    console.log('✅ System initialized with default user');
+                }
+            } catch (e) {
+                console.log('System already initialized or not accessible');
+            }
+            
+            // Load remembered credentials
             const savedUsername = localStorage.getItem('supremeai_remembered_username');
+            const savedPassword = localStorage.getItem('supremeai_remembered_password');
+            
             if (savedUsername) {
                 usernameInput.value = savedUsername;
                 rememberMe.checked = true;
+            }
+            
+            if (savedPassword) {
+                passwordInput.value = savedPassword;
+            }
+            
+            if (savedUsername) {
                 passwordInput.focus();
             }
         });
@@ -347,11 +368,14 @@
                 localStorage.setItem('supremeai_refresh_token', data.refreshToken);
                 localStorage.setItem('supremeai_user', JSON.stringify(data.user));
 
-                // Save username if remember me is checked
+                // Save credentials if remember me is checked (with security warning)
                 if (rememberMe.checked) {
                     localStorage.setItem('supremeai_remembered_username', username);
+                    localStorage.setItem('supremeai_remembered_password', password);
+                    console.warn('⚠️ Credentials saved locally. Only use on trusted devices!');
                 } else {
                     localStorage.removeItem('supremeai_remembered_username');
+                    localStorage.removeItem('supremeai_remembered_password');
                 }
 
                 showSuccess('Login successful! Redirecting...');
