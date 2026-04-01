@@ -89,6 +89,10 @@ dependencies {
 // Configure UTF-8 encoding for all compilation tasks
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
+    options.compilerArgs.addAll(listOf(
+        "-Xlint:-deprecation",     // Suppress deprecation warnings
+        "-Xlint:-unchecked"        // Suppress unchecked cast warnings
+    ))
 }
 
 tasks.test {

@@ -14,6 +14,7 @@ import com.sun.management.OperatingSystemMXBean;
  * Enables real-time monitoring dashboards and automated alerting
  */
 @Service
+@SuppressWarnings("deprecation")
 public class MetricsService {
 
     private final AtomicLong totalRequests = new AtomicLong(0);
