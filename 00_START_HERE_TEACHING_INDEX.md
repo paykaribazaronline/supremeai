@@ -307,12 +307,14 @@ Time: 10 minutes
 ## 💡 Key Concepts Reference
 
 **Confidence Score**
+
 - Range: 0.85 - 0.99
 - Increases as pattern repeats successfully
 - Auto-fix kicks in at 0.95+
 Reference: TEACHING_AND_LEARNING_SYSTEM.md
 
 **AI Voting System**
+
 - Ask 10 AI providers for opinion
 - Vote on best answer
 - Record percentage for each AI
@@ -320,12 +322,14 @@ Reference: TEACHING_AND_LEARNING_SYSTEM.md
 Reference: FIREBASE_SCHEMA_APP_GENERATION.md + HOW_TO_BUILD_APPS_FROM_PLANS.md
 
 **Pre-Push Verification**
+
 - 8-point checklist before git commit
 - Cannot push without passing all checks
 - Ensures learning is saved to Firebase
 Reference: TEACHING_SYSTEM_COMPLETE_ROADMAP.md
 
 **Error Pattern**
+
 - Recurring error with solution
 - Tracked with occurrence count
 - Confidence increases (0.50 → 0.99)
@@ -333,6 +337,7 @@ Reference: TEACHING_SYSTEM_COMPLETE_ROADMAP.md
 Reference: SOLUTIONS_DATABASE_PHASE8.md
 
 **Generated App**
+
 - Each app generation creates record
 - Tracked with ID: app_YYYYMMDD_type_###
 - Timeline, lineage, AI decisions stored
@@ -343,31 +348,34 @@ Reference: FIREBASE_SCHEMA_APP_GENERATION.md
 
 ## 🎓 Learning Path by Role
 
-### **🏗️ Architect**
-1. TEACHING_SYSTEM_SUMMARY.md (overview)
+### **🏗️ Architect**1. TEACHING_SYSTEM_SUMMARY.md (overview)
 2. TEACHING_SYSTEM_COMPLETE_ROADMAP.md (architecture)
 3. FIREBASE_SCHEMA_APP_GENERATION.md (database design)
 4. HOW_TO_BUILD_APPS_FROM_PLANS.md (workflow)
 
 ### **🔨 Backend Developer**
+
 1. TEACHING_SYSTEM_SUMMARY.md (overview)
 2. TEACHING_BACKEND_IMPLEMENTATION.md (code)
 3. FIREBASE_SCHEMA_APP_GENERATION.md (collections)
 4. SOLUTIONS_DATABASE_PHASE8.md (error handling)
 
 ### **🎨 Frontend Developer**
+
 1. TEACHING_SYSTEM_SUMMARY.md (overview)
 2. HOW_TO_BUILD_APPS_FROM_PLANS.md (React component generation)
 3. TEACHING_BACKEND_IMPLEMENTATION.md (REST endpoints)
 4. TEACHING_SYSTEM_COMPLETE_ROADMAP.md (dashboard design)
 
 ### **🧪 QA/Tester**
+
 1. TEACHING_SYSTEM_SUMMARY.md (overview)
 2. TEACHING_SYSTEM_COMPLETE_ROADMAP.md (pre-push checklist)
 3. SOLUTIONS_DATABASE_PHASE8.md (error patterns)
 4. HOW_TO_BUILD_APPS_FROM_PLANS.md (test generation)
 
 ### **📊 DevOps/Cloud**
+
 1. TEACHING_SYSTEM_SUMMARY.md (overview)
 2. HOW_TO_BUILD_APPS_FROM_PLANS.md (deployment section)
 3. FIREBASE_SCHEMA_APP_GENERATION.md (deployment_configs)
