@@ -25,7 +25,7 @@ import java.util.Map;
 public class SelfHealingController {
     private static final Logger logger = LoggerFactory.getLogger(SelfHealingController.class);
     
-    @Autowired
+    @Autowired(required = false)
     private SelfHealingService selfHealingService;
     
     /**
@@ -34,6 +34,13 @@ public class SelfHealingController {
      */
     @GetMapping("/system-health")
     public ResponseEntity<?> getSystemHealth() {
+        if (selfHealingService == null) {
+            return ResponseEntity.status(503).body(Map.of(
+                "status", "unavailable",
+                "message", "Self-Healing Service not initialized",
+                "reason", "SelfHealingService bean not available"
+            ));
+        }
         try {
             SelfHealingService.SystemHealthReport report = selfHealingService.getSystemHealthReport();
             

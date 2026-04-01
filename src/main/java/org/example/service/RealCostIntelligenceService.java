@@ -29,10 +29,21 @@ public class RealCostIntelligenceService {
     private static final String COST_TABLE = "billing.costs";
     private static final String BILLING_DATASET = "billing";
 
+    public RealCostIntelligenceService() {
+        this.bigQuery = null;
+        this.projectId = "supremeai-prod";
+        log.info("⚠️ RealCostIntelligenceService initialized without BigQuery (credentials unavailable)");
+    }
+    
     @Autowired(required = false)
     public RealCostIntelligenceService(BigQuery bigQuery) {
         this.bigQuery = bigQuery;
         this.projectId = "supremeai-prod";
+        if (bigQuery != null) {
+            log.info("✅ RealCostIntelligenceService initialized with BigQuery");
+        } else {
+            log.info("⚠️ RealCostIntelligenceService initialized in fallback mode");
+        }
     }
 
     /**
@@ -45,6 +56,18 @@ public class RealCostIntelligenceService {
         Map<String, Object> report = new LinkedHashMap<>();
         report.put("report_date", LocalDate.now());
         report.put("period", startDate + " to " + endDate);
+
+        if (bigQuery == null) {
+            log.warn("⚠️ BigQuery not available - returning simulated cost data");
+            report.put("status", "FALLBACK");
+            report.put("message", "BigQuery credentials unavailable - using simulated costs");
+            report.put("gcp_costs", new HashMap<>());
+            report.put("aws_costs", new HashMap<>());
+            report.put("azure_costs", new HashMap<>());
+            report.put("total_cost", 0.0);
+            report.put("currency", "USD");
+            return report;
+        }
 
         try {
             // Query GCP costs

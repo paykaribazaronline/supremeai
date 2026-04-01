@@ -17,7 +17,7 @@ public class RequirementController {
     @Autowired
     private FirebaseService firebaseService;
 
-    @Autowired
+    @Autowired(required = false)
     private ApprovalManager approvalManager;
 
     @GetMapping

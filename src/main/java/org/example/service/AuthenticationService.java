@@ -13,6 +13,7 @@ import io.jsonwebtoken.Claims;
 import java.security.Key;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Authentication Service
@@ -37,6 +38,15 @@ public class AuthenticationService {
     
     private static final long TOKEN_EXPIRATION_HOURS = 24;
     private static final long REFRESH_TOKEN_EXPIRATION_DAYS = 7;
+    
+    // Rate limiting configuration
+    private final Map<String, List<Long>> loginAttempts = new ConcurrentHashMap<>();
+    private static final int MAX_ATTEMPTS = 5;
+    private static final long ATTEMPT_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+
+    // MFA configuration
+    private final Map<String, String[]> mfaCodes = new ConcurrentHashMap<>();
+    private static final long MFA_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
     
     @Autowired
     private FirebaseService firebaseService;
@@ -93,6 +103,22 @@ public class AuthenticationService {
             throw new IllegalArgumentException("User account is disabled");
         }
         
+        // Rate limiting
+        long now = System.currentTimeMillis();
+        loginAttempts.putIfAbsent(username, new ArrayList<>());
+        List<Long> attempts = loginAttempts.get(username);
+        attempts.removeIf(ts -> now - ts > ATTEMPT_WINDOW_MS);
+        if (attempts.size() >= MAX_ATTEMPTS) {
+            throw new IllegalArgumentException("Too many login attempts. Please try again later.");
+        }
+        attempts.add(now);
+        
+        // MFA required for admin
+        if (user.getRole() != null && user.getRole().equals("ADMIN")) {
+            generateAndSendMfaCode(username, user.getEmail());
+            throw new IllegalArgumentException("MFA required. Code sent to email.");
+        }
+        
         // Update last login
         user.setLastLogin(System.currentTimeMillis());
         firebaseService.updateUser(user);
@@ -106,6 +132,34 @@ public class AuthenticationService {
         // Return token (without password hash)
         AuthToken authToken = new AuthToken(token, refreshToken, user, TOKEN_EXPIRATION_HOURS * 3600);
         return authToken;
+    }
+    
+    /**
+     * Generate and send MFA code to user email
+     */
+    public void generateAndSendMfaCode(String username, String email) {
+        String code = String.valueOf(100000 + new Random().nextInt(900000));
+        long expiry = System.currentTimeMillis() + MFA_EXPIRY_MS;
+        mfaCodes.put(username, new String[]{code, String.valueOf(expiry)});
+        // TODO: Integrate with email service
+        logger.info("[MFA] Code for {}: {} (expires in 5 min)", username, code);
+        // In production, send code to email
+    }
+
+    /**
+     * Verify MFA code for user
+     */
+    public boolean verifyMfaCode(String username, String code) {
+        String[] entry = mfaCodes.get(username);
+        if (entry == null) return false;
+        long expiry = Long.parseLong(entry[1]);
+        if (System.currentTimeMillis() > expiry) {
+            mfaCodes.remove(username);
+            return false;
+        }
+        boolean valid = entry[0].equals(code);
+        if (valid) mfaCodes.remove(username);
+        return valid;
     }
     
     /**

@@ -20,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 public class FirebaseService {
     private FirebaseDatabase db;
     private FirebaseAuth auth;
+    private boolean isInitialized = false;
     private static final String DATABASE_URL = "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/";
     
     public FirebaseService() {
@@ -30,9 +31,23 @@ public class FirebaseService {
     public void init() {
         try {
             initializeFirebase(null);
+            this.isInitialized = true;
         } catch (Exception e) {
             System.err.println("⚠️ Firebase initialization failed: " + e.getMessage());
+            System.err.println("🔄 Continuing without Firebase - using fallback mode");
+            this.isInitialized = false;
         }
+    }
+    
+    public boolean isInitialized() {
+        return isInitialized;
+    }
+    
+    public FirebaseDatabase getDatabase() {
+        if (!isInitialized) {
+            throw new IllegalStateException("Firebase not initialized - credentials missing or invalid");
+        }
+        return db;
     }
 
     private synchronized void initializeFirebase(String credentialsPath) throws IOException {

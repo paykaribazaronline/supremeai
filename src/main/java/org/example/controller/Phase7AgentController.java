@@ -16,16 +16,16 @@ import java.util.Map;
 @RequestMapping("/api/phase7/agents")
 public class Phase7AgentController {
 
-    @Autowired
+    @Autowired(required = false)
     private DiOSAgent iOSAgent;
 
-    @Autowired
+    @Autowired(required = false)
     private EWebAgent webAgent;
 
-    @Autowired
+    @Autowired(required = false)
     private FDesktopAgent desktopAgent;
 
-    @Autowired
+    @Autowired(required = false)
     private GPublishAgent publishAgent;
 
     /**
@@ -33,6 +33,13 @@ public class Phase7AgentController {
      */
     @PostMapping("/ios/generate")
     public ResponseEntity<?> generateiOSApp(@RequestBody DiOSAgent.iOSProjectRequest request) {
+        if (iOSAgent == null) {
+            return ResponseEntity.status(503).body(Map.of(
+                "status", "unavailable",
+                "message", "iOS Agent (Phase 7.4) is in development or not initialized",
+                "reason", "DiOSAgent bean not available"
+            ));
+        }
         DiOSAgent.iOSProjectOutput output = iOSAgent.generateiOSProject(request);
         return ResponseEntity.ok(output);
     }
@@ -59,6 +66,13 @@ public class Phase7AgentController {
      */
     @PostMapping("/web/generate")
     public ResponseEntity<?> generateReactPWA(@RequestBody EWebAgent.ReactProjectRequest request) {
+        if (webAgent == null) {
+            return ResponseEntity.status(503).body(Map.of(
+                "status", "unavailable",
+                "message", "Web Agent (Phase 7.5) is in development or not initialized",
+                "reason", "EWebAgent bean not available"
+            ));
+        }
         EWebAgent.ReactProjectOutput output = webAgent.generateReactProject(request);
         return ResponseEntity.ok(output);
     }
@@ -85,6 +99,13 @@ public class Phase7AgentController {
      */
     @PostMapping("/desktop/generate")
     public ResponseEntity<?> generateDesktopApp(@RequestBody FDesktopAgent.DesktopProjectRequest request) {
+        if (desktopAgent == null) {
+            return ResponseEntity.status(503).body(Map.of(
+                "status", "unavailable",
+                "message", "Desktop Agent (Phase 7.6) is in development or not initialized",
+                "reason", "FDesktopAgent bean not available"
+            ));
+        }
         FDesktopAgent.DesktopProjectOutput output = desktopAgent.generateDesktopProject(request);
         return ResponseEntity.ok(output);
     }
@@ -112,6 +133,13 @@ public class Phase7AgentController {
      */
     @PostMapping("/publish/prepare")
     public ResponseEntity<?> preparePublication(@RequestBody GPublishAgent.PublishRequest request) {
+        if (publishAgent == null) {
+            return ResponseEntity.status(503).body(Map.of(
+                "status", "unavailable",
+                "message", "Publish Agent (Phase 7.7) is in development or not initialized",
+                "reason", "GPublishAgent bean not available"
+            ));
+        }
         GPublishAgent.PublishOutput output = publishAgent.publishApplication(request);
         return ResponseEntity.ok(output);
     }
