@@ -50,7 +50,7 @@ jobs:
 
     steps:
       - name: ⬇️ Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: 🔐 Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -241,3 +241,4 @@ jobs:
           echo "| 📍 Region | ${{ env.GCP_REGION }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🔑 Project | ${{ steps.project.outputs.project_id }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🔢 SHA | \`${{ github.sha }}\` (short: \`${{ steps.vars.outputs.sha_short }}\`)" >> $GITHUB_STEP_SUMMARY
+
