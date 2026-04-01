@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.example.service.ServerMetricsService;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @SpringBootApplication(scanBasePackages = {
@@ -56,14 +57,54 @@ public class Application {
     public Map<String, Object> home() {
         logger.info("✓ Home endpoint accessed");
         
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "🚀 SupremeAI Cloud Server is Running!");
-        response.put("version", "3.5");
-        response.put("status", "UP");
-        response.put("timestamp", System.currentTimeMillis());
-        response.put("healthCheck", "/api/status/health");
-        response.put("statusSummary", "/api/status/summary");
-        response.put("performance", "/api/status/performance");
+        Map<String, Object> response = new LinkedHashMap<>();
+        
+        // Header
+        response.put("🚀 Status", "UP ✅");
+        response.put("📱 Server", "SupremeAI Cloud Server");
+        response.put("📦 Version", "3.5");
+        
+        // Quick metrics from service if available
+        if (metricsService != null) {
+            Map<String, Object> metrics = metricsService.getMetrics();
+            
+            // Essential quick info
+            response.put("⏰ Uptime", metrics.get("uptime"));
+            response.put("🕐 Current Time", metrics.get("serviceTime"));
+            
+            // Memory section
+            @SuppressWarnings("unchecked")
+            Map<String, Object> heap = (Map<String, Object>) metrics.get("heap");
+            if (heap != null) {
+                response.put("💾 Memory", String.format("%dMB / %dMB (%d%%)", 
+                    heap.get("usedMB"),
+                    heap.get("maxMB"),
+                    heap.get("usagePercent")
+                ));
+            }
+            
+            // CPU section
+            response.put("⚙️  CPU Usage", 
+                metrics.get("processCpuUsage") + " (process)");
+            
+            // Requests section
+            response.put("📊 Total Requests", metrics.get("totalRequests"));
+            response.put("❌ Errors", String.format("%d (%.2f%%)", 
+                metrics.get("totalErrors"),
+                metrics.get("errorRate")
+            ));
+            response.put("🔌 Active Connections", metrics.get("activeConnections"));
+        }
+        
+        // Timestamp
+        response.put("⏱️  Timestamp", System.currentTimeMillis());
+        
+        // Available endpoints section
+        Map<String, String> endpoints = new LinkedHashMap<>();
+        endpoints.put("📋 Full Health Check", "/api/status/health");
+        endpoints.put("⚡ Quick Status", "/api/status/summary");
+        endpoints.put("📈 Performance Metrics", "/api/status/performance");
+        response.put("🔗 API Endpoints", endpoints);
         
         return response;
     }
