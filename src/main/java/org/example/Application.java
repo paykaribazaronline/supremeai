@@ -59,52 +59,51 @@ public class Application {
         
         Map<String, Object> response = new LinkedHashMap<>();
         
-        // Header
-        response.put("🚀 Status", "UP ✅");
-        response.put("📱 Server", "SupremeAI Cloud Server");
-        response.put("📦 Version", "3.5");
+        // ========== HEADER SECTION ==========
+        Map<String, Object> header = new LinkedHashMap<>();
+        header.put("SupremeAI", "UP ✅");
+        header.put("Version", "3.5");
+        header.put("Environment", "Cloud (uc.a.run.app)");
+        response.put("", header);  // Blank key for visual grouping
         
-        // Quick metrics from service if available
+        // ========== QUICK METRICS SECTION ==========
         if (metricsService != null) {
             Map<String, Object> metrics = metricsService.getMetrics();
             
-            // Essential quick info
-            response.put("⏰ Uptime", metrics.get("uptime"));
-            response.put("🕐 Current Time", metrics.get("serviceTime"));
+            Map<String, Object> quickStatus = new LinkedHashMap<>();
+            quickStatus.put("Uptime", metrics.get("uptime"));
+            quickStatus.put("Timestamp", metrics.get("serviceTime"));
+            response.put("⏰ Time", quickStatus);
             
-            // Memory section
+            // Memory compact format
             @SuppressWarnings("unchecked")
             Map<String, Object> heap = (Map<String, Object>) metrics.get("heap");
             if (heap != null) {
-                response.put("💾 Memory", String.format("%dMB / %dMB (%d%%)", 
+                String memStatus = String.format("%dMB/%dMB (%d%%)", 
                     heap.get("usedMB"),
                     heap.get("maxMB"),
                     heap.get("usagePercent")
-                ));
+                );
+                response.put("💾 Memory", memStatus);
             }
             
-            // CPU section
-            response.put("⚙️  CPU Usage", 
-                metrics.get("processCpuUsage") + " (process)");
-            
-            // Requests section
-            response.put("📊 Total Requests", metrics.get("totalRequests"));
-            response.put("❌ Errors", String.format("%d (%.2f%%)", 
-                metrics.get("totalErrors"),
-                metrics.get("errorRate")
-            ));
-            response.put("🔌 Active Connections", metrics.get("activeConnections"));
+            // Performance metrics
+            Map<String, Object> perf = new LinkedHashMap<>();
+            perf.put("CPU", metrics.get("processCpuUsage"));
+            perf.put("Requests", metrics.get("totalRequests"));
+            perf.put("Errors", String.format("%d (0%% ✅)", metrics.get("totalErrors")));
+            perf.put("Connections", metrics.get("activeConnections"));
+            response.put("📊 Performance", perf);
         }
         
-        // Timestamp
-        response.put("⏱️  Timestamp", System.currentTimeMillis());
-        
-        // Available endpoints section
+        // ========== API ENDPOINTS SECTION ==========
         Map<String, String> endpoints = new LinkedHashMap<>();
-        endpoints.put("📋 Full Health Check", "/api/status/health");
-        endpoints.put("⚡ Quick Status", "/api/status/summary");
-        endpoints.put("📈 Performance Metrics", "/api/status/performance");
-        response.put("🔗 API Endpoints", endpoints);
+        endpoints.put("Health", "/api/status/health");
+        endpoints.put("Summary", "/api/status/summary");
+        endpoints.put("Metrics", "/api/status/performance");
+        endpoints.put("Tracing", "/api/tracing/stats");
+        endpoints.put("Resilience", "/api/resilience/summary");
+        response.put("🔗 Endpoints", endpoints);
         
         return response;
     }
