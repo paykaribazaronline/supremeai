@@ -38,6 +38,7 @@ public class AdminMessagePusher {
     private static final Logger logger = LoggerFactory.getLogger(AdminMessagePusher.class);
     
     private final Firestore db;
+    private final boolean firebaseEnabled;
     
     // Message queue for batch processing
     private final BlockingQueue<AdminMessage> messageQueue = new LinkedBlockingQueue<>(10000);
@@ -51,8 +52,22 @@ public class AdminMessagePusher {
     private static final long BATCH_TIMEOUT_MS = 5000; // 5 seconds
     
     public AdminMessagePusher() {
-        this.db = FirestoreClient.getFirestore();
-        logger.info("✅ Admin Message Pusher initialized");
+        Firestore tempDb = null;
+        boolean enabled = false;
+        
+        try {
+            tempDb = FirestoreClient.getFirestore();
+            enabled = true;
+            logger.info("✅ Admin Message Pusher initialized with Firebase Firestore");
+        } catch (Exception e) {
+            logger.warn("⚠️ Firebase not available - Admin Message Pusher running in memory-only mode");
+            logger.warn("   Set FIREBASE_SERVICE_ACCOUNT_JSON environment variable for persistence");
+            tempDb = null;
+            enabled = false;
+        }
+        
+        this.db = tempDb;
+        this.firebaseEnabled = enabled;
         
         // Start batch processor
         startBatchProcessor();
