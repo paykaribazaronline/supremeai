@@ -49,18 +49,13 @@ public class CodeGenerationOrchestratorTest {
         String description = "A reusable button component";
         List<String> features = Arrays.asList("responsive", "accessible");
 
-        /*when(aiApiService.callAI(anyString(), anyString(), anyList()))
-            .thenReturn("import React from 'react';\nexport default function TestButton() { return <button>Click me</button>; }");
-        
-        when(validationService.validateProject(projectId, "REACT"))
-            .thenReturn(createValidValidationResult());
-
-        Map<String, Object> result = orchestrator.generateReactComponent(projectId, componentName, description, features);
-
-        assertEquals("generated", result.get("status"));
-        assertEquals(3, result.get("filesGenerated")); // Component, hook, styles
-        assertTrue((Double) result.get("validationScore") >= 80);
-        */
+        // Mocking and validation - placeholder for future implementation
+        // when(aiApiService.callAI(anyString(), anyString(), anyList()))
+        //     .thenReturn("import React from 'react';\nexport default function TestButton() { return <button>Click me</button>; }");
+        // when(validationService.validateProject(projectId, "REACT"))
+        //     .thenReturn(createValidValidationResult());
+        // Map<String, Object> result = orchestrator.generateReactComponent(projectId, componentName, description, features);
+        // assertEquals("generated", result.get("status"));
     }
 
     @Test
@@ -73,15 +68,6 @@ public class CodeGenerationOrchestratorTest {
     @DisplayName("Generate and Validate Module with Auto-Fix")
     public void testGenerateAndValidateWithAutoFix() {
         // Test code commented out - placeholder for future test
-    }
-        
-        when(fixingSuggestor.applyFixes(projectId, framework, anyList()))
-            .thenReturn(createFixResult());
-
-        Map<String, Object> result = orchestrator.generateAndValidateModule(projectId, moduleName, framework, description);
-
-        assertEquals("complete", result.get("status"));
-        */
     }
 
     @Test
