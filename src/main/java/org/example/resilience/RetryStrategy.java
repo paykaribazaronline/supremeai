@@ -23,15 +23,23 @@ public class RetryStrategy {
     private final Map<String, RetryStats> stats = new ConcurrentHashMap<>();
     
     public RetryStrategy() {
-        RetryConfig defaultConfig = RetryConfig.custom()
-            .maxAttempts(3)
-            .waitDuration(Duration.ofMillis(500))
-            .intervalFunction(io.github.resilience4j.core.IntervalFunction
-                .ofExponentialBackoff(500, 2))  // Exponential backoff: 500ms, 1000ms, 2000ms
-            .retryOnException(e -> !(e instanceof IllegalArgumentException))
-            .build();
-        
-        this.registry = RetryRegistry.of(defaultConfig);
+        RetryRegistry tempRegistry;
+        try {
+            RetryConfig defaultConfig = RetryConfig.custom()
+                .maxAttempts(3)
+                .waitDuration(Duration.ofMillis(500))
+                .intervalFunction(io.github.resilience4j.core.IntervalFunction
+                    .ofExponentialBackoff(500, 2))
+                .retryOnException(e -> true)
+                .build();
+            
+            tempRegistry = RetryRegistry.of(defaultConfig);
+            logger.info("✅ RetryStrategy initialized with custom config");
+        } catch (Exception e) {
+            logger.warn("⚠️ Failed to initialize custom RetryStrategy config: {}", e.getMessage());
+            tempRegistry = RetryRegistry.ofDefaults();
+        }
+        this.registry = tempRegistry;
     }
     
     /**

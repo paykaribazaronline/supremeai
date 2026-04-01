@@ -18,11 +18,11 @@ import java.util.*;
 @RequestMapping("/api/v1/resilience")
 public class ResilienceHealthController {
     
-    private final EnterpriseCircuitBreakerManager circuitBreakerManager;
+    private final CircuitBreakerManager circuitBreakerManager;
     private final FailoverManager failoverManager;
     private final ResilienceHealthCheckService healthCheckService;
     
-    public ResilienceHealthController(EnterpriseCircuitBreakerManager circuitBreakerManager,
+    public ResilienceHealthController(CircuitBreakerManager circuitBreakerManager,
                                       FailoverManager failoverManager,
                                       ResilienceHealthCheckService healthCheckService) {
         this.circuitBreakerManager = circuitBreakerManager;

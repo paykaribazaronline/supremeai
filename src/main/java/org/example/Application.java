@@ -18,9 +18,11 @@ import java.util.Map;
 
 @SpringBootApplication(scanBasePackages = {
     "org.example.service",
-    "org.example.controller",  // Our REST Controllers (QuotaController, UserTierController, etc.)
-    "org.example.config"       // Spring Configuration
-    // Explicitly excluding: org.example.api (legacy controllers with missing dependencies)
+    "org.example.controller",
+    "org.example.config",
+    "org.example.resilience",
+    "org.example.tracing",
+    "org.example.filter"
 })
 @RestController
 public class Application {
