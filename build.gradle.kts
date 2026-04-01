@@ -52,8 +52,17 @@ dependencies {
     // Configuration Management - EXTERNALIZED CONFIG
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-websocket")
+    
+    // Spring Cloud GCP - Firestore
+    implementation("com.google.cloud:spring-cloud-gcp-starter:3.8.3")
+    implementation("com.google.cloud:spring-cloud-gcp-starter-firestore:3.8.3")
+    
+    // Spring Data
+    implementation("org.springframework.data:spring-data-commons:3.2.2")
+    implementation("org.springframework.data:spring-data-jpa:3.2.2")
 
     // Resilience & Error Handling
     implementation("io.github.resilience4j:resilience4j-core:2.1.0")

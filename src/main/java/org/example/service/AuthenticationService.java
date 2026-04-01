@@ -48,6 +48,9 @@ public class AuthenticationService {
     private final Map<String, String[]> mfaCodes = new ConcurrentHashMap<>();
     private static final long MFA_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
     
+    // In-memory user cache (fast local access, synced with Firebase async)
+    private final Map<String, User> userCache = new ConcurrentHashMap<>();
+    
     @Autowired
     private FirebaseService firebaseService;
     
@@ -76,7 +79,11 @@ public class AuthenticationService {
         String passwordHash = hashPassword(password);
         User user = new User(username, email, passwordHash);
         
-        // Save to Firebase
+        // Save to in-memory cache IMMEDIATELY (Firebase is async)
+        userCache.put(username, user);
+        logger.debug("✅ User added to in-memory cache: {}", username);
+        
+        // Also save to Firebase (async, will eventually persist)
         firebaseService.saveUser(user);
         
         logger.info("✅ Admin user registered: {}", username);
@@ -201,10 +208,21 @@ public class AuthenticationService {
     }
     
     /**
-     * Get user by username
+     * Get user by username (checks cache first for speed)
      */
     public User getUserByUsername(String username) throws Exception {
-        return firebaseService.getUserByUsername(username);
+        // Check in-memory cache first (fast)
+        if (userCache.containsKey(username)) {
+            logger.debug("✅ User found in cache: {}", username);
+            return userCache.get(username);
+        }
+        
+        // Fall back to Firebase
+        User user = firebaseService.getUserByUsername(username);
+        if (user != null) {
+            userCache.put(username, user);
+        }
+        return user;
     }
     
     /**

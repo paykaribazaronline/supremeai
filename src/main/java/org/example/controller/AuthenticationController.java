@@ -304,7 +304,7 @@ public class AuthenticationController {
     
     /**
      * POST /api/auth/bootstrap
-     * Register the FIRST admin user (no authentication required)
+     * Register the FIRST admin user (one-time, with optional token verification)
      * If users already exist, requires admin authentication
      * 
      * Body: {
@@ -312,11 +312,15 @@ public class AuthenticationController {
      *   "email": "admin@example.com",
      *   "password": "secure_password"
      * }
+     * 
+     * Headers (optional):
+     *   X-Bootstrap-Token: <token from BOOTSTRAP_TOKEN env var>
      */
     @PostMapping("/bootstrap")
     public ResponseEntity<?> bootstrap(
             @RequestBody Map<String, String> request,
-            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestHeader(value = "X-Bootstrap-Token", required = false) String bootstrapToken) {
         try {
             String username = request.get("username");
             String email = request.get("email");
@@ -327,14 +331,26 @@ public class AuthenticationController {
                     .body(Map.of("status", "error", "message", "All fields required"));
             }
             
+            // Check environment variable for bootstrap token requirement
+            String expectedBootstrapToken = System.getenv("BOOTSTRAP_TOKEN");
+            if (expectedBootstrapToken != null && !expectedBootstrapToken.isEmpty()) {
+                // Token verification required
+                if (bootstrapToken == null || !bootstrapToken.equals(expectedBootstrapToken)) {
+                    logger.warn("❌ Bootstrap attempt failed: Invalid bootstrap token");
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("status", "error", "message", "Invalid or missing bootstrap token"));
+                }
+            }
+            
             // Check if any users exist
             List<User> existingUsers = authService.getAllUsers();
             if (existingUsers != null && !existingUsers.isEmpty()) {
-                // If users exist, require admin authentication
+                // If users exist, require admin authentication (can't re-bootstrap)
                 User currentUser = extractUserFromToken(authHeader);
                 if (currentUser == null) {
+                    logger.warn("❌ Bootstrap attempt failed: Users already exist, admin auth required");
                     return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Map.of("status", "error", "message", "Users already exist. Admin authentication required."));
+                        .body(Map.of("status", "error", "message", "Users already exist. Use /api/auth/register with admin token instead."));
                 }
             }
             

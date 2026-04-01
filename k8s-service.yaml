@@ -1,0 +1,45 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: supremeai
+  namespace: default
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: '100'
+        autoscaling.knative.dev/minScale: '1'
+    spec:
+      containerConcurrency: 80
+      containers:
+      - image: gcr.io/supremeai-565236080752/supremeai:latest
+        env:
+        - name: PORT
+          value: '8080'
+        - name: FIREBASE_PROJECT_ID
+          value: 'supremeai-a'
+        - name: app.jwtSecret
+          value: 'supremeai-secret-key-for-jwt-token-generation-2026'
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            cpu: '1'
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /api/status/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/apps/health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      serviceAccountName: supremeai-sa
+      timeoutSeconds: 300
