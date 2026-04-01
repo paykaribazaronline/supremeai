@@ -24,6 +24,9 @@ public class MultiAIConsensusService {
     @Autowired
     private AIAPIService aiService; // Existing service to call AI providers
     
+    @Autowired
+    private QuotaService quotaService; // NEW: Track API quota usage
+    
     private static final int CONSENSUS_THRESHOLD = 70; // Require 70% agreement
     private static final int AI_REQUEST_TIMEOUT_SEC = 5;
     private Map<String, ConsensusFeedback> feedbackHistory = new ConcurrentHashMap<>();
@@ -52,16 +55,36 @@ public class MultiAIConsensusService {
             ConsensusVote vote = new ConsensusVote();
             vote.setQuestion(question);
             
-            logger.info("🤖 Asking 10 AI providers: {}", question);
+            // NEW: Check which AIs have available quota
+            List<String> availableProviders = quotaService.getAvailableProviders();
+            boolean needsFallback = quotaService.shouldUseFallback();
             
-            // Get responses from all providers asynchronously
-            ExecutorService executor = Executors.newFixedThreadPool(10);
+            if (availableProviders.isEmpty()) {
+                logger.error("❌ ALL AI PROVIDERS OUT OF QUOTA! Falling back...");
+                return handleQuotaFallback(question);
+            }
+            
+            if (needsFallback) {
+                logger.warn("⚠️ Less than 5 AIs available - using limited consensus");
+            }
+            
+            logger.info("🤖 Asking {} available AI providers: {}", availableProviders.size(), question);
+            logger.info("📊 Available: {}", availableProviders);
+            
+            // Get responses from available providers asynchronously
+            ExecutorService executor = Executors.newFixedThreadPool(Math.min(10, availableProviders.size()));
             List<Future<Map.Entry<String, String>>> futures = new ArrayList<>();
             
-            for (String provider : AI_PROVIDERS) {
+            for (String provider : availableProviders) {
                 futures.add(executor.submit(() -> {
                     try {
+                        // Query the AI
                         String response = queryAI(provider, question);
+                        
+                        // Record usage (assume ~200 tokens per request)
+                        quotaService.recordUsage(provider, 200);
+                        
+                        logger.debug("✅ Response from {}: {}", provider, response.substring(0, Math.min(50, response.length())));
                         return new AbstractMap.SimpleEntry<>(provider, response);
                     } catch (Exception e) {
                         logger.warn("❌ {} failed: {}", provider, e.getMessage());
@@ -86,7 +109,7 @@ public class MultiAIConsensusService {
             
             executor.shutdown();
             
-            logger.info("✅ Received {} responses from {} providers", successCount, AI_PROVIDERS.size());
+            logger.info("✅ Received {} responses from {} available providers", successCount, availableProviders.size());
             
             // Vote on best response
             voteBestResponse(vote);
@@ -103,6 +126,41 @@ public class MultiAIConsensusService {
             logger.error("❌ Multi-AI consensus failed: {}", e.getMessage());
             return null;
         }
+    }
+    
+    /**
+     * Fallback when quotas are exhausted
+     */
+    private ConsensusVote handleQuotaFallback(String question) {
+        logger.warn("⚠️ QUOTA FALLBACK triggered - using cached consensus or local model");
+        
+        ConsensusVote vote = new ConsensusVote();
+        vote.setQuestion(question);
+        
+        // Try to use cached consensus from last successful vote
+        ConsensusVote lastVote = voteHistory.values().stream()
+            .max(Comparator.comparingLong(ConsensusVote::getTimestamp))
+            .orElse(null);
+        
+        if (lastVote != null && lastVote.getWinningResponse() != null) {
+            logger.info("📚 Using cached consensus from previous vote");
+            vote.setWinningResponse(lastVote.getWinningResponse());
+            vote.setConfidenceScore(lastVote.getConfidenceScore());
+            // Copy votes by re-voting
+            for (Map.Entry<String, Integer> voteEntry : lastVote.getVotes().entrySet()) {
+                for (int i = 0; i < voteEntry.getValue(); i++) {
+                    vote.voteFor(voteEntry.getKey());
+                }
+            }
+            return vote;
+        }
+        
+        // Fallback: Local model response
+        logger.warn("📍 All quotas exceeded and no cache - using local fallback response");
+        vote.setWinningResponse("[LOCAL_FALLBACK] Please wait for quota reset or reduce requests");
+        vote.setConfidenceScore(0.3);
+        
+        return vote;
     }
     
     /**
