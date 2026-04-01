@@ -101,16 +101,24 @@ public class ServerMetricsService {
         Map<String, Object> cpu = new HashMap<>();
         OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
         
-        // Use com.sun.management.OperatingSystemMXBean for extended metrics
-        if (osBean instanceof com.sun.management.OperatingSystemMXBean) {
-            com.sun.management.OperatingSystemMXBean sunOsBean = 
-                (com.sun.management.OperatingSystemMXBean) osBean;
-            cpu.put("processCpuUsage", String.format("%.2f%%", sunOsBean.getProcessCpuUsage() * 100));
-            cpu.put("systemCpuUsage", String.format("%.2f%%", sunOsBean.getSystemCpuUsage() * 100));
-        } else {
+        try {
+            // Try to use Sun-specific extended traits if available
+            java.lang.reflect.Method processCpuMethod = 
+                osBean.getClass().getMethod("getProcessCpuUsage");
+            java.lang.reflect.Method systemCpuMethod = 
+                osBean.getClass().getMethod("getSystemCpuUsage");
+            
+            double processCpu = (double) processCpuMethod.invoke(osBean) * 100;
+            double systemCpu = (double) systemCpuMethod.invoke(osBean) * 100;
+            
+            cpu.put("processCpuUsage", String.format("%.2f%%", processCpu));
+            cpu.put("systemCpuUsage", String.format("%.2f%%", systemCpu));
+        } catch (Exception e) {
+            // Fallback if Sun-specific methods not available
             cpu.put("processCpuUsage", "N/A");
             cpu.put("systemCpuUsage", "N/A");
         }
+        
         cpu.put("availableProcessors", osBean.getAvailableProcessors());
         
         return cpu;

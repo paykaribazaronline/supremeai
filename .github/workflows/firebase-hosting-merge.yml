@@ -1,7 +1,7 @@
 # Supreme AI - Firebase Hosting Deploy with Unified Domain
 #
 # Firebase permissions for FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A:
-#   roles/firebasehosting.admin ? granted
+#   roles/firebasehosting.admin ✓ granted
 #
 # This workflow:
 # 1. Builds Flutter Admin App with --base-href "/admin/"
@@ -24,9 +24,8 @@ on:
     branches:
       - main
 
-# Opt into Node.js 24 (Node.js 20 sunset: June 2, 2026)
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  NODE_VERSION: '24'
   
 # ==========================================
 # STAGE 1: Build Flutter Admin App
@@ -181,6 +180,11 @@ jobs:
       - name: ?? Checkout Code
         uses: actions/checkout@v4
 
+      - name: ?? Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
       - name: ?? Download Flutter Admin Build
         uses: actions/download-artifact@v4
         with:
@@ -194,14 +198,14 @@ jobs:
           name: dashboard-build
           path: dashboard-build/
 
-      - name: ??? Create combined_deploy Directory Structure
+      - name: ✅ Create combined_deploy Directory Structure
         run: |
           # Create root combined_deploy folder
           mkdir -p combined_deploy/admin
           
           # Copy dashboard files to root
           if [ -d "public" ]; then
-            echo "? Copying from public/ to combined_deploy root..."
+            echo "✓ Copying from public/ to combined_deploy root..."
             cp -r public/* combined_deploy/ 2>/dev/null || true
             rm -f combined_deploy/admin 2>/dev/null || true
             mkdir -p combined_deploy/admin
@@ -209,10 +213,10 @@ jobs:
           
           # Copy Flutter build to admin subfolder
           if [ -d "flutter-admin-build" ] && [ "$(ls -A flutter-admin-build)" ]; then
-            echo "? Copying Flutter build to combined_deploy/admin/..."
+            echo "✓ Copying Flutter build to combined_deploy/admin/..."
             cp -r flutter-admin-build/* combined_deploy/admin/
           else
-            echo "? Flutter build is missing!"
+            echo "✗ Flutter build is missing!"
             exit 1
           fi
           
@@ -225,8 +229,11 @@ jobs:
           ls -la combined_deploy/admin/ | head -10
           echo ""
           
-          # Ensure firebase.json is in combined_deploy
-          cp firebase.json combined_deploy/
+          # Ensure firebase.json is in root
+          cp firebase.json ./
+
+      - name: ?? Install Firebase Tools
+        run: npm install -g firebase-tools
 
       - name: ?? Deploy to Firebase Hosting
         id: deploy
@@ -325,5 +332,5 @@ jobs:
           echo "View workflow details:"
           echo "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           echo ""
-          echo "==================================================
+          echo "=================================================="
 
