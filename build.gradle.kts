@@ -67,6 +67,12 @@ dependencies {
     implementation("io.micrometer:micrometer-core:1.12.3")
     implementation("io.micrometer:micrometer-registry-prometheus:1.12.3")
 
+    // Distributed Tracing - OpenTelemetry (using stable versions)
+    implementation("io.opentelemetry:opentelemetry-api:1.36.0")
+    implementation("io.opentelemetry:opentelemetry-sdk:1.36.0")
+    // Note: opentelemetry-exporter-jaeger moved, using basic exporter instead
+    // implementation("io.opentelemetry:opentelemetry-exporter-jaeger:1.36.0")
+    
     // Caching
     implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
 
