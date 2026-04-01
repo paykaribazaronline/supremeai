@@ -1,20 +1,25 @@
 # Admin Dashboard Implementation Guide
 
 ## Overview
+
 Admin dashboards for **Documentation Rules Governance** and **AI Quota Rotation** enable non-developers to manage SupremeAI's core systems without code changes.
 
 ## 1. Documentation Rules Dashboard
 
 ### Purpose
+
 Control where documentation goes, enforcement levels, and file validation rules.
 
 ### REST Endpoints
 
 #### **View Current Rules**
+
 ```bash
 GET /api/admin/doc-rules/current
 ```
+
 **Response:**
+
 ```json
 {
   "status": "✅ OK",
@@ -36,6 +41,7 @@ GET /api/admin/doc-rules/current
 ```
 
 #### **Update Rules**
+
 ```bash
 POST /api/admin/doc-rules/update
 Content-Type: application/json
@@ -50,11 +56,13 @@ Content-Type: application/json
 ```
 
 #### **Add New Category**
+
 ```bash
 POST /api/admin/doc-rules/add-category?categoryName=guides&rootPath=docs/12-GUIDES/&maxFileSizeKB=1000&requireApproval=false
 ```
 
 #### **Set Enforcement Level**
+
 ```bash
 POST /api/admin/doc-rules/set-enforcement-level?level=STRICT
 
@@ -65,6 +73,7 @@ Levels:
 ```
 
 #### **Validate Document**
+
 ```bash
 POST /api/admin/doc-rules/validate-document?filepath=docs/architecture.md&category=architecture&fileSizeKB=250
 
