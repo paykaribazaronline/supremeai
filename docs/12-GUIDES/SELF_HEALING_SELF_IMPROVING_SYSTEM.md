@@ -689,6 +689,7 @@ Month 2:
 
 ```powershell
 # Deploy self-healing system
+
 docker run \
   -e ENABLE_SELF_HEALING=true \
   -e ENABLE_ML_LEARNING=true \
@@ -699,6 +700,7 @@ docker run \
   supremeai:v3.2-self-healing
 
 # Monitor self-healing activities
+
 curl http://localhost:8080/api/v1/health
 curl http://localhost:8080/api/v1/healing-metrics
 curl http://localhost:8080/api/v1/ml-predictions

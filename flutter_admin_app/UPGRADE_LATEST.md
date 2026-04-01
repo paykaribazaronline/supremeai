@@ -6,6 +6,7 @@
 ## ⚡ Quick Upgrade Commands
 
 ### Option 1: Standard Update (Recommended)
+
 ```bash
 cd flutter_admin_app
 flutter pub get
@@ -13,12 +14,14 @@ flutter pub upgrade
 ```
 
 ### Option 2: Full Upgrade (includes major versions)
+
 ```bash
 cd flutter_admin_app
 flutter pub upgrade --major-versions
 ```
 
 ### Option 3: Complete Clean Install
+
 ```bash
 cd flutter_admin_app
 flutter clean
@@ -117,12 +120,14 @@ flutter run
 ## 🆘 Troubleshooting Upgrades
 
 ### Issue: "Unable to find version"
+
 ```bash
 flutter pub cache repair
 flutter pub get
 ```
 
 ### Issue: "Build fails after upgrade"
+
 ```bash
 flutter clean
 rm -rf pubspec.lock
@@ -131,12 +136,14 @@ flutter run
 ```
 
 ### Issue: "Dependency conflict"
+
 ```bash
 flutter pub upgrade --major-versions
 # or resolve manually in pubspec.yaml
 ```
 
 ### Issue: "SDK constraints"
+
 Update Flutter:
 ```bash
 flutter upgrade stable

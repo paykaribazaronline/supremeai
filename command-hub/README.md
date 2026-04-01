@@ -92,23 +92,27 @@ New Spring Boot controller for command management.
 ## 🚀 Quick Start
 
 ### 1. Start SupremeAI Backend
+
 ```bash
 cd supremeai
 ./gradlew bootRun
 ```
 
 ### 2. Deploy CommandHub Services
+
 ```bash
 cd command-hub
 ./deploy.sh
 ```
 
 ### 3. Access Admin Dashboard
+
 ```
 http://localhost:3000
 ```
 
 ### 4. Use CLI
+
 ```bash
 supcmd health-check
 supcmd improve --all
@@ -130,6 +134,7 @@ supcmd quota-status
 ## 🔧 Available Commands
 
 ### Monitoring
+
 ```bash
 supcmd health-check              # Full system health
 supcmd quota-status              # All quotas
@@ -138,6 +143,7 @@ supcmd recent-errors             # Last 10 errors
 ```
 
 ### Data Refresh
+
 ```bash
 supcmd refresh-github            # Fetch from GitHub API
 supcmd refresh-vercel            # Fetch from Vercel API
@@ -146,6 +152,7 @@ supcmd refresh --all             # All sources
 ```
 
 ### System Optimization
+
 ```bash
 supcmd optimize-quotas           # Auto-adjust quotas
 supcmd heal-failures             # Fix failed requests
@@ -154,6 +161,7 @@ supcmd cleanup-cache             # Clear cache
 ```
 
 ### Admin Actions
+
 ```bash
 supcmd account-list              # List AI accounts
 supcmd account-add [NAME] [KEY]  # Add new account
@@ -184,6 +192,7 @@ supcmd approve-provider [NAME]   # Approve provider
 ## 💾 Command Execution Flow
 
 ### Sync Commands (Real-time)
+
 ```
 CLI/API Request 
   → CommandValidator 
@@ -193,6 +202,7 @@ CLI/API Request
 ```
 
 ### Async Commands (Queue-based)
+
 ```
 CLI/API Request 
   → CommandQueue 

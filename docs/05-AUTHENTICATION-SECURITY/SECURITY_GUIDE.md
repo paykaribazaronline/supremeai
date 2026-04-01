@@ -55,6 +55,7 @@ supremeai/encryption-master-key
 ```properties
 # NEVER commit API keys
 # Use environment variables for local development
+
 dev.deepseek.key=${DEEPSEEK_KEY}
 dev.groq.key=${GROQ_KEY}
 dev.anthropic.key=${ANTHROPIC_KEY}
@@ -191,6 +192,7 @@ RateLimitingService.java uses token bucket algorithm.
 
 ```properties
 # Rate limiting
+
 ratelimit.user.tokens.per_minute=100
 ratelimit.project.tokens.per_hour=1000
 ratelimit.admin.tokens.per_minute=500
@@ -219,6 +221,7 @@ if (!rateLimiter.allowUserRequest(userId)) {
 
 ```properties
 # Aggressive rate limiting for suspicious behavior
+
 ratelimit.initial_requests_per_minute=10
 ratelimit.escalating_factor=1.5
 ratelimit.max_memory_per_user=10mb

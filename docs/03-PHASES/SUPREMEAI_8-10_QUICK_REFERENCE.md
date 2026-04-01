@@ -1,4 +1,5 @@
 # SupremeAI 8/10+ Quick Reference Card
+
 **For:** Developers implementing the 6-week plan  
 **Updated:** April 1, 2026  
 **Target Score:** 8/10+ (from 7-8/10)

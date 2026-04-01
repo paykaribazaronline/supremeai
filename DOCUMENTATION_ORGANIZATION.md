@@ -7,6 +7,7 @@ All SupremeAI project documentation has been organized into a clear, hierarchica
 ## 📊 Organization Overview
 
 ### Folder Structure
+
 ```
 docs/
 ├── 00-START-HERE/                  # Quick start guides (new users)

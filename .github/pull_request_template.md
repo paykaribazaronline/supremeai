@@ -1,7 +1,6 @@
 ## 📋 Pull Request Description
 
-### Type of Change
-- [ ] 🎨 Feature (new functionality)
+### Type of Change- [ ] 🎨 Feature (new functionality)
 - [ ] 🐛 Bug fix (fixes an issue)
 - [ ] 📚 Documentation (updates docs)
 - [ ] ♻️ Refactoring (code improvement)
@@ -15,12 +14,15 @@
 ## 📝 Description
 
 ### What does this PR do?
+
 *Briefly describe the changes you made.*
 
 ### Why are these changes needed?
+
 *Explain the problem this solves or feature it adds.*
 
 ### How does this work?
+
 *Technical details of the implementation.*
 
 ---
@@ -35,17 +37,20 @@ Related to #(issue number)
 ## ✅ Testing
 
 ### How have you tested this?
+
 - [ ] Unit tests written
 - [ ] Integration tests written
 - [ ] Manual testing completed
 - [ ] Tested locally on Windows/Mac/Linux
 
 ### Test Coverage
+
 - [ ] Existing tests pass
 - [ ] New tests added
 - [ ] Coverage >= 75%
 
 ### Steps to Reproduce (for bug fixes)
+
 1. Step 1
 2. Step 2
 3. Verify fix works
@@ -96,9 +101,11 @@ Related to #(issue number)
 ## 📸 Screenshots/Demo (if applicable)
 
 ### Before
+
 *Screenshot or description of before state*
 
 ### After
+
 *Screenshot or description of after state*
 
 ---

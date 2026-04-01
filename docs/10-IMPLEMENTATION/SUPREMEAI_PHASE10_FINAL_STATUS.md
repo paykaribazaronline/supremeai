@@ -16,6 +16,7 @@
 ### Complete Agent Roster (20/20)
 
 #### Core Agents (Phases 1-5: Foundation)
+
 ```
 1. Architect        Design & architecture decisions
 2. Builder          Code generation & structure
@@ -23,6 +24,7 @@
 ```
 
 #### Phase 6: Visualization & Auto-Iteration (App Enhancement)
+
 ```
 4. Visual           3D real-time visualization dashboard
 5. Fixer            Auto-fix error detection & correction
@@ -30,6 +32,7 @@
 ```
 
 #### Phase 7: Full Automation & Multi-Platform (Platform Expansion)
+
 ```
 7. iOS              Swift code generation for iOS
 8. Web              React/Vue/Angular code generation
@@ -38,6 +41,7 @@
 ```
 
 #### Phase 8: Security & Compliance (Risk Management)
+
 ```
 11. Alpha           OWASP Top 10 vulnerability scanning
 12. Beta            GDPR/CCPA/SOC2 compliance validation
@@ -45,6 +49,7 @@
 ```
 
 #### Phase 9: Cost Intelligence (Budget Optimization)
+
 ```
 14. Delta           Real-time cloud cost tracking (GCP/AWS)
 15. Epsilon         Resource optimization & right-sizing
@@ -52,6 +57,7 @@
 ```
 
 #### Phase 10: Self-Improvement (Meta-Evolution)
+
 ```
 17. Eta             Genetic algorithm agent evolution
 18. Theta           RAG-based pattern learning

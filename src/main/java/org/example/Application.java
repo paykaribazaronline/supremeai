@@ -8,8 +8,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.example.service.ServerMetricsService;
+import java.util.HashMap;
+import java.util.Map;
 
 @SpringBootApplication(scanBasePackages = {
     "org.example.service",
@@ -21,6 +25,9 @@ import org.slf4j.LoggerFactory;
 public class Application {
     
     private static final Logger logger = LoggerFactory.getLogger(Application.class);
+    
+    @Autowired(required = false)
+    private ServerMetricsService metricsService;
 
     public static void main(String[] args) {
         try {
@@ -46,14 +53,33 @@ public class Application {
     }
 
     @GetMapping("/")
-    public String home() {
+    public Map<String, Object> home() {
         logger.info("✓ Home endpoint accessed");
-        return "🚀 SupremeAI Cloud Server is Running! Version: 3.5";
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "🚀 SupremeAI Cloud Server is Running!");
+        response.put("version", "3.5");
+        response.put("status", "UP");
+        response.put("timestamp", System.currentTimeMillis());
+        response.put("healthCheck", "/api/status/health");
+        response.put("statusSummary", "/api/status/summary");
+        response.put("performance", "/api/status/performance");
+        
+        return response;
     }
 
     @GetMapping("/actuator/health")
-    public String health() {
+    public Map<String, Object> health() {
         logger.info("✓ Health check endpoint accessed");
-        return "{\"status\":\"UP\",\"timestamp\":\"" + System.currentTimeMillis() + "\"}";
+        
+        if (metricsService != null) {
+            return metricsService.getMetrics();
+        }
+        
+        // Fallback if service not available
+        Map<String, Object> fallback = new HashMap<>();
+        fallback.put("status", "UP");
+        fallback.put("timestamp", System.currentTimeMillis());
+        return fallback;
     }
 }

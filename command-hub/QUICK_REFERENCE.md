@@ -24,6 +24,7 @@
 ## REST API Endpoints
 
 ### Execute Command
+
 ```
 POST /api/commands/execute
 Content-Type: application/json
@@ -57,6 +58,7 @@ Response (200):
 ```
 
 ### Get Command Info
+
 ```
 GET /api/commands/{name}
 
@@ -72,6 +74,7 @@ Response (200):
 ```
 
 ### Check Health
+
 ```
 GET /api/commands/health
 
@@ -84,6 +87,7 @@ Commands service is healthy
 ## CLI Tool Usage
 
 ### Installation
+
 ```bash
 # Copy to system PATH
 cp command-hub/cli/supcmd.py /usr/local/bin/supcmd
@@ -96,6 +100,7 @@ python3 command-hub/cli/supcmd.py <command> [options]
 ### Subcommands
 
 #### Execute a Command
+
 ```bash
 supcmd exec <command-name> [-p key value] [--url url] [--token token]
 
@@ -107,6 +112,7 @@ Examples:
 ```
 
 #### List Commands
+
 ```bash
 supcmd list [--category CATEGORY] [--type TYPE] [--url url]
 
@@ -118,6 +124,7 @@ Examples:
 ```
 
 #### Get Command Details
+
 ```bash
 supcmd info <command-name> [--url url]
 
@@ -128,6 +135,7 @@ Examples:
 ```
 
 #### Authenticate
+
 ```bash
 supcmd login <api-token> [--url url]
 
@@ -139,6 +147,7 @@ Examples:
 ```
 
 #### Check Server Health
+
 ```bash
 supcmd health [--url url]
 
@@ -148,6 +157,7 @@ Examples:
 ```
 
 ### Global Options
+
 ```
 --url URL          API server URL (default: http://localhost:8080)
 --token TOKEN      API authentication token (overrides saved token)
