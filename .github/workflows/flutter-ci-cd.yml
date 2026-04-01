@@ -20,7 +20,8 @@ on:
 
 env:
   FLUTTER_VERSION: '3.27.0'
-  FIREBASE_PROJECT: 'supremeai-565236080752'
+  FIREBASE_PROJECT: 'supremeai-a'
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   # ==========================================
@@ -159,30 +160,31 @@ jobs:
           cat .firebaserc
 
       - name: 🚀 Deploy to Firebase
-        if: ${{ env.FIREBASE_TOKEN != '' }}
         run: |
+          if [ -z "$FIREBASE_TOKEN" ]; then
+            echo "⚠️ FIREBASE_TOKEN secret is not configured"
+            echo ""
+            echo "To enable Firebase Hosting deployment:"
+            echo "1. Generate a Firebase token: firebase login:ci"
+            echo "2. Go to: Settings → Secrets and variables → Actions → New repository secret"
+            echo "3. Create secret 'FIREBASE_TOKEN' with the generated token"
+            echo ""
+            echo "Skipping Firebase deployment..."
+            exit 0
+          fi
+          
           echo "🚀 Deploying Flutter Admin App to Firebase Hosting..."
           firebase deploy \
-            --project=${{ env.FIREBASE_PROJECT }} \
+            --token="$FIREBASE_TOKEN" \
             --only=hosting:flutter-admin \
-            --token=${{ secrets.FIREBASE_TOKEN }} \
             --non-interactive \
             --debug
           echo "✅ Firebase deployment completed"
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          FIREBASE_PROJECT: ${{ env.FIREBASE_PROJECT }}
 
-      - name: ⚠️ Firebase Token Not Configured
-        if: ${{ env.FIREBASE_TOKEN == '' }}
-        run: |
-          echo "⚠️  FIREBASE_TOKEN secret is not configured"
-          echo ""
-          echo "To enable Firebase Hosting deployment:"
-          echo "1. Generate a Firebase token: firebase login:ci"
-          echo "2. Go to: Settings → Secrets and variables → Actions → New repository secret"
-          echo "3. Create secret 'FIREBASE_TOKEN' with the generated token"
-          echo ""
-          echo "Skipping Firebase deployment for now..."
+
 
       - name: 📢 Deployment Success
         if: success()
