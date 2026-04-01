@@ -1,6 +1,7 @@
 package org.example.service;
 
 import org.example.model.ConsensusVote;
+import org.example.model.ConsensusFeedback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,10 @@ public class MultiAIConsensusService {
     
     @Autowired
     private AIAPIService aiService; // Existing service to call AI providers
+    
+    private static final int CONSENSUS_THRESHOLD = 70; // Require 70% agreement
+    private static final int AI_REQUEST_TIMEOUT_SEC = 5;
+    private Map<String, ConsensusFeedback> feedbackHistory = new ConcurrentHashMap<>();
     
     // Simulate different AI provider perspectives
     private static final List<String> AI_PROVIDERS = Arrays.asList(
@@ -209,6 +214,61 @@ public class MultiAIConsensusService {
         stats.put("learningsRecorded", voteHistory.size());
         stats.put("averageConsensus", voteHistory.values().stream()
             .mapToDouble(ConsensusVote::getConfidenceScore)
+            .average()
+            .orElse(0.0));
+        
+        return stats;
+    }
+    
+    /**
+     * Record feedback on consensus recommendation
+     */
+    public void recordFeedback(String voteId, String executedSolution, String outcome, 
+                               Double successRate, String errorDetails) {
+        try {
+            ConsensusFeedback feedback = new ConsensusFeedback();
+            feedback.setVoteId(voteId);
+            feedback.setExecutedSolution(executedSolution);
+            feedback.setOutcome(outcome);
+            feedback.setActualSuccessRate(successRate);
+            feedback.setErrorDetails(errorDetails);
+            
+            feedbackHistory.put(feedback.getId(), feedback);
+            
+            // If consensus was wrong, learn from it
+            if (!feedback.wasVoteAccurate()) {
+                logger.warn("⚠️ Consensus was INACCURATE: vote={}, success={}", voteId, successRate);
+                learningService.recordError(
+                    "CONSENSUS_FAILED",
+                    "Consensus recommendation failed: " + outcome,
+                    new Exception(errorDetails),
+                    "Review AI provider " + executedSolution + " voting pattern"
+                );
+            } else {
+                logger.info("✅ Consensus was ACCURATE: vote={}, success={}", voteId, successRate);
+            }
+            
+        } catch (Exception e) {
+            logger.error("❌ Failed to record feedback: {}", e.getMessage());
+        }
+    }
+    
+    /**
+     * Get feedback history (how accurate are we?)
+     */
+    public Map<String, Object> getFeedbackStats() {
+        Map<String, Object> stats = new HashMap<>();
+        
+        long accurateVotes = feedbackHistory.values().stream()
+            .filter(ConsensusFeedback::wasVoteAccurate)
+            .count();
+        
+        stats.put("totalFeedback", feedbackHistory.size());
+        stats.put("accurateVotes", accurateVotes);
+        stats.put("accuracy", feedbackHistory.isEmpty() ? 0 : 
+            (double) accurateVotes / feedbackHistory.size());
+        stats.put("averageSuccessRate", feedbackHistory.values().stream()
+            .mapToDouble(ConsensusFeedback::getActualSuccessRate)
             .average()
             .orElse(0.0));
         
