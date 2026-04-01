@@ -102,7 +102,7 @@ public class DocumentationRulesService {
         // Check if root is allowed
         if (filepath.startsWith("./") || filepath.startsWith("/")) {
             String filename = filepath.substring(Math.max(filepath.lastIndexOf("/"), filepath.lastIndexOf("\\")) + 1);
-            if (!rules.getAllowedInRoot(filename)) {
+            if (!rules.getAllowedInRoot().contains(filename)) {
                 result.addError("File not allowed in root folder: " + filename);
                 
                 if (rules.isAutoCorrectPath()) {
