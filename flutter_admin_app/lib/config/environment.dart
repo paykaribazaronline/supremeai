@@ -2,7 +2,8 @@
 
 class Environment {
   // Production Cloud Run URL - connects to the backend service
-  static const String baseUrl = 'https://supremeai-565236080752.us-central1.run.app';
+  // Updated to use the correct Cloud Run service deployed from supremeai-a
+  static const String baseUrl = 'https://supremeai.us-central1.run.app';
   
   // Local Development URL (uncomment to use local backend)
   // static const String baseUrl = 'http://localhost:8080';
