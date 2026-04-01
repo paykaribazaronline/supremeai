@@ -128,23 +128,43 @@ public class GitHubAPIService {
      */
     public String createIssue(String title, String body, String label) {
         try {
-            String endpoint = String.format("%s/repos/%s/issues", GITHUB_API, GITHUB_REPO);
-            
-            String jsonBody = String.format(
-                "{\"title\": \"%s\", \"body\": \"%s\", \"labels\": [\"%s\"]}",
-                title, body, label
-            );
-            
-            boolean posted = makeGitHubPostRequest(endpoint, jsonBody);
-            if (!posted) {
+            if (GITHUB_TOKEN == null || GITHUB_TOKEN.trim().isEmpty()) {
+                logger.error("❌ GitHub token not configured. Set GITHUB_TOKEN environment variable.");
                 return null;
             }
             
-            String response = jsonBody;
+            String endpoint = String.format("%s/repos/%s/issues", GITHUB_API, GITHUB_REPO);
+            
+            // Escape title and body for JSON
+            String escapedTitle = escapeJson(title);
+            String escapedBody = escapeJson(body);
+            String escapedLabel = escapeJson(label);
+            
+            String jsonBody = String.format(
+                "{\"title\": \"%s\", \"body\": \"%s\", \"labels\": [\"%s\"]}",
+                escapedTitle, escapedBody, escapedLabel
+            );
+            
+            // ✅ FIX: Actually capture the response, not the request!
+            String response = makeGitHubRequestWithResponse(endpoint, jsonBody);
+            if (response == null) {
+                return null;
+            }
+            
             Map<String, Object> data = parseJson(response);
             
             if (data.containsKey("number")) {
                 return String.valueOf(data.get("number"));
+            }
+            
+            // Fallback: extract from response string
+            if (response.contains("\"number\":")) {
+                int start = response.indexOf("\"number\":") + 10;
+                int end = response.indexOf(",", start);
+                if (end == -1) end = response.indexOf("}", start);
+                if (start > 0 && end > start) {
+                    return response.substring(start, end).trim();
+                }
             }
             
             return null;
@@ -227,9 +247,13 @@ public class GitHubAPIService {
     }
     
     /**
-     * Make POST request to GitHub API
+     * Make POST request to GitHub API - with response body
      */
-    private boolean makeGitHubPostRequest(String endpoint, String body) throws IOException {
+    private String makeGitHubRequestWithResponse(String endpoint, String body) throws IOException {
+        if (GITHUB_TOKEN == null || GITHUB_TOKEN.trim().isEmpty()) {
+            throw new IOException("GitHub token not configured");
+        }
+        
         URL url = new URL(endpoint);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
@@ -244,9 +268,44 @@ public class GitHubAPIService {
         }
         
         int responseCode = conn.getResponseCode();
+        
+        // ✅ Read response body
+        BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        StringBuilder response = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            response.append(line);
+        }
+        reader.close();
         conn.disconnect();
         
-        return responseCode >= 200 && responseCode < 300;
+        if (responseCode < 200 || responseCode >= 300) {
+            logger.error("❌ GitHub API error {}: {}", responseCode, response.toString());
+            return null;
+        }
+        
+        return response.toString();
+    }
+    
+    /**
+     * Make POST request to GitHub API - returns boolean
+     */
+    private boolean makeGitHubPostRequest(String endpoint, String body) throws IOException {
+        String response = makeGitHubRequestWithResponse(endpoint, body);
+        return response != null;
+    }
+    
+    /**
+     * Escape JSON string values
+     */
+    private String escapeJson(String value) {
+        if (value == null) return "";
+        return value
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t");
     }
     
     /**
@@ -258,7 +317,7 @@ public class GitHubAPIService {
         // Simple implementation for demo
         Map<String, Object> result = new HashMap<>();
         try {
-            // Very basic JSON parsing - evaluate in proper JSON library
+            // Very basic JSON parsing - use Jackson for production
             if (jsonStr.contains("\"workflow_runs\"")) {
                 result.put("workflow_runs", new ArrayList<>());
             }
@@ -269,8 +328,22 @@ public class GitHubAPIService {
                     result.put("conclusion", "failure");
                 }
             }
+            // Extract number field if present
+            if (jsonStr.contains("\"number\":")) {
+                int start = jsonStr.indexOf("\"number\":") + 10;
+                int end = jsonStr.indexOf(",", start);
+                if (end == -1) end = jsonStr.indexOf("}", start);
+                if (start > 0 && end > start) {
+                    try {
+                        int number = Integer.parseInt(jsonStr.substring(start, end).trim());
+                        result.put("number", number);
+                    } catch (NumberFormatException e) {
+                        logger.warn("Could not parse issue number");
+                    }
+                }
+            }
         } catch (Exception e) {
-            logger.warn("⚠️ JSON parsing simplified - use Jackson for production");
+            logger.error("⚠️ JSON parsing error: {}", e.getMessage());
         }
         return result;
     }

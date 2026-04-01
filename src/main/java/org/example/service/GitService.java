@@ -30,6 +30,17 @@ public class GitService {
      */
     public String commitChanges(String commitMessage, String author) {
         try {
+            // ✅ VALIDATION: Check inputs
+            if (commitMessage == null || commitMessage.trim().isEmpty()) {
+                logger.error("❌ Commit message cannot be empty");
+                return null;
+            }
+            
+            if (author == null || author.trim().isEmpty()) {
+                logger.error("❌ Author info cannot be empty");
+                return null;
+            }
+            
             // Check admin control
             if (!canPerformGitOperation()) {
                 logger.warn("❌ Git operation blocked by admin control: {}", adminControlService.getPermissionMode());
@@ -47,8 +58,7 @@ public class GitService {
                 return "no-changes";
             }
             
-            // Commit with author info
-            String command = String.format("git commit -m \"%s\" --author=\"%s\"", commitMessage, author);
+            // Commit with author info - using array args (prevents injection)
             String commitOutput = executeGitCommand("git", "commit", "-m", commitMessage, "--author=" + author);
             
             // Extract commit hash
@@ -68,12 +78,26 @@ public class GitService {
      */
     public boolean pushToRemote(String branch) {
         try {
+            // ✅ VALIDATION: Validate branch name (no special chars)
+            if (branch == null || !branch.matches("^[a-zA-Z0-9._/-]+$")) {
+                logger.error("❌ Invalid branch name: {}", branch);
+                return false;
+            }
+            
             if (!canPerformGitOperation()) {
                 logger.warn("❌ Git push blocked by admin control");
                 return false;
             }
             
+            // ✅ FIX: Check for actual git errors
             String output = executeGitCommand("git", "push", "origin", branch);
+            
+            // Check if push actually succeeded
+            if (output != null && (output.contains("error") || output.contains("fatal"))) {
+                logger.error("❌ Git push failed: {}", output);
+                return false;
+            }
+            
             logger.info("🚀 Push successful to {}/{}", "origin", branch);
             return true;
             
@@ -219,14 +243,19 @@ public class GitService {
     }
     
     /**
-     * Execute git command
+     * Execute git command - with proper stderr separation
      */
     private String executeGitCommand(String... command) throws IOException, InterruptedException {
         ProcessBuilder pb = new ProcessBuilder(command);
         pb.directory(new File(GIT_REPO_PATH));
-        pb.redirectErrorStream(true);
+        // ✅ FIX: DON'T merge stderr - capture separately
+        // pb.redirectErrorStream(true);  <- WRONG!
         
         Process process = pb.start();
+        
+        // ✅ Read stderr separately to capture real errors
+        BufferedReader errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+        StringBuilder stderr = new StringBuilder();
         
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         StringBuilder output = new StringBuilder();
@@ -236,37 +265,61 @@ public class GitService {
             output.append(line).append("\n");
         }
         
+        while ((line = errReader.readLine()) != null) {
+            stderr.append(line).append("\n");
+        }
+        
         boolean finished = process.waitFor(30, TimeUnit.SECONDS);
         if (!finished) {
             process.destroyForcibly();
-            throw new IOException("Git command timeout");
+            throw new IOException("Git command timeout after 30s: " + String.join(" ", command));
         }
         
         int exitCode = process.exitValue();
         if (exitCode != 0) {
-            logger.warn("⚠️ Git command exited with code {}: {}", exitCode, String.join(" ", command));
+            logger.error("❌ Git command FAILED with code {}: {}", exitCode, String.join(" ", command));
+            if (stderr.length() > 0) {
+                logger.error("   Error output: {}", stderr.toString());
+            }
         }
         
         return output.toString();
     }
     
     /**
-     * Extract commit hash from git output
+     * Extract commit hash from git output - with multiple format support
      */
     private String extractCommitHash(String output) {
-        if (output == null) return null;
+        if (output == null || output.trim().isEmpty()) return null;
         
         String[] lines = output.split("\n");
         for (String line : lines) {
+            line = line.trim();
+            
+            // ✅ FIX: Support multiple git output formats:
+            // Format 1: [main (root-commit) abc123] Message
+            // Format 2: [main abc123] Message
+            // Format 3: Commit hash extracted from anywhere
+            
             if (line.contains("[") && line.contains("]")) {
-                // Format: [branch commit-hash]
-                int start = line.lastIndexOf(" ") + 1;
-                int end = line.lastIndexOf("]");
-                if (start > 0 && end > start) {
-                    return line.substring(start, end);
+                // Extract hash between brackets
+                int start = line.indexOf("[") + 1;
+                int end = line.indexOf("]");
+                String content = line.substring(start, end);
+                
+                // Extract last word (usually the hash)
+                String[] parts = content.split(" ");
+                for (int i = parts.length - 1; i >= 0; i--) {
+                    String part = parts[i].trim();
+                    // Check if it looks like a commit hash (hex, 7+ chars)
+                    if (part.matches("^[a-f0-9]{7,}$")) {
+                        return part;
+                    }
                 }
             }
         }
+        
+        logger.warn("⚠️ Could not extract commit hash from output: {}", output.substring(0, Math.min(100, output.length())));
         return null;
     }
 }
