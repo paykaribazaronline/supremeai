@@ -299,19 +299,7 @@
         const passwordInput = document.getElementById('password');
 
         // Load remembered credentials if remember me was checked
-        window.addEventListener('DOMContentLoaded', async () => {
-            // First, check if system is initialized
-            try {
-                const initResponse = await fetch('/api/auth/init');
-                const initData = await initResponse.json();
-                if (initData.status === 'success') {
-                    console.log('✅ System initialized with default user');
-                }
-            } catch (e) {
-                console.log('System already initialized or not accessible');
-            }
-            
-            // Load remembered credentials
+        window.addEventListener('DOMContentLoaded', () => {
             const savedUsername = localStorage.getItem('supremeai_remembered_username');
             const savedPassword = localStorage.getItem('supremeai_remembered_password');
             

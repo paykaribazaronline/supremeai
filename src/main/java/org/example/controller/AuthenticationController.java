@@ -357,44 +357,86 @@ public class AuthenticationController {
     }
 
     /**
-     * GET /api/auth/init
-     * Initialize system with default admin user if none exist
-     * Creates: admin@supremeai.com / admin123 (change on first login!)
+     * POST /api/auth/setup
+     * ONE-TIME setup endpoint to create initial admin user
+     * Requires SUPREMEAI_SETUP_TOKEN environment variable
+     * 
+     * ⚠️ SECURITY: Only callable once and requires secure token
+     * 
+     * Body: {
+     *   "setupToken": "value_from_SUPREMEAI_SETUP_TOKEN_env",
+     *   "username": "admin",
+     *   "email": "admin@supremeai.com",
+     *   "password": "secure_password"
+     * }
      */
-    @GetMapping("/init")
-    public ResponseEntity<?> initializeDefaultUser() {
+    @PostMapping("/setup")
+    public ResponseEntity<?> setupInitialAdmin(@RequestBody Map<String, String> request) {
         try {
+            // Check if users already exist (first-time-only protection)
             List<User> existingUsers = authService.getAllUsers();
-            
             if (existingUsers != null && !existingUsers.isEmpty()) {
-                return ResponseEntity.ok(Map.of(
-                    "status", "already_initialized",
-                    "message", "System already initialized with " + existingUsers.size() + " user(s)",
-                    "users", existingUsers.size()
-                ));
+                logger.warn("❌ Setup attempted but users already exist. Blocked!");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of(
+                        "status", "error",
+                        "message", "System already initialized. Cannot re-run setup.",
+                        "existingUsers", existingUsers.size()
+                    ));
             }
             
-            // Create default admin user
-            User defaultUser = authService.registerUser(
-                "admin",
-                "admin@supremeai.com",
-                "supremeai123"
-            );
+            // Verify setup token from environment variable
+            String setupToken = request.get("setupToken");
+            String expectedToken = System.getenv("SUPREMEAI_SETUP_TOKEN");
+            
+            if (expectedToken == null || expectedToken.isEmpty()) {
+                logger.error("❌ SUPREMEAI_SETUP_TOKEN not configured in environment");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                        "status", "error",
+                        "message", "Setup not configured. Contact administrator."
+                    ));
+            }
+            
+            if (setupToken == null || !setupToken.equals(expectedToken)) {
+                logger.warn("❌ Invalid setup token provided");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of(
+                        "status", "error",
+                        "message", "Invalid setup token"
+                    ));
+            }
+            
+            // Create initial admin user
+            String username = request.get("username");
+            String email = request.get("email");
+            String password = request.get("password");
+            
+            if (username == null || email == null || password == null) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("status", "error", "message", "Username, email, and password required"));
+            }
+            
+            if (password.length() < 8) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("status", "error", "message", "Password must be at least 8 characters"));
+            }
+            
+            User adminUser = authService.registerUser(username, email, password);
             
             Map<String, Object> response = new HashMap<>();
             response.put("status", "success");
-            response.put("message", "Default admin user created");
-            response.put("username", "admin");
-            response.put("email", "admin@supremeai.com");
-            response.put("password", "supremeai123");
-            response.put("note", "⚠️ Change password immediately after first login!");
-            response.put("user", new AuthToken.UserResponse(defaultUser));
+            response.put("message", "✅ Initial admin user created successfully");
+            response.put("username", username);
+            response.put("email", email);
+            response.put("note", "⚠️ Change password on first login. Other users can now be added through API.");
+            response.put("user", new AuthToken.UserResponse(adminUser));
             
-            logger.info("✅ Default admin user created: admin@supremeai.com");
+            logger.info("✅ Initial admin user created via setup: {}", username);
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            logger.error("❌ Initialization failed: {}", e.getMessage());
+            logger.error("❌ Setup failed: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("status", "error", "message", e.getMessage()));
         }
