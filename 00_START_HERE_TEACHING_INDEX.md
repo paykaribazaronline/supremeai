@@ -468,11 +468,13 @@ Reference: FIREBASE_SCHEMA_APP_GENERATION.md
 5. Deploy + learn (1 day)
 
 ### **Option B: I'm delegating (1 hour)**
+
 1. Read TEACHING_SYSTEM_SUMMARY.md (10 min)
 2. Read TEACHING_SYSTEM_COMPLETE_ROADMAP.md (30 min)
 3. Assign to team following phases (20 min)
 
 ### **Option C: I want it running ASAP**
+
 1. Skim TEACHING_BACKEND_IMPLEMENTATION.md (20 min)
 2. Assign developer 1 to copy models (2 hours)
 3. Assign developer 2 to copy services (day 1)
