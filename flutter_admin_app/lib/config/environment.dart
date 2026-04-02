@@ -1,11 +1,20 @@
 // Environment configuration for SupremeAI Admin App
+//
+// PRODUCTION DEPLOYMENT INSTRUCTIONS:
+// 1. Deploy backend to Google Cloud Run (see PRODUCTION_DEPLOYMENT_GUIDE.md)
+// 2. Get the service URL from: gcloud run services describe supremeai --format='value(status.url)'
+// 3. Replace 'YOUR_GCP_PROJECT_ID' below with your actual GCP project ID
+// 4. Rebuild Flutter web: flutter build web --base-href "/admin/" --release
+// 5. The URL format will be: https://supremeai-YOUR_GCP_PROJECT_ID.us-central1.run.app
 
 class Environment {
-  // Production Cloud Run URL - connects to the backend service
-  // Updated to use the correct Cloud Run service deployed from supremeai-a
-  static const String baseUrl = 'https://supremeai.us-central1.run.app';
+  // 🚀 PRODUCTION: Cloud Run URL (auto-managed SSL, proper domain)
+  // Replace 'YOUR_GCP_PROJECT_ID' with your actual GCP project ID
+  // Example: 'https://supremeai-supremeai-production.us-central1.run.app'
+  static const String baseUrl = 'https://supremeai-YOUR_GCP_PROJECT_ID.us-central1.run.app';
   
-  // Local Development URL (uncomment to use local backend)
+  // 🔧 LOCAL DEVELOPMENT: Uncomment to test against local backend
+  // Requires: ./gradlew bootRun (running on http://localhost:8080)
   // static const String baseUrl = 'http://localhost:8080';
   
   // API Endpoints
