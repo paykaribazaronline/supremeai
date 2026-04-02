@@ -172,6 +172,13 @@ jobs:
             echo "Skipping Firebase deployment..."
             exit 0
           fi
+
+          if ! grep -q '"flutter-admin"' .firebaserc; then
+            echo "ℹ️ No 'flutter-admin' hosting target is configured in .firebaserc"
+            echo "ℹ️ Skipping direct deploy from flutter-ci-cd.yml"
+            echo "ℹ️ Live hosting deployment is handled by firebase-hosting-merge.yml using combined_deploy/admin"
+            exit 0
+          fi
           
           echo "🚀 Deploying Flutter Admin App to Firebase Hosting..."
           firebase deploy \
