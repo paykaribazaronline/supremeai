@@ -44,6 +44,7 @@ Response (200 Success / 202 Accepted):
 ```
 
 ### List Commands
+
 ```
 GET /api/commands/list
 GET /api/commands/list?category=MONITORING
@@ -173,26 +174,31 @@ Examples:
 ## Curl Examples
 
 ### Health Check
+
 ```bash
 curl http://localhost:8080/api/commands/health
 ```
 
 ### List All Commands
+
 ```bash
 curl http://localhost:8080/api/commands/list
 ```
 
 ### List Monitoring Commands
+
 ```bash
 curl "http://localhost:8080/api/commands/list?category=MONITORING"
 ```
 
 ### Get Health Check Details
+
 ```bash
 curl http://localhost:8080/api/commands/health-check
 ```
 
 ### Execute Health Check
+
 ```bash
 curl -X POST http://localhost:8080/api/commands/execute \
   -H "Content-Type: application/json" \
@@ -200,6 +206,7 @@ curl -X POST http://localhost:8080/api/commands/execute \
 ```
 
 ### Execute with Parameters
+
 ```bash
 curl -X POST http://localhost:8080/api/commands/execute \
   -H "Content-Type: application/json" \
@@ -213,6 +220,7 @@ curl -X POST http://localhost:8080/api/commands/execute \
 ```
 
 ### With Authentication
+
 ```bash
 curl -X POST http://localhost:8080/api/commands/execute \
   -H "Content-Type: application/json" \
@@ -238,6 +246,7 @@ curl -X POST http://localhost:8080/api/commands/execute \
 ## Command Response Examples
 
 ### Success Response (Sync Command)
+
 ```json
 {
   "commandName": "health-check",
@@ -257,6 +266,7 @@ curl -X POST http://localhost:8080/api/commands/execute \
 ```
 
 ### Pending Response (Async Command)
+
 ```json
 {
   "commandName": "refresh-github",
@@ -269,6 +279,7 @@ curl -X POST http://localhost:8080/api/commands/execute \
 ```
 
 ### Error Response
+
 ```json
 {
   "commandName": "health-check",
@@ -302,6 +313,7 @@ curl -X POST http://localhost:8080/api/commands/execute \
 ## Troubleshooting
 
 ### API Connection Fails
+
 ```bash
 # Check server is running
 supcmd health
@@ -314,6 +326,7 @@ ping localhost
 ```
 
 ### Command Not Found
+
 ```bash
 # List all available commands
 supcmd list
@@ -323,6 +336,7 @@ supcmd info health-check  # verify exists
 ```
 
 ### Permission Denied
+
 ```bash
 # Authenticate with valid token
 supcmd login YOUR_API_TOKEN
@@ -332,6 +346,7 @@ supcmd info <command>  # shows required permissions
 ```
 
 ### Parameter Error
+
 ```bash
 # Get command details
 supcmd info refresh-github
@@ -342,6 +357,7 @@ supcmd exec refresh-github -p owner supremeai
 ```
 
 ### Server Error (500)
+
 ```
 Check server logs for details:
   tail -f logs/supremeai.log
@@ -355,6 +371,7 @@ Verify all required services are running
 ## Config Files
 
 ### CLI Configuration
+
 ```
 ~/.supcmd/config.json
 {

@@ -1,4 +1,5 @@
 # SupremeAI Full Automation Roadmap (8/10+ Journey)
+
 **Vision:** Zero Developer Intervention - 100% Autonomous AI System  
 **Start Date:** April 1, 2026  
 **Target Date:** May 13, 2026 (6 weeks)  
@@ -22,9 +23,11 @@ Admin → Requirement → SupremeAI asks questions → 10 AI voting → Auto exe
 ## 5 PRIORITY AREAS (FULL AUTOMATION FOCUS)
 
 ### 1. AUTONOMOUS QUESTIONING ENGINE (Week 1-2)
+
 **Goal:** SupremeAI automatically understands requirements by asking smart questions
 
 #### 1.1 Requirement Analyzer
+
 **File to Create:** `RequirementAnalyzerAI.java`
 
 ```java
@@ -139,6 +142,7 @@ class RequirementAnalyzerAI {
 ```
 
 #### 1.2 REST API for Admin
+
 ```
 POST /api/admin/requirement
 {
@@ -161,6 +165,7 @@ POST /api/admin/requirement/answers
 ```
 
 #### 1.3 UI for Admin
+
 ```
 Admin Dashboard:
 
@@ -192,6 +197,7 @@ Step 2: Answer Auto-Generated Questions
 ```
 
 **Week 1-2 Deliverables:**
+
 - ✅ RequirementAnalyzerAI (questions auto-generated)
 - ✅ Admin Q&A interface
 - ✅ Answers parsed to context
@@ -200,9 +206,11 @@ Step 2: Answer Auto-Generated Questions
 ---
 
 ### 2. INTELLIGENT VOTING ENGINE (Week 2-3)
+
 **Goal:** 10 AI vote on EVERY decision, visible to Admin
 
 #### 2.1 Voting Service (Enhanced)
+
 **File to Create:** `AutonomousVotingService.java`
 
 ```java
@@ -267,6 +275,7 @@ class AutonomousVotingService {
 ```
 
 #### 2.2 Voting Visualization (Admin Dashboard)
+
 ```
 Admin দেখে: Complete Voting Breakdown
 
@@ -320,6 +329,7 @@ SUMMARY:
 ```
 
 **Week 2-3 Deliverables:**
+
 - ✅ AutonomousVotingService (all 10 AIs vote)
 - ✅ Voting results with reasoning
 - ✅ Consensus calculation
@@ -330,9 +340,11 @@ SUMMARY:
 ---
 
 ### 3. AUTONOMOUS CODE GENERATION (Week 3-4)
+
 **Goal:** Generate complete application without any manual developer work
 
 #### 3.1 Context-Aware Code Generator
+
 **File to Create:** `FullStackCodeGenerator.java`
 
 ```java
@@ -441,6 +453,7 @@ class FullStackCodeGenerator {
 ```
 
 #### 3.2 Automated Testing
+
 **File to Create:** `FullCoverageTestGenerator.java`
 
 ```java
@@ -495,6 +508,7 @@ class FullCoverageTestGenerator {
 ```
 
 #### 3.3 Validation Engine
+
 **File to Create:** `AutoValidationEngine.java`
 
 ```java
@@ -527,6 +541,7 @@ class AutoValidationEngine {
 ```
 
 **Week 3-4 Deliverables:**
+
 - ✅ Full stack code generation (backend, frontend, tests, deployment)
 - ✅ 80%+ test coverage automatically
 - ✅ 3-pass validation (compile → lint → test)
@@ -536,9 +551,11 @@ class AutoValidationEngine {
 ---
 
 ### 4. AUTOMATIC DEPLOYMENT (Week 4-5)
+
 **Goal:** Generate code → Test → Deploy (all automatic)
 
 #### 4.1 Autonomous Git Operations
+
 **File to Create:** `AutoGitOrchestrator.java`
 
 ```java
@@ -593,6 +610,7 @@ class AutoGitOrchestrator {
 ```
 
 #### 4.2 Automatic Deployment Pipeline
+
 **File to Create:** `AutoDeploymentOrchestrator.java`
 
 ```java
@@ -628,6 +646,7 @@ class AutoDeploymentOrchestrator {
 ```
 
 **Week 4-5 Deliverables:**
+
 - ✅ Automatic Git operations (branch, commit, PR, merge)
 - ✅ Automatic Docker build & push
 - ✅ Automatic Kubernetes deployment
@@ -637,9 +656,11 @@ class AutoDeploymentOrchestrator {
 ---
 
 ### 5. ADMIN VISUALIZATION & CONTROL (Week 5-6)
+
 **Goal:** Admin sees everything in beautiful 3D, controls via simple UI
 
 #### 5.1 3D Real-Time Dashboard
+
 **File to Create:** `AdminVisualization3D.html` + `VisualizationOrchestrator.java`
 
 ```html
@@ -827,6 +848,7 @@ class AutoDeploymentOrchestrator {
 ```
 
 #### 5.2 Admin Commands (No Developer Commands)
+
 **File to Create:** `AdminCommands.java`
 
 ```java
@@ -911,6 +933,7 @@ class AdminCommands {
 ```
 
 #### 5.3 Admin REST API
+
 ```
 POST /api/admin/requirement
 {
@@ -950,6 +973,7 @@ WS ws://localhost:8080/ws/admin-visualization
 ```
 
 **Week 5-6 Deliverables:**
+
 - ✅ 3D real-time visualization (3D voting, progress)
 - ✅ Admin dashboard (status, timeline)
 - ✅ Admin commands (7 high-level commands)

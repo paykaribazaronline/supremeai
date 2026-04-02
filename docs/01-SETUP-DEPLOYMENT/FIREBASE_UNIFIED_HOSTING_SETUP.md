@@ -3,6 +3,7 @@
 **Date:** March 31, 2026  
 **Status:** ✅ Automated CI/CD Ready  
 **Final URLs:**
+
 - Main Dashboard: `https://supremeai-a.web.app/`
 - Admin Dashboard: `https://supremeai-a.web.app/admin/`
 
@@ -12,7 +13,8 @@
 
 এই গাইড অনুসরণ করে আপনি একটি একীভূত ডোমেইনে আপনার মেইন ড্যাশবোর্ড এবং Flutter অ্যাডমিন অ্যাপ একসাথে চালাতে পারবেন।
 
-### আর্কিটেকচার:
+### আর্কিটেকচার
+
 ```
 https://supremeai-a.web.app/
 ├── / (main app: React/HTML dashboard)
@@ -30,12 +32,14 @@ https://supremeai-a.web.app/
 3. ✅ **combined_deploy** ফোল্ডারে ফাইলগুলি একত্রিত করে
 4. ✅ **Firebase Hosting** এ ডিপ্লয় করে
 
-### Workflow ফাইল:
+### Workflow ফাইল
+
 ```
 .github/workflows/firebase-hosting-merge.yml
 ```
 
-### বিল্ড স্টেজ:
+### বিল্ড স্টেজ
+
 ```
 1. build-flutter-admin     → Flutter app build with /admin/ prefix
 2. build-java-backend      → Java backend + main dashboard
@@ -101,6 +105,7 @@ tree combined_deploy -L 2
 ```
 
 **প্রত্যাশিত স্ট্রাকচার:**
+
 ```
 combined_deploy/
 ├── index.html          (Main dashboard)
@@ -126,6 +131,7 @@ python -m http.server 8080
 ```
 
 তারপর ভিজিট করুন:
+
 - `http://localhost:8080/` (Main Dashboard)
 - `http://localhost:8080/admin/` (Admin Dashboard)
 
@@ -144,6 +150,7 @@ git push origin main
 ```
 
 এরপর **GitHub Actions** স্বয়ংক্রিয়ভাবে:
+
 1. Flutter অ্যাপ বিল্ড করবে
 2. মেইন ড্যাশবোর্ড বিল্ড করবে
 3. combined_deploy তৈরি করবে
@@ -200,6 +207,7 @@ git push origin main
 আমাদের নতুন workflow এই প্রক্রিয়া অনুসরণ করে:
 
 ### স্টেজ 1: build-flutter-admin
+
 ```yaml
 - Checkout code
 - Setup Flutter 3.27.0
@@ -209,6 +217,7 @@ git push origin main
 ```
 
 ### স্টেজ 2: build-java-backend
+
 ```yaml
 - Checkout code
 - Setup JDK 17
@@ -218,6 +227,7 @@ git push origin main
 ```
 
 ### স্টেজ 3: deploy-firebase-unified
+
 ```yaml
 - Download Flutter artifact
 - Download Dashboard artifact
@@ -228,6 +238,7 @@ git push origin main
 ```
 
 ### স্টেজ 4: notify
+
 ```yaml
 - Send deployment summary
 - Show URLs
@@ -246,6 +257,7 @@ graph LR
 ```
 
 **ব্যাখ্যা:**
+
 - `build-flutter-admin` এবং `build-java-backend` একসাথে চলে (parallelly)
 - `deploy-firebase-unified` দুটি বিল্ড সম্পন্ন হওয়ার পর চলে
 - `notify` সবকিছু সম্পন্ন হওয়ার পর শেষে চলে
@@ -315,7 +327,8 @@ Workflow নিচের সময় চলে:
 ### সমস্যা 1: Flutter অ্যাপের ইমেজ/ফন্ট লোড হচ্ছে না
 
 **কারণ:** `--base-href "/admin/"` দেওয়া হয়নি।  
-**সমাধান:** 
+**সমাধান:**
+
 ```bash
 cd flutter_admin_app
 flutter build web --base-href "/admin/" --release
@@ -325,6 +338,7 @@ flutter build web --base-href "/admin/" --release
 
 **কারণ:** combined_deploy/admin/ ফোল্ডার খালি।  
 **সমাধান:**
+
 ```bash
 cp -r flutter_admin_app/build/web/* combined_deploy/admin/
 git add . && git commit -m "Add Flutter build" && git push
@@ -334,6 +348,7 @@ git add . && git commit -m "Add Flutter build" && git push
 
 **কারণ:** firebase.json rewrite রুলস সঠিক নয়।  
 **সমাধান:** firebase.json এ এই রিওয়াইট থাকা দরকার:
+
 ```json
 {
   "source": "/admin/**",

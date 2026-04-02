@@ -91,18 +91,21 @@ Response:
 ### Dashboard UI Features
 
 **Left Panel - Rules Control:**
+
 - [ ] View Current Rules (read-only)
 - [ ] Enforcement Level Selector (STRICT/WARNING/INFO)
 - [ ] Auto-Correct Toggle
 - [ ] Monthly Reset Status
 
 **Center Panel - Category Management:**
+
 - [ ] List all doc categories
 - [ ] Add new category (name, path, max size)
 - [ ] Edit category rules
 - [ ] Delete category
 
 **Right Panel - File Validation:**
+
 - [ ] Paste document path
 - [ ] Select category
 - [ ] See validation results
@@ -113,6 +116,7 @@ Response:
 **Scenario:** SupremeAI generated a doc in root folder instead of `docs/guides/`
 
 **Admin Actions:**
+
 1. Enforce level → STRICT
 2. Validate document → Shows error "File not allowed in root"
 3. Auto-suggest correction → "Move to docs/guides/..."
@@ -123,6 +127,7 @@ Response:
 ## 2. AI Quota Rotation Dashboard
 
 ### Purpose
+
 Monitor AI provider quotas and optimize AI selection. Supports **1 to unlimited providers** with cost optimization.
 
 ### Supported AI Providers (Example: 10 Free-Tier Providers)
@@ -145,10 +150,13 @@ Monitor AI provider quotas and optimize AI selection. Supports **1 to unlimited 
 ### REST Endpoints
 
 #### **Get Quota Summary**
+
 ```bash
 GET /api/quotas/summary
 ```
+
 **Response:**
+
 ```json
 {
   "status": "✅ OK",
@@ -166,6 +174,7 @@ GET /api/quotas/summary
 ```
 
 #### **Get Detailed Provider Status**
+
 ```bash
 GET /api/quotas/status
 
@@ -199,6 +208,7 @@ Response:
 ```
 
 #### **Get Next Provider (Round-Robin)**
+
 ```bash
 GET /api/quotas/next-provider
 
@@ -213,6 +223,7 @@ Response:
 ```
 
 #### **Get Optimal Provider (Best Strategy)**
+
 ```bash
 GET /api/quotas/optimal-provider
 
@@ -226,6 +237,7 @@ Response:
 ```
 
 #### **Record API Call Success**
+
 ```bash
 POST /api/quotas/record-success?provider=OPENAI_GAPI&tokensUsed=150
 
@@ -239,6 +251,7 @@ Response:
 ```
 
 #### **Record API Call Failure**
+
 ```bash
 POST /api/quotas/record-failure?provider=GOOGLE_GEMINI
 
@@ -250,6 +263,7 @@ Response:
 ```
 
 #### **Manual Monthly Reset**
+
 ```bash
 POST /api/quotas/reset-monthly
 
@@ -262,6 +276,7 @@ Response:
 ```
 
 #### **List All Providers**
+
 ```bash
 GET /api/quotas/providers
 
@@ -283,6 +298,7 @@ Response:
 ```
 
 #### **Health Check**
+
 ```bash
 GET /api/quotas/health
 
@@ -297,12 +313,14 @@ Response:
 ### Dashboard UI Features
 
 **Top Stats Panel:**
+
 - [ ] Total remaining quota (8500)
 - [ ] Projected monthly cost ($0.00)
 - [ ] Providers healthy (8/10)
 - [ ] Current month (2026-04)
 
 **Provider Grid:**
+
 - [ ] Cards for each provider showing:
   - Name and status (OK/NEAR_LIMIT/EXHAUSTED)
   - Quota bar (visual %)
@@ -311,11 +329,13 @@ Response:
   - Color coding (green/yellow/red)
 
 **Selection Strategy Panel:**
+
 - [ ] Next Provider (round-robin) → "Claude"
 - [ ] Optimal Provider (smart) → "Llama 2"
 - [ ] Strategy explanation
 
 **Historical Tracking:**
+
 - [ ] Monthly usage chart
 - [ ] Provider performance graph
 - [ ] Cost savings vs competitors
@@ -325,6 +345,7 @@ Response:
 **Scenario:** Google Gemini quota exhausted, need to route to next provider
 
 **System Workflow:**
+
 1. **Check quota** → `GET /api/quotas/status` → Gemini shows 100%
 2. **Get next provider** → `GET /api/quotas/next-provider` → Returns "Mistral"
 3. **Route request** → Use Mistral for next API call
@@ -336,6 +357,7 @@ Response:
 ## 3. AI Provider Routing Service
 
 ### Purpose
+
 Intelligently route requests to best available provider based on quota, success rate, and category affinity.
 
 ### Routing Logic
@@ -355,6 +377,7 @@ User Request
 ### Performance Tracking Per Category
 
 **Available Categories:**
+
 - `architecture` - Design and system decisions
 - `coding` - Code generation and refactoring
 - `error_handling` - Debugging and fixes
@@ -362,6 +385,7 @@ User Request
 - `innovation` - Novel problem solving
 
 ### Endpoint: Record Provider Performance
+
 ```bash
 POST /api/routing/record-performance
 Content-Type: application/json
@@ -376,6 +400,7 @@ Content-Type: application/json
 ```
 
 ### Endpoint: Get Recommendations
+
 ```bash
 GET /api/routing/recommendations/architecture
 
@@ -408,22 +433,26 @@ Response:
 ### Daily Operations
 
 **Morning:**
+
 1. Check `/api/quotas/summary` → See daily quota usage
 2. Review `/api/quotas/status` → Identify exhausted providers
 3. Check `/api/routing/recommendations/[category]` → Confirm AI assignments
 
 **When Assigning New AI Task:**
+
 1. Call `GET /api/quotas/optimal-provider` → Get best provider
 2. System auto-routes request using that provider
 3. After completion: Call `POST /api/quotas/record-success` → Log performance
 4. System learns category affinity for future
 
 **When Provider Fails:**
+
 1. Call `POST /api/quotas/record-failure?provider=X` → Track failure
 2. After 3 failures → Provider skipped in rotation
 3. System moves to next healthy provider
 
 **Monthly Maintenance (April 1st):**
+
 1. Call `POST /api/quotas/reset-monthly` → Reset all quotas
 2. Review `/api/routing/recommendations/[category]` → Adjust AI assignments if needed
 3. Archive previous month's `/api/quotas/status` for records
@@ -431,11 +460,13 @@ Response:
 ### Documentation Governance
 
 **Weekly:**
+
 1. Review `/api/admin/doc-rules/current` → Check active rules
 2. Validate new docs: `POST /api/admin/doc-rules/validate-document`
 3. If violations found: Adjust enforcement level or auto-correct
 
 **When SupremeAI Generates Docs:**
+
 1. System calls validation endpoint automatically
 2. If level=STRICT and violations → Block generation
 3. If level=WARNING → Generate but warn
@@ -445,9 +476,10 @@ Response:
 
 ## 5. Integration with SupremeAI Code Generation
 
-### When Creating New Service:
+### When Creating New Service
 
 **Step 1:** User submits requirement
+
 ```bash
 POST /api/extend/requirement
 body: "create UserAuditService with methods: audit, log, export"
@@ -456,6 +488,7 @@ body: "create UserAuditService with methods: audit, log, export"
 **Step 2:** SupremeAI generates code
 
 **Step 3:** System validates documentation:
+
 ```bash
 POST /api/admin/doc-rules/validate-document
 filepath: "docs/services/UserAuditService.md"
@@ -463,11 +496,13 @@ category: "implementation"
 ```
 
 **Step 4:** If enforcement level = STRICT and violations:
+
 - Block service creation
 - Return validation errors to admin
 - Admin adjusts rules or approves override
 
 **Step 5:** If passes validation:
+
 - Complete service creation
 - Auto-commit with audit trail
 - Record provider performance metrics
@@ -486,6 +521,7 @@ category: "implementation"
 | Doc violations | 1 | 3+ |
 
 ### Alert Types
+
 - ⚠️ **WARNING**: Quota near limit → Consider next provider
 - 🔴 **CRITICAL**: All providers exhausted → Wait for monthly reset
 - 🚫 **BLOCKED**: Doc violates STRICT rules → Admin approval needed
@@ -508,6 +544,7 @@ category: "implementation"
 ## 8. Best Practices
 
 ✅ **DO:**
+
 - Check health endpoint daily: `GET /api/quotas/health`
 - Monitor provider performance weekly
 - Use optimal provider for new/unknown tasks
@@ -515,6 +552,7 @@ category: "implementation"
 - Document all rule changes with timestamps
 
 ❌ **DON'T:**
+
 - Manually override quota counts (let system track automatically)
 - Use exhausted provider (system auto-skips after learning)
 - Set enforcement to STRICT without 2 weeks of WARNING data first
@@ -525,6 +563,7 @@ category: "implementation"
 ## 9. Cost Tracking
 
 ### Monthly Cost Formula
+
 ```
 Monthly Cost = Σ(provider_calls × provider_cost_per_call)
 
@@ -533,11 +572,13 @@ Monthly Cost = Σ(provider_calls × $0) = $0
 ```
 
 ### Projected Annual Savings
+
 - Traditional multi-subscription: ~$12,000/year
 - SupremeAI (free tiers): ~$0/year
 - Savings: **100%** ✅
 
 ### When to Consider Premium Tiers
+
 - Monthly quota consistently exceeds 11,000 calls
 - Latency requirements <500ms (free tiers average 1-2s)
 - Reliability SLA > 99% (free tiers may throttle)

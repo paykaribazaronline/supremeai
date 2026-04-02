@@ -21,16 +21,19 @@ flutter doctor
 ### Installation
 
 1. **Navigate to project directory**
+
 ```bash
 cd flutter_admin_app
 ```
 
 2. **Get dependencies**
+
 ```bash
 flutter pub get
 ```
 
 3. **Run the app**
+
 ```bash
 # For development (uses Cloud Run backend)
 flutter run
@@ -164,6 +167,7 @@ static const String baseUrl = 'https://supremeai-565236080752.us-central1.run.ap
 ## 📡 API Endpoints Used
 
 ### Authentication
+
 ```
 POST /api/auth/login          - Login with credentials
 POST /api/auth/register       - Register new admin
@@ -172,6 +176,7 @@ POST /api/auth/refresh        - Refresh JWT token
 ```
 
 ### Projects
+
 ```
 GET  /api/projects            - List all projects
 POST /api/projects/create     - Create new project
@@ -180,6 +185,7 @@ DEL  /api/projects/delete     - Delete project
 ```
 
 ### AI Providers
+
 ```
 GET  /api/providers/available  - List available providers
 GET  /api/providers/configured - List configured providers
@@ -189,6 +195,7 @@ POST /api/providers/test       - Test provider connection
 ```
 
 ### Agents & Monitoring
+
 ```
 POST /api/agents/assign       - Assign AI agent to project
 GET  /api/agents              - List all agents
@@ -200,6 +207,7 @@ GET  /api/alerts              - Alert list
 ## 🎨 Theme & Styling
 
 ### Color Scheme (Material Design 3)
+
 - **Primary:** Blue (#3B82F6)
 - **Secondary:** Green (#10B981)
 - **Background:** Light Gray (#F8FAFC)
@@ -207,6 +215,7 @@ GET  /api/alerts              - Alert list
 - **Success:** Green (#10B981)
 
 ### Spacing System
+
 - XSmall: 4dp
 - Small: 12dp
 - Medium: 16dp
@@ -216,30 +225,36 @@ GET  /api/alerts              - Alert list
 ## 📦 Dependencies
 
 ### Core
+
 - `flutter:sdk` - Flutter framework
 - `provider: ^6.0.0` - State management
 - `get: ^4.6.5` - Navigation & service locator
 
 ### Networking
+
 - `dio: ^5.3.1` - HTTP client
 - `http: ^1.1.0` - Basic HTTP
 - `jwt_decoder: ^2.0.1` - JWT parsing
 
 ### Storage
+
 - `shared_preferences: ^2.2.2` - Local storage
 - `hive: ^2.2.3` - NoSQL database
 
 ### UI & Design
+
 - `google_fonts: ^6.1.0` - Custom fonts
 - `flutter_svg: ^2.0.7` - SVG support
 - `cached_network_image: ^3.3.0` - Image caching
 - `fl_chart: ^0.63.0` - Charts & graphs
 
 ### Validation
+
 - `email_validator: ^2.1.17` - Email validation
 - `intl: ^0.19.0` - Internationalization
 
 ### Development
+
 - `logger: ^2.0.1` - Logging
 - `flutter_lints: ^2.0.0` - Linting
 
@@ -259,6 +274,7 @@ flutter test test/services/auth_service_test.dart
 ## 🚢 Building for Production
 
 ### Android Build
+
 ```bash
 # Clean build
 flutter clean
@@ -272,6 +288,7 @@ flutter build appbundle --release
 ```
 
 ### iOS Build
+
 ```bash
 # Clean build
 flutter clean
@@ -287,17 +304,20 @@ flutter build ipa --release
 ## 🐛 Troubleshooting
 
 ### "Cannot connect to backend"
+
 - Verify internet connection
 - Check Base URL in `environment.dart`
 - Ensure backend is running (Cloud Run or localhost)
 - Check firewall settings
 
 ### "Invalid token" error
+
 - Clear app cache: `flutter clean`
 - Delete stored tokens: `await storageService.clearAll()`
 - Re-login with valid credentials
 
 ### "Build fails"
+
 ```bash
 # Full clean rebuild
 flutter clean
@@ -307,6 +327,7 @@ flutter run
 ```
 
 ### "iOS Pod issues"
+
 ```bash
 cd ios
 rm -rf Pods Pod.lock
@@ -334,6 +355,7 @@ flutter run
 ## 📞 Support
 
 For issues or questions:
+
 - Check logs: Run with `flutter run -v` for verbose output
 - Check Backend: Test API endpoints with Postman
 - Review Documentation: Check AUTHENTICATION_GUIDE.md
@@ -341,6 +363,7 @@ For issues or questions:
 ## 📝 Changelog
 
 ### Version 1.0.0 (Initial Release)
+
 - ✅ Authentication system
 - ✅ Admin dashboard
 - ✅ API service layer

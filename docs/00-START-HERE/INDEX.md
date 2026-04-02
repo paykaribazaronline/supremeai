@@ -12,11 +12,13 @@ cd supremeai
 ### 2. **Install Dependencies** (2 min)
 
 **For Java Backend:**
+
 ```bash
 ./gradlew build
 ```
 
 **For Flutter Frontend:**
+
 ```bash
 cd flutter_admin_app
 flutter pub get
@@ -35,11 +37,13 @@ nano .env
 ### 4. **Run the Application** (1 min)
 
 **Backend:**
+
 ```bash
 ./gradlew run
 ```
 
 **Frontend (separate terminal):**
+
 ```bash
 cd flutter_admin_app
 flutter run
@@ -48,16 +52,19 @@ flutter run
 ## 📚 What's Next?
 
 ### For Beginners
+
 - 📖 Read [Architecture Overview](../02-ARCHITECTURE/PROJECT_STRUCTURE.md)
 - 🚀 Follow [Deployment Guide](../01-SETUP-DEPLOYMENT/)
 - 🛠️ Check [Troubleshooting](../09-TROUBLESHOOTING/)
 
 ### For Developers
+
 - 💻 Explore [Phase Implementation](../03-PHASES/)
 - 🔐 Setup [Authentication](../05-AUTHENTICATION-SECURITY/)  
 - 🔄 Configure [CI/CD](../08-CI-CD/)
 
 ### For DevOps/SRE
+
 - 🐳 Review [Deployment Options](../01-SETUP-DEPLOYMENT/)
 - 📊 Check [Monitoring Setup](../11-PROJECT-MANAGEMENT/)  
 - 🛡️ Implement [Security](../05-AUTHENTICATION-SECURITY/)

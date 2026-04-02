@@ -1,4 +1,5 @@
 # 🔧 Google Cloud Run Error - FIXED
+
 **Error:** Container failed to start on PORT=8080  
 **Status:** ✅ RESOLVED  
 **Date:** April 1, 2026
@@ -19,6 +20,7 @@
 ## ✅ সমাধান করা হয়েছে (3টি ফাইল আপডেট)
 
 ### 1. Dockerfile (enhanced)
+
 ```dockerfile
 # Added:
 ✅ ENV PORT=8080 (explicit)
@@ -29,6 +31,7 @@
 ```
 
 ### 2. application.properties (optimized)
+
 ```properties
 ✅ server.shutdown=graceful
 ✅ Reduced logging verbosity
@@ -37,6 +40,7 @@
 ```
 
 ### 3. CloudRunStartup.java (new)
+
 ```java
 ✅ Confirms app ready on correct port
 ✅ Logs all available endpoints
@@ -48,6 +52,7 @@
 ## 🚀 দ্রুত ডিপ্লয়মেন্ট কমান্ড
 
 ### Option A: One-Command Deploy (সবচেয়ে সহজ)
+
 ```powershell
 cd c:\Users\Nazifa\supremeai
 .\deploy-to-cloudrun.ps1
@@ -103,12 +108,14 @@ gcloud run deploy supremeai \
 ## 🔍 যাচাই করা
 
 ### Deployment Status
+
 ```bash
 gcloud run services describe supremeai --region us-central1
 # Status: Active ✓
 ```
 
 ### Health Check
+
 ```bash
 curl https://supremeai-565236080752.us-central1.run.app/actuator/health
 
@@ -117,6 +124,7 @@ curl https://supremeai-565236080752.us-central1.run.app/actuator/health
 ```
 
 ### View Logs
+
 ```bash
 gcloud run services logs read supremeai --region us-central1 --limit 50
 
@@ -169,7 +177,7 @@ gcloud run services logs read supremeai --region us-central1 --limit 50
 
 ---
 
-## 🆘 যদি এখনও সমস্যা হয়:
+## 🆘 যদি এখনও সমস্যা হয়
 
 1. **Check logs**:
    ```bash
@@ -193,7 +201,7 @@ gcloud run services logs read supremeai --region us-central1 --limit 50
 
 ---
 
-## ✨ Success Indicators (যখন Deploy হবে):
+## ✨ Success Indicators (যখন Deploy হবে)
 
 - ✅ Service status: "Active"
 - ✅ Health check: "UP"  

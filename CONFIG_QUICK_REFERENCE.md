@@ -48,6 +48,7 @@ JWT_SECRET_KEY=very-long-secret-key-at-least-32-characters-here
 ## Using in Java Code
 
 ### Get Configuration
+
 ```java
 import org.example.config.EnvConfig;
 
@@ -64,6 +65,7 @@ if (EnvConfig.has("FIREBASE_API_KEY")) {
 ```
 
 ### Type-Safe Access
+
 ```java
 int port = EnvConfig.getInt("SERVER_PORT", 8080);
 long timeout = EnvConfig.getLong("API_TIMEOUT_MS", 30000);
@@ -71,6 +73,7 @@ boolean debug = EnvConfig.getBoolean("DEBUG_MODE", false);
 ```
 
 ### Convenience Methods
+
 ```java
 // Pre-configured accessor classes
 String projectId = EnvConfig.Firebase.getProjectId();

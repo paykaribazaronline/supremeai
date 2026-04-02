@@ -9,9 +9,11 @@
 ## THE 5 PRIORITIES (Executive Summary)
 
 ### 1️⃣ REAL EXECUTION (Week 1-2)
+
 **Problem:** "Multi-AI" doesn't outperform single-model because calls might be partial/mocked  
 **Solution:** Wire real provider calls, implement intelligent routing  
 **Code Checklist:**
+
 - [ ] Audit MultiAIConsensusService (verify all 10 providers real)
 - [ ] Create ProviderPerformanceMetrics + Service
 - [ ] Implement ProviderRoutingService (score-based)
@@ -20,9 +22,11 @@
 **Success:** Provider success rate >95%, actual multi-AI >single-AI
 
 ### 2️⃣ CODE QUALITY (Week 2-3)
+
 **Problem:** Generated code is generic templates, not repo-aware  
 **Solution:** Load project context, learn patterns, auto-generate tests, 3-pass validation  
 **Code Checklist:**
+
 - [ ] Create RepoContextLoader (load conventions, structure, dependencies)
 - [ ] Create PastCodeAnalyzer (extract coding patterns)
 - [ ] Create DiffBasedEditor (minimal changes, not full replacements)
@@ -31,9 +35,11 @@
 **Success:** Generated code passes linter first try (95%+), 80%+ auto-test coverage
 
 ### 3️⃣ RELIABILITY (Week 3-4)
+
 **Problem:** System works but gaps in coverage; some services undertested  
 **Solution:** E2E tests, raise coverage to 90%+ on core services, permanent failure catalog  
 **Code Checklist:**
+
 - [ ] Create E2E test suite (code gen → deploy workflow)
 - [ ] Measure coverage with JaCoCo (target 90% on 8 services)
 - [ ] Create CompilationValidator (catch errors before commit)
@@ -42,9 +48,11 @@
 **Success:** E2E tests 100% pass, 99%+ uptime, zero failures unlogged
 
 ### 4️⃣ DEVELOPER WORKFLOW (Week 4-5)
+
 **Problem:** API is technical; developers want task-focused commands  
 **Solution:** 4 new commands that solve real daily problems  
 **Code Checklist:**
+
 - [ ] Create FixFailingTestCommand (analyze failure → suggest fix)
 - [ ] Create ImplementFromIssueCommand (GitHub issue → PR with code)
 - [ ] Create RefactorSafelyCommand (refactor + verify no regression)
@@ -54,9 +62,11 @@
 **Success:** All 4 commands deployed, developers prefer them to manual coding
 
 ### 5️⃣ GOVERNANCE (Week 5-6)
+
 **Problem:** Admin approval exists but lacks visibility + ability to undo  
 **Solution:** Production-grade governance: action replay, rollback, audit trail, metrics  
 **Code Checklist:**
+
 - [ ] Create ActionReplayService (show exactly what each action did)
 - [ ] Create RollbackService (multi-step undo with verification)
 - [ ] Create AuditTrailService (persistent event log, Firebase + SQL)
@@ -70,6 +80,7 @@
 ## WEEKLY BUILD CHECKLIST
 
 ### Week 1: Build Command
+
 ```bash
 ./gradlew clean build
 # Target: 35-40 seconds
@@ -85,6 +96,7 @@
 ```
 
 ### Week 2: Build Command
+
 ```bash
 ./gradlew clean build
 # Target: 40-45 seconds
@@ -99,6 +111,7 @@
 ```
 
 ### Week 3: Build Command
+
 ```bash
 ./gradlew clean build
 # Target: 45-50 seconds (more tests = slower)
@@ -109,6 +122,7 @@
 ```
 
 ### Week 4: Build Command
+
 ```bash
 ./gradlew clean build
 # Coverage: 85%+ on core services
@@ -125,6 +139,7 @@
 ```
 
 ### Week 5: Build Command
+
 ```bash
 ./gradlew clean build
 # Target: 50-55 seconds (more services = slower)
@@ -137,6 +152,7 @@
 ```
 
 ### Week 6: Build Command
+
 ```bash
 ./gradlew clean build
 # Target: 50-55 seconds (stable)
@@ -154,6 +170,7 @@
 ## FILE ORGANIZATION
 
 ### New Service Layer
+
 ```
 src/main/java/org/supremeai/
 ├── execution/
@@ -186,6 +203,7 @@ src/main/java/org/supremeai/
 ```
 
 ### New Test Layer
+
 ```
 src/test/java/org/supremeai/
 ├── execution/
@@ -211,6 +229,7 @@ src/test/java/org/supremeai/
 ## REST API ADDITIONS
 
 ### Priority 1: Real Execution
+
 ```
 POST   /api/providers/performance            (Track scores)
 GET    /api/providers/performance            (View metrics)
@@ -219,6 +238,7 @@ POST   /api/providers/performance/recalculate (Refresh)
 ```
 
 ### Priority 4: Developer Commands
+
 ```
 POST   /api/commands/fix-test               (Fix failing test)
 POST   /api/commands/implement-issue        (GitHub issue → code)
@@ -227,6 +247,7 @@ GET    /api/commands/explain-impact         (Show what changed)
 ```
 
 ### Priority 5: Governance
+
 ```
 GET    /api/governance/metrics              (Dashboard data)
 GET    /api/governance/actions              (Action history)
@@ -242,6 +263,7 @@ GET    /api/governance/admins               (Activity stats)
 ## DATABASE SCHEMA ADDITIONS
 
 ### Firebase Collections
+
 ```
 provider_performance {
   providerId: String
@@ -286,6 +308,7 @@ failure_catalog {
 ## TESTING STRATEGY
 
 ### Unit Tests (Per Service)
+
 ```java
 @Test void testServiceInitialization() { }
 @Test void testHappyPath() { }
@@ -294,6 +317,7 @@ failure_catalog {
 ```
 
 ### Integration Tests
+
 ```java
 @Test void testServiceCollaboration() { }
 @Test void testDatabasePersistence() { }
@@ -301,6 +325,7 @@ failure_catalog {
 ```
 
 ### E2E Tests (Full Workflows)
+
 ```java
 @Test void testCodeGenToDeploy() { 
   // Requirement → Code → Test → Git → Deploy
@@ -316,6 +341,7 @@ failure_catalog {
 ```
 
 ### Coverage Goals
+
 ```
 Week 1: 50% (foundation)
 Week 2: 65% (code generation)
@@ -360,6 +386,7 @@ Week 6: 90%+ (all priorities)
 ## SUCCESS VERIFICATION CHECKLIST
 
 ### Week 1 Verification
+
 ```
 ✅ All 10 providers return real responses (not mocks)
 ✅ Provider routing selects best performer
@@ -369,6 +396,7 @@ Week 6: 90%+ (all priorities)
 ```
 
 ### Week 2 Verification
+
 ```
 ✅ Generated code passes linter (0 violations)
 ✅ Tests generated automatically (>80% coverage)
@@ -378,6 +406,7 @@ Week 6: 90%+ (all priorities)
 ```
 
 ### Week 3 Verification
+
 ```
 ✅ E2E tests all pass (100%)
 ✅ Core services at 90%+ coverage
@@ -386,6 +415,7 @@ Week 6: 90%+ (all priorities)
 ```
 
 ### Week 4 Verification
+
 ```
 ✅ "Fix Failing Test" command works
 ✅ "Implement from Issue" command works
@@ -395,6 +425,7 @@ Week 6: 90%+ (all priorities)
 ```
 
 ### Week 5 Verification
+
 ```
 ✅ Action replay shows all details
 ✅ Audit trail persists after restart
@@ -402,6 +433,7 @@ Week 6: 90%+ (all priorities)
 ```
 
 ### Week 6 Verification
+
 ```
 ✅ Rollback verified working
 ✅ Governance metrics dashboard live
@@ -415,22 +447,27 @@ Week 6: 90%+ (all priorities)
 ## COMMON ISSUES & FIXES
 
 ### Issue: Build Time Increasing Weekly
+
 **Cause:** More test files, slower test execution  
 **Fix:** Run `./gradlew test --parallel` to parallelize tests
 
 ### Issue: Coverage Not Reaching 90%
+
 **Cause:** Undertested edge cases  
 **Fix:** Focus on 8 core services first, use JaCoCo reports to find gaps
 
 ### Issue: Real API Calls Timing Out
+
 **Cause:** Provider responding slowly  
 **Fix:** Increase timeout from 5s to 10s, use fallback mechanism
 
 ### Issue: Database Growth (Firebase/SQL)
+
 **Cause:** Audit trail growing  
 **Fix:** Implement archiving strategy, move old records to cold storage monthly
 
 ### Issue: Git Operations Failing
+
 **Cause:** Token issues or branch conflicts  
 **Fix:** Validate GITHUB_TOKEN exists, implement conflict resolution strategy
 
@@ -494,6 +531,7 @@ Week 2 Commits:
 ```
 
 **Celebration Ritual:**
+
 ```bash
 Make a final commit: "feat: Reach 8/10+ - All 5 priorities complete"
 Tag release: v1.8.0
