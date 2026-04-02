@@ -20,9 +20,12 @@ import java.util.Map;
     "org.example.service",
     "org.example.controller",
     "org.example.config",
+    "org.example.kimik2",
     "org.example.resilience",
     "org.example.tracing",
     "org.example.filter",
+    "org.example.exception",
+    "org.example.learning",
     "com.supremeai.teaching"
 })
 @RestController

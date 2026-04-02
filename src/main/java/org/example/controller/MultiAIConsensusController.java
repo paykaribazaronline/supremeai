@@ -14,7 +14,7 @@ import java.util.*;
 
 /**
  * Multi-AI Consensus Controller
- * Admin views how SupremeAI learns from 10 different AI perspectives
+ * Admin views how SupremeAI learns from the configured AI provider set
  */
 @RestController
 @RequestMapping("/api/consensus")
@@ -29,7 +29,7 @@ public class MultiAIConsensusController {
     
     /**
      * POST /api/consensus/ask
-     * Ask all 10 AI providers a question, get consensus
+        * Ask all configured AI providers a question, get consensus
      */
     @PostMapping("/ask")
     public ResponseEntity<?> askAllAI(
@@ -47,7 +47,7 @@ public class MultiAIConsensusController {
                     .body(Map.of("status", "error", "message", "Question required"));
             }
             
-            logger.info("👤 {} asking 10 AI providers: {}", user.getUsername(), question);
+            logger.info("👤 {} asking configured AI providers: {}", user.getUsername(), question);
             
             ConsensusVote vote = consensusService.askAllAI(question);
             

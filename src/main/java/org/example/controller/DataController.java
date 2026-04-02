@@ -50,7 +50,7 @@ public class DataController {
         try {
             logger.info("📡 REST: GitHub data request for {}/{}", owner, repo);
             
-            Map<String, Object> data = dataCollectorService.getGitHubDataWithHealing(owner, repo);
+            Map<String, Object> data = dataCollectorService.getGitHubData(owner, repo);
             
             // Push to admin dashboard (non-blocking)
             try {
@@ -85,7 +85,7 @@ public class DataController {
         try {
             logger.info("📡 REST: Vercel status request for {}", projectId);
             
-            Map<String, Object> data = dataCollectorService.getVercelStatusWithHealing(projectId);
+            Map<String, Object> data = dataCollectorService.getVercelStatus(projectId);
             
             // Push to admin dashboard (non-blocking)
             try {
@@ -119,7 +119,7 @@ public class DataController {
         try {
             logger.info("📡 REST: Firebase status request");
             
-            Map<String, Object> data = dataCollectorService.getFirebaseStatusWithHealing();
+            Map<String, Object> data = dataCollectorService.getFirebaseStatus();
             
             // Push to admin dashboard (non-blocking)
             try {
@@ -194,9 +194,10 @@ public class DataController {
             
             dataCollectorService.clearCache(key);
             
-            return ResponseEntity.ok(createSuccessResponse(Map.of(
-                "message", "Cache cleared for: " + key
-            )));
+            return ResponseEntity.ok(Map.of(
+                "message", "Cache cleared for: " + key,
+                "timestamp", System.currentTimeMillis()
+            ));
             
         } catch (Exception e) {
             logger.error("❌ Cache clear failed", e);
@@ -213,6 +214,7 @@ public class DataController {
     private Map<String, Object> createSuccessResponse(Map<String, Object> data) {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("data", data);
+        response.put("message", "success");
         response.put("timestamp", System.currentTimeMillis());
         return response;
     }

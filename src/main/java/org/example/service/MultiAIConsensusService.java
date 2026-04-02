@@ -2,6 +2,8 @@ package org.example.service;
 
 import org.example.model.ConsensusVote;
 import org.example.model.ConsensusFeedback;
+import org.example.service.AgentDecisionLogger;
+import org.example.service.AgentDecisionLogger.AgentDecision;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +14,7 @@ import java.util.stream.Collectors;
 
 /**
  * Multi-AI Consensus Service
- * SupremeAI consults 10 AI providers, votes on best solution, learns from all
+ * SupremeAI consults the admin-configured AI provider set, votes on best solution, learns from all
  */
 @Service
 public class MultiAIConsensusService {
@@ -29,24 +31,16 @@ public class MultiAIConsensusService {
     
     @Autowired
     private UserQuotaService userQuotaService; // NEW: Track user tier quotas
+
+    @Autowired
+    private ProviderRegistryService providerRegistryService;
+
+    @Autowired(required = false)
+    private AgentDecisionLogger decisionLogger; // L2/L3/L4: log each provider as an agent
     
     private static final int CONSENSUS_THRESHOLD = 70; // Require 70% agreement
     private static final int AI_REQUEST_TIMEOUT_SEC = 5;
     private Map<String, ConsensusFeedback> feedbackHistory = new ConcurrentHashMap<>();
-    
-    // Simulate different AI provider perspectives
-    private static final List<String> AI_PROVIDERS = Arrays.asList(
-        "openai-gpt4",
-        "anthropic-claude",
-        "google-gemini",
-        "meta-llama",
-        "mistral",
-        "cohere",
-        "huggingface",
-        "xai-grok",
-        "deepseek",
-        "perplexity"
-    );
     
     private Map<String, ConsensusVote> voteHistory = new ConcurrentHashMap<>();
     
@@ -71,7 +65,9 @@ public class MultiAIConsensusService {
         // User has quota, proceed with consensus
         ConsensusVote vote = askAllAI(question);
         
-        if (vote != null && !vote.getWinningResponse().contains("[QUOTA_EXCEEDED]")) {
+        if (vote != null
+            && vote.getWinningResponse() != null
+            && !vote.getWinningResponse().contains("[QUOTA_EXCEEDED]")) {
             // Record the API request for user quota
             userQuotaService.recordRequest(userId);
             logger.info("✅ Recorded consensus request for user {}", userId);
@@ -91,6 +87,14 @@ public class MultiAIConsensusService {
             // NEW: Check which AIs have available quota
             List<String> availableProviders = quotaService.getAvailableProviders();
             boolean needsFallback = quotaService.shouldUseFallback();
+            int configuredProviderCount = quotaService.getConfiguredProviderCount();
+
+            if (configuredProviderCount == 0) {
+                logger.warn("⚠️ No AI providers configured - admin must add providers before consensus can run");
+                vote.setWinningResponse("[NO_PROVIDERS_CONFIGURED] Admin has not configured any AI providers yet");
+                vote.setConfidenceScore(0.0);
+                return vote;
+            }
             
             if (availableProviders.isEmpty()) {
                 logger.error("❌ ALL AI PROVIDERS OUT OF QUOTA! Falling back...");
@@ -98,14 +102,14 @@ public class MultiAIConsensusService {
             }
             
             if (needsFallback) {
-                logger.warn("⚠️ Less than 5 AIs available - using limited consensus");
+                logger.warn("⚠️ No healthy providers are currently available - using fallback consensus");
             }
             
             logger.info("🤖 Asking {} available AI providers: {}", availableProviders.size(), question);
             logger.info("📊 Available: {}", availableProviders);
             
             // Get responses from available providers asynchronously
-            ExecutorService executor = Executors.newFixedThreadPool(Math.min(10, availableProviders.size()));
+            ExecutorService executor = Executors.newFixedThreadPool(Math.min(Math.max(1, availableProviders.size()), 16));
             List<Future<Map.Entry<String, String>>> futures = new ArrayList<>();
             
             for (String provider : availableProviders) {
@@ -201,35 +205,38 @@ public class MultiAIConsensusService {
      */
     private void voteBestResponse(ConsensusVote vote) {
         // Group similar responses and count votes
-        Map<String, Integer> responseCounts = new HashMap<>();
+        Map<String, Integer> responseCounts = new LinkedHashMap<>();
+        Map<String, String> representativeResponses = new LinkedHashMap<>();
         
         for (String response : vote.getProviderResponses().values()) {
             if (!response.equals("error")) {
                 // Normalize response for grouping
-                String normalized = response.substring(0, Math.min(50, response.length()));
+                String normalized = normalizeResponseKey(response);
                 responseCounts.put(normalized, responseCounts.getOrDefault(normalized, 0) + 1);
-                vote.voteFor(normalized);
+                representativeResponses.putIfAbsent(normalized, response);
             }
         }
+
+        vote.setVotes(responseCounts);
         
         // Find winning response
-        String winner = vote.getVotes().entrySet().stream()
+        String winner = responseCounts.entrySet().stream()
             .max(Comparator.comparingInt(Map.Entry::getValue))
             .map(Map.Entry::getKey)
             .orElse(null);
         
-        vote.setWinningResponse(winner);
+        vote.setWinningResponse(winner == null ? null : representativeResponses.get(winner));
         
         // Calculate confidence (consensus percentage)
         Double confidence = (double) vote.getConsensusPercentage() / 100.0;
         vote.setConfidenceScore(confidence);
         
         logger.info("📊 Consensus winner ({}% agreement): {}", 
-            vote.getConsensusPercentage(), winner);
+            vote.getConsensusPercentage(), vote.getWinningResponse());
     }
     
     /**
-     * Learn from all 10 AI perspectives
+        * Learn from all configured AI perspectives
      */
     private void learnFromMultipleAI(ConsensusVote vote, String question) {
         try {
@@ -244,7 +251,43 @@ public class MultiAIConsensusService {
                     String learning = extractLearning(provider, response);
                     uniqueApproaches.add(learning);
                     vote.addLearning(learning);
-                    
+
+                    Map<String, Object> modelMeta = new HashMap<>();
+                    modelMeta.put("source", "consensus");
+                    modelMeta.put("consensusVoteId", vote.getId());
+                    modelMeta.put("winner", vote.getWinningResponse());
+                    modelMeta.put("consensusPercentage", vote.getConsensusPercentage());
+                    learningService.recordAIModelMemory(
+                        provider,
+                        question,
+                        response,
+                        vote.getConfidenceScore() == null ? 0.0 : vote.getConfidenceScore(),
+                        modelMeta
+                    );
+
+                    // Feed into L2/L3/L4 learning — treat each provider as an agent
+                    // so AgentPatternProfiler / ReasoningChainCopier can learn from ALL AI models
+                    if (decisionLogger != null) {
+                        boolean isWinner = isWinningResponse(response, vote.getWinningResponse());
+                        float consensusConfidence = (float) (vote.getConsensusPercentage() / 100.0);
+                        float confidence = isWinner
+                            ? Math.max(0.8f, consensusConfidence)
+                            : Math.max(0.72f, consensusConfidence * 0.8f);
+                        AgentDecision d = decisionLogger.logDecision(
+                            provider,           // agent name = provider (e.g. "openai-gpt4")
+                            "LEARNING",         // task type
+                            vote.getId(),       // project id = vote id
+                            response.substring(0, Math.min(200, response.length())), // decision
+                            "Consensus response from " + provider + " for: " + question,
+                            confidence,
+                            Collections.emptyList()
+                        );
+                        d.result = "SUCCESS";
+                        d.status = "APPLIED";
+                        d.outcome = isWinner ? "consensus_winner" : "consensus_participant";
+                        d.learned = true;
+                    }
+
                     logger.info("📚 Learning from {}: {}", provider, learning);
                 }
             }
@@ -283,9 +326,26 @@ public class MultiAIConsensusService {
      * Query single AI provider
      */
     private String queryAI(String provider, String question) throws Exception {
-        // In production, call actual AI APIs
-        // For now, return mock response
-        return String.format("Response from %s: Analysis of %s", provider, question);
+        if (aiService == null) {
+            throw new IllegalStateException("AI service is not configured");
+        }
+
+        String response = aiService.callProvider(provider, question);
+        if (response == null || response.isBlank()) {
+            throw new IllegalStateException("No response returned for provider: " + provider);
+        }
+        return response;
+    }
+
+    private String normalizeResponseKey(String response) {
+        return response.substring(0, Math.min(50, response.length()));
+    }
+
+    private boolean isWinningResponse(String response, String winningResponse) {
+        if (response == null || winningResponse == null) {
+            return false;
+        }
+        return normalizeResponseKey(response).equals(normalizeResponseKey(winningResponse));
     }
     
     /**
@@ -300,8 +360,12 @@ public class MultiAIConsensusService {
      */
     public Map<String, Object> getConsensusStats() {
         Map<String, Object> stats = new HashMap<>();
+        int totalResponses = voteHistory.values().stream()
+            .mapToInt(ConsensusVote::getTotalResponses)
+            .sum();
         stats.put("totalVotes", voteHistory.size());
-        stats.put("totalProvidersConsulted", AI_PROVIDERS.size() * voteHistory.size());
+        stats.put("configuredProviders", providerRegistryService.getActiveProviderCount());
+        stats.put("totalProvidersConsulted", totalResponses);
         stats.put("learningsRecorded", voteHistory.size());
         stats.put("averageConsensus", voteHistory.values().stream()
             .mapToDouble(ConsensusVote::getConfidenceScore)

@@ -1,7 +1,6 @@
 package org.example.controller;
 
 import org.example.service.QuotaRotationService;
-import org.example.service.QuotaRotationService.AIProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +23,7 @@ public class QuotaRotationController {
     
     /**
      * GET /api/quotas/summary
-     * Get overall quota summary for all 10 AI providers
+        * Get overall quota summary for all admin-configured AI providers
      */
     @GetMapping("/summary")
     public ResponseEntity<Map<String, Object>> getQuotaSummary() {
@@ -69,16 +68,22 @@ public class QuotaRotationController {
     @GetMapping("/next-provider")
     public ResponseEntity<Map<String, Object>> getNextProvider() {
         try {
-            AIProvider provider = quotaService.getNextProvider();
+            String providerId = quotaService.getNextProvider();
+            if (providerId == null) {
+                return ResponseEntity.ok(Map.of(
+                    "status", "⚠️ No Providers",
+                    "message", "No AI providers are currently configured"
+                ));
+            }
             
             Map<String, Object> response = new LinkedHashMap<>();
             response.put("status", "✅ Selected");
-            response.put("provider", provider.name());
-            response.put("display_name", provider.displayName);
+            response.put("provider", providerId);
+            response.put("display_name", quotaService.getProviderDisplayName(providerId));
             response.put("quota_remaining", "check status endpoint");
             response.put("quota_status", "check status endpoint");
             
-            logger.info("🔄 Next provider selected: {}", provider.displayName);
+            logger.info("🔄 Next provider selected: {}", quotaService.getProviderDisplayName(providerId));
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.error("❌ Error selecting next provider: ", e);
@@ -94,15 +99,21 @@ public class QuotaRotationController {
     @GetMapping("/optimal-provider")
     public ResponseEntity<Map<String, Object>> getOptimalProvider() {
         try {
-            AIProvider provider = quotaService.getOptimalProvider();
+            String providerId = quotaService.getOptimalProvider();
+            if (providerId == null) {
+                return ResponseEntity.ok(Map.of(
+                    "status", "⚠️ No Providers",
+                    "message", "No AI providers are currently configured"
+                ));
+            }
             
             Map<String, Object> response = new LinkedHashMap<>();
             response.put("status", "✅ Recommended");
-            response.put("provider", provider.name());
-            response.put("display_name", provider.displayName);
+            response.put("provider", providerId);
+            response.put("display_name", quotaService.getProviderDisplayName(providerId));
             response.put("strategy", "Highest remaining quota + lowest failure rate");
             
-            logger.info("✨ Optimal provider recommended: {}", provider.displayName);
+            logger.info("✨ Optimal provider recommended: {}", quotaService.getProviderDisplayName(providerId));
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.error("❌ Error getting optimal provider: ", e);
@@ -212,22 +223,12 @@ public class QuotaRotationController {
     
     /**
      * GET /api/quotas/providers
-     * Get list of all 10 supported AI providers
+     * Get list of all configured AI providers
      */
     @GetMapping("/providers")
     public ResponseEntity<Map<String, Object>> getProvidersList() {
         try {
-            List<Map<String, Object>> providers = new ArrayList<>();
-            
-            for (AIProvider provider : AIProvider.values()) {
-                providers.add(new LinkedHashMap<String, Object>() {{
-                    put("name", provider.name());
-                    put("display_name", provider.displayName);
-                    put("daily_quota", provider.dailyQuota);
-                    put("monthly_quota", provider.dailyQuota * 30);
-                    put("monthly_cost_free_tier", "$0.00");
-                }});
-            }
+            List<Map<String, Object>> providers = quotaService.getRegisteredProviders();
             
             Map<String, Object> response = new LinkedHashMap<>();
             response.put("status", "✅ OK");

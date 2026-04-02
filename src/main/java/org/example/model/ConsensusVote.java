@@ -31,6 +31,9 @@ public class ConsensusVote {
     public void voteFor(String response) {
         votes.put(response, votes.getOrDefault(response, 0) + 1);
     }
+    public void setVotes(Map<String, Integer> votes) {
+        this.votes = new HashMap<>(votes);
+    }
     
     public String getWinningResponse() { return winningResponse; }
     public void setWinningResponse(String response) { this.winningResponse = response; }
@@ -47,7 +50,28 @@ public class ConsensusVote {
     public int getConsensusPercentage() {
         if (winningResponse == null || votes.isEmpty()) return 0;
         Integer winningVotes = votes.get(winningResponse);
+        if (winningVotes == null) {
+            winningVotes = votes.get(normalizeVoteKey(winningResponse));
+        }
+        if (winningVotes == null) {
+            String normalizedWinningKey = normalizeVoteKey(winningResponse);
+            for (Map.Entry<String, Integer> entry : votes.entrySet()) {
+                String voteKey = entry.getKey();
+                if (voteKey == null) {
+                    continue;
+                }
+                if (normalizedWinningKey.startsWith(voteKey) || voteKey.startsWith(normalizedWinningKey)) {
+                    winningVotes = entry.getValue();
+                    break;
+                }
+            }
+        }
         if (winningVotes == null) return 0;
         return (winningVotes * 100) / providerResponses.size();
+    }
+
+    private String normalizeVoteKey(String response) {
+        if (response == null) return null;
+        return response.substring(0, Math.min(50, response.length()));
     }
 }

@@ -366,6 +366,115 @@
             background: #4299e1;
             transition: width 0.3s;
         }
+
+        .technique-panel {
+            margin-top: 24px;
+            background: #1a202c;
+            border: 1px solid #2d3748;
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .technique-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin: 16px 0 20px;
+        }
+
+        .technique-toolbar select {
+            min-width: 220px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #2d3748;
+            background: #111827;
+            color: #e2e8f0;
+        }
+
+        .technique-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+        }
+
+        .technique-card {
+            background: linear-gradient(180deg, #111827 0%, #0f172a 100%);
+            border: 1px solid #2d3748;
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        .technique-card h3 {
+            margin: 0 0 8px;
+            font-size: 1rem;
+            color: #f8fafc;
+        }
+
+        .technique-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 0.82rem;
+            color: #94a3b8;
+            margin-bottom: 10px;
+        }
+
+        .technique-card p {
+            margin: 0 0 10px;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+
+        .technique-card ul {
+            margin: 0;
+            padding-left: 18px;
+            color: #cbd5e1;
+        }
+
+        .technique-card li {
+            margin-bottom: 6px;
+        }
+
+        .empty-state {
+            padding: 18px;
+            border-radius: 12px;
+            background: #111827;
+            border: 1px dashed #334155;
+            color: #94a3b8;
+        }
+
+        .status-note {
+            margin-top: 12px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin: 16px 0 20px;
+        }
+
+        .summary-card {
+            background: #111827;
+            border: 1px solid #2d3748;
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .summary-card .label {
+            color: #94a3b8;
+            font-size: 0.82rem;
+            margin-bottom: 6px;
+        }
+
+        .summary-card .value {
+            color: #f8fafc;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
@@ -374,6 +483,7 @@
         <div class="sidebar">
             <div class="logo">👑 SupremeAI Admin</div>
             <div class="menu-item active" onclick="showSection('dashboard')">📊 Dashboard</div>
+            <div class="menu-item" onclick="showSection('techniques')">🧠 Techniques</div>
             <div class="menu-item" onclick="showSection('approvals')">✅ Approvals</div>
             <div class="menu-item" onclick="showSection('commands')">💻 Commands</div>
             <div class="menu-item" onclick="showSection('api-keys')">🔑 API Key Manager</div>
@@ -434,8 +544,60 @@
 
                     <h2>Quick Actions</h2>
                     <button class="btn" onclick="showSection('api-keys'); showModal('addKeyModal')">➕ Add API Key</button>
+                    <button class="btn btn-secondary" onclick="showSection('techniques')">🧠 Browse Techniques</button>
                     <button class="btn btn-secondary" onclick="showSection('ai-agents')">🤖 Assign AI</button>
                     <button class="btn btn-secondary" onclick="showSection('projects')">📦 View Projects</button>
+
+                    <div class="technique-panel">
+                        <div style="display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap;">
+                            <div>
+                                <h2 style="margin: 0;">Operational Techniques</h2>
+                                <p class="status-note" style="margin-bottom: 0;">Live view of the app-creation and GPT-5.4 debugging rules SupremeAI has in memory.</p>
+                            </div>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <button class="btn btn-secondary" onclick="loadLearningSummary()">📊 Refresh Summary</button>
+                                <button class="btn btn-secondary" onclick="loadTechniquePreview()">↻ Refresh</button>
+                            </div>
+                        </div>
+                        <div id="learningSummaryPreview" class="summary-grid">
+                            <div class="summary-card"><div class="label">Loading</div><div class="value">...</div></div>
+                        </div>
+                        <div id="techniquePreviewList" class="technique-list" style="margin-top: 18px;">
+                            <div class="empty-state">Loading techniques...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Techniques Section -->
+                <div id="techniques" class="content-section">
+                    <h1>🧠 Learned Techniques</h1>
+                    <p>Browse the operational rules SupremeAI uses for app creation, root-cause debugging, and backend execution flow.</p>
+
+                    <div class="technique-toolbar">
+                        <select id="techniqueCategoryFilter" onchange="loadTechniques()">
+                            <option value="">All Categories</option>
+                            <option value="APP_CREATION">APP_CREATION</option>
+                            <option value="GPT54_DEBUGGING">GPT54_DEBUGGING</option>
+                            <option value="BACKEND_SERVICES">BACKEND_SERVICES</option>
+                            <option value="ADMIN_CONTROL">ADMIN_CONTROL</option>
+                            <option value="SECURITY">SECURITY</option>
+                            <option value="GIT_OPERATIONS">GIT_OPERATIONS</option>
+                            <option value="QUOTA">QUOTA</option>
+                            <option value="PERFORMANCE">PERFORMANCE</option>
+                            <option value="ARCHITECTURE">ARCHITECTURE</option>
+                            <option value="DEPLOYMENT_SCOPE">DEPLOYMENT_SCOPE</option>
+                        </select>
+                        <button class="btn" onclick="loadTechniques()">🔍 Load Techniques</button>
+                        <button class="btn btn-secondary" onclick="triggerReseed()">🪴 Reseed Knowledge</button>
+                    </div>
+
+                    <div id="learningSummaryCards" class="summary-grid">
+                        <div class="summary-card"><div class="label">Loading</div><div class="value">...</div></div>
+                    </div>
+                    <div id="techniqueStatus" class="status-note">Use your admin login session to load the seeded knowledge from the backend.</div>
+                    <div id="techniqueList" class="technique-list" style="margin-top: 18px;">
+                        <div class="empty-state">No techniques loaded yet.</div>
+                    </div>
                 </div>
 
                 <!-- Approvals Section -->
@@ -757,6 +919,7 @@
 
             const titles = {
                 'dashboard': 'Dashboard',
+                'techniques': 'Techniques',
                 'approvals': 'Approvals',
                 'commands': 'Commands',
                 'api-keys': 'API Key Manager',
@@ -770,6 +933,7 @@
             
             if (sectionId === 'approvals') loadApprovals();
             if (sectionId === 'api-keys') renderAPIKeysTable();
+            if (sectionId === 'techniques') loadTechniques();
         }
 
         function showModal(modalId) {
@@ -875,6 +1039,176 @@
             }
         }
 
+        function getAuthHeaders() {
+            const token = localStorage.getItem('supremeai_token');
+            if (!token) {
+                throw new Error('Admin token not found. Please log in again.');
+            }
+            return {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+        }
+
+        async function fetchTechniques(category = '') {
+            const path = category ? `/api/learning/techniques/${encodeURIComponent(category)}` : '/api/learning/techniques';
+            const response = await fetch(path, {
+                headers: getAuthHeaders()
+            });
+
+            if (response.status === 401) {
+                throw new Error('Session expired. Please log in again.');
+            }
+
+            const data = await response.json();
+            if (!response.ok || data.status !== 'success') {
+                throw new Error(data.message || 'Failed to load techniques');
+            }
+
+            return data.techniques || [];
+        }
+
+        async function fetchLearningStats() {
+            const response = await fetch('/api/learning/stats', {
+                headers: getAuthHeaders()
+            });
+
+            if (response.status === 401) {
+                throw new Error('Session expired. Please log in again.');
+            }
+
+            const data = await response.json();
+            if (!response.ok || data.status !== 'success') {
+                throw new Error(data.message || 'Failed to load learning stats');
+            }
+
+            return data.learning_stats || {};
+        }
+
+        function renderSummaryCards(targetId, stats) {
+            const container = document.getElementById(targetId);
+            const byCategory = stats.byCategory || {};
+            const topCategories = Object.entries(byCategory)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 4);
+
+            const cards = [
+                { label: 'Total Learnings', value: stats.totalLearnings ?? 0 },
+                { label: 'Techniques', value: stats.techniques ?? 0 },
+                { label: 'Requirements', value: stats.requirements ?? 0 },
+                { label: 'Avg Confidence', value: typeof stats.averageConfidence === 'number' ? `${Math.round(stats.averageConfidence * 100)}%` : '--' },
+                ...topCategories.map(([category, count]) => ({ label: category, value: count }))
+            ];
+
+            container.innerHTML = cards.map(card => `
+                <div class="summary-card">
+                    <div class="label">${card.label}</div>
+                    <div class="value">${card.value}</div>
+                </div>
+            `).join('');
+        }
+
+        async function loadLearningSummary() {
+            const previewTarget = 'learningSummaryPreview';
+            const fullTarget = 'learningSummaryCards';
+            document.getElementById(previewTarget).innerHTML = '<div class="summary-card"><div class="label">Loading</div><div class="value">...</div></div>';
+            document.getElementById(fullTarget).innerHTML = '<div class="summary-card"><div class="label">Loading</div><div class="value">...</div></div>';
+
+            try {
+                const stats = await fetchLearningStats();
+                renderSummaryCards(previewTarget, stats);
+                renderSummaryCards(fullTarget, stats);
+            } catch (error) {
+                const errorCard = `<div class="summary-card"><div class="label">Error</div><div class="value" style="font-size: 1rem;">${error.message}</div></div>`;
+                document.getElementById(previewTarget).innerHTML = errorCard;
+                document.getElementById(fullTarget).innerHTML = errorCard;
+            }
+        }
+
+        function renderTechniqueCards(targetId, techniques, limit = null) {
+            const container = document.getElementById(targetId);
+            const items = limit ? techniques.slice(0, limit) : techniques;
+
+            if (!items.length) {
+                container.innerHTML = '<div class="empty-state">No techniques available for this view.</div>';
+                return;
+            }
+
+            container.innerHTML = items.map(technique => {
+                const context = technique.context || {};
+                const summary = context.summary || technique.resolution || 'No summary available.';
+                const steps = Array.isArray(technique.solutions) ? technique.solutions.slice(0, 4) : [];
+                const confidence = typeof technique.confidenceScore === 'number'
+                    ? `${Math.round(technique.confidenceScore * 100)}%`
+                    : '--';
+
+                return `
+                    <article class="technique-card">
+                        <div class="technique-meta">
+                            <span>${technique.category || 'GENERAL'}</span>
+                            <span>Confidence ${confidence}</span>
+                        </div>
+                        <h3>${technique.content || 'Unnamed Technique'}</h3>
+                        <p>${summary}</p>
+                        ${steps.length ? `<ul>${steps.map(step => `<li>${step}</li>`).join('')}</ul>` : ''}
+                    </article>
+                `;
+            }).join('');
+        }
+
+        async function loadTechniquePreview() {
+            const preview = document.getElementById('techniquePreviewList');
+            preview.innerHTML = '<div class="empty-state">Loading techniques...</div>';
+
+            try {
+                const techniques = await fetchTechniques();
+                renderTechniqueCards('techniquePreviewList', techniques, 3);
+            } catch (error) {
+                preview.innerHTML = `<div class="empty-state">${error.message}</div>`;
+            }
+        }
+
+        async function loadTechniques() {
+            const list = document.getElementById('techniqueList');
+            const status = document.getElementById('techniqueStatus');
+            const category = document.getElementById('techniqueCategoryFilter').value;
+            list.innerHTML = '<div class="empty-state">Loading techniques...</div>';
+            status.textContent = 'Loading seeded knowledge from SupremeAI memory...';
+
+            try {
+                const techniques = await fetchTechniques(category);
+                renderTechniqueCards('techniqueList', techniques);
+                status.textContent = `${techniques.length} technique${techniques.length === 1 ? '' : 's'} loaded${category ? ` for ${category}` : ''}.`;
+            } catch (error) {
+                list.innerHTML = `<div class="empty-state">${error.message}</div>`;
+                status.textContent = 'Could not load techniques from the backend.';
+            }
+        }
+
+        async function triggerReseed() {
+            const status = document.getElementById('techniqueStatus');
+            status.textContent = 'Reseeding knowledge...';
+
+            try {
+                const response = await fetch('/api/learning/reseed', {
+                    method: 'POST',
+                    headers: getAuthHeaders()
+                });
+                const data = await response.json();
+
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.message || 'Failed to reseed knowledge');
+                }
+
+                status.textContent = `Knowledge reseeded successfully in ${data.durationMs} ms.`;
+                await loadLearningSummary();
+                await loadTechniques();
+                await loadTechniquePreview();
+            } catch (error) {
+                status.textContent = `Reseed failed: ${error.message}`;
+            }
+        }
+
         // --- API Keys Logic ---
         function addNewProvider() {
             const aiModel = document.getElementById('aiModelSelect').value;
@@ -947,6 +1281,9 @@
                 .then(reqs => {
                     document.getElementById('pendingCount').innerText = reqs.filter(r => r.status === 'PENDING').length;
                 }).catch(() => {});
+
+            loadLearningSummary();
+            loadTechniquePreview();
         });
 
         // Close modals when clicking outside

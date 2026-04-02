@@ -4,6 +4,16 @@
 
 ---
 
+## Real-life উপকারিতা (Short - Bangla)
+
+- দ্রুত app তৈরি: requirement দিলে SupremeAI structure বুঝে base code + best-practice direction দেয়, ফলে development time কমে।
+- smart error সমাধান: শুধু error detect না করে, আগের শেখা memory + multi-AI consensus দিয়ে root cause ধরে fix plan দেয়।
+- একই ভুল বারবার না হওয়া: একবার fix সফল হলে সেটা learning memory-তে থাকে, তাই পরেরবার একই type সমস্যা দ্রুত resolve হয়।
+
+সংক্ষেপে: কম সময়, কম ভুল, বেশি automation, বেশি productivity।
+
+---
+
 ## 🗂️ Documents at a Glance
 
 ### **START HERE** 👈
@@ -14,6 +24,13 @@
 - Quick reference for each document's purpose
 - 3-week implementation timeline
 - Next steps: Quick Start, Detailed Reading, or Run It Now
+
+📄 **TEACH_SUPREMEAI_APP_CREATION_AND_GPT54_ERROR_SOLVING.md** (Operational Playbook)
+
+- How SupremeAI should create apps from requirements
+- How GPT-5.4 should solve errors using root-cause reasoning
+- Why evidence-first fixing is better than blind patching
+- Direct mapping to the real services in this repository
 
 ---
 
@@ -44,7 +61,7 @@ Purpose: What has SupremeAI already learned?
 Topics:
   • 8 critical errors documented
   • Each with solution + confidence score (91-99%)
-  • 10 AI provider voting breakdown
+  • Admin-configured AI provider voting breakdown
   • Cost analysis ($0/month)
   • Firebase collections for storage
 When to read: Before implementing to know what to teach
@@ -75,6 +92,22 @@ Code examples for each step
 Learning storage details
 When to read: Understand end-to-end workflow before coding
 Time: 30 minutes
+```
+
+**3b. TEACH_SUPREMEAI_APP_CREATION_AND_GPT54_ERROR_SOLVING.md**
+
+```
+Purpose: Teach one practical loop for app creation and error solving
+Topics:
+  • Convert user request into explicit build specification
+  • Generate apps in layers: model -> service -> controller -> tests
+  • GPT-5.4 root-cause debugging sequence
+  • Why fixes must be evidence-first
+  • Direct mapping to RequirementAnalyzer, CodeGenerator, SelfExtender,
+    MultiAIConsensusService, GitHubActionsErrorParser, AutoFixLoopService,
+    and SystemLearningService
+When to read: Before asking SupremeAI to generate code or fix failures
+Time: 15 minutes
 ```
 
 ---
@@ -236,6 +269,10 @@ Time: 10 minutes
 
 → HOW_TO_BUILD_APPS_FROM_PLANS.md (10 steps)
 
+### **"How should GPT-5.4 solve errors?"**
+
+→ TEACH_SUPREMEAI_APP_CREATION_AND_GPT54_ERROR_SOLVING.md
+
 ### **"Show me the Java code"**
 
 → TEACHING_BACKEND_IMPLEMENTATION.md (models, services, controllers)
@@ -315,7 +352,7 @@ Reference: TEACHING_AND_LEARNING_SYSTEM.md
 
 **AI Voting System**
 
-- Ask 10 AI providers for opinion
+- Ask configured AI providers for opinion
 - Vote on best answer
 - Record percentage for each AI
 - Route future tasks to best AI

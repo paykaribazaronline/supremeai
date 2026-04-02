@@ -46,7 +46,7 @@
                   │
                   ↓ (Performance Suggestion)
         ┌──────────────────────────────┐
-        │ 10 AI Consensus Engine       │ ← 70% voting threshold
+        │ Dynamic AI Consensus Engine  │ ← 70% voting threshold
         │ (Adaptive learning)          │
         └─────────┬────────────────────┘
                   │
@@ -69,12 +69,14 @@
 **Overhead:** ~2-5ms per request
 
 **Components:**
+
 - `TracingContext.java` - ThreadLocal holder for trace data
 - `DistributedTracingService.java` - Tracer initialization
 - `TracingFilter.java` - HTTP interceptor for all requests
 - `TracingController.java` - 6 REST endpoints
 
 **REST APIs:**
+
 ```
 GET  /api/tracing/trace/{traceId}           - Get single trace
 GET  /api/tracing/traces/recent?limit=10    - Recent traces
@@ -93,17 +95,20 @@ POST /api/tracing/cleanup?ttl=3600000       - Cleanup old
 **Purpose:** Automatic provider failover when one goes down.
 
 **Components:**
+
 - `FailoverProvider.java` - Provider with health metrics
 - `FailoverRegistry.java` - Chain management
 - `HealthCheckService.java` - Periodic monitoring (30s)
 
 **Health Tracking:**
+
 ```
 Success Rate = (Previous × 0.9) + (Current × 0.1)
 Status: ACTIVE (fails < 3) → DEGRADED (fails ≥ 3)
 ```
 
 **REST APIs:**
+
 ```
 POST /api/resilience/failover-chain              - Register chain
 GET  /api/resilience/failover-chain/{id}         - Chain status
@@ -119,6 +124,7 @@ POST /api/resilience/health-checks/trigger/{id}  - Force check
 **Purpose:** Prevent cascading failures.
 
 **Config:**
+
 ```
 Failure Rate Threshold: 50%        → OPEN
 Slow Call Rate: 50% (>2s)         → OPEN
@@ -127,6 +133,7 @@ Permitted in HALF_OPEN: 3 calls
 ```
 
 **States:**
+
 ```
 CLOSED (OK) → OPEN (Failing) → HALF_OPEN (Testing) → CLOSED/OPEN
 ```
@@ -138,6 +145,7 @@ CLOSED (OK) → OPEN (Failing) → HALF_OPEN (Testing) → CLOSED/OPEN
 **Purpose:** Automatic retry with increasing delays.
 
 **Config:**
+
 ```
 Max attempts: 3
 Delays: 500ms → 1000ms → 2000ms
@@ -148,10 +156,11 @@ Success tracking: First-attempt rate monitoring
 
 ## Limitations & Resolutions
 
-### Problem 1: Latency (10 AIs simultaneously)
+### Problem 1: Latency (multiple AIs simultaneously)
 
 **Root Cause:** Sequential/slow parallel execution  
-**Solution:** 
+**Solution:**
+
 - Parallel execution layer ✅
 - Response caching (configurable TTL) ✅
 - **Impact:** <100ms latency with caching
@@ -162,6 +171,7 @@ Success tracking: First-attempt rate monitoring
 
 **Root Cause:** Need many AI providers  
 **Solution:**
+
 - ✅ Free API rotation (no cost)
 - ✅ Quota-based rotation strategy
 - **Details:** [See Quota Rotation](#quota-rotation-strategy)
@@ -172,6 +182,7 @@ Success tracking: First-attempt rate monitoring
 
 **Root Cause:** Waiting for 100% consensus  
 **Solution:**
+
 - ✅ 70% voting threshold (prevents deadlock)
 - ✅ Adaptive threshold learning
 - ✅ System learns optimal threshold per category
@@ -183,6 +194,7 @@ Success tracking: First-attempt rate monitoring
 
 **Root Cause:** Distributed system hard to manage  
 **Solution:**
+
 - ✅ Admin-driven AI assignment
 - ✅ Performance tracking per category
 - ✅ Smart suggestion engine
@@ -194,6 +206,7 @@ Success tracking: First-attempt rate monitoring
 
 **Root Cause:** When error happens, who's responsible?  
 **Solution:**
+
 - ✅ Blockchain signatures on all decisions
 - ✅ Complete audit trail with timestamps
 - ✅ Clear responsibility chain
@@ -206,7 +219,7 @@ Success tracking: First-attempt rate monitoring
 **Status:** ✅ Production Ready (Phase 8)  
 **Target Cost:** $0/month (free APIs only)  
 **Implementation:** 918 LOC (Service + Controller + Models)
-**Flexibility:** Supports **1 to unlimited AI providers** (currently demonstrating with 10)
+**Flexibility:** Supports **0 to unlimited AI providers** controlled by admin
 
 ### Architecture
 
@@ -229,7 +242,7 @@ User AI Request
   └─ Learn for future routing
 ```
 
-### Example: 10 Free-Tier AI Providers (Configurable)
+### Example: Configurable Free-Tier AI Providers
 
 | Provider | Free Tier Quota | Monthly Calls | Est. Cost |
 |----------|-----------------|---------------|-----------|
@@ -248,6 +261,7 @@ User AI Request
 ### Components
 
 **QuotaRotationService.java** (376 LOC)
+
 ```java
 // Main service for quota tracking and provider selection
 
@@ -267,7 +281,7 @@ public class QuotaRotationService {
   // Auto-reset quotas on month boundary
   public void checkAndResetMonthlyQuotas()
   
-  // Get total remaining quota across all 10 providers
+  // Get total remaining quota across all configured providers
   public int getTotalRemainingQuota()
   
   // Project monthly cost (always $0 for free tiers)
@@ -276,6 +290,7 @@ public class QuotaRotationService {
 ```
 
 **QuotaRotationController.java** (293 LOC)
+
 ```
 REST Endpoints:
   GET  /api/quotas/summary              → Overall quota status
@@ -286,11 +301,12 @@ REST Endpoints:
   POST /api/quotas/record-failure       → Track failures
   GET  /api/quotas/remaining            → Total remaining quota
   POST /api/quotas/reset-monthly        → Manual reset
-  GET  /api/quotas/providers            → List all 10 providers
+  GET  /api/quotas/providers            → List all configured providers
   GET  /api/quotas/health               → Health check
 ```
 
 **AIProviderRoutingService.java** (249 LOC)
+
 ```java
 // Intelligent routing based on category affinity and performance
 
@@ -358,24 +374,28 @@ Projected Annual Savings:
 ### Dashboard Features
 
 **Top Stats:**
+
 - Total remaining quota (8500/11000)
 - Projected monthly cost ($0.00)
 - Healthy providers (8/10)
 - Current month (2026-04)
 
 **Provider Grid:**
+
 - Individual cards per provider
 - Quota remaining with visual bar
 - Status badge (OK/NEAR_LIMIT/EXHAUSTED)
 - Failure count and trend
 
 **Selection Strategy:**
+
 - Next provider (round-robin)
 - Optimal provider (smart algorithm)
 - Strategy explanation
 - Why selected for this task
 
 **Performance Tracking:**
+
 - Monthly usage chart per provider
 - Success rate trends
 - Response time averages
@@ -384,6 +404,7 @@ Projected Annual Savings:
 ### REST API Examples
 
 **Get quota summary:**
+
 ```bash
 curl http://localhost:8080/api/quotas/summary
 
@@ -400,6 +421,7 @@ Response:
 ```
 
 **Record successful API call:**
+
 ```bash
 curl -X POST http://localhost:8080/api/quotas/record-success \
   -d "provider=ANTHROPIC_API&tokensUsed=150"
@@ -452,6 +474,7 @@ Admin Dashboard
 ### Components
 
 **DocumentationRulesService.java** (171 LOC)
+
 ```java
 public class DocumentationRulesService {
   // Get current active rules
@@ -473,6 +496,7 @@ public class DocumentationRulesService {
 ```
 
 **AdminDocumentationController.java** (285 LOC)
+
 ```
 REST Endpoints:
   GET    /api/admin/doc-rules/current              → View active rules
@@ -488,6 +512,7 @@ REST Endpoints:
 ### Default Rules
 
 **Root folder allowed:**
+
 - README.md
 - LICENSE
 - CODE_OF_CONDUCT.md
@@ -496,6 +521,7 @@ REST Endpoints:
 - Dockerfile files
 
 **Organized by category:**
+
 - `docs/01-SETUP-DEPLOYMENT/` → Setup guides
 - `docs/02-ARCHITECTURE/` → Architecture docs
 - `docs/03-PHASES/` → Phase reports
@@ -503,12 +529,14 @@ REST Endpoints:
 - `docs/12-GUIDES/` → How-to guides
 
 **File size limits:**
+
 - Setup docs: 500 KB
 - Architecture docs: 800 KB  
 - Feature docs: 1000 KB
 - Guides: 2000 KB
 
 **Enforcement levels:**
+
 - **STRICT:** Block non-compliant docs (no generation)
 - **WARNING:** Generate but notify admin of violations
 - **INFO:** Generate silently, log only (audit trail)
@@ -516,6 +544,7 @@ REST Endpoints:
 ### REST API Examples
 
 **Get current rules:**
+
 ```bash
 curl http://localhost:8080/api/admin/doc-rules/current
 
@@ -536,6 +565,7 @@ Response:
 ```
 
 **Validate document:**
+
 ```bash
 curl -X POST http://localhost:8080/api/admin/doc-rules/validate-document \
   -d "filepath=docs/architecture.md&category=architecture&fileSizeKB=450"
@@ -549,6 +579,7 @@ Response:
 ```
 
 **Set enforcement level:**
+
 ```bash
 curl -X POST http://localhost:8080/api/admin/doc-rules/set-enforcement-level \
   -d "level=STRICT"
@@ -564,18 +595,21 @@ Response:
 ### Dashboard Features
 
 **Left Panel - Rules Control:**
+
 - View current enforcement rules
 - Select enforcement level (STRICT/WARNING/INFO)
 - Toggle auto-correct on/off
 - See monthly reset status
 
 **Center Panel - Category Management:**
+
 - List all doc categories
 - Add new category (name, path, max size)
 - Edit existing category rules
 - Delete category
 
 **Right Panel - Validation:**
+
 - Paste document filepath
 - Select category
 - Run validation
@@ -583,6 +617,7 @@ Response:
 - Auto-correct available
 
 **History Panel:**
+
 - View rule changes
 - See who changed what, when
 - Rollback to previous rules
@@ -681,6 +716,7 @@ selectAI("coding") {
 ### Suggestion Engine
 
 Dashboard shows admin:
+
 ```
 ✅ Use AI-A (95% success for coding)
 ℹ️  AI-B good value (87%, free API)
@@ -706,6 +742,7 @@ Dashboard shows admin:
 ```
 
 **Quota Tracking:**
+
 ```
 AIProvider {
   quota: 10000

@@ -70,7 +70,7 @@ public class SelfExtensionController {
             
             // ✅ NEW: Check provider quotas
             if (quotaService.shouldUseFallback()) {
-                logger.warn("⚠️ Provider quotas critically low - less than 5 AIs have quota");
+                logger.warn("⚠️ Provider quotas critically low - no healthy AI providers currently have quota");
                 return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                     .body(Map.of("status", "error", "message", "System quota critically low. Please try again later."));
             }

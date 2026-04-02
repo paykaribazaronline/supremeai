@@ -3,6 +3,7 @@ package org.example.service;
 import org.example.model.Quota;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -16,86 +17,36 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class QuotaService {
     private static final Logger logger = LoggerFactory.getLogger(QuotaService.class);
-    
-    private Map<String, Quota> quotas = new ConcurrentHashMap<>();
     private static final int MINIMUM_QUOTA_PERCENT = 20; // Min 20% remaining to use an AI
-    
-    public QuotaService() {
-        initializeDefaultQuotas();
-    }
+    private static final long DEFAULT_DAILY_LIMIT = 1000;
+    private static final long DEFAULT_DAILY_TOKEN_LIMIT = 100000;
+    private static final double DEFAULT_RPM_LIMIT = 120.0;
+
+    @Autowired
+    private ProviderRegistryService providerRegistryService;
+
+    private Map<String, Quota> quotas = new ConcurrentHashMap<>();
     
     /**
-     * Initialize default quotas for 10 AI providers
-     * These are conservative estimates based on typical API limits
+     * Sync quota records with the admin-managed provider registry.
      */
-    private void initializeDefaultQuotas() {
-        // OpenAI: 3,500 RPM, 200,000 tokens/min
-        quotas.put("openai-gpt4", new Quota(
-            "openai-gpt4", "OpenAI GPT-4",
-            3500, 200000, 3500
-        ));
-        
-        // Anthropic: 50,000 tokens/day limit
-        quotas.put("anthropic-claude", new Quota(
-            "anthropic-claude", "Anthropic Claude",
-            1000, 50000, 100
-        ));
-        
-        // Google Gemini: 100 requests/second
-        quotas.put("google-gemini", new Quota(
-            "google-gemini", "Google Gemini",
-            6000, 150000, 6000
-        ));
-        
-        // Meta LLaMA: 5,000 requests/day
-        quotas.put("meta-llama", new Quota(
-            "meta-llama", "Meta LLaMA",
-            5000, 100000, 500
-        ));
-        
-        // Mistral: 300 requests/minute
-        quotas.put("mistral", new Quota(
-            "mistral", "Mistral",
-            300, 50000, 300
-        ));
-        
-        // Cohere: Varies, conservative 1,000/day
-        quotas.put("cohere", new Quota(
-            "cohere", "Cohere",
-            1000, 100000, 200
-        ));
-        
-        // HuggingFace: Free tier 1,000/month
-        quotas.put("huggingface", new Quota(
-            "huggingface", "HuggingFace",
-            500, 50000, 100
-        ));
-        
-        // XAI Grok: Limited access ~500/day
-        quotas.put("xai-grok", new Quota(
-            "xai-grok", "XAI Grok",
-            500, 30000, 100
-        ));
-        
-        // DeepSeek: 2,000 requests/day
-        quotas.put("deepseek", new Quota(
-            "deepseek", "DeepSeek",
-            2000, 80000, 200
-        ));
-        
-        // Perplexity: 1,000 requests/day
-        quotas.put("perplexity", new Quota(
-            "perplexity", "Perplexity",
-            1000, 60000, 150
-        ));
-        
-        logger.info("✅ Quota system initialized with 10 AI providers");
+    public synchronized void syncConfiguredProviders() {
+        Set<String> activeProviderIds = new HashSet<>(providerRegistryService.getActiveProviderIds());
+
+        quotas.keySet().removeIf(providerId -> !activeProviderIds.contains(providerId));
+
+        providerRegistryService.getActiveProviders().forEach(provider ->
+            quotas.computeIfAbsent(provider.getId(), ignored -> createQuota(provider.getId(), provider.getName()))
+        );
+
+        logger.info("✅ Quota system synced with {} admin-configured AI providers", quotas.size());
     }
     
     /**
      * Check if an AI provider has available quota
      */
     public boolean canUseAI(String providerId) {
+        syncConfiguredProviders();
         Quota quota = quotas.get(providerId);
         if (quota == null) {
             logger.warn("⚠️ No quota found for provider: {}", providerId);
@@ -117,6 +68,7 @@ public class QuotaService {
      * Get all providers with available quota (for intelligent selection)
      */
     public List<String> getAvailableProviders() {
+        syncConfiguredProviders();
         List<String> available = new ArrayList<>();
         for (String providerId : quotas.keySet()) {
             if (canUseAI(providerId)) {
@@ -131,6 +83,7 @@ public class QuotaService {
      * Record API usage for a provider
      */
     public void recordUsage(String providerId, long tokenCount) {
+        syncConfiguredProviders();
         Quota quota = quotas.get(providerId);
         if (quota != null) {
             quota.incrementUsage(tokenCount);
@@ -152,6 +105,7 @@ public class QuotaService {
      * Get quota details for a provider
      */
     public Quota getQuotaDetails(String providerId) {
+        syncConfiguredProviders();
         return quotas.get(providerId);
     }
     
@@ -159,6 +113,7 @@ public class QuotaService {
      * Get all quota details
      */
     public Map<String, Quota> getAllQuotas() {
+        syncConfiguredProviders();
         return new HashMap<>(quotas);
     }
     
@@ -167,6 +122,7 @@ public class QuotaService {
      */
     public void resetDailyQuotas() {
         logger.info("🔄 Resetting daily quotas for all providers");
+        syncConfiguredProviders();
         for (Quota quota : quotas.values()) {
             quota.setRequestsUsedToday(0);
             quota.setTokensUsedToday(0);
@@ -181,8 +137,7 @@ public class QuotaService {
      * Check if we need fallback (most AIs out of quota)
      */
     public boolean shouldUseFallback() {
-        int available = getAvailableProviders().size();
-        return available < 5; // Less than 5 AIs have quota
+        return getAvailableProviders().isEmpty();
     }
     
     /**
@@ -216,6 +171,7 @@ public class QuotaService {
      * Update quota limits (admin function to adjust API limits)
      */
     public void updateQuotaLimit(String providerId, long newDailyLimit) {
+        syncConfiguredProviders();
         Quota quota = quotas.get(providerId);
         if (quota != null) {
             quota.setDailyLimit(newDailyLimit);
@@ -228,6 +184,7 @@ public class QuotaService {
      * Manual quota increment (for testing or admin override)
      */
     public void manuallyIncrement(String providerId, long amount) {
+        syncConfiguredProviders();
         Quota quota = quotas.get(providerId);
         if (quota != null) {
             quota.setRequestsUsedToday(quota.getRequestsUsedToday() + amount);
@@ -240,6 +197,7 @@ public class QuotaService {
      * Get summary statistics
      */
     public Map<String, Object> getQuotaSummary() {
+        syncConfiguredProviders();
         Map<String, Object> summary = new HashMap<>();
         summary.put("totalProviders", quotas.size());
         summary.put("healthyProviders", getHealthyProviderCount());
@@ -249,5 +207,47 @@ public class QuotaService {
         summary.put("shouldUseFallback", shouldUseFallback());
         summary.put("timestamp", LocalDateTime.now());
         return summary;
+    }
+
+    public int getConfiguredProviderCount() {
+        syncConfiguredProviders();
+        return quotas.size();
+    }
+
+    private Quota createQuota(String providerId, String providerName) {
+        String normalized = providerName == null ? "" : providerName.toLowerCase(Locale.ROOT);
+
+        if (normalized.contains("openai")) {
+            return new Quota(providerId, providerName, 3500, 200000, 3500);
+        }
+        if (normalized.contains("anthropic") || normalized.contains("claude")) {
+            return new Quota(providerId, providerName, 1000, 50000, 100);
+        }
+        if (normalized.contains("gemini") || normalized.contains("google")) {
+            return new Quota(providerId, providerName, 6000, 150000, 6000);
+        }
+        if (normalized.contains("meta") || normalized.contains("llama")) {
+            return new Quota(providerId, providerName, 5000, 100000, 500);
+        }
+        if (normalized.contains("mistral")) {
+            return new Quota(providerId, providerName, 300, 50000, 300);
+        }
+        if (normalized.contains("cohere")) {
+            return new Quota(providerId, providerName, 1000, 100000, 200);
+        }
+        if (normalized.contains("huggingface")) {
+            return new Quota(providerId, providerName, 500, 50000, 100);
+        }
+        if (normalized.contains("xai") || normalized.contains("grok")) {
+            return new Quota(providerId, providerName, 500, 30000, 100);
+        }
+        if (normalized.contains("deepseek")) {
+            return new Quota(providerId, providerName, 2000, 80000, 200);
+        }
+        if (normalized.contains("perplexity")) {
+            return new Quota(providerId, providerName, 1000, 60000, 150);
+        }
+
+        return new Quota(providerId, providerName, DEFAULT_DAILY_LIMIT, DEFAULT_DAILY_TOKEN_LIMIT, DEFAULT_RPM_LIMIT);
     }
 }

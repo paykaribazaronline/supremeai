@@ -9,9 +9,12 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.context.annotation.Profile;
+
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
+@Profile("!test")
 public class AuthController {
     
     private final JwtTokenProvider jwtTokenProvider;

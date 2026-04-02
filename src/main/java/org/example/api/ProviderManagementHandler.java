@@ -13,7 +13,7 @@ import java.util.*;
  * REST API Handler for Provider Management
  * 
  * Admin can:
- * - GET /api/providers/available → List top 10 AI providers
+ * - GET /api/providers/available → List available AI providers
  * - GET /api/providers/configured → List active providers
  * - POST /api/providers/add → Add new provider
  * - POST /api/providers/remove → Remove provider

@@ -1,6 +1,5 @@
 package org.example.service;
 
-import org.example.service.QuotaRotationService.AIProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,29 +64,28 @@ public class AIProviderRoutingService {
      * 3. Fallback to highest success rate
      * 4. Final fallback to round-robin
      */
-    public AIProvider routeRequest(String category, String requestType) {
+    public String routeRequest(String category, String requestType) {
         // First priority: Use category-affine provider with available quota
-        AIProvider categoryOptimal = getCategoryOptimalProvider(category);
+        String categoryOptimal = getCategoryOptimalProvider(category);
         if (categoryOptimal != null) {
-            logger.info("🎯 Routing {} request ({}) to {}", requestType, category, categoryOptimal.displayName);
+            logger.info("🎯 Routing {} request ({}) to {}", requestType, category, categoryOptimal);
             return categoryOptimal;
         }
         
         // Second priority: Optimal provider (highest quota + success rate)
-        AIProvider optimal = quotaService.getOptimalProvider();
-        logger.info("🎯 Routing {} request to optimal: {}", requestType, optimal.displayName);
+        String optimal = quotaService.getOptimalProvider();
+        logger.info("🎯 Routing {} request to optimal: {}", requestType, optimal);
         return optimal;
     }
     
     /**
      * Get best provider for specific category based on learned performance
      */
-    private AIProvider getCategoryOptimalProvider(String category) {
+    private String getCategoryOptimalProvider(String category) {
         return metricsMap.entrySet().stream()
             .filter(e -> e.getValue().category.equals(category) && e.getValue().getSuccessRate() > 0.7)
             .max(Comparator.comparingDouble(e -> e.getValue().getSuccessRate()))
-            .map(Map.Entry::getKey)
-            .map(AIProvider::valueOf)
+            .map(e -> e.getValue().provider)
             .orElse(null);
     }
     

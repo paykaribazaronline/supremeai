@@ -29,7 +29,7 @@ public class WebhookListenerTest {
     }
 
     @Test
-    void testPushEventProcessing() throws InterruptedException {
+    void testPushEventProcessing() throws Exception {
         // Given
         String pushPayload = """
                 {
@@ -46,11 +46,11 @@ public class WebhookListenerTest {
         Thread.sleep(100); // Allow async processing
 
         // Then - should trigger data collection
-        verify(dataCollectorService, timeout(1000)).getGitHubData(anyString(), anyString());
+        verify(dataCollectorService, timeout(1000)).getGitHubDataWithHealing(anyString(), anyString());
     }
 
     @Test
-    void testPullRequestEventProcessing() throws InterruptedException {
+    void testPullRequestEventProcessing() throws Exception {
         // Given
         String prPayload = """
                 {
@@ -70,11 +70,11 @@ public class WebhookListenerTest {
         Thread.sleep(100);
 
         // Then
-        verify(dataCollectorService, timeout(1000)).getGitHubData(anyString(), anyString());
+        verify(dataCollectorService, timeout(1000)).getGitHubDataWithHealing(anyString(), anyString());
     }
 
     @Test
-    void testDeduplicationWindowPreventsReprocessing() {
+    void testDeduplicationWindowPreventsReprocessing() throws Exception {
         // Given
         String payload = "{\"test\": \"data\"}";
         String signature = generateSignature(payload, WEBHOOK_SECRET);
@@ -85,11 +85,11 @@ public class WebhookListenerTest {
         webhookListener.handleWebhook(payload, signature, deliveryId);
 
         // Then - should only process once (deduplicated)
-        verify(dataCollectorService, atMostOnce()).getGitHubData(anyString(), anyString());
+        verify(dataCollectorService, atMostOnce()).getGitHubDataWithHealing(anyString(), anyString());
     }
 
     @Test
-    void testDeduplicationWindowExpiry() throws InterruptedException {
+    void testDeduplicationWindowExpiry() throws Exception {
         // Given
         String payload = "{\"test\": \"data\"}";
         String signature = generateSignature(payload, WEBHOOK_SECRET);
@@ -100,12 +100,12 @@ public class WebhookListenerTest {
         Thread.sleep(35000); // Wait more than 30-second window
         webhookListener.handleWebhook(payload, signature, deliveryId);
 
-        // Then - should process both (window expired)
-        verify(dataCollectorService, times(2)).getGitHubData(anyString(), anyString());
+        // Then - should process both (window expired) - use timeout() to handle async processing
+        verify(dataCollectorService, timeout(5000).times(2)).getGitHubDataWithHealing(anyString(), anyString());
     }
 
     @Test
-    void testIssueEventProcessing() throws InterruptedException {
+    void testIssueEventProcessing() throws Exception {
         // Given
         String issuePayload = """
                 {
@@ -120,11 +120,11 @@ public class WebhookListenerTest {
         Thread.sleep(100);
 
         // Then
-        verify(dataCollectorService, timeout(1000)).getGitHubData(anyString(), anyString());
+        verify(dataCollectorService, timeout(1000)).getGitHubDataWithHealing(anyString(), anyString());
     }
 
     @Test
-    void testReleaseEventProcessing() throws InterruptedException {
+    void testReleaseEventProcessing() throws Exception {
         // Given
         String releasePayload = """
                 {
@@ -139,7 +139,7 @@ public class WebhookListenerTest {
         Thread.sleep(100);
 
         // Then
-        verify(dataCollectorService, timeout(1000)).getGitHubData(anyString(), anyString());
+        verify(dataCollectorService, timeout(1000)).getGitHubDataWithHealing(anyString(), anyString());
     }
 
     @Test
@@ -155,11 +155,11 @@ public class WebhookListenerTest {
     }
 
     @Test
-    void testRetryMechanismOnTransientFailure() throws InterruptedException {
+    void testRetryMechanismOnTransientFailure() throws Exception {
         // Given
         doThrow(new RuntimeException("Transient network error"))
                 .doReturn(null)
-                .when(dataCollectorService).getGitHubData(anyString(), anyString());
+                .when(dataCollectorService).getGitHubDataWithHealing(anyString(), anyString());
 
         String payload = "{\"test\": \"data\"}";
         String signature = generateSignature(payload, WEBHOOK_SECRET);
@@ -169,11 +169,11 @@ public class WebhookListenerTest {
         Thread.sleep(500); // Allow retry to happen
 
         // Then - should retry
-        verify(dataCollectorService, atLeast(1)).getGitHubData(anyString(), anyString());
+        verify(dataCollectorService, atLeast(1)).getGitHubDataWithHealing(anyString(), anyString());
     }
 
     @Test
-    void testConcurrentWebhookProcessing() throws InterruptedException {
+    void testConcurrentWebhookProcessing() throws Exception {
         // Given
         String payload1 = "{\"id\": 1}";
         String payload2 = "{\"id\": 2}";
@@ -199,9 +199,10 @@ public class WebhookListenerTest {
         t1.join();
         t2.join();
         t3.join();
+        Thread.sleep(500); // Allow async processing to complete
 
         // Then - all should be processed
-        verify(dataCollectorService, times(3)).getGitHubData(anyString(), anyString());
+        verify(dataCollectorService, timeout(3000).times(3)).getGitHubDataWithHealing(anyString(), anyString());
     }
 
     @Test
@@ -218,7 +219,7 @@ public class WebhookListenerTest {
         // Then - stats should reflect processing
         var stats = webhookListener.getStats();
         assertNotNull(stats);
-        assertTrue((long) stats.get("totalReceived") >= 3);
+        assertTrue((long) stats.get("total_webhooks") >= 3);
     }
 
     @Test

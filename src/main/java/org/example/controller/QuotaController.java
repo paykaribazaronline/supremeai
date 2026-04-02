@@ -179,7 +179,7 @@ public class QuotaController {
         response.put("needsFallback", needsFallback);
         response.put("healthyProviders", healthyCount);
         response.put("message", needsFallback ? 
-            "⚠️ Less than 5 AIs have quota - using fallback mechanism" :
+            "⚠️ No healthy configured AI providers have quota - using fallback mechanism" :
             "✅ Sufficient quota available from multiple providers");
         
         logger.info("⚠️ Fallback required: {}", needsFallback);

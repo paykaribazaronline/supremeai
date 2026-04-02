@@ -87,18 +87,20 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
         String token = null;
         
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+        if (authHeader != null && authHeader.toLowerCase().startsWith("bearer ")) {
             token = authHeader.substring(7);
         }
         
         // Validate token (JWT or test token)
         if (token == null || !isValidToken(token)) {
-            logger.warn("🔐 Unauthorized access attempt to {} from {}", 
+            logger.warn("\uD83D\uDD10 Unauthorized access attempt to {} from {}",
                 path, request.getRemoteAddr());
-            
-            response.setStatus(401); // HttpServletResponse.SC_UNAUTHORIZED
-            response.setContentType("application/json");
-            response.getWriter().write("{\"status\":\"error\",\"message\":\"Unauthorized - Invalid or missing token\"}");
+            response.setStatus(401);
+            response.setContentType("application/json;charset=UTF-8");
+            long ts = System.currentTimeMillis();
+            response.getWriter().write(
+                "{\"error\":\"unauthorized\",\"message\":\"Missing or invalid authorization token\","
+                + "\"status\":401,\"path\":\"" + path + "\",\"timestamp\":\"" + ts + "\"}");
             return;
         }
         
@@ -111,7 +113,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
      */
     private boolean isPublicPath(String path) {
         return PUBLIC_PATHS.stream()
-            .anyMatch(path::startsWith);
+            .anyMatch(p -> p.equals("/") ? path.equals("/") : path.startsWith(p));
     }
     
     /**

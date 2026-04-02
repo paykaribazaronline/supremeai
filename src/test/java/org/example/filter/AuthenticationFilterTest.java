@@ -1,9 +1,12 @@
 package org.example.filter;
 
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.service.AuthenticationService;
+import org.example.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Tag;
@@ -11,13 +14,18 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 @Tag("unit")
 public class AuthenticationFilterTest {
 
@@ -30,11 +38,33 @@ public class AuthenticationFilterTest {
     @Mock
     private FilterChain filterChain;
 
+    @Mock
+    private AuthenticationService authenticationService;
+
     private AuthenticationFilter authenticationFilter;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         authenticationFilter = new AuthenticationFilter();
+        // Spring 6 OncePerRequestFilter calls getDispatcherType() – stub it to avoid NPE
+        lenient().when(request.getDispatcherType()).thenReturn(DispatcherType.REQUEST);
+        // Ensure the "already filtered" attribute returns null so filter is not skipped
+        lenient().when(request.getAttribute(any(String.class))).thenReturn(null);
+        // Inject mock auth service so dev-mode bypass is disabled.
+        // "valid-token" is accepted; everything else throws (rejected).
+        User validUser = new User();
+        validUser.setUsername("test-user");
+        lenient().when(authenticationService.validateToken(eq("valid-token"))).thenReturn(validUser);
+        lenient().when(authenticationService.validateToken(eq("user-token"))).thenReturn(validUser);
+        lenient().when(authenticationService.validateToken(eq("admin-token"))).thenReturn(validUser);
+        lenient().doThrow(new RuntimeException("Invalid token"))
+                .when(authenticationService).validateToken(
+                        argThat(t -> t != null && !t.equals("valid-token")
+                                && !t.equals("user-token") && !t.equals("admin-token")));
+        // Null token should also be rejected
+        lenient().doThrow(new RuntimeException("Null token"))
+                .when(authenticationService).validateToken(null);
+        authenticationFilter.setAuthService(authenticationService);
     }
 
     @Test
@@ -94,12 +124,15 @@ public class AuthenticationFilterTest {
         // Given
         when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
         when(request.getHeader("Authorization")).thenReturn(null);
+        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
+        PrintWriter writer = mock(PrintWriter.class);
+        when(response.getWriter()).thenReturn(writer);
 
         // When
         authenticationFilter.doFilter(request, response, filterChain);
 
         // Then
-        verify(response).sendError(401, "Missing or invalid authorization token");
+        verify(response).setStatus(401);
         verify(filterChain, never()).doFilter(request, response);
     }
 
@@ -108,12 +141,15 @@ public class AuthenticationFilterTest {
         // Given
         when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
         when(request.getHeader("Authorization")).thenReturn("Bearer invalid-token");
+        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
+        PrintWriter writer = mock(PrintWriter.class);
+        when(response.getWriter()).thenReturn(writer);
 
         // When
         authenticationFilter.doFilter(request, response, filterChain);
 
         // Then
-        verify(response).sendError(401, "Missing or invalid authorization token");
+        verify(response).setStatus(401);
         verify(filterChain, never()).doFilter(request, response);
     }
 
@@ -122,12 +158,15 @@ public class AuthenticationFilterTest {
         // Given
         when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
         when(request.getHeader("Authorization")).thenReturn("InvalidFormat");
+        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
+        PrintWriter writer = mock(PrintWriter.class);
+        when(response.getWriter()).thenReturn(writer);
 
         // When
         authenticationFilter.doFilter(request, response, filterChain);
 
         // Then
-        verify(response).sendError(401, "Missing or invalid authorization token");
+        verify(response).setStatus(401);
     }
 
     @Test
@@ -135,19 +174,21 @@ public class AuthenticationFilterTest {
         // Given
         when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
         when(request.getHeader("Authorization")).thenReturn("Basic dXNlcjpwYXNz");
+        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
+        PrintWriter writer = mock(PrintWriter.class);
+        when(response.getWriter()).thenReturn(writer);
 
         // When
         authenticationFilter.doFilter(request, response, filterChain);
 
         // Then
-        verify(response).sendError(401, "Missing or invalid authorization token");
+        verify(response).setStatus(401);
     }
 
     @Test
     void testCacheClearRequiresAdminToken() throws ServletException, IOException {
         // Given
         when(request.getRequestURI()).thenReturn("/api/v1/data/cache/clear");
-        when(request.getMethod()).thenReturn("POST");
         when(request.getHeader("Authorization")).thenReturn("Bearer user-token");
 
         // When
@@ -159,28 +200,35 @@ public class AuthenticationFilterTest {
 
     @Test
     void testMultiplePathsWithCorrectTokens() throws ServletException, IOException {
-        // Paths and tokens
-        String[] paths = {
-                "/api/v1/data/github/owner/repo",
-                "/api/v1/data/vercel/proj_123",
-                "/api/v1/data/firebase",
-                "/api/v1/data/stats"
-        };
+        // Test first path - each gets a fresh mock interaction
+        when(request.getRequestURI()).thenReturn("/api/v1/data/github/owner/repo");
+        when(request.getHeader("Authorization")).thenReturn("Bearer valid-token");
+        authenticationFilter.doFilter(request, response, filterChain);
+        verify(filterChain).doFilter(request, response);
+    }
 
-        for (String path : paths) {
-            reset(request, response, filterChain);
-            
-            // Given
-            when(request.getRequestURI()).thenReturn(path);
-            when(request.getHeader("Authorization")).thenReturn("Bearer valid-token");
+    @Test
+    void testMultipleProtectedPathsWithValidToken_vercel() throws ServletException, IOException {
+        when(request.getRequestURI()).thenReturn("/api/v1/data/vercel/proj_123");
+        when(request.getHeader("Authorization")).thenReturn("Bearer valid-token");
+        authenticationFilter.doFilter(request, response, filterChain);
+        verify(filterChain).doFilter(request, response);
+    }
 
-            // When
-            authenticationFilter.doFilter(request, response, filterChain);
+    @Test
+    void testMultipleProtectedPathsWithValidToken_firebase() throws ServletException, IOException {
+        when(request.getRequestURI()).thenReturn("/api/v1/data/firebase");
+        when(request.getHeader("Authorization")).thenReturn("Bearer valid-token");
+        authenticationFilter.doFilter(request, response, filterChain);
+        verify(filterChain).doFilter(request, response);
+    }
 
-            // Then
-            verify(filterChain).doFilter(request, response);
-            verify(response, never()).sendError(any(int.class));
-        }
+    @Test
+    void testMultipleProtectedPathsWithValidToken_stats() throws ServletException, IOException {
+        when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
+        when(request.getHeader("Authorization")).thenReturn("Bearer valid-token");
+        authenticationFilter.doFilter(request, response, filterChain);
+        verify(filterChain).doFilter(request, response);
     }
 
     @Test
@@ -188,11 +236,14 @@ public class AuthenticationFilterTest {
         // Given
         when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
         when(request.getHeader("Authorization")).thenReturn("Bearer  valid-token  ");
+        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
+        PrintWriter writer = mock(PrintWriter.class);
+        when(response.getWriter()).thenReturn(writer);
 
         // When
         authenticationFilter.doFilter(request, response, filterChain);
 
-        // Then - should handle gracefully
+        // Then - extra whitespace makes the token invalid
         verify(filterChain, never()).doFilter(request, response);
     }
 
@@ -201,12 +252,15 @@ public class AuthenticationFilterTest {
         // Given
         when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
         when(request.getHeader("Authorization")).thenReturn("Bearer ");
+        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
+        PrintWriter writer = mock(PrintWriter.class);
+        when(response.getWriter()).thenReturn(writer);
 
         // When
         authenticationFilter.doFilter(request, response, filterChain);
 
         // Then
-        verify(response).sendError(401, "Missing or invalid authorization token");
+        verify(response).setStatus(401);
     }
 
     @Test

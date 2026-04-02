@@ -237,7 +237,7 @@ The dashboard requires these REST API endpoints to be implemented:
 
 ### API Providers
 
-- `GET /api/providers/available` - Get top 10 AI providers
+- `GET /api/providers/available` - Get available AI providers
 - `GET /api/providers/configured` - List configured providers
 - `POST /api/providers/add` - Add new provider
 - `PUT /api/providers/{id}` - Update provider

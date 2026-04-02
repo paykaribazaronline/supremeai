@@ -173,9 +173,9 @@ Write-Host "`n📊 What just happened:" -ForegroundColor Yellow
 Write-Host "  1. Your admin account was created/verified" -ForegroundColor White
 Write-Host "  2. You logged in and got a JWT token" -ForegroundColor White
 Write-Host "  3. $successCount test queries were submitted" -ForegroundColor White
-Write-Host "  4. 10 AI providers were queried for each question" -ForegroundColor White
+Write-Host "  4. Configured AI providers were queried for each question" -ForegroundColor White
 Write-Host "  5. Consensus voting determined the best answers" -ForegroundColor White
-Write-Host "  6. Learnings were extracted from ALL 10 perspectives" -ForegroundColor White
+Write-Host "  6. Learnings were extracted from all configured provider perspectives" -ForegroundColor White
 Write-Host "  7. Results stored in Firebase Realtime Database" -ForegroundColor White
 
 Write-Host "`n🔥 CHECK FIREBASE NOW:" -ForegroundColor Cyan
