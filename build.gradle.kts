@@ -105,8 +105,8 @@ dependencies {
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
     options.compilerArgs.addAll(listOf(
-        "-Xlint:-deprecation",     // Suppress deprecation warnings
-        "-Xlint:-unchecked"        // Suppress unchecked cast warnings
+        "-Xlint:deprecation",      // Enable deprecation warnings
+        "-Xlint:unchecked"         // Enable unchecked warnings
     ))
 }
 

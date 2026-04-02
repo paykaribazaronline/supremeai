@@ -3,11 +3,14 @@ package org.example.api;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Timeout;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.example.service.CodeGenerationOrchestrator;
 import org.example.service.ExecutionLogManager;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -17,6 +20,7 @@ import static org.mockito.Mockito.*;
  * Tests: Endpoint functionality, request/response handling
  */
 @DisplayName("REST API Integration Tests")
+@Tag("integration")
 public class RestAPIIntegrationTest {
 
     private CodeGenerationController generationController;

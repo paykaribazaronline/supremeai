@@ -3,9 +3,12 @@ package org.example.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Timeout;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -16,6 +19,7 @@ import static org.mockito.Mockito.*;
  * Tests: Auto-fixing, error type detection, fix suggestions
  */
 @DisplayName("ErrorFixingSuggestor Tests")
+@Tag("unit")
 public class ErrorFixingSuggestorTest {
 
     private ErrorFixingSuggestor fixingSuggestor;
@@ -31,6 +35,7 @@ public class ErrorFixingSuggestorTest {
 
     @Test
     @DisplayName("Suggest Fixes for Issues")
+    @Timeout(value = 10, unit = TimeUnit.SECONDS)
     public void testSuggestFixesForIssues() {
         String projectId = "test-project";
         String framework = "REACT";
