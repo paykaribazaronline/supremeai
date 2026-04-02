@@ -8,9 +8,10 @@
 // 5. The URL format will be: https://supremeai-YOUR_GCP_PROJECT_ID.us-central1.run.app
 
 class Environment {
-  // 🚀 PRODUCTION: Cloud Run URL (auto-managed SSL, proper domain)
+  // 🚀 PRODUCTION: Cloud Run Backend URL
   // GCP Project: supremeai-a
-  static const String baseUrl = 'https://supremeai-supremeai-a.us-central1.run.app';
+  // Deployed at: https://supremeai-lhlwyikwlq-uc.a.run.app/
+  static const String baseUrl = 'https://supremeai-lhlwyikwlq-uc.a.run.app';
   
   // 🔧 LOCAL DEVELOPMENT: Uncomment to test against local backend
   // Requires: ./gradlew bootRun (running on http://localhost:8080)
