@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: '22'
+  NODE_VERSION: '24'
   JAVA_VERSION: '17'
 
 jobs:
@@ -49,11 +49,11 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: 📦 Set up Node.js 22
+      - name: 📦 Set up Node.js 24
         if: matrix.language == 'javascript'
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
 
       - name: 🔐 Grant execute permission
         if: matrix.language == 'java'
@@ -148,7 +148,12 @@ jobs:
       - name: 🔐 Grant execute permission
         run: chmod +x gradlew
 
-      - name: 📝 Run Gradle linting
+      - name: � Set up Node.js for Markdown Linting
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: �📝 Run Gradle linting
         run: ./gradlew check -x test --stacktrace --no-daemon
         continue-on-error: true
 
