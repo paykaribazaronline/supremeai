@@ -176,10 +176,8 @@ jobs:
           echo "🚀 Deploying Flutter Admin App to Firebase Hosting..."
           firebase deploy \
             --project=supremeai-a \
-            --token="$FIREBASE_TOKEN" \
             --only=hosting:flutter-admin \
-            --non-interactive \
-            --debug
+            --non-interactive
           echo "✅ Firebase deployment completed"
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
