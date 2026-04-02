@@ -1045,7 +1045,7 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           channelId: live
-          projectId: supremeai-565236080752
+          projectId: supremeai-a
 ```
 
 ### Phase 7B: Advanced Architecture Templates

@@ -124,7 +124,7 @@
     "supremeai-a": {
       "hosting": {
         "main-dashboard": ["supremeai-a"],
-        "flutter-admin": ["supremeai-565236080752"]
+        "flutter-admin": ["supremeai-a"]
       }
     }
   }
@@ -204,7 +204,7 @@ Tests Pass?         Deploy to:    APK + AAB
 ```
 Location: flutter_admin_app/build/web/
 Deployed to: Firebase Hosting
-URL: https://supremeai-565236080752.web.app/admin/
+URL: https://supremeai-a.web.app/admin/
 Content: HTML, CSS, JavaScript, assets
 Size: ~10-15 MB
 ```
@@ -347,7 +347,7 @@ USER TIME: 30 seconds (just the push)
 | Firebase Config | ✅ Working | `firebase.json`, `.firebaserc` |
 | Setup Scripts | ✅ Working | `setup-flutter-cicd.*` |
 | Documentation | ✅ Complete | 7 guides, 2600+ lines |
-| Web Deploy | ✅ Ready | https://supremeai-565236080752.web.app/admin/ |
+| Web Deploy | ✅ Ready | https://supremeai-a.web.app/admin/ |
 | Android Build | ✅ Ready | GitHub Artifacts |
 
 ### What You Need to Do:

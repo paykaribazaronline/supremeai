@@ -31,7 +31,7 @@ Phase 1: Build & Test (5-10 min)
         └─ Executes unit tests
         ↓
 Phase 2: Firebase Deployment (1-2 min)
-        └─ Deploys to https://supremeai-565236080752.web.app/admin/
+        └─ Deploys to https://supremeai-a.web.app/admin/
         ↓
 Phase 3: Android Build (5-8 min)
         ├─ Creates APK files
@@ -171,7 +171,7 @@ gh run list --workflow=flutter-ci-cd.yml
 - Watch each stage complete
 
 ### Live Website
-- https://supremeai-565236080752.web.app/admin/
+- https://supremeai-a.web.app/admin/
 - Fresh deployment within ~12 minutes of push
 
 ---
@@ -350,7 +350,7 @@ Before pushing to main:
 4. Push to main and watch it deploy! 🚀
 
 **Within 10 minutes:**
-- Your app is live at https://supremeai-565236080752.web.app/admin/
+- Your app is live at https://supremeai-a.web.app/admin/
 
 **From now on:**
 - Every push auto-deploys

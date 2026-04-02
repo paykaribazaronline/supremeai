@@ -162,7 +162,7 @@ Write-Host "2. Or manually trigger: gh workflow run flutter-ci-cd.yml"
 Write-Host "3. Monitor deployment: gh run watch"
 Write-Host ""
 Write-Host "Your Flutter app will be live at:" -ForegroundColor $Green
-Write-Host "https://supremeai-565236080752.web.app/admin/" -ForegroundColor $Green
+Write-Host "https://supremeai-a.web.app/admin/" -ForegroundColor $Green
 Write-Host ""
 
 Write-Host "📚 Documentation:" -ForegroundColor $Blue

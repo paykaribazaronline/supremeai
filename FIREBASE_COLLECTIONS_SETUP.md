@@ -123,7 +123,7 @@ python firebase_collections_setup.py
 
 ### **Method 1: Firebase Console**
 1. Open: https://console.firebase.google.com
-2. Select: `supremeai-565236080752` project
+2. Select: `supremeai-a` project
 3. Click: Firestore Database
 4. Check: All 8 collections visible
 
