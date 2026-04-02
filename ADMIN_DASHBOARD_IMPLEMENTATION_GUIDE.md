@@ -129,6 +129,7 @@ Response:
 ### Purpose
 Monitor AI provider quotas and optimize AI selection. Supports **1 to unlimited providers** with cost optimization.
 
+
 ### Supported AI Providers (Example: 10 Free-Tier Providers)
 
 | Provider | Free Tier Quota | Monthly Calls |
@@ -146,15 +147,18 @@ Monitor AI provider quotas and optimize AI selection. Supports **1 to unlimited 
 | **TOTAL (Example)** | - | **~11,000 calls/month** |
 | **Configurable** | Admin can add/remove | Any number |
 
+
 ### REST Endpoints
 
 #### **Get Quota Summary**
+
 
 ```bash
 GET /api/quotas/summary
 ```
 
 **Response:**
+
 ```json
 {
   "status": "✅ OK",
@@ -172,6 +176,7 @@ GET /api/quotas/summary
 ```
 
 #### **Get Detailed Provider Status**
+
 
 ```bash
 GET /api/quotas/status
@@ -206,6 +211,7 @@ Response:
 ```
 
 #### **Get Next Provider (Round-Robin)**
+
 ```bash
 GET /api/quotas/next-provider
 
@@ -220,6 +226,7 @@ Response:
 ```
 
 #### **Get Optimal Provider (Best Strategy)**
+
 ```bash
 GET /api/quotas/optimal-provider
 
@@ -233,6 +240,7 @@ Response:
 ```
 
 #### **Record API Call Success**
+
 ```bash
 POST /api/quotas/record-success?provider=OPENAI_GAPI&tokensUsed=150
 
@@ -246,6 +254,7 @@ Response:
 ```
 
 #### **Record API Call Failure**
+
 ```bash
 POST /api/quotas/record-failure?provider=GOOGLE_GEMINI
 
@@ -257,6 +266,7 @@ Response:
 ```
 
 #### **Manual Monthly Reset**
+
 ```bash
 POST /api/quotas/reset-monthly
 
@@ -269,6 +279,7 @@ Response:
 ```
 
 #### **List All Providers**
+
 ```bash
 GET /api/quotas/providers
 
@@ -290,6 +301,7 @@ Response:
 ```
 
 #### **Health Check**
+
 ```bash
 GET /api/quotas/health
 
@@ -369,6 +381,7 @@ User Request
 - `innovation` - Novel problem solving
 
 ### Endpoint: Record Provider Performance
+
 ```bash
 POST /api/routing/record-performance
 Content-Type: application/json
@@ -383,6 +396,7 @@ Content-Type: application/json
 ```
 
 ### Endpoint: Get Recommendations
+
 ```bash
 GET /api/routing/recommendations/architecture
 
@@ -532,6 +546,7 @@ category: "implementation"
 ## 9. Cost Tracking
 
 ### Monthly Cost Formula
+
 ```
 Monthly Cost = Σ(provider_calls × provider_cost_per_call)
 
