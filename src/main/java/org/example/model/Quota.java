@@ -12,12 +12,17 @@ public class Quota {
     private String providerName;
     private long requestsUsedToday;
     private long dailyLimit;
+    private long requestsUsedThisMonth;
+    private long monthlyLimit;
     private long tokensUsedToday;
+    private long tokensUsedThisMonth;
     private long dailyTokenLimit;
     private double requestsPerMinute;
     private double rpmLimit;
     private LocalDateTime lastResetTime;
     private LocalDateTime nextResetTime;
+    private LocalDateTime lastMonthlyResetTime;
+    private LocalDateTime nextMonthlyResetTime;
     private double usagePercentage;
     private String status; // HEALTHY, WARNING, CRITICAL, OUT_OF_QUOTA
     private Map<String, Object> metadata;
@@ -31,24 +36,33 @@ public class Quota {
         this.providerId = providerId;
         this.providerName = providerName;
         this.dailyLimit = dailyLimit;
+        this.monthlyLimit = dailyLimit * 30;
         this.dailyTokenLimit = dailyTokenLimit;
         this.rpmLimit = rpmLimit;
         this.requestsUsedToday = 0;
+        this.requestsUsedThisMonth = 0;
         this.tokensUsedToday = 0;
+        this.tokensUsedThisMonth = 0;
         this.requestsPerMinute = 0;
         this.lastResetTime = LocalDateTime.now();
         this.nextResetTime = LocalDateTime.now().plusDays(1);
+        this.lastMonthlyResetTime = LocalDateTime.now();
+        this.nextMonthlyResetTime = LocalDateTime.now().plusMonths(1);
         updateStatus();
     }
     
     public void incrementUsage(long tokenCount) {
         this.requestsUsedToday++;
+        this.requestsUsedThisMonth++;
         this.tokensUsedToday += tokenCount;
+        this.tokensUsedThisMonth += tokenCount;
         updateStatus();
     }
     
     public void updateStatus() {
-        this.usagePercentage = (double) requestsUsedToday / dailyLimit * 100;
+        double dailyUsage = dailyLimit == 0 ? 0 : (double) requestsUsedToday / dailyLimit * 100;
+        double monthlyUsage = monthlyLimit == 0 ? 0 : (double) requestsUsedThisMonth / monthlyLimit * 100;
+        this.usagePercentage = Math.max(dailyUsage, monthlyUsage);
         
         if (usagePercentage >= 100) {
             this.status = "OUT_OF_QUOTA";
@@ -62,7 +76,7 @@ public class Quota {
     }
     
     public boolean hasQuotaAvailable() {
-        return requestsUsedToday < dailyLimit && usagePercentage < 100;
+        return requestsUsedToday < dailyLimit && requestsUsedThisMonth < monthlyLimit && usagePercentage < 100;
     }
     
     public long getRemainingRequests() {
@@ -75,6 +89,10 @@ public class Quota {
     
     public double getRemainingPercentage() {
         return Math.max(0, 100.0 - usagePercentage);
+    }
+
+    public long getRemainingMonthlyRequests() {
+        return Math.max(0, monthlyLimit - requestsUsedThisMonth);
     }
     
     // Getters and Setters
@@ -92,10 +110,28 @@ public class Quota {
     
     public long getDailyLimit() { return dailyLimit; }
     public void setDailyLimit(long dailyLimit) { this.dailyLimit = dailyLimit; }
+
+    public long getRequestsUsedThisMonth() { return requestsUsedThisMonth; }
+    public void setRequestsUsedThisMonth(long requestsUsedThisMonth) {
+        this.requestsUsedThisMonth = requestsUsedThisMonth;
+        updateStatus();
+    }
+
+    public long getMonthlyLimit() { return monthlyLimit; }
+    public void setMonthlyLimit(long monthlyLimit) {
+        this.monthlyLimit = monthlyLimit;
+        updateStatus();
+    }
     
     public long getTokensUsedToday() { return tokensUsedToday; }
     public void setTokensUsedToday(long tokensUsedToday) { 
         this.tokensUsedToday = tokensUsedToday;
+        updateStatus();
+    }
+
+    public long getTokensUsedThisMonth() { return tokensUsedThisMonth; }
+    public void setTokensUsedThisMonth(long tokensUsedThisMonth) {
+        this.tokensUsedThisMonth = tokensUsedThisMonth;
         updateStatus();
     }
     
@@ -113,6 +149,12 @@ public class Quota {
     
     public LocalDateTime getNextResetTime() { return nextResetTime; }
     public void setNextResetTime(LocalDateTime nextResetTime) { this.nextResetTime = nextResetTime; }
+
+    public LocalDateTime getLastMonthlyResetTime() { return lastMonthlyResetTime; }
+    public void setLastMonthlyResetTime(LocalDateTime lastMonthlyResetTime) { this.lastMonthlyResetTime = lastMonthlyResetTime; }
+
+    public LocalDateTime getNextMonthlyResetTime() { return nextMonthlyResetTime; }
+    public void setNextMonthlyResetTime(LocalDateTime nextMonthlyResetTime) { this.nextMonthlyResetTime = nextMonthlyResetTime; }
     
     public double getUsagePercentage() { return usagePercentage; }
     public void setUsagePercentage(double usagePercentage) { this.usagePercentage = usagePercentage; }

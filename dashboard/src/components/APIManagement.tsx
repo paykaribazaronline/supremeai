@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Modal, Form, Input, Select, Space, Tag, message, Tooltip, Popconfirm, Row, Col } from 'antd';
-import { PlusOutlined, DeleteOutlined, EditOutlined, TestTubeOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, EditOutlined, ExperimentOutlined, CheckCircleOutlined } from '@ant-design/icons';
 
 interface APIProvider {
     id: string;
@@ -153,7 +153,7 @@ const APIManagement: React.FC = () => {
                 <Space size="small">
                     <Tooltip title="Test Connection">
                         <Button
-                            icon={<TestTubeOutlined />}
+                            icon={<ExperimentOutlined />}
                             size="small"
                             onClick={() => handleTestConnection(record.id)}
                             type="primary"

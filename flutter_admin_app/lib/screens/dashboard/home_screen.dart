@@ -2,9 +2,99 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/constants.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/api_service.dart';
 import '../projects/projects_list_screen.dart';
 import '../metrics_screen.dart';
 import '../settings_screen.dart';
+
+class DashboardStat {
+  final String title;
+  final String count;
+  final IconData icon;
+  final int color;
+
+  const DashboardStat({
+    required this.title,
+    required this.count,
+    required this.icon,
+    required this.color,
+  });
+}
+
+class DashboardContract {
+  final String title;
+  final String systemHealthStatus;
+  final List<DashboardStat> stats;
+
+  const DashboardContract({
+    required this.title,
+    required this.systemHealthStatus,
+    required this.stats,
+  });
+
+  factory DashboardContract.fromJson(Map<String, dynamic> json) {
+    final stats = json['stats'] as Map<String, dynamic>? ?? <String, dynamic>{};
+
+    return DashboardContract(
+      title: (json['title'] as String?)?.trim().isNotEmpty == true
+          ? json['title'] as String
+          : AppConstants.appName,
+      systemHealthStatus:
+          (stats['systemHealthStatus'] as String?) ?? 'UNKNOWN',
+      stats: [
+        DashboardStat(
+          title: 'Total Users',
+          count: _formatWholeNumber(stats['totalUsers']),
+          icon: Icons.people_alt_outlined,
+          color: AppConstants.primaryColor,
+        ),
+        DashboardStat(
+          title: 'Active Projects',
+          count: _formatWholeNumber(stats['activeProjects']),
+          icon: Icons.folder_outlined,
+          color: AppConstants.secondaryColor,
+        ),
+        DashboardStat(
+          title: 'AI Providers',
+          count: _formatWholeNumber(stats['aiProviders']),
+          icon: Icons.api,
+          color: AppConstants.warningColor,
+        ),
+        DashboardStat(
+          title: 'System Health',
+          count: _formatPercent(stats['systemHealthScore']),
+          icon: Icons.favorite,
+          color: AppConstants.successColor,
+        ),
+      ],
+    );
+  }
+
+  static String _formatWholeNumber(dynamic value) {
+    if (value is int) {
+      return value.toString();
+    }
+
+    if (value is double) {
+      return value.round().toString();
+    }
+
+    return '0';
+  }
+
+  static String _formatPercent(dynamic value) {
+    if (value is int) {
+      return '$value%';
+    }
+
+    if (value is double) {
+      final normalizedValue = value % 1 == 0 ? value.toInt() : value;
+      return '$normalizedValue%';
+    }
+
+    return '0%';
+  }
+}
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -15,6 +105,43 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  final ApiService _apiService = ApiService();
+  DashboardContract? _dashboardContract;
+  bool _isLoadingContract = true;
+  String? _dashboardError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDashboardContract();
+  }
+
+  Future<void> _loadDashboardContract() async {
+    setState(() {
+      _isLoadingContract = true;
+      _dashboardError = null;
+    });
+
+    final response =
+        await _apiService.get<Map<String, dynamic>>('/api/admin/dashboard/contract');
+
+    if (!mounted) {
+      return;
+    }
+
+    if (response.success && response.data != null) {
+      setState(() {
+        _dashboardContract = DashboardContract.fromJson(response.data!);
+        _isLoadingContract = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoadingContract = false;
+      _dashboardError = response.error ?? 'Unable to load dashboard contract.';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,9 +191,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildDashboardTab() {
+    final dashboardTitle = _dashboardContract?.title ?? AppConstants.appName;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppConstants.appName),
+        title: Text(dashboardTitle),
         elevation: 0,
         actions: [
           IconButton(
@@ -79,38 +208,40 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(AppConstants.paddingLarge),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Welcome Section
-                _buildWelcomeSection(authProvider),
-                const SizedBox(height: AppConstants.paddingXLarge),
-
-                // Dashboard Cards
-                const Text(
-                  'Dashboard',
-                  style: TextStyle(
-                    fontSize: AppConstants.titleFontSize,
-                    fontWeight: FontWeight.bold,
+          return RefreshIndicator(
+            onRefresh: _loadDashboardContract,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(AppConstants.paddingLarge),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildWelcomeSection(authProvider),
+                  const SizedBox(height: AppConstants.paddingXLarge),
+                  _buildContractStateBanner(),
+                  if (_isLoadingContract || _dashboardError != null)
+                    const SizedBox(height: AppConstants.paddingLarge),
+                  const Text(
+                    'Dashboard',
+                    style: TextStyle(
+                      fontSize: AppConstants.titleFontSize,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: AppConstants.paddingMedium),
-                _buildDashboardCards(),
-                const SizedBox(height: AppConstants.paddingXLarge),
-
-                // Quick Actions
-                const Text(
-                  'Quick Actions',
-                  style: TextStyle(
-                    fontSize: AppConstants.titleFontSize,
-                    fontWeight: FontWeight.bold,
+                  const SizedBox(height: AppConstants.paddingMedium),
+                  _buildDashboardCards(),
+                  const SizedBox(height: AppConstants.paddingXLarge),
+                  const Text(
+                    'Quick Actions',
+                    style: TextStyle(
+                      fontSize: AppConstants.titleFontSize,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: AppConstants.paddingMedium),
-                _buildQuickActions(context),
-              ],
+                  const SizedBox(height: AppConstants.paddingMedium),
+                  _buildQuickActions(context),
+                ],
+              ),
             ),
           );
         },
@@ -120,6 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildWelcomeSection(AuthProvider authProvider) {
     final userName = authProvider.currentUser?['name'] ?? 'Admin';
+    final systemStatus = _dashboardContract?.systemHealthStatus ?? 'ONLINE';
 
     return Container(
       padding: const EdgeInsets.all(AppConstants.paddingLarge),
@@ -156,9 +288,9 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
             ),
-            child: const Text(
-              'System Status: Online',
-              style: TextStyle(
+            child: Text(
+              'System Status: $systemStatus',
+              style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w500,
               ),
@@ -170,32 +302,25 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildDashboardCards() {
-    final cards = [
-      {
-        'title': 'Projects',
-        'count': '12',
-        'icon': Icons.folder_outlined,
-        'color': AppConstants.primaryColor,
-      },
-      {
-        'title': 'AI Providers',
-        'count': '8',
-        'icon': Icons.api,
-        'color': AppConstants.secondaryColor,
-      },
-      {
-        'title': 'Active Agents',
-        'count': '25',
-        'icon': Icons.smart_toy_outlined,
-        'color': AppConstants.warningColor,
-      },
-      {
-        'title': 'System Health',
-        'count': '98%',
-        'icon': Icons.favorite,
-        'color': AppConstants.successColor,
-      },
-    ];
+    final cards = _dashboardContract?.stats ?? const <DashboardStat>[];
+
+    if (cards.isEmpty && !_isLoadingContract) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(AppConstants.paddingLarge),
+          child: Column(
+            children: const [
+              Icon(Icons.dashboard_outlined, size: 32, color: Colors.grey),
+              SizedBox(height: AppConstants.paddingMedium),
+              Text(
+                'Dashboard stats are not available yet.',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -210,12 +335,48 @@ class _HomeScreenState extends State<HomeScreen> {
       itemBuilder: (context, index) {
         final card = cards[index];
         return _buildDashboardCard(
-          title: card['title'] as String,
-          count: card['count'] as String,
-          icon: card['icon'] as IconData,
-          color: card['color'] as int,
+            title: card.title,
+            count: card.count,
+            icon: card.icon,
+            color: card.color,
         );
       },
+    );
+  }
+
+  Widget _buildContractStateBanner() {
+    if (_isLoadingContract) {
+      return const LinearProgressIndicator();
+    }
+
+    if (_dashboardError == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Card(
+      color: const Color(0xFFFFF3CD),
+      child: Padding(
+        padding: const EdgeInsets.all(AppConstants.paddingMedium),
+        child: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+            const SizedBox(width: AppConstants.paddingMedium),
+            Expanded(
+              child: Text(
+                _dashboardError!,
+                style: const TextStyle(
+                  color: Color(0xFF7A4E00),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: _loadDashboardContract,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -225,7 +386,7 @@ class _HomeScreenState extends State<HomeScreen> {
     required IconData icon,
     required int color,
   }) {
-    return  Card(
+    return Card(
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppConstants.radiusLarge),

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Statistic, Progress, Table, Tag, Typography, Alert, Button, Space } from 'antd';
-import { DollarOutlined, LineChartOutlined, OptimizationOutlined, WarningOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { DollarOutlined, LineChartOutlined, ToolOutlined, WarningOutlined, ThunderboltOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
@@ -184,7 +184,7 @@ const CostDashboard: React.FC = () => {
                 />
                 <div style={{ marginTop: '20px', textAlign: 'right' }}>
                     <Space>
-                        <Button type="primary" icon={<OptimizationOutlined />}>Apply All Optimizations</Button>
+                        <Button type="primary" icon={<ToolOutlined />}>Apply All Optimizations</Button>
                         <Button icon={<LineChartOutlined />}>View Detailed Forecast</Button>
                     </Space>
                 </div>

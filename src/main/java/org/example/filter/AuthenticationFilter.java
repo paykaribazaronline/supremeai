@@ -8,9 +8,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -26,6 +29,7 @@ import java.util.*;
 @Component
 public class AuthenticationFilter extends OncePerRequestFilter {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationFilter.class);
+    private static final String ADMIN_AUTH_COOKIE = "supremeai_admin_token";
     
     // Public endpoints that don't require authentication
     private static final Set<String> PUBLIC_PATHS = Set.of(
@@ -33,6 +37,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         "/api/v1/data/health",
         "/actuator/health",
         "/api/auth/login",
+        "/api/auth/firebase-login",
         "/api/auth/bootstrap",
         "/api/auth/hash-password",
         "/api/auth/register",
@@ -40,6 +45,18 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         "/index.html",
         "/login.html",
         "/"
+    );
+
+    private static final Set<String> ADMIN_PAGE_PATHS = Set.of(
+        "/admin",
+        "/admin.html",
+        "/admin-control-dashboard.html"
+    );
+
+    private static final Set<String> ADMIN_API_PREFIXES = Set.of(
+        "/api/admin/",
+        "/api/auth/register",
+        "/api/auth/users"
     );
     
     @Value("${supremeai.api.tokens:}")
@@ -83,24 +100,20 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         
-        // Extract bearer token
-        String authHeader = request.getHeader("Authorization");
-        String token = null;
-        
-        if (authHeader != null && authHeader.toLowerCase().startsWith("bearer ")) {
-            token = authHeader.substring(7);
-        }
-        
-        // Validate token (JWT or test token)
-        if (token == null || !isValidToken(token)) {
+        String token = extractToken(request);
+        org.example.model.User authenticatedUser = authenticateToken(token);
+
+        if (authenticatedUser == null) {
             logger.warn("\uD83D\uDD10 Unauthorized access attempt to {} from {}",
                 path, request.getRemoteAddr());
-            response.setStatus(401);
-            response.setContentType("application/json;charset=UTF-8");
-            long ts = System.currentTimeMillis();
-            response.getWriter().write(
-                "{\"error\":\"unauthorized\",\"message\":\"Missing or invalid authorization token\","
-                + "\"status\":401,\"path\":\"" + path + "\",\"timestamp\":\"" + ts + "\"}");
+            writeUnauthorizedResponse(request, response, path);
+            return;
+        }
+
+        if (isAdminProtectedPath(path) && !isAdminUser(authenticatedUser)) {
+            logger.warn("⛔ Non-admin access attempt to {} by {} from {}",
+                path, authenticatedUser.getUsername(), request.getRemoteAddr());
+            writeForbiddenResponse(request, response, path);
             return;
         }
         
@@ -115,36 +128,112 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         return PUBLIC_PATHS.stream()
             .anyMatch(p -> p.equals("/") ? path.equals("/") : path.startsWith(p));
     }
+
+    private boolean isAdminProtectedPath(String path) {
+        if (path == null || path.isBlank()) {
+            return false;
+        }
+
+        if (ADMIN_PAGE_PATHS.contains(path)) {
+            return true;
+        }
+
+        return ADMIN_API_PREFIXES.stream().anyMatch(path::startsWith);
+    }
+
+    private String extractToken(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.toLowerCase().startsWith("bearer ")) {
+            return authHeader.substring(7);
+        }
+
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return null;
+        }
+
+        for (Cookie cookie : cookies) {
+            if (ADMIN_AUTH_COOKIE.equals(cookie.getName())
+                    && cookie.getValue() != null
+                    && !cookie.getValue().isBlank()) {
+                return cookie.getValue();
+            }
+        }
+
+        return null;
+    }
     
     /**
      * Validate token - accepts JWT tokens or configured test tokens
      */
-    private boolean isValidToken(String token) {
+    private org.example.model.User authenticateToken(String token) {
         // Check if it's a configured test token first (faster path)
         if (validTestTokens.contains(token)) {
             logger.debug("✅ Test token validated");
-            return true;
+            return new org.example.model.User();
         }
         
         // Fall back to JWT validation
-        return isValidJWTToken(token);
+        return validateJWTToken(token);
     }
     
     /**
      * Validate JWT bearer token
      */
-    private boolean isValidJWTToken(String token) {
+    private org.example.model.User validateJWTToken(String token) {
         if (!authService.isPresent()) {
-            logger.warn("⚠️ AuthenticationService not available - allowing request");
-            return true; // Dev mode
+            logger.warn("⚠️ AuthenticationService not available - rejecting protected request");
+            return null;
         }
         
         try {
-            authService.get().validateToken(token);
-            return true;
+            return authService.get().validateToken(token);
         } catch (Exception e) {
             logger.debug("Invalid JWT token: {}", e.getMessage());
-            return false;
+            return null;
         }
+    }
+
+    private boolean isAdminUser(org.example.model.User user) {
+        return authService.isPresent() && authService.get().isAdmin(user);
+    }
+
+    private void writeUnauthorizedResponse(HttpServletRequest request,
+                                           HttpServletResponse response,
+                                           String path) throws IOException {
+        if (wantsHtmlResponse(request, path)) {
+            response.sendRedirect("/login.html?redirect=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
+            return;
+        }
+
+        response.setStatus(401);
+        response.setContentType("application/json;charset=UTF-8");
+        long ts = System.currentTimeMillis();
+        response.getWriter().write(
+            "{\"error\":\"unauthorized\",\"message\":\"Missing or invalid authorization token\","
+            + "\"status\":401,\"path\":\"" + path + "\",\"timestamp\":\"" + ts + "\"}");
+    }
+
+    private void writeForbiddenResponse(HttpServletRequest request,
+                                        HttpServletResponse response,
+                                        String path) throws IOException {
+        if (wantsHtmlResponse(request, path)) {
+            response.sendRedirect("/login.html?denied=admin");
+            return;
+        }
+
+        response.setStatus(403);
+        response.setContentType("application/json;charset=UTF-8");
+        long ts = System.currentTimeMillis();
+        response.getWriter().write(
+            "{\"error\":\"forbidden\",\"message\":\"Admin access required\","
+            + "\"status\":403,\"path\":\"" + path + "\",\"timestamp\":\"" + ts + "\"}");
+    }
+
+    private boolean wantsHtmlResponse(HttpServletRequest request, String path) {
+        String accept = request.getHeader("Accept");
+        return (accept != null && accept.contains("text/html"))
+            || ADMIN_PAGE_PATHS.contains(path)
+            || (path != null && path.endsWith(".html"));
     }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'config/constants.dart';
+import 'firebase_options.dart';
 import 'services/storage_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/projects_provider.dart';
@@ -11,7 +13,12 @@ import 'screens/dashboard/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  // Initialise Firebase (required before firebase_auth is used)
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   // Initialize storage service
   final storageService = StorageService();
   await storageService.init();

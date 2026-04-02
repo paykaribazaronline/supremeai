@@ -1,7 +1,6 @@
-package org.example.kimik2.learning;
+package org.example.agentorchestration.learning;
 
-import org.example.kimik2.KimiMoERouter;
-import org.example.kimik2.learning.LearningFirebaseRepository;
+import org.example.agentorchestration.ExpertAgentRouter;
 import org.example.service.AgentDecisionLogger;
 import org.example.service.AgentDecisionLogger.AgentDecision;
 import org.example.service.SystemLearningService;
@@ -232,7 +231,7 @@ public class AgentPatternProfiler {
     }
 
     private Set<String> getKnownAgentUniverse() {
-        Set<String> knownAgents = new LinkedHashSet<>(KimiMoERouter.ALL_AGENTS);
+        Set<String> knownAgents = new LinkedHashSet<>(ExpertAgentRouter.ALL_AGENTS);
         if (knowledgeSeedService != null) {
             knownAgents.addAll(knowledgeSeedService.getAllProviders());
         }

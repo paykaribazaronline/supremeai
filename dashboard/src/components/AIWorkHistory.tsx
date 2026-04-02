@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Tabs, Tag, Timeline, Button, Space, message, Row, Col, Statistic } from 'antd';
-import { CheckCircleOutlined, CloseCircleOutlined, questionCircleOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, CloseCircleOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 
 interface Decision {
     id: string;

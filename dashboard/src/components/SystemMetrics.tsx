@@ -1,8 +1,8 @@
 // SystemMetrics.tsx - Real-time System Performance Metrics
 
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Statistic, LineChart, BarChart, Progress, Alert, Space } from 'antd';
-import { ArrowUpOutlined, ArrowDownOutlined, CpuOutlined, MemoryOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Statistic, Progress, Alert, Space } from 'antd';
+import { ArrowUpOutlined, ArrowDownOutlined, ThunderboltOutlined, HddOutlined } from '@ant-design/icons';
 
 interface SystemMetrics {
     cpuUsage: number;
@@ -54,7 +54,7 @@ const SystemMetrics: React.FC = () => {
                             title="CPU Usage"
                             value={metrics.cpuUsage}
                             suffix="%"
-                            prefix={<CpuOutlined />}
+                            prefix={<ThunderboltOutlined />}
                             valueStyle={{ color: metrics.cpuUsage > 80 ? '#ff4d4f' : '#1890ff' }}
                         />
                         <div style={{ marginTop: '8px' }}>
@@ -69,7 +69,7 @@ const SystemMetrics: React.FC = () => {
                             title="Memory Usage"
                             value={metrics.memoryUsage}
                             suffix="%"
-                            prefix={<MemoryOutlined />}
+                            prefix={<HddOutlined />}
                             valueStyle={{ color: metrics.memoryUsage > 85 ? '#ff4d4f' : '#1890ff' }}
                         />
                         <div style={{ marginTop: '8px' }}>

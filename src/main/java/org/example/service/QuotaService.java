@@ -1,5 +1,8 @@
 package org.example.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import jakarta.annotation.PostConstruct;
+import org.example.model.APIProvider;
 import org.example.model.Quota;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class QuotaService {
     private static final Logger logger = LoggerFactory.getLogger(QuotaService.class);
+    private static final String STORE_PATH = "provider-quotas.json";
     private static final int MINIMUM_QUOTA_PERCENT = 20; // Min 20% remaining to use an AI
     private static final long DEFAULT_DAILY_LIMIT = 1000;
     private static final long DEFAULT_DAILY_TOKEN_LIMIT = 100000;
@@ -25,19 +29,36 @@ public class QuotaService {
     @Autowired
     private ProviderRegistryService providerRegistryService;
 
+    @Autowired
+    private LocalJsonStoreService localJsonStoreService;
+
     private Map<String, Quota> quotas = new ConcurrentHashMap<>();
+
+    @PostConstruct
+    void loadPersistedQuotas() {
+        quotas = new ConcurrentHashMap<>(localJsonStoreService.read(
+            STORE_PATH,
+            new TypeReference<Map<String, Quota>>() {},
+            new HashMap<>()
+        ));
+    }
     
     /**
      * Sync quota records with the admin-managed provider registry.
      */
     public synchronized void syncConfiguredProviders() {
-        Set<String> activeProviderIds = new HashSet<>(providerRegistryService.getActiveProviderIds());
+        List<APIProvider> activeProviders = providerRegistryService.getActiveProviders();
+        Set<String> activeProviderIds = new HashSet<>();
+        activeProviders.forEach(provider -> activeProviderIds.add(provider.getId()));
 
         quotas.keySet().removeIf(providerId -> !activeProviderIds.contains(providerId));
 
-        providerRegistryService.getActiveProviders().forEach(provider ->
-            quotas.computeIfAbsent(provider.getId(), ignored -> createQuota(provider.getId(), provider.getName()))
-        );
+        activeProviders.forEach(provider -> {
+            Quota quota = quotas.computeIfAbsent(provider.getId(), ignored -> createQuota(provider));
+            applyProviderLimits(quota, provider);
+        });
+
+        persistQuotas();
 
         logger.info("✅ Quota system synced with {} admin-configured AI providers", quotas.size());
     }
@@ -87,9 +108,10 @@ public class QuotaService {
         Quota quota = quotas.get(providerId);
         if (quota != null) {
             quota.incrementUsage(tokenCount);
+            persistQuotas();
             logger.debug("📊 {} usage recorded: {} tokens ({}/{})",
                 providerId, tokenCount, 
-                quota.getRequestsUsedToday(), quota.getDailyLimit());
+                quota.getRequestsUsedThisMonth(), quota.getMonthlyLimit());
         }
     }
     
@@ -130,7 +152,21 @@ public class QuotaService {
             quota.setNextResetTime(LocalDateTime.now().plusDays(1));
             quota.updateStatus();
         }
+        persistQuotas();
         logger.info("✅ Daily quotas reset complete");
+    }
+
+    public void resetMonthlyQuotas() {
+        logger.info("🔄 Resetting monthly quotas for all providers");
+        syncConfiguredProviders();
+        for (Quota quota : quotas.values()) {
+            quota.setRequestsUsedThisMonth(0);
+            quota.setTokensUsedThisMonth(0);
+            quota.setLastMonthlyResetTime(LocalDateTime.now());
+            quota.setNextMonthlyResetTime(LocalDateTime.now().plusMonths(1));
+            quota.updateStatus();
+        }
+        persistQuotas();
     }
     
     /**
@@ -175,7 +211,9 @@ public class QuotaService {
         Quota quota = quotas.get(providerId);
         if (quota != null) {
             quota.setDailyLimit(newDailyLimit);
+            quota.setMonthlyLimit(Math.max(newDailyLimit, newDailyLimit * 30));
             quota.updateStatus();
+            persistQuotas();
             logger.info("✏️ Updated quota limit for {}: new limit = {}", providerId, newDailyLimit);
         }
     }
@@ -188,7 +226,9 @@ public class QuotaService {
         Quota quota = quotas.get(providerId);
         if (quota != null) {
             quota.setRequestsUsedToday(quota.getRequestsUsedToday() + amount);
+            quota.setRequestsUsedThisMonth(quota.getRequestsUsedThisMonth() + amount);
             quota.updateStatus();
+            persistQuotas();
             logger.info("⚙️ Manual increment for {}: +{} requests", providerId, amount);
         }
     }
@@ -214,40 +254,59 @@ public class QuotaService {
         return quotas.size();
     }
 
-    private Quota createQuota(String providerId, String providerName) {
+    private Quota createQuota(APIProvider provider) {
+        String providerId = provider.getId();
+        String providerName = provider.getName();
         String normalized = providerName == null ? "" : providerName.toLowerCase(Locale.ROOT);
 
         if (normalized.contains("openai")) {
-            return new Quota(providerId, providerName, 3500, 200000, 3500);
+            return applyProviderLimits(new Quota(providerId, providerName, 3500, 200000, 3500), provider);
         }
         if (normalized.contains("anthropic") || normalized.contains("claude")) {
-            return new Quota(providerId, providerName, 1000, 50000, 100);
+            return applyProviderLimits(new Quota(providerId, providerName, 1000, 50000, 100), provider);
         }
         if (normalized.contains("gemini") || normalized.contains("google")) {
-            return new Quota(providerId, providerName, 6000, 150000, 6000);
+            return applyProviderLimits(new Quota(providerId, providerName, 6000, 150000, 6000), provider);
         }
         if (normalized.contains("meta") || normalized.contains("llama")) {
-            return new Quota(providerId, providerName, 5000, 100000, 500);
+            return applyProviderLimits(new Quota(providerId, providerName, 5000, 100000, 500), provider);
         }
         if (normalized.contains("mistral")) {
-            return new Quota(providerId, providerName, 300, 50000, 300);
+            return applyProviderLimits(new Quota(providerId, providerName, 300, 50000, 300), provider);
         }
         if (normalized.contains("cohere")) {
-            return new Quota(providerId, providerName, 1000, 100000, 200);
+            return applyProviderLimits(new Quota(providerId, providerName, 1000, 100000, 200), provider);
         }
         if (normalized.contains("huggingface")) {
-            return new Quota(providerId, providerName, 500, 50000, 100);
+            return applyProviderLimits(new Quota(providerId, providerName, 500, 50000, 100), provider);
         }
         if (normalized.contains("xai") || normalized.contains("grok")) {
-            return new Quota(providerId, providerName, 500, 30000, 100);
+            return applyProviderLimits(new Quota(providerId, providerName, 500, 30000, 100), provider);
         }
         if (normalized.contains("deepseek")) {
-            return new Quota(providerId, providerName, 2000, 80000, 200);
+            return applyProviderLimits(new Quota(providerId, providerName, 2000, 80000, 200), provider);
         }
         if (normalized.contains("perplexity")) {
-            return new Quota(providerId, providerName, 1000, 60000, 150);
+            return applyProviderLimits(new Quota(providerId, providerName, 1000, 60000, 150), provider);
         }
 
-        return new Quota(providerId, providerName, DEFAULT_DAILY_LIMIT, DEFAULT_DAILY_TOKEN_LIMIT, DEFAULT_RPM_LIMIT);
+        return applyProviderLimits(new Quota(providerId, providerName, DEFAULT_DAILY_LIMIT, DEFAULT_DAILY_TOKEN_LIMIT, DEFAULT_RPM_LIMIT), provider);
+    }
+
+    private Quota applyProviderLimits(Quota quota, APIProvider provider) {
+        if (provider.getRateLimitPerMinute() != null) {
+            quota.setRpmLimit(provider.getRateLimitPerMinute());
+        }
+        if (provider.getMonthlyQuota() != null) {
+            quota.setMonthlyLimit(provider.getMonthlyQuota());
+            quota.setDailyLimit(Math.max(1, provider.getMonthlyQuota() / 30));
+        }
+        quota.getMetadata().put("freeQuotaPercent", provider.getFreeQuotaPercent());
+        quota.getMetadata().put("alertThreshold", provider.getAlertThreshold());
+        return quota;
+    }
+
+    private void persistQuotas() {
+        localJsonStoreService.write(STORE_PATH, quotas);
     }
 }

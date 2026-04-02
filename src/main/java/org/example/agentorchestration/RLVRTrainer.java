@@ -1,4 +1,4 @@
-package org.example.kimik2;
+package org.example.agentorchestration;
 
 import org.example.service.AgentDecisionLogger;
 import org.example.service.SystemLearningService;
@@ -12,9 +12,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * KIMI K2 TECHNIQUE 2: Reinforcement Learning with Verifiable Rewards (RLVR)
+ * ADAPTIVE ORCHESTRATION TECHNIQUE 2: Reinforcement Learning with Verifiable Rewards (RLVR)
  *
- * How Kimi K2 learns:
+ * How this orchestration layer learns:
  *   - For tasks with verifiable outcomes (code compiles ✅/❌, tests pass ✅/❌),
  *     the reward signal is EXACT — not from a human judge.
  *   - This is far more reliable than RLHF (human feedback) for agentic tasks.
@@ -50,7 +50,7 @@ public class RLVRTrainer {
     private static final double REWARD_SELF_HEAL_FAIL = -0.2;
 
     @Autowired
-    private KimiMoERouter moeRouter;
+    private ExpertAgentRouter moeRouter;
 
     @Autowired
     private AgentDecisionLogger decisionLogger;
@@ -88,7 +88,7 @@ public class RLVRTrainer {
      * @param details     extra context (error message, test output, etc.)
      */
     public TrainingResult recordOutcome(List<String> agentNames,
-                                        KimiMoERouter.TaskType taskType,
+                                        ExpertAgentRouter.TaskType taskType,
                                         VerifiableOutcome outcome,
                                         String details) {
         double reward = mapReward(outcome);
@@ -130,7 +130,7 @@ public class RLVRTrainer {
      *
      * Uses rolling average of past rewards for each agent×taskType pair.
      */
-    public double estimateReward(String agentName, KimiMoERouter.TaskType taskType) {
+    public double estimateReward(String agentName, ExpertAgentRouter.TaskType taskType) {
         AgentPerformance perf = performanceMap.get(agentName);
         if (perf == null) return 0.5; // optimistic prior for unseen agents
         return perf.getAverageReward(taskType);
@@ -140,7 +140,7 @@ public class RLVRTrainer {
      * Return full performance leaderboard (for monitoring dashboard).
      */
     public List<Map<String, Object>> getLeaderboard() {
-        return KimiMoERouter.ALL_AGENTS.stream().map(agent -> {
+        return ExpertAgentRouter.ALL_AGENTS.stream().map(agent -> {
             AgentPerformance perf = performanceMap.getOrDefault(
                 agent, new AgentPerformance(agent));
             Map<String, Object> row = new LinkedHashMap<>();
@@ -171,7 +171,7 @@ public class RLVRTrainer {
         }
     }
 
-    private void updatePerformanceStats(String agent, KimiMoERouter.TaskType taskType,
+    private void updatePerformanceStats(String agent, ExpertAgentRouter.TaskType taskType,
                                         VerifiableOutcome outcome, double reward) {
         performanceMap.computeIfAbsent(agent, AgentPerformance::new)
             .record(taskType, reward, reward > 0);
@@ -181,13 +181,13 @@ public class RLVRTrainer {
 
     public static class TrainingResult {
         public final List<String> agents;
-        public final KimiMoERouter.TaskType taskType;
+        public final ExpertAgentRouter.TaskType taskType;
         public final VerifiableOutcome outcome;
         public final double reward;
         public final List<String> updatedAgents;
         public final long timestamp = System.currentTimeMillis();
 
-        public TrainingResult(List<String> agents, KimiMoERouter.TaskType taskType,
+        public TrainingResult(List<String> agents, ExpertAgentRouter.TaskType taskType,
                               VerifiableOutcome outcome, double reward, List<String> updated) {
             this.agents = agents;
             this.taskType = taskType;
@@ -203,11 +203,11 @@ public class RLVRTrainer {
         int totalTasks = 0;
         int successCount = 0;
         double rewardSum = 0;
-        final Map<KimiMoERouter.TaskType, double[]> taskRewards = new EnumMap<>(KimiMoERouter.TaskType.class);
+        final Map<ExpertAgentRouter.TaskType, double[]> taskRewards = new EnumMap<>(ExpertAgentRouter.TaskType.class);
 
         AgentPerformance(String name) { this.name = name; }
 
-        void record(KimiMoERouter.TaskType task, double reward, boolean success) {
+        void record(ExpertAgentRouter.TaskType task, double reward, boolean success) {
             totalTasks++;
             rewardSum += reward;
             if (success) successCount++;
@@ -225,7 +225,7 @@ public class RLVRTrainer {
             return totalTasks == 0 ? 0 : rewardSum / totalTasks;
         }
 
-        double getAverageReward(KimiMoERouter.TaskType task) {
+        double getAverageReward(ExpertAgentRouter.TaskType task) {
             double[] pair = taskRewards.get(task);
             if (pair == null || pair[1] == 0) return 0.5;
             return pair[0] / pair[1];

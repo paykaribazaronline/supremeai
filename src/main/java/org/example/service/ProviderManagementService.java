@@ -1,6 +1,8 @@
 package org.example.service;
 
 import org.example.model.APIProvider;
+import org.example.model.ProviderAuditEvent;
+import org.example.model.Quota;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +21,12 @@ public class ProviderManagementService {
 
     @Autowired
     private AIAPIService aiApiService;
+
+    @Autowired
+    private QuotaService quotaService;
+
+    @Autowired
+    private ProviderAuditService providerAuditService;
 
     public List<Map<String, Object>> getAvailableProviders() {
         List<Map<String, Object>> providers = new ArrayList<>();
@@ -50,6 +58,14 @@ public class ProviderManagementService {
             ? providerRegistryService.getProvider(provider.getId())
             : null;
         APIProvider saved = providerRegistryService.addOrUpdateProvider(mergeWithExisting(provider, existing));
+        quotaService.syncConfiguredProviders();
+        providerAuditService.log(
+            existing == null ? "CREATE_PROVIDER" : "UPDATE_PROVIDER",
+            saved.getId(),
+            saved.getCreatedByEmail(),
+            "SUCCESS",
+            Map.of("displayName", saved.getName(), "endpoint", firstNonBlank(saved.getEndpoint(), "default"))
+        );
         return toResponse(saved);
     }
 
@@ -87,6 +103,14 @@ public class ProviderManagementService {
         provider.setNotes(buildRotationNote(provider.getNotes(), rotationReason, rotationEmail));
 
         APIProvider saved = providerRegistryService.addOrUpdateProvider(provider);
+        quotaService.syncConfiguredProviders();
+        providerAuditService.log(
+            "ROTATE_KEY",
+            saved.getId(),
+            firstNonBlank(rotationEmail, saved.getCreatedByEmail()),
+            "SUCCESS",
+            Map.of("reason", firstNonBlank(rotationReason, "unspecified"), "alias", firstNonBlank(saved.getAlias(), "default"))
+        );
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("success", true);
@@ -115,6 +139,14 @@ public class ProviderManagementService {
             provider.setStatus("active");
             provider.setSuccessCount(provider.getSuccessCount() + 1);
             providerRegistryService.addOrUpdateProvider(provider);
+            quotaService.recordUsage(provider.getId(), estimateTokenUsage(response));
+            providerAuditService.log(
+                "PROBE_PROVIDER",
+                provider.getId(),
+                firstNonBlank(provider.getCreatedByEmail(), "system"),
+                "SUCCESS",
+                Map.of("responsePreview", abbreviate(response, 80))
+            );
 
             Map<String, Object> result = new LinkedHashMap<>();
             result.put("success", true);
@@ -128,12 +160,28 @@ public class ProviderManagementService {
             provider.setStatus("error");
             provider.setErrorCount(provider.getErrorCount() + 1);
             providerRegistryService.addOrUpdateProvider(provider);
+            providerAuditService.log(
+                "PROBE_PROVIDER",
+                provider.getId(),
+                firstNonBlank(provider.getCreatedByEmail(), "system"),
+                "ERROR",
+                Map.of("message", ex.getMessage())
+            );
             throw ex;
         }
     }
 
-    public boolean removeProvider(String id) {
-        return providerRegistryService.removeProvider(id);
+    public boolean removeProvider(String id, String actedBy) {
+        boolean removed = providerRegistryService.removeProvider(id);
+        if (removed) {
+            quotaService.syncConfiguredProviders();
+            providerAuditService.log("REMOVE_PROVIDER", id, actedBy, "SUCCESS", Map.of());
+        }
+        return removed;
+    }
+
+    public List<ProviderAuditEvent> getAuditEvents(int limit) {
+        return providerAuditService.getRecentEvents(limit);
     }
 
     private APIProvider mergeWithExisting(APIProvider provider, APIProvider existing) {
@@ -215,6 +263,10 @@ public class ProviderManagementService {
         response.put("monthlyQuota", provider.getMonthlyQuota());
         response.put("freeQuotaPercent", provider.getFreeQuotaPercent());
         response.put("alertThreshold", provider.getAlertThreshold());
+        Quota quota = quotaService.getQuotaDetails(provider.getId());
+        response.put("requestsUsedThisMonth", quota == null ? 0 : quota.getRequestsUsedThisMonth());
+        response.put("monthlyUsagePercent", quota == null ? 0.0 : quota.getUsagePercentage());
+        response.put("remainingMonthlyRequests", quota == null ? null : quota.getRemainingMonthlyRequests());
         response.put("hasApiKey", hasStoredCredentials(provider));
         response.put("maskedApiKey", maskApiKey(provider.getApiKey()));
         response.put("nativeConnector", aiApiService.hasNativeConnector(provider.getId()));
@@ -254,6 +306,13 @@ public class ProviderManagementService {
             return value;
         }
         return value.substring(0, maxLength - 3) + "...";
+    }
+
+    private long estimateTokenUsage(String response) {
+        if (response == null || response.isBlank()) {
+            return 50;
+        }
+        return Math.max(50, response.length() / 4L);
     }
 
     private String trimToNull(String value) {

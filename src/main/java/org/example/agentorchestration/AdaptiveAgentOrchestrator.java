@@ -1,8 +1,8 @@
-package org.example.kimik2;
+package org.example.agentorchestration;
 
-import org.example.kimik2.learning.AgentPatternProfiler;
-import org.example.kimik2.learning.ReasoningChainCopier;
-import org.example.kimik2.learning.ReasoningGenerator;
+import org.example.agentorchestration.learning.AgentPatternProfiler;
+import org.example.agentorchestration.learning.ReasoningChainCopier;
+import org.example.agentorchestration.learning.ReasoningGenerator;
 import org.example.service.AgentDecisionLogger;
 import org.example.service.SystemLearningService;
 import org.slf4j.Logger;
@@ -14,9 +14,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * KIMI K2 ORCHESTRATOR
+ * ADAPTIVE AGENT ORCHESTRATOR
  *
- * Central coordinator that wires all 4 Kimi K2 techniques together:
+ * Central coordinator that wires all 4 orchestration techniques together:
  *
  *   MoE Router    → selects best agents for the task (sparse activation)
  *   RLVR Trainer  → records outcomes, updates weights via verifiable rewards
@@ -33,16 +33,16 @@ import java.util.stream.Collectors;
  *                 ├─ 5. MuonClip: clip gradient → update routing weights
  *                 └─ 6. SystemLearning: store pattern (long-term memory)
  *
- * This mirrors exactly how Kimi K2 operates:
- *   pre-train (MoE) → instruct (RLVR) → tool use (Agentic Loop) → scale (MuonClip)
+ * This pipeline combines sparse routing, verifiable rewards, tool execution,
+ * and stabilization into one adaptive orchestration flow.
  */
 @Service
-public class KimiK2Orchestrator {
+public class AdaptiveAgentOrchestrator {
 
-    private static final Logger logger = LoggerFactory.getLogger(KimiK2Orchestrator.class);
+    private static final Logger logger = LoggerFactory.getLogger(AdaptiveAgentOrchestrator.class);
 
     @Autowired
-    private KimiMoERouter moeRouter;
+    private ExpertAgentRouter moeRouter;
 
     @Autowired
     private RLVRTrainer rlvrTrainer;
@@ -73,7 +73,7 @@ public class KimiK2Orchestrator {
     private final List<TaskExecution> history = Collections.synchronizedList(new ArrayList<>());
 
     /**
-     * Submit a task to SupremeAI's Kimi-K2-powered pipeline.
+    * Submit a task to SupremeAI's adaptive orchestration pipeline.
      *
      * @param request  task request with goal, type, and optional custom plan
      * @return         complete execution result with routing, loop, and RLVR data
@@ -83,7 +83,7 @@ public class KimiK2Orchestrator {
         String taskId = "task-" + System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 6);
 
         logger.info("═══════════════════════════════════════════════════════");
-        logger.info("🤖 Kimi K2 Pipeline: taskId={} type={}", taskId, request.taskType);
+        logger.info("🤖 Adaptive orchestration pipeline: taskId={} type={}", taskId, request.taskType);
         logger.info("   Goal: {}", request.goal);
         logger.info("═══════════════════════════════════════════════════════");
 
@@ -92,11 +92,11 @@ public class KimiK2Orchestrator {
         try {
             // ─── STEP 1: MoE ROUTING ────────────────────────────────────────
             logger.info("⟶ Step 1: MoE routing (top-{} agents)", request.topK);
-            List<KimiMoERouter.RoutingDecision> routingDecisions =
+            List<ExpertAgentRouter.RoutingDecision> routingDecisions =
                 moeRouter.route(request.taskType, request.topK);
 
             List<String> selectedAgents = routingDecisions.stream()
-                .map(KimiMoERouter.RoutingDecision::getAgentName)
+                .map(ExpertAgentRouter.RoutingDecision::getAgentName)
                 .collect(Collectors.toList());
 
             exec.setRoutingDecisions(routingDecisions);
@@ -159,7 +159,7 @@ public class KimiK2Orchestrator {
     /**
      * Get live MoE routing summary (which agents handle which task types).
      */
-    public Map<KimiMoERouter.TaskType, List<String>> getRoutingSummary() {
+    public Map<ExpertAgentRouter.TaskType, List<String>> getRoutingSummary() {
         return moeRouter.getRoutingSummary();
     }
 
@@ -191,9 +191,9 @@ public class KimiK2Orchestrator {
      */
     public Map<String, Object> getSystemStatus() {
         Map<String, Object> status = new LinkedHashMap<>();
-        status.put("technique", "Kimi K2 (MoE + RLVR + MuonClip + Agentic Loop)");
-        status.put("total_agents", KimiMoERouter.ALL_AGENTS.size());
-        status.put("total_task_types", KimiMoERouter.TaskType.values().length);
+        status.put("technique", "Adaptive Agent Orchestration (MoE + RLVR + MuonClip + Agentic Loop)");
+        status.put("total_agents", ExpertAgentRouter.ALL_AGENTS.size());
+        status.put("total_task_types", ExpertAgentRouter.TaskType.values().length);
         status.put("registered_tools", toolLoop.listTools().size());
         status.put("tasks_executed", history.size());
 
@@ -278,7 +278,7 @@ public class KimiK2Orchestrator {
     }
 
     private RLVRTrainer.VerifiableOutcome deriveOutcome(
-            AgenticToolLoop.LoopSession session, KimiMoERouter.TaskType taskType) {
+            AgenticToolLoop.LoopSession session, ExpertAgentRouter.TaskType taskType) {
 
         if (!session.isCompleted()) {
             switch (taskType) {
@@ -320,12 +320,12 @@ public class KimiK2Orchestrator {
     /** Input to the orchestrator. */
     public static class TaskRequest {
         public String goal;
-        public KimiMoERouter.TaskType taskType = KimiMoERouter.TaskType.CODE_GENERATION;
+        public ExpertAgentRouter.TaskType taskType = ExpertAgentRouter.TaskType.CODE_GENERATION;
         public int topK = 3;
         public List<String> customPlan; // optional custom tool chain
 
         public TaskRequest() {}
-        public TaskRequest(String goal, KimiMoERouter.TaskType taskType) {
+        public TaskRequest(String goal, ExpertAgentRouter.TaskType taskType) {
             this.goal = goal;
             this.taskType = taskType;
         }
@@ -335,7 +335,7 @@ public class KimiK2Orchestrator {
     public static class TaskExecution {
         private final String taskId;
         private final TaskRequest request;
-        private List<KimiMoERouter.RoutingDecision> routingDecisions;
+        private List<ExpertAgentRouter.RoutingDecision> routingDecisions;
         private List<String> selectedAgents;
         private List<AgenticToolLoop.PlannedStep> plan;
         private AgenticToolLoop.LoopSession loopSession;
@@ -361,7 +361,7 @@ public class KimiK2Orchestrator {
         public RLVRTrainer.TrainingResult getTrainingResult() { return trainingResult; }
         public AgenticToolLoop.LoopSession getLoopSession()   { return loopSession; }
 
-        public void setRoutingDecisions(List<KimiMoERouter.RoutingDecision> d) { this.routingDecisions = d; }
+        public void setRoutingDecisions(List<ExpertAgentRouter.RoutingDecision> d) { this.routingDecisions = d; }
         public void setSelectedAgents(List<String> a)          { this.selectedAgents = a; }
         public void setPlan(List<AgenticToolLoop.PlannedStep> p) { this.plan = p; }
         public void setLoopSession(AgenticToolLoop.LoopSession s) { this.loopSession = s; }

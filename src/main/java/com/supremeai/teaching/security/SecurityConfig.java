@@ -53,17 +53,21 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:3000",
-            "http://localhost:8081",
-            "http://localhost:8080",
+        // Use allowedOriginPatterns so wildcards work alongside allowCredentials=true
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+            "http://localhost:*",
+            "https://localhost:*",
+            "https://*.run.app",           // Google Cloud Run
+            "https://*.onrender.com",      // Render.com
             "https://*.firebaseapp.com",
-            "https://*.cloudfunctions.net"
+            "https://*.web.app",           // Firebase Hosting
+            "https://*.cloudfunctions.net",
+            "https://*.a.run.app"          // Cloud Run short URLs
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

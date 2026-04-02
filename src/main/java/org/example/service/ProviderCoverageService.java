@@ -1,8 +1,8 @@
 package org.example.service;
 
-import org.example.kimik2.learning.AgentPatternProfiler;
-import org.example.kimik2.learning.KnowledgeSeedService;
-import org.example.kimik2.learning.ReasoningChainCopier;
+import org.example.agentorchestration.learning.AgentPatternProfiler;
+import org.example.agentorchestration.learning.KnowledgeSeedService;
+import org.example.agentorchestration.learning.ReasoningChainCopier;
 import org.example.model.APIProvider;
 import org.example.model.SystemLearning;
 import org.springframework.beans.factory.annotation.Autowired;

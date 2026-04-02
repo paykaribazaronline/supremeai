@@ -1,4 +1,4 @@
-package org.example.kimik2;
+package org.example.agentorchestration;
 
 import org.example.service.AgentDecisionLogger;
 import org.example.service.SystemLearningService;
@@ -28,11 +28,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class RLVRTrainerTest {
 
     private RLVRTrainer trainer;
-    private KimiMoERouter router;
+    private ExpertAgentRouter router;
 
     @BeforeEach
     void setUp() {
-        router = new KimiMoERouter();
+        router = new ExpertAgentRouter();
         MuonClipOptimizer muon = new MuonClipOptimizer();
         AgentDecisionLogger logger = new AgentDecisionLogger();
         SystemLearningService learning = new SystemLearningService();
@@ -51,7 +51,7 @@ class RLVRTrainerTest {
     void recordOutcome_buildPass_hasPositiveReward() {
         RLVRTrainer.TrainingResult result = trainer.recordOutcome(
             List.of("Architect", "Builder"),
-            KimiMoERouter.TaskType.CODE_GENERATION,
+            ExpertAgentRouter.TaskType.CODE_GENERATION,
             RLVRTrainer.VerifiableOutcome.BUILD_PASS,
             "build succeeded in 26s");
 
@@ -63,7 +63,7 @@ class RLVRTrainerTest {
     void recordOutcome_buildFail_hasNegativeReward() {
         RLVRTrainer.TrainingResult result = trainer.recordOutcome(
             List.of("Builder"),
-            KimiMoERouter.TaskType.CODE_GENERATION,
+            ExpertAgentRouter.TaskType.CODE_GENERATION,
             RLVRTrainer.VerifiableOutcome.BUILD_FAIL,
             "compilation error in 3s");
 
@@ -75,7 +75,7 @@ class RLVRTrainerTest {
     void recordOutcome_testPass_hasPositiveReward() {
         RLVRTrainer.TrainingResult result = trainer.recordOutcome(
             List.of("C-Tester"),
-            KimiMoERouter.TaskType.TESTING,
+            ExpertAgentRouter.TaskType.TESTING,
             RLVRTrainer.VerifiableOutcome.TEST_PASS,
             "245 tests passed");
         assertTrue(result.reward > 0);
@@ -85,7 +85,7 @@ class RLVRTrainerTest {
     void recordOutcome_testFail_hasNegativeReward() {
         RLVRTrainer.TrainingResult result = trainer.recordOutcome(
             List.of("C-Tester"),
-            KimiMoERouter.TaskType.TESTING,
+            ExpertAgentRouter.TaskType.TESTING,
             RLVRTrainer.VerifiableOutcome.TEST_FAIL,
             "3 tests failed");
         assertTrue(result.reward < 0);
@@ -95,7 +95,7 @@ class RLVRTrainerTest {
     void recordOutcome_deployOk_hasPositiveReward() {
         RLVRTrainer.TrainingResult result = trainer.recordOutcome(
             List.of("G-Publish"),
-            KimiMoERouter.TaskType.DEPLOYMENT,
+            ExpertAgentRouter.TaskType.DEPLOYMENT,
             RLVRTrainer.VerifiableOutcome.DEPLOY_OK,
             "Cloud Run healthy");
         assertTrue(result.reward > 0);
@@ -105,7 +105,7 @@ class RLVRTrainerTest {
     void recordOutcome_securityFail_hasNegativeReward() {
         RLVRTrainer.TrainingResult result = trainer.recordOutcome(
             List.of("Alpha-Security"),
-            KimiMoERouter.TaskType.SECURITY_AUDIT,
+            ExpertAgentRouter.TaskType.SECURITY_AUDIT,
             RLVRTrainer.VerifiableOutcome.SECURITY_FAIL,
             "3 OWASP findings");
         assertTrue(result.reward < 0);
@@ -118,7 +118,7 @@ class RLVRTrainerTest {
         List<String> agents = List.of("Architect", "Reviewer", "Alpha-Security");
         RLVRTrainer.TrainingResult result = trainer.recordOutcome(
             agents,
-            KimiMoERouter.TaskType.CODE_REVIEW,
+            ExpertAgentRouter.TaskType.CODE_REVIEW,
             RLVRTrainer.VerifiableOutcome.BUILD_PASS,
             "review passed");
 
@@ -132,14 +132,14 @@ class RLVRTrainerTest {
 
     @Test
     void estimateReward_unseenAgent_returnsPrior() {
-        double est = trainer.estimateReward("Iota-Knowledge", KimiMoERouter.TaskType.LEARNING);
+        double est = trainer.estimateReward("Iota-Knowledge", ExpertAgentRouter.TaskType.LEARNING);
         assertEquals(0.5, est, 1e-9, "Unseen agent should return prior of 0.5");
     }
 
     @Test
     void estimateReward_improvesAfterPositiveOutcomes() {
         String agent = "Theta-Learning";
-        KimiMoERouter.TaskType type = KimiMoERouter.TaskType.LEARNING;
+        ExpertAgentRouter.TaskType type = ExpertAgentRouter.TaskType.LEARNING;
 
         double before = trainer.estimateReward(agent, type);
 

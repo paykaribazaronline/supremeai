@@ -208,6 +208,10 @@ public class AuthenticationService {
         
         return new AuthToken(newToken, newRefreshToken, user, TOKEN_EXPIRATION_HOURS * 3600);
     }
+
+    public boolean isAdmin(User user) {
+        return user != null && user.getRole() != null && "admin".equalsIgnoreCase(user.getRole());
+    }
     
     /**
      * Get user by username (checks cache first for speed)
@@ -387,5 +391,89 @@ public class AuthenticationService {
      */
     private boolean verifyPassword(String password, String hash) {
         return org.springframework.security.crypto.bcrypt.BCrypt.checkpw(password, hash);
+    }
+
+    // ============ FIREBASE AUTH SYNC ============
+
+    /**
+     * Authenticate using a Firebase ID token issued by the Firebase Auth SDK.
+     * Verifies the token with the Firebase Admin SDK, then loads the matching
+     * SupremeAI user by email and returns a backend session JWT.
+     *
+     * This lets all three clients (localhost, React, Flutter) sign in via
+     * Firebase Auth and exchange the Firebase ID token for a backend JWT.
+     */
+    public AuthToken loginWithFirebaseToken(String idToken) throws Exception {
+        if (idToken == null || idToken.isBlank()) {
+            throw new IllegalArgumentException("Firebase ID token is required");
+        }
+
+        // Verify token with Firebase Admin SDK
+        com.google.firebase.auth.FirebaseToken decoded;
+        try {
+            decoded = com.google.firebase.auth.FirebaseAuth.getInstance().verifyIdToken(idToken);
+        } catch (Exception e) {
+            logger.warn("❌ Firebase ID token verification failed: {}", e.getMessage());
+            throw new IllegalArgumentException("Invalid Firebase ID token");
+        }
+
+        String email = decoded.getEmail();
+        String firebaseUid = decoded.getUid();
+
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Firebase token does not contain an email address");
+        }
+
+        // Find matching SupremeAI user
+        User user = getUserByEmailOrUsername(email);
+        if (user == null) {
+            throw new IllegalArgumentException(
+                "Email not registered in SupremeAI. Contact an admin to register your account.");
+        }
+
+        if (!user.isActive()) {
+            throw new IllegalArgumentException("User account is disabled");
+        }
+
+        // Update last login
+        user.setLastLogin(System.currentTimeMillis());
+        firebaseService.updateUser(user);
+
+        // Issue backend session JWT
+        String token = generateJWT(user);
+        String refreshToken = generateRefreshToken(user);
+
+        logger.info("✅ Firebase Auth login: email={} uid={} role={}", email, firebaseUid, user.getRole());
+        return new AuthToken(token, refreshToken, user, TOKEN_EXPIRATION_HOURS * 3600);
+    }
+
+    /**
+     * Ensure the given admin user exists in Firebase Authentication.
+     * Called during system seeding so that all three clients can sign in
+     * via Firebase Auth SDK using the same email/password credentials.
+     *
+     * Non-fatal: if Firebase Auth is unavailable, custom-JWT auth still works.
+     */
+    public void syncAdminToFirebaseAuth(String email, String plainPassword, String displayName) {
+        try {
+            com.google.firebase.auth.FirebaseAuth fbAuth =
+                com.google.firebase.auth.FirebaseAuth.getInstance();
+
+            try {
+                fbAuth.getUserByEmail(email);
+                logger.info("ℹ️ Firebase Auth user already exists: {}", email);
+            } catch (com.google.firebase.auth.FirebaseAuthException notFound) {
+                com.google.firebase.auth.UserRecord.CreateRequest req =
+                    new com.google.firebase.auth.UserRecord.CreateRequest()
+                        .setEmail(email)
+                        .setPassword(plainPassword)
+                        .setDisplayName(displayName)
+                        .setEmailVerified(true);
+                fbAuth.createUser(req);
+                logger.info("✅ Firebase Auth user created for admin: {}", email);
+            }
+        } catch (Exception e) {
+            logger.warn("⚠️ Could not sync admin to Firebase Auth (non-fatal): {}", e.getMessage());
+        }
     }
 }
