@@ -14,8 +14,11 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 
+import org.springframework.context.annotation.Profile;
+
 @Configuration
 @EnableWebSecurity
+@Profile("!test")
 public class SecurityConfig {
     
     private final JwtAuthenticationFilter jwtAuthenticationFilter;

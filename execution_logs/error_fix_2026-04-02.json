@@ -1,0 +1,17 @@
+[ {
+  "eventId" : "0de14090-bb20-42a3-9874-77e1c94b39b3",
+  "timestamp" : "2026-04-02 21:43:59",
+  "eventType" : "ERROR_FIX",
+  "projectId" : "p1",
+  "componentName" : "",
+  "framework" : "",
+  "durationMs" : 0,
+  "status" : "SUCCESS",
+  "agent" : null,
+  "score" : 100.0,
+  "metadata" : {
+    "totalIssues" : 1,
+    "autoFixable" : 1,
+    "appliedFixes" : 1
+  }
+} ]

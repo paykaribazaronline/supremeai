@@ -90,7 +90,7 @@ if (firebaseProviders != null && !firebaseProviders.isEmpty()) {
 <button onclick="searchAvailableProviders()">🔍 Search</button>
 
 <div id="availableProvidersList">
-  <!-- Dynamically populated with top 10 AI -->
+  <!-- Dynamically populated with top configured AI -->
   <!-- Admin can search or add custom -->
 </div>
 ```
@@ -103,7 +103,7 @@ if (firebaseProviders != null && !firebaseProviders.isEmpty()) {
 
 ```
 AIProviderDiscoveryService.java
-├─ discoverAvailableProviders() → Top 10 AI
+├─ discoverAvailableProviders() → Top configured AI
 ├─ getConfiguredProviders() → Active ones
 ├─ addProvider() → Admin adds new
 ├─ disableProvider() → Remove old

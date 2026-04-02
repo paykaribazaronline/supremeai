@@ -12,7 +12,7 @@ Write-Host "🚀 SUPREMEAI LEARNING SYSTEM - LIVE TEST APP" -ForegroundColor Gre
 Write-Host "════════════════════════════════════════════════════════" -ForegroundColor Cyan
 
 Write-Host "`n[INFO] Starting test queries to trigger learning system..." -ForegroundColor Yellow
-Write-Host "[INFO] These queries will be sent to 10 AI providers" -ForegroundColor Yellow
+Write-Host "[INFO] These queries will be sent to the configured AI providers" -ForegroundColor Yellow
 Write-Host "[INFO] Results will be stored in Firebase" -ForegroundColor Yellow
 
 # Test queries that will trigger learning
@@ -111,7 +111,7 @@ Write-Host "  1. Check Firebase Realtime Database" -ForegroundColor White
 Write-Host "  2. Navigate to: system/learnings" -ForegroundColor White
 Write-Host "  3. Should see new learning records with:" -ForegroundColor White
 Write-Host "     - question (what was asked)" -ForegroundColor White
-Write-Host "     - solutions (answers from 10 AIs)" -ForegroundColor White
+Write-Host "     - solutions (answers from configured AIs)" -ForegroundColor White
 Write-Host "     - confidenceScore (0-1 range)" -ForegroundColor White
 Write-Host "     - timestamp (when learned)" -ForegroundColor White
 

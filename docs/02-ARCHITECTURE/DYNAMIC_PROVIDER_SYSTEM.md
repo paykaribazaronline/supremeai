@@ -30,7 +30,7 @@ New provider = Need to modify code ❌
 ```
 Admin controls EVERYTHING via dashboard:
 - Add ANY AI provider (existing or brand new)
-- Search for latest top 10 AI models
+- Search for the latest AI models and let admin choose how many to integrate
 - Remove providers anytime
 - Switch keys instantly
 - NO code changes needed ✅

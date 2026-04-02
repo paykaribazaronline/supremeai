@@ -208,7 +208,7 @@ Write-Host "  2. Project: SupremeAI" -ForegroundColor White
 Write-Host "  3. Realtime Database → system/learnings/" -ForegroundColor White
 Write-Host "  4. Look for NEW entries with:" -ForegroundColor White
 Write-Host "     - question (what was asked)" -ForegroundColor White
-Write-Host "     - solutions (answers from 10 AI providers)" -ForegroundColor White
+Write-Host "     - solutions (answers from configured AI providers)" -ForegroundColor White
 Write-Host "     - confidenceScore (0.70 - 0.95)" -ForegroundColor White
 Write-Host "     - timestamp (timestamp of learning)" -ForegroundColor White
 Write-Host ""
@@ -220,5 +220,5 @@ Write-Host ""
 
 Write-Host "OK: App is running on: http://localhost:$port" -ForegroundColor Green
 Write-Host "OK: Your credentials: supremeai / Admin@123456!" -ForegroundColor Green
-Write-Host "OK: System is learning from 10 AI perspectives" -ForegroundColor Green
+Write-Host "OK: System is learning from configured AI perspectives" -ForegroundColor Green
 Write-Host ""

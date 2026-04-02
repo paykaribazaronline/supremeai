@@ -53,7 +53,7 @@ Priority: [
 
 ### **STEP 2: Generate Architecture** (5 minutes)
 
-**SupremeAI consults 10 AIs:**
+**SupremeAI consults the configured AI providers:**
 
 ```
 QUESTION: "Best architecture for Todo app with React + Flutter + Spring Boot?"
@@ -185,6 +185,7 @@ public class Todo {
 ```
 
 **LEARN Store:**
+
 ```json
 {
   "model": "Todo",
@@ -256,6 +257,7 @@ public class TodoService {
 ```
 
 **LEARN Store:**
+
 ```json
 {
   "service": "TodoService",
@@ -349,6 +351,7 @@ public class TodoController {
 ```
 
 **LEARN Store:**
+
 ```json
 {
   "controller": "TodoController",
@@ -501,6 +504,7 @@ export const TodoList: React.FC = () => {
 ```
 
 **LEARN Store:**
+
 ```json
 {
   "component": "TodoList",
@@ -633,6 +637,7 @@ class _HomeScreenState extends State<HomeScreen> {
 ```
 
 **LEARN Store:**
+
 ```json
 {
   "component": "HomeScreen",
@@ -730,6 +735,7 @@ public class TodoServiceTest {
 ```
 
 **LEARN Store:**
+
 ```json
 {
   "test_class": "TodoServiceTest",
@@ -792,6 +798,7 @@ CMD ["nginx", "-g", "daemon off;"]
 ```
 
 **LEARN Store:**
+
 ```json
 {
   "deployment": "Docker multi-stage",
@@ -820,7 +827,9 @@ CMD ["nginx", "-g", "daemon off;"]
 ## Authentication
 All endpoints require JWT token in header:
 ```
+
 Authorization: Bearer {jwt_token}
+
 ```
 
 ## Endpoints
@@ -838,6 +847,7 @@ Authorization: Bearer {jwt_token}
 ```
 
 **Response (201):**
+
 ```json
 {
   "id": "todo-456",
@@ -852,6 +862,7 @@ Authorization: Bearer {jwt_token}
 ```
 
 ...and so on for all 6 endpoints
+
 ```
 
 **LEARN Store:**
@@ -916,6 +927,7 @@ timeout: '1800s'
 ```
 
 **LEARN Store:**
+
 ```json
 {
   "deployment": "Google Cloud Build",
@@ -1044,7 +1056,7 @@ Before SupremeAI generates apps, it should know:
 
 ```
 ☑ Parse user plan into structured requirements
-☑ Ask 10 AIs for best architecture
+☑ Ask configured AIs for best architecture
 ☑ Get consensus on technology stack
 ☑ Generate folder structure (4 parallel modules)
 ☑ Generate Spring Boot backend (models + services + controllers)

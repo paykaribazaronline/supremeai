@@ -155,7 +155,9 @@ public class ExecutionLogManager {
         try {
             File logDir = new File(LOG_DIR);
             if (logDir.exists()) {
-                for (File file : logDir.listFiles()) {
+                File[] files = logDir.listFiles();
+                if (files != null) {
+                for (File file : files) {
                     if (file.getName().endsWith(".json")) {
                         String content = new String(Files.readAllBytes(file.toPath()));
                         @SuppressWarnings("unchecked")
@@ -173,14 +175,15 @@ public class ExecutionLogManager {
                                 if (event.containsKey("score")) {
                                     avgValidationScore += ((Number) event.get("score")).doubleValue();
                                 }
-                                if (event.containsKey("agent")) {
+                                if (event.containsKey("agent") && event.get("agent") != null) {
                                     agentsUsed.add((String) event.get("agent"));
                                 }
                             }
                         }
                     }
-                }
-            }
+                } // end for file
+                } // end if files != null
+            } // end if logDir.exists
         } catch (IOException e) {
             System.err.println("Failed to read metrics: " + e.getMessage());
         }
@@ -221,7 +224,9 @@ public class ExecutionLogManager {
         try {
             File logDir = new File(LOG_DIR);
             if (logDir.exists()) {
-                for (File file : logDir.listFiles()) {
+                File[] files = logDir.listFiles();
+                if (files != null) {
+                for (File file : files) {
                     if (file.getName().endsWith(".json")) {
                         String content = new String(Files.readAllBytes(file.toPath()));
                         @SuppressWarnings("unchecked")
@@ -250,11 +255,14 @@ public class ExecutionLogManager {
                             }
                             
                             String eventType = (String) event.get("eventType");
-                            eventTypeDistribution.merge(eventType, 1L, Long::sum);
+                            if (eventType != null) {
+                                eventTypeDistribution.merge(eventType, 1L, Long::sum);
+                            }
                         }
                     }
-                }
-            }
+                } // end for file
+                } // end if files != null
+            } // end if logDir.exists
         } catch (IOException e) {
             System.err.println("Failed to read system metrics: " + e.getMessage());
         }

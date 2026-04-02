@@ -2,6 +2,7 @@ package org.example.controller;
 
 import org.example.model.SystemLearning;
 import org.example.service.SystemLearningService;
+import org.example.service.KnowledgeReseedService;
 import org.example.service.AuthenticationService;
 import org.example.model.User;
 import org.slf4j.Logger;
@@ -20,12 +21,16 @@ import java.util.*;
 @RequestMapping("/api/learning")
 public class SystemLearningController {
     private static final Logger logger = LoggerFactory.getLogger(SystemLearningController.class);
+    private static final String BEARER_PREFIX = "Bearer ";
     
     @Autowired
     private SystemLearningService learningService;
     
     @Autowired
     private AuthenticationService authService;
+
+    @Autowired
+    private KnowledgeReseedService knowledgeReseedService;
     
     /**
      * GET /api/learning/stats
@@ -35,13 +40,7 @@ public class SystemLearningController {
     public ResponseEntity<?> getStats(
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
-            if (authHeader == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("status", "error", "message", "Auth required"));
-            }
-            
-            String token = authHeader.substring(7);
-            User user = authService.validateToken(token);
+            User user = authenticate(authHeader);
             
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -72,12 +71,7 @@ public class SystemLearningController {
     public ResponseEntity<?> getCriticalRequirements(
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
-            if (authHeader == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
-            
-            String token = authHeader.substring(7);
-            User user = authService.validateToken(token);
+            User user = authenticate(authHeader);
             
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -105,12 +99,7 @@ public class SystemLearningController {
             @PathVariable String category,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
-            if (authHeader == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
-            
-            String token = authHeader.substring(7);
-            User user = authService.validateToken(token);
+            User user = authenticate(authHeader);
             
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -128,5 +117,85 @@ public class SystemLearningController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    /**
+     * GET /api/learning/techniques
+     * View seeded operational techniques.
+     */
+    @GetMapping({"/techniques", "/techniques/{category}"})
+    public ResponseEntity<?> getTechniques(
+            @PathVariable(required = false) String category,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            User user = authenticate(authHeader);
+
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("status", "error", "message", "Auth required"));
+            }
+
+            List<SystemLearning> techniques = learningService.getTechniques(category);
+
+            return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "category", category == null ? "ALL" : category,
+                "techniques", techniques,
+                "count", techniques.size(),
+                "timestamp", System.currentTimeMillis()
+            ));
+        } catch (Exception e) {
+            logger.error("❌ Techniques error: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("status", "error", "message", e.getMessage()));
+        }
+    }
+
+    /**
+     * POST /api/learning/reseed
+     * Reseed all knowledge from backend seeders.
+     */
+    @PostMapping("/reseed")
+    public ResponseEntity<?> reseedKnowledge(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestHeader(value = "X-Setup-Token", required = false) String setupToken) {
+        try {
+            User user = authenticate(authHeader);
+            boolean setupTokenAuthorized = isSetupTokenAuthorized(setupToken);
+
+            if (user == null && !setupTokenAuthorized) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("status", "error", "message", "Auth required"));
+            }
+
+            String trigger = user != null ? "admin-dashboard:" + user.getUsername() : "automation:push-workflow";
+            Map<String, Object> reseedResult = knowledgeReseedService.reseedAllKnowledge(trigger);
+            return ResponseEntity.ok(reseedResult);
+        } catch (Exception e) {
+            logger.error("❌ Reseed error: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("status", "error", "message", e.getMessage()));
+        }
+    }
+
+    private User authenticate(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX) || authHeader.length() <= BEARER_PREFIX.length()) {
+            return null;
+        }
+
+        String token = authHeader.substring(BEARER_PREFIX.length());
+        try {
+            return authService.validateToken(token);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private boolean isSetupTokenAuthorized(String setupToken) {
+        if (setupToken == null || setupToken.isBlank()) {
+            return false;
+        }
+        String expected = System.getenv("SUPREMEAI_SETUP_TOKEN");
+        return expected != null && !expected.isBlank() && expected.equals(setupToken);
     }
 }

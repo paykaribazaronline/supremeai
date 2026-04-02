@@ -51,7 +51,7 @@ public class RestAPIIntegrationTest {
         mockResult.put("status", "generated");
         mockResult.put("filesGenerated", 3);
 
-        when(orchestrator.generateReactComponent(projectId, componentName, description, anyList()))
+        when(orchestrator.generateReactComponent(eq(projectId), eq(componentName), eq(description), anyList()))
             .thenReturn(mockResult);
 
         Map<String, Object> response = generationController.generateReactComponent(
@@ -74,7 +74,7 @@ public class RestAPIIntegrationTest {
         mockResult.put("status", "generated");
         mockResult.put("filesGenerated", 3);
 
-        when(orchestrator.generateNodeService(projectId, serviceName, description, anyList()))
+        when(orchestrator.generateNodeService(eq(projectId), eq(serviceName), eq(description), anyList()))
             .thenReturn(mockResult);
 
         Map<String, Object> response = generationController.generateNodeService(

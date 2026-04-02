@@ -149,7 +149,7 @@ When in **WAIT mode**, actions appear in "Pending Actions" section:
    - Action Type: What operation (e.g., "Git Commit")
    - Description: Details of what will happen
    - Creator: Who requested it
-   
+
 2. **Click ✅ APPROVE** to execute it
    - Action runs immediately
    - Logged in audit trail
@@ -314,6 +314,7 @@ GET  /api/admin/control/history
 ```
 
 ### **Git Operations**
+
 ```
 POST /api/git/commit
      Body: { "message": "...", "author": "..." }
@@ -358,6 +359,7 @@ Every action in the audit trail includes:
 ```
 
 You can filter by:
+
 - Time range
 - Admin (who did it)
 - Action type (commit, push, mode change, etc)
@@ -368,21 +370,25 @@ You can filter by:
 ## 🚨 Important Notes
 
 ### **3-Mode System is ENFORCED**
+
 - All system operations respect current mode
 - Cannot bypass modes (even as admin)
 - Provides safety and governance
 
 ### **Audit Trail is IMMUTABLE**
+
 - Every action logged permanently
 - Cannot delete or modify logs
 - Required for compliance
 
 ### **Token Security**
+
 - Your token stored in browser localStorage
 - Expires after 24 hours
 - Auto-refreshed on each API call
 
 ### **All Operations are Asynchronous**
+
 - Dashboard doesn't block while operations run
 - You can switch modes during running tasks
 - Check audit trail for actual completion
@@ -392,21 +398,25 @@ You can filter by:
 ## 🔧 Troubleshooting
 
 ### **"Admin authentication required"**
+
 - You're not logged in
 - Go to login.html first
 - Or token expired (refresh page)
 
 ### **Mode button not responding**
+
 - Check browser console for errors
 - Make sure your token is valid
 - Try refreshing the page
 
 ### **Pending actions not showing**
+
 - Switch to WAIT mode if not already
 - Try clicking refresh or wait 10 seconds
 - Check that you have proper admin permissions
 
 ### **Git operations fail**
+
 - Check git credentials are configured
 - Make sure you have git installed
 - Branch name must be valid
@@ -417,11 +427,13 @@ You can filter by:
 ## 📞 Support
 
 **Dashboard Status:**
+
 - All features working
 - Real-time updates every 10-15 seconds
 - Fully logged for audit compliance
 
 **Need Help?**
+
 - Check audit trail for operation details
 - System logs in `/logs` directory
 - Check browser console (F12) for errors

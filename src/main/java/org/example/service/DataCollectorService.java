@@ -77,9 +77,8 @@ public class DataCollectorService {
         
         HybridDataCollector.HybridResult result = hybridDataCollector.collectGitHubData(owner, repo);
         
-        // Extract data directly from result (not wrapped)
-        @SuppressWarnings("unchecked")
-        Map<String, Object> response = (Map<String, Object>) result.data;
+        // Safely convert result data to Map (data may be a POJO, not already a Map)
+        Map<String, Object> response = safeToMap(result.data);
         if (response == null) {
             response = new LinkedHashMap<>();
         }
@@ -114,9 +113,8 @@ public class DataCollectorService {
         
         HybridDataCollector.HybridResult result = hybridDataCollector.collectVercelStatus(projectId);
         
-        // Extract data directly from result (not wrapped)
-        @SuppressWarnings("unchecked")
-        Map<String, Object> response = (Map<String, Object>) result.data;
+        // Safely convert result data to Map
+        Map<String, Object> response = safeToMap(result.data);
         if (response == null) {
             response = new LinkedHashMap<>();
         }
@@ -145,9 +143,8 @@ public class DataCollectorService {
         
         HybridDataCollector.HybridResult result = hybridDataCollector.collectFirebaseStatus();
         
-        // Extract data directly from result (not wrapped)
-        @SuppressWarnings("unchecked")
-        Map<String, Object> response = (Map<String, Object>) result.data;
+        // Safely convert result data to Map
+        Map<String, Object> response = safeToMap(result.data);
         if (response == null) {
             response = new LinkedHashMap<>();
         }
@@ -241,7 +238,28 @@ public class DataCollectorService {
     }
     
     // ========== Internal Helpers ==========
-    
+
+    /**
+     * Safely convert any object to Map<String, Object> using Jackson.
+     * Handles both Map objects and arbitrary POJOs.
+     */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> safeToMap(Object data) {
+        if (data == null) return null;
+        if (data instanceof Map) {
+            return (Map<String, Object>) data;
+        }
+        try {
+            return mapper.convertValue(data, mapper.getTypeFactory()
+                .constructMapType(LinkedHashMap.class, String.class, Object.class));
+        } catch (Exception e) {
+            logger.warn("⚠️ Could not convert data to Map: {}", e.getMessage());
+            Map<String, Object> fallback = new LinkedHashMap<>();
+            fallback.put("raw", data.toString());
+            return fallback;
+        }
+    }
+
     /**
      * Convert HybridResult to Map<String, Object> for REST API responses
      */

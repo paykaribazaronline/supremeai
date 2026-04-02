@@ -79,12 +79,13 @@ public class AdminMessagePusher {
      */
     public void pushDataUpdate(String source, String identifier, 
                                Map<String, Object> data, long collectionTimeMs) {
+        Map<String, Object> safeData = (data != null) ? data : new HashMap<>();
         AdminMessage message = new AdminMessage(
             AdminMessageType.DATA_UPDATE,
             Map.of(
                 "source", source,
                 "identifier", identifier,
-                "data", data,
+                "data", safeData,
                 "collection_time_ms", collectionTimeMs,
                 "timestamp", System.currentTimeMillis()
             )

@@ -117,7 +117,7 @@ public class AIProviderService {
         ┌──────▼──────────────┐
         │ Failover Manager    │
         │ Provider Fallback   │
-        │ (10 AI providers)   │
+        │ (configured AI providers)   │
         └──────┬──────────────┘
                │
         ┌──────▼──────────────┐
@@ -264,12 +264,14 @@ cache: [
 **Symptom:** Circuit breaker remains in OPEN state
 
 **Diagnosis:**
+
 ```bash
 curl http://localhost:8080/api/v1/resilience/circuit-breakers/ai_provider
 # Check: state, consecutive_failures, last_failure_time
 ```
 
 **Solutions:**
+
 1. Check service connectivity
 2. Review recent errors
 3. Reset manually: `POST /circuit-breakers/{name}/reset`
@@ -280,12 +282,14 @@ curl http://localhost:8080/api/v1/resilience/circuit-breakers/ai_provider
 **Symptom:** Cache hit rate abnormally high, data outdated
 
 **Diagnosis:**
+
 ```bash
 curl http://localhost:8080/api/v1/resilience/health/events?count=100
 # Look for cache fallback events
 ```
 
 **Solutions:**
+
 1. Check primary data source
 2. Review cache TTL settings
 3. Force cache refresh
@@ -295,12 +299,14 @@ curl http://localhost:8080/api/v1/resilience/health/events?count=100
 **Symptom:** Memory usage steadily increasing
 
 **Diagnosis:**
+
 ```bash
 curl http://localhost:8080/api/v1/resilience/health
 # Check: memory_usage_percent, cache_entries
 ```
 
 **Solutions:**
+
 1. Clear cache: `POST /failover/clear-cache`
 2. Reduce TTL values
 3. Review leak in application code
@@ -323,30 +329,35 @@ curl http://localhost:8080/api/v1/resilience/health
 ## Enterprise Features
 
 ✅ **4-Layer Caching**
+
 - L1: In-Memory (5min TTL)
 - L2: Distributed (30min TTL)
 - L3: Database (permanent)
 - L4: Stale Fallback (24h)
 
 ✅ **Multi-Tier Failover**
-- Provider fallover (10 AI providers)
+
+- Provider fallover (configured AI providers)
 - Cache fallback (stale data)
 - Retry with exponential backoff
 - Graceful degradation
 
 ✅ **Circuit Breaker Pattern**
+
 - CLOSED/OPEN/HALF_OPEN states
 - Auto-recovery
 - Configurable thresholds
 - Per-service isolation
 
 ✅ **Health Monitoring**
+
 - Continuous health checks (every 10s)
 - Event history tracking
 - Alert generation
 - Comprehensive reporting
 
 ✅ **Production Ready**
+
 - Thread-safe operations
 - No external dependencies*
 - Comprehensive logging

@@ -1,7 +1,9 @@
 package org.example.service;
 
+import org.example.model.APIProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -16,34 +18,16 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class QuotaRotationService {
     private static final Logger logger = LoggerFactory.getLogger(QuotaRotationService.class);
-    
-    // Define 10 AI Providers with their free tier quotas
-    public enum AIProvider {
-        OPENAI_GAPI("OpenAI GPT-4 (free tier)", 3),           // 3 calls/min free
-        ANTHROPIC_API("Anthropic Claude (free tier)", 5),     // 5 calls/min free
-        GOOGLE_GEMINI("Google Gemini (free tier)", 15),       // 15 calls/day free
-        META_LLAMA("Meta Llama 2 (huggingface)", 100),        // ~100/day estimate
-        MISTRAL_API("Mistral 7B (free tier)", 10),            // 10/day free
-        COHERE_API("Cohere (free tier)", 20),                 // 20/day free
-        HUGGINGFACE_API("HuggingFace Inference API", 50),     // 50/day free tier
-        XAI_GROK("xAI Grok (API free tier)", 25),             // 25/day free
-        DEEPSEEK_API("DeepSeek (free tier)", 30),             // 30/day free
-        PERPLEXITY_API("Perplexity (free tier)", 40);         // 40/day free
-        
-        public final String displayName;
-        public final int dailyQuota;
-        
-        AIProvider(String displayName, int dailyQuota) {
-            this.displayName = displayName;
-            this.dailyQuota = dailyQuota;
-        }
-    }
+
+    @Autowired
+    private ProviderRegistryService providerRegistryService;
     
     /**
      * Tracks quota usage per provider per month
      */
     public static class QuotaTracker {
-        public String provider;
+        public String providerId;
+        public String providerName;
         public YearMonth month;
         public int totalQuota;
         public int usedQuota = 0;
@@ -51,8 +35,9 @@ public class QuotaRotationService {
         public double costPerCall = 0.0;  // Free tier = $0
         public LocalDate lastResetDate = LocalDate.now();
         
-        public QuotaTracker(String provider, int dailyQuota) {
-            this.provider = provider;
+        public QuotaTracker(String providerId, String providerName, int dailyQuota) {
+            this.providerId = providerId;
+            this.providerName = providerName;
             this.month = YearMonth.now();
             // Monthly quota = daily * 30 days
             this.totalQuota = dailyQuota * 30;
@@ -87,52 +72,59 @@ public class QuotaRotationService {
     private final Map<String, Integer> failureCount = new ConcurrentHashMap<>();
     private int currentProviderIndex = 0;
     
-    public QuotaRotationService() {
-        initializeQuotas();
-    }
-    
     /**
-     * Initialize quota trackers for all 10 providers
+     * Sync quota trackers with the admin-managed provider registry.
      */
-    private void initializeQuotas() {
-        for (AIProvider provider : AIProvider.values()) {
-            QuotaTracker tracker = new QuotaTracker(provider.name(), provider.dailyQuota);
-            quotaTrackers.put(provider.name(), tracker);
-            logger.info("✅ Initialized quota for {}: {} calls/month", provider.displayName, provider.dailyQuota * 30);
+    public synchronized void syncQuotaTrackers() {
+        List<APIProvider> activeProviders = providerRegistryService.getActiveProviders();
+        Set<String> activeIds = new HashSet<>();
+
+        for (APIProvider provider : activeProviders) {
+            activeIds.add(provider.getId());
+            quotaTrackers.computeIfAbsent(provider.getId(), id -> {
+                int dailyQuota = estimateDailyQuota(provider.getName());
+                logger.info("✅ Initialized quota rotation for {}: {} calls/month", provider.getName(), dailyQuota * 30);
+                return new QuotaTracker(provider.getId(), provider.getName(), dailyQuota);
+            });
         }
+
+        quotaTrackers.keySet().removeIf(providerId -> !activeIds.contains(providerId));
     }
     
     /**
      * Get next healthy provider with available quota
      * Rotation strategy: Round-robin with fallback to highest available quota
      */
-    public AIProvider getNextProvider() {
-        AIProvider[] providers = AIProvider.values();
+    public String getNextProvider() {
+        syncQuotaTrackers();
+        List<QuotaTracker> providers = new ArrayList<>(quotaTrackers.values());
+        if (providers.isEmpty()) {
+            return null;
+        }
         
         // Try next provider in round-robin
-        for (int i = 0; i < providers.length; i++) {
-            currentProviderIndex = (currentProviderIndex + 1) % providers.length;
-            AIProvider provider = providers[currentProviderIndex];
-            
-            QuotaTracker tracker = quotaTrackers.get(provider.name());
+        for (int i = 0; i < providers.size(); i++) {
+            currentProviderIndex = (currentProviderIndex + 1) % providers.size();
+            QuotaTracker tracker = providers.get(currentProviderIndex);
             if (!tracker.isExhausted()) {
                 logger.info("🔄 Provider rotation: {} → {} (remaining: {})", 
-                    i > 0 ? "skip" : "select", provider.displayName, tracker.remainingQuota);
-                return provider;
+                    i > 0 ? "skip" : "select", tracker.providerName, tracker.remainingQuota);
+                return tracker.providerId;
             }
         }
         
         // Fallback: Find provider with highest remaining quota
         return quotaTrackers.entrySet().stream()
             .max(Comparator.comparingInt(e -> e.getValue().remainingQuota))
-            .map(e -> AIProvider.valueOf(e.getKey()))
-            .orElse(AIProvider.OPENAI_GAPI);  // Absolute fallback
+            .map(Map.Entry::getKey)
+            .orElse(null);
     }
     
     /**
      * Consume quota for a successful API call
      */
     public void recordSuccess(String provider, int tokensUsed) {
+        syncQuotaTrackers();
         QuotaTracker tracker = quotaTrackers.get(provider);
         if (tracker != null) {
             tracker.consume(1);  // Count as 1 API call regardless of tokens
@@ -148,6 +140,7 @@ public class QuotaRotationService {
      * Record failed API call (don't consume quota, but track failures)
      */
     public void recordFailure(String provider) {
+        syncQuotaTrackers();
         failureCount.merge(provider, 1, Integer::sum);
         int failures = failureCount.get(provider);
         
@@ -167,13 +160,13 @@ public class QuotaRotationService {
      * Get current quota status for all providers
      */
     public Map<String, Map<String, Object>> getQuotaStatus() {
+        syncQuotaTrackers();
         Map<String, Map<String, Object>> status = new LinkedHashMap<>();
         
-        for (AIProvider provider : AIProvider.values()) {
-            QuotaTracker tracker = quotaTrackers.get(provider.name());
+        for (QuotaTracker tracker : quotaTrackers.values()) {
             
-            status.put(provider.displayName, new LinkedHashMap<String, Object>() {{
-                put("provider", provider.name());
+            status.put(tracker.providerName, new LinkedHashMap<String, Object>() {{
+                put("provider", tracker.providerId);
                 put("quota_total", tracker.totalQuota);
                 put("quota_used", tracker.usedQuota);
                 put("quota_remaining", tracker.remainingQuota);
@@ -181,7 +174,7 @@ public class QuotaRotationService {
                 put("status", tracker.isExhausted() ? "EXHAUSTED" : 
                              tracker.isNearLimit() ? "NEAR_LIMIT" : "OK");
                 put("estimated_cost", String.format("$%.2f", tracker.estimatedMonthlyCost()));
-                put("failures", failureCount.getOrDefault(provider.name(), 0));
+                put("failures", failureCount.getOrDefault(tracker.providerId, 0));
             }});
         }
         
@@ -192,6 +185,7 @@ public class QuotaRotationService {
      * Calculate total remaining quota across all providers
      */
     public int getTotalRemainingQuota() {
+        syncQuotaTrackers();
         return quotaTrackers.values().stream()
             .mapToInt(t -> t.remainingQuota)
             .sum();
@@ -201,6 +195,7 @@ public class QuotaRotationService {
      * Calculate projected monthly cost ($0 if using free tiers only)
      */
     public double getProjectedMonthlyCost() {
+        syncQuotaTrackers();
         return quotaTrackers.values().stream()
             .mapToDouble(QuotaTracker::estimatedMonthlyCost)
             .sum();
@@ -214,7 +209,7 @@ public class QuotaRotationService {
         
         for (QuotaTracker tracker : quotaTrackers.values()) {
             if (!tracker.month.equals(currentMonth)) {
-                logger.info("🔄 Resetting monthly quota for {}", tracker.provider);
+                logger.info("🔄 Resetting monthly quota for {}", tracker.providerName);
                 
                 // Archive previous month's stats
                 tracker.lastResetDate = LocalDate.now();
@@ -231,7 +226,7 @@ public class QuotaRotationService {
      * 2. Lowest failure rate
      * 3. Good success history
      */
-    public AIProvider getOptimalProvider() {
+    public String getOptimalProvider() {
         checkAndResetMonthlyQuotas();
         
         return quotaTrackers.entrySet().stream()
@@ -239,7 +234,7 @@ public class QuotaRotationService {
             .max(Comparator
                 .comparingInt((Map.Entry<String, QuotaTracker> e) -> e.getValue().remainingQuota)
                 .thenComparingInt(e -> -failureCount.getOrDefault(e.getKey(), 0)))
-            .map(e -> AIProvider.valueOf(e.getKey()))
+            .map(Map.Entry::getKey)
             .orElse(getNextProvider());
     }
     
@@ -247,10 +242,14 @@ public class QuotaRotationService {
      * Get quota summary for dashboard
      */
     public Map<String, Object> getQuotaSummary() {
+        syncQuotaTrackers();
+        String nextProviderId = getNextProvider();
+        String optimalProviderId = getOptimalProvider();
+
         return new LinkedHashMap<String, Object>() {{
             put("status", "✅ OK");
             put("current_month", YearMonth.now().toString());
-            put("total_providers", AIProvider.values().length);
+            put("total_providers", quotaTrackers.size());
             put("total_quota", quotaTrackers.values().stream().mapToInt(t -> t.totalQuota).sum());
             put("total_used", quotaTrackers.values().stream().mapToInt(t -> t.usedQuota).sum());
             put("total_remaining", getTotalRemainingQuota());
@@ -259,8 +258,46 @@ public class QuotaRotationService {
             put("providers_exhausted", quotaTrackers.values().stream()
                 .filter(QuotaTracker::isExhausted).count());
             put("projected_cost", String.format("$%.2f/month", getProjectedMonthlyCost()));
-            put("next_provider", getNextProvider().displayName);
-            put("optimal_provider", getOptimalProvider().displayName);
+            put("next_provider", getProviderDisplayName(nextProviderId));
+            put("optimal_provider", getProviderDisplayName(optimalProviderId));
         }};
+    }
+
+    public String getProviderDisplayName(String providerId) {
+        if (providerId == null) {
+            return null;
+        }
+        QuotaTracker tracker = quotaTrackers.get(providerId);
+        return tracker == null ? providerId : tracker.providerName;
+    }
+
+    public List<Map<String, Object>> getRegisteredProviders() {
+        syncQuotaTrackers();
+        List<Map<String, Object>> providers = new ArrayList<>();
+        for (QuotaTracker tracker : quotaTrackers.values()) {
+            providers.add(new LinkedHashMap<String, Object>() {{
+                put("id", tracker.providerId);
+                put("display_name", tracker.providerName);
+                put("daily_quota", tracker.totalQuota / 30);
+                put("monthly_quota", tracker.totalQuota);
+                put("monthly_cost_free_tier", "$0.00");
+            }});
+        }
+        return providers;
+    }
+
+    private int estimateDailyQuota(String providerName) {
+        String normalized = providerName == null ? "" : providerName.toLowerCase(Locale.ROOT);
+        if (normalized.contains("openai")) return 3;
+        if (normalized.contains("anthropic") || normalized.contains("claude")) return 5;
+        if (normalized.contains("gemini") || normalized.contains("google")) return 15;
+        if (normalized.contains("meta") || normalized.contains("llama")) return 100;
+        if (normalized.contains("mistral")) return 10;
+        if (normalized.contains("cohere")) return 20;
+        if (normalized.contains("huggingface")) return 50;
+        if (normalized.contains("xai") || normalized.contains("grok")) return 25;
+        if (normalized.contains("deepseek")) return 30;
+        if (normalized.contains("perplexity")) return 40;
+        return 20;
     }
 }

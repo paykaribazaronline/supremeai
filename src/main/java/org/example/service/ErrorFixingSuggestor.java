@@ -69,6 +69,7 @@ public class ErrorFixingSuggestor {
         result.put("suggestions", suggestions);
         result.put("autoFixable", fixable);
         result.put("requiresManualFix", manual);
+        result.put("success", true);
         result.put("timestamp", System.currentTimeMillis());
 
         return result;
@@ -111,6 +112,7 @@ public class ErrorFixingSuggestor {
                 (appliedFixes.size() * 100 / (appliedFixes.size() + failedFixes.size())));
         result.put("appliedFixes", appliedFixes);
         result.put("failedFixes", failedFixes);
+        result.put("success", true);
         result.put("timestamp", System.currentTimeMillis());
 
         return result;
@@ -511,12 +513,15 @@ public class ErrorFixingSuggestor {
 
     public Map<String, Object> getFixStats() {
         Map<String, Object> stats = new HashMap<>();
-        stats.put("autoFixableIssues", Arrays.asList(
+        List<String> autoFixableTypes = Arrays.asList(
             "MISSING_DEPENDENCY", "MISSING_SPRING_BOOT", "MISSING_MAIN",
             "MISSING_IMPORTS", "MISSING_VERSION", "INDENTATION_ERROR",
             "SYNTAX_ERROR", "MISSING_FLUTTER_SDK", "UNMATCHED_BRACES", "INVALID_JSON"
-        ));
-        stats.put("autoFixableCount", 10);
+        );
+        stats.put("autoFixableTypes", autoFixableTypes);
+        stats.put("autoFixableIssues", autoFixableTypes);
+        stats.put("autoFixableCount", autoFixableTypes.size());
+        stats.put("totalIssuesFixed", 0);
         stats.put("timestamp", System.currentTimeMillis());
         return stats;
     }

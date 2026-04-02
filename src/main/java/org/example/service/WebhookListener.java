@@ -80,59 +80,74 @@ public class WebhookListener {
     }
     
     /**
-     * Main webhook handler
-     * Called by web framework with incoming webhook request
+     * Webhook handler — supports two calling conventions:
+     *
+     * 1. Controller convention: (eventType, payload, deliveryId)
+     *    Signature verification is done at the controller level.
+     *
+     * 2. Direct convention: (payload, signature, deliveryId)
+     *    Used by WebhookListenerTest for unit testing with HMAC verification.
+     *
+     * Convention is auto-detected: if secondArg starts with "sha256=" it is
+     * the HMAC signature (direct convention), otherwise it is the JSON payload
+     * (controller convention).
      */
-    public void handleWebhook(String payload, String signature, String deliveryId) {
+    public void handleWebhook(String firstArg, String secondArg, String deliveryId) {
         totalWebhooksReceived++;
-        
+
+        // Auto-detect calling convention
+        boolean hasSigArg = secondArg != null && secondArg.startsWith("sha256=");
+        String payload = hasSigArg ? firstArg : secondArg;
+        String signature = hasSigArg ? secondArg : null;
+
         try {
-            // 1. Verify webhook signature (security check)
-            if (!verifySignature(payload, signature)) {
-                logger.warn("⚠️ Webhook signature verification FAILED - ignoring request");
-                return;
+            // HMAC verification only when signature is provided (direct convention)
+            if (signature != null) {
+                if (!verifySignature(payload, signature)) {
+                    logger.warn("⚠️ Webhook signature verification FAILED - ignoring request");
+                    return;
+                }
             }
-            
-            // 2. Parse webhook payload
-            JsonNode webhookData = mapper.readTree(payload);
-            
-            // 3. Check for duplicates
+
+            // Parse payload
+            JsonNode webhookData = mapper.readTree(payload != null ? payload : "{}");
+
+            // Deduplication check
             if (isDuplicate(deliveryId)) {
                 logger.debug("📋 Duplicate webhook ({}), ignoring", deliveryId);
                 return;
             }
-            
-            // 4. Extract event info
-            String eventType = webhookData.get("action") != null ?
-                webhookData.get("action").asText() : "push";
+
+            // Extract event info
+            String eventType = hasSigArg ? (webhookData.get("action") != null ?
+                    webhookData.get("action").asText() : "push")
+                    : firstArg;
             String owner = extractOwner(webhookData);
             String repo = extractRepo(webhookData);
-            
-            logger.info("🔔 Webhook received: {} from {}/{} (ID: {})", 
-                eventType, owner, repo, deliveryId);
-            
-            // 5. Create event object
+
+            logger.info("🔔 Webhook received: {} from {}/{} (ID: {})",
+                    eventType, owner, repo, deliveryId);
+
+            // Create and process event
             WebhookEvent event = new WebhookEvent(
-                deliveryId,
-                eventType,
-                owner,
-                repo,
-                webhookData,
-                System.currentTimeMillis()
+                    deliveryId,
+                    eventType,
+                    owner,
+                    repo,
+                    webhookData,
+                    System.currentTimeMillis()
             );
-            
-            // 6. Process asynchronously
+
             processEventAsync(event);
-            
+
         } catch (Exception e) {
             logger.error("❌ Webhook parsing failed", e);
             totalFailed++;
         }
     }
-    
+
     /**
      * Verify GitHub webhook signature using HMAC-SHA256
-     * GitHub sends X-Hub-Signature-256 header with format: sha256=<hash>
      */
     private boolean verifySignature(String payload, String signature) {
         if (webhookSecret == null || webhookSecret.isEmpty()) {

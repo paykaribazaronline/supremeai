@@ -1,0 +1,21 @@
+[ {
+  "eventId" : "93a8ae5b-8a0b-4da4-bb0e-416acbc92241",
+  "timestamp" : "2026-04-02 21:44:01",
+  "eventType" : "AGENT_SELECTION",
+  "projectId" : "",
+  "componentName" : "",
+  "framework" : "",
+  "durationMs" : 0,
+  "status" : null,
+  "agent" : "GROQ",
+  "score" : 0.0,
+  "metadata" : {
+    "taskType" : "code-generation",
+    "scores" : {
+      "GROQ" : 95.0,
+      "CLAUDE" : 82.0,
+      "DEEPSEEK" : 88.0
+    },
+    "fallbackChain" : [ "GROQ", "DEEPSEEK", "CLAUDE" ]
+  }
+} ]
