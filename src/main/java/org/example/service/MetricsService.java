@@ -6,7 +6,6 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import com.sun.management.OperatingSystemMXBean;
 
 /**
  * Phase 4: Advanced Metrics Service
@@ -14,7 +13,6 @@ import com.sun.management.OperatingSystemMXBean;
  * Enables real-time monitoring dashboards and automated alerting
  */
 @Service
-@SuppressWarnings("deprecation")
 public class MetricsService {
 
     private final AtomicLong totalRequests = new AtomicLong(0);
@@ -76,18 +74,12 @@ public class MetricsService {
         memoryInfo.put("heap_committed_mb", memory.getHeapMemoryUsage().getCommitted() / (1024 * 1024));
         health.put("memory", memoryInfo);
         
-        // CPU info
+        // CPU info (using standard Java APIs)
         Map<String, Object> cpuInfo = new HashMap<>();
-        try {
-            com.sun.management.OperatingSystemMXBean sunOsBean = 
-                (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-            cpuInfo.put("process_cpu_usage", sunOsBean.getProcessCpuLoad() * 100);
-            cpuInfo.put("system_cpu_load", sunOsBean.getSystemCpuLoad() * 100);
-        } catch (Exception e) {
-            cpuInfo.put("process_cpu_usage", 0);
-            cpuInfo.put("system_cpu_load", 0);
-        }
-        cpuInfo.put("available_processors", Runtime.getRuntime().availableProcessors());
+        OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
+        double systemLoadAvg = osBean.getSystemLoadAverage();
+        cpuInfo.put("system_load_average", systemLoadAvg >= 0 ? systemLoadAvg : 0);
+        cpuInfo.put("available_processors", osBean.getAvailableProcessors());
         health.put("cpu", cpuInfo);
         
         // Request metrics

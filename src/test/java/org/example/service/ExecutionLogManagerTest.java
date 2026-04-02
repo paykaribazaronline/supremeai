@@ -3,9 +3,12 @@ package org.example.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Timeout;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -14,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Tests: Event logging, metrics aggregation, trends analysis
  */
 @DisplayName("ExecutionLogManager Tests")
+@Tag("unit")
 public class ExecutionLogManagerTest {
 
     private ExecutionLogManager logManager;
@@ -25,6 +29,7 @@ public class ExecutionLogManagerTest {
 
     @Test
     @DisplayName("Log Generation Event")
+    @Timeout(value = 5, unit = TimeUnit.SECONDS)
     public void testLogGenerationEvent() {
         String projectId = "test-project";
         String componentName = "Button";
@@ -40,6 +45,7 @@ public class ExecutionLogManagerTest {
     }
 
     @Test
+    @Timeout(value = 5, unit = TimeUnit.SECONDS)
     @DisplayName("Log Validation Event")
     public void testLogValidationEvent() {
         String projectId = "test-project";
@@ -99,6 +105,7 @@ public class ExecutionLogManagerTest {
     }
 
     @Test
+    @Timeout(value = 5, unit = TimeUnit.SECONDS)
     @DisplayName("Get System Metrics")
     public void testGetSystemMetrics() {
         Map<String, Object> metrics = logManager.getSystemMetrics();
