@@ -16,7 +16,7 @@ npm install -g firebase-tools
 ### **Step 2: Login to Firebase**
 ```powershell
 firebase login
-firebase use supremeai-565236080752
+firebase use supremeai-a
 ```
 
 ### **Step 3: Run Setup Script**
@@ -99,7 +99,7 @@ echo $env:GOOGLE_APPLICATION_CREDENTIALS
 **Option B: Firebase CLI**
 ```powershell
 firebase login
-firebase use supremeai-565236080752
+firebase use supremeai-a
 ```
 
 ### **3. Run Setup**
