@@ -4,7 +4,7 @@
 
 A professional Flutter admin application for managing the SupremeAI backend system.
 
-**Base URL:** `https://supremeai-565236080752.us-central1.run.app`
+**Base URL:** `https://supremeai-a.us-central1.run.app`
 
 ## 🚀 Quick Start
 
@@ -121,7 +121,7 @@ Edit `lib/config/environment.dart`:
 
 ```dart
 // Production (Cloud Run)
-static const String baseUrl = 'https://supremeai-565236080752.us-central1.run.app';
+static const String baseUrl = 'https://supremeai-a.us-central1.run.app';
 
 // Local Development
 // static const String baseUrl = 'http://localhost:8080';

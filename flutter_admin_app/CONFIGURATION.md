@@ -153,7 +153,7 @@ print(Environment.baseUrl); // Should print: https://supremeai-...
 # For localhost:8080 - run: .\gradlew run
 
 # Test with curl
-curl https://supremeai-565236080752.us-central1.run.app/api/metrics/health
+curl https://supremeai-a.us-central1.run.app/api/metrics/health
 ```
 
 **Check 3: Check Network**

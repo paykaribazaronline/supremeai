@@ -21,7 +21,7 @@ Developer Push
     └─ Build Web App
     ↓
 2. Deploy to Firebase Hosting (main only)
-    └─ Deploy to https://supremeai-565236080752.web.app/admin/
+    └─ Deploy to https://supremeai-a.web.app/admin/
     ↓
 3. Deploy Android Release (main only)
     ├─ Build APK
@@ -96,8 +96,8 @@ firebase deploy --only hosting:flutter-admin
 ```
 
 **Firebase Hosting Details:**
-- **Project ID:** supremeai-565236080752
-- **Web App URL:** https://supremeai-565236080752.web.app/admin/
+- **Project ID:** supremeai-a
+- **Web App URL:** https://supremeai-a.web.app/admin/
 - **Domain:** Can be mapped to custom domain
 - **Auto-HTTPS:** ✅ Enabled
 - **CDN:** ✅ Global caching
@@ -228,7 +228,7 @@ git pull origin main
 After successful deployment:
 
 ### Web App
-- **Live:** https://supremeai-565236080752.web.app/admin/
+- **Live:** https://supremeai-a.web.app/admin/
 - **Login:** Use your SupremeAI admin credentials
 - **Auto-HTTPS:** Yes
 - **CDN:** Globally cached

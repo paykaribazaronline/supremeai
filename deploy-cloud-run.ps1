@@ -3,7 +3,7 @@
 # Usage: .\deploy-cloud-run.ps1
 
 param(
-    [string]$ProjectId = "supremeai-565236080752",
+    [string]$ProjectId = "supremeai-a",
     [string]$ServiceName = "supremeai",
     [string]$Region = "us-central1"
 )
