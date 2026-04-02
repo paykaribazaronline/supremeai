@@ -7,9 +7,6 @@
       "hosting": {
         "main-dashboard": [
           "supremeai-a"
-        ],
-        "flutter-admin": [
-          "supremeai-a"
         ]
       }
     }

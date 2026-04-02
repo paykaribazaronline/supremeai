@@ -1,39 +1,12 @@
 {
   "hosting": [
     {
-      "target": "flutter-admin",
-      "public": "combined_deploy/admin",
-      "ignore": [
-        "firebase.json",
-        "**/.*",
-        "**/node_modules/**"
-      ],
-      "rewrites": [
-        {
-          "source": "**",
-          "destination": "/index.html"
-        }
-      ],
-      "headers": [
-        {
-          "source": "/**",
-          "headers": [
-            {
-              "key": "Cache-Control",
-              "value": "no-cache, no-store, must-revalidate"
-            }
-          ]
-        }
-      ]
-    },
-    {
       "target": "main-dashboard",
       "public": "combined_deploy",
       "ignore": [
         "firebase.json",
         "**/.*",
-        "**/node_modules/**",
-        "admin/**"
+        "**/node_modules/**"
       ],
       "rewrites": [
         {
@@ -47,20 +20,11 @@
       ],
       "headers": [
         {
-          "source": "/admin/**",
+          "source": "/**",
           "headers": [
             {
               "key": "Cache-Control",
               "value": "no-cache, no-store, must-revalidate"
-            }
-          ]
-        },
-        {
-          "source": "/*",
-          "headers": [
-            {
-              "key": "Cache-Control",
-              "value": "max-age=3600"
             }
           ]
         }
