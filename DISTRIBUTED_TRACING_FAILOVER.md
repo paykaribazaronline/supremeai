@@ -9,7 +9,7 @@
 
 ---
 
-# Distributed Tracing & Failover System (ARCHIVED)
+## Distributed Tracing & Failover System (ARCHIVED)
 
 **Version:** 1.0  
 **Status:** ✅ CONSOLIDATED
