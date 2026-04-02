@@ -259,7 +259,7 @@ https://github.com/your-username/supremeai/actions
 
 ### Check Live App
 ```
-https://supremeai-565236080752.web.app/admin/
+https://supremeai-a.web.app/admin/
 ```
 Should update within ~12 minutes of merging to main
 
