@@ -10,8 +10,25 @@ Write-Host "══════════════════════�
 Write-Host "STEP 1: Setting up environment..." -ForegroundColor Yellow
 Write-Host "  Setting BOOTSTRAP_TOKEN environment variable" -ForegroundColor Cyan
 
-$env:BOOTSTRAP_TOKEN = "secure-bootstrap-token-2026"
-$env:JWT_SECRET = "supremeai-jwt-secret-key-2026"
+if (-not $env:BOOTSTRAP_TOKEN) {
+    Write-Host "  ⚠️ BOOTSTRAP_TOKEN not set; using temporary value for this run" -ForegroundColor Yellow
+    $env:BOOTSTRAP_TOKEN = "dev-bootstrap-token-$(Get-Date -Format 'yyyyMMddHHmmss')"
+}
+if (-not $env:JWT_SECRET) {
+    Write-Host "  ⚠️ JWT_SECRET not set; generating temporary value for this run" -ForegroundColor Yellow
+    $env:JWT_SECRET = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes((New-Guid).Guid + (New-Guid).Guid))
+}
+
+$adminEmail = if ($env:SUPREMEAI_ADMIN_EMAIL) { $env:SUPREMEAI_ADMIN_EMAIL } else { "admin@supremeai.com" }
+$bootstrapUsername = (($adminEmail -replace '@.*$','') -replace '[^a-zA-Z0-9._-]','_')
+$adminPassword = $env:SUPREMEAI_ADMIN_PASSWORD
+$firebaseApiKey = if ($env:SUPREMEAI_FIREBASE_WEB_API_KEY) { $env:SUPREMEAI_FIREBASE_WEB_API_KEY } else { "AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8" }
+
+if (-not $adminPassword) {
+    Write-Host "  ❌ SUPREMEAI_ADMIN_PASSWORD is required" -ForegroundColor Red
+    Write-Host '  Set it before running: $env:SUPREMEAI_ADMIN_PASSWORD="<your-admin-password>"' -ForegroundColor Yellow
+    exit 1
+}
 
 Write-Host "  ✅ Environment variables set`n" -ForegroundColor Green
 
@@ -63,9 +80,9 @@ try {
 Write-Host "STEP 4: Bootstrapping first admin user..." -ForegroundColor Yellow
 
 $bootstrapPayload = @{
-    username = "supremeai"
-    email = "admin@supremeai.com"
-    password = "Admin@123456!"
+    username = $bootstrapUsername
+    email = $adminEmail
+    password = $adminPassword
 } | ConvertTo-Json
 
 try {
@@ -77,7 +94,7 @@ try {
         -Headers @{ "X-Bootstrap-Token" = $env:BOOTSTRAP_TOKEN } `
         -ErrorAction Stop
 
-    Write-Host "  ✅ Admin user created: supremeai`n" -ForegroundColor Green
+    Write-Host "  ✅ Admin user created for email: $adminEmail`n" -ForegroundColor Green
 } catch {
     if ($_.Exception.Response.StatusCode -eq 400 -or $_.Exception.Response.StatusCode -eq 409) {
         Write-Host "  ⚠️  Admin might already exist, continuing...`n" -ForegroundColor Yellow
@@ -87,20 +104,35 @@ try {
     }
 }
 
-# ============ STEP 5: LOGIN ============
+# ============ STEP 5: FIREBASE LOGIN ============
 Write-Host "STEP 5: Authenticating..." -ForegroundColor Yellow
 
-$loginPayload = @{
-    username = "supremeai"
-    password = "Admin@123456!"
+$firebaseLoginPayload = @{
+    email = $adminEmail
+    password = $adminPassword
+    returnSecureToken = $true
 } | ConvertTo-Json
 
 try {
-    $loginResponse = Invoke-WebRequest `
-        -Uri "http://localhost:$port/api/auth/login" `
+    $firebaseResponse = Invoke-WebRequest `
+        -Uri "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=$firebaseApiKey" `
         -Method POST `
         -ContentType "application/json" `
-        -Body $loginPayload `
+        -Body $firebaseLoginPayload `
+        -ErrorAction Stop
+
+    $firebaseData = $firebaseResponse.Content | ConvertFrom-Json
+    if (-not $firebaseData.idToken) {
+        throw "Firebase ID token not returned"
+    }
+
+    $exchangePayload = @{ idToken = $firebaseData.idToken } | ConvertTo-Json
+
+    $loginResponse = Invoke-WebRequest `
+        -Uri "http://localhost:$port/api/auth/firebase-login" `
+        -Method POST `
+        -ContentType "application/json" `
+        -Body $exchangePayload `
         -ErrorAction Stop
 
     $loginData = $loginResponse.Content | ConvertFrom-Json
@@ -184,25 +216,21 @@ try {
 }
 
 # ============ SUMMARY ============
-Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Green
-Write-Host "   ✨ LEARNING SYSTEM TEST COMPLETE!                       " -ForegroundColor Green
-Write-Host "═══════════════════════════════════════════════════════════`n" -ForegroundColor Green
+Write-Host "===========================================================" -ForegroundColor Green
+Write-Host "LEARNING SYSTEM TEST COMPLETE" -ForegroundColor Green
+Write-Host "===========================================================`n" -ForegroundColor Green
 
-Write-Host "🧠 LEARNING TRIGGERED! Check Firebase for results:" -ForegroundColor Green
+Write-Host "LEARNING TRIGGERED. Check Firebase for results:" -ForegroundColor Green
 Write-Host "  1. Go to: https://console.firebase.google.com" -ForegroundColor White
 Write-Host "  2. Project: SupremeAI" -ForegroundColor White
-Write-Host "  3. Realtime Database → system/learnings/" -ForegroundColor White
-Write-Host "  4. Look for NEW entries with:" -ForegroundColor White
-Write-Host "     - question (what was asked)" -ForegroundColor White
-Write-Host "     - solutions (answers from configured AI providers)" -ForegroundColor White
-Write-Host "     - confidenceScore (0.70 - 0.95)" -ForegroundColor White
-Write-Host "     - timestamp (timestamp of learning)`n" -ForegroundColor White
+Write-Host "  3. Realtime Database -> system/learnings/" -ForegroundColor White
+Write-Host "  4. Look for new entries with question, solutions, confidenceScore, and timestamp`n" -ForegroundColor White
 
-Write-Host "📊 Check GitHub for changes:" -ForegroundColor Cyan
+Write-Host "Check GitHub for changes:" -ForegroundColor Cyan
 Write-Host "  git status --short" -ForegroundColor White
 Write-Host "  git log --oneline -10`n" -ForegroundColor White
 
-Write-Host "✅ App is running on: http://localhost:$port" -ForegroundColor Green
-Write-Host "✅ Your credentials: supremeai / Admin@123456!" -ForegroundColor Green
-Write-Host "✅ System is learning from configured AI perspectives" -ForegroundColor Green
+Write-Host "App is running on: http://localhost:$port" -ForegroundColor Green
+Write-Host "Admin email used: $adminEmail" -ForegroundColor Green
+Write-Host "System is learning from configured AI perspectives" -ForegroundColor Green
 Write-Host ""

@@ -10,9 +10,26 @@ Write-Host ""
 # ============ STEP 1: ENVIRONMENT ============
 Write-Host "STEP 1: Setting environment..." -ForegroundColor Yellow
 
-$env:BOOTSTRAP_TOKEN = "secure-bootstrap-token-2026"
-$env:JWT_SECRET = "supremeai-jwt-secret-key-2026"
+if (-not $env:BOOTSTRAP_TOKEN) {
+    Write-Host "  WARNING: BOOTSTRAP_TOKEN not set; using temporary value for this run" -ForegroundColor Yellow
+    $env:BOOTSTRAP_TOKEN = "dev-bootstrap-token-$(Get-Date -Format 'yyyyMMddHHmmss')"
+}
+if (-not $env:JWT_SECRET) {
+    Write-Host "  WARNING: JWT_SECRET not set; generating temporary value for this run" -ForegroundColor Yellow
+    $env:JWT_SECRET = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes((New-Guid).Guid + (New-Guid).Guid))
+}
 $env:SPRING_PROFILES_ACTIVE = "prod"
+
+$adminEmail = if ($env:SUPREMEAI_ADMIN_EMAIL) { $env:SUPREMEAI_ADMIN_EMAIL } else { "admin@supremeai.com" }
+$bootstrapUsername = (($adminEmail -replace '@.*$','') -replace '[^a-zA-Z0-9._-]','_')
+$adminPassword = $env:SUPREMEAI_ADMIN_PASSWORD
+$firebaseApiKey = if ($env:SUPREMEAI_FIREBASE_WEB_API_KEY) { $env:SUPREMEAI_FIREBASE_WEB_API_KEY } else { "AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8" }
+
+if (-not $adminPassword) {
+    Write-Host "  ERROR: SUPREMEAI_ADMIN_PASSWORD is required" -ForegroundColor Red
+    Write-Host '  Set it before running: $env:SUPREMEAI_ADMIN_PASSWORD="<your-admin-password>"' -ForegroundColor Yellow
+    exit 1
+}
 
 Write-Host "  OK: Environment set" -ForegroundColor Green
 Write-Host ""
@@ -51,20 +68,35 @@ try {
 }
 Write-Host ""
 
-# ============ STEP 3: LOGIN ============
+# ============ STEP 3: FIREBASE LOGIN ============
 Write-Host "STEP 3: Authenticating..." -ForegroundColor Yellow
 
-$loginPayload = @{
-    username = "supremeai"
-    password = "Admin@123456!"
+$firebaseLoginPayload = @{
+    email = $adminEmail
+    password = $adminPassword
+    returnSecureToken = $true
 } | ConvertTo-Json
 
 try {
-    $response = Invoke-WebRequest `
-        -Uri "http://localhost:$port/api/auth/login" `
+    $firebaseResponse = Invoke-WebRequest `
+        -Uri "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=$firebaseApiKey" `
         -Method POST `
         -ContentType "application/json" `
-        -Body $loginPayload `
+        -Body $firebaseLoginPayload `
+        -ErrorAction Stop -TimeoutSec 8
+
+    $firebaseData = $firebaseResponse.Content | ConvertFrom-Json
+    if (-not $firebaseData.idToken) {
+        throw "Firebase ID token not returned"
+    }
+
+    $exchangePayload = @{ idToken = $firebaseData.idToken } | ConvertTo-Json
+
+    $response = Invoke-WebRequest `
+        -Uri "http://localhost:$port/api/auth/firebase-login" `
+        -Method POST `
+        -ContentType "application/json" `
+        -Body $exchangePayload `
         -ErrorAction Stop -TimeoutSec 5
 
     $data = $response.Content | ConvertFrom-Json
@@ -77,9 +109,9 @@ try {
     
     # Try bootstrap if no user exists
     $bootstrapPayload = @{
-        username = "supremeai"
-        email = "admin@supremeai.com"
-        password = "Admin@123456!"
+        username = $bootstrapUsername
+        email = $adminEmail
+        password = $adminPassword
     } | ConvertTo-Json
     
     try {

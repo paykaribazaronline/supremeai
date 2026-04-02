@@ -8,11 +8,19 @@
 
 param(
     [string]$Email = "user@supremeai.com",
-    [string]$Password = "TestPassword123!",
-    [string]$Username = "admin_user",
+    [string]$Password = $env:SUPREMEAI_ADMIN_PASSWORD,
     [string]$ApiUrl = "http://localhost:8080",
     [int]$TestCount = 3
 )
+
+if (-not $Password) {
+    Write-Host "❌ Admin password not provided." -ForegroundColor Red
+    Write-Host "   Set SUPREMEAI_ADMIN_PASSWORD or pass -Password explicitly." -ForegroundColor Yellow
+    exit 1
+}
+
+$firebaseApiKey = if ($env:SUPREMEAI_FIREBASE_WEB_API_KEY) { $env:SUPREMEAI_FIREBASE_WEB_API_KEY } else { "AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8" }
+$bootstrapUsername = (($Email -replace '@.*$','') -replace '[^a-zA-Z0-9._-]','_')
 
 Write-Host "`n════════════════════════════════════════════════════════════" -ForegroundColor Cyan
 Write-Host "🚀 SUPREMEAI LEARNING SYSTEM - AUTHENTICATION & TEST" -ForegroundColor Green
@@ -25,7 +33,7 @@ Write-Host "══════════════════════�
 Write-Host "[1/4] Creating admin account via bootstrap..." -ForegroundColor Yellow
 
 $bootstrapBody = @{
-    username = $Username
+    username = $bootstrapUsername
     email = $Email
     password = $Password
 } | ConvertTo-Json
@@ -41,7 +49,6 @@ try {
     if ($bootstrapResponse.StatusCode -eq 200) {
         $bootstrapData = $bootstrapResponse.Content | ConvertFrom-Json
         Write-Host "✅ Admin account created!" -ForegroundColor Green
-        Write-Host "   Username: $Username" -ForegroundColor Cyan
         Write-Host "   Email: $Email" -ForegroundColor Cyan
     } else {
         Write-Host "⚠️  Bootstrap returned: $($bootstrapResponse.StatusCode)" -ForegroundColor Yellow
@@ -53,21 +60,36 @@ try {
 Start-Sleep -Seconds 2
 
 # ============================================
-# STEP 2: LOGIN AND GET JWT TOKEN
+# STEP 2: FIREBASE LOGIN AND GET JWT TOKEN
 # ============================================
 
 Write-Host "`n[2/4] Logging in to get JWT token..." -ForegroundColor Yellow
 
-$loginBody = @{
-    username = $Username
+$firebaseLoginBody = @{
+    email = $Email
     password = $Password
+    returnSecureToken = $true
 } | ConvertTo-Json
 
 try {
-    $loginResponse = Invoke-WebRequest -Uri "$ApiUrl/api/auth/login" `
+    $firebaseResponse = Invoke-WebRequest -Uri "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=$firebaseApiKey" `
         -Method Post `
         -ContentType "application/json" `
-        -Body $loginBody `
+        -Body $firebaseLoginBody `
+        -ErrorAction Stop `
+        -TimeoutSec 10
+
+    $firebaseData = $firebaseResponse.Content | ConvertFrom-Json
+    if (-not $firebaseData.idToken) {
+        throw "Firebase ID token not returned"
+    }
+
+    $exchangeBody = @{ idToken = $firebaseData.idToken } | ConvertTo-Json
+
+    $loginResponse = Invoke-WebRequest -Uri "$ApiUrl/api/auth/firebase-login" `
+        -Method Post `
+        -ContentType "application/json" `
+        -Body $exchangeBody `
         -ErrorAction Stop `
         -TimeoutSec 10
     
@@ -165,11 +187,11 @@ try {
 # FINAL SUMMARY
 # ============================================
 
-Write-Host "`n════════════════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host "✨ LEARNING TRIGGERED SUCCESSFULLY!" -ForegroundColor Green
-Write-Host "════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host "`n============================================================" -ForegroundColor Cyan
+Write-Host "LEARNING TRIGGERED SUCCESSFULLY" -ForegroundColor Green
+Write-Host "============================================================" -ForegroundColor Cyan
 
-Write-Host "`n📊 What just happened:" -ForegroundColor Yellow
+Write-Host "`nWhat just happened:" -ForegroundColor Yellow
 Write-Host "  1. Your admin account was created/verified" -ForegroundColor White
 Write-Host "  2. You logged in and got a JWT token" -ForegroundColor White
 Write-Host "  3. $successCount test queries were submitted" -ForegroundColor White
@@ -178,22 +200,21 @@ Write-Host "  5. Consensus voting determined the best answers" -ForegroundColor 
 Write-Host "  6. Learnings were extracted from all configured provider perspectives" -ForegroundColor White
 Write-Host "  7. Results stored in Firebase Realtime Database" -ForegroundColor White
 
-Write-Host "`n🔥 CHECK FIREBASE NOW:" -ForegroundColor Cyan
+Write-Host "`nCHECK FIREBASE NOW:" -ForegroundColor Cyan
 Write-Host "  1. Go to: https://console.firebase.google.com" -ForegroundColor White
 Write-Host "  2. Select: Your SupremeAI project" -ForegroundColor White
 Write-Host "  3. Go to: Realtime Database" -ForegroundColor White
 Write-Host "  4. Path: system/learnings/" -ForegroundColor White
-Write-Host "  5. You should see: NEW entries with timestamps!" -ForegroundColor Yellow
+Write-Host "  5. You should see new entries with timestamps" -ForegroundColor Yellow
 
-Write-Host "`n💾 YOUR JWT TOKEN (for manual API calls):" -ForegroundColor Cyan
+Write-Host "`nYOUR JWT TOKEN (for manual API calls):" -ForegroundColor Cyan
 Write-Host "  Bearer $jwtToken" -ForegroundColor Yellow
 
-Write-Host "`n📝 Next API calls to try:" -ForegroundColor Cyan
+Write-Host "`nNext API calls to try:" -ForegroundColor Cyan
 Write-Host "  GET /api/learning/stats" -ForegroundColor White
 Write-Host "  GET /api/consensus/history" -ForegroundColor White
 Write-Host "  GET /api/learning/critical" -ForegroundColor White
 
-Write-Host "`n════════════════════════════════════════════════════════════" -ForegroundColor Cyan
-
-Write-Host "🎉 System is LEARNING! Check Firebase console now." -ForegroundColor Green
+Write-Host "`n============================================================" -ForegroundColor Cyan
+Write-Host "System is learning. Check Firebase console now." -ForegroundColor Green
 Write-Host "" -ForegroundColor Cyan
