@@ -15,6 +15,7 @@ The admin dashboard gives you **complete control** over SupremeAI with three ope
 Your system operates in one of THREE modes, controlled entirely through the dashboard:
 
 #### **⚡ AUTO Mode** (Instant Execution)
+
 - All operations execute **immediately**
 - No approval needed
 - Commits push automatically
@@ -22,6 +23,7 @@ Your system operates in one of THREE modes, controlled entirely through the dash
 - **Use when:** You want speed and trust the system
 
 #### **⏸️ WAIT Mode** (Approval Required)
+
 - All operations **pause** and wait for your approval
 - You see pending actions in the dashboard
 - You approve/reject each action manually
@@ -29,6 +31,7 @@ Your system operates in one of THREE modes, controlled entirely through the dash
 - **Use when:** You want complete oversight
 
 #### **🛑 FORCE_STOP Mode** (Complete Halt)
+
 - System stops **all operations**
 - Nothing executes
 - Useful for emergency situations
@@ -40,6 +43,7 @@ Your system operates in one of THREE modes, controlled entirely through the dash
 ## 📊 Dashboard Sections
 
 ### **System Control Mode** (Top Left)
+
 ```
 Click one button to instantly change modes:
 - ⚡ AUTO   → Instant execution
@@ -48,6 +52,7 @@ Click one button to instantly change modes:
 ```
 
 The current mode shows at the top with color coding:
+
 - 🟢 GREEN = AUTO (running fast)
 - 🟠 ORANGE = WAIT (approval needed)
 - 🔴 RED = STOPPED (halted)
@@ -55,6 +60,7 @@ The current mode shows at the top with color coding:
 ---
 
 ### **System Operations** (Top Center)
+
 ```
 ✅ Resume Operations
 - Brings system back online
@@ -68,6 +74,7 @@ The current mode shows at the top with color coding:
 ---
 
 ### **Git Operations** (Top Right)
+
 ```
 💾 Commit Changes
 - Enter commit message
@@ -82,6 +89,7 @@ The current mode shows at the top with color coding:
 ---
 
 ### **Pending Actions** (Middle Row)
+
 ```
 ⏳ All actions waiting for approval appear here
 
@@ -96,6 +104,7 @@ In AUTO mode:
 ---
 
 ### **Audit Trail** (Bottom)
+
 ```
 📋 Complete log of ALL admin actions:
 - Time: When it happened
@@ -190,6 +199,7 @@ If something goes wrong:
 The dashboard shows live information:
 
 ### **System Information Panel (Bottom)**
+
 - **System Status**: ✅ Running or 🛑 Stopped
 - **Control Mode**: Current mode (AUTO/WAIT/STOP)
 - **Can Auto-Commit**: Can system automatically commit?
@@ -202,16 +212,19 @@ Auto-updates every 10 seconds.
 ## 🔒 Security & Authorization
 
 ### **Authentication**
+
 - You must be logged in with admin credentials
 - Token stored securely (expires after 24 hours)
 - All API calls require valid token
 
 ### **Admin-Only Operations**
+
 - Only admins can access this dashboard
 - All actions tied to your username
 - Every action logged in audit trail with your name
 
 ### **Audit Trail**
+
 - Every single operation is recorded
 - Cannot be deleted or modified
 - Includes: who, what, when, result
@@ -270,6 +283,7 @@ Auto-updates every 10 seconds.
 All operations go through these REST endpoints (automatically called by dashboard):
 
 ### **Control Operations**
+
 ```
 GET  /api/admin/control
      → Get current status (mode, running state, etc)
