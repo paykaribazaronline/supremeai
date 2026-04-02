@@ -1,4 +1,4 @@
-package org.example.kimik2.learning;
+package org.example.agentorchestration.learning;
 
 import org.example.service.AIAPIService;
 import org.example.service.SystemLearningService;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  *   5. Generated reasoning → AgenticToolLoop-এ plan হিসেবে ব্যবহার
  *
  * এটা LLM fine-tuning ছাড়াই Level 4 achieve করার practical way।
- * Kimi K2 করে internally — আমরা করি externally via few-shot.
+ * Internal model adaptation-এর বদলে আমরা externally few-shot planning করি.
  * ফলাফল almost same: proven patterns থেকে নতুন reasoning তৈরি।
  */
 @Service
@@ -115,7 +115,7 @@ public class ReasoningGenerator {
 
     /**
      * Generate a full routing + reasoning plan for multiple agents.
-     * Used by KimiK2Orchestrator when no custom plan is provided.
+    * Used by AdaptiveAgentOrchestrator when no custom plan is provided.
      */
     public List<String> generateToolPlan(String agentName, String taskType, String context) {
         GeneratedReasoning reasoning = generateReasoning(agentName, taskType, context);

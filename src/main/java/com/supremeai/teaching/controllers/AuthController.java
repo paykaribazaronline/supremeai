@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Profile;
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
-@Profile("!test")
+@Profile("teaching")
 public class AuthController {
     
     private final JwtTokenProvider jwtTokenProvider;

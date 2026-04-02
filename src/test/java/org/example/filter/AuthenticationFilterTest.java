@@ -3,6 +3,7 @@ package org.example.filter;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.service.AuthenticationService;
@@ -28,6 +29,9 @@ import static org.mockito.Mockito.*;
 @MockitoSettings(strictness = Strictness.LENIENT)
 @Tag("unit")
 public class AuthenticationFilterTest {
+    private static final String VALID_TOKEN = "valid-token";
+    private static final String USER_TOKEN = "user-token";
+    private static final String ADMIN_TOKEN = "admin-token";
 
     @Mock
     private HttpServletRequest request;
@@ -54,13 +58,19 @@ public class AuthenticationFilterTest {
         // "valid-token" is accepted; everything else throws (rejected).
         User validUser = new User();
         validUser.setUsername("test-user");
-        lenient().when(authenticationService.validateToken(eq("valid-token"))).thenReturn(validUser);
-        lenient().when(authenticationService.validateToken(eq("user-token"))).thenReturn(validUser);
-        lenient().when(authenticationService.validateToken(eq("admin-token"))).thenReturn(validUser);
+        validUser.setRole("user");
+        User adminUser = new User();
+        adminUser.setUsername("admin-user");
+        adminUser.setRole("admin");
+        lenient().when(authenticationService.validateToken(eq(VALID_TOKEN))).thenReturn(validUser);
+        lenient().when(authenticationService.validateToken(eq(USER_TOKEN))).thenReturn(validUser);
+        lenient().when(authenticationService.validateToken(eq(ADMIN_TOKEN))).thenReturn(adminUser);
+        lenient().when(authenticationService.isAdmin(validUser)).thenReturn(false);
+        lenient().when(authenticationService.isAdmin(adminUser)).thenReturn(true);
         lenient().doThrow(new RuntimeException("Invalid token"))
                 .when(authenticationService).validateToken(
-                        argThat(t -> t != null && !t.equals("valid-token")
-                                && !t.equals("user-token") && !t.equals("admin-token")));
+                argThat(t -> t != null && !t.equals(VALID_TOKEN)
+                    && !t.equals(USER_TOKEN) && !t.equals(ADMIN_TOKEN)));
         // Null token should also be rejected
         lenient().doThrow(new RuntimeException("Null token"))
                 .when(authenticationService).validateToken(null);
@@ -110,7 +120,7 @@ public class AuthenticationFilterTest {
     void testProtectedPathRequiresValidToken() throws ServletException, IOException {
         // Given
         when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
-        when(request.getHeader("Authorization")).thenReturn("Bearer valid-token");
+        when(request.getHeader("Authorization")).thenReturn("Bearer " + VALID_TOKEN);
 
         // When
         authenticationFilter.doFilter(request, response, filterChain);
@@ -189,7 +199,7 @@ public class AuthenticationFilterTest {
     void testCacheClearRequiresAdminToken() throws ServletException, IOException {
         // Given
         when(request.getRequestURI()).thenReturn("/api/v1/data/cache/clear");
-        when(request.getHeader("Authorization")).thenReturn("Bearer user-token");
+        when(request.getHeader("Authorization")).thenReturn("Bearer " + USER_TOKEN);
 
         // When
         authenticationFilter.doFilter(request, response, filterChain);
@@ -202,7 +212,7 @@ public class AuthenticationFilterTest {
     void testMultiplePathsWithCorrectTokens() throws ServletException, IOException {
         // Test first path - each gets a fresh mock interaction
         when(request.getRequestURI()).thenReturn("/api/v1/data/github/owner/repo");
-        when(request.getHeader("Authorization")).thenReturn("Bearer valid-token");
+        when(request.getHeader("Authorization")).thenReturn("Bearer " + VALID_TOKEN);
         authenticationFilter.doFilter(request, response, filterChain);
         verify(filterChain).doFilter(request, response);
     }
@@ -210,7 +220,7 @@ public class AuthenticationFilterTest {
     @Test
     void testMultipleProtectedPathsWithValidToken_vercel() throws ServletException, IOException {
         when(request.getRequestURI()).thenReturn("/api/v1/data/vercel/proj_123");
-        when(request.getHeader("Authorization")).thenReturn("Bearer valid-token");
+        when(request.getHeader("Authorization")).thenReturn("Bearer " + VALID_TOKEN);
         authenticationFilter.doFilter(request, response, filterChain);
         verify(filterChain).doFilter(request, response);
     }
@@ -218,7 +228,7 @@ public class AuthenticationFilterTest {
     @Test
     void testMultipleProtectedPathsWithValidToken_firebase() throws ServletException, IOException {
         when(request.getRequestURI()).thenReturn("/api/v1/data/firebase");
-        when(request.getHeader("Authorization")).thenReturn("Bearer valid-token");
+        when(request.getHeader("Authorization")).thenReturn("Bearer " + VALID_TOKEN);
         authenticationFilter.doFilter(request, response, filterChain);
         verify(filterChain).doFilter(request, response);
     }
@@ -226,7 +236,7 @@ public class AuthenticationFilterTest {
     @Test
     void testMultipleProtectedPathsWithValidToken_stats() throws ServletException, IOException {
         when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
-        when(request.getHeader("Authorization")).thenReturn("Bearer valid-token");
+        when(request.getHeader("Authorization")).thenReturn("Bearer " + VALID_TOKEN);
         authenticationFilter.doFilter(request, response, filterChain);
         verify(filterChain).doFilter(request, response);
     }
@@ -267,12 +277,49 @@ public class AuthenticationFilterTest {
     void testCaseInsensitiveBearer() throws ServletException, IOException {
         // Given
         when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
-        when(request.getHeader("Authorization")).thenReturn("bearer valid-token");
+        when(request.getHeader("Authorization")).thenReturn("bearer " + VALID_TOKEN);
 
         // When
         authenticationFilter.doFilter(request, response, filterChain);
 
         // Then - Bearer should be case-insensitive
+        verify(filterChain).doFilter(request, response);
+    }
+
+    @Test
+    void testAdminHtmlRedirectsToLoginWhenMissingToken() throws ServletException, IOException {
+        when(request.getRequestURI()).thenReturn("/admin.html");
+        when(request.getHeader("Authorization")).thenReturn(null);
+        when(request.getHeader("Accept")).thenReturn("text/html");
+
+        authenticationFilter.doFilter(request, response, filterChain);
+
+        verify(response).sendRedirect(contains("/login.html"));
+        verify(filterChain, never()).doFilter(request, response);
+    }
+
+    @Test
+    void testAdminApiRejectsNonAdminUser() throws ServletException, IOException {
+        when(request.getRequestURI()).thenReturn("/api/admin/dashboard/stats");
+        when(request.getHeader("Authorization")).thenReturn("Bearer " + USER_TOKEN);
+        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
+        PrintWriter writer = mock(PrintWriter.class);
+        when(response.getWriter()).thenReturn(writer);
+
+        authenticationFilter.doFilter(request, response, filterChain);
+
+        verify(response).setStatus(403);
+        verify(filterChain, never()).doFilter(request, response);
+    }
+
+    @Test
+    void testAdminPageAllowsCookieBackedAdminSession() throws ServletException, IOException {
+        when(request.getRequestURI()).thenReturn("/admin.html");
+        when(request.getHeader("Authorization")).thenReturn(null);
+        when(request.getCookies()).thenReturn(new Cookie[]{ new Cookie("supremeai_admin_token", ADMIN_TOKEN) });
+
+        authenticationFilter.doFilter(request, response, filterChain);
+
         verify(filterChain).doFilter(request, response);
     }
 }

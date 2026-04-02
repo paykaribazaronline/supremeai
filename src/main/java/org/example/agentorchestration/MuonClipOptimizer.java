@@ -1,4 +1,4 @@
-package org.example.kimik2;
+package org.example.agentorchestration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,9 +8,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
 /**
- * KIMI K2 TECHNIQUE 3: MuonClip Optimizer
+ * ADAPTIVE ORCHESTRATION TECHNIQUE 3: MuonClip Optimizer
  *
- * Kimi K2 key innovation:
+ * MuonClip stabilization strategy:
  *   - Used the Muon optimizer (Momentum + Newton-Schulz orthogonalization)
  *     at 1-TRILLION-parameter scale — an unprecedented first.
  *   - Added "Clip" to resolve gradient explosions at scale.
@@ -47,7 +47,7 @@ public class MuonClipOptimizer {
     private static final double MAX_LR = 0.02;
 
     // Momentum buffer: agent → taskType → momentum value
-    private final Map<String, Map<KimiMoERouter.TaskType, Double>> momentumBuffer
+    private final Map<String, Map<ExpertAgentRouter.TaskType, Double>> momentumBuffer
         = new ConcurrentHashMap<>();
 
     // Step counter per agent (for bias correction, like Adam)
@@ -83,11 +83,11 @@ public class MuonClipOptimizer {
      * @param baseLR      base learning rate
      * @return            effective learning rate to use
      */
-    public double step(String agentName, KimiMoERouter.TaskType taskType,
+    public double step(String agentName, ExpertAgentRouter.TaskType taskType,
                        double gradient, double baseLR) {
         // Retrieve or init momentum
         momentumBuffer.computeIfAbsent(agentName, k -> new ConcurrentHashMap<>());
-        Map<KimiMoERouter.TaskType, Double> agentMomentum = momentumBuffer.get(agentName);
+        Map<ExpertAgentRouter.TaskType, Double> agentMomentum = momentumBuffer.get(agentName);
 
         double mPrev = agentMomentum.getOrDefault(taskType, 0.0);
         int t = stepCount.merge(agentName, 1, Integer::sum);
@@ -127,16 +127,16 @@ public class MuonClipOptimizer {
      * @param primaryReward the reward value
      * @return per-task-type orthogonalized reward multiplier (≤1.0)
      */
-    public Map<KimiMoERouter.TaskType, Double> orthogonalize(
+    public Map<ExpertAgentRouter.TaskType, Double> orthogonalize(
             String agentName,
-            KimiMoERouter.TaskType primaryTask,
+            ExpertAgentRouter.TaskType primaryTask,
             double primaryReward) {
 
-        Map<KimiMoERouter.TaskType, Double> multipliers = new java.util.EnumMap<>(KimiMoERouter.TaskType.class);
-        Map<KimiMoERouter.TaskType, Double> agentMomentum =
+        Map<ExpertAgentRouter.TaskType, Double> multipliers = new java.util.EnumMap<>(ExpertAgentRouter.TaskType.class);
+        Map<ExpertAgentRouter.TaskType, Double> agentMomentum =
             momentumBuffer.getOrDefault(agentName, java.util.Collections.emptyMap());
 
-        for (KimiMoERouter.TaskType tt : KimiMoERouter.TaskType.values()) {
+        for (ExpertAgentRouter.TaskType tt : ExpertAgentRouter.TaskType.values()) {
             if (tt == primaryTask) {
                 multipliers.put(tt, 1.0); // full update for primary task
                 continue;

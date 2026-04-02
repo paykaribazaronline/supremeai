@@ -1,4 +1,4 @@
-package org.example.kimik2;
+package org.example.agentorchestration;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,7 +41,7 @@ class AgenticToolLoopTest {
         );
 
         AgenticToolLoop.LoopSession session = loop.execute(
-            "t1", "Health check", List.of("Architect"), KimiMoERouter.TaskType.TESTING, plan);
+            "t1", "Health check", List.of("Architect"), ExpertAgentRouter.TaskType.TESTING, plan);
 
         assertTrue(session.isCompleted(), "Session should be marked completed");
         assertFalse(session.isFailed(),   "Session should not be failed");
@@ -56,7 +56,7 @@ class AgenticToolLoopTest {
         );
 
         AgenticToolLoop.LoopSession session = loop.execute(
-            "t2", "Two steps", List.of("Builder"), KimiMoERouter.TaskType.CODE_GENERATION, plan);
+            "t2", "Two steps", List.of("Builder"), ExpertAgentRouter.TaskType.CODE_GENERATION, plan);
 
         // Each step produces THINK + OBSERVE = 2 observations per step
         assertTrue(session.getObservations().size() >= 4,
@@ -67,7 +67,7 @@ class AgenticToolLoopTest {
     void execute_returnsNonZeroDuration() throws InterruptedException {
         List<AgenticToolLoop.PlannedStep> plan = loop.buildPlan("log_info:message=timing");
         AgenticToolLoop.LoopSession session = loop.execute(
-            "t3", "Timing", List.of("Reviewer"), KimiMoERouter.TaskType.CODE_REVIEW, plan);
+            "t3", "Timing", List.of("Reviewer"), ExpertAgentRouter.TaskType.CODE_REVIEW, plan);
         // durationMs is valid after completion
         assertTrue(session.durationMs() >= 0, "Duration should be non-negative");
     }
@@ -85,7 +85,7 @@ class AgenticToolLoopTest {
         );
 
         AgenticToolLoop.LoopSession session = loop.execute(
-            "t4", "Fail fast", List.of("B-Fixer"), KimiMoERouter.TaskType.BUG_FIX, plan);
+            "t4", "Fail fast", List.of("B-Fixer"), ExpertAgentRouter.TaskType.BUG_FIX, plan);
 
         assertTrue(session.isFailed(), "Session should be failed when critical step uses unknown tool");
         assertFalse(session.isCompleted(), "Session should not be completed");
@@ -110,7 +110,7 @@ class AgenticToolLoopTest {
         );
 
         AgenticToolLoop.LoopSession session = loop.execute(
-            "t5", "Recover", List.of("Reviewer"), KimiMoERouter.TaskType.TESTING, plan);
+            "t5", "Recover", List.of("Reviewer"), ExpertAgentRouter.TaskType.TESTING, plan);
 
         // Loop should complete because not critical
         assertEquals(2, session.getCurrentStep(), "Loop should run both steps");
@@ -126,7 +126,7 @@ class AgenticToolLoopTest {
 
         List<AgenticToolLoop.PlannedStep> plan = loop.buildPlan("custom_ping:target=test");
         AgenticToolLoop.LoopSession session = loop.execute(
-            "t6", "Custom tool", List.of("Architect"), KimiMoERouter.TaskType.CODE_GENERATION, plan);
+            "t6", "Custom tool", List.of("Architect"), ExpertAgentRouter.TaskType.CODE_GENERATION, plan);
 
         assertTrue(session.isCompleted(), "Custom tool should execute successfully");
 
@@ -144,7 +144,7 @@ class AgenticToolLoopTest {
         List<AgenticToolLoop.PlannedStep> plan = List.of(
             new AgenticToolLoop.PlannedStep("always_fail", Map.of(), "Expected to fail", false));
         AgenticToolLoop.LoopSession session = loop.execute(
-            "t7", "Fail tool", List.of("Builder"), KimiMoERouter.TaskType.BUG_FIX, plan);
+            "t7", "Fail tool", List.of("Builder"), ExpertAgentRouter.TaskType.BUG_FIX, plan);
 
         boolean hasFailObserve = session.getObservations().stream()
             .anyMatch(obs -> obs.get("type").toString().equals("OBSERVE_FAIL"));

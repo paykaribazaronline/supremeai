@@ -1,6 +1,6 @@
-package org.example.kimik2.learning;
+package org.example.agentorchestration.learning;
 
-import org.example.kimik2.KimiMoERouter;
+import org.example.agentorchestration.ExpertAgentRouter;
 import org.example.model.APIProvider;
 import org.example.service.ProviderRegistryService;
 import org.slf4j.Logger;
@@ -14,7 +14,7 @@ import java.util.*;
 /**
  * Knowledge Seed Service
  *
- * Answers the question: "is this only for Kimi K2 agents?"
+ * Answers the question: "is this only for internal orchestrator agents?"
  * → NO. Level 1-4 learning covers ALL AI models:
  *   • 20 internal MoE agents (SupremeAI agents from phases 1-10)
  *   • 0..n external AI providers chosen by the admin
@@ -229,14 +229,14 @@ public class KnowledgeSeedService {
         seedInitialRoutingWeights();
         seedMetadata();
         logger.info("✅ Knowledge seed complete — {} providers + {} MoE agents",
-            providers.size(), KimiMoERouter.ALL_AGENTS.size());
+            providers.size(), ExpertAgentRouter.ALL_AGENTS.size());
     }
 
     /**
      * Seed base knowledge for all configured external AI providers.
      * Path: learning/knowledge_seed/ai_providers/{provider}
      *
-     * This is NOT just Kimi K2 — it covers every provider
+    * This is NOT just the internal orchestrator — it covers every provider
      * that MultiAIConsensusService uses.
      */
     private void seedExternalAIProviders() {
@@ -256,7 +256,7 @@ public class KnowledgeSeedService {
      * Path: learning/knowledge_seed/moe_agents/{agent}
      */
     private void seedInternalMoEAgents() {
-        for (String agent : KimiMoERouter.ALL_AGENTS) {
+        for (String agent : ExpertAgentRouter.ALL_AGENTS) {
             Map<String, Object> knowledge = agentKnowledge(agent);
             firebaseRepo.seed(
                 LearningFirebaseRepository.BASE + "/knowledge_seed/moe_agents/"
@@ -276,13 +276,13 @@ public class KnowledgeSeedService {
      */
     private void seedInitialRoutingWeights() {
         // Seed for internal MoE agents
-        for (String agent : KimiMoERouter.ALL_AGENTS) {
+        for (String agent : ExpertAgentRouter.ALL_AGENTS) {
             Map<String, Object> agentK = agentKnowledge(agent);
             double baseConf = (double) agentK.getOrDefault("base_confidence", 0.75);
             @SuppressWarnings("unchecked")
             List<String> bestTasks = (List<String>) agentK.getOrDefault("best_tasks", Collections.emptyList());
 
-            for (KimiMoERouter.TaskType tt : KimiMoERouter.TaskType.values()) {
+            for (ExpertAgentRouter.TaskType tt : ExpertAgentRouter.TaskType.values()) {
                 double weight = bestTasks.contains(tt.name()) ? baseConf : baseConf * 0.5;
                 firebaseRepo.saveRoutingWeight(agent, tt.name(), weight);
             }
@@ -294,13 +294,13 @@ public class KnowledgeSeedService {
             @SuppressWarnings("unchecked")
             List<String> bestTasks = (List<String>) provK.getOrDefault("best_tasks", Collections.emptyList());
 
-            for (KimiMoERouter.TaskType tt : KimiMoERouter.TaskType.values()) {
+            for (ExpertAgentRouter.TaskType tt : ExpertAgentRouter.TaskType.values()) {
                 double weight = bestTasks.contains(tt.name()) ? baseConf : baseConf * 0.4;
                 firebaseRepo.saveRoutingWeight(provider, tt.name(), weight);
             }
         }
         logger.info("  ⚖️  Seeded initial routing weights for {} agents + {} providers",
-            KimiMoERouter.ALL_AGENTS.size(), getAllProviders().size());
+            ExpertAgentRouter.ALL_AGENTS.size(), getAllProviders().size());
     }
 
     /**
@@ -311,7 +311,7 @@ public class KnowledgeSeedService {
         Map<String, Object> meta = new LinkedHashMap<>();
         meta.put("seed_version",        SEED_VERSION);
         meta.put("seeded_at",           System.currentTimeMillis());
-        meta.put("total_moe_agents",    KimiMoERouter.ALL_AGENTS.size());
+        meta.put("total_moe_agents",    ExpertAgentRouter.ALL_AGENTS.size());
         meta.put("total_ai_providers",  getAllProviders().size());
         meta.put("learning_levels",     Arrays.asList(
             "L1: RLVR routing weights (who wins)",

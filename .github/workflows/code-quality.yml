@@ -13,6 +13,7 @@ on:
 env:
   NODE_VERSION: '24'
   JAVA_VERSION: '17'
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   codeql:
@@ -110,14 +111,14 @@ jobs:
           cache: gradle
 
       - name: 📓 Cache SonarQube packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
       - name: 📦 Cache Gradle dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.gradle/caches
@@ -137,7 +138,7 @@ jobs:
             ./gradlew clean build sonarqube \
               -Dsonar.projectKey=paykaribazaronline_supremeai \
               -Dsonar.host.url=https://sonarcloud.io \
-              -Dsonar.login=$SONAR_TOKEN \
+              -Dsonar.token=$SONAR_TOKEN \
               --stacktrace --no-daemon
           else
             echo "⚠️ SONAR_TOKEN not configured. Skipping SonarQube analysis."
@@ -236,15 +237,15 @@ jobs:
         with:
           project: 'SupremeAI'
           path: '.'
-          format: 'JSON'
+          format: 'SARIF'
           args: >
             --enable-retired
             --enableVerbose
-            --suppression .github/dependencycheck-suppression.xml
         continue-on-error: true
 
       - name: 📤 Upload DependencyCheck results
         uses: github/codeql-action/upload-sarif@v3
+        if: hashFiles('./reports/dependency-check-report.sarif') != ''
         with:
           sarif_file: ./reports/dependency-check-report.sarif
           wait-for-processing: true

@@ -1,4 +1,4 @@
-package org.example.kimik2;
+package org.example.agentorchestration;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,16 +61,16 @@ class MuonClipOptimizerTest {
 
     @Test
     void step_firstCallReturnsNonZeroLR() {
-        double lr = optimizer.step("Architect", KimiMoERouter.TaskType.CODE_GENERATION, +0.8, 0.01);
+        double lr = optimizer.step("Architect", ExpertAgentRouter.TaskType.CODE_GENERATION, +0.8, 0.01);
         assertTrue(lr > 0, "First step should return positive LR");
     }
 
     @Test
     void step_repeatedPositiveGradientsAccumulateMomentum() {
         // Momentum should build up with consistent positive rewards
-        double lr1 = optimizer.step("Builder", KimiMoERouter.TaskType.BUG_FIX, +0.5, 0.01);
-        double lr2 = optimizer.step("Builder", KimiMoERouter.TaskType.BUG_FIX, +0.5, 0.01);
-        double lr3 = optimizer.step("Builder", KimiMoERouter.TaskType.BUG_FIX, +0.5, 0.01);
+        double lr1 = optimizer.step("Builder", ExpertAgentRouter.TaskType.BUG_FIX, +0.5, 0.01);
+        double lr2 = optimizer.step("Builder", ExpertAgentRouter.TaskType.BUG_FIX, +0.5, 0.01);
+        double lr3 = optimizer.step("Builder", ExpertAgentRouter.TaskType.BUG_FIX, +0.5, 0.01);
         // LR should increase as momentum builds, then stabilize
         assertTrue(lr3 >= lr1 || lr3 > 0.001,
             "Momentum should sustain LR above minimum after consistent rewards");
@@ -80,7 +80,7 @@ class MuonClipOptimizerTest {
     void step_boundsRespectedAfterManySteps() {
         for (int i = 0; i < 50; i++) {
             double gradient = (i % 2 == 0) ? +1.0 : -1.0; // oscillating signal
-            double lr = optimizer.step("Reviewer", KimiMoERouter.TaskType.CODE_REVIEW, gradient, 0.01);
+            double lr = optimizer.step("Reviewer", ExpertAgentRouter.TaskType.CODE_REVIEW, gradient, 0.01);
             assertTrue(lr >= 0.001 && lr <= 0.02,
                 "LR=" + lr + " out of bounds at step " + i);
         }
@@ -90,8 +90,8 @@ class MuonClipOptimizerTest {
 
     @Test
     void orthogonalize_primaryTaskHasFullMultiplier() {
-        KimiMoERouter.TaskType primary = KimiMoERouter.TaskType.SECURITY_AUDIT;
-        Map<KimiMoERouter.TaskType, Double> multipliers =
+        ExpertAgentRouter.TaskType primary = ExpertAgentRouter.TaskType.SECURITY_AUDIT;
+        Map<ExpertAgentRouter.TaskType, Double> multipliers =
             optimizer.orthogonalize("Alpha-Security", primary, +0.7);
 
         assertEquals(1.0, multipliers.get(primary), 1e-9,
@@ -100,11 +100,11 @@ class MuonClipOptimizerTest {
 
     @Test
     void orthogonalize_nonPrimaryTasksHaveReducedMultiplier() {
-        KimiMoERouter.TaskType primary = KimiMoERouter.TaskType.SECURITY_AUDIT;
-        Map<KimiMoERouter.TaskType, Double> multipliers =
+        ExpertAgentRouter.TaskType primary = ExpertAgentRouter.TaskType.SECURITY_AUDIT;
+        Map<ExpertAgentRouter.TaskType, Double> multipliers =
             optimizer.orthogonalize("Alpha-Security", primary, +0.7);
 
-        for (Map.Entry<KimiMoERouter.TaskType, Double> entry : multipliers.entrySet()) {
+        for (Map.Entry<ExpertAgentRouter.TaskType, Double> entry : multipliers.entrySet()) {
             if (entry.getKey() != primary) {
                 assertTrue(entry.getValue() < 1.0,
                     "Non-primary task " + entry.getKey() + " should have multiplier < 1.0");
@@ -114,10 +114,10 @@ class MuonClipOptimizerTest {
 
     @Test
     void orthogonalize_coversAllTaskTypes() {
-        Map<KimiMoERouter.TaskType, Double> multipliers =
+        Map<ExpertAgentRouter.TaskType, Double> multipliers =
             optimizer.orthogonalize("Kappa-Evolution",
-                KimiMoERouter.TaskType.META_IMPROVEMENT, +0.9);
-        for (KimiMoERouter.TaskType tt : KimiMoERouter.TaskType.values()) {
+                ExpertAgentRouter.TaskType.META_IMPROVEMENT, +0.9);
+        for (ExpertAgentRouter.TaskType tt : ExpertAgentRouter.TaskType.values()) {
             assertTrue(multipliers.containsKey(tt),
                 "orthogonalize() missing task type: " + tt);
         }
@@ -129,12 +129,12 @@ class MuonClipOptimizerTest {
     void reset_clearsAccumulatedMomentum() {
         // Build momentum
         for (int i = 0; i < 5; i++) {
-            optimizer.step("Theta-Learning", KimiMoERouter.TaskType.LEARNING, +1.0, 0.01);
+            optimizer.step("Theta-Learning", ExpertAgentRouter.TaskType.LEARNING, +1.0, 0.01);
         }
         // Reset
         optimizer.reset("Theta-Learning");
         // Next step should behave like a fresh start (step count back to 1)
-        double lr = optimizer.step("Theta-Learning", KimiMoERouter.TaskType.LEARNING, +0.5, 0.01);
+        double lr = optimizer.step("Theta-Learning", ExpertAgentRouter.TaskType.LEARNING, +0.5, 0.01);
         assertTrue(lr > 0, "LR should still be positive after reset");
     }
 
@@ -142,7 +142,7 @@ class MuonClipOptimizerTest {
 
     @Test
     void getDiagnostics_containsRequiredKeys() {
-        optimizer.step("Eta-Meta", KimiMoERouter.TaskType.META_IMPROVEMENT, +0.6, 0.01);
+        optimizer.step("Eta-Meta", ExpertAgentRouter.TaskType.META_IMPROVEMENT, +0.6, 0.01);
         Map<String, Object> diag = optimizer.getDiagnostics("Eta-Meta");
         assertTrue(diag.containsKey("agent"),            "Missing 'agent'");
         assertTrue(diag.containsKey("step_count"),       "Missing 'step_count'");
@@ -153,9 +153,9 @@ class MuonClipOptimizerTest {
 
     @Test
     void getDiagnostics_stepCountIncrementsCorrectly() {
-        optimizer.step("Delta-Cost", KimiMoERouter.TaskType.COST_OPTIMIZATION, +0.3, 0.01);
-        optimizer.step("Delta-Cost", KimiMoERouter.TaskType.COST_OPTIMIZATION, +0.3, 0.01);
-        optimizer.step("Delta-Cost", KimiMoERouter.TaskType.COST_OPTIMIZATION, +0.3, 0.01);
+        optimizer.step("Delta-Cost", ExpertAgentRouter.TaskType.COST_OPTIMIZATION, +0.3, 0.01);
+        optimizer.step("Delta-Cost", ExpertAgentRouter.TaskType.COST_OPTIMIZATION, +0.3, 0.01);
+        optimizer.step("Delta-Cost", ExpertAgentRouter.TaskType.COST_OPTIMIZATION, +0.3, 0.01);
         Map<String, Object> diag = optimizer.getDiagnostics("Delta-Cost");
         assertEquals(3, diag.get("step_count"), "Step count should be 3");
     }

@@ -267,6 +267,20 @@
             color: #2c5282;
         }
 
+        /* Chat */
+        .chat-msg-user { display: flex; flex-direction: column; align-items: flex-end; }
+        .chat-msg-ai   { display: flex; flex-direction: column; align-items: flex-start; }
+        .chat-bubble-user {
+            background: #3182ce; color: #fff; border-radius: 18px 18px 4px 18px;
+            padding: 10px 14px; max-width: 75%; font-size: 14px; line-height: 1.5; word-break: break-word;
+        }
+        .chat-bubble-ai {
+            background: #2d3748; color: #e2e8f0; border-radius: 18px 18px 18px 4px;
+            padding: 10px 14px; max-width: 80%; font-size: 14px; line-height: 1.5; word-break: break-word;
+            white-space: pre-wrap;
+        }
+        .chat-meta { font-size: 11px; color: #718096; margin-top: 3px; padding: 0 4px; }
+
         /* Modal */
         .modal {
             display: none;
@@ -511,6 +525,20 @@
             <div class="menu-item" onclick="showSection('git-projects')">🔄 Git Projects</div>
             <div class="menu-item" onclick="showSection('projects')">📦 Projects</div>
             <div class="menu-item" onclick="showSection('logs')">📝 Audit Logs</div>
+            <div class="menu-item" onclick="showSection('user-management')">👥 User Management</div>
+            <div class="menu-item" onclick="showSection('tier-quota')">🏷️ Tiers & Quotas</div>
+            <div class="menu-item" onclick="showSection('vpn-management')">🔒 VPN Management</div>
+            <div class="menu-item" onclick="openVisualization3D()">🌐 3D Visualization ↗</div>
+            <div class="menu-item" onclick="showSection('timeline')">📅 Decision Timeline</div>
+            <div class="menu-item" onclick="showSection('metrics')">📊 Metrics &amp; Alerts</div>
+            <div class="menu-item" onclick="showSection('deployment')">🚀 Deployment</div>
+            <div class="menu-item" onclick="showSection('self-healing')">🧐 Self-Healing</div>
+            <div class="menu-item" onclick="showSection('self-extension')">⚕️ Self-Extension</div>
+            <div class="menu-item" onclick="showSection('consensus')">🧠 Multi-AI Consensus</div>
+            <div class="menu-item" onclick="showSection('system-learning')">📖 System Learning</div>
+            <div class="menu-item" onclick="showSection('notifications')">📬 Notifications</div>
+            <div class="menu-item" onclick="showSection('kimi-k2')">🔮 Kimi K2</div>
+            <div class="menu-item" onclick="showSection('chat')">💬 Chat with SupremeAI</div>
             <div class="menu-item" onclick="showSection('settings')">⚙️ Settings</div>
         </div>
 
@@ -535,11 +563,11 @@
                         </div>
                         <div class="stat-card">
                             <div class="stat-label">Active Agents</div>
-                            <div class="stat-value">12</div>
+                            <div class="stat-value" id="activeAgentsCount">--</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-label">System Load</div>
-                            <div class="stat-value">24%</div>
+                            <div class="stat-value" id="systemLoadValue">--</div>
                         </div>
                     </div>
 
@@ -707,25 +735,25 @@
 
                 <!-- Commands Section -->
                 <div id="commands" class="content-section">
-                    <h1>💻 Admin Command Page</h1>
-                    <p>Execute system-level commands and orchestrate AI agents.</p>
+                    <h1>💻 Admin Command Console</h1>
+                    <p>Execute system-level commands wired to live backend APIs.</p>
                     
                     <div class="console" id="commandConsole">
-                        <div class="console-output" id="consoleOutput">
-                            SupremeAI OS v1.0.0
-                            Type 'help' for available commands.
-                        </div>
+                        <div class="console-output" id="consoleOutput">SupremeAI OS v1.0.0 — type <strong>help</strong> for available commands.</div>
                         <div class="console-input-line">
                             <span class="console-prompt">admin@supremeai:~$</span>
-                            <input type="text" class="console-input" id="consoleInput" autofocus>
+                            <input type="text" class="console-input" id="consoleInput" autocomplete="off">
                         </div>
                     </div>
 
-                    <h2>Common Commands</h2>
-                    <div style="display: flex; gap: 10px; margin-top: 10px;">
-                        <button class="btn btn-secondary" onclick="runCommand('system-status')">System Status</button>
-                        <button class="btn btn-secondary" onclick="runCommand('reboot-agents')">Reboot Agents</button>
-                        <button class="btn btn-secondary" onclick="runCommand('clear-cache')">Clear Cache</button>
+                    <h2>Quick Commands</h2>
+                    <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap:wrap;">
+                        <button class="btn btn-secondary" onclick="runCommand('status')">System Status</button>
+                        <button class="btn btn-secondary" onclick="runCommand('git-status')">Git Status</button>
+                        <button class="btn btn-secondary" onclick="runCommand('quota')">Quota Summary</button>
+                        <button class="btn btn-secondary" onclick="runCommand('agents')">Work History</button>
+                        <button class="btn btn-secondary" onclick="runCommand('metrics')">Metrics</button>
+                        <button class="btn btn-secondary" onclick="runCommand('clear')">Clear</button>
                         <button class="btn btn-danger" onclick="runCommand('emergency-stop')">Emergency Stop</button>
                     </div>
                 </div>
@@ -756,21 +784,24 @@
                 <!-- AI Agent Assignment Section -->
                 <div id="ai-agents" class="content-section">
                     <h1>🤖 AI Agent Assignment</h1>
-                    <button class="btn" onclick="showModal('assignAIModal')">➕ Assign New AI Agent</button>
-                    <h2 style="margin-top: 30px;">Active Assignments</h2>
+                    <div style="display:flex;gap:10px;margin-bottom:20px;">
+                        <button class="btn" onclick="showModal('assignAIModal')">➕ Assign New AI Agent</button>
+                        <button class="btn btn-secondary" onclick="loadAssignments()">↻ Refresh</button>
+                    </div>
+                    <h2>Active Assignments</h2>
                     <table>
                         <thead>
                             <tr>
-                                <th>Project</th>
-                                <th>AI Role</th>
+                                <th>ID</th>
                                 <th>Agent</th>
-                                <th>Success Rate</th>
+                                <th>Task</th>
+                                <th>Priority</th>
+                                <th>Status</th>
                                 <th>Progress</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="aiAgentsTableBody">
-                            <tr><td colspan="6" style="text-align: center; padding: 40px; color: #a0aec0;">🤖 No active assignments. Click "➕ Assign New AI Agent" to begin!</td></tr>
+                            <tr><td colspan="6" style="text-align: center; padding: 40px; color: #a0aec0;">🤖 Click Refresh to load assignments.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -778,6 +809,10 @@
                 <!-- Projects Section -->
                 <div id="projects" class="content-section">
                     <h1>📦 Projects</h1>
+                    <div style="display:flex; gap:10px; margin-bottom:20px;">
+                        <button class="btn" onclick="showModal('createProjectModal')">➕ Create New Project</button>
+                        <button class="btn btn-secondary" onclick="loadProjects()">↻ Refresh</button>
+                    </div>
                     <h2>All Projects</h2>
                     <table>
                         <thead>
@@ -791,7 +826,36 @@
                             </tr>
                         </thead>
                         <tbody id="projectsTableBody">
-                            <tr><td colspan="6" style="text-align: center; padding: 40px; color: #a0aec0;">📦 No projects yet. Create one via API assignments or Git Projects!</td></tr>
+                            <tr><td colspan="6" style="text-align: center; padding: 40px; color: #a0aec0;">📦 No projects yet. Click "↻ Refresh" or create one above.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- VPN Management Section -->
+                <div id="vpn-management" class="content-section">
+                    <h1>🔒 VPN Management</h1>
+                    <p>Manage VPN connections used by SupremeAI agents for secure external access.</p>
+
+                    <div style="display:flex; gap:10px; margin-bottom:20px;">
+                        <button class="btn" onclick="showModal('addVpnModal')">➕ Add VPN</button>
+                        <button class="btn btn-secondary" onclick="loadVpnList()">↻ Refresh</button>
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Protocol</th>
+                                <th>Host</th>
+                                <th>Port</th>
+                                <th>Encryption</th>
+                                <th>Status</th>
+                                <th>Last Connected</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vpnTableBody">
+                            <tr><td colspan="8" style="text-align:center;padding:40px;color:#a0aec0;">Loading VPN connections...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -799,23 +863,37 @@
                 <!-- Git Projects Section -->
                 <div id="git-projects" class="content-section">
                     <h1>🔄 Git Projects - Auto AI Development</h1>
-                    <button class="btn" onclick="showModal('createGitProjectModal')">➕ New Git Project</button>
-                    <h2 style="margin-top: 30px;">Active Git Projects</h2>
+                    <p>Start AI-driven development on a Git repository. SupremeAI will commit and push changes automatically.</p>
+
+                    <div style="display:flex; gap:10px; margin-bottom:20px;">
+                        <button class="btn" onclick="showModal('createGitProjectModal')">➕ New Git Project</button>
+                        <button class="btn btn-secondary" onclick="loadGitStatus()">📊 Git Status</button>
+                        <button class="btn btn-secondary" onclick="loadGitLogs()">📜 Recent Commits</button>
+                    </div>
+
+                    <div id="gitStatusPanel" style="background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:16px;margin-bottom:20px;display:none;">
+                        <h3 style="margin-bottom:10px;">📊 Repository Status</h3>
+                        <div id="gitStatusContent" style="font-family:monospace;font-size:12px;color:#a0aec0;"></div>
+                    </div>
+
+                    <h2>Recent Commits</h2>
                     <table>
                         <thead>
                             <tr>
-                                <th>Repository</th>
-                                <th>Branch</th>
-                                <th>Status</th>
-                                <th>Progress</th>
-                                <th>Deployment</th>
-                                <th>Actions</th>
+                                <th>Hash</th>
+                                <th>Message</th>
+                                <th>Author</th>
+                                <th>Date</th>
                             </tr>
                         </thead>
-                        <tbody id="gitProjectsTable">
-                            <tr><td colspan="6" style="text-align: center; padding: 40px; color: #a0aec0;">📂 No git projects yet. Click "➕ New Git Project" to start!</td></tr>
+                        <tbody id="gitLogsTable">
+                            <tr><td colspan="4" style="text-align:center;padding:30px;color:#a0aec0;">📂 Click "📜 Recent Commits" to load commit history.</td></tr>
                         </tbody>
                     </table>
+
+                    <h2 style="margin-top:24px;">Start New Development</h2>
+                    <p style="color:#a0aec0;font-size:13px;">Creates a project spec and triggers AI code generation on a repository.</p>
+                    <div id="gitProjectMsg" style="margin-bottom:10px;"></div>
                 </div>
 
                 <!-- Logs Section -->
@@ -835,6 +913,375 @@
                             <tr><td colspan="5" style="text-align: center; padding: 40px; color: #a0aec0;">📝 No activity yet. Actions will appear here!</td></tr>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- User Management Section -->
+                <div id="user-management" class="content-section">
+                    <h1>👥 User Management</h1>
+                    <p>Create, view, and manage admin users. Change passwords and roles.</p>
+
+                    <div style="display:flex; gap:10px; margin-bottom:20px;">
+                        <button class="btn" onclick="showModal('createUserModal')">➕ Create New User</button>
+                        <button class="btn btn-secondary" onclick="loadAllUsers()">↻ Refresh</button>
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr><td colspan="6" style="text-align:center;padding:40px;color:#a0aec0;">👥 Click Refresh to load users.</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h2 style="margin-top:30px;">Change Password</h2>
+                    <div style="max-width:420px;">
+                        <div class="form-group">
+                            <label>Current Password</label>
+                            <input type="password" id="cpOldPass" placeholder="Current password">
+                        </div>
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <input type="password" id="cpNewPass" placeholder="New password (min 8 chars)">
+                        </div>
+                        <button class="btn" onclick="changeMyPassword()">🔒 Change Password</button>
+                        <div id="cpMsg" style="margin-top:8px;"></div>
+                    </div>
+                </div>
+
+                <!-- Tier & Quota Section -->
+                <div id="tier-quota" class="content-section">
+                    <h1>🏷️ User Tiers &amp; Quotas</h1>
+                    <p>Manage per-user tier levels and view AI provider quota usage.</p>
+
+                    <div style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
+                        <button class="btn" onclick="loadAllUserQuotas()">↻ Load All User Quotas</button>
+                        <button class="btn btn-secondary" onclick="loadProviderQuotas()">📊 Provider Quotas</button>
+                        <button class="btn btn-secondary" onclick="resetDailyQuotas()">🔄 Reset Daily Quotas</button>
+                        <button class="btn btn-secondary" onclick="resetMonthlyQuotas()">🗓️ Reset Monthly Quotas</button>
+                    </div>
+
+                    <h2>Available Tiers</h2>
+                    <div id="tierCardsGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:28px;">
+                        <div style="color:#a0aec0;">Loading tiers...</div>
+                    </div>
+
+                    <h2>Set User Tier</h2>
+                    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:24px;">
+                        <div class="form-group" style="margin:0;">
+                            <label>User ID</label>
+                            <input type="text" id="tierUserId" placeholder="e.g. admin" style="width:160px;">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label>Tier</label>
+                            <select id="tierSelectValue" style="padding:8px;background:#2d3748;color:#fff;border:1px solid #4a5568;border-radius:5px;">
+                                <option value="FREE">FREE</option>
+                                <option value="STARTER">STARTER ($9/mo)</option>
+                                <option value="PROFESSIONAL">PROFESSIONAL ($99/mo)</option>
+                                <option value="ENTERPRISE">ENTERPRISE</option>
+                                <option value="SUPERADMIN">SUPERADMIN</option>
+                            </select>
+                        </div>
+                        <button class="btn" onclick="setUserTier()">✅ Apply Tier</button>
+                        <div id="tierMsg" style="align-self:center;"></div>
+                    </div>
+
+                    <h2>User Quota Allocations</h2>
+                    <table>
+                        <thead>
+                            <tr><th>User ID</th><th>Tier</th><th>Requests Today</th><th>Monthly</th><th>Apps Today</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody id="userQuotaTableBody">
+                            <tr><td colspan="6" style="text-align:center;padding:30px;color:#a0aec0;">Click "Load All User Quotas" to view data.</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h2 style="margin-top:28px;">AI Provider Quota Status</h2>
+                    <table>
+                        <thead>
+                            <tr><th>Provider</th><th>Status</th><th>Used Today</th><th>Daily Limit</th><th>Usage %</th><th>Remaining</th></tr>
+                        </thead>
+                        <tbody id="providerQuotaTableBody">
+                            <tr><td colspan="6" style="text-align:center;padding:30px;color:#a0aec0;">Click "Provider Quotas" to load.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Timeline Section -->
+                <div id="timeline" class="content-section">
+                    <h1>📅 Decision Timeline</h1>
+                    <p>Color-coded history of all AI agent decisions. Green = SUCCESS, Red = FAILED, Yellow = PARTIAL.</p>
+
+                    <div style="display:flex;gap:10px;margin-bottom:20px;align-items:flex-end;flex-wrap:wrap;">
+                        <div class="form-group" style="margin:0;flex:1;min-width:200px;">
+                            <label>Project ID</label>
+                            <input type="text" id="timelineProjectId" placeholder="e.g. my-project-1" style="width:100%;">
+                        </div>
+                        <button class="btn" onclick="loadProjectTimeline()">🔍 Load Timeline</button>
+                        <button class="btn btn-secondary" onclick="loadTimelineStats()">📊 Aggregate Stats</button>
+                        <button class="btn btn-secondary" onclick="loadVisualizationStats()">🌐 3D Viz Stats</button>
+                    </div>
+
+                    <div id="timelineStatsBar" style="display:none;background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:16px;margin-bottom:20px;">
+                        <div id="timelineStatsContent" style="display:flex;gap:24px;flex-wrap:wrap;"></div>
+                    </div>
+
+                    <h2>Timeline Entries</h2>
+                    <div id="timelineContainer" style="max-height:500px;overflow-y:auto;padding-right:8px;">
+                        <div style="text-align:center;padding:40px;color:#a0aec0;">Enter a Project ID above and click "Load Timeline" to view decisions.</div>
+                    </div>
+                </div>
+
+                </div>
+
+                <!-- Metrics & Alerts Section -->
+                <div id="metrics" class="content-section">
+                    <h1>📊 Metrics &amp; Alerts</h1>
+                    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+                        <button class="btn" onclick="loadMetrics()">↻ Refresh Metrics</button>
+                        <button class="btn btn-secondary" onclick="loadAdminDashboardStats()">📊 Dashboard Stats</button>
+                    </div>
+                    <div id="metricsGrid" class="dashboard-grid">
+                        <div class="stat-card"><div class="stat-label">CPU Usage</div><div class="stat-value" id="metCpu">--</div></div>
+                        <div class="stat-card"><div class="stat-label">Memory Usage</div><div class="stat-value" id="metMem">--</div></div>
+                        <div class="stat-card"><div class="stat-label">API Latency</div><div class="stat-value" id="metLatency">--</div></div>
+                        <div class="stat-card"><div class="stat-label">Success Rate</div><div class="stat-value" id="metSuccess">--</div></div>
+                        <div class="stat-card"><div class="stat-label">Error Rate</div><div class="stat-value" id="metError">--</div></div>
+                        <div class="stat-card"><div class="stat-label">Uptime (s)</div><div class="stat-value" id="metUptime">--</div></div>
+                    </div>
+                    <div id="metricsMsg" style="margin-top:16px;"></div>
+                </div>
+
+                <!-- Deployment Section -->
+                <div id="deployment" class="content-section">
+                    <h1>🚀 Deployment / Docker / Kubernetes</h1>
+                    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+                        <button class="btn" onclick="showModal('dockerBuildModal')">🐳 Docker Build</button>
+                        <button class="btn btn-secondary" onclick="showModal('k8sDeployModal')">⎈️ K8s Deploy</button>
+                        <button class="btn btn-secondary" onclick="loadDeployHistory()">📜 Pipeline History</button>
+                    </div>
+                    <h2>Recent Pipeline Runs</h2>
+                    <table>
+                        <thead><tr><th>Pipeline ID</th><th>Stage</th><th>Status</th><th>Duration</th><th>Timestamp</th></tr></thead>
+                        <tbody id="deployHistoryTable">
+                            <tr><td colspan="5" style="text-align:center;color:#a0aec0;">Click "Pipeline History" to load.</td></tr>
+                        </tbody>
+                    </table>
+                    <div id="deployMsg" style="margin-top:16px;"></div>
+                </div>
+
+                <!-- Self-Healing Section -->
+                <div id="self-healing" class="content-section">
+                    <h1>🧐 Self-Healing Controls</h1>
+                    <p>Monitor circuit breakers, trigger recovery, and control the self-healing engine.</p>
+                    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+                        <button class="btn" onclick="loadSelfHealingHealth()">📊 System Health</button>
+                        <button class="btn btn-secondary" onclick="startSelfHealing()">▶️ Start Healing</button>
+                        <button class="btn btn-danger" onclick="stopSelfHealing()">⏹️ Stop Healing</button>
+                    </div>
+                    <div id="selfHealingStatsBar" style="display:none;background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:16px;margin-bottom:20px;">
+                        <div id="selfHealingStatsContent"></div>
+                    </div>
+                    <h2>Service Recovery</h2>
+                    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+                        <div class="form-group" style="margin:0;flex:1;min-width:200px;">
+                            <label>Service Name</label>
+                            <input type="text" id="recoverServiceName" placeholder="e.g. AuthenticationService">
+                        </div>
+                        <button class="btn" onclick="recoverService()">♻️ Recover</button>
+                    </div>
+                    <div id="selfHealingMsg" style="margin-top:12px;"></div>
+                </div>
+
+                <!-- Self-Extension Section -->
+                <div id="self-extension" class="content-section">
+                    <h1>⚕️ Self-Extension Engine</h1>
+                    <p>Submit a requirement and SupremeAI will auto-generate the service, controller, and model, then recompile itself.</p>
+                    <div style="display:flex;gap:10px;margin-bottom:16px;">
+                        <button class="btn btn-secondary" onclick="loadExtensionStatus()">💻 Engine Status</button>
+                    </div>
+                    <div id="extensionStatusBar" style="display:none;background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:12px;margin-bottom:16px;">
+                        <div id="extensionStatusContent" style="font-family:monospace;font-size:12px;color:#a0aec0;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Requirement <span style="color:#a0aec0;font-weight:400;">(describe what to build, e.g. &quot;create UserAuditService with methods: audit, log, export&quot;)</span></label>
+                        <textarea id="extensionRequirement" style="height:100px;" placeholder="create InvoiceService with methods: generateInvoice, sendInvoice, getInvoiceHistory"></textarea>
+                    </div>
+                    <button class="btn" onclick="submitExtensionRequirement()">⚡ Submit Requirement</button>
+                    <div id="extensionMsg" style="margin-top:12px;"></div>
+                </div>
+
+                <!-- Multi-AI Consensus Section -->
+                <div id="consensus" class="content-section">
+                    <h1>🧠 Multi-AI Consensus</h1>
+                    <p>Ask all 10 AI providers (OpenAI, Anthropic, Google, Meta, Mistral, Cohere, HuggingFace, xAI, DeepSeek, Perplexity) and get a consensus answer.</p>
+                    <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+                        <button class="btn btn-secondary" onclick="loadConsensusStats()">📊 Stats</button>
+                        <button class="btn btn-secondary" onclick="loadConsensusHistory()">📜 History</button>
+                    </div>
+                    <div class="form-group">
+                        <label>Question / Prompt</label>
+                        <textarea id="consensusQuestion" style="height:80px;" placeholder="e.g. What is the best way to implement JWT refresh token rotation?"></textarea>
+                    </div>
+                    <button class="btn" onclick="askConsensus()">🤖 Ask All AIs</button>
+                    <div id="consensusResultPanel" style="display:none;margin-top:16px;background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:16px;">
+                        <div id="consensusResult"></div>
+                    </div>
+                    <h2 style="margin-top:24px;">Consensus History</h2>
+                    <table>
+                        <thead><tr><th>Question</th><th>Winning Response</th><th>Consensus %</th><th>Providers</th><th>When</th></tr></thead>
+                        <tbody id="consensusHistoryTable">
+                            <tr><td colspan="5" style="text-align:center;color:#a0aec0;">Click "History" to load.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- System Learning Section -->
+                <div id="system-learning" class="content-section">
+                    <h1>📖 System Learning Dashboard</h1>
+                    <p>SupremeAI's memory — what it has learned, critical requirements, and past solutions.</p>
+                    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+                        <button class="btn" onclick="loadLearningStats()">📊 Learning Stats</button>
+                        <button class="btn btn-secondary" onclick="loadCriticalRequirements()">⚠️ Critical Reqs</button>
+                        <button class="btn btn-secondary" onclick="reseedKnowledge()">🌱 Reseed Knowledge</button>
+                    </div>
+                    <div id="learningStatsPanel" style="display:none;background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:16px;margin-bottom:16px;">
+                        <div id="learningStatsContent" style="display:flex;gap:24px;flex-wrap:wrap;"></div>
+                    </div>
+                    <h2>Critical Requirements</h2>
+                    <div id="criticalReqsContainer">
+                        <div style="text-align:center;padding:30px;color:#a0aec0;">Click "⚠️ Critical Reqs" to load.</div>
+                    </div>
+                    <div id="learningMsg" style="margin-top:12px;"></div>
+                </div>
+
+                <!-- Notifications Section -->
+                <div id="notifications" class="content-section">
+                    <h1>📬 Notifications</h1>
+                    <p>Send alerts via Email, Slack, or Discord. View notification history.</p>
+                    <div style="display:flex;gap:10px;margin-bottom:20px;">
+                        <button class="btn btn-secondary" onclick="loadNotificationHistory()">📜 History</button>
+                    </div>
+                    <div class="form-group">
+                        <label>Channel</label>
+                        <select id="notifChannel" style="padding:8px;background:#2d3748;color:#fff;border:1px solid #4a5568;border-radius:5px;width:100%;">
+                            <option value="email">📧 Email</option>
+                            <option value="slack">💬 Slack</option>
+                            <option value="discord">🎮 Discord</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Recipient / Channel Name</label>
+                        <input type="text" id="notifRecipient" placeholder="e.g. admin@supremeai.com or general">
+                    </div>
+                    <div class="form-group">
+                        <label>Title / Subject</label>
+                        <input type="text" id="notifTitle" placeholder="Alert title">
+                    </div>
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea id="notifMessage" placeholder="Alert message..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Severity</label>
+                        <select id="notifSeverity" style="padding:8px;background:#2d3748;color:#fff;border:1px solid #4a5568;border-radius:5px;width:100%;">
+                            <option value="INFO">INFO</option>
+                            <option value="WARNING">WARNING</option>
+                            <option value="CRITICAL">CRITICAL</option>
+                        </select>
+                    </div>
+                    <button class="btn" onclick="sendNotification()">📤 Send Notification</button>
+                    <div id="notifMsg" style="margin-top:12px;"></div>
+                    <h2 style="margin-top:24px;">Notification History</h2>
+                    <table>
+                        <thead><tr><th>Channel</th><th>Recipient</th><th>Subject</th><th>Status</th><th>Timestamp</th></tr></thead>
+                        <tbody id="notifHistoryTable">
+                            <tr><td colspan="5" style="text-align:center;color:#a0aec0;">Click "History" to load.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Kimi K2 Section -->
+                <div id="kimi-k2" class="content-section">
+                    <h1>🔮 Kimi K2 Agent Orchestration</h1>
+                    <p>Submit tasks to the Kimi K2 pipeline with MoE routing. View leaderboard, history and routing table.</p>
+                    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+                        <button class="btn btn-secondary" onclick="loadKimiStatus()">📊 Status</button>
+                        <button class="btn btn-secondary" onclick="loadKimiLeaderboard()">🏆 Leaderboard</button>
+                        <button class="btn btn-secondary" onclick="loadKimiHistory()">📜 History</button>
+                    </div>
+                    <div class="form-group">
+                        <label>Goal / Task Description</label>
+                        <textarea id="kimiGoal" style="height:80px;" placeholder="e.g. Fix failing AuthenticationFilterTest"></textarea>
+                    </div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                        <div class="form-group" style="flex:1;min-width:180px;margin:0;">
+                            <label>Task Type</label>
+                            <select id="kimiTaskType" style="padding:8px;background:#2d3748;color:#fff;border:1px solid #4a5568;border-radius:5px;width:100%;">
+                                <option value="CODE_GENERATION">Code Generation</option>
+                                <option value="BUG_FIX">Bug Fix</option>
+                                <option value="CODE_REVIEW">Code Review</option>
+                                <option value="ARCHITECTURE">Architecture</option>
+                                <option value="TESTING">Testing</option>
+                                <option value="DOCUMENTATION">Documentation</option>
+                                <option value="DEPLOYMENT">Deployment</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="width:80px;margin:0;">
+                            <label>Top K</label>
+                            <input type="number" id="kimiTopK" value="3" min="1" max="10" style="padding:8px;background:#2d3748;color:#fff;border:1px solid #4a5568;border-radius:5px;width:100%;">
+                        </div>
+                    </div>
+                    <button class="btn" style="margin-top:12px;" onclick="submitKimiTask()">⚡ Submit Task</button>
+                    <div id="kimiResultPanel" style="display:none;margin-top:16px;background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:16px;">
+                        <div id="kimiResult"></div>
+                    </div>
+                    <h2 style="margin-top:24px;">Agent Leaderboard</h2>
+                    <table>
+                        <thead><tr><th>Agent</th><th>Score</th><th>Tasks</th><th>Status</th></tr></thead>
+                        <tbody id="kimiLeaderboardTable">
+                            <tr><td colspan="4" style="text-align:center;color:#a0aec0;">Click "Leaderboard" to load.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Chat Section -->
+                <div id="chat" class="content-section">
+                    <h1>💬 Chat with SupremeAI</h1>
+                    <p style="color:#a0aec0;margin-bottom:16px;">Ask anything — plans, errors, what a module does, how to use the system, or just brainstorm ideas.</p>
+
+                    <div id="chatMessages" style="height:420px;overflow-y:auto;background:#171923;border:1px solid #2d3748;border-radius:10px;padding:16px;margin-bottom:12px;display:flex;flex-direction:column;gap:12px;">
+                        <div class="chat-msg-ai">
+                            <div class="chat-bubble-ai">Hi Admin 👋 I'm SupremeAI. Ask me anything — plans, architecture decisions, what a feature does, or how to use any panel.</div>
+                            <div class="chat-meta">SupremeAI &nbsp;&bull;&nbsp; just now</div>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;gap:8px;align-items:flex-end;">
+                        <div style="flex:1;">
+                            <select id="chatTaskType" style="padding:6px 10px;background:#2d3748;color:#a0aec0;border:1px solid #4a5568;border-radius:6px;font-size:12px;margin-bottom:6px;">
+                                <option value="general">General</option>
+                                <option value="code_generation">Code Generation</option>
+                                <option value="bug_fix">Bug Fix</option>
+                                <option value="architecture">Architecture</option>
+                                <option value="planning">Planning</option>
+                                <option value="document_analysis">Document Analysis</option>
+                            </select>
+                            <textarea id="chatInput" rows="2" placeholder="Type your message... (Enter to send, Shift+Enter for new line)" style="width:100%;background:#2d3748;color:#e2e8f0;border:1px solid #4a5568;border-radius:8px;padding:10px;font-size:14px;resize:none;box-sizing:border-box;"></textarea>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:6px;">
+                            <button class="btn" onclick="sendChatMessage()" style="white-space:nowrap;">➤ Send</button>
+                            <button class="btn btn-secondary" onclick="clearChat()" style="white-space:nowrap;font-size:12px;">Clear</button>
+                        </div>
+                    </div>
+                    <div id="chatTypingIndicator" style="display:none;margin-top:8px;color:#a0aec0;font-size:13px;">⏳ SupremeAI is thinking...</div>
                 </div>
 
                 <!-- Settings Section -->
@@ -862,10 +1309,154 @@
                         </label>
                     </div>
 
-                    <button class="btn" style="margin-top: 20px;">💾 Save Settings</button>
-                    <button class="btn btn-danger" style="margin-top: 20px;">🚪 Logout</button>
+                    <button class="btn" style="margin-top: 20px;" onclick="saveSettings()">💾 Save Settings</button>
+                    <button class="btn btn-danger" style="margin-top: 20px;" onclick="logout()">🚨 Logout</button>
+                    <div id="settingsMsg" style="margin-top:10px;"></div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Docker Build Modal -->
+    <div id="dockerBuildModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🐳 Docker Build</h2>
+                <span class="close-btn" onclick="closeModal('dockerBuildModal')">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>Application Name *</label>
+                <input type="text" id="dockerAppName" placeholder="e.g. supremeai-backend">
+            </div>
+            <div class="form-group">
+                <label>Version Tag</label>
+                <input type="text" id="dockerVersion" placeholder="1.0.0">
+            </div>
+            <button class="btn" onclick="collectDockerBuildForm(); closeModal('dockerBuildModal');">🚀 Build Image</button>
+            <button class="btn btn-secondary" onclick="closeModal('dockerBuildModal')">Cancel</button>
+            <div id="dockerBuildMsg" style="margin-top:10px;"></div>
+        </div>
+    </div>
+
+    <!-- K8s Deploy Modal -->
+    <div id="k8sDeployModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⎈️ Kubernetes Deploy</h2>
+                <span class="close-btn" onclick="closeModal('k8sDeployModal')">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>Application Name *</label>
+                <input type="text" id="k8sAppName" placeholder="e.g. supremeai-backend">
+            </div>
+            <div class="form-group">
+                <label>Namespace</label>
+                <input type="text" id="k8sNamespace" placeholder="default">
+            </div>
+            <div class="form-group">
+                <label>Replicas</label>
+                <input type="number" id="k8sReplicas" value="2" min="1" max="20">
+            </div>
+            <button class="btn" onclick="collectK8sDeployForm(); closeModal('k8sDeployModal');">⎈️ Deploy</button>
+            <button class="btn btn-secondary" onclick="closeModal('k8sDeployModal')">Cancel</button>
+            <div id="k8sDeployMsg" style="margin-top:10px;"></div>
+        </div>
+    </div>
+
+    <!-- Create Project Modal -->
+    <div id="createProjectModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>➕ Create New Project</h2>
+                <span class="close-btn" onclick="closeModal('createProjectModal')">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>Project ID</label>
+                <input type="text" id="newProjectId" placeholder="e.g. my-ecommerce-app">
+            </div>
+            <div class="form-group">
+                <label>Template Type</label>
+                <select id="newProjectTemplate" style="padding:8px;background:#2d3748;color:#fff;border:1px solid #4a5568;border-radius:5px;width:100%;">
+                    <option value="REACT">React (Frontend)</option>
+                    <option value="SPRING_BOOT">Spring Boot (Backend)</option>
+                    <option value="FLUTTER">Flutter (Mobile)</option>
+                    <option value="FULL_STACK">Full Stack</option>
+                    <option value="REST_API">REST API</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="newProjectDesc" placeholder="Describe what this project should do..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Features (one per line)</label>
+                <textarea id="newProjectFeatures" placeholder="User authentication&#10;Dashboard with charts&#10;Export to CSV" style="height:80px;"></textarea>
+            </div>
+            <button class="btn" onclick="createProject()">🚀 Generate Project</button>
+            <button class="btn btn-secondary" onclick="closeModal('createProjectModal')">❌ Cancel</button>
+            <div id="createProjectMsg" style="margin-top:10px;"></div>
+        </div>
+    </div>
+
+    <!-- Add VPN Modal -->
+    <div id="addVpnModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>➕ Add VPN Connection</h2>
+                <span class="close-btn" onclick="closeModal('addVpnModal')">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="vpnName" placeholder="e.g. US Secure Node">
+            </div>
+            <div class="form-group">
+                <label>Protocol</label>
+                <select id="vpnProtocol" style="padding:8px;background:#2d3748;color:#fff;border:1px solid #4a5568;border-radius:5px;width:100%;">
+                    <option value="WireGuard">WireGuard</option>
+                    <option value="OpenVPN">OpenVPN</option>
+                    <option value="IPSec">IPSec</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Host</label>
+                <input type="text" id="vpnHost" placeholder="e.g. vpn.example.com">
+            </div>
+            <div class="form-group">
+                <label>Port</label>
+                <input type="number" id="vpnPort" placeholder="e.g. 51820">
+            </div>
+            <div class="form-group">
+                <label>Encryption</label>
+                <input type="text" id="vpnEncryption" placeholder="e.g. AES-256">
+            </div>
+            <button class="btn" onclick="addVpn()">✅ Add VPN</button>
+            <button class="btn btn-secondary" onclick="closeModal('addVpnModal')">❌ Cancel</button>
+            <div id="addVpnMsg" style="margin-top:10px;"></div>
+        </div>
+    </div>
+
+    <!-- Create User Modal -->
+    <div id="createUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>➕ Create New Admin User</h2>
+                <span class="close-btn" onclick="closeModal('createUserModal')">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="newUsername" placeholder="e.g. john_admin">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="newEmail" placeholder="john@supremeai.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="newPassword" placeholder="Minimum 8 characters">
+            </div>
+            <button class="btn" onclick="createUser()">✅ Create User</button>
+            <button class="btn btn-secondary" onclick="closeModal('createUserModal')">❌ Cancel</button>
+            <div id="createUserMsg" style="margin-top:10px;"></div>
         </div>
     </div>
 
@@ -954,23 +1545,34 @@
                 <span class="close-btn" onclick="closeModal('createGitProjectModal')">&times;</span>
             </div>
             <div class="form-group">
-                <label>Git Repository URL *</label>
+                <label>Project / Repo ID *</label>
+                <input type="text" id="gitProjectId" placeholder="e.g. my-repo-2026">
+            </div>
+            <div class="form-group">
+                <label>Git Repository URL</label>
                 <input type="text" id="gitUrl" placeholder="https://github.com/user/repo">
             </div>
             <div class="form-group">
                 <label>Branch Name *</label>
-                <input type="text" id="gitBranch" placeholder="main">
+                <input type="text" id="gitBranchInput" placeholder="main">
             </div>
             <div class="form-group">
-                <label>Development Task *</label>
-                <textarea id="gitTask" placeholder="Description of the task"></textarea>
+                <label>Development Task / Description *</label>
+                <textarea id="gitTask" placeholder="Describe what to build or fix..."></textarea>
             </div>
             <div class="form-group">
-                <label>Test Command *</label>
-                <input type="text" id="testCmd" placeholder="npm test">
+                <label>Template</label>
+                <select id="gitProjectTemplate" style="padding:8px;background:#2d3748;color:#fff;border:1px solid #4a5568;border-radius:5px;width:100%;">
+                    <option value="SPRING_BOOT">Spring Boot (Backend)</option>
+                    <option value="REACT">React (Frontend)</option>
+                    <option value="FLUTTER">Flutter (Mobile)</option>
+                    <option value="REST_API">REST API</option>
+                    <option value="FULL_STACK">Full Stack</option>
+                </select>
             </div>
             <button class="btn" onclick="createGitProject()">🚀 Start Development</button>
             <button class="btn btn-secondary" onclick="closeModal('createGitProjectModal')">Cancel</button>
+            <div id="gitProjectModalMsg" style="margin-top:10px;"></div>
         </div>
     </div>
 
@@ -978,30 +1580,47 @@
     <div id="assignAIModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Assign AI Agent to Project</h2>
+                <h2>Assign AI Agent to Task</h2>
                 <span class="close-btn" onclick="closeModal('assignAIModal')">&times;</span>
             </div>
             <div class="form-group">
-                <label>Select Project</label>
-                <select>
-                    <option>-- Choose Project --</option>
+                <label>Agent ID</label>
+                <input type="text" id="assignAgentId" placeholder="e.g. agent-architect-1">
+            </div>
+            <div class="form-group">
+                <label>Task Name *</label>
+                <input type="text" id="assignTaskName" placeholder="e.g. Backend API Generation">
+            </div>
+            <div class="form-group">
+                <label>AI Role</label>
+                <select id="assignRole" style="padding:8px;background:#2d3748;color:#fff;border:1px solid #4a5568;border-radius:5px;width:100%;">
+                    <option value="Architect">🏗️ Architect</option>
+                    <option value="Builder">🔨 Builder</option>
+                    <option value="Reviewer">✅ Reviewer</option>
+                    <option value="Security">🔒 Security</option>
+                    <option value="Optimizer">⚡ Optimizer</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>Select AI Role</label>
-                <select>
-                    <option>🏗️ Architect</option>
-                    <option>🔨 Builder</option>
-                    <option>✅ Reviewer</option>
+                <label>Priority</label>
+                <select id="assignPriority" style="padding:8px;background:#2d3748;color:#fff;border:1px solid #4a5568;border-radius:5px;width:100%;">
+                    <option value="high">High</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="low">Low</option>
                 </select>
             </div>
             <button class="btn" onclick="assignAI()">🚀 Assign & Start</button>
             <button class="btn btn-secondary" onclick="closeModal('assignAIModal')">❌ Cancel</button>
+            <div id="assignAIMsg" style="margin-top:10px;"></div>
         </div>
     </div>
 
     <script>
         let availableProviders = [];
+
+        function getCurrentAdminEmail() {
+            return 'admin@supremeai.com';
+        }
 
         function showSection(sectionId) {
             document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
@@ -1028,6 +1647,19 @@
                 'git-projects': 'Git Projects',
                 'projects': 'Projects',
                 'logs': 'Audit Logs',
+                'user-management': 'User Management',
+                'tier-quota': 'Tiers & Quotas',
+                'vpn-management': 'VPN Management',
+                'timeline': 'Decision Timeline',
+                'metrics': 'Metrics & Alerts',
+                'deployment': 'Deployment',
+                'self-healing': 'Self-Healing Controls',
+                'self-extension': 'Self-Extension Engine',
+                'consensus': 'Multi-AI Consensus',
+                'system-learning': 'System Learning',
+                'notifications': 'Notifications',
+                'kimi-k2': 'Kimi K2',
+                'chat': 'Chat with SupremeAI',
                 'settings': 'Settings'
             };
             document.getElementById('pageTitle').innerText = titles[sectionId] || 'Dashboard';
@@ -1036,6 +1668,21 @@
             if (sectionId === 'api-keys') renderAPIKeysTable();
             if (sectionId === 'techniques') loadTechniques();
             if (sectionId === 'provider-coverage') loadProviderCoverage();
+            if (sectionId === 'logs') loadAuditLogs();
+            if (sectionId === 'user-management') loadAllUsers();
+            if (sectionId === 'tier-quota') { loadTierCards(); loadAllUserQuotas(); loadProviderQuotas(); }
+            if (sectionId === 'vpn-management') loadVpnList();
+            if (sectionId === 'projects') loadProjects();
+            if (sectionId === 'ai-agents') loadAssignments();
+            if (sectionId === 'git-projects') loadGitLogs();
+            if (sectionId === 'timeline') loadTimelineStats();
+            if (sectionId === 'metrics') loadMetrics();
+            if (sectionId === 'self-healing') loadSelfHealingHealth();
+            if (sectionId === 'system-learning') loadLearningStats();
+            if (sectionId === 'consensus') loadConsensusStats();
+            if (sectionId === 'notifications') loadNotificationHistory();
+            if (sectionId === 'kimi-k2') loadKimiStatus();
+            if (sectionId === 'chat') focusChatInput();
         }
 
         function showModal(modalId) {
@@ -1092,54 +1739,7 @@
             }
         }
 
-        // --- Commands Logic ---
-        const consoleInput = document.getElementById('consoleInput');
-        const consoleOutput = document.getElementById('consoleOutput');
-
-        consoleInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                const cmd = consoleInput.value.trim();
-                if (cmd) {
-                    runCommand(cmd);
-                    consoleInput.value = '';
-                }
-            }
-        });
-
-        function logToConsole(text, color = '#fff') {
-            const div = document.createElement('div');
-            div.style.color = color;
-            div.innerText = text;
-            consoleOutput.appendChild(div);
-            document.getElementById('commandConsole').scrollTop = document.getElementById('commandConsole').scrollHeight;
-        }
-
-        function runCommand(cmd) {
-            logToConsole(`admin@supremeai:~$ ${cmd}`, '#0f0');
-            
-            switch (cmd.toLowerCase()) {
-                case 'help':
-                    logToConsole('Available commands: help, status, agents, clear, reboot, stop');
-                    break;
-                case 'status':
-                    logToConsole('System Status: HEALTHY. CPU: 12%, Memory: 1.2GB/8GB');
-                    break;
-                case 'agents':
-                    logToConsole('Active Agents: Builder-1, Architect-1, Reviewer-1');
-                    break;
-                case 'clear':
-                    logToConsole('Clearing system cache...');
-                    break;
-                case 'reboot':
-                    logToConsole('Rebooting AI agents...');
-                    break;
-                case 'stop':
-                    logToConsole('!!! EMERGENCY STOP INITIATED !!!', '#f00');
-                    break;
-                default:
-                    logToConsole(`Command not found: ${cmd}`, '#f00');
-            }
-        }
+        // --- Commands Logic (wired in COMMANDS CONSOLE section above) ---
 
         function getAuthHeaders() {
             const token = localStorage.getItem('supremeai_token');
@@ -1492,7 +2092,7 @@
             const response = await fetch('/api/providers/remove', {
                 method: 'POST',
                 headers: getAuthHeaders(),
-                body: JSON.stringify({ id: providerId })
+                body: JSON.stringify({ id: providerId, actedBy: getCurrentAdminEmail() })
             });
             const data = await response.json();
             if (!response.ok || !data.success) {
@@ -1513,9 +2113,24 @@
             return data.provider;
         }
 
+        async function fetchAuditEvents(limit = 100) {
+            const response = await fetch(`/api/providers/audit?limit=${encodeURIComponent(limit)}`, {
+                headers: getAuthHeaders()
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to load provider audit logs');
+            }
+            return Array.isArray(data) ? data : [];
+        }
+
         async function loadConfiguredProviders() {
             try {
                 availableProviders = await fetchConfiguredProviders();
+                const countTarget = document.getElementById('apiKeysCount');
+                if (countTarget) {
+                    countTarget.innerText = String(availableProviders.length);
+                }
                 renderAPIKeysTable();
             } catch (error) {
                 const tbody = document.getElementById('apiKeysTableBody');
@@ -1575,8 +2190,8 @@
                     <td><strong>${apiKey.displayName || apiKey.name}</strong><br><span style="color:#94a3b8; font-size: 12px;">${apiKey.id}</span></td>
                     <td><span class="badge ${apiKey.status === 'error' ? 'badge-danger' : 'badge-success'}">${apiKey.status || 'active'}</span></td>
                     <td>${apiKey.rateLimitPerMinute || 100} req/min</td>
-                    <td>0/${apiKey.monthlyQuota || 1000}</td>
-                    <td>${apiKey.freeQuotaPercent || 80}%</td>
+                    <td>${(apiKey.requestsUsedThisMonth || 0).toLocaleString()}/${(apiKey.monthlyQuota || 1000).toLocaleString()}</td>
+                    <td>${Math.max(0, Math.round((apiKey.freeQuotaPercent || 80) - (apiKey.monthlyUsagePercent || 0)))}%</td>
                     <td>${formatDateTime(apiKey.lastTested || apiKey.createdAt)}</td>
                     <td>
                         <button class="btn btn-secondary" onclick="probeProvider('${apiKey.id}')">Test</button>
@@ -1613,6 +2228,7 @@
                 await loadConfiguredProviders();
                 await loadProviderCoveragePreview();
                 await loadProviderCoverage();
+                await loadAuditLogs();
                 alert(`Rotation complete for ${providerId}. Probe it now to verify the new key.`);
             } catch (error) {
                 alert(`Failed to rotate provider: ${error.message}`);
@@ -1635,21 +2251,1370 @@
                 await loadConfiguredProviders();
                 await loadProviderCoveragePreview();
                 await loadProviderCoverage();
+                await loadAuditLogs();
             } catch (error) {
                 alert(`Failed to revoke provider: ${error.message}`);
             }
         }
 
-        // --- Git Projects Logic ---
-        function createGitProject() {
-            alert('Git Project Created Successfully!');
-            closeModal('createGitProjectModal');
+        async function loadAuditLogs() {
+            const tbody = document.getElementById('logsTableBody');
+            if (!tbody) {
+                return;
+            }
+
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #a0aec0;">Loading audit events...</td></tr>';
+
+            try {
+                const events = await fetchAuditEvents(100);
+                if (!events.length) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #a0aec0;">📝 No provider activity recorded yet.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = events.map(event => `
+                    <tr>
+                        <td>${formatDateTime(event.timestamp)}</td>
+                        <td>${event.action || '--'}</td>
+                        <td>${event.admin || 'system'}</td>
+                        <td>${event.providerId || '--'}${event.details ? `<br><span style="color:#94a3b8; font-size:12px;">${Object.entries(event.details).map(([key, value]) => `${key}: ${value}`).join(' | ')}</span>` : ''}</td>
+                        <td><span class="badge ${event.status === 'ERROR' ? 'badge-danger' : 'badge-success'}">${event.status || 'INFO'}</span></td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 40px; color: #fca5a5;">${error.message}</td></tr>`;
+            }
         }
 
-        // --- AI Agent Logic ---
-        function assignAI() {
-            alert('AI Assigned');
-            closeModal('assignAIModal');
+        // =============================================
+        // PROJECTS
+        // =============================================
+
+        async function loadProjects() {
+            const tbody = document.getElementById('projectsTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
+            try {
+                const res = await fetch('/api/projects', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const projects = data.projects || [];
+
+                document.getElementById('activeProjectsCount').innerText = projects.filter(p => p.status === 'GENERATING' || p.status === 'RUNNING').length;
+                document.getElementById('completedProjectsCount').innerText = projects.filter(p => p.status === 'COMPLETED').length;
+
+                if (!projects.length) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#a0aec0;">📦 No projects yet. Click "➕ Create New Project" to start!</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = projects.map(p => `
+                    <tr>
+                        <td><strong>${p.projectId || p.id}</strong></td>
+                        <td><span class="badge badge-info">${p.status || '-'}</span></td>
+                        <td>${p.templateType || '-'}</td>
+                        <td>${p.progress != null ? p.progress + '%' : '-'}</td>
+                        <td>${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '-'}</td>
+                        <td style="font-size:11px;color:#a0aec0;">${(p.description || '').substring(0, 50)}</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="6" style="color:#f56565;">${e.message}</td></tr>`;
+            }
+        }
+
+        async function createProject() {
+            const projectId = document.getElementById('newProjectId').value.trim();
+            const templateType = document.getElementById('newProjectTemplate').value;
+            const description = document.getElementById('newProjectDesc').value.trim();
+            const featuresRaw = document.getElementById('newProjectFeatures').value.trim();
+            const msg = document.getElementById('createProjectMsg');
+
+            if (!projectId || !description) {
+                msg.innerHTML = '<span style="color:#f56565;">Project ID and description are required.</span>';
+                return;
+            }
+
+            const features = featuresRaw ? featuresRaw.split('\n').map(f => f.trim()).filter(Boolean) : [];
+
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Generating project...</span>';
+            try {
+                const res = await fetch('/api/projects/generate', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ projectId, templateType, description, features })
+                });
+                const data = await res.json();
+                if (data.status === 'success' || data.projectId) {
+                    msg.innerHTML = `<span style="color:#48bb78;">✅ Project "${data.projectId || projectId}" created! Status: ${data.status || 'started'}</span>`;
+                    document.getElementById('newProjectId').value = '';
+                    document.getElementById('newProjectDesc').value = '';
+                    document.getElementById('newProjectFeatures').value = '';
+                    loadProjects();
+                } else {
+                    msg.innerHTML = `<span style="color:#f56565;">❌ ${data.message || data.error || 'Failed to create project'}</span>`;
+                }
+            } catch (e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        // =============================================
+        // VPN MANAGEMENT
+        // =============================================
+
+        async function loadVpnList() {
+            const tbody = document.getElementById('vpnTableBody');
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Loading...</td></tr>';
+            try {
+                const res = await fetch('/api/vpn/list', { headers: getAuthHeaders() });
+                const vpns = await res.json();
+                if (!vpns.length) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:#a0aec0;">No VPN connections configured.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = vpns.map(v => {
+                    const connected = v.status === 'connected';
+                    const statusColor = connected ? '#48bb78' : '#a0aec0';
+                    return `<tr>
+                        <td><strong>${v.name}</strong></td>
+                        <td>${v.protocol}</td>
+                        <td>${v.serverHost}</td>
+                        <td>${v.serverPort}</td>
+                        <td>${v.encryption || '-'}</td>
+                        <td><span style="color:${statusColor};font-weight:600;">${connected ? '🟢 Connected' : '⚪ Disconnected'}</span></td>
+                        <td>${v.lastConnected ? new Date(v.lastConnected).toLocaleString() : 'Never'}</td>
+                        <td>
+                            ${connected
+                                ? `<button class="btn btn-danger" style="padding:4px 8px;font-size:11px;" onclick="vpnAction('${v.id}','disconnect')">⏹ Disconnect</button>`
+                                : `<button class="btn btn-success" style="padding:4px 8px;font-size:11px;" onclick="vpnAction('${v.id}','connect')">▶ Connect</button>`
+                            }
+                        </td>
+                    </tr>`;
+                }).join('');
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="8" style="color:#f56565;">${e.message}</td></tr>`;
+            }
+        }
+
+        async function vpnAction(id, action) {
+            try {
+                const res = await fetch(`/api/vpn/${encodeURIComponent(id)}/${action}`, {
+                    method: 'POST',
+                    headers: getAuthHeaders()
+                });
+                const data = await res.json();
+                if (data.success) {
+                    loadVpnList();
+                } else {
+                    alert('Failed: ' + (data.error || 'Unknown error'));
+                }
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        async function addVpn() {
+            const name = document.getElementById('vpnName').value.trim();
+            const protocol = document.getElementById('vpnProtocol').value;
+            const serverHost = document.getElementById('vpnHost').value.trim();
+            const serverPort = parseInt(document.getElementById('vpnPort').value);
+            const encryption = document.getElementById('vpnEncryption').value.trim();
+            const msg = document.getElementById('addVpnMsg');
+
+            if (!name || !serverHost || !serverPort) {
+                msg.innerHTML = '<span style="color:#f56565;">Name, host and port are required.</span>';
+                return;
+            }
+            try {
+                const res = await fetch('/api/vpn/add', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ name, protocol, serverHost, serverPort, encryption, status: 'disconnected' })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    msg.innerHTML = '<span style="color:#48bb78;">✅ VPN added successfully.</span>';
+                    document.getElementById('vpnName').value = '';
+                    document.getElementById('vpnHost').value = '';
+                    document.getElementById('vpnPort').value = '';
+                    document.getElementById('vpnEncryption').value = '';
+                    closeModal('addVpnModal');
+                    loadVpnList();
+                } else {
+                    msg.innerHTML = `<span style="color:#f56565;">❌ ${data.error || 'Failed to add VPN'}</span>`;
+                }
+            } catch (e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        // =============================================
+        // USER MANAGEMENT
+        // =============================================
+
+        async function loadAllUsers() {
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
+            try {
+                const res = await fetch('/api/auth/users', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const users = data.users || data || [];
+                if (!users.length) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#a0aec0;">No users found.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = users.map(u => `
+                    <tr>
+                        <td>${u.username || u.id}</td>
+                        <td>${u.email || '-'}</td>
+                        <td><span class="badge badge-info">${u.role || 'ADMIN'}</span></td>
+                        <td><span class="badge ${u.enabled !== false ? 'badge-success' : 'badge-danger'}">${u.enabled !== false ? 'Active' : 'Disabled'}</span></td>
+                        <td>${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '-'}</td>
+                        <td>
+                            <button class="btn btn-secondary" style="padding:4px 8px;font-size:11px;" onclick="disableUser('${u.id || u.username}')">🚫 Disable</button>
+                            <button class="btn btn-secondary" style="padding:4px 8px;font-size:11px;" onclick="makeSuperAdmin('${u.id || u.username}')">👑 SUPER</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="6" style="color:#f56565;">${e.message}</td></tr>`;
+            }
+        }
+
+        async function createUser() {
+            const username = document.getElementById('newUsername').value.trim();
+            const email = document.getElementById('newEmail').value.trim();
+            const password = document.getElementById('newPassword').value;
+            const msg = document.getElementById('createUserMsg');
+
+            if (!username || !email || !password) {
+                msg.innerHTML = '<span style="color:#f56565;">All fields are required.</span>';
+                return;
+            }
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ username, email, password })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    msg.innerHTML = '<span style="color:#48bb78;">✅ User created successfully.</span>';
+                    document.getElementById('newUsername').value = '';
+                    document.getElementById('newEmail').value = '';
+                    document.getElementById('newPassword').value = '';
+                    loadAllUsers();
+                } else {
+                    msg.innerHTML = `<span style="color:#f56565;">❌ ${data.message}</span>`;
+                }
+            } catch (e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        async function disableUser(userId) {
+            if (!confirm(`Disable user "${userId}"?`)) return;
+            try {
+                const res = await fetch(`/api/auth/users/${encodeURIComponent(userId)}/disable`, {
+                    method: 'POST',
+                    headers: getAuthHeaders()
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    alert('User disabled.');
+                    loadAllUsers();
+                } else {
+                    alert('Failed: ' + (data.message || 'Unknown error'));
+                }
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        async function makeSuperAdmin(userId) {
+            if (!confirm(`Promote "${userId}" to SUPERADMIN?`)) return;
+            try {
+                const res = await fetch(`/api/tier/make-superadmin?userId=${encodeURIComponent(userId)}`, {
+                    method: 'POST',
+                    headers: getAuthHeaders()
+                });
+                const data = await res.json();
+                alert(data.message || 'Done.');
+                loadAllUsers();
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        async function changeMyPassword() {
+            const oldPass = document.getElementById('cpOldPass').value;
+            const newPass = document.getElementById('cpNewPass').value;
+            const msg = document.getElementById('cpMsg');
+            if (!oldPass || !newPass) {
+                msg.innerHTML = '<span style="color:#f56565;">Both fields required.</span>';
+                return;
+            }
+            try {
+                const res = await fetch('/api/auth/change-password', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ oldPassword: oldPass, newPassword: newPass })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    msg.innerHTML = '<span style="color:#48bb78;">✅ Password changed successfully.</span>';
+                    document.getElementById('cpOldPass').value = '';
+                    document.getElementById('cpNewPass').value = '';
+                } else {
+                    msg.innerHTML = `<span style="color:#f56565;">❌ ${data.message}</span>`;
+                }
+            } catch (e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        // =============================================
+        // TIER & QUOTA MANAGEMENT
+        // =============================================
+
+        async function loadTierCards() {
+            const grid = document.getElementById('tierCardsGrid');
+            try {
+                const res = await fetch('/api/tier/available-tiers', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const tierColors = { FREE: '#a0aec0', STARTER: '#68d391', PROFESSIONAL: '#63b3ed', ENTERPRISE: '#f6ad55', SUPERADMIN: '#fc8181' };
+                grid.innerHTML = Object.entries(data).map(([key, t]) => `
+                    <div style="background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:14px;border-top:3px solid ${tierColors[key] || '#4299e1'}">
+                        <div style="font-weight:700;font-size:14px;color:${tierColors[key] || '#4299e1'};">${t.name || key}</div>
+                        <div style="color:#a0aec0;font-size:11px;margin-top:4px;">${t.monthlyPrice}</div>
+                        <div style="font-size:12px;margin-top:6px;">Daily: <strong>${t.dailyLimit}</strong></div>
+                        <div style="font-size:12px;">Monthly: <strong>${t.monthlyLimit}</strong></div>
+                        <div style="font-size:12px;">Apps/day: <strong>${t.appCreationsPerDay}</strong></div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                grid.innerHTML = `<span style="color:#f56565;">${e.message}</span>`;
+            }
+        }
+
+        async function setUserTier() {
+            const userId = document.getElementById('tierUserId').value.trim();
+            const tier = document.getElementById('tierSelectValue').value;
+            const msg = document.getElementById('tierMsg');
+            if (!userId) {
+                msg.innerHTML = '<span style="color:#f56565;">User ID required.</span>';
+                return;
+            }
+            try {
+                const res = await fetch(`/api/tier/set-user-tier?userId=${encodeURIComponent(userId)}&tier=${encodeURIComponent(tier)}`, {
+                    method: 'POST',
+                    headers: getAuthHeaders()
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    msg.innerHTML = `<span style="color:#48bb78;">✅ ${userId} → ${data.newTier} (${data.dailyLimit} req/day)</span>`;
+                    loadAllUserQuotas();
+                } else {
+                    msg.innerHTML = `<span style="color:#f56565;">❌ ${data.message}</span>`;
+                }
+            } catch (e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        async function loadAllUserQuotas() {
+            const tbody = document.getElementById('userQuotaTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
+            try {
+                const res = await fetch('/api/tier/all', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const entries = Object.entries(data);
+                if (!entries.length) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#a0aec0;">No user quotas found.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = entries.map(([uid, q]) => `
+                    <tr>
+                        <td>${uid}</td>
+                        <td><span class="badge badge-info">${q.tier || '-'}</span></td>
+                        <td>${q.requestsMadeToday ?? '-'}</td>
+                        <td>${q.requestsMadeThisMonth ?? '-'}</td>
+                        <td>${q.appCreationsToday ?? '-'}</td>
+                        <td>
+                            <button class="btn btn-secondary" style="padding:4px 8px;font-size:11px;" onclick="document.getElementById('tierUserId').value='${uid}'">✏️ Select</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="6" style="color:#f56565;">${e.message}</td></tr>`;
+            }
+        }
+
+        async function loadProviderQuotas() {
+            const tbody = document.getElementById('providerQuotaTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
+            try {
+                const res = await fetch('/api/quota/status', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const providers = data.providers || [];
+                if (!providers.length) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#a0aec0;">No provider quota data.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = providers.map(p => {
+                    const pct = parseFloat(p.usagePercent) || 0;
+                    const color = pct >= 90 ? '#f56565' : pct >= 70 ? '#f6ad55' : '#48bb78';
+                    return `<tr>
+                        <td>${p.providerName || p.providerId}</td>
+                        <td><span style="color:${color};font-weight:600;">${p.status}</span></td>
+                        <td>${p.requestsUsed ?? '-'}</td>
+                        <td>${p.dailyLimit ?? '-'}</td>
+                        <td><span style="color:${color};">${pct.toFixed(1)}%</span></td>
+                        <td>${p.remainingRequests ?? '-'}</td>
+                    </tr>`;
+                }).join('');
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="6" style="color:#f56565;">${e.message}</td></tr>`;
+            }
+        }
+
+        async function resetDailyQuotas() {
+            if (!confirm('Reset daily quotas for all AI providers?')) return;
+            try {
+                const res = await fetch('/api/quota/reset', { method: 'POST', headers: getAuthHeaders() });
+                const data = await res.json();
+                alert(data.message || 'Daily quotas reset.');
+                loadProviderQuotas();
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        async function resetMonthlyQuotas() {
+            if (!confirm('Reset MONTHLY quotas for all users? This cannot be undone.')) return;
+            try {
+                const res = await fetch('/api/tier/reset-monthly', { method: 'POST', headers: getAuthHeaders() });
+                const data = await res.json();
+                alert(data.message || 'Monthly quotas reset.');
+                loadAllUserQuotas();
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        // =============================================
+        // METRICS & ALERTS
+        // =============================================
+
+        async function loadMetrics() {
+            try {
+                const res = await fetch('/api/system/metrics', { headers: getAuthHeaders() });
+                const d = await res.json();
+                document.getElementById('metCpu').textContent = (d.cpuUsage ?? '--') + '%';
+                document.getElementById('metMem').textContent = (d.memoryUsage ?? '--') + '%';
+                document.getElementById('metLatency').textContent = (d.apiLatency ?? '--') + 'ms';
+                document.getElementById('metSuccess').textContent = (d.successRate ?? '--') + '%';
+                document.getElementById('metError').textContent = (d.errorRate ?? '--') + '%';
+                document.getElementById('metUptime').textContent = d.uptime ?? '--';
+                document.getElementById('metricsMsg').innerHTML = `<span style="color:#48bb78;">✅ Updated ${new Date().toLocaleTimeString()}</span>`;
+            } catch(e) {
+                document.getElementById('metricsMsg').innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        async function loadAdminDashboardStats() {
+            try {
+                const res = await fetch('/api/admin/dashboard/stats', { headers: getAuthHeaders() });
+                const d = await res.json();
+                document.getElementById('metricsMsg').innerHTML = `<pre style="background:#171923;padding:12px;border-radius:6px;font-size:12px;color:#a0aec0;overflow:auto;">${JSON.stringify(d, null, 2)}</pre>`;
+            } catch(e) {
+                document.getElementById('metricsMsg').innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        // =============================================
+        // DEPLOYMENT
+        // =============================================
+
+        async function loadDeployHistory() {
+            const tbody = document.getElementById('deployHistoryTable');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+            try {
+                const res = await fetch('/api/v1/deployment/pipeline/history', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const list = data.pipelines || data.history || (Array.isArray(data) ? data : []);
+                if (!list.length) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#a0aec0;">No pipeline history.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = list.map(p => `<tr>
+                    <td style="font-family:monospace;">${(p.pipelineId || p.id || '').substring(0,10)}</td>
+                    <td>${p.stage || p.currentStage || '-'}</td>
+                    <td style="color:${p.status === 'SUCCESS' ? '#48bb78' : p.status === 'FAILED' ? '#f56565' : '#63b3ed'}">${p.status || '-'}</td>
+                    <td>${p.duration || p.durationMs || '-'}</td>
+                    <td>${p.timestamp ? new Date(p.timestamp).toLocaleString() : '-'}</td>
+                </tr>`).join('');
+            } catch(e) {
+                tbody.innerHTML = `<tr><td colspan="5" style="color:#f56565;">${e.message}</td></tr>`;
+            }
+        }
+
+        async function dockerBuild() {
+            const data = window._dockerBuildData;
+            const msg = document.getElementById('dockerBuildMsg');
+            if (!data) return;
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Building...</span>';
+            try {
+                const res = await fetch('/api/v1/deployment/docker/build', {
+                    method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(data)
+                });
+                const d = await res.json();
+                msg.innerHTML = `<pre style="font-size:11px;color:#a0aec0;background:#171923;padding:10px;border-radius:6px;overflow:auto;">${JSON.stringify(d, null, 2)}</pre>`;
+                loadDeployHistory();
+            } catch(e) { msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`; }
+        }
+
+        async function k8sDeploy() {
+            const data = window._k8sDeployData;
+            const msg = document.getElementById('k8sDeployMsg');
+            if (!data) return;
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Deploying...</span>';
+            try {
+                const res = await fetch('/api/v1/deployment/kubernetes/deploy', {
+                    method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(data)
+                });
+                const d = await res.json();
+                msg.innerHTML = `<pre style="font-size:11px;color:#a0aec0;background:#171923;padding:10px;border-radius:6px;overflow:auto;">${JSON.stringify(d, null, 2)}</pre>`;
+                loadDeployHistory();
+            } catch(e) { msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`; }
+        }
+
+        // =============================================
+        // SELF-HEALING
+        // =============================================
+
+        async function loadSelfHealingHealth() {
+            const bar = document.getElementById('selfHealingStatsBar');
+            const content = document.getElementById('selfHealingStatsContent');
+            bar.style.display = 'block';
+            content.innerHTML = 'Loading...';
+            try {
+                const res = await fetch('/api/v1/self-healing/system-health', { headers: getAuthHeaders() });
+                const d = await res.json();
+                const isRunning = d.isRunning;
+                const cbs = d.circuitBreakers || {};
+                const cbHTML = Object.entries(cbs).map(([name, state]) => {
+                    const color = state === 'CLOSED' ? '#48bb78' : state === 'OPEN' ? '#f56565' : '#ecc94b';
+                    return `<div style="margin-bottom:4px;"><strong style="color:${color};">${state}</strong> &nbsp; ${name}</div>`;
+                }).join('') || '<div style="color:#a0aec0;">No circuit breakers.</div>';
+                content.innerHTML = `
+                    <div style="margin-bottom:12px;">Engine: <strong style="color:${isRunning ? '#48bb78' : '#f56565'}">${isRunning ? '▶️ Running' : '⏹️ Stopped'}</strong></div>
+                    <div><strong>Circuit Breakers:</strong></div>
+                    <div style="margin-top:8px;font-size:13px;">${cbHTML}</div>
+                `;
+            } catch(e) { content.innerHTML = `<span style="color:#f56565;">${e.message}</span>`; }
+        }
+
+        async function startSelfHealing() {
+            const msg = document.getElementById('selfHealingMsg');
+            try {
+                const res = await fetch('/api/v1/self-healing/start', { method: 'POST', headers: getAuthHeaders() });
+                const d = await res.json();
+                msg.innerHTML = `<span style="color:#48bb78;">✅ ${d.message || 'Self-healing started'}</span>`;
+                loadSelfHealingHealth();
+            } catch(e) { msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`; }
+        }
+
+        async function stopSelfHealing() {
+            const msg = document.getElementById('selfHealingMsg');
+            try {
+                const res = await fetch('/api/v1/self-healing/stop', { method: 'POST', headers: getAuthHeaders() });
+                const d = await res.json();
+                msg.innerHTML = `<span style="color:#f56565;">⏹️ ${d.message || 'Self-healing stopped'}</span>`;
+                loadSelfHealingHealth();
+            } catch(e) { msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`; }
+        }
+
+        async function recoverService() {
+            const name = document.getElementById('recoverServiceName').value.trim();
+            const msg = document.getElementById('selfHealingMsg');
+            if (!name) { msg.innerHTML = '<span style="color:#f56565;">Service name required.</span>'; return; }
+            try {
+                const res = await fetch(`/api/v1/self-healing/recover/${encodeURIComponent(name)}`, { method: 'POST', headers: getAuthHeaders() });
+                const d = await res.json();
+                msg.innerHTML = `<span style="color:#48bb78;">✅ ${d.message || 'Recovery triggered for ' + name}</span>`;
+            } catch(e) { msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`; }
+        }
+
+        // =============================================
+        // SELF-EXTENSION ENGINE
+        // =============================================
+
+        async function loadExtensionStatus() {
+            const bar = document.getElementById('extensionStatusBar');
+            const content = document.getElementById('extensionStatusContent');
+            bar.style.display = 'block';
+            content.textContent = 'Loading...';
+            try {
+                const res = await fetch('/api/extend/status', { headers: getAuthHeaders() });
+                const d = await res.json();
+                content.textContent = JSON.stringify(d, null, 2);
+            } catch(e) { content.textContent = 'Error: ' + e.message; }
+        }
+
+        async function submitExtensionRequirement() {
+            const requirement = document.getElementById('extensionRequirement').value.trim();
+            const msg = document.getElementById('extensionMsg');
+            if (!requirement) { msg.innerHTML = '<span style="color:#f56565;">Requirement text is required.</span>'; return; }
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Submitting to SupremeAI...</span>';
+            try {
+                const res = await fetch('/api/extend/requirement', {
+                    method: 'POST', headers: getAuthHeaders(),
+                    body: JSON.stringify({ requirement })
+                });
+                const d = await res.json();
+                if (d.status === 'success') {
+                    msg.innerHTML = `<span style="color:#48bb78;">✅ ${d.message || 'Requirement accepted. SupremeAI is building...'}</span>`;
+                    document.getElementById('extensionRequirement').value = '';
+                } else {
+                    msg.innerHTML = `<span style="color:#f56565;">❌ ${d.message || 'Failed'}</span>`;
+                }
+            } catch(e) { msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`; }
+        }
+
+        // =============================================
+        // MULTI-AI CONSENSUS
+        // =============================================
+
+        async function loadConsensusStats() {
+            try {
+                const res = await fetch('/api/consensus/stats', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const stats = data.stats || data;
+                const tbody = document.getElementById('consensusHistoryTable');
+                const info = [
+                    ['Total Votes', stats.totalVotes ?? '--'],
+                    ['Avg Consensus %', stats.averageConsensusPercentage != null ? stats.averageConsensusPercentage.toFixed(1) + '%' : '--'],
+                    ['Providers Consulted', stats.totalProvidersConsulted ?? '--']
+                ].map(([l, v]) =>
+                    `<div style="text-align:center;"><div style="font-size:11px;color:#718096;">${l}</div><div style="font-size:20px;font-weight:700;color:#63b3ed;">${v}</div></div>`
+                ).join('');
+                document.getElementById('consensusResultPanel').style.display = 'block';
+                document.getElementById('consensusResult').innerHTML = `<div style="display:flex;gap:24px;flex-wrap:wrap;">${info}</div>`;
+            } catch(e) {
+                document.getElementById('consensusResult').innerHTML = `<span style="color:#f56565;">${e.message}</span>`;
+                document.getElementById('consensusResultPanel').style.display = 'block';
+            }
+        }
+
+        async function loadConsensusHistory() {
+            const tbody = document.getElementById('consensusHistoryTable');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+            try {
+                const res = await fetch('/api/consensus/history', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const votes = data.votes || [];
+                if (!votes.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#a0aec0;">No history.</td></tr>'; return; }
+                tbody.innerHTML = votes.map(v => `<tr>
+                    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;">${v.question || '-'}</td>
+                    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;">${(v.winningResponse || '-').substring(0,80)}</td>
+                    <td>${v.consensusPercentage != null ? v.consensusPercentage.toFixed(1) + '%' : '-'}</td>
+                    <td>${v.providersConsulted || '-'}</td>
+                    <td>${v.timestamp ? new Date(v.timestamp).toLocaleString() : '-'}</td>
+                </tr>`).join('');
+            } catch(e) { tbody.innerHTML = `<tr><td colspan="5" style="color:#f56565;">${e.message}</td></tr>`; }
+        }
+
+        async function askConsensus() {
+            const question = document.getElementById('consensusQuestion').value.trim();
+            const panel = document.getElementById('consensusResultPanel');
+            const result = document.getElementById('consensusResult');
+            if (!question) { panel.style.display = 'block'; result.innerHTML = '<span style="color:#f56565;">Question is required.</span>'; return; }
+            panel.style.display = 'block';
+            result.innerHTML = '<span style="color:#63b3ed;">⏳ Asking all 10 AI providers... (this may take 10-30s)</span>';
+            try {
+                const res = await fetch('/api/consensus/ask', {
+                    method: 'POST', headers: getAuthHeaders(),
+                    body: JSON.stringify({ question })
+                });
+                const d = await res.json();
+                if (d.status === 'success') {
+                    result.innerHTML = `
+                        <div style="margin-bottom:12px;">
+                            <div style="font-size:11px;color:#718096;margin-bottom:4px;">CONSENSUS ANSWER (${d.consensusPercentage?.toFixed(1)}% agreement, confidence: ${d.confidenceScore?.toFixed(2)})</div>
+                            <div style="font-size:14px;line-height:1.6;color:#e2e8f0;">${(d.winningResponse || '').replace(/\n/g, '<br>')}</div>
+                        </div>
+                        <div style="font-size:11px;color:#718096;">${d.responses} provider(s) responded &nbsp;|&nbsp; Learnings: ${(d.learnings || []).join(', ')}</div>
+                    `;
+                    document.getElementById('consensusQuestion').value = '';
+                    loadConsensusHistory();
+                } else {
+                    result.innerHTML = `<span style="color:#f56565;">❌ ${d.message || 'Failed'}</span>`;
+                }
+            } catch(e) { result.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`; }
+        }
+
+        // =============================================
+        // SYSTEM LEARNING
+        // =============================================
+
+        async function loadLearningStats() {
+            const bar = document.getElementById('learningStatsPanel');
+            const content = document.getElementById('learningStatsContent');
+            bar.style.display = 'block';
+            content.innerHTML = 'Loading...';
+            try {
+                const res = await fetch('/api/learning/stats', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const stats = data.learning_stats || data;
+                content.innerHTML = Object.entries(stats).slice(0, 8).map(([k, v]) =>
+                    `<div style="text-align:center;"><div style="font-size:11px;color:#718096;text-transform:uppercase;">${k}</div><div style="font-size:18px;font-weight:700;color:#63b3ed;">${typeof v === 'object' ? JSON.stringify(v).substring(0,20) : v}</div></div>`
+                ).join('');
+            } catch(e) { content.innerHTML = `<span style="color:#f56565;">${e.message}</span>`; }
+        }
+
+        async function loadCriticalRequirements() {
+            const container = document.getElementById('criticalReqsContainer');
+            container.innerHTML = '<div style="text-align:center;padding:20px;color:#a0aec0;">Loading...</div>';
+            try {
+                const res = await fetch('/api/learning/critical', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const reqs = data.critical_requirements || data.requirements || (Array.isArray(data) ? data : []);
+                if (!reqs.length) { container.innerHTML = '<div style="text-align:center;padding:20px;color:#a0aec0;">No critical requirements recorded.</div>'; return; }
+                container.innerHTML = reqs.map(r => `
+                    <div style="padding:12px;background:#1a202c;border-left:3px solid #f56565;border-radius:0 6px 6px 0;margin-bottom:8px;">
+                        <div style="font-weight:600;color:#f56565;">${r.category || 'Critical'}</div>
+                        <div style="font-size:13px;color:#e2e8f0;margin-top:4px;">${r.requirement || r.description || r}</div>
+                        <div style="font-size:11px;color:#718096;margin-top:4px;">Severity: ${r.severity || '--'} | Confidence: ${r.confidenceScore || '--'}</div>
+                    </div>
+                `).join('');
+            } catch(e) { container.innerHTML = `<div style="color:#f56565;padding:12px;">${e.message}</div>`; }
+        }
+
+        async function reseedKnowledge() {
+            const msg = document.getElementById('learningMsg');
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Reseeding knowledge base...</span>';
+            try {
+                const res = await fetch('/api/learning/reseed', { method: 'POST', headers: getAuthHeaders() });
+                const d = await res.json();
+                msg.innerHTML = `<span style="color:#48bb78;">✅ ${d.message || 'Knowledge reseeded successfully'}</span>`;
+                loadLearningStats();
+            } catch(e) { msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`; }
+        }
+
+        // =============================================
+        // NOTIFICATIONS
+        // =============================================
+
+        async function loadNotificationHistory() {
+            const tbody = document.getElementById('notifHistoryTable');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+            try {
+                const res = await fetch('/api/notifications/history', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const list = data.history || data.notifications || (Array.isArray(data) ? data : []);
+                if (!list.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#a0aec0;">No notifications sent.</td></tr>'; return; }
+                tbody.innerHTML = list.map(n => `<tr>
+                    <td>${n.channel || '-'}</td>
+                    <td>${n.recipient || n.to || n.slackChannel || '-'}</td>
+                    <td>${n.subject || n.title || '-'}</td>
+                    <td style="color:${n.status === 'sent' ? '#48bb78' : '#f56565'}">${n.status || '-'}</td>
+                    <td>${n.timestamp ? new Date(n.timestamp).toLocaleString() : '-'}</td>
+                </tr>`).join('');
+            } catch(e) { tbody.innerHTML = `<tr><td colspan="5" style="color:#f56565;">${e.message}</td></tr>`; }
+        }
+
+        async function sendNotification() {
+            const channel = document.getElementById('notifChannel').value;
+            const recipient = document.getElementById('notifRecipient').value.trim();
+            const title = document.getElementById('notifTitle').value.trim();
+            const message = document.getElementById('notifMessage').value.trim();
+            const severity = document.getElementById('notifSeverity').value;
+            const msg = document.getElementById('notifMsg');
+            if (!recipient || !message) { msg.innerHTML = '<span style="color:#f56565;">Recipient and message are required.</span>'; return; }
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Sending...</span>';
+            try {
+                let body;
+                if (channel === 'email') body = { to: recipient, subject: title, message };
+                else body = { channel: recipient, title, message, severity };
+                const res = await fetch(`/api/notifications/${channel}`, {
+                    method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(body)
+                });
+                const d = await res.json();
+                msg.innerHTML = `<span style="color:${d.status === 'sent' ? '#48bb78' : '#f56565'}">${d.status === 'sent' ? '✅' : '❌'} ${d.status || 'done'}</span>`;
+                loadNotificationHistory();
+            } catch(e) { msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`; }
+        }
+
+        // =============================================
+        // KIMI K2
+        // =============================================
+
+        async function loadKimiStatus() {
+            const panel = document.getElementById('kimiResultPanel');
+            const result = document.getElementById('kimiResult');
+            panel.style.display = 'block';
+            result.innerHTML = '<span style="color:#63b3ed;">Loading status...</span>';
+            try {
+                const res = await fetch('/api/agent-orchestration/status', { headers: getAuthHeaders() });
+                const d = await res.json();
+                result.innerHTML = `<pre style="font-size:11px;color:#a0aec0;overflow:auto;">${JSON.stringify(d, null, 2)}</pre>`;
+            } catch(e) { result.innerHTML = `<span style="color:#f56565;">${e.message}</span>`; }
+        }
+
+        async function loadKimiLeaderboard() {
+            const tbody = document.getElementById('kimiLeaderboardTable');
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Loading...</td></tr>';
+            try {
+                const res = await fetch('/api/agent-orchestration/leaderboard', { headers: getAuthHeaders() });
+                const d = await res.json();
+                const list = d.leaderboard || d.agents || (Array.isArray(d) ? d : []);
+                if (!list.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#a0aec0;">No leaderboard data.</td></tr>'; return; }
+                tbody.innerHTML = list.map((a, i) => `<tr>
+                    <td><span style="color:#ecc94b;font-weight:700;">#${i+1}</span> ${a.agentName || a.name || a.agent || '-'}</td>
+                    <td style="color:#48bb78;font-weight:700;">${a.rlvrScore ?? a.score ?? '-'}</td>
+                    <td>${a.tasksCompleted ?? a.tasks ?? '-'}</td>
+                    <td style="color:${a.status === 'ACTIVE' ? '#48bb78' : '#a0aec0'}">${a.status || '-'}</td>
+                </tr>`).join('');
+            } catch(e) { tbody.innerHTML = `<tr><td colspan="4" style="color:#f56565;">${e.message}</td></tr>`; }
+        }
+
+        async function loadKimiHistory() {
+            const panel = document.getElementById('kimiResultPanel');
+            const result = document.getElementById('kimiResult');
+            panel.style.display = 'block';
+            result.innerHTML = '<span style="color:#63b3ed;">Loading history...</span>';
+            try {
+                const res = await fetch('/api/agent-orchestration/history', { headers: getAuthHeaders() });
+                const d = await res.json();
+                const list = d.history || (Array.isArray(d) ? d : []);
+                if (!list.length) { result.innerHTML = '<span style="color:#a0aec0;">No history.</span>'; return; }
+                result.innerHTML = list.slice(0,10).map(h => `
+                    <div style="padding:8px;background:#171923;border-radius:4px;margin-bottom:6px;font-size:12px;">
+                        <strong style="color:#63b3ed;">${h.taskType || '-'}</strong> &nbsp; ${(h.goal || '').substring(0,80)}
+                        <span style="float:right;color:${h.success ? '#48bb78' : '#f56565'}">${h.success ? '✅' : '❌'}</span>
+                    </div>
+                `).join('');
+            } catch(e) { result.innerHTML = `<span style="color:#f56565;">${e.message}</span>`; }
+        }
+
+        async function submitKimiTask() {
+            const goal = document.getElementById('kimiGoal').value.trim();
+            const taskType = document.getElementById('kimiTaskType').value;
+            const topK = parseInt(document.getElementById('kimiTopK').value) || 3;
+            const panel = document.getElementById('kimiResultPanel');
+            const result = document.getElementById('kimiResult');
+            if (!goal) { panel.style.display = 'block'; result.innerHTML = '<span style="color:#f56565;">Goal is required.</span>'; return; }
+            panel.style.display = 'block';
+            result.innerHTML = '<span style="color:#63b3ed;">⏳ Running adaptive orchestration pipeline...</span>';
+            try {
+                const res = await fetch('/api/agent-orchestration/submit', {
+                    method: 'POST', headers: getAuthHeaders(),
+                    body: JSON.stringify({ goal, taskType, topK })
+                });
+                const d = await res.json();
+                result.innerHTML = `<pre style="font-size:11px;color:#a0aec0;overflow:auto;">${JSON.stringify(d, null, 2)}</pre>`;
+                document.getElementById('kimiGoal').value = '';
+                loadKimiLeaderboard();
+            } catch(e) { result.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`; }
+        }
+
+        // =============================================
+        // CHAT WITH SUPREMEAI
+        // =============================================
+
+        function focusChatInput() {
+            setTimeout(() => document.getElementById('chatInput')?.focus(), 100);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatInput = document.getElementById('chatInput');
+            if (chatInput) {
+                chatInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendChatMessage();
+                    }
+                });
+            }
+        });
+
+        function appendChatMessage(sender, content, agentId, timestamp) {
+            const box = document.getElementById('chatMessages');
+            const isUser = sender === 'user';
+            const cls = isUser ? 'chat-msg-user' : 'chat-msg-ai';
+            const bubbleCls = isUser ? 'chat-bubble-user' : 'chat-bubble-ai';
+            const label = isUser ? 'You' : (agentId || 'SupremeAI');
+            const time = timestamp ? new Date(timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = cls;
+            div.innerHTML = `<div class="${bubbleCls}">${escapeHtml(content)}</div><div class="chat-meta">${escapeHtml(label)} &bull; ${time}</div>`;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const taskType = document.getElementById('chatTaskType').value;
+            const userMessage = input.value.trim();
+            if (!userMessage) return;
+
+            input.value = '';
+            appendChatMessage('user', userMessage, null, null);
+            document.getElementById('chatTypingIndicator').style.display = 'block';
+
+            try {
+                const res = await fetch('/api/chat/send', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ userMessage, taskType, metadata: {} })
+                });
+                const d = await res.json();
+                document.getElementById('chatTypingIndicator').style.display = 'none';
+                appendChatMessage('ai', d.content || d.message || JSON.stringify(d), d.agentId, d.timestamp);
+            } catch(e) {
+                document.getElementById('chatTypingIndicator').style.display = 'none';
+                appendChatMessage('ai', '❌ Error: ' + e.message, 'SupremeAI', null);
+            }
+        }
+
+        function clearChat() {
+            document.getElementById('chatMessages').innerHTML = `
+                <div class="chat-msg-ai">
+                    <div class="chat-bubble-ai">Hi Admin 👋 Chat cleared. Ask me anything!</div>
+                    <div class="chat-meta">SupremeAI &bull; ${new Date().toLocaleTimeString()}</div>
+                </div>`;
+        }
+
+        // =============================================
+        // SETTINGS
+        // =============================================
+
+        function saveSettings() {
+            const emailNotif = document.querySelector('#settings input[type=checkbox]:first-of-type')?.checked;
+            const smsAlerts = document.querySelector('#settings input[type=checkbox]:last-of-type')?.checked;
+            const msg = document.getElementById('settingsMsg');
+            localStorage.setItem('supremeai_email_notifications', emailNotif);
+            localStorage.setItem('supremeai_sms_alerts', smsAlerts);
+            msg.innerHTML = '<span style="color:#48bb78;">✅ Settings saved locally.</span>';
+        }
+
+        function logout() {
+            if (!confirm('Are you sure you want to logout?')) return;
+            fetch('/api/auth/logout', { method: 'POST' })
+                .catch(() => null)
+                .finally(() => {
+                    localStorage.removeItem('supremeai_token');
+                    localStorage.removeItem('supremeai_refresh_token');
+                    window.location.href = '/login.html';
+                });
+        }
+
+        // =============================================
+        // DASHBOARD LIVE STATS FIX
+        // =============================================
+
+        async function loadDashboardStats() {
+            try {
+                const res = await fetch('/api/admin/dashboard/contract', { headers: getAuthHeaders() });
+                const contract = await res.json();
+                const d = contract.stats || {};
+                const agentsEl = document.getElementById('activeAgentsCount');
+                const loadEl = document.getElementById('systemLoadValue');
+                if (agentsEl) agentsEl.textContent = d.activeAIAgents ?? '--';
+                if (loadEl) loadEl.textContent = d.systemHealthScore != null ? d.systemHealthScore.toFixed(1) + '%' : '--';
+                const successEl = document.getElementById('successRateValue');
+                if (successEl) successEl.textContent = d.successRate != null ? d.successRate + '%' : '--';
+            } catch(e) { /* silent - dashboard stats are non-critical */ }
+        }
+
+        // =============================================
+        // DEPLOYMENT MODALS JS (docker/k8s form data)
+        // =============================================
+
+        function collectDockerBuildForm() {
+            const appName = document.getElementById('dockerAppName')?.value?.trim();
+            const version = document.getElementById('dockerVersion')?.value?.trim() || '1.0.0';
+            if (!appName) { alert('Application name is required.'); return; }
+            window._dockerBuildData = {
+                deploymentId: appName + '-' + Date.now(),
+                applicationName: appName,
+                version,
+                cloudProvider: 'GCP',
+                environment: 'STAGING',
+                strategy: 'ROLLING'
+            };
+            dockerBuild();
+        }
+
+        function collectK8sDeployForm() {
+            const appName = document.getElementById('k8sAppName')?.value?.trim();
+            const namespace = document.getElementById('k8sNamespace')?.value?.trim() || 'default';
+            const replicas = parseInt(document.getElementById('k8sReplicas')?.value) || 1;
+            if (!appName) { alert('Application name is required.'); return; }
+            window._k8sDeployData = {
+                deploymentId: appName + '-k8s-' + Date.now(),
+                applicationName: appName,
+                namespace,
+                minReplicas: replicas,
+                maxReplicas: replicas * 2,
+                instanceCount: replicas,
+                cloudProvider: 'GCP',
+                environment: 'PRODUCTION',
+                strategy: 'ROLLING'
+            };
+            k8sDeploy();
+        }
+
+        // =============================================
+        // 3D VISUALIZATION & TIMELINE
+        // =============================================
+
+        function openVisualization3D() {
+            window.open('/visualization-3d-dashboard.html', '_blank');
+        }
+
+        async function loadTimelineStats() {
+            const bar = document.getElementById('timelineStatsBar');
+            const content = document.getElementById('timelineStatsContent');
+            bar.style.display = 'block';
+            content.innerHTML = '<span style="color:#a0aec0;">Loading stats...</span>';
+            try {
+                const res = await fetch('/api/v1/timeline/stats/aggregate', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const stats = data.stats || data || {};
+                content.innerHTML = [
+                    ['Total Decisions', stats.totalDecisions ?? '--'],
+                    ['Success Rate', stats.successRate != null ? stats.successRate.toFixed(1) + '%' : '--'],
+                    ['Failed', stats.failedCount ?? '--'],
+                    ['Partial', stats.partialCount ?? '--'],
+                    ['Projects', stats.projectCount ?? '--']
+                ].map(([label, val]) =>
+                    `<div style="text-align:center;"><div style="font-size:11px;color:#718096;text-transform:uppercase;">${label}</div><div style="font-size:20px;font-weight:700;color:#63b3ed;">${val}</div></div>`
+                ).join('');
+            } catch (e) {
+                content.innerHTML = `<span style="color:#f56565;">Error: ${e.message}</span>`;
+            }
+        }
+
+        async function loadVisualizationStats() {
+            const bar = document.getElementById('timelineStatsBar');
+            const content = document.getElementById('timelineStatsContent');
+            bar.style.display = 'block';
+            content.innerHTML = '<span style="color:#a0aec0;">Loading 3D viz stats...</span>';
+            try {
+                const res = await fetch('/api/v1/visualization/stats', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const rows = Object.entries(data)
+                    .filter(([k]) => k !== 'timestamp')
+                    .map(([k, v]) =>
+                        `<div style="text-align:center;"><div style="font-size:11px;color:#718096;text-transform:uppercase;">${k}</div><div style="font-size:18px;font-weight:700;color:#68d391;">${v}</div></div>`
+                    ).join('');
+                content.innerHTML = rows || '<span style="color:#a0aec0;">No stats available.</span>';
+            } catch (e) {
+                content.innerHTML = `<span style="color:#f56565;">Error: ${e.message}</span>`;
+            }
+        }
+
+        async function loadProjectTimeline() {
+            const projectId = document.getElementById('timelineProjectId').value.trim();
+            const container = document.getElementById('timelineContainer');
+            if (!projectId) {
+                container.innerHTML = '<div style="color:#f56565;padding:20px;">Please enter a Project ID.</div>';
+                return;
+            }
+            container.innerHTML = '<div style="text-align:center;padding:30px;color:#a0aec0;">Loading timeline...</div>';
+            try {
+                const res = await fetch(`/api/v1/timeline/project/${encodeURIComponent(projectId)}?limit=50`, { headers: getAuthHeaders() });
+                const data = await res.json();
+                const entries = data.timeline || data.entries || data || [];
+                if (!Array.isArray(entries) || !entries.length) {
+                    container.innerHTML = '<div style="text-align:center;padding:30px;color:#a0aec0;">No timeline entries found for this project.</div>';
+                    return;
+                }
+                container.innerHTML = entries.map(entry => {
+                    const outcome = (entry.outcome || entry.status || '').toUpperCase();
+                    const color = outcome === 'SUCCESS' ? '#48bb78' : outcome === 'FAILED' ? '#f56565' : '#ecc94b';
+                    const dot = outcome === 'SUCCESS' ? '✅' : outcome === 'FAILED' ? '❌' : '⚠️';
+                    const time = entry.timestamp ? new Date(entry.timestamp).toLocaleString() : (entry.createdAt || '');
+                    return `
+                        <div style="display:flex;gap:12px;margin-bottom:12px;padding:12px;background:#1a202c;border-left:3px solid ${color};border-radius:0 6px 6px 0;">
+                            <span style="font-size:18px;flex-shrink:0;">${dot}</span>
+                            <div style="flex:1;">
+                                <div style="font-weight:600;color:${color};">${entry.action || entry.decisionType || 'Decision'}</div>
+                                <div style="font-size:12px;color:#a0aec0;margin-top:2px;">${entry.description || entry.summary || ''}</div>
+                                <div style="font-size:11px;color:#718096;margin-top:4px;">Agent: ${entry.agentName || entry.agent || '-'} &nbsp;|&nbsp; ${time}</div>
+                            </div>
+                            <div style="font-size:11px;font-family:monospace;color:#4a5568;align-self:flex-start;">${(entry.decisionId || entry.id || '').toString().substring(0,8)}</div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                container.innerHTML = `<div style="color:#f56565;padding:20px;">Error: ${e.message}</div>`;
+            }
+        }
+
+        // =============================================
+        // COMMANDS CONSOLE (wired to real APIs)
+        // =============================================
+
+        const consoleInput = document.getElementById('consoleInput');
+        const consoleOutput = document.getElementById('consoleOutput');
+
+        consoleInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const cmd = consoleInput.value.trim();
+                if (cmd) {
+                    runCommand(cmd);
+                    consoleInput.value = '';
+                }
+            }
+        });
+
+        function logToConsole(text, color = '#e2e8f0') {
+            const div = document.createElement('div');
+            div.style.color = color;
+            div.style.fontFamily = 'monospace';
+            div.style.fontSize = '13px';
+            div.style.marginBottom = '2px';
+            div.innerHTML = text;
+            consoleOutput.appendChild(div);
+            document.getElementById('commandConsole').scrollTop = document.getElementById('commandConsole').scrollHeight;
+        }
+
+        async function runCommand(cmd) {
+            logToConsole(`<span style="color:#68d391;">admin@supremeai:~$</span> ${cmd}`);
+
+            const lower = cmd.trim().toLowerCase();
+
+            if (lower === 'clear') {
+                consoleOutput.innerHTML = '';
+                return;
+            }
+            if (lower === 'help') {
+                logToConsole('Available commands: <strong>status</strong> | <strong>git-status</strong> | <strong>quota</strong> | <strong>agents</strong> | <strong>metrics</strong> | <strong>git-logs</strong> | <strong>clear</strong> | <strong>emergency-stop</strong>', '#63b3ed');
+                return;
+            }
+
+            try {
+                let res, data;
+
+                switch (lower) {
+                    case 'status':
+                    case 'system-status':
+                        res = await fetch('/api/metrics/health', { headers: getAuthHeaders() });
+                        data = await res.json();
+                        logToConsole(`System: <strong>${data.status || 'unknown'}</strong> | CPU: ${data.cpuUsage || '--'}% | Memory: ${data.memoryUsage || '--'}% | Latency: ${data.apiLatency || '--'}ms`, '#68d391');
+                        break;
+
+                    case 'git-status':
+                        res = await fetch('/api/git/status', { headers: getAuthHeaders() });
+                        data = await res.json();
+                        if (data.status === 'success') {
+                            const gs = data.gitStatus || {};
+                            logToConsole(`Branch: <strong>${gs.branch || 'unknown'}</strong> | Modified: ${gs.modifiedCount || 0} | Untracked: ${gs.untrackedCount || 0}`, '#63b3ed');
+                        } else {
+                            logToConsole(`Git status: ${data.message || JSON.stringify(data)}`, '#f6ad55');
+                        }
+                        break;
+
+                    case 'quota':
+                    case 'quota-status':
+                        res = await fetch('/api/quota/summary', { headers: getAuthHeaders() });
+                        data = await res.json();
+                        logToConsole(`Quota: ${JSON.stringify(data).substring(0, 200)}`, '#a0aec0');
+                        break;
+
+                    case 'agents':
+                    case 'work-history':
+                        res = await fetch('/api/work-history', { headers: getAuthHeaders() });
+                        data = await res.json();
+                        const items = Array.isArray(data) ? data : [];
+                        logToConsole(`Work history: <strong>${items.length}</strong> entries`, '#68d391');
+                        items.slice(0,5).forEach(w => logToConsole(`  &nbsp;[${w.agent}] ${w.taskName} — ${w.status}`, '#a0aec0'));
+                        break;
+
+                    case 'metrics':
+                        res = await fetch('/api/metrics/stats', { headers: getAuthHeaders() });
+                        data = await res.json();
+                        logToConsole(`Metrics: ${JSON.stringify(data).substring(0, 300)}`, '#a0aec0');
+                        break;
+
+                    case 'git-logs':
+                        res = await fetch('/api/git/logs?limit=10', { headers: getAuthHeaders() });
+                        data = await res.json();
+                        const commits = data.commits || [];
+                        logToConsole(`Last ${commits.length} commits:`, '#63b3ed');
+                        commits.forEach(c => logToConsole(`  &nbsp;<strong>${(c.hash || '').substring(0,7)}</strong> ${c.message || c.subject || ''}`, '#a0aec0'));
+                        break;
+
+                    case 'emergency-stop':
+                        if (!confirm('Emergency stop ALL operations?')) { logToConsole('Stop cancelled.', '#f6ad55'); return; }
+                        res = await fetch('/api/admin/control/stop', {
+                            method: 'POST',
+                            headers: getAuthHeaders(),
+                            body: JSON.stringify({ reason: 'Admin emergency stop from console' })
+                        });
+                        data = await res.json();
+                        logToConsole(`🛑 ${data.message || 'Emergency stop executed'}`, '#f56565');
+                        break;
+
+                    default:
+                        logToConsole(`Command not found: <strong>${cmd}</strong>. Type <strong>help</strong> for available commands.`, '#f56565');
+                }
+            } catch (e) {
+                logToConsole(`❌ Error: ${e.message}`, '#f56565');
+            }
+        }
+
+        // =============================================
+        // GIT PROJECTS (wired to real APIs)
+        // =============================================
+
+        async function loadGitStatus() {
+            const panel = document.getElementById('gitStatusPanel');
+            const content = document.getElementById('gitStatusContent');
+            panel.style.display = 'block';
+            content.textContent = 'Loading...';
+            try {
+                const res = await fetch('/api/git/status', { headers: getAuthHeaders() });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    const gs = data.gitStatus || {};
+                    content.innerHTML = `Branch: <strong style="color:#4299e1">${gs.branch || 'unknown'}</strong> &nbsp;|&nbsp; Modified: ${gs.modifiedCount || 0} &nbsp;|&nbsp; Untracked: ${gs.untrackedCount || 0} &nbsp;|&nbsp; Unstaged: ${gs.unstaggedCount || 0}`;
+                } else {
+                    content.textContent = data.message || JSON.stringify(data);
+                }
+            } catch (e) {
+                content.textContent = 'Error: ' + e.message;
+            }
+        }
+
+        async function loadGitLogs() {
+            const tbody = document.getElementById('gitLogsTable');
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Loading...</td></tr>';
+            try {
+                const res = await fetch('/api/git/logs?limit=20', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const commits = data.commits || [];
+                if (!commits.length) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#a0aec0;">No commits found.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = commits.map(c => `
+                    <tr>
+                        <td style="font-family:monospace;color:#63b3ed;">${(c.hash || c.id || '').substring(0,8)}</td>
+                        <td>${c.message || c.subject || '-'}</td>
+                        <td>${c.author || '-'}</td>
+                        <td>${c.date || c.timestamp || '-'}</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="4" style="color:#f56565;">${e.message}</td></tr>`;
+            }
+        }
+
+        async function createGitProject() {
+            const projectId = document.getElementById('gitProjectId').value.trim();
+            const templateType = document.getElementById('gitProjectTemplate').value;
+            const description = document.getElementById('gitTask').value.trim();
+            const gitUrl = document.getElementById('gitUrl').value.trim();
+            const msg = document.getElementById('gitProjectModalMsg');
+
+            if (!projectId || !description) {
+                msg.innerHTML = '<span style="color:#f56565;">Project ID and task description are required.</span>';
+                return;
+            }
+
+            const features = gitUrl ? [`Repository: ${gitUrl}`] : [];
+
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Starting development...</span>';
+            try {
+                const res = await fetch('/api/projects/generate', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ projectId, templateType, description, features })
+                });
+                const data = await res.json();
+                if (data.status === 'success' || data.projectId) {
+                    msg.innerHTML = `<span style="color:#48bb78;">✅ Project "${data.projectId || projectId}" started! Mode: ${data.status || 'GENERATING'}</span>`;
+                    document.getElementById('gitProjectId').value = '';
+                    document.getElementById('gitUrl').value = '';
+                    document.getElementById('gitTask').value = '';
+                    const mainMsg = document.getElementById('gitProjectMsg');
+                    if (mainMsg) mainMsg.innerHTML = `<span style="color:#48bb78;">✅ Latest: "${data.projectId || projectId}" — ${new Date().toLocaleTimeString()}</span>`;
+                    loadGitLogs();
+                } else {
+                    msg.innerHTML = `<span style="color:#f56565;">❌ ${data.message || data.error || 'Failed'}</span>`;
+                }
+            } catch (e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        // =============================================
+        // AI AGENT ASSIGNMENT (wired to real APIs)
+        // =============================================
+
+        async function loadAssignments() {
+            const tbody = document.getElementById('aiAgentsTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
+            try {
+                const res = await fetch('/api/assignments', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const list = Array.isArray(data) ? data : (data.assignments || []);
+                if (!list.length) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#a0aec0;">🤖 No assignments yet. Click "➕ Assign New AI Agent" to start.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = list.map(a => {
+                    const statusColor = a.status === 'completed' ? '#48bb78' : a.status === 'in-progress' ? '#63b3ed' : '#a0aec0';
+                    return `<tr>
+                        <td style="font-family:monospace;font-size:11px;">${(a.id || '').substring(0,8)}</td>
+                        <td>${a.agentId || a.agent || '-'}</td>
+                        <td>${a.taskName || a.task || '-'}</td>
+                        <td><span class="badge badge-info">${a.priority || 'medium'}</span></td>
+                        <td><span style="color:${statusColor};font-weight:600;">${a.status || 'pending'}</span></td>
+                        <td>${a.progress != null ? a.progress + '%' : '-'}</td>
+                    </tr>`;
+                }).join('');
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="6" style="color:#f56565;">${e.message}</td></tr>`;
+            }
+        }
+
+        async function assignAI() {
+            const agentId = document.getElementById('assignAgentId').value.trim() || ('agent-' + Date.now());
+            const taskName = document.getElementById('assignTaskName').value.trim();
+            const role = document.getElementById('assignRole').value;
+            const priority = document.getElementById('assignPriority').value;
+            const msg = document.getElementById('assignAIMsg');
+
+            if (!taskName) {
+                msg.innerHTML = '<span style="color:#f56565;">Task name is required.</span>';
+                return;
+            }
+            try {
+                const res = await fetch('/api/assignments/create', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ agentId, taskName, role, priority, status: 'pending', progress: 0 })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    msg.innerHTML = `<span style="color:#48bb78;">✅ Assignment created (ID: ${(data.id || '').substring(0,8)})</span>`;
+                    document.getElementById('assignAgentId').value = '';
+                    document.getElementById('assignTaskName').value = '';
+                    closeModal('assignAIModal');
+                    loadAssignments();
+                } else {
+                    msg.innerHTML = `<span style="color:#f56565;">❌ ${data.error || 'Failed to create assignment'}</span>`;
+                }
+            } catch (e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
         }
 
         // Initialize
@@ -1664,6 +3629,8 @@
             loadLearningSummary();
             loadTechniquePreview();
             loadProviderCoveragePreview();
+            loadAuditLogs();
+            loadDashboardStats();
         });
 
         // Close modals when clicking outside

@@ -1,6 +1,6 @@
-package org.example.kimik2;
+package org.example.agentorchestration;
 
-import org.example.kimik2.learning.LearningFirebaseRepository;
+import org.example.agentorchestration.learning.LearningFirebaseRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +11,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * KIMI K2 TECHNIQUE 1: Mixture-of-Experts (MoE) Router
+ * ADAPTIVE ORCHESTRATION TECHNIQUE 1: Mixture-of-Experts (MoE) Router
  *
- * Inspired by Kimi K2's architecture:
+ * Inspired by sparse expert-routing architectures:
  *   - 1T total params, 32B activated per token
  *   - 384 experts, 8 selected per token
  *
@@ -27,11 +27,11 @@ import java.util.stream.Collectors;
  * handle each task, reducing cost and improving quality.
  */
 @Service
-public class KimiMoERouter {
+public class ExpertAgentRouter {
 
-    private static final Logger logger = LoggerFactory.getLogger(KimiMoERouter.class);
+    private static final Logger logger = LoggerFactory.getLogger(ExpertAgentRouter.class);
 
-    // Default top-K agents to activate per task (like K2's 8-of-384)
+    // Default top-K agents to activate per task.
     private static final int DEFAULT_TOP_K = 3;
 
     // All 20 SupremeAI agents (phases 1-10)
@@ -64,10 +64,10 @@ public class KimiMoERouter {
     @Autowired(required = false)
     private LearningFirebaseRepository firebaseRepo;
 
-    // Shared expert: always included regardless of task (like K2's 1 shared expert)
+    // Shared expert: always included regardless of task.
     private static final String SHARED_EXPERT = "Architect";
 
-    public KimiMoERouter() {
+    public ExpertAgentRouter() {
         initializeWeights();
     }
 

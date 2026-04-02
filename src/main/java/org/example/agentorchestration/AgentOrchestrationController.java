@@ -1,4 +1,4 @@
-package org.example.kimik2;
+package org.example.agentorchestration;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -7,35 +7,35 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 /**
- * REST API for SupremeAI's Kimi K2 Training System.
+ * REST API for SupremeAI's Adaptive Agent Orchestration system.
  *
  * Endpoints:
- *   POST /api/kimik2/submit          — Submit a task through the full pipeline
- *   GET  /api/kimik2/status          — Full system status snapshot
- *   GET  /api/kimik2/routing         — MoE routing table (which agents handle what)
- *   GET  /api/kimik2/leaderboard     — Agent performance leaderboard (RLVR scores)
- *   GET  /api/kimik2/history         — Recent task execution history
- *   GET  /api/kimik2/tools           — List all registered agentic tools
- *   GET  /api/kimik2/muonclip/{agent}— MuonClip optimizer diagnostics
- *   GET  /api/kimik2/task-types      — Supported task type enum values
+ *   POST /api/agent-orchestration/submit          — Submit a task through the full pipeline
+ *   GET  /api/agent-orchestration/status          — Full system status snapshot
+ *   GET  /api/agent-orchestration/routing         — MoE routing table (which agents handle what)
+ *   GET  /api/agent-orchestration/leaderboard     — Agent performance leaderboard (RLVR scores)
+ *   GET  /api/agent-orchestration/history         — Recent task execution history
+ *   GET  /api/agent-orchestration/tools           — List all registered agentic tools
+ *   GET  /api/agent-orchestration/muonclip/{agent}— MuonClip optimizer diagnostics
+ *   GET  /api/agent-orchestration/task-types      — Supported task type enum values
  */
-@RestController
-@RequestMapping("/api/kimik2")
-public class KimiK2Controller {
+@RestController("adaptiveAgentOrchestrationController")
+@RequestMapping("/api/agent-orchestration")
+public class AgentOrchestrationController {
 
     @Autowired
-    private KimiK2Orchestrator orchestrator;
+    private AdaptiveAgentOrchestrator orchestrator;
 
     @Autowired
     private AgenticToolLoop toolLoop;
 
     /**
-     * Submit a task to the full Kimi K2 pipeline.
+    * Submit a task to the full adaptive orchestration pipeline.
      *
      * Request body (JSON):
      * {
      *   "goal":       "Fix the failing AuthenticationFilterTest",
-     *   "taskType":   "BUG_FIX",          // see /api/kimik2/task-types
+    *   "taskType":   "BUG_FIX",          // see /api/agent-orchestration/task-types
      *   "topK":       3,                   // optional, default 3
      *   "customPlan": ["run_tests", "analyze_error:error=auth failure", "apply_fix"]  // optional
      * }
@@ -51,9 +51,9 @@ public class KimiK2Controller {
         }
 
         String taskTypeName = (String) body.getOrDefault("taskType", "CODE_GENERATION");
-        KimiMoERouter.TaskType taskType;
+        ExpertAgentRouter.TaskType taskType;
         try {
-            taskType = KimiMoERouter.TaskType.valueOf(taskTypeName.toUpperCase());
+            taskType = ExpertAgentRouter.TaskType.valueOf(taskTypeName.toUpperCase());
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
                 .body(Map.of("error", "Invalid taskType: " + taskTypeName));
@@ -62,14 +62,14 @@ public class KimiK2Controller {
         int topK = body.containsKey("topK") ? (int) body.get("topK") : 3;
         topK = Math.max(1, Math.min(topK, 5)); // bounded [1,5]
 
-        KimiK2Orchestrator.TaskRequest req = new KimiK2Orchestrator.TaskRequest(goal, taskType);
+        AdaptiveAgentOrchestrator.TaskRequest req = new AdaptiveAgentOrchestrator.TaskRequest(goal, taskType);
         req.topK = topK;
 
         @SuppressWarnings("unchecked")
         List<String> customPlan = (List<String>) body.get("customPlan");
         req.customPlan = customPlan;
 
-        KimiK2Orchestrator.TaskExecution exec = orchestrator.submit(req);
+        AdaptiveAgentOrchestrator.TaskExecution exec = orchestrator.submit(req);
         return ResponseEntity.ok(exec.toSummary());
     }
 
@@ -86,11 +86,11 @@ public class KimiK2Controller {
      */
     @GetMapping("/routing")
     public ResponseEntity<Map<String, Object>> routing() {
-        Map<KimiMoERouter.TaskType, List<String>> raw = orchestrator.getRoutingSummary();
+        Map<ExpertAgentRouter.TaskType, List<String>> raw = orchestrator.getRoutingSummary();
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("description", "MoE routing table (Kimi K2 technique 1)");
-        response.put("total_agents", KimiMoERouter.ALL_AGENTS.size());
-        response.put("all_agents", KimiMoERouter.ALL_AGENTS);
+        response.put("description", "MoE routing table for Adaptive Agent Orchestration");
+        response.put("total_agents", ExpertAgentRouter.ALL_AGENTS.size());
+        response.put("all_agents", ExpertAgentRouter.ALL_AGENTS);
         Map<String, List<String>> routing = new LinkedHashMap<>();
         raw.forEach((k, v) -> routing.put(k.name(), v));
         response.put("routing", routing);
@@ -103,7 +103,7 @@ public class KimiK2Controller {
     @GetMapping("/leaderboard")
     public ResponseEntity<Map<String, Object>> leaderboard() {
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("description", "RLVR Agent Performance Leaderboard (Kimi K2 technique 2)");
+        response.put("description", "RLVR agent performance leaderboard");
         response.put("leaderboard", orchestrator.getLeaderboard());
         return ResponseEntity.ok(response);
     }
@@ -118,7 +118,7 @@ public class KimiK2Controller {
             @RequestParam(defaultValue = "20") int limit) {
         limit = Math.max(1, Math.min(limit, 100));
         List<Map<String, Object>> summaries = new ArrayList<>();
-        for (KimiK2Orchestrator.TaskExecution exec : orchestrator.getHistory(limit)) {
+        for (AdaptiveAgentOrchestrator.TaskExecution exec : orchestrator.getHistory(limit)) {
             summaries.add(exec.toSummary());
         }
         Map<String, Object> response = new LinkedHashMap<>();
@@ -133,7 +133,7 @@ public class KimiK2Controller {
     @GetMapping("/tools")
     public ResponseEntity<Map<String, Object>> tools() {
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("description", "Agentic tool registry (Kimi K2 technique 4)");
+        response.put("description", "Agentic tool registry for Adaptive Agent Orchestration");
         response.put("tools", toolLoop.listTools());
         return ResponseEntity.ok(response);
     }
@@ -152,10 +152,10 @@ public class KimiK2Controller {
     @GetMapping("/muonclip/{agentName}")
     public ResponseEntity<Map<String, Object>> muonClipDiagnostics(
             @PathVariable String agentName) {
-        if (!KimiMoERouter.ALL_AGENTS.contains(agentName)) {
+        if (!ExpertAgentRouter.ALL_AGENTS.contains(agentName)) {
             return ResponseEntity.badRequest()
                 .body(Map.of("error", "Unknown agent: " + agentName,
-                             "valid_agents", KimiMoERouter.ALL_AGENTS));
+                             "valid_agents", ExpertAgentRouter.ALL_AGENTS));
         }
         return ResponseEntity.ok(orchestrator.getMuonClipDiagnostics(agentName));
     }
@@ -165,7 +165,7 @@ public class KimiK2Controller {
      */
     @GetMapping("/task-types")
     public ResponseEntity<Map<String, Object>> taskTypes() {
-        List<String> types = Arrays.stream(KimiMoERouter.TaskType.values())
+        List<String> types = Arrays.stream(ExpertAgentRouter.TaskType.values())
             .map(Enum::name)
             .collect(java.util.stream.Collectors.toList());
         Map<String, Object> response = new LinkedHashMap<>();

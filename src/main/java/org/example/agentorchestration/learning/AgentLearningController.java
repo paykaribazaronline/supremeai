@@ -1,4 +1,4 @@
-package org.example.kimik2.learning;
+package org.example.agentorchestration.learning;
 
 import org.example.service.AIAPIService;
 import org.example.service.QuotaService;
@@ -13,19 +13,19 @@ import java.util.*;
  * REST API for Levels 2, 3, 4 of SupremeAI's deep learning system.
  *
  * Endpoints:
- *   GET  /api/kimik2/learning/profiles          — Level 2: all agent profiles
- *   GET  /api/kimik2/learning/profiles/{agent}  — Level 2: single agent profile
- *   POST /api/kimik2/learning/profiles/rebuild  — Level 2: rebuild all profiles NOW
- *   GET  /api/kimik2/learning/chains/stats      — Level 3: chain store stats
- *   GET  /api/kimik2/learning/chains/{agent}    — Level 3: chains for one agent
- *   POST /api/kimik2/learning/chains/index      — Level 3: re-index all chains NOW
- *   POST /api/kimik2/learning/generate          — Level 4: generate reasoning for task
- *   GET  /api/kimik2/learning/generate/stats    — Level 4: generator stats
- *   GET  /api/kimik2/learning/status            — All 3 levels combined status
+ *   GET  /api/agent-orchestration/learning/profiles          — Level 2: all agent profiles
+ *   GET  /api/agent-orchestration/learning/profiles/{agent}  — Level 2: single agent profile
+ *   POST /api/agent-orchestration/learning/profiles/rebuild  — Level 2: rebuild all profiles NOW
+ *   GET  /api/agent-orchestration/learning/chains/stats      — Level 3: chain store stats
+ *   GET  /api/agent-orchestration/learning/chains/{agent}    — Level 3: chains for one agent
+ *   POST /api/agent-orchestration/learning/chains/index      — Level 3: re-index all chains NOW
+ *   POST /api/agent-orchestration/learning/generate          — Level 4: generate reasoning for task
+ *   GET  /api/agent-orchestration/learning/generate/stats    — Level 4: generator stats
+ *   GET  /api/agent-orchestration/learning/status            — All 3 levels combined status
  */
 @RestController
-@RequestMapping("/api/kimik2/learning")
-public class DeepLearningController {
+@RequestMapping("/api/agent-orchestration/learning")
+public class AgentLearningController {
 
     @Autowired
     private AgentPatternProfiler profiler;
@@ -163,7 +163,7 @@ public class DeepLearningController {
     public ResponseEntity<Map<String, Object>> status() {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("learning_levels_implemented", Arrays.asList(
-            "Level 1: RLVR (who wins) — KimiK2 core package",
+            "Level 1: RLVR (who wins) — adaptive orchestration core package",
             "Level 2: Pattern Profiler (how they reason) — AgentPatternProfiler",
             "Level 3: Chain Copier (copy best reasoning) — ReasoningChainCopier",
             "Level 4: Reasoning Generator (generate new reasoning) — ReasoningGenerator"

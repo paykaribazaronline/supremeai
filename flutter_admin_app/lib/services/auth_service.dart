@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import '../config/environment.dart';
 import 'api_service.dart';
@@ -15,8 +16,45 @@ class AuthService {
 
   AuthService._internal();
 
-  // Login
+  // Login — tries Firebase Auth first (email only), falls back to direct backend JWT
   Future<bool> login(String email, String password) async {
+    // ── Step 1: Firebase Authentication (requires an email address) ──────────
+    final isEmail = email.contains('@');
+    if (isEmail) {
+      try {
+        final cred = await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+        final idToken = await cred.user?.getIdToken();
+        if (idToken != null) {
+          // Exchange Firebase ID token for a SupremeAI backend session JWT
+          final fbResp = await _apiService.post<Map<String, dynamic>>(
+            '/api/auth/firebase-login',
+            data: {'idToken': idToken},
+          );
+
+          if (fbResp.success && fbResp.data != null) {
+            final token = fbResp.data?['token'] as String?;
+            final refreshToken = fbResp.data?['refreshToken'] as String?;
+            if (token != null) {
+              await _storageService.saveToken(token);
+              if (refreshToken != null) {
+                await _storageService.saveRefreshToken(refreshToken);
+              }
+              final decoded = JwtDecoder.decode(token);
+              await _storageService.saveUserData(jsonEncode(decoded));
+              print('✅ Authenticated via Firebase Auth');
+              return true;
+            }
+          }
+        }
+      } catch (fbErr) {
+        print('Firebase Auth failed, trying direct login: $fbErr');
+      }
+    }
+
+    // ── Step 2: Fall back to direct backend JWT login ─────────────────────────
     try {
       final response = await _apiService.post<Map<String, dynamic>>(
         Environment.authLogin,
@@ -94,10 +132,15 @@ class AuthService {
       await _apiService.post(Environment.authLogout);
     } catch (e) {
       print('Logout error: $e');
-    } finally {
-      await _storageService.clearToken();
-      await _storageService.clearUserData();
     }
+    // Sign out of Firebase Auth as well
+    try {
+      await FirebaseAuth.instance.signOut();
+    } catch (e) {
+      print('Firebase sign-out error: $e');
+    }
+    await _storageService.clearToken();
+    await _storageService.clearUserData();
   }
 
   // Refresh token

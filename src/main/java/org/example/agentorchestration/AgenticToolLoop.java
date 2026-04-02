@@ -1,4 +1,4 @@
-package org.example.kimik2;
+package org.example.agentorchestration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,9 +9,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 /**
- * KIMI K2 TECHNIQUE 4: Agentic Multi-Step Tool Loop
+ * ADAPTIVE ORCHESTRATION TECHNIQUE 4: Agentic Multi-Step Tool Loop
  *
- * Kimi K2's defining capability (the "Agentic Intelligence"):
+ * Core agentic capability of the orchestration layer:
  *   - Given a goal, the model decides WHAT tools to call, in WHAT order,
  *     with WHAT arguments — iterating until the goal is complete.
  *   - The loop runs: THINK → ACT (tool call) → OBSERVE (result) → repeat
@@ -70,7 +70,7 @@ public class AgenticToolLoop {
     /**
      * Execute the agentic loop for a goal using a specific set of agents.
      *
-     * Algorithm (mirrors Kimi K2's tool_call_with_client loop):
+    * Algorithm for iterative tool execution:
      *   while not done and steps < MAX_STEPS:
      *     1. Present goal + all previous observations to agents
      *     2. Agents (via MoE) decide next tool to call + args
@@ -87,7 +87,7 @@ public class AgenticToolLoop {
      * @return             complete session transcript
      */
     public LoopSession execute(String goalId, String goal, List<String> agents,
-                               KimiMoERouter.TaskType taskType,
+                               ExpertAgentRouter.TaskType taskType,
                                List<PlannedStep> planSteps) {
 
         LoopSession session = new LoopSession(goalId, goal, agents, taskType);
@@ -306,7 +306,7 @@ public class AgenticToolLoop {
         public final String goalId;
         public final String goal;
         public final List<String> agents;
-        public final KimiMoERouter.TaskType taskType;
+        public final ExpertAgentRouter.TaskType taskType;
         public final long startTime = System.currentTimeMillis();
         public long endTime;
         private final List<Map<String, Object>> observations = new ArrayList<>();
@@ -316,7 +316,7 @@ public class AgenticToolLoop {
         private String failReason;
 
         public LoopSession(String goalId, String goal, List<String> agents,
-                           KimiMoERouter.TaskType taskType) {
+                           ExpertAgentRouter.TaskType taskType) {
             this.goalId = goalId;
             this.goal = goal;
             this.agents = agents;

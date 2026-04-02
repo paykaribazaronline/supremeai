@@ -30,7 +30,7 @@ import java.util.*;
  */
 @RestController
 @RequestMapping("/api/chat")
-@CrossOrigin(origins = "http://localhost:8001")
+@CrossOrigin(origins = "*")
 public class ChatController {
     
     private final MemoryManager memoryManager;

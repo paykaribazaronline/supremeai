@@ -50,7 +50,7 @@ public class ProvidersController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateProvider(@PathVariable String id, @RequestBody APIProvider provider) {
+    public ResponseEntity<?> updateProvider(@PathVariable("id") String id, @RequestBody APIProvider provider) {
         try {
             return ResponseEntity.ok(Map.of(
                 "success", true,
@@ -62,7 +62,7 @@ public class ProvidersController {
     }
 
     @PostMapping("/test/{id}")
-    public ResponseEntity<?> testProvider(@PathVariable String id) {
+    public ResponseEntity<?> testProvider(@PathVariable("id") String id) {
         try {
             return ResponseEntity.ok(providerManagementService.probeProvider(id));
         } catch (Exception e) {
@@ -75,12 +75,12 @@ public class ProvidersController {
     }
 
     @PostMapping("/probe/{id}")
-    public ResponseEntity<?> probeProvider(@PathVariable String id) {
+    public ResponseEntity<?> probeProvider(@PathVariable("id") String id) {
         return testProvider(id);
     }
 
     @PostMapping("/rotate/{id}")
-    public ResponseEntity<?> rotateProvider(@PathVariable String id, @RequestBody Map<String, String> request) {
+    public ResponseEntity<?> rotateProvider(@PathVariable("id") String id, @RequestBody Map<String, String> request) {
         try {
             return ResponseEntity.ok(providerManagementService.rotateProvider(id, request));
         } catch (Exception e) {
@@ -96,7 +96,7 @@ public class ProvidersController {
     public ResponseEntity<?> removeProvider(@RequestBody Map<String, String> request) {
         try {
             String id = request.get("id");
-            boolean removed = providerManagementService.removeProvider(id);
+            boolean removed = providerManagementService.removeProvider(id, request.get("actedBy"));
             return ResponseEntity.ok(Map.of("success", removed));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
@@ -104,9 +104,18 @@ public class ProvidersController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteProvider(@PathVariable String id) {
+    public ResponseEntity<?> deleteProvider(@PathVariable("id") String id) {
         try {
-            return ResponseEntity.ok(Map.of("success", providerManagementService.removeProvider(id)));
+            return ResponseEntity.ok(Map.of("success", providerManagementService.removeProvider(id, "system")));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/audit")
+    public ResponseEntity<?> getAuditEvents(@RequestParam(name = "limit", defaultValue = "100") int limit) {
+        try {
+            return ResponseEntity.ok(providerManagementService.getAuditEvents(limit));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }

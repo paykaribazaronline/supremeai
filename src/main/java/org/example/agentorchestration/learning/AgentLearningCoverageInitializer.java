@@ -1,6 +1,6 @@
-package org.example.kimik2.learning;
+package org.example.agentorchestration.learning;
 
-import org.example.kimik2.KimiMoERouter;
+import org.example.agentorchestration.ExpertAgentRouter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +17,9 @@ import java.util.Map;
  * and external AI provider, even before live traffic accumulates history.
  */
 @Service
-public class DeepLearningCoverageInitializer {
+public class AgentLearningCoverageInitializer {
 
-    private static final Logger logger = LoggerFactory.getLogger(DeepLearningCoverageInitializer.class);
+    private static final Logger logger = LoggerFactory.getLogger(AgentLearningCoverageInitializer.class);
 
     @Autowired
     private AgentPatternProfiler profiler;
@@ -35,7 +35,7 @@ public class DeepLearningCoverageInitializer {
         profiler.ensureKnownProfilesPresent();
 
         Map<String, List<String>> tasksByAgent = new LinkedHashMap<>();
-        for (String agent : KimiMoERouter.ALL_AGENTS) {
+        for (String agent : ExpertAgentRouter.ALL_AGENTS) {
             tasksByAgent.put(agent, extractTaskTypes(knowledgeSeedService.getAgentKnowledge(agent)));
         }
         for (String provider : knowledgeSeedService.getAllProviders()) {

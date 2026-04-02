@@ -20,7 +20,7 @@ import java.util.Map;
     "org.example.service",
     "org.example.controller",
     "org.example.config",
-    "org.example.kimik2",
+    "org.example.agentorchestration",
     "org.example.resilience",
     "org.example.tracing",
     "org.example.filter",

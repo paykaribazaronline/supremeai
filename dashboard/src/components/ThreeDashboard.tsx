@@ -89,7 +89,7 @@ const ThreeDashboard: React.FC = () => {
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFShadowShadowMap;
+        renderer.shadowMap.type = THREE.PCFShadowMap;
         rendererRef.current = renderer;
         
         mountRef.current.appendChild(renderer.domElement);
@@ -372,7 +372,7 @@ const ThreeDashboard: React.FC = () => {
                 });
 
                 const mesh = new THREE.Mesh(geometry, material);
-                mesh.position.set(...agentData.position);
+                mesh.position.set(...(agentData.position as [number, number, number]));
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
                 
@@ -383,7 +383,7 @@ const ThreeDashboard: React.FC = () => {
             } else {
                 // Update agent position
                 if (agent.mesh) {
-                    agent.mesh.position.set(...agentData.position);
+                    agent.mesh.position.set(...(agentData.position as [number, number, number]));
                 }
             }
         });

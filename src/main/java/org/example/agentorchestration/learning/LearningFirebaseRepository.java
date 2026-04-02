@@ -1,4 +1,4 @@
-package org.example.kimik2.learning;
+package org.example.agentorchestration.learning;
 
 import com.google.firebase.database.*;
 import org.example.service.FirebaseService;
@@ -23,7 +23,7 @@ import java.util.concurrent.*;
  *       moe_agents/{agent}                ← base knowledge for 20 internal agents
  *       metadata                          ← seed version + timestamp
  *
- * This covers ALL AI model knowledge — not just Kimi K2 internals.
+ * This covers ALL AI model knowledge — not just internal orchestration state.
  * External providers (OpenAI, Anthropic, etc.) and internal MoE agents
  * are treated uniformly: every "agent" that touches a task gets profiled.
  *

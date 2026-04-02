@@ -1,7 +1,7 @@
 // AdminDashboard.tsx - Main SupremeAI Admin Control Panel
 
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Breadcrumb, Card, Statistic, Row, Col, Alert, Badge, Tabs, Space } from 'antd';
+import { Layout, Menu, Breadcrumb, Card, Statistic, Row, Col, Alert, Badge, Space } from 'antd';
 import {
     DashboardOutlined,
     CloudServerOutlined,
@@ -11,9 +11,9 @@ import {
     SettingOutlined,
     CheckCircleOutlined,
     WarningOutlined,
-    VoteYeaOutlined,
+    LikeOutlined,
     CrownOutlined,
-    ProgressOutlined,
+    BarChartOutlined,
     BugOutlined,
 } from '@ant-design/icons';
 import APIManagement from '../components/APIManagement';
@@ -35,19 +35,36 @@ interface DashboardStats {
     activeAIAgents: number;
     runningTasks: number;
     completedTasks: number;
-    systemHealth: 'healthy' | 'warning' | 'critical';
+    systemHealthStatus: 'healthy' | 'warning' | 'critical';
+    systemHealthScore: number;
     successRate: number;
     lastSyncTime: string;
+}
+
+interface NavigationItem {
+    key: string;
+    label: string;
+    enabled: boolean;
+}
+
+interface DashboardContract {
+    contractVersion: string;
+    title: string;
+    entryPath: string;
+    stats: DashboardStats;
+    navigation: NavigationItem[];
 }
 
 const AdminDashboard: React.FC = () => {
     const [collapsed, setCollapsed] = useState(false);
     const [selectedTab, setSelectedTab] = useState('overview');
+    const [dashboardContract, setDashboardContract] = useState<DashboardContract | null>(null);
     const [stats, setStats] = useState<DashboardStats>({
         activeAIAgents: 0,
         runningTasks: 0,
         completedTasks: 0,
-        systemHealth: 'healthy',
+        systemHealthStatus: 'healthy',
+        systemHealthScore: 0,
         successRate: 0,
         lastSyncTime: new Date().toLocaleString(),
     });
@@ -59,28 +76,31 @@ const AdminDashboard: React.FC = () => {
         return () => clearInterval(interval);
     }, []);
 
-    const fetchDashboardStats = async () => {
+    const fetchDashboardContract = async () => {
         try {
-            const token = localStorage.getItem('authToken');
-            const response = await fetch('/api/admin/dashboard/stats', {
+            const token = localStorage.getItem('supremeai_token') || localStorage.getItem('authToken');
+            const response = await fetch('/api/admin/dashboard/contract', {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
             if (response.ok) {
-                const data = await response.json();
-                setStats(data);
+                const data: DashboardContract = await response.json();
+                setDashboardContract(data);
+                setStats(data.stats);
             }
         } catch (error) {
-            console.error('Failed to fetch dashboard stats:', error);
+            console.error('Failed to fetch dashboard contract:', error);
         } finally {
             setLoading(false);
         }
     };
 
-    const menuItems = [
+    const fetchDashboardStats = fetchDashboardContract;
+
+    const defaultMenuItems = [
         {
             key: 'overview',
             icon: <DashboardOutlined />,
-            label: 'Overview',
+            label: 'Dashboard',
         },
         {
             key: 'api-management',
@@ -129,7 +149,7 @@ const AdminDashboard: React.FC = () => {
         },
         {
             key: 'voting',
-            icon: <VoteYeaOutlined />,
+            icon: <LikeOutlined />,
             label: 'Decision & Voting',
             children: [
                 { key: 'voting-active', label: 'Active Votes' },
@@ -144,7 +164,7 @@ const AdminDashboard: React.FC = () => {
         },
         {
             key: 'progress',
-            icon: <ProgressOutlined />,
+            icon: <BarChartOutlined />,
             label: 'Progress Tracking',
             children: [
                 { key: 'progress-overview', label: 'Work Progress' },
@@ -173,6 +193,15 @@ const AdminDashboard: React.FC = () => {
             label: 'System Settings',
         },
     ];
+
+    const labelOverrides = Object.fromEntries(
+        (dashboardContract?.navigation || []).map((item) => [item.key, item.label])
+    );
+
+    const menuItems = defaultMenuItems.map((item) => ({
+        ...item,
+        label: labelOverrides[item.key] || item.label,
+    }));
 
     const handleMenuClick = (e: any) => {
         setSelectedTab(e.key);
@@ -261,11 +290,11 @@ const AdminDashboard: React.FC = () => {
                         alignItems: 'center',
                     }}
                 >
-                    <h1 style={{ margin: 0 }}>SupremeAI Admin Control Panel</h1>
+                    <h1 style={{ margin: 0 }}>{dashboardContract?.title || 'SupremeAI Admin Control Panel'}</h1>
                     <Space>
                         <Badge
-                            status={stats.systemHealth === 'healthy' ? 'success' : stats.systemHealth === 'warning' ? 'warning' : 'error'}
-                            text={`System: ${stats.systemHealth}`}
+                            status={stats.systemHealthStatus === 'healthy' ? 'success' : stats.systemHealthStatus === 'warning' ? 'warning' : 'error'}
+                            text={`System: ${stats.systemHealthStatus}`}
                         />
                         <span className="text-muted">Last sync: {stats.lastSyncTime}</span>
                     </Space>
@@ -309,7 +338,7 @@ const OverviewTab: React.FC<{ stats: DashboardStats; loading: boolean }> = ({ st
                     <Statistic
                         title="Running Tasks"
                         value={stats.runningTasks}
-                        prefix={<ProgressOutlined />}
+                        prefix={<BarChartOutlined />}
                     />
                 </Card>
             </Col>
@@ -344,7 +373,7 @@ const OverviewTab: React.FC<{ stats: DashboardStats; loading: boolean }> = ({ st
             </Col>
             <Col xs={24} lg={12}>
                 <Card title="Recent Activity" loading={loading}>
-                    <AuditLog limit={5} />
+                    <AuditLog />
                 </Card>
             </Col>
         </Row>

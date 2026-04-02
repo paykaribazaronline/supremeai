@@ -1,5 +1,8 @@
 package org.example.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import jakarta.annotation.PostConstruct;
+import org.example.model.APIProvider;
 import org.example.model.APIProvider;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +15,28 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class ProviderRegistryService {
+    private static final String STORE_PATH = "provider-registry.json";
+
+    private final LocalJsonStoreService localJsonStoreService;
     private final Map<String, APIProvider> providers = new ConcurrentHashMap<>();
+
+    public ProviderRegistryService(LocalJsonStoreService localJsonStoreService) {
+        this.localJsonStoreService = localJsonStoreService;
+    }
+
+    @PostConstruct
+    void loadProviders() {
+        List<APIProvider> persistedProviders = localJsonStoreService.read(
+            STORE_PATH,
+            new TypeReference<List<APIProvider>>() {},
+            new ArrayList<>()
+        );
+        providers.clear();
+        for (APIProvider provider : persistedProviders) {
+            APIProvider normalized = normalize(provider);
+            providers.put(normalized.getId(), normalized);
+        }
+    }
 
     public List<APIProvider> getAllProviders() {
         return providers.values().stream()
@@ -34,11 +58,16 @@ public class ProviderRegistryService {
     public APIProvider addOrUpdateProvider(APIProvider provider) {
         APIProvider normalized = normalize(provider);
         providers.put(normalized.getId(), normalized);
+        persistProviders();
         return normalized;
     }
 
     public boolean removeProvider(String id) {
-        return providers.remove(id) != null;
+        boolean removed = providers.remove(id) != null;
+        if (removed) {
+            persistProviders();
+        }
+        return removed;
     }
 
     public List<String> getActiveProviderIds() {
@@ -89,5 +118,9 @@ public class ProviderRegistryService {
         }
 
         return normalized;
+    }
+
+    private void persistProviders() {
+        localJsonStoreService.write(STORE_PATH, getAllProviders());
     }
 }

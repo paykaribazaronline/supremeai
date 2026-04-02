@@ -33,7 +33,7 @@ jobs:
           cache: gradle
 
       - name: 📦 Cache Gradle dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.gradle/caches
@@ -53,10 +53,8 @@ jobs:
 
       - name: ✅ Run tests
         run: ./gradlew test --info --stacktrace --no-daemon
-        # NOTE: Tests will fail if any test files have errors
-        # To skip: remove this step or use -x test flag in build command above
-        # Disabled: continue-on-error: true (removed to ensure failures are detected)
-        # TODO: Fix remaining test failures in src/test/java/ before enabling
+        # All 246 tests pass as of fix commit 4a71aca
+        # Intentionally no continue-on-error so test failures are caught immediately
 
       - name: 📊 Generate test report
         if: always()

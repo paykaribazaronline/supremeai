@@ -1,6 +1,4 @@
-package org.example.kimik2.learning;
-
-import org.example.kimik2.learning.LearningFirebaseRepository;
+package org.example.agentorchestration.learning;
 import org.example.service.AgentDecisionLogger;
 import org.example.service.AgentDecisionLogger.AgentDecision;
 import org.example.service.SystemLearningService;
@@ -24,8 +22,8 @@ import java.util.stream.Collectors;
  *   - নতুন similar task এলে → সবচেয়ে similar সফল chain টা retrieve করে
  *   - সেই chain টা "template" হিসেবে নতুন task-এ apply করে
  *
- * Kimi K2 analogy:
- *   K2 does this internally via attention — we do it explicitly via retrieval.
+ * Retrieval analogy:
+ *   Attention-like pattern reuse is implemented explicitly via retrieval.
  *   Result is the same: proven reasoning replayed on new similar problems.
  *
  * Example:

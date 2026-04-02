@@ -6,9 +6,12 @@ import org.example.service.AuthenticationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.*;
 
@@ -29,6 +32,7 @@ import java.util.*;
 @RequestMapping("/api/auth")
 public class AuthenticationController {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
+    private static final String ADMIN_AUTH_COOKIE = "supremeai_admin_token";
     
     @Autowired
     private AuthenticationService authService;
@@ -48,7 +52,9 @@ public class AuthenticationController {
      * - Login with email: {"email": "admin@supremeai.com", "password": "Admin@123456!"}
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> login(@RequestBody Map<String, String> request,
+                                   HttpServletRequest servletRequest,
+                                   HttpServletResponse servletResponse) {
         try {
             String usernameOrEmail = request.get("username");
             if (usernameOrEmail == null) {
@@ -71,6 +77,11 @@ public class AuthenticationController {
             response.put("type", token.getType());
             response.put("expiresIn", token.getExpiresIn());
             response.put("user", new AuthToken.UserResponse(token.getUser()));
+
+            servletResponse.addHeader(
+                "Set-Cookie",
+                buildAdminAuthCookie(token.getToken(), token.getExpiresIn(), servletRequest, false).toString()
+            );
             
             logger.info("✅ User logged in: {}", usernameOrEmail);
             
@@ -101,7 +112,7 @@ public class AuthenticationController {
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
             // Verify admin authentication
-            User currentUser = extractUserFromToken(authHeader);
+            User currentUser = extractAdminUserFromToken(authHeader);
             if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("status", "error", "message", "Admin access required"));
@@ -143,7 +154,9 @@ public class AuthenticationController {
      * }
      */
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> request,
+                                          HttpServletRequest servletRequest,
+                                          HttpServletResponse servletResponse) {
         try {
             String refreshToken = request.get("refreshToken");
             if (refreshToken == null) {
@@ -159,6 +172,11 @@ public class AuthenticationController {
             response.put("refreshToken", token.getRefreshToken());
             response.put("type", token.getType());
             response.put("expiresIn", token.getExpiresIn());
+
+            servletResponse.addHeader(
+                "Set-Cookie",
+                buildAdminAuthCookie(token.getToken(), token.getExpiresIn(), servletRequest, false).toString()
+            );
             
             return ResponseEntity.ok(response);
             
@@ -195,6 +213,19 @@ public class AuthenticationController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("status", "error", "message", "Invalid token"));
         }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest servletRequest,
+                                    HttpServletResponse servletResponse) {
+        servletResponse.addHeader(
+            "Set-Cookie",
+            buildAdminAuthCookie("", 0, servletRequest, true).toString()
+        );
+        return ResponseEntity.ok(Map.of(
+            "status", "success",
+            "message", "Logged out successfully"
+        ));
     }
     
     /**
@@ -251,7 +282,7 @@ public class AuthenticationController {
     @GetMapping("/users")
     public ResponseEntity<?> getAllUsers(@RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
-            User currentUser = extractUserFromToken(authHeader);
+            User currentUser = extractAdminUserFromToken(authHeader);
             if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("status", "error", "message", "Admin access required"));
@@ -289,7 +320,7 @@ public class AuthenticationController {
             @PathVariable String userId,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
-            User currentUser = extractUserFromToken(authHeader);
+            User currentUser = extractAdminUserFromToken(authHeader);
             if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("status", "error", "message", "Admin access required"));
@@ -354,7 +385,7 @@ public class AuthenticationController {
             List<User> existingUsers = authService.getAllUsers();
             if (existingUsers != null && !existingUsers.isEmpty()) {
                 // If users exist, require admin authentication (can't re-bootstrap)
-                User currentUser = extractUserFromToken(authHeader);
+                User currentUser = extractAdminUserFromToken(authHeader);
                 if (currentUser == null) {
                     logger.warn("❌ Bootstrap attempt failed: Users already exist, admin auth required");
                     return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -522,6 +553,59 @@ public class AuthenticationController {
         }
     }
 
+    /**
+     * POST /api/auth/firebase-login
+     * Exchange a Firebase Authentication ID token for a SupremeAI backend session JWT.
+     *
+     * Flow (all three clients):
+     *   1. Client signs in with Firebase Auth SDK using email + password
+     *   2. Client calls getIdToken() to obtain a short-lived Firebase ID token
+     *   3. Client POSTs that token here
+     *   4. Backend verifies the token with Firebase Admin SDK
+     *   5. Backend looks up the matching SupremeAI user by email
+     *   6. Backend returns a backend JWT + sets the admin cookie
+     *
+     * Body: { "idToken": "<Firebase ID token>" }
+     */
+    @PostMapping("/firebase-login")
+    public ResponseEntity<?> firebaseLogin(
+            @RequestBody Map<String, String> request,
+            HttpServletRequest servletRequest,
+            HttpServletResponse servletResponse) {
+        try {
+            String idToken = request.get("idToken");
+            if (idToken == null || idToken.isBlank()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("status", "error", "message", "idToken is required"));
+            }
+
+            AuthToken authToken = authService.loginWithFirebaseToken(idToken);
+
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("status", "success");
+            resp.put("token", authToken.getToken());
+            resp.put("refreshToken", authToken.getRefreshToken());
+            resp.put("type", authToken.getType());
+            resp.put("expiresIn", authToken.getExpiresIn());
+            resp.put("user", new AuthToken.UserResponse(authToken.getUser()));
+
+            servletResponse.addHeader(
+                "Set-Cookie",
+                buildAdminAuthCookie(authToken.getToken(), authToken.getExpiresIn(),
+                    servletRequest, false).toString()
+            );
+
+            logger.info("✅ Firebase Auth login successful for: {}",
+                authToken.getUser().getEmail());
+            return ResponseEntity.ok(resp);
+
+        } catch (Exception e) {
+            logger.error("❌ Firebase login failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("status", "error", "message", e.getMessage()));
+        }
+    }
+
     // ============ PRIVATE HELPER METHODS ============
     
     /**
@@ -534,5 +618,26 @@ public class AuthenticationController {
         
         String token = authHeader.substring(7);
         return authService.validateToken(token);
+    }
+
+    private User extractAdminUserFromToken(String authHeader) throws Exception {
+        User user = extractUserFromToken(authHeader);
+        if (user == null || !authService.isAdmin(user)) {
+            return null;
+        }
+        return user;
+    }
+
+    private ResponseCookie buildAdminAuthCookie(String token,
+                                                long expiresInSeconds,
+                                                HttpServletRequest request,
+                                                boolean clear) {
+        return ResponseCookie.from(ADMIN_AUTH_COOKIE, clear ? "" : token)
+            .httpOnly(true)
+            .secure(request != null && request.isSecure())
+            .sameSite("Strict")
+            .path("/")
+            .maxAge(clear ? 0 : expiresInSeconds)
+            .build();
     }
 }
