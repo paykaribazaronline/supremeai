@@ -20,7 +20,7 @@ public class SystemLearningService {
     private static final Logger logger = LoggerFactory.getLogger(SystemLearningService.class);
     
     @Autowired(required = false)
-    private FirebaseDatabase firebaseDb;
+    private FirebaseService firebaseService;
     
     private static final String LEARNINGS_PATH = "system/learnings";
     private static final String PATTERNS_PATH = "system/patterns";
@@ -30,11 +30,24 @@ public class SystemLearningService {
      * Check if Firebase is available
      */
     private boolean isFirebaseAvailable() {
-        if (firebaseDb == null) {
+        if (firebaseService == null || !firebaseService.isInitialized()) {
             logger.warn("⚠️ Firebase not configured - using in-memory learning cache only");
             return false;
         }
         return true;
+    }
+
+    private FirebaseDatabase getFirebaseDb() {
+        if (!isFirebaseAvailable()) {
+            return null;
+        }
+
+        try {
+            return firebaseService.getDatabase();
+        } catch (Exception e) {
+            logger.warn("⚠️ Firebase database unavailable - using in-memory learning cache only: {}", e.getMessage());
+            return null;
+        }
     }
     
     /**
@@ -323,7 +336,8 @@ public class SystemLearningService {
     private void saveLearning(SystemLearning learning) throws Exception {
         ensureStableIdentity(learning);
         learningsCache.put(learning.getId(), learning);
-        if (!isFirebaseAvailable()) {
+        FirebaseDatabase firebaseDb = getFirebaseDb();
+        if (firebaseDb == null) {
             logger.debug("⚠️ Firebase unavailable, storing in memory cache only");
             return;
         }
@@ -334,7 +348,8 @@ public class SystemLearningService {
     private void updateLearning(SystemLearning learning) throws Exception {
         ensureStableIdentity(learning);
         learningsCache.put(learning.getId(), learning);
-        if (!isFirebaseAvailable()) {
+        FirebaseDatabase firebaseDb = getFirebaseDb();
+        if (firebaseDb == null) {
             logger.debug("⚠️ Firebase unavailable, updating memory cache only");
             return;
         }
