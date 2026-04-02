@@ -1,4 +1,5 @@
 {
+  "default": true,
   "MD013": false,
   "MD024": false,
   "MD029": false,
@@ -9,7 +10,10 @@
   "MD041": false,
   "MD051": false,
   "MD060": false,
-  "MD031": {
-    "list_items": false
-  }
+  "MD009": true,
+  "MD022": true,
+  "MD023": true,
+  "MD026": true,
+  "MD031": true,
+  "MD032": true
 }
