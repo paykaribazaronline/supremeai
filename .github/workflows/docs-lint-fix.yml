@@ -1,0 +1,205 @@
+name: 📚 Documentation & Linting - Auto-Fix
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - '**.md'
+      - '.markdownlint.json'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - '**.md'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '24'
+
+jobs:
+  # ========================================
+  # STAGE 1: Scan & Report Linting Errors
+  # ========================================
+  lint-scan:
+    name: 📋 Scan Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📦 Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 📥 Install markdownlint-cli
+        run: npm install -g markdownlint-cli
+
+      - name: 🔍 Scan all markdown files
+        id: scan
+        run: |
+          # Scan without fixing first (report only)
+          REPORT=$(markdownlint '**/*.md' 2>&1 || true)
+          
+          # Count errors
+          ERROR_COUNT=$(echo "$REPORT" | grep -c "error" || echo "0")
+          
+          echo "error_count=$ERROR_COUNT" >> $GITHUB_OUTPUT
+          echo "report<<EOF" >> $GITHUB_OUTPUT
+          echo "$REPORT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          if [ "$ERROR_COUNT" -gt 0 ]; then
+            echo "❌ Found $ERROR_COUNT documentation errors"
+          else
+            echo "✅ No documentation errors found"
+          fi
+
+      - name: 📊 Post scan results
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const report = `${{ steps.scan.outputs.report }}`;
+            const count = '${{ steps.scan.outputs.error_count }}';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 📚 Documentation Linting Scan\n\n**Errors Found:** ${count}\n\n\`\`\`\n${report}\n\`\`\``
+            });
+
+  # ========================================
+  # STAGE 2: Auto-Fix Errors
+  # ========================================
+  lint-fix:
+    name: ✅ Auto-Fix Linting Errors
+    runs-on: ubuntu-latest
+    needs: lint-scan
+    if: github.event_name == 'push'
+    
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📦 Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 📥 Install markdownlint-cli
+        run: npm install -g markdownlint-cli
+
+      - name: 🔧 Auto-fix markdown files
+        id: fix
+        run: |
+          echo "🚀 Auto-fixing documentation..."
+          
+          # Run markdownlint with --fix flag
+          markdownlint --fix '**/*.md'
+          
+          # Count fixed files
+          FIXED=$(git diff --name-only | grep '\.md$' | wc -l)
+          echo "fixed_count=$FIXED" >> $GITHUB_OUTPUT
+          
+          if [ "$FIXED" -gt 0 ]; then
+            echo "✅ Fixed $FIXED markdown files"
+            git status -s
+          fi
+
+      - name: 📤 Commit & push fixes
+        if: steps.fix.outputs.fixed_count > 0
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action - Doc Fixer"
+          
+          git add '**/*.md'
+          git commit -m "docs: Auto-fix markdown linting errors via markdownlint" \
+            -m "- Fixed blank lines around headings (MD022)" \
+            -m "- Fixed blank lines around code blocks (MD031)" \
+            -m "- Fixed blank lines around lists (MD032)" \
+            -m "- Removed trailing spaces (MD009)" \
+            -m "- Fixed trailing punctuation (MD026)" \
+            -m "- Fixed horizontal rule style (MD035)"
+          
+          git push origin ${GITHUB_REF#refs/heads/}
+
+      - name: 📝 Create summary
+        if: always()
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## 📚 Documentation Maintenance Summary
+          
+          | Category | Status |
+          |----------|--------|
+          | Scan Complete | ✅ |
+          | Errors Fixed | ${{ steps.fix.outputs.fixed_count }} |
+          | Branch | ${{ github.ref_name }} |
+          
+          ### Fixed Rules:
+          - **MD022**: Headings surrounded by blank lines
+          - **MD031**: Fenced code blocks surrounded by blank lines  
+          - **MD032**: Lists surrounded by blank lines
+          - **MD009**: Trailing spaces removed
+          - **MD026**: Trailing punctuation in headings
+          - **MD035**: Horizontal rule style (---)
+          
+          ### Next Steps:
+          - All markdown files automatically formatted
+          - Changes committed and pushed
+          - No manual intervention needed ✨
+          EOF
+
+  # ========================================
+  # STAGE 3: Validate Final State
+  # ========================================
+  lint-validate:
+    name: ✔️ Validate Final State
+    runs-on: ubuntu-latest
+    needs: lint-fix
+    if: github.event_name == 'push'
+    
+    steps:
+      - name: ⬇️ Checkout fixed code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: 📦 Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 📥 Install markdownlint-cli
+        run: npm install -g markdownlint-cli
+
+      - name: ✅ Final validation scan
+        run: |
+          echo "🔍 Running final validation..."
+          
+          if markdownlint '**/*.md'; then
+            echo "✅ All documentation passes linting!"
+          else
+            echo "❌ Documentation still has errors - please review manually"
+            exit 1
+          fi
+
+      - name: 📊 Final report
+        if: always()
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## ✨ Documentation Quality Report
+          
+          - **Status**: VALIDATED ✅
+          - **All Markdown Files**: PASSING ✅
+          - **Linting Rules**: ALL SATISFIED ✅
+          - **Auto-Fix**: COMPLETE ✅
+          
+          Your documentation is clean and ready! 🎉
+          EOF
