@@ -9,9 +9,8 @@
 
 class Environment {
   // 🚀 PRODUCTION: Cloud Run URL (auto-managed SSL, proper domain)
-  // Replace 'YOUR_GCP_PROJECT_ID' with your actual GCP project ID
-  // Example: 'https://supremeai-supremeai-production.us-central1.run.app'
-  static const String baseUrl = 'https://supremeai-YOUR_GCP_PROJECT_ID.us-central1.run.app';
+  // GCP Project: supremeai-a
+  static const String baseUrl = 'https://supremeai-supremeai-a.us-central1.run.app';
   
   // 🔧 LOCAL DEVELOPMENT: Uncomment to test against local backend
   // Requires: ./gradlew bootRun (running on http://localhost:8080)
