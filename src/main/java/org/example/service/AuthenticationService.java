@@ -85,6 +85,9 @@ public class AuthenticationService {
         
         // Also save to Firebase (async, will eventually persist)
         firebaseService.saveUser(user);
+
+        // Keep Firebase Authentication in sync so client SDK login works.
+        syncAdminToFirebaseAuth(email, password, username);
         
         logger.info("✅ Admin user registered: {}", username);
         return user;
@@ -127,6 +130,10 @@ public class AuthenticationService {
             generateAndSendMfaCode(username, user.getEmail());
             throw new IllegalArgumentException("MFA required. Code sent to email.");
         }
+
+        // Backward-compat migration: ensure existing users are present in
+        // Firebase Authentication after a successful legacy password login.
+        syncAdminToFirebaseAuth(user.getEmail(), password, user.getUsername());
         
         // Update last login
         user.setLastLogin(System.currentTimeMillis());
