@@ -445,6 +445,7 @@ public class AuthenticationService {
 
         String email = decoded.getEmail();
         String firebaseUid = decoded.getUid();
+        String firebaseDisplayName = decoded.getName();
 
         if (email == null || email.isBlank()) {
             throw new IllegalArgumentException("Firebase token does not contain an email address");
@@ -453,8 +454,8 @@ public class AuthenticationService {
         // Find matching SupremeAI user
         User user = getUserByEmailOrUsername(email);
         if (user == null) {
-            throw new IllegalArgumentException(
-                "Email not registered in SupremeAI. Contact an admin to register your account.");
+            user = provisionFirebaseUser(firebaseUid, email, firebaseDisplayName);
+            logger.info("✅ Auto-provisioned SupremeAI user from Firebase Auth: {}", email);
         }
 
         if (!user.isActive()) {
@@ -471,6 +472,31 @@ public class AuthenticationService {
 
         logger.info("✅ Firebase Auth login: email={} uid={} role={}", email, firebaseUid, user.getRole());
         return new AuthToken(token, refreshToken, user, TOKEN_EXPIRATION_HOURS * 3600);
+    }
+
+    private User provisionFirebaseUser(String firebaseUid, String email, String displayName) {
+        String username = displayName != null && !displayName.isBlank()
+            ? displayName
+            : email.split("@")[0];
+        String sanitizedUsername = username
+            .trim()
+            .toLowerCase(Locale.ROOT)
+            .replaceAll("[^a-z0-9._-]", "_");
+
+        User user = new User();
+        user.setId(firebaseUid);
+        user.setUsername(sanitizedUsername.isBlank() ? "firebase_user" : sanitizedUsername);
+        user.setEmail(email);
+        user.setPasswordHash("FIREBASE_AUTH_ONLY");
+        user.setActive(true);
+        user.setRole("admin");
+        user.setCreatedAt(System.currentTimeMillis());
+        user.setLastLogin(System.currentTimeMillis());
+        user.setPermissions(new ArrayList<>());
+
+        firebaseService.saveUser(user);
+        userCache.put(user.getUsername(), user);
+        return user;
     }
 
     /**

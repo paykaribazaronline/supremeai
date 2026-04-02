@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SupremeAI - Login</title>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -164,28 +166,6 @@
             display: block;
         }
 
-        .demo-credentials {
-            background: #e3f2fd;
-            border-left: 4px solid #4299e1;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 30px;
-            font-size: 13px;
-            color: #1565c0;
-        }
-
-        .demo-credentials p {
-            margin-bottom: 8px;
-        }
-
-        .demo-credentials code {
-            background: #fff;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: monospace;
-            color: #d32f2f;
-        }
-
         .remember-me {
             display: flex;
             align-items: center;
@@ -236,12 +216,12 @@
 
         <form id="loginForm">
             <div class="form-group">
-                <label for="username">Username</label>
+                <label for="email">Email</label>
                 <input 
                     type="text" 
-                    id="username" 
-                    name="username" 
-                    placeholder="Enter your username"
+                    id="email" 
+                    name="email" 
+                    placeholder="Enter your Firebase Auth email"
                     autocomplete="username"
                     required
                 >
@@ -271,13 +251,6 @@
             <button type="submit" class="login-button" id="loginButton">Sign In</button>
         </form>
 
-        <div class="demo-credentials">
-            <p><strong>🔐 Demo Credentials:</strong></p>
-            <p>Username: <code>admin</code></p>
-            <p>Password: <code>supremeai123</code></p>
-            <p style="margin-bottom: 0; margin-top: 10px; font-style: italic;">First login required to initialize system</p>
-        </div>
-
         <div class="localhost-badge">
             🏠 Access on localhost:8001 and web host
         </div>
@@ -295,84 +268,100 @@
         const loading = document.getElementById('loading');
         const loginButton = document.getElementById('loginButton');
         const rememberMe = document.getElementById('rememberMe');
-        const usernameInput = document.getElementById('username');
+        const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
 
-        // Load remembered credentials if remember me was checked
+        const STORAGE_KEY = 'supremeai_remembered_username';
+        const STORAGE_EXPIRY_KEY = 'supremeai_remembered_expiry';
+        const STORAGE_PERSISTENCE_KEY = 'supremeai_token_persistence_enabled';
+        const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8",
+            authDomain: "supremeai-a.firebaseapp.com",
+            databaseURL: "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "supremeai-a",
+            storageBucket: "supremeai-a.firebasestorage.app",
+            messagingSenderId: "565236080752",
+            appId: "1:565236080752:web:572bb9313db9afb355d4b5"
+        };
+
+        let firebaseAuth = null;
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            firebaseAuth = firebase.auth();
+        } catch (err) {
+            console.warn('Firebase Auth init failed:', err.message);
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
-            const savedUsername = localStorage.getItem('supremeai_remembered_username');
-            const savedPassword = localStorage.getItem('supremeai_remembered_password');
-            
-            if (savedUsername) {
-                usernameInput.value = savedUsername;
+            const savedEmail = localStorage.getItem(STORAGE_KEY);
+            const savedExpiry = localStorage.getItem(STORAGE_EXPIRY_KEY);
+
+            if (savedEmail && savedExpiry && Date.now() < parseInt(savedExpiry, 10)) {
+                emailInput.value = savedEmail;
                 rememberMe.checked = true;
-            }
-            
-            if (savedPassword) {
-                passwordInput.value = savedPassword;
-            }
-            
-            if (savedUsername) {
-                passwordInput.focus();
             }
         });
 
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             clearMessages();
-            
-            const username = usernameInput.value.trim();
+
+            const email = emailInput.value.trim();
             const password = passwordInput.value;
 
-            if (!username || !password) {
-                showError('Please enter both username and password');
+            if (!email || !password) {
+                showError('Please enter both email and password');
                 return;
             }
 
-            await loginUser(username, password);
+            await loginUser(email, password);
         });
 
-        async function loginUser(username, password) {
+        async function loginUser(email, password) {
             try {
                 loading.classList.add('show');
                 loginButton.disabled = true;
 
-                const response = await fetch('/api/auth/login', {
+                if (!firebaseAuth) {
+                    throw new Error('Firebase Auth is not initialized');
+                }
+
+                const credential = await firebaseAuth.signInWithEmailAndPassword(email, password);
+                const idToken = await credential.user.getIdToken();
+
+                const response = await fetch('/api/auth/firebase-login', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ username, password })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idToken })
                 });
 
                 const data = await response.json();
-
                 if (!response.ok) {
-                    throw new Error(data.message || 'Login failed');
+                    throw new Error(data.message || 'Firebase login failed');
                 }
 
-                // Save token to localStorage
                 localStorage.setItem('supremeai_token', data.token);
-                localStorage.setItem('supremeai_refresh_token', data.refreshToken);
-                localStorage.setItem('supremeai_user', JSON.stringify(data.user));
+                localStorage.setItem('supremeai_refresh_token', data.refreshToken || '');
+                localStorage.setItem('supremeai_user', JSON.stringify(data.user || {}));
 
-                // Save credentials if remember me is checked (with security warning)
                 if (rememberMe.checked) {
-                    localStorage.setItem('supremeai_remembered_username', username);
-                    localStorage.setItem('supremeai_remembered_password', password);
-                    console.warn('⚠️ Credentials saved locally. Only use on trusted devices!');
+                    localStorage.setItem(STORAGE_KEY, email);
+                    localStorage.setItem(STORAGE_EXPIRY_KEY, (Date.now() + THIRTY_DAYS_MS).toString());
+                    localStorage.setItem(STORAGE_PERSISTENCE_KEY, 'true');
                 } else {
-                    localStorage.removeItem('supremeai_remembered_username');
-                    localStorage.removeItem('supremeai_remembered_password');
+                    localStorage.removeItem(STORAGE_KEY);
+                    localStorage.removeItem(STORAGE_EXPIRY_KEY);
+                    localStorage.removeItem(STORAGE_PERSISTENCE_KEY);
                 }
 
                 showSuccess('Login successful! Redirecting...');
-                
-                // Redirect to admin dashboard after 1 second
                 setTimeout(() => {
                     window.location.href = '/admin';
                 }, 1000);
-
             } catch (error) {
                 showError(error.message || 'Login failed. Please try again.');
                 loginButton.disabled = false;
@@ -396,7 +385,6 @@
             successMessage.classList.remove('show');
         }
 
-        // Enter key to submit
         document.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && document.activeElement !== loginButton) {
                 loginForm.dispatchEvent(new Event('submit'));

@@ -103,7 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: _emailController,
                       decoration: const InputDecoration(
                         labelText: 'Email',
-                        hintText: 'admin@supremeai.com',
+                        hintText: 'Enter your Firebase Auth email',
                         prefixIcon: Icon(Icons.email_outlined),
                       ),
                       keyboardType: TextInputType.emailAddress,

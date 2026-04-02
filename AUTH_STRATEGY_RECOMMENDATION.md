@@ -1,6 +1,7 @@
 # ✅ Authentication Strategy - Best Practices
 
 ## 🚨 Current Issue
+
 ```
 ❌ No default user created on startup
 ❌ UserBootstrapService isn't persisting to Firebase
@@ -12,12 +13,15 @@
 ## 🛡️ SECURITY OPTIONS & RECOMMENDATION
 
 ### Option 1: ❌ Hardcoded Backup User (NOT RECOMMENDED)
+
 ```java
 // SECURITY RISK - Never do this!
 private static final String BACKUP_USERNAME = "admin";
-private static final String BACKUP_PASSWORD = "Admin@123456!";
+private static final String BACKUP_PASSWORD = System.getenv("SUPREMEAI_ADMIN_PASSWORD");
 ```
+
 **Problems:**
+
 - Password visible in source code
 - Can't change without recompile
 - Security audit failure
@@ -28,8 +32,9 @@ private static final String BACKUP_PASSWORD = "Admin@123456!";
 ### Option 2: ✅ RECOMMENDED - Environment-Based Bootstrap
 
 **How it works:**
+
 1. **On First Startup**: Create admin user via secure bootstrap API
-2. **Bootstrap Token**: Use environment variable `BOOTSTRAP_TOKEN` 
+2. **Bootstrap Token**: Use environment variable `BOOTSTRAP_TOKEN`
 3. **One-Time Only**: Token gets invalidated after first use
 4. **No Hardcoded Credentials**: All creds in environment/config
 
@@ -72,6 +77,7 @@ public ResponseEntity<?> bootstrapFirstAdmin(
 ```
 
 **Usage:**
+
 ```bash
 # Set environment variable
 export BOOTSTRAP_TOKEN="secure-random-token-32-chars"
@@ -82,7 +88,7 @@ curl -X POST http://localhost:8080/api/auth/bootstrap \
   -H "X-Bootstrap-Token: secure-random-token-32-chars" \
   -d '{
     "username": "supremeai",
-    "password": "Admin@123456!",
+    "password": "<ADMIN_PASSWORD_FROM_ENV>",
     "email": "admin@supremeai.com"
   }'
 
@@ -94,6 +100,7 @@ curl -X POST http://localhost:8080/api/auth/bootstrap \
 ### Option 3: ✅ ALSO GOOD - Firebase Authentication Only
 
 **How it works:**
+
 1. User registers via `/api/auth/register` (public endpoint)
 2. Firebase validates email via link
 3. No hardcoded users at all

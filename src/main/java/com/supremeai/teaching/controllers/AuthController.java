@@ -24,9 +24,6 @@ public class AuthController {
     public AuthController(JwtTokenProvider jwtTokenProvider, PasswordEncoder passwordEncoder) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.passwordEncoder = passwordEncoder;
-        // Create default user for testing
-        UserAccount defaultUser = new UserAccount("admin", "supremeai", "admin@supremeai.ai");
-        userStore.put("admin", defaultUser);
     }
     
     @PostMapping("/login")

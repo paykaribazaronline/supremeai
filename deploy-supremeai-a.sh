@@ -71,8 +71,8 @@ echo "   firebase deploy --only hosting"
 echo ""
 echo "Test the admin login:"
 echo "URL: https://supremeai-a.web.app/admin/#/login"
-echo "Email: supremeai@admin.com"
-echo "Password: Admin@123456!"
+echo "Email: \${SUPREMEAI_ADMIN_EMAIL:-admin@supremeai.com}"
+echo "Password: <set SUPREMEAI_ADMIN_PASSWORD in your shell>"
 echo ""
 
 # Health check

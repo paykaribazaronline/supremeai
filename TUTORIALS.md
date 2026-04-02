@@ -75,7 +75,7 @@ firebase deploy --only firestore:rules
 **Checklist:**
 
 - [ ] Firebase project created at console.firebase.google.com
-- [ ] `firebase-test-creds.json` downloaded and placed in project root
+- [ ] ADC configured with `gcloud auth application-default login` or `FIREBASE_CREDENTIALS_FILE` set to a real service-account JSON outside the repo root
 - [ ] Firestore rules deployed successfully
 - [ ] Collections created: `app_templates`, `generated_apps`, `generation_errors_and_fixes`
 - [ ] Test connection: `GET /api/firebase/test` → success response
@@ -93,7 +93,7 @@ firebase deploy --only firestore:rules
 curl -X POST http://localhost:8080/api/auth/setup \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $SUPREMEAI_SETUP_TOKEN" \
-  -d '{"username":"supremeai","password":"Admin@123456!"}'
+  -d '{"username":"supremeai","password":"'"$SUPREMEAI_ADMIN_PASSWORD"'"}'
 ```
 
 **Checklist:**

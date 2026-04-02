@@ -19,56 +19,23 @@ class AuthService {
 
   String? get lastError => _lastError;
 
-  // Login — tries Firebase Auth first (email only), falls back to direct backend JWT
+  // Login using Firebase Auth email/password + backend token exchange
   Future<bool> login(String email, String password) async {
     _lastError = null;
-    // ── Step 1: Firebase Authentication (requires an email address) ──────────
-    final isEmail = email.contains('@');
-    if (isEmail) {
-      try {
-        final cred = await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
-        final idToken = await cred.user?.getIdToken();
-        if (idToken != null) {
-          // Exchange Firebase ID token for a SupremeAI backend session JWT
-          final fbResp = await _apiService.post<Map<String, dynamic>>(
-            '/api/auth/firebase-login',
-            data: {'idToken': idToken},
-          );
-
-          if (fbResp.success && fbResp.data != null) {
-            final token = fbResp.data?['token'] as String?;
-            final refreshToken = fbResp.data?['refreshToken'] as String?;
-            if (token != null) {
-              await _storageService.saveToken(token);
-              if (refreshToken != null) {
-                await _storageService.saveRefreshToken(refreshToken);
-              }
-              final decoded = JwtDecoder.decode(token);
-              await _storageService.saveUserData(jsonEncode(decoded));
-              print('✅ Authenticated via Firebase Auth');
-              return true;
-            }
-          }
-
-          _lastError = fbResp.error ?? 'Firebase token exchange failed';
-        }
-      } catch (fbErr) {
-        print('Firebase Auth failed, trying direct login: $fbErr');
-        _lastError = fbErr.toString();
-      }
-    }
-
-    // ── Step 2: Fall back to direct backend JWT login ─────────────────────────
     try {
+      final cred = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final idToken = await cred.user?.getIdToken();
+      if (idToken == null) {
+        _lastError = 'Firebase ID token not available';
+        return false;
+      }
+
       final response = await _apiService.post<Map<String, dynamic>>(
-        Environment.authLogin,
-        data: {
-          'email': email,
-          'password': password,
-        },
+        '/api/auth/firebase-login',
+        data: {'idToken': idToken},
       );
 
       if (response.success && response.data != null) {
@@ -93,7 +60,7 @@ class AuthService {
       return false;
     } catch (e) {
       print('Login error: $e');
-      _lastError = e.toString();
+      _lastError = 'Firebase login failed: $e';
       return false;
     }
   }
