@@ -2,23 +2,44 @@
 $ErrorActionPreference = "Stop"
 
 $apiUrl = "http://localhost:8080"
+$adminEmail = if ($env:SUPREMEAI_ADMIN_EMAIL) { $env:SUPREMEAI_ADMIN_EMAIL } else { "admin@supremeai.com" }
+$adminPassword = $env:SUPREMEAI_ADMIN_PASSWORD
+$firebaseApiKey = if ($env:SUPREMEAI_FIREBASE_WEB_API_KEY) { $env:SUPREMEAI_FIREBASE_WEB_API_KEY } else { "AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8" }
+
+if (-not $adminPassword) {
+    Write-Host "❌ SUPREMEAI_ADMIN_PASSWORD is not set." -ForegroundColor Red
+    Write-Host '   Set it first: $env:SUPREMEAI_ADMIN_PASSWORD = "<your-admin-password>"' -ForegroundColor Yellow
+    exit 1
+}
 
 Write-Host "SUPREMEAI - DIRECT LOGIN TEST" -ForegroundColor Cyan
 Write-Host "=======================================" -ForegroundColor Cyan
 Write-Host ""
 
 try {
-    # Try to login with credentials from automatic bootstrap
-    Write-Host "Step 1: Testing direct login as 'supremeai'..." -ForegroundColor Yellow
-    $loginBody = @{
-        username = "supremeai"
-        password = "Admin@123456!"
+    Write-Host "Step 1: Testing Firebase login + backend token exchange..." -ForegroundColor Yellow
+    $firebaseBody = @{
+        email = $adminEmail
+        password = $adminPassword
+        returnSecureToken = $true
     } | ConvertTo-Json
-    
-    $loginResponse = Invoke-WebRequest -Uri "$apiUrl/api/auth/login" `
+
+    $firebaseResponse = Invoke-WebRequest -Uri "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=$firebaseApiKey" `
         -Method Post `
         -Headers @{"Content-Type"="application/json"} `
-        -Body $loginBody
+        -Body $firebaseBody
+
+    $firebaseData = $firebaseResponse.Content | ConvertFrom-Json
+    if (-not $firebaseData.idToken) {
+        throw "Firebase ID token not returned"
+    }
+
+    $exchangeBody = @{ idToken = $firebaseData.idToken } | ConvertTo-Json
+    
+    $loginResponse = Invoke-WebRequest -Uri "$apiUrl/api/auth/firebase-login" `
+        -Method Post `
+        -Headers @{"Content-Type"="application/json"} `
+        -Body $exchangeBody
     
     $loginData = $loginResponse.Content | ConvertFrom-Json
     Write-Host "✅ Login successful!" -ForegroundColor Green
