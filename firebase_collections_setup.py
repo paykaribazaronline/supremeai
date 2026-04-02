@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 
 FIREBASE_PROJECT_ID = "supremeai-a"
 FIRESTORE_DATABASE_ID = "(default)"
-CREDENTIALS_FILE = "firebase-test-creds.json"
+CREDENTIALS_FILE = os.getenv("FIREBASE_CREDENTIALS_FILE")
 
 # ============================================================================
 # SAMPLE DATA - REAL DATA FROM PROJECT
@@ -359,9 +359,9 @@ Step 1: Install Firebase Admin SDK
   pip install firebase-admin
 
 Step 2: Setup Credentials
-  - Download credentials from Firebase Console
-  - Save as: firebase-test-creds.json
-  - Or set GOOGLE_APPLICATION_CREDENTIALS env var
+    - Recommended: run gcloud auth application-default login
+    - Optional: set FIREBASE_CREDENTIALS_FILE=./secrets/service-account.json
+    - Or set GOOGLE_APPLICATION_CREDENTIALS env var
 
 Step 3: Run This Script
   python firebase_collections_setup.py
@@ -391,10 +391,14 @@ def create_firebase_collections():
     print(SETUP_INSTRUCTIONS)
     
     try:
-        # Initialize Firebase
         if not firebase_admin.app._apps:
-            cred = credentials.Certificate(CREDENTIALS_FILE)
-            firebase_admin.initialize_app(cred)
+            if CREDENTIALS_FILE and os.path.exists(CREDENTIALS_FILE):
+                cred = credentials.Certificate(CREDENTIALS_FILE)
+                firebase_admin.initialize_app(cred)
+                print(f"✅ Initialized Firebase using credentials file: {CREDENTIALS_FILE}")
+            else:
+                firebase_admin.initialize_app(credentials.ApplicationDefault())
+                print("✅ Initialized Firebase using Application Default Credentials (ADC)")
         
         db = firestore.client()
         print("✅ Connected to Firebase!")
@@ -476,7 +480,7 @@ def create_firebase_collections():
         
     except FileNotFoundError:
         print(f"❌ Credentials file not found: {CREDENTIALS_FILE}")
-        print("Download from Firebase Console > Project Settings > Service Accounts")
+        print("Set FIREBASE_CREDENTIALS_FILE to a valid service-account JSON or use ADC")
         return False
     except Exception as e:
         print(f"❌ Error: {str(e)}")

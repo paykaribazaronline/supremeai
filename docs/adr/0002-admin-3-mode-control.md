@@ -93,7 +93,7 @@ if (mode == AdminMode.WAIT) return adminControlService.queueForApproval(...);
 Default admin credentials (auto-created once at first setup):
 
 - Username: `supremeai`
-- Password: `Admin@123456!`
+- Password: value from `SUPREMEAI_ADMIN_PASSWORD`
 
 Key endpoints:
 

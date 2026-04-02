@@ -28,7 +28,7 @@ from datetime import datetime
 # ============================================================================
 
 FIREBASE_PROJECT_ID = "supremeai-a"
-CREDENTIALS_FILE = "firebase-test-creds.json"
+CREDENTIALS_FILE = os.getenv("FIREBASE_CREDENTIALS_FILE")
 
 # ============================================================================
 # 1.  SYSTEM_LEARNING  ─  matches SystemLearning.java model exactly
@@ -1253,6 +1253,39 @@ def run_dry():
     print("\n✅ All data structures are valid — ready to seed Firebase.")
 
 
+def init_firestore(firebase_admin, credentials, firestore):
+    """Initialize Firebase app with certificate-first, ADC fallback behavior."""
+    if firebase_admin._apps:
+        return firestore.client()
+
+    cert_error = None
+    if CREDENTIALS_FILE and os.path.exists(CREDENTIALS_FILE):
+        try:
+            cred = credentials.Certificate(CREDENTIALS_FILE)
+            firebase_admin.initialize_app(cred)
+            print(f"\n✅ Initialized Firebase using credentials file: {CREDENTIALS_FILE}")
+            return firestore.client()
+        except Exception as err:
+            cert_error = err
+            print(f"\n⚠️ Credentials file exists but could not be used: {err}")
+            print("   Falling back to Application Default Credentials (ADC)...")
+
+    try:
+        firebase_admin.initialize_app()  # uses GOOGLE_APPLICATION_CREDENTIALS / gcloud ADC
+        print("\n✅ Initialized Firebase using Application Default Credentials (ADC)")
+        return firestore.client()
+    except Exception as adc_error:
+        if cert_error is not None:
+            raise RuntimeError(
+                f"Credentials file failed: {cert_error} | ADC failed: {adc_error}"
+            )
+        raise RuntimeError(
+            "No valid Firebase credentials found. "
+            "Set FIREBASE_CREDENTIALS_FILE to a valid service-account JSON path or configure ADC with "
+            "'gcloud auth application-default login'."
+        )
+
+
 # ============================================================================
 # ENTRY POINT
 # ============================================================================
@@ -1288,14 +1321,7 @@ if __name__ == "__main__":
     print("=" * 80)
 
     try:
-        if not firebase_admin._apps:
-            if os.path.exists(CREDENTIALS_FILE):
-                cred = credentials.Certificate(CREDENTIALS_FILE)
-                firebase_admin.initialize_app(cred)
-            else:
-                firebase_admin.initialize_app()   # uses GOOGLE_APPLICATION_CREDENTIALS
-
-        db = firestore.client()
+        db = init_firestore(firebase_admin, credentials, firestore)
         print("\n✅ Connected to Firebase Firestore!")
 
         results = seed_all(db)
@@ -1306,7 +1332,7 @@ if __name__ == "__main__":
         print(f"\n❌ Credentials file not found: {CREDENTIALS_FILE}")
         print("   Options:")
         print("   A) Download from Firebase Console > Project Settings > Service Accounts")
-        print("      and save as: firebase-test-creds.json")
+        print("      and store it outside the repo root, then set FIREBASE_CREDENTIALS_FILE")
         print("   B) Run: gcloud auth application-default login")
         print("   C) Set GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json")
         print("\n   Or preview without Firebase:")

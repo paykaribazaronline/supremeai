@@ -7,6 +7,7 @@
 ## 🚀 STEP 1: Prepare Google Cloud Project
 
 ### 1.1 Set Up GCP Project
+
 ```bash
 # Set your GCP project ID (replace with your actual project)
 export GCP_PROJECT_ID="supremeai-production"  # or your actual project ID
@@ -26,6 +27,7 @@ gcloud services enable \
 ```
 
 ### 1.2 Verify Firebase Project
+
 ```bash
 # List available Firebase projects
 firebase projects:list
@@ -39,6 +41,7 @@ firebase use supremeai-a
 ## 🐳 STEP 2: Build and Deploy Backend Service
 
 ### 2.1 Build Docker Image Locally (Optional - for testing)
+
 ```bash
 cd c:\Users\Nazifa\supremeai
 
@@ -83,6 +86,7 @@ gcloud builds submit --config=cloudbuild.yaml \
 ```
 
 ### 2.3 Check Deployment Status
+
 ```bash
 # View Cloud Run services
 gcloud run services list --project=supremeai-production
@@ -100,11 +104,13 @@ gcloud run services describe supremeai --project=supremeai-production --region=u
 ### 3.1 Get the Correct Backend URL
 
 After Cloud Run deployment completes, you'll see a URL like:
+
 ```
 https://supremeai-supremeai-production.us-central1.run.app
 ```
 
 **Extract your actual service URL:**
+
 ```bash
 gcloud run services describe supremeai \
   --project=supremeai-production \
@@ -138,6 +144,7 @@ Replace `YOURPROJECT` with your GCP project ID (e.g., `supremeai-production`).
 ## 🔧 STEP 4: Rebuild and Deploy Frontend
 
 ### 4.1 Rebuild Flutter Web Admin App
+
 ```bash
 cd flutter_admin_app
 
@@ -151,6 +158,7 @@ flutter build web --base-href "/admin/" --release
 ```
 
 ### 4.2 Rebuild HTML Dashboard
+
 ```bash
 # The main dashboard is already in combined_deploy/
 # If you have a build step, run it here
@@ -158,6 +166,7 @@ flutter build web --base-href "/admin/" --release
 ```
 
 ### 4.3 Prepare Deployment Files
+
 ```bash
 # Combine both into deployment folder (already done in combined_deploy/)
 cd c:\Users\Nazifa\supremeai
@@ -174,6 +183,7 @@ ls combined_deploy/admin/
 ```
 
 ### 4.4 Deploy to Firebase Hosting
+
 ```bash
 # Make sure you're authenticated
 firebase login
@@ -190,6 +200,7 @@ firebase hosting:channel:list --project=supremeai-a
 ## ✅ STEP 5: Verify End-to-End Deployment
 
 ### 5.1 Test Backend Health
+
 ```bash
 # Replace with your actual URL
 curl -X GET https://supremeai-supremeai-production.us-central1.run.app/actuator/health
@@ -199,16 +210,20 @@ curl -X GET https://supremeai-supremeai-production.us-central1.run.app/actuator/
 ```
 
 ### 5.2 Test Login Flow
+
 1. Go to: https://supremeai-a.web.app/admin/#/login
 2. Enter credentials:
    - Email: `supremeai@admin.com`
-   - Password: `Admin@123456!`
+
+- Password: value configured in `SUPREMEAI_ADMIN_PASSWORD`
+
 3. Check browser DevTools (F12):
    - Network tab: Should see successful response from backend API
    - Application tab: localStorage should have `supremeai_token`
 4. Should redirect to admin dashboard
 
 ### 5.3 Verify "Remember Me" Works
+
 1. Check "Remember me" before login
 2. Close browser completely
 3. Reopen admin login page
@@ -219,7 +234,8 @@ curl -X GET https://supremeai-supremeai-production.us-central1.run.app/actuator/
 
 ## 🔒 STEP 6: Security Checklist
 
-### Before Going Live:
+### Before Going Live
+
 - [ ] Backend has valid SSL certificate (Cloud Run auto-manages this)
 - [ ] Firebase project is set to production security rules
 - [ ] Admin user created in Firebase Authentication
@@ -230,7 +246,8 @@ curl -X GET https://supremeai-supremeai-production.us-central1.run.app/actuator/
 - [ ] JWT tokens are properly validated
 - [ ] HTTPS only (no HTTP fallback)
 
-### Security Variables to Check:
+### Security Variables to Check
+
 ```bash
 # In Cloud Run, verify these are set:
 gcloud run services describe supremeai --project=supremeai-production --region=us-central1
@@ -245,6 +262,7 @@ gcloud run services describe supremeai --project=supremeai-production --region=u
 ## 🚨 Troubleshooting
 
 ### Backend Deployment Fails
+
 ```bash
 # Check Cloud Build logs
 gcloud builds log --limit=50
@@ -255,6 +273,7 @@ gcloud logging read "resource.type=cloud_run_revision AND resource.labels.servic
 ```
 
 ### "Dangerous" SSL Warning Still Shows
+
 - [ ] Wait 5-10 minutes for SSL certificate to propagate
 - [ ] Hard refresh browser (Ctrl+Shift+R)
 - [ ] Clear service worker cache
@@ -262,6 +281,7 @@ gcloud logging read "resource.type=cloud_run_revision AND resource.labels.servic
 - [ ] Verify no typos in `flutter_admin_app/lib/config/environment.dart`
 
 ### Admin Can't Login
+
 - [ ] Check admin user exists in Firebase
 - [ ] Verify backend can reach Firebase APIs
 - [ ] Check network tab in DevTools for API response
@@ -269,6 +289,7 @@ gcloud logging read "resource.type=cloud_run_revision AND resource.labels.servic
 - [ ] Check backend logs for auth errors
 
 ### Firebase Hosting Deployment Fails
+
 - [ ] Verify `.firebaserc` has correct project ID (`supremeai-a`)
 - [ ] Run: `firebase use supremeai-a`
 - [ ] Verify `combined_deploy/` directory has files

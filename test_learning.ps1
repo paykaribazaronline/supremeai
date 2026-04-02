@@ -37,8 +37,6 @@ if (Test-Path $logPath) {
 Write-Host "`n[3/3] Looking for FIREBASE learnings..." -ForegroundColor Yellow
 
 $firebase_files = @(
-    "test-firebase-credentials.json",
-    "firebase-test-creds.json",
     ".firebaserc"
 )
 
@@ -47,6 +45,14 @@ foreach ($file in $firebase_files) {
     if (Test-Path $path) {
         Write-Host "✅ Found: $file" -ForegroundColor Green
     }
+}
+
+if ($env:FIREBASE_CREDENTIALS_FILE) {
+    Write-Host "✅ FIREBASE_CREDENTIALS_FILE is set" -ForegroundColor Green
+}
+
+if ($env:GOOGLE_APPLICATION_CREDENTIALS) {
+    Write-Host "✅ GOOGLE_APPLICATION_CREDENTIALS is set" -ForegroundColor Green
 }
 
 # Check for learning data directories

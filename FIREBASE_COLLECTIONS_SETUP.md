@@ -9,17 +9,20 @@
 ## 🚀 Quick Start (3 Steps)
 
 ### **Step 1: Install Firebase CLI**
+
 ```powershell
 npm install -g firebase-tools
 ```
 
 ### **Step 2: Login to Firebase**
+
 ```powershell
 firebase login
 firebase use supremeai-a
 ```
 
 ### **Step 3: Run Setup Script**
+
 ```powershell
 python firebase_collections_setup.py
 ```
@@ -73,6 +76,7 @@ choco install python nodejs
 ## 🔧 Installation Commands
 
 ### **1. Install Firebase Admin SDK**
+
 ```powershell
 pip install firebase-admin
 
@@ -83,26 +87,33 @@ python -c "import firebase_admin; print('✅ Firebase Admin SDK installed')"
 ### **2. Setup Credentials**
 
 **Option A: Using Environment Variable** (Recommended)
-```powershell
-# Download from Firebase Console:
-# 1. Go to https://console.firebase.google.com
-# 2. Project Settings → Service Accounts → Generate new private key
-# 3. Save as firebase-test-creds.json in c:\Users\Nazifa\supremeai
 
-# Set environment variable
-$env:GOOGLE_APPLICATION_CREDENTIALS = "firebase-test-creds.json"
+```powershell
+# Recommended for local development:
+gcloud auth application-default login
+
+# Verify ADC works
+gcloud auth application-default print-access-token
+
+# Optional file-based override if you need a service account JSON
+$env:FIREBASE_CREDENTIALS_FILE = ".\secrets\service-account.json"
+
+# Or use the standard Google env var
+$env:GOOGLE_APPLICATION_CREDENTIALS = ".\secrets\service-account.json"
 
 # Verify
-echo $env:GOOGLE_APPLICATION_CREDENTIALS
+echo $env:FIREBASE_CREDENTIALS_FILE
 ```
 
 **Option B: Firebase CLI**
+
 ```powershell
 firebase login
 firebase use supremeai-a
 ```
 
 ### **3. Run Setup**
+
 ```powershell
 cd c:\Users\Nazifa\supremeai
 
@@ -122,12 +133,14 @@ python firebase_collections_setup.py
 ## 🔍 Verify Collections Created
 
 ### **Method 1: Firebase Console**
+
 1. Open: https://console.firebase.google.com
 2. Select: `supremeai-a` project
 3. Click: Firestore Database
 4. Check: All 8 collections visible
 
 ### **Method 2: Firebase CLI**
+
 ```powershell
 firebase firestore:indexes create
 firebase firestore:docs-list app_templates
@@ -137,12 +150,13 @@ firebase firestore:docs-list
 ```
 
 ### **Method 3: Python Script**
+
 ```powershell
 python -c "
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-cred = credentials.Certificate('firebase-test-creds.json')
+cred = credentials.Certificate(os.getenv('FIREBASE_CREDENTIALS_FILE'))
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
@@ -181,7 +195,7 @@ python -c "
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-cred = credentials.Certificate('firebase-test-creds.json')
+cred = credentials.Certificate(os.getenv('FIREBASE_CREDENTIALS_FILE'))
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
@@ -198,6 +212,7 @@ print(doc.to_dict())
 If the Python script fails, you can manually create collections via Firebase Console:
 
 ### **1. Create app_templates Collection**
+
 ```json
 {
   "name": "Todo Application",
@@ -207,6 +222,7 @@ If the Python script fails, you can manually create collections via Firebase Con
 ```
 
 ### **2. Create architectures Collection**
+
 ```json
 {
   "scenario": "Todo/List CRUD app",
@@ -222,14 +238,16 @@ If the Python script fails, you can manually create collections via Firebase Con
 ## 🐛 Troubleshooting
 
 ### **Error: "Credentials file not found"**
+
 ```
 Solution:
 1. Download service account key from Firebase Console
-2. Save as: firebase-test-creds.json
-3. Set: $env:GOOGLE_APPLICATION_CREDENTIALS="firebase-test-creds.json"
+2. Save it outside the repo root, for example: .\secrets\service-account.json
+3. Set: $env:FIREBASE_CREDENTIALS_FILE=".\secrets\service-account.json"
 ```
 
 ### **Error: "Permission denied"**
+
 ```
 Solution:
 1. Check Firebase permissions for service account
@@ -238,6 +256,7 @@ Solution:
 ```
 
 ### **Error: "Connection timeout"**
+
 ```
 Solution:
 1. Check internet connection
@@ -246,6 +265,7 @@ Solution:
 ```
 
 ### **Error: "Python not recognized"**
+
 ```
 Solution:
 1. Check Python installed: python --version
@@ -259,7 +279,7 @@ Solution:
 
 - [ ] Python installed (python --version)
 - [ ] Firebase admin SDK installed (pip list | findstr firebase)
-- [ ] Credentials file created (firebase-test-creds.json)
+- [ ] ADC configured or FIREBASE_CREDENTIALS_FILE set
 - [ ] Environment variable set ($env:GOOGLE_APPLICATION_CREDENTIALS)
 - [ ] Script executed (python firebase_collections_setup.py)
 - [ ] All collections visible in Firebase Console

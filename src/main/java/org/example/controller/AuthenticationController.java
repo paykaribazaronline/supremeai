@@ -43,13 +43,13 @@ public class AuthenticationController {
      * Supports both email and username as login identifier
      * 
      * Body: {
-     *   "username": "admin",           // OR use "email"
+    *   "username": "admin",           // OR use "email"
      *   "password": "your_password"
      * }
      * 
      * Examples:
-     * - Login with username: {"username": "supremeai", "password": "Admin@123456!"}
-     * - Login with email: {"email": "admin@supremeai.com", "password": "Admin@123456!"}
+    * - Login with username: {"username": "your_username", "password": "your_password"}
+    * - Login with email: {"email": "your_email@example.com", "password": "your_password"}
      */
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> request,

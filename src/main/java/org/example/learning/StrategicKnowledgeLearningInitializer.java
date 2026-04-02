@@ -41,8 +41,8 @@ public class StrategicKnowledgeLearningInitializer {
             "All state-changing operations must respect AUTO, WAIT, and FORCE_STOP modes with admin override and audit trail."
         );
         systemLearningService.recordRequirement(
-            "Default admin bootstrap must remain stable",
-            "The system must preserve the one default user bootstrap flow for supremeai / Admin@123456! while keeping setup protected by token."
+            "Firebase-only authentication must remain stable",
+            "The system must not create hardcoded default users and should rely on Firebase Auth users with protected setup flows."
         );
 
         systemLearningService.recordTechnique(

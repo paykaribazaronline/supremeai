@@ -10,12 +10,7 @@ import java.util.List;
 
 /**
  * Bootstrap Service
- * Creates default user on application startup (one-time only)
- * 
- * Default Credentials:
- * - Username: supremeai
- * - Email: supremeai@admin.com
- * - Password: Admin@123456!
+ * Ensures auth storage is reachable but does not create hardcoded users.
  */
 @Service
 public class UserBootstrapService {
@@ -27,39 +22,13 @@ public class UserBootstrapService {
     @PostConstruct
     public void initializeDefaultUser() {
         try {
-            // Check if any users exist
             List<User> existingUsers = authService.getAllUsers();
-            
-            if (existingUsers != null && !existingUsers.isEmpty()) {
-                logger.info("✅ System already initialized with {} user(s)", existingUsers.size());
-                return;
-            }
-            
-            // Create default admin user
-            User defaultUser = authService.registerUser(
-                "supremeai",
-                "supremeai@admin.com",
-                "Admin@123456!"
-            );
-            
-            logger.info("════════════════════════════════════════════════════");
-            logger.info("✅ DEFAULT USER CREATED SUCCESSFULLY");
-            logger.info("════════════════════════════════════════════════════");
-            logger.info("🔑 LOGIN CREDENTIALS:");
-            logger.info("   Username: supremeai");
-            logger.info("   Email: supremeai@admin.com");
-            logger.info("   Password: Admin@123456!");
-            logger.info("════════════════════════════════════════════════════");
-            logger.info("📱 Access from:");
-            logger.info("   Web (Local): http://localhost:8001");
-            logger.info("   Web (Live): https://supremeai-a.web.app");
-            logger.info("   Flutter App: flutter run");
-            logger.info("════════════════════════════════════════════════════");
-            logger.info("⚠️  IMPORTANT: Change password after first login!");
-            logger.info("════════════════════════════════════════════════════");
+            int existingCount = existingUsers == null ? 0 : existingUsers.size();
+            logger.info("✅ User bootstrap check complete. Existing users: {}", existingCount);
+            logger.info("ℹ️ No hardcoded default user is created. Authentication follows Firebase Auth users only.");
             
         } catch (Exception e) {
-            logger.error("❌ Failed to create default user: {}", e.getMessage());
+            logger.error("❌ User bootstrap check failed: {}", e.getMessage());
         }
     }
 }
