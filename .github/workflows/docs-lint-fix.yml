@@ -154,6 +154,8 @@ jobs:
 
       - name: 📤 Commit & push fixes
         if: steps.fix.outputs.fixed_count > 0
+        env:
+          FIXED_COUNT: ${{ steps.fix.outputs.fixed_count }}
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action - Doc Fixer"
@@ -161,19 +163,19 @@ jobs:
           # Add all fixed markdown files
           git add '*.md'
           
-          git commit -m "docs: Auto-fix markdown linting errors (3-Layer System)
-
-- Fixed using batched processing to avoid arg list too long error
-- Applied via 3-layer documentation maintenance system
-- Fixed markdown files: ${{ steps.fix.outputs.fixed_count }}
-
-Rules Applied:
-- MD009: Trailing spaces removed
-- MD022: Headings surrounded by blank lines
-- MD023: Heading level sequence
-- MD026: Trailing punctuation in headings
-- MD031: Fenced code blocks surrounded by blank lines
-- MD032: Lists surrounded by blank lines" \
+          # Create commit with multi-line message
+          git commit -m "docs: Auto-fix markdown linting errors (3-Layer System)" \
+            -m "Fixed using batched processing to avoid arg list too long error" \
+            -m "Applied via 3-layer documentation maintenance system" \
+            -m "Fixed markdown files: $FIXED_COUNT" \
+            -m "" \
+            -m "Rules Applied:" \
+            -m "- MD009: Trailing spaces removed" \
+            -m "- MD022: Headings surrounded by blank lines" \
+            -m "- MD023: Heading level sequence" \
+            -m "- MD026: Trailing punctuation in headings" \
+            -m "- MD031: Fenced code blocks surrounded by blank lines" \
+            -m "- MD032: Lists surrounded by blank lines" \
             || echo "✅ No changes to commit"
           
           git push origin ${GITHUB_REF#refs/heads/} || echo "✅ Nothing to push"
