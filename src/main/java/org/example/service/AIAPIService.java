@@ -285,7 +285,7 @@ public class AIAPIService {
 
     private String makeRequest(String endpoint, String apiKey, String jsonBody,
                                Map<String, String> extraHeaders) throws IOException {
-        Request request = new Request.Builder()
+        Request.Builder builder = new Request.Builder()
                 .url(endpoint)
                 .post(RequestBody.create(jsonBody, MediaType.parse("application/json")))
                 .addHeader("Authorization", "Bearer " + apiKey)
@@ -293,10 +293,10 @@ public class AIAPIService {
 
         if (extraHeaders != null) {
             for (Map.Entry<String, String> header : extraHeaders.entrySet()) {
-                request.addHeader(header.getKey(), header.getValue());
+                builder.addHeader(header.getKey(), header.getValue());
             }
         }
-        Request builtRequest = request.build();
+        Request builtRequest = builder.build();
         
         try (Response response = client.newCall(builtRequest).execute()) {
             if (response.isSuccessful() && response.body() != null) {
