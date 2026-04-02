@@ -11,7 +11,7 @@
 
 ---
 
-# SupremeAI - Limitations Resolution Document (ARCHIVED)
+## SupremeAI - Limitations Resolution Document (ARCHIVED)
 
 ---
 
