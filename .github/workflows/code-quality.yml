@@ -59,10 +59,29 @@ jobs:
         if: matrix.language == 'java'
         run: chmod +x gradlew
 
+      - name: 🧹 Reset Gradle state for CodeQL
+        if: matrix.language == 'java'
+        run: ./gradlew --stop
+
       - name: 🔨 Build Java code (for CodeQL)
         if: matrix.language == 'java'
-        run: ./gradlew clean build -x test --stacktrace --no-daemon
-        continue-on-error: true
+        run: ./gradlew clean compileJava processResources classes -x test --stacktrace --info --no-daemon --no-build-cache --rerun-tasks
+
+      - name: 🔎 Verify Java classes were generated
+        if: matrix.language == 'java'
+        run: |
+          if [ ! -d build/classes/java/main ]; then
+            echo "❌ CodeQL build did not produce build/classes/java/main"
+            exit 1
+          fi
+
+          CLASS_COUNT=$(find build/classes/java/main -name '*.class' | wc -l)
+          echo "Compiled class count: ${CLASS_COUNT}"
+
+          if [ "${CLASS_COUNT}" -eq 0 ]; then
+            echo "❌ CodeQL build completed without generating any Java class files"
+            exit 1
+          fi
 
       - name: 📊 Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
