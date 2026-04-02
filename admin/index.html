@@ -466,6 +466,25 @@
             color: #94a3b8;
             font-size: 0.9rem;
         }
+
+        .coverage-table-wrap {
+            margin-top: 18px;
+            overflow-x: auto;
+            background: #1a202c;
+            border: 1px solid #2d3748;
+            border-radius: 14px;
+        }
+
+        .coverage-score {
+            font-weight: 700;
+            color: #f8fafc;
+        }
+
+        .pill-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
     </style>
 </head>
 <body>
@@ -475,6 +494,7 @@
             <div class="logo">👑 SupremeAI Admin</div>
             <div class="menu-item active" onclick="showSection('dashboard')">📊 Dashboard</div>
             <div class="menu-item" onclick="showSection('techniques')">🧠 Techniques</div>
+            <div class="menu-item" onclick="showSection('provider-coverage')">🛰️ Provider Coverage</div>
             <div class="menu-item" onclick="showSection('api-keys')">🔑 API Key Manager</div>
             <div class="menu-item" onclick="showSection('ai-agents')">🤖 AI Agent Assignment</div>
             <div class="menu-item" onclick="showSection('git-projects')">🔄 Git Projects</div>
@@ -541,6 +561,7 @@
                     <h2>Quick Actions</h2>
                     <button class="btn" onclick="showSection('api-keys'); showModal('addKeyModal')">➕ Add API Key</button>
                     <button class="btn btn-secondary" onclick="showSection('techniques')">🧠 Browse Techniques</button>
+                    <button class="btn btn-secondary" onclick="showSection('provider-coverage')">🛰️ Provider Coverage</button>
                     <button class="btn btn-secondary" onclick="showSection('ai-agents')">🤖 Assign AI</button>
                     <button class="btn btn-secondary" onclick="showSection('projects')">📦 View Projects</button>
 
@@ -560,6 +581,35 @@
                         </div>
                         <div id="techniquePreviewList" class="technique-list" style="margin-top: 18px;">
                             <div class="empty-state">Loading techniques...</div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 22px;">
+                            <div>
+                                <h2 style="margin: 0;">Provider Level Coverage</h2>
+                                <p class="status-note" style="margin-bottom: 0;">Live Level 1-4 coverage and native connector readiness for every AI provider.</p>
+                            </div>
+                            <button class="btn btn-secondary" onclick="loadProviderCoveragePreview()">↻ Refresh Coverage</button>
+                        </div>
+                        <div id="providerCoveragePreviewSummary" class="summary-grid" style="margin-top: 16px;">
+                            <div class="summary-card"><div class="label">Loading</div><div class="value">...</div></div>
+                        </div>
+                        <div class="coverage-table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Provider</th>
+                                        <th>Native</th>
+                                        <th>Configured</th>
+                                        <th>L1</th>
+                                        <th>L2</th>
+                                        <th>L3</th>
+                                        <th>L4</th>
+                                        <th>Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="providerCoveragePreviewTableBody">
+                                    <tr><td colspan="8" style="text-align:center; padding: 24px; color: #a0aec0;">Loading provider coverage...</td></tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -592,6 +642,41 @@
                     <div id="techniqueStatus" class="status-note">Use your admin login session to load or reseed backend knowledge.</div>
                     <div id="techniqueList" class="technique-list" style="margin-top: 18px;">
                         <div class="empty-state">No techniques loaded yet.</div>
+                    </div>
+                </div>
+
+                <div id="provider-coverage" class="content-section">
+                    <h1>🛰️ Provider Coverage</h1>
+                    <p>Live per-provider status for native connectors, configuration, and Levels 1-4 learning coverage.</p>
+
+                    <div class="technique-toolbar">
+                        <button class="btn" onclick="loadProviderCoverage()">↻ Load Coverage</button>
+                        <button class="btn btn-secondary" onclick="showSection('api-keys')">🔑 Manage API Keys</button>
+                    </div>
+
+                    <div id="providerCoverageSummary" class="summary-grid">
+                        <div class="summary-card"><div class="label">Loading</div><div class="value">...</div></div>
+                    </div>
+                    <div id="providerCoverageStatus" class="status-note">Load the live provider coverage matrix from the backend.</div>
+                    <div class="coverage-table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Provider</th>
+                                    <th>Canonical</th>
+                                    <th>Connector</th>
+                                    <th>Configured</th>
+                                    <th>Levels</th>
+                                    <th>Profile</th>
+                                    <th>Chains</th>
+                                    <th>Memories</th>
+                                    <th>Fallback</th>
+                                </tr>
+                            </thead>
+                            <tbody id="providerCoverageTableBody">
+                                <tr><td colspan="9" style="text-align:center; padding: 24px; color: #a0aec0;">No provider coverage loaded yet.</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -785,7 +870,12 @@
                     <option value="GPT-3.5">GPT-3.5 Turbo (OpenAI)</option>
                     <option value="Claude-3">Claude 3 (Anthropic)</option>
                     <option value="Gemini">Gemini Pro (Google)</option>
+                    <option value="Cohere">Cohere</option>
+                    <option value="Perplexity">Perplexity</option>
                     <option value="Llama-2">Llama 2 (Meta)</option>
+                    <option value="HuggingFace">HuggingFace</option>
+                    <option value="XAI / Grok">XAI / Grok</option>
+                    <option value="DeepSeek">DeepSeek</option>
                     <option value="Mistral">Mistral (Mistral AI)</option>
                     <option value="Custom">Custom/Other Model</option>
                 </select>
@@ -841,6 +931,22 @@
             <div class="form-group">
                 <label>Current Model</label>
                 <input type="text" id="rotateModelName" readonly style="background: #1a202c; cursor: not-allowed;">
+            </div>
+
+            <div class="form-group">
+                <label>Replacement API Key</label>
+                <textarea id="rotateApiKeyInput" placeholder="Paste the replacement API key here..." style="min-height: 80px;"></textarea>
+                <small>The stored credential will be replaced immediately</small>
+            </div>
+
+            <div class="form-group">
+                <label>Replacement Alias (Optional)</label>
+                <input type="text" id="rotateAliasInput" placeholder="production-v2, backup-key, rollover-key">
+            </div>
+
+            <div class="form-group">
+                <label>Replacement Endpoint (Optional)</label>
+                <input type="text" id="rotateEndpointInput" placeholder="https://api.provider.com/v1">
             </div>
             
             <div class="form-group">
@@ -1074,18 +1180,106 @@
         
         // Load available providers from Firebase (NOT hardcoded)
         let availableProviders = [];
+
+        async function fetchConfiguredProviders() {
+            const response = await fetch('/api/providers/configured', {
+                headers: getAuthHeaders()
+            });
+
+            if (response.status === 401) {
+                throw new Error('Session expired. Please log in again.');
+            }
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to load configured providers');
+            }
+            return Array.isArray(data) ? data : [];
+        }
+
+        async function saveProviderConfig(payload) {
+            const response = await fetch('/api/providers/add', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || 'Failed to save provider');
+            }
+            return data.provider;
+        }
+
+        async function probeProvider(providerId) {
+            const response = await fetch(`/api/providers/probe/${encodeURIComponent(providerId)}`, {
+                method: 'POST',
+                headers: getAuthHeaders()
+            });
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || 'Provider probe failed');
+            }
+            return data;
+        }
+
+        async function removeProviderConfig(providerId) {
+            const response = await fetch('/api/providers/remove', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ id: providerId })
+            });
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || 'Failed to remove provider');
+            }
+        }
+
+        async function updateProviderConfig(providerId, payload) {
+            const response = await fetch(`/api/providers/${encodeURIComponent(providerId)}`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || 'Failed to update provider');
+            }
+            return data.provider;
+        }
+
+        async function rotateProviderConfig(providerId, payload) {
+            const response = await fetch(`/api/providers/rotate/${encodeURIComponent(providerId)}`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || 'Failed to rotate provider');
+            }
+            return data.provider;
+        }
+
+        function formatDateTime(value) {
+            if (!value) {
+                return 'Never';
+            }
+            const parsed = new Date(value);
+            return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
+        }
         
-        function loadAvailableProvidersFromFirebase() {
-            // TODO: Connect to Firebase
-            // fetch('/api/providers/list')
-            //   .then(r => r.json())
-            //   .then(data => {
-            //       availableProviders = data.providers || [];
-            //   });
-            
-            // For now: empty until added by admin
-            availableProviders = [];
-            console.log('📂 Providers loaded from Firebase:', availableProviders);
+        async function loadAvailableProvidersFromFirebase() {
+            try {
+                availableProviders = await fetchConfiguredProviders();
+                renderAPIKeysTable();
+                console.log('📂 Providers loaded from backend:', availableProviders);
+            } catch (error) {
+                console.error('❌ Failed to load providers:', error);
+                const tbody = document.getElementById('apiKeysTableBody');
+                if (tbody) {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 40px; color: #fca5a5;">${error.message}</td></tr>`;
+                }
+            }
         }
         
         function searchAvailableProviders() {
@@ -1143,7 +1337,7 @@
             }
         }
         
-        function addNewProvider() {
+        async function addNewProvider() {
             const aiModel = document.getElementById('aiModelSelect').value.trim();
             const createdByEmail = document.getElementById('createdByEmail').value.trim();
             const apiKey = document.getElementById('apiKeyInput').value.trim();
@@ -1164,76 +1358,42 @@
                 return;
             }
             
-            // Auto-assign version number
-            const finalModelName = getNextModelNumber(aiModel);
-            
-            console.log('✅ Adding API for model:', {
-                baseModel: aiModel,
-                finalName: finalModelName,
-                createdBy: createdByEmail,
-                alias: keyAlias || 'default',
-                endpoint: endpoint || 'default',
-                notes: notes,
-                timestamp: new Date().toISOString()
-            });
-            
-            // Save to Firebase (uncomment when backend is ready)
-            // fetch('/api/providers/add', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify({
-            //         name: finalModelName,
-            //         baseModel: aiModel,
-            //         key: apiKey,
-            //         alias: keyAlias || finalModelName.toLowerCase(),
-            //         endpoint: endpoint || '',
-            //         notes: notes,
-            //         created_by_email: createdByEmail,
-            //         created_at: new Date().toISOString()
-            //     })
-            // })
-            // .then(r => r.json())
-            // .then(data => {
-            //     if (data.success) {
-            //         loadAvailableProvidersFromFirebase();
-            //     }
-            // })
-            // .catch(e => alert('❌ Error: ' + e));
-            
-            // For now: Add to in-memory array
-            availableProviders.push({
-                name: finalModelName,
-                baseModel: aiModel,
-                desc: notes || `Added by ${createdByEmail}`,
-                url: endpoint || '',
-                alias: keyAlias || finalModelName.toLowerCase(),
-                created_by: createdByEmail,
-                created_at: new Date().toISOString(),
-                api_key: apiKey
-            });
-            
-            alert(`✅ API Added Successfully!
+            try {
+                const provider = await saveProviderConfig({
+                    id: aiModel,
+                    name: aiModel,
+                    baseModel: aiModel,
+                    type: 'LLM',
+                    apiKey: apiKey,
+                    alias: keyAlias || aiModel.toLowerCase(),
+                    endpoint: endpoint || '',
+                    notes: notes,
+                    createdByEmail: createdByEmail,
+                    status: 'active'
+                });
 
-📌 Model: ${aiModel}
-🔢 Version: ${finalModelName}
+                alert(`✅ API Added Successfully!
+
+📌 Model: ${provider.displayName || aiModel}
 👤 Created By: ${createdByEmail}
 📝 Alias: ${keyAlias || 'default'}
-🌐 Endpoint: ${endpoint || 'Using default API'}
+🌐 Endpoint: ${endpoint || 'Using default API'}`);
 
-Connection test: PASSED ✅
-API is now active and ready to use!`);
-            
-            // Clear form
-            document.getElementById('aiModelSelect').value = '';
-            document.getElementById('createdByEmail').value = '';
-            document.getElementById('apiKeyInput').value = '';
-            document.getElementById('keyAlias').value = '';
-            document.getElementById('providerEndpoint').value = '';
-            document.getElementById('providerNotes').value = '';
-            
-            renderAPIKeysTable(); // Update table with new key
-            closeModal('addKeyModal');
-            showSection('api-keys');
+                document.getElementById('aiModelSelect').value = '';
+                document.getElementById('createdByEmail').value = '';
+                document.getElementById('apiKeyInput').value = '';
+                document.getElementById('keyAlias').value = '';
+                document.getElementById('providerEndpoint').value = '';
+                document.getElementById('providerNotes').value = '';
+
+                closeModal('addKeyModal');
+                await loadAvailableProvidersFromFirebase();
+                await loadProviderCoveragePreview();
+                await loadProviderCoverage();
+                showSection('api-keys');
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
         }
 
         // ===== KEY ROTATION & REVOCATION FUNCTIONS =====
@@ -1241,63 +1401,64 @@ API is now active and ready to use!`);
         /**
          * 🔄 Rotate API Key - Generate new key, keep old one inactive
          */
-        function rotateAPIKey() {
+        async function rotateAPIKey() {
             const modelName = document.getElementById('rotateModelName').value;
             const reason = document.getElementById('rotationReason').value;
-            const alertEmail = document.getElementById('rotationAlertEmail').value;
-            
+            const alertEmail = document.getElementById('rotationAlertEmail').value.trim();
+            const apiKey = document.getElementById('rotateApiKeyInput').value.trim();
+            const alias = document.getElementById('rotateAliasInput').value.trim();
+            const endpoint = document.getElementById('rotateEndpointInput').value.trim();
+
+            if (!apiKey) {
+                alert('❌ Please paste the replacement API key');
+                return;
+            }
             if (!reason) {
                 alert('❌ Please select rotation reason');
                 return;
             }
-            
-            const newKeyId = 'key_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            
-            console.log('🔄 Rotating API Key:', {
-                model: modelName,
-                reason: reason,
-                newKeyId: newKeyId,
-                rotatedAt: new Date().toISOString(),
-                alertEmail: alertEmail
-            });
-            
-            // Send alert notification
-            if (alertEmail) {
-                sendAlertNotification({
-                    type: 'key_rotated',
-                    model: modelName,
+
+            try {
+                await rotateProviderConfig(modelName, {
+                    apiKey: apiKey,
                     reason: reason,
-                    email: alertEmail,
-                    newKeyId: newKeyId,
-                    timestamp: new Date().toISOString()
+                    alertEmail: alertEmail,
+                    alias: alias,
+                    endpoint: endpoint
                 });
-            }
-            
-            // Firebase update (when ready)
-            // db.collection('api_keys').doc(modelName).update({
-            //     previous_key: {...},
-            //     current_key: { id: newKeyId, created_at: new Date() },
-            //     rotated_at: new Date(),
-            //     rotation_reason: reason
-            // });
-            
-            alert(`✅ API Key Rotated Successfully!
+
+                if (alertEmail) {
+                    sendAlertNotification({
+                        type: 'key_rotated',
+                        model: modelName,
+                        reason: reason,
+                        email: alertEmail,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+
+                alert(`✅ API Key Rotated Successfully!
 
 📌 Model: ${modelName}
-🔑 New Key ID: ${newKeyId}
 ⏰ Rotated: ${new Date().toLocaleString()}
 📧 Alert sent to: ${alertEmail || 'Not configured'}
 
-Old key remains for 7 days before automatic revocation.`);
-            
-            closeModal('rotateKeyModal');
-            showSection('api-keys');
+Run Probe to verify the replacement key.`);
+
+                closeModal('rotateKeyModal');
+                await loadAvailableProvidersFromFirebase();
+                await loadProviderCoveragePreview();
+                await loadProviderCoverage();
+                showSection('api-keys');
+            } catch (error) {
+                alert('❌ Failed to rotate provider: ' + error.message);
+            }
         }
         
         /**
          * 🚫 Revoke API Key - Permanently disable
          */
-        function revokeAPIKey() {
+        async function revokeAPIKey() {
             const modelName = document.getElementById('revokeModelName').value;
             const reason = document.getElementById('revocationReason').value;
             const confirmation = document.getElementById('revokeConfirmation').value;
@@ -1311,36 +1472,26 @@ Old key remains for 7 days before automatic revocation.`);
                 return;
             }
             
-            console.log('🚫 Revoking API Key:', {
-                model: modelName,
-                reason: reason,
-                revokedAt: new Date().toISOString()
-            });
-            
-            // Firebase update (when ready)
-            // db.collection('api_keys').doc(modelName).update({
-            //     status: 'revoked',
-            //     revoked_at: new Date(),
-            //     revocation_reason: reason
-            // });
-            
-            alert(`✅ API Key Revoked!
+            try {
+                await removeProviderConfig(modelName);
+                alert(`✅ API Key Revoked!
 
 🚫 Model: ${modelName}
-⏰ Revoked: ${new Date().toLocaleString()}
-📋 Reason: ${reason}
-
-The key is now permanently disabled.
-Requests using this key will be rejected.`);
-            
-            closeModal('revokeKeyModal');
-            showSection('api-keys');
+📋 Reason: ${reason}`);
+                closeModal('revokeKeyModal');
+                await loadAvailableProvidersFromFirebase();
+                await loadProviderCoveragePreview();
+                await loadProviderCoverage();
+                showSection('api-keys');
+            } catch (error) {
+                alert('❌ Failed to revoke provider: ' + error.message);
+            }
         }
         
         /**
          * ⏱️ Update Rate Limits & Quota Settings
          */
-        function updateRateLimit() {
+        async function updateRateLimit() {
             const modelName = document.getElementById('rateLimitModelName').value;
             const rateLimit = parseInt(document.getElementById('rateLimit').value);
             const monthlyQuota = parseInt(document.getElementById('monthlyQuota').value);
@@ -1352,35 +1503,37 @@ Requests using this key will be rejected.`);
                 return;
             }
             
-            console.log('⏱️ Updating Rate Limits:', {
-                model: modelName,
-                rateLimit: rateLimit,
-                monthlyQuota: monthlyQuota,
-                freeQuotaPercent: freeQuotaPercent,
-                alertThreshold: alertThreshold,
-                updatedAt: new Date().toISOString()
-            });
-            
-            // Firebase update (when ready)
-            // db.collection('api_keys').doc(modelName).update({
-            //     rate_limit: rateLimit,
-            //     monthly_quota: monthlyQuota,
-            //     free_quota_percent: freeQuotaPercent,
-            //     alert_threshold: alertThreshold,
-            //     updated_at: new Date()
-            // });
-            
-            alert(`✅ Rate Limit Updated!
+            try {
+                const current = availableProviders.find(p => p.id === modelName || p.name === modelName);
+                await updateProviderConfig(modelName, {
+                    id: modelName,
+                    name: current?.name || modelName,
+                    baseModel: current?.baseModel || current?.name || modelName,
+                    type: current?.type || 'LLM',
+                    alias: current?.alias || '',
+                    endpoint: current?.endpoint || '',
+                    notes: current?.notes || '',
+                    createdByEmail: current?.createdByEmail || '',
+                    rateLimitPerMinute: rateLimit,
+                    monthlyQuota: monthlyQuota,
+                    freeQuotaPercent: freeQuotaPercent,
+                    alertThreshold: alertThreshold,
+                    status: current?.status || 'active'
+                });
+
+                alert(`✅ Rate Limit Updated!
 
 📌 Model: ${modelName}
 ⚡ Rate Limit: ${rateLimit} requests/minute
 📊 Monthly Quota: ${monthlyQuota.toLocaleString()} requests
 💰 Free Quota: 0-${freeQuotaPercent}%
-🚨 Alert at: ${alertThreshold}% usage
+🚨 Alert at: ${alertThreshold}% usage`);
 
-Settings are now active with real-time enforcement.`);
-            
-            closeModal('rateLimitModal');
+                closeModal('rateLimitModal');
+                await loadAvailableProvidersFromFirebase();
+            } catch (error) {
+                alert('❌ Failed to update provider settings: ' + error.message);
+            }
         }
         
         /**
@@ -1490,33 +1643,43 @@ Settings are now active with real-time enforcement.`);
                 return;
             }
             
-            tbody.innerHTML = availableProviders.map((apiKey, index) => {
-                const usage = updateQuotaBasedOnUsage(apiKey.name);
-                const lastUsed = localStorage.getItem('api_last_used_' + apiKey.name) || 'Never';
-                
+            tbody.innerHTML = availableProviders.map((apiKey) => {
                 return `
                     <tr>
-                        <td><strong>${apiKey.name}</strong>${apiKey.alias ? ` (${apiKey.alias})` : ''}</td>
-                        <td><span style="background: #28a745; color: #fff; padding: 3px 8px; border-radius: 3px; font-size: 12px;">✅ Active</span></td>
-                        <td>${apiKey.rate_limit || '100'} req/min</td>
-                        <td>${usage ? usage.currentUsage.toLocaleString() + '/' + usage.totalQuota.toLocaleString() : 'N/A'}</td>
+                        <td><strong>${apiKey.displayName || apiKey.name}</strong>${apiKey.alias ? ` (${apiKey.alias})` : ''}<br><small style="color: #a0aec0;">${apiKey.id}</small></td>
+                        <td><span style="background: ${apiKey.status === 'error' ? '#ff6b6b' : '#28a745'}; color: #fff; padding: 3px 8px; border-radius: 3px; font-size: 12px;">${apiKey.status === 'error' ? '⚠️ Error' : '✅ Active'}</span></td>
+                        <td>${apiKey.rateLimitPerMinute || '100'} req/min</td>
+                        <td>0/${(apiKey.monthlyQuota || 1000).toLocaleString()}</td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 5px;">
                                 <span style="width: 50px; background: #2d3748; border-radius: 3px; height: 20px; overflow: hidden;">
-                                    <div style="height: 100%; width: ${usage ? usage.freeQuotaPercent : 0}%; background: linear-gradient(90deg, #4299e1, #38a169); transition: all 0.3s;"></div>
+                                    <div style="height: 100%; width: ${apiKey.freeQuotaPercent || 0}%; background: linear-gradient(90deg, #4299e1, #38a169); transition: all 0.3s;"></div>
                                 </span>
-                                <span style="font-size: 12px; color: #a0aec0;">${usage ? Math.round(usage.freeQuotaPercent) : 0}%</span>
+                                <span style="font-size: 12px; color: #a0aec0;">${Math.round(apiKey.freeQuotaPercent || 0)}%</span>
                             </div>
                         </td>
-                        <td style="font-size: 12px; color: #a0aec0;">${lastUsed}</td>
+                        <td style="font-size: 12px; color: #a0aec0;">${formatDateTime(apiKey.lastTested || apiKey.createdAt)}</td>
                         <td style="display: flex; gap: 5px; flex-wrap: wrap;">
-                            <button class="btn" style="padding: 4px 8px; font-size: 11px;" onclick="openRotateKeyModal('${apiKey.name}')">🔄 Rotate</button>
-                            <button class="btn" style="padding: 4px 8px; font-size: 11px; background: #ff6b6b;" onclick="openRevokeKeyModal('${apiKey.name}')">🚫 Revoke</button>
-                            <button class="btn" style="padding: 4px 8px; font-size: 11px;" onclick="openRateLimitModal('${apiKey.name}')">⏱️ Quota</button>
+                            <button class="btn" style="padding: 4px 8px; font-size: 11px;" onclick="testProviderConnection('${apiKey.id}')">🧪 Probe</button>
+                            <button class="btn" style="padding: 4px 8px; font-size: 11px;" onclick="openRotateKeyModal('${apiKey.id}')">🔄 Rotate</button>
+                            <button class="btn" style="padding: 4px 8px; font-size: 11px; background: #ff6b6b;" onclick="openRevokeKeyModal('${apiKey.id}')">🚫 Revoke</button>
+                            <button class="btn" style="padding: 4px 8px; font-size: 11px;" onclick="openRateLimitModal('${apiKey.id}')">⏱️ Quota</button>
                         </td>
                     </tr>
                 `;
             }).join('');
+        }
+
+        async function testProviderConnection(providerId) {
+            try {
+                const data = await probeProvider(providerId);
+                alert(`✅ Probe passed for ${providerId}\n\n${data.responsePreview || 'Connector responded successfully.'}`);
+                await loadAvailableProvidersFromFirebase();
+                await loadProviderCoveragePreview();
+                await loadProviderCoverage();
+            } catch (error) {
+                alert(`❌ Probe failed for ${providerId}: ${error.message}`);
+            }
         }
         
         /**
@@ -1524,6 +1687,9 @@ Settings are now active with real-time enforcement.`);
          */
         function openRotateKeyModal(modelName) {
             document.getElementById('rotateModelName').value = modelName;
+            document.getElementById('rotateApiKeyInput').value = '';
+            document.getElementById('rotateAliasInput').value = '';
+            document.getElementById('rotateEndpointInput').value = '';
             document.getElementById('rotationReason').value = '';
             document.getElementById('rotationAlertEmail').value = '';
             showModal('rotateKeyModal');
@@ -1543,12 +1709,12 @@ Settings are now active with real-time enforcement.`);
          * Open Rate Limit Modal with Model Pre-filled
          */
         function openRateLimitModal(modelName) {
-            const apiKey = availableProviders.find(p => p.name === modelName);
+            const apiKey = availableProviders.find(p => p.id === modelName || p.name === modelName);
             document.getElementById('rateLimitModelName').value = modelName;
-            document.getElementById('rateLimit').value = apiKey?.rate_limit || '100';
-            document.getElementById('monthlyQuota').value = apiKey?.monthly_quota || '1000000';
-            document.getElementById('freeQuotaPercent').value = apiKey?.free_quota_percent || '80';
-            document.getElementById('alertThreshold').value = apiKey?.alert_threshold || '70';
+            document.getElementById('rateLimit').value = apiKey?.rateLimitPerMinute || '100';
+            document.getElementById('monthlyQuota').value = apiKey?.monthlyQuota || '1000000';
+            document.getElementById('freeQuotaPercent').value = apiKey?.freeQuotaPercent || '80';
+            document.getElementById('alertThreshold').value = apiKey?.alertThreshold || '70';
             showModal('rateLimitModal');
         }
 
@@ -1596,6 +1762,23 @@ Settings are now active with real-time enforcement.`);
             }
 
             return data.learning_stats || {};
+        }
+
+        async function fetchProviderCoverage() {
+            const response = await fetch('/api/learning/providers/coverage', {
+                headers: getAuthHeaders()
+            });
+
+            if (response.status === 401) {
+                throw new Error('Session expired. Please log in again.');
+            }
+
+            const data = await response.json();
+            if (!response.ok || data.status !== 'success') {
+                throw new Error(data.message || 'Failed to load provider coverage');
+            }
+
+            return data.coverage || {};
         }
 
         function renderSummaryCards(targetId, stats) {
@@ -1669,6 +1852,80 @@ Settings are now active with real-time enforcement.`);
             }).join('');
         }
 
+        function renderProviderCoverageSummary(targetId, coverage) {
+            const container = document.getElementById(targetId);
+            const cards = [
+                { label: 'Providers', value: coverage.totalProviders ?? 0 },
+                { label: 'Native Connectors', value: coverage.nativeConnectors ?? 0 },
+                { label: 'Configured', value: coverage.configuredProviders ?? 0 },
+                { label: 'L1 Ready', value: coverage.level1Ready ?? 0 },
+                { label: 'L2 Ready', value: coverage.level2Ready ?? 0 },
+                { label: 'L3 Ready', value: coverage.level3Ready ?? 0 },
+                { label: 'L4 Ready', value: coverage.level4Ready ?? 0 }
+            ];
+
+            container.innerHTML = cards.map(card => `
+                <div class="summary-card">
+                    <div class="label">${card.label}</div>
+                    <div class="value">${card.value}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderLevelBadge(ready, label) {
+            const badgeClass = ready ? 'badge-success' : 'badge-warning';
+            return `<span class="badge ${badgeClass}">${ready ? `${label} ready` : `${label} pending`}</span>`;
+        }
+
+        function renderProviderCoverageRows(targetId, providers, preview = false) {
+            const tbody = document.getElementById(targetId);
+            const rows = preview ? providers.slice(0, 5) : providers;
+
+            if (!rows.length) {
+                tbody.innerHTML = `<tr><td colspan="${preview ? 8 : 9}" style="text-align:center; padding: 24px; color: #a0aec0;">No provider coverage data available.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = rows.map(provider => {
+                if (preview) {
+                    return `
+                        <tr>
+                            <td>${provider.displayName}</td>
+                            <td>${provider.nativeConnector ? '✅' : '⚠️'}</td>
+                            <td>${provider.configured ? '✅' : '⚠️'}</td>
+                            <td>${provider.level1Ready ? '✅' : '•'}</td>
+                            <td>${provider.level2Ready ? '✅' : '•'}</td>
+                            <td>${provider.level3Ready ? '✅' : '•'}</td>
+                            <td>${provider.level4Ready ? '✅' : '•'}</td>
+                            <td><span class="coverage-score">${provider.coverageScore}/4</span></td>
+                        </tr>
+                    `;
+                }
+
+                const fallbackChain = Array.isArray(provider.fallbackChain) ? provider.fallbackChain.join(' → ') : '--';
+                const profileText = `${provider.profilePatterns || 0} patterns / ${provider.profileDecisions || 0} decisions`;
+                const probeButton = provider.configured
+                    ? `<button class="btn btn-secondary" style="margin-top: 8px; padding: 4px 8px; font-size: 11px;" onclick="testProviderConnection('${provider.providerId}')">Probe</button>`
+                    : '<div style="margin-top: 8px; color:#94a3b8; font-size: 11px;">Save key to probe</div>';
+                return `
+                    <tr>
+                        <td>
+                            <strong>${provider.displayName}</strong><br>
+                            <span style="color:#94a3b8; font-size: 12px;">${provider.providerId}</span>
+                        </td>
+                        <td>${provider.canonicalModel || '--'}</td>
+                        <td>${provider.nativeConnector ? '<span class="badge badge-success">Native</span>' : '<span class="badge badge-warning">Fallback</span>'}</td>
+                        <td>${provider.configured ? '<span class="badge badge-success">Configured</span>' : '<span class="badge badge-warning">Missing Key</span>'}${probeButton}</td>
+                        <td><div class="pill-row">${renderLevelBadge(provider.level1Ready, 'L1')}${renderLevelBadge(provider.level2Ready, 'L2')}${renderLevelBadge(provider.level3Ready, 'L3')}${renderLevelBadge(provider.level4Ready, 'L4')}</div></td>
+                        <td>${profileText}</td>
+                        <td>${provider.chainCount || 0}</td>
+                        <td>${provider.memoryCount || 0}</td>
+                        <td style="max-width: 280px; color:#cbd5e1;">${fallbackChain}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
         async function loadTechniquePreview() {
             const preview = document.getElementById('techniquePreviewList');
             preview.innerHTML = '<div class="empty-state">Loading techniques...</div>';
@@ -1678,6 +1935,22 @@ Settings are now active with real-time enforcement.`);
                 renderTechniqueCards('techniquePreviewList', techniques, 3);
             } catch (error) {
                 preview.innerHTML = `<div class="empty-state">${error.message}</div>`;
+            }
+        }
+
+        async function loadProviderCoveragePreview() {
+            const summaryTarget = document.getElementById('providerCoveragePreviewSummary');
+            const tableBody = document.getElementById('providerCoveragePreviewTableBody');
+            summaryTarget.innerHTML = '<div class="summary-card"><div class="label">Loading</div><div class="value">...</div></div>';
+            tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 24px; color: #a0aec0;">Loading provider coverage...</td></tr>';
+
+            try {
+                const coverage = await fetchProviderCoverage();
+                renderProviderCoverageSummary('providerCoveragePreviewSummary', coverage);
+                renderProviderCoverageRows('providerCoveragePreviewTableBody', coverage.providers || [], true);
+            } catch (error) {
+                summaryTarget.innerHTML = `<div class="summary-card"><div class="label">Error</div><div class="value" style="font-size: 1rem;">${error.message}</div></div>`;
+                tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 24px; color: #fca5a5;">${error.message}</td></tr>`;
             }
         }
 
@@ -1717,8 +1990,30 @@ Settings are now active with real-time enforcement.`);
                 await loadLearningSummary();
                 await loadTechniques();
                 await loadTechniquePreview();
+                await loadProviderCoveragePreview();
+                await loadProviderCoverage();
             } catch (error) {
                 status.textContent = `Reseed failed: ${error.message}`;
+            }
+        }
+
+        async function loadProviderCoverage() {
+            const status = document.getElementById('providerCoverageStatus');
+            const summaryTarget = document.getElementById('providerCoverageSummary');
+            const tableBody = document.getElementById('providerCoverageTableBody');
+            status.textContent = 'Loading live provider coverage...';
+            summaryTarget.innerHTML = '<div class="summary-card"><div class="label">Loading</div><div class="value">...</div></div>';
+            tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 24px; color: #a0aec0;">Loading provider coverage...</td></tr>';
+
+            try {
+                const coverage = await fetchProviderCoverage();
+                renderProviderCoverageSummary('providerCoverageSummary', coverage);
+                renderProviderCoverageRows('providerCoverageTableBody', coverage.providers || [], false);
+                status.textContent = `${coverage.totalProviders || 0} providers loaded. ${coverage.level4Ready || 0} have live native Level 4 connector support.`;
+            } catch (error) {
+                status.textContent = `Could not load provider coverage: ${error.message}`;
+                summaryTarget.innerHTML = `<div class="summary-card"><div class="label">Error</div><div class="value" style="font-size: 1rem;">${error.message}</div></div>`;
+                tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 24px; color: #fca5a5;">${error.message}</td></tr>`;
             }
         }
 
@@ -1744,6 +2039,7 @@ Settings are now active with real-time enforcement.`);
             const titles = {
                 'dashboard': 'Dashboard',
                 'techniques': 'Techniques',
+                'provider-coverage': 'Provider Coverage',
                 'api-keys': 'API Key Manager',
                 'ai-agents': 'AI Agent Assignment',
                 'git-projects': 'Git Projects',
@@ -1759,6 +2055,9 @@ Settings are now active with real-time enforcement.`);
             if (sectionId === 'techniques') {
                 loadLearningSummary();
                 loadTechniques();
+            }
+            if (sectionId === 'provider-coverage') {
+                loadProviderCoverage();
             }
         }
 
@@ -1857,6 +2156,7 @@ Settings are now active with real-time enforcement.`);
             loadAvailableProvidersFromFirebase();
             loadLearningSummary();
             loadTechniquePreview();
+            loadProviderCoveragePreview();
             console.log('✅ Admin Dashboard initialized');
         });
     </script>

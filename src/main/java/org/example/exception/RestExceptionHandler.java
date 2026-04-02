@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.*;
 
@@ -21,12 +22,32 @@ public class RestExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(RestExceptionHandler.class);
 
     /**
-     * Handle resource not found (404)
+     * Handle resource not found (404) - Spring Boot 3.2+ (NoHandlerFoundException)
      */
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<?> handleNotFound(NoHandlerFoundException e, WebRequest request) {
         String path = e.getRequestURL();
         logger.debug("❌ Endpoint not found: {} {}", e.getHttpMethod(), path);
+
+        Map<String, Object> error = new LinkedHashMap<>();
+        error.put("error", path);
+        error.put("status", "error");
+        error.put("code", "NOT_FOUND");
+        error.put("message", "Endpoint not found: " + path);
+        error.put("path", path);
+        error.put("timestamp", String.valueOf(System.currentTimeMillis()));
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    /**
+     * Handle resource not found (404) - Spring Boot 3.2+ uses NoResourceFoundException
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<?> handleNoResourceFound(NoResourceFoundException e, WebRequest request) {
+        String rawPath = e.getResourcePath();
+        String path = (rawPath != null && !rawPath.startsWith("/")) ? "/" + rawPath : rawPath;
+        logger.debug("❌ Resource not found: {}", path);
 
         Map<String, Object> error = new LinkedHashMap<>();
         error.put("error", path);

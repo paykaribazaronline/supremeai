@@ -1,12 +1,11 @@
 package org.example.controller;
 
 import org.example.model.APIProvider;
-import org.example.service.ProviderRegistryService;
+import org.example.service.ProviderManagementService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -18,12 +17,12 @@ import java.util.*;
 @CrossOrigin(origins = "*")
 public class ProvidersController {
     @Autowired
-    private ProviderRegistryService providerRegistryService;
+    private ProviderManagementService providerManagementService;
 
     @GetMapping("/available")
     public ResponseEntity<?> getAvailableProviders() {
         try {
-            return ResponseEntity.ok(providerRegistryService.getActiveProviders());
+            return ResponseEntity.ok(providerManagementService.getAvailableProviders());
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
@@ -32,7 +31,7 @@ public class ProvidersController {
     @GetMapping("/configured")
     public ResponseEntity<?> getConfiguredProviders() {
         try {
-            return ResponseEntity.ok(providerRegistryService.getAllProviders());
+            return ResponseEntity.ok(providerManagementService.getConfiguredProviders());
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
@@ -41,8 +40,10 @@ public class ProvidersController {
     @PostMapping("/add")
     public ResponseEntity<?> addProvider(@RequestBody APIProvider provider) {
         try {
-            APIProvider savedProvider = providerRegistryService.addOrUpdateProvider(provider);
-            return ResponseEntity.ok(Map.of("success", true, "id", savedProvider.getId()));
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "provider", providerManagementService.saveProvider(provider)
+            ));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
@@ -51,9 +52,10 @@ public class ProvidersController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateProvider(@PathVariable String id, @RequestBody APIProvider provider) {
         try {
-            provider.setId(id);
-            providerRegistryService.addOrUpdateProvider(provider);
-            return ResponseEntity.ok(Map.of("success", true));
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "provider", providerManagementService.updateProvider(id, provider)
+            ));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
@@ -62,20 +64,31 @@ public class ProvidersController {
     @PostMapping("/test/{id}")
     public ResponseEntity<?> testProvider(@PathVariable String id) {
         try {
-            APIProvider provider = providerRegistryService.getProvider(id);
-            
-            if (provider == null) {
-                return ResponseEntity.status(404).body(Map.of("error", "Provider not found"));
-            }
-
-            provider.setLastTested(LocalDateTime.now());
-            provider.setStatus("active");
-            provider.setSuccessCount(provider.getSuccessCount() + 1);
-            providerRegistryService.addOrUpdateProvider(provider);
-            
-            return ResponseEntity.ok(Map.of("success", true, "status", "active"));
+            return ResponseEntity.ok(providerManagementService.probeProvider(id));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            String message = e.getMessage() == null ? "Provider probe failed" : e.getMessage();
+            if (message.contains("not found")) {
+                return ResponseEntity.status(404).body(Map.of("error", message));
+            }
+            return ResponseEntity.status(500).body(Map.of("error", message));
+        }
+    }
+
+    @PostMapping("/probe/{id}")
+    public ResponseEntity<?> probeProvider(@PathVariable String id) {
+        return testProvider(id);
+    }
+
+    @PostMapping("/rotate/{id}")
+    public ResponseEntity<?> rotateProvider(@PathVariable String id, @RequestBody Map<String, String> request) {
+        try {
+            return ResponseEntity.ok(providerManagementService.rotateProvider(id, request));
+        } catch (Exception e) {
+            String message = e.getMessage() == null ? "Provider rotation failed" : e.getMessage();
+            if (message.contains("not found")) {
+                return ResponseEntity.status(404).body(Map.of("error", message));
+            }
+            return ResponseEntity.status(500).body(Map.of("error", message));
         }
     }
 
@@ -83,8 +96,17 @@ public class ProvidersController {
     public ResponseEntity<?> removeProvider(@RequestBody Map<String, String> request) {
         try {
             String id = request.get("id");
-            boolean removed = providerRegistryService.removeProvider(id);
+            boolean removed = providerManagementService.removeProvider(id);
             return ResponseEntity.ok(Map.of("success", removed));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteProvider(@PathVariable String id) {
+        try {
+            return ResponseEntity.ok(Map.of("success", providerManagementService.removeProvider(id)));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }

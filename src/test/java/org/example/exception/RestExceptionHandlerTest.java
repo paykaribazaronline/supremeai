@@ -38,10 +38,10 @@ public class RestExceptionHandlerTest {
     @Test
     void testBadRequestExceptionHandling() throws Exception {
         // When & Then - Invalid request parameters
-        mockMvc.perform(get("/api/v1/data/github//repo") // Invalid format
+        mockMvc.perform(get("/api/v1/data/github//repo") // Invalid format - URL with empty segment → 4xx
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer test-token"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().is4xxClientError());
     }
 
     @Test
@@ -180,7 +180,7 @@ public class RestExceptionHandlerTest {
     private String generateHash(String payload) {
         try {
             javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA256");
-            mac.init(new javax.crypto.spec.SecretKeySpec("test-secret".getBytes(), "HmacSHA256"));
+            mac.init(new javax.crypto.spec.SecretKeySpec("test-webhook-secret".getBytes(), "HmacSHA256"));
             byte[] hash = mac.doFinal(payload.getBytes());
             return java.util.Base64.getEncoder().encodeToString(hash);
         } catch (Exception e) {

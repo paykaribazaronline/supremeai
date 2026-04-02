@@ -110,8 +110,15 @@ public class AIAPIService {
     }
     
     private String executeAPICall(String aiModel, String prompt) throws IOException {
-        String endpoint = apiEndpoints.get(aiModel);
-        String apiKey = apiKeys.get(aiModel);
+        return executeAPICall(aiModel, prompt, apiKeys.get(aiModel), null);
+    }
+
+    private String executeAPICall(String aiModel, String prompt, String apiKeyOverride,
+                                  String endpointOverride) throws IOException {
+        String endpoint = endpointOverride != null && !endpointOverride.isBlank()
+            ? endpointOverride
+            : apiEndpoints.get(aiModel);
+        String apiKey = apiKeyOverride;
         
         if (endpoint == null || apiKey == null) {
             throw new IllegalArgumentException("Unknown AI model or missing API key: " + aiModel);
@@ -358,6 +365,28 @@ public class AIAPIService {
         return model != null && apiKeys.containsKey(model) && apiKeys.get(model) != null && !apiKeys.get(model).isBlank();
     }
 
+    public String probeProviderConnection(String providerName, String apiKey, String endpointOverride) throws IOException {
+        String providerId = getCanonicalProviderId(providerName);
+        String model = normalizeModelName(providerId);
+        if (model == null) {
+            throw new IOException("Unsupported provider: " + providerName);
+        }
+        if (apiKey == null || apiKey.isBlank()) {
+            throw new IOException("Missing API key");
+        }
+
+        String response = executeAPICall(
+            model,
+            "Reply with a short one-line health check confirmation.",
+            apiKey,
+            endpointOverride
+        );
+        if (response == null || response.isBlank()) {
+            throw new IOException("Provider returned an empty response");
+        }
+        return response;
+    }
+
     public Map<String, Object> getProviderConnectorStatus(String providerName) {
         String normalizedModel = normalizeModelName(providerName);
         Map<String, Object> status = new LinkedHashMap<>();
@@ -369,6 +398,94 @@ public class AIAPIService {
         status.put("fallbackChain", getFallbackChainForProvider(providerName));
         status.put("defaultModel", normalizedModel == null ? null : defaultModels.get(normalizedModel));
         return status;
+    }
+
+    public List<String> getCanonicalProviderIds() {
+        return Arrays.asList(
+            "openai-gpt4",
+            "anthropic-claude",
+            "google-gemini",
+            "cohere",
+            "perplexity",
+            "meta-llama",
+            "huggingface",
+            "xai-grok",
+            "deepseek",
+            "mistral"
+        );
+    }
+
+    public String getCanonicalProviderId(String providerName) {
+        if (providerName == null || providerName.isBlank()) {
+            return null;
+        }
+
+        String normalized = providerName.trim().toLowerCase(Locale.ROOT);
+        if (getCanonicalProviderIds().contains(normalized)) {
+            return normalized;
+        }
+        if (normalized.contains("openai") || normalized.contains("gpt")) {
+            return "openai-gpt4";
+        }
+        if (normalized.contains("claude") || normalized.contains("anthropic")) {
+            return "anthropic-claude";
+        }
+        if (normalized.contains("gemini") || normalized.contains("google")) {
+            return "google-gemini";
+        }
+        if (normalized.contains("cohere")) {
+            return "cohere";
+        }
+        if (normalized.contains("perplexity")) {
+            return "perplexity";
+        }
+        if (normalized.contains("llama") || normalized.contains("meta")) {
+            return "meta-llama";
+        }
+        if (normalized.contains("huggingface") || normalized.equals("hf")) {
+            return "huggingface";
+        }
+        if (normalized.contains("xai") || normalized.contains("grok")) {
+            return "xai-grok";
+        }
+        if (normalized.contains("deepseek")) {
+            return "deepseek";
+        }
+        if (normalized.contains("mistral")) {
+            return "mistral";
+        }
+        return normalized;
+    }
+
+    public String getProviderDisplayName(String providerName) {
+        if (providerName == null || providerName.isBlank()) {
+            return "Unknown Provider";
+        }
+
+        switch (providerName) {
+            case "openai-gpt4":
+                return "OpenAI GPT-4";
+            case "anthropic-claude":
+                return "Anthropic Claude";
+            case "google-gemini":
+                return "Google Gemini";
+            case "cohere":
+                return "Cohere";
+            case "perplexity":
+                return "Perplexity";
+            case "meta-llama":
+                return "Meta / Llama";
+            case "huggingface":
+                return "HuggingFace";
+            case "xai-grok":
+                return "XAI Grok";
+            case "deepseek":
+                return "DeepSeek";
+            case "mistral":
+                return "Mistral";
+            default:
+                return providerName;
+        }
     }
 
     public String normalizeModelName(String aiModel) {
@@ -390,7 +507,7 @@ public class AIAPIService {
         aliases.put("anthropic", "CLAUDE");
         aliases.put("anthropic-claude", "CLAUDE");
         aliases.put("groq", "GROQ");
-        aliases.put("meta-llama", "GROQ");
+        aliases.put("meta-llama", "LLAMA");
         aliases.put("mistral", "GROQ");
         aliases.put("huggingface", "GROQ");
         aliases.put("xai-grok", "GROQ");
