@@ -175,7 +175,7 @@ Deployment History shows:
 
 ### Live Website
 ```
-https://supremeai-565236080752.web.app/admin/
+https://supremeai-a.web.app/admin/
 ↑ Shows your Flutter app (updated within ~12 min)
 ```
 

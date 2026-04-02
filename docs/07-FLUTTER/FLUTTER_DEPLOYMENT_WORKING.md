@@ -19,7 +19,7 @@ Automatically executes on every push:
    - Runs tests & analysis
 
 2. **Firebase Deployment** (1-2 min)
-   - Deploys to: https://supremeai-565236080752.web.app/admin/
+   - Deploys to: https://supremeai-a.web.app/admin/
    - Only on main branch
    - Requires FIREBASE_TOKEN secret
 
@@ -42,13 +42,13 @@ Automatically executes on every push:
 ```json
 {
   "projects": {
-    "default": "supremeai-565236080752"
+    "default": "supremeai-a"
   },
   "targets": {
-    "supremeai-565236080752": {
+    "supremeai-a": {
       "hosting": {
         "main-dashboard": ["supremeai-a"],
-        "flutter-admin": ["supremeai-565236080752"]
+        "flutter-admin": ["supremeai-a"]
       }
     }
   }
@@ -151,7 +151,7 @@ git push origin main
 🚀 Firebase auto-deploys (if main)
 📱 Android builds create APK/AAB
       ↓
-✅ Live at https://supremeai-565236080752.web.app/admin/
+✅ Live at https://supremeai-a.web.app/admin/
       ↓
 📢 GitHub PR comment with status
 📊 Build artifacts in GitHub
@@ -166,7 +166,7 @@ ZERO MANUAL WORK REQUIRED 🎉
 ### Web App
 - **Location:** `flutter_admin_app/build/web/`
 - **Deployed to:** Firebase Hosting
-- **URL:** https://supremeai-565236080752.web.app/admin/
+- **URL:** https://supremeai-a.web.app/admin/
 - **Auto-refresh:** On every push to main
 - **Time:** ~12 minutes from push to live
 
@@ -344,7 +344,7 @@ gh run download <run-id> --name flutter-web-build
 
 ### Live Resources
 - [GitHub Actions Runs](https://github.com/your-username/supremeai/actions)
-- [Firebase Hosting](https://supremeai-565236080752.web.app/admin/)
+- [Firebase Hosting](https://supremeai-a.web.app/admin/)
 - [Firebase Console](https://console.firebase.google.com)
 
 ---
@@ -418,7 +418,7 @@ git push origin main
 
 2. **Check Live App:**
    ```
-   https://supremeai-565236080752.web.app/admin/
+   https://supremeai-a.web.app/admin/
    Should show your Flutter app
    ```
 

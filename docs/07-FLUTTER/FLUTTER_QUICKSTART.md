@@ -164,7 +164,7 @@ When deployment succeeds, you'll see:
 - Status: "Deployed"
 
 ✅ **Live Web App:**
-- Accessible at: https://supremeai-565236080752.web.app/admin/
+- Accessible at: https://supremeai-a.web.app/admin/
 - Shows your Flutter app
 
 ✅ **GitHub Notification:**
@@ -254,7 +254,7 @@ Build & Test
     ↓
 IF main branch: Deploy to Firebase
     ↓
-Live at https://supremeai-565236080752.web.app/admin/
+Live at https://supremeai-a.web.app/admin/
 ```
 
 **No manual deployment needed!** 🎉

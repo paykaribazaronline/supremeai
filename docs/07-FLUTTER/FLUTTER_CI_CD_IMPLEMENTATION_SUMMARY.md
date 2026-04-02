@@ -37,7 +37,7 @@
 
 **URLs:**
 - Main dashboard: https://supremeai-a.web.app
-- Flutter admin: https://supremeai-565236080752.web.app/admin/
+- Flutter admin: https://supremeai-a.web.app/admin/
 
 ### ✅ 3. Setup Automation Scripts
 **4 Scripts Created:**
@@ -119,9 +119,9 @@
 ```json
 // .firebaserc
 {
-  "projects": { "default": "supremeai-565236080752" },
+  "projects": { "default": "supremeai-a" },
   "targets": {
-    "supremeai-565236080752": {
+    "supremeai-a": {
       "hosting": {
         "main-dashboard": ["supremeai-a"],
         "flutter-admin": ["supremeai-565236080752"]

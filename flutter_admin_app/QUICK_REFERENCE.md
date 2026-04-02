@@ -12,7 +12,7 @@ flutter run
 
 **Production (Cloud Run):**
 ```
-https://supremeai-565236080752.us-central1.run.app
+https://supremeai-a.us-central1.run.app
 ```
 
 **Configuration File:**

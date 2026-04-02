@@ -255,7 +255,7 @@ Once secrets are configured:
 1. ✅ Push code to main branch
 2. ✅ GitHub Actions triggers automatically
 3. ✅ Monitor at: https://github.com/your-username/supremeai/actions
-4. ✅ View live deployment: https://supremeai-565236080752.web.app/admin/
+4. ✅ View live deployment: https://supremeai-a.web.app/admin/
 
 ---
 
