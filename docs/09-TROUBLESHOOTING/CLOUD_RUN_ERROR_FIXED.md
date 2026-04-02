@@ -110,7 +110,7 @@ gcloud run services describe supremeai --region us-central1
 
 ### Health Check
 ```bash
-curl https://supremeai-565236080752.us-central1.run.app/actuator/health
+curl https://supremeai-a.us-central1.run.app/actuator/health
 
 # Response:
 # {"status":"UP","timestamp":"1712057100000"}
@@ -149,7 +149,7 @@ gcloud run services logs read supremeai --region us-central1 --limit 50
 
 3. **Test endpoint**:
    ```bash
-   curl https://supremeai-565236080752.us-central1.run.app/
+   curl https://supremeai-a.us-central1.run.app/
    ```
 
 4. **View logs**:
@@ -198,7 +198,7 @@ gcloud run services logs read supremeai --region us-central1 --limit 50
 - ✅ Service status: "Active"
 - ✅ Health check: "UP"  
 - ✅ Logs show: "Ready to serve traffic"
-- ✅ URL working: https://supremeai-565236080752.us-central1.run.app
+- ✅ URL working: https://supremeai-a.us-central1.run.app
 - ✅ No timeout errors
 - ✅ Response time <2s
 
