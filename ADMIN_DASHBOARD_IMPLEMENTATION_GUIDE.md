@@ -91,18 +91,21 @@ Response:
 ### Dashboard UI Features
 
 **Left Panel - Rules Control:**
+
 - [ ] View Current Rules (read-only)
 - [ ] Enforcement Level Selector (STRICT/WARNING/INFO)
 - [ ] Auto-Correct Toggle
 - [ ] Monthly Reset Status
 
 **Center Panel - Category Management:**
+
 - [ ] List all doc categories
 - [ ] Add new category (name, path, max size)
 - [ ] Edit category rules
 - [ ] Delete category
 
 **Right Panel - File Validation:**
+
 - [ ] Paste document path
 - [ ] Select category
 - [ ] See validation results
@@ -113,6 +116,7 @@ Response:
 **Scenario:** SupremeAI generated a doc in root folder instead of `docs/guides/`
 
 **Admin Actions:**
+
 1. Enforce level → STRICT
 2. Validate document → Shows error "File not allowed in root"
 3. Auto-suggest correction → "Move to docs/guides/..."
@@ -145,9 +149,11 @@ Monitor AI provider quotas and optimize AI selection. Supports **1 to unlimited 
 ### REST Endpoints
 
 #### **Get Quota Summary**
+
 ```bash
 GET /api/quotas/summary
 ```
+
 **Response:**
 ```json
 {
@@ -166,6 +172,7 @@ GET /api/quotas/summary
 ```
 
 #### **Get Detailed Provider Status**
+
 ```bash
 GET /api/quotas/status
 
