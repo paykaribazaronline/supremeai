@@ -72,6 +72,21 @@ public class ProviderRegistryService {
         if (normalized.getName() == null || normalized.getName().isBlank()) {
             normalized.setName("Provider " + normalized.getId());
         }
+        if (normalized.getCreatedAt() == null) {
+            normalized.setCreatedAt(java.time.LocalDateTime.now());
+        }
+        if (normalized.getRateLimitPerMinute() == null) {
+            normalized.setRateLimitPerMinute(100);
+        }
+        if (normalized.getMonthlyQuota() == null) {
+            normalized.setMonthlyQuota(1000);
+        }
+        if (normalized.getFreeQuotaPercent() == null) {
+            normalized.setFreeQuotaPercent(80);
+        }
+        if (normalized.getAlertThreshold() == null) {
+            normalized.setAlertThreshold(75);
+        }
 
         return normalized;
     }

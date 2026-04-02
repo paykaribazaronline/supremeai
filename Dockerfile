@@ -2,7 +2,7 @@
 FROM gradle:8.7-jdk17 AS build
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
-RUN gradle build --no-daemon -x test --parallel --max-workers=2
+RUN chmod +x gradlew && ./gradlew build --no-daemon -x test --parallel --max-workers=2 --stacktrace
 
 # Step 2: Create the runtime image using Eclipse Temurin (More stable)
 FROM eclipse-temurin:17-jdk-jammy

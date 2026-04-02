@@ -3,6 +3,7 @@ package org.example.controller;
 import org.example.model.SystemLearning;
 import org.example.service.SystemLearningService;
 import org.example.service.KnowledgeReseedService;
+import org.example.service.ProviderCoverageService;
 import org.example.service.AuthenticationService;
 import org.example.model.User;
 import org.slf4j.Logger;
@@ -31,6 +32,9 @@ public class SystemLearningController {
 
     @Autowired
     private KnowledgeReseedService knowledgeReseedService;
+
+    @Autowired
+    private ProviderCoverageService providerCoverageService;
     
     /**
      * GET /api/learning/stats
@@ -173,6 +177,30 @@ public class SystemLearningController {
             return ResponseEntity.ok(reseedResult);
         } catch (Exception e) {
             logger.error("❌ Reseed error: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("status", "error", "message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/providers/coverage")
+    public ResponseEntity<?> getProviderCoverage(
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            User user = authenticate(authHeader);
+
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("status", "error", "message", "Auth required"));
+            }
+
+            Map<String, Object> coverage = providerCoverageService.getCoverageSummary();
+            return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "coverage", coverage,
+                "timestamp", System.currentTimeMillis()
+            ));
+        } catch (Exception e) {
+            logger.error("❌ Provider coverage error: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("status", "error", "message", e.getMessage()));
         }

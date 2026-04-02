@@ -475,6 +475,25 @@
             font-size: 1.4rem;
             font-weight: 700;
         }
+
+        .coverage-table-wrap {
+            margin-top: 18px;
+            overflow-x: auto;
+            background: #1a202c;
+            border: 1px solid #2d3748;
+            border-radius: 14px;
+        }
+
+        .coverage-score {
+            font-weight: 700;
+            color: #f8fafc;
+        }
+
+        .pill-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
     </style>
 </head>
 <body>
@@ -484,6 +503,7 @@
             <div class="logo">👑 SupremeAI Admin</div>
             <div class="menu-item active" onclick="showSection('dashboard')">📊 Dashboard</div>
             <div class="menu-item" onclick="showSection('techniques')">🧠 Techniques</div>
+            <div class="menu-item" onclick="showSection('provider-coverage')">🛰️ Provider Coverage</div>
             <div class="menu-item" onclick="showSection('approvals')">✅ Approvals</div>
             <div class="menu-item" onclick="showSection('commands')">💻 Commands</div>
             <div class="menu-item" onclick="showSection('api-keys')">🔑 API Key Manager</div>
@@ -545,6 +565,7 @@
                     <h2>Quick Actions</h2>
                     <button class="btn" onclick="showSection('api-keys'); showModal('addKeyModal')">➕ Add API Key</button>
                     <button class="btn btn-secondary" onclick="showSection('techniques')">🧠 Browse Techniques</button>
+                    <button class="btn btn-secondary" onclick="showSection('provider-coverage')">🛰️ Provider Coverage</button>
                     <button class="btn btn-secondary" onclick="showSection('ai-agents')">🤖 Assign AI</button>
                     <button class="btn btn-secondary" onclick="showSection('projects')">📦 View Projects</button>
 
@@ -564,6 +585,35 @@
                         </div>
                         <div id="techniquePreviewList" class="technique-list" style="margin-top: 18px;">
                             <div class="empty-state">Loading techniques...</div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 22px;">
+                            <div>
+                                <h2 style="margin: 0;">Provider Level Coverage</h2>
+                                <p class="status-note" style="margin-bottom: 0;">Live Level 1-4 coverage and native connector readiness for every AI provider.</p>
+                            </div>
+                            <button class="btn btn-secondary" onclick="loadProviderCoveragePreview()">↻ Refresh Coverage</button>
+                        </div>
+                        <div id="providerCoveragePreviewSummary" class="summary-grid" style="margin-top: 16px;">
+                            <div class="summary-card"><div class="label">Loading</div><div class="value">...</div></div>
+                        </div>
+                        <div class="coverage-table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Provider</th>
+                                        <th>Native</th>
+                                        <th>Configured</th>
+                                        <th>L1</th>
+                                        <th>L2</th>
+                                        <th>L3</th>
+                                        <th>L4</th>
+                                        <th>Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="providerCoveragePreviewTableBody">
+                                    <tr><td colspan="8" style="text-align:center; padding: 24px; color: #a0aec0;">Loading provider coverage...</td></tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -597,6 +647,41 @@
                     <div id="techniqueStatus" class="status-note">Use your admin login session to load the seeded knowledge from the backend.</div>
                     <div id="techniqueList" class="technique-list" style="margin-top: 18px;">
                         <div class="empty-state">No techniques loaded yet.</div>
+                    </div>
+                </div>
+
+                <div id="provider-coverage" class="content-section">
+                    <h1>🛰️ Provider Coverage</h1>
+                    <p>Live per-provider status for native connectors, configuration, and Levels 1-4 learning coverage.</p>
+
+                    <div class="technique-toolbar">
+                        <button class="btn" onclick="loadProviderCoverage()">↻ Load Coverage</button>
+                        <button class="btn btn-secondary" onclick="showSection('api-keys')">🔑 Manage API Keys</button>
+                    </div>
+
+                    <div id="providerCoverageSummary" class="summary-grid">
+                        <div class="summary-card"><div class="label">Loading</div><div class="value">...</div></div>
+                    </div>
+                    <div id="providerCoverageStatus" class="status-note">Load the live provider coverage matrix from the backend.</div>
+                    <div class="coverage-table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Provider</th>
+                                    <th>Canonical</th>
+                                    <th>Connector</th>
+                                    <th>Configured</th>
+                                    <th>Levels</th>
+                                    <th>Profile</th>
+                                    <th>Chains</th>
+                                    <th>Memories</th>
+                                    <th>Fallback</th>
+                                </tr>
+                            </thead>
+                            <tbody id="providerCoverageTableBody">
+                                <tr><td colspan="9" style="text-align:center; padding: 24px; color: #a0aec0;">No provider coverage loaded yet.</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -799,6 +884,13 @@
                     <option value="GPT-4">GPT-4 (OpenAI)</option>
                     <option value="Claude-3">Claude 3 (Anthropic)</option>
                     <option value="Gemini">Gemini Pro (Google)</option>
+                    <option value="Cohere">Cohere</option>
+                    <option value="Perplexity">Perplexity</option>
+                    <option value="Meta / Llama">Meta / Llama</option>
+                    <option value="HuggingFace">HuggingFace</option>
+                    <option value="XAI / Grok">XAI / Grok</option>
+                    <option value="DeepSeek">DeepSeek</option>
+                    <option value="Mistral">Mistral</option>
                 </select>
             </div>
             <div class="form-group">
@@ -824,6 +916,14 @@
             <div class="form-group">
                 <label>Current Model</label>
                 <input type="text" id="rotateModelName" readonly>
+            </div>
+            <div class="form-group">
+                <label>Replacement API Key</label>
+                <textarea id="rotateApiKeyInput" placeholder="Paste the replacement API key here..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Rotation Reason</label>
+                <input type="text" id="rotateReasonInput" placeholder="security, scheduled, quota reset...">
             </div>
             <button class="btn" onclick="rotateAPIKey()">✅ Confirm Rotation</button>
             <button class="btn btn-secondary" onclick="closeModal('rotateKeyModal')">❌ Cancel</button>
@@ -920,6 +1020,7 @@
             const titles = {
                 'dashboard': 'Dashboard',
                 'techniques': 'Techniques',
+                'provider-coverage': 'Provider Coverage',
                 'approvals': 'Approvals',
                 'commands': 'Commands',
                 'api-keys': 'API Key Manager',
@@ -934,6 +1035,7 @@
             if (sectionId === 'approvals') loadApprovals();
             if (sectionId === 'api-keys') renderAPIKeysTable();
             if (sectionId === 'techniques') loadTechniques();
+            if (sectionId === 'provider-coverage') loadProviderCoverage();
         }
 
         function showModal(modalId) {
@@ -1085,6 +1187,23 @@
             return data.learning_stats || {};
         }
 
+        async function fetchProviderCoverage() {
+            const response = await fetch('/api/learning/providers/coverage', {
+                headers: getAuthHeaders()
+            });
+
+            if (response.status === 401) {
+                throw new Error('Session expired. Please log in again.');
+            }
+
+            const data = await response.json();
+            if (!response.ok || data.status !== 'success') {
+                throw new Error(data.message || 'Failed to load provider coverage');
+            }
+
+            return data.coverage || {};
+        }
+
         function renderSummaryCards(targetId, stats) {
             const container = document.getElementById(targetId);
             const byCategory = stats.byCategory || {};
@@ -1156,6 +1275,80 @@
             }).join('');
         }
 
+        function renderProviderCoverageSummary(targetId, coverage) {
+            const container = document.getElementById(targetId);
+            const cards = [
+                { label: 'Providers', value: coverage.totalProviders ?? 0 },
+                { label: 'Native Connectors', value: coverage.nativeConnectors ?? 0 },
+                { label: 'Configured', value: coverage.configuredProviders ?? 0 },
+                { label: 'L1 Ready', value: coverage.level1Ready ?? 0 },
+                { label: 'L2 Ready', value: coverage.level2Ready ?? 0 },
+                { label: 'L3 Ready', value: coverage.level3Ready ?? 0 },
+                { label: 'L4 Ready', value: coverage.level4Ready ?? 0 }
+            ];
+
+            container.innerHTML = cards.map(card => `
+                <div class="summary-card">
+                    <div class="label">${card.label}</div>
+                    <div class="value">${card.value}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderLevelBadge(ready, label) {
+            const badgeClass = ready ? 'badge-success' : 'badge-warning';
+            return `<span class="badge ${badgeClass}">${ready ? `${label} ready` : `${label} pending`}</span>`;
+        }
+
+        function renderProviderCoverageRows(targetId, providers, preview = false) {
+            const tbody = document.getElementById(targetId);
+            const rows = preview ? providers.slice(0, 5) : providers;
+
+            if (!rows.length) {
+                tbody.innerHTML = `<tr><td colspan="${preview ? 8 : 9}" style="text-align:center; padding: 24px; color: #a0aec0;">No provider coverage data available.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = rows.map(provider => {
+                if (preview) {
+                    return `
+                        <tr>
+                            <td>${provider.displayName}</td>
+                            <td>${provider.nativeConnector ? '✅' : '⚠️'}</td>
+                            <td>${provider.configured ? '✅' : '⚠️'}</td>
+                            <td>${provider.level1Ready ? '✅' : '•'}</td>
+                            <td>${provider.level2Ready ? '✅' : '•'}</td>
+                            <td>${provider.level3Ready ? '✅' : '•'}</td>
+                            <td>${provider.level4Ready ? '✅' : '•'}</td>
+                            <td><span class="coverage-score">${provider.coverageScore}/4</span></td>
+                        </tr>
+                    `;
+                }
+
+                const fallbackChain = Array.isArray(provider.fallbackChain) ? provider.fallbackChain.join(' → ') : '--';
+                const profileText = `${provider.profilePatterns || 0} patterns / ${provider.profileDecisions || 0} decisions`;
+                const probeButton = provider.configured
+                    ? `<button class="btn btn-secondary" style="margin-top: 8px; padding: 4px 8px; font-size: 11px;" onclick="probeProvider('${provider.providerId}')">Probe</button>`
+                    : '<div style="margin-top: 8px; color:#94a3b8; font-size: 11px;">Save key to probe</div>';
+                return `
+                    <tr>
+                        <td>
+                            <strong>${provider.displayName}</strong><br>
+                            <span style="color:#94a3b8; font-size: 12px;">${provider.providerId}</span>
+                        </td>
+                        <td>${provider.canonicalModel || '--'}</td>
+                        <td>${provider.nativeConnector ? '<span class="badge badge-success">Native</span>' : '<span class="badge badge-warning">Fallback</span>'}</td>
+                        <td>${provider.configured ? '<span class="badge badge-success">Configured</span>' : '<span class="badge badge-warning">Missing Key</span>'}${probeButton}</td>
+                        <td><div class="pill-row">${renderLevelBadge(provider.level1Ready, 'L1')}${renderLevelBadge(provider.level2Ready, 'L2')}${renderLevelBadge(provider.level3Ready, 'L3')}${renderLevelBadge(provider.level4Ready, 'L4')}</div></td>
+                        <td>${profileText}</td>
+                        <td>${provider.chainCount || 0}</td>
+                        <td>${provider.memoryCount || 0}</td>
+                        <td style="max-width: 280px; color:#cbd5e1;">${fallbackChain}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
         async function loadTechniquePreview() {
             const preview = document.getElementById('techniquePreviewList');
             preview.innerHTML = '<div class="empty-state">Loading techniques...</div>';
@@ -1165,6 +1358,22 @@
                 renderTechniqueCards('techniquePreviewList', techniques, 3);
             } catch (error) {
                 preview.innerHTML = `<div class="empty-state">${error.message}</div>`;
+            }
+        }
+
+        async function loadProviderCoveragePreview() {
+            const summaryTarget = document.getElementById('providerCoveragePreviewSummary');
+            const tableBody = document.getElementById('providerCoveragePreviewTableBody');
+            summaryTarget.innerHTML = '<div class="summary-card"><div class="label">Loading</div><div class="value">...</div></div>';
+            tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 24px; color: #a0aec0;">Loading provider coverage...</td></tr>';
+
+            try {
+                const coverage = await fetchProviderCoverage();
+                renderProviderCoverageSummary('providerCoveragePreviewSummary', coverage);
+                renderProviderCoverageRows('providerCoveragePreviewTableBody', coverage.providers || [], true);
+            } catch (error) {
+                summaryTarget.innerHTML = `<div class="summary-card"><div class="label">Error</div><div class="value" style="font-size: 1rem;">${error.message}</div></div>`;
+                tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 24px; color: #fca5a5;">${error.message}</td></tr>`;
             }
         }
 
@@ -1204,27 +1413,154 @@
                 await loadLearningSummary();
                 await loadTechniques();
                 await loadTechniquePreview();
+                await loadProviderCoveragePreview();
+                await loadProviderCoverage();
             } catch (error) {
                 status.textContent = `Reseed failed: ${error.message}`;
             }
         }
 
-        // --- API Keys Logic ---
-        function addNewProvider() {
-            const aiModel = document.getElementById('aiModelSelect').value;
-            if (!aiModel) return alert('Please select a model');
+        async function loadProviderCoverage() {
+            const status = document.getElementById('providerCoverageStatus');
+            const summaryTarget = document.getElementById('providerCoverageSummary');
+            const tableBody = document.getElementById('providerCoverageTableBody');
+            status.textContent = 'Loading live provider coverage...';
+            summaryTarget.innerHTML = '<div class="summary-card"><div class="label">Loading</div><div class="value">...</div></div>';
+            tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 24px; color: #a0aec0;">Loading provider coverage...</td></tr>';
 
-            availableProviders.push({
-                name: aiModel,
-                status: 'Active',
-                rate_limit: 100,
-                usage: 0,
-                monthly_quota: 1000,
-                free_quota_percent: 80
+            try {
+                const coverage = await fetchProviderCoverage();
+                renderProviderCoverageSummary('providerCoverageSummary', coverage);
+                renderProviderCoverageRows('providerCoverageTableBody', coverage.providers || [], false);
+                status.textContent = `${coverage.totalProviders || 0} providers loaded. ${coverage.level4Ready || 0} have live native Level 4 connector support.`;
+            } catch (error) {
+                status.textContent = `Could not load provider coverage: ${error.message}`;
+                summaryTarget.innerHTML = `<div class="summary-card"><div class="label">Error</div><div class="value" style="font-size: 1rem;">${error.message}</div></div>`;
+                tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 24px; color: #fca5a5;">${error.message}</td></tr>`;
+            }
+        }
+
+        async function fetchConfiguredProviders() {
+            const response = await fetch('/api/providers/configured', {
+                headers: getAuthHeaders()
             });
 
-            renderAPIKeysTable();
-            closeModal('addKeyModal');
+            if (response.status === 401) {
+                throw new Error('Session expired. Please log in again.');
+            }
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to load configured providers');
+            }
+            return Array.isArray(data) ? data : [];
+        }
+
+        async function saveProviderConfig(payload) {
+            const response = await fetch('/api/providers/add', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || 'Failed to save provider');
+            }
+            return data.provider;
+        }
+
+        async function probeProvider(providerId) {
+            try {
+                const response = await fetch(`/api/providers/probe/${encodeURIComponent(providerId)}`, {
+                    method: 'POST',
+                    headers: getAuthHeaders()
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Provider probe failed');
+                }
+                alert(`Probe passed for ${providerId}.\n\n${data.responsePreview || 'Connector responded successfully.'}`);
+                await loadConfiguredProviders();
+                await loadProviderCoveragePreview();
+                await loadProviderCoverage();
+            } catch (error) {
+                alert(`Probe failed for ${providerId}: ${error.message}`);
+            }
+        }
+
+        async function removeProviderConfig(providerId) {
+            const response = await fetch('/api/providers/remove', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ id: providerId })
+            });
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || 'Failed to remove provider');
+            }
+        }
+
+        async function rotateProviderConfig(providerId, payload) {
+            const response = await fetch(`/api/providers/rotate/${encodeURIComponent(providerId)}`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || 'Failed to rotate provider');
+            }
+            return data.provider;
+        }
+
+        async function loadConfiguredProviders() {
+            try {
+                availableProviders = await fetchConfiguredProviders();
+                renderAPIKeysTable();
+            } catch (error) {
+                const tbody = document.getElementById('apiKeysTableBody');
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 40px; color: #fca5a5;">${error.message}</td></tr>`;
+            }
+        }
+
+        function formatDateTime(value) {
+            if (!value) {
+                return '--';
+            }
+            const parsed = new Date(value);
+            return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
+        }
+
+        // --- API Keys Logic ---
+        async function addNewProvider() {
+            const aiModel = document.getElementById('aiModelSelect').value;
+            const createdByEmail = document.getElementById('createdByEmail').value.trim();
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+
+            if (!aiModel) return alert('Please select a model');
+            if (!createdByEmail) return alert('Please enter the creator email');
+            if (!apiKey) return alert('Please paste the API key');
+
+            try {
+                await saveProviderConfig({
+                    id: aiModel,
+                    name: aiModel,
+                    baseModel: aiModel,
+                    type: 'LLM',
+                    apiKey,
+                    createdByEmail,
+                    status: 'active'
+                });
+                document.getElementById('aiModelSelect').value = '';
+                document.getElementById('createdByEmail').value = '';
+                document.getElementById('apiKeyInput').value = '';
+                closeModal('addKeyModal');
+                await loadConfiguredProviders();
+                await loadProviderCoveragePreview();
+                await loadProviderCoverage();
+            } catch (error) {
+                alert(`Failed to save provider: ${error.message}`);
+            }
         }
 
         function renderAPIKeysTable() {
@@ -1236,30 +1572,72 @@
 
             tbody.innerHTML = availableProviders.map(apiKey => `
                 <tr>
-                    <td><strong>${apiKey.name}</strong></td>
-                    <td><span class="badge badge-success">Active</span></td>
-                    <td>${apiKey.rate_limit} req/min</td>
-                    <td>${apiKey.usage}/${apiKey.monthly_quota}</td>
-                    <td>${apiKey.free_quota_percent}%</td>
-                    <td>Just now</td>
-                    <td><button class="btn btn-secondary" onclick="openRotateKeyModal('${apiKey.name}')">Rotate</button></td>
+                    <td><strong>${apiKey.displayName || apiKey.name}</strong><br><span style="color:#94a3b8; font-size: 12px;">${apiKey.id}</span></td>
+                    <td><span class="badge ${apiKey.status === 'error' ? 'badge-danger' : 'badge-success'}">${apiKey.status || 'active'}</span></td>
+                    <td>${apiKey.rateLimitPerMinute || 100} req/min</td>
+                    <td>0/${apiKey.monthlyQuota || 1000}</td>
+                    <td>${apiKey.freeQuotaPercent || 80}%</td>
+                    <td>${formatDateTime(apiKey.lastTested || apiKey.createdAt)}</td>
+                    <td>
+                        <button class="btn btn-secondary" onclick="probeProvider('${apiKey.id}')">Test</button>
+                        <button class="btn btn-secondary" onclick="openRotateKeyModal('${apiKey.id}')">Rotate</button>
+                        <button class="btn btn-danger" onclick="openRevokeKeyModal('${apiKey.id}')">Revoke</button>
+                    </td>
                 </tr>
             `).join('');
         }
 
         function openRotateKeyModal(name) {
             document.getElementById('rotateModelName').value = name;
+            document.getElementById('rotateApiKeyInput').value = '';
+            document.getElementById('rotateReasonInput').value = '';
             showModal('rotateKeyModal');
         }
 
-        function rotateAPIKey() {
-            alert('Key rotated successfully');
-            closeModal('rotateKeyModal');
+        async function rotateAPIKey() {
+            const providerId = document.getElementById('rotateModelName').value;
+            const apiKey = document.getElementById('rotateApiKeyInput').value.trim();
+            const reason = document.getElementById('rotateReasonInput').value.trim();
+
+            if (!providerId) {
+                return;
+            }
+            if (!apiKey) {
+                alert('Please paste the replacement API key.');
+                return;
+            }
+
+            try {
+                await rotateProviderConfig(providerId, { apiKey, reason });
+                closeModal('rotateKeyModal');
+                await loadConfiguredProviders();
+                await loadProviderCoveragePreview();
+                await loadProviderCoverage();
+                alert(`Rotation complete for ${providerId}. Probe it now to verify the new key.`);
+            } catch (error) {
+                alert(`Failed to rotate provider: ${error.message}`);
+            }
         }
 
-        function revokeAPIKey() {
-            alert('Key revoked');
-            closeModal('revokeKeyModal');
+        function openRevokeKeyModal(name) {
+            document.getElementById('revokeModelName').value = name;
+            showModal('revokeKeyModal');
+        }
+
+        async function revokeAPIKey() {
+            const providerId = document.getElementById('revokeModelName').value;
+            if (!providerId) {
+                return;
+            }
+            try {
+                await removeProviderConfig(providerId);
+                closeModal('revokeKeyModal');
+                await loadConfiguredProviders();
+                await loadProviderCoveragePreview();
+                await loadProviderCoverage();
+            } catch (error) {
+                alert(`Failed to revoke provider: ${error.message}`);
+            }
         }
 
         // --- Git Projects Logic ---
@@ -1282,8 +1660,10 @@
                     document.getElementById('pendingCount').innerText = reqs.filter(r => r.status === 'PENDING').length;
                 }).catch(() => {});
 
+            loadConfiguredProviders();
             loadLearningSummary();
             loadTechniquePreview();
+            loadProviderCoveragePreview();
         });
 
         // Close modals when clicking outside

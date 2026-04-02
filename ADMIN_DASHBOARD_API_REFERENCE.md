@@ -11,12 +11,14 @@
 ### **System Control Endpoints**
 
 #### **1. Get Current Status**
+
 ```
 GET /api/admin/control
 ```
 
 **Purpose:** Fetch current system state  
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -31,6 +33,7 @@ GET /api/admin/control
 ```
 
 **Used by Dashboard:**
+
 - Updates system status display
 - Shows current mode
 - Indicates if running
@@ -39,6 +42,7 @@ GET /api/admin/control
 ---
 
 #### **2. Change Permission Mode**
+
 ```
 POST /api/admin/control/mode
 Content-Type: application/json
@@ -50,6 +54,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -63,6 +68,7 @@ Content-Type: application/json
 ```
 
 **Used by Dashboard:**
+
 - When clicking the mode buttons (⚡ AUTO, ⏸️ WAIT, 🛑 STOP)
 - Provides feedback on mode change
 - Updates audit trail
@@ -70,6 +76,7 @@ Content-Type: application/json
 ---
 
 #### **3. Force Stop System**
+
 ```
 POST /api/admin/control/stop
 Content-Type: application/json
@@ -80,6 +87,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -92,6 +100,7 @@ Content-Type: application/json
 ```
 
 **Used by Dashboard:**
+
 - 🛑 FORCE STOP button
 - Stops all operations
 - Logs reason in audit trail
@@ -99,6 +108,7 @@ Content-Type: application/json
 ---
 
 #### **4. Resume Operations**
+
 ```
 POST /api/admin/control/resume
 Content-Type: application/json
@@ -109,6 +119,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -121,6 +132,7 @@ Content-Type: application/json
 ```
 
 **Used by Dashboard:**
+
 - ✅ RESUME OPERATIONS button
 - Brings system back online
 - Sets initial mode
@@ -130,11 +142,13 @@ Content-Type: application/json
 ### **Pending Actions Endpoints**
 
 #### **5. Get All Pending Actions**
+
 ```
 GET /api/admin/control/pending
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -152,6 +166,7 @@ GET /api/admin/control/pending
 ```
 
 **Used by Dashboard:**
+
 - Populates "Pending Actions" section
 - Shows all actions awaiting approval
 - Auto-refreshes every 10 seconds
@@ -159,6 +174,7 @@ GET /api/admin/control/pending
 ---
 
 #### **6. Approve Pending Action**
+
 ```
 POST /api/admin/control/pending/{actionId}/approve
 Content-Type: application/json
@@ -169,6 +185,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -182,6 +199,7 @@ Content-Type: application/json
 ```
 
 **Used by Dashboard:**
+
 - ✅ APPROVE button on pending actions
 - Executes the approved action
 - Removes from pending list
@@ -189,6 +207,7 @@ Content-Type: application/json
 ---
 
 #### **7. Reject Pending Action**
+
 ```
 POST /api/admin/control/pending/{actionId}/reject
 Content-Type: application/json
@@ -199,6 +218,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -208,6 +228,7 @@ Content-Type: application/json
 ```
 
 **Used by Dashboard:**
+
 - ❌ REJECT button on pending actions
 - Cancels the action
 - Doesn't execute it
@@ -215,11 +236,13 @@ Content-Type: application/json
 ---
 
 #### **8. Get Action History (Audit Trail)**
+
 ```
 GET /api/admin/control/history
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -240,6 +263,7 @@ GET /api/admin/control/history
 ```
 
 **Used by Dashboard:**
+
 - Populates Audit Trail table
 - Shows last 20 actions
 - Auto-updates every 15 seconds
@@ -249,6 +273,7 @@ GET /api/admin/control/history
 ### **Git Operations Endpoints**
 
 #### **9. Make Git Commit**
+
 ```
 POST /api/git/commit
 Content-Type: application/json
@@ -260,6 +285,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -270,11 +296,13 @@ Content-Type: application/json
 ```
 
 **Behavior:**
+
 - In AUTO mode: Commits immediately
 - In WAIT mode: Creates pending action
 - In STOP mode: Returns error
 
 **Used by Dashboard:**
+
 - 💾 COMMIT CHANGES button
 - Commits staged files
 - Respects current mode
@@ -282,6 +310,7 @@ Content-Type: application/json
 ---
 
 #### **10. Push to Remote**
+
 ```
 POST /api/git/push
 Content-Type: application/json
@@ -292,6 +321,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -302,11 +332,13 @@ Content-Type: application/json
 ```
 
 **Behavior:**
+
 - In AUTO mode: Pushes immediately
 - In WAIT mode: Creates pending action
 - In STOP mode: Returns error
 
 **Used by Dashboard:**
+
 - 📤 PUSH TO REMOTE button
 - Pushes commits to remote
 - Respects current mode
@@ -354,11 +386,13 @@ Content-Type: application/json
 ## 🔐 Authentication
 
 All endpoints require:
+
 ```
 Authorization: Bearer {access_token}
 ```
 
 Token obtained from login:
+
 ```
 POST /api/auth/login
 Body: { "username": "admin@supremeai.com", "password": "..." }
@@ -373,6 +407,7 @@ Refresh token valid for **7 days**.
 ## 🎯 Error Responses
 
 All errors follow this format:
+
 ```json
 {
   "status": "error",
@@ -382,6 +417,7 @@ All errors follow this format:
 ```
 
 **Common Errors:**
+
 - `401 UNAUTHORIZED` - Token missing/invalid
 - `403 FORBIDDEN` - Not an admin
 - `400 BAD_REQUEST` - Invalid parameters
@@ -423,6 +459,7 @@ Every 15 seconds:
 ### **cURL Examples**
 
 **Get Status:**
+
 ```bash
 curl -X GET http://localhost:8080/api/admin/control \
   -H "Authorization: Bearer YOUR_TOKEN" \
@@ -430,6 +467,7 @@ curl -X GET http://localhost:8080/api/admin/control \
 ```
 
 **Change Mode to WAIT:**
+
 ```bash
 curl -X POST http://localhost:8080/api/admin/control/mode \
   -H "Authorization: Bearer YOUR_TOKEN" \
@@ -441,6 +479,7 @@ curl -X POST http://localhost:8080/api/admin/control/mode \
 ```
 
 **Commit Changes:**
+
 ```bash
 curl -X POST http://localhost:8080/api/git/commit \
   -H "Authorization: Bearer YOUR_TOKEN" \

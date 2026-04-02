@@ -326,12 +326,15 @@ public class KnowledgeSeedService {
     /** Public accessor so other services can check all providers. */
     public List<String> getAllProviders() {
         if (providerRegistryService == null) {
-            return Collections.emptyList();
+            return getDefaultProviders();
         }
 
         List<String> providerKeys = new ArrayList<>();
         for (APIProvider provider : providerRegistryService.getActiveProviders()) {
             providerKeys.add(provider.getId());
+        }
+        if (providerKeys.isEmpty()) {
+            return getDefaultProviders();
         }
         return providerKeys;
     }
@@ -342,5 +345,20 @@ public class KnowledgeSeedService {
 
     public Map<String, Object> getAgentKnowledge(String agent) {
         return agentKnowledge(agent);
+    }
+
+    private List<String> getDefaultProviders() {
+        return Arrays.asList(
+            "openai-gpt4",
+            "anthropic-claude",
+            "google-gemini",
+            "meta-llama",
+            "mistral",
+            "cohere",
+            "huggingface",
+            "xai-grok",
+            "deepseek",
+            "perplexity"
+        );
     }
 }
