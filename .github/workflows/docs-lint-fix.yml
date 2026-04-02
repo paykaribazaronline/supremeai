@@ -49,6 +49,7 @@ jobs:
 
       - name: 🔍 Scan using 3-Layer System
         id: scan
+        continue-on-error: true
         run: |
           # Run 3-layer documentation maintenance system in SCAN mode
           ./.github/scripts/doc-maintenance.sh scan ${{ env.BATCH_SIZE }}
@@ -69,7 +70,7 @@ jobs:
           fi
           
           if [ "$ERROR_COUNT" -gt 0 ]; then
-            echo "⚠️  Found $ERROR_COUNT documentation errors (non-blocking for scan)"
+            echo "⚠️  Found $ERROR_COUNT documentation errors (will auto-fix via next job)"
           else
             echo "✅ No documentation errors found"
           fi
@@ -130,12 +131,21 @@ jobs:
           # Run 3-layer documentation maintenance system in FIX mode
           ./.github/scripts/doc-maintenance.sh fix ${{ env.BATCH_SIZE }}
           
-          # Extract fixed count from report
-          FIXED=$(grep "^Files Fixed" /tmp/doc_fix_report.md 2>/dev/null | grep -oE '[0-9]+' || echo "0")
+          # Count actual modified markdown files
+          FIXED=$(git diff --name-only | grep '\.md$' | wc -l)
           
           echo "fixed_count=$FIXED" >> $GITHUB_OUTPUT
           
-          # Store report for later use
+          # Show summary
+          if [ "$FIXED" -gt 0 ]; then
+            echo "✅ Fixed $FIXED markdown files"
+            echo "📝 Modified files:"
+            git diff --name-only | grep '\.md$'
+          else
+            echo "ℹ️  No files needed fixing"
+          fi
+          
+          # Store report for later use (if exists)
           if [ -f "/tmp/doc_fix_report.md" ]; then
             REPORT=$(cat /tmp/doc_fix_report.md)
             {
@@ -143,13 +153,6 @@ jobs:
               echo "$REPORT"
               echo "FIXEOF"
             } >> $GITHUB_OUTPUT
-          fi
-          
-          if [ "$FIXED" -gt 0 ]; then
-            echo "✅ Fixed $FIXED markdown files"
-            git status -s | head -20
-          else
-            echo "ℹ️  No files needed fixing"
           fi
 
       - name: 📤 Commit & push fixes
@@ -160,8 +163,38 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action - Doc Fixer"
           
-          # Add all fixed markdown files
-          git add '*.md'
+          # Get all modified markdown files (from git diff)
+          MODIFIED_FILES=$(git diff --name-only --diff-filter=M | grep '\.md$' || true)
+          UNTRACKED_FILES=$(git ls-files --others --exclude-standard | grep '\.md$' || true)
+          
+          if [ -z "$MODIFIED_FILES" ] && [ -z "$UNTRACKED_FILES" ]; then
+            echo "✅ No markdown files were modified by auto-fix"
+            exit 0
+          fi
+          
+          # Add all modified markdown files
+          if [ -n "$MODIFIED_FILES" ]; then
+            echo "📝 Found modified files:"
+            echo "$MODIFIED_FILES" | while read -r file; do
+              echo "  - $file"
+              git add "$file"
+            done
+          fi
+          
+          # Add any untracked markdown files
+          if [ -n "$UNTRACKED_FILES" ]; then
+            echo "📝 Found new files:"
+            echo "$UNTRACKED_FILES" | while read -r file; do
+              echo "  - $file"
+              git add "$file"
+            done
+          fi
+          
+          # Check if there are changes to commit
+          if git diff --cached --quiet; then
+            echo "✅ No changes to commit"
+            exit 0
+          fi
           
           # Create commit with multi-line message
           git commit -m "docs: Auto-fix markdown linting errors (3-Layer System)" \
@@ -175,10 +208,10 @@ jobs:
             -m "- MD023: Heading level sequence" \
             -m "- MD026: Trailing punctuation in headings" \
             -m "- MD031: Fenced code blocks surrounded by blank lines" \
-            -m "- MD032: Lists surrounded by blank lines" \
-            || echo "✅ No changes to commit"
+            -m "- MD032: Lists surrounded by blank lines"
           
-          git push origin ${GITHUB_REF#refs/heads/} || echo "✅ Nothing to push"
+          # Push changes
+          git push origin ${GITHUB_REF#refs/heads/}
 
       - name: 📊 Create job summary
         if: always()

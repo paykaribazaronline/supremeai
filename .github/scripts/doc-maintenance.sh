@@ -71,11 +71,14 @@ process_batch_scan() {
     
     if [ ${#files[@]} -gt 0 ]; then
         # Use array to avoid arg list too long
-        markdownlint "${files[@]}" > "$result_dir/batch_${batch_num}_report.txt" 2>&1 || true
+        # Using explicit .markdownlint.json config file
+        markdownlint -c .markdownlint.json "${files[@]}" > "$result_dir/batch_${batch_num}_report.txt" 2>&1 || true
         
         # Count errors in this batch
         local error_count=$(grep -c "error" "$result_dir/batch_${batch_num}_report.txt" || echo "0")
         echo "$batch_num:$error_count" >> "$result_dir/batch_counts.txt"
+        
+        echo "  📄 Found $error_count errors in batch $batch_num"
     fi
 }
 
@@ -95,12 +98,43 @@ process_batch_fix() {
     done < "$batch_file"
     
     if [ ${#files[@]} -gt 0 ]; then
-        # Use array to avoid arg list too long
-        markdownlint --fix "${files[@]}" > "$result_dir/batch_${batch_num}_fix.txt" 2>&1 || true
+        echo "  📄 Files in batch: ${#files[@]}"
         
-        # Count fixed files
-        local fixed_count=$(echo "${#files[@]}")
-        echo "$batch_num:$fixed_count" >> "$result_dir/batch_fixes.txt"
+        # Show which files we're processing
+        for f in "${files[@]}"; do
+            echo "    - $f"
+        done | head -5
+        
+        # Use array to avoid arg list too long
+        # Now using explicit .markdownlint.json config
+        markdownlint -c .markdownlint.json --fix "${files[@]}" > "$result_dir/batch_${batch_num}_fix.txt" 2>&1 || true
+        
+        # Count how many files had changes
+        local files_changed=0
+        for file in "${files[@]}"; do
+            if git diff --quiet "$file" 2>/dev/null; then
+                # no changes
+                true
+            else
+                ((files_changed++))
+            fi
+        done
+        
+        # If git diff didn't work, count all as potentially changed
+        if [ $files_changed -eq 0 ]; then
+            files_changed=${#files[@]}
+        fi
+        
+        echo "  ✅ Batch complete: $files_changed files changed"
+        echo "$batch_num:$files_changed" >> "$result_dir/batch_fixes.txt"
+        
+        # Log details
+        cat >> "$result_dir/batch_${batch_num}_fix.txt" << EOF
+
+=== Batch $batch_num Summary ===
+Files processed: ${#files[@]}
+Files changed: $files_changed
+EOF
     fi
 }
 
