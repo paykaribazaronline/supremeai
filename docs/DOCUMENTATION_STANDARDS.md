@@ -8,7 +8,9 @@
 ## 📋 Documentation Rule
 
 ### Root Folder (c:\Users\Nazifa\supremeai\)
+
 **ONLY these files allowed:**
+
 - ✅ `README.md` - Main project overview
 - ✅ `LICENSE` - License file
 - ✅ `CODE_OF_CONDUCT.md` - Community guidelines
@@ -16,7 +18,9 @@
 - ✅ `.gitignore`, `.env.example`, etc - Config files
 
 ### docs/ Folder
+
 **ALL documentation goes here:**
+
 ```
 docs/
 ├── 00-START-HERE/
@@ -29,6 +33,7 @@ docs/
 ```
 
 **Why this rule?**
+
 1. Clear organization
 2. No root clutter
 3. Single source of truth
@@ -75,6 +80,7 @@ if (isDocumentation) {
 ## ✅ Root Folder Cleanup Checklist
 
 **Files to KEEP in root:**
+
 - ✅ `README.md`
 - ✅ `LICENSE`
 - ✅ `CODE_OF_CONDUCT.md`
@@ -84,6 +90,7 @@ if (isDocumentation) {
 - ✅ `gradlew`, `gradlew.bat`
 
 **Files to REMOVE/MOVE from root:**
+
 - ❌ `ARCHITECTURE_AND_IMPLEMENTATION.md` → `docs/02-ARCHITECTURE/`
 - ❌ `CONFIG_QUICK_REFERENCE.md` → `docs/12-GUIDES/`
 - ❌ `ENVIRONMENT_CONFIGURATION.md` → `docs/01-SETUP-DEPLOYMENT/`
@@ -95,6 +102,7 @@ if (isDocumentation) {
 ## 🔄 Implementation
 
 When you see docs in root folder:
+
 1. ❌ Delete from root
 2. ✅ Move/reference in docs/ folder
 3. ✅ Update navigation

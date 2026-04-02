@@ -3,6 +3,7 @@
 **This document has been consolidated into:** `ARCHITECTURE_AND_IMPLEMENTATION.md`
 
 **Relevant sections:**
+
 - [Enterprise Resilience Layer](#enterprise-resilience-layer)
 - [Quick Reference](#quick-reference)
 
@@ -19,15 +20,18 @@
 SupremeAI এ তিনটি enterprise-level resilience layer যুক্ত করা হয়েছে:
 
 ### 1. Distributed Tracing (OpenTelemetry + Jaeger)
+
 প্রতিটি HTTP request একটি unique `traceId` এবং `spanId` পায়, যা সিস্টেম জুড়ে trace করা যায়।
 
 **Components:**
+
 - `TracingContext.java` - ThreadLocal trace data holder
 - `DistributedTracingService.java` - OpenTelemetry integration
 - `TracingFilter.java` - Intercepts all HTTP requests
 - `TracingController.java` - REST API for trace queries
 
 **Features:**
+
 - ✅ Request path tracking
 - ✅ Error recording with stack traces
 - ✅ Duration measurement
@@ -35,6 +39,7 @@ SupremeAI এ তিনটি enterprise-level resilience layer যুক্ত 
 - ✅ Query by trace ID, path, error status
 
 **API Endpoints:**
+
 ```
 GET  /api/tracing/trace/{traceId}           - Get single trace
 GET  /api/tracing/traces/recent?limit=10    - Get recent traces
@@ -45,6 +50,7 @@ POST /api/tracing/cleanup?ttlMillis=3600000 - Cleanup old traces
 ```
 
 **Example Response:**
+
 ```json
 {
   "trace_id": "550e8400-e29b-41d4-a716-446655440000",
@@ -61,15 +67,18 @@ POST /api/tracing/cleanup?ttlMillis=3600000 - Cleanup old traces
 ---
 
 ### 2. Failover Registry & Management
+
 বিভিন্ন AI providers এর মধ্যে স্বয়ংক্রিয় failover সিস্টেম।
 
 **Components:**
+
 - `FailoverProvider.java` - Provider configuration model
 - `FailoverRegistry.java` - Manages backup provider chains
 - `HealthCheckService.java` - Periodic health monitoring
 - `FailoverController.java` - REST API
 
 **Features:**
+
 - ✅ Priority-based failover chain
 - ✅ Health tracking (success rate, consecutive failures)
 - ✅ Automatic provider status updates (ACTIVE/DEGRADED/INACTIVE)
@@ -77,6 +86,7 @@ POST /api/tracing/cleanup?ttlMillis=3600000 - Cleanup old traces
 - ✅ Admin control for manual status changes
 
 **API Endpoints:**
+
 ```
 POST /api/resilience/failover-chain              - Register chain
 GET  /api/resilience/failover-chain/{serviceId}  - Get chain status
@@ -87,6 +97,7 @@ PUT  /api/resilience/providers/{id}/status       - Update status
 ```
 
 **Success Rate Calculation:**
+
 ```
 successRate = (previousRate × 0.9) + (currentResult × 0.1)
 Status: ACTIVE if consecutive_failures < 3
@@ -95,12 +106,15 @@ Status: ACTIVE if consecutive_failures < 3
 ---
 
 ### 3. Circuit Breaker Pattern (Resilience4j)
+
 Cascading failures প্রতিরোধ করতে circuit breaker pattern ব্যবহার।
 
 **Components:**
+
 - `CircuitBreakerManager.java` - Central CB management
 
 **Config:**
+
 - Failure threshold: 50% (triggers OPEN state)
 - Slow call threshold: 50%
 - Slow duration: 2 seconds
@@ -108,6 +122,7 @@ Cascading failures প্রতিরোধ করতে circuit breaker pattern
 - Permitted calls in HALF_OPEN: 3
 
 **States:**
+
 ```
 CLOSED        → Normal operation
            ↓
@@ -119,6 +134,7 @@ CLOSED/OPEN  → Based on results
 ```
 
 **API Endpoints:**
+
 ```
 GET  /api/resilience/circuit-breakers              - All CBs
 GET  /api/resilience/circuit-breakers/{name}       - CB status
@@ -128,12 +144,15 @@ POST /api/resilience/circuit-breakers/{name}/reset - Reset CB
 ---
 
 ### 4. Retry Strategy (Exponential Backoff)
+
 স্বয়ংক্রিয় retry লজিক exponential backoff সহ।
 
 **Components:**
+
 - `RetryStrategy.java` - Retry policy management
 
 **Default Config:**
+
 ```
 Max attempts: 3
 Initial delay: 500ms
@@ -142,11 +161,13 @@ Delays: 500ms → 1000ms → 2000ms
 ```
 
 **Success Tracking:**
+
 - First-attempt success rate
 - Retry success statistics
 - Average duration per attempt
 
 **API Endpoints:**
+
 ```
 GET /api/resilience/retry-stats - All retry metrics
 ```
@@ -156,6 +177,7 @@ GET /api/resilience/retry-stats - All retry metrics
 ## Configuration
 
 ### application.properties
+
 ```properties
 # Tracing
 tracing.enabled=true
@@ -179,6 +201,7 @@ retry.initial-delay-ms=500
 ## Usage Examples
 
 ### 1. Register Failover Chain
+
 ```bash
 curl -X POST http://localhost:8080/api/resilience/failover-chain \
   -H "Content-Type: application/json" \
@@ -206,11 +229,13 @@ curl -X POST http://localhost:8080/api/resilience/failover-chain \
 ```
 
 ### 2. Get Next Healthy Provider
+
 ```bash
 curl http://localhost:8080/api/resilience/failover-chain/ai-provider-service/next-provider
 ```
 
 Response:
+
 ```json
 {
   "provider_id": "openai-1",
@@ -223,11 +248,13 @@ Response:
 ```
 
 ### 3. View Tracing Statistics
+
 ```bash
 curl http://localhost:8080/api/tracing/stats
 ```
 
 Response:
+
 ```json
 {
   "total_traces": 1250,
@@ -275,6 +302,7 @@ fetch('/api/resilience/summary').then(r => r.json()).then(data => {
 ## Error Debugging
 
 ### Trace Not Found
+
 ```
 Error: Trace not found
 Cause: Trace দেওয়া TTL expire হয়ে গেছে
@@ -282,6 +310,7 @@ Fix: POST /api/tracing/cleanup with longer TTL
 ```
 
 ### All Providers DEGRADED
+
 ```
 Status: All providers marked as DEGRADED
 Cause: 3+ consecutive failures
@@ -289,6 +318,7 @@ Fix: PUT /api/resilience/providers/{id}/status?status=ACTIVE
 ```
 
 ### Circuit Breaker OPEN
+
 ```
 Status: Circuit breaker is OPEN
 Action: All calls rejected
@@ -308,7 +338,7 @@ Recovery: Automatic after 30s or manual reset
      jaegertracing/all-in-one
    ```
 
-2. **Distributed Tracing Dashboard**: 
+2. **Distributed Tracing Dashboard**:
    - Visit: http://localhost:16686
    - Service: supremeai-service
    - Search traces

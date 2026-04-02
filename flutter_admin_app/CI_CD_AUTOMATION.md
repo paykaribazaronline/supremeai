@@ -62,6 +62,7 @@ Only changes to `flutter_admin_app/**` will trigger the pipeline (saves CI resou
 **Purpose:** Verify the app builds correctly and passes quality checks
 
 **Steps:**
+
 1. ✅ Checkout code
 2. ✅ Install Flutter SDK (3.24.0)
 3. ✅ Get dependencies (`flutter pub get`)
@@ -72,6 +73,7 @@ Only changes to `flutter_admin_app/**` will trigger the pipeline (saves CI resou
 8. ✅ Upload build artifacts to GitHub
 
 **Output:**
+
 - Build artifacts in `flutter_admin_app/build/web/`
 - Test reports and coverage data
 - Asset available for 30 days in GitHub Actions
@@ -83,10 +85,12 @@ Only changes to `flutter_admin_app/**` will trigger the pipeline (saves CI resou
 **Purpose:** Automatically deploy the web app to Firebase Hosting
 
 **Conditions:**
+
 - Only runs on **push to main** (not on pull requests)
 - Requires successful build from Stage 1
 
 **What Happens:**
+
 ```bash
 # 1. Build the web app
 flutter build web --release
@@ -96,6 +100,7 @@ firebase deploy --only hosting:flutter-admin
 ```
 
 **Firebase Hosting Details:**
+
 - **Project ID:** supremeai-565236080752
 - **Web App URL:** https://supremeai-565236080752.web.app/admin/
 - **Domain:** Can be mapped to custom domain
@@ -103,6 +108,7 @@ firebase deploy --only hosting:flutter-admin
 - **CDN:** ✅ Global caching
 
 **Deployment Artifacts:**
+
 - Web app files from `flutter_admin_app/build/web/`
 - Rewrite rule: all routes → `index.html` (for Flutter routing)
 
@@ -113,10 +119,12 @@ firebase deploy --only hosting:flutter-admin
 **Purpose:** Build Android APK and App Bundle for distribution
 
 **Conditions:**
+
 - Only runs on **push to main** (automated builds)
 - Creates release assets when tags are pushed
 
 **What Produces:**
+
 ```
 1. APK Files (split-per-abi)
    - app-armeabi-v7a-release.apk
@@ -129,6 +137,7 @@ firebase deploy --only hosting:flutter-admin
 ```
 
 **Location:**
+
 - `flutter_admin_app/build/app/outputs/flutter-apk/`
 - `flutter_admin_app/build/app/outputs/bundle/release/`
 
@@ -142,6 +151,7 @@ If you create a GitHub release (tag), the APK and AAB files are automatically at
 **Purpose:** Perform final code quality checks and post a summary
 
 **Steps:**
+
 1. ✅ Static analysis with Dart analyzer
 2. ✅ Format validation
 3. ✅ Test coverage report
@@ -149,6 +159,7 @@ If you create a GitHub release (tag), the APK and AAB files are automatically at
 5. ✅ Post summary to GitHub Actions job summary
 
 **Outputs:**
+
 - Code quality metrics
 - Test coverage percentage
 - Workflow summary in GitHub Actions UI
@@ -162,18 +173,21 @@ If you create a GitHub release (tag), the APK and AAB files are automatically at
 The following secrets must be configured in your GitHub repository:
 
 #### 1. Firebase Service Account
+
 ```
 Secret Name: FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A
 Value: Firebase service account JSON (from Firebase Console)
 ```
 
 **How to get it:**
+
 1. Go to Firebase Console → Project Settings
 2. Service Accounts tab → Generate new private key
 3. Copy the JSON content
 4. Add to GitHub Secrets at: Settings → Secrets and variables → Actions
 
 #### 2. GitHub Token (Automatic)
+
 ```
 Secret Name: GITHUB_TOKEN
 Note: This is automatically provided by GitHub Actions
@@ -228,12 +242,14 @@ git pull origin main
 After successful deployment:
 
 ### Web App
+
 - **Live:** https://supremeai-565236080752.web.app/admin/
 - **Login:** Use your SupremeAI admin credentials
 - **Auto-HTTPS:** Yes
 - **CDN:** Globally cached
 
 ### GitHub Actions
+
 - View workflow runs: https://github.com/your-username/supremeai/actions
 - Download APK/AAB from build artifacts
 - View test reports and coverage
@@ -416,21 +432,25 @@ firebase deploy --only hosting:flutter-admin --token <firebase-token>
 ## Next Steps
 
 ### Phase 1: Enable (Current)
+
 - ✅ Automated web app deployment
 - ✅ Android APK/AAB builds
 - ✅ Code quality checks
 
 ### Phase 2: Production Optimization
+
 - 🔄 Integrate with Google Play Console (auto-upload AAB)
 - 🔄 App signing certificates (secure key storage)
 - 🔄 Beta/Alpha testing tracks
 
 ### Phase 3: Advanced Releases
+
 - 🔄 Semantic versioning automation
 - 🔄 Release notes auto-generation
 - 🔄 Changelog updates
 
 ### Phase 4: Analytics & Monitoring
+
 - 🔄 Sentry integration (crash reporting)
 - 🔄 Firebase Analytics
 - 🔄 Performance monitoring

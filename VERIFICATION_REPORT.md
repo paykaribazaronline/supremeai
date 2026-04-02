@@ -69,6 +69,7 @@ All status and verification details are in the master document.
 **Workflow File**: `.github/workflows/java-ci.yml`
 
 **Markdown Validation Task**:
+
 ```yaml
 lint-docs:
   name: Documentation & Linting
@@ -84,6 +85,7 @@ lint-docs:
 ```
 
 **Linting Rules** (configured in `.markdownlint.json`):
+
 - MD013: ✅ Disabled (line length)
 - MD024: ✅ Disabled (duplicate headings)
 - MD029: ✅ Disabled (list prefix)
@@ -105,6 +107,7 @@ lint-docs:
 ### Tier 1: Quick Start & Orientation
 
 **docs/00-START-HERE/**
+
 - Entry point for all users
 - 5-minute quick start setup
 - Navigation by user type
@@ -234,6 +237,7 @@ grep -r "topic-name" docs/
 **Primary Entry Point**: `docs/README.md`
 
 **Quick Navigation**:
+
 ```
 docs/
 ├── README.md ........................ Start here

@@ -9,17 +9,20 @@
 ## 🚀 Quick Start (3 Steps)
 
 ### **Step 1: Install Firebase CLI**
+
 ```powershell
 npm install -g firebase-tools
 ```
 
 ### **Step 2: Login to Firebase**
+
 ```powershell
 firebase login
 firebase use supremeai-565236080752
 ```
 
 ### **Step 3: Run Setup Script**
+
 ```powershell
 python firebase_collections_setup.py
 ```
@@ -73,6 +76,7 @@ choco install python nodejs
 ## 🔧 Installation Commands
 
 ### **1. Install Firebase Admin SDK**
+
 ```powershell
 pip install firebase-admin
 
@@ -83,6 +87,7 @@ python -c "import firebase_admin; print('✅ Firebase Admin SDK installed')"
 ### **2. Setup Credentials**
 
 **Option A: Using Environment Variable** (Recommended)
+
 ```powershell
 # Download from Firebase Console:
 # 1. Go to https://console.firebase.google.com
@@ -97,12 +102,14 @@ echo $env:GOOGLE_APPLICATION_CREDENTIALS
 ```
 
 **Option B: Firebase CLI**
+
 ```powershell
 firebase login
 firebase use supremeai-565236080752
 ```
 
 ### **3. Run Setup**
+
 ```powershell
 cd c:\Users\Nazifa\supremeai
 
@@ -122,12 +129,14 @@ python firebase_collections_setup.py
 ## 🔍 Verify Collections Created
 
 ### **Method 1: Firebase Console**
+
 1. Open: https://console.firebase.google.com
 2. Select: `supremeai-565236080752` project
 3. Click: Firestore Database
 4. Check: All 8 collections visible
 
 ### **Method 2: Firebase CLI**
+
 ```powershell
 firebase firestore:indexes create
 firebase firestore:docs-list app_templates
@@ -137,6 +146,7 @@ firebase firestore:docs-list
 ```
 
 ### **Method 3: Python Script**
+
 ```powershell
 python -c "
 import firebase_admin
@@ -198,6 +208,7 @@ print(doc.to_dict())
 If the Python script fails, you can manually create collections via Firebase Console:
 
 ### **1. Create app_templates Collection**
+
 ```json
 {
   "name": "Todo Application",
@@ -207,6 +218,7 @@ If the Python script fails, you can manually create collections via Firebase Con
 ```
 
 ### **2. Create architectures Collection**
+
 ```json
 {
   "scenario": "Todo/List CRUD app",
@@ -222,6 +234,7 @@ If the Python script fails, you can manually create collections via Firebase Con
 ## 🐛 Troubleshooting
 
 ### **Error: "Credentials file not found"**
+
 ```
 Solution:
 1. Download service account key from Firebase Console
@@ -230,6 +243,7 @@ Solution:
 ```
 
 ### **Error: "Permission denied"**
+
 ```
 Solution:
 1. Check Firebase permissions for service account
@@ -238,6 +252,7 @@ Solution:
 ```
 
 ### **Error: "Connection timeout"**
+
 ```
 Solution:
 1. Check internet connection
@@ -246,6 +261,7 @@ Solution:
 ```
 
 ### **Error: "Python not recognized"**
+
 ```
 Solution:
 1. Check Python installed: python --version

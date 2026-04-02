@@ -268,6 +268,7 @@ SUPREMEAI_SETUP_TOKEN=setup-token-for-initialization
 ### Cloud Platforms
 
 **AWS:**
+
 ```env
 AWS_ACCESS_KEY_ID=AKIA...
 AWS_SECRET_ACCESS_KEY=...
@@ -276,6 +277,7 @@ AWS_S3_BUCKET=supremeai-bucket
 ```
 
 **Azure:**
+
 ```env
 AZURE_SUBSCRIPTION_ID=...
 AZURE_TENANT_ID=...
@@ -322,6 +324,7 @@ CACHE_DIR=./cache/
 ### Issue: "Environment variable not found: ..."
 
 **Solution:** Check that:
+
 1. Variable is defined in `.env` file
 2. Variable name matches exactly (case-sensitive)
 3. `.env` file is not listed in `.gitignore` (it should be!)
@@ -337,6 +340,7 @@ grep FIREBASE_API_KEY .env
 ### Issue: Firebase not initializing
 
 **Solution:** Verify credentials are set:
+
 ```bash
 # Check if key is loaded
 echo $FIREBASE_API_KEY
@@ -365,11 +369,13 @@ SPRING_PROFILES_ACTIVE=production ./gradlew run
 ### From Hard-coded Values
 
 **Before:**
+
 ```java
 String firebaseKey = "AIzaSy123456..."; // ❌ In code!
 ```
 
 **After:**
+
 ```java
 String firebaseKey = EnvConfig.get("FIREBASE_API_KEY"); // ✅ From .env
 ```
@@ -377,12 +383,14 @@ String firebaseKey = EnvConfig.get("FIREBASE_API_KEY"); // ✅ From .env
 ### From Spring @Value Annotations
 
 **Before:**
+
 ```java
 @Value("${firebase.api-key}")
 private String apiKey;
 ```
 
 **After:**
+
 ```java
 private String apiKey = EnvConfig.get("FIREBASE_API_KEY");
 ```
@@ -390,12 +398,14 @@ private String apiKey = EnvConfig.get("FIREBASE_API_KEY");
 ### From Environment Variables (Shell)
 
 **Before:**
+
 ```bash
 export FIREBASE_API_KEY=AIzaSy...
 ./gradlew run
 ```
 
 **After:**
+
 ```bash
 # Add to .env (persistent)
 echo "FIREBASE_API_KEY=AIzaSy..." >> .env

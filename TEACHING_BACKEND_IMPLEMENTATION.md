@@ -36,6 +36,7 @@ src/main/java/com/supremeai/
 ## 🗂️ Model Classes
 
 ### **AppTemplate.java**
+
 Represents a reusable app template.
 
 ```java
@@ -84,6 +85,7 @@ public class AppTemplate {
 ---
 
 ### **GeneratedApp.java**
+
 Track every app SupremeAI generates.
 
 ```java
@@ -197,6 +199,7 @@ public class GeneratedApp {
 ---
 
 ### **AIPerformance.java**
+
 Track which AI is best at what task.
 
 ```java
@@ -265,6 +268,7 @@ public class AIPerformance {
 ---
 
 ### **ErrorPattern.java**
+
 Store recurring errors and their fixes.
 
 ```java
@@ -307,6 +311,7 @@ public class ErrorPattern {
 ---
 
 ### **CodePattern.java**
+
 Store code patterns that work.
 
 ```java
@@ -350,6 +355,7 @@ public class CodePattern {
 ## 🛠️ Service Classes
 
 ### **AppGenerationService.java**
+
 Core orchestrator for app generation.
 
 ```java
@@ -679,6 +685,7 @@ public class AppGenerationService {
 ---
 
 ### **AIPerformanceService.java**
+
 Track which AI is best at what.
 
 ```java
@@ -792,6 +799,7 @@ public class AIPerformanceService {
 ---
 
 ### **ErrorPatternService.java**
+
 Auto-fix recurring errors.
 
 ```java
@@ -895,6 +903,7 @@ public class ErrorPatternService {
 ## 🎛️ Controller Classes
 
 ### **AppGenerationController.java**
+
 REST endpoints for app generation.
 
 ```java
@@ -987,6 +996,7 @@ public class AppGenerationController {
 ---
 
 ### **TeachingController.java**
+
 Admin endpoints to view learning stats.
 
 ```java

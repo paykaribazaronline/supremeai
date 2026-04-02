@@ -479,11 +479,13 @@ context.hasRole("VIEWER")   // Read-only
 ```
 
 ### 3. Rate Limiting (Planned)
+
 - Limit commands per user per time period
 - Different limits for sync vs async
 - Burst allowance for critical commands
 
 ### 4. Audit Logging
+
 - All command executions logged with:
   - Command name and parameters
   - User who executed it
@@ -524,6 +526,7 @@ supcmd exec health-check
 ```
 
 ### Load Testing (Planned)
+
 - Concurrent command execution
 - Async job queue under load
 - Memory and CPU profiling
@@ -556,8 +559,8 @@ supcmd info command-name
 # Review parameter schema from 'supcmd info'
 ```
 
-
 ### API Server Issues
+
 ```bash
 # Check logs
 tail -f logs/supremeai.log
@@ -627,6 +630,7 @@ command-hub/
 ## Support
 
 For issues or questions:
+
 1. Check troubleshooting section above
 2. Review command documentation with `supcmd info <command>`
 3. Check API server logs for detailed errors

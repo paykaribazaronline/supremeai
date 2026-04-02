@@ -11,11 +11,13 @@ flutter run
 ## 🔑 Base URL
 
 **Production (Cloud Run):**
+
 ```
 https://supremeai-565236080752.us-central1.run.app
 ```
 
 **Configuration File:**
+
 ```
 lib/config/environment.dart (line 1)
 ```
@@ -64,6 +66,7 @@ final response = await apiService.post<Map>(
 ```
 
 Auto-injects Bearer token in header:
+
 ```
 Authorization: Bearer <JWT_TOKEN>
 ```
@@ -125,11 +128,13 @@ curl http://localhost:8080/api/metrics/health
 ## 🐛 Enable Debug Logging
 
 Run with verbose output:
+
 ```bash
 flutter run -v
 ```
 
 Logs show:
+
 - 🔵 API requests
 - 🟢 API responses
 - 🔴 API errors
@@ -137,24 +142,29 @@ Logs show:
 ## 📋 Common Tasks
 
 ### Change Backend URL
+
 Edit `lib/config/environment.dart`:
+
 ```dart
 // Line 3
 static const String baseUrl = 'YOUR_NEW_URL';
 ```
 
 ### Add New Screen
+
 1. Create `lib/screens/new_screen.dart`
 2. Add route in `main.dart` routes
 3. Navigate with `Navigator.pushNamed('/new-screen')`
 
 ### Make API Call
+
 1. Use `ApiService()` singleton
 2. Call `.get()`, `.post()`, `.put()`, `.delete()`
 3. Token auto-injected
 4. Handle response
 
 ### Add State Management
+
 1. Create new `ChangeNotifier` in `lib/providers/`
 2. Register in `main.dart` with `ChangeNotifierProvider`
 3. Use in widgets with `context.read<ProviderName>()`
@@ -191,9 +201,10 @@ flutter build ipa --release
 | "Socket exception" | Verify backend is running |
 | "Build fails" | Run `flutter pub get` & `flutter pub upgrade` |
 
-## ✅ Ready to Use!
+## ✅ Ready to Use
 
 The Flutter admin app is fully initialized and ready for:
+
 1. ✅ Development
 2. ✅ Testing
 3. ✅ Deployment

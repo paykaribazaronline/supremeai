@@ -84,6 +84,7 @@ Collection: "system_learning"
 ```
 
 **What this means:**
+
 - If ImportError happens again → Try jakarta.servlet import FIRST (95% confidence)
 - If that fails → Try Spring Boot version update (75% confidence)
 - System NEVER tries random fixes → Always uses proven solutions
@@ -119,6 +120,7 @@ Collection: "ai_performance"
 ```
 
 **What this means:**
+
 - Next time user asks for documentation → System says: "Claude's best for this (95% success)"
 - No more trying all 10 AIs for docs → Use Claude directly
 - Saves time, improves quality, reduces cost
@@ -155,6 +157,7 @@ Collection: "decision_audits"
 ```
 
 **What this means:**
+
 - EVERY decision is recorded
 - Admin can review: "Why did system choose this?"
 - Responsible AI - knows who decided what and when
@@ -181,6 +184,7 @@ Collection: "cost_optimization"
 ```
 
 **What this means:**
+
 - System learns which providers are cheapest
 - Rotates toward free-tier APIs automatically
 - Year-over-year cost tracking
@@ -269,6 +273,7 @@ POST /api/learning/record-error       → Log new error + solution
 ```
 
 **Example call:**
+
 ```bash
 # When compilation fails with ImportError
 curl -X POST http://localhost:8080/api/learning/record-error \
@@ -299,6 +304,7 @@ POST /api/routing/record-performance \
 ```
 
 **Example:**
+
 ```
 After 47 documentation tasks:
 ├─ Claude: 45 successes (95.7%)
@@ -406,6 +412,7 @@ System shows:
 Before each `git push`, the system should:
 
 #### **1. Extract Learnings From This Session**
+
 ```bash
 # Automatically called by pre-push hook:
 /api/learning/extract-session-learnings
@@ -423,6 +430,7 @@ Response:
 ```
 
 #### **2. Save to Firebase Before Commit**
+
 ```bash
 # Store all learning in Firebase before git commit
 /api/learning/save-session
@@ -436,6 +444,7 @@ POST /api/learning/checkpoint {
 ```
 
 #### **3. Generate Teaching Report**
+
 ```bash
 # Create a markdown file documenting what was learned
 /api/learning/generate-report
@@ -449,6 +458,7 @@ Output file: LEARNING_REPORT_2026-04-02.md
 ```
 
 #### **4. Before Push - Display Summary**
+
 ```
 ╔════════════════════════════════════════════════════════╗
 ║         LEARNING SUMMARY - Before Push                 ║
@@ -541,6 +551,7 @@ GET  /api/teaching/curriculum
 ### Example 1: Learning From ImportError
 
 **Day 1 - First Time This Error:**
+
 ```bash
 $ ./gradlew build
 ERROR: Cannot find symbol: javax.servlet.HttpServletRequest
@@ -558,6 +569,7 @@ System records:
 ```
 
 **Day 2 - Same Error Again:**
+
 ```bash
 $ ./gradlew build
 ERROR: Cannot find symbol: javax.servlet.ServletException
@@ -578,6 +590,7 @@ Updates record:
 ```
 
 **Day 5 - Similar Error In New File:**
+
 ```bash
 $ ./gradlew build
 ERROR: Cannot find symbol: javax.servlet.HttpSession

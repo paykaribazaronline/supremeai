@@ -25,21 +25,26 @@ The `Flutter Admin App - Build & Deploy` workflow has critical failures preventi
 ## ❌ ERROR #1: Firebase Hosting Target Not Found
 
 ### Exact Error Message
+
 ```
 Error: Hosting site or target flutter-admin not detected in firebase.json
 ```
 
 ### Root Cause
+
 The workflow runs:
+
 ```bash
 firebase deploy --only=hosting:flutter-admin
 ```
 
 This requires `firebase.json` to define a named hosting target called `flutter-admin`. However:
+
 - ✅ `.firebaserc` correctly defines the alias: `"flutter-admin": ["supremeai-a"]`
 - ❌ `firebase.json` uses a single unnamed block: `"hosting": {...}` (no `target:` property)
 
 ### Current firebase.json
+
 ```json
 {
   "hosting": {
@@ -51,6 +56,7 @@ This requires `firebase.json` to define a named hosting target called `flutter-a
 ```
 
 ### Fix Required
+
 Change firebase.json to use **target-based hosting**:
 
 ```json
@@ -102,11 +108,13 @@ Change firebase.json to use **target-based hosting**:
 ## ❌ ERROR #2: Android Package Name Mismatch
 
 ### Exact Error Message
+
 ```
 No matching client found for package name 'com.example.supremeai_admin'
 ```
 
 ### Root Cause
+
 Version mismatch between two files:
 
 | File | Package Name | Issue |
@@ -115,17 +123,20 @@ Version mismatch between two files:
 | `build.gradle.kts` | `com.example.supremeai_admin` | ❌ App declares different ID |
 
 Google Play Services requires exact match between:
+
 - Your app's declared `applicationId` in Gradle
 - The package name registered in `google-services.json`
 
 ### Solution (Choose One)
 
 **Option A (Recommended):** Update build.gradle.kts to match google-services.json
+
 ```kotlin
 applicationId = "supremeai.com"
 ```
 
 **Option B:** Re-register app in Firebase Console
+
 1. Go to Firebase Console → Project Settings → Apps
 2. Delete the iOS app (supremeai.com)
 3. Add new Android app with package name: `com.example.supremeai_admin`
@@ -137,12 +148,14 @@ applicationId = "supremeai.com"
 ## ❌ ERROR #3: minSdkVersion Too Low
 
 ### Exact Error Message
+
 ```
 minSdkVersion 21 cannot be smaller than version 23 declared in library 
 [androidx.core:core-ktx:1.18.0]
 ```
 
 ### Root Cause
+
 ```kotlin
 minSdk = flutter.minSdkVersion  // Resolves to 21
 targetSdk = 36
@@ -151,7 +164,9 @@ targetSdk = 36
 Flutter 3.27.0's default minSdkVersion is 21, but `androidx.core:core-ktx:1.18.0` requires API 23+.
 
 ### Fix Required
+
 Change `flutter_admin_app/android/app/build.gradle.kts`:
+
 ```kotlin
 android {
     ...
@@ -171,6 +186,7 @@ android {
 ## ✅ ERROR #4: subosito/flutter-action@v3 (Already Fixed)
 
 ### Status: **RESOLVED** ✓
+
 - **Error:** `Unable to resolve action subosito/flutter-action@v3`
 - **Reason:** Version v3 was never released
 - **Fixed by:** Commit `80b3006dc8` (reverted to v2)
@@ -181,6 +197,7 @@ android {
 ## ⚠️ ERROR #5: Node.js 20 Deprecation Warning
 
 ### Error Message
+
 ```
 Node.js 20 is deprecated. The following actions target Node.js 20 
 but are being forced to run with Node.js 24 by default starting 
@@ -188,10 +205,13 @@ June 2nd, 2026
 ```
 
 ### Deadline
+
 **June 2, 2026** — After this date, workflows will fail with Node.js 24.
 
 ### Root Cause
+
 `flutter-ci-cd.yml` doesn't have:
+
 ```yaml
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -200,7 +220,9 @@ env:
 Other workflows (e.g., `firebase-hosting-merge.yml`) already have this flag.
 
 ### Fix Required
+
 Add to `flutter-ci-cd.yml` top-level `env:`:
+
 ```yaml
 env:
   FLUTTER_VERSION: 3.27.0
@@ -213,6 +235,7 @@ env:
 ## ❌ ERROR #6: Firebase Deploy Always Silently Skipped
 
 ### Symptom
+
 ```
 Deploy to Firebase Hosting step exists in logs but:
 - Never outputs log messages
@@ -221,7 +244,9 @@ Deploy to Firebase Hosting step exists in logs but:
 ```
 
 ### Root Cause
+
 GitHub Actions `if:` expressions handle secrets unreliably:
+
 ```yaml
 - name: 🚀 Deploy to Firebase
   if: ${{ env.FIREBASE_TOKEN != '' }}  # ❌ Unreliable for secrets
@@ -231,14 +256,18 @@ GitHub Actions `if:` expressions handle secrets unreliably:
 When using `secrets.FIREBASE_TOKEN` directly in `if:`, GitHub evaluates it as empty string before step execution, causing the condition to evaluate false even when secret is set.
 
 ### Current Workaround (Partial)
+
 Added job-level env (commit `d01ad5f`):
+
 ```yaml
 env:
   FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 ```
 
 ### Proper Fix
+
 Use **shell-level conditionals** instead:
+
 ```yaml
 - name: 🚀 Deploy to Firebase
   run: |

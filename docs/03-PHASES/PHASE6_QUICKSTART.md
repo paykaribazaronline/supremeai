@@ -3,6 +3,7 @@
 ## ✅ What's Ready to Use
 
 ### 1. **3D Visualization Dashboard**
+
 - **URL:** `http://localhost:8080/visualization-3d-dashboard.html`
 - **Features:**
   - Real-time 3D rendering of service topology
@@ -12,6 +13,7 @@
   - Interactive camera controls
 
 ### 2. **Decision Logging System**
+
 - **Base URL:** `http://localhost:8080/api/v1/decisions`
 - **Purpose:** Track agent decisions with confidence, voting, and outcomes
 - **Storage:** JSON files in `./agent_decisions/`
@@ -21,6 +23,7 @@
 ## 🚀 Getting Started (30 seconds)
 
 ### Step 1: Start SupremeAI
+
 ```bash
 cd c:\Users\Nazifa\supremeai
 .\gradlew bootRun
@@ -29,11 +32,13 @@ cd c:\Users\Nazifa\supremeai
 Wait for: `Started Application`
 
 ### Step 2: Open Dashboard
+
 ```
 http://localhost:8080/visualization-3d-dashboard.html
 ```
 
 ### Step 3: Test API
+
 ```bash
 # Log a decision
 curl -X POST "http://localhost:8080/api/v1/decisions/log" \
@@ -54,6 +59,7 @@ curl http://localhost:8080/api/v1/decisions/stats
 ## 📡 API Reference
 
 ### Log a Decision
+
 ```
 POST /api/v1/decisions/log
 Parameters:
@@ -69,6 +75,7 @@ Returns: { decisionId, agent, decision, confidence, timestamp, status }
 ```
 
 ### Record Voting
+
 ```
 POST /api/v1/decisions/{decisionId}/vote
 Body:
@@ -85,12 +92,14 @@ Returns: { decisionId, votesRecorded, timestamp }
 ```
 
 ### Mark Applied
+
 ```
 POST /api/v1/decisions/{decisionId}/apply?durationMs=1500
 Returns: { decisionId, status: "applied", durationMs, timestamp }
 ```
 
 ### Record Outcome
+
 ```
 POST /api/v1/decisions/{decisionId}/outcome
 Body:
@@ -105,6 +114,7 @@ Returns: { decisionId, result, successMetric, timestamp }
 ```
 
 ### Query Decisions
+
 ```
 GET /api/v1/decisions/project/{projectId}?limit=50
 GET /api/v1/decisions/agent/{agentName}?limit=30
@@ -132,6 +142,7 @@ Returns: { totalDecisions, appliedDecisions, successfulDecisions, successRate, a
 ## 💾 Storage
 
 ### Decision Files
+
 ```
 ./agent_decisions/
 ├── projectId1/
@@ -148,6 +159,7 @@ Each file contains an array of decision records with full metadata.
 ## 🔍 Example Workflow
 
 ### 1. Architecture Decision
+
 ```bash
 curl -X POST "http://localhost:8080/api/v1/decisions/log" \
   -G \
@@ -159,9 +171,11 @@ curl -X POST "http://localhost:8080/api/v1/decisions/log" \
   -d "confidence=0.92" \
   -d "alternatives=Node.js+MongoDB&alternatives=Django+PostgreSQL"
 ```
+
 Response: `{ "decisionId": "abc123-...", ... }`
 
 ### 2. Consensus Voting (save decisionId from above)
+
 ```bash
 curl -X POST "http://localhost:8080/api/v1/decisions/abc123-/vote" \
   -H "Content-Type: application/json" \
@@ -176,11 +190,13 @@ curl -X POST "http://localhost:8080/api/v1/decisions/abc123-/vote" \
 ```
 
 ### 3. Mark Applied
+
 ```bash
 curl -X POST "http://localhost:8080/api/v1/decisions/abc123-/apply?durationMs=3200"
 ```
 
 ### 4. Record Outcome
+
 ```bash
 curl -X POST "http://localhost:8080/api/v1/decisions/abc123-/outcome" \
   -H "Content-Type: application/json" \
@@ -193,9 +209,11 @@ curl -X POST "http://localhost:8080/api/v1/decisions/abc123-/outcome" \
 ```
 
 ### 5. View Statistics
+
 ```bash
 curl http://localhost:8080/api/v1/decisions/stats
 ```
+
 ```json
 {
   "totalDecisions": 1,
@@ -212,21 +230,25 @@ curl http://localhost:8080/api/v1/decisions/stats
 ## 🐛 Troubleshooting
 
 ### Dashboard Not Loading
+
 - Check: `http://localhost:8080/` loads admin dashboard
 - Check: Browser console for WebSocket errors
 - Try: Refresh page (Ctrl+F5)
 - Try: Different browser or private window
 
 ### API Returns 501
+
 - Reason: AgentDecisionLogger not initialized
 - Fix: Ensure Spring context is loaded (wait 5+ seconds after startup)
 
 ### Decisions Not Persisting
+
 - Check: `./agent_decisions/` directory exists
 - Check: Write permissions on directory
 - Check: Disk space available
 
 ### FPS Low
+
 - Reduce: Rotation speed slider
 - Disable: Agent nodes
 - Close: Other browser tabs
@@ -257,12 +279,14 @@ curl http://localhost:8080/api/v1/decisions/stats
 ## 📚 Files
 
 **Key Implementation Files:**
+
 - `src/main/resources/static/visualization-3d-dashboard.html` - 3D UI (600 LOC)
 - `src/main/java/org/example/service/AgentDecisionLogger.java` - Decision logging (400 LOC)
 - `src/main/java/org/example/service/VisualizationService.java` - Backend rendering
 - `src/main/java/org/example/controller/DecisionsController.java` - API endpoints
 
 **Configuration:**
+
 - `src/main/java/org/example/config/WebSocketConfig.java` - WebSocket setup
 - `src/main/java/org/example/config/VisualizationWebSocketHandler.java` - Real-time streaming
 
@@ -271,6 +295,7 @@ curl http://localhost:8080/api/v1/decisions/stats
 ## ✅ Status
 
 **Phase 6 Week 1-2:** COMPLETE ✅
+
 - 3D Visualization: 100%
 - Decision Logging: 100%
 - API Endpoints: 100%
@@ -284,6 +309,7 @@ curl http://localhost:8080/api/v1/decisions/stats
 ## 📞 Support
 
 For issues or questions:
+
 1. Check logs in console
 2. Review API endpoints above
 3. Check `./agent_decisions/` for persistence

@@ -16,11 +16,13 @@ curl http://localhost:8080/actuator/health
 ## Available Endpoints
 
 ### 1. **Comprehensive Health Check** (Detailed Metrics)
+
 ```
 GET /api/status/health
 ```
 
 **Response Example:**
+
 ```json
 {
   "status": "UP",
@@ -49,11 +51,13 @@ GET /api/status/health
 ```
 
 ### 2. **Status Summary** (Lightweight)
+
 ```
 GET /api/status/summary
 ```
 
 **Response Example:**
+
 ```json
 {
   "status": "UP",
@@ -64,11 +68,13 @@ GET /api/status/summary
 ```
 
 ### 3. **Performance Metrics Only**
+
 ```
 GET /api/status/performance
 ```
 
 **Response Example:**
+
 ```json
 {
   "status": "UP",
@@ -91,11 +97,13 @@ GET /api/status/performance
 ```
 
 ### 4. **Home Endpoint** (Links to All Status Endpoints)
+
 ```
 GET /
 ```
 
 **Response Example:**
+
 ```json
 {
   "message": "🚀 SupremeAI Cloud Server is Running!",
@@ -120,21 +128,25 @@ GET /
 ## Key Metrics Explained
 
 ### Uptime
+
 - Format: `5d 12h 34m 21s` (days, hours, minutes, seconds)
 - Useful for: SLA tracking, maintenance windows, stability assessment
 
 ### Memory Usage (Heap)
+
 - **usedMB**: Current heap memory in use
 - **maxMB**: Maximum heap allocated to JVM
 - **usagePercent**: Percentage of max heap in use
 - Alert threshold: >90%
 
 ### CPU Usage
+
 - **processCpuUsage**: CPU used by SupremeAI process
 - **systemCpuUsage**: Overall system CPU
 - Alert threshold: >80%
 
 ### Request Metrics
+
 - **totalRequests**: All HTTP requests handled since startup
 - **totalErrors**: Failed requests (5xx, exceptions, etc.)
 - **errorRate**: Percentage of errors
@@ -143,6 +155,7 @@ GET /
 ## Monitoring with External Tools
 
 ### Example: Prometheus Monitoring
+
 ```yaml
 # prometheus.yml
 scrape_configs:
@@ -154,6 +167,7 @@ scrape_configs:
 ```
 
 ### Example: Health Check Script (Bash)
+
 ```bash
 #!/bin/bash
 
@@ -171,6 +185,7 @@ fi
 ```
 
 ### Example: Docker Health Check
+
 ```dockerfile
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8080/api/status/summary || exit 1
@@ -189,12 +204,15 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 ## Integration with Cloud Platforms
 
 ### Google Cloud Run (Current)
+
 Cloud Run uses `/api/status/summary` for health checks
 
 ### AWS Lambda
+
 Can use `/api/status/performance` for custom metrics
 
 ### Kubernetes
+
 ```yaml
 livenessProbe:
   httpGet:

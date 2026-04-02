@@ -3,6 +3,7 @@
 **This document has been consolidated into:** `ARCHITECTURE_AND_IMPLEMENTATION.md`
 
 **Relevant sections:**
+
 - [Limitations & Resolutions](#limitations--resolutions)
 - [AI Role Assignment & Routing](#ai-role-assignment--routing)
 - [Cost Management Strategy](#cost-management-strategy)
@@ -48,6 +49,7 @@
 ### ✅ সমাধান: Free API Rotation + Quota Management
 
 **Rotation Strategy:**
+
 ```
 Request 1 → OpenAI Free (0/month)     ✅ Use
 Request 2 → Claude Free (0/month)     ✅ Use  
@@ -57,6 +59,7 @@ Request 5 → OpenAI Free (reset)       ✅ Use again
 ```
 
 **Quota Tracking:**
+
 ```java
 AIProvider {
   id: "openai-free"
@@ -75,6 +78,7 @@ AIProvider {
 ```
 
 **Admin Config:**
+
 ```json
 {
   "quota_rotation_enabled": true,
@@ -96,6 +100,7 @@ AIProvider {
 ### ✅ সমাধান: 70% Adaptive Voting Threshold
 
 **Voting Logic:**
+
 ```
 Request to 5 AIs:
 ┌─────────────────────────────┐
@@ -114,6 +119,7 @@ Confidence: HIGH (80% agreement)
 ```
 
 **Adaptive Threshold:**
+
 ```
 IF system_learning shows:
   - Historical agreement > 85% → threshold = 65%
@@ -125,6 +131,7 @@ THEN:
 ```
 
 **System Learning Integration:**
+
 ```
 Track:
 - Vote patterns per category
@@ -149,6 +156,7 @@ Learn:
 ### **ADMIN CONTROL PANEL - AI Role Assignment**
 
 **Admin설정:**
+
 ```json
 {
   "ai_role_mapping": {
@@ -272,6 +280,7 @@ Admin Dashboard showing:
 ### ✅ সমাধান: Blockchain Signature + Audit Trail
 
 **Audit Trail Model:**
+
 ```java
 DecisionAuditRecord {
   decision_id: UUID
@@ -312,6 +321,7 @@ DecisionAuditRecord {
 ```
 
 **Blockchain Structure:**
+
 ```
 ┌─────────────────────────────────┐
 │ Block #1250                     │

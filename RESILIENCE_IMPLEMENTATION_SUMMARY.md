@@ -3,6 +3,7 @@
 **This document has been consolidated into:** `ARCHITECTURE_AND_IMPLEMENTATION.md`
 
 **Relevant sections:**
+
 - [Enterprise Resilience Layer](#enterprise-resilience-layer)
 - [Implementation Roadmap](#implementation-roadmap)
 
@@ -13,6 +14,7 @@
 ## সফলভাবে যুক্ত হয়েছে (April 2, 2026) - CONSOLIDATED
 
 ### ✅ Distributed Tracing System
+
 - **OpenTelemetry integration** with Jaeger backend
 - **Unique trace IDs** for every HTTP request
 - **Error tracking** with full stack traces
@@ -20,6 +22,7 @@
 - **Query capabilities** - by trace ID, path, error status
 
 **Key Classes:**
+
 - `TracingContext.java` - ThreadLocal trace management
 - `DistributedTracingService.java` - Tracer implementation
 - `TracingFilter.java` - Request/response interceptor
@@ -30,6 +33,7 @@
 ---
 
 ### ✅ Failover Registry & Provider Management
+
 - **Priority-based failover chain** সাজানো
 - **Health tracking** - success rate, consecutive failures
 - **Automatic status updates** (ACTIVE → DEGRADED → INACTIVE)
@@ -37,11 +41,13 @@
 - **Admin override** for manual control
 
 **Key Classes:**
+
 - `FailoverProvider.java` - Provider model with metrics
 - `FailoverRegistry.java` - Chain management
 - `HealthCheckService.java` - Periodic monitoring
 
 **Key Algo:**
+
 ```
 Success Rate = (Previous × 0.9) + (Current Result × 0.1)
 Status Transition: 3 consecutive failures → DEGRADED
@@ -50,6 +56,7 @@ Status Transition: 3 consecutive failures → DEGRADED
 ---
 
 ### ✅ Circuit Breaker Pattern (Resilience4j)
+
 - **Automatic state management** CLOSED → OPEN → HALF_OPEN
 - **Failure threshold: 50%** triggers OPEN
 - **Slow call detection** (duration > 2 seconds)
@@ -57,6 +64,7 @@ Status Transition: 3 consecutive failures → DEGRADED
 - **Manual reset** capability
 
 **Config:**
+
 - Wait in OPEN: 30 seconds
 - Min calls to evaluate: 5
 - Permitted in HALF_OPEN: 3
@@ -64,6 +72,7 @@ Status Transition: 3 consecutive failures → DEGRADED
 ---
 
 ### ✅ Exponential Backoff Retry
+
 - **Automatic retries** on failure
 - **Exponential delays**: 500ms → 1000ms → 2000ms
 - **Success tracking** - first-attempt rates
@@ -74,6 +83,7 @@ Status Transition: 3 consecutive failures → DEGRADED
 ### ✅ REST API Endpoints (14 new)
 
 **Tracing (6):**
+
 ```
 GET  /api/tracing/trace/{traceId}
 GET  /api/tracing/traces/recent?limit=10
@@ -84,6 +94,7 @@ POST /api/tracing/cleanup?ttlMillis=3600000
 ```
 
 **Failover (6):**
+
 ```
 POST /api/resilience/failover-chain
 GET  /api/resilience/failover-chain/{serviceId}
@@ -94,6 +105,7 @@ PUT  /api/resilience/providers/{id}/status
 ```
 
 **Circuit Breaker (2):**
+
 ```
 GET  /api/resilience/circuit-breakers
 GET  /api/resilience/circuit-breakers/{name}
@@ -137,6 +149,7 @@ POST /api/resilience/circuit-breakers/{name}/reset
 ## Monitoring Integration
 
 ### Prometheus Metrics
+
 ```
 supremeai_trace_duration_ms{path="/api/..."}
 supremeai_failover_chain_status{service_id="...", provider_id="..."}
@@ -145,6 +158,7 @@ supremeai_retry_attempts{name="..."}
 ```
 
 ### Jaeger Dashboard
+
 - Service: supremeai-service
 - Host: http://localhost:16686
 - Real-time trace visualization
@@ -167,11 +181,13 @@ supremeai_retry_attempts{name="..."}
 ## Robustness Score Update
 
 **Before:** 8/10
+
 - ❌ Distributed tracing missing
 - ❌ Failover mechanisms limited
 - ❌ Rate limiting শুধু basic
 
 **After:** **9.5/10** ✅
+
 - ✅ Enterprise-grade distributed tracing
 - ✅ Automatic failover with health monitoring
 - ✅ Circuit breaker pattern
@@ -180,6 +196,7 @@ supremeai_retry_attempts{name="..."}
 - ✅ Admin control with manual override
 
 **নতুন ক্ষমতা:**
+
 ```
 Resilience layers:        3 ✅ (tracing, failover, CB)
 Health check frequency:   30s ✅
