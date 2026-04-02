@@ -176,6 +176,29 @@ public class FirebaseService {
         } catch (Exception e) { return null; }
     }
 
+    public User getUserByEmail(String email) {
+        try {
+            CompletableFuture<User> future = new CompletableFuture<>();
+            db.getReference("users").orderByChild("email").equalTo(email)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            for (DataSnapshot data : snapshot.getChildren()) {
+                                User user = data.getValue(User.class);
+                                future.complete(user);
+                                return;
+                            }
+                        }
+                        future.complete(null);
+                    }
+                    @Override
+                    public void onCancelled(DatabaseError error) { future.completeExceptionally(error.toException()); }
+                });
+            return future.get();
+        } catch (Exception e) { return null; }
+    }
+
     public List<User> getAllUsers() {
         try {
             CompletableFuture<List<User>> future = new CompletableFuture<>();

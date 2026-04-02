@@ -92,12 +92,13 @@ public class AuthenticationService {
     
     /**
      * Login user and generate JWT token
+     * Supports both email and username as login identifier
      */
-    public AuthToken login(String username, String password) throws Exception {
-        // Get user
-        User user = getUserByUsername(username);
+    public AuthToken login(String usernameOrEmail, String password) throws Exception {
+        // Get user (by email or username)
+        User user = getUserByEmailOrUsername(usernameOrEmail);
         if (user == null) {
-            throw new IllegalArgumentException("Invalid username or password");
+            throw new IllegalArgumentException("Invalid email, username or password");
         }
         
         // Verify password
@@ -112,6 +113,7 @@ public class AuthenticationService {
         
         // Rate limiting
         long now = System.currentTimeMillis();
+        String username = user.getUsername();
         loginAttempts.putIfAbsent(username, new ArrayList<>());
         List<Long> attempts = loginAttempts.get(username);
         attempts.removeIf(ts -> now - ts > ATTEMPT_WINDOW_MS);
@@ -223,6 +225,51 @@ public class AuthenticationService {
             userCache.put(username, user);
         }
         return user;
+    }
+    
+    /**
+     * Get user by email (checks Firebase)
+     */
+    public User getUserByEmail(String email) throws Exception {
+        if (email == null || email.trim().isEmpty()) {
+            return null;
+        }
+        return firebaseService.getUserByEmail(email);
+    }
+    
+    /**
+     * Get user by email OR username (login support)
+     * Checks both email and username
+     */
+    public User getUserByEmailOrUsername(String identifier) throws Exception {
+        if (identifier == null || identifier.trim().isEmpty()) {
+            return null;
+        }
+        
+        // Check cache by username first (fast)
+        if (userCache.containsKey(identifier)) {
+            logger.debug("✅ User found in cache: {}", identifier);
+            return userCache.get(identifier);
+        }
+        
+        // Try Firebase by username
+        User user = firebaseService.getUserByUsername(identifier);
+        if (user != null) {
+            userCache.put(identifier, user);
+            logger.debug("✅ User found by username: {}", identifier);
+            return user;
+        }
+        
+        // Try Firebase by email
+        user = firebaseService.getUserByEmail(identifier);
+        if (user != null) {
+            userCache.put(user.getUsername(), user);
+            logger.debug("✅ User found by email: {}", identifier);
+            return user;
+        }
+        
+        logger.debug("❌ User not found (email or username): {}", identifier);
+        return null;
     }
     
     /**
