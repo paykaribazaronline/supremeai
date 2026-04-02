@@ -4,7 +4,7 @@
 
 **Current Production URL:**
 ```
-https://supremeai-565236080752.us-central1.run.app
+https://supremeai-a.us-central1.run.app
 ```
 
 This URL is configured in [`lib/config/environment.dart`](lib/config/environment.dart)
@@ -21,7 +21,7 @@ Edit `lib/config/environment.dart`:
 static const String baseUrl = 'http://localhost:8080';
 
 // For production (Cloud Run)
-// static const String baseUrl = 'https://supremeai-565236080752.us-central1.run.app';
+// static const String baseUrl = 'https://supremeai-a.us-central1.run.app';
 ```
 
 2. **Ensure Backend is Running Locally**
@@ -35,7 +35,7 @@ cd c:\Users\Nazifa\supremeai
 
 The app uses Cloud Run URL by default:
 ```dart
-static const String baseUrl = 'https://supremeai-565236080752.us-central1.run.app';
+static const String baseUrl = 'https://supremeai-a.us-central1.run.app';
 ```
 
 No configuration needed for production builds.
