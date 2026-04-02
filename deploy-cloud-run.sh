@@ -4,7 +4,7 @@
 
 set -e
 
-PROJECT_ID="supremeai-565236080752"
+PROJECT_ID="supremeai-a"
 SERVICE_NAME="supremeai"
 REGION="us-central1"
 IMAGE_NAME="gcr.io/$PROJECT_ID/$SERVICE_NAME"

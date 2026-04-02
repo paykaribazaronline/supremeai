@@ -75,11 +75,11 @@ gcloud run deploy supremeai `
 
 ```bash
 # Build image
-gcloud builds submit --tag gcr.io/supremeai-565236080752/supremeai:latest
+gcloud builds submit --tag gcr.io/supremeai-a/supremeai:latest
 
 # Deploy
-gcloud run deploy supremeai \
-  --image gcr.io/supremeai-565236080752/supremeai:latest \
+gcloud run deploy supremeai `
+  --image gcr.io/supremeai-a/supremeai:latest `
   --region us-central1 \
   --port 8080 \
   --memory 512Mi

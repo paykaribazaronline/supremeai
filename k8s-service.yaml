@@ -12,7 +12,7 @@ spec:
     spec:
       containerConcurrency: 80
       containers:
-      - image: gcr.io/supremeai-565236080752/supremeai:latest
+      - image: gcr.io/supremeai-a/supremeai:latest
         env:
         - name: PORT
           value: '8080'

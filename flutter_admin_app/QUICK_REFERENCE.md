@@ -116,7 +116,7 @@ await storageService.clearToken();
 
 ```bash
 # Check backend is running
-curl https://supremeai-565236080752.us-central1.run.app/api/metrics/health
+curl https://supremeai-a.us-central1.run.app/api/metrics/health
 
 # Or locally (if running on localhost)
 curl http://localhost:8080/api/metrics/health
@@ -203,5 +203,5 @@ Start developing new features now!
 ---
 
 **Last Updated:** March 31, 2026  
-**Backend URL:** https://supremeai-565236080752.us-central1.run.app  
+**Backend URL:** https://supremeai-a.us-central1.run.app  
 **Status:** Ready for Development

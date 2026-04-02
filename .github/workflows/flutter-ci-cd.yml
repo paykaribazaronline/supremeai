@@ -192,7 +192,7 @@ jobs:
         run: |
           echo "✅ **Deployment Successful!**"
           echo ""
-          echo "🌐 Live URL: https://supremeai-565236080752.web.app/admin/"
+          echo "🌐 Live URL: https://supremeai-a.web.app/admin/"
           echo "📊 Firebase Project: ${{ env.FIREBASE_PROJECT }}"
           echo "⏰ Deployment Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
@@ -325,7 +325,7 @@ jobs:
           echo "- Android Build: ✅ Completed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🔗 Deployment URLs" >> $GITHUB_STEP_SUMMARY
-          echo "- **Live Web App:** https://supremeai-565236080752.web.app/admin/" >> $GITHUB_STEP_SUMMARY
+          echo "- **Live Web App:** https://supremeai-a.web.app/admin/" >> $GITHUB_STEP_SUMMARY
           echo "- **Firebase Project:** ${{ env.FIREBASE_PROJECT }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📦 Artifacts" >> $GITHUB_STEP_SUMMARY
@@ -345,7 +345,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '✅ **Flutter Build Successful!**\n\n📦 **Artifacts Generated:**\n- Web app build (ready for Firebase)\n- Android APK & AAB files\n\n🌐 **Preview:** https://supremeai-565236080752.web.app/admin/'
+              body: '✅ **Flutter Build Successful!**\n\n📦 **Artifacts Generated:**\n- Web app build (ready for Firebase)\n- Android APK & AAB files\n\n🌐 **Preview:** https://supremeai-a.web.app/admin/'
             })
         continue-on-error: true
 

@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 # CONFIGURATION
 # ============================================================================
 
-FIREBASE_PROJECT_ID = "supremeai-565236080752"
+FIREBASE_PROJECT_ID = "supremeai-a"
 FIRESTORE_DATABASE_ID = "(default)"
 CREDENTIALS_FILE = "firebase-test-creds.json"
 

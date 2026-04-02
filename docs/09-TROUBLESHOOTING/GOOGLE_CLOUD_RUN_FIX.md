@@ -81,7 +81,7 @@ curl http://localhost:8080/actuator/health
 
 ```bash
 # Set project
-gcloud config set project supremeai-565236080752
+gcloud config set project supremeai-a
 
 # Build and deploy in one command
 gcloud run deploy supremeai \
@@ -104,11 +104,11 @@ gcloud run deploy supremeai \
 
 ```powershell
 # Step 1: Build in Cloud Build
-gcloud builds submit --tag gcr.io/supremeai-565236080752/supremeai:latest
+gcloud builds submit --tag gcr.io/supremeai-a/supremeai:latest
 
 # Step 2: Deploy to Cloud Run
 gcloud run deploy supremeai `
-  --image gcr.io/supremeai-565236080752/supremeai:latest `
+  --image gcr.io/supremeai-a/supremeai:latest `
   --platform managed `
   --region us-central1 `
   --port 8080 `
@@ -132,16 +132,16 @@ gcloud run services describe supremeai --region us-central1
 
 # Look for:
 # - Status: Active ✓
-# - URL: https://supremeai-565236080752.us-central1.run.app
+# - URL: https://supremeai-a.us-central1.run.app
 ```
 
 ### Test Endpoints
 ```bash
 # Public endpoint (no auth required for testing)
-curl https://supremeai-565236080752.us-central1.run.app/
+curl https://supremeai-a.us-central1.run.app/
 
 # Health check
-curl https://supremeai-565236080752.us-central1.run.app/actuator/health
+curl https://supremeai-a.us-central1.run.app/actuator/health
 
 # Should return 200 OK with status UP
 ```
@@ -236,7 +236,7 @@ Deployment Status:
 ✅ Service: supremeai
 ✅ Status: Active
 ✅ Region: us-central1
-✅ URL: https://supremeai-565236080752.us-central1.run.app
+✅ URL: https://supremeai-a.us-central1.run.app
 
 Logs:
 ════════════════════════════════════════════════════════
@@ -264,12 +264,12 @@ cd c:\Users\Nazifa\supremeai
 gcloud run deploy supremeai --source . --platform managed --region us-central1 --port 8080 --memory 512Mi --timeout 3600
 
 # OR Manual
-gcloud builds submit --tag gcr.io/supremeai-565236080752/supremeai:latest
-gcloud run deploy supremeai --image gcr.io/supremeai-565236080752/supremeai:latest --region us-central1 --port 8080
+gcloud builds submit --tag gcr.io/supremeai-a/supremeai:latest
+gcloud run deploy supremeai --image gcr.io/supremeai-a/supremeai:latest --region us-central1 --port 8080
 
 # Verify
 gcloud run services describe supremeai --region us-central1
-curl https://supremeai-565236080752.us-central1.run.app/actuator/health
+curl https://supremeai-a.us-central1.run.app/actuator/health
 
 # View logs
 gcloud run services logs read supremeai --region us-central1 --limit 50 --follow

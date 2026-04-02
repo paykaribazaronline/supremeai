@@ -52,7 +52,7 @@ public class UserBootstrapService {
             logger.info("════════════════════════════════════════════════════");
             logger.info("📱 Access from:");
             logger.info("   Web (Local): http://localhost:8001");
-            logger.info("   Web (Live): https://supremeai-565236080752.web.app");
+            logger.info("   Web (Live): https://supremeai-a.web.app");
             logger.info("   Flutter App: flutter run");
             logger.info("════════════════════════════════════════════════════");
             logger.info("⚠️  IMPORTANT: Change password after first login!");

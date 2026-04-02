@@ -11,7 +11,7 @@ flutter run
 
 ## Base URL Configuration
 
-**Production:** `https://supremeai-565236080752.us-central1.run.app`
+**Production:** `https://supremeai-a.us-central1.run.app`
 
 The app is configured to use this Cloud Run endpoint for all API requests.
 
@@ -73,5 +73,5 @@ lib/
 ## Environment
 
 ```dart
-const String BASE_URL = 'https://supremeai-565236080752.us-central1.run.app';
+const String BASE_URL = 'https://supremeai-a.us-central1.run.app';
 ```

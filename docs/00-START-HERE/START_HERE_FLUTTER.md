@@ -115,7 +115,7 @@ git push origin main
 ### Automatic Deployment (if main branch)
 - ✅ Web app built
 - ✅ Deployed to Firebase
-- ✅ Live at: https://supremeai-565236080752.web.app/admin/
+- ✅ Live at: https://supremeai-a.web.app/admin/
 
 ### Automatic Android Builds
 - ✅ APK files created
@@ -175,7 +175,7 @@ Output should show: ✅ All checks passed!
 1. Go to: https://github.com/your-username/supremeai/actions
 2. Push code to main
 3. Watch workflow run and complete
-4. Check app at: https://supremeai-565236080752.web.app/admin/
+4. Check app at: https://supremeai-a.web.app/admin/
 
 ### Option 3: Terminal Verification
 ```bash
