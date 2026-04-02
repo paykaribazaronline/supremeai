@@ -236,12 +236,12 @@
 
         <form id="loginForm">
             <div class="form-group">
-                <label for="username">Username</label>
+                <label for="username">Username or Email</label>
                 <input 
                     type="text" 
                     id="username" 
                     name="username" 
-                    placeholder="Enter your username"
+                    placeholder="Enter username or email"
                     autocomplete="username"
                     required
                 >
@@ -261,7 +261,7 @@
 
             <div class="remember-me">
                 <input type="checkbox" id="rememberMe" name="rememberMe">
-                <label for="rememberMe">Remember me</label>
+                <label for="rememberMe">Remember me for 30 days</label>
             </div>
 
             <div class="loading" id="loading">
@@ -298,63 +298,130 @@
         const usernameInput = document.getElementById('username');
         const passwordInput = document.getElementById('password');
 
-        // Load remembered username
+        const STORAGE_KEY = 'supremeai_remembered_username';
+        const STORAGE_EXPIRY_KEY = 'supremeai_remembered_expiry';
+        const STORAGE_PERSISTENCE_KEY = 'supremeai_token_persistence_enabled';
+        const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+        // Load remembered username on page load
         window.addEventListener('DOMContentLoaded', () => {
-            const savedUsername = localStorage.getItem('supremeai_remembered_username');
-            if (savedUsername) {
-                usernameInput.value = savedUsername;
-                rememberMe.checked = true;
-                passwordInput.focus();
-            }
+            checkRememberedUser();
+            checkExistingSession();
         });
+
+        function checkRememberedUser() {
+            const savedUsername = localStorage.getItem(STORAGE_KEY);
+            const savedExpiry = localStorage.getItem(STORAGE_EXPIRY_KEY);
+            
+            if (savedUsername && savedExpiry) {
+                const expiryTime = parseInt(savedExpiry);
+                const currentTime = Date.now();
+                
+                if (currentTime < expiryTime) {
+                    // Not expired, restore it
+                    usernameInput.value = savedUsername;
+                    rememberMe.checked = true;
+                    passwordInput.focus();
+                    return;
+                } else {
+                    // Expired, clear it
+                    localStorage.removeItem(STORAGE_KEY);
+                    localStorage.removeItem(STORAGE_EXPIRY_KEY);
+                    rememberMe.checked = false;
+                }
+            }
+        }
+
+        function checkExistingSession() {
+            const token = localStorage.getItem('supremeai_token');
+            const persistenceEnabled = localStorage.getItem(STORAGE_PERSISTENCE_KEY);
+            
+            if (token && persistenceEnabled === 'true') {
+                // Check if token is still valid
+                validateTokenAndRedirect(token);
+            }
+        }
+
+        async function validateTokenAndRedirect(token) {
+            try {
+                const response = await fetch('/api/auth/me', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    // Token is valid, redirect to admin
+                    window.location.href = '/admin';
+                } else {
+                    // Token invalid, clear it
+                    clearAuthStorage();
+                }
+            } catch (error) {
+                // Can't verify token, let user login manually
+                console.log('Could not auto-login:', error);
+            }
+        }
 
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             clearMessages();
             
-            const username = usernameInput.value.trim();
+            const usernameOrEmail = usernameInput.value.trim();
             const password = passwordInput.value;
 
-            if (!username || !password) {
-                showError('Please enter both username and password');
+            if (!usernameOrEmail || !password) {
+                showError('Please enter both username/email and password');
                 return;
             }
 
-            await loginUser(username, password);
+            await loginUser(usernameOrEmail, password);
         });
 
-        async function loginUser(username, password) {
+        async function loginUser(usernameOrEmail, password) {
             try {
                 loading.classList.add('show');
                 loginButton.disabled = true;
 
+                // Try login with provided credentials
                 const response = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ username, password })
+                    body: JSON.stringify({ 
+                        username: usernameOrEmail,  // Controller accepts both username and email
+                        password: password 
+                    })
                 });
 
                 const data = await response.json();
 
                 if (!response.ok) {
-                    throw new Error(data.message || 'Login failed');
+                    const errorMsg = data.message || data.error || 'Login failed';
+                    throw new Error(errorMsg);
                 }
 
-                // Save token to localStorage
+                // ✅ Login successful - save auth data
                 localStorage.setItem('supremeai_token', data.token);
-                localStorage.setItem('supremeai_refresh_token', data.refreshToken);
-                localStorage.setItem('supremeai_user', JSON.stringify(data.user));
+                localStorage.setItem('supremeai_refresh_token', data.refreshToken || '');
+                localStorage.setItem('supremeai_user', JSON.stringify(data.user || {}));
 
-                // Save username if remember me is checked
+                // ✅ Handle "Remember me" - save username with 30-day expiry
                 if (rememberMe.checked) {
-                    localStorage.setItem('supremeai_remembered_username', username);
+                    const expiryTime = Date.now() + THIRTY_DAYS_MS;
+                    localStorage.setItem(STORAGE_KEY, usernameOrEmail);
+                    localStorage.setItem(STORAGE_EXPIRY_KEY, expiryTime.toString());
+                    localStorage.setItem(STORAGE_PERSISTENCE_KEY, 'true');
                 } else {
-                    localStorage.removeItem('supremeai_remembered_username');
+                    // Don't remember - clear storage but keep token
+                    localStorage.removeItem(STORAGE_KEY);
+                    localStorage.removeItem(STORAGE_EXPIRY_KEY);
+                    localStorage.removeItem(STORAGE_PERSISTENCE_KEY);
                 }
 
-                showSuccess('Login successful! Redirecting...');
+                showSuccess('✅ Login successful! Redirecting to dashboard...');
                 
                 // Redirect to admin dashboard after 1 second
                 setTimeout(() => {
@@ -362,7 +429,9 @@
                 }, 1000);
 
             } catch (error) {
-                showError(error.message || 'Login failed. Please try again.');
+                console.error('Login error:', error);
+                const errorMsg = error.message || 'Login failed. Please try again.';
+                showError('❌ ' + errorMsg);
                 loginButton.disabled = false;
             } finally {
                 loading.classList.remove('show');
@@ -372,11 +441,13 @@
         function showError(message) {
             errorMessage.textContent = message;
             errorMessage.classList.add('show');
+            console.error('Auth Error:', message);
         }
 
         function showSuccess(message) {
             successMessage.textContent = message;
             successMessage.classList.add('show');
+            console.log('Auth Success:', message);
         }
 
         function clearMessages() {
@@ -384,7 +455,14 @@
             successMessage.classList.remove('show');
         }
 
-        // Enter key to submit
+        function clearAuthStorage() {
+            localStorage.removeItem('supremeai_token');
+            localStorage.removeItem('supremeai_refresh_token');
+            localStorage.removeItem('supremeai_user');
+            localStorage.removeItem(STORAGE_PERSISTENCE_KEY);
+        }
+
+        // Allow Enter key to submit form
         document.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && document.activeElement !== loginButton) {
                 loginForm.dispatchEvent(new Event('submit'));
