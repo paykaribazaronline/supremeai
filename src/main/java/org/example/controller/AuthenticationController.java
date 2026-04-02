@@ -36,24 +36,32 @@ public class AuthenticationController {
     /**
      * POST /api/auth/login
      * Login user and return JWT token
+     * Supports both email and username as login identifier
      * 
      * Body: {
-     *   "username": "admin",
+     *   "username": "admin",           // OR use "email"
      *   "password": "your_password"
      * }
+     * 
+     * Examples:
+     * - Login with username: {"username": "supremeai", "password": "Admin@123456!"}
+     * - Login with email: {"email": "admin@supremeai.com", "password": "Admin@123456!"}
      */
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
         try {
-            String username = request.get("username");
+            String usernameOrEmail = request.get("username");
+            if (usernameOrEmail == null) {
+                usernameOrEmail = request.get("email");
+            }
             String password = request.get("password");
             
-            if (username == null || password == null) {
+            if (usernameOrEmail == null || password == null) {
                 return ResponseEntity.badRequest()
-                    .body(Map.of("status", "error", "message", "Username and password required"));
+                    .body(Map.of("status", "error", "message", "Username or email and password required"));
             }
             
-            AuthToken token = authService.login(username, password);
+            AuthToken token = authService.login(usernameOrEmail, password);
             
             // Return user info without password
             Map<String, Object> response = new HashMap<>();
@@ -64,7 +72,7 @@ public class AuthenticationController {
             response.put("expiresIn", token.getExpiresIn());
             response.put("user", new AuthToken.UserResponse(token.getUser()));
             
-            logger.info("✅ User logged in: {}", username);
+            logger.info("✅ User logged in: {}", usernameOrEmail);
             
             return ResponseEntity.ok(response);
             
