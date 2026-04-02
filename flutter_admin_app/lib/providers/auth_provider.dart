@@ -43,7 +43,7 @@ class AuthProvider extends ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        _error = 'Invalid email or password';
+        _error = _authService.lastError ?? 'Invalid email or password';
         _isLoading = false;
         notifyListeners();
         return false;
@@ -72,7 +72,7 @@ class AuthProvider extends ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        _error = 'Registration failed. Please try again.';
+        _error = _authService.lastError ?? 'Registration failed. Please try again.';
         _isLoading = false;
         notifyListeners();
         return false;

@@ -78,6 +78,7 @@ public class AuthenticationService {
         // Create user
         String passwordHash = hashPassword(password);
         User user = new User(username, email, passwordHash);
+        user.setId(username);
         
         // Save to in-memory cache IMMEDIATELY (Firebase is async)
         userCache.put(username, user);
@@ -124,6 +125,10 @@ public class AuthenticationService {
             throw new IllegalArgumentException("Too many login attempts. Please try again later.");
         }
         attempts.add(now);
+
+        // Repair Firebase Auth credentials before any MFA challenge so
+        // email/password clients can recover on the next sign-in attempt.
+        syncAdminToFirebaseAuth(user.getEmail(), password, user.getUsername());
         
         // MFA required for admin
         if (user.getRole() != null && user.getRole().equals("ADMIN")) {
@@ -245,6 +250,13 @@ public class AuthenticationService {
         if (email == null || email.trim().isEmpty()) {
             return null;
         }
+
+        for (User cachedUser : userCache.values()) {
+            if (cachedUser != null && email.equalsIgnoreCase(cachedUser.getEmail())) {
+                return cachedUser;
+            }
+        }
+
         return firebaseService.getUserByEmail(email);
     }
     
@@ -277,6 +289,13 @@ public class AuthenticationService {
             userCache.put(user.getUsername(), user);
             logger.debug("✅ User found by email: {}", identifier);
             return user;
+        }
+
+        for (User cachedUser : userCache.values()) {
+            if (cachedUser != null && identifier.equalsIgnoreCase(cachedUser.getEmail())) {
+                logger.debug("✅ User found in cache by email: {}", identifier);
+                return cachedUser;
+            }
         }
         
         logger.debug("❌ User not found (email or username): {}", identifier);
@@ -467,8 +486,14 @@ public class AuthenticationService {
                 com.google.firebase.auth.FirebaseAuth.getInstance();
 
             try {
-                fbAuth.getUserByEmail(email);
-                logger.info("ℹ️ Firebase Auth user already exists: {}", email);
+                com.google.firebase.auth.UserRecord existingUser = fbAuth.getUserByEmail(email);
+                com.google.firebase.auth.UserRecord.UpdateRequest updateRequest =
+                    new com.google.firebase.auth.UserRecord.UpdateRequest(existingUser.getUid())
+                        .setPassword(plainPassword)
+                        .setDisplayName(displayName)
+                        .setEmailVerified(true);
+                fbAuth.updateUser(updateRequest);
+                logger.info("ℹ️ Firebase Auth user updated: {}", email);
             } catch (com.google.firebase.auth.FirebaseAuthException notFound) {
                 com.google.firebase.auth.UserRecord.CreateRequest req =
                     new com.google.firebase.auth.UserRecord.CreateRequest()

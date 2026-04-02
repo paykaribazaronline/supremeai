@@ -9,6 +9,7 @@ class AuthService {
   static final AuthService _instance = AuthService._internal();
   final ApiService _apiService = ApiService();
   final StorageService _storageService = StorageService();
+  String? _lastError;
 
   factory AuthService() {
     return _instance;
@@ -16,8 +17,11 @@ class AuthService {
 
   AuthService._internal();
 
+  String? get lastError => _lastError;
+
   // Login — tries Firebase Auth first (email only), falls back to direct backend JWT
   Future<bool> login(String email, String password) async {
+    _lastError = null;
     // ── Step 1: Firebase Authentication (requires an email address) ──────────
     final isEmail = email.contains('@');
     if (isEmail) {
@@ -48,9 +52,12 @@ class AuthService {
               return true;
             }
           }
+
+          _lastError = fbResp.error ?? 'Firebase token exchange failed';
         }
       } catch (fbErr) {
         print('Firebase Auth failed, trying direct login: $fbErr');
+        _lastError = fbErr.toString();
       }
     }
 
@@ -82,19 +89,24 @@ class AuthService {
         }
       }
 
+      _lastError = response.error ?? 'Login failed';
       return false;
     } catch (e) {
       print('Login error: $e');
+      _lastError = e.toString();
       return false;
     }
   }
 
   // Register (for admin only)
   Future<bool> register(String email, String password, String name) async {
+    _lastError = null;
     try {
+      final username = _buildUsername(name, email);
       final response = await _apiService.post<Map<String, dynamic>>(
         Environment.authRegister,
         data: {
+          'username': username,
           'email': email,
           'password': password,
           'name': name,
@@ -119,11 +131,24 @@ class AuthService {
         }
       }
 
+      _lastError = response.error ?? 'Registration failed';
       return false;
     } catch (e) {
       print('Register error: $e');
+      _lastError = e.toString();
       return false;
     }
+  }
+
+  String _buildUsername(String name, String email) {
+    final normalizedName = name.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '.');
+    final collapsedName = normalizedName.replaceAll(RegExp(r'^\.+|\.+$'), '');
+    if (collapsedName.isNotEmpty) {
+      return collapsedName;
+    }
+
+    final emailPrefix = email.split('@').first.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9._-]+'), '');
+    return emailPrefix.isNotEmpty ? emailPrefix : 'admin.user';
   }
 
   // Logout

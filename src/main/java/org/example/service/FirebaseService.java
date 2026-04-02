@@ -148,8 +148,11 @@ public class FirebaseService {
     }
 
     public void saveUser(User user) {
-        if (user != null && user.getId() != null) {
-            db.getReference("users").child(user.getId()).setValueAsync(user);
+        if (user != null) {
+            String userKey = resolveUserKey(user);
+            if (userKey != null) {
+                db.getReference("users").child(userKey).setValueAsync(user);
+            }
         }
     }
 
@@ -235,9 +238,35 @@ public class FirebaseService {
      * Update user in Firebase
      */
     public void updateUser(User user) {
-        if (user != null && user.getId() != null) {
-            db.getReference("users").child(user.getId()).setValueAsync(user);
+        if (user != null) {
+            String userKey = resolveUserKey(user);
+            if (userKey != null) {
+                db.getReference("users").child(userKey).setValueAsync(user);
+            }
         }
+    }
+
+    private String resolveUserKey(User user) {
+        if (user == null) {
+            return null;
+        }
+
+        if (user.getId() != null && !user.getId().isBlank()) {
+            return user.getId();
+        }
+
+        if (user.getUsername() != null && !user.getUsername().isBlank()) {
+            user.setId(user.getUsername());
+            return user.getUsername();
+        }
+
+        if (user.getEmail() != null && !user.getEmail().isBlank()) {
+            String derivedId = user.getEmail().replace("@", "_at_").replace(".", "_");
+            user.setId(derivedId);
+            return derivedId;
+        }
+
+        return null;
     }
 
     /**
