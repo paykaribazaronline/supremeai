@@ -108,7 +108,7 @@ $deployCommand = @(
     "--max-instances 10",
     "--timeout 3600",
     "--allow-unauthenticated",
-    "--update-env-vars FIREBASE_PROJECT_ID=$ProjectId,GOOGLE_CLOUD_PROJECT=$ProjectId,FIREBASE_DATABASE_URL=$FirebaseDatabaseUrl"
+    "--update-env-vars `"FIREBASE_PROJECT_ID=$ProjectId,GOOGLE_CLOUD_PROJECT=$ProjectId,FIREBASE_DATABASE_URL=$FirebaseDatabaseUrl`""
 )
 
 if ($secretExists) {
