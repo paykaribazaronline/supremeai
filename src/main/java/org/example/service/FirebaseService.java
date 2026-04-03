@@ -22,6 +22,7 @@ public class FirebaseService {
     private FirebaseAuth auth;
     private boolean isInitialized = false;
     private static final String DATABASE_URL = "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/";
+    private static final String DEFAULT_PROJECT_ID = "supremeai-a";
     
     public FirebaseService() {
         // Default constructor for Spring
@@ -54,6 +55,13 @@ public class FirebaseService {
         if (FirebaseApp.getApps().isEmpty()) {
             InputStream serviceAccount = null;
             String envConfig = System.getenv("FIREBASE_SERVICE_ACCOUNT_JSON");
+            String projectId = System.getenv("FIREBASE_PROJECT_ID");
+            if (projectId == null || projectId.isBlank()) {
+                projectId = System.getenv("GOOGLE_CLOUD_PROJECT");
+            }
+            if (projectId == null || projectId.isBlank()) {
+                projectId = DEFAULT_PROJECT_ID;
+            }
             
             if (envConfig != null && !envConfig.isEmpty()) {
                 serviceAccount = new ByteArrayInputStream(envConfig.getBytes(StandardCharsets.UTF_8));
@@ -62,7 +70,8 @@ public class FirebaseService {
             }
 
             FirebaseOptions.Builder builder = FirebaseOptions.builder()
-                    .setDatabaseUrl(DATABASE_URL);
+                    .setDatabaseUrl(DATABASE_URL)
+                    .setProjectId(projectId);
 
             if (serviceAccount != null) {
                 builder.setCredentials(GoogleCredentials.fromStream(serviceAccount));

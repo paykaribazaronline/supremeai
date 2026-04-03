@@ -3,6 +3,9 @@ FROM gradle:8.7-jdk17 AS build
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
 RUN chmod +x gradlew && ./gradlew build --no-daemon -x test --parallel --max-workers=2 --stacktrace
+RUN set -eux; \
+    JAR_FILE=$(ls /home/gradle/src/build/libs/*.jar | grep -v -- '-plain\.jar$' | head -n 1); \
+    cp "$JAR_FILE" /home/gradle/src/build/libs/app.jar
 
 # Step 2: Create the runtime image using Eclipse Temurin (More stable)
 FROM eclipse-temurin:17-jdk-jammy
@@ -13,9 +16,8 @@ RUN apt-get update && apt-get install -y git curl && rm -rf /var/lib/apt/lists/*
 # Set working directory
 WORKDIR /app
 
-# Copy the built jar from the build stage
-# Note: Ensure the jar filename matches. If it has a version, use a wildcard.
-COPY --from=build /home/gradle/src/build/libs/*.jar app.jar
+# Copy the single runtime jar from the build stage.
+COPY --from=build /home/gradle/src/build/libs/app.jar app.jar
 
 # Set PORT environment variable (Cloud Run requirement)
 # This overrides the default 8080 if PORT env var is set

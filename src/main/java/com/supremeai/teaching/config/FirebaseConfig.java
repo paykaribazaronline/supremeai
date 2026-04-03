@@ -21,6 +21,7 @@ import java.io.IOException;
 @Configuration
 public class FirebaseConfig {
     private static final Logger logger = LoggerFactory.getLogger(FirebaseConfig.class);
+    private static final String TEACHING_FIREBASE_APP = "teaching-firebase-app";
     
     @Value("${firebase.credentials.path:}")
     private String firebaseCredentialsPath;
@@ -31,10 +32,12 @@ public class FirebaseConfig {
     @Bean
     public Firestore firestore() {
         try {
-            // Check if Firebase app already initialized
-            if (FirebaseApp.getApps().isEmpty()) {
+            FirebaseApp firebaseApp;
+            try {
+                firebaseApp = FirebaseApp.getInstance(TEACHING_FIREBASE_APP);
+            } catch (IllegalStateException noNamedApp) {
                 GoogleCredentials credentials;
-                
+
                 // Try to load credentials from file if path provided
                 if (firebaseCredentialsPath != null && !firebaseCredentialsPath.isEmpty()) {
                     credentials = GoogleCredentials.fromStream(new FileInputStream(firebaseCredentialsPath));
@@ -42,18 +45,18 @@ public class FirebaseConfig {
                     // Use Application Default Credentials (works in GCP environment)
                     credentials = GoogleCredentials.getApplicationDefault();
                 }
-                
+
                 FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(credentials)
                     .setProjectId(projectId)
                     .build();
-                
-                FirebaseApp.initializeApp(options);
-                logger.info("✅ Firebase initialized with project: {}", projectId);
+
+                firebaseApp = FirebaseApp.initializeApp(options, TEACHING_FIREBASE_APP);
+                logger.info("✅ Firebase initialized with project: {} (app={})", projectId, TEACHING_FIREBASE_APP);
             }
-            
-            return FirestoreClient.getFirestore();
-        } catch (IOException e) {
+
+            return FirestoreClient.getFirestore(firebaseApp);
+        } catch (Exception e) {
             logger.warn("⚠️ Firebase initialization failed - using in-memory storage fallback");
             logger.warn("Reason: {}", e.getMessage());
             logger.warn("Set GOOGLE_APPLICATION_CREDENTIALS or firebase.credentials.path for persistence");

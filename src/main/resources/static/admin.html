@@ -1121,7 +1121,7 @@
                 <!-- Multi-AI Consensus Section -->
                 <div id="consensus" class="content-section">
                     <h1>🧠 Multi-AI Consensus</h1>
-                    <p>Ask all 10 AI providers (OpenAI, Anthropic, Google, Meta, Mistral, Cohere, HuggingFace, xAI, DeepSeek, Perplexity) and get a consensus answer.</p>
+                    <p>Ask all currently configured AI providers and get a consensus answer (supports 0 to unlimited providers).</p>
                     <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
                         <button class="btn btn-secondary" onclick="loadConsensusStats()">📊 Stats</button>
                         <button class="btn btn-secondary" onclick="loadConsensusHistory()">📜 History</button>
@@ -1130,7 +1130,7 @@
                         <label>Question / Prompt</label>
                         <textarea id="consensusQuestion" style="height:80px;" placeholder="e.g. What is the best way to implement JWT refresh token rotation?"></textarea>
                     </div>
-                    <button class="btn" onclick="askConsensus()">🤖 Ask All AIs</button>
+                    <button class="btn" onclick="askConsensus()">🤖 Ask Configured AIs</button>
                     <div id="consensusResultPanel" style="display:none;margin-top:16px;background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:16px;">
                         <div id="consensusResult"></div>
                     </div>
@@ -1472,17 +1472,27 @@
                 <label>📌 Select AI Model</label>
                 <select id="aiModelSelect">
                     <option value="">-- Choose AI Model --</option>
-                    <option value="GPT-4">GPT-4 (OpenAI)</option>
-                    <option value="Claude-3">Claude 3 (Anthropic)</option>
-                    <option value="Gemini">Gemini Pro (Google)</option>
-                    <option value="Cohere">Cohere</option>
-                    <option value="Perplexity">Perplexity</option>
-                    <option value="Meta / Llama">Meta / Llama</option>
-                    <option value="HuggingFace">HuggingFace</option>
-                    <option value="XAI / Grok">XAI / Grok</option>
-                    <option value="DeepSeek">DeepSeek</option>
-                    <option value="Mistral">Mistral</option>
                 </select>
+                <input type="text" id="aiModelSearch" placeholder="Type to filter providers..." style="margin-top:10px;" oninput="filterProviderOptions()">
+                <div style="margin-top:8px; color:#a0aec0; font-size:12px;">Choose a known provider, or select "Custom Provider..." to add any new provider manually.</div>
+            </div>
+            <div id="customProviderFields" style="display:none;">
+                <div class="form-group">
+                    <label>Custom Provider ID *</label>
+                    <input type="text" id="customProviderId" placeholder="e.g. together-ai, openrouter, fireworks-ai">
+                </div>
+                <div class="form-group">
+                    <label>Display Name</label>
+                    <input type="text" id="customProviderName" placeholder="e.g. Together AI">
+                </div>
+                <div class="form-group">
+                    <label>Base Model</label>
+                    <input type="text" id="customBaseModel" placeholder="e.g. meta-llama/Llama-3.3-70B-Instruct">
+                </div>
+                <div class="form-group">
+                    <label>API Endpoint URL</label>
+                    <input type="text" id="customProviderEndpoint" placeholder="e.g. https://api.together.xyz/v1/chat/completions">
+                </div>
             </div>
             <div class="form-group">
                 <label>👤 Created By Email</label>
@@ -1687,10 +1697,87 @@
 
         function showModal(modalId) {
             document.getElementById(modalId).classList.add('active');
+            if (modalId === 'addKeyModal') {
+                prepareAddProviderModal();
+            }
         }
 
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
+        }
+
+        function sanitizeProviderId(value) {
+            if (!value) {
+                return '';
+            }
+            return value
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        }
+
+        function toggleCustomProviderFields() {
+            const selected = document.getElementById('aiModelSelect').value;
+            const customFields = document.getElementById('customProviderFields');
+            customFields.style.display = selected === '__custom__' ? 'block' : 'none';
+        }
+
+        function filterProviderOptions() {
+            const select = document.getElementById('aiModelSelect');
+            const search = document.getElementById('aiModelSearch').value.trim().toLowerCase();
+            if (!select) {
+                return;
+            }
+            Array.from(select.options).forEach(option => {
+                if (!option.value || option.value === '__custom__') {
+                    option.hidden = false;
+                    return;
+                }
+                const text = (option.textContent || '').toLowerCase();
+                option.hidden = search && !text.includes(search);
+            });
+        }
+
+        function populateProviderSelect(available) {
+            const select = document.getElementById('aiModelSelect');
+            if (!select) {
+                return;
+            }
+
+            select.innerHTML = '<option value="">-- Choose AI Model --</option>';
+            available.forEach(provider => {
+                const option = document.createElement('option');
+                option.value = provider.providerId;
+                option.textContent = `${provider.displayName} (${provider.providerId})`;
+                select.appendChild(option);
+            });
+
+            const custom = document.createElement('option');
+            custom.value = '__custom__';
+            custom.textContent = 'Custom Provider...';
+            select.appendChild(custom);
+            select.onchange = toggleCustomProviderFields;
+            toggleCustomProviderFields();
+        }
+
+        async function prepareAddProviderModal() {
+            document.getElementById('createdByEmail').value = getCurrentAdminEmail();
+            document.getElementById('aiModelSearch').value = '';
+
+            try {
+                const response = await fetch('/api/providers/available', {
+                    headers: getAuthHeaders()
+                });
+                const data = await response.json();
+                if (!response.ok || !Array.isArray(data)) {
+                    throw new Error(data.error || 'Failed to load providers');
+                }
+                populateProviderSelect(data);
+            } catch (error) {
+                // Keep modal usable even if provider list load fails.
+                populateProviderSelect([]);
+                console.error('Failed to load provider options', error);
+            }
         }
 
         // --- Approvals Logic ---
@@ -1744,12 +1831,49 @@
         function getAuthHeaders() {
             const token = localStorage.getItem('supremeai_token');
             if (!token) {
-                throw new Error('Admin token not found. Please log in again.');
+                throw new Error('Admin session not found. Please log in again.');
             }
             return {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             };
+        }
+
+        function getFriendlyNetworkMessage(error) {
+            const msg = (error && error.message) ? error.message : 'Unknown error';
+            if (msg === 'Failed to fetch') {
+                return 'Backend is unreachable or blocked by CORS/network policy. Please verify API origin and login session.';
+            }
+            return msg;
+        }
+
+        async function ensureAdminSession() {
+            const token = localStorage.getItem('supremeai_token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return false;
+            }
+
+            try {
+                const response = await fetch('/api/auth/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    localStorage.removeItem('supremeai_token');
+                    localStorage.removeItem('supremeai_refresh_token');
+                    localStorage.removeItem('supremeai_user');
+                    window.location.href = '/login.html';
+                    return false;
+                }
+
+                return true;
+            } catch (_) {
+                // If backend is temporarily unreachable, keep page open and show per-tab errors.
+                return true;
+            }
         }
 
         async function fetchTechniques(category = '') {
@@ -1758,7 +1882,7 @@
                 headers: getAuthHeaders()
             });
 
-            if (response.status === 401) {
+            if (response.status === 401 || response.status === 403) {
                 throw new Error('Session expired. Please log in again.');
             }
 
@@ -1775,7 +1899,7 @@
                 headers: getAuthHeaders()
             });
 
-            if (response.status === 401) {
+            if (response.status === 401 || response.status === 403) {
                 throw new Error('Session expired. Please log in again.');
             }
 
@@ -1792,7 +1916,7 @@
                 headers: getAuthHeaders()
             });
 
-            if (response.status === 401) {
+            if (response.status === 401 || response.status === 403) {
                 throw new Error('Session expired. Please log in again.');
             }
 
@@ -1989,7 +2113,7 @@
                 renderTechniqueCards('techniqueList', techniques);
                 status.textContent = `${techniques.length} technique${techniques.length === 1 ? '' : 's'} loaded${category ? ` for ${category}` : ''}.`;
             } catch (error) {
-                list.innerHTML = `<div class="empty-state">${error.message}</div>`;
+                list.innerHTML = `<div class="empty-state">${getFriendlyNetworkMessage(error)}</div>`;
                 status.textContent = 'Could not load techniques from the backend.';
             }
         }
@@ -2148,27 +2272,58 @@
 
         // --- API Keys Logic ---
         async function addNewProvider() {
-            const aiModel = document.getElementById('aiModelSelect').value;
+            const selectedProvider = document.getElementById('aiModelSelect').value;
             const createdByEmail = document.getElementById('createdByEmail').value.trim();
             const apiKey = document.getElementById('apiKeyInput').value.trim();
 
-            if (!aiModel) return alert('Please select a model');
+            if (!selectedProvider) return alert('Please select a provider or choose Custom Provider');
             if (!createdByEmail) return alert('Please enter the creator email');
             if (!apiKey) return alert('Please paste the API key');
 
+            let providerId = selectedProvider;
+            let displayName = selectedProvider;
+            let baseModel = selectedProvider;
+            let endpoint = null;
+
+            if (selectedProvider === '__custom__') {
+                const customProviderIdRaw = document.getElementById('customProviderId').value.trim();
+                const customProviderName = document.getElementById('customProviderName').value.trim();
+                const customBaseModel = document.getElementById('customBaseModel').value.trim();
+                const customProviderEndpoint = document.getElementById('customProviderEndpoint').value.trim();
+
+                providerId = sanitizeProviderId(customProviderIdRaw);
+                if (!providerId) {
+                    return alert('Please enter a valid custom provider ID');
+                }
+                displayName = customProviderName || customProviderIdRaw;
+                baseModel = customBaseModel || providerId;
+                endpoint = customProviderEndpoint || null;
+            } else {
+                const selectedOption = document.getElementById('aiModelSelect').selectedOptions[0];
+                displayName = selectedOption ? selectedOption.textContent : selectedProvider;
+                baseModel = selectedProvider;
+            }
+
             try {
                 await saveProviderConfig({
-                    id: aiModel,
-                    name: aiModel,
-                    baseModel: aiModel,
+                    id: providerId,
+                    name: displayName,
+                    baseModel,
                     type: 'LLM',
                     apiKey,
+                    endpoint,
                     createdByEmail,
                     status: 'active'
                 });
                 document.getElementById('aiModelSelect').value = '';
+                document.getElementById('aiModelSearch').value = '';
                 document.getElementById('createdByEmail').value = '';
                 document.getElementById('apiKeyInput').value = '';
+                document.getElementById('customProviderId').value = '';
+                document.getElementById('customProviderName').value = '';
+                document.getElementById('customBaseModel').value = '';
+                document.getElementById('customProviderEndpoint').value = '';
+                toggleCustomProviderFields();
                 closeModal('addKeyModal');
                 await loadConfiguredProviders();
                 await loadProviderCoveragePreview();
@@ -2810,7 +2965,7 @@
                     <div><strong>Circuit Breakers:</strong></div>
                     <div style="margin-top:8px;font-size:13px;">${cbHTML}</div>
                 `;
-            } catch(e) { content.innerHTML = `<span style="color:#f56565;">${e.message}</span>`; }
+            } catch(e) { content.innerHTML = `<span style="color:#f56565;">${getFriendlyNetworkMessage(e)}</span>`; }
         }
 
         async function startSelfHealing() {
@@ -2929,7 +3084,7 @@
             const result = document.getElementById('consensusResult');
             if (!question) { panel.style.display = 'block'; result.innerHTML = '<span style="color:#f56565;">Question is required.</span>'; return; }
             panel.style.display = 'block';
-            result.innerHTML = '<span style="color:#63b3ed;">⏳ Asking all 10 AI providers... (this may take 10-30s)</span>';
+            result.innerHTML = '<span style="color:#63b3ed;">⏳ Asking all configured AI providers... (time depends on provider count)</span>';
             try {
                 const res = await fetch('/api/consensus/ask', {
                     method: 'POST', headers: getAuthHeaders(),
@@ -3618,7 +3773,12 @@
         }
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            const hasSession = await ensureAdminSession();
+            if (!hasSession) {
+                return;
+            }
+
             fetch('/api/v1/requirements')
                 .then(r => r.json())
                 .then(reqs => {

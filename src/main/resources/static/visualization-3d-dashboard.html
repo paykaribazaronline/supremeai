@@ -352,6 +352,11 @@
                 this.animate();
             }
 
+            getAuthHeaders() {
+                const token = localStorage.getItem('supremeai_token');
+                return token ? { 'Authorization': `Bearer ${token}` } : {};
+            }
+
             getWebSocketUrl() {
                 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
                 return `${protocol}//${window.location.host}/ws/visualization`;
@@ -570,7 +575,7 @@
 
             startRESTPolling() {
                 setInterval(() => {
-                    fetch('/api/v1/visualization/frame')
+                    fetch('/api/v1/visualization/frame', { headers: this.getAuthHeaders() })
                         .then(r => r.json())
                         .then(data => this.updateVisualization(data))
                         .catch(e => console.warn('REST polling error:', e));
