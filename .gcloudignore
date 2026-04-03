@@ -1,0 +1,23 @@
+# Exclude local and generated artifacts from Cloud Build upload context.
+.git
+.github
+.gradle
+.gradle-user-home
+.idea
+.vscode
+.venv
+bin
+build
+combined_deploy
+dashboard/node_modules
+flutter_admin_app/build
+functions/node_modules
+node_modules
+out
+target
+*.log
+*.txt
+app*.log
+compile*.txt
+build*.txt
+test*.txt
