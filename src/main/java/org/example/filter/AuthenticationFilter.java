@@ -202,7 +202,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                                            HttpServletResponse response,
                                            String path) throws IOException {
         if (wantsHtmlResponse(request, path)) {
-            response.sendRedirect("/login.html?redirect=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
+            redirectToRelativePath(response, "/login.html?redirect=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
             return;
         }
 
@@ -218,7 +218,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                                         HttpServletResponse response,
                                         String path) throws IOException {
         if (wantsHtmlResponse(request, path)) {
-            response.sendRedirect("/login.html?denied=admin");
+            redirectToRelativePath(response, "/login.html?denied=admin");
             return;
         }
 
@@ -235,5 +235,10 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         return (accept != null && accept.contains("text/html"))
             || ADMIN_PAGE_PATHS.contains(path)
             || (path != null && path.endsWith(".html"));
+    }
+
+    private void redirectToRelativePath(HttpServletResponse response, String location) {
+        response.setStatus(HttpServletResponse.SC_FOUND);
+        response.setHeader("Location", location);
     }
 }
