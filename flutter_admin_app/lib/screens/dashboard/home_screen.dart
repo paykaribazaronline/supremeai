@@ -137,6 +137,16 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
+    final statusCode = response.statusCode ?? 0;
+    if (statusCode == 401 || statusCode == 403) {
+      await context.read<AuthProvider>().logout();
+      if (!mounted) {
+        return;
+      }
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+      return;
+    }
+
     setState(() {
       _isLoadingContract = false;
       _dashboardError = response.error ?? 'Unable to load dashboard contract.';
