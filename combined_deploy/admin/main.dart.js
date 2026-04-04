@@ -84769,12 +84769,12 @@ $S:5}
 A.uW.prototype={
 adc(){var s=A.ah8()
 if(s.gl3(s)==="localhost"||s.gl3(s)==="127.0.0.1")return s.guf(s)+"/admin.html"
-return"https://supremeai-lhlwyikwlq-uc.a.run.app/admin.html"},
+return"https://supremeai-565236080752.us-central1.run.app/admin.html"},
 N(a){return A.acH(null,null,A.aQB(this.adc(),!1))}}
 A.kj.prototype={}
 A.Zm.prototype={
 a9O(){var s,r=this,q="application/json",p=A.dJ(0,0,30),o=A.dJ(0,0,30)
-o=A.aGS("https://supremeai-lhlwyikwlq-uc.a.run.app",p,A.au(["Content-Type",q,"Accept",q],t.N,t.z),o)
+o=A.aGS("https://supremeai-565236080752.us-central1.run.app",p,A.au(["Content-Type",q,"Accept",q],t.N,t.z),o)
 p=new A.KC(A.d([B.AY],t.i6))
 p.R(p,B.Gv)
 s=new A.a0V($,p,$,new A.a4e(51200),!1)

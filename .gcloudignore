@@ -2,6 +2,7 @@
 .git
 .github
 .gradle
+.gradle-home
 .gradle-user-home
 .idea
 .vscode

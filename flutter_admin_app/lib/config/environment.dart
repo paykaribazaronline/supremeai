@@ -10,8 +10,8 @@
 class Environment {
   // 🚀 PRODUCTION: Cloud Run Backend URL
   // GCP Project: supremeai-a
-  // Deployed at: https://supremeai-lhlwyikwlq-uc.a.run.app/
-  static const String baseUrl = 'https://supremeai-lhlwyikwlq-uc.a.run.app';
+  // Deployed at: https://supremeai-565236080752.us-central1.run.app/
+  static const String baseUrl = 'https://supremeai-565236080752.us-central1.run.app';
   
   // 🔧 LOCAL DEVELOPMENT: Uncomment to test against local backend
   // Requires: ./gradlew bootRun (running on http://localhost:8080)
