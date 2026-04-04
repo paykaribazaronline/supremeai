@@ -28,8 +28,9 @@ void main() {
       ),
     );
 
-    // Let first frame and async init run without waiting indefinitely.
-    await tester.pump(const Duration(milliseconds: 300));
+    // Advance beyond splash delay so no timer remains pending at test teardown.
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pump();
 
     // Verify that app launches successfully and displays expected UI
     // (Either shows MaterialApp widget or routing based on initial state)
