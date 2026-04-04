@@ -26,7 +26,7 @@ android {
         applicationId = "supremeai.com"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 23  // Minimum API 23 required by androidx.core:core-ktx:1.18.0
+        minSdk = flutter.minSdkVersion  // Minimum API 23 required by androidx.core:core-ktx:1.18.0
         targetSdk = 36  // Updated from flutter.targetSdkVersion to 36 for androidx.core compatibility
         versionCode = flutter.versionCode
         versionName = flutter.versionName

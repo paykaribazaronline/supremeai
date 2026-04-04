@@ -9,7 +9,7 @@ import 'providers/projects_provider.dart';
 import 'providers/metrics_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
-import 'screens/dashboard/home_screen.dart';
+import 'screens/unified_admin/unified_admin_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -108,7 +108,7 @@ class SupremeAIAdminApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
-        '/home': (context) => const HomeScreen(),
+        '/home': (context) => const UnifiedAdminScreen(),
       },
       debugShowCheckedModeBanner: false,
     );
@@ -135,16 +135,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (!mounted) return;
 
-    final authProvider = context.read<AuthProvider>();
-    final isLoggedIn = await authProvider.checkLoginStatus();
-
-    if (!mounted) return;
-
-    if (isLoggedIn) {
-      Navigator.of(context).pushReplacementNamed('/home');
-    } else {
-      Navigator.of(context).pushReplacementNamed('/login');
-    }
+    Navigator.of(context).pushReplacementNamed('/home');
   }
 
   @override
