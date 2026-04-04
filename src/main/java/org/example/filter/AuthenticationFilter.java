@@ -237,8 +237,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             || (path != null && path.endsWith(".html"));
     }
 
-    private void redirectToRelativePath(HttpServletResponse response, String location) {
-        response.setStatus(HttpServletResponse.SC_FOUND);
-        response.setHeader("Location", location);
+    private void redirectToRelativePath(HttpServletResponse response, String location) throws IOException {
+        response.sendRedirect(location);
     }
 }

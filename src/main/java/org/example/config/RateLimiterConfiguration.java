@@ -2,7 +2,6 @@ package org.example.config;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-import io.github.bucket4j.Bucket4j;
 import io.github.bucket4j.Refill;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,7 +34,7 @@ public class RateLimiterConfiguration {
     @Bean
     public Bucket globalRateLimiter() {
         Bandwidth limit = Bandwidth.classic(GLOBAL_REQUESTS_PER_MINUTE, Refill.intervally(GLOBAL_REQUESTS_PER_MINUTE, Duration.ofMinutes(1)));
-        return Bucket4j.builder()
+        return Bucket.builder()
             .addLimit(limit)
             .build();
     }
@@ -105,7 +104,7 @@ public class RateLimiterConfiguration {
             }
             
             Bandwidth limit = Bandwidth.classic(requestsPerMinute, Refill.intervally(requestsPerMinute, Duration.ofMinutes(1)));
-            return Bucket4j.builder()
+            return Bucket.builder()
                 .addLimit(limit)
                 .build();
         }
