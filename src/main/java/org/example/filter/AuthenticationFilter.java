@@ -53,10 +53,20 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         "/admin-control-dashboard.html"
     );
 
+    // Paths under /api/admin/ that require admin role (dashboard/contract is read-only + public)
     private static final Set<String> ADMIN_API_PREFIXES = Set.of(
-        "/api/admin/",
+        "/api/admin/control",
+        "/api/admin/users",
+        "/api/admin/settings",
         "/api/auth/register",
         "/api/auth/users"
+    );
+
+    // Admin-prefixed paths that are openly readable (no auth required)
+    private static final Set<String> PUBLIC_ADMIN_PATHS = Set.of(
+        "/api/admin/dashboard/",
+        "/api/learning/",
+        "/api/providers/"
     );
     
     @Value("${supremeai.api.tokens:}")
@@ -125,8 +135,10 @@ public class AuthenticationFilter extends OncePerRequestFilter {
      * Check if path is public (requires no auth)
      */
     private boolean isPublicPath(String path) {
-        return PUBLIC_PATHS.stream()
-            .anyMatch(p -> p.equals("/") ? path.equals("/") : path.startsWith(p));
+        if (PUBLIC_PATHS.stream().anyMatch(p -> p.equals("/") ? path.equals("/") : path.startsWith(p))) {
+            return true;
+        }
+        return PUBLIC_ADMIN_PATHS.stream().anyMatch(path::startsWith);
     }
 
     private boolean isAdminProtectedPath(String path) {

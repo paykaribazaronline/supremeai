@@ -195,7 +195,14 @@ class ApiService {
     } else if (e.type == DioExceptionType.receiveTimeout) {
       errorMessage = 'Request timeout. Server is not responding.';
     } else if (e.type == DioExceptionType.badResponse) {
-      errorMessage = _extractErrorMessage(e.response?.data) ?? 'Server error occurred.';
+      final statusCode = e.response?.statusCode;
+      final backendMessage = _extractErrorMessage(e.response?.data);
+
+      if (statusCode == 401 || statusCode == 403) {
+        errorMessage = backendMessage ?? 'Session expired or unauthorized. Please log in again.';
+      } else {
+        errorMessage = backendMessage ?? 'Server error occurred.';
+      }
     } else if (e.type == DioExceptionType.unknown) {
       errorMessage = 'Network error. Please check your connection.';
     } else {
@@ -218,7 +225,20 @@ class ApiService {
     
     // If it's a Map, try to extract 'message' field
     if (responseData is Map<String, dynamic>) {
-      return responseData['message'] as String?;
+      final message = responseData['message'] as String?;
+      if (message != null && message.trim().isNotEmpty) {
+        return message;
+      }
+
+      final error = responseData['error'] as String?;
+      if (error != null && error.trim().isNotEmpty) {
+        return error;
+      }
+
+      final detail = responseData['detail'] as String?;
+      if (detail != null && detail.trim().isNotEmpty) {
+        return detail;
+      }
     }
     
     // If it's a String, return it directly
