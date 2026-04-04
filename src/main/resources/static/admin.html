@@ -537,7 +537,7 @@
             <div class="menu-item" onclick="showSection('consensus')">🧠 Multi-AI Consensus</div>
             <div class="menu-item" onclick="showSection('system-learning')">📖 System Learning</div>
             <div class="menu-item" onclick="showSection('notifications')">📬 Notifications</div>
-            <div class="menu-item" onclick="showSection('kimi-k2')">🔮 Kimi K2</div>
+            <div class="menu-item" onclick="showSection('kimi-k2')">🔮 AI Learning Orchestration</div>
             <div class="menu-item" onclick="showSection('chat')">💬 Chat with SupremeAI</div>
             <div class="menu-item" onclick="showSection('settings')">⚙️ Settings</div>
         </div>
@@ -1208,10 +1208,10 @@
                     </table>
                 </div>
 
-                <!-- Kimi K2 Section -->
+                <!-- AI Learning Orchestration Section -->
                 <div id="kimi-k2" class="content-section">
-                    <h1>🔮 Kimi K2 Agent Orchestration</h1>
-                    <p>Submit tasks to the Kimi K2 pipeline with MoE routing. View leaderboard, history and routing table.</p>
+                    <h1>🔮 AI Learning Orchestration</h1>
+                    <p>Submit tasks to the adaptive orchestration pipeline and inspect how SupremeAI learns from Kimi-style MoE routing, leaderboard results, and execution history.</p>
                     <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
                         <button class="btn btn-secondary" onclick="loadKimiStatus()">📊 Status</button>
                         <button class="btn btn-secondary" onclick="loadKimiLeaderboard()">🏆 Leaderboard</button>
@@ -1668,7 +1668,7 @@
                 'consensus': 'Multi-AI Consensus',
                 'system-learning': 'System Learning',
                 'notifications': 'Notifications',
-                'kimi-k2': 'Kimi K2',
+                'kimi-k2': 'AI Learning Orchestration',
                 'chat': 'Chat with SupremeAI',
                 'settings': 'Settings'
             };
@@ -3200,7 +3200,7 @@
         }
 
         // =============================================
-        // KIMI K2
+        // AI LEARNING ORCHESTRATION
         // =============================================
 
         async function loadKimiStatus() {
