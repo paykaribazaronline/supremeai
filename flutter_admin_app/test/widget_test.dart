@@ -7,14 +7,29 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
 import 'package:supremeai_admin/main.dart';
+import 'package:supremeai_admin/providers/auth_provider.dart';
+import 'package:supremeai_admin/providers/projects_provider.dart';
+import 'package:supremeai_admin/providers/metrics_provider.dart';
 
 void main() {
   testWidgets('SupremeAI Admin App smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const SupremeAIAdminApp());
-    await tester.pumpAndSettle();
+    // Build app under the same provider tree used in production.
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AuthProvider()),
+          ChangeNotifierProvider(create: (_) => ProjectsProvider()),
+          ChangeNotifierProvider(create: (_) => MetricsProvider()),
+        ],
+        child: const SupremeAIAdminApp(),
+      ),
+    );
+
+    // Let first frame and async init run without waiting indefinitely.
+    await tester.pump(const Duration(milliseconds: 300));
 
     // Verify that app launches successfully and displays expected UI
     // (Either shows MaterialApp widget or routing based on initial state)

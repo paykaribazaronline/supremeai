@@ -42,18 +42,21 @@ Your Firebase admin dashboard is **now complete** with full control over everyth
 ## 🚀 Quick Start (30 Seconds)
 
 ### **Step 1: Start Your Server**
+
 ```bash
 cd c:\Users\Nazifa\supremeai
 .\gradlew bootRun
 ```
 
 ### **Step 2: Open Dashboard**
+
 ```
 URL: http://localhost:8080/admin-control-dashboard.html
 Login: admin@supremeai.com / (your password)
 ```
 
 ### **Step 3: You're In Control!**
+
 - Click mode buttons to switch (⚡ AUTO / ⏸️ WAIT / 🛑 STOP)
 - Make commits and pushes
 - Approve actions
@@ -64,6 +67,7 @@ Login: admin@supremeai.com / (your password)
 ## 📊 What You Can Do
 
 ### **1. Change Operating Mode Instantly**
+
 ```
 Click button → Mode changes immediately → All operations respect new mode
 ```
@@ -73,12 +77,14 @@ Click button → Mode changes immediately → All operations respect new mode
 **🛑 STOP:** All operations halt (emergency)
 
 ### **2. Control System Operations**
+
 - ✅ **Resume Operations** - Bring system back online
 - 🛑 **Force Stop** - Emergency halt with reason
 - Enter stop reason (logged in audit trail)
 - Set resume mode (AUTO or WAIT)
 
 ### **3. Make Git Commits & Pushes**
+
 ```
 Enter message → Click Commit
      ↓
@@ -87,6 +93,7 @@ In AUTO: Commits immediately
 ```
 
 ### **4. Approve or Reject Actions**
+
 ```
 When in WAIT mode:
 - See all pending actions
@@ -95,6 +102,7 @@ When in WAIT mode:
 ```
 
 ### **5. View Complete Audit Trail**
+
 ```
 Every admin action logged:
 - WHO: admin@supremeai.com
@@ -141,6 +149,7 @@ Every admin action logged:
 ## 🎓 Key Workflow Examples
 
 ### **Example 1: Safe Review (WAIT Mode)**
+
 ```
 1. Click ⏸️ WAIT button
 2. Make code changes
@@ -154,6 +163,7 @@ Every admin action logged:
 ```
 
 ### **Example 2: Fast Deploy (AUTO Mode)**
+
 ```
 1. Click ⚡ AUTO button
 2. Make code changes
@@ -166,6 +176,7 @@ Every admin action logged:
 ```
 
 ### **Example 3: Emergency Stop**
+
 ```
 1. Error detected
 2. Click 🛑 STOP
@@ -290,6 +301,7 @@ The dashboard connects to these existing systems:
 ## 🚀 Next Steps
 
 1. **Test the dashboard**
+
    ```
    http://localhost:8080/admin-control-dashboard.html
    ```
@@ -331,6 +343,7 @@ The dashboard connects to these existing systems:
 ---
 
 For detailed information, see:
+
 - `ADMIN_DASHBOARD_QUICKSTART.md` - Start here
 - `ADMIN_CONTROL_COMPLETE_GUIDE.md` - Full details
 - `ADMIN_DASHBOARD_API_REFERENCE.md` - Technical reference
