@@ -300,7 +300,7 @@ public class AuthenticationFilterTest {
 
     @Test
     void testAdminApiRejectsNonAdminUser() throws ServletException, IOException {
-        when(request.getRequestURI()).thenReturn("/api/admin/dashboard/stats");
+        when(request.getRequestURI()).thenReturn("/api/admin/control/mode");
         when(request.getHeader("Authorization")).thenReturn("Bearer " + USER_TOKEN);
         when(request.getRemoteAddr()).thenReturn("127.0.0.1");
         PrintWriter writer = mock(PrintWriter.class);
