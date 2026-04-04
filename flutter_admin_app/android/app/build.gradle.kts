@@ -10,7 +10,7 @@ plugins {
 android {
     namespace = "com.example.supremeai_admin"
     compileSdk = 36  // Updated from flutter.compileSdkVersion (35) to 36 for androidx.core compatibility
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -26,7 +26,7 @@ android {
         applicationId = "supremeai.com"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion  // Minimum API 23 required by androidx.core:core-ktx:1.18.0
+        minSdk = flutter.minSdkVersion
         targetSdk = 36  // Updated from flutter.targetSdkVersion to 36 for androidx.core compatibility
         versionCode = flutter.versionCode
         versionName = flutter.versionName
