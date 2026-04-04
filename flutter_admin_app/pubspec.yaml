@@ -50,6 +50,9 @@ dependencies:
   # Connectivity
   connectivity_plus: ^5.0.2
   
+  # Unified admin dashboard rendering for mobile builds
+  webview_flutter: ^4.10.0
+
   # Additional useful packages
   cupertino_icons: ^1.0.5
 
