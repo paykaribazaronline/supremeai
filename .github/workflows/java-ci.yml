@@ -68,9 +68,16 @@ jobs:
             find . -name "service-account.json" -not -path "./.git/*"
             exit 1
           fi
-          # Check for hardcoded API key values (not variable names) in config files
-          if grep -r "FIREBASE_API_KEY\|GEMINI_API_KEY" src/ --include="*.properties" --include="*.yml" --include="*.yaml" --include="*.json" --exclude-dir=.git; then
-            echo "❌ ERROR: API keys found in configuration files!"
+          # Check for hardcoded API key values while allowing env placeholders like ${GEMINI_API_KEY:}
+          hardcoded_keys=$( \
+            grep -rEn "^[[:space:]]*(firebase\.api\.key|gemini\.api\.key|FIREBASE_API_KEY|GEMINI_API_KEY)[[:space:]]*[:=][[:space:]]*.+$" \
+              src/ --include="*.properties" --include="*.yml" --include="*.yaml" --include="*.json" --exclude-dir=.git \
+            | grep -Ev "\$\{[A-Z0-9_]+(:[^}]*)?\}[[:space:]]*$" \
+            || true
+          )
+          if [ -n "$hardcoded_keys" ]; then
+            echo "❌ ERROR: Hardcoded API keys found in configuration files!"
+            echo "$hardcoded_keys"
             exit 1
           fi
           echo "✅ No hardcoded credentials detected"
