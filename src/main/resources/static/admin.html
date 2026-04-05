@@ -1047,6 +1047,7 @@
                     <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
                         <button class="btn" onclick="loadMetrics()">↻ Refresh Metrics</button>
                         <button class="btn btn-secondary" onclick="loadAdminDashboardStats()">📊 Dashboard Stats</button>
+                        <button class="btn btn-secondary" onclick="loadAiOps()">🤖 AI Ops</button>
                     </div>
                     <div id="metricsGrid" class="dashboard-grid">
                         <div class="stat-card"><div class="stat-label">CPU Usage</div><div class="stat-value" id="metCpu">--</div></div>
@@ -1057,6 +1058,31 @@
                         <div class="stat-card"><div class="stat-label">Uptime (s)</div><div class="stat-value" id="metUptime">--</div></div>
                     </div>
                     <div id="metricsMsg" style="margin-top:16px;"></div>
+
+                    <!-- AI Ops live panel -->
+                    <h2 style="margin-top:28px;">🤖 AI Ops Summary</h2>
+                    <div id="adminAiOpsGrid" class="dashboard-grid" style="margin-bottom:20px;">
+                        <div class="stat-card"><div class="stat-label">Total Requests</div><div class="stat-value" id="aopTotal">--</div></div>
+                        <div class="stat-card"><div class="stat-label">Cache Hits</div><div class="stat-value" id="aopCache">--</div></div>
+                        <div class="stat-card"><div class="stat-label">Retries</div><div class="stat-value" id="aopRetries">--</div></div>
+                        <div class="stat-card"><div class="stat-label">Rate Limit Errors</div><div class="stat-value" id="aopRateLimit">--</div></div>
+                        <div class="stat-card"><div class="stat-label">Queue Depth</div><div class="stat-value" id="aopQueueDepth">--</div></div>
+                        <div class="stat-card"><div class="stat-label">Circuit Skips</div><div class="stat-value" id="aopCircuit">--</div></div>
+                        <div class="stat-card"><div class="stat-label">Dead-Letter Items</div><div class="stat-value" id="aopDeadLetter">--</div></div>
+                    </div>
+
+                    <h2>⚠️ Recent AI Ops Alerts</h2>
+                    <div id="adminAiOpsAlerts" style="margin-bottom:24px;"></div>
+
+                    <h2>💸 Provider Cost Estimate</h2>
+                    <div style="overflow-x:auto;">
+                        <table id="adminProviderCostTable">
+                            <thead><tr><th>Provider</th><th>Tokens Used</th><th>Requests</th><th>Price/1K</th><th>Est. Cost</th><th>Status</th></tr></thead>
+                            <tbody id="adminProviderCostBody">
+                                <tr><td colspan="6" style="text-align:center;color:#a0aec0;">Click "AI Ops" to load.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- Deployment Section -->
@@ -1687,6 +1713,7 @@
             if (sectionId === 'git-projects') loadGitLogs();
             if (sectionId === 'timeline') loadTimelineStats();
             if (sectionId === 'metrics') loadMetrics();
+                        if (sectionId === 'metrics') loadAiOps();
             if (sectionId === 'self-healing') loadSelfHealingHealth();
             if (sectionId === 'system-learning') loadLearningStats();
             if (sectionId === 'consensus') loadConsensusStats();
@@ -2882,6 +2909,67 @@
                 document.getElementById('metricsMsg').innerHTML = `<pre style="background:#171923;padding:12px;border-radius:6px;font-size:12px;color:#a0aec0;overflow:auto;">${JSON.stringify(d, null, 2)}</pre>`;
             } catch(e) {
                 document.getElementById('metricsMsg').innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        async function loadAiOps() {
+            try {
+                const [sumRes, costRes, alertRes] = await Promise.all([
+                    fetch('/api/ai/ops/summary', { headers: getAuthHeaders() }),
+                    fetch('/api/ai/ops/cost-estimate', { headers: getAuthHeaders() }),
+                    fetch('/api/alerts/history/recent?limit=8', { headers: getAuthHeaders() })
+                ]);
+
+                if (sumRes.ok) {
+                    const s = await sumRes.json();
+                    const m = s.aiOpsMetrics || s;
+                    document.getElementById('aopTotal').textContent       = m.totalRequests       ?? '--';
+                    document.getElementById('aopCache').textContent        = m.cacheHits            ?? '--';
+                    document.getElementById('aopRetries').textContent      = m.retryAttempts        ?? '--';
+                    document.getElementById('aopRateLimit').textContent    = m.rateLimitErrors      ?? '--';
+                    document.getElementById('aopQueueDepth').textContent   = m.queueDepth           ?? '--';
+                    document.getElementById('aopCircuit').textContent      = m.circuitOpenSkips     ?? '--';
+                    document.getElementById('aopDeadLetter').textContent   = m.deadLetterCount      ?? '--';
+                }
+
+                if (costRes.ok) {
+                    const rows = await costRes.json();
+                    const list = Array.isArray(rows) ? rows : (rows.providers || []);
+                    const tbody = document.getElementById('adminProviderCostBody');
+                    if (!list.length) {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#a0aec0;">No cost data yet.</td></tr>';
+                    } else {
+                        tbody.innerHTML = list.map(p => `<tr>
+                            <td>${p.provider || p.providerId || '--'}</td>
+                            <td>${(p.totalTokensUsed ?? p.tokensUsed ?? 0).toLocaleString()}</td>
+                            <td>${(p.requestCount ?? p.requests ?? 0).toLocaleString()}</td>
+                            <td>$${(p.pricePer1kTokens ?? p.price ?? 0).toFixed(3)}</td>
+                            <td style="color:#68d391;font-weight:600;">$${(p.estimatedCostUsd ?? p.cost ?? 0).toFixed(4)}</td>
+                            <td>${p.quotaStatus ?? p.status ?? '--'}</td>
+                        </tr>`).join('');
+                    }
+                }
+
+                if (alertRes.ok) {
+                    const alerts = await alertRes.json();
+                    const el = document.getElementById('adminAiOpsAlerts');
+                    const list = Array.isArray(alerts) ? alerts : (alerts.alerts || []);
+                    if (!list.length) {
+                        el.innerHTML = '<p style="color:#a0aec0;">No recent alerts.</p>';
+                    } else {
+                        const colors = { WARNING: '#ed8936', ERROR: '#f56565', CRITICAL: '#9b2c2c', INFO: '#63b3ed' };
+                        el.innerHTML = list.map(a => {
+                            const c = colors[a.severity] || '#a0aec0';
+                            return `<div style="border-left:3px solid ${c};padding:8px 12px;margin-bottom:8px;background:#1a202c;border-radius:4px;">
+                                <span style="color:${c};font-weight:600;">[${a.severity}]</span>
+                                <strong style="color:#e2e8f0;margin-left:6px;">${a.title}</strong>
+                                <p style="color:#a0aec0;margin:4px 0 0;">${a.message}</p>
+                            </div>`;
+                        }).join('');
+                    }
+                }
+            } catch(e) {
+                document.getElementById('metricsMsg').innerHTML = `<span style="color:#f56565;">❌ AI Ops load failed: ${e.message}</span>`;
             }
         }
 

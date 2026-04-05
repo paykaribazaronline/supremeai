@@ -383,4 +383,14 @@ public class FirebaseService {
         db.getReference("config").child("main_config").updateChildrenAsync(newConfig);
         db.getReference("evolution").child("logs").push().setValueAsync(Collections.singletonMap("event", "SYSTEM_CONFIG_UPDATED_BY_CONSENSUS"));
     }
+
+    /**
+     * Persist a dead-letter queue entry (AI slow-queue request that failed after all retries).
+     */
+    public void saveDeadLetterItem(Map<String, Object> item) {
+        if (!isInitialized) {
+            return;
+        }
+        db.getReference("ai_dead_letter_queue").push().setValueAsync(item);
+    }
 }

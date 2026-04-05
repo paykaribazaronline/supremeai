@@ -1,0 +1,266 @@
+﻿apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: supremeai-http
+    folder: SupremeAI Alerts
+    interval: 1m
+    rules:
+
+      - uid: alert-high-error-rate
+        title: High 5xx Error Rate
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: { from: 300, to: 0 }
+            datasourceUid: prometheus-supremeai
+            model:
+              expr: >
+                sum(rate(http_server_requests_seconds_count{application="supremeai",status=~"5.."}[5m]))
+                /
+                sum(rate(http_server_requests_seconds_count{application="supremeai"}[5m]))
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: C
+            datasourceUid: prometheus-supremeai
+            model:
+              conditions:
+                - evaluator: { params: [0.05], type: gt }
+                  operator: { type: and }
+                  query: { params: [A] }
+                  reducer: { params: [], type: last }
+                  type: query
+              datasource: { type: "__expr__", uid: "__expr__" }
+              expression: A
+              refId: C
+              type: threshold
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "5xx error rate exceeds 5%"
+          description: "Error rate: {{ $values.A.Value | printf \"%.2f%%\" }}"
+        noDataState: NoData
+        execErrState: Error
+        isPaused: false
+
+      - uid: alert-high-latency
+        title: High Response Latency (p99 > 3s)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: prometheus-supremeai
+            model:
+              expr: >
+                histogram_quantile(0.99,
+                  sum(rate(http_server_requests_seconds_bucket{application="supremeai"}[5m])) by (le))
+              refId: A
+          - refId: C
+            datasourceUid: prometheus-supremeai
+            model:
+              conditions:
+                - evaluator: { params: [3], type: gt }
+                  operator: { type: and }
+                  query: { params: [A] }
+                  reducer: { params: [], type: last }
+                  type: query
+              datasource: { type: "__expr__", uid: "__expr__" }
+              expression: A
+              refId: C
+              type: threshold
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "p99 latency exceeded 3 seconds"
+          description: "Current p99: {{ $values.A.Value | printf \"%.2fs\" }}"
+        noDataState: NoData
+        execErrState: Error
+        isPaused: false
+
+  - orgId: 1
+    name: supremeai-jvm
+    folder: SupremeAI Alerts
+    interval: 1m
+    rules:
+
+      - uid: alert-heap-critical
+        title: JVM Heap Usage Critical (>90%)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: { from: 300, to: 0 }
+            datasourceUid: prometheus-supremeai
+            model:
+              expr: >
+                sum(jvm_memory_used_bytes{application="supremeai",area="heap"})
+                /
+                sum(jvm_memory_max_bytes{application="supremeai",area="heap"})
+              refId: A
+          - refId: C
+            datasourceUid: prometheus-supremeai
+            model:
+              conditions:
+                - evaluator: { params: [0.9], type: gt }
+                  operator: { type: and }
+                  query: { params: [A] }
+                  reducer: { params: [], type: last }
+                  type: query
+              datasource: { type: "__expr__", uid: "__expr__" }
+              expression: A
+              refId: C
+              type: threshold
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "JVM heap usage above 90%"
+          description: "Heap: {{ $values.A.Value | printf \"%.1f%%\" }} â€” risk of OOM"
+        noDataState: NoData
+        execErrState: Error
+        isPaused: false
+
+      - uid: alert-heap-warning
+        title: JVM Heap Usage Warning (>75%)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: { from: 300, to: 0 }
+            datasourceUid: prometheus-supremeai
+            model:
+              expr: >
+                sum(jvm_memory_used_bytes{application="supremeai",area="heap"})
+                /
+                sum(jvm_memory_max_bytes{application="supremeai",area="heap"})
+              refId: A
+          - refId: C
+            datasourceUid: prometheus-supremeai
+            model:
+              conditions:
+                - evaluator: { params: [0.75], type: gt }
+                  operator: { type: and }
+                  query: { params: [A] }
+                  reducer: { params: [], type: last }
+                  type: query
+              datasource: { type: "__expr__", uid: "__expr__" }
+              expression: A
+              refId: C
+              type: threshold
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "JVM heap usage above 75%"
+          description: "Heap usage: {{ $values.A.Value | printf \"%.1f%%\" }}"
+        noDataState: NoData
+        execErrState: Error
+        isPaused: false
+
+  - orgId: 1
+    name: supremeai-app
+    folder: SupremeAI Alerts
+    interval: 1m
+    rules:
+
+      - uid: alert-app-down
+        title: SupremeAI Application Down
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: { from: 120, to: 0 }
+            datasourceUid: prometheus-supremeai
+            model:
+              expr: up{job="supremeai-app"}
+              refId: A
+          - refId: C
+            datasourceUid: prometheus-supremeai
+            model:
+              conditions:
+                - evaluator: { params: [1], type: lt }
+                  operator: { type: and }
+                  query: { params: [A] }
+                  reducer: { params: [], type: last }
+                  type: query
+              datasource: { type: "__expr__", uid: "__expr__" }
+              expression: A
+              refId: C
+              type: threshold
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "SupremeAI application is unreachable"
+          description: "Prometheus cannot scrape /actuator/prometheus â€” app may be down"
+        noDataState: Alerting
+        execErrState: Alerting
+        isPaused: false
+
+      - uid: alert-quota-low
+        title: AI Provider Quota Critical (<10%)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: { from: 300, to: 0 }
+            datasourceUid: prometheus-supremeai
+            model:
+              expr: >
+                supremeai_quota_remaining{} / supremeai_quota_total{} < 0.1
+              refId: A
+          - refId: C
+            datasourceUid: prometheus-supremeai
+            model:
+              conditions:
+                - evaluator: { params: [0], type: gt }
+                  operator: { type: and }
+                  query: { params: [A] }
+                  reducer: { params: [], type: last }
+                  type: query
+              datasource: { type: "__expr__", uid: "__expr__" }
+              expression: A
+              refId: C
+              type: threshold
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "AI provider {{ $labels.provider }} quota below 10%"
+          description: "Quota remaining: {{ $values.A.Value }}"
+        noDataState: NoData
+        execErrState: Error
+        isPaused: false
+
+      - uid: alert-circuit-breaker-open
+        title: Circuit Breaker Open
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: { from: 60, to: 0 }
+            datasourceUid: prometheus-supremeai
+            model:
+              expr: supremeai_circuit_breaker_state{state="open"} == 1
+              refId: A
+          - refId: C
+            datasourceUid: prometheus-supremeai
+            model:
+              conditions:
+                - evaluator: { params: [0], type: gt }
+                  operator: { type: and }
+                  query: { params: [A] }
+                  reducer: { params: [], type: last }
+                  type: query
+              datasource: { type: "__expr__", uid: "__expr__" }
+              expression: A
+              refId: C
+              type: threshold
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Circuit breaker {{ $labels.name }} is OPEN"
+          description: "Service {{ $labels.name }} is failing â€” fallback active"
+        noDataState: NoData
+        execErrState: Error
+        isPaused: false
+
