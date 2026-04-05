@@ -401,4 +401,4 @@ All 5 todo items have been successfully completed:
 
 **Maintained by:** GitHub Copilot  
 **Last Commit:** 5ecea44  
-**Repository:** paykaribazaronline/supremeai
+**Repository:** supremeai/supremeai

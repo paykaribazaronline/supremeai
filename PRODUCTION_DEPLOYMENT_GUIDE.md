@@ -59,7 +59,7 @@ docker run -p 8080:8080 \
 **Option A: Using GitHub Integration (Auto-deploy on push)**
 
 1. Go to Google Cloud Console → Cloud Build → Connected repositories
-2. Connect your GitHub repo: `paykaribazaronline/supremeai`
+2. Connect your GitHub repo: `supremeai/supremeai`
 3. Create build trigger:
    - Name: `supremeai-main-build`
    - Branch: `main`

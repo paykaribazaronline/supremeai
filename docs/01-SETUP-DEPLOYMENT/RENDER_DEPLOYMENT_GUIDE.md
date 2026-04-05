@@ -9,7 +9,7 @@
 
 ## ✅ Prerequisites (Already Done)
 
-- ✅ GitHub repository: https://github.com/paykaribazaronline/supremeai
+- ✅ GitHub repository: https://github.com/supremeai/supremeai
 - ✅ Code pushed to `main` branch (commit: bdd176d)
 - ✅ Dockerfile configured (multi-stage build)
 - ✅ Docker image tested: `gcr.io/supremeai-a/supremeai:v3.1.0`
@@ -89,6 +89,7 @@ SERVER_PORT                  8080
 2. Click **"Create Web Service"**
 3. **Wait** 5-10 minutes for build to complete
 4. You'll see:
+
    ```
    ✓ Deployment live!
    Your service is live at: https://supremeai.onrender.com

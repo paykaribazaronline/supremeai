@@ -413,7 +413,7 @@ Return error
 - b4745d8 - Day 33: Generation
 - 436eb6b - Days 34-36: Integration & logging
 
-**Repository**: https://github.com/paykaribazaronline/supremeai
+**Repository**: https://github.com/supremeai/supremeai
 
 ---
 

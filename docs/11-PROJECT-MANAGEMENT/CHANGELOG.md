@@ -323,4 +323,4 @@ Example:
 
 **Last Updated:** March 29, 2026  
 **Maintainers:** SupremeAI Contributors  
-**Repository:** https://github.com/paykaribazaronline/supremeai
+**Repository:** https://github.com/supremeai/supremeai

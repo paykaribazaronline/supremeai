@@ -21,7 +21,7 @@ public class GitHubAPIService {
     private static final String GITHUB_TOKEN = System.getenv("GITHUB_TOKEN");
     private static final String GITHUB_REPO = System.getenv("GITHUB_REPO") != null 
         ? System.getenv("GITHUB_REPO")
-        : "paykaribazaronline/supremeai";
+        : "supremeai/supremeai";
     
     /**
      * Get latest workflow run status

@@ -424,13 +424,13 @@ images:
 ```powershell
 # Connect GitHub repository
 gcloud builds connect --repository-name=supremeai \
-  --repository-owner=paykaribazaronline \
+  --repository-owner=supremeai \
   --region=us-central1
 
 # Create trigger
 gcloud builds triggers create github \
   --repo-name=supremeai \
-  --repo-owner=paykaribazaronline \
+  --repo-owner=supremeai \
   --name=supremeai-build \
   --branch-pattern=^main$ \
   --build-config=cloudbuild.yaml

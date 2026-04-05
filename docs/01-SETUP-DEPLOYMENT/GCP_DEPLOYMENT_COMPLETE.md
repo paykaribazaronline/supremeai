@@ -516,12 +516,12 @@ Once deployed, you can setup automatic redeployment:
 ```powershell
 # Connect GitHub repository
 gcloud builds connect --repository-name=supremeai \
-  --repository-owner=paykaribazaronline
+  --repository-owner=supremeai
 
 # Create trigger for main branch
 gcloud builds triggers create github \
   --repo-name=supremeai \
-  --repo-owner=paykaribazaronline \
+  --repo-owner=supremeai \
   --branch-pattern=^main$ \
   --build-config=cloudbuild.yaml
 ```
