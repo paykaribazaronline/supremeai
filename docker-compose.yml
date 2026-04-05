@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  supremeai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: supremeai
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - PORT=8080
+      - FIREBASE_SERVICE_ACCOUNT=${FIREBASE_SERVICE_ACCOUNT}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - SECRET_MANAGER_BACKEND=${SECRET_MANAGER_BACKEND:-env}
+      - KEY_ROTATION_ENABLED=${KEY_ROTATION_ENABLED:-true}
+      - KING_MODE_ENABLED=${KING_MODE_ENABLED:-true}
+    volumes:
+      - ./service-account.json:/app/service-account.json:ro
+    restart: unless-stopped

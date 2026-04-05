@@ -95,8 +95,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: 📊 Generate coverage report
-        run: ./gradlew jacocoTestReport --no-daemon
-        continue-on-error: true
+        run: ./gradlew jacocoTestReport jacocoTestCoverageVerification --no-daemon
 
       - name: 📤 Upload coverage to Codecov
         uses: codecov/codecov-action@v5

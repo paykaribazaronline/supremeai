@@ -6,9 +6,10 @@ Complete documentation for the SupremeAI multi-agent system organized by categor
 
 ## 🎯 **START HERE: Master Architecture Document**
 
-👉 **[ARCHITECTURE_AND_IMPLEMENTATION.md](../ARCHITECTURE_AND_IMPLEMENTATION.md)** ← Read this first!
+👉 **[ARCHITECTURE_AND_IMPLEMENTATION.md](./02-ARCHITECTURE/ARCHITECTURE_AND_IMPLEMENTATION.md)** ← Read this first!
 
 This is the **single source of truth** covering:
+
 - System overview and components
 - Enterprise resilience layer (tracing, failover, circuit breaker)
 - Limitations and resolutions
@@ -17,8 +18,16 @@ This is the **single source of truth** covering:
 - Complete roadmap
 
 **Also see:**
+
 - 📋 [Documentation Standards](./DOCUMENTATION_STANDARDS.md) - Rules for new docs
 - ⚙️ [Configuration Quick Reference](./01-SETUP-DEPLOYMENT/CONFIG_QUICK_REFERENCE.md)
+
+## 🧭 Canonical Doc Policy
+
+- `docs/` is the canonical location for all project documentation.
+- Root-level docs with the same topic should be redirect stubs only.
+- New docs must be added under the best matching `docs/<category>/` folder.
+- If a topic already exists, update the canonical file instead of creating a parallel file.
 
 ## 🚀 Quick Start
 
@@ -31,6 +40,7 @@ This is the **single source of truth** covering:
 ### 🎯 [00-START-HERE](./00-START-HERE/)
 
 Quick-start guides and troubleshooting for new users.
+
 - Fast-track setup (5 minutes)
 - Flutter app quick start
 - Common issues and solutions
@@ -38,11 +48,15 @@ Quick-start guides and troubleshooting for new users.
 ### 🏗️ [01-SETUP-DEPLOYMENT](./01-SETUP-DEPLOYMENT/)
 
 Installation, deployment, and infrastructure setup guides.
+
 - GCP, Firebase, Render, Oracle Cloud deployment
 - Docker and cloud CLI installation
 - Deployment checklists and error resolution
 
-### 🏛️ [02-ARCHITECTURE](./02-ARCHITECTURE/)System architecture, design decisions, and project structure.
+### 🏛️ [02-ARCHITECTURE](./02-ARCHITECTURE/)
+
+System architecture, design decisions, and project structure.
+
 - Project structure overview
 - Architecture planning and roadmaps
 - Provider system documentation
@@ -51,6 +65,7 @@ Installation, deployment, and infrastructure setup guides.
 ### 📅 [03-PHASES](./03-PHASES/)
 
 Phase-by-phase implementation documentation (Phases 1-10+).
+
 - Phase 1: Foundation setup
 - Phase 2-7: Progressive feature implementation
 - Phases 8-10: Advanced agent system features
@@ -59,6 +74,7 @@ Phase-by-phase implementation documentation (Phases 1-10+).
 ### 👨‍💼 [04-ADMIN](./04-ADMIN/)
 
 Admin dashboard, user management, and operational guides.
+
 - Admin complete guide and controls
 - Dashboard quick start
 - Alert configuration
@@ -67,12 +83,16 @@ Admin dashboard, user management, and operational guides.
 ### 🔐 [05-AUTHENTICATION-SECURITY](./05-AUTHENTICATION-SECURITY/)
 
 Authentication, security protocols, and compliance documentation.
+
 - Authentication setup and quick start
 - Security guides and audit reports
 - IAM permissions and security setup
 - GCP permission fixes
 
-### 🎨 [06-FEATURES](./06-FEATURES/)Feature-specific documentation and implementation guides.
+### 🎨 [06-FEATURES](./06-FEATURES/)
+
+Feature-specific documentation and implementation guides.
+
 - Feature documentation
 - Integration guides
 - User guides
@@ -80,6 +100,7 @@ Authentication, security protocols, and compliance documentation.
 ### 📱 [07-FLUTTER](./07-FLUTTER/)
 
 Flutter mobile application documentation.
+
 - Flutter quick start guide
 - CI/CD pipeline setup
 - Mobile deployment procedures
@@ -88,12 +109,16 @@ Flutter mobile application documentation.
 ### 🔄 [08-CI-CD](./08-CI-CD/)
 
 Continuous Integration and Continuous Deployment documentation.
+
 - CI/CD pipeline setup
 - GitHub Actions configuration
 - Secrets and credentials management
 - Git project integration
 
-### 🛠️ [09-TROUBLESHOOTING](./09-TROUBLESHOOTING/)Troubleshooting guides, error resolution, and debugging.
+### 🛠️ [09-TROUBLESHOOTING](./09-TROUBLESHOOTING/)
+
+Troubleshooting guides, error resolution, and debugging.
+
 - Common issues and solutions  
 - Test failure analysis
 - GCP permission troubleshooting
@@ -103,14 +128,17 @@ Continuous Integration and Continuous Deployment documentation.
 ### ⚙️ [10-IMPLEMENTATION](./10-IMPLEMENTATION/)
 
 Implementation planning, status reports, and progress tracking.
+
 - Implementation status and summaries
 - Complete execution plans
 - Automation roadmaps
 - Production readiness checklists
+- [Service Consolidation And Validation Plan](./10-IMPLEMENTATION/SERVICE_CONSOLIDATION_AND_VALIDATION_PLAN.md)
 
 ### 📊 [11-PROJECT-MANAGEMENT](./11-PROJECT-MANAGEMENT/)
 
 Project planning, progress tracking, and milestones.
+
 - Quick wins checklist
 - Week-by-week progress
 - Monitoring dashboard
@@ -119,6 +147,7 @@ Project planning, progress tracking, and milestones.
 ### 📘 [12-GUIDES](./12-GUIDES/)
 
 General guides, how-tos, and procedural documentation.
+
 - Git and project integration
 - Self-healing system guides
 - Feature flag implementation
@@ -127,6 +156,7 @@ General guides, how-tos, and procedural documentation.
 ### 📋 [13-REPORTS](./13-REPORTS/)
 
 Reports, analysis, and detailed technical documentation.
+
 - Deployment summaries
 - Implementation reports
 - Analysis and research
@@ -150,16 +180,19 @@ Reports, analysis, and detailed technical documentation.
 ### By Skill Level
 
 **Beginner**
+
 - Start with [Quick Start Guide](./00-START-HERE/)
 - Then explore [Architecture](./02-ARCHITECTURE/)
 - Reference [Troubleshooting](./09-TROUBLESHOOTING/) as needed
 
 **Intermediate**  
+
 - Follow [Deployment Guide](./01-SETUP-DEPLOYMENT/)
 - Configure [CI/CD](./08-CI-CD/)
 - Study [Phase Implementation](./03-PHASES/)
 
 **Advanced**
+
 - Review [Complete Architecture](./02-ARCHITECTURE/)
 - Implement [Phases 8-10](./03-PHASES/)
 - Study [Advanced Guides](./12-GUIDES/)
