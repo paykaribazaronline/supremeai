@@ -52,8 +52,8 @@ public class KingModeAuditAspect {
     /**
      * Intercept all @KingMode annotated methods
      */
-    @Around("@annotation(KingMode)")
-    public Object auditKingMode(ProceedingJoinPoint joinPoint) throws Throwable {
+    @Around("@annotation(kingMode)")
+    public Object auditKingMode(ProceedingJoinPoint joinPoint, KingMode kingMode) throws Throwable {
         String adminId = getCurrentUser();
         String action = joinPoint.getSignature().getName();
         String className = joinPoint.getTarget().getClass().getSimpleName();
@@ -63,7 +63,7 @@ public class KingModeAuditAspect {
         String actionId = UUID.randomUUID().toString();
         
         // Check if this is a critical action requiring secondary approval
-        if (isCriticalAction(action, args)) {
+        if (isCriticalAction(action, args, kingMode)) {
             return handleCriticalAction(actionId, joinPoint, adminId, action, args);
         }
         
@@ -122,6 +122,13 @@ public class KingModeAuditAspect {
             
             throw e;
         }
+    }
+
+    /**
+     * Convenience overload for direct unit testing and manual invocation.
+     */
+    public Object auditKingMode(ProceedingJoinPoint joinPoint) throws Throwable {
+        return auditKingMode(joinPoint, null);
     }
     
     /**
@@ -227,7 +234,12 @@ public class KingModeAuditAspect {
     /**
      * Check if action is critical (requires 4-eyes)
      */
-    private boolean isCriticalAction(String action, Object[] args) {
+    private boolean isCriticalAction(String action, Object[] args, KingMode kingMode) {
+        if (kingMode != null &&
+            (kingMode.requireSecondaryApproval() || kingMode.severity() == KingMode.Severity.CRITICAL)) {
+            return true;
+        }
+
         // Critical actions that require secondary approval
         Set<String> criticalActions = Set.of(
             "deleteAllData",
