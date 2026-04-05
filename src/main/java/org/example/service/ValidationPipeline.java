@@ -50,10 +50,10 @@ public class ValidationPipeline {
     // Security patterns to check
     private final List<SecurityPattern> securityPatterns = Arrays.asList(
         new SecurityPattern("SQL_INJECTION", 
-            Pattern.compile("(SELECT|INSERT|UPDATE|DELETE).*\\+.*\\"),
+            Pattern.compile("(SELECT|INSERT|UPDATE|DELETE).*\\+.*"),
             "CRITICAL", "Potential SQL injection"),
         new SecurityPattern("HARDCODED_SECRET",
-            Pattern.compile("(password|secret|key|token)\\s*=\\s*["'][^"']+["']"),
+            Pattern.compile("(password|secret|key|token)\\s*=\\s*[\"'][^\"']+[\"']"),
             "HIGH", "Hardcoded credential detected"),
         new SecurityPattern("INSECURE_HTTP",
             Pattern.compile("http://(?!localhost|127\\.0\\.0\\.1)"),
@@ -286,8 +286,8 @@ public class ValidationPipeline {
         }
         
         // Check for basic syntax errors
-        int openBraces = countOccurrences(code, '{');
-        int closeBraces = countOccurrences(code, '}');
+        int openBraces = countOccurrences(code, "{");
+        int closeBraces = countOccurrences(code, "}");
         if (openBraces != closeBraces) {
             return new SyntaxCheck(false, 
                 "Mismatched braces: " + openBraces + " open, " + closeBraces + " close",

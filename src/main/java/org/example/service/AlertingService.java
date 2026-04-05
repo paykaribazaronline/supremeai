@@ -56,6 +56,16 @@ public class AlertingService {
         return alert;
     }
 
+    /** Convenience: send a WARNING-level alert */
+    public void sendAlert(String title, String message) {
+        createAlert(AlertSeverity.WARNING, title, message);
+    }
+
+    /** Convenience: send a CRITICAL-level alert */
+    public void sendCriticalAlert(String title, String message) {
+        createAlert(AlertSeverity.CRITICAL, title, message);
+    }
+
     /**
      * Resolve an alert
      */

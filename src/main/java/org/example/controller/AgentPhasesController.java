@@ -10,10 +10,12 @@ import java.util.*;
 /**
  * Phase 7-10: Multi-Agent REST API Controller
  * Exposes all new agents (7 generators, 3 security, 3 cost, 4 evolution)
+ * Renamed from AgentOrchestrationController to avoid class name conflict
+ * with org.example.agentorchestration.AgentOrchestrationController
  */
-@RestController
+@RestController("agentPhasesController")
 @RequestMapping("/api/v1/agents")
-public class AgentOrchestrationController {
+public class AgentPhasesController {
 
     @Autowired
     private iOSGeneratorAgent iosAgent;

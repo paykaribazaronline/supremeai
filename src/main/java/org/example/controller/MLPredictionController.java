@@ -4,8 +4,14 @@ import org.example.model.FixPredictionModel;
 import org.example.model.FixVariant;
 import org.example.service.ConfidenceScorer;
 import org.example.service.DecisionPatternAnalyzer;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -15,6 +21,7 @@ import java.util.*;
  * Provides 5 endpoints for ML model inference and decision analysis
  */
 @RestController
+@Validated
 @RequestMapping("/api/v1/ml")
 public class MLPredictionController {
     
@@ -30,7 +37,7 @@ public class MLPredictionController {
      */
     @PostMapping("/predict")
     public ResponseEntity<Map<String, Object>> predictFixSuccess(
-            @RequestBody PredictionRequest request) {
+            @Valid @RequestBody PredictionRequest request) {
         
         FixVariant variant = parseVariant(request.variant);
         ConfidenceScorer.FixConfidenceScore score = 
@@ -55,7 +62,7 @@ public class MLPredictionController {
      */
     @PostMapping("/rank-variants")
     public ResponseEntity<Map<String, Object>> rankVariants(
-            @RequestBody RankVariantsRequest request) {
+            @Valid @RequestBody RankVariantsRequest request) {
         
         List<FixVariant> variants = request.variants.stream()
             .map(this::parseVariant)
@@ -81,7 +88,7 @@ public class MLPredictionController {
      */
     @GetMapping("/patterns/error-type/{errorType}")
     public ResponseEntity<Map<String, Object>> analyzeErrorTypePattern(
-            @PathVariable String errorType) {
+            @PathVariable @NotBlank String errorType) {
         
         DecisionPatternAnalyzer.ErrorPatternAnalysis analysis = 
             patternAnalyzer.analyzeErrorTypePattern(errorType);
@@ -99,7 +106,7 @@ public class MLPredictionController {
      */
     @GetMapping("/patterns/strategy/{strategy}")
     public ResponseEntity<Map<String, Object>> analyzeStrategyPattern(
-            @PathVariable String strategy) {
+            @PathVariable @NotBlank String strategy) {
         
         DecisionPatternAnalyzer.StrategyPatternAnalysis analysis = 
             patternAnalyzer.analyzeStrategyPattern(strategy);
@@ -168,7 +175,7 @@ public class MLPredictionController {
      */
     @GetMapping("/recommendation/{errorType}")
     public ResponseEntity<Map<String, Object>> getRecommendation(
-            @PathVariable String errorType) {
+            @PathVariable @NotBlank String errorType) {
         
         DecisionPatternAnalyzer.RecommendationSuggestion suggestion = 
             patternAnalyzer.getRecommendationForError(errorType);
@@ -190,7 +197,7 @@ public class MLPredictionController {
      */
     @PostMapping("/train")
     public ResponseEntity<Map<String, Object>> trainModel(
-            @RequestBody TrainingRequest request) {
+            @Valid @RequestBody TrainingRequest request) {
         
         confidenceScorer.trainModelWithOutcome(
             request.strategyType,
@@ -243,20 +250,34 @@ public class MLPredictionController {
     // Request/Response DTOs
     
     public static class PredictionRequest {
+        @NotNull
         public Map<String, Object> variant;
+
+        @NotBlank
         public String errorType;
     }
     
     public static class RankVariantsRequest {
+        @NotEmpty
         public List<Map<String, Object>> variants;
+
+        @NotBlank
         public String errorType;
     }
     
     public static class TrainingRequest {
+        @NotBlank
         public String strategyType;
+
+        @NotBlank
         public String errorType;
+
         public boolean wasSuccessful;
+
+        @PositiveOrZero
         public float confidence;
+
+        @PositiveOrZero
         public long executionTimeMs;
     }
 }

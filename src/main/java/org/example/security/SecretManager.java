@@ -1,132 +1,275 @@
 package org.example.security;
 
-import com.google.cloud.secretmanager.v1.*;
+import com.azure.identity.DefaultAzureCredentialBuilder;
+import com.azure.security.keyvault.secrets.SecretClient;
+import com.azure.security.keyvault.secrets.SecretClientBuilder;
+import com.google.cloud.secretmanager.v1.AccessSecretVersionRequest;
+import com.google.cloud.secretmanager.v1.AddSecretVersionRequest;
+import com.google.cloud.secretmanager.v1.ProjectName;
+import com.google.cloud.secretmanager.v1.SecretName;
+import com.google.cloud.secretmanager.v1.SecretPayload;
+import com.google.cloud.secretmanager.v1.SecretVersionName;
+import com.google.cloud.secretmanager.v1.SecretManagerServiceClient;
+import com.google.protobuf.ByteString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
+import software.amazon.awssdk.services.secretsmanager.model.PutSecretValueRequest;
+
+import javax.annotation.PostConstruct;
+import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Secure API key management using Google Cloud Secret Manager
- * Never store secrets in code or environment variables directly
+ * Secret Manager Service
+ * 
+ * Manages sensitive configuration like API keys, passwords, and tokens.
+ * In production, this integrates with cloud Secret Manager (AWS Secrets Manager,
+ * Google Cloud Secret Manager, Azure Key Vault, HashiCorp Vault).
+ * 
+ * For development, falls back to environment variables.
  */
+@Service
 public class SecretManager {
-    private static final Logger logger = LoggerFactory.getLogger(SecretManager.class);
-    private final String projectId;
-    private final Map<String, String> secretCache = new ConcurrentHashMap<>();
-    private static final long CACHE_TTL_MS = 3600000; // 1 hour
-    private final Map<String, Long> cacheTimes = new ConcurrentHashMap<>();
     
-    public SecretManager(String projectId) {
-        this.projectId = projectId;
-        logger.info("Initializing SecretManager for project: {}", projectId);
+    private static final Logger logger = LoggerFactory.getLogger(SecretManager.class);
+    
+    @Value("${secret.manager.backend:env}")
+    private String backend;
+
+    @Value("${secret.manager.gcp.project-id:}")
+    private String gcpProjectId;
+
+    @Value("${secret.manager.aws.region:us-east-1}")
+    private String awsRegion;
+
+    @Value("${secret.manager.azure.vault-url:}")
+    private String azureVaultUrl;
+    
+    // In-memory cache for secrets
+    private final Map<String, String> secretCache = new ConcurrentHashMap<>();
+    
+    @PostConstruct
+    public void initialize() {
+        logger.info("🔐 Secret Manager initialized with backend: {}", backend);
     }
     
     /**
-     * Retrieve secret from Cloud Secret Manager with caching
-     * @param secretId Secret name (e.g., "deepseek-api-key")
-     * @return Secret value
-     * @throws SecretNotFoundException if secret doesn't exist
+     * Get a secret by name
      */
-    public String getSecret(String secretId) throws SecretNotFoundException {
+    public String getSecret(String name) {
         // Check cache first
-        if (isCacheValid(secretId)) {
-            logger.debug("Returning cached secret: {}", secretId);
-            return secretCache.get(secretId);
+        if (secretCache.containsKey(name)) {
+            return secretCache.get(name);
         }
         
+        // Fetch from backend
+        String value = fetchSecret(name);
+        
+        if (value != null) {
+            // Cache for future use
+            secretCache.put(name, value);
+        }
+        
+        return value;
+    }
+    
+    /**
+     * Update a secret
+     */
+    public void updateSecret(String name, String value) {
+        logger.info("🔐 Updating secret: {}", name);
+        
+        // Update backend
+        updateBackendSecret(name, value);
+        
+        // Update cache
+        secretCache.put(name, value);
+    }
+    
+    /**
+     * Remove a secret from cache (force refresh)
+     */
+    public void invalidateCache(String name) {
+        secretCache.remove(name);
+    }
+    
+    /**
+     * Fetch secret from configured backend
+     */
+    private String fetchSecret(String name) {
+        String selectedBackend = backend == null ? "env" : backend.toLowerCase(Locale.ROOT);
+        switch (selectedBackend) {
+            case "gcp":
+                return fetchFromGCPSecretManager(name);
+            case "aws":
+                return fetchFromAWSSecretsManager(name);
+            case "azure":
+                return fetchFromAzureKeyVault(name);
+            case "vault":
+                return fetchFromHashiCorpVault(name);
+            case "env":
+            default:
+                return fetchFromEnvironment(name);
+        }
+    }
+    
+    /**
+     * Update secret in configured backend
+     */
+    private void updateBackendSecret(String name, String value) {
+        String selectedBackend = backend == null ? "env" : backend.toLowerCase(Locale.ROOT);
+        switch (selectedBackend) {
+            case "gcp":
+                updateGCPSecret(name, value);
+                break;
+            case "aws":
+                updateAWSSecret(name, value);
+                break;
+            case "azure":
+                updateAzureSecret(name, value);
+                break;
+            case "vault":
+                updateVaultSecret(name, value);
+                break;
+            case "env":
+            default:
+                // Cannot update environment variables at runtime
+                logger.warn("Cannot update environment variable: {}", name);
+                break;
+        }
+    }
+    
+    // Backend-specific implementations
+    
+    private String fetchFromGCPSecretManager(String name) {
+        if (gcpProjectId == null || gcpProjectId.isBlank()) {
+            logger.warn("GCP backend selected but secret.manager.gcp.project-id is missing; falling back to env for {}", name);
+            return fetchFromEnvironment(name);
+        }
+
         try (SecretManagerServiceClient client = SecretManagerServiceClient.create()) {
-            SecretVersionName name = SecretVersionName.of(projectId, secretId, "latest");
-            AccessSecretVersionResponse response = client.accessSecretVersion(name);
-            String secret = response.getPayload().getData().toStringUtf8();
-            
-            // Cache the secret
-            secretCache.put(secretId, secret);
-            cacheTimes.put(secretId, System.currentTimeMillis());
-            
-            logger.info("Retrieved and cached secret: {}", secretId);
-            return secret;
+            SecretVersionName secretVersionName = SecretVersionName.of(gcpProjectId, name, "latest");
+            AccessSecretVersionRequest request = AccessSecretVersionRequest.newBuilder()
+                .setName(secretVersionName.toString())
+                .build();
+            return client.accessSecretVersion(request).getPayload().getData().toStringUtf8();
         } catch (Exception e) {
-            logger.error("Failed to retrieve secret: {}", secretId, e);
-            String envVar = System.getenv(secretId);
-            if (envVar != null) {
-                logger.info("Using environment variable for: {}", secretId);
-                return envVar;
-            }
-            throw new RuntimeException("Failed to retrieve secret: " + secretId, e);
+            logger.error("Failed to fetch secret {} from GCP: {}", name, e.getMessage());
+            return fetchFromEnvironment(name);
         }
     }
     
-    /**
-     * Get multiple secrets efficiently
-     */
-    public Map<String, String> getSecrets(String... secretIds) throws SecretNotFoundException {
-        Map<String, String> result = new HashMap<>();
-        for (String id : secretIds) {
-            result.put(id, getSecret(id));
+    private String fetchFromAWSSecretsManager(String name) {
+        try (SecretsManagerClient client = SecretsManagerClient.builder()
+            .region(Region.of(awsRegion))
+            .build()) {
+            return client.getSecretValue(GetSecretValueRequest.builder().secretId(name).build()).secretString();
+        } catch (Exception e) {
+            logger.error("Failed to fetch secret {} from AWS: {}", name, e.getMessage());
+            return fetchFromEnvironment(name);
         }
-        return result;
     }
     
-    /**
-     * Invalidate cache for a secret (e.g., after rotation)
-     */
-    public void invalidateCache(String secretId) {
-        secretCache.remove(secretId);
-        cacheTimes.remove(secretId);
-        logger.info("Cache invalidated for secret: {}", secretId);
-    }
-    
-    /**
-     * Clear all cached secrets
-     */
-    public void clearCache() {
-        secretCache.clear();
-        cacheTimes.clear();
-        logger.info("All secret caches cleared");
-    }
-    
-    /**
-     * Check if cached value is still valid
-     */
-    private boolean isCacheValid(String secretId) {
-        if (!secretCache.containsKey(secretId)) {
-            return false;
+    private String fetchFromAzureKeyVault(String name) {
+        SecretClient client = buildAzureSecretClient();
+        if (client == null) {
+            return fetchFromEnvironment(name);
         }
-        Long cacheTime = cacheTimes.get(secretId);
-        if (cacheTime == null) {
-            return false;
-        }
-        return (System.currentTimeMillis() - cacheTime) < CACHE_TTL_MS;
-    }
-    
-    /**
-     * Get fallback secret from environment if Cloud Secret Manager unavailable
-     * WARNING: Only for local development, never in production
-     */
-    public String getSecretWithFallback(String secretId, boolean allowEnvFallback) 
-            throws SecretNotFoundException {
+
         try {
-            return getSecret(secretId);
+            return client.getSecret(name).getValue();
         } catch (Exception e) {
-            if (allowEnvFallback) {
-                String envKey = secretId.toUpperCase().replace("-", "_");
-                String envValue = System.getenv(envKey);
-                if (envValue != null && !envValue.isEmpty()) {
-                    logger.warn("Using environment variable fallback for: {}", secretId);
-                    return envValue;
-                }
-            }
-            throw new SecretNotFoundException("Secret not available: " + secretId);
+            logger.error("Failed to fetch secret {} from Azure Key Vault: {}", name, e.getMessage());
+            return fetchFromEnvironment(name);
         }
     }
     
-    /**
-     * Custom exception for missing secrets
-     */
-    public static class SecretNotFoundException extends Exception {
-        public SecretNotFoundException(String message) {
-            super(message);
+    private String fetchFromHashiCorpVault(String name) {
+        // In production, use Vault client
+        return System.getenv(name);
+    }
+    
+    private String fetchFromEnvironment(String name) {
+        String value = System.getenv(name);
+        if (value == null) {
+            // Try with different naming conventions
+            value = System.getenv(name.replace("_", "").toLowerCase());
+        }
+        return value;
+    }
+    
+    private void updateGCPSecret(String name, String value) {
+        if (gcpProjectId == null || gcpProjectId.isBlank()) {
+            logger.warn("Cannot update GCP secret {} because secret.manager.gcp.project-id is missing", name);
+            return;
+        }
+
+        try (SecretManagerServiceClient client = SecretManagerServiceClient.create()) {
+            SecretName secretName = SecretName.of(gcpProjectId, name);
+            client.addSecretVersion(
+                AddSecretVersionRequest.newBuilder()
+                    .setParent(secretName.toString())
+                    .setPayload(SecretPayload.newBuilder().setData(ByteString.copyFromUtf8(value)).build())
+                    .build()
+            );
+        } catch (Exception e) {
+            logger.error("Failed to update GCP secret {}: {}", name, e.getMessage());
+        }
+    }
+    
+    private void updateAWSSecret(String name, String value) {
+        try (SecretsManagerClient client = SecretsManagerClient.builder()
+            .region(Region.of(awsRegion))
+            .build()) {
+            client.putSecretValue(
+                PutSecretValueRequest.builder()
+                    .secretId(name)
+                    .secretString(value)
+                    .build()
+            );
+        } catch (Exception e) {
+            logger.error("Failed to update AWS secret {}: {}", name, e.getMessage());
+        }
+    }
+    
+    private void updateAzureSecret(String name, String value) {
+        SecretClient client = buildAzureSecretClient();
+        if (client == null) {
+            logger.warn("Cannot update Azure secret {} because secret.manager.azure.vault-url is missing", name);
+            return;
+        }
+
+        try {
+            client.setSecret(name, value);
+        } catch (Exception e) {
+            logger.error("Failed to update Azure secret {}: {}", name, e.getMessage());
+        }
+    }
+    
+    private void updateVaultSecret(String name, String value) {
+        logger.info("Would update HashiCorp Vault: {}", name);
+    }
+
+    private SecretClient buildAzureSecretClient() {
+        if (azureVaultUrl == null || azureVaultUrl.isBlank()) {
+            logger.warn("Azure backend selected but secret.manager.azure.vault-url is missing");
+            return null;
+        }
+
+        try {
+            return new SecretClientBuilder()
+                .vaultUrl(azureVaultUrl)
+                .credential(new DefaultAzureCredentialBuilder().build())
+                .buildClient();
+        } catch (Exception e) {
+            logger.error("Failed to initialize Azure Key Vault client: {}", e.getMessage());
+            return null;
         }
     }
 }

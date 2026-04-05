@@ -3,12 +3,15 @@ package org.example.controller;
 import org.example.model.User;
 import org.example.model.AuthToken;
 import org.example.service.AuthenticationService;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,6 +32,7 @@ import java.util.*;
  * - POST /api/auth/users/{userId}/disable - Disable user (admin only)
  */
 @RestController
+@Validated
 @RequestMapping("/api/auth")
 public class AuthenticationController {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
@@ -52,7 +56,7 @@ public class AuthenticationController {
     * - Login with email: {"email": "your_email@example.com", "password": "your_password"}
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> request,
+    public ResponseEntity<?> login(@RequestBody @NotNull Map<String, String> request,
                                    HttpServletRequest servletRequest,
                                    HttpServletResponse servletResponse) {
         try {
@@ -108,7 +112,7 @@ public class AuthenticationController {
      */
     @PostMapping("/register")
     public ResponseEntity<?> register(
-            @RequestBody Map<String, String> request,
+            @RequestBody @NotNull Map<String, String> request,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
             // Verify admin authentication
@@ -154,7 +158,7 @@ public class AuthenticationController {
      * }
      */
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> request,
+    public ResponseEntity<?> refreshToken(@RequestBody @NotNull Map<String, String> request,
                                           HttpServletRequest servletRequest,
                                           HttpServletResponse servletResponse) {
         try {
@@ -241,7 +245,7 @@ public class AuthenticationController {
      */
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(
-            @RequestBody Map<String, String> request,
+            @RequestBody @NotNull Map<String, String> request,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
             User user = extractUserFromToken(authHeader);
@@ -317,7 +321,7 @@ public class AuthenticationController {
      */
     @PostMapping("/users/{userId}/disable")
     public ResponseEntity<?> disableUser(
-            @PathVariable String userId,
+            @PathVariable @NotBlank String userId,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
             User currentUser = extractAdminUserFromToken(authHeader);
@@ -357,7 +361,7 @@ public class AuthenticationController {
      */
     @PostMapping("/bootstrap")
     public ResponseEntity<?> bootstrap(
-            @RequestBody Map<String, String> request,
+            @RequestBody @NotNull Map<String, String> request,
             @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestHeader(value = "X-Bootstrap-Token", required = false) String bootstrapToken) {
         try {
@@ -426,7 +430,7 @@ public class AuthenticationController {
      * }
      */
     @PostMapping("/setup")
-    public ResponseEntity<?> setupInitialAdmin(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> setupInitialAdmin(@RequestBody @NotNull Map<String, String> request) {
         try {
             // Check if users already exist (first-time-only protection)
             List<User> existingUsers = authService.getAllUsers();
@@ -512,7 +516,7 @@ public class AuthenticationController {
      * }
      */
     @PostMapping("/hash-password")
-    public ResponseEntity<?> hashPassword(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> hashPassword(@RequestBody @NotNull Map<String, String> request) {
         try {
             String password = request.get("password");
             if (password == null || password.trim().isEmpty()) {
@@ -569,7 +573,7 @@ public class AuthenticationController {
      */
     @PostMapping("/firebase-login")
     public ResponseEntity<?> firebaseLogin(
-            @RequestBody Map<String, String> request,
+            @RequestBody @NotNull Map<String, String> request,
             HttpServletRequest servletRequest,
             HttpServletResponse servletResponse) {
         try {
