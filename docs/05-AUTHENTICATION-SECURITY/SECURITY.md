@@ -208,10 +208,10 @@ git log --all -S 'FIREBASE_API_KEY' --oneline
 
 ## 📚 Security Documents
 
-- [CONTRIBUTING.md](CONTRIBUTING.md) — Security guidelines for contributors
-- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — Community standards
-- [.env.example](.env.example) — Environment variable template
-- [.gitignore](.gitignore) — Credential protection patterns
+- [CONTRIBUTING.md](..\12-GUIDES\CONTRIBUTING.md) — Security guidelines for contributors
+- [CODE_OF_CONDUCT.md](..\..\CODE_OF_CONDUCT.md) — Community standards
+- [.env.example](..\..\.env.example) — Environment variable template
+- [.gitignore](..\..\.gitignore) — Credential protection patterns
 
 ---
 

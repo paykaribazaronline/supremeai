@@ -50,7 +50,7 @@ export SUPREMEAI_SETUP_TOKEN=your_setup_token_here
 - [ ] App starts on `http://localhost:8080`
 - [ ] Health endpoint responds: `GET /actuator/health` → `{"status":"UP"}`
 
-**Troubleshooting:** See [ENVIRONMENT_CONFIGURATION.md](ENVIRONMENT_CONFIGURATION.md)
+**Troubleshooting:** See [ENVIRONMENT_CONFIGURATION.md](..\01-SETUP-DEPLOYMENT\ENVIRONMENT_CONFIGURATION.md)
 
 ---
 
@@ -80,7 +80,7 @@ firebase deploy --only firestore:rules
 - [ ] Collections created: `app_templates`, `generated_apps`, `generation_errors_and_fixes`
 - [ ] Test connection: `GET /api/firebase/test` → success response
 
-**Deep dive:** [FIREBASE_COLLECTIONS_SETUP.md](FIREBASE_COLLECTIONS_SETUP.md)
+**Deep dive:** [FIREBASE_COLLECTIONS_SETUP.md](..\01-SETUP-DEPLOYMENT\FIREBASE_COLLECTIONS_SETUP.md)
 
 ---
 
@@ -103,7 +103,7 @@ curl -X POST http://localhost:8080/api/auth/setup \
 - [ ] JWT token received in response
 - [ ] Admin dashboard accessible: `GET /api/admin/status`
 
-**Security note:** The `/api/auth/init` endpoint is intentionally disabled. Always use the token-protected `/api/auth/setup`. See [COMMON_MISTAKES.md](COMMON_MISTAKES.md#mistake-1-using-open-auth-init-endpoint).
+**Security note:** The `/api/auth/init` endpoint is intentionally disabled. Always use the token-protected `/api/auth/setup`. See [COMMON_MISTAKES.md](..\09-TROUBLESHOOTING\COMMON_MISTAKES.md#mistake-1-using-open-auth-init-endpoint).
 
 ---
 
@@ -177,7 +177,7 @@ curl -X POST http://localhost:8080/api/admin/mode \
 - [ ] FORCE_STOP: Confirm all running operations halt within 5 seconds
 - [ ] Audit trail visible: `GET /api/admin/audit` shows all mode changes
 
-**Deep dive:** [ADMIN_CONTROL_COMPLETE_GUIDE.md](ADMIN_CONTROL_COMPLETE_GUIDE.md)
+**Deep dive:** [ADMIN_CONTROL_COMPLETE_GUIDE.md](..\04-ADMIN\ADMIN_CONTROL_COMPLETE_GUIDE.md)
 
 ---
 
@@ -194,7 +194,7 @@ curl -X POST http://localhost:8080/api/admin/mode \
 - [ ] Build passes all quality gates
 - [ ] Deployment to Cloud Run successful
 
-**Deep dive:** [CICD_FIREBASE_SETUP.md](CICD_FIREBASE_SETUP.md)
+**Deep dive:** [CICD_FIREBASE_SETUP.md](..\08-CI-CD\CICD_FIREBASE_SETUP.md)
 
 ---
 
@@ -224,7 +224,7 @@ curl http://localhost:8080/api/learning/solutions/security \
 - [ ] Confidence score for known error > 0.85
 - [ ] Solution auto-applied on second occurrence of same error
 
-**Deep dive:** [KNOWLEDGE_LEARNING_ARCHITECTURE.md](KNOWLEDGE_LEARNING_ARCHITECTURE.md)
+**Deep dive:** [KNOWLEDGE_LEARNING_ARCHITECTURE.md](..\02-ARCHITECTURE\KNOWLEDGE_LEARNING_ARCHITECTURE.md)
 
 ---
 
@@ -284,7 +284,7 @@ curl http://localhost:8080/api/consensus/stats \
 - [ ] Learning system records the new provider's performance
 - [ ] CI/CD passes with new provider included
 
-**Reference:** [ARCHITECTURE_AND_IMPLEMENTATION.md](ARCHITECTURE_AND_IMPLEMENTATION.md)
+**Reference:** [ARCHITECTURE_AND_IMPLEMENTATION.md](..\02-ARCHITECTURE\ARCHITECTURE_AND_IMPLEMENTATION.md)
 
 ---
 
@@ -315,7 +315,7 @@ docker run -p 8080:8080 \
 - [ ] Secrets injected via GCP Secret Manager (not env vars)
 - [ ] Auto-scaling configured: min=1, max=10
 
-**Deep dive:** [PRODUCTION_DEPLOYMENT_GUIDE.md](PRODUCTION_DEPLOYMENT_GUIDE.md)
+**Deep dive:** [PRODUCTION_DEPLOYMENT_GUIDE.md](..\01-SETUP-DEPLOYMENT\PRODUCTION_DEPLOYMENT_GUIDE.md)
 
 ---
 
@@ -334,9 +334,9 @@ docker run -p 8080:8080 \
 - [ ] Rate limiting active: 500 requests/hour for MULTI-AI mode
 - [ ] Distributed tracing enabled for performance profiling
 - [ ] Load test: simulate 5 concurrent app generations
-- [ ] All benchmarks ≥ MULTI-AI targets from [QUOTA_CONFIG.properties](QUOTA_CONFIG.properties)
+- [ ] All benchmarks ≥ MULTI-AI targets from [QUOTA_CONFIG.properties](..\..\QUOTA_CONFIG.properties)
 
-**Deep dive:** [DISTRIBUTED_TRACING_FAILOVER.md](DISTRIBUTED_TRACING_FAILOVER.md)
+**Deep dive:** [DISTRIBUTED_TRACING_FAILOVER.md](..\06-FEATURES\DISTRIBUTED_TRACING_FAILOVER.md)
 
 ---
 
@@ -377,7 +377,7 @@ curl -X POST http://localhost:8080/api/admin/mode \
 | Intermediate | 5-8     | [ ] [ ] [ ] [ ] |
 | Advanced   | 9-11      | [ ] [ ] [ ]   |
 
-**After completing all tracks:** You are ready to contribute to SupremeAI's codebase. See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+**After completing all tracks:** You are ready to contribute to SupremeAI's codebase. See [CODE_OF_CONDUCT.md](..\..\CODE_OF_CONDUCT.md).
 
 ---
 

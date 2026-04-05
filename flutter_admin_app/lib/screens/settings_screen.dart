@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../config/app_routes.dart';
 import '../config/constants.dart';
 import '../providers/auth_provider.dart';
 
@@ -377,7 +378,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onPressed: () {
               Provider.of<AuthProvider>(context, listen: false).logout();
               Navigator.pop(context);
-              Navigator.of(context).pushReplacementNamed('/login');
+              Navigator.of(context).pushReplacementNamed(AppRoutes.login);
             },
             child: const Text('Logout', style: TextStyle(color: Colors.red)),
           ),

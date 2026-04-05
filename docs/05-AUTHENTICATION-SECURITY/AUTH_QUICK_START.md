@@ -266,8 +266,8 @@ export FIREBASE_SERVICE_ACCOUNT_JSON='{...your json...}'
 For complete details, see:
 
 - **[AUTHENTICATION_GUIDE.md](AUTHENTICATION_GUIDE.md)** - Full authentication system docs
-- **[README.md](README.md)** - Project overview
-- **[ADMIN_OPERATIONS_GUIDE.md](ADMIN_OPERATIONS_GUIDE.md)** - Admin operations manual
+- **[README.md](..\..\README.md)** - Project overview
+- **[ADMIN_OPERATIONS_GUIDE.md](..\04-ADMIN\ADMIN_OPERATIONS_GUIDE.md)** - Admin operations manual
 
 ---
 

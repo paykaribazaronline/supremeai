@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../config/app_routes.dart';
 import '../../config/constants.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/api_service.dart';
@@ -143,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) {
         return;
       }
-      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+      Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
       return;
     }
 
@@ -570,7 +571,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: () {
                 Navigator.pop(context);
                 authProvider.logout();
-                Navigator.of(context).pushReplacementNamed('/login');
+                Navigator.of(context).pushReplacementNamed(AppRoutes.login);
               },
             ),
           ],

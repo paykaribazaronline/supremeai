@@ -159,8 +159,8 @@ grep -r "topic" docs/
 ## 🔗 Related Documentation
 
 - [Main README](../README.md)
-- [Code of Conduct](docs/12-GUIDES/CODE_OF_CONDUCT.md)
-- [Contributing Guide](docs/12-GUIDES/CONTRIBUTING.md)
+- [Code of Conduct](..\CODE_OF_CONDUCT.md)
+- [Contributing Guide](12-GUIDES\CONTRIBUTING.md)
 - [License](../LICENSE)
 
 ---

@@ -48,7 +48,7 @@ public ResponseEntity<?> setupAdmin(
 }
 ```
 
-**Rule:** `SUPREMEAI_SETUP_TOKEN` env var must be set before first deploy. See [ENVIRONMENT_CONFIGURATION.md](ENVIRONMENT_CONFIGURATION.md).
+**Rule:** `SUPREMEAI_SETUP_TOKEN` env var must be set before first deploy. See [ENVIRONMENT_CONFIGURATION.md](..\01-SETUP-DEPLOYMENT\ENVIRONMENT_CONFIGURATION.md).
 
 ---
 
@@ -371,7 +371,7 @@ find . -name "*.md" | tail -n +21 | head -20 | xargs markdownlint --config .mark
 # ... etc. (or use a batch script)
 ```
 
-**Full fix:** See [ROOT_CAUSE_AUTO_FIX_ANALYSIS.md](ROOT_CAUSE_AUTO_FIX_ANALYSIS.md) and [CI_LINT_PRIORITY_EXECUTION.md](CI_LINT_PRIORITY_EXECUTION.md).
+**Full fix:** See [ROOT_CAUSE_AUTO_FIX_ANALYSIS.md](ROOT_CAUSE_AUTO_FIX_ANALYSIS.md) and [CI_LINT_PRIORITY_EXECUTION.md](..\08-CI-CD\CI_LINT_PRIORITY_EXECUTION.md).
 
 **Rule:** Never pass an unbounded file list to a CLI tool. Always batch in groups of ≤20 files.
 
@@ -532,4 +532,4 @@ Use this before every PR review:
 ---
 
 *Every entry in this document represents a real error that occurred in SupremeAI.*
-*When a new error is resolved, it should be added here. See [DOCUMENTATION_MAINTENANCE_STRATEGY.md](DOCUMENTATION_MAINTENANCE_STRATEGY.md).*
+*When a new error is resolved, it should be added here. See [DOCUMENTATION_MAINTENANCE_STRATEGY.md](..\DOCUMENTATION_MAINTENANCE_STRATEGY.md).*

@@ -13,7 +13,7 @@
   - Now in README tagline section
   
 - [x] **Create LICENSE file (MIT recommended)**
-  - File: [LICENSE](LICENSE) (20 lines)
+  - File: [LICENSE](..\..\LICENSE) (20 lines)
   - Type: MIT License
   - Status: ✅ COMPLETE
 
@@ -29,12 +29,12 @@
 
 | File | Purpose | Status | Lines |
 |------|---------|--------|-------|
-| [LICENSE](LICENSE) | MIT License | ✅ | 20 |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Contributor guidelines | ✅ | 350+ |
-| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Community standards | ✅ | 120+ |
+| [LICENSE](..\..\LICENSE) | MIT License | ✅ | 20 |
+| [CONTRIBUTING.md](..\12-GUIDES\CONTRIBUTING.md) | Contributor guidelines | ✅ | 350+ |
+| [CODE_OF_CONDUCT.md](..\..\CODE_OF_CONDUCT.md) | Community standards | ✅ | 120+ |
 | [CHANGELOG.md](CHANGELOG.md) | Version history | ✅ | 300+ |
-| [.dockerignore](.dockerignore) | Docker build optimization | ✅ | 50+ |
-| [.github/workflows/java-ci.yml](.github/workflows/java-ci.yml) | CI/CD pipeline | ✅ | 250+ |
+| [.dockerignore](..\..\.dockerignore) | Docker build optimization | ✅ | 50+ |
+| [.github/workflows/java-ci.yml](..\..\.github\workflows\java-ci.yml) | CI/CD pipeline | ✅ | 250+ |
 
 ---
 
@@ -46,7 +46,7 @@
   - Added to .gitignore (with warnings)
 
 - [x] **Create comprehensive .gitignore**
-  - File: [.gitignore](.gitignore)
+  - File: [.gitignore](..\..\.gitignore)
   - Lines: 95 (4x improvement)
   - Coverage: Java, Gradle, IDEs, OS, Docker, Credentials
   - Status: ✅ COMPLETE
@@ -61,14 +61,14 @@
 ## 🔧 GitHub Configuration
 
 - [x] **Add GitHub Actions CI workflow**
-  - File: [.github/workflows/java-ci.yml](.github/workflows/java-ci.yml)
+  - File: [.github/workflows/java-ci.yml](..\..\.github\workflows\java-ci.yml)
   - Jobs: 6 (build, security, coverage, docker, lint, summary)
   - Triggers: Push, PR, manual dispatch
   - Status: ✅ COMPLETE
 
 - [x] **Create issue templates**
-  - Bug Report: [.github/ISSUE_TEMPLATE/bug_report.md](.github/ISSUE_TEMPLATE/bug_report.md)
-  - Feature Request: [.github/ISSUE_TEMPLATE/feature_request.md](.github/ISSUE_TEMPLATE/feature_request.md)
+  - Bug Report: [.github/ISSUE_TEMPLATE/bug_report.md](..\..\.github\ISSUE_TEMPLATE\bug_report.md)
+  - Feature Request: [.github/ISSUE_TEMPLATE/feature_request.md](..\..\.github\ISSUE_TEMPLATE\feature_request.md)
   - Status: ✅ COMPLETE
 
 - [x] **Documentation for branch protection rules**
@@ -279,11 +279,11 @@ Commit: 430f7fe | Status: PUSHED TO MAIN
 
 ## 📞 Help & References
 
-- **Questions about contributing?** See [CONTRIBUTING.md](CONTRIBUTING.md)
-- **Community guidelines?** See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
-- **Security concerns?** See [SECURITY_GUIDE.md](SECURITY_GUIDE.md)
+- **Questions about contributing?** See [CONTRIBUTING.md](..\12-GUIDES\CONTRIBUTING.md)
+- **Community guidelines?** See [CODE_OF_CONDUCT.md](..\..\CODE_OF_CONDUCT.md)
+- **Security concerns?** See [SECURITY_GUIDE.md](..\05-AUTHENTICATION-SECURITY\SECURITY_GUIDE.md)
 - **Version history?** See [CHANGELOG.md](CHANGELOG.md)
-- **Project status?** See [README.md](README.md)
+- **Project status?** See [README.md](..\..\README.md)
 
 ---
 

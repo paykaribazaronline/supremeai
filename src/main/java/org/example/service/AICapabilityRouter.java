@@ -302,7 +302,7 @@ public class AICapabilityRouter {
     private void updateProviderHealth(String provider, boolean success) {
         providerHealth.compute(provider, (k, v) -> {
             if (v == null) {
-                return new ProviderHealth(provider, success ? 1 : 0, 1);
+                return new ProviderHealth(provider, success ? 0 : 1, 1);
             }
             return v.recordAttempt(success);
         });

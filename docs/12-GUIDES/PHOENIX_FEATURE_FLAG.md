@@ -233,4 +233,4 @@ supremeai_prediction_accuracy        # ML prediction success rate
 
 - Phoenix Architecture: [PHOENIX_IMPLEMENTATION.md](PHOENIX_IMPLEMENTATION.md)
 - Self-Healing Guide: [SELF_HEALING_GUIDE.md](SELF_HEALING_GUIDE.md)
-- API Documentation: [SelfHealingController.java](src/main/java/org/supremeai/selfhealing/api/SelfHealingController.java)
+- API Documentation: [SelfHealingController.java](..\..\src\main\java\org\example\controller\SelfHealingController.java)

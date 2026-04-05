@@ -55,9 +55,9 @@ Option B: Skip tests during build (not recommended for release)
 
 **Resources:**
 
-1. [Test Report](build/reports/tests/test/index.html) - Detailed failure analysis
-2. [ExecutionLogManager Tests](src/test/java/org/supremeai/ExecutionLogManagerTest.java) - Review signatures
-3. [WebhookListener Tests](src/test/java/org/supremeai/WebhookListenerTest.java) - Check mock setup
+1. [Test Report](..\..\build\reports\tests\test\index.html) - Detailed failure analysis
+2. [ExecutionLogManager Tests](..\..\src\test\java\org\example\service\ExecutionLogManagerTest.java) - Review signatures
+3. [WebhookListener Tests](..\..\src\test\java\org\example\service\WebhookListenerTest.java) - Check mock setup
 
 ---
 
@@ -125,7 +125,7 @@ git ls-files | Select-String -Pattern "\.txt$|local\.properties|\.idea/"
 ### 4. License Verification
 
 **Status:** ✅ VERIFIED  
-**File:** [LICENSE](LICENSE) (MIT License)
+**File:** [LICENSE](..\..\LICENSE) (MIT License)
 
 **Verification:**
 
@@ -343,6 +343,7 @@ git tag -a v3.1.0 -m "SupremeAI 3.1.0 - Stable Release"
    - Production-ready infrastructure
 
 2. **Tag release**
+
    ```bash
    git tag -a v3.1.0 -m "SupremeAI 3.1.0 - Production Release
 

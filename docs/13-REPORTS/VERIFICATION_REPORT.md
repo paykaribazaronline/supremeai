@@ -271,4 +271,4 @@ docs/
 
 ---
 
-See: [DOCUMENTATION_ORGANIZATION.md](./DOCUMENTATION_ORGANIZATION.md) | [Master Index](./docs/README.md) | [Quick Start](./docs/00-START-HERE/INDEX.md)
+See: [DOCUMENTATION_ORGANIZATION.md](..\DOCUMENTATION_ORGANIZATION.md) | [Master Index](..\README.md) | [Quick Start](..\00-START-HERE\INDEX.md)
