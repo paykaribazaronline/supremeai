@@ -5,7 +5,7 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$SetupToken,
 
-    [string]$Repo = "paykaribazaronline/supremeai"
+    [string]$Repo = "supremeai/supremeai"
 )
 
 $gh = Get-Command gh -ErrorAction SilentlyContinue

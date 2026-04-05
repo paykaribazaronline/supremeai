@@ -42,8 +42,8 @@ Requirements:
 ## Manual GitHub CLI Commands
 
 ```powershell
-gh secret set SUPREMEAI_BASE_URL --body "https://your-domain.com" --repo paykaribazaronline/supremeai
-gh secret set SUPREMEAI_SETUP_TOKEN --body "your-token" --repo paykaribazaronline/supremeai
+gh secret set SUPREMEAI_BASE_URL --body "https://your-domain.com" --repo supremeai/supremeai
+gh secret set SUPREMEAI_SETUP_TOKEN --body "your-token" --repo supremeai/supremeai
 ```
 
 ## Verify

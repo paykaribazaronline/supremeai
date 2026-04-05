@@ -36,6 +36,9 @@ public class MultiAIConsensusService {
     private ProviderRegistryService providerRegistryService;
 
     @Autowired(required = false)
+    private AICapabilityRouter capabilityRouter;
+
+    @Autowired(required = false)
     private AgentDecisionLogger decisionLogger; // L2/L3/L4: log each provider as an agent
     
     private static final int CONSENSUS_THRESHOLD = 70; // Require 70% agreement
@@ -104,6 +107,8 @@ public class MultiAIConsensusService {
             if (needsFallback) {
                 logger.warn("⚠️ No healthy providers are currently available - using fallback consensus");
             }
+
+            availableProviders = prioritizeProvidersForQuestion(question, availableProviders);
             
             logger.info("🤖 Asking {} available AI providers: {}", availableProviders.size(), question);
             logger.info("📊 Available: {}", availableProviders);
@@ -339,6 +344,24 @@ public class MultiAIConsensusService {
 
     private String normalizeResponseKey(String response) {
         return response.substring(0, Math.min(50, response.length()));
+    }
+
+    private List<String> prioritizeProvidersForQuestion(String question, List<String> providers) {
+        if (providers == null || providers.isEmpty()) {
+            return providers;
+        }
+        if (capabilityRouter == null) {
+            return providers;
+        }
+
+        AICapabilityRouter.TaskType taskType = capabilityRouter.inferTaskType(question);
+        List<String> prioritized = capabilityRouter.prioritizeAvailableProviders(taskType, providers);
+        if (prioritized.isEmpty()) {
+            return providers;
+        }
+
+        logger.info("🎯 Capability routing prioritized {} providers for taskType={}", prioritized.size(), taskType);
+        return prioritized;
     }
 
     private boolean isWinningResponse(String response, String winningResponse) {

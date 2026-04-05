@@ -643,7 +643,7 @@ Future v2.0 will be available at `/api/v2/...` alongside v1.0 for 6 months.
 
 - **Swagger/OpenAPI Docs**: `/swagger-ui.html`
 - **Health Check**: `GET /api/generation/health`, `GET /api/execution-logs/health`
-- **GitHub Repository**: https://github.com/paykaribazaronline/supremeai
+- **GitHub Repository**: https://github.com/supremeai/supremeai
 
 ### Contact
 

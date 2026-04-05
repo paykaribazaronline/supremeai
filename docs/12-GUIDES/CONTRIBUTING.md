@@ -20,7 +20,7 @@ We are committed to providing a welcoming and inspiring community for all. Pleas
 
 ```bash
 # Clone the repository
-git clone https://github.com/paykaribazaronline/supremeai.git
+git clone https://github.com/supremeai/supremeai.git
 cd supremeai
 
 # Install dependencies
@@ -340,8 +340,8 @@ docker run -p 8080:8080 \
 
 ## 📞 Getting Help
 
-- **Discussion:** [GitHub Discussions](https://github.com/paykaribazaronline/supremeai/discussions)
-- **Issues:** [GitHub Issues](https://github.com/paykaribazaronline/supremeai/issues)
+- **Discussion:** [GitHub Discussions](https://github.com/supremeai/supremeai/discussions)
+- **Issues:** [GitHub Issues](https://github.com/supremeai/supremeai/issues)
 - **Email:** [contribution contact info]
 - **Slack:** [Link to community Slack]
 

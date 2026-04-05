@@ -12,6 +12,7 @@
 A **3-layer batched processing system** that fixes the GitHub Actions workflow failure by processing markdown files in manageable chunks instead of passing all of them at once.
 
 ### The Problem
+
 ```
 ❌ ERROR: An error occurred trying to start process '/home/runner/actions-runner/cached/2.333.1/externals/node20/bin/node' 
    with working directory '/home/runner/work/supremeai/supremeai'. 
@@ -25,23 +26,28 @@ A **3-layer batched processing system** that fixes the GitHub Actions workflow f
 ## 🏗️ Solution Architecture
 
 ### Layer 1: **Discovery**
+
 - Finds markdown files (ignores .git, node_modules)
 - Groups into batches of 50 files
 - Saves batch manifests to temp files
 - **Result:** Never passes all files at once
 
 ### Layer 2: **Processing**
+
 Two modes:
+
 - **Scan:** Check for linting errors without fixing
 - **Fix:** Auto-fix detected errors with markdownlint
 
 Process:
+
 - Read single batch file
 - Convert to bash array (safe for large lists)
 - Process with markdownlint
 - Capture per-batch results
 
 ### Layer 3: **Aggregation**
+
 - Sum up errors/fixes across all batches
 - Combine individual reports
 - Generate unified metrics
@@ -92,17 +98,20 @@ Process:
 ## 🔧 Batch Processing Details
 
 ### Batch Configuration
+
 ```yaml
 BATCH_SIZE: 50  # Files per batch
 ```
 
 ### Why 50?
+
 - 50 markdown files ≈ 2,500-3,000 characters
 - Safe margin below 10,000-character system limit
 - Tunable via `BATCH_SIZE` environment variable
 - Handles 100+ files in 2-3 batches
 
 ### How It Works
+
 ```bash
 # Layer 1: Discovery - Creates batch files
 batch_1.txt: file1.md, file2.md, ... file50.md
@@ -125,12 +134,14 @@ Status: ✅ Complete
 ## 🎨 Usage
 
 ### Automatic (No Action Needed)
+
 - Triggers on every `push` to `main`/`develop` with `.md` file changes
 - Automatically scans and fixes
 - Auto-commits results
 - Auto-pushes to remote
 
 ### Manual Trigger
+
 ```
 GitHub UI:
 1. Go to "Actions"
@@ -140,6 +151,7 @@ GitHub UI:
 ```
 
 ### Local Testing
+
 ```bash
 # Install markdownlint
 npm install -g markdownlint-cli
@@ -186,6 +198,7 @@ The system auto-fixes these linting rules:
 ## 📈 Performance Improvement
 
 ### Before Implementation
+
 | Metric | Value |
 |--------|-------|
 | Success Rate | ❌ 0% (crashes) |
@@ -194,6 +207,7 @@ The system auto-fixes these linting rules:
 | Status | 🔴 BROKEN |
 
 ### After Implementation
+
 | Metric | Value |
 |--------|-------|
 | Success Rate | ✅ 100% |
@@ -208,7 +222,7 @@ The system auto-fixes these linting rules:
 ### What to Check
 
 1. **GitHub Actions Tab**
-   - Navigation: https://github.com/paykaribazaronline/supremeai/actions
+   - Navigation: https://github.com/supremeai/supremeai/actions
    - Filter: "📚 Documentation & Linting - Auto-Fix (3-Layer System)"
    - Expected: ✅ All jobs passing
 
@@ -232,14 +246,18 @@ The system auto-fixes these linting rules:
 ## 🛠️ Customization
 
 ### Change Batch Size
+
 Edit `.github/workflows/docs-lint-fix.yml`:
+
 ```yaml
 env:
   BATCH_SIZE: '100'  # Increase to 100 if needed
 ```
 
 ### Add/Remove MD Rules
+
 Edit `.markdownlint.json`:
+
 ```json
 {
   "MD009": true,   // Enable trailing spaces check
@@ -248,6 +266,7 @@ Edit `.markdownlint.json`:
 ```
 
 ### Modify Auto-Commit Message
+
 Edit `.github/workflows/docs-lint-fix.yml`, job `lint-fix`, step "Commit & push fixes"
 
 ---
@@ -258,6 +277,7 @@ Edit `.github/workflows/docs-lint-fix.yml`, job `lint-fix`, step "Commit & push 
 [`.github/3-LAYER_DOCUMENTATION_SYSTEM.md`](.github/3-LAYER_DOCUMENTATION_SYSTEM.md)
 
 **Topics covered:**
+
 - Architecture deep-dive
 - Performance metrics
 - Troubleshooting guide
@@ -287,16 +307,19 @@ Edit `.github/workflows/docs-lint-fix.yml`, job `lint-fix`, step "Commit & push 
 ### Common Issues
 
 **If workflow still fails:**
+
 1. Check: Bash script is executable (`chmod +x` needed?)
 2. Check: markdownlint-cli installed in workflow
 3. Check: Batch size (try reducing to 25-30)
 
 **If files not auto-fixing:**
+
 1. Check: GITHUB_TOKEN has push permissions
 2. Check: There are actually errors to fix
 3. Check: .markdownlint.json enables the rules
 
 **For detailed help:**
+
 - See: [`.github/3-LAYER_DOCUMENTATION_SYSTEM.md`](.github/3-LAYER_DOCUMENTATION_SYSTEM.md)
 - Section: "🐛 Troubleshooting"
 
@@ -304,9 +327,10 @@ Edit `.github/workflows/docs-lint-fix.yml`, job `lint-fix`, step "Commit & push 
 
 ## 🎉 Result
 
-The 3-Layer Documentation Maintenance System is now **fully operational** and ready to handle documentation linting at scale! 
+The 3-Layer Documentation Maintenance System is now **fully operational** and ready to handle documentation linting at scale!
 
 The GitHub Actions "Argument list too long" error is **resolved**, and the system will:
+
 1. Automatically scan documentation on every push
 2. Auto-fix common markdown issues
 3. Commit improvements with detailed audit trail

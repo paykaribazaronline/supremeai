@@ -26,7 +26,7 @@ android {
         applicationId = "supremeai.com"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 23  // Firebase Auth requires API 23+
+        minSdk = 24  // Explicitly pinned to verified compatibility level from recent builds
         targetSdk = 36  // Updated from flutter.targetSdkVersion to 36 for androidx.core compatibility
         versionCode = flutter.versionCode
         versionName = flutter.versionName

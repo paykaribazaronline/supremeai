@@ -177,11 +177,13 @@ Cache:
 ### Example: GitHub API Call Flow
 
 1. **Request Arrives**
+
    ```
    GET /api/v1/data/github/supremeai/core → DataController
    ```
 
 2. **Controller Calls Healing Version**
+
    ```java
    getGitHubDataWithHealing("supremeai", "core")
    ```
@@ -204,6 +206,7 @@ Cache:
    - Update service state
 
 6. **Response Envelope**
+
    ```json
    {
      "data": {
@@ -357,7 +360,7 @@ Commit 2: feat: Integrate self-healing into core data collection services
   - SelfHealingRecoveryConfig (startup configuration)
 ```
 
-Both commits pushed to: https://github.com/paykaribazaronline/supremeai
+Both commits pushed to: https://github.com/supremeai/supremeai
 
 ---
 
