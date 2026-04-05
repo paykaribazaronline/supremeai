@@ -221,6 +221,8 @@ jobs:
     needs: flutter-build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    outputs:
+      has-signing-secrets: ${{ steps.signing-mode.outputs.has_signing_secrets }}
     
     steps:
       - name: ⬇️ Checkout code
@@ -239,19 +241,23 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: 🔐 Validate Android signing secrets
+      - name: 🔐 Detect Android signing mode
+        id: signing-mode
         run: |
           missing=0
           for key in ANDROID_KEYSTORE_BASE64 ANDROID_STORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
             if [ -z "${!key}" ]; then
-              echo "❌ Missing required secret: $key"
+              echo "⚠️ Missing signing secret: $key"
               missing=1
             fi
           done
 
-          if [ "$missing" -ne 0 ]; then
-            echo "Release signing secrets are required for deploy-android"
-            exit 1
+          if [ "$missing" -eq 0 ]; then
+            echo "has_signing_secrets=true" >> "$GITHUB_OUTPUT"
+            echo "✅ Release signing secrets found; signed APK + AAB build enabled"
+          else
+            echo "has_signing_secrets=false" >> "$GITHUB_OUTPUT"
+            echo "⚠️ Release signing secrets not configured; building trial APK with debug signing only"
           fi
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -260,6 +266,7 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
       - name: 🔐 Create Android keystore + properties
+        if: steps.signing-mode.outputs.has_signing_secrets == 'true'
         run: |
           mkdir -p flutter_admin_app/android/keystore
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > flutter_admin_app/android/keystore/release-keystore.jks
@@ -305,9 +312,10 @@ jobs:
           echo "✅ APK build completed"
           ls -lh build/app/outputs/flutter-apk/
         env:
-          REQUIRE_RELEASE_SIGNING: 'true'
+          REQUIRE_RELEASE_SIGNING: ${{ steps.signing-mode.outputs.has_signing_secrets == 'true' && 'true' || 'false' }}
 
       - name: 📦 Build App Bundle (AAB)
+        if: steps.signing-mode.outputs.has_signing_secrets == 'true'
         working-directory: flutter_admin_app
         run: |
           echo "Building App Bundle for Google Play..."
@@ -320,14 +328,22 @@ jobs:
       - name: 📤 Upload Android artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: flutter-android-release
+          name: ${{ steps.signing-mode.outputs.has_signing_secrets == 'true' && 'flutter-android-release' || 'flutter-android-trial-apk' }}
           path: |
             flutter_admin_app/build/app/outputs/flutter-apk/
             flutter_admin_app/build/app/outputs/bundle/release/
           retention-days: 30
 
+      - name: 📝 Summarize Android build mode
+        run: |
+          if [ "${{ steps.signing-mode.outputs.has_signing_secrets }}" = "true" ]; then
+            echo "✅ Signed Android release build completed (APK + AAB)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "⚠️ Trial Android build completed with debug signing only (APK only, not Play Store ready)" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: 🔖 Create Release (on Tags)
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') && steps.signing-mode.outputs.has_signing_secrets == 'true'
         uses: softprops/action-gh-release@v2
         with:
           files: |

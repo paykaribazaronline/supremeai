@@ -33,7 +33,6 @@ val hasReleaseSigning = !signingStoreFile.isNullOrEmpty() &&
     !signingKeyAlias.isNullOrEmpty() &&
     !signingKeyPassword.isNullOrEmpty()
 
-val ciBuild = (System.getenv("CI") ?: "false").equals("true", ignoreCase = true)
 val requireReleaseSigning = (System.getenv("REQUIRE_RELEASE_SIGNING") ?: "false")
     .equals("true", ignoreCase = true)
 
@@ -78,15 +77,15 @@ android {
             if (hasReleaseSigning) {
                 signingConfig = signingConfigs.getByName("release")
             } else {
-                if (ciBuild || requireReleaseSigning) {
+                if (requireReleaseSigning) {
                     throw GradleException(
                         "Release signing is required but missing. Provide keystore.properties " +
                             "(storeFile/storePassword/keyAlias/keyPassword) or ANDROID_STORE_* env vars."
                     )
                 }
 
-                // Local fallback only; CI must always provide release signing.
-                logger.warn("⚠️ Release build is using DEBUG signing for local development only.")
+                // Trial builds can fall back to debug signing when release secrets are absent.
+                logger.warn("⚠️ Release build is using DEBUG signing because release signing is not configured.")
                 signingConfig = signingConfigs.getByName("debug")
             }
         }
