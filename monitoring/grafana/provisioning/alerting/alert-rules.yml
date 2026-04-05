@@ -23,7 +23,8 @@ groups:
               maxDataPoints: 43200
               refId: A
           - refId: C
-            datasourceUid: prometheus-supremeai
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: "__expr__"
             model:
               conditions:
                 - evaluator: { params: [0.05], type: gt }
@@ -58,7 +59,8 @@ groups:
                   sum(rate(http_server_requests_seconds_bucket{application="supremeai"}[5m])) by (le))
               refId: A
           - refId: C
-            datasourceUid: prometheus-supremeai
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: "__expr__"
             model:
               conditions:
                 - evaluator: { params: [3], type: gt }
@@ -100,7 +102,8 @@ groups:
                 sum(jvm_memory_max_bytes{application="supremeai",area="heap"})
               refId: A
           - refId: C
-            datasourceUid: prometheus-supremeai
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: "__expr__"
             model:
               conditions:
                 - evaluator: { params: [0.9], type: gt }
@@ -136,7 +139,8 @@ groups:
                 sum(jvm_memory_max_bytes{application="supremeai",area="heap"})
               refId: A
           - refId: C
-            datasourceUid: prometheus-supremeai
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: "__expr__"
             model:
               conditions:
                 - evaluator: { params: [0.75], type: gt }
@@ -175,7 +179,8 @@ groups:
               expr: up{job="supremeai-app"}
               refId: A
           - refId: C
-            datasourceUid: prometheus-supremeai
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: "__expr__"
             model:
               conditions:
                 - evaluator: { params: [1], type: lt }
@@ -209,7 +214,8 @@ groups:
                 supremeai_quota_remaining{} / supremeai_quota_total{} < 0.1
               refId: A
           - refId: C
-            datasourceUid: prometheus-supremeai
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: "__expr__"
             model:
               conditions:
                 - evaluator: { params: [0], type: gt }
@@ -242,7 +248,8 @@ groups:
               expr: supremeai_circuit_breaker_state{state="open"} == 1
               refId: A
           - refId: C
-            datasourceUid: prometheus-supremeai
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: "__expr__"
             model:
               conditions:
                 - evaluator: { params: [0], type: gt }
@@ -263,4 +270,5 @@ groups:
         noDataState: NoData
         execErrState: Error
         isPaused: false
+
 

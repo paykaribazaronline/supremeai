@@ -155,7 +155,7 @@ public class SystemLearningService {
             if (context != null) {
                 techniqueContext.putAll(context);
             }
-            techniqueContext.put("kind", "TECHNIQUE");
+            techniqueContext.putIfAbsent("kind", "TECHNIQUE");
             techniqueContext.put("summary", defaultString(summary, ""));
             techniqueContext.put("stepCount", steps == null ? 0 : steps.size());
 
@@ -225,6 +225,101 @@ public class SystemLearningService {
             .filter(learning -> "AI_MODEL_MEMORY".equals(normalizeCategory(learning.getCategory())))
             .filter(learning -> learning.getContext() != null)
             .filter(learning -> safeModel.equals(String.valueOf(learning.getContext().getOrDefault("model", "")).toLowerCase(Locale.ROOT)))
+            .sorted(Comparator.comparingLong(SystemLearning::getTimestamp).reversed())
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * Learn from any incident by storing:
+     * 1) error memory (what failed)
+     * 2) operational playbook (how to solve + prevent)
+     */
+    public Map<String, Object> learnFromIncident(String category,
+                                                 String problem,
+                                                 String rootCause,
+                                                 String fix,
+                                                 List<String> preventionChecks,
+                                                 Double confidenceScore,
+                                                 Map<String, Object> metadata) {
+        String safeCategory = normalizeCategory(category);
+        String safeProblem = defaultString(problem, "Unspecified incident");
+        String safeRootCause = defaultString(rootCause, "Root cause pending analysis");
+        String safeFix = defaultString(fix, "Fix pending implementation");
+        double safeConfidence = confidenceScore == null
+            ? 0.9
+            : Math.max(0.0, Math.min(1.0, confidenceScore));
+
+        List<String> safeChecks = preventionChecks == null
+            ? new ArrayList<>()
+            : preventionChecks.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .distinct()
+                .collect(Collectors.toList());
+
+        try {
+            // Preserve classic error memory path for backward compatibility.
+            recordError(safeCategory, safeProblem, null, safeFix);
+
+            Map<String, Object> context = new HashMap<>();
+            context.put("kind", "INCIDENT_PLAYBOOK");
+            context.put("problem", safeProblem);
+            context.put("rootCause", safeRootCause);
+            context.put("fix", safeFix);
+            context.put("preventionCheckCount", safeChecks.size());
+            context.put("timestamp", System.currentTimeMillis());
+            if (metadata != null) {
+                context.putAll(metadata);
+            }
+
+            List<String> playbookSteps = new ArrayList<>();
+            playbookSteps.add("Diagnose root cause: " + safeRootCause);
+            playbookSteps.add("Apply fix: " + safeFix);
+            for (String check : safeChecks) {
+                playbookSteps.add("Prevention check: " + check);
+            }
+
+            recordTechnique(
+                safeCategory,
+                "Incident Playbook: " + abbreviate(safeProblem, 100),
+                "Root cause: " + safeRootCause,
+                playbookSteps,
+                safeConfidence,
+                context
+            );
+
+            return Map.of(
+                "status", "success",
+                "category", safeCategory,
+                "problem", safeProblem,
+                "confidence", safeConfidence,
+                "preventionChecks", safeChecks.size(),
+                "timestamp", System.currentTimeMillis()
+            );
+        } catch (Exception e) {
+            logger.error("❌ Failed incident learning: {}", e.getMessage(), e);
+            return Map.of(
+                "status", "error",
+                "message", e.getMessage(),
+                "category", safeCategory,
+                "problem", safeProblem
+            );
+        }
+    }
+
+    /**
+     * Returns only incident playbooks (learned from real failures).
+     */
+    public List<SystemLearning> getIncidentPlaybooks(String category) {
+        String normalizedCategory = category == null || category.isBlank()
+            ? null
+            : normalizeCategory(category);
+
+        return learningsCache.values().stream()
+            .filter(this::isIncidentPlaybook)
+            .filter(learning -> normalizedCategory == null
+                || normalizedCategory.equals(normalizeCategory(learning.getCategory())))
             .sorted(Comparator.comparingLong(SystemLearning::getTimestamp).reversed())
             .collect(Collectors.toList());
     }
@@ -520,6 +615,10 @@ public class SystemLearningService {
 
     private boolean isTechnique(SystemLearning learning) {
         return learning.getContext() != null && "TECHNIQUE".equals(learning.getContext().get("kind"));
+    }
+
+    private boolean isIncidentPlaybook(SystemLearning learning) {
+        return learning.getContext() != null && "INCIDENT_PLAYBOOK".equals(learning.getContext().get("kind"));
     }
 
     private String higherSeverity(String current, String candidate) {

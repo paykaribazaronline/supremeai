@@ -1,0 +1,86 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "users": {
+      ".indexOn": ["username", "email"],
+      "$uid": {
+        ".read": "auth != null && ($uid === auth.uid || auth.token.admin === true)",
+        ".write": "auth != null && (auth.token.admin === true || ($uid === auth.uid && (!newData.child('isAdmin').exists() || newData.child('isAdmin').val() === false) && (!newData.child('role').exists() || newData.child('role').val() === 'user' || newData.child('role').val() === 'viewer' || newData.child('role').val() === 'member')))",
+
+        "isAdmin": {
+          ".write": "auth != null && auth.token.admin === true"
+        },
+        "role": {
+          ".write": "auth != null && auth.token.admin === true"
+        },
+        "permissions": {
+          ".write": "auth != null && auth.token.admin === true"
+        },
+        "password": {
+          ".read": "auth != null && auth.token.admin === true",
+          ".write": "auth != null && auth.token.admin === true"
+        },
+        "passwordHash": {
+          ".read": "auth != null && auth.token.admin === true",
+          ".write": "auth != null && auth.token.admin === true"
+        }
+      }
+    },
+
+    "notifications": {
+      "$notificationId": {
+        ".read": "auth != null && (data.child('recipient').val() === auth.uid || auth.token.admin === true)",
+        ".write": "auth != null && auth.token.admin === true"
+      }
+    },
+
+    "projects": {
+      "$projectId": {
+        ".read": "auth != null && auth.token.admin === true",
+        ".write": "auth != null && auth.token.admin === true"
+      }
+    },
+
+    "requirements": {
+      ".read": "auth != null && auth.token.admin === true",
+      ".write": "auth != null && auth.token.admin === true"
+    },
+
+    "config": {
+      ".read": "auth != null && auth.token.admin === true",
+      ".write": "auth != null && auth.token.admin === true"
+    },
+
+    "security": {
+      ".read": "auth != null && auth.token.admin === true",
+      ".write": "auth != null && auth.token.admin === true"
+    },
+
+    "intelligence": {
+      ".read": "auth != null && auth.token.admin === true",
+      ".write": "auth != null && auth.token.admin === true"
+    },
+
+    "evolution": {
+      ".read": "auth != null && auth.token.admin === true",
+      ".write": "auth != null && auth.token.admin === true"
+    },
+
+    "ai_dead_letter_queue": {
+      ".read": "auth != null && auth.token.admin === true",
+      ".write": "auth != null && auth.token.admin === true"
+    },
+
+    "system_learnings": {
+      ".read": "auth != null && auth.token.admin === true",
+      ".write": "auth != null && auth.token.admin === true"
+    },
+
+    "learnings": {
+      ".read": "auth != null && auth.token.admin === true",
+      ".write": "auth != null && auth.token.admin === true"
+    }
+  }
+}

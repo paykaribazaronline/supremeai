@@ -239,6 +239,60 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: 🔐 Validate Android signing secrets
+        run: |
+          missing=0
+          for key in ANDROID_KEYSTORE_BASE64 ANDROID_STORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            if [ -z "${!key}" ]; then
+              echo "❌ Missing required secret: $key"
+              missing=1
+            fi
+          done
+
+          if [ "$missing" -ne 0 ]; then
+            echo "Release signing secrets are required for deploy-android"
+            exit 1
+          fi
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: 🔐 Create Android keystore + properties
+        run: |
+          mkdir -p flutter_admin_app/android/keystore
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > flutter_admin_app/android/keystore/release-keystore.jks
+
+          cat > flutter_admin_app/android/keystore.properties <<EOF
+          storeFile=../keystore/release-keystore.jks
+          storePassword=$ANDROID_STORE_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          keyPassword=$ANDROID_KEY_PASSWORD
+          EOF
+
+          echo "✅ Android release signing files prepared"
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: ✅ Validate Android minSdk policy
+        run: |
+          min_sdk=$(grep -Eo 'minSdk\s*=\s*[0-9]+' flutter_admin_app/android/app/build.gradle.kts | head -1 | grep -Eo '[0-9]+')
+          if [ -z "$min_sdk" ]; then
+            echo "❌ Could not detect minSdk from build.gradle.kts"
+            exit 1
+          fi
+
+          if [ "$min_sdk" -lt 24 ]; then
+            echo "❌ minSdk policy violation: found $min_sdk, required >= 24"
+            exit 1
+          fi
+
+          echo "✅ minSdk validation passed: $min_sdk"
+
       - name: 📦 Install Flutter dependencies
         working-directory: flutter_admin_app
         run: flutter pub get
@@ -250,6 +304,8 @@ jobs:
           flutter build apk --release --no-pub --split-per-abi
           echo "✅ APK build completed"
           ls -lh build/app/outputs/flutter-apk/
+        env:
+          REQUIRE_RELEASE_SIGNING: 'true'
 
       - name: 📦 Build App Bundle (AAB)
         working-directory: flutter_admin_app
@@ -258,6 +314,8 @@ jobs:
           flutter build appbundle --release --no-pub
           echo "✅ AAB build completed"
           ls -lh build/app/outputs/bundle/release/
+        env:
+          REQUIRE_RELEASE_SIGNING: 'true'
 
       - name: 📤 Upload Android artifacts
         uses: actions/upload-artifact@v4
@@ -292,6 +350,7 @@ jobs:
   # ==========================================
   quality-checks:
     name: Code Quality & Notifications
+    needs: [flutter-build, deploy-firebase, deploy-android]
     runs-on: ubuntu-latest
     if: always()
     
@@ -317,6 +376,10 @@ jobs:
 
       - name: 📝 Generate Summary Report
         run: |
+          WEB_STATUS="${{ needs.flutter-build.result }}"
+          FIREBASE_STATUS="${{ needs.deploy-firebase.result }}"
+          ANDROID_STATUS="${{ needs.deploy-android.result }}"
+
           echo "## 🚀 Flutter CI/CD Pipeline Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Workflow:** Flutter Admin App CI/CD" >> $GITHUB_STEP_SUMMARY
@@ -326,8 +389,9 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### ✅ Build Status" >> $GITHUB_STEP_SUMMARY
           echo "- Flutter SDK: ${{ env.FLUTTER_VERSION }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Web Build: ✅ Completed" >> $GITHUB_STEP_SUMMARY
-          echo "- Android Build: ✅ Completed" >> $GITHUB_STEP_SUMMARY
+          echo "- Web Build Job: $WEB_STATUS" >> $GITHUB_STEP_SUMMARY
+          echo "- Firebase Deploy Job: $FIREBASE_STATUS" >> $GITHUB_STEP_SUMMARY
+          echo "- Android Build Job: $ANDROID_STATUS" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🔗 Deployment URLs" >> $GITHUB_STEP_SUMMARY
           echo "- **Live Web App:** https://supremeai-a.web.app/admin/" >> $GITHUB_STEP_SUMMARY

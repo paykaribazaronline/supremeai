@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../config/app_routes.dart';
 import '../../config/constants.dart';
 import '../../models/models.dart';
 import '../../providers/projects_provider.dart';
-import 'project_detail_screen.dart';
 
 class ProjectsListScreen extends StatefulWidget {
   const ProjectsListScreen({Key? key}) : super(key: key);
@@ -111,11 +111,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const ProjectDetailScreen(),
-            ),
-          );
+          Navigator.of(context).pushNamed(AppRoutes.projectNew);
         },
         backgroundColor: Color(AppConstants.primaryColor),
         child: const Icon(Icons.add),
@@ -214,10 +210,9 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
           ],
           onSelected: (value) {
             if (value == 'view' || value == 'edit') {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => ProjectDetailScreen(project: project),
-                ),
+              Navigator.of(context).pushNamed(
+                AppRoutes.projectDetail,
+                arguments: project,
               );
             } else if (value == 'delete') {
               _showDeleteConfirmation(context, project);
@@ -225,10 +220,9 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
           },
         ),
         onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => ProjectDetailScreen(project: project),
-            ),
+          Navigator.of(context).pushNamed(
+            AppRoutes.projectDetail,
+            arguments: project,
           );
         },
       ),

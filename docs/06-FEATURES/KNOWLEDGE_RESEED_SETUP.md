@@ -14,7 +14,7 @@ Purpose: make automatic knowledge reseeding run on every push through GitHub Act
 
 ## What Happens On Push
 
-Workflow file: [.github/workflows/knowledge-reseed.yml](.github/workflows/knowledge-reseed.yml)
+Workflow file: [.github/workflows/knowledge-reseed.yml](..\..\.github\workflows\knowledge-reseed.yml)
 
 On every push to `main`, `master`, `develop`, or `feature/**`:
 

@@ -284,12 +284,12 @@ java -jar build/libs/supremeai-3.6.jar
 
 | Document | Purpose |
 |----------|---------|
-| [ADMIN_DASHBOARD_IMPLEMENTATION_GUIDE.md](ADMIN_DASHBOARD_IMPLEMENTATION_GUIDE.md) | Complete admin guide with 26+ REST endpoints |
-| [ARCHITECTURE_AND_IMPLEMENTATION.md](ARCHITECTURE_AND_IMPLEMENTATION.md) | System design & implementation deep-dive |
-| [docs/02-ARCHITECTURE/](docs/02-ARCHITECTURE/) | Architecture documentation |
-| [docs/03-PHASES/](docs/03-PHASES/) | Phase reports (Phase 7-10) |
-| [docs/06-FEATURES/](docs/06-FEATURES/) | Feature documentation |
-| [CONFIG_QUICK_REFERENCE.md](CONFIG_QUICK_REFERENCE.md) | Configuration parameters |
+| [ADMIN_DASHBOARD_IMPLEMENTATION_GUIDE.md](..\04-ADMIN\ADMIN_DASHBOARD_IMPLEMENTATION_GUIDE.md) | Complete admin guide with 26+ REST endpoints |
+| [ARCHITECTURE_AND_IMPLEMENTATION.md](..\02-ARCHITECTURE\ARCHITECTURE_AND_IMPLEMENTATION.md) | System design & implementation deep-dive |
+| [docs/02-ARCHITECTURE/](..\02-ARCHITECTURE) | Architecture documentation |
+| [docs/03-PHASES/](..\03-PHASES) | Phase reports (Phase 7-10) |
+| [docs/06-FEATURES/](..\06-FEATURES) | Feature documentation |
+| [CONFIG_QUICK_REFERENCE.md](..\01-SETUP-DEPLOYMENT\CONFIG_QUICK_REFERENCE.md) | Configuration parameters |
 
 ---
 
@@ -365,7 +365,7 @@ POST   /api/routing/record-performance         - Log performance
 GET    /api/routing/metrics                    - Dashboard data
 ```
 
-See [ADMIN_DASHBOARD_IMPLEMENTATION_GUIDE.md](ADMIN_DASHBOARD_IMPLEMENTATION_GUIDE.md) for complete API details.
+See [ADMIN_DASHBOARD_IMPLEMENTATION_GUIDE.md](..\04-ADMIN\ADMIN_DASHBOARD_IMPLEMENTATION_GUIDE.md) for complete API details.
 
 ---
 
@@ -507,7 +507,7 @@ See docs/01-SETUP-DEPLOYMENT/AZURE_DEPLOYMENT.md
 
 ## 📄 License
 
-This project is licensed under the MIT License - see [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see [LICENSE](..\..\LICENSE) file for details.
 
 ---
 

@@ -38,9 +38,9 @@ If any of these are missing, SupremeAI should infer carefully and mark assumptio
 
 Use the consensus and orchestration layers already in this repo:
 
-- [src/main/java/org/example/service/MultiAIConsensusService.java](src/main/java/org/example/service/MultiAIConsensusService.java)
-- [src/main/java/org/example/service/RequirementAnalyzer.java](src/main/java/org/example/service/RequirementAnalyzer.java)
-- [src/main/java/org/example/service/CodeGenerationOrchestrator.java](src/main/java/org/example/service/CodeGenerationOrchestrator.java)
+- [src/main/java/org/example/service/MultiAIConsensusService.java](..\..\src\main\java\org\example\service\MultiAIConsensusService.java)
+- [src/main/java/org/example/service/RequirementAnalyzer.java](..\..\src\main\java\org\example\service\RequirementAnalyzer.java)
+- [src/main/java/org/example/service/CodeGenerationOrchestrator.java](..\..\src\main\java\org\example\service\CodeGenerationOrchestrator.java)
 
 Architecture selection should answer:
 
@@ -64,9 +64,9 @@ Use the repo's stable pattern:
 
 Relevant implementation points:
 
-- [src/main/java/org/example/service/CodeGenerator.java](src/main/java/org/example/service/CodeGenerator.java)
-- [src/main/java/org/example/service/SelfExtender.java](src/main/java/org/example/service/SelfExtender.java)
-- [src/main/java/org/example/service/SystemLearningService.java](src/main/java/org/example/service/SystemLearningService.java)
+- [src/main/java/org/example/service/CodeGenerator.java](..\..\src\main\java\org\example\service\CodeGenerator.java)
+- [src/main/java/org/example/service/SelfExtender.java](..\..\src\main\java\org\example\service\SelfExtender.java)
+- [src/main/java/org/example/service/SystemLearningService.java](..\..\src\main\java\org\example\service\SystemLearningService.java)
 
 For each feature, SupremeAI should generate in this order:
 
@@ -90,7 +90,7 @@ SupremeAI should apply these rules while generating code:
 - never expose setup endpoints without token protection
 - never assume success only from exit code
 
-These rules are already documented in [COMMON_MISTAKES.md](COMMON_MISTAKES.md).
+These rules are already documented in [COMMON_MISTAKES.md](..\09-TROUBLESHOOTING\COMMON_MISTAKES.md).
 
 ### Step 5: Validate before declaring success
 
@@ -103,9 +103,9 @@ Every generated app must pass four gates:
 
 Useful services already present:
 
-- [src/main/java/org/example/service/CodeValidationService.java](src/main/java/org/example/service/CodeValidationService.java)
-- [src/main/java/org/example/service/GitHubActionsErrorParser.java](src/main/java/org/example/service/GitHubActionsErrorParser.java)
-- [src/main/java/org/example/service/AutoFixLoopService.java](src/main/java/org/example/service/AutoFixLoopService.java)
+- [src/main/java/org/example/service/CodeValidationService.java](..\..\src\main\java\org\example\service\CodeValidationService.java)
+- [src/main/java/org/example/service/GitHubActionsErrorParser.java](..\..\src\main\java\org\example\service\GitHubActionsErrorParser.java)
+- [src/main/java/org/example/service/AutoFixLoopService.java](..\..\src\main\java\org\example\service\AutoFixLoopService.java)
 
 ### Step 6: Record what worked
 
@@ -119,7 +119,7 @@ After success, SupremeAI should store:
 - verification evidence
 - confidence score for reuse
 
-That learning belongs in [src/main/java/org/example/service/SystemLearningService.java](src/main/java/org/example/service/SystemLearningService.java).
+That learning belongs in [src/main/java/org/example/service/SystemLearningService.java](..\..\src\main\java\org\example\service\SystemLearningService.java).
 
 ---
 
@@ -152,7 +152,7 @@ If any step is skipped, the system is guessing.
 - external API error
 - logic regression
 
-SupremeAI already has a parser entry point for this in [src/main/java/org/example/service/GitHubActionsErrorParser.java](src/main/java/org/example/service/GitHubActionsErrorParser.java).
+SupremeAI already has a parser entry point for this in [src/main/java/org/example/service/GitHubActionsErrorParser.java](..\..\src\main\java\org\example\service\GitHubActionsErrorParser.java).
 
 ### Root-cause questions GPT-5.4 must answer
 
@@ -300,14 +300,14 @@ Use this internal behavior contract when SupremeAI receives a task.
 
 Use these components together:
 
-- requirement understanding: [src/main/java/org/example/service/RequirementAnalyzer.java](src/main/java/org/example/service/RequirementAnalyzer.java)
-- code generation: [src/main/java/org/example/service/CodeGenerator.java](src/main/java/org/example/service/CodeGenerator.java)
-- self-extension: [src/main/java/org/example/service/SelfExtender.java](src/main/java/org/example/service/SelfExtender.java)
-- consensus: [src/main/java/org/example/service/MultiAIConsensusService.java](src/main/java/org/example/service/MultiAIConsensusService.java)
-- validation: [src/main/java/org/example/service/CodeValidationService.java](src/main/java/org/example/service/CodeValidationService.java)
-- auto-fix loop: [src/main/java/org/example/service/AutoFixLoopService.java](src/main/java/org/example/service/AutoFixLoopService.java)
-- error parsing: [src/main/java/org/example/service/GitHubActionsErrorParser.java](src/main/java/org/example/service/GitHubActionsErrorParser.java)
-- learning memory: [src/main/java/org/example/service/SystemLearningService.java](src/main/java/org/example/service/SystemLearningService.java)
+- requirement understanding: [src/main/java/org/example/service/RequirementAnalyzer.java](..\..\src\main\java\org\example\service\RequirementAnalyzer.java)
+- code generation: [src/main/java/org/example/service/CodeGenerator.java](..\..\src\main\java\org\example\service\CodeGenerator.java)
+- self-extension: [src/main/java/org/example/service/SelfExtender.java](..\..\src\main\java\org\example\service\SelfExtender.java)
+- consensus: [src/main/java/org/example/service/MultiAIConsensusService.java](..\..\src\main\java\org\example\service\MultiAIConsensusService.java)
+- validation: [src/main/java/org/example/service/CodeValidationService.java](..\..\src\main\java\org\example\service\CodeValidationService.java)
+- auto-fix loop: [src/main/java/org/example/service/AutoFixLoopService.java](..\..\src\main\java\org\example\service\AutoFixLoopService.java)
+- error parsing: [src/main/java/org/example/service/GitHubActionsErrorParser.java](..\..\src\main\java\org\example\service\GitHubActionsErrorParser.java)
+- learning memory: [src/main/java/org/example/service/SystemLearningService.java](..\..\src\main\java\org\example\service\SystemLearningService.java)
 
 This is the core execution chain:
 

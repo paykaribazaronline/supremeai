@@ -108,4 +108,4 @@ Follow-up ADRs:
 
 ---
 
-*See [ADMIN_CONTROL_COMPLETE_GUIDE.md](../../ADMIN_CONTROL_COMPLETE_GUIDE.md) for full implementation guide.*
+*See [ADMIN_CONTROL_COMPLETE_GUIDE.md](..\04-ADMIN\ADMIN_CONTROL_COMPLETE_GUIDE.md) for full implementation guide.*

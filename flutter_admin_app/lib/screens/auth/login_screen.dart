@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../config/app_routes.dart';
 import '../../config/constants.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/validators.dart';
@@ -36,7 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       if (success) {
-        Navigator.of(context).pushReplacementNamed('/home');
+        Navigator.of(context).pushReplacementNamed(AppRoutes.home);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -234,7 +235,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Text('Don\'t have an account? '),
                   TextButton(
                     onPressed: () {
-                      Navigator.of(context).pushNamed('/register');
+                      Navigator.of(context).pushNamed(AppRoutes.register);
                     },
                     child: const Text('Register here'),
                   ),

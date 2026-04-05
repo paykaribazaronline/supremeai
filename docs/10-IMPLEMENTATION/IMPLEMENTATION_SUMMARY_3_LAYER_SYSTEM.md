@@ -274,7 +274,7 @@ Edit `.github/workflows/docs-lint-fix.yml`, job `lint-fix`, step "Commit & push 
 ## 📚 Documentation
 
 **Complete system documentation:**  
-[`.github/3-LAYER_DOCUMENTATION_SYSTEM.md`](.github/3-LAYER_DOCUMENTATION_SYSTEM.md)
+[`.github/3-LAYER_DOCUMENTATION_SYSTEM.md`](..\..\.github\3-LAYER_DOCUMENTATION_SYSTEM.md)
 
 **Topics covered:**
 
@@ -320,7 +320,7 @@ Edit `.github/workflows/docs-lint-fix.yml`, job `lint-fix`, step "Commit & push 
 
 **For detailed help:**
 
-- See: [`.github/3-LAYER_DOCUMENTATION_SYSTEM.md`](.github/3-LAYER_DOCUMENTATION_SYSTEM.md)
+- See: [`.github/3-LAYER_DOCUMENTATION_SYSTEM.md`](..\..\.github\3-LAYER_DOCUMENTATION_SYSTEM.md)
 - Section: "🐛 Troubleshooting"
 
 ---

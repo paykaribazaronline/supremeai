@@ -4,7 +4,7 @@ Thank you for your interest in contributing to SupremeAI! This document explains
 
 ## 🤝 Code of Conduct
 
-We are committed to providing a welcoming and inspiring community for all. Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
+We are committed to providing a welcoming and inspiring community for all. Please read and follow our [Code of Conduct](..\..\CODE_OF_CONDUCT.md).
 
 ---
 
@@ -152,7 +152,7 @@ public Map<String, Object> detectAnomalies(String metricName, List<Double> value
 
 ### Bug Report
 
-Use the [Bug Report Template](.github/ISSUE_TEMPLATE/bug_report.md):
+Use the [Bug Report Template](..\..\.github\ISSUE_TEMPLATE\bug_report.md):
 
 - **Title:** [BUG] Brief description
 - **Agent:** Specify which agent (X-Builder/Y-Reviewer/Z-Architect)
@@ -162,7 +162,7 @@ Use the [Bug Report Template](.github/ISSUE_TEMPLATE/bug_report.md):
 
 ### Feature Request
 
-Use the [Feature Request Template](.github/ISSUE_TEMPLATE/feature_request.md):
+Use the [Feature Request Template](..\..\.github\ISSUE_TEMPLATE\feature_request.md):
 
 - **Title:** [FEATURE] Brief description
 - **Use Case:** Why this feature is needed
@@ -184,7 +184,7 @@ Use the [Feature Request Template](.github/ISSUE_TEMPLATE/feature_request.md):
 
 ### Contributing to a Phase
 
-1. Check [Phase Roadmap](PROJECT_ROADMAP.md)
+1. Check [Phase Roadmap](..\02-ARCHITECTURE\PROJECT_ROADMAP.md)
 2. Verify no one else is working on the same task
 3. Comment on related issue: "I'm working on this"
 4. Create feature branch: `feature/phase-X/your-task`

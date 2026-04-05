@@ -360,10 +360,10 @@ find . -name "*.md" -exec git add {} \;
 
 ## 📞 Documentation
 
-- **Main Documentation:** [`.github/3-LAYER_DOCUMENTATION_SYSTEM.md`](.github/3-LAYER_DOCUMENTATION_SYSTEM.md)
-- **Configuration:** [`.markdownlint.json`](.markdownlint.json)
-- **Script:** [`.github/scripts/doc-maintenance.sh`](.github/scripts/doc-maintenance.sh)
-- **Workflow:** [`.github/workflows/docs-lint-fix.yml`](.github/workflows/docs-lint-fix.yml)
+- **Main Documentation:** [`.github/3-LAYER_DOCUMENTATION_SYSTEM.md`](..\..\.github\3-LAYER_DOCUMENTATION_SYSTEM.md)
+- **Configuration:** [`.markdownlint.json`](..\..\.markdownlint.json)
+- **Script:** [`.github/scripts/doc-maintenance.sh`](..\..\.github\scripts\doc-maintenance.sh)
+- **Workflow:** [`.github/workflows/docs-lint-fix.yml`](..\..\.github\workflows\docs-lint-fix.yml)
 
 ---
 

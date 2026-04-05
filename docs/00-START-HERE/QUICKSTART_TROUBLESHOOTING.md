@@ -590,10 +590,10 @@ When reporting issues, include:
 ```
 Documentation: See *.md files in workspace root
   - README.md: Overview
-  - PHASE1_SETUP.md: Step-by-step setup
-  - PHASE1_ARCHITECTURE.md: Design details
-  - SECURITY_GUIDE.md: Security implementation
-  - PRODUCTION_READINESS.md: Production checklist
+  - docs/00-START-HERE/QUICK_START_5MIN.md: Step-by-step setup
+  - docs/02-ARCHITECTURE/ARCHITECTURE_AND_IMPLEMENTATION.md: Design details
+  - docs/05-AUTHENTICATION-SECURITY/SECURITY_GUIDE.md: Security implementation
+  - docs/10-IMPLEMENTATION/PRODUCTION_READINESS.md: Production checklist
 
 Code Examples:
   - src/main/java/org/example/Main.java: Entry point
@@ -680,7 +680,7 @@ java -cp build\classes\java\main org.example.Main  # Direct execution
 
 **Quick Links:**
 
-- [Full Documentation](README.md)
-- [Architecture Guide](PHASE1_ARCHITECTURE.md)
-- [Security Guide](SECURITY_GUIDE.md)
-- [Production Readiness](PRODUCTION_READINESS.md)
+- [Full Documentation](..\..\README.md)
+- [Architecture Guide](../02-ARCHITECTURE/ARCHITECTURE_AND_IMPLEMENTATION.md)
+- [Security Guide](../05-AUTHENTICATION-SECURITY/SECURITY_GUIDE.md)
+- [Production Readiness](../10-IMPLEMENTATION/PRODUCTION_READINESS.md)

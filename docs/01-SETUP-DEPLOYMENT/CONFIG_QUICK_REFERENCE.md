@@ -1,6 +1,6 @@
 # 👉 Configuration Quick Reference
 
-**Master Location:** [configs/CONFIG_QUICK_REFERENCE.md](../../CONFIG_QUICK_REFERENCE.md) (root)
+**Master Location:** [configs/CONFIG_QUICK_REFERENCE.md](CONFIG_QUICK_REFERENCE.md) (root)
 
 This is the same content - kept in root for easy access during setup.
 
@@ -23,4 +23,4 @@ nano .env    # Terminal editor
 # ✅ Loaded environment file: .env
 ```
 
-See [full configuration guide](../../CONFIG_QUICK_REFERENCE.md) at root level.
+See [full configuration guide](CONFIG_QUICK_REFERENCE.md) at root level.

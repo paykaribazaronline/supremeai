@@ -499,9 +499,9 @@ Audit trail recorded
 
 ### Documentation
 
-- [Admin Dashboard Implementation Guide](ADMIN_DASHBOARD_IMPLEMENTATION_GUIDE.md)
-- [Architecture and Implementation](ARCHITECTURE_AND_IMPLEMENTATION.md)
-- [README (Updated)](README_UPDATED.md)
+- [Admin Dashboard Implementation Guide](..\04-ADMIN\ADMIN_DASHBOARD_IMPLEMENTATION_GUIDE.md)
+- [Architecture and Implementation](..\02-ARCHITECTURE\ARCHITECTURE_AND_IMPLEMENTATION.md)
+- [README (Updated)](..\13-REPORTS\README_UPDATED.md)
 
 ### API Endpoints
 

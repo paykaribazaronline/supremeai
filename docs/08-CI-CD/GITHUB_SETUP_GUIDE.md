@@ -260,11 +260,11 @@ Your repository already has:
 - **Documentation:** Complete (48+ files)
 
 ### Installation
-See [QUICK_START_5MIN.md](QUICK_START_5MIN.md) or [README.md](README.md)
+See [QUICK_START_5MIN.md](..\00-START-HERE\QUICK_START_5MIN.md) or [README.md](..\..\README.md)
 
 ### Security
 Report vulnerabilities to security (at) supremeai.dev
-See [SECURITY.md](SECURITY.md) for full disclosure procedures.
+See [SECURITY.md](..\05-AUTHENTICATION-SECURITY\SECURITY.md) for full disclosure procedures.
 ```
 
 1. ✅ **Set as the latest release**

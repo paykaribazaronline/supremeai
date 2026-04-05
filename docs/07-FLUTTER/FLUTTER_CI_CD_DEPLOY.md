@@ -11,8 +11,8 @@ Your Flutter Admin app now has a complete, end-to-end automated deployment pipel
 | Document | Purpose | Time |
 |----------|---------|------|
 | **[FLUTTER_QUICKSTART.md](FLUTTER_QUICKSTART.md)** ⭐ | **START HERE** - Complete setup in 5 minutes | 5 min |
-| **[GITHUB_SECRETS_SETUP.md](GITHUB_SECRETS_SETUP.md)** | Configure GitHub Secrets for authentication | 2 min |
-| **[CI_CD_AUTOMATION.md](flutter_admin_app/CI_CD_AUTOMATION.md)** | Detailed pipeline architecture & troubleshooting | 10 min |
+| **[GITHUB_SECRETS_SETUP.md](..\08-CI-CD\GITHUB_SECRETS_SETUP.md)** | Configure GitHub Secrets for authentication | 2 min |
+| **[CI_CD_AUTOMATION.md](..\..\flutter_admin_app\CI_CD_AUTOMATION.md)** | Detailed pipeline architecture & troubleshooting | 10 min |
 
 ---
 
@@ -52,11 +52,13 @@ Phase 4: Quality Reports & Notifications
 ### 1️⃣ Run Setup Script (2 min)
 
 **Windows:**
+
 ```powershell
 .\setup-flutter-cicd.ps1
 ```
 
 **macOS/Linux:**
+
 ```bash
 ./setup-flutter-cicd.sh
 chmod +x setup-flutter-cicd.sh
@@ -80,11 +82,13 @@ firebase login:ci
 ### 4️⃣ Verify Setup (1 min)
 
 **Windows:**
+
 ```powershell
 .\verify-flutter-deployment.ps1
 ```
 
 **macOS/Linux:**
+
 ```bash
 ./verify-flutter-deployment.sh
 ```
@@ -101,18 +105,20 @@ gh run watch
 
 ---
 
-## 🎉 That's It!
+## 🎉 That's It
 
 Once setup is complete, **you never have to manually deploy again**:
 
-### Every push to main automatically:
+### Every push to main automatically
+
 - ✅ Builds the app
 - ✅ Runs tests
 - ✅ Deploys to Firebase
 - ✅ Creates Android builds
 - ✅ Posts status on GitHub
 
-### Your team gets:
+### Your team gets
+
 - 🔔 Automatic GitHub notifications
 - 📊 Code quality reports
 - 📱 APK ready to test on Android
@@ -123,21 +129,25 @@ Once setup is complete, **you never have to manually deploy again**:
 ## 📋 What's Included
 
 ### GitHub Actions Workflow
+
 ```
 .github/workflows/flutter-ci-cd.yml
 ```
+
 - ✅ 4-stage pipeline
 - ✅ Parallel execution for speed
 - ✅ Comprehensive error handling
 - ✅ Automatic notifications
 
 ### Firebase Configuration
+
 ```
 firebase.json            - Multi-target hosting config
 .firebaserc             - Project & credential mapping
 ```
 
 ### Setup & Verification Scripts
+
 ```
 setup-flutter-cicd.sh   - Linux/Mac installer
 setup-flutter-cicd.ps1  - Windows installer
@@ -146,6 +156,7 @@ verify-flutter-deployment.ps1   - Windows pre-deployment checker
 ```
 
 ### Complete Documentation
+
 ```
 FLUTTER_QUICKSTART.md                           - ⭐ START HERE
 GITHUB_SECRETS_SETUP.md                         - Secrets guide
@@ -157,6 +168,7 @@ flutter_admin_app/CI_CD_AUTOMATION.md           - Detailed docs
 ## 🔍 Monitor Your Deployments
 
 ### Real-Time in Terminal
+
 ```bash
 # Watch current workflow
 gh run watch
@@ -166,11 +178,13 @@ gh run list --workflow=flutter-ci-cd.yml
 ```
 
 ### In GitHub UI
+
 - https://github.com/your-username/supremeai/actions
 - Click the latest "Flutter Admin App - Build & Deploy"
 - Watch each stage complete
 
 ### Live Website
+
 - https://supremeai-a.web.app/admin/
 - Fresh deployment within ~12 minutes of push
 
@@ -186,7 +200,7 @@ gh run list --workflow=flutter-ci-cd.yml
 | **Slow builds** | First build takes longer (2-3 min), subsequent ~1-2 min |
 | **APK not building** | Ensure Java 17+ is installed on runner |
 
-See **[GITHUB_SECRETS_SETUP.md](GITHUB_SECRETS_SETUP.md)** for detailed troubleshooting.
+See **[GITHUB_SECRETS_SETUP.md](..\08-CI-CD\GITHUB_SECRETS_SETUP.md)** for detailed troubleshooting.
 
 ---
 
@@ -207,12 +221,14 @@ See **[GITHUB_SECRETS_SETUP.md](GITHUB_SECRETS_SETUP.md)** for detailed troubles
 ## 🔐 Security
 
 ### Secrets Management
+
 - ✅ `FIREBASE_TOKEN` stored securely in GitHub
 - ✅ Never logged or exposed in build output
 - ✅ Automatically rotated by Firebase
 - ✅ Isolated per repository
 
 ### Code & Deployments
+
 - ✅ All code reviewed before deployment
 - ✅ Tests run automatically before deployment
 - ✅ Only main branch triggers production
@@ -224,6 +240,7 @@ See **[GITHUB_SECRETS_SETUP.md](GITHUB_SECRETS_SETUP.md)** for detailed troubles
 ## 🎓 How It Works (Technical Details)
 
 ### Trigger Events
+
 ```yaml
 - Push to main or develop branches
 - Pull requests to main or develop
@@ -232,6 +249,7 @@ See **[GITHUB_SECRETS_SETUP.md](GITHUB_SECRETS_SETUP.md)** for detailed troubles
 ```
 
 ### Build Stages Overview
+
 ```
 1. flutter pub get          # Install dependencies
 2. flutter analyze          # Static analysis
@@ -244,6 +262,7 @@ See **[GITHUB_SECRETS_SETUP.md](GITHUB_SECRETS_SETUP.md)** for detailed troubles
 ```
 
 ### Deployment Targets
+
 ```
 Main Branch    → Firebase Hosting (flutter-admin)
 Develop Branch → Builds only (doesn't deploy)
@@ -255,23 +274,28 @@ PR Branches    → Builds & tests (doesn't deploy)
 ## 🚀 Advanced Features
 
 ### Custom Domain for Web App
+
 1. Firebase Console → Hosting
 2. Add custom domain
 3. Update DNS records
 4. Done! App accessible at your domain
 
 ### Release to Google Play
+
 1. Configure Play Store keys (future phase)
 2. Workflow uploads AAB automatically
 3. Appears on Play Store after review
 
 ### Beta Testing Track
+
 1. Create `beta` branch
 2. Update workflow for different Firebase target
 3. Users can opt into beta channel
 
 ### Slack Notifications (Optional)
+
 Add GitHub Action to post to Slack:
+
 ```yaml
 - uses: slackapi/slack-github-action@v1
   with:
@@ -283,16 +307,19 @@ Add GitHub Action to post to Slack:
 ## 📚 Documentation Index
 
 ### For Setup
+
 - ⭐ **[FLUTTER_QUICKSTART.md](FLUTTER_QUICKSTART.md)** - Must read first
-- [GITHUB_SECRETS_SETUP.md](GITHUB_SECRETS_SETUP.md) - Secrets configuration
+- [GITHUB_SECRETS_SETUP.md](..\08-CI-CD\GITHUB_SECRETS_SETUP.md) - Secrets configuration
 
 ### For Development
-- [flutter_admin_app/SETUP_GUIDE.md](flutter_admin_app/SETUP_GUIDE.md) - App development
-- [flutter_admin_app/CONFIGURATION.md](flutter_admin_app/CONFIGURATION.md) - App config
+
+- [flutter_admin_app/SETUP_GUIDE.md](..\..\flutter_admin_app\SETUP_GUIDE.md) - App development
+- [flutter_admin_app/CONFIGURATION.md](..\..\flutter_admin_app\CONFIGURATION.md) - App config
 
 ### For Operations
-- [flutter_admin_app/CI_CD_AUTOMATION.md](flutter_admin_app/CI_CD_AUTOMATION.md) - Pipeline details
-- [DEPLOYMENT_QUICK_REFERENCE.md](DEPLOYMENT_QUICK_REFERENCE.md) - Quick reference
+
+- [flutter_admin_app/CI_CD_AUTOMATION.md](..\..\flutter_admin_app\CI_CD_AUTOMATION.md) - Pipeline details
+- [DEPLOYMENT_QUICK_REFERENCE.md](..\01-SETUP-DEPLOYMENT\DEPLOYMENT_QUICK_REFERENCE.md) - Quick reference
 
 ---
 
@@ -337,22 +364,25 @@ Before pushing to main:
 
 1. **Check the docs:** Start with [FLUTTER_QUICKSTART.md](FLUTTER_QUICKSTART.md)
 2. **Review logs:** GitHub Actions → Workflow run → Step output
-3. **Troubleshoot:** See [GITHUB_SECRETS_SETUP.md](GITHUB_SECRETS_SETUP.md)
+3. **Troubleshoot:** See [GITHUB_SECRETS_SETUP.md](..\08-CI-CD\GITHUB_SECRETS_SETUP.md)
 
 ---
 
 ## 🎉 Next Steps
 
 **Right now:**
+
 1. Read [FLUTTER_QUICKSTART.md](FLUTTER_QUICKSTART.md)
 2. Run the setup script for your OS
 3. Add GitHub FIREBASE_TOKEN secret
 4. Push to main and watch it deploy! 🚀
 
 **Within 10 minutes:**
+
 - Your app is live at https://supremeai-a.web.app/admin/
 
 **From now on:**
+
 - Every push auto-deploys
 - No manual work needed
 - Your team gets automatic notifications

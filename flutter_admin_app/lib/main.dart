@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'config/app_routes.dart';
 import 'config/constants.dart';
 import 'firebase_options.dart';
+import 'models/models.dart';
 import 'services/storage_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/projects_provider.dart';
 import 'providers/metrics_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
+import 'screens/projects/project_detail_screen.dart';
+import 'screens/projects/projects_list_screen.dart';
+import 'screens/metrics_screen.dart';
+import 'screens/settings_screen.dart';
 import 'screens/unified_admin/unified_admin_screen.dart';
 
 void main() async {
@@ -43,6 +49,26 @@ void main() async {
 
 class SupremeAIAdminApp extends StatelessWidget {
   const SupremeAIAdminApp({Key? key}) : super(key: key);
+
+  Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case AppRoutes.projectDetail:
+        final project = settings.arguments as Project?;
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => ProjectDetailScreen(project: project),
+        );
+      default:
+        return null;
+    }
+  }
+
+  Route<dynamic> _onUnknownRoute(RouteSettings settings) {
+    return MaterialPageRoute(
+      settings: settings,
+      builder: (_) => const LoginScreen(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,10 +132,16 @@ class SupremeAIAdminApp extends StatelessWidget {
       themeMode: ThemeMode.light,
       home: const SplashScreen(),
       routes: {
-        '/login': (context) => const LoginScreen(),
-        '/register': (context) => const RegisterScreen(),
-        '/home': (context) => const UnifiedAdminScreen(),
+        AppRoutes.login: (context) => const LoginScreen(),
+        AppRoutes.register: (context) => const RegisterScreen(),
+        AppRoutes.home: (context) => const UnifiedAdminScreen(),
+        AppRoutes.projects: (context) => const ProjectsListScreen(),
+        AppRoutes.projectNew: (context) => const ProjectDetailScreen(),
+        AppRoutes.metrics: (context) => const MetricsScreen(),
+        AppRoutes.settings: (context) => const SettingsScreen(),
       },
+      onGenerateRoute: _onGenerateRoute,
+      onUnknownRoute: _onUnknownRoute,
       debugShowCheckedModeBanner: false,
     );
   }
@@ -135,7 +167,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (!mounted) return;
 
-    Navigator.of(context).pushReplacementNamed('/home');
+    Navigator.of(context).pushReplacementNamed(AppRoutes.home);
   }
 
   @override

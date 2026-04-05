@@ -391,7 +391,7 @@ ML model is learning. If frequent:
 
 - [PHOENIX_IMPLEMENTATION.md](PHOENIX_IMPLEMENTATION.md) - Complete guide
 - [SELF_HEALING_SELF_IMPROVING_SYSTEM.md](SELF_HEALING_SELF_IMPROVING_SYSTEM.md) - 1500+ line architecture
-- [.github/workflows/self-healing-cicd.yml](.github/workflows/self-healing-cicd.yml) - Automated pipeline
+- [.github/workflows/cicd-production.yml](../../.github/workflows/cicd-production.yml) - Automated pipeline
 
 **Video Walkthroughs (To Create):**
 

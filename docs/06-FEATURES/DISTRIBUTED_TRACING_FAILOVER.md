@@ -358,9 +358,9 @@ Recovery: Automatic after 30s or manual reset
 
 ## Related Documentation
 
-- [Architecture](../docs/02-ARCHITECTURE/)
-- [Monitoring](../docs/)
-- [Admin Dashboard](admin/index.html)
+- [Architecture](../02-ARCHITECTURE/)
+- [Monitoring](../README.md)
+- [Admin Dashboard](../../public/admin-console.html)
 
 ---
 

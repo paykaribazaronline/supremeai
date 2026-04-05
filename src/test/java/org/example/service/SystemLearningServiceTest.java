@@ -89,4 +89,29 @@ class SystemLearningServiceTest {
         assertEquals(1L, byCategory.get("ADMIN"));
         assertEquals(1L, byCategory.get("QUOTA"));
     }
+
+    @Test
+    void learnFromIncident_recordsErrorAndIncidentPlaybook() {
+        SystemLearningService service = new SystemLearningService();
+
+        Map<String, Object> result = service.learnFromIncident(
+            "SECURITY",
+            "Any authenticated user can read all records",
+            "Root rules were auth != null",
+            "Set root deny and per-path authorization",
+            List.of("Test unauth read denied", "Test non-admin denied on admin paths"),
+            0.97,
+            Map.of("environment", "prod")
+        );
+
+        assertEquals("success", result.get("status"));
+        assertEquals("SECURITY", result.get("category"));
+
+        List<SystemLearning> incidents = service.getIncidentPlaybooks("security");
+        assertEquals(1, incidents.size());
+        assertTrue(incidents.get(0).getContent().startsWith("Incident Playbook:"));
+
+        List<String> solutions = service.getSolutionsFor("SECURITY");
+        assertTrue(solutions.contains("Set root deny and per-path authorization"));
+    }
 }

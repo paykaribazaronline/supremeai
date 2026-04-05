@@ -156,6 +156,98 @@ public class SystemLearningController {
     }
 
     /**
+     * GET /api/learning/incidents or /api/learning/incidents/{category}
+     * Return incident-derived playbooks (root cause + fix + prevention checks).
+     */
+    @GetMapping({"/incidents", "/incidents/{category}"})
+    public ResponseEntity<?> getIncidentPlaybooks(
+            @PathVariable(required = false) String category,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            User user = authenticate(authHeader);
+
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("status", "error", "message", "Auth required"));
+            }
+
+            List<SystemLearning> incidents = learningService.getIncidentPlaybooks(category);
+            return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "category", category == null ? "ALL" : category,
+                "incidents", incidents,
+                "count", incidents.size(),
+                "timestamp", System.currentTimeMillis()
+            ));
+        } catch (Exception e) {
+            logger.error("❌ Incident list error: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("status", "error", "message", e.getMessage()));
+        }
+    }
+
+    /**
+     * POST /api/learning/incident
+     * Learn from any production/dev incident in a structured format.
+     */
+    @PostMapping("/incident")
+    public ResponseEntity<?> learnIncident(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestBody Map<String, Object> request) {
+        try {
+            User user = authenticate(authHeader);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("status", "error", "message", "Auth required"));
+            }
+
+            String category = String.valueOf(request.getOrDefault("category", "GENERAL"));
+            String problem = String.valueOf(request.getOrDefault("problem", "Unspecified incident"));
+            String rootCause = String.valueOf(request.getOrDefault("rootCause", "Root cause pending analysis"));
+            String fix = String.valueOf(request.getOrDefault("fix", "Fix pending implementation"));
+
+            @SuppressWarnings("unchecked")
+            List<String> preventionChecks = request.get("preventionChecks") instanceof List
+                ? ((List<Object>) request.get("preventionChecks")).stream().map(String::valueOf).toList()
+                : List.of();
+
+            Double confidence = null;
+            Object confidenceRaw = request.get("confidenceScore");
+            if (confidenceRaw instanceof Number) {
+                confidence = ((Number) confidenceRaw).doubleValue();
+            } else if (confidenceRaw instanceof String && !((String) confidenceRaw).isBlank()) {
+                confidence = Double.parseDouble((String) confidenceRaw);
+            }
+
+            Map<String, Object> metadata = new HashMap<>();
+            metadata.put("reportedBy", user.getUsername());
+            metadata.put("source", "api/learning/incident");
+            metadata.put("reportedAt", System.currentTimeMillis());
+
+            Object metadataRaw = request.get("metadata");
+            if (metadataRaw instanceof Map<?, ?> rawMap) {
+                rawMap.forEach((k, v) -> metadata.put(String.valueOf(k), v));
+            }
+
+            Map<String, Object> result = learningService.learnFromIncident(
+                category,
+                problem,
+                rootCause,
+                fix,
+                preventionChecks,
+                confidence,
+                metadata
+            );
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            logger.error("❌ Incident learning error: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("status", "error", "message", e.getMessage()));
+        }
+    }
+
+    /**
      * POST /api/learning/reseed
      * Reseed all knowledge from backend seeders.
      */
