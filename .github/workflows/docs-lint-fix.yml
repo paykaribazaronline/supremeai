@@ -45,7 +45,12 @@ jobs:
       - name: 📍 Make maintenance script executable
         run: |
           chmod +x .github/scripts/doc-maintenance.sh
+          chmod +x .github/scripts/enforce-doc-layout.sh
           echo "✅ Script ready for execution"
+
+      - name: 🧹 Enforce root docs layout (check)
+        run: |
+          ./.github/scripts/enforce-doc-layout.sh check
 
       - name: 🔍 Scan using 3-Layer System
         id: scan
@@ -123,7 +128,12 @@ jobs:
       - name: 📍 Make maintenance script executable
         run: |
           chmod +x .github/scripts/doc-maintenance.sh
+          chmod +x .github/scripts/enforce-doc-layout.sh
           echo "✅ Script ready for execution"
+
+      - name: 🧹 Enforce root docs layout (auto-fix)
+        run: |
+          ./.github/scripts/enforce-doc-layout.sh fix
 
       - name: 🔧 Auto-fix using 3-Layer System
         id: fix
