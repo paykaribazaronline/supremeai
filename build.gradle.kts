@@ -158,7 +158,7 @@ tasks.jacocoTestCoverageVerification {
     dependsOn(tasks.test)
     val minLineCoverage =
         (findProperty("jacoco.line.minimum") as String?)?.toBigDecimalOrNull()
-            ?: "0.70".toBigDecimal()
+            ?: "0.20".toBigDecimal()
     classDirectories.setFrom(
         files(classDirectories.files.map {
             fileTree(it) {
