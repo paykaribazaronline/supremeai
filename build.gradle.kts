@@ -15,8 +15,16 @@ java {
 }
 
 repositories {
-    mavenCentral()
     google()
+    maven {
+        name = "GoogleMavenCentralMirror"
+        url = uri("https://maven-central.storage-download.googleapis.com/maven2/")
+    }
+    maven {
+        name = "MavenCentralMirror"
+        url = uri("https://repo1.maven.org/maven2/")
+    }
+    mavenCentral()
 }
 
 dependencies {
