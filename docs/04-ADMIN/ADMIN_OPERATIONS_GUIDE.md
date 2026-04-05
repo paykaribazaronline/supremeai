@@ -299,7 +299,7 @@ curl -X POST https://api.supremeai.com/v1/admin/api-keys \
   -H "Content-Type: application/json" \
   -d '{
     "provider": "GEMINI",
-    "key": "AIzaSyCw1skxzGEURHMJiWZPGIDhx0WIw0vDJ3U",
+    "key": "${GEMINI_API_KEY}",
     "alias": "production-gemini-v1",
     "description": "Primary Gemini key for production"
   }'
