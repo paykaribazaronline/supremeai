@@ -30,6 +30,10 @@ dependencies {
     implementation("com.google.cloud:google-cloud-core:2.40.0")
     implementation("com.google.cloud:google-cloud-secretmanager:2.40.0")
     implementation("com.google.cloud:google-cloud-bigquery:2.31.0")
+    implementation("software.amazon.awssdk:secretsmanager:2.25.36")
+    implementation("software.amazon.awssdk:regions:2.25.36")
+    implementation("com.azure:azure-identity:1.12.2")
+    implementation("com.azure:azure-security-keyvault-secrets:4.8.2")
 
     // HTTP Client for AI APIs
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
@@ -54,6 +58,7 @@ dependencies {
     // Configuration Management - EXTERNALIZED CONFIG
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-websocket")
@@ -73,6 +78,9 @@ dependencies {
 
     // Rate Limiting
     implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:7.6.0")
+
+    // AOP - required for @Aspect (KingModeAuditAspect)
+    implementation("org.springframework.boot:spring-boot-starter-aop")
 
     // Metrics & Monitoring
     implementation("io.micrometer:micrometer-core:1.12.3")
@@ -114,14 +122,58 @@ tasks.withType<JavaCompile> {
 
 tasks.test {
     useJUnitPlatform()
-    finalizedBy(tasks.jacocoTestReport)
+    finalizedBy(tasks.jacocoTestReport, tasks.jacocoTestCoverageVerification)
 }
+
+val jacocoExclusions = listOf(
+    "**/model/**",
+    "**/config/**",
+    "**/exception/**",
+    "**/dto/**",
+    "**/*Application*",
+    "**/*Configuration*",
+    "**/*Config*",
+    "**/*Properties*",
+    "**/*Exception*",
+    "**/*Controller*",
+    "**/*Aspect*"
+)
 
 tasks.jacocoTestReport {
     dependsOn(tasks.test)
+    classDirectories.setFrom(
+        files(classDirectories.files.map {
+            fileTree(it) {
+                exclude(jacocoExclusions)
+            }
+        })
+    )
     reports {
         xml.required.set(true)
         html.required.set(true)
+    }
+}
+
+tasks.jacocoTestCoverageVerification {
+    dependsOn(tasks.test)
+    val minLineCoverage =
+        (findProperty("jacoco.line.minimum") as String?)?.toBigDecimalOrNull()
+            ?: "0.70".toBigDecimal()
+    classDirectories.setFrom(
+        files(classDirectories.files.map {
+            fileTree(it) {
+                exclude(jacocoExclusions)
+            }
+        })
+    )
+    violationRules {
+        rule {
+            limit {
+                counter = "LINE"
+                value = "COVEREDRATIO"
+                minimum = minLineCoverage
+            }
+        }
     }
 }
 

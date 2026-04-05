@@ -48,6 +48,13 @@ public class AIAPIService {
     public AIAPIService(Map<String, String> keys) {
         this.apiKeys.putAll(keys);
     }
+
+    public synchronized void updateApiKey(String provider, String newKey) {
+        if (provider == null || provider.isBlank() || newKey == null || newKey.isBlank()) {
+            return;
+        }
+        this.apiKeys.put(provider.trim().toUpperCase(Locale.ROOT), newKey);
+    }
     
     /**
      * Call AI agent with fallback chain support

@@ -3,6 +3,7 @@ package org.example.audit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.util.*;
 
@@ -10,11 +11,16 @@ import java.util.*;
  * Audit logging for compliance and accountability
  * Tracks all significant actions: approvals, rejections, modifications
  */
+@Component
 public class AuditLogger {
     private static final Logger auditLogger = LoggerFactory.getLogger("AUDIT");
     private static final Logger logger = LoggerFactory.getLogger(AuditLogger.class);
     private final boolean enabled;
-    
+
+    public AuditLogger() {
+        this(true);
+    }
+
     public AuditLogger(boolean enabled) {
         this.enabled = enabled;
         if (enabled) {

@@ -20,7 +20,10 @@ import java.util.*;
  * - Code quality tools (eslint, sonarqube, etc.)
  * - Coverage thresholds
  * - Success criteria
+ *
+ * @deprecated Use {@link CICDPipelineService} as the canonical CI/CD orchestration service.
  */
+@Deprecated(since = "6.0", forRemoval = false)
 public class CICDService {
     
     private final String workspaceRoot;

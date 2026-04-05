@@ -1,5 +1,6 @@
 package org.example.controller;
 
+import jakarta.validation.constraints.NotBlank;
 import org.example.service.DataCollectorService;
 import org.example.service.AdminMessagePusher;
 import org.slf4j.Logger;
@@ -7,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -28,6 +30,7 @@ import java.util.*;
  */
 @RestController
 @RequestMapping("/api/v1/data")
+@Validated
 public class DataController {
     private static final Logger logger = LoggerFactory.getLogger(DataController.class);
     
@@ -43,8 +46,8 @@ public class DataController {
      */
     @GetMapping("/github/{owner}/{repo}")
     public ResponseEntity<?> collectGitHubData(
-            @PathVariable String owner,
-            @PathVariable String repo,
+            @PathVariable @NotBlank(message = "owner is required") String owner,
+            @PathVariable @NotBlank(message = "repo is required") String repo,
             @RequestHeader(value = "Authorization", required = false) String token) {
         
         try {
@@ -79,7 +82,7 @@ public class DataController {
      */
     @GetMapping("/vercel/{projectId}")
     public ResponseEntity<?> collectVercelStatus(
-            @PathVariable String projectId,
+            @PathVariable @NotBlank(message = "projectId is required") String projectId,
             @RequestHeader(value = "Authorization", required = false) String token) {
         
         try {
@@ -186,7 +189,7 @@ public class DataController {
      */
     @PostMapping("/cache/clear")
     public ResponseEntity<?> clearCache(
-            @RequestParam(defaultValue = "all") String key,
+            @RequestParam(defaultValue = "all") @NotBlank(message = "key cannot be blank") String key,
             @RequestHeader(value = "Authorization", required = false) String token) {
         
         try {

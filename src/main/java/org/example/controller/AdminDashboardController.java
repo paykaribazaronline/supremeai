@@ -10,7 +10,7 @@ import java.util.*;
  * Admin Dashboard API Controller
  * Provides endpoints for dashboard statistics and system overview
  */
-@RestController
+@RestController("adminDashboardController")
 @RequestMapping("/api/admin/dashboard")
 @CrossOrigin(origins = "*")
 public class AdminDashboardController {

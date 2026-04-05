@@ -24,12 +24,14 @@ import java.util.Map;
     "org.example.service",
     "org.example.controller",
     "org.example.config",
+    "org.example.security",
     "org.example.agentorchestration",
     "org.example.resilience",
     "org.example.tracing",
     "org.example.filter",
     "org.example.exception",
     "org.example.learning",
+    "org.example.audit",
     "com.supremeai.teaching"
 })
 @RestController

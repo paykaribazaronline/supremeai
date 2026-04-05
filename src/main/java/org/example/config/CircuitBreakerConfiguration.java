@@ -5,6 +5,7 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,10 +106,10 @@ public class CircuitBreakerConfiguration {
      */
     @Bean
     public CircuitBreakerRegistry circuitBreakerRegistry(
-        CircuitBreaker aiApiCircuitBreaker,
-        CircuitBreaker externalApiCircuitBreaker,
-        CircuitBreaker databaseCircuitBreaker,
-        CircuitBreaker authCircuitBreaker
+        @Qualifier("aiApiCircuitBreaker") CircuitBreaker aiApiCircuitBreaker,
+        @Qualifier("externalApiCircuitBreaker") CircuitBreaker externalApiCircuitBreaker,
+        @Qualifier("databaseCircuitBreaker") CircuitBreaker databaseCircuitBreaker,
+        @Qualifier("authCircuitBreaker") CircuitBreaker authCircuitBreaker
     ) {
         CircuitBreakerRegistry registry = CircuitBreakerRegistry.of(CircuitBreakerConfig.ofDefaults());
         
