@@ -8,11 +8,13 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/rules:/etc/prometheus/rules:ro
       - prometheus_data:/prometheus
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
       - --web.enable-lifecycle
+      - --storage.tsdb.retention.time=15d
     restart: unless-stopped
 
   grafana:
@@ -20,10 +22,36 @@ services:
     container_name: supremeai-grafana
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin123
+      # Local admin fallback (used when Google OAuth is not configured)
+      GF_SECURITY_ADMIN_USER: ${GF_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_ADMIN_PASSWORD}
       GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_UNIFIED_ALERTING_ENABLED: "true"
+      GF_ALERTING_ENABLED: "false"
+      GF_FEATURE_TOGGLES_ENABLE: "ngalert"
+
+      # ── Google OAuth via Firebase Identity Platform ──────────────────────
+      # Credentials come from Firebase Console → Project Settings →
+      # Service Accounts → OAuth 2.0 client (or Google Cloud Console).
+      # Leave GF_AUTH_GOOGLE_ENABLED=false to disable and use password only.
+      GF_AUTH_GOOGLE_ENABLED: ${GF_AUTH_GOOGLE_ENABLED:-false}
+      GF_AUTH_GOOGLE_CLIENT_ID: ${GF_GOOGLE_CLIENT_ID:-}
+      GF_AUTH_GOOGLE_CLIENT_SECRET: ${GF_GOOGLE_CLIENT_SECRET:-}
+      GF_AUTH_GOOGLE_SCOPES: "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email openid"
+      GF_AUTH_GOOGLE_AUTH_URL: "https://accounts.google.com/o/oauth2/v2/auth"
+      GF_AUTH_GOOGLE_TOKEN_URL: "https://oauth2.googleapis.com/token"
+      GF_AUTH_GOOGLE_API_URL: "https://openidconnect.googleapis.com/v1/userinfo"
+      # Restrict to specific Google domain (e.g. your company). Leave blank to allow any Google account.
+      GF_AUTH_GOOGLE_ALLOWED_DOMAINS: ${GF_GOOGLE_ALLOWED_DOMAINS:-}
+      # Map Firebase project admin email to Grafana Admin role automatically
+      GF_AUTH_GOOGLE_ROLE_ATTRIBUTE_PATH: "email == '${GF_GOOGLE_ADMIN_EMAIL}' && 'Admin' || 'Viewer'"
+      GF_AUTH_GOOGLE_ALLOW_SIGN_UP: ${GF_AUTH_GOOGLE_ALLOW_SIGN_UP:-true}
+      GF_AUTH_GOOGLE_USE_PKCE: "true"
+      # Redirect URL must match what you configured in Firebase/Google OAuth consent screen
+      GF_SERVER_ROOT_URL: ${GF_SERVER_ROOT_URL:-http://localhost:3000}
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning:ro

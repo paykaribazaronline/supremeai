@@ -17,3 +17,5 @@ application.properties,App Config,2,src/main/resources/application.properties,sr
 .properties (cache),Gradle Cache,Multiple,Various .gradle-user-home/ locations,Multiple nested paths,Auto-Generated,Delete Cache,High,Remove entire .gradle-user-home directory
 DEPLOYMENT_*.md,Documentation,Variable,Various deployment guides,Multiple locations,Project-Specific,Review,Low,Check for consolidation opportunities
 index.html,Web UI,2+,dashboard.html,login.html,Similar Structure,Extract Template,Low,Share HTML template if possible
+app_error.log (x3),Log Files,3,app_error.log,app_startup_error.log; resilience_test_error.log,Identical Content - RESOLVED,DONE - deleted duplicates on 2026-04-05,High,Kept app_error.log; deleted app_startup_error.log and resilience_test_error.log
+empty log files (x3),Log Files,3,app_run.log,app_run_error.log; build_phase7.log,0-byte files - RESOLVED,DONE - deleted duplicates on 2026-04-05,Medium,Kept app_run.log; deleted app_run_error.log and build_phase7.log
