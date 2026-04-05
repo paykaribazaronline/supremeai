@@ -31,8 +31,32 @@ class AIAPIServiceTest {
 
         assertFalse(chain.isEmpty());
         assertEquals("XAI", chain.get(0));
+        assertTrue(chain.indexOf("DEEPSEEK") < chain.indexOf("GPT4"));
         assertTrue(chain.contains("GPT4"));
         assertTrue(chain.contains("CLAUDE"));
+    }
+
+    @Test
+    void enforcesPromptAndOutputCaps() {
+        AIAPIService service = new AIAPIService(new HashMap<>(), 7000, 2, 250, 10, 8, 60, 3, 30000, 200, 10, 1000);
+
+        String longText = "x".repeat(5000);
+        String cappedPrompt = service.applyPromptTokenCap(longText);
+        String cappedOutput = service.applyOutputTokenCap(longText);
+
+        assertTrue(cappedPrompt.length() < longText.length());
+        assertTrue(cappedOutput.length() < longText.length());
+    }
+
+    @Test
+    void operationalMetricsExposeCheapFirstDefaultChain() {
+        AIAPIService service = new AIAPIService(new HashMap<>());
+
+        @SuppressWarnings("unchecked")
+        List<String> defaultChain = (List<String>) service.getOperationalMetrics().get("defaultFallbackChain");
+
+        assertEquals("GROQ", defaultChain.get(0));
+        assertEquals("DEEPSEEK", defaultChain.get(1));
     }
 
     @Test

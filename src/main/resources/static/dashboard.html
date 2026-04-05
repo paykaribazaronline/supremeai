@@ -22,6 +22,8 @@
         }
         .status-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
         .status-item { background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745; }
+        .status-item.warn { border-left-color: #ff9800; }
+        .status-item.error { border-left-color: #dc3545; }
         .value { font-size: 24px; font-weight: bold; color: #1e3c72; }
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; }
         .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
@@ -30,6 +32,11 @@
         .metrics-table td { padding: 10px; border-bottom: 1px solid #e0e0e0; }
         .progress-bar { width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
         .progress-fill { height: 100%; background: #28a745; }
+        .alert-item { border: 1px solid #e0e0e0; border-left: 4px solid #1e3c72; border-radius: 6px; padding: 10px; margin-bottom: 8px; }
+        .alert-item.WARNING { border-left-color: #ff9800; }
+        .alert-item.ERROR { border-left-color: #dc3545; }
+        .alert-item.CRITICAL { border-left-color: #b00020; background: #fff5f6; }
+        .small-muted { font-size: 12px; color: #666; }
         .login-modal {
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0, 0, 0, 0.8); z-index: 1000; align-items: center; justify-content: center;
@@ -54,6 +61,8 @@
         <div class="status-bar">
             <div class="status-item"><h3>System Status</h3><div class="value" id="systemStatus">CHECKING...</div></div>
             <div class="status-item"><h3>Projects</h3><div class="value" id="projectCount">0</div></div>
+            <div class="status-item"><h3>Active Alerts</h3><div class="value" id="activeAlertCount">0</div></div>
+            <div class="status-item"><h3>Est. Monthly AI Cost</h3><div class="value" id="estimatedCost">$0.00</div></div>
         </div>
 
         <div class="dashboard-grid" style="margin-top: 20px;">
@@ -63,6 +72,47 @@
                     <thead><tr><th>Project Name</th><th>Status</th><th>Progress</th></tr></thead>
                     <tbody id="projectsTableBody">
                         <tr><td colspan="3" style="text-align: center; padding: 20px; color: #999;">লগইন করার পর ডাটা লোড হবে...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2>🤖 AI Ops Summary</h2>
+                <table class="metrics-table">
+                    <tbody>
+                        <tr><td>Total Requests</td><td id="opsTotalRequests">0</td></tr>
+                        <tr><td>Cache Hits</td><td id="opsCacheHits">0</td></tr>
+                        <tr><td>Retry Attempts</td><td id="opsRetries">0</td></tr>
+                        <tr><td>Rate Limit Errors</td><td id="opsRateLimit">0</td></tr>
+                        <tr><td>Queue Depth</td><td id="opsQueueDepth">0</td></tr>
+                        <tr><td>Circuit Open Skips</td><td id="opsCircuitSkips">0</td></tr>
+                    </tbody>
+                </table>
+                <div class="small-muted" id="opsUpdatedAt">Updated: --</div>
+            </div>
+
+            <div class="card">
+                <h2>⚠️ Recent Alerts</h2>
+                <div id="recentAlertsList">
+                    <div class="small-muted">No alerts yet.</div>
+                </div>
+            </div>
+
+            <div class="card" style="grid-column: 1 / -1;">
+                <h2>💸 Provider Cost Estimate</h2>
+                <table class="metrics-table">
+                    <thead>
+                        <tr>
+                            <th>Provider</th>
+                            <th>Tokens (Month)</th>
+                            <th>Req (Month)</th>
+                            <th>Price / 1K</th>
+                            <th>Est. Cost</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="providerCostTableBody">
+                        <tr><td colspan="6" style="text-align: center; color: #999;">No provider data yet.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -109,6 +159,7 @@
         const db = firebase.database();
 
         let loginAttempts = 0;
+        let aiOpsRefreshInterval = null;
 
         auth.onAuthStateChanged((user) => {
             if (user) {
@@ -116,9 +167,11 @@
                 document.getElementById('userEmail').textContent = user.email;
                 document.getElementById('loginModal').style.display = 'none';
                 startLiveSync();
+                startAiOpsSync();
             } else {
                 document.getElementById('authStatus').style.display = 'none';
                 document.getElementById('loginModal').style.display = 'flex';
+                stopAiOpsSync();
             }
         });
 
@@ -201,6 +254,100 @@
                 document.getElementById('projectCount').textContent = count;
                 document.getElementById('lastUpdate').textContent = "Last updated: " + new Date().toLocaleTimeString();
             });
+        }
+
+        function startAiOpsSync() {
+            fetchAiOpsData();
+            stopAiOpsSync();
+            aiOpsRefreshInterval = setInterval(fetchAiOpsData, 15000);
+        }
+
+        function stopAiOpsSync() {
+            if (aiOpsRefreshInterval) {
+                clearInterval(aiOpsRefreshInterval);
+                aiOpsRefreshInterval = null;
+            }
+        }
+
+        async function fetchAiOpsData() {
+            try {
+                const [summaryRes, costRes, recentAlertsRes] = await Promise.all([
+                    fetch('/api/ai/ops/summary'),
+                    fetch('/api/ai/ops/cost-estimate'),
+                    fetch('/api/alerts/history/recent?limit=8')
+                ]);
+
+                if (summaryRes.ok) {
+                    const summary = await summaryRes.json();
+                    renderOpsSummary(summary);
+                }
+
+                if (costRes.ok) {
+                    const cost = await costRes.json();
+                    renderProviderCosts(cost);
+                }
+
+                if (recentAlertsRes.ok) {
+                    const recent = await recentAlertsRes.json();
+                    renderRecentAlerts(recent);
+                }
+            } catch (error) {
+                console.error('Failed to refresh AI ops data', error);
+            }
+        }
+
+        function renderOpsSummary(summary) {
+            const ops = summary.ops || {};
+            const alerts = summary.alerts || {};
+
+            document.getElementById('opsTotalRequests').textContent = Number(ops.totalRequests || 0).toLocaleString();
+            document.getElementById('opsCacheHits').textContent = Number(ops.cacheHits || 0).toLocaleString();
+            document.getElementById('opsRetries').textContent = Number(ops.retryAttempts || 0).toLocaleString();
+            document.getElementById('opsRateLimit').textContent = Number(ops.rateLimitErrors || 0).toLocaleString();
+            document.getElementById('opsQueueDepth').textContent = Number(ops.queueDepth || 0).toLocaleString();
+            document.getElementById('opsCircuitSkips').textContent = Number(ops.circuitOpenSkips || 0).toLocaleString();
+            document.getElementById('activeAlertCount').textContent = Number(alerts.active_alerts || 0).toLocaleString();
+            document.getElementById('opsUpdatedAt').textContent = 'Updated: ' + new Date(summary.timestamp || Date.now()).toLocaleTimeString();
+        }
+
+        function renderProviderCosts(payload) {
+            const rows = payload.providers || [];
+            const tbody = document.getElementById('providerCostTableBody');
+            document.getElementById('estimatedCost').textContent = '$' + Number(payload.estimatedTotalMonthlyCostUsd || 0).toFixed(2);
+
+            if (!rows.length) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">No provider data available.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = rows.map(item => `
+                <tr>
+                    <td>${item.providerName || item.providerId}</td>
+                    <td>${Number(item.tokensUsedThisMonth || 0).toLocaleString()}</td>
+                    <td>${Number(item.requestsUsedThisMonth || 0).toLocaleString()}</td>
+                    <td>$${Number(item.pricePer1kTokensUsd || 0).toFixed(3)}</td>
+                    <td>$${Number(item.estimatedMonthlyCostUsd || 0).toFixed(3)}</td>
+                    <td>${item.quotaStatus || 'UNKNOWN'} (${Number(item.usagePercent || 0).toFixed(1)}%)</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderRecentAlerts(payload) {
+            const alerts = payload.alerts || [];
+            const container = document.getElementById('recentAlertsList');
+
+            if (!alerts.length) {
+                container.innerHTML = '<div class="small-muted">No alerts in recent history.</div>';
+                return;
+            }
+
+            container.innerHTML = alerts.slice().reverse().map(alert => `
+                <div class="alert-item ${alert.severity || ''}">
+                    <div><strong>${alert.title || 'Alert'}</strong></div>
+                    <div>${alert.message || ''}</div>
+                    <div class="small-muted">${alert.severity || 'INFO'} | ${new Date(alert.timestamp || Date.now()).toLocaleString()}</div>
+                </div>
+            `).join('');
         }
     </script>
 </body>

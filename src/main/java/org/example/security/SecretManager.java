@@ -63,6 +63,11 @@ public class SecretManager {
      * Get a secret by name
      */
     public String getSecret(String name) {
+        if (name == null || name.isBlank()) {
+            logger.warn("Cannot fetch secret with empty name");
+            return null;
+        }
+
         // Check cache first
         if (secretCache.containsKey(name)) {
             return secretCache.get(name);
@@ -83,6 +88,11 @@ public class SecretManager {
      * Update a secret
      */
     public void updateSecret(String name, String value) {
+        if (name == null || name.isBlank()) {
+            logger.warn("Cannot update secret with empty name");
+            return;
+        }
+
         logger.info("🔐 Updating secret: {}", name);
         
         // Update backend
@@ -96,6 +106,10 @@ public class SecretManager {
      * Remove a secret from cache (force refresh)
      */
     public void invalidateCache(String name) {
+        if (name == null || name.isBlank()) {
+            return;
+        }
+
         secretCache.remove(name);
     }
     
@@ -103,7 +117,7 @@ public class SecretManager {
      * Fetch secret from configured backend
      */
     private String fetchSecret(String name) {
-        String selectedBackend = backend == null ? "env" : backend.toLowerCase(Locale.ROOT);
+        String selectedBackend = normalizeBackend(backend);
         switch (selectedBackend) {
             case "gcp":
                 return fetchFromGCPSecretManager(name);
@@ -123,7 +137,7 @@ public class SecretManager {
      * Update secret in configured backend
      */
     private void updateBackendSecret(String name, String value) {
-        String selectedBackend = backend == null ? "env" : backend.toLowerCase(Locale.ROOT);
+        String selectedBackend = normalizeBackend(backend);
         switch (selectedBackend) {
             case "gcp":
                 updateGCPSecret(name, value);
@@ -142,6 +156,41 @@ public class SecretManager {
                 // Cannot update environment variables at runtime
                 logger.warn("Cannot update environment variable: {}", name);
                 break;
+        }
+    }
+
+    private String normalizeBackend(String backendValue) {
+        if (backendValue == null) {
+            return "env";
+        }
+
+        String normalized = backendValue
+            .trim()
+            .toLowerCase(Locale.ROOT)
+            .replace("-", "")
+            .replace("_", "")
+            .replace(" ", "");
+
+        switch (normalized) {
+            case "gcp":
+            case "gcpsecretmanager":
+            case "googlecloudsecretmanager":
+                return "gcp";
+            case "aws":
+            case "awssecretsmanager":
+            case "secretsmanager":
+                return "aws";
+            case "azure":
+            case "azurekeyvault":
+            case "keyvault":
+                return "azure";
+            case "vault":
+            case "hashicorpvault":
+                return "vault";
+            case "env":
+            case "environment":
+            default:
+                return "env";
         }
     }
     
