@@ -1,21 +1,66 @@
 package org.example.service;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import okhttp3.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AIAPIService {
+    private static final Logger logger = LoggerFactory.getLogger(AIAPIService.class);
     private static final ObjectMapper mapper = new ObjectMapper();
-    private static final OkHttpClient client = new OkHttpClient();
-    private static final List<String> DEFAULT_FALLBACK_CHAIN = Arrays.asList("GPT4", "CLAUDE", "GROQ", "DEEPSEEK");
+    private static final List<String> DEFAULT_FALLBACK_CHAIN = Arrays.asList("GROQ", "DEEPSEEK", "CLAUDE", "GPT4");
+    private static final long MIN_BACKOFF_MS = 100L;
+    private static final long MAX_BACKOFF_MS = 2_000L;
     private static final Map<String, String> MODEL_ALIASES = buildModelAliases();
     private static final Map<String, List<String>> PROVIDER_FALLBACKS = buildProviderFallbacks();
     private static final Set<String> NATIVE_MODELS = Set.of(
         "GPT4", "CLAUDE", "GROQ", "DEEPSEEK", "GEMINI", "COHERE", "PERPLEXITY", "LLAMA", "HUGGINGFACE", "XAI"
     );
+
+    private final OkHttpClient client;
+    private final int timeoutMs;
+    private final int maxRetries;
+    private final long retryBaseBackoffMs;
+    private final int maxPromptTokens;
+    private final int maxOutputTokens;
+    private final int perProviderRequestsPerMinute;
+    private final int circuitFailureThreshold;
+    private final long circuitOpenMs;
+    private final BlockingQueue<QueuedRequest> slowRequestQueue;
+    private final ExecutorService queueExecutor;
+    private final Cache<String, String> responseCache;
+    private final Map<String, ProviderCircuitState> providerCircuits = new ConcurrentHashMap<>();
+    private final Map<String, ProviderWindowCounter> providerWindows = new ConcurrentHashMap<>();
+
+    private final AtomicLong totalRequests = new AtomicLong();
+    private final AtomicLong cacheHits = new AtomicLong();
+    private final AtomicLong retries = new AtomicLong();
+    private final AtomicLong queuedSlowRequests = new AtomicLong();
+    private final AtomicLong queueDrops = new AtomicLong();
+    private final AtomicLong rateLimitErrors = new AtomicLong();
+    private final AtomicLong circuitOpenSkips = new AtomicLong();
+    private final AtomicLong successfulResponses = new AtomicLong();
+    private final AtomicLong failedResponses = new AtomicLong();
     
+    // Dead-letter log: slow-queue requests that failed even after retry
+    private final Deque<Map<String, Object>> deadLetterLog = new ArrayDeque<>();
+    private static final int MAX_DEAD_LETTER = 200;
+
     // API endpoints and keys (should be moved to config file)
     private final Map<String, String> apiEndpoints = Map.ofEntries(
         Map.entry("DEEPSEEK", "https://api.deepseek.com/v1/chat/completions"),
@@ -44,9 +89,49 @@ public class AIAPIService {
     );
     
     private final Map<String, String> apiKeys = new HashMap<>();
-    
+
     public AIAPIService(Map<String, String> keys) {
+        this(keys, 7_000, 2, 250, 2_000, 1_500, 60, 3, 30_000, 500, 10, 1_000);
+    }
+
+    public AIAPIService(Map<String, String> keys,
+                        int timeoutMs,
+                        int maxRetries,
+                        long retryBaseBackoffMs,
+                        int maxPromptTokens,
+                        int maxOutputTokens,
+                        int perProviderRequestsPerMinute,
+                        int circuitFailureThreshold,
+                        long circuitOpenMs,
+                        int slowQueueCapacity,
+                        int cacheTtlMinutes,
+                        int cacheMaxSize) {
         this.apiKeys.putAll(keys);
+        this.timeoutMs = timeoutMs;
+        this.maxRetries = Math.max(0, maxRetries);
+        this.retryBaseBackoffMs = Math.max(MIN_BACKOFF_MS, retryBaseBackoffMs);
+        this.maxPromptTokens = Math.max(200, maxPromptTokens);
+        this.maxOutputTokens = Math.max(200, maxOutputTokens);
+        this.perProviderRequestsPerMinute = Math.max(10, perProviderRequestsPerMinute);
+        this.circuitFailureThreshold = Math.max(2, circuitFailureThreshold);
+        this.circuitOpenMs = Math.max(1_000, circuitOpenMs);
+        this.slowRequestQueue = new LinkedBlockingQueue<>(Math.max(50, slowQueueCapacity));
+        this.client = new OkHttpClient.Builder()
+            .connectTimeout(this.timeoutMs, TimeUnit.MILLISECONDS)
+            .readTimeout(this.timeoutMs, TimeUnit.MILLISECONDS)
+            .writeTimeout(this.timeoutMs, TimeUnit.MILLISECONDS)
+            .callTimeout(this.timeoutMs, TimeUnit.MILLISECONDS)
+            .build();
+        this.responseCache = Caffeine.newBuilder()
+            .maximumSize(Math.max(100, cacheMaxSize))
+            .expireAfterWrite(Math.max(1, cacheTtlMinutes), TimeUnit.MINUTES)
+            .build();
+        this.queueExecutor = Executors.newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r, "ai-slow-request-queue-worker");
+            t.setDaemon(true);
+            return t;
+        });
+        startSlowQueueWorker();
     }
 
     public synchronized void updateApiKey(String provider, String newKey) {
@@ -64,6 +149,16 @@ public class AIAPIService {
      * @return AI response or null if all fail
      */
     public String callAI(String role, String prompt, List<String> fallbackChain) {
+        totalRequests.incrementAndGet();
+        String boundedPrompt = applyPromptTokenCap(prompt);
+
+        String cacheKey = buildCacheKey(boundedPrompt);
+        String cached = responseCache.getIfPresent(cacheKey);
+        if (cached != null) {
+            cacheHits.incrementAndGet();
+            return cached;
+        }
+
         List<String> resolvedChain = fallbackChain == null || fallbackChain.isEmpty()
             ? DEFAULT_FALLBACK_CHAIN
             : fallbackChain;
@@ -75,15 +170,31 @@ public class AIAPIService {
                     continue;
                 }
 
-                String response = executeAPICall(canonicalModel, prompt);
+                if (isCircuitOpen(canonicalModel)) {
+                    circuitOpenSkips.incrementAndGet();
+                    continue;
+                }
+
+                if (!allowProviderRequest(canonicalModel)) {
+                    rateLimitErrors.incrementAndGet();
+                    continue;
+                }
+
+                String response = executeWithRetry(canonicalModel, boundedPrompt);
                 if (response != null) {
-                    return response;
+                    String boundedResponse = applyOutputTokenCap(response);
+                    successfulResponses.incrementAndGet();
+                    responseCache.put(cacheKey, boundedResponse);
+                    return boundedResponse;
                 }
             } catch (Exception e) {
-                System.err.println("Failed with " + aiModel + ": " + e.getMessage());
+                failedResponses.incrementAndGet();
+                logger.warn("Provider {} failed: {}", aiModel, e.getMessage());
                 continue;
             }
         }
+
+        failedResponses.incrementAndGet();
         return null; // All fallbacks failed
     }
 
@@ -118,6 +229,41 @@ public class AIAPIService {
     
     private String executeAPICall(String aiModel, String prompt) throws IOException {
         return executeAPICall(aiModel, prompt, apiKeys.get(aiModel), null);
+    }
+
+    private String executeWithRetry(String aiModel, String prompt) throws IOException {
+        IOException last = null;
+
+        for (int attempt = 0; attempt <= maxRetries; attempt++) {
+            try {
+                String response = executeAPICall(aiModel, prompt);
+                onProviderSuccess(aiModel);
+                return response;
+            } catch (IOException ex) {
+                last = ex;
+                onProviderFailure(aiModel, ex.getMessage());
+
+                if (isRateLimitError(ex.getMessage())) {
+                    rateLimitErrors.incrementAndGet();
+                }
+
+                if (isTimeoutException(ex.getMessage())) {
+                    enqueueSlowRequest(aiModel, prompt, "timeout");
+                }
+
+                if (attempt >= maxRetries || !isRetriable(ex.getMessage())) {
+                    break;
+                }
+
+                retries.incrementAndGet();
+                sleepBackoff(attempt);
+            }
+        }
+
+        if (last != null) {
+            throw last;
+        }
+        return null;
     }
 
     private String executeAPICall(String aiModel, String prompt, String apiKeyOverride,
@@ -352,6 +498,38 @@ public class AIAPIService {
         // Rough rule: 1 token ≈ 4 characters
         return (text.length() / 4) + 1;
     }
+
+    public String applyPromptTokenCap(String prompt) {
+        if (prompt == null) {
+            return "";
+        }
+        int estimated = estimateTokens(prompt);
+        if (estimated <= maxPromptTokens) {
+            return prompt;
+        }
+
+        int maxChars = Math.max(500, maxPromptTokens * 4);
+        if (prompt.length() <= maxChars) {
+            return prompt;
+        }
+        return prompt.substring(0, maxChars);
+    }
+
+    public String applyOutputTokenCap(String output) {
+        if (output == null) {
+            return null;
+        }
+        int estimated = estimateTokens(output);
+        if (estimated <= maxOutputTokens) {
+            return output;
+        }
+
+        int maxChars = Math.max(500, maxOutputTokens * 4);
+        if (output.length() <= maxChars) {
+            return output;
+        }
+        return output.substring(0, maxChars);
+    }
     
     /**
      * Check quota remaining for an AI model
@@ -405,6 +583,48 @@ public class AIAPIService {
         status.put("fallbackChain", getFallbackChainForProvider(providerName));
         status.put("defaultModel", normalizedModel == null ? null : defaultModels.get(normalizedModel));
         return status;
+    }
+
+    public Map<String, Object> getOperationalMetrics() {
+        Map<String, Object> metrics = new LinkedHashMap<>();
+        metrics.put("timeoutMs", timeoutMs);
+        metrics.put("maxRetries", maxRetries);
+        metrics.put("maxPromptTokens", maxPromptTokens);
+        metrics.put("maxOutputTokens", maxOutputTokens);
+        metrics.put("perProviderRequestsPerMinute", perProviderRequestsPerMinute);
+        metrics.put("circuitFailureThreshold", circuitFailureThreshold);
+        metrics.put("circuitOpenMs", circuitOpenMs);
+        metrics.put("defaultFallbackChain", DEFAULT_FALLBACK_CHAIN);
+
+        metrics.put("totalRequests", totalRequests.get());
+        metrics.put("successfulResponses", successfulResponses.get());
+        metrics.put("failedResponses", failedResponses.get());
+        metrics.put("cacheHits", cacheHits.get());
+        metrics.put("retryAttempts", retries.get());
+        metrics.put("rateLimitErrors", rateLimitErrors.get());
+        metrics.put("circuitOpenSkips", circuitOpenSkips.get());
+        metrics.put("queuedSlowRequests", queuedSlowRequests.get());
+        metrics.put("queueDrops", queueDrops.get());
+        metrics.put("queueDepth", slowRequestQueue.size());
+        synchronized (this) {
+            metrics.put("deadLetterCount", deadLetterLog.size());
+        }
+        metrics.put("providerCircuits", getCircuitStates());
+        return metrics;
+    }
+
+    private Map<String, Object> getCircuitStates() {
+        Map<String, Object> states = new LinkedHashMap<>();
+        long now = System.currentTimeMillis();
+        for (Map.Entry<String, ProviderCircuitState> entry : providerCircuits.entrySet()) {
+            ProviderCircuitState state = entry.getValue();
+            states.put(entry.getKey(), Map.of(
+                "open", state.isOpen(now),
+                "consecutiveFailures", state.consecutiveFailures,
+                "openUntilEpochMs", state.openUntilEpochMs
+            ));
+        }
+        return states;
     }
 
     public List<String> getCanonicalProviderIds() {
@@ -536,16 +756,16 @@ public class AIAPIService {
 
     private static Map<String, List<String>> buildProviderFallbacks() {
         Map<String, List<String>> fallbacks = new HashMap<>();
-        fallbacks.put("openai-gpt4", buildChain("GPT4", DEFAULT_FALLBACK_CHAIN));
-        fallbacks.put("anthropic-claude", buildChain("CLAUDE", DEFAULT_FALLBACK_CHAIN));
-        fallbacks.put("google-gemini", buildChain("GEMINI", Arrays.asList("GPT4", "CLAUDE", "GROQ", "DEEPSEEK")));
-        fallbacks.put("meta-llama", buildChain("LLAMA", Arrays.asList("GROQ", "DEEPSEEK", "GPT4", "CLAUDE")));
-        fallbacks.put("mistral", buildChain("GROQ", Arrays.asList("DEEPSEEK", "GPT4", "CLAUDE")));
-        fallbacks.put("cohere", buildChain("COHERE", Arrays.asList("CLAUDE", "GPT4", "GROQ", "DEEPSEEK")));
-        fallbacks.put("huggingface", buildChain("HUGGINGFACE", Arrays.asList("LLAMA", "GROQ", "DEEPSEEK", "GPT4", "CLAUDE")));
-        fallbacks.put("xai-grok", buildChain("XAI", Arrays.asList("GPT4", "CLAUDE", "DEEPSEEK", "GROQ")));
-        fallbacks.put("deepseek", buildChain("DEEPSEEK", Arrays.asList("GPT4", "CLAUDE", "GROQ")));
-        fallbacks.put("perplexity", buildChain("PERPLEXITY", Arrays.asList("GPT4", "CLAUDE", "GROQ", "DEEPSEEK")));
+        fallbacks.put("openai-gpt4", buildChain("GPT4", Arrays.asList("CLAUDE", "DEEPSEEK", "GROQ")));
+        fallbacks.put("anthropic-claude", buildChain("CLAUDE", Arrays.asList("DEEPSEEK", "GROQ", "GPT4")));
+        fallbacks.put("google-gemini", buildChain("GEMINI", Arrays.asList("DEEPSEEK", "GROQ", "CLAUDE", "GPT4")));
+        fallbacks.put("meta-llama", buildChain("LLAMA", Arrays.asList("GROQ", "DEEPSEEK", "CLAUDE", "GPT4")));
+        fallbacks.put("mistral", buildChain("GROQ", Arrays.asList("DEEPSEEK", "CLAUDE", "GPT4")));
+        fallbacks.put("cohere", buildChain("COHERE", Arrays.asList("DEEPSEEK", "GROQ", "CLAUDE", "GPT4")));
+        fallbacks.put("huggingface", buildChain("HUGGINGFACE", Arrays.asList("LLAMA", "GROQ", "DEEPSEEK", "CLAUDE", "GPT4")));
+        fallbacks.put("xai-grok", buildChain("XAI", Arrays.asList("DEEPSEEK", "GROQ", "CLAUDE", "GPT4")));
+        fallbacks.put("deepseek", buildChain("DEEPSEEK", Arrays.asList("GROQ", "CLAUDE", "GPT4")));
+        fallbacks.put("perplexity", buildChain("PERPLEXITY", Arrays.asList("DEEPSEEK", "GROQ", "CLAUDE", "GPT4")));
         return fallbacks;
     }
 
@@ -558,5 +778,178 @@ public class AIAPIService {
             ordered.addAll(fallbacks);
         }
         return new ArrayList<>(ordered);
+    }
+
+    private boolean allowProviderRequest(String provider) {
+        ProviderWindowCounter counter = providerWindows.computeIfAbsent(provider, p -> new ProviderWindowCounter());
+        return counter.tryAcquire(perProviderRequestsPerMinute);
+    }
+
+    private String buildCacheKey(String prompt) {
+        return "prompt:" + Integer.toHexString(Objects.hashCode(prompt));
+    }
+
+    private void startSlowQueueWorker() {
+        queueExecutor.submit(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+                QueuedRequest current = null;
+                try {
+                    current = slowRequestQueue.take();
+                    if (isCircuitOpen(current.provider)) {
+                        continue;
+                    }
+                    executeWithRetry(current.provider, current.prompt);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                } catch (Exception ex) {
+                    logger.debug("Slow queue execution failed: {}", ex.getMessage());
+                    if (current != null) {
+                        recordDeadLetter(current.provider, current.prompt, current.reason, ex.getMessage());
+                    }
+                }
+            }
+        });
+    }
+
+    private synchronized void recordDeadLetter(String provider, String prompt, String reason, String error) {
+        Map<String, Object> entry = new LinkedHashMap<>();
+        entry.put("provider", provider);
+        entry.put("prompt", prompt != null && prompt.length() > 200 ? prompt.substring(0, 200) : prompt);
+        entry.put("reason", reason);
+        entry.put("error", error);
+        entry.put("timestamp", System.currentTimeMillis());
+        deadLetterLog.addFirst(entry);
+        while (deadLetterLog.size() > MAX_DEAD_LETTER) {
+            deadLetterLog.pollLast();
+        }
+    }
+
+    /** Returns a snapshot of recent dead-letter entries (newest first) and clears the in-memory log. */
+    public synchronized List<Map<String, Object>> drainDeadLetterItems() {
+        List<Map<String, Object>> items = new ArrayList<>(deadLetterLog);
+        deadLetterLog.clear();
+        return items;
+    }
+
+    private void enqueueSlowRequest(String provider, String prompt, String reason) {
+        boolean offered = slowRequestQueue.offer(new QueuedRequest(provider, prompt, reason));
+        if (offered) {
+            queuedSlowRequests.incrementAndGet();
+            return;
+        }
+        queueDrops.incrementAndGet();
+        logger.warn("Slow request queue full, dropping {} request for provider {}", reason, provider);
+    }
+
+    private boolean isRetriable(String message) {
+        if (message == null) {
+            return false;
+        }
+        String lower = message.toLowerCase(Locale.ROOT);
+        return lower.contains("timeout")
+            || lower.contains("timed out")
+            || lower.contains("429")
+            || lower.contains("503")
+            || lower.contains("502")
+            || lower.contains("connection reset")
+            || lower.contains("temporarily unavailable");
+    }
+
+    private boolean isTimeoutException(String message) {
+        if (message == null) {
+            return false;
+        }
+        String lower = message.toLowerCase(Locale.ROOT);
+        return lower.contains("timeout") || lower.contains("timed out");
+    }
+
+    private boolean isRateLimitError(String message) {
+        if (message == null) {
+            return false;
+        }
+        String lower = message.toLowerCase(Locale.ROOT);
+        return lower.contains("429") || lower.contains("rate limited") || lower.contains("quota exceeded");
+    }
+
+    private void sleepBackoff(int attempt) {
+        long waitMs = Math.min(MAX_BACKOFF_MS, retryBaseBackoffMs * (1L << attempt));
+        try {
+            Thread.sleep(waitMs);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private void onProviderSuccess(String provider) {
+        providerCircuits.compute(provider, (k, state) -> {
+            ProviderCircuitState resolved = state == null ? new ProviderCircuitState() : state;
+            resolved.onSuccess();
+            return resolved;
+        });
+    }
+
+    private void onProviderFailure(String provider, String reason) {
+        providerCircuits.compute(provider, (k, state) -> {
+            ProviderCircuitState resolved = state == null ? new ProviderCircuitState() : state;
+            resolved.onFailure(circuitFailureThreshold, circuitOpenMs);
+            return resolved;
+        });
+        logger.warn("Provider {} failure recorded: {}", provider, reason);
+    }
+
+    private boolean isCircuitOpen(String provider) {
+        ProviderCircuitState state = providerCircuits.get(provider);
+        return state != null && state.isOpen(System.currentTimeMillis());
+    }
+
+    private static final class ProviderCircuitState {
+        private int consecutiveFailures;
+        private long openUntilEpochMs;
+
+        private void onSuccess() {
+            consecutiveFailures = 0;
+            openUntilEpochMs = 0L;
+        }
+
+        private void onFailure(int threshold, long openMs) {
+            consecutiveFailures++;
+            if (consecutiveFailures >= threshold) {
+                openUntilEpochMs = System.currentTimeMillis() + openMs;
+            }
+        }
+
+        private boolean isOpen(long nowMs) {
+            return openUntilEpochMs > nowMs;
+        }
+    }
+
+    private static final class ProviderWindowCounter {
+        private long windowStartMs = System.currentTimeMillis();
+        private int usedInWindow = 0;
+
+        private synchronized boolean tryAcquire(int perMinuteLimit) {
+            long now = System.currentTimeMillis();
+            if (now - windowStartMs >= 60_000) {
+                windowStartMs = now;
+                usedInWindow = 0;
+            }
+            if (usedInWindow >= perMinuteLimit) {
+                return false;
+            }
+            usedInWindow++;
+            return true;
+        }
+    }
+
+    private static final class QueuedRequest {
+        private final String provider;
+        private final String prompt;
+        private final String reason;
+
+        private QueuedRequest(String provider, String prompt, String reason) {
+            this.provider = provider;
+            this.prompt = prompt;
+            this.reason = reason;
+        }
     }
 }

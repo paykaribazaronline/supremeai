@@ -1,6 +1,7 @@
 package org.example.config;
 
 import org.example.service.AIAPIService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import java.util.HashMap;
@@ -12,6 +13,39 @@ import java.util.Map;
  */
 @Configuration
 public class TestBeansConfiguration {
+
+    @Value("${ai.timeout.ms:7000}")
+    private int aiTimeoutMs;
+
+    @Value("${ai.retry.max:2}")
+    private int aiMaxRetries;
+
+    @Value("${ai.retry.base.backoff.ms:250}")
+    private long aiRetryBackoffMs;
+
+    @Value("${ai.prompt.max.tokens:2000}")
+    private int aiPromptMaxTokens;
+
+    @Value("${ai.output.max.tokens:1500}")
+    private int aiOutputMaxTokens;
+
+    @Value("${ai.rate.limit.per.minute:60}")
+    private int aiRateLimitPerMinute;
+
+    @Value("${ai.circuit.failure.threshold:3}")
+    private int aiCircuitFailureThreshold;
+
+    @Value("${ai.circuit.open.ms:30000}")
+    private long aiCircuitOpenMs;
+
+    @Value("${ai.queue.capacity:500}")
+    private int aiQueueCapacity;
+
+    @Value("${ai.cache.ttl.minutes:10}")
+    private int aiCacheTtlMinutes;
+
+    @Value("${ai.cache.max.size:1000}")
+    private int aiCacheMaxSize;
     
     /**
      * Provide AIAPIService bean for dependency injection
@@ -29,7 +63,20 @@ public class TestBeansConfiguration {
         putIfPresent(keys, "LLAMA", "LLAMA_API_KEY", "META_LLAMA_API_KEY");
         putIfPresent(keys, "HUGGINGFACE", "HUGGINGFACE_API_KEY", "HF_API_KEY");
         putIfPresent(keys, "XAI", "XAI_API_KEY", "GROK_API_KEY");
-        return new AIAPIService(keys);
+        return new AIAPIService(
+            keys,
+            aiTimeoutMs,
+            aiMaxRetries,
+            aiRetryBackoffMs,
+            aiPromptMaxTokens,
+            aiOutputMaxTokens,
+            aiRateLimitPerMinute,
+            aiCircuitFailureThreshold,
+            aiCircuitOpenMs,
+            aiQueueCapacity,
+            aiCacheTtlMinutes,
+            aiCacheMaxSize
+        );
     }
 
     private void putIfPresent(Map<String, String> keys, String targetKey, String... envNames) {

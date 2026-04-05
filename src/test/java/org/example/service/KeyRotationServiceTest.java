@@ -1,6 +1,9 @@
 package org.example.service;
 
 import org.example.security.SecretManager;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -9,6 +12,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -108,5 +112,34 @@ class KeyRotationServiceTest {
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> recent = (List<Map<String, Object>>) stats.get("recentRotations");
         assertEquals(0, recent.size());
+    }
+
+    @ParameterizedTest
+    @MethodSource("cloudProviders")
+    void forceRotationSupportsCloudProviders(String provider, String secretName) {
+        KeyRotationService service = new KeyRotationService();
+        ReflectionTestUtils.setField(service, "secretManager", secretManager);
+        ReflectionTestUtils.setField(service, "alertingService", alertingService);
+        ReflectionTestUtils.setField(service, "aiApiService", aiApiService);
+        ReflectionTestUtils.setField(service, "gracePeriodHours", 24);
+
+        ReflectionTestUtils.invokeMethod(service, "initializeProviderHandlers");
+
+        when(secretManager.getSecret(secretName)).thenReturn("existing-key");
+
+        KeyRotationService.RotationResult result = service.forceRotation(provider);
+
+        assertTrue(result.isSuccess());
+        verify(secretManager).updateSecret(eq(secretName), anyString());
+        verify(secretManager).invalidateCache(secretName);
+        verify(aiApiService).updateApiKey(eq(provider), anyString());
+    }
+
+    private static Stream<Arguments> cloudProviders() {
+        return Stream.of(
+            Arguments.of("AWS_BEDROCK", "AWS_BEDROCK_API_KEY"),
+            Arguments.of("AZURE_OPENAI", "AZURE_OPENAI_API_KEY"),
+            Arguments.of("GCP_VERTEX_AI", "GCP_VERTEX_AI_KEY")
+        );
     }
 }

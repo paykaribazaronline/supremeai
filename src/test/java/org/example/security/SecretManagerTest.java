@@ -40,4 +40,35 @@ class SecretManagerTest {
         assertDoesNotThrow(() -> manager.updateSecret("ANY_SECRET", "new-value"));
         assertEquals("new-value", manager.getSecret("ANY_SECRET"));
     }
+
+    @Test
+    void awsBackendAliasWithoutRegionFallsBackGracefully() {
+        SecretManager manager = new SecretManager();
+        ReflectionTestUtils.setField(manager, "backend", "aws-secrets-manager");
+        ReflectionTestUtils.setField(manager, "awsRegion", "");
+
+        assertDoesNotThrow(() -> manager.getSecret("AWS_SECRET"));
+        assertDoesNotThrow(() -> manager.updateSecret("AWS_SECRET", "aws-value"));
+        assertEquals("aws-value", manager.getSecret("AWS_SECRET"));
+    }
+
+    @Test
+    void azureBackendAliasWithoutVaultUrlFallsBackGracefully() {
+        SecretManager manager = new SecretManager();
+        ReflectionTestUtils.setField(manager, "backend", "azure-key-vault");
+        ReflectionTestUtils.setField(manager, "azureVaultUrl", "");
+
+        assertDoesNotThrow(() -> manager.getSecret("AZURE_SECRET"));
+        assertDoesNotThrow(() -> manager.updateSecret("AZURE_SECRET", "azure-value"));
+        assertEquals("azure-value", manager.getSecret("AZURE_SECRET"));
+    }
+
+    @Test
+    void emptySecretNameIsSafelyIgnored() {
+        SecretManager manager = new SecretManager();
+        ReflectionTestUtils.setField(manager, "backend", "env");
+
+        assertDoesNotThrow(() -> manager.updateSecret("", "value"));
+        assertNull(manager.getSecret(""));
+    }
 }
