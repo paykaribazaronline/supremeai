@@ -1173,6 +1173,85 @@
                 <div id="system-learning" class="content-section">
                     <h1>📖 System Learning Dashboard</h1>
                     <p>SupremeAI's memory — what it has learned, critical requirements, and past solutions.</p>
+
+                    <!-- ═══════════════════════════════════════════════════════════
+                         AUTO-LEARNING CONTROL PANEL
+                         ═══════════════════════════════════════════════════════════ -->
+                    <div style="background:#1a202c;border:2px solid #4a5568;border-radius:10px;padding:20px;margin-bottom:20px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                            <div>
+                                <div style="font-size:18px;font-weight:700;color:#e2e8f0;">🤖 Auto-Learning System</div>
+                                <div id="learningStatusText" style="font-size:13px;color:#a0aec0;margin-top:4px;">
+                                    Checking status…
+                                </div>
+                            </div>
+                            <div style="display:flex;gap:10px;align-items:center;">
+                                <button id="btnEnableLearning"  class="btn"            onclick="setLearning(true)"  style="min-width:120px;">✅ Enable Learning</button>
+                                <button id="btnDisableLearning" class="btn btn-danger"  onclick="setLearning(false)" style="min-width:120px;">🛑 Disable Learning</button>
+                                <button class="btn btn-secondary" onclick="loadResearchStats()" style="min-width:120px;">🔄 Refresh Status</button>
+                            </div>
+                        </div>
+
+                        <!-- Tips for laymen -->
+                        <div style="background:#2d3748;border-radius:8px;padding:14px;margin-top:16px;">
+                            <div style="font-weight:600;color:#63b3ed;margin-bottom:8px;">💡 Tips — How does Auto-Learning work?</div>
+                            <ul style="color:#a0aec0;font-size:13px;line-height:1.8;margin:0;padding-left:18px;">
+                                <li><strong style="color:#e2e8f0;">When is it active?</strong> — The system waits until no project has been running for <strong>1 full hour</strong>. It then quietly studies new topics in the background.</li>
+                                <li><strong style="color:#e2e8f0;">What does it learn?</strong> — Architecture, Security, Performance, DevOps, AI/ML patterns and more. Each cycle picks the weakest topic area first.</li>
+                                <li><strong style="color:#e2e8f0;">Does it cost money?</strong> — No. It uses the <strong>Firebase free tier</strong> and stays well below the daily limits (shown below).</li>
+                                <li><strong style="color:#e2e8f0;">How to turn it OFF?</strong> — Click <em>"🛑 Disable Learning"</em> above. The system will stop all background research immediately.</li>
+                                <li><strong style="color:#e2e8f0;">How to turn it ON?</strong> — Click <em>"✅ Enable Learning"</em>. Learning resumes automatically the next time the system is idle for 1 hour.</li>
+                                <li><strong style="color:#e2e8f0;">Force-learn now?</strong> — Click <em>"⚡ Trigger Now"</em> to start a research cycle immediately without waiting for idle time.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Firebase quota monitor -->
+                        <div style="margin-top:16px;">
+                            <div style="font-weight:600;color:#e2e8f0;margin-bottom:10px;">🔥 Firebase Free-Tier Quota Monitor</div>
+                            <div style="display:flex;gap:24px;flex-wrap:wrap;" id="quotaPanel">
+                                <div style="flex:1;min-width:200px;background:#2d3748;border-radius:8px;padding:12px;">
+                                    <div style="font-size:11px;color:#718096;text-transform:uppercase;margin-bottom:4px;">Daily Writes Used</div>
+                                    <div style="font-size:22px;font-weight:700;" id="quotaWriteCount">—</div>
+                                    <div style="font-size:11px;color:#718096;" id="quotaWriteLimit">limit: 18 000 / day</div>
+                                    <div style="background:#1a202c;border-radius:4px;height:6px;margin-top:8px;overflow:hidden;">
+                                        <div id="quotaWriteBar" style="background:#48bb78;height:100%;width:0%;transition:width 0.4s;"></div>
+                                    </div>
+                                </div>
+                                <div style="flex:1;min-width:200px;background:#2d3748;border-radius:8px;padding:12px;">
+                                    <div style="font-size:11px;color:#718096;text-transform:uppercase;margin-bottom:4px;">Daily Reads Used</div>
+                                    <div style="font-size:22px;font-weight:700;" id="quotaReadCount">—</div>
+                                    <div style="font-size:11px;color:#718096;" id="quotaReadLimit">limit: 50 000 / day</div>
+                                    <div style="background:#1a202c;border-radius:4px;height:6px;margin-top:8px;overflow:hidden;">
+                                        <div id="quotaReadBar" style="background:#63b3ed;height:100%;width:0%;transition:width 0.4s;"></div>
+                                    </div>
+                                </div>
+                                <div style="flex:1;min-width:200px;background:#2d3748;border-radius:8px;padding:12px;">
+                                    <div style="font-size:11px;color:#718096;text-transform:uppercase;margin-bottom:4px;">Quota Status</div>
+                                    <div style="font-size:18px;font-weight:700;" id="quotaSafeStatus">—</div>
+                                    <div style="font-size:11px;color:#718096;margin-top:4px;" id="quotaWindow">—</div>
+                                </div>
+                            </div>
+                            <div style="font-size:11px;color:#718096;margin-top:8px;">
+                                💡 Learning pauses automatically at 80% of quota to protect normal app operations.
+                            </div>
+                        </div>
+
+                        <!-- Research cycle stats -->
+                        <div id="researchStatsPanel" style="margin-top:16px;display:none;">
+                            <div style="font-weight:600;color:#e2e8f0;margin-bottom:8px;">📊 Current Research Status</div>
+                            <div style="display:flex;gap:16px;flex-wrap:wrap;" id="researchStatsContent"></div>
+                        </div>
+
+                        <!-- Action buttons -->
+                        <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+                            <button class="btn btn-secondary" onclick="triggerResearchNow()">⚡ Trigger Research Now</button>
+                            <button class="btn btn-secondary" onclick="loadResearchHistory()">📜 Research History</button>
+                        </div>
+                        <div id="researchActionMsg" style="margin-top:8px;font-size:13px;"></div>
+                        <div id="researchHistoryPanel" style="display:none;margin-top:12px;max-height:320px;overflow-y:auto;background:#0f1117;border:1px solid #2d3748;border-radius:8px;padding:12px;" id="researchHistoryContent"></div>
+                    </div>
+
+                    <!-- Existing learning controls -->
                     <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
                         <button class="btn" onclick="loadLearningStats()">📊 Learning Stats</button>
                         <button class="btn btn-secondary" onclick="loadCriticalRequirements()">⚠️ Critical Reqs</button>
@@ -1715,7 +1794,7 @@
             if (sectionId === 'metrics') loadMetrics();
                         if (sectionId === 'metrics') loadAiOps();
             if (sectionId === 'self-healing') loadSelfHealingHealth();
-            if (sectionId === 'system-learning') loadLearningStats();
+            if (sectionId === 'system-learning') { loadLearningStats(); loadResearchStats(); }
             if (sectionId === 'consensus') loadConsensusStats();
             if (sectionId === 'notifications') loadNotificationHistory();
             if (sectionId === 'kimi-k2') loadKimiStatus();
@@ -3256,8 +3335,141 @@
         }
 
         // =============================================
-        // NOTIFICATIONS
+        // AUTO-LEARNING SYSTEM CONTROLS
         // =============================================
+
+        async function loadResearchStats() {
+            try {
+                const res = await fetch('/api/research/stats', { headers: getAuthHeaders() });
+                if (!res.ok) return;
+                const d = await res.json();
+
+                // Update learning enabled status
+                const enabled = d.learningEnabled;
+                const statusText = document.getElementById('learningStatusText');
+                if (statusText) {
+                    const idleMins = Math.round((d.idleForMs || 0) / 60000);
+                    const thresholdMins = Math.round((d.idleThresholdMs || 3600000) / 60000);
+                    if (enabled) {
+                        statusText.innerHTML = `<span style="color:#48bb78;">● ACTIVE</span> — System idle for ${idleMins} min (learning starts after ${thresholdMins} min idle). Total research cycles: <strong>${d.totalResearchCompleted || 0}</strong>`;
+                    } else {
+                        statusText.innerHTML = `<span style="color:#f56565;">● PAUSED</span> — Auto-learning is disabled by admin. Click "✅ Enable Learning" to resume.`;
+                    }
+                }
+
+                // Update button states
+                const btnEnable  = document.getElementById('btnEnableLearning');
+                const btnDisable = document.getElementById('btnDisableLearning');
+                if (btnEnable)  btnEnable.disabled  = enabled;
+                if (btnDisable) btnDisable.disabled = !enabled;
+
+                // Update Firebase quota
+                const quota = d.firebaseQuota || {};
+                renderQuota(quota);
+
+                // Show research stats panel
+                const panel = document.getElementById('researchStatsPanel');
+                const content = document.getElementById('researchStatsContent');
+                if (panel && content) {
+                    panel.style.display = 'block';
+                    const items = [
+                        { label: 'Topics In Queue', value: d.topicsInQueue || 0, color: '#ed8936' },
+                        { label: 'Research Cycles', value: d.totalResearchCompleted || 0, color: '#48bb78' },
+                        { label: 'History Size',    value: d.historySize || 0,          color: '#63b3ed' },
+                        { label: 'System Idle',     value: d.isIdle ? 'YES ✅' : 'NO 🏃', color: d.isIdle ? '#48bb78' : '#fc8181' },
+                    ];
+                    content.innerHTML = items.map(i =>
+                        `<div style="background:#2d3748;border-radius:8px;padding:10px 16px;text-align:center;">
+                            <div style="font-size:11px;color:#718096;text-transform:uppercase;">${i.label}</div>
+                            <div style="font-size:20px;font-weight:700;color:${i.color};">${i.value}</div>
+                        </div>`
+                    ).join('');
+                }
+            } catch(e) {
+                const statusText = document.getElementById('learningStatusText');
+                if (statusText) statusText.innerHTML = `<span style="color:#718096;">Could not reach server (${e.message})</span>`;
+            }
+        }
+
+        function renderQuota(quota) {
+            const writeCount = quota.dailyWriteCount || 0;
+            const readCount  = quota.dailyReadCount  || 0;
+            const writeLimit = quota.dailyWriteLimit || 18000;
+            const readLimit  = quota.dailyReadLimit  || 50000;
+            const writePct   = quota.writeUsagePct   || 0;
+            const readPct    = quota.readUsagePct    || 0;
+            const safe       = quota.withinSafeLimit;
+
+            const el = (id) => document.getElementById(id);
+            if (el('quotaWriteCount')) el('quotaWriteCount').textContent = writeCount.toLocaleString();
+            if (el('quotaWriteLimit')) el('quotaWriteLimit').textContent = `limit: ${writeLimit.toLocaleString()} / day`;
+            if (el('quotaReadCount'))  el('quotaReadCount').textContent  = readCount.toLocaleString();
+            if (el('quotaReadLimit'))  el('quotaReadLimit').textContent  = `limit: ${readLimit.toLocaleString()} / day`;
+
+            const writeBar = el('quotaWriteBar');
+            const readBar  = el('quotaReadBar');
+            if (writeBar) { writeBar.style.width = Math.min(writePct, 100) + '%'; writeBar.style.background = writePct > 70 ? '#f56565' : writePct > 40 ? '#ed8936' : '#48bb78'; }
+            if (readBar)  { readBar.style.width  = Math.min(readPct,  100) + '%'; readBar.style.background  = readPct  > 70 ? '#f56565' : readPct  > 40 ? '#ed8936' : '#63b3ed'; }
+
+            const safeEl = el('quotaSafeStatus');
+            if (safeEl) {
+                if (safe === true)       safeEl.innerHTML = '<span style="color:#48bb78;">✅ Safe</span>';
+                else if (safe === false) safeEl.innerHTML = '<span style="color:#f56565;">⚠️ Near Limit</span>';
+                else                     safeEl.innerHTML = '<span style="color:#718096;">—</span>';
+            }
+            const winEl = el('quotaWindow');
+            if (winEl) winEl.textContent = quota.windowResetIn || '';
+        }
+
+        async function setLearning(enable) {
+            const msg = document.getElementById('researchActionMsg');
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Updating...</span>';
+            try {
+                const res = await fetch(enable ? '/api/research/enable' : '/api/research/disable', {
+                    method: 'POST', headers: getAuthHeaders()
+                });
+                const d = await res.json();
+                msg.innerHTML = `<span style="color:${enable ? '#48bb78' : '#fc8181'};">${enable ? '✅' : '🛑'} ${d.message || (enable ? 'Learning enabled' : 'Learning disabled')}</span>`;
+                await loadResearchStats();
+            } catch(e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        async function triggerResearchNow() {
+            const msg = document.getElementById('researchActionMsg');
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Starting research cycle... this may take a few minutes.</span>';
+            try {
+                const res = await fetch('/api/research/trigger', { method: 'POST', headers: getAuthHeaders() });
+                const d = await res.json();
+                const completed = d.completed || 0;
+                msg.innerHTML = `<span style="color:#48bb78;">✅ Research cycle finished — ${completed} topic(s) researched.</span>`;
+                await loadResearchStats();
+            } catch(e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        async function loadResearchHistory() {
+            const panel = document.getElementById('researchHistoryPanel');
+            if (!panel) return;
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            if (panel.style.display === 'none') return;
+            panel.innerHTML = '<span style="color:#a0aec0;">Loading history...</span>';
+            try {
+                const res = await fetch('/api/research/history', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const list = Array.isArray(data) ? data : [];
+                if (!list.length) { panel.innerHTML = '<span style="color:#718096;">No research history yet.</span>'; return; }
+                panel.innerHTML = list.slice(0, 30).map(t => `
+                    <div style="padding:8px 0;border-bottom:1px solid #2d3748;">
+                        <span style="display:inline-block;width:80px;font-size:11px;color:#718096;">${t.domain || ''}</span>
+                        <span style="font-size:12px;color:${t.status === 'COMPLETED' ? '#48bb78' : t.status === 'FAILED' ? '#f56565' : '#a0aec0'};">[${t.status || '?'}]</span>
+                        <span style="font-size:12px;color:#e2e8f0;margin-left:6px;">${(t.question || t.topic || '').substring(0, 80)}</span>
+                    </div>
+                `).join('');
+            } catch(e) { panel.innerHTML = `<span style="color:#f56565;">${e.message}</span>`; }
+        }
 
         async function loadNotificationHistory() {
             const tbody = document.getElementById('notifHistoryTable');
