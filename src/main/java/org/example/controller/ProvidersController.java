@@ -1,6 +1,7 @@
 package org.example.controller;
 
 import org.example.model.APIProvider;
+import org.example.service.FallbackConfigService;
 import org.example.service.ProviderManagementService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,9 @@ import java.util.*;
 public class ProvidersController {
     @Autowired
     private ProviderManagementService providerManagementService;
+
+    @Autowired
+    private FallbackConfigService fallbackConfigService;
 
     @GetMapping("/available")
     public ResponseEntity<?> getAvailableProviders() {
@@ -119,5 +123,100 @@ public class ProvidersController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
+    }
+
+    // ─── Fallback chain management ────────────────────────────────────────────
+
+    /**
+     * GET /api/providers/fallback-chain
+     * Returns the admin-configured fallback order.
+     * Empty list = "use all active DB providers in registration order".
+     */
+    @GetMapping("/fallback-chain")
+    public ResponseEntity<?> getFallbackChain() {
+        try {
+            return ResponseEntity.ok(Map.of("fallbackChain", fallbackConfigService.getFallbackChain()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * POST /api/providers/fallback-chain
+     * Body: { "fallbackChain": ["GROQ", "CLAUDE", "GPT4"] }
+     * Saves the admin-configured fallback order.
+     */
+    @PostMapping("/fallback-chain")
+    public ResponseEntity<?> setFallbackChain(@RequestBody Map<String, Object> body) {
+        try {
+            @SuppressWarnings("unchecked")
+            List<String> chain = (List<String>) body.get("fallbackChain");
+            fallbackConfigService.setFallbackChain(chain);
+            return ResponseEntity.ok(Map.of("success", true, "fallbackChain", fallbackConfigService.getFallbackChain()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // ─── Model suggestions (curated, no external HTTP) ────────────────────────
+
+    /**
+     * GET /api/providers/suggest?q=...
+     * Returns a curated static list of well-known free/affordable AI models
+     * filtered by the search query.  These are *suggestions only* — they are NOT
+     * enabled models.  Admin must save one with an API key to make it active.
+     */
+    @GetMapping("/suggest")
+    public ResponseEntity<?> suggestModels(@RequestParam(name = "q", defaultValue = "") String query) {
+        try {
+            List<Map<String, String>> all = getCuratedModelSuggestions();
+            String q = query.trim().toLowerCase(Locale.ROOT);
+            List<Map<String, String>> filtered = q.isEmpty()
+                ? all
+                : all.stream()
+                    .filter(m -> m.get("id").toLowerCase(Locale.ROOT).contains(q)
+                              || m.get("name").toLowerCase(Locale.ROOT).contains(q)
+                              || m.get("provider").toLowerCase(Locale.ROOT).contains(q))
+                    .toList();
+            return ResponseEntity.ok(filtered);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /** Curated list of popular / free-tier AI models. Kept in-memory — no external HTTP. */
+    private List<Map<String, String>> getCuratedModelSuggestions() {
+        List<Map<String, String>> list = new ArrayList<>();
+        addSuggestion(list, "groq-llama3-70b",     "Llama 3 70B (Groq - Free tier)",  "Groq",       "meta-llama/Meta-Llama-3-70B-Instruct",     "https://api.groq.com/openai/v1/chat/completions");
+        addSuggestion(list, "groq-mixtral",         "Mixtral 8x7B (Groq - Free tier)", "Groq",       "mixtral-8x7b-32768",                       "https://api.groq.com/openai/v1/chat/completions");
+        addSuggestion(list, "groq-gemma2-9b",       "Gemma 2 9B (Groq - Free tier)",   "Groq",       "gemma2-9b-it",                             "https://api.groq.com/openai/v1/chat/completions");
+        addSuggestion(list, "deepseek-v3",          "DeepSeek V3 (Low cost)",           "DeepSeek",   "deepseek-chat",                            "https://api.deepseek.com/v1/chat/completions");
+        addSuggestion(list, "deepseek-r1",          "DeepSeek R1 (Reasoning)",          "DeepSeek",   "deepseek-reasoner",                        "https://api.deepseek.com/v1/chat/completions");
+        addSuggestion(list, "google-gemini-flash",  "Gemini 1.5 Flash (Google Free)",   "Google",     "gemini-1.5-flash",                         "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent");
+        addSuggestion(list, "google-gemini-pro",    "Gemini 1.5 Pro (Google)",          "Google",     "gemini-1.5-pro",                           "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent");
+        addSuggestion(list, "openai-gpt4o-mini",    "GPT-4o Mini (OpenAI cheap)",       "OpenAI",     "gpt-4o-mini",                              "https://api.openai.com/v1/chat/completions");
+        addSuggestion(list, "openai-gpt4o",         "GPT-4o (OpenAI)",                  "OpenAI",     "gpt-4o",                                   "https://api.openai.com/v1/chat/completions");
+        addSuggestion(list, "anthropic-claude-haiku","Claude 3 Haiku (Anthropic cheap)", "Anthropic", "claude-3-haiku-20240307",                  "https://api.anthropic.com/v1/messages");
+        addSuggestion(list, "anthropic-claude-sonnet","Claude 3.5 Sonnet (Anthropic)",  "Anthropic",  "claude-3-5-sonnet-20241022",               "https://api.anthropic.com/v1/messages");
+        addSuggestion(list, "together-llama3-8b",   "Llama 3 8B (Together AI Free)",    "Together AI","meta-llama/Meta-Llama-3-8B-Instruct-Turbo","https://api.together.xyz/v1/chat/completions");
+        addSuggestion(list, "together-mistral-7b",  "Mistral 7B (Together AI Free)",    "Together AI","mistralai/Mistral-7B-Instruct-v0.2",       "https://api.together.xyz/v1/chat/completions");
+        addSuggestion(list, "cohere-command-r",     "Command R (Cohere)",               "Cohere",     "command-r",                                "https://api.cohere.com/v2/chat");
+        addSuggestion(list, "perplexity-sonar",     "Sonar (Perplexity)",               "Perplexity", "sonar",                                    "https://api.perplexity.ai/chat/completions");
+        addSuggestion(list, "xai-grok-2",           "Grok 2 (xAI)",                     "xAI",        "grok-2-latest",                            "https://api.x.ai/v1/chat/completions");
+        addSuggestion(list, "hf-llama3-70b",        "Llama 3 70B (HuggingFace Router)", "HuggingFace","meta-llama/Llama-3.3-70B-Instruct",        "https://router.huggingface.co/v1/chat/completions");
+        addSuggestion(list, "openrouter-free",      "Free models via OpenRouter",        "OpenRouter", "openrouter/auto",                          "https://openrouter.ai/api/v1/chat/completions");
+        return list;
+    }
+
+    private void addSuggestion(List<Map<String, String>> list,
+                                String id, String name, String provider,
+                                String model, String endpoint) {
+        Map<String, String> m = new LinkedHashMap<>();
+        m.put("id", id);
+        m.put("name", name);
+        m.put("provider", provider);
+        m.put("model", model);
+        m.put("endpoint", endpoint);
+        list.add(m);
     }
 }

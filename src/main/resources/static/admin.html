@@ -516,6 +516,7 @@
         <div class="sidebar">
             <div class="logo">👑 SupremeAI Admin</div>
             <div class="menu-item active" onclick="showSection('dashboard')">📊 Dashboard</div>
+            <div class="menu-item" onclick="showSection('system-alerts')" id="sidebarAlertsItem">🚨 System Alerts</div>
             <div class="menu-item" onclick="showSection('techniques')">🧠 Techniques</div>
             <div class="menu-item" onclick="showSection('provider-coverage')">🛰️ Provider Coverage</div>
             <div class="menu-item" onclick="showSection('approvals')">✅ Approvals</div>
@@ -780,6 +781,19 @@
                             <tr><td colspan="7" style="text-align: center; padding: 40px; color: #a0aec0;">🔑 No API keys yet. Click "➕ Add New API Key" to get started!</td></tr>
                         </tbody>
                     </table>
+
+                    <!-- Fallback Chain Editor -->
+                    <h2 style="margin-top:36px;">🔗 AI Fallback Chain (Admin Configured)</h2>
+                    <p style="color:#a0aec0;font-size:13px;">Set the order in which the system tries AI providers when one fails. Drag or re-type to reorder. Leave empty to use all active providers automatically.</p>
+                    <div id="fallbackChainDisplay" style="margin-bottom:12px;color:#63b3ed;font-size:13px;">Loading...</div>
+                    <div class="form-group" style="max-width:500px;">
+                        <label>Fallback Order (comma-separated provider IDs)</label>
+                        <input type="text" id="fallbackChainInput" placeholder="e.g. groq, deepseek, claude, gpt4" style="width:100%;">
+                        <div style="font-size:11px;color:#718096;margin-top:4px;">Use the exact provider IDs shown in the table above. First = highest priority.</div>
+                    </div>
+                    <button class="btn" onclick="saveFallbackChain()">💾 Save Fallback Chain</button>
+                    <button class="btn btn-secondary" onclick="clearFallbackChain()">🗑️ Clear (use all active)</button>
+                    <div id="fallbackChainMsg" style="margin-top:10px;"></div>
                 </div>
 
                 <!-- AI Agent Assignment Section -->
@@ -1505,6 +1519,16 @@
                     <button class="btn btn-danger" style="margin-top: 20px;" onclick="logout()">🚨 Logout</button>
                     <div id="settingsMsg" style="margin-top:10px;"></div>
                 </div>
+
+                <!-- System Alerts Section -->
+                <div id="system-alerts" class="content-section">
+                    <h1>🚨 System Alerts — ম্যানুয়াল অ্যাকশন দরকার</h1>
+                    <p style="color:#a0aec0;">নিচের সমস্যাগুলো সিস্টেম স্বয়ংক্রিয়ভাবে ঠিক করতে পারে না। অনুগ্রহ করে ম্যানুয়ালি সমাধান করুন।</p>
+                    <button class="btn btn-secondary" style="margin-bottom:16px;" onclick="loadSystemAlerts()">🔄 Refresh Alerts</button>
+                    <div id="systemAlertsContainer">
+                        <div style="color:#a0aec0;">Loading alerts...</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1679,30 +1703,43 @@
                 <h2>Add New AI Model API</h2>
                 <span class="close-btn" onclick="closeModal('addKeyModal')">&times;</span>
             </div>
+
+            <!-- Section A: Previously added (from DB) -->
             <div class="form-group">
-                <label>📌 Select AI Model</label>
-                <select id="aiModelSelect">
-                    <option value="">-- Choose AI Model --</option>
+                <label>📌 Update an Existing Provider</label>
+                <select id="aiModelSelect" style="width:100%;">
+                    <option value="">-- Choose a saved provider (or add new below) --</option>
                 </select>
-                <input type="text" id="aiModelSearch" placeholder="Type to filter providers..." style="margin-top:10px;" oninput="filterProviderOptions()">
-                <div style="margin-top:8px; color:#a0aec0; font-size:12px;">Choose a known provider, or select "Custom Provider..." to add any new provider manually.</div>
+                <div style="font-size:11px;color:#718096;margin-top:4px;">Providers you have already saved. Select one to update its API key.</div>
             </div>
-            <div id="customProviderFields" style="display:none;">
+
+            <!-- Section B: Search / discover new models -->
+            <div class="form-group">
+                <label>🔍 Or search to add a new provider</label>
+                <input type="text" id="aiModelSearch" placeholder="Type provider name e.g. groq, gpt, claude, gemini..." oninput="onProviderSearchInput()" style="width:100%;">
+                <div id="suggestionsDropdown" style="display:none;background:#2d3748;border:1px solid #4a5568;border-radius:6px;max-height:200px;overflow-y:auto;margin-top:4px;z-index:9999;position:relative;">
+                </div>
+                <div style="font-size:11px;color:#718096;margin-top:4px;">
+                    💡 Suggestions are popular/free AI providers. Selecting one pre-fills the form below — you still need to paste your API key.
+                </div>
+            </div>
+
+            <div id="customProviderFields">
                 <div class="form-group">
-                    <label>Custom Provider ID *</label>
-                    <input type="text" id="customProviderId" placeholder="e.g. together-ai, openrouter, fireworks-ai">
+                    <label>Provider ID <span style="color:#f56565;">*</span></label>
+                    <input type="text" id="customProviderId" placeholder="e.g. groq, openai, anthropic, together-ai">
                 </div>
                 <div class="form-group">
                     <label>Display Name</label>
-                    <input type="text" id="customProviderName" placeholder="e.g. Together AI">
+                    <input type="text" id="customProviderName" placeholder="e.g. Groq (Free)">
                 </div>
                 <div class="form-group">
-                    <label>Base Model</label>
-                    <input type="text" id="customBaseModel" placeholder="e.g. meta-llama/Llama-3.3-70B-Instruct">
+                    <label>Model Name</label>
+                    <input type="text" id="customBaseModel" placeholder="e.g. llama3-70b-8192 or gpt-4o-mini">
                 </div>
                 <div class="form-group">
                     <label>API Endpoint URL</label>
-                    <input type="text" id="customProviderEndpoint" placeholder="e.g. https://api.together.xyz/v1/chat/completions">
+                    <input type="text" id="customProviderEndpoint" placeholder="e.g. https://api.groq.com/openai/v1/chat/completions">
                 </div>
             </div>
             <div class="form-group">
@@ -1710,11 +1747,18 @@
                 <input type="email" id="createdByEmail" placeholder="admin@supremeai.com">
             </div>
             <div class="form-group">
-                <label>Provider API Key</label>
+                <label>Provider API Key <span style="color:#f56565;">*</span></label>
                 <textarea id="apiKeyInput" placeholder="Paste your API key here..."></textarea>
+                <div style="font-size:11px;color:#718096;margin-top:4px;">
+                    💡 Groq free key: <a href="https://console.groq.com" target="_blank" style="color:#63b3ed;">console.groq.com</a> |
+                    OpenAI: <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#63b3ed;">platform.openai.com</a> |
+                    Anthropic: <a href="https://console.anthropic.com" target="_blank" style="color:#63b3ed;">console.anthropic.com</a> |
+                    Google: <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#63b3ed;">aistudio.google.com</a>
+                </div>
             </div>
-            <button class="btn" onclick="addNewProvider()">✅ Add API</button>
+            <button class="btn" onclick="addNewProvider()">✅ Add / Update Provider</button>
             <button class="btn btn-secondary" onclick="closeModal('addKeyModal')">❌ Cancel</button>
+            <div id="addKeyMsg" style="margin-top:10px;"></div>
         </div>
     </div>
 
@@ -1898,7 +1942,6 @@
             document.getElementById('pageTitle').innerText = titles[sectionId] || 'Dashboard';
             
             if (sectionId === 'approvals') loadApprovals();
-            if (sectionId === 'api-keys') renderAPIKeysTable();
             if (sectionId === 'techniques') loadTechniques();
             if (sectionId === 'provider-coverage') loadProviderCoverage();
             if (sectionId === 'logs') loadAuditLogs();
@@ -1918,6 +1961,8 @@
             if (sectionId === 'notifications') loadNotificationHistory();
             if (sectionId === 'kimi-k2') loadKimiStatus();
             if (sectionId === 'chat') focusChatInput();
+            if (sectionId === 'system-alerts') loadSystemAlerts();
+            if (sectionId === 'api-keys') { renderAPIKeysTable(); loadFallbackChain(); }
         }
 
         function showModal(modalId) {
@@ -1942,66 +1987,96 @@
         }
 
         function toggleCustomProviderFields() {
-            const selected = document.getElementById('aiModelSelect').value;
-            const customFields = document.getElementById('customProviderFields');
-            customFields.style.display = selected === '__custom__' ? 'block' : 'none';
+            // In new design, fields are always shown — no toggle needed
         }
 
-        function filterProviderOptions() {
-            const select = document.getElementById('aiModelSelect');
-            const search = document.getElementById('aiModelSearch').value.trim().toLowerCase();
-            if (!select) {
-                return;
-            }
-            Array.from(select.options).forEach(option => {
-                if (!option.value || option.value === '__custom__') {
-                    option.hidden = false;
-                    return;
-                }
-                const text = (option.textContent || '').toLowerCase();
-                option.hidden = search && !text.includes(search);
-            });
-        }
+        // Old filter function kept for compatibility
+        function filterProviderOptions() {}
 
-        function populateProviderSelect(available) {
+        function populateProviderSelect(configured) {
             const select = document.getElementById('aiModelSelect');
-            if (!select) {
-                return;
-            }
-
-            select.innerHTML = '<option value="">-- Choose AI Model --</option>';
-            available.forEach(provider => {
+            if (!select) return;
+            select.innerHTML = '<option value="">-- Choose a saved provider (or add new below) --</option>';
+            (configured || []).forEach(provider => {
                 const option = document.createElement('option');
                 option.value = provider.providerId;
-                option.textContent = `${provider.displayName} (${provider.providerId})`;
+                option.textContent = `${escHtml(provider.displayName || provider.providerId)} — ${escHtml(provider.status || 'active')}`;
                 select.appendChild(option);
             });
+            select.onchange = () => {
+                const chosen = select.value;
+                if (chosen) {
+                    document.getElementById('customProviderId').value = chosen;
+                    document.getElementById('aiModelSearch').value = '';
+                    document.getElementById('suggestionsDropdown').style.display = 'none';
+                }
+            };
+        }
 
-            const custom = document.createElement('option');
-            custom.value = '__custom__';
-            custom.textContent = 'Custom Provider...';
-            select.appendChild(custom);
-            select.onchange = toggleCustomProviderFields;
-            toggleCustomProviderFields();
+        let _suggestCache = null;
+        async function onProviderSearchInput() {
+            const q = document.getElementById('aiModelSearch').value.trim();
+            const dropdown = document.getElementById('suggestionsDropdown');
+            if (!q) { dropdown.style.display = 'none'; return; }
+
+            // Fetch curated suggestions (cached)
+            if (!_suggestCache) {
+                try {
+                    const res = await fetch('/api/providers/suggest', { headers: getAuthHeaders() });
+                    _suggestCache = res.ok ? await res.json() : [];
+                } catch(e) { _suggestCache = []; }
+            }
+
+            const lower = q.toLowerCase();
+            const matches = (_suggestCache || []).filter(s =>
+                (s.id||'').toLowerCase().includes(lower) ||
+                (s.name||'').toLowerCase().includes(lower) ||
+                (s.provider||'').toLowerCase().includes(lower)
+            ).slice(0, 8);
+
+            if (!matches.length) { dropdown.style.display = 'none'; return; }
+
+            dropdown.innerHTML = matches.map(s => `
+                <div style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #4a5568;font-size:13px;"
+                     onmouseover="this.style.background='#4a5568'" onmouseout="this.style.background=''"
+                     onclick="applySuggestion(${JSON.stringify(s).replace(/"/g,'&quot;')})">
+                    <strong style="color:#e2e8f0;">${escHtml(s.name)}</strong>
+                    <span style="color:#a0aec0;margin-left:8px;">${escHtml(s.provider)}</span><br>
+                    <span style="color:#718096;font-size:11px;">${escHtml(s.model)} • ${escHtml(s.endpoint)}</span>
+                </div>
+            `).join('');
+            dropdown.style.display = 'block';
+        }
+
+        function applySuggestion(s) {
+            document.getElementById('customProviderId').value = s.id || '';
+            document.getElementById('customProviderName').value = s.name || '';
+            document.getElementById('customBaseModel').value = s.model || '';
+            document.getElementById('customProviderEndpoint').value = s.endpoint || '';
+            document.getElementById('aiModelSearch').value = s.name || '';
+            document.getElementById('suggestionsDropdown').style.display = 'none';
+            document.getElementById('aiModelSelect').value = '';
+            document.getElementById('apiKeyInput').focus();
         }
 
         async function prepareAddProviderModal() {
             document.getElementById('createdByEmail').value = getCurrentAdminEmail();
             document.getElementById('aiModelSearch').value = '';
+            document.getElementById('customProviderId').value = '';
+            document.getElementById('customProviderName').value = '';
+            document.getElementById('customBaseModel').value = '';
+            document.getElementById('customProviderEndpoint').value = '';
+            document.getElementById('suggestionsDropdown').style.display = 'none';
+            _suggestCache = null; // clear cache so fresh suggestions load
 
             try {
-                const response = await fetch('/api/providers/available', {
-                    headers: getAuthHeaders()
-                });
-                const data = await response.json();
-                if (!response.ok || !Array.isArray(data)) {
-                    throw new Error(data.error || 'Failed to load providers');
-                }
-                populateProviderSelect(data);
+                // Load only DB-configured providers for the "update existing" dropdown
+                const response = await fetch('/api/providers/available', { headers: getAuthHeaders() });
+                const data = response.ok ? await response.json() : [];
+                populateProviderSelect(Array.isArray(data) ? data : []);
             } catch (error) {
-                // Keep modal usable even if provider list load fails.
                 populateProviderSelect([]);
-                console.error('Failed to load provider options', error);
+                console.error('Failed to load saved providers', error);
             }
         }
 
@@ -2512,35 +2587,28 @@
             const selectedProvider = document.getElementById('aiModelSelect').value;
             const createdByEmail = document.getElementById('createdByEmail').value.trim();
             const apiKey = document.getElementById('apiKeyInput').value.trim();
+            const customProviderIdRaw = document.getElementById('customProviderId').value.trim();
+            const customProviderName = document.getElementById('customProviderName').value.trim();
+            const customBaseModel = document.getElementById('customBaseModel').value.trim();
+            const customProviderEndpoint = document.getElementById('customProviderEndpoint').value.trim();
+            const addKeyMsg = document.getElementById('addKeyMsg');
 
-            if (!selectedProvider) return alert('Please select a provider or choose Custom Provider');
-            if (!createdByEmail) return alert('Please enter the creator email');
-            if (!apiKey) return alert('Please paste the API key');
-
-            let providerId = selectedProvider;
-            let displayName = selectedProvider;
-            let baseModel = selectedProvider;
-            let endpoint = null;
-
-            if (selectedProvider === '__custom__') {
-                const customProviderIdRaw = document.getElementById('customProviderId').value.trim();
-                const customProviderName = document.getElementById('customProviderName').value.trim();
-                const customBaseModel = document.getElementById('customBaseModel').value.trim();
-                const customProviderEndpoint = document.getElementById('customProviderEndpoint').value.trim();
-
-                providerId = sanitizeProviderId(customProviderIdRaw);
-                if (!providerId) {
-                    return alert('Please enter a valid custom provider ID');
-                }
-                displayName = customProviderName || customProviderIdRaw;
-                baseModel = customBaseModel || providerId;
-                endpoint = customProviderEndpoint || null;
-            } else {
-                const selectedOption = document.getElementById('aiModelSelect').selectedOptions[0];
-                displayName = selectedOption ? selectedOption.textContent : selectedProvider;
-                baseModel = selectedProvider;
+            // Resolve provider ID: custom field takes priority over dropdown selection
+            let providerId = sanitizeProviderId(customProviderIdRaw) || selectedProvider;
+            if (!providerId) {
+                addKeyMsg.innerHTML = '<span style="color:#f56565;">Please enter a Provider ID or select a saved provider.</span>';
+                return;
+            }
+            if (!apiKey) {
+                addKeyMsg.innerHTML = '<span style="color:#f56565;">Please paste the API key.</span>';
+                return;
             }
 
+            const displayName = customProviderName || providerId;
+            const baseModel   = customBaseModel   || providerId;
+            const endpoint    = customProviderEndpoint || null;
+
+            addKeyMsg.innerHTML = '<span style="color:#63b3ed;">⏳ Saving…</span>';
             try {
                 await saveProviderConfig({
                     id: providerId,
@@ -2549,24 +2617,24 @@
                     type: 'LLM',
                     apiKey,
                     endpoint,
-                    createdByEmail,
+                    createdByEmail: createdByEmail || getCurrentAdminEmail(),
                     status: 'active'
                 });
+                addKeyMsg.innerHTML = `<span style="color:#48bb78;">✅ Provider "${escHtml(displayName)}" saved!</span>`;
                 document.getElementById('aiModelSelect').value = '';
                 document.getElementById('aiModelSearch').value = '';
-                document.getElementById('createdByEmail').value = '';
                 document.getElementById('apiKeyInput').value = '';
                 document.getElementById('customProviderId').value = '';
                 document.getElementById('customProviderName').value = '';
                 document.getElementById('customBaseModel').value = '';
                 document.getElementById('customProviderEndpoint').value = '';
-                toggleCustomProviderFields();
-                closeModal('addKeyModal');
+                setTimeout(() => closeModal('addKeyModal'), 900);
                 await loadConfiguredProviders();
                 await loadProviderCoveragePreview();
                 await loadProviderCoverage();
+                await loadFallbackChain();
             } catch (error) {
-                alert(`Failed to save provider: ${error.message}`);
+                addKeyMsg.innerHTML = `<span style="color:#f56565;">❌ Failed to save: ${escHtml(error.message)}</span>`;
             }
         }
 
@@ -2676,6 +2744,100 @@
             } catch (error) {
                 tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 40px; color: #fca5a5;">${error.message}</td></tr>`;
             }
+        }
+
+        // =============================================
+        // SYSTEM ALERTS
+        // =============================================
+
+        async function loadSystemAlerts() {
+            const container = document.getElementById('systemAlertsContainer');
+            if (!container) return;
+            container.innerHTML = '<div style="color:#a0aec0;">⏳ Checking system…</div>';
+            try {
+                const res = await fetch('/api/system/alerts', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const alerts = data.alerts || [];
+
+                // Update sidebar badge
+                const sidebarItem = document.getElementById('sidebarAlertsItem');
+                if (sidebarItem) {
+                    const critical = data.critical || 0;
+                    sidebarItem.textContent = critical > 0
+                        ? `🚨 System Alerts (${critical})`
+                        : '✅ System Alerts';
+                    sidebarItem.style.color = critical > 0 ? '#f56565' : '#48bb78';
+                }
+
+                if (!alerts.length) {
+                    container.innerHTML = '<div style="color:#48bb78;font-size:16px;padding:20px;">✅ কোনো সমস্যা নেই! সিস্টেম সব ঠিকঠাক চলছে।</div>';
+                    return;
+                }
+
+                container.innerHTML = alerts.map(a => {
+                    const color = a.level === 'critical' ? '#f56565' : a.level === 'warning' ? '#f6ad55' : '#63b3ed';
+                    const icon  = a.level === 'critical' ? '🔴' : a.level === 'warning' ? '🟡' : '🔵';
+                    const guide = (a.banglaGuide || '').replace(/\n/g, '<br>');
+                    return `<div style="border:1px solid ${color};border-radius:8px;padding:18px;margin-bottom:16px;background:rgba(0,0,0,0.2);">
+                        <div style="font-size:16px;font-weight:bold;color:${color};">${icon} ${escHtml(a.title)}</div>
+                        <div style="color:#e2e8f0;margin:8px 0;">${escHtml(a.message)}</div>
+                        <div style="background:#1a202c;border-radius:6px;padding:12px;color:#a0aec0;font-size:13px;line-height:1.7;white-space:pre-wrap;">${guide}</div>
+                        ${a.action === 'go_to_api_keys' ? `<button class="btn btn-secondary" style="margin-top:10px;" onclick="showSection('api-keys')">🔑 API Key Manager খুলুন</button>` : ''}
+                        ${a.action === 'go_to_fallback_chain' ? `<button class="btn btn-secondary" style="margin-top:10px;" onclick="showSection('api-keys')">🔗 Fallback Chain ঠিক করুন</button>` : ''}
+                    </div>`;
+                }).join('');
+            } catch (e) {
+                container.innerHTML = `<div style="color:#f56565;">❌ Alert check failed: ${e.message}</div>`;
+            }
+        }
+
+        // =============================================
+        // FALLBACK CHAIN MANAGEMENT
+        // =============================================
+
+        async function loadFallbackChain() {
+            try {
+                const res = await fetch('/api/providers/fallback-chain', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const chain = data.fallbackChain || [];
+                const display = document.getElementById('fallbackChainDisplay');
+                const input   = document.getElementById('fallbackChainInput');
+                if (display) {
+                    display.textContent = chain.length
+                        ? '🔗 Current: ' + chain.join(' → ')
+                        : '🔗 Not configured — using all active DB providers automatically.';
+                }
+                if (input) input.value = chain.join(', ');
+            } catch (e) {
+                console.warn('Failed to load fallback chain', e);
+            }
+        }
+
+        async function saveFallbackChain() {
+            const raw = (document.getElementById('fallbackChainInput').value || '').trim();
+            const chain = raw ? raw.split(',').map(s => s.trim()).filter(Boolean) : [];
+            const msg = document.getElementById('fallbackChainMsg');
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Saving…</span>';
+            try {
+                const res = await fetch('/api/providers/fallback-chain', {
+                    method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fallbackChain: chain })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    msg.innerHTML = `<span style="color:#48bb78;">✅ Saved! Chain: ${escHtml(chain.join(' → ') || '(all active providers)')}</span>`;
+                    await loadFallbackChain();
+                } else {
+                    msg.innerHTML = `<span style="color:#f56565;">❌ ${escHtml(data.error || 'Save failed')}</span>`;
+                }
+            } catch (e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        async function clearFallbackChain() {
+            document.getElementById('fallbackChainInput').value = '';
+            await saveFallbackChain();
         }
 
         // =============================================
@@ -3987,6 +4149,8 @@
                     }
                 });
             }
+            // Load alerts badge on startup
+            loadSystemAlerts();
         });
 
         function appendChatMessage(sender, content, agentId, timestamp) {
