@@ -30,11 +30,13 @@
 ### Step 1️⃣ - Google Cloud Monitoring Enable করুন
 
 1. **Google Cloud Console খুলুন:**
+
    ```
    https://console.cloud.google.com
    ```
 
 2. **Monitoring API Enable করুন:**
+
    ```
    Search: "Monitoring API"
    ↓
@@ -42,6 +44,7 @@
    ```
 
 3. **Create Monitoring Workspace:**
+
    ```
    হোম → "Monitoring"
    ↓

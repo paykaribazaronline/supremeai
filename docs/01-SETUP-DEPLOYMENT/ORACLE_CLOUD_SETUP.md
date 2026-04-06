@@ -10,14 +10,18 @@
    - **Home Region:** আপনার জন্য **Singapore** সবথেকে ভালো (স্ক্রিনশট অনুযায়ী)।
    - **Account Name:** `niloyjoy7`
 2. **OCI CLI ইনস্টল (Windows):**
+
    ```powershell
    (New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.ps1', 'install.ps1');
    .\install.ps1
    ```
+
 3. **কনফিগারেশন:**
+
    ```powershell
    oci setup config
    ```
+
    এখানে আপনার `User OCID`, `Tenancy OCID`, এবং `Region` দিতে হবে (OCI Console এর Profile সেকশনে পাবেন)।
 
 ---
@@ -53,6 +57,7 @@ sudo systemctl start docker
 1. OCI Console -> Developer Services -> **Container Registry**.
 2. একটি Repository তৈরি করুন (নাম দিন: `supremeai/core`).
 3. ডকার লগইন:
+
    ```bash
    # সিঙ্গাপুরের জন্য region-key সাধারণত 'ap-singapore-1'
    docker login ap-singapore-1.ocir.io

@@ -3,6 +3,7 @@
 ## 🔑 Base URL Configuration
 
 **Current Production URL:**
+
 ```
 https://supremeai-a.us-central1.run.app
 ```
@@ -16,6 +17,7 @@ This URL is configured in [`lib/config/environment.dart`](lib/config/environment
 1. **Update Base URL for Local Development**
 
 Edit `lib/config/environment.dart`:
+
 ```dart
 // For local backend on port 8080
 static const String baseUrl = 'http://localhost:8080';
@@ -25,6 +27,7 @@ static const String baseUrl = 'http://localhost:8080';
 ```
 
 2. **Ensure Backend is Running Locally**
+
 ```bash
 cd c:\Users\Nazifa\supremeai
 .\gradlew run
@@ -34,6 +37,7 @@ cd c:\Users\Nazifa\supremeai
 ### Production Environment
 
 The app uses Cloud Run URL by default:
+
 ```dart
 static const String baseUrl = 'https://supremeai-a.us-central1.run.app';
 ```
@@ -72,6 +76,7 @@ final response = await apiService.post<Map>(
 ### Token Storage
 
 Tokens are stored in `SharedPreferences`:
+
 - **Access Token:** `supremeai_token`
 - **Refresh Token:** `supremeai_refresh_token`
 - **User Data:** `supremeai_user`
@@ -94,12 +99,14 @@ onRequest: (options, handler) async {
 ## 🚀 Getting Started
 
 ### 1. Install Dependencies
+
 ```bash
 cd flutter_admin_app
 flutter pub get
 ```
 
 ### 2. Run App
+
 ```bash
 # Choose your target device/emulator
 flutter devices
@@ -109,10 +116,12 @@ flutter run
 ```
 
 ### 3. Login
+
 - Email: `admin@supremeai.com`
 - Password: Set from backend registration
 
 ### 4. Test API Connectivity
+
 - Login should work immediately
 - Dashboard loads data from backend
 - All API calls use configured Base URL
@@ -120,12 +129,14 @@ flutter run
 ## 📋 Configuration Files
 
 ### `lib/config/environment.dart`
+
 - Base URL for all API calls
 - API endpoint paths
 - Timeout settings
 - Storage keys
 
 ### `lib/config/constants.dart`
+
 - UI colors and theme
 - Text sizes
 - Padding/spacing values
@@ -133,6 +144,7 @@ flutter run
 - Validation rules
 
 ### `pubspec.yaml`
+
 - Dependencies (Dio, Provider, etc.)
 - Asset paths
 - App metadata
@@ -142,12 +154,14 @@ flutter run
 ### Issue: "Cannot connect to API"
 
 **Check 1: Verify Base URL**
+
 ```dart
 // In environment.dart, ensure correct URL
 print(Environment.baseUrl); // Should print: https://supremeai-...
 ```
 
 **Check 2: Verify Backend is Running**
+
 ```bash
 # For Cloud Run - always available
 # For localhost:8080 - run: .\gradlew run
@@ -157,6 +171,7 @@ curl https://supremeai-a.us-central1.run.app/api/metrics/health
 ```
 
 **Check 3: Check Network**
+
 ```bash
 # On device, verify internet connection
 # On emulator, ensure internet access is enabled
@@ -166,7 +181,9 @@ flutter run -v  # Run with verbose logging
 ### Issue: "401 Unauthorized"
 
 **Solution:**
+
 1. Clear stored tokens:
+
 ```dart
 final storageService = StorageService();
 await storageService.clearAll();
@@ -178,6 +195,7 @@ await storageService.clearAll();
 ### Issue: "Timeout"
 
 **Solution - Update timeout in environment.dart:**
+
 ```dart
 static const int connectionTimeout = 60;  // Increase from 30
 static const int receiveTimeout = 60;     // Increase from 30
@@ -186,11 +204,13 @@ static const int receiveTimeout = 60;     // Increase from 30
 ## 📱 Platform-Specific Config
 
 ### Android
+
 - Min API: 21
 - Target API: 34
 - Internet permission: Added in `AndroidManifest.xml`
 
 ### iOS
+
 - Min iOS: 12.0
 - HTTP config: Check `Info.plist` for ATS settings
 - For local dev: Add localhost exception if needed
@@ -200,6 +220,7 @@ static const int receiveTimeout = 60;     // Increase from 30
 ### HTTPS Certificate Pinning (Optional)
 
 Add to `ApiService` for production:
+
 ```dart
 final httpClient = HttpClient();
 httpClient.badCertificateCallback = (cert, host, port) => false;
@@ -209,6 +230,7 @@ httpClient.badCertificateCallback = (cert, host, port) => false;
 ### Token Encryption (Optional)
 
 Override `StorageService` to use flutter_secure_storage:
+
 ```dart
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 ```
@@ -216,11 +238,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 ## 🚢 Build Configuration
 
 ### Debug Build
+
 ```bash
 flutter build apk --debug
 ```
 
 ### Release Build
+
 ```bash
 flutter build apk --release
 flutter build appbundle --release
@@ -228,6 +252,7 @@ flutter build ios --release
 ```
 
 ### Web Build (Future)
+
 ```bash
 flutter build web --release
 ```
@@ -271,6 +296,7 @@ Before deploying:
 ## 📞 Support
 
 For configuration issues:
+
 1. Check the logs with `flutter run -v`
 2. Review `SETUP_GUIDE.md`
 3. Check backend is running and responding

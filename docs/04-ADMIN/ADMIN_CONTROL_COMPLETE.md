@@ -31,6 +31,7 @@ Admin Control System gives you 3 modes to manage system autonomy:
 ## 🔌 REST API Endpoints
 
 ### **1. Get Current Status**
+
 ```bash
 GET /api/admin/control
 Authorization: Bearer YOUR_ADMIN_TOKEN
@@ -52,6 +53,7 @@ Response:
 ---
 
 ### **2. Change Permission Mode**
+
 ```bash
 POST /api/admin/control/mode
 Authorization: Bearer YOUR_ADMIN_TOKEN
@@ -78,6 +80,7 @@ Response:
 ---
 
 ### **3. Force Stop System**
+
 ```bash
 POST /api/admin/control/stop
 Authorization: Bearer YOUR_ADMIN_TOKEN
@@ -102,6 +105,7 @@ Response:
 ---
 
 ### **4. Resume Operations**
+
 ```bash
 POST /api/admin/control/resume
 Authorization: Bearer YOUR_ADMIN_TOKEN
@@ -126,6 +130,7 @@ Response:
 ---
 
 ### **5. Get Pending Actions (WAIT Mode)**
+
 ```bash
 GET /api/admin/control/pending
 Authorization: Bearer YOUR_ADMIN_TOKEN
@@ -156,6 +161,7 @@ Response:
 ---
 
 ### **6. Approve Pending Action**
+
 ```bash
 POST /api/admin/control/pending/{id}/approve
 Authorization: Bearer YOUR_ADMIN_TOKEN
@@ -178,6 +184,7 @@ Response:
 ---
 
 ### **7. Reject Pending Action**
+
 ```bash
 POST /api/admin/control/pending/{id}/reject
 Authorization: Bearer YOUR_ADMIN_TOKEN
@@ -200,6 +207,7 @@ Response:
 ---
 
 ### **8. Get Action History**
+
 ```bash
 GET /api/admin/control/history?limit=20
 Authorization: Bearer YOUR_ADMIN_TOKEN
@@ -227,6 +235,7 @@ Response:
 ## 🎯 Usage Scenarios
 
 ### **Scenario 1: Development (AUTO Mode)**
+
 ```
 Team: Small dev team
 Mode: AUTO
@@ -244,6 +253,7 @@ POST /api/admin/control/mode
 ```
 
 ### **Scenario 2: Production (WAIT Mode)**
+
 ```
 Team: Enterprise with governance
 Mode: WAIT
@@ -261,6 +271,7 @@ Workflow:
 ```
 
 ### **Scenario 3: Emergency (FORCE_STOP)**
+
 ```
 Situation: System generating problematic code
 Mode: FORCE_STOP
@@ -295,20 +306,24 @@ Workflow:
 ## 🔐 Security
 
 ✅ **Authentication Required**
+
 - All endpoints require admin JWT token
 - Token in `Authorization: Bearer` header
 
 ✅ **Audit Trail**
+
 - All mode changes logged
 - User tracking (`updatedBy`, `approvedBy`)
 - Timestamp on every action
 
 ✅ **Approval Workflow**
+
 - No auto-execution without approval (in WAIT mode)
 - Explicit approve/reject required
 - Detailed reason tracking
 
 ✅ **Emergency Control**
+
 - FORCE_STOP halts everything immediately
 - No cascading failures
 - Manual resume capability
@@ -341,6 +356,7 @@ Currently: **In-memory** (resets on restart)
 Later: Can switch to **Firebase** for persistence
 
 To enable Firebase persistence:
+
 ```java
 // In AdminControlService.java
 // Switch ConcurrentHashMap to Firebase Realtime Database
@@ -351,6 +367,7 @@ To enable Firebase persistence:
 ## 🚀 Next Integration Points
 
 ### **Link with Git Service** (Coming Soon)
+
 ```
 AUTO Mode  → Auto commit/push
 WAIT Mode  → Create pending, await approval before commit
@@ -358,6 +375,7 @@ FORCE_STOP → No git operations
 ```
 
 ### **Link with GitHub Actions** (Coming Soon)
+
 ```
 Auto commit → Trigger workflow
 WAIT mode   → Monitor status, update admin
@@ -365,6 +383,7 @@ Error       → Create new pending action
 ```
 
 ### **Link with Code Generation** (Coming Soon)
+
 ```
 Generate    → Check control mode
 Auto        → Immediate commit
@@ -380,4 +399,3 @@ Force Stop  → Don't generate
 - ✅ **Commit:** `2a102c9`
 - ✅ **Pushed:** origin/main
 - ✅ **Ready:** Use now!
-

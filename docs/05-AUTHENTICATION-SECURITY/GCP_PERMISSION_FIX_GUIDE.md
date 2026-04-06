@@ -92,6 +92,7 @@ Check `.github/workflows/deploy-cloudrun.yml` to ensure it uses the secret:
 After completing steps above:
 
 1. **Commit and push** your changes:
+
    ```bash
    git add -A
    git commit -m "fix: Sync GitHub changes and prepare for GCP deployment"
@@ -105,15 +106,19 @@ After completing steps above:
    - Should see successful Docker push: ✅
 
 3. **Verify Cloud Run deployment**:
+
    ```bash
    gcloud run list --region us-central1
    ```
+
    Should show: `supremeai` service with ✅ ACTIVE status
 
 4. **Test the deployed API**:
+
    ```bash
    curl -s https://supremeai-[hash].run.app/api/health
    ```
+
    Should return JSON with `"status":"UP"`
 
 ---
@@ -124,11 +129,13 @@ After completing steps above:
 
 1. **Wait 30 seconds** for IAM changes to propagate
 2. **Check service account has correct roles:**
+
    ```bash
    gcloud projects get-iam-policy supremeai-a \
      --flatten="bindings[].members" \
      --filter "bindings.members:serviceAccount:github-actions@*"
    ```
+
    Should show: `roles/artifactregistry.writer`
 
 3. **Verify secret is set correctly:**
@@ -200,6 +207,7 @@ GitHub Actions Workflow Triggers
 ## 🎯 Next Steps After Fix
 
 1. **Get deployment URL:**
+
    ```bash
    gcloud run services describe supremeai --region us-central1 --format 'value(status.url)'
    ```
