@@ -57,9 +57,17 @@ public class ActiveLearningHarvesterService {
     @Autowired
     private SystemLearningService systemLearningService;
 
-    /** Tavily API key — injected from env or application.properties */
-    @Value("${TAVILY_API_KEY:#{environment.TAVILY_API_KEY ?: ''}}")
+    /** Tavily API key — resolved from the environment via Spring properties */
+    @Value("${tavily.api.key:}")
     private String tavilyApiKey;
+
+    /** Created once after injection so we don't allocate a new instance every harvest cycle. */
+    private InternetSearchService searchService;
+
+    @javax.annotation.PostConstruct
+    void initSearchService() {
+        searchService = new InternetSearchService(tavilyApiKey != null ? tavilyApiKey : "");
+    }
 
     // ── Scheduled entry point ─────────────────────────────────────────────────
 
@@ -218,12 +226,11 @@ public class ActiveLearningHarvesterService {
             return 0;
         }
 
-        InternetSearchService searcher = new InternetSearchService(tavilyApiKey);
         int learned = 0;
 
         for (String topic : SEARCH_TOPICS) {
             try {
-                List<InternetSearchService.SearchResult> results = searcher.search(topic);
+                List<InternetSearchService.SearchResult> results = searchService.search(topic);
                 for (InternetSearchService.SearchResult result : results) {
                     if (result.snippet == null || result.snippet.isBlank()) continue;
 

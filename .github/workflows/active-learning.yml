@@ -16,6 +16,8 @@ jobs:
   harvest:
     name: Trigger active learning harvest
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Check required secrets
         id: check_secrets
