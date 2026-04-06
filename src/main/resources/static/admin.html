@@ -1556,33 +1556,122 @@
                 <!-- Chat Section -->
                 <div id="chat" class="content-section">
                     <h1>💬 Chat with SupremeAI</h1>
-                    <p style="color:#a0aec0;margin-bottom:16px;">Ask anything — plans, errors, what a module does, how to use the system, or just brainstorm ideas.</p>
 
-                    <div id="chatMessages" style="height:420px;overflow-y:auto;background:#171923;border:1px solid #2d3748;border-radius:10px;padding:16px;margin-bottom:12px;display:flex;flex-direction:column;gap:12px;">
-                        <div class="chat-msg-ai">
-                            <div class="chat-bubble-ai">Hi Admin 👋 I'm SupremeAI. Ask me anything — plans, architecture decisions, what a feature does, or how to use any panel.</div>
-                            <div class="chat-meta">SupremeAI &nbsp;&bull;&nbsp; just now</div>
+                    <!-- Mode tabs -->
+                    <div style="display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid #2d3748;">
+                        <button id="chatModeBtn-session" onclick="switchChatMode('session')"
+                            style="padding:8px 20px;background:#667eea;color:#fff;border:none;border-radius:6px 6px 0 0;cursor:pointer;font-weight:bold;">
+                            💬 Session Chat
+                        </button>
+                        <button id="chatModeBtn-project" onclick="switchChatMode('project')"
+                            style="padding:8px 20px;background:#2d3748;color:#a0aec0;border:none;border-radius:6px 6px 0 0;cursor:pointer;margin-left:4px;">
+                            📁 Project Chat
+                        </button>
+                        <button id="chatModeBtn-rules" onclick="switchChatMode('rules')"
+                            style="padding:8px 20px;background:#2d3748;color:#a0aec0;border:none;border-radius:6px 6px 0 0;cursor:pointer;margin-left:4px;">
+                            📜 Admin Rules
+                        </button>
+                    </div>
+
+                    <!-- ══ SESSION CHAT ══════════════════════════════════════ -->
+                    <div id="chatPane-session">
+                        <div style="display:flex;gap:12px;height:580px;">
+                            <!-- Sidebar: session list -->
+                            <div style="width:220px;background:#1a202c;border:1px solid #2d3748;border-radius:10px;display:flex;flex-direction:column;overflow:hidden;">
+                                <div style="padding:10px;border-bottom:1px solid #2d3748;">
+                                    <button class="btn" style="width:100%;font-size:13px;" onclick="newChatSession()">✚ New Chat</button>
+                                </div>
+                                <div id="sessionList" style="flex:1;overflow-y:auto;padding:8px;"></div>
+                            </div>
+                            <!-- Main chat area -->
+                            <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+                                <div id="sessionTitle" style="font-size:16px;font-weight:bold;color:#e2e8f0;padding:4px 0;">Select or create a chat session</div>
+                                <div id="chatMessages" style="flex:1;overflow-y:auto;background:#171923;border:1px solid #2d3748;border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px;">
+                                    <div class="chat-msg-ai">
+                                        <div class="chat-bubble-ai">Hi Admin 👋 Select a session from the left, or create a new one. আমি সব প্রশ্নের উত্তর দিতে পারি।</div>
+                                        <div class="chat-meta">SupremeAI &bull; just now</div>
+                                    </div>
+                                </div>
+                                <div id="chatTypingIndicator" style="display:none;color:#a0aec0;font-size:13px;">⏳ SupremeAI is thinking...</div>
+                                <div style="display:flex;gap:8px;align-items:flex-end;">
+                                    <div style="flex:1;">
+                                        <select id="chatTaskType" style="padding:6px 10px;background:#2d3748;color:#a0aec0;border:1px solid #4a5568;border-radius:6px;font-size:12px;margin-bottom:6px;width:100%;">
+                                            <option value="general">General</option>
+                                            <option value="code_generation">Code Generation</option>
+                                            <option value="bug_fix">Bug Fix</option>
+                                            <option value="architecture">Architecture</option>
+                                            <option value="planning">Planning</option>
+                                            <option value="document_analysis">Document Analysis</option>
+                                        </select>
+                                        <textarea id="chatInput" rows="2" placeholder="Type your message… (Enter to send, Shift+Enter for newline)" style="width:100%;background:#2d3748;color:#e2e8f0;border:1px solid #4a5568;border-radius:8px;padding:10px;font-size:14px;resize:none;box-sizing:border-box;"></textarea>
+                                    </div>
+                                    <div style="display:flex;flex-direction:column;gap:6px;">
+                                        <button class="btn" onclick="sendChatMessage()" style="white-space:nowrap;">➤ Send</button>
+                                        <button class="btn btn-secondary" onclick="clearChat()" style="white-space:nowrap;font-size:12px;">Clear</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div style="display:flex;gap:8px;align-items:flex-end;">
-                        <div style="flex:1;">
-                            <select id="chatTaskType" style="padding:6px 10px;background:#2d3748;color:#a0aec0;border:1px solid #4a5568;border-radius:6px;font-size:12px;margin-bottom:6px;">
-                                <option value="general">General</option>
-                                <option value="code_generation">Code Generation</option>
-                                <option value="bug_fix">Bug Fix</option>
-                                <option value="architecture">Architecture</option>
-                                <option value="planning">Planning</option>
-                                <option value="document_analysis">Document Analysis</option>
-                            </select>
-                            <textarea id="chatInput" rows="2" placeholder="Type your message... (Enter to send, Shift+Enter for new line)" style="width:100%;background:#2d3748;color:#e2e8f0;border:1px solid #4a5568;border-radius:8px;padding:10px;font-size:14px;resize:none;box-sizing:border-box;"></textarea>
+                    <!-- ══ PROJECT CHAT ══════════════════════════════════════ -->
+                    <div id="chatPane-project" style="display:none;">
+                        <p style="color:#a0aec0;margin-bottom:12px;">প্রজেক্ট-ভিত্তিক চ্যাট — প্রজেক্ট শেষ হলে চ্যাট অটো-ডিলিট হবে এবং Firebase থেকেও মুছে যাবে।</p>
+                        <div style="display:flex;gap:12px;margin-bottom:12px;align-items:flex-end;flex-wrap:wrap;">
+                            <div class="form-group" style="margin:0;flex:1;min-width:180px;">
+                                <label>Project ID</label>
+                                <input type="text" id="projChatProjectId" placeholder="e.g. abc123 (from Projects tab)">
+                            </div>
+                            <div class="form-group" style="margin:0;flex:1;min-width:180px;">
+                                <label>Session Title</label>
+                                <input type="text" id="projChatTitle" placeholder="e.g. Sprint 1 discussion">
+                            </div>
+                            <button class="btn" onclick="createProjectSession()">📁 Open Project Chat</button>
                         </div>
-                        <div style="display:flex;flex-direction:column;gap:6px;">
-                            <button class="btn" onclick="sendChatMessage()" style="white-space:nowrap;">➤ Send</button>
-                            <button class="btn btn-secondary" onclick="clearChat()" style="white-space:nowrap;font-size:12px;">Clear</button>
-                        </div>
+                        <div id="projChatMsg" style="margin-bottom:10px;"></div>
+                        <div id="projChatSessions" style="margin-bottom:16px;"></div>
                     </div>
-                    <div id="chatTypingIndicator" style="display:none;margin-top:8px;color:#a0aec0;font-size:13px;">⏳ SupremeAI is thinking...</div>
+
+                    <!-- ══ ADMIN RULES ══════════════════════════════════════ -->
+                    <div id="chatPane-rules" style="display:none;">
+                        <p style="color:#a0aec0;margin-bottom:12px;">
+                            এখানে সিস্টেমের জন্য নিয়ম তৈরি করুন। সব AI কল-এ এই নিয়মগুলো System Prompt হিসেবে যাবে।
+                        </p>
+                        <!-- New rule form -->
+                        <div style="background:#1a202c;border:1px solid #2d3748;border-radius:10px;padding:16px;margin-bottom:20px;">
+                            <h3 style="margin:0 0 12px;">➕ নতুন নিয়ম যোগ করুন</h3>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px;">
+                                <div class="form-group" style="margin:0;">
+                                    <label>Title <span style="color:#f56565;">*</span></label>
+                                    <input type="text" id="ruleTitle" placeholder="e.g. Always reply in Bangla">
+                                </div>
+                                <div class="form-group" style="margin:0;">
+                                    <label>Category</label>
+                                    <select id="ruleCategory" style="width:100%;">
+                                        <option value="general">General</option>
+                                        <option value="behaviour">Behaviour</option>
+                                        <option value="safety">Safety</option>
+                                        <option value="formatting">Formatting</option>
+                                        <option value="coding">Coding Style</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin:0 0 10px;">
+                                <label>Rule Text <span style="color:#f56565;">*</span></label>
+                                <textarea id="ruleText" rows="3" placeholder="Describe the rule in detail — e.g. 'Always respond in Bengali (Bangla) unless the user explicitly writes in another language.'" style="width:100%;background:#2d3748;color:#e2e8f0;border:1px solid #4a5568;border-radius:6px;padding:10px;resize:vertical;box-sizing:border-box;"></textarea>
+                            </div>
+                            <button class="btn" onclick="saveAdminRule()">💾 Save Rule</button>
+                            <div id="ruleMsg" style="margin-top:8px;"></div>
+                        </div>
+                        <!-- Rule list -->
+                        <h3>📜 সক্রিয় নিয়মসমূহ</h3>
+                        <div style="display:flex;gap:10px;margin-bottom:10px;">
+                            <button class="btn btn-secondary" onclick="loadAdminRules()">↻ Refresh</button>
+                            <button class="btn btn-secondary" onclick="previewRulesPrompt()">👁️ Preview System Prompt</button>
+                        </div>
+                        <div id="rulesContainer"><em style="color:#718096;">Click Refresh to load rules.</em></div>
+                        <div id="rulesPromptPreview" style="display:none;margin-top:16px;background:#0d1117;border-radius:8px;padding:14px;font-family:monospace;font-size:12px;color:#a0aec0;white-space:pre-wrap;max-height:300px;overflow-y:auto;"></div>
+                    </div>
                 </div>
 
                 <!-- Settings Section -->
@@ -2077,7 +2166,7 @@
             if (sectionId === 'consensus') loadConsensusStats();
             if (sectionId === 'notifications') loadNotificationHistory();
             if (sectionId === 'kimi-k2') loadKimiStatus();
-            if (sectionId === 'chat') focusChatInput();
+            if (sectionId === 'chat') { switchChatMode('session'); focusChatInput(); }
             if (sectionId === 'system-alerts') loadSystemAlerts();
             if (sectionId === 'api-keys') { renderAPIKeysTable(); loadFallbackChain(); }
             if (sectionId === 'activity-summary') loadActivitySummary();
@@ -4583,8 +4672,25 @@
         }
 
         // =============================================
-        // CHAT WITH SUPREMEAI
+        // CHAT WITH SUPREMEAI — UPGRADED
         // =============================================
+
+        // ── State ──────────────────────────────────────────────────────────────
+        let _currentSessionId = null;
+        let _chatMode = 'session'; // 'session' | 'project' | 'rules'
+
+        function switchChatMode(mode) {
+            _chatMode = mode;
+            ['session','project','rules'].forEach(m => {
+                document.getElementById('chatPane-' + m).style.display = m === mode ? '' : 'none';
+                const btn = document.getElementById('chatModeBtn-' + m);
+                btn.style.background = m === mode ? '#667eea' : '#2d3748';
+                btn.style.color      = m === mode ? '#fff'    : '#a0aec0';
+            });
+            if (mode === 'session')  { loadSessions(); focusChatInput(); }
+            if (mode === 'project')  loadProjectSessions();
+            if (mode === 'rules')    loadAdminRules();
+        }
 
         function focusChatInput() {
             setTimeout(() => document.getElementById('chatInput')?.focus(), 100);
@@ -4603,6 +4709,102 @@
             // Load alerts badge on startup
             loadSystemAlerts();
         });
+
+        // ── Session sidebar ────────────────────────────────────────────────────
+
+        async function loadSessions() {
+            const list = document.getElementById('sessionList');
+            list.innerHTML = '<div style="color:#718096;font-size:12px;padding:4px;">Loading…</div>';
+            try {
+                const res  = await fetch('/api/admin-chat/sessions', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const sessions = data.sessions || [];
+                if (!sessions.length) {
+                    list.innerHTML = '<div style="color:#718096;font-size:12px;padding:4px;">No sessions yet.</div>';
+                    return;
+                }
+                list.innerHTML = sessions.map(s => `
+                    <div id="session-item-${escHtml(s.id)}"
+                         onclick="openSession('${escHtml(s.id)}')"
+                         style="padding:8px 10px;border-radius:6px;cursor:pointer;margin-bottom:4px;
+                                background:${s.id===_currentSessionId?'#2d3748':'transparent'};
+                                border:1px solid ${s.id===_currentSessionId?'#667eea':'transparent'};">
+                        <div style="color:#e2e8f0;font-size:13px;font-weight:${s.id===_currentSessionId?'bold':'normal'};
+                                    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                            ${escHtml(s.title)}
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px;">
+                            <span style="color:#718096;font-size:11px;">${s.messages?s.messages.length:0} msgs</span>
+                            <button onclick="event.stopPropagation();deleteChatSession('${escHtml(s.id)}')"
+                                    style="background:none;border:none;color:#f56565;cursor:pointer;font-size:13px;padding:0 2px;"
+                                    title="Delete session">🗑️</button>
+                        </div>
+                    </div>`).join('');
+            } catch (e) {
+                list.innerHTML = `<div style="color:#f56565;font-size:12px;">${e.message}</div>`;
+            }
+        }
+
+        async function newChatSession() {
+            const title = prompt('Session name:', 'New Chat ' + new Date().toLocaleTimeString()) || 'New Chat';
+            try {
+                const res = await fetch('/api/admin-chat/sessions', {
+                    method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title })
+                });
+                const s = await res.json();
+                await openSession(s.id);
+                await loadSessions();
+            } catch (e) {
+                alert('Failed to create session: ' + e.message);
+            }
+        }
+
+        async function openSession(id) {
+            _currentSessionId = id;
+            try {
+                const res  = await fetch('/api/admin-chat/sessions/' + id, { headers: getAuthHeaders() });
+                const sess = await res.json();
+                document.getElementById('sessionTitle').textContent = '💬 ' + (sess.title || id);
+                renderSessionMessages(sess.messages || []);
+                loadSessions(); // refresh sidebar highlight
+            } catch (e) {
+                alert('Failed to load session: ' + e.message);
+            }
+        }
+
+        function renderSessionMessages(messages) {
+            const box = document.getElementById('chatMessages');
+            if (!messages.length) {
+                box.innerHTML = `<div class="chat-msg-ai">
+                    <div class="chat-bubble-ai">Hi Admin 👋 এই সেশনে কথা শুরু করুন!</div>
+                    <div class="chat-meta">SupremeAI &bull; just now</div></div>`;
+                return;
+            }
+            box.innerHTML = '';
+            messages.forEach(m => appendChatMessage(m.sender, m.content, m.agentId, m.time));
+        }
+
+        async function deleteChatSession(id) {
+            if (!confirm('Delete this chat session? Firebase-এ সেভ করা ডেটাও মুছে যাবে।')) return;
+            try {
+                await fetch('/api/admin-chat/sessions/' + id, {
+                    method: 'DELETE', headers: getAuthHeaders()
+                });
+                if (_currentSessionId === id) {
+                    _currentSessionId = null;
+                    document.getElementById('sessionTitle').textContent = 'Select or create a session';
+                    document.getElementById('chatMessages').innerHTML = `<div class="chat-msg-ai">
+                        <div class="chat-bubble-ai">Session deleted. Create a new one!</div>
+                        <div class="chat-meta">SupremeAI &bull; ${new Date().toLocaleTimeString()}</div></div>`;
+                }
+                await loadSessions();
+            } catch (e) {
+                alert('Delete failed: ' + e.message);
+            }
+        }
+
+        // ── Message sending ────────────────────────────────────────────────────
 
         function appendChatMessage(sender, content, agentId, timestamp) {
             const box = document.getElementById('chatMessages');
@@ -4623,24 +4825,39 @@
         }
 
         async function sendChatMessage() {
-            const input = document.getElementById('chatInput');
+            const input    = document.getElementById('chatInput');
             const taskType = document.getElementById('chatTaskType').value;
             const userMessage = input.value.trim();
             if (!userMessage) return;
-
             input.value = '';
+
+            // If no session yet → auto-create one
+            if (!_currentSessionId) {
+                const res = await fetch('/api/admin-chat/sessions', {
+                    method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: 'Chat ' + new Date().toLocaleTimeString() })
+                });
+                const s = await res.json();
+                _currentSessionId = s.id;
+                document.getElementById('sessionTitle').textContent = '💬 ' + s.title;
+                loadSessions();
+            }
+
             appendChatMessage('user', userMessage, null, null);
             document.getElementById('chatTypingIndicator').style.display = 'block';
 
             try {
-                const res = await fetch('/api/chat/send', {
-                    method: 'POST',
-                    headers: getAuthHeaders(),
+                const res = await fetch('/api/admin-chat/sessions/' + _currentSessionId + '/send', {
+                    method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
                     body: JSON.stringify({ userMessage, taskType, metadata: {} })
                 });
-                const d = await res.json();
+                const sess = await res.json();
                 document.getElementById('chatTypingIndicator').style.display = 'none';
-                appendChatMessage('ai', d.content || d.message || JSON.stringify(d), d.agentId, d.timestamp);
+                // Render only the last AI message (already appended user msg above)
+                const msgs = sess.messages || [];
+                const lastAI = [...msgs].reverse().find(m => m.sender === 'ai');
+                if (lastAI) appendChatMessage('ai', lastAI.content, lastAI.agentId, lastAI.time);
+                else        appendChatMessage('ai', sess.content || JSON.stringify(sess), 'SupremeAI', null);
             } catch(e) {
                 document.getElementById('chatTypingIndicator').style.display = 'none';
                 appendChatMessage('ai', '❌ Error: ' + e.message, 'SupremeAI', null);
@@ -4654,6 +4871,146 @@
                     <div class="chat-meta">SupremeAI &bull; ${new Date().toLocaleTimeString()}</div>
                 </div>`;
         }
+
+        // ── Project Chat ───────────────────────────────────────────────────────
+
+        async function createProjectSession() {
+            const projectId = document.getElementById('projChatProjectId').value.trim();
+            const title     = document.getElementById('projChatTitle').value.trim() || 'Project Chat';
+            const msg       = document.getElementById('projChatMsg');
+            if (!projectId) { msg.innerHTML='<span style="color:#f56565;">Project ID is required.</span>'; return; }
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Creating…</span>';
+            try {
+                const res = await fetch('/api/admin-chat/project/' + encodeURIComponent(projectId) + '/session', {
+                    method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title })
+                });
+                const s = await res.json();
+                msg.innerHTML = `<span style="color:#48bb78;">✅ Session created: ${escHtml(s.title)}</span>`;
+                loadProjectSessions();
+                // Switch to session mode and open it
+                switchChatMode('session');
+                await openSession(s.id);
+            } catch (e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        async function loadProjectSessions() {
+            const projectId = document.getElementById('projChatProjectId')?.value.trim();
+            const el = document.getElementById('projChatSessions');
+            if (!el) return;
+            if (!projectId) { el.innerHTML = ''; return; }
+            try {
+                const res  = await fetch('/api/admin-chat/sessions?projectId=' + encodeURIComponent(projectId), { headers: getAuthHeaders() });
+                const data = await res.json();
+                const sessions = data.sessions || [];
+                if (!sessions.length) { el.innerHTML = '<em style="color:#718096;">No sessions for this project.</em>'; return; }
+                el.innerHTML = sessions.map(s => `
+                    <div style="border:1px solid #2d3748;border-radius:6px;padding:10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+                        <span style="color:#e2e8f0;">${escHtml(s.title)}</span>
+                        <div style="display:flex;gap:6px;">
+                            <button class="btn btn-secondary" style="font-size:12px;"
+                                onclick="switchChatMode('session');openSession('${escHtml(s.id)}')">Open</button>
+                            <button class="btn btn-danger" style="font-size:12px;"
+                                onclick="deleteChatSession('${escHtml(s.id)}')">Delete</button>
+                        </div>
+                    </div>`).join('');
+            } catch(e) {
+                el.innerHTML = `<em style="color:#f56565;">${e.message}</em>`;
+            }
+        }
+
+        // ── Admin Rules ────────────────────────────────────────────────────────
+
+        async function loadAdminRules() {
+            const el = document.getElementById('rulesContainer');
+            el.innerHTML = '<em style="color:#718096;">Loading…</em>';
+            try {
+                const res  = await fetch('/api/admin-chat/rules', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const rules = data.rules || [];
+                if (!rules.length) { el.innerHTML = '<em style="color:#718096;">No rules yet.</em>'; return; }
+                el.innerHTML = rules.map(r => `
+                    <div style="border:1px solid ${r.enabled?'#2d3748':'#4a5568'};border-radius:8px;padding:14px;margin-bottom:10px;
+                                background:${r.enabled?'#1a202c':'rgba(26,32,44,0.4)'};">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                            <div>
+                                <strong style="color:#e2e8f0;">${escHtml(r.title)}</strong>
+                                <span style="background:#2d3748;color:#a0aec0;border-radius:4px;padding:2px 8px;font-size:11px;margin-left:8px;">${escHtml(r.category)}</span>
+                                ${!r.enabled?'<span style="color:#718096;font-size:11px;margin-left:6px;">(disabled)</span>':''}
+                            </div>
+                            <div style="display:flex;gap:6px;">
+                                <button onclick="toggleRule('${escHtml(r.id)}',${!r.enabled})"
+                                    class="btn btn-secondary" style="font-size:11px;padding:3px 8px;">
+                                    ${r.enabled?'Disable':'Enable'}
+                                </button>
+                                <button onclick="deleteAdminRule('${escHtml(r.id)}')"
+                                    style="background:#f56565;border:none;color:#fff;border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer;">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                        <div style="color:#a0aec0;font-size:13px;white-space:pre-wrap;">${escHtml(r.ruleText)}</div>
+                        <div style="color:#718096;font-size:11px;margin-top:6px;">Created: ${escHtml(r.createdAt||'')}</div>
+                    </div>`).join('');
+            } catch (e) {
+                el.innerHTML = `<em style="color:#f56565;">${e.message}</em>`;
+            }
+        }
+
+        async function saveAdminRule() {
+            const title    = document.getElementById('ruleTitle').value.trim();
+            const ruleText = document.getElementById('ruleText').value.trim();
+            const category = document.getElementById('ruleCategory').value;
+            const msg      = document.getElementById('ruleMsg');
+            if (!title || !ruleText) { msg.innerHTML='<span style="color:#f56565;">Title and Rule Text are required.</span>'; return; }
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Saving…</span>';
+            try {
+                await fetch('/api/admin-chat/rules', {
+                    method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, ruleText, category })
+                });
+                msg.innerHTML = '<span style="color:#48bb78;">✅ Rule saved!</span>';
+                document.getElementById('ruleTitle').value = '';
+                document.getElementById('ruleText').value  = '';
+                await loadAdminRules();
+            } catch (e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        async function toggleRule(id, enabled) {
+            try {
+                await fetch('/api/admin-chat/rules/' + id, {
+                    method: 'PATCH', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled })
+                });
+                await loadAdminRules();
+            } catch (e) { alert('Failed: ' + e.message); }
+        }
+
+        async function deleteAdminRule(id) {
+            if (!confirm('Delete this rule?')) return;
+            try {
+                await fetch('/api/admin-chat/rules/' + id, {
+                    method: 'DELETE', headers: getAuthHeaders()
+                });
+                await loadAdminRules();
+            } catch (e) { alert('Failed: ' + e.message); }
+        }
+
+        async function previewRulesPrompt() {
+            const previewEl = document.getElementById('rulesPromptPreview');
+            try {
+                const res  = await fetch('/api/admin-chat/rules/prompt', { headers: getAuthHeaders() });
+                const data = await res.json();
+                previewEl.style.display = 'block';
+                previewEl.textContent = data.prompt || '(No active rules — prompt is empty)';
+            } catch (e) { previewEl.textContent = 'Error: ' + e.message; }
+        }
+
+        // ── Load on showSection ────────────────────────────────────────────────
 
         // =============================================
         // SETTINGS
