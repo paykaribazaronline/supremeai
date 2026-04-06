@@ -38,6 +38,9 @@ public class CodeGenerationOrchestrator {
     @Autowired(required = false)
     private ExecutionLogManager logManager;
 
+    @Autowired(required = false)
+    private IdleResearchService idleResearchService;
+
     private static final ObjectMapper mapper = new ObjectMapper();
     private final Map<String, GenerationMetrics> generationHistory = new HashMap<>();
 
@@ -83,11 +86,19 @@ public class CodeGenerationOrchestrator {
         }
     }
 
+    /** Notify idle research engine that the system is doing real work. */
+    private void signalProjectActivity() {
+        if (idleResearchService != null) {
+            idleResearchService.notifyProjectActivity();
+        }
+    }
+
     /**
      * Generate a complete component for React/TypeScript with agent optimization
      */
     public Map<String, Object> generateReactComponent(String projectId, String componentName, 
                                                      String description, List<String> features) {
+        signalProjectActivity();
         GenerationMetrics metrics = new GenerationMetrics(projectId, componentName, "REACT");
         Map<String, Object> result = new HashMap<>();
         result.put("projectId", projectId);

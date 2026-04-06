@@ -69,4 +69,16 @@ class AIAPIServiceTest {
         assertTrue(service.isProviderConfigured("google-gemini"));
         assertEquals("GEMINI", service.getProviderConnectorStatus("google-gemini").get("canonicalModel"));
     }
+
+    @Test
+    void supportsAirLlmAsLocalEndpointProvider() {
+        AIAPIService service = new AIAPIService(new HashMap<>());
+
+        assertEquals("airllm-local", service.getCanonicalProviderId("airllm"));
+        assertEquals("AIRLLM", service.normalizeModelName("airllm-local"));
+        assertEquals("AirLLM Local", service.getProviderDisplayName("airllm-local"));
+        assertTrue(service.hasNativeConnector("airllm-local"));
+        assertFalse(service.requiresApiKey("airllm-local"));
+        assertEquals("AIRLLM", service.getFallbackChainForProvider("airllm").get(0));
+    }
 }

@@ -37,7 +37,7 @@ public class ProviderManagementService {
             row.put("displayName", aiApiService.getProviderDisplayName(providerId));
             row.put("nativeConnector", aiApiService.hasNativeConnector(providerId));
             row.put("configured", aiApiService.isProviderConfigured(providerId)
-                || (registryProvider != null && hasStoredCredentials(registryProvider)));
+                || isProviderReady(registryProvider));
             row.put("saved", registryProvider != null);
             row.put("status", registryProvider == null ? "not-configured" : registryProvider.getStatus());
             providers.add(row);
@@ -127,13 +127,18 @@ public class ProviderManagementService {
             throw new IOException("Provider not found: " + id);
         }
 
-        if (!hasStoredCredentials(provider)) {
-            throw new IOException("Provider has no stored API key");
+        if (!isProviderReady(provider)) {
+            throw new IOException("Provider is missing required endpoint or API key");
         }
 
         String targetProvider = firstNonBlank(provider.getId(), provider.getBaseModel(), provider.getAlias(), provider.getName());
+        String probeEndpoint = firstNonBlank(provider.getHealthCheckUrl(), provider.getEndpoint());
         try {
-            String response = aiApiService.probeProviderConnection(targetProvider, provider.getApiKey(), provider.getEndpoint());
+            String response = aiApiService.probeProviderConnection(
+                targetProvider,
+                hasStoredCredentials(provider) ? provider.getApiKey() : null,
+                probeEndpoint
+            );
             provider.setLastTested(LocalDateTime.now());
             provider.setLastError(null);
             provider.setStatus("active");
@@ -216,6 +221,15 @@ public class ProviderManagementService {
         if ((merged.getAlias() == null || merged.getAlias().isBlank()) && existing != null) {
             merged.setAlias(existing.getAlias());
         }
+        if ((merged.getHealthCheckUrl() == null || merged.getHealthCheckUrl().isBlank()) && existing != null) {
+            merged.setHealthCheckUrl(existing.getHealthCheckUrl());
+        }
+        if ((merged.getCapabilities() == null || merged.getCapabilities().isEmpty()) && existing != null) {
+            merged.setCapabilities(existing.getCapabilities());
+        }
+        if ((merged.getComplexityTier() == null || merged.getComplexityTier().isBlank()) && existing != null) {
+            merged.setComplexityTier(existing.getComplexityTier());
+        }
         if ((merged.getCreatedByEmail() == null || merged.getCreatedByEmail().isBlank()) && existing != null) {
             merged.setCreatedByEmail(existing.getCreatedByEmail());
         }
@@ -249,8 +263,11 @@ public class ProviderManagementService {
         response.put("baseModel", provider.getBaseModel());
         response.put("type", provider.getType());
         response.put("endpoint", provider.getEndpoint());
+        response.put("healthCheckUrl", provider.getHealthCheckUrl());
         response.put("alias", provider.getAlias());
         response.put("notes", provider.getNotes());
+        response.put("capabilities", provider.getCapabilities());
+        response.put("complexityTier", provider.getComplexityTier());
         response.put("createdByEmail", provider.getCreatedByEmail());
         response.put("createdAt", provider.getCreatedAt());
         response.put("models", provider.getModels());
@@ -268,14 +285,40 @@ public class ProviderManagementService {
         response.put("monthlyUsagePercent", quota == null ? 0.0 : quota.getUsagePercentage());
         response.put("remainingMonthlyRequests", quota == null ? null : quota.getRemainingMonthlyRequests());
         response.put("hasApiKey", hasStoredCredentials(provider));
+        response.put("hasEndpoint", hasEndpoint(provider));
+        response.put("requiresApiKey", aiApiService.requiresApiKey(provider.getId()));
+        response.put("ready", isProviderReady(provider));
         response.put("maskedApiKey", maskApiKey(provider.getApiKey()));
         response.put("nativeConnector", aiApiService.hasNativeConnector(provider.getId()));
-        response.put("configured", aiApiService.isProviderConfigured(provider.getId()) || hasStoredCredentials(provider));
+        response.put("configured", aiApiService.isProviderConfigured(provider.getId()) || isProviderReady(provider));
         return response;
     }
 
     private boolean hasStoredCredentials(APIProvider provider) {
         return provider != null && provider.getApiKey() != null && !provider.getApiKey().isBlank();
+    }
+
+    private boolean hasEndpoint(APIProvider provider) {
+        return provider != null && provider.getEndpoint() != null && !provider.getEndpoint().isBlank();
+    }
+
+    private boolean isProviderReady(APIProvider provider) {
+        if (provider == null) {
+            return false;
+        }
+
+        String providerRef = firstNonBlank(provider.getId(), provider.getBaseModel(), provider.getAlias(), provider.getName());
+        if (providerRef == null) {
+            return false;
+        }
+
+        if (aiApiService.requiresApiKey(providerRef)) {
+            return hasStoredCredentials(provider) || aiApiService.isProviderConfigured(providerRef);
+        }
+
+        return hasStoredCredentials(provider)
+            || hasEndpoint(provider)
+            || aiApiService.isProviderConfigured(providerRef);
     }
 
     private String buildRotationNote(String existingNotes, String reason, String alertEmail) {
