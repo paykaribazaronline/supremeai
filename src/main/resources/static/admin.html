@@ -536,6 +536,7 @@
             <div class="menu-item" onclick="showSection('self-extension')">⚕️ Self-Extension</div>
             <div class="menu-item" onclick="showSection('consensus')">🧠 Multi-AI Consensus</div>
             <div class="menu-item" onclick="showSection('system-learning')">📖 System Learning</div>
+            <div class="menu-item" onclick="showSection('existing-projects')">🔧 Improve Existing App</div>
             <div class="menu-item" onclick="showSection('notifications')">📬 Notifications</div>
             <div class="menu-item" onclick="showSection('kimi-k2')">🔮 AI Learning Orchestration</div>
             <div class="menu-item" onclick="showSection('chat')">💬 Chat with SupremeAI</div>
@@ -1267,6 +1268,92 @@
                     <div id="learningMsg" style="margin-top:12px;"></div>
                 </div>
 
+                <!-- Improve Existing App Section -->
+                <div id="existing-projects" class="content-section">
+                    <h1>🔧 Improve Existing App</h1>
+                    <p style="color:#a0aec0;margin-bottom:16px;">
+                        Register any existing GitHub repository. SupremeAI will analyse the code, discuss an improvement plan with you, and continuously push improvements to the repo.
+                    </p>
+
+                    <!-- Tips panel -->
+                    <div style="background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:14px;margin-bottom:20px;">
+                        <div style="font-weight:600;color:#63b3ed;margin-bottom:8px;">💡 How does this work?</div>
+                        <ul style="color:#a0aec0;font-size:13px;line-height:1.9;margin:0;padding-left:18px;">
+                            <li><strong style="color:#e2e8f0;">Step 1 — Register:</strong> Enter the GitHub URL of any project (public or private) and describe what you want improved.</li>
+                            <li><strong style="color:#e2e8f0;">Step 2 — Discuss:</strong> Use the chat panel to refine the plan with SupremeAI. The AI will ask clarifying questions.</li>
+                            <li><strong style="color:#e2e8f0;">Step 3 — Improve:</strong> Click "⚡ Improve Now" or enable "Continuous Improvement" — SupremeAI will clone the repo, analyse it, and push improvement notes &amp; fixes back.</li>
+                            <li><strong style="color:#e2e8f0;">Private repos:</strong> Provide a GitHub Personal Access Token (PAT) to allow cloning. The token is stored in memory only.</li>
+                            <li><strong style="color:#e2e8f0;">Continuous mode:</strong> When enabled, SupremeAI checks for improvement opportunities every 30 minutes automatically.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Register Form -->
+                    <div style="background:#1a202c;border:2px solid #4a5568;border-radius:10px;padding:20px;margin-bottom:20px;">
+                        <div style="font-size:16px;font-weight:700;color:#e2e8f0;margin-bottom:14px;">➕ Register New Project</div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;flex-wrap:wrap;">
+                            <div class="form-group" style="margin:0;">
+                                <label>Project Name <span style="color:#a0aec0;font-size:11px;">(optional)</span></label>
+                                <input type="text" id="epName" placeholder="e.g. Guitar App" style="width:100%;">
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label>Branch</label>
+                                <input type="text" id="epBranch" placeholder="main" value="main" style="width:100%;">
+                            </div>
+                            <div class="form-group" style="margin:0;grid-column:1/-1;">
+                                <label>GitHub Repository URL <span style="color:#f56565;">*</span></label>
+                                <input type="url" id="epRepoUrl" placeholder="https://github.com/user/guitar-app" style="width:100%;">
+                            </div>
+                            <div class="form-group" style="margin:0;grid-column:1/-1;">
+                                <label>Improvement Goal <span style="color:#f56565;">*</span> <span style="color:#a0aec0;font-size:11px;">— What should SupremeAI improve or fix?</span></label>
+                                <textarea id="epGoal" rows="3" placeholder="e.g. Fix the audio playback bug, improve the chord editor UI, and add a metronome feature." style="width:100%;background:#2d3748;color:#e2e8f0;border:1px solid #4a5568;border-radius:6px;padding:10px;resize:vertical;box-sizing:border-box;"></textarea>
+                            </div>
+                            <div class="form-group" style="margin:0;grid-column:1/-1;">
+                                <label>GitHub Token <span style="color:#a0aec0;font-size:11px;">(optional — needed for private repos)</span></label>
+                                <input type="password" id="epToken" placeholder="ghp_xxxxxxxxxxxx" style="width:100%;">
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:10px;margin-top:14px;align-items:center;">
+                            <button class="btn" onclick="registerExistingProject()">📎 Register Project</button>
+                            <span id="epRegisterMsg" style="font-size:13px;"></span>
+                        </div>
+                    </div>
+
+                    <!-- Registered Projects List -->
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                        <h2 style="margin:0;">📂 Registered Projects</h2>
+                        <button class="btn btn-secondary" onclick="loadExistingProjects()">🔄 Refresh</button>
+                    </div>
+                    <div id="existingProjectsList">
+                        <div style="text-align:center;padding:30px;color:#a0aec0;">Click "🔄 Refresh" or register a project above to get started.</div>
+                    </div>
+
+                    <!-- Conversation / Detail Panel (shown when a project is selected) -->
+                    <div id="epDetailPanel" style="display:none;margin-top:24px;background:#1a202c;border:2px solid #4a5568;border-radius:10px;padding:20px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+                            <div style="font-size:16px;font-weight:700;color:#e2e8f0;" id="epDetailTitle">Project</div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                <button class="btn" onclick="triggerExistingImprovement()" id="epImproveBtn">⚡ Improve Now</button>
+                                <button id="epToggleBtn" class="btn btn-secondary" onclick="toggleContinuous()">⏸ Disable Continuous</button>
+                                <button class="btn btn-danger" onclick="removeExistingProject()" style="font-size:12px;">🗑️ Remove</button>
+                            </div>
+                        </div>
+                        <div id="epDetailStatus" style="font-size:12px;color:#a0aec0;margin-bottom:12px;"></div>
+                        <div id="epImprovementMsg" style="font-size:13px;margin-bottom:10px;"></div>
+
+                        <!-- Conversation -->
+                        <div style="font-weight:600;color:#e2e8f0;margin-bottom:8px;">💬 Discuss Improvement Plan</div>
+                        <div id="epConversation" style="max-height:340px;overflow-y:auto;background:#0f1117;border:1px solid #2d3748;border-radius:8px;padding:12px;margin-bottom:10px;display:flex;flex-direction:column;gap:10px;"></div>
+                        <div style="display:flex;gap:8px;align-items:flex-end;">
+                            <textarea id="epChatInput" rows="2" placeholder="Tell SupremeAI more about what to fix or improve… (Enter to send)" style="flex:1;background:#2d3748;color:#e2e8f0;border:1px solid #4a5568;border-radius:8px;padding:10px;font-size:13px;resize:none;box-sizing:border-box;"></textarea>
+                            <button class="btn" onclick="sendEpMessage()">➤ Send</button>
+                        </div>
+
+                        <!-- Improvement History -->
+                        <div style="font-weight:600;color:#e2e8f0;margin-top:16px;margin-bottom:8px;">🕰️ Improvement History</div>
+                        <div id="epHistoryList" style="max-height:220px;overflow-y:auto;font-size:12px;color:#a0aec0;"></div>
+                    </div>
+                </div>
+
                 <!-- Notifications Section -->
                 <div id="notifications" class="content-section">
                     <h1>📬 Notifications</h1>
@@ -1772,6 +1859,7 @@
                 'self-extension': 'Self-Extension Engine',
                 'consensus': 'Multi-AI Consensus',
                 'system-learning': 'System Learning',
+                'existing-projects': 'Improve Existing App',
                 'notifications': 'Notifications',
                 'kimi-k2': 'AI Learning Orchestration',
                 'chat': 'Chat with SupremeAI',
@@ -1795,6 +1883,7 @@
                         if (sectionId === 'metrics') loadAiOps();
             if (sectionId === 'self-healing') loadSelfHealingHealth();
             if (sectionId === 'system-learning') { loadLearningStats(); loadResearchStats(); }
+            if (sectionId === 'existing-projects') loadExistingProjects();
             if (sectionId === 'consensus') loadConsensusStats();
             if (sectionId === 'notifications') loadNotificationHistory();
             if (sectionId === 'kimi-k2') loadKimiStatus();
@@ -3509,6 +3598,257 @@
                 msg.innerHTML = `<span style="color:${d.status === 'sent' ? '#48bb78' : '#f56565'}">${d.status === 'sent' ? '✅' : '❌'} ${d.status || 'done'}</span>`;
                 loadNotificationHistory();
             } catch(e) { msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`; }
+        }
+
+        // =============================================
+        // IMPROVE EXISTING APP
+        // =============================================
+
+        // ID of the currently selected existing project
+        let _currentEpId = null;
+
+        async function loadExistingProjects() {
+            const container = document.getElementById('existingProjectsList');
+            container.innerHTML = '<div style="text-align:center;padding:20px;color:#a0aec0;">Loading…</div>';
+            try {
+                const res = await fetch('/api/existing-projects', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const projects = data.projects || [];
+                if (!projects.length) {
+                    container.innerHTML = '<div style="text-align:center;padding:30px;color:#a0aec0;">No projects registered yet. Use the form above to add one.</div>';
+                    return;
+                }
+                container.innerHTML = projects.map(p => `
+                    <div onclick="selectExistingProject('${p.id}')"
+                         style="background:#1a202c;border:1px solid ${_currentEpId === p.id ? '#63b3ed' : '#2d3748'};border-radius:8px;padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color 0.2s;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+                            <div>
+                                <span style="font-weight:700;color:#e2e8f0;">${escHtml(p.name || 'Unnamed')}</span>
+                                <span style="margin-left:10px;font-size:11px;padding:2px 8px;border-radius:12px;background:${statusColor(p.status)};color:#fff;">${p.status}</span>
+                                ${p.continuousImprovement ? '<span style="margin-left:6px;font-size:11px;color:#48bb78;">● Auto</span>' : ''}
+                            </div>
+                            <div style="font-size:11px;color:#718096;">Improved ${p.totalImprovementsApplied}× | ${p.lastImprovedAt ? timeSince(p.lastImprovedAt) + ' ago' : 'never'}</div>
+                        </div>
+                        <div style="font-size:12px;color:#a0aec0;margin-top:4px;word-break:break-all;">${escHtml(p.repoUrl)}</div>
+                        <div style="font-size:12px;color:#718096;margin-top:2px;font-style:italic;">${escHtml((p.improvementGoal || '').substring(0, 100))}</div>
+                    </div>
+                `).join('');
+            } catch(e) {
+                container.innerHTML = `<div style="color:#f56565;padding:12px;">Error: ${e.message}</div>`;
+            }
+        }
+
+        function statusColor(s) {
+            if (s === 'IMPROVING' || s === 'ANALYSING') return '#ed8936';
+            if (s === 'ERROR') return '#f56565';
+            if (s === 'IDLE') return '#48bb78';
+            return '#718096';
+        }
+
+        function timeSince(ms) {
+            const sec = Math.floor((Date.now() - ms) / 1000);
+            if (sec < 60) return sec + 's';
+            if (sec < 3600) return Math.floor(sec/60) + 'm';
+            if (sec < 86400) return Math.floor(sec/3600) + 'h';
+            return Math.floor(sec/86400) + 'd';
+        }
+
+        function escHtml(s) {
+            if (!s) return '';
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        async function selectExistingProject(id) {
+            _currentEpId = id;
+            const panel = document.getElementById('epDetailPanel');
+            panel.style.display = 'block';
+            panel.scrollIntoView({ behavior: 'smooth' });
+            await refreshEpDetail();
+            await loadExistingProjects(); // re-render list to highlight selected
+        }
+
+        async function refreshEpDetail() {
+            if (!_currentEpId) return;
+            try {
+                const res = await fetch(`/api/existing-projects/${_currentEpId}`, { headers: getAuthHeaders() });
+                const p = await res.json();
+                if (p.error) { document.getElementById('epDetailTitle').textContent = 'Error: ' + p.error; return; }
+
+                document.getElementById('epDetailTitle').textContent = `${p.name || 'Project'} (${p.repoUrl})`;
+                document.getElementById('epDetailStatus').innerHTML =
+                    `Branch: <strong>${escHtml(p.branch)}</strong> &nbsp;|&nbsp; Status: <strong style="color:${statusColor(p.status)}">${p.status}</strong> &nbsp;|&nbsp; Improved: <strong>${p.totalImprovementsApplied}×</strong>`;
+
+                // Toggle button
+                const btn = document.getElementById('epToggleBtn');
+                if (p.continuousImprovement) {
+                    btn.textContent = '⏸ Disable Continuous';
+                    btn.className = 'btn btn-secondary';
+                } else {
+                    btn.textContent = '▶ Enable Continuous';
+                    btn.className = 'btn';
+                }
+
+                // Conversation
+                renderEpConversation(p.conversation || []);
+
+                // History
+                const histEl = document.getElementById('epHistoryList');
+                const hist = p.improvementHistory || [];
+                if (!hist.length) {
+                    histEl.innerHTML = '<div style="color:#718096;padding:6px;">No improvement cycles yet.</div>';
+                } else {
+                    histEl.innerHTML = hist.slice().reverse().map(h => `
+                        <div style="padding:6px 0;border-bottom:1px solid #2d3748;">
+                            <span style="color:${h.status==='ok'?'#48bb78':'#f56565'};">[${h.status==='ok'?'✅':'❌'}]</span>
+                            <span style="margin-left:6px;">${escHtml((h.summary||'').substring(0,120))}</span>
+                            <span style="margin-left:8px;color:#718096;">${h.appliedAt ? new Date(h.appliedAt).toLocaleString() : ''}</span>
+                        </div>`).join('');
+                }
+            } catch(e) {
+                document.getElementById('epDetailTitle').textContent = 'Error loading project';
+            }
+        }
+
+        function renderEpConversation(messages) {
+            const el = document.getElementById('epConversation');
+            if (!messages.length) {
+                el.innerHTML = '<div style="color:#718096;">No messages yet. Register the project or send a message below.</div>';
+                return;
+            }
+            el.innerHTML = messages.map(m => {
+                const isAi = m.role === 'ai';
+                return `<div style="display:flex;flex-direction:${isAi?'row':'row-reverse'};gap:8px;align-items:flex-start;">
+                    <div style="width:28px;height:28px;border-radius:50%;background:${isAi?'#2b6cb0':'#2d6a4f'};display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">${isAi?'🤖':'👤'}</div>
+                    <div style="background:${isAi?'#1a365d':'#1a3327'};border-radius:8px;padding:8px 12px;max-width:80%;font-size:13px;color:#e2e8f0;white-space:pre-wrap;">${escHtml(String(m.message||''))}</div>
+                </div>`;
+            }).join('');
+            el.scrollTop = el.scrollHeight;
+        }
+
+        async function registerExistingProject() {
+            const repoUrl = document.getElementById('epRepoUrl').value.trim();
+            const goal    = document.getElementById('epGoal').value.trim();
+            const msg     = document.getElementById('epRegisterMsg');
+            if (!repoUrl) { msg.innerHTML = '<span style="color:#f56565;">Repository URL is required.</span>'; return; }
+            if (!goal)    { msg.innerHTML = '<span style="color:#f56565;">Improvement goal is required.</span>'; return; }
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Registering…</span>';
+            try {
+                const res = await fetch('/api/existing-projects', {
+                    method: 'POST',
+                    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name:            document.getElementById('epName').value.trim(),
+                        repoUrl,
+                        branch:          document.getElementById('epBranch').value.trim() || 'main',
+                        repoToken:       document.getElementById('epToken').value.trim(),
+                        improvementGoal: goal
+                    })
+                });
+                const d = await res.json();
+                if (d.error) { msg.innerHTML = `<span style="color:#f56565;">❌ ${escHtml(d.error)}</span>`; return; }
+                msg.innerHTML = `<span style="color:#48bb78;">✅ Project "${escHtml(d.name)}" registered!</span>`;
+                // Clear form
+                ['epName','epRepoUrl','epBranch','epGoal','epToken'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = id === 'epBranch' ? 'main' : '';
+                });
+                await loadExistingProjects();
+                await selectExistingProject(d.id);
+            } catch(e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        async function sendEpMessage() {
+            if (!_currentEpId) return;
+            const input = document.getElementById('epChatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            input.value = '';
+            // Optimistic render
+            const conv = document.getElementById('epConversation');
+            conv.innerHTML += `<div style="display:flex;flex-direction:row-reverse;gap:8px;align-items:flex-start;">
+                <div style="width:28px;height:28px;border-radius:50%;background:#2d6a4f;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">👤</div>
+                <div style="background:#1a3327;border-radius:8px;padding:8px 12px;max-width:80%;font-size:13px;color:#e2e8f0;">${escHtml(message)}</div>
+            </div>`;
+            conv.scrollTop = conv.scrollHeight;
+            conv.innerHTML += '<div id="epTyping" style="color:#a0aec0;font-size:12px;padding:4px 0;">⏳ SupremeAI is thinking…</div>';
+            try {
+                const res = await fetch(`/api/existing-projects/${_currentEpId}/discuss`, {
+                    method: 'POST',
+                    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+                const d = await res.json();
+                await refreshEpDetail(); // re-render full conversation
+            } catch(e) {
+                document.getElementById('epTyping')?.remove();
+                conv.innerHTML += `<div style="color:#f56565;font-size:12px;">Error: ${e.message}</div>`;
+            }
+        }
+
+        // Allow pressing Enter to send
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('epChatInput')?.addEventListener('keydown', e => {
+                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendEpMessage(); }
+            });
+        });
+
+        async function triggerExistingImprovement() {
+            if (!_currentEpId) return;
+            const msg = document.getElementById('epImprovementMsg');
+            const btn = document.getElementById('epImproveBtn');
+            btn.disabled = true;
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Running improvement cycle — cloning/pulling repo and consulting AI… (may take a minute)</span>';
+            try {
+                const res = await fetch(`/api/existing-projects/${_currentEpId}/improve`, {
+                    method: 'POST', headers: getAuthHeaders()
+                });
+                const d = await res.json();
+                if (d.error) {
+                    msg.innerHTML = `<span style="color:#f56565;">❌ ${escHtml(d.error)}</span>`;
+                } else if (d.skipped) {
+                    msg.innerHTML = `<span style="color:#ed8936;">⚠️ Skipped: ${escHtml(d.skipped)}</span>`;
+                } else {
+                    msg.innerHTML = `<span style="color:#48bb78;">✅ Done! AI suggestion: ${escHtml((d.aiSuggestion||'').substring(0,120))}… ${d.pushed ? '(pushed to repo)' : '(note written)'}</span>`;
+                }
+                await refreshEpDetail();
+            } catch(e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function toggleContinuous() {
+            if (!_currentEpId) return;
+            try {
+                const res = await fetch(`/api/existing-projects/${_currentEpId}`, { headers: getAuthHeaders() });
+                const p = await res.json();
+                const current = p.continuousImprovement;
+                await fetch(`/api/existing-projects/${_currentEpId}/toggle`, {
+                    method: 'PATCH',
+                    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled: !current })
+                });
+                await refreshEpDetail();
+                await loadExistingProjects();
+            } catch(e) {
+                document.getElementById('epImprovementMsg').innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        async function removeExistingProject() {
+            if (!_currentEpId) return;
+            if (!confirm('Remove this project from tracking? The local clone will not be deleted.')) return;
+            try {
+                await fetch(`/api/existing-projects/${_currentEpId}`, { method: 'DELETE', headers: getAuthHeaders() });
+                _currentEpId = null;
+                document.getElementById('epDetailPanel').style.display = 'none';
+                await loadExistingProjects();
+            } catch(e) {
+                document.getElementById('epImprovementMsg').innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
         }
 
         // =============================================
