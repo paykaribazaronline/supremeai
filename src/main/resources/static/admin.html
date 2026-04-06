@@ -1813,12 +1813,21 @@
             tbody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
             
             try {
-                const res = await fetch('/api/v1/requirements');
+                const headers = {};
+                const token = localStorage.getItem('supremeai_token');
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+                const res = await fetch('/api/v1/requirements', { headers });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.message || `HTTP ${res.status}`);
+                }
                 const reqs = await res.json();
                 
                 document.getElementById('pendingCount').innerText = reqs.filter(r => r.status === 'PENDING').length;
 
-                tbody.innerHTML = reqs.map(r => `
+                tbody.innerHTML = reqs.length === 0
+                    ? '<tr><td colspan="5" style="color:#a0aec0;text-align:center;">No requirements found</td></tr>'
+                    : reqs.map(r => `
                     <tr>
                         <td>${r.id}</td>
                         <td>${r.description}</td>
@@ -1833,7 +1842,7 @@
                     </tr>
                 `).join('');
             } catch (e) {
-                tbody.innerHTML = '<tr><td colspan="5" style="color:red">Error loading approvals</td></tr>';
+                tbody.innerHTML = `<tr><td colspan="5" style="color:red">Error loading approvals: ${e.message}</td></tr>`;
             }
         }
 
@@ -1841,7 +1850,10 @@
             if (!confirm(`Are you sure you want to ${action} this requirement?`)) return;
             
             try {
-                const res = await fetch(`/api/v1/requirements/${id}/${action}`, { method: 'POST' });
+                const headers = { 'Content-Type': 'application/json' };
+                const token = localStorage.getItem('supremeai_token');
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+                const res = await fetch(`/api/v1/requirements/${id}/${action}`, { method: 'POST', headers });
                 if (res.ok) {
                     alert(`Requirement ${id} ${action}d!`);
                     loadApprovals();

@@ -2,36 +2,20 @@ package org.example;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.example.service.ServerMetricsService;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+// Scan all org.example sub-packages (including .api, .controller, .service, etc.)
+// and com.supremeai.teaching for security configuration.
 @SpringBootApplication(scanBasePackages = {
-    "org.example.service",
-    "org.example.controller",
-    "org.example.config",
-    "org.example.security",
-    "org.example.agentorchestration",
-    "org.example.resilience",
-    "org.example.tracing",
-    "org.example.filter",
-    "org.example.exception",
-    "org.example.learning",
-    "org.example.audit",
+    "org.example",
     "com.supremeai.teaching"
 })
 @RestController
@@ -52,38 +36,6 @@ public class Application {
             e.printStackTrace();
             System.exit(1);
         }
-    }
-
-    // 🔓 FIX: স্প্রিং সিকিউরিটি আপাতত সব রিকোয়েস্ট পারমিট করবে যাতে ক্লাউড রান চেক করতে পারে
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .cors(cors -> cors.configurationSource(appCorsConfigurationSource()))
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll()
-            );
-        return http.build();
-    }
-
-    @Bean
-    public CorsConfigurationSource appCorsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList(
-            "http://localhost:*",
-            "https://localhost:*",
-            "https://*.web.app",
-            "https://*.firebaseapp.com",
-            "https://*.run.app",
-            "https://*.a.run.app"
-        ));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
     }
 
     @GetMapping("/")

@@ -51,6 +51,12 @@ public class SecurityConfig {
                 .requestMatchers("/api/admin/dashboard/**").permitAll()
                 .requestMatchers("/api/learning/**").permitAll()
                 .requestMatchers("/api/providers/**").permitAll()
+                // Read-only command-console endpoints used by admin.html without re-login
+                .requestMatchers("/api/metrics/**").permitAll()
+                .requestMatchers("/api/git/status", "/api/git/logs").permitAll()
+                .requestMatchers("/api/quota/summary", "/api/quota/status").permitAll()
+                .requestMatchers("/api/work-history").permitAll()
+                .requestMatchers("/api/v1/requirements").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
