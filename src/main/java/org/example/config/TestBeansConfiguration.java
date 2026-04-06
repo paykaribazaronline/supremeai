@@ -51,7 +51,7 @@ public class TestBeansConfiguration {
      * Provide AIAPIService bean for dependency injection
      */
     @Bean
-    public AIAPIService aiAPIService() {
+    public AIAPIService aiAPIService(org.example.service.ProviderRegistryService providerRegistryService) {
         Map<String, String> keys = new HashMap<>();
         putIfPresent(keys, "GPT4", "OPENAI_API_KEY", "GPT4_API_KEY");
         putIfPresent(keys, "CLAUDE", "ANTHROPIC_API_KEY", "CLAUDE_API_KEY");
@@ -63,7 +63,8 @@ public class TestBeansConfiguration {
         putIfPresent(keys, "LLAMA", "LLAMA_API_KEY", "META_LLAMA_API_KEY");
         putIfPresent(keys, "HUGGINGFACE", "HUGGINGFACE_API_KEY", "HF_API_KEY");
         putIfPresent(keys, "XAI", "XAI_API_KEY", "GROK_API_KEY");
-        return new AIAPIService(
+        putIfPresent(keys, "AIRLLM", "AIRLLM_API_KEY");
+        AIAPIService service = new AIAPIService(
             keys,
             aiTimeoutMs,
             aiMaxRetries,
@@ -77,11 +78,33 @@ public class TestBeansConfiguration {
             aiCacheTtlMinutes,
             aiCacheMaxSize
         );
+        service.setProviderRegistryService(providerRegistryService);
+
+        String airllmEndpoint = getConfigValue("AIRLLM_ENDPOINT");
+        if (airllmEndpoint != null && !airllmEndpoint.isBlank()) {
+            service.updateProviderEndpoint("AIRLLM", airllmEndpoint);
+        }
+
+        return service;
+    }
+
+    private String getConfigValue(String key) {
+        String envValue = System.getenv(key);
+        if (envValue != null && !envValue.isBlank()) {
+            return envValue.trim();
+        }
+
+        String propertyValue = System.getProperty(key);
+        if (propertyValue != null && !propertyValue.isBlank()) {
+            return propertyValue.trim();
+        }
+
+        return null;
     }
 
     private void putIfPresent(Map<String, String> keys, String targetKey, String... envNames) {
         for (String envName : envNames) {
-            String value = System.getenv(envName);
+            String value = getConfigValue(envName);
             if (value != null && !value.isBlank()) {
                 keys.put(targetKey, value.trim());
                 return;

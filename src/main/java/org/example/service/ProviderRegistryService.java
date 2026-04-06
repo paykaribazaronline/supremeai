@@ -95,6 +95,9 @@ public class ProviderRegistryService {
         if (normalized.getStatus() == null || normalized.getStatus().isBlank()) {
             normalized.setStatus("active");
         }
+        if (normalized.getCapabilities() == null) {
+            normalized.setCapabilities(new ArrayList<>());
+        }
         if (normalized.getModels() == null) {
             normalized.setModels(new ArrayList<>());
         }
@@ -115,6 +118,9 @@ public class ProviderRegistryService {
         }
         if (normalized.getAlertThreshold() == null) {
             normalized.setAlertThreshold(75);
+        }
+        if ("airllm-local".equalsIgnoreCase(normalized.getId()) && normalized.getRateLimitPerMinute() == null) {
+            normalized.setRateLimitPerMinute(10);
         }
 
         return normalized;

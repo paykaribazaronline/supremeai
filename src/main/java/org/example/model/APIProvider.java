@@ -15,6 +15,9 @@ public class APIProvider {
     private String endpoint;
     private String alias;
     private String notes;
+    private List<String> capabilities;
+    private String complexityTier;
+    private String healthCheckUrl;
     private String createdByEmail;
     private LocalDateTime createdAt;
     private List<String> models;
@@ -30,6 +33,7 @@ public class APIProvider {
 
     public APIProvider() {
         this.id = UUID.randomUUID().toString();
+        this.capabilities = new ArrayList<>();
         this.models = new ArrayList<>();
         this.status = "active";
         this.errorCount = 0;
@@ -68,6 +72,15 @@ public class APIProvider {
 
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+
+    public List<String> getCapabilities() { return capabilities; }
+    public void setCapabilities(List<String> capabilities) { this.capabilities = capabilities; }
+
+    public String getComplexityTier() { return complexityTier; }
+    public void setComplexityTier(String complexityTier) { this.complexityTier = complexityTier; }
+
+    public String getHealthCheckUrl() { return healthCheckUrl; }
+    public void setHealthCheckUrl(String healthCheckUrl) { this.healthCheckUrl = healthCheckUrl; }
 
     public String getCreatedByEmail() { return createdByEmail; }
     public void setCreatedByEmail(String createdByEmail) { this.createdByEmail = createdByEmail; }

@@ -25,8 +25,14 @@ This playbook uses the learning API to capture:
 1. POST /api/learning/incident
 2. GET /api/learning/incidents
 3. GET /api/learning/incidents/{category}
+4. POST /api/learning/ingest/logs?maxFiles=14
+5. GET /api/learning/insights
 
 These endpoints are authenticated and integrate with existing learning memory.
+
+Scheduled ingestion also runs daily with:
+
+- `learning.incident-ingestion.cron` (default: `0 0 3 * * *`)
 
 ---
 

@@ -31,6 +31,9 @@ public class SelfExtender {
     
     @Autowired
     private RequestQueueService requestQueueService;
+
+    @Autowired(required = false)
+    private IdleResearchService idleResearchService;
     
     private static final String SRC_PATH = "src/main/java/org/example";
     
@@ -39,6 +42,10 @@ public class SelfExtender {
      */
     public boolean implementRequirement(String requirementText) {
         try {
+            // Notify research engine the system is working
+            if (idleResearchService != null) {
+                idleResearchService.notifyProjectActivity();
+            }
             logger.info("🤖 Processing requirement: {}", requirementText);
             
             // 1. Analyze requirement

@@ -5,6 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import okhttp3.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.example.model.APIProvider;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.util.*;
@@ -28,8 +29,9 @@ public class AIAPIService {
     private static final long MAX_BACKOFF_MS = 2_000L;
     private static final Map<String, String> MODEL_ALIASES = buildModelAliases();
     private static final Map<String, List<String>> PROVIDER_FALLBACKS = buildProviderFallbacks();
+    private static final Set<String> OPTIONAL_AUTH_MODELS = Set.of("AIRLLM");
     private static final Set<String> NATIVE_MODELS = Set.of(
-        "GPT4", "CLAUDE", "GROQ", "DEEPSEEK", "GEMINI", "COHERE", "PERPLEXITY", "LLAMA", "HUGGINGFACE", "XAI"
+        "GPT4", "CLAUDE", "GROQ", "DEEPSEEK", "GEMINI", "COHERE", "PERPLEXITY", "LLAMA", "HUGGINGFACE", "XAI", "AIRLLM"
     );
 
     private final OkHttpClient client;
@@ -46,6 +48,7 @@ public class AIAPIService {
     private final Cache<String, String> responseCache;
     private final Map<String, ProviderCircuitState> providerCircuits = new ConcurrentHashMap<>();
     private final Map<String, ProviderWindowCounter> providerWindows = new ConcurrentHashMap<>();
+    private final Map<String, String> endpointOverrides = new ConcurrentHashMap<>();
 
     private final AtomicLong totalRequests = new AtomicLong();
     private final AtomicLong cacheHits = new AtomicLong();
@@ -56,6 +59,8 @@ public class AIAPIService {
     private final AtomicLong circuitOpenSkips = new AtomicLong();
     private final AtomicLong successfulResponses = new AtomicLong();
     private final AtomicLong failedResponses = new AtomicLong();
+
+    private ProviderRegistryService providerRegistryService;
     
     // Dead-letter log: slow-queue requests that failed even after retry
     private final Deque<Map<String, Object>> deadLetterLog = new ArrayDeque<>();
@@ -72,7 +77,8 @@ public class AIAPIService {
         Map.entry("PERPLEXITY", "https://api.perplexity.ai/chat/completions"),
         Map.entry("LLAMA", "https://api.llama.com/compat/v1/chat/completions"),
         Map.entry("HUGGINGFACE", "https://router.huggingface.co/v1/chat/completions"),
-        Map.entry("XAI", "https://api.x.ai/v1/chat/completions")
+        Map.entry("XAI", "https://api.x.ai/v1/chat/completions"),
+        Map.entry("AIRLLM", "http://localhost:8081/v1/chat/completions")
     );
 
     private final Map<String, String> defaultModels = Map.ofEntries(
@@ -85,7 +91,8 @@ public class AIAPIService {
         Map.entry("PERPLEXITY", "sonar-pro"),
         Map.entry("LLAMA", "Llama-4-Scout-17B-16E-Instruct"),
         Map.entry("HUGGINGFACE", "meta-llama/Llama-3.3-70B-Instruct"),
-        Map.entry("XAI", "grok-2-latest")
+        Map.entry("XAI", "grok-2-latest"),
+        Map.entry("AIRLLM", "meta-llama/Llama-3.3-70B-Instruct")
     );
     
     private final Map<String, String> apiKeys = new HashMap<>();
@@ -139,6 +146,18 @@ public class AIAPIService {
             return;
         }
         this.apiKeys.put(provider.trim().toUpperCase(Locale.ROOT), newKey);
+    }
+
+    public synchronized void updateProviderEndpoint(String provider, String endpoint) {
+        String model = normalizeModelName(provider);
+        if (model == null || endpoint == null || endpoint.isBlank()) {
+            return;
+        }
+        endpointOverrides.put(model, endpoint.trim());
+    }
+
+    public void setProviderRegistryService(ProviderRegistryService providerRegistryService) {
+        this.providerRegistryService = providerRegistryService;
     }
     
     /**
@@ -206,7 +225,35 @@ public class AIAPIService {
     }
 
     public String callProvider(String providerName, String prompt) {
-        return callAI(providerName, prompt, getFallbackChainForProvider(providerName));
+        APIProvider configuredProvider = resolveConfiguredProvider(providerName);
+        String configuredModel = configuredProvider == null
+            ? null
+            : normalizeModelName(firstNonBlank(
+                configuredProvider.getId(),
+                configuredProvider.getAlias(),
+                configuredProvider.getBaseModel(),
+                configuredProvider.getName()
+            ));
+
+        if (configuredProvider != null) {
+            try {
+                String response = executeConfiguredProvider(configuredProvider, prompt);
+                if (response != null && !response.isBlank()) {
+                    return applyOutputTokenCap(response);
+                }
+            } catch (IOException exception) {
+                logger.warn("Configured provider {} failed via saved endpoint: {}", providerName, exception.getMessage());
+            }
+        }
+
+        List<String> fallbackChain = new ArrayList<>(getFallbackChainForProvider(providerName));
+        if (configuredModel != null) {
+            fallbackChain.removeIf(configuredModel::equals);
+        }
+        if (fallbackChain.isEmpty()) {
+            fallbackChain = getFallbackChainForProvider(providerName);
+        }
+        return callAI(providerName, prompt, fallbackChain);
     }
 
     public List<String> getFallbackChainForProvider(String providerName) {
@@ -270,11 +317,14 @@ public class AIAPIService {
                                   String endpointOverride) throws IOException {
         String endpoint = endpointOverride != null && !endpointOverride.isBlank()
             ? endpointOverride
-            : apiEndpoints.get(aiModel);
+            : endpointOverrides.getOrDefault(aiModel, apiEndpoints.get(aiModel));
         String apiKey = apiKeyOverride;
         
-        if (endpoint == null || apiKey == null) {
-            throw new IllegalArgumentException("Unknown AI model or missing API key: " + aiModel);
+        if (endpoint == null || endpoint.isBlank()) {
+            throw new IllegalArgumentException("Unknown AI model or missing endpoint: " + aiModel);
+        }
+        if (requiresApiKeyForModel(aiModel) && (apiKey == null || apiKey.isBlank())) {
+            throw new IllegalArgumentException("Missing API key: " + aiModel);
         }
         
         switch (aiModel) {
@@ -298,6 +348,8 @@ public class AIAPIService {
                 return callOpenAICompatible(endpoint, apiKey, defaultModels.get("HUGGINGFACE"), prompt, Collections.emptyMap());
             case "XAI":
                 return callOpenAICompatible(endpoint, apiKey, defaultModels.get("XAI"), prompt, Collections.emptyMap());
+            case "AIRLLM":
+                return callAirLlm(endpoint, apiKey, prompt);
             default:
                 throw new IllegalArgumentException("Unknown AI model: " + aiModel);
         }
@@ -427,6 +479,12 @@ public class AIAPIService {
 
     private String callOpenAICompatible(String endpoint, String apiKey, String model,
                                         String prompt, Map<String, String> extraHeaders) throws IOException {
+        return callOpenAICompatible(endpoint, apiKey, model, prompt, extraHeaders, false);
+    }
+
+    private String callOpenAICompatible(String endpoint, String apiKey, String model,
+                                        String prompt, Map<String, String> extraHeaders,
+                                        boolean authOptional) throws IOException {
         var root = mapper.createObjectNode();
         root.put("model", model);
         root.put("temperature", 0.7);
@@ -436,7 +494,18 @@ public class AIAPIService {
             .put("role", "user")
             .put("content", prompt));
 
-        return makeRequest(endpoint, apiKey, root.toString(), extraHeaders);
+        return makeRequest(endpoint, apiKey, root.toString(), extraHeaders, authOptional);
+    }
+
+    private String callAirLlm(String endpoint, String apiKey, String prompt) throws IOException {
+        return callOpenAICompatible(
+            endpoint,
+            apiKey,
+            defaultModels.get("AIRLLM"),
+            prompt,
+            Collections.emptyMap(),
+            true
+        );
     }
     
     private String makeRequest(String endpoint, String apiKey, String jsonBody) throws IOException {
@@ -445,11 +514,22 @@ public class AIAPIService {
 
     private String makeRequest(String endpoint, String apiKey, String jsonBody,
                                Map<String, String> extraHeaders) throws IOException {
+        return makeRequest(endpoint, apiKey, jsonBody, extraHeaders, false);
+    }
+
+    private String makeRequest(String endpoint, String apiKey, String jsonBody,
+                               Map<String, String> extraHeaders,
+                               boolean authOptional) throws IOException {
         Request.Builder builder = new Request.Builder()
                 .url(endpoint)
                 .post(RequestBody.create(jsonBody, MediaType.parse("application/json")))
-                .addHeader("Authorization", "Bearer " + apiKey)
                 .addHeader("Content-Type", "application/json");
+
+        if (apiKey != null && !apiKey.isBlank()) {
+            builder.addHeader("Authorization", "Bearer " + apiKey);
+        } else if (!authOptional) {
+            throw new IOException("Missing API key");
+        }
 
         if (extraHeaders != null) {
             for (Map.Entry<String, String> header : extraHeaders.entrySet()) {
@@ -547,7 +627,26 @@ public class AIAPIService {
 
     public boolean isProviderConfigured(String providerName) {
         String model = normalizeModelName(providerName);
-        return model != null && apiKeys.containsKey(model) && apiKeys.get(model) != null && !apiKeys.get(model).isBlank();
+        if (model == null) {
+            return false;
+        }
+        if (!requiresApiKey(providerName)) {
+            return getDefaultEndpoint(providerName) != null;
+        }
+        return apiKeys.containsKey(model) && apiKeys.get(model) != null && !apiKeys.get(model).isBlank();
+    }
+
+    public boolean requiresApiKey(String providerName) {
+        String model = normalizeModelName(providerName);
+        return model != null && requiresApiKeyForModel(model);
+    }
+
+    public String getDefaultEndpoint(String providerName) {
+        String model = normalizeModelName(providerName);
+        if (model == null) {
+            return null;
+        }
+        return endpointOverrides.getOrDefault(model, apiEndpoints.get(model));
     }
 
     public String probeProviderConnection(String providerName, String apiKey, String endpointOverride) throws IOException {
@@ -556,7 +655,7 @@ public class AIAPIService {
         if (model == null) {
             throw new IOException("Unsupported provider: " + providerName);
         }
-        if (apiKey == null || apiKey.isBlank()) {
+        if (requiresApiKey(providerId) && (apiKey == null || apiKey.isBlank())) {
             throw new IOException("Missing API key");
         }
 
@@ -579,9 +678,10 @@ public class AIAPIService {
         status.put("canonicalModel", normalizedModel);
         status.put("nativeConnector", normalizedModel != null && NATIVE_MODELS.contains(normalizedModel));
         status.put("configured", isProviderConfigured(providerName));
-        status.put("endpoint", normalizedModel == null ? null : apiEndpoints.get(normalizedModel));
+        status.put("endpoint", getDefaultEndpoint(providerName));
         status.put("fallbackChain", getFallbackChainForProvider(providerName));
         status.put("defaultModel", normalizedModel == null ? null : defaultModels.get(normalizedModel));
+        status.put("requiresApiKey", requiresApiKey(providerName));
         return status;
     }
 
@@ -635,6 +735,7 @@ public class AIAPIService {
             "cohere",
             "perplexity",
             "meta-llama",
+            "airllm-local",
             "huggingface",
             "xai-grok",
             "deepseek",
@@ -669,6 +770,9 @@ public class AIAPIService {
         if (normalized.contains("llama") || normalized.contains("meta")) {
             return "meta-llama";
         }
+        if (normalized.contains("airllm")) {
+            return "airllm-local";
+        }
         if (normalized.contains("huggingface") || normalized.equals("hf")) {
             return "huggingface";
         }
@@ -702,6 +806,8 @@ public class AIAPIService {
                 return "Perplexity";
             case "meta-llama":
                 return "Meta / Llama";
+            case "airllm-local":
+                return "AirLLM Local";
             case "huggingface":
                 return "HuggingFace";
             case "xai-grok":
@@ -747,6 +853,9 @@ public class AIAPIService {
         aliases.put("meta", "LLAMA");
         aliases.put("llama", "LLAMA");
         aliases.put("meta-llama-native", "LLAMA");
+        aliases.put("airllm", "AIRLLM");
+        aliases.put("airllm-local", "AIRLLM");
+        aliases.put("local-airllm", "AIRLLM");
         aliases.put("huggingface", "HUGGINGFACE");
         aliases.put("xai-grok", "XAI");
         aliases.put("xai", "XAI");
@@ -760,6 +869,7 @@ public class AIAPIService {
         fallbacks.put("anthropic-claude", buildChain("CLAUDE", Arrays.asList("DEEPSEEK", "GROQ", "GPT4")));
         fallbacks.put("google-gemini", buildChain("GEMINI", Arrays.asList("DEEPSEEK", "GROQ", "CLAUDE", "GPT4")));
         fallbacks.put("meta-llama", buildChain("LLAMA", Arrays.asList("GROQ", "DEEPSEEK", "CLAUDE", "GPT4")));
+        fallbacks.put("airllm-local", buildChain("AIRLLM", Arrays.asList("DEEPSEEK", "GROQ", "CLAUDE", "GPT4")));
         fallbacks.put("mistral", buildChain("GROQ", Arrays.asList("DEEPSEEK", "CLAUDE", "GPT4")));
         fallbacks.put("cohere", buildChain("COHERE", Arrays.asList("DEEPSEEK", "GROQ", "CLAUDE", "GPT4")));
         fallbacks.put("huggingface", buildChain("HUGGINGFACE", Arrays.asList("LLAMA", "GROQ", "DEEPSEEK", "CLAUDE", "GPT4")));
@@ -767,6 +877,50 @@ public class AIAPIService {
         fallbacks.put("deepseek", buildChain("DEEPSEEK", Arrays.asList("GROQ", "CLAUDE", "GPT4")));
         fallbacks.put("perplexity", buildChain("PERPLEXITY", Arrays.asList("DEEPSEEK", "GROQ", "CLAUDE", "GPT4")));
         return fallbacks;
+    }
+
+    private boolean requiresApiKeyForModel(String model) {
+        return model != null && !OPTIONAL_AUTH_MODELS.contains(model);
+    }
+
+    private APIProvider resolveConfiguredProvider(String providerName) {
+        if (providerRegistryService == null) {
+            return null;
+        }
+        String canonicalProviderId = getCanonicalProviderId(providerName);
+        if (canonicalProviderId == null) {
+            return null;
+        }
+        return providerRegistryService.getProvider(canonicalProviderId);
+    }
+
+    private String executeConfiguredProvider(APIProvider provider, String prompt) throws IOException {
+        String providerId = firstNonBlank(
+            provider.getId(),
+            provider.getAlias(),
+            provider.getBaseModel(),
+            provider.getName()
+        );
+        String model = normalizeModelName(providerId);
+        if (model == null) {
+            throw new IOException("Unsupported provider: " + providerId);
+        }
+
+        String endpoint = firstNonBlank(provider.getEndpoint(), getDefaultEndpoint(providerId));
+        String apiKey = firstNonBlank(provider.getApiKey(), apiKeys.get(model));
+        return executeAPICall(model, prompt, apiKey, endpoint);
+    }
+
+    private String firstNonBlank(String... values) {
+        if (values == null) {
+            return null;
+        }
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
     }
 
     private static List<String> buildChain(String primary, List<String> fallbacks) {

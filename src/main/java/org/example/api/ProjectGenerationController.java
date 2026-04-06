@@ -3,6 +3,8 @@ package org.example.api;
 import org.example.service.FileOrchestrator;
 import org.example.service.TemplateManager;
 import org.example.service.AgentOrchestrator;
+import org.example.service.IdleResearchService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -39,6 +41,9 @@ public class ProjectGenerationController {
     private final TemplateManager templateManager;
     private final AgentOrchestrator agentOrchestrator;
     private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    
+    @Autowired(required = false)
+    private IdleResearchService idleResearchService;
     
     // Project status tracking (projectId -> status)
     private final Map<String, Map<String, Object>> projectStatuses = new HashMap<>();
@@ -97,6 +102,11 @@ public class ProjectGenerationController {
     @PostMapping("/generate")
     public Map<String, Object> generateProject(@RequestBody Map<String, Object> request) {
         long startTime = System.currentTimeMillis();
+        
+        // Notify idle research engine the system is working
+        if (idleResearchService != null) {
+            idleResearchService.notifyProjectActivity();
+        }
         
         String projectId = (String) request.getOrDefault("projectId", generateProjectId());
         String templateType = (String) request.getOrDefault("templateType", "REACT");

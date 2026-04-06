@@ -95,6 +95,51 @@ class ProviderManagementServiceTest {
     }
 
     @Test
+    void probeProviderAllowsEndpointOnlyAirLlmConnector() throws IOException {
+        APIProvider airllm = new APIProvider();
+        airllm.setId("airllm-local");
+        airllm.setName("AirLLM Local");
+        airllm.setEndpoint("http://localhost:8081/v1/chat/completions");
+        airllm.setHealthCheckUrl("http://localhost:8081/health");
+        airllm.setCapabilities(List.of("complex-reasoning", "long-context", "analysis"));
+        airllm.setComplexityTier("high");
+        airllm.setCreatedByEmail("admin@supremeai.com");
+
+        when(providerRegistryService.getProvider("airllm-local")).thenReturn(airllm);
+        when(providerRegistryService.addOrUpdateProvider(any(APIProvider.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(aiApiService.requiresApiKey("airllm-local")).thenReturn(false);
+        when(aiApiService.probeProviderConnection(eq("airllm-local"), isNull(), eq("http://localhost:8081/health")))
+            .thenReturn("healthy");
+        when(aiApiService.getProviderDisplayName(anyString())).thenReturn("AirLLM Local");
+        when(aiApiService.hasNativeConnector(anyString())).thenReturn(true);
+        when(aiApiService.isProviderConfigured(anyString())).thenReturn(false);
+
+        Map<String, Object> result = providerManagementService.probeProvider("airllm-local");
+
+        assertEquals(Boolean.TRUE, result.get("success"));
+        verify(aiApiService).probeProviderConnection(eq("airllm-local"), isNull(), eq("http://localhost:8081/health"));
+    }
+
+    @Test
+    void getConfiguredProvidersIncludesCapabilitiesAndHealthCheckFields() {
+        provider.setCapabilities(List.of("complex-reasoning", "analysis"));
+        provider.setComplexityTier("high");
+        provider.setHealthCheckUrl("http://localhost:8081/health");
+
+        when(aiApiService.getProviderDisplayName(anyString())).thenReturn("AirLLM Local");
+        when(aiApiService.hasNativeConnector(anyString())).thenReturn(true);
+        when(aiApiService.isProviderConfigured(anyString())).thenReturn(false);
+        when(aiApiService.requiresApiKey(anyString())).thenReturn(false);
+        when(providerRegistryService.getAllProviders()).thenReturn(List.of(provider));
+
+        List<Map<String, Object>> configuredProviders = providerManagementService.getConfiguredProviders();
+
+        assertEquals(List.of("complex-reasoning", "analysis"), configuredProviders.get(0).get("capabilities"));
+        assertEquals("high", configuredProviders.get(0).get("complexityTier"));
+        assertEquals("http://localhost:8081/health", configuredProviders.get(0).get("healthCheckUrl"));
+    }
+
+    @Test
     void removeProviderLogsAuditEvent() {
         when(providerRegistryService.removeProvider("google-gemini")).thenReturn(true);
 

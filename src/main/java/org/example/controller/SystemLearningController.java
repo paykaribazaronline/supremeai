@@ -4,6 +4,8 @@ import org.example.model.SystemLearning;
 import org.example.service.SystemLearningService;
 import org.example.service.KnowledgeReseedService;
 import org.example.service.ProviderCoverageService;
+import org.example.service.IncidentLearningIngestionService;
+import org.example.service.InternetResearchService;
 import org.example.service.AuthenticationService;
 import org.example.model.User;
 import org.slf4j.Logger;
@@ -35,6 +37,12 @@ public class SystemLearningController {
 
     @Autowired
     private ProviderCoverageService providerCoverageService;
+
+    @Autowired
+    private IncidentLearningIngestionService incidentIngestionService;
+
+    @Autowired(required = false)
+    private InternetResearchService internetResearchService;
     
     /**
      * GET /api/learning/stats
@@ -293,6 +301,112 @@ public class SystemLearningController {
             ));
         } catch (Exception e) {
             logger.error("❌ Provider coverage error: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("status", "error", "message", e.getMessage()));
+        }
+    }
+
+    /**
+     * POST /api/learning/ingest/logs?maxFiles=14
+     * Manually trigger incident ingestion from execution logs.
+     */
+    @PostMapping("/ingest/logs")
+    public ResponseEntity<?> ingestExecutionLogs(
+            @RequestParam(defaultValue = "14") int maxFiles,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            User user = authenticate(authHeader);
+
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("status", "error", "message", "Auth required"));
+            }
+
+            Map<String, Object> result = incidentIngestionService.ingestRecentExecutionLogs(maxFiles);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            logger.error("❌ Log ingestion error: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("status", "error", "message", e.getMessage()));
+        }
+    }
+
+    /**
+     * GET /api/learning/insights
+     * Returns recurring incident categories and confidence trends.
+     */
+    @GetMapping("/insights")
+    public ResponseEntity<?> getLearningInsights(
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            User user = authenticate(authHeader);
+
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("status", "error", "message", "Auth required"));
+            }
+
+            return ResponseEntity.ok(incidentIngestionService.getIncidentLearningInsights());
+        } catch (Exception e) {
+            logger.error("❌ Learning insights error: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("status", "error", "message", e.getMessage()));
+        }
+    }
+
+    /**
+     * GET /api/learning/research-stats
+     * View internet research stats (GitHub, SO, HN, DEV.to)
+     */
+    @GetMapping("/research-stats")
+    public ResponseEntity<?> getResearchStats(
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            User user = authenticate(authHeader);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("status", "error", "message", "Auth required"));
+            }
+            if (internetResearchService == null) {
+                return ResponseEntity.ok(Map.of("status", "unavailable",
+                    "message", "InternetResearchService not loaded"));
+            }
+            return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "research", internetResearchService.getResearchStats(),
+                "user", user.getUsername()
+            ));
+        } catch (Exception e) {
+            logger.error("❌ Research stats error: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("status", "error", "message", e.getMessage()));
+        }
+    }
+
+    /**
+     * POST /api/learning/research-now
+     * Trigger an immediate research cycle (admin only)
+     */
+    @PostMapping("/research-now")
+    public ResponseEntity<?> triggerResearchNow(
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            User user = authenticate(authHeader);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("status", "error", "message", "Auth required"));
+            }
+            if (internetResearchService == null) {
+                return ResponseEntity.ok(Map.of("status", "unavailable",
+                    "message", "InternetResearchService not loaded"));
+            }
+            // Run in separate thread so API returns immediately
+            new Thread(() -> internetResearchService.runResearchCycle()).start();
+            return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "message", "Research cycle triggered — check /research-stats in ~2 minutes"
+            ));
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("status", "error", "message", e.getMessage()));
         }
