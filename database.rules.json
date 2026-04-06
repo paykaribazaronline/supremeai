@@ -101,6 +101,11 @@
       }
     },
 
+    "provider_secrets": {
+      ".read": false,
+      ".write": false
+    },
+
     "audit_logs": {
       ".indexOn": ["timestamp", "action", "providerId"],
       ".read": "auth != null && auth.token.admin === true",

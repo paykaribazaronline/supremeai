@@ -43,6 +43,7 @@ public class ProviderRegistryService {
     private static final Logger logger = LoggerFactory.getLogger(ProviderRegistryService.class);
     private static final String STORE_PATH      = "provider-registry.json";
     private static final String FIREBASE_PATH   = "providers";
+    private static final String FIREBASE_SECRETS_PATH = "provider_secrets";
     private static final String SECRET_PREFIX   = "provider-apikey-";
 
     private final LocalJsonStoreService localJsonStoreService;
@@ -125,6 +126,17 @@ public class ProviderRegistryService {
         boolean removed = providers.remove(id) != null;
         if (removed) {
             persistProviders();
+            // Clean up Firebase secret backup
+            if (firebaseService != null && firebaseService.isInitialized()) {
+                try {
+                    firebaseService.getDatabase()
+                        .getReference(FIREBASE_SECRETS_PATH)
+                        .child(sanitizeId(id))
+                        .removeValueAsync();
+                } catch (Exception e) {
+                    logger.warn("⚠️ Could not remove API key from Firebase secrets for {}: {}", id, e.getMessage());
+                }
+            }
         }
         return removed;
     }
@@ -173,6 +185,9 @@ public class ProviderRegistryService {
                         }
                     }
                     logger.info("✅ ProviderRegistry: loaded {} provider(s) from Firebase", providers.size());
+                    // Restore API keys from Firebase fallback (covers env/dev deployments
+                    // where GCP Secret Manager is not configured)
+                    restoreApiKeysFromFirebase();
                     // Also keep local JSON in sync as cold-start fallback
                     localJsonStoreService.write(STORE_PATH, getAllProviders());
                 }
@@ -216,16 +231,33 @@ public class ProviderRegistryService {
     /**
      * Store the provider's API key in Secret Manager under a deterministic name
      * so it can be retrieved across Cloud Run restarts.
+     * Also writes a Firebase RTDB backup so keys survive restarts even when
+     * GCP Secret Manager is not configured (SECRET_MANAGER_BACKEND=env).
      */
     private void persistApiKeyToSecret(APIProvider provider) {
-        if (secretManager == null) return;
         String key = provider.getApiKey();
         if (key == null || key.isBlank()) return;
-        try {
-            String secretName = SECRET_PREFIX + sanitizeId(provider.getId());
-            secretManager.updateSecret(secretName, key);
-        } catch (Exception e) {
-            logger.warn("⚠️ Could not store API key in Secret Manager for {}: {}", provider.getId(), e.getMessage());
+
+        if (secretManager != null) {
+            try {
+                String secretName = SECRET_PREFIX + sanitizeId(provider.getId());
+                secretManager.updateSecret(secretName, key);
+            } catch (Exception e) {
+                logger.warn("⚠️ Could not store API key in Secret Manager for {}: {}", provider.getId(), e.getMessage());
+            }
+        }
+
+        // Firebase fallback — ensures key survives restarts when GCP Secret Manager is not configured
+        if (firebaseService != null && firebaseService.isInitialized()) {
+            try {
+                firebaseService.getDatabase()
+                    .getReference(FIREBASE_SECRETS_PATH)
+                    .child(sanitizeId(provider.getId()))
+                    .setValueAsync(key);
+                logger.debug("🔑 API key backed up to Firebase for provider {}", provider.getId());
+            } catch (Exception e) {
+                logger.warn("⚠️ Could not back up API key to Firebase for {}: {}", provider.getId(), e.getMessage());
+            }
         }
     }
 
@@ -244,6 +276,48 @@ public class ProviderRegistryService {
             }
         } catch (Exception e) {
             logger.debug("Could not restore API key from Secret Manager for {}: {}", provider.getId(), e.getMessage());
+        }
+    }
+
+    /**
+     * Asynchronously restores API keys from the Firebase {@code provider_secrets} path
+     * for providers that were loaded from Firebase without a key (Firebase deliberately
+     * stores only metadata, never raw keys).  This is the primary key-recovery path
+     * when GCP Secret Manager is not configured ({@code SECRET_MANAGER_BACKEND=env}).
+     */
+    private void restoreApiKeysFromFirebase() {
+        if (firebaseService == null || !firebaseService.isInitialized()) return;
+        try {
+            firebaseService.getDatabase()
+                .getReference(FIREBASE_SECRETS_PATH)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+                        if (!snapshot.exists()) return;
+                        for (DataSnapshot child : snapshot.getChildren()) {
+                            String id = child.getKey();
+                            String key = child.getValue(String.class);
+                            if (id == null || key == null || key.isBlank()) continue;
+                            providers.values().stream()
+                                .filter(p -> sanitizeId(p.getId()).equals(id))
+                                .forEach(p -> {
+                                    if (p.getApiKey() == null || p.getApiKey().isBlank()) {
+                                        p.setApiKey(key);
+                                        refreshApiKeysBean(p);
+                                        logger.debug("🔑 API key restored from Firebase fallback for provider {}", p.getId());
+                                    }
+                                });
+                        }
+                        logger.info("✅ ProviderRegistry: API keys restored from Firebase fallback");
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError error) {
+                        logger.warn("⚠️ Could not restore API keys from Firebase secrets: {}", error.getMessage());
+                    }
+                });
+        } catch (Exception e) {
+            logger.warn("⚠️ Could not restore API keys from Firebase: {}", e.getMessage());
         }
     }
 

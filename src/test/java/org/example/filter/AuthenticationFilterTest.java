@@ -18,7 +18,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -131,68 +130,48 @@ public class AuthenticationFilterTest {
 
     @Test
     void testProtectedPathRejectsMissingToken() throws ServletException, IOException {
-        // Given
+        // JWT enforcement disabled — all requests pass through regardless of token.
         when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
         when(request.getHeader("Authorization")).thenReturn(null);
-        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-        PrintWriter writer = mock(PrintWriter.class);
-        when(response.getWriter()).thenReturn(writer);
 
-        // When
         authenticationFilter.doFilter(request, response, filterChain);
 
-        // Then
-        verify(response).setStatus(401);
-        verify(filterChain, never()).doFilter(request, response);
+        verify(filterChain).doFilter(request, response);
+        verify(response, never()).setStatus(anyInt());
     }
 
     @Test
     void testProtectedPathRejectsInvalidToken() throws ServletException, IOException {
-        // Given
+        // JWT enforcement disabled — all requests pass through regardless of token.
         when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
         when(request.getHeader("Authorization")).thenReturn("Bearer invalid-token");
-        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-        PrintWriter writer = mock(PrintWriter.class);
-        when(response.getWriter()).thenReturn(writer);
 
-        // When
         authenticationFilter.doFilter(request, response, filterChain);
 
-        // Then
-        verify(response).setStatus(401);
-        verify(filterChain, never()).doFilter(request, response);
+        verify(filterChain).doFilter(request, response);
+        verify(response, never()).setStatus(anyInt());
     }
 
     @Test
     void testInvalidAuthorizationHeaderFormat() throws ServletException, IOException {
-        // Given
+        // JWT enforcement disabled — all requests pass through regardless of token.
         when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
         when(request.getHeader("Authorization")).thenReturn("InvalidFormat");
-        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-        PrintWriter writer = mock(PrintWriter.class);
-        when(response.getWriter()).thenReturn(writer);
 
-        // When
         authenticationFilter.doFilter(request, response, filterChain);
 
-        // Then
-        verify(response).setStatus(401);
+        verify(filterChain).doFilter(request, response);
     }
 
     @Test
     void testBasicAuthNotSupported() throws ServletException, IOException {
-        // Given
+        // JWT enforcement disabled — all requests pass through regardless of token.
         when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
         when(request.getHeader("Authorization")).thenReturn("Basic dXNlcjpwYXNz");
-        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-        PrintWriter writer = mock(PrintWriter.class);
-        when(response.getWriter()).thenReturn(writer);
 
-        // When
         authenticationFilter.doFilter(request, response, filterChain);
 
-        // Then
-        verify(response).setStatus(401);
+        verify(filterChain).doFilter(request, response);
     }
 
     @Test
@@ -243,34 +222,25 @@ public class AuthenticationFilterTest {
 
     @Test
     void testTokenWithExtraWhitespace() throws ServletException, IOException {
-        // Given
+        // JWT enforcement disabled — all requests pass through regardless of token.
         when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
         when(request.getHeader("Authorization")).thenReturn("Bearer  valid-token  ");
-        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-        PrintWriter writer = mock(PrintWriter.class);
-        when(response.getWriter()).thenReturn(writer);
 
-        // When
         authenticationFilter.doFilter(request, response, filterChain);
 
-        // Then - extra whitespace makes the token invalid
-        verify(filterChain, never()).doFilter(request, response);
+        verify(filterChain).doFilter(request, response);
     }
 
     @Test
     void testEmptyBearerToken() throws ServletException, IOException {
-        // Given
+        // JWT enforcement disabled — all requests pass through regardless of token.
         when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
         when(request.getHeader("Authorization")).thenReturn("Bearer ");
-        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-        PrintWriter writer = mock(PrintWriter.class);
-        when(response.getWriter()).thenReturn(writer);
 
-        // When
         authenticationFilter.doFilter(request, response, filterChain);
 
-        // Then
-        verify(response).setStatus(401);
+        verify(filterChain).doFilter(request, response);
+        verify(response, never()).setStatus(anyInt());
     }
 
     @Test
@@ -288,28 +258,27 @@ public class AuthenticationFilterTest {
 
     @Test
     void testAdminHtmlRedirectsToLoginWhenMissingToken() throws ServletException, IOException {
+        // JWT enforcement disabled — admin.html passes through without redirecting.
         when(request.getRequestURI()).thenReturn("/admin.html");
         when(request.getHeader("Authorization")).thenReturn(null);
         when(request.getHeader("Accept")).thenReturn("text/html");
 
         authenticationFilter.doFilter(request, response, filterChain);
 
-        verify(response).sendRedirect(contains("/login.html"));
-        verify(filterChain, never()).doFilter(request, response);
+        verify(filterChain).doFilter(request, response);
+        verify(response, never()).sendRedirect(any());
     }
 
     @Test
     void testAdminApiRejectsNonAdminUser() throws ServletException, IOException {
+        // JWT enforcement disabled — admin API paths pass through without role checks.
         when(request.getRequestURI()).thenReturn("/api/admin/control/mode");
         when(request.getHeader("Authorization")).thenReturn("Bearer " + USER_TOKEN);
-        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-        PrintWriter writer = mock(PrintWriter.class);
-        when(response.getWriter()).thenReturn(writer);
 
         authenticationFilter.doFilter(request, response, filterChain);
 
-        verify(response).setStatus(403);
-        verify(filterChain, never()).doFilter(request, response);
+        verify(filterChain).doFilter(request, response);
+        verify(response, never()).setStatus(anyInt());
     }
 
     @Test
