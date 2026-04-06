@@ -51,13 +51,46 @@ public class ServiceConfiguration {
     }
     
     /**
-     * Initialize API Keys Map
-     * Provides default empty map for API key management
+     * Initialize API Keys Map.
+     *
+     * Loads provider API keys from environment variables so that AI calls work
+     * without requiring the admin to re-enter keys after every Cloud Run cold
+     * start. Keys saved via the Provider Coverage UI are merged on top of these
+     * environment-level defaults by {@link org.example.service.ProviderRegistryService}
+     * after it finishes loading.
+     *
+     * Supported environment variables (all optional – absent keys are silently
+     * skipped so the app starts cleanly even when keys are not yet configured):
+     *
+     *   OPENAI_API_KEY        → GPT4
+     *   ANTHROPIC_API_KEY     → CLAUDE
+     *   GOOGLE_GEMINI_API_KEY → GEMINI
+     *   DEEPSEEK_API_KEY      → DEEPSEEK
+     *   GROQ_API_KEY          → GROQ
+     *   COHERE_API_KEY        → COHERE
+     *   PERPLEXITY_API_KEY    → PERPLEXITY
+     *   HUGGINGFACE_API_KEY   → HUGGINGFACE
+     *   XAI_GROK_API_KEY      → XAI
+     *   META_API_KEY          → LLAMA
+     *   TAVILY_API_KEY        → TAVILY  (web-search for active learning)
      */
     @Bean
     public Map<String, String> apiKeys() {
-        logger.info("🔧 Initializing API Keys Map...");
-        return new HashMap<>();
+        logger.info("🔧 Loading API Keys from environment variables...");
+        Map<String, String> keys = new HashMap<>();
+        loadEnvKey(keys, "OPENAI_API_KEY",        "GPT4");
+        loadEnvKey(keys, "ANTHROPIC_API_KEY",      "CLAUDE");
+        loadEnvKey(keys, "GOOGLE_GEMINI_API_KEY",  "GEMINI");
+        loadEnvKey(keys, "DEEPSEEK_API_KEY",       "DEEPSEEK");
+        loadEnvKey(keys, "GROQ_API_KEY",           "GROQ");
+        loadEnvKey(keys, "COHERE_API_KEY",         "COHERE");
+        loadEnvKey(keys, "PERPLEXITY_API_KEY",     "PERPLEXITY");
+        loadEnvKey(keys, "HUGGINGFACE_API_KEY",    "HUGGINGFACE");
+        loadEnvKey(keys, "XAI_GROK_API_KEY",       "XAI");
+        loadEnvKey(keys, "META_API_KEY",           "LLAMA");
+        loadEnvKey(keys, "TAVILY_API_KEY",         "TAVILY");
+        logger.info("✅ API Keys loaded: {} provider(s) configured from environment", keys.size());
+        return keys;
     }
     
     /**
@@ -127,5 +160,21 @@ public class ServiceConfiguration {
     public AdminMessagePusher adminMessagePusher() {
         logger.info("🔧 Initializing Admin Message Pusher...");
         return new AdminMessagePusher();
+    }
+
+    // ── helpers ────────────────────────────────────────────────────────────────
+
+    /**
+     * Load a single API key from an environment variable into the keys map.
+     * Logs presence/absence without printing the actual key value.
+     */
+    private void loadEnvKey(Map<String, String> keys, String envVar, String provider) {
+        String value = System.getenv(envVar);
+        if (value != null && !value.isBlank()) {
+            keys.put(provider, value.trim());
+            logger.info("  ✅ {} → {} configured", envVar, provider);
+        } else {
+            logger.debug("  ⚠️ {} not set – {} will use registry key if available", envVar, provider);
+        }
     }
 }

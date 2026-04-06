@@ -39,7 +39,14 @@
     "projects": {
       "$projectId": {
         ".read": "auth != null && auth.token.admin === true",
-        ".write": "auth != null && auth.token.admin === true"
+        ".write": "auth != null && auth.token.admin === true",
+
+        "chat": {
+          "$chatId": {
+            ".read": "auth != null && auth.token.admin === true",
+            ".write": "auth != null && auth.token.admin === true"
+          }
+        }
       }
     },
 
@@ -79,6 +86,83 @@
     },
 
     "learnings": {
+      ".read": "auth != null && auth.token.admin === true",
+      ".write": "auth != null && auth.token.admin === true"
+    },
+
+    "providers": {
+      ".read": "auth != null && auth.token.admin === true",
+      ".write": "auth != null && auth.token.admin === true",
+      "$providerId": {
+        "apiKey": {
+          ".read": false,
+          ".write": false
+        }
+      }
+    },
+
+    "audit_logs": {
+      ".indexOn": ["timestamp", "action", "providerId"],
+      ".read": "auth != null && auth.token.admin === true",
+      ".write": "auth != null && auth.token.admin === true"
+    },
+
+    "work_history": {
+      ".indexOn": ["timestamp", "agentId", "status"],
+      ".read": "auth != null && auth.token.admin === true",
+      ".write": "auth != null && auth.token.admin === true"
+    },
+
+    "assignments": {
+      ".read": "auth != null && auth.token.admin === true",
+      ".write": "auth != null && auth.token.admin === true"
+    },
+
+    "quota": {
+      ".read": "auth != null && auth.token.admin === true",
+      ".write": "auth != null && auth.token.admin === true"
+    },
+
+    "agent_executions": {
+      ".indexOn": ["timestamp", "agentId", "taskType"],
+      ".read": "auth != null && auth.token.admin === true",
+      ".write": "auth != null && auth.token.admin === true"
+    },
+
+    "consensus_history": {
+      ".read": "auth != null && auth.token.admin === true",
+      ".write": "auth != null && auth.token.admin === true"
+    },
+
+    "chat_history": {
+      ".indexOn": ["timestamp", "sender"],
+      ".read": "auth != null && auth.token.admin === true",
+      ".write": "auth != null && auth.token.admin === true"
+    },
+
+    "vpn_configs": {
+      ".read": "auth != null && auth.token.admin === true",
+      ".write": "auth != null && auth.token.admin === true"
+    },
+
+    "deployment_history": {
+      ".read": "auth != null && auth.token.admin === true",
+      ".write": "auth != null && auth.token.admin === true"
+    },
+
+    "self_healing_events": {
+      ".read": "auth != null && auth.token.admin === true",
+      ".write": "auth != null && auth.token.admin === true"
+    },
+
+    "metrics_snapshots": {
+      ".indexOn": ["timestamp"],
+      ".read": "auth != null && auth.token.admin === true",
+      ".write": "auth != null && auth.token.admin === true"
+    },
+
+    "timeline_events": {
+      ".indexOn": ["timestamp", "type"],
       ".read": "auth != null && auth.token.admin === true",
       ".write": "auth != null && auth.token.admin === true"
     }

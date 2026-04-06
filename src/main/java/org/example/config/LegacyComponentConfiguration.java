@@ -68,4 +68,12 @@ public class LegacyComponentConfiguration {
     public ConsensusEngine consensusEngine() {
         return new ConsensusEngine(0.70); // 70% consensus threshold
     }
+
+    // ============= Safety & Protection =============
+
+    @Bean
+    @ConditionalOnMissingBean
+    public SafeZoneManager safeZoneManager() {
+        return new SafeZoneManager();
+    }
 }
