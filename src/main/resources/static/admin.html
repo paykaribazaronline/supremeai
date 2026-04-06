@@ -1116,6 +1116,100 @@
                         </tbody>
                     </table>
                     <div id="deployMsg" style="margin-top:16px;"></div>
+
+                    <!-- ════════════════════════════════════════════════════════ -->
+                    <!-- Atomic Deployment                                        -->
+                    <!-- ════════════════════════════════════════════════════════ -->
+                    <h2 style="margin-top:36px;">⚛️ Atomic Multi-Target Deployment</h2>
+                    <p style="color:#a0aec0;font-size:13px;">
+                        সব টার্গেট একসাথে valid হলে তবেই deploy হবে — একটিও fail করলে সব rollback।<br>
+                        <em>All targets must pass validation before any is deployed. If any target fails during deploy, all are rolled back. Auto-fix retries up to 3 times.</em>
+                    </p>
+
+                    <!-- Add Deployment Target -->
+                    <div style="background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:16px;margin-bottom:16px;">
+                        <h3 style="margin:0 0 12px;">➕ Add Deployment Target</h3>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                            <div class="form-group" style="margin:0;">
+                                <label>Target ID <span style="color:#f56565;">*</span></label>
+                                <input type="text" id="atomicTargetId" placeholder="e.g. flutter-android, cloud-run-prod">
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label>Type</label>
+                                <select id="atomicTargetType" style="width:100%;">
+                                    <option value="CLOUD_RUN">☁️ Cloud Run / GCP</option>
+                                    <option value="FLUTTER">📱 Flutter App</option>
+                                    <option value="K8S">⎈️ Kubernetes</option>
+                                    <option value="PLAY_STORE">▶️ Play Store</option>
+                                    <option value="APP_STORE">🍎 App Store</option>
+                                    <option value="CUSTOM">🔧 Custom</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label>Description</label>
+                                <input type="text" id="atomicTargetDesc" placeholder="e.g. Production Cloud Run (us-central1)">
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label>Validation Command</label>
+                                <input type="text" id="atomicTargetValidate" placeholder="e.g. flutter test OR gcloud builds verify">
+                                <div style="font-size:11px;color:#718096;">Run before deploy — must exit 0</div>
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label>Deploy Command</label>
+                                <input type="text" id="atomicTargetDeploy" placeholder="e.g. gcloud run deploy ... OR flutter build apk">
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label>Rollback Command</label>
+                                <input type="text" id="atomicTargetRollback" placeholder="e.g. gcloud run services update-traffic --to-revisions=PREV=100">
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" style="margin-top:12px;" onclick="addAtomicTarget()">➕ Add Target to List</button>
+                    </div>
+
+                    <!-- Current Target List -->
+                    <div id="atomicTargetList" style="margin-bottom:16px;min-height:40px;background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:12px;">
+                        <em style="color:#a0aec0;">No targets added yet.</em>
+                    </div>
+
+                    <!-- Run Config -->
+                    <div style="background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:16px;margin-bottom:16px;">
+                        <h3 style="margin:0 0 12px;">🔧 Run Configuration</h3>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                            <div class="form-group" style="margin:0;">
+                                <label>Run Name <span style="color:#f56565;">*</span></label>
+                                <input type="text" id="atomicRunName" placeholder="e.g. v2.5.0 Production Release">
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label>Git Branch</label>
+                                <input type="text" id="atomicRunBranch" placeholder="main" value="main">
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label>Git Repo URL</label>
+                                <input type="text" id="atomicRunRepo" placeholder="https://github.com/org/repo">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn" onclick="startAtomicDeploy()" style="font-size:16px;padding:12px 28px;">
+                        ⚛️ Start Atomic Deployment
+                    </button>
+                    <div id="atomicDeployMsg" style="margin-top:12px;"></div>
+
+                    <!-- Live Status -->
+                    <div id="atomicRunStatus" style="display:none;margin-top:20px;background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:16px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                            <h3 style="margin:0;" id="atomicRunTitle">Run Status</h3>
+                            <span id="atomicRunBadge" style="font-size:14px;font-weight:bold;"></span>
+                        </div>
+                        <div id="atomicRunLog" style="font-family:monospace;font-size:12px;background:#0d1117;border-radius:6px;padding:12px;max-height:320px;overflow-y:auto;color:#a0aec0;white-space:pre-wrap;"></div>
+                    </div>
+
+                    <!-- History -->
+                    <h2 style="margin-top:36px;">📜 Atomic Deploy History</h2>
+                    <button class="btn btn-secondary" onclick="loadAtomicHistory()">↻ Refresh</button>
+                    <div id="atomicHistoryContainer" style="margin-top:12px;">
+                        <em style="color:#a0aec0;">Click Refresh to load history.</em>
+                    </div>
                 </div>
 
                 <!-- Self-Healing Section -->
@@ -3362,6 +3456,155 @@
         // =============================================
         // DEPLOYMENT
         // =============================================
+
+        // ── Atomic Deployment ─────────────────────────────────────────────────
+
+        let _atomicTargets = [];
+        let _atomicPollTimer = null;
+
+        function addAtomicTarget() {
+            const id       = document.getElementById('atomicTargetId').value.trim();
+            const type     = document.getElementById('atomicTargetType').value;
+            const desc     = document.getElementById('atomicTargetDesc').value.trim();
+            const validate = document.getElementById('atomicTargetValidate').value.trim();
+            const deploy   = document.getElementById('atomicTargetDeploy').value.trim();
+            const rollback = document.getElementById('atomicTargetRollback').value.trim();
+            if (!id) { alert('Target ID is required'); return; }
+            _atomicTargets.push({ id, type, description: desc, validationCommand: validate, deployCommand: deploy, rollbackCommand: rollback });
+            renderAtomicTargetList();
+            ['atomicTargetId','atomicTargetDesc','atomicTargetValidate','atomicTargetDeploy','atomicTargetRollback']
+                .forEach(f => document.getElementById(f).value = '');
+        }
+
+        function removeAtomicTarget(idx) {
+            _atomicTargets.splice(idx, 1);
+            renderAtomicTargetList();
+        }
+
+        function renderAtomicTargetList() {
+            const el = document.getElementById('atomicTargetList');
+            if (!_atomicTargets.length) {
+                el.innerHTML = '<em style="color:#a0aec0;">No targets added yet.</em>';
+                return;
+            }
+            el.innerHTML = _atomicTargets.map((t, i) => `
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #2d3748;">
+                    <span style="font-size:18px;">${targetTypeIcon(t.type)}</span>
+                    <div style="flex:1;">
+                        <strong style="color:#e2e8f0;">${escHtml(t.id)}</strong>
+                        <span style="color:#718096;margin-left:8px;">${escHtml(t.type)}</span>
+                        ${t.description ? `<div style="color:#a0aec0;font-size:12px;">${escHtml(t.description)}</div>` : ''}
+                    </div>
+                    <button onclick="removeAtomicTarget(${i})" style="background:#f56565;border:none;color:#fff;border-radius:4px;padding:4px 10px;cursor:pointer;">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function targetTypeIcon(type) {
+            const icons = { CLOUD_RUN:'☁️', FLUTTER:'📱', K8S:'⎈️', PLAY_STORE:'▶️', APP_STORE:'🍎', CUSTOM:'🔧' };
+            return icons[type] || '🔧';
+        }
+
+        async function startAtomicDeploy() {
+            const name   = document.getElementById('atomicRunName').value.trim();
+            const branch = document.getElementById('atomicRunBranch').value.trim() || 'main';
+            const repo   = document.getElementById('atomicRunRepo').value.trim();
+            const msg    = document.getElementById('atomicDeployMsg');
+
+            if (!name)                  { msg.innerHTML='<span style="color:#f56565;">Run Name is required.</span>'; return; }
+            if (!_atomicTargets.length) { msg.innerHTML='<span style="color:#f56565;">Add at least one deployment target.</span>'; return; }
+
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Starting atomic deployment…</span>';
+
+            try {
+                const res = await fetch('/api/v1/deployment/atomic', {
+                    method: 'POST',
+                    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, gitRepo: repo, gitBranch: branch, targets: _atomicTargets })
+                });
+                const run = await res.json();
+                if (!res.ok) { msg.innerHTML = `<span style="color:#f56565;">❌ ${escHtml(run.error)}</span>`; return; }
+                msg.innerHTML = `<span style="color:#48bb78;">✅ Run started: ${escHtml(run.id)}</span>`;
+                showAtomicRunPanel(run);
+                pollAtomicRun(run.id);
+            } catch (e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        function showAtomicRunPanel(run) {
+            const panel = document.getElementById('atomicRunStatus');
+            panel.style.display = 'block';
+            document.getElementById('atomicRunTitle').textContent = '⚛️ ' + (run.name || run.id);
+            updateAtomicRunUI(run);
+            panel.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function updateAtomicRunUI(run) {
+            const statusColors = { VALIDATING:'#63b3ed', FIXING:'#f6ad55', DEPLOYING:'#9f7aea',
+                                   ROLLING_BACK:'#f56565', DEPLOYED:'#48bb78', FAILED:'#f56565' };
+            const statusIcons  = { VALIDATING:'🔍', FIXING:'🤖', DEPLOYING:'🚀',
+                                   ROLLING_BACK:'↩️', DEPLOYED:'🎉', FAILED:'❌' };
+            const badge = document.getElementById('atomicRunBadge');
+            const color = statusColors[run.status] || '#e2e8f0';
+            badge.textContent = (statusIcons[run.status]||'') + ' ' + run.status;
+            badge.style.color = color;
+            const logEl = document.getElementById('atomicRunLog');
+            logEl.textContent = (run.log || []).join('\n');
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function pollAtomicRun(id) {
+            if (_atomicPollTimer) clearInterval(_atomicPollTimer);
+            _atomicPollTimer = setInterval(async () => {
+                try {
+                    const res = await fetch(`/api/v1/deployment/atomic/${id}`, { headers: getAuthHeaders() });
+                    if (!res.ok) return;
+                    const run = await res.json();
+                    updateAtomicRunUI(run);
+                    if (run.status === 'DEPLOYED' || run.status === 'FAILED') {
+                        clearInterval(_atomicPollTimer);
+                    }
+                } catch(e) {}
+            }, 2000);
+        }
+
+        async function loadAtomicHistory() {
+            const el = document.getElementById('atomicHistoryContainer');
+            el.innerHTML = '<em style="color:#a0aec0;">Loading…</em>';
+            try {
+                const res  = await fetch('/api/v1/deployment/atomic', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const runs = data.runs || [];
+                if (!runs.length) { el.innerHTML='<em style="color:#a0aec0;">No runs yet.</em>'; return; }
+                const statusColors = { DEPLOYING:'#9f7aea', DEPLOYED:'#48bb78', FAILED:'#f56565',
+                                       VALIDATING:'#63b3ed', FIXING:'#f6ad55', ROLLING_BACK:'#f56565' };
+                el.innerHTML = runs.map(r => `
+                    <div style="border:1px solid #2d3748;border-radius:8px;padding:12px;margin-bottom:8px;cursor:pointer;"
+                         onclick="loadAndShowAtomicRun('${escHtml(r.id)}')">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <strong style="color:#e2e8f0;">${escHtml(r.name||r.id)}</strong>
+                            <span style="color:${statusColors[r.status]||'#e2e8f0'};font-weight:bold;">${escHtml(r.status)}</span>
+                        </div>
+                        <div style="color:#718096;font-size:12px;margin-top:4px;">
+                            ${escHtml(r.gitBranch||'main')} · ${r.targetCount} target(s) · ${escHtml(r.createdAt||'')}
+                            ${r.failReason ? `<br><span style="color:#f56565;">Reason: ${escHtml(r.failReason)}</span>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                el.innerHTML = `<em style="color:#f56565;">${e.message}</em>`;
+            }
+        }
+
+        async function loadAndShowAtomicRun(id) {
+            try {
+                const res = await fetch(`/api/v1/deployment/atomic/${id}`, { headers: getAuthHeaders() });
+                const run = await res.json();
+                showAtomicRunPanel(run);
+                if (run.status !== 'DEPLOYED' && run.status !== 'FAILED') pollAtomicRun(id);
+            } catch(e) {}
+        }
 
         async function loadDeployHistory() {
             const tbody = document.getElementById('deployHistoryTable');
