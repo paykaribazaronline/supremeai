@@ -8,6 +8,7 @@ import org.example.service.IncidentLearningIngestionService;
 import org.example.service.InternetResearchService;
 import org.example.service.AuthenticationService;
 import org.example.model.User;
+import org.example.service.ActiveLearningHarvesterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ public class SystemLearningController {
     
     @Autowired
     private AuthenticationService authService;
+
+    @Autowired
+    private ActiveLearningHarvesterService harvesterService;
 
     @Autowired
     private KnowledgeReseedService knowledgeReseedService;
@@ -277,6 +281,33 @@ public class SystemLearningController {
             return ResponseEntity.ok(reseedResult);
         } catch (Exception e) {
             logger.error("❌ Reseed error: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("status", "error", "message", e.getMessage()));
+        }
+    }
+
+    /**
+     * POST /api/learning/harvest
+     * Trigger an active knowledge harvest from GitHub issues, PRs, CI logs and web search.
+     */
+    @PostMapping("/harvest")
+    public ResponseEntity<?> triggerHarvest(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestHeader(value = "X-Setup-Token", required = false) String setupToken) {
+        try {
+            User user = authenticate(authHeader);
+            boolean setupTokenAuthorized = isSetupTokenAuthorized(setupToken);
+
+            if (user == null && !setupTokenAuthorized) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("status", "error", "message", "Auth required"));
+            }
+
+            String trigger = user != null ? "api:" + user.getUsername() : "automation";
+            Map<String, Object> result = harvesterService.runHarvest(trigger);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            logger.error("❌ Harvest error: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("status", "error", "message", e.getMessage()));
         }

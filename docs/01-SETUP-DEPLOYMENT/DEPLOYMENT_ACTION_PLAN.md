@@ -234,6 +234,7 @@ Before starting deployment:
 - [ ] No active VPN (may interfere with Docker)
 - [ ] Administrator access to computer
 - [ ] PowerShell execution policy allows scripts:
+
   ```powershell
   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
   ```

@@ -1,10 +1,12 @@
 # Google Cloud Run Deployment - Fix Guide
+
 **Error Fixed:** Container failed to start on PORT=8080  
 **Status:** Ready to redeploy
 
 ---
 
 ## 🔴 Original Error
+
 ```
 Container failed to start and listen on the port defined provided by the PORT=8080 
 environment variable within the allocated timeout. This can happen when the 
@@ -16,7 +18,9 @@ container port is misconfigured or if the timeout is too short.
 ## ✅ Changes Made (3 Files Updated)
 
 ### 1️⃣ Dockerfile (Enhanced)
+
 **Changes:**
+
 - ✅ Added `ENV PORT=8080` (explicit)
 - ✅ Added `curl` to container for health checks
 - ✅ Added `HEALTHCHECK` directive (30s interval)
@@ -24,7 +28,9 @@ container port is misconfigured or if the timeout is too short.
 - ✅ Added `start-period=40s` to give app time to initialize
 
 ### 2️⃣ application.properties (Optimized)
+
 **Changes:**
+
 - ✅ Added `server.shutdown=graceful`
 - ✅ Added `spring.lifecycle.timeout-per-shutdown-phase=30s`
 - ✅ Disabled unnecessary features: JMX, DevTools
@@ -32,7 +38,9 @@ container port is misconfigured or if the timeout is too short.
 - ✅ Reduced verbose logging
 
 ### 3️⃣ CloudRunStartup.java (New)
-**Purpose:** 
+
+**Purpose:**
+
 - ✅ Logger confirms app is ready on correct port
 - ✅ Logs all available endpoints
 - ✅ Confirms proper startup sequence
@@ -127,6 +135,7 @@ gcloud run deploy supremeai `
 ## ✅ Step 4: Verify Deployment
 
 ### Check Status
+
 ```bash
 gcloud run services describe supremeai --region us-central1
 
@@ -136,6 +145,7 @@ gcloud run services describe supremeai --region us-central1
 ```
 
 ### Test Endpoints
+
 ```bash
 # Public endpoint (no auth required for testing)
 curl https://supremeai-a.us-central1.run.app/
@@ -147,6 +157,7 @@ curl https://supremeai-a.us-central1.run.app/actuator/health
 ```
 
 ### View Logs
+
 ```bash
 # Real-time logs
 gcloud run services logs read supremeai --region us-central1 --limit 50 --follow
@@ -164,14 +175,16 @@ gcloud run services logs read supremeai --region us-central1 --limit 50 --follow
 
 ## 🔧 Step 5: Troubleshooting
 
-### If Still Failing:
+### If Still Failing
 
 #### 1. Check Build Logs
+
 ```bash
 gcloud builds log --region us-central1 [BUILD_ID]
 ```
 
 #### 2. Increase Timeout
+
 ```bash
 gcloud run deploy supremeai \
   --timeout 3600 \
@@ -179,6 +192,7 @@ gcloud run deploy supremeai \
 ```
 
 #### 3. Increase Memory
+
 ```bash
 gcloud run deploy supremeai \
   --memory 1Gi \
@@ -186,6 +200,7 @@ gcloud run deploy supremeai \
 ```
 
 #### 4. Check Instance Startup
+
 ```bash
 # Get detailed error logs
 gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=supremeai" \
@@ -197,7 +212,7 @@ gcloud logging read "resource.type=cloud_run_revision AND resource.labels.servic
 
 ## 📋 Key Fixes Explained
 
-### Why Container Was Failing:
+### Why Container Was Failing
 
 ```
 BEFORE ❌
@@ -215,7 +230,7 @@ AFTER ✅
 └─ Clear startup confirmation logged
 ```
 
-### Port Binding Sequence (Now Fixed):
+### Port Binding Sequence (Now Fixed)
 
 ```
 1. Dockerfile sets ENV PORT=8080
@@ -277,7 +292,7 @@ gcloud run services logs read supremeai --region us-central1 --limit 50 --follow
 
 ---
 
-## ✨ Now Your App Will:
+## ✨ Now Your App Will
 
 ✅ Start properly on PORT 8080  
 ✅ Pass Cloud Run health checks  

@@ -220,6 +220,40 @@ public class GitHubAPIService {
         }
     }
     
+    /**
+     * Fetch recently-closed issues (bugs) for knowledge harvesting.
+     * Returns up to {@code limit} closed issues with their title and body.
+     */
+    public List<Map<String, Object>> getRecentClosedIssues(int limit) {
+        try {
+            String endpoint = String.format(
+                "%s/repos/%s/issues?state=closed&labels=bug&per_page=%d&sort=updated&direction=desc",
+                GITHUB_API, GITHUB_REPO, Math.min(limit, 50));
+            String response = makeGitHubRequest(endpoint);
+            return parseJsonArray(response);
+        } catch (Exception e) {
+            logger.warn("⚠️ Could not fetch closed issues: {}", e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * Fetch recently-merged pull-request titles/bodies for learning.
+     * Uses the issues search API (PRs are issues with pull_request key).
+     */
+    public List<Map<String, Object>> getRecentMergedPRs(int limit) {
+        try {
+            String endpoint = String.format(
+                "%s/repos/%s/pulls?state=closed&per_page=%d&sort=updated&direction=desc",
+                GITHUB_API, GITHUB_REPO, Math.min(limit, 50));
+            String response = makeGitHubRequest(endpoint);
+            return parseJsonArray(response);
+        } catch (Exception e) {
+            logger.warn("⚠️ Could not fetch merged PRs: {}", e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
     // ============ PRIVATE HELPER METHODS ============
     
     /**
@@ -346,5 +380,44 @@ public class GitHubAPIService {
             logger.error("⚠️ JSON parsing error: {}", e.getMessage());
         }
         return result;
+    }
+
+    /**
+     * Very lightweight JSON-array parser: splits on top-level objects and parses each one.
+     * Good enough for extracting title/body/number from GitHub list endpoints.
+     */
+    private List<Map<String, Object>> parseJsonArray(String json) {
+        List<Map<String, Object>> items = new ArrayList<>();
+        if (json == null || json.trim().isEmpty() || json.trim().equals("[]")) {
+            return items;
+        }
+        // Split on },{  — works for flat arrays returned by GitHub list APIs
+        String stripped = json.trim();
+        if (stripped.startsWith("[")) stripped = stripped.substring(1);
+        if (stripped.endsWith("]"))  stripped = stripped.substring(0, stripped.length() - 1);
+
+        // Each top-level object is delimited by },{ at depth 0
+        int depth = 0;
+        int start = 0;
+        for (int i = 0; i < stripped.length(); i++) {
+            char c = stripped.charAt(i);
+            if (c == '{') depth++;
+            else if (c == '}') {
+                depth--;
+                if (depth == 0) {
+                    String chunk = stripped.substring(start, i + 1).trim();
+                    if (!chunk.isEmpty()) {
+                        items.add(parseJson(chunk));
+                    }
+                    // skip the comma separator
+                    start = i + 1;
+                    while (start < stripped.length() && (stripped.charAt(start) == ',' || stripped.charAt(start) == ' ')) {
+                        start++;
+                    }
+                    i = start - 1;
+                }
+            }
+        }
+        return items;
     }
 }

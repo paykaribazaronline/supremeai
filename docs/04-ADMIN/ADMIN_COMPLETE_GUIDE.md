@@ -75,6 +75,7 @@ cd c:\Users\YourName\supremeai
    - যান: https://console.firebase.google.com/
 
 2. **নতুন Project তৈরি করুন:**
+
    ```
    "Create Project" বাটন ক্লিক করুন
    ↓
@@ -86,6 +87,7 @@ cd c:\Users\YourName\supremeai
    ```
 
 3. **Firestore Database তৈরি করুন:**
+
    ```
    বাম পাশ → "Build" → "Firestore Database"
    ↓
@@ -99,6 +101,7 @@ cd c:\Users\YourName\supremeai
    ```
 
 4. **Authentication সেটআপ করুন:**
+
    ```
    "Build" → "Authentication"
    ↓
@@ -110,6 +113,7 @@ cd c:\Users\YourName\supremeai
    ```
 
 5. **Storage বানান:**
+
    ```
    "Build" → "Storage"
    ↓
@@ -481,16 +485,19 @@ Generated APK ব্যবহারকারীদের দিয়ে দি�
 যদি কোনো সমস্যা হয়:
 
 1. **Error Log দেখুন:**
+
    ```
    Firebase Console → Functions → Logs
    ```
 
 2. **Local Debug চালান:**
+
    ```
    ./gradlew run --debug
    ```
 
 3. **GitHub Issues খুলূন:**
+
    ```
    যদি bug পান তো issue তৈরি করুন
    ```
