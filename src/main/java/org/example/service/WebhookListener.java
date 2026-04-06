@@ -3,6 +3,8 @@ package org.example.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.selfhealing.SelfHealingService;
+import org.example.service.ActiveLearningHarvesterService;
+import org.example.service.SystemLearningService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +54,9 @@ public class WebhookListener {
     
     @Autowired(required = false)
     private SelfHealingService selfHealingService;
+
+    @Autowired(required = false)
+    private SystemLearningService systemLearningService;
     
     // Webhook secret for HMAC verification
     private final String webhookSecret = System.getenv("GITHUB_WEBHOOK_SECRET");
@@ -241,6 +246,8 @@ public class WebhookListener {
                             logger.warn("Webhook processing: {}", e.getMessage());
                         }
                     }
+                    // Learn from commit messages in the push payload
+                    learnFromPushPayload(event.payload);
                 }
                 
                 case "opened" -> {
@@ -263,6 +270,8 @@ public class WebhookListener {
                             logger.warn("Webhook processing: {}", e.getMessage());
                         }
                     }
+                    // Learn from merged PR title and body
+                    learnFromClosedPayload(event.payload);
                 }
                 
                 case "published" -> {
@@ -421,6 +430,67 @@ public class WebhookListener {
             this.repo = repo;
             this.payload = payload;
             this.timestamp = timestamp;
+        }
+    }
+
+    // ── Learning helpers ──────────────────────────────────────────────────────
+
+    /**
+     * Extract commit messages from a push payload and record each one as a
+     * learned pattern so the system grows from every code change.
+     */
+    private void learnFromPushPayload(JsonNode payload) {
+        if (systemLearningService == null || payload == null) return;
+        try {
+            JsonNode commits = payload.get("commits");
+            if (commits == null || !commits.isArray()) return;
+            for (JsonNode commit : commits) {
+                String message = commit.has("message") ? commit.get("message").asText("") : "";
+                if (message.isBlank()) continue;
+                // First line is the subject
+                String subject = message.split("\n")[0].trim();
+                String category = ActiveLearningHarvesterService.detectCategory(subject);
+                systemLearningService.recordPattern(category, "Commit: " + subject,
+                    "Learned from push webhook — " + message.substring(0, Math.min(400, message.length())));
+            }
+        } catch (Exception e) {
+            logger.debug("Could not extract learning from push payload: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Extract title and body from a closed PR/issue payload and record it as
+     * an incident or pattern, giving the system real-time learning from fixes.
+     */
+    private void learnFromClosedPayload(JsonNode payload) {
+        if (systemLearningService == null || payload == null) return;
+        try {
+            JsonNode pr = payload.get("pull_request");
+            JsonNode issue = payload.get("issue");
+            JsonNode item = pr != null ? pr : issue;
+            if (item == null) return;
+
+            String title  = item.has("title") ? item.get("title").asText("") : "";
+            String body   = item.has("body")  ? item.get("body").asText("") : "";
+            boolean merged = pr != null && item.has("merged") && item.get("merged").asBoolean(false);
+            if (title.isBlank()) return;
+
+            String category = ActiveLearningHarvesterService.detectCategory(title + " " + body);
+            if (merged) {
+                systemLearningService.recordPattern(category, "Merged PR: " + title,
+                    "Learned from PR merge webhook — " + body.substring(0, Math.min(400, body.length())));
+            } else {
+                systemLearningService.learnFromIncident(
+                    category, title,
+                    body.isBlank() ? "See GitHub issue" : body.substring(0, Math.min(400, body.length())),
+                    "Issue closed via GitHub",
+                    Collections.singletonList("Review this issue before implementing similar features"),
+                    0.6,
+                    Map.of("source", "webhook-closed", "type", pr != null ? "pr" : "issue")
+                );
+            }
+        } catch (Exception e) {
+            logger.debug("Could not extract learning from closed payload: {}", e.getMessage());
         }
     }
 }
