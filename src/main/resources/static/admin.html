@@ -516,6 +516,8 @@
         <div class="sidebar">
             <div class="logo">👑 SupremeAI Admin</div>
             <div class="menu-item active" onclick="showSection('dashboard')">📊 Dashboard</div>
+            <div class="menu-item" onclick="showSection('activity-summary')" id="sidebarActivityItem">📋 আজকের সারসংক্ষেপ</div>
+            <div class="menu-item" onclick="showSection('system-alerts')" id="sidebarAlertsItem">🚨 System Alerts</div>
             <div class="menu-item" onclick="showSection('techniques')">🧠 Techniques</div>
             <div class="menu-item" onclick="showSection('provider-coverage')">🛰️ Provider Coverage</div>
             <div class="menu-item" onclick="showSection('approvals')">✅ Approvals</div>
@@ -536,6 +538,7 @@
             <div class="menu-item" onclick="showSection('self-extension')">⚕️ Self-Extension</div>
             <div class="menu-item" onclick="showSection('consensus')">🧠 Multi-AI Consensus</div>
             <div class="menu-item" onclick="showSection('system-learning')">📖 System Learning</div>
+            <div class="menu-item" onclick="showSection('existing-projects')">🔧 Improve Existing App</div>
             <div class="menu-item" onclick="showSection('notifications')">📬 Notifications</div>
             <div class="menu-item" onclick="showSection('kimi-k2')">🔮 AI Learning Orchestration</div>
             <div class="menu-item" onclick="showSection('chat')">💬 Chat with SupremeAI</div>
@@ -779,6 +782,19 @@
                             <tr><td colspan="7" style="text-align: center; padding: 40px; color: #a0aec0;">🔑 No API keys yet. Click "➕ Add New API Key" to get started!</td></tr>
                         </tbody>
                     </table>
+
+                    <!-- Fallback Chain Editor -->
+                    <h2 style="margin-top:36px;">🔗 AI Fallback Chain (Admin Configured)</h2>
+                    <p style="color:#a0aec0;font-size:13px;">Set the order in which the system tries AI providers when one fails. Drag or re-type to reorder. Leave empty to use all active providers automatically.</p>
+                    <div id="fallbackChainDisplay" style="margin-bottom:12px;color:#63b3ed;font-size:13px;">Loading...</div>
+                    <div class="form-group" style="max-width:500px;">
+                        <label>Fallback Order (comma-separated provider IDs)</label>
+                        <input type="text" id="fallbackChainInput" placeholder="e.g. groq, deepseek, claude, gpt4" style="width:100%;">
+                        <div style="font-size:11px;color:#718096;margin-top:4px;">Use the exact provider IDs shown in the table above. First = highest priority.</div>
+                    </div>
+                    <button class="btn" onclick="saveFallbackChain()">💾 Save Fallback Chain</button>
+                    <button class="btn btn-secondary" onclick="clearFallbackChain()">🗑️ Clear (use all active)</button>
+                    <div id="fallbackChainMsg" style="margin-top:10px;"></div>
                 </div>
 
                 <!-- AI Agent Assignment Section -->
@@ -1101,6 +1117,100 @@
                         </tbody>
                     </table>
                     <div id="deployMsg" style="margin-top:16px;"></div>
+
+                    <!-- ════════════════════════════════════════════════════════ -->
+                    <!-- Atomic Deployment                                        -->
+                    <!-- ════════════════════════════════════════════════════════ -->
+                    <h2 style="margin-top:36px;">⚛️ Atomic Multi-Target Deployment</h2>
+                    <p style="color:#a0aec0;font-size:13px;">
+                        সব টার্গেট একসাথে valid হলে তবেই deploy হবে — একটিও fail করলে সব rollback।<br>
+                        <em>All targets must pass validation before any is deployed. If any target fails during deploy, all are rolled back. Auto-fix retries up to 3 times.</em>
+                    </p>
+
+                    <!-- Add Deployment Target -->
+                    <div style="background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:16px;margin-bottom:16px;">
+                        <h3 style="margin:0 0 12px;">➕ Add Deployment Target</h3>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                            <div class="form-group" style="margin:0;">
+                                <label>Target ID <span style="color:#f56565;">*</span></label>
+                                <input type="text" id="atomicTargetId" placeholder="e.g. flutter-android, cloud-run-prod">
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label>Type</label>
+                                <select id="atomicTargetType" style="width:100%;">
+                                    <option value="CLOUD_RUN">☁️ Cloud Run / GCP</option>
+                                    <option value="FLUTTER">📱 Flutter App</option>
+                                    <option value="K8S">⎈️ Kubernetes</option>
+                                    <option value="PLAY_STORE">▶️ Play Store</option>
+                                    <option value="APP_STORE">🍎 App Store</option>
+                                    <option value="CUSTOM">🔧 Custom</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label>Description</label>
+                                <input type="text" id="atomicTargetDesc" placeholder="e.g. Production Cloud Run (us-central1)">
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label>Validation Command</label>
+                                <input type="text" id="atomicTargetValidate" placeholder="e.g. flutter test OR gcloud builds verify">
+                                <div style="font-size:11px;color:#718096;">Run before deploy — must exit 0</div>
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label>Deploy Command</label>
+                                <input type="text" id="atomicTargetDeploy" placeholder="e.g. gcloud run deploy ... OR flutter build apk">
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label>Rollback Command</label>
+                                <input type="text" id="atomicTargetRollback" placeholder="e.g. gcloud run services update-traffic --to-revisions=PREV=100">
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" style="margin-top:12px;" onclick="addAtomicTarget()">➕ Add Target to List</button>
+                    </div>
+
+                    <!-- Current Target List -->
+                    <div id="atomicTargetList" style="margin-bottom:16px;min-height:40px;background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:12px;">
+                        <em style="color:#a0aec0;">No targets added yet.</em>
+                    </div>
+
+                    <!-- Run Config -->
+                    <div style="background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:16px;margin-bottom:16px;">
+                        <h3 style="margin:0 0 12px;">🔧 Run Configuration</h3>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                            <div class="form-group" style="margin:0;">
+                                <label>Run Name <span style="color:#f56565;">*</span></label>
+                                <input type="text" id="atomicRunName" placeholder="e.g. v2.5.0 Production Release">
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label>Git Branch</label>
+                                <input type="text" id="atomicRunBranch" placeholder="main" value="main">
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label>Git Repo URL</label>
+                                <input type="text" id="atomicRunRepo" placeholder="https://github.com/org/repo">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn" onclick="startAtomicDeploy()" style="font-size:16px;padding:12px 28px;">
+                        ⚛️ Start Atomic Deployment
+                    </button>
+                    <div id="atomicDeployMsg" style="margin-top:12px;"></div>
+
+                    <!-- Live Status -->
+                    <div id="atomicRunStatus" style="display:none;margin-top:20px;background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:16px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                            <h3 style="margin:0;" id="atomicRunTitle">Run Status</h3>
+                            <span id="atomicRunBadge" style="font-size:14px;font-weight:bold;"></span>
+                        </div>
+                        <div id="atomicRunLog" style="font-family:monospace;font-size:12px;background:#0d1117;border-radius:6px;padding:12px;max-height:320px;overflow-y:auto;color:#a0aec0;white-space:pre-wrap;"></div>
+                    </div>
+
+                    <!-- History -->
+                    <h2 style="margin-top:36px;">📜 Atomic Deploy History</h2>
+                    <button class="btn btn-secondary" onclick="loadAtomicHistory()">↻ Refresh</button>
+                    <div id="atomicHistoryContainer" style="margin-top:12px;">
+                        <em style="color:#a0aec0;">Click Refresh to load history.</em>
+                    </div>
                 </div>
 
                 <!-- Self-Healing Section -->
@@ -1173,6 +1283,85 @@
                 <div id="system-learning" class="content-section">
                     <h1>📖 System Learning Dashboard</h1>
                     <p>SupremeAI's memory — what it has learned, critical requirements, and past solutions.</p>
+
+                    <!-- ═══════════════════════════════════════════════════════════
+                         AUTO-LEARNING CONTROL PANEL
+                         ═══════════════════════════════════════════════════════════ -->
+                    <div style="background:#1a202c;border:2px solid #4a5568;border-radius:10px;padding:20px;margin-bottom:20px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                            <div>
+                                <div style="font-size:18px;font-weight:700;color:#e2e8f0;">🤖 Auto-Learning System</div>
+                                <div id="learningStatusText" style="font-size:13px;color:#a0aec0;margin-top:4px;">
+                                    Checking status…
+                                </div>
+                            </div>
+                            <div style="display:flex;gap:10px;align-items:center;">
+                                <button id="btnEnableLearning"  class="btn"            onclick="setLearning(true)"  style="min-width:120px;">✅ Enable Learning</button>
+                                <button id="btnDisableLearning" class="btn btn-danger"  onclick="setLearning(false)" style="min-width:120px;">🛑 Disable Learning</button>
+                                <button class="btn btn-secondary" onclick="loadResearchStats()" style="min-width:120px;">🔄 Refresh Status</button>
+                            </div>
+                        </div>
+
+                        <!-- Tips for laymen -->
+                        <div style="background:#2d3748;border-radius:8px;padding:14px;margin-top:16px;">
+                            <div style="font-weight:600;color:#63b3ed;margin-bottom:8px;">💡 Tips — How does Auto-Learning work?</div>
+                            <ul style="color:#a0aec0;font-size:13px;line-height:1.8;margin:0;padding-left:18px;">
+                                <li><strong style="color:#e2e8f0;">When is it active?</strong> — The system waits until no project has been running for <strong>1 full hour</strong>. It then quietly studies new topics in the background.</li>
+                                <li><strong style="color:#e2e8f0;">What does it learn?</strong> — Architecture, Security, Performance, DevOps, AI/ML patterns and more. Each cycle picks the weakest topic area first.</li>
+                                <li><strong style="color:#e2e8f0;">Does it cost money?</strong> — No. It uses the <strong>Firebase free tier</strong> and stays well below the daily limits (shown below).</li>
+                                <li><strong style="color:#e2e8f0;">How to turn it OFF?</strong> — Click <em>"🛑 Disable Learning"</em> above. The system will stop all background research immediately.</li>
+                                <li><strong style="color:#e2e8f0;">How to turn it ON?</strong> — Click <em>"✅ Enable Learning"</em>. Learning resumes automatically the next time the system is idle for 1 hour.</li>
+                                <li><strong style="color:#e2e8f0;">Force-learn now?</strong> — Click <em>"⚡ Trigger Now"</em> to start a research cycle immediately without waiting for idle time.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Firebase quota monitor -->
+                        <div style="margin-top:16px;">
+                            <div style="font-weight:600;color:#e2e8f0;margin-bottom:10px;">🔥 Firebase Free-Tier Quota Monitor</div>
+                            <div style="display:flex;gap:24px;flex-wrap:wrap;" id="quotaPanel">
+                                <div style="flex:1;min-width:200px;background:#2d3748;border-radius:8px;padding:12px;">
+                                    <div style="font-size:11px;color:#718096;text-transform:uppercase;margin-bottom:4px;">Daily Writes Used</div>
+                                    <div style="font-size:22px;font-weight:700;" id="quotaWriteCount">—</div>
+                                    <div style="font-size:11px;color:#718096;" id="quotaWriteLimit">limit: 18 000 / day</div>
+                                    <div style="background:#1a202c;border-radius:4px;height:6px;margin-top:8px;overflow:hidden;">
+                                        <div id="quotaWriteBar" style="background:#48bb78;height:100%;width:0%;transition:width 0.4s;"></div>
+                                    </div>
+                                </div>
+                                <div style="flex:1;min-width:200px;background:#2d3748;border-radius:8px;padding:12px;">
+                                    <div style="font-size:11px;color:#718096;text-transform:uppercase;margin-bottom:4px;">Daily Reads Used</div>
+                                    <div style="font-size:22px;font-weight:700;" id="quotaReadCount">—</div>
+                                    <div style="font-size:11px;color:#718096;" id="quotaReadLimit">limit: 50 000 / day</div>
+                                    <div style="background:#1a202c;border-radius:4px;height:6px;margin-top:8px;overflow:hidden;">
+                                        <div id="quotaReadBar" style="background:#63b3ed;height:100%;width:0%;transition:width 0.4s;"></div>
+                                    </div>
+                                </div>
+                                <div style="flex:1;min-width:200px;background:#2d3748;border-radius:8px;padding:12px;">
+                                    <div style="font-size:11px;color:#718096;text-transform:uppercase;margin-bottom:4px;">Quota Status</div>
+                                    <div style="font-size:18px;font-weight:700;" id="quotaSafeStatus">—</div>
+                                    <div style="font-size:11px;color:#718096;margin-top:4px;" id="quotaWindow">—</div>
+                                </div>
+                            </div>
+                            <div style="font-size:11px;color:#718096;margin-top:8px;">
+                                💡 Learning pauses automatically at 80% of quota to protect normal app operations.
+                            </div>
+                        </div>
+
+                        <!-- Research cycle stats -->
+                        <div id="researchStatsPanel" style="margin-top:16px;display:none;">
+                            <div style="font-weight:600;color:#e2e8f0;margin-bottom:8px;">📊 Current Research Status</div>
+                            <div style="display:flex;gap:16px;flex-wrap:wrap;" id="researchStatsContent"></div>
+                        </div>
+
+                        <!-- Action buttons -->
+                        <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+                            <button class="btn btn-secondary" onclick="triggerResearchNow()">⚡ Trigger Research Now</button>
+                            <button class="btn btn-secondary" onclick="loadResearchHistory()">📜 Research History</button>
+                        </div>
+                        <div id="researchActionMsg" style="margin-top:8px;font-size:13px;"></div>
+                        <div id="researchHistoryPanel" style="display:none;margin-top:12px;max-height:320px;overflow-y:auto;background:#0f1117;border:1px solid #2d3748;border-radius:8px;padding:12px;"></div>
+                    </div>
+
+                    <!-- Existing learning controls -->
                     <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
                         <button class="btn" onclick="loadLearningStats()">📊 Learning Stats</button>
                         <button class="btn btn-secondary" onclick="loadCriticalRequirements()">⚠️ Critical Reqs</button>
@@ -1186,6 +1375,92 @@
                         <div style="text-align:center;padding:30px;color:#a0aec0;">Click "⚠️ Critical Reqs" to load.</div>
                     </div>
                     <div id="learningMsg" style="margin-top:12px;"></div>
+                </div>
+
+                <!-- Improve Existing App Section -->
+                <div id="existing-projects" class="content-section">
+                    <h1>🔧 Improve Existing App</h1>
+                    <p style="color:#a0aec0;margin-bottom:16px;">
+                        Register any existing GitHub repository. SupremeAI will analyse the code, discuss an improvement plan with you, and continuously push improvements to the repo.
+                    </p>
+
+                    <!-- Tips panel -->
+                    <div style="background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:14px;margin-bottom:20px;">
+                        <div style="font-weight:600;color:#63b3ed;margin-bottom:8px;">💡 How does this work?</div>
+                        <ul style="color:#a0aec0;font-size:13px;line-height:1.9;margin:0;padding-left:18px;">
+                            <li><strong style="color:#e2e8f0;">Step 1 — Register:</strong> Enter the GitHub URL of any project (public or private) and describe what you want improved.</li>
+                            <li><strong style="color:#e2e8f0;">Step 2 — Discuss:</strong> Use the chat panel to refine the plan with SupremeAI. The AI will ask clarifying questions.</li>
+                            <li><strong style="color:#e2e8f0;">Step 3 — Improve:</strong> Click "⚡ Improve Now" or enable "Continuous Improvement" — SupremeAI will clone the repo, analyse it, and push improvement notes &amp; fixes back.</li>
+                            <li><strong style="color:#e2e8f0;">Private repos:</strong> Provide a GitHub Personal Access Token (PAT) to allow cloning. The token is stored in memory only.</li>
+                            <li><strong style="color:#e2e8f0;">Continuous mode:</strong> When enabled, SupremeAI checks for improvement opportunities every 30 minutes automatically.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Register Form -->
+                    <div style="background:#1a202c;border:2px solid #4a5568;border-radius:10px;padding:20px;margin-bottom:20px;">
+                        <div style="font-size:16px;font-weight:700;color:#e2e8f0;margin-bottom:14px;">➕ Register New Project</div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;flex-wrap:wrap;">
+                            <div class="form-group" style="margin:0;">
+                                <label>Project Name <span style="color:#a0aec0;font-size:11px;">(optional)</span></label>
+                                <input type="text" id="epName" placeholder="e.g. Guitar App" style="width:100%;">
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label>Branch</label>
+                                <input type="text" id="epBranch" placeholder="main" value="main" style="width:100%;">
+                            </div>
+                            <div class="form-group" style="margin:0;grid-column:1/-1;">
+                                <label>GitHub Repository URL <span style="color:#f56565;">*</span></label>
+                                <input type="url" id="epRepoUrl" placeholder="https://github.com/user/guitar-app" style="width:100%;">
+                            </div>
+                            <div class="form-group" style="margin:0;grid-column:1/-1;">
+                                <label>Improvement Goal <span style="color:#f56565;">*</span> <span style="color:#a0aec0;font-size:11px;">— What should SupremeAI improve or fix?</span></label>
+                                <textarea id="epGoal" rows="3" placeholder="e.g. Fix the audio playback bug, improve the chord editor UI, and add a metronome feature." style="width:100%;background:#2d3748;color:#e2e8f0;border:1px solid #4a5568;border-radius:6px;padding:10px;resize:vertical;box-sizing:border-box;"></textarea>
+                            </div>
+                            <div class="form-group" style="margin:0;grid-column:1/-1;">
+                                <label>GitHub Token <span style="color:#a0aec0;font-size:11px;">(optional — needed for private repos)</span></label>
+                                <input type="password" id="epToken" placeholder="ghp_xxxxxxxxxxxx" style="width:100%;">
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:10px;margin-top:14px;align-items:center;">
+                            <button class="btn" onclick="registerExistingProject()">📎 Register Project</button>
+                            <span id="epRegisterMsg" style="font-size:13px;"></span>
+                        </div>
+                    </div>
+
+                    <!-- Registered Projects List -->
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                        <h2 style="margin:0;">📂 Registered Projects</h2>
+                        <button class="btn btn-secondary" onclick="loadExistingProjects()">🔄 Refresh</button>
+                    </div>
+                    <div id="existingProjectsList">
+                        <div style="text-align:center;padding:30px;color:#a0aec0;">Click "🔄 Refresh" or register a project above to get started.</div>
+                    </div>
+
+                    <!-- Conversation / Detail Panel (shown when a project is selected) -->
+                    <div id="epDetailPanel" style="display:none;margin-top:24px;background:#1a202c;border:2px solid #4a5568;border-radius:10px;padding:20px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+                            <div style="font-size:16px;font-weight:700;color:#e2e8f0;" id="epDetailTitle">Project</div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                <button class="btn" onclick="triggerExistingImprovement()" id="epImproveBtn">⚡ Improve Now</button>
+                                <button id="epToggleBtn" class="btn btn-secondary" onclick="toggleContinuous()">⏸ Disable Continuous</button>
+                                <button class="btn btn-danger" onclick="removeExistingProject()" style="font-size:12px;">🗑️ Remove</button>
+                            </div>
+                        </div>
+                        <div id="epDetailStatus" style="font-size:12px;color:#a0aec0;margin-bottom:12px;"></div>
+                        <div id="epImprovementMsg" style="font-size:13px;margin-bottom:10px;"></div>
+
+                        <!-- Conversation -->
+                        <div style="font-weight:600;color:#e2e8f0;margin-bottom:8px;">💬 Discuss Improvement Plan</div>
+                        <div id="epConversation" style="max-height:340px;overflow-y:auto;background:#0f1117;border:1px solid #2d3748;border-radius:8px;padding:12px;margin-bottom:10px;display:flex;flex-direction:column;gap:10px;"></div>
+                        <div style="display:flex;gap:8px;align-items:flex-end;">
+                            <textarea id="epChatInput" rows="2" placeholder="Tell SupremeAI more about what to fix or improve… (Enter to send)" style="flex:1;background:#2d3748;color:#e2e8f0;border:1px solid #4a5568;border-radius:8px;padding:10px;font-size:13px;resize:none;box-sizing:border-box;"></textarea>
+                            <button class="btn" onclick="sendEpMessage()">➤ Send</button>
+                        </div>
+
+                        <!-- Improvement History -->
+                        <div style="font-weight:600;color:#e2e8f0;margin-top:16px;margin-bottom:8px;">🕰️ Improvement History</div>
+                        <div id="epHistoryList" style="max-height:220px;overflow-y:auto;font-size:12px;color:#a0aec0;"></div>
+                    </div>
                 </div>
 
                 <!-- Notifications Section -->
@@ -1281,33 +1556,122 @@
                 <!-- Chat Section -->
                 <div id="chat" class="content-section">
                     <h1>💬 Chat with SupremeAI</h1>
-                    <p style="color:#a0aec0;margin-bottom:16px;">Ask anything — plans, errors, what a module does, how to use the system, or just brainstorm ideas.</p>
 
-                    <div id="chatMessages" style="height:420px;overflow-y:auto;background:#171923;border:1px solid #2d3748;border-radius:10px;padding:16px;margin-bottom:12px;display:flex;flex-direction:column;gap:12px;">
-                        <div class="chat-msg-ai">
-                            <div class="chat-bubble-ai">Hi Admin 👋 I'm SupremeAI. Ask me anything — plans, architecture decisions, what a feature does, or how to use any panel.</div>
-                            <div class="chat-meta">SupremeAI &nbsp;&bull;&nbsp; just now</div>
+                    <!-- Mode tabs -->
+                    <div style="display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid #2d3748;">
+                        <button id="chatModeBtn-session" onclick="switchChatMode('session')"
+                            style="padding:8px 20px;background:#667eea;color:#fff;border:none;border-radius:6px 6px 0 0;cursor:pointer;font-weight:bold;">
+                            💬 Session Chat
+                        </button>
+                        <button id="chatModeBtn-project" onclick="switchChatMode('project')"
+                            style="padding:8px 20px;background:#2d3748;color:#a0aec0;border:none;border-radius:6px 6px 0 0;cursor:pointer;margin-left:4px;">
+                            📁 Project Chat
+                        </button>
+                        <button id="chatModeBtn-rules" onclick="switchChatMode('rules')"
+                            style="padding:8px 20px;background:#2d3748;color:#a0aec0;border:none;border-radius:6px 6px 0 0;cursor:pointer;margin-left:4px;">
+                            📜 Admin Rules
+                        </button>
+                    </div>
+
+                    <!-- ══ SESSION CHAT ══════════════════════════════════════ -->
+                    <div id="chatPane-session">
+                        <div style="display:flex;gap:12px;height:580px;">
+                            <!-- Sidebar: session list -->
+                            <div style="width:220px;background:#1a202c;border:1px solid #2d3748;border-radius:10px;display:flex;flex-direction:column;overflow:hidden;">
+                                <div style="padding:10px;border-bottom:1px solid #2d3748;">
+                                    <button class="btn" style="width:100%;font-size:13px;" onclick="newChatSession()">✚ New Chat</button>
+                                </div>
+                                <div id="sessionList" style="flex:1;overflow-y:auto;padding:8px;"></div>
+                            </div>
+                            <!-- Main chat area -->
+                            <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+                                <div id="sessionTitle" style="font-size:16px;font-weight:bold;color:#e2e8f0;padding:4px 0;">Select or create a chat session</div>
+                                <div id="chatMessages" style="flex:1;overflow-y:auto;background:#171923;border:1px solid #2d3748;border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px;">
+                                    <div class="chat-msg-ai">
+                                        <div class="chat-bubble-ai">Hi Admin 👋 Select a session from the left, or create a new one. আমি সব প্রশ্নের উত্তর দিতে পারি।</div>
+                                        <div class="chat-meta">SupremeAI &bull; just now</div>
+                                    </div>
+                                </div>
+                                <div id="chatTypingIndicator" style="display:none;color:#a0aec0;font-size:13px;">⏳ SupremeAI is thinking...</div>
+                                <div style="display:flex;gap:8px;align-items:flex-end;">
+                                    <div style="flex:1;">
+                                        <select id="chatTaskType" style="padding:6px 10px;background:#2d3748;color:#a0aec0;border:1px solid #4a5568;border-radius:6px;font-size:12px;margin-bottom:6px;width:100%;">
+                                            <option value="general">General</option>
+                                            <option value="code_generation">Code Generation</option>
+                                            <option value="bug_fix">Bug Fix</option>
+                                            <option value="architecture">Architecture</option>
+                                            <option value="planning">Planning</option>
+                                            <option value="document_analysis">Document Analysis</option>
+                                        </select>
+                                        <textarea id="chatInput" rows="2" placeholder="Type your message… (Enter to send, Shift+Enter for newline)" style="width:100%;background:#2d3748;color:#e2e8f0;border:1px solid #4a5568;border-radius:8px;padding:10px;font-size:14px;resize:none;box-sizing:border-box;"></textarea>
+                                    </div>
+                                    <div style="display:flex;flex-direction:column;gap:6px;">
+                                        <button class="btn" onclick="sendChatMessage()" style="white-space:nowrap;">➤ Send</button>
+                                        <button class="btn btn-secondary" onclick="clearChat()" style="white-space:nowrap;font-size:12px;">Clear</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div style="display:flex;gap:8px;align-items:flex-end;">
-                        <div style="flex:1;">
-                            <select id="chatTaskType" style="padding:6px 10px;background:#2d3748;color:#a0aec0;border:1px solid #4a5568;border-radius:6px;font-size:12px;margin-bottom:6px;">
-                                <option value="general">General</option>
-                                <option value="code_generation">Code Generation</option>
-                                <option value="bug_fix">Bug Fix</option>
-                                <option value="architecture">Architecture</option>
-                                <option value="planning">Planning</option>
-                                <option value="document_analysis">Document Analysis</option>
-                            </select>
-                            <textarea id="chatInput" rows="2" placeholder="Type your message... (Enter to send, Shift+Enter for new line)" style="width:100%;background:#2d3748;color:#e2e8f0;border:1px solid #4a5568;border-radius:8px;padding:10px;font-size:14px;resize:none;box-sizing:border-box;"></textarea>
+                    <!-- ══ PROJECT CHAT ══════════════════════════════════════ -->
+                    <div id="chatPane-project" style="display:none;">
+                        <p style="color:#a0aec0;margin-bottom:12px;">প্রজেক্ট-ভিত্তিক চ্যাট — প্রজেক্ট শেষ হলে চ্যাট অটো-ডিলিট হবে এবং Firebase থেকেও মুছে যাবে।</p>
+                        <div style="display:flex;gap:12px;margin-bottom:12px;align-items:flex-end;flex-wrap:wrap;">
+                            <div class="form-group" style="margin:0;flex:1;min-width:180px;">
+                                <label>Project ID</label>
+                                <input type="text" id="projChatProjectId" placeholder="e.g. abc123 (from Projects tab)">
+                            </div>
+                            <div class="form-group" style="margin:0;flex:1;min-width:180px;">
+                                <label>Session Title</label>
+                                <input type="text" id="projChatTitle" placeholder="e.g. Sprint 1 discussion">
+                            </div>
+                            <button class="btn" onclick="createProjectSession()">📁 Open Project Chat</button>
                         </div>
-                        <div style="display:flex;flex-direction:column;gap:6px;">
-                            <button class="btn" onclick="sendChatMessage()" style="white-space:nowrap;">➤ Send</button>
-                            <button class="btn btn-secondary" onclick="clearChat()" style="white-space:nowrap;font-size:12px;">Clear</button>
-                        </div>
+                        <div id="projChatMsg" style="margin-bottom:10px;"></div>
+                        <div id="projChatSessions" style="margin-bottom:16px;"></div>
                     </div>
-                    <div id="chatTypingIndicator" style="display:none;margin-top:8px;color:#a0aec0;font-size:13px;">⏳ SupremeAI is thinking...</div>
+
+                    <!-- ══ ADMIN RULES ══════════════════════════════════════ -->
+                    <div id="chatPane-rules" style="display:none;">
+                        <p style="color:#a0aec0;margin-bottom:12px;">
+                            এখানে সিস্টেমের জন্য নিয়ম তৈরি করুন। সব AI কল-এ এই নিয়মগুলো System Prompt হিসেবে যাবে।
+                        </p>
+                        <!-- New rule form -->
+                        <div style="background:#1a202c;border:1px solid #2d3748;border-radius:10px;padding:16px;margin-bottom:20px;">
+                            <h3 style="margin:0 0 12px;">➕ নতুন নিয়ম যোগ করুন</h3>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px;">
+                                <div class="form-group" style="margin:0;">
+                                    <label>Title <span style="color:#f56565;">*</span></label>
+                                    <input type="text" id="ruleTitle" placeholder="e.g. Always reply in Bangla">
+                                </div>
+                                <div class="form-group" style="margin:0;">
+                                    <label>Category</label>
+                                    <select id="ruleCategory" style="width:100%;">
+                                        <option value="general">General</option>
+                                        <option value="behaviour">Behaviour</option>
+                                        <option value="safety">Safety</option>
+                                        <option value="formatting">Formatting</option>
+                                        <option value="coding">Coding Style</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin:0 0 10px;">
+                                <label>Rule Text <span style="color:#f56565;">*</span></label>
+                                <textarea id="ruleText" rows="3" placeholder="Describe the rule in detail — e.g. 'Always respond in Bengali (Bangla) unless the user explicitly writes in another language.'" style="width:100%;background:#2d3748;color:#e2e8f0;border:1px solid #4a5568;border-radius:6px;padding:10px;resize:vertical;box-sizing:border-box;"></textarea>
+                            </div>
+                            <button class="btn" onclick="saveAdminRule()">💾 Save Rule</button>
+                            <div id="ruleMsg" style="margin-top:8px;"></div>
+                        </div>
+                        <!-- Rule list -->
+                        <h3>📜 সক্রিয় নিয়মসমূহ</h3>
+                        <div style="display:flex;gap:10px;margin-bottom:10px;">
+                            <button class="btn btn-secondary" onclick="loadAdminRules()">↻ Refresh</button>
+                            <button class="btn btn-secondary" onclick="previewRulesPrompt()">👁️ Preview System Prompt</button>
+                        </div>
+                        <div id="rulesContainer"><em style="color:#718096;">Click Refresh to load rules.</em></div>
+                        <div id="rulesPromptPreview" style="display:none;margin-top:16px;background:#0d1117;border-radius:8px;padding:14px;font-family:monospace;font-size:12px;color:#a0aec0;white-space:pre-wrap;max-height:300px;overflow-y:auto;"></div>
+                    </div>
                 </div>
 
                 <!-- Settings Section -->
@@ -1338,6 +1702,38 @@
                     <button class="btn" style="margin-top: 20px;" onclick="saveSettings()">💾 Save Settings</button>
                     <button class="btn btn-danger" style="margin-top: 20px;" onclick="logout()">🚨 Logout</button>
                     <div id="settingsMsg" style="margin-top:10px;"></div>
+                </div>
+
+                <!-- Activity Summary Section (Last 24h) -->
+                <div id="activity-summary" class="content-section">
+                    <h1>📋 আজকের সারসংক্ষেপ — Last 24 Hours</h1>
+                    <p style="color:#a0aec0;">গত ২৪ ঘন্টায় সিস্টেম কতটুকু শিখলো, কোন প্রজেক্টে কতটুকু কাজ হলো — সবকিছুর সংক্ষিপ্ত বিবরণ।</p>
+                    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+                        <button class="btn" onclick="loadActivitySummary()">🔄 Refresh</button>
+                        <span id="activityLastRefreshed" style="color:#718096;font-size:13px;align-self:center;"></span>
+                    </div>
+
+                    <!-- KPI Cards -->
+                    <div id="activityKpiCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:28px;"></div>
+
+                    <!-- Detail Sections -->
+                    <div id="activityDetails"></div>
+
+                    <!-- Event Log -->
+                    <h2 style="margin-top:28px;">🕐 Activity Log (Last 24h)</h2>
+                    <div id="activityEventLog" style="background:#0d1117;border-radius:8px;padding:14px;max-height:320px;overflow-y:auto;font-family:monospace;font-size:12px;color:#a0aec0;">
+                        <em>Refresh to load events…</em>
+                    </div>
+                </div>
+
+                <!-- System Alerts Section -->
+                <div id="system-alerts" class="content-section">
+                    <h1>🚨 System Alerts — ম্যানুয়াল অ্যাকশন দরকার</h1>
+                    <p style="color:#a0aec0;">নিচের সমস্যাগুলো সিস্টেম স্বয়ংক্রিয়ভাবে ঠিক করতে পারে না। অনুগ্রহ করে ম্যানুয়ালি সমাধান করুন।</p>
+                    <button class="btn btn-secondary" style="margin-bottom:16px;" onclick="loadSystemAlerts()">🔄 Refresh Alerts</button>
+                    <div id="systemAlertsContainer">
+                        <div style="color:#a0aec0;">Loading alerts...</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1418,6 +1814,25 @@
                 <label>Features (one per line)</label>
                 <textarea id="newProjectFeatures" placeholder="User authentication&#10;Dashboard with charts&#10;Export to CSV" style="height:80px;"></textarea>
             </div>
+            <div class="form-group">
+                <label>GitHub Repo URL <span style="color:#f56565;">*</span></label>
+                <input type="url" id="newProjectRepoUrl" placeholder="https://github.com/your-org/your-repo" style="width:100%;" required>
+                <div style="font-size:11px;color:#718096;margin-top:4px;">
+                    💡 <strong>Required.</strong> Create a new <strong>empty</strong> GitHub repo first, then paste its HTTPS URL here.<br>
+                    Generated code will be pushed to this repo — it will <strong>not</strong> be placed in the main SupremeAI repo.
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Branch <span style="font-size:11px;color:#a0aec0;">(defaults to main)</span></label>
+                <input type="text" id="newProjectRepoBranch" placeholder="main" style="width:100%;">
+            </div>
+            <div class="form-group">
+                <label>GitHub Personal Access Token <span style="font-size:11px;color:#a0aec0;">(required for private repos)</span></label>
+                <input type="password" id="newProjectRepoToken" placeholder="ghp_xxxxxxxxxxxx" style="width:100%;">
+                <div style="font-size:11px;color:#718096;margin-top:4px;">
+                    💡 Generate at <em>GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)</em>. Grant <strong>repo</strong> scope.
+                </div>
+            </div>
             <button class="btn" onclick="createProject()">🚀 Generate Project</button>
             <button class="btn btn-secondary" onclick="closeModal('createProjectModal')">❌ Cancel</button>
             <div id="createProjectMsg" style="margin-top:10px;"></div>
@@ -1494,30 +1909,43 @@
                 <h2>Add New AI Model API</h2>
                 <span class="close-btn" onclick="closeModal('addKeyModal')">&times;</span>
             </div>
+
+            <!-- Section A: Previously added (from DB) -->
             <div class="form-group">
-                <label>📌 Select AI Model</label>
-                <select id="aiModelSelect">
-                    <option value="">-- Choose AI Model --</option>
+                <label>📌 Update an Existing Provider</label>
+                <select id="aiModelSelect" style="width:100%;">
+                    <option value="">-- Choose a saved provider (or add new below) --</option>
                 </select>
-                <input type="text" id="aiModelSearch" placeholder="Type to filter providers..." style="margin-top:10px;" oninput="filterProviderOptions()">
-                <div style="margin-top:8px; color:#a0aec0; font-size:12px;">Choose a known provider, or select "Custom Provider..." to add any new provider manually.</div>
+                <div style="font-size:11px;color:#718096;margin-top:4px;">Providers you have already saved. Select one to update its API key.</div>
             </div>
-            <div id="customProviderFields" style="display:none;">
+
+            <!-- Section B: Search / discover new models -->
+            <div class="form-group">
+                <label>🔍 Or search to add a new provider</label>
+                <input type="text" id="aiModelSearch" placeholder="Type provider name e.g. groq, gpt, claude, gemini..." oninput="onProviderSearchInput()" style="width:100%;">
+                <div id="suggestionsDropdown" style="display:none;background:#2d3748;border:1px solid #4a5568;border-radius:6px;max-height:200px;overflow-y:auto;margin-top:4px;z-index:9999;position:relative;">
+                </div>
+                <div style="font-size:11px;color:#718096;margin-top:4px;">
+                    💡 Suggestions are popular/free AI providers. Selecting one pre-fills the form below — you still need to paste your API key.
+                </div>
+            </div>
+
+            <div id="customProviderFields">
                 <div class="form-group">
-                    <label>Custom Provider ID *</label>
-                    <input type="text" id="customProviderId" placeholder="e.g. together-ai, openrouter, fireworks-ai">
+                    <label>Provider ID <span style="color:#f56565;">*</span></label>
+                    <input type="text" id="customProviderId" placeholder="e.g. groq, openai, anthropic, together-ai">
                 </div>
                 <div class="form-group">
                     <label>Display Name</label>
-                    <input type="text" id="customProviderName" placeholder="e.g. Together AI">
+                    <input type="text" id="customProviderName" placeholder="e.g. Groq (Free)">
                 </div>
                 <div class="form-group">
-                    <label>Base Model</label>
-                    <input type="text" id="customBaseModel" placeholder="e.g. meta-llama/Llama-3.3-70B-Instruct">
+                    <label>Model Name</label>
+                    <input type="text" id="customBaseModel" placeholder="e.g. llama3-70b-8192 or gpt-4o-mini">
                 </div>
                 <div class="form-group">
                     <label>API Endpoint URL</label>
-                    <input type="text" id="customProviderEndpoint" placeholder="e.g. https://api.together.xyz/v1/chat/completions">
+                    <input type="text" id="customProviderEndpoint" placeholder="e.g. https://api.groq.com/openai/v1/chat/completions">
                 </div>
             </div>
             <div class="form-group">
@@ -1525,11 +1953,18 @@
                 <input type="email" id="createdByEmail" placeholder="admin@supremeai.com">
             </div>
             <div class="form-group">
-                <label>Provider API Key</label>
+                <label>Provider API Key <span style="color:#f56565;">*</span></label>
                 <textarea id="apiKeyInput" placeholder="Paste your API key here..."></textarea>
+                <div style="font-size:11px;color:#718096;margin-top:4px;">
+                    💡 Groq free key: <a href="https://console.groq.com" target="_blank" style="color:#63b3ed;">console.groq.com</a> |
+                    OpenAI: <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#63b3ed;">platform.openai.com</a> |
+                    Anthropic: <a href="https://console.anthropic.com" target="_blank" style="color:#63b3ed;">console.anthropic.com</a> |
+                    Google: <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#63b3ed;">aistudio.google.com</a>
+                </div>
             </div>
-            <button class="btn" onclick="addNewProvider()">✅ Add API</button>
+            <button class="btn" onclick="addNewProvider()">✅ Add / Update Provider</button>
             <button class="btn btn-secondary" onclick="closeModal('addKeyModal')">❌ Cancel</button>
+            <div id="addKeyMsg" style="margin-top:10px;"></div>
         </div>
     </div>
 
@@ -1585,12 +2020,23 @@
                 <input type="text" id="gitProjectId" placeholder="e.g. my-repo-2026">
             </div>
             <div class="form-group">
-                <label>Git Repository URL</label>
-                <input type="text" id="gitUrl" placeholder="https://github.com/user/repo">
+                <label>GitHub Repo URL <span style="color:#f56565;">*</span></label>
+                <input type="url" id="gitUrl" placeholder="https://github.com/user/repo" required>
+                <div style="font-size:11px;color:#718096;margin-top:4px;">
+                    💡 <strong>Required.</strong> Create a new <strong>empty</strong> GitHub repo first, paste its HTTPS URL here.<br>
+                    Generated code goes into this dedicated repo — never into the main SupremeAI repo.
+                </div>
             </div>
             <div class="form-group">
-                <label>Branch Name *</label>
+                <label>Branch <span style="font-size:11px;color:#a0aec0;">(defaults to main)</span></label>
                 <input type="text" id="gitBranchInput" placeholder="main">
+            </div>
+            <div class="form-group">
+                <label>GitHub Personal Access Token <span style="font-size:11px;color:#a0aec0;">(required for private repos)</span></label>
+                <input type="password" id="gitRepoToken" placeholder="ghp_xxxxxxxxxxxx">
+                <div style="font-size:11px;color:#718096;margin-top:4px;">
+                    💡 Generate at <em>GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)</em>. Grant <strong>repo</strong> scope.
+                </div>
             </div>
             <div class="form-group">
                 <label>Development Task / Description *</label>
@@ -1693,6 +2139,7 @@
                 'self-extension': 'Self-Extension Engine',
                 'consensus': 'Multi-AI Consensus',
                 'system-learning': 'System Learning',
+                'existing-projects': 'Improve Existing App',
                 'notifications': 'Notifications',
                 'kimi-k2': 'AI Learning Orchestration',
                 'chat': 'Chat with SupremeAI',
@@ -1701,7 +2148,6 @@
             document.getElementById('pageTitle').innerText = titles[sectionId] || 'Dashboard';
             
             if (sectionId === 'approvals') loadApprovals();
-            if (sectionId === 'api-keys') renderAPIKeysTable();
             if (sectionId === 'techniques') loadTechniques();
             if (sectionId === 'provider-coverage') loadProviderCoverage();
             if (sectionId === 'logs') loadAuditLogs();
@@ -1715,11 +2161,15 @@
             if (sectionId === 'metrics') loadMetrics();
                         if (sectionId === 'metrics') loadAiOps();
             if (sectionId === 'self-healing') loadSelfHealingHealth();
-            if (sectionId === 'system-learning') loadLearningStats();
+            if (sectionId === 'system-learning') { loadLearningStats(); loadResearchStats(); }
+            if (sectionId === 'existing-projects') loadExistingProjects();
             if (sectionId === 'consensus') loadConsensusStats();
             if (sectionId === 'notifications') loadNotificationHistory();
             if (sectionId === 'kimi-k2') loadKimiStatus();
-            if (sectionId === 'chat') focusChatInput();
+            if (sectionId === 'chat') { switchChatMode('session'); focusChatInput(); }
+            if (sectionId === 'system-alerts') loadSystemAlerts();
+            if (sectionId === 'api-keys') { renderAPIKeysTable(); loadFallbackChain(); }
+            if (sectionId === 'activity-summary') loadActivitySummary();
         }
 
         function showModal(modalId) {
@@ -1744,66 +2194,96 @@
         }
 
         function toggleCustomProviderFields() {
-            const selected = document.getElementById('aiModelSelect').value;
-            const customFields = document.getElementById('customProviderFields');
-            customFields.style.display = selected === '__custom__' ? 'block' : 'none';
+            // In new design, fields are always shown — no toggle needed
         }
 
-        function filterProviderOptions() {
-            const select = document.getElementById('aiModelSelect');
-            const search = document.getElementById('aiModelSearch').value.trim().toLowerCase();
-            if (!select) {
-                return;
-            }
-            Array.from(select.options).forEach(option => {
-                if (!option.value || option.value === '__custom__') {
-                    option.hidden = false;
-                    return;
-                }
-                const text = (option.textContent || '').toLowerCase();
-                option.hidden = search && !text.includes(search);
-            });
-        }
+        // Old filter function kept for compatibility
+        function filterProviderOptions() {}
 
-        function populateProviderSelect(available) {
+        function populateProviderSelect(configured) {
             const select = document.getElementById('aiModelSelect');
-            if (!select) {
-                return;
-            }
-
-            select.innerHTML = '<option value="">-- Choose AI Model --</option>';
-            available.forEach(provider => {
+            if (!select) return;
+            select.innerHTML = '<option value="">-- Choose a saved provider (or add new below) --</option>';
+            (configured || []).forEach(provider => {
                 const option = document.createElement('option');
                 option.value = provider.providerId;
-                option.textContent = `${provider.displayName} (${provider.providerId})`;
+                option.textContent = `${escHtml(provider.displayName || provider.providerId)} — ${escHtml(provider.status || 'active')}`;
                 select.appendChild(option);
             });
+            select.onchange = () => {
+                const chosen = select.value;
+                if (chosen) {
+                    document.getElementById('customProviderId').value = chosen;
+                    document.getElementById('aiModelSearch').value = '';
+                    document.getElementById('suggestionsDropdown').style.display = 'none';
+                }
+            };
+        }
 
-            const custom = document.createElement('option');
-            custom.value = '__custom__';
-            custom.textContent = 'Custom Provider...';
-            select.appendChild(custom);
-            select.onchange = toggleCustomProviderFields;
-            toggleCustomProviderFields();
+        let _suggestCache = null;
+        async function onProviderSearchInput() {
+            const q = document.getElementById('aiModelSearch').value.trim();
+            const dropdown = document.getElementById('suggestionsDropdown');
+            if (!q) { dropdown.style.display = 'none'; return; }
+
+            // Fetch curated suggestions (cached)
+            if (!_suggestCache) {
+                try {
+                    const res = await fetch('/api/providers/suggest', { headers: getAuthHeaders() });
+                    _suggestCache = res.ok ? await res.json() : [];
+                } catch(e) { _suggestCache = []; }
+            }
+
+            const lower = q.toLowerCase();
+            const matches = (_suggestCache || []).filter(s =>
+                (s.id||'').toLowerCase().includes(lower) ||
+                (s.name||'').toLowerCase().includes(lower) ||
+                (s.provider||'').toLowerCase().includes(lower)
+            ).slice(0, 8);
+
+            if (!matches.length) { dropdown.style.display = 'none'; return; }
+
+            dropdown.innerHTML = matches.map(s => `
+                <div style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #4a5568;font-size:13px;"
+                     onmouseover="this.style.background='#4a5568'" onmouseout="this.style.background=''"
+                     onclick="applySuggestion(${JSON.stringify(s).replace(/"/g,'&quot;')})">
+                    <strong style="color:#e2e8f0;">${escHtml(s.name)}</strong>
+                    <span style="color:#a0aec0;margin-left:8px;">${escHtml(s.provider)}</span><br>
+                    <span style="color:#718096;font-size:11px;">${escHtml(s.model)} • ${escHtml(s.endpoint)}</span>
+                </div>
+            `).join('');
+            dropdown.style.display = 'block';
+        }
+
+        function applySuggestion(s) {
+            document.getElementById('customProviderId').value = s.id || '';
+            document.getElementById('customProviderName').value = s.name || '';
+            document.getElementById('customBaseModel').value = s.model || '';
+            document.getElementById('customProviderEndpoint').value = s.endpoint || '';
+            document.getElementById('aiModelSearch').value = s.name || '';
+            document.getElementById('suggestionsDropdown').style.display = 'none';
+            document.getElementById('aiModelSelect').value = '';
+            document.getElementById('apiKeyInput').focus();
         }
 
         async function prepareAddProviderModal() {
             document.getElementById('createdByEmail').value = getCurrentAdminEmail();
             document.getElementById('aiModelSearch').value = '';
+            document.getElementById('customProviderId').value = '';
+            document.getElementById('customProviderName').value = '';
+            document.getElementById('customBaseModel').value = '';
+            document.getElementById('customProviderEndpoint').value = '';
+            document.getElementById('suggestionsDropdown').style.display = 'none';
+            _suggestCache = null; // clear cache so fresh suggestions load
 
             try {
-                const response = await fetch('/api/providers/available', {
-                    headers: getAuthHeaders()
-                });
-                const data = await response.json();
-                if (!response.ok || !Array.isArray(data)) {
-                    throw new Error(data.error || 'Failed to load providers');
-                }
-                populateProviderSelect(data);
+                // Load only DB-configured providers for the "update existing" dropdown
+                const response = await fetch('/api/providers/available', { headers: getAuthHeaders() });
+                const data = response.ok ? await response.json() : [];
+                populateProviderSelect(Array.isArray(data) ? data : []);
             } catch (error) {
-                // Keep modal usable even if provider list load fails.
                 populateProviderSelect([]);
-                console.error('Failed to load provider options', error);
+                console.error('Failed to load saved providers', error);
             }
         }
 
@@ -2314,35 +2794,28 @@
             const selectedProvider = document.getElementById('aiModelSelect').value;
             const createdByEmail = document.getElementById('createdByEmail').value.trim();
             const apiKey = document.getElementById('apiKeyInput').value.trim();
+            const customProviderIdRaw = document.getElementById('customProviderId').value.trim();
+            const customProviderName = document.getElementById('customProviderName').value.trim();
+            const customBaseModel = document.getElementById('customBaseModel').value.trim();
+            const customProviderEndpoint = document.getElementById('customProviderEndpoint').value.trim();
+            const addKeyMsg = document.getElementById('addKeyMsg');
 
-            if (!selectedProvider) return alert('Please select a provider or choose Custom Provider');
-            if (!createdByEmail) return alert('Please enter the creator email');
-            if (!apiKey) return alert('Please paste the API key');
-
-            let providerId = selectedProvider;
-            let displayName = selectedProvider;
-            let baseModel = selectedProvider;
-            let endpoint = null;
-
-            if (selectedProvider === '__custom__') {
-                const customProviderIdRaw = document.getElementById('customProviderId').value.trim();
-                const customProviderName = document.getElementById('customProviderName').value.trim();
-                const customBaseModel = document.getElementById('customBaseModel').value.trim();
-                const customProviderEndpoint = document.getElementById('customProviderEndpoint').value.trim();
-
-                providerId = sanitizeProviderId(customProviderIdRaw);
-                if (!providerId) {
-                    return alert('Please enter a valid custom provider ID');
-                }
-                displayName = customProviderName || customProviderIdRaw;
-                baseModel = customBaseModel || providerId;
-                endpoint = customProviderEndpoint || null;
-            } else {
-                const selectedOption = document.getElementById('aiModelSelect').selectedOptions[0];
-                displayName = selectedOption ? selectedOption.textContent : selectedProvider;
-                baseModel = selectedProvider;
+            // Resolve provider ID: custom field takes priority over dropdown selection
+            let providerId = sanitizeProviderId(customProviderIdRaw) || selectedProvider;
+            if (!providerId) {
+                addKeyMsg.innerHTML = '<span style="color:#f56565;">Please enter a Provider ID or select a saved provider.</span>';
+                return;
+            }
+            if (!apiKey) {
+                addKeyMsg.innerHTML = '<span style="color:#f56565;">Please paste the API key.</span>';
+                return;
             }
 
+            const displayName = customProviderName || providerId;
+            const baseModel   = customBaseModel   || providerId;
+            const endpoint    = customProviderEndpoint || null;
+
+            addKeyMsg.innerHTML = '<span style="color:#63b3ed;">⏳ Saving…</span>';
             try {
                 await saveProviderConfig({
                     id: providerId,
@@ -2351,24 +2824,24 @@
                     type: 'LLM',
                     apiKey,
                     endpoint,
-                    createdByEmail,
+                    createdByEmail: createdByEmail || getCurrentAdminEmail(),
                     status: 'active'
                 });
+                addKeyMsg.innerHTML = `<span style="color:#48bb78;">✅ Provider "${escHtml(displayName)}" saved!</span>`;
                 document.getElementById('aiModelSelect').value = '';
                 document.getElementById('aiModelSearch').value = '';
-                document.getElementById('createdByEmail').value = '';
                 document.getElementById('apiKeyInput').value = '';
                 document.getElementById('customProviderId').value = '';
                 document.getElementById('customProviderName').value = '';
                 document.getElementById('customBaseModel').value = '';
                 document.getElementById('customProviderEndpoint').value = '';
-                toggleCustomProviderFields();
-                closeModal('addKeyModal');
+                setTimeout(() => closeModal('addKeyModal'), 900);
                 await loadConfiguredProviders();
                 await loadProviderCoveragePreview();
                 await loadProviderCoverage();
+                await loadFallbackChain();
             } catch (error) {
-                alert(`Failed to save provider: ${error.message}`);
+                addKeyMsg.innerHTML = `<span style="color:#f56565;">❌ Failed to save: ${escHtml(error.message)}</span>`;
             }
         }
 
@@ -2481,6 +2954,284 @@
         }
 
         // =============================================
+        // ACTIVITY SUMMARY (Last 24h)
+        // =============================================
+
+        async function loadActivitySummary() {
+            document.getElementById('activityKpiCards').innerHTML = '<div style="color:#a0aec0;grid-column:1/-1;">⏳ Loading…</div>';
+            document.getElementById('activityDetails').innerHTML = '';
+            document.getElementById('activityEventLog').innerHTML = '<em>Loading…</em>';
+
+            try {
+                const res  = await fetch('/api/activity/summary', { headers: getAuthHeaders() });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed');
+
+                document.getElementById('activityLastRefreshed').textContent =
+                    'Last refreshed: ' + new Date().toLocaleTimeString();
+
+                renderActivityKpis(data);
+                renderActivityDetails(data);
+                renderActivityEventLog(data.recentEvents || []);
+            } catch (e) {
+                document.getElementById('activityKpiCards').innerHTML =
+                    `<div style="color:#f56565;grid-column:1/-1;">❌ ${escHtml(e.message)}</div>`;
+            }
+        }
+
+        function renderActivityKpis(data) {
+            const L = data.learning   || {};
+            const R = data.research   || {};
+            const H = data.harvest    || {};
+            const EP= data.existingProjects || {};
+            const NP= data.newProjects || {};
+            const AI= data.aiCalls    || {};
+
+            const cards = [
+                { icon:'🧠', label:'মোট জ্ঞান আইটেম',    value: L.totalKnowledgeItems ?? '—',  sub:'Total knowledge items' },
+                { icon:'✅', label:'Error সমাধান',         value: L.errorsResolved ?? '—',       sub:'Errors resolved' },
+                { icon:'🔍', label:'Pattern আবিষ্কার',     value: L.patternsFound ?? '—',        sub:'Patterns found' },
+                { icon:'📐', label:'Technique শেখা',       value: L.techniques ?? '—',           sub:'Techniques recorded' },
+                { icon:'🔬', label:'Research Cycle (24h)', value: R.cyclesLast24h ?? '—',        sub:'Research topics explored' },
+                { icon:'🌾', label:'Harvest Run (24h)',    value: H.harvestRunsLast24h ?? '—',   sub:'Data harvest events' },
+                { icon:'🔧', label:'Project উন্নতি (24h)',  value: EP.improvedLast24h ?? '—',     sub:'Existing projects improved' },
+                { icon:'📦', label:'নতুন Project (24h)',    value: NP.createdLast24h ?? '—',      sub:'New projects created' },
+                { icon:'🤖', label:'AI Call মোট',          value: AI.totalRequests ?? '—',       sub:'Total AI requests' },
+                { icon:'❗', label:'AI Error',              value: AI.totalErrors ?? '—',         sub:'AI call errors' },
+            ];
+
+            document.getElementById('activityKpiCards').innerHTML = cards.map(c => `
+                <div style="background:#1a202c;border:1px solid #2d3748;border-radius:10px;padding:16px;text-align:center;">
+                    <div style="font-size:28px;">${c.icon}</div>
+                    <div style="font-size:26px;font-weight:bold;color:#e2e8f0;margin:6px 0;">${escHtml(String(c.value))}</div>
+                    <div style="font-size:13px;color:#a0aec0;font-weight:600;">${c.label}</div>
+                    <div style="font-size:11px;color:#718096;margin-top:2px;">${c.sub}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderActivityDetails(data) {
+            const el = document.getElementById('activityDetails');
+            let html = '';
+
+            // ── Learning breakdown ─────────────────────────────────────────
+            const L = data.learning || {};
+            const byCategory = L.byCategory || {};
+            const catRows = Object.entries(byCategory).map(([k,v]) =>
+                `<tr><td style="color:#a0aec0;">${escHtml(k)}</td><td style="color:#63b3ed;">${v}</td></tr>`
+            ).join('') || '<tr><td colspan="2" style="color:#718096;">No data</td></tr>';
+
+            html += `
+            <div style="background:#1a202c;border:1px solid #2d3748;border-radius:10px;padding:18px;margin-bottom:20px;">
+                <h3 style="margin:0 0 12px;">🧠 Learning Breakdown — ক্যাটাগরি অনুযায়ী</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div>
+                        <table style="width:100%;font-size:13px;">
+                            <thead><tr><th style="text-align:left;color:#718096;padding-bottom:8px;">Category</th><th style="text-align:left;color:#718096;">Items</th></tr></thead>
+                            <tbody>${catRows}</tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <div style="color:#a0aec0;font-size:13px;margin-bottom:8px;">Average Confidence Score</div>
+                        <div style="font-size:32px;font-weight:bold;color:#48bb78;">${((L.avgConfidence||0)*100).toFixed(1)}%</div>
+                        <div style="color:#718096;font-size:12px;margin-top:4px;">Firebase Status: ${escHtml(String(L.status||'unknown'))}</div>
+                    </div>
+                </div>
+            </div>`;
+
+            // ── Research recent topics ─────────────────────────────────────
+            const R = data.research || {};
+            if (R.available !== false) {
+                const topics = R.recentTopicSamples || [];
+                const domainCov = R.domainCoverage || {};
+                const domainRows = Object.entries(domainCov).slice(0,6).map(([k,v]) =>
+                    `<span style="background:#2d3748;border-radius:4px;padding:4px 8px;font-size:12px;color:#a0aec0;margin:2px;">${escHtml(k)}: ${v}</span>`
+                ).join('');
+                const topicRows = topics.map(t => `
+                    <div style="border-bottom:1px solid #2d3748;padding:8px 0;font-size:13px;">
+                        <strong style="color:#e2e8f0;">${escHtml(String(t.domain||''))}</strong>
+                        <span style="color:#718096;margin-left:8px;">${escHtml(String(t.question||''))}</span>
+                    </div>`).join('') || '<div style="color:#718096;">No recent research topics</div>';
+
+                html += `
+                <div style="background:#1a202c;border:1px solid #2d3748;border-radius:10px;padding:18px;margin-bottom:20px;">
+                    <h3 style="margin:0 0 12px;">🔬 Research Activity — ২৪ ঘন্টার রিসার্চ</h3>
+                    <div style="margin-bottom:10px;flex-wrap:wrap;display:flex;gap:4px;">${domainRows || '<span style="color:#718096;">No domain data</span>'}</div>
+                    <div style="margin-top:12px;"><strong style="color:#a0aec0;font-size:12px;">Recent Topics:</strong>${topicRows}</div>
+                </div>`;
+            }
+
+            // ── Existing projects ──────────────────────────────────────────
+            const EP = data.existingProjects || {};
+            if (EP.available !== false) {
+                const allProj = EP.allProjectSummary || [];
+                const projRows = allProj.map(p => `
+                    <tr>
+                        <td style="color:#e2e8f0;">${escHtml(String(p.name||'—'))}</td>
+                        <td><span style="background:${p.status==='IMPROVED'?'#276749':p.status==='FAILED'?'#742a2a':'#2d3748'};color:#fff;border-radius:4px;padding:2px 8px;font-size:12px;">${escHtml(String(p.status||'—'))}</span></td>
+                        <td style="color:#718096;font-size:12px;">${escHtml(String(p.lastImprovedAt||'—'))}</td>
+                    </tr>`).join('') || '<tr><td colspan="3" style="color:#718096;">No projects registered</td></tr>';
+
+                html += `
+                <div style="background:#1a202c;border:1px solid #2d3748;border-radius:10px;padding:18px;margin-bottom:20px;">
+                    <h3 style="margin:0 0 12px;">🔧 Existing Project Improvements</h3>
+                    <table style="width:100%;font-size:13px;">
+                        <thead><tr>
+                            <th style="text-align:left;color:#718096;padding-bottom:8px;">Project</th>
+                            <th style="text-align:left;color:#718096;">Status</th>
+                            <th style="text-align:left;color:#718096;">Last Improved</th>
+                        </tr></thead>
+                        <tbody>${projRows}</tbody>
+                    </table>
+                </div>`;
+            }
+
+            // ── New projects generated ─────────────────────────────────────
+            const NP = data.newProjects || {};
+            if (NP.available !== false && (NP.createdLast24h > 0 || NP.totalGenerated > 0)) {
+                const npRows = (NP.projectDetails||[]).map(p => `
+                    <tr>
+                        <td style="color:#a0aec0;font-size:11px;">${escHtml(String(p.projectId||'').substring(0,8))}…</td>
+                        <td style="color:#e2e8f0;">${escHtml(String(p.description||'—').substring(0,60))}</td>
+                        <td style="color:#63b3ed;">${escHtml(String(p.templateType||'—'))}</td>
+                        <td><span style="background:${p.status==='PUSHED_TO_REPO'?'#276749':'#2d3748'};color:#fff;border-radius:4px;padding:2px 6px;font-size:11px;">${escHtml(String(p.status||'—'))}</span></td>
+                        <td style="color:#63b3ed;">${p.progress ?? '—'}%</td>
+                    </tr>`).join('') || '<tr><td colspan="5" style="color:#718096;">No projects created in last 24h</td></tr>';
+
+                html += `
+                <div style="background:#1a202c;border:1px solid #2d3748;border-radius:10px;padding:18px;margin-bottom:20px;">
+                    <h3 style="margin:0 0 12px;">📦 নতুন Project Generation (Last 24h)</h3>
+                    <div style="color:#a0aec0;font-size:13px;margin-bottom:10px;">Total generated: <strong>${NP.totalGenerated||0}</strong> | Completed: <strong>${NP.completedTotal||0}</strong></div>
+                    <table style="width:100%;font-size:12px;">
+                        <thead><tr>
+                            <th style="text-align:left;color:#718096;padding-bottom:8px;">ID</th>
+                            <th style="text-align:left;color:#718096;">Description</th>
+                            <th style="text-align:left;color:#718096;">Type</th>
+                            <th style="text-align:left;color:#718096;">Status</th>
+                            <th style="text-align:left;color:#718096;">Progress</th>
+                        </tr></thead>
+                        <tbody>${npRows}</tbody>
+                    </table>
+                </div>`;
+            }
+
+            el.innerHTML = html || '<div style="color:#a0aec0;">No detailed data available.</div>';
+        }
+
+        function renderActivityEventLog(events) {
+            const el = document.getElementById('activityEventLog');
+            if (!events.length) {
+                el.textContent = 'No events recorded in the last 24 hours.';
+                return;
+            }
+            el.innerHTML = events.map(e => {
+                const catColors = { LEARNING:'#63b3ed', RESEARCH:'#9f7aea', HARVEST:'#48bb78',
+                                    DEPLOY:'#f6ad55', ERROR:'#f56565', GENERAL:'#a0aec0' };
+                const col = catColors[e.category] || '#a0aec0';
+                return `<div style="border-bottom:1px solid #1a202c;padding:5px 0;">
+                    <span style="color:#718096;">${escHtml(e.time)}</span>
+                    <span style="color:${col};margin:0 8px;font-weight:bold;">[${escHtml(e.category)}]</span>
+                    <span style="color:#e2e8f0;">${escHtml(e.title)}</span>
+                    ${e.detail ? `<span style="color:#718096;margin-left:6px;">— ${escHtml(e.detail)}</span>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        // =============================================
+        // SYSTEM ALERTS
+        // =============================================
+
+        async function loadSystemAlerts() {
+            const container = document.getElementById('systemAlertsContainer');
+            if (!container) return;
+            container.innerHTML = '<div style="color:#a0aec0;">⏳ Checking system…</div>';
+            try {
+                const res = await fetch('/api/system/alerts', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const alerts = data.alerts || [];
+
+                // Update sidebar badge
+                const sidebarItem = document.getElementById('sidebarAlertsItem');
+                if (sidebarItem) {
+                    const critical = data.critical || 0;
+                    sidebarItem.textContent = critical > 0
+                        ? `🚨 System Alerts (${critical})`
+                        : '✅ System Alerts';
+                    sidebarItem.style.color = critical > 0 ? '#f56565' : '#48bb78';
+                }
+
+                if (!alerts.length) {
+                    container.innerHTML = '<div style="color:#48bb78;font-size:16px;padding:20px;">✅ কোনো সমস্যা নেই! সিস্টেম সব ঠিকঠাক চলছে।</div>';
+                    return;
+                }
+
+                container.innerHTML = alerts.map(a => {
+                    const color = a.level === 'critical' ? '#f56565' : a.level === 'warning' ? '#f6ad55' : '#63b3ed';
+                    const icon  = a.level === 'critical' ? '🔴' : a.level === 'warning' ? '🟡' : '🔵';
+                    const guide = (a.banglaGuide || '').replace(/\n/g, '<br>');
+                    return `<div style="border:1px solid ${color};border-radius:8px;padding:18px;margin-bottom:16px;background:rgba(0,0,0,0.2);">
+                        <div style="font-size:16px;font-weight:bold;color:${color};">${icon} ${escHtml(a.title)}</div>
+                        <div style="color:#e2e8f0;margin:8px 0;">${escHtml(a.message)}</div>
+                        <div style="background:#1a202c;border-radius:6px;padding:12px;color:#a0aec0;font-size:13px;line-height:1.7;white-space:pre-wrap;">${guide}</div>
+                        ${a.action === 'go_to_api_keys' ? `<button class="btn btn-secondary" style="margin-top:10px;" onclick="showSection('api-keys')">🔑 API Key Manager খুলুন</button>` : ''}
+                        ${a.action === 'go_to_fallback_chain' ? `<button class="btn btn-secondary" style="margin-top:10px;" onclick="showSection('api-keys')">🔗 Fallback Chain ঠিক করুন</button>` : ''}
+                    </div>`;
+                }).join('');
+            } catch (e) {
+                container.innerHTML = `<div style="color:#f56565;">❌ Alert check failed: ${e.message}</div>`;
+            }
+        }
+
+        // =============================================
+        // FALLBACK CHAIN MANAGEMENT
+        // =============================================
+
+        async function loadFallbackChain() {
+            try {
+                const res = await fetch('/api/providers/fallback-chain', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const chain = data.fallbackChain || [];
+                const display = document.getElementById('fallbackChainDisplay');
+                const input   = document.getElementById('fallbackChainInput');
+                if (display) {
+                    display.textContent = chain.length
+                        ? '🔗 Current: ' + chain.join(' → ')
+                        : '🔗 Not configured — using all active DB providers automatically.';
+                }
+                if (input) input.value = chain.join(', ');
+            } catch (e) {
+                console.warn('Failed to load fallback chain', e);
+            }
+        }
+
+        async function saveFallbackChain() {
+            const raw = (document.getElementById('fallbackChainInput').value || '').trim();
+            const chain = raw ? raw.split(',').map(s => s.trim()).filter(Boolean) : [];
+            const msg = document.getElementById('fallbackChainMsg');
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Saving…</span>';
+            try {
+                const res = await fetch('/api/providers/fallback-chain', {
+                    method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fallbackChain: chain })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    msg.innerHTML = `<span style="color:#48bb78;">✅ Saved! Chain: ${escHtml(chain.join(' → ') || '(all active providers)')}</span>`;
+                    await loadFallbackChain();
+                } else {
+                    msg.innerHTML = `<span style="color:#f56565;">❌ ${escHtml(data.error || 'Save failed')}</span>`;
+                }
+            } catch (e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        async function clearFallbackChain() {
+            document.getElementById('fallbackChainInput').value = '';
+            await saveFallbackChain();
+        }
+
+        // =============================================
         // PROJECTS
         // =============================================
 
@@ -2515,35 +3266,49 @@
         }
 
         async function createProject() {
-            const projectId = document.getElementById('newProjectId').value.trim();
+            const projectId  = document.getElementById('newProjectId').value.trim();
             const templateType = document.getElementById('newProjectTemplate').value;
-            const description = document.getElementById('newProjectDesc').value.trim();
-            const featuresRaw = document.getElementById('newProjectFeatures').value.trim();
+            const description  = document.getElementById('newProjectDesc').value.trim();
+            const featuresRaw  = document.getElementById('newProjectFeatures').value.trim();
+            const repoUrl      = document.getElementById('newProjectRepoUrl').value.trim();
+            const repoBranch   = document.getElementById('newProjectRepoBranch').value.trim() || 'main';
+            const repoToken    = document.getElementById('newProjectRepoToken').value.trim();
             const msg = document.getElementById('createProjectMsg');
 
             if (!projectId || !description) {
                 msg.innerHTML = '<span style="color:#f56565;">Project ID and description are required.</span>';
                 return;
             }
+            if (!repoUrl) {
+                msg.innerHTML = '<span style="color:#f56565;">⚠️ GitHub Repo URL is required. Please create a dedicated empty GitHub repo for this project first, then paste its URL here. Generated code must not go into the main SupremeAI repo.</span>';
+                return;
+            }
 
             const features = featuresRaw ? featuresRaw.split('\n').map(f => f.trim()).filter(Boolean) : [];
 
-            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Generating project...</span>';
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Generating project and pushing to repo…</span>';
             try {
                 const res = await fetch('/api/projects/generate', {
                     method: 'POST',
                     headers: getAuthHeaders(),
-                    body: JSON.stringify({ projectId, templateType, description, features })
+                    body: JSON.stringify({ projectId, templateType, description, features, repoUrl, repoBranch, repoToken })
                 });
                 const data = await res.json();
-                if (data.status === 'success' || data.projectId) {
-                    msg.innerHTML = `<span style="color:#48bb78;">✅ Project "${data.projectId || projectId}" created! Status: ${data.status || 'started'}</span>`;
+                const proj = data.project || data;
+                if (data.status === 'success' || proj.projectId) {
+                    const pushInfo = proj.pushed === true
+                        ? ` ✅ Pushed to <a href="${escHtml(proj.repoUrl)}" target="_blank" style="color:#63b3ed;">${escHtml(proj.repoUrl)}</a>`
+                        : ` ⚠️ Push failed — check your token and that the repo exists.`;
+                    msg.innerHTML = `<span style="color:#48bb78;">✅ Project "${escHtml(proj.projectId || projectId)}" generated! Status: ${escHtml(proj.status || 'started')}${pushInfo}</span>`;
                     document.getElementById('newProjectId').value = '';
                     document.getElementById('newProjectDesc').value = '';
                     document.getElementById('newProjectFeatures').value = '';
+                    document.getElementById('newProjectRepoUrl').value = '';
+                    document.getElementById('newProjectRepoBranch').value = '';
+                    document.getElementById('newProjectRepoToken').value = '';
                     loadProjects();
                 } else {
-                    msg.innerHTML = `<span style="color:#f56565;">❌ ${data.message || data.error || 'Failed to create project'}</span>`;
+                    msg.innerHTML = `<span style="color:#f56565;">❌ ${escHtml(data.message || data.error || 'Failed to create project')}</span>`;
                 }
             } catch (e) {
                 msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
@@ -2989,6 +3754,155 @@
         // DEPLOYMENT
         // =============================================
 
+        // ── Atomic Deployment ─────────────────────────────────────────────────
+
+        let _atomicTargets = [];
+        let _atomicPollTimer = null;
+
+        function addAtomicTarget() {
+            const id       = document.getElementById('atomicTargetId').value.trim();
+            const type     = document.getElementById('atomicTargetType').value;
+            const desc     = document.getElementById('atomicTargetDesc').value.trim();
+            const validate = document.getElementById('atomicTargetValidate').value.trim();
+            const deploy   = document.getElementById('atomicTargetDeploy').value.trim();
+            const rollback = document.getElementById('atomicTargetRollback').value.trim();
+            if (!id) { alert('Target ID is required'); return; }
+            _atomicTargets.push({ id, type, description: desc, validationCommand: validate, deployCommand: deploy, rollbackCommand: rollback });
+            renderAtomicTargetList();
+            ['atomicTargetId','atomicTargetDesc','atomicTargetValidate','atomicTargetDeploy','atomicTargetRollback']
+                .forEach(f => document.getElementById(f).value = '');
+        }
+
+        function removeAtomicTarget(idx) {
+            _atomicTargets.splice(idx, 1);
+            renderAtomicTargetList();
+        }
+
+        function renderAtomicTargetList() {
+            const el = document.getElementById('atomicTargetList');
+            if (!_atomicTargets.length) {
+                el.innerHTML = '<em style="color:#a0aec0;">No targets added yet.</em>';
+                return;
+            }
+            el.innerHTML = _atomicTargets.map((t, i) => `
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #2d3748;">
+                    <span style="font-size:18px;">${targetTypeIcon(t.type)}</span>
+                    <div style="flex:1;">
+                        <strong style="color:#e2e8f0;">${escHtml(t.id)}</strong>
+                        <span style="color:#718096;margin-left:8px;">${escHtml(t.type)}</span>
+                        ${t.description ? `<div style="color:#a0aec0;font-size:12px;">${escHtml(t.description)}</div>` : ''}
+                    </div>
+                    <button onclick="removeAtomicTarget(${i})" style="background:#f56565;border:none;color:#fff;border-radius:4px;padding:4px 10px;cursor:pointer;">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function targetTypeIcon(type) {
+            const icons = { CLOUD_RUN:'☁️', FLUTTER:'📱', K8S:'⎈️', PLAY_STORE:'▶️', APP_STORE:'🍎', CUSTOM:'🔧' };
+            return icons[type] || '🔧';
+        }
+
+        async function startAtomicDeploy() {
+            const name   = document.getElementById('atomicRunName').value.trim();
+            const branch = document.getElementById('atomicRunBranch').value.trim() || 'main';
+            const repo   = document.getElementById('atomicRunRepo').value.trim();
+            const msg    = document.getElementById('atomicDeployMsg');
+
+            if (!name)                  { msg.innerHTML='<span style="color:#f56565;">Run Name is required.</span>'; return; }
+            if (!_atomicTargets.length) { msg.innerHTML='<span style="color:#f56565;">Add at least one deployment target.</span>'; return; }
+
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Starting atomic deployment…</span>';
+
+            try {
+                const res = await fetch('/api/v1/deployment/atomic', {
+                    method: 'POST',
+                    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, gitRepo: repo, gitBranch: branch, targets: _atomicTargets })
+                });
+                const run = await res.json();
+                if (!res.ok) { msg.innerHTML = `<span style="color:#f56565;">❌ ${escHtml(run.error)}</span>`; return; }
+                msg.innerHTML = `<span style="color:#48bb78;">✅ Run started: ${escHtml(run.id)}</span>`;
+                showAtomicRunPanel(run);
+                pollAtomicRun(run.id);
+            } catch (e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        function showAtomicRunPanel(run) {
+            const panel = document.getElementById('atomicRunStatus');
+            panel.style.display = 'block';
+            document.getElementById('atomicRunTitle').textContent = '⚛️ ' + (run.name || run.id);
+            updateAtomicRunUI(run);
+            panel.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function updateAtomicRunUI(run) {
+            const statusColors = { VALIDATING:'#63b3ed', FIXING:'#f6ad55', DEPLOYING:'#9f7aea',
+                                   ROLLING_BACK:'#f56565', DEPLOYED:'#48bb78', FAILED:'#f56565' };
+            const statusIcons  = { VALIDATING:'🔍', FIXING:'🤖', DEPLOYING:'🚀',
+                                   ROLLING_BACK:'↩️', DEPLOYED:'🎉', FAILED:'❌' };
+            const badge = document.getElementById('atomicRunBadge');
+            const color = statusColors[run.status] || '#e2e8f0';
+            badge.textContent = (statusIcons[run.status]||'') + ' ' + run.status;
+            badge.style.color = color;
+            const logEl = document.getElementById('atomicRunLog');
+            logEl.textContent = (run.log || []).join('\n');
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function pollAtomicRun(id) {
+            if (_atomicPollTimer) clearInterval(_atomicPollTimer);
+            _atomicPollTimer = setInterval(async () => {
+                try {
+                    const res = await fetch(`/api/v1/deployment/atomic/${id}`, { headers: getAuthHeaders() });
+                    if (!res.ok) return;
+                    const run = await res.json();
+                    updateAtomicRunUI(run);
+                    if (run.status === 'DEPLOYED' || run.status === 'FAILED') {
+                        clearInterval(_atomicPollTimer);
+                    }
+                } catch(e) {}
+            }, 2000);
+        }
+
+        async function loadAtomicHistory() {
+            const el = document.getElementById('atomicHistoryContainer');
+            el.innerHTML = '<em style="color:#a0aec0;">Loading…</em>';
+            try {
+                const res  = await fetch('/api/v1/deployment/atomic', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const runs = data.runs || [];
+                if (!runs.length) { el.innerHTML='<em style="color:#a0aec0;">No runs yet.</em>'; return; }
+                const statusColors = { DEPLOYING:'#9f7aea', DEPLOYED:'#48bb78', FAILED:'#f56565',
+                                       VALIDATING:'#63b3ed', FIXING:'#f6ad55', ROLLING_BACK:'#f56565' };
+                el.innerHTML = runs.map(r => `
+                    <div style="border:1px solid #2d3748;border-radius:8px;padding:12px;margin-bottom:8px;cursor:pointer;"
+                         onclick="loadAndShowAtomicRun('${escHtml(r.id)}')">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <strong style="color:#e2e8f0;">${escHtml(r.name||r.id)}</strong>
+                            <span style="color:${statusColors[r.status]||'#e2e8f0'};font-weight:bold;">${escHtml(r.status)}</span>
+                        </div>
+                        <div style="color:#718096;font-size:12px;margin-top:4px;">
+                            ${escHtml(r.gitBranch||'main')} · ${r.targetCount} target(s) · ${escHtml(r.createdAt||'')}
+                            ${r.failReason ? `<br><span style="color:#f56565;">Reason: ${escHtml(r.failReason)}</span>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                el.innerHTML = `<em style="color:#f56565;">${e.message}</em>`;
+            }
+        }
+
+        async function loadAndShowAtomicRun(id) {
+            try {
+                const res = await fetch(`/api/v1/deployment/atomic/${id}`, { headers: getAuthHeaders() });
+                const run = await res.json();
+                showAtomicRunPanel(run);
+                if (run.status !== 'DEPLOYED' && run.status !== 'FAILED') pollAtomicRun(id);
+            } catch(e) {}
+        }
+
         async function loadDeployHistory() {
             const tbody = document.getElementById('deployHistoryTable');
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
@@ -3256,8 +4170,141 @@
         }
 
         // =============================================
-        // NOTIFICATIONS
+        // AUTO-LEARNING SYSTEM CONTROLS
         // =============================================
+
+        async function loadResearchStats() {
+            try {
+                const res = await fetch('/api/research/stats', { headers: getAuthHeaders() });
+                if (!res.ok) return;
+                const d = await res.json();
+
+                // Update learning enabled status
+                const enabled = d.learningEnabled;
+                const statusText = document.getElementById('learningStatusText');
+                if (statusText) {
+                    const idleMins = Math.round((d.idleForMs || 0) / 60000);
+                    const thresholdMins = Math.round((d.idleThresholdMs || 3600000) / 60000);
+                    if (enabled) {
+                        statusText.innerHTML = `<span style="color:#48bb78;">● ACTIVE</span> — System idle for ${idleMins} min (learning starts after ${thresholdMins} min idle). Total research cycles: <strong>${d.totalResearchCompleted || 0}</strong>`;
+                    } else {
+                        statusText.innerHTML = `<span style="color:#f56565;">● PAUSED</span> — Auto-learning is disabled by admin. Click "✅ Enable Learning" to resume.`;
+                    }
+                }
+
+                // Update button states
+                const btnEnable  = document.getElementById('btnEnableLearning');
+                const btnDisable = document.getElementById('btnDisableLearning');
+                if (btnEnable)  btnEnable.disabled  = enabled;
+                if (btnDisable) btnDisable.disabled = !enabled;
+
+                // Update Firebase quota
+                const quota = d.firebaseQuota || {};
+                renderQuota(quota);
+
+                // Show research stats panel
+                const panel = document.getElementById('researchStatsPanel');
+                const content = document.getElementById('researchStatsContent');
+                if (panel && content) {
+                    panel.style.display = 'block';
+                    const items = [
+                        { label: 'Topics In Queue', value: d.topicsInQueue || 0, color: '#ed8936' },
+                        { label: 'Research Cycles', value: d.totalResearchCompleted || 0, color: '#48bb78' },
+                        { label: 'History Size',    value: d.historySize || 0,          color: '#63b3ed' },
+                        { label: 'System Idle',     value: d.isIdle ? 'YES ✅' : 'NO 🏃', color: d.isIdle ? '#48bb78' : '#fc8181' },
+                    ];
+                    content.innerHTML = items.map(i =>
+                        `<div style="background:#2d3748;border-radius:8px;padding:10px 16px;text-align:center;">
+                            <div style="font-size:11px;color:#718096;text-transform:uppercase;">${i.label}</div>
+                            <div style="font-size:20px;font-weight:700;color:${i.color};">${i.value}</div>
+                        </div>`
+                    ).join('');
+                }
+            } catch(e) {
+                const statusText = document.getElementById('learningStatusText');
+                if (statusText) statusText.innerHTML = `<span style="color:#718096;">Could not reach server (${e.message})</span>`;
+            }
+        }
+
+        function renderQuota(quota) {
+            const writeCount = quota.dailyWriteCount || 0;
+            const readCount  = quota.dailyReadCount  || 0;
+            const writeLimit = quota.dailyWriteLimit || 18000;
+            const readLimit  = quota.dailyReadLimit  || 50000;
+            const writePct   = quota.writeUsagePct   || 0;
+            const readPct    = quota.readUsagePct    || 0;
+            const safe       = quota.withinSafeLimit;
+
+            const el = (id) => document.getElementById(id);
+            if (el('quotaWriteCount')) el('quotaWriteCount').textContent = writeCount.toLocaleString();
+            if (el('quotaWriteLimit')) el('quotaWriteLimit').textContent = `limit: ${writeLimit.toLocaleString()} / day`;
+            if (el('quotaReadCount'))  el('quotaReadCount').textContent  = readCount.toLocaleString();
+            if (el('quotaReadLimit'))  el('quotaReadLimit').textContent  = `limit: ${readLimit.toLocaleString()} / day`;
+
+            const writeBar = el('quotaWriteBar');
+            const readBar  = el('quotaReadBar');
+            if (writeBar) { writeBar.style.width = Math.min(writePct, 100) + '%'; writeBar.style.background = writePct > 70 ? '#f56565' : writePct > 40 ? '#ed8936' : '#48bb78'; }
+            if (readBar)  { readBar.style.width  = Math.min(readPct,  100) + '%'; readBar.style.background  = readPct  > 70 ? '#f56565' : readPct  > 40 ? '#ed8936' : '#63b3ed'; }
+
+            const safeEl = el('quotaSafeStatus');
+            if (safeEl) {
+                if (safe === true)       safeEl.innerHTML = '<span style="color:#48bb78;">✅ Safe</span>';
+                else if (safe === false) safeEl.innerHTML = '<span style="color:#f56565;">⚠️ Near Limit</span>';
+                else                     safeEl.innerHTML = '<span style="color:#718096;">—</span>';
+            }
+            const winEl = el('quotaWindow');
+            if (winEl) winEl.textContent = quota.windowResetIn || '';
+        }
+
+        async function setLearning(enable) {
+            const msg = document.getElementById('researchActionMsg');
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Updating...</span>';
+            try {
+                const res = await fetch(enable ? '/api/research/enable' : '/api/research/disable', {
+                    method: 'POST', headers: getAuthHeaders()
+                });
+                const d = await res.json();
+                msg.innerHTML = `<span style="color:${enable ? '#48bb78' : '#fc8181'};">${enable ? '✅' : '🛑'} ${d.message || (enable ? 'Learning enabled' : 'Learning disabled')}</span>`;
+                await loadResearchStats();
+            } catch(e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        async function triggerResearchNow() {
+            const msg = document.getElementById('researchActionMsg');
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Starting research cycle... this may take a few minutes.</span>';
+            try {
+                const res = await fetch('/api/research/trigger', { method: 'POST', headers: getAuthHeaders() });
+                const d = await res.json();
+                const completed = d.completed || 0;
+                msg.innerHTML = `<span style="color:#48bb78;">✅ Research cycle finished — ${completed} topic(s) researched.</span>`;
+                await loadResearchStats();
+            } catch(e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        async function loadResearchHistory() {
+            const panel = document.getElementById('researchHistoryPanel');
+            if (!panel) return;
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            if (panel.style.display === 'none') return;
+            panel.innerHTML = '<span style="color:#a0aec0;">Loading history...</span>';
+            try {
+                const res = await fetch('/api/research/history', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const list = Array.isArray(data) ? data : [];
+                if (!list.length) { panel.innerHTML = '<span style="color:#718096;">No research history yet.</span>'; return; }
+                panel.innerHTML = list.slice(0, 30).map(t => `
+                    <div style="padding:8px 0;border-bottom:1px solid #2d3748;">
+                        <span style="display:inline-block;width:80px;font-size:11px;color:#718096;">${t.domain || ''}</span>
+                        <span style="font-size:12px;color:${t.status === 'COMPLETED' ? '#48bb78' : t.status === 'FAILED' ? '#f56565' : '#a0aec0'};">[${t.status || '?'}]</span>
+                        <span style="font-size:12px;color:#e2e8f0;margin-left:6px;">${(t.question || t.topic || '').substring(0, 80)}</span>
+                    </div>
+                `).join('');
+            } catch(e) { panel.innerHTML = `<span style="color:#f56565;">${e.message}</span>`; }
+        }
 
         async function loadNotificationHistory() {
             const tbody = document.getElementById('notifHistoryTable');
@@ -3297,6 +4344,258 @@
                 msg.innerHTML = `<span style="color:${d.status === 'sent' ? '#48bb78' : '#f56565'}">${d.status === 'sent' ? '✅' : '❌'} ${d.status || 'done'}</span>`;
                 loadNotificationHistory();
             } catch(e) { msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`; }
+        }
+
+        // =============================================
+        // IMPROVE EXISTING APP
+        // =============================================
+
+        // ID of the currently selected existing project
+        let _currentEpId = null;
+
+        async function loadExistingProjects() {
+            const container = document.getElementById('existingProjectsList');
+            container.innerHTML = '<div style="text-align:center;padding:20px;color:#a0aec0;">Loading…</div>';
+            try {
+                const res = await fetch('/api/existing-projects', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const projects = data.projects || [];
+                if (!projects.length) {
+                    container.innerHTML = '<div style="text-align:center;padding:30px;color:#a0aec0;">No projects registered yet. Use the form above to add one.</div>';
+                    return;
+                }
+                container.innerHTML = projects.map(p => `
+                    <div onclick="selectExistingProject('${p.id}')"
+                         style="background:#1a202c;border:1px solid ${_currentEpId === p.id ? '#63b3ed' : '#2d3748'};border-radius:8px;padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color 0.2s;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+                            <div>
+                                <span style="font-weight:700;color:#e2e8f0;">${escHtml(p.name || 'Unnamed')}</span>
+                                <span style="margin-left:10px;font-size:11px;padding:2px 8px;border-radius:12px;background:${statusColor(p.status)};color:#fff;">${p.status}</span>
+                                ${p.continuousImprovement ? '<span style="margin-left:6px;font-size:11px;color:#48bb78;">● Auto</span>' : ''}
+                            </div>
+                            <div style="font-size:11px;color:#718096;">Improved ${p.totalImprovementsApplied}× | ${p.lastImprovedAt ? timeSince(p.lastImprovedAt) + ' ago' : 'never'}</div>
+                        </div>
+                        <div style="font-size:12px;color:#a0aec0;margin-top:4px;word-break:break-all;">${escHtml(p.repoUrl)}</div>
+                        <div style="font-size:12px;color:#718096;margin-top:2px;font-style:italic;">${escHtml((p.improvementGoal || '').substring(0, 100))}</div>
+                    </div>
+                `).join('');
+            } catch(e) {
+                container.innerHTML = `<div style="color:#f56565;padding:12px;">Error: ${e.message}</div>`;
+            }
+        }
+
+        function statusColor(s) {
+            if (s === 'IMPROVING' || s === 'ANALYSING') return '#ed8936';
+            if (s === 'ERROR') return '#f56565';
+            if (s === 'IDLE') return '#48bb78';
+            return '#718096';
+        }
+
+        function timeSince(ms) {
+            const sec = Math.floor((Date.now() - ms) / 1000);
+            if (sec < 60) return sec + 's';
+            if (sec < 3600) return Math.floor(sec/60) + 'm';
+            if (sec < 86400) return Math.floor(sec/3600) + 'h';
+            return Math.floor(sec/86400) + 'd';
+        }
+
+        function escHtml(s) {
+            if (!s) return '';
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        async function selectExistingProject(id) {
+            _currentEpId = id;
+            const panel = document.getElementById('epDetailPanel');
+            panel.style.display = 'block';
+            panel.scrollIntoView({ behavior: 'smooth' });
+            // Attach Enter-to-send listener once (idempotent guard via dataset flag)
+            const chatInput = document.getElementById('epChatInput');
+            if (chatInput && !chatInput.dataset.listenerAttached) {
+                chatInput.addEventListener('keydown', e => {
+                    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendEpMessage(); }
+                });
+                chatInput.dataset.listenerAttached = 'true';
+            }
+            await refreshEpDetail();
+            await loadExistingProjects(); // re-render list to highlight selected
+        }
+
+        async function refreshEpDetail() {
+            if (!_currentEpId) return;
+            try {
+                const res = await fetch(`/api/existing-projects/${_currentEpId}`, { headers: getAuthHeaders() });
+                const p = await res.json();
+                if (p.error) { document.getElementById('epDetailTitle').textContent = 'Error: ' + p.error; return; }
+
+                document.getElementById('epDetailTitle').textContent = `${p.name || 'Project'} (${p.repoUrl})`;
+                document.getElementById('epDetailStatus').innerHTML =
+                    `Branch: <strong>${escHtml(p.branch)}</strong> &nbsp;|&nbsp; Status: <strong style="color:${statusColor(p.status)}">${p.status}</strong> &nbsp;|&nbsp; Improved: <strong>${p.totalImprovementsApplied}×</strong>`;
+
+                // Toggle button
+                const btn = document.getElementById('epToggleBtn');
+                if (p.continuousImprovement) {
+                    btn.textContent = '⏸ Disable Continuous';
+                    btn.className = 'btn btn-secondary';
+                } else {
+                    btn.textContent = '▶ Enable Continuous';
+                    btn.className = 'btn';
+                }
+
+                // Conversation
+                renderEpConversation(p.conversation || []);
+
+                // History
+                const histEl = document.getElementById('epHistoryList');
+                const hist = p.improvementHistory || [];
+                if (!hist.length) {
+                    histEl.innerHTML = '<div style="color:#718096;padding:6px;">No improvement cycles yet.</div>';
+                } else {
+                    histEl.innerHTML = hist.slice().reverse().map(h => `
+                        <div style="padding:6px 0;border-bottom:1px solid #2d3748;">
+                            <span style="color:${h.status==='ok'?'#48bb78':'#f56565'};">[${h.status==='ok'?'✅':'❌'}]</span>
+                            <span style="margin-left:6px;">${escHtml((h.summary||'').substring(0,120))}</span>
+                            <span style="margin-left:8px;color:#718096;">${h.appliedAt ? new Date(h.appliedAt).toLocaleString() : ''}</span>
+                        </div>`).join('');
+                }
+            } catch(e) {
+                document.getElementById('epDetailTitle').textContent = 'Error loading project';
+            }
+        }
+
+        function renderEpConversation(messages) {
+            const el = document.getElementById('epConversation');
+            if (!messages.length) {
+                el.innerHTML = '<div style="color:#718096;">No messages yet. Register the project or send a message below.</div>';
+                return;
+            }
+            el.innerHTML = messages.map(m => {
+                const isAi = m.role === 'ai';
+                return `<div style="display:flex;flex-direction:${isAi?'row':'row-reverse'};gap:8px;align-items:flex-start;">
+                    <div style="width:28px;height:28px;border-radius:50%;background:${isAi?'#2b6cb0':'#2d6a4f'};display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">${isAi?'🤖':'👤'}</div>
+                    <div style="background:${isAi?'#1a365d':'#1a3327'};border-radius:8px;padding:8px 12px;max-width:80%;font-size:13px;color:#e2e8f0;white-space:pre-wrap;">${escHtml(String(m.message||''))}</div>
+                </div>`;
+            }).join('');
+            el.scrollTop = el.scrollHeight;
+        }
+
+        async function registerExistingProject() {
+            const repoUrl = document.getElementById('epRepoUrl').value.trim();
+            const goal    = document.getElementById('epGoal').value.trim();
+            const msg     = document.getElementById('epRegisterMsg');
+            if (!repoUrl) { msg.innerHTML = '<span style="color:#f56565;">Repository URL is required.</span>'; return; }
+            if (!goal)    { msg.innerHTML = '<span style="color:#f56565;">Improvement goal is required.</span>'; return; }
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Registering…</span>';
+            try {
+                const res = await fetch('/api/existing-projects', {
+                    method: 'POST',
+                    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name:            document.getElementById('epName').value.trim(),
+                        repoUrl,
+                        branch:          document.getElementById('epBranch').value.trim() || 'main',
+                        repoToken:       document.getElementById('epToken').value.trim(),
+                        improvementGoal: goal
+                    })
+                });
+                const d = await res.json();
+                if (d.error) { msg.innerHTML = `<span style="color:#f56565;">❌ ${escHtml(d.error)}</span>`; return; }
+                msg.innerHTML = `<span style="color:#48bb78;">✅ Project "${escHtml(d.name)}" registered!</span>`;
+                // Clear form
+                ['epName','epRepoUrl','epBranch','epGoal','epToken'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = id === 'epBranch' ? 'main' : '';
+                });
+                await loadExistingProjects();
+                await selectExistingProject(d.id);
+            } catch(e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        async function sendEpMessage() {
+            if (!_currentEpId) return;
+            const input = document.getElementById('epChatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            input.value = '';
+            // Optimistic render
+            const conv = document.getElementById('epConversation');
+            conv.innerHTML += `<div style="display:flex;flex-direction:row-reverse;gap:8px;align-items:flex-start;">
+                <div style="width:28px;height:28px;border-radius:50%;background:#2d6a4f;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">👤</div>
+                <div style="background:#1a3327;border-radius:8px;padding:8px 12px;max-width:80%;font-size:13px;color:#e2e8f0;">${escHtml(message)}</div>
+            </div>`;
+            conv.scrollTop = conv.scrollHeight;
+            conv.innerHTML += '<div id="epTyping" style="color:#a0aec0;font-size:12px;padding:4px 0;">⏳ SupremeAI is thinking…</div>';
+            try {
+                const res = await fetch(`/api/existing-projects/${_currentEpId}/discuss`, {
+                    method: 'POST',
+                    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+                const d = await res.json();
+                await refreshEpDetail(); // re-render full conversation
+            } catch(e) {
+                document.getElementById('epTyping')?.remove();
+                conv.innerHTML += `<div style="color:#f56565;font-size:12px;">Error: ${e.message}</div>`;
+            }
+        }
+
+        async function triggerExistingImprovement() {
+            if (!_currentEpId) return;
+            const msg = document.getElementById('epImprovementMsg');
+            const btn = document.getElementById('epImproveBtn');
+            btn.disabled = true;
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Running improvement cycle — cloning/pulling repo and consulting AI… (may take a minute)</span>';
+            try {
+                const res = await fetch(`/api/existing-projects/${_currentEpId}/improve`, {
+                    method: 'POST', headers: getAuthHeaders()
+                });
+                const d = await res.json();
+                if (d.error) {
+                    msg.innerHTML = `<span style="color:#f56565;">❌ ${escHtml(d.error)}</span>`;
+                } else if (d.skipped) {
+                    msg.innerHTML = `<span style="color:#ed8936;">⚠️ Skipped: ${escHtml(d.skipped)}</span>`;
+                } else {
+                    msg.innerHTML = `<span style="color:#48bb78;">✅ Done! AI suggestion: ${escHtml((d.aiSuggestion||'').substring(0,120))}… ${d.pushed ? '(pushed to repo)' : '(note written)'}</span>`;
+                }
+                await refreshEpDetail();
+            } catch(e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function toggleContinuous() {
+            if (!_currentEpId) return;
+            try {
+                const res = await fetch(`/api/existing-projects/${_currentEpId}`, { headers: getAuthHeaders() });
+                const p = await res.json();
+                const current = p.continuousImprovement;
+                await fetch(`/api/existing-projects/${_currentEpId}/toggle`, {
+                    method: 'PATCH',
+                    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled: !current })
+                });
+                await refreshEpDetail();
+                await loadExistingProjects();
+            } catch(e) {
+                document.getElementById('epImprovementMsg').innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        async function removeExistingProject() {
+            if (!_currentEpId) return;
+            if (!confirm('Remove this project from tracking? The local clone will not be deleted.')) return;
+            try {
+                await fetch(`/api/existing-projects/${_currentEpId}`, { method: 'DELETE', headers: getAuthHeaders() });
+                _currentEpId = null;
+                document.getElementById('epDetailPanel').style.display = 'none';
+                await loadExistingProjects();
+            } catch(e) {
+                document.getElementById('epImprovementMsg').innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
         }
 
         // =============================================
@@ -3373,8 +4672,25 @@
         }
 
         // =============================================
-        // CHAT WITH SUPREMEAI
+        // CHAT WITH SUPREMEAI — UPGRADED
         // =============================================
+
+        // ── State ──────────────────────────────────────────────────────────────
+        let _currentSessionId = null;
+        let _chatMode = 'session'; // 'session' | 'project' | 'rules'
+
+        function switchChatMode(mode) {
+            _chatMode = mode;
+            ['session','project','rules'].forEach(m => {
+                document.getElementById('chatPane-' + m).style.display = m === mode ? '' : 'none';
+                const btn = document.getElementById('chatModeBtn-' + m);
+                btn.style.background = m === mode ? '#667eea' : '#2d3748';
+                btn.style.color      = m === mode ? '#fff'    : '#a0aec0';
+            });
+            if (mode === 'session')  { loadSessions(); focusChatInput(); }
+            if (mode === 'project')  loadProjectSessions();
+            if (mode === 'rules')    loadAdminRules();
+        }
 
         function focusChatInput() {
             setTimeout(() => document.getElementById('chatInput')?.focus(), 100);
@@ -3390,7 +4706,105 @@
                     }
                 });
             }
+            // Load alerts badge on startup
+            loadSystemAlerts();
         });
+
+        // ── Session sidebar ────────────────────────────────────────────────────
+
+        async function loadSessions() {
+            const list = document.getElementById('sessionList');
+            list.innerHTML = '<div style="color:#718096;font-size:12px;padding:4px;">Loading…</div>';
+            try {
+                const res  = await fetch('/api/admin-chat/sessions', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const sessions = data.sessions || [];
+                if (!sessions.length) {
+                    list.innerHTML = '<div style="color:#718096;font-size:12px;padding:4px;">No sessions yet.</div>';
+                    return;
+                }
+                list.innerHTML = sessions.map(s => `
+                    <div id="session-item-${escHtml(s.id)}"
+                         onclick="openSession('${escHtml(s.id)}')"
+                         style="padding:8px 10px;border-radius:6px;cursor:pointer;margin-bottom:4px;
+                                background:${s.id===_currentSessionId?'#2d3748':'transparent'};
+                                border:1px solid ${s.id===_currentSessionId?'#667eea':'transparent'};">
+                        <div style="color:#e2e8f0;font-size:13px;font-weight:${s.id===_currentSessionId?'bold':'normal'};
+                                    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                            ${escHtml(s.title)}
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px;">
+                            <span style="color:#718096;font-size:11px;">${s.messages?s.messages.length:0} msgs</span>
+                            <button onclick="event.stopPropagation();deleteChatSession('${escHtml(s.id)}')"
+                                    style="background:none;border:none;color:#f56565;cursor:pointer;font-size:13px;padding:0 2px;"
+                                    title="Delete session">🗑️</button>
+                        </div>
+                    </div>`).join('');
+            } catch (e) {
+                list.innerHTML = `<div style="color:#f56565;font-size:12px;">${e.message}</div>`;
+            }
+        }
+
+        async function newChatSession() {
+            const title = prompt('Session name:', 'New Chat ' + new Date().toLocaleTimeString()) || 'New Chat';
+            try {
+                const res = await fetch('/api/admin-chat/sessions', {
+                    method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title })
+                });
+                const s = await res.json();
+                await openSession(s.id);
+                await loadSessions();
+            } catch (e) {
+                alert('Failed to create session: ' + e.message);
+            }
+        }
+
+        async function openSession(id) {
+            _currentSessionId = id;
+            try {
+                const res  = await fetch('/api/admin-chat/sessions/' + id, { headers: getAuthHeaders() });
+                const sess = await res.json();
+                document.getElementById('sessionTitle').textContent = '💬 ' + (sess.title || id);
+                renderSessionMessages(sess.messages || []);
+                loadSessions(); // refresh sidebar highlight
+            } catch (e) {
+                alert('Failed to load session: ' + e.message);
+            }
+        }
+
+        function renderSessionMessages(messages) {
+            const box = document.getElementById('chatMessages');
+            if (!messages.length) {
+                box.innerHTML = `<div class="chat-msg-ai">
+                    <div class="chat-bubble-ai">Hi Admin 👋 এই সেশনে কথা শুরু করুন!</div>
+                    <div class="chat-meta">SupremeAI &bull; just now</div></div>`;
+                return;
+            }
+            box.innerHTML = '';
+            messages.forEach(m => appendChatMessage(m.sender, m.content, m.agentId, m.time));
+        }
+
+        async function deleteChatSession(id) {
+            if (!confirm('Delete this chat session? Firebase-এ সেভ করা ডেটাও মুছে যাবে।')) return;
+            try {
+                await fetch('/api/admin-chat/sessions/' + id, {
+                    method: 'DELETE', headers: getAuthHeaders()
+                });
+                if (_currentSessionId === id) {
+                    _currentSessionId = null;
+                    document.getElementById('sessionTitle').textContent = 'Select or create a session';
+                    document.getElementById('chatMessages').innerHTML = `<div class="chat-msg-ai">
+                        <div class="chat-bubble-ai">Session deleted. Create a new one!</div>
+                        <div class="chat-meta">SupremeAI &bull; ${new Date().toLocaleTimeString()}</div></div>`;
+                }
+                await loadSessions();
+            } catch (e) {
+                alert('Delete failed: ' + e.message);
+            }
+        }
+
+        // ── Message sending ────────────────────────────────────────────────────
 
         function appendChatMessage(sender, content, agentId, timestamp) {
             const box = document.getElementById('chatMessages');
@@ -3411,24 +4825,39 @@
         }
 
         async function sendChatMessage() {
-            const input = document.getElementById('chatInput');
+            const input    = document.getElementById('chatInput');
             const taskType = document.getElementById('chatTaskType').value;
             const userMessage = input.value.trim();
             if (!userMessage) return;
-
             input.value = '';
+
+            // If no session yet → auto-create one
+            if (!_currentSessionId) {
+                const res = await fetch('/api/admin-chat/sessions', {
+                    method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: 'Chat ' + new Date().toLocaleTimeString() })
+                });
+                const s = await res.json();
+                _currentSessionId = s.id;
+                document.getElementById('sessionTitle').textContent = '💬 ' + s.title;
+                loadSessions();
+            }
+
             appendChatMessage('user', userMessage, null, null);
             document.getElementById('chatTypingIndicator').style.display = 'block';
 
             try {
-                const res = await fetch('/api/chat/send', {
-                    method: 'POST',
-                    headers: getAuthHeaders(),
+                const res = await fetch('/api/admin-chat/sessions/' + _currentSessionId + '/send', {
+                    method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
                     body: JSON.stringify({ userMessage, taskType, metadata: {} })
                 });
-                const d = await res.json();
+                const sess = await res.json();
                 document.getElementById('chatTypingIndicator').style.display = 'none';
-                appendChatMessage('ai', d.content || d.message || JSON.stringify(d), d.agentId, d.timestamp);
+                // Render only the last AI message (already appended user msg above)
+                const msgs = sess.messages || [];
+                const lastAI = [...msgs].reverse().find(m => m.sender === 'ai');
+                if (lastAI) appendChatMessage('ai', lastAI.content, lastAI.agentId, lastAI.time);
+                else        appendChatMessage('ai', sess.content || JSON.stringify(sess), 'SupremeAI', null);
             } catch(e) {
                 document.getElementById('chatTypingIndicator').style.display = 'none';
                 appendChatMessage('ai', '❌ Error: ' + e.message, 'SupremeAI', null);
@@ -3442,6 +4871,146 @@
                     <div class="chat-meta">SupremeAI &bull; ${new Date().toLocaleTimeString()}</div>
                 </div>`;
         }
+
+        // ── Project Chat ───────────────────────────────────────────────────────
+
+        async function createProjectSession() {
+            const projectId = document.getElementById('projChatProjectId').value.trim();
+            const title     = document.getElementById('projChatTitle').value.trim() || 'Project Chat';
+            const msg       = document.getElementById('projChatMsg');
+            if (!projectId) { msg.innerHTML='<span style="color:#f56565;">Project ID is required.</span>'; return; }
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Creating…</span>';
+            try {
+                const res = await fetch('/api/admin-chat/project/' + encodeURIComponent(projectId) + '/session', {
+                    method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title })
+                });
+                const s = await res.json();
+                msg.innerHTML = `<span style="color:#48bb78;">✅ Session created: ${escHtml(s.title)}</span>`;
+                loadProjectSessions();
+                // Switch to session mode and open it
+                switchChatMode('session');
+                await openSession(s.id);
+            } catch (e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        async function loadProjectSessions() {
+            const projectId = document.getElementById('projChatProjectId')?.value.trim();
+            const el = document.getElementById('projChatSessions');
+            if (!el) return;
+            if (!projectId) { el.innerHTML = ''; return; }
+            try {
+                const res  = await fetch('/api/admin-chat/sessions?projectId=' + encodeURIComponent(projectId), { headers: getAuthHeaders() });
+                const data = await res.json();
+                const sessions = data.sessions || [];
+                if (!sessions.length) { el.innerHTML = '<em style="color:#718096;">No sessions for this project.</em>'; return; }
+                el.innerHTML = sessions.map(s => `
+                    <div style="border:1px solid #2d3748;border-radius:6px;padding:10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+                        <span style="color:#e2e8f0;">${escHtml(s.title)}</span>
+                        <div style="display:flex;gap:6px;">
+                            <button class="btn btn-secondary" style="font-size:12px;"
+                                onclick="switchChatMode('session');openSession('${escHtml(s.id)}')">Open</button>
+                            <button class="btn btn-danger" style="font-size:12px;"
+                                onclick="deleteChatSession('${escHtml(s.id)}')">Delete</button>
+                        </div>
+                    </div>`).join('');
+            } catch(e) {
+                el.innerHTML = `<em style="color:#f56565;">${e.message}</em>`;
+            }
+        }
+
+        // ── Admin Rules ────────────────────────────────────────────────────────
+
+        async function loadAdminRules() {
+            const el = document.getElementById('rulesContainer');
+            el.innerHTML = '<em style="color:#718096;">Loading…</em>';
+            try {
+                const res  = await fetch('/api/admin-chat/rules', { headers: getAuthHeaders() });
+                const data = await res.json();
+                const rules = data.rules || [];
+                if (!rules.length) { el.innerHTML = '<em style="color:#718096;">No rules yet.</em>'; return; }
+                el.innerHTML = rules.map(r => `
+                    <div style="border:1px solid ${r.enabled?'#2d3748':'#4a5568'};border-radius:8px;padding:14px;margin-bottom:10px;
+                                background:${r.enabled?'#1a202c':'rgba(26,32,44,0.4)'};">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                            <div>
+                                <strong style="color:#e2e8f0;">${escHtml(r.title)}</strong>
+                                <span style="background:#2d3748;color:#a0aec0;border-radius:4px;padding:2px 8px;font-size:11px;margin-left:8px;">${escHtml(r.category)}</span>
+                                ${!r.enabled?'<span style="color:#718096;font-size:11px;margin-left:6px;">(disabled)</span>':''}
+                            </div>
+                            <div style="display:flex;gap:6px;">
+                                <button onclick="toggleRule('${escHtml(r.id)}',${!r.enabled})"
+                                    class="btn btn-secondary" style="font-size:11px;padding:3px 8px;">
+                                    ${r.enabled?'Disable':'Enable'}
+                                </button>
+                                <button onclick="deleteAdminRule('${escHtml(r.id)}')"
+                                    style="background:#f56565;border:none;color:#fff;border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer;">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                        <div style="color:#a0aec0;font-size:13px;white-space:pre-wrap;">${escHtml(r.ruleText)}</div>
+                        <div style="color:#718096;font-size:11px;margin-top:6px;">Created: ${escHtml(r.createdAt||'')}</div>
+                    </div>`).join('');
+            } catch (e) {
+                el.innerHTML = `<em style="color:#f56565;">${e.message}</em>`;
+            }
+        }
+
+        async function saveAdminRule() {
+            const title    = document.getElementById('ruleTitle').value.trim();
+            const ruleText = document.getElementById('ruleText').value.trim();
+            const category = document.getElementById('ruleCategory').value;
+            const msg      = document.getElementById('ruleMsg');
+            if (!title || !ruleText) { msg.innerHTML='<span style="color:#f56565;">Title and Rule Text are required.</span>'; return; }
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Saving…</span>';
+            try {
+                await fetch('/api/admin-chat/rules', {
+                    method: 'POST', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, ruleText, category })
+                });
+                msg.innerHTML = '<span style="color:#48bb78;">✅ Rule saved!</span>';
+                document.getElementById('ruleTitle').value = '';
+                document.getElementById('ruleText').value  = '';
+                await loadAdminRules();
+            } catch (e) {
+                msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        async function toggleRule(id, enabled) {
+            try {
+                await fetch('/api/admin-chat/rules/' + id, {
+                    method: 'PATCH', headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled })
+                });
+                await loadAdminRules();
+            } catch (e) { alert('Failed: ' + e.message); }
+        }
+
+        async function deleteAdminRule(id) {
+            if (!confirm('Delete this rule?')) return;
+            try {
+                await fetch('/api/admin-chat/rules/' + id, {
+                    method: 'DELETE', headers: getAuthHeaders()
+                });
+                await loadAdminRules();
+            } catch (e) { alert('Failed: ' + e.message); }
+        }
+
+        async function previewRulesPrompt() {
+            const previewEl = document.getElementById('rulesPromptPreview');
+            try {
+                const res  = await fetch('/api/admin-chat/rules/prompt', { headers: getAuthHeaders() });
+                const data = await res.json();
+                previewEl.style.display = 'block';
+                previewEl.textContent = data.prompt || '(No active rules — prompt is empty)';
+            } catch (e) { previewEl.textContent = 'Error: ' + e.message; }
+        }
+
+        // ── Load on showSection ────────────────────────────────────────────────
 
         // =============================================
         // SETTINGS
@@ -3772,37 +5341,46 @@
         }
 
         async function createGitProject() {
-            const projectId = document.getElementById('gitProjectId').value.trim();
+            const projectId   = document.getElementById('gitProjectId').value.trim();
             const templateType = document.getElementById('gitProjectTemplate').value;
             const description = document.getElementById('gitTask').value.trim();
-            const gitUrl = document.getElementById('gitUrl').value.trim();
+            const repoUrl     = document.getElementById('gitUrl').value.trim();
+            const repoBranch  = document.getElementById('gitBranchInput').value.trim() || 'main';
+            const repoToken   = document.getElementById('gitRepoToken').value.trim();
             const msg = document.getElementById('gitProjectModalMsg');
 
             if (!projectId || !description) {
                 msg.innerHTML = '<span style="color:#f56565;">Project ID and task description are required.</span>';
                 return;
             }
+            if (!repoUrl) {
+                msg.innerHTML = '<span style="color:#f56565;">⚠️ GitHub Repo URL is required. Please create a dedicated empty GitHub repo for this project first, then paste its URL here. Generated code must not go into the main SupremeAI repo.</span>';
+                return;
+            }
 
-            const features = gitUrl ? [`Repository: ${gitUrl}`] : [];
-
-            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Starting development...</span>';
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Generating project and pushing to repo…</span>';
             try {
                 const res = await fetch('/api/projects/generate', {
                     method: 'POST',
                     headers: getAuthHeaders(),
-                    body: JSON.stringify({ projectId, templateType, description, features })
+                    body: JSON.stringify({ projectId, templateType, description, features: [], repoUrl, repoBranch, repoToken })
                 });
                 const data = await res.json();
-                if (data.status === 'success' || data.projectId) {
-                    msg.innerHTML = `<span style="color:#48bb78;">✅ Project "${data.projectId || projectId}" started! Mode: ${data.status || 'GENERATING'}</span>`;
+                const proj = data.project || data;
+                if (data.status === 'success' || proj.projectId) {
+                    const pushInfo = proj.pushed === true
+                        ? ` ✅ Pushed to <a href="${escHtml(proj.repoUrl)}" target="_blank" style="color:#63b3ed;">${escHtml(proj.repoUrl)}</a>`
+                        : ` ⚠️ Push failed — check your token and that the repo exists.`;
+                    msg.innerHTML = `<span style="color:#48bb78;">✅ Project "${escHtml(proj.projectId || projectId)}" started! Mode: ${escHtml(proj.status || 'GENERATING')}${pushInfo}</span>`;
                     document.getElementById('gitProjectId').value = '';
                     document.getElementById('gitUrl').value = '';
+                    document.getElementById('gitRepoToken').value = '';
                     document.getElementById('gitTask').value = '';
                     const mainMsg = document.getElementById('gitProjectMsg');
-                    if (mainMsg) mainMsg.innerHTML = `<span style="color:#48bb78;">✅ Latest: "${data.projectId || projectId}" — ${new Date().toLocaleTimeString()}</span>`;
+                    if (mainMsg) mainMsg.innerHTML = `<span style="color:#48bb78;">✅ Latest: "${escHtml(proj.projectId || projectId)}" — ${new Date().toLocaleTimeString()}</span>`;
                     loadGitLogs();
                 } else {
-                    msg.innerHTML = `<span style="color:#f56565;">❌ ${data.message || data.error || 'Failed'}</span>`;
+                    msg.innerHTML = `<span style="color:#f56565;">❌ ${escHtml(data.message || data.error || 'Failed')}</span>`;
                 }
             } catch (e) {
                 msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;

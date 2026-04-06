@@ -74,4 +74,40 @@ public class IdleResearchController {
     public ResponseEntity<?> getHistory() {
         return ResponseEntity.ok(researchService.getResearchHistory());
     }
+
+    /**
+     * POST /api/research/enable - Admin enables the auto-learning system
+     */
+    @PostMapping("/enable")
+    public ResponseEntity<Map<String, Object>> enableLearning() {
+        researchService.enableLearning();
+        logger.info("✅ Auto-learning system enabled via admin API");
+        return ResponseEntity.ok(Map.of(
+            "status", "enabled",
+            "learningEnabled", true,
+            "message", "Auto-learning system is now ACTIVE. It will begin when the system has been idle for 1 hour."
+        ));
+    }
+
+    /**
+     * POST /api/research/disable - Admin disables the auto-learning system
+     */
+    @PostMapping("/disable")
+    public ResponseEntity<Map<String, Object>> disableLearning() {
+        researchService.disableLearning();
+        logger.info("🛑 Auto-learning system disabled via admin API");
+        return ResponseEntity.ok(Map.of(
+            "status", "disabled",
+            "learningEnabled", false,
+            "message", "Auto-learning system is now PAUSED. No automatic research will run."
+        ));
+    }
+
+    /**
+     * GET /api/research/quota - Firebase free-tier quota usage
+     */
+    @GetMapping("/quota")
+    public ResponseEntity<Map<String, Object>> getFirebaseQuota() {
+        return ResponseEntity.ok(researchService.getFirebaseQuotaStatus());
+    }
 }

@@ -86,20 +86,20 @@ public class CICDPipelineService {
             return result;
         }
         
-        // Stage 6: Deploy
+        // Stage 6: Deploy — any failure is a full FAILED (no partial success)
         StageResult deployResult = executeDeploymentStage(config);
         result.stages.add(deployResult);
-        
+
         if (!deployResult.success) {
-            result.overallStatus = "PARTIAL_SUCCESS";
+            result.overallStatus = "FAILED";
             result.failedStage = "DEPLOYMENT";
         } else {
             result.overallStatus = "SUCCESS";
         }
-        
+
         result.endTime = System.currentTimeMillis();
         result.duration = result.endTime - result.startTime;
-        
+
         return result;
     }
     
@@ -321,7 +321,7 @@ public class CICDPipelineService {
     
     public static class PipelineExecutionResult {
         public String pipelineId;
-        public String overallStatus;  // SUCCESS, FAILED, PARTIAL_SUCCESS
+        public String overallStatus;  // SUCCESS, FAILED (no partial — deployment is atomic)
         public String failedStage;
         public List<StageResult> stages = new ArrayList<>();
         public long startTime;

@@ -5,8 +5,18 @@ import org.example.service.TemplateManager;
 import org.example.service.AgentOrchestrator;
 import org.example.service.IdleResearchService;
 import org.example.service.PublicAIRouter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -39,6 +49,8 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "*")
 public class ProjectGenerationController {
     
+    private static final Logger logger = LoggerFactory.getLogger(ProjectGenerationController.class);
+
     private final FileOrchestrator fileOrchestrator;
     private final TemplateManager templateManager;
     private final AgentOrchestrator agentOrchestrator;
@@ -104,17 +116,65 @@ public class ProjectGenerationController {
     @PostMapping("/generate")
     public Map<String, Object> generateProject(@RequestBody Map<String, Object> request) {
         long startTime = System.currentTimeMillis();
-        
+
         // Notify idle research engine the system is working
         if (idleResearchService != null) {
             idleResearchService.notifyProjectActivity();
         }
-        
-        String projectId = (String) request.getOrDefault("projectId", generateProjectId());
+
+        String projectId  = (String) request.getOrDefault("projectId", generateProjectId());
         String templateType = (String) request.getOrDefault("templateType", "REACT");
-        String description = (String) request.getOrDefault("description", "");
+        String description  = (String) request.getOrDefault("description", "");
         List<String> features = (List<String>) request.getOrDefault("features", new ArrayList<>());
-        
+
+        // repoUrl is MANDATORY — generated code must never go into the main SupremeAI repo
+        String repoUrl    = (String) request.getOrDefault("repoUrl", "");
+        String repoToken  = (String) request.getOrDefault("repoToken", "");
+        String repoBranch = (String) request.getOrDefault("repoBranch", "main");
+
+        // ── Input validation ──────────────────────────────────────────────────
+        // Reject blank repoUrl — every project needs its own dedicated GitHub repo
+        if (repoUrl == null || repoUrl.isBlank()) {
+            return Map.of(
+                "status", "error",
+                "message", "repoUrl is required. Please create a dedicated GitHub repo for this project and provide its HTTPS URL. Generated code must not be placed in the main SupremeAI repository.",
+                "timestamp", LocalDateTime.now().format(formatter)
+            );
+        }
+        if (!isValidRepoUrl(repoUrl)) {
+            return Map.of(
+                "status", "error",
+                "message", "Invalid repoUrl format. Use: https://github.com/your-org/your-repo",
+                "timestamp", LocalDateTime.now().format(formatter)
+            );
+        }
+        // Validate branch name — only safe chars allowed
+        if (repoBranch == null || repoBranch.isBlank()) {
+            repoBranch = "main";
+        } else if (!repoBranch.matches("^[a-zA-Z0-9._/-]{1,100}$")) {
+            return Map.of(
+                "status", "error",
+                "message", "Invalid branch name. Use only letters, digits, dots, hyphens, underscores, or slashes.",
+                "timestamp", LocalDateTime.now().format(formatter)
+            );
+        }
+        // Validate projectId — prevent path traversal
+        if (projectId == null || !projectId.matches("^[a-zA-Z0-9._-]{1,80}$")) {
+            return Map.of(
+                "status", "error",
+                "message", "Invalid projectId. Use only letters, digits, dots, hyphens, or underscores (max 80 chars).",
+                "timestamp", LocalDateTime.now().format(formatter)
+            );
+        }
+        // Validate token chars to prevent URL injection
+        if (repoToken != null && !repoToken.isBlank() && !repoToken.matches("^[a-zA-Z0-9_\\-]+$")) {
+            return Map.of(
+                "status", "error",
+                "message", "Invalid token format.",
+                "timestamp", LocalDateTime.now().format(formatter)
+            );
+        }
+
         Map<String, Object> projectStatus = new HashMap<>();
         projectStatus.put("projectId", projectId);
         projectStatus.put("templateType", templateType);
@@ -125,41 +185,45 @@ public class ProjectGenerationController {
         projectStatus.put("createdAt", LocalDateTime.now().format(formatter));
         projectStatus.put("fileCount", 0);
         projectStatus.put("errorCount", 0);
-        
+
         // Initialize project
         try {
             fileOrchestrator.createProjectStructure(projectId);
             templateManager.initializeProject(projectId, templateType);
-            
-            // Update progress
+
             projectStatus.put("progress", 30);
             projectStatus.put("status", "TEMPLATE_INITIALIZED");
-            
-            // Simulate code generation (in production, would use AIAPIService)
+
             generateProjectFiles(projectId, templateType, features);
-            
-            projectStatus.put("progress", 100);
-            projectStatus.put("status", "COMPLETED");
+
+            projectStatus.put("progress", 70);
             projectStatus.put("completedAt", LocalDateTime.now().format(formatter));
             projectStatus.put("generationTime", System.currentTimeMillis() - startTime + "ms");
-            
-            // Count files
             projectStatus.put("fileCount", fileOrchestrator.getFileCount(projectId));
-            
-            // Store status
+
+            // Push generated files to the admin-supplied dedicated repo
+            boolean pushed = pushGeneratedFilesToRepo(
+                    fileOrchestrator.getProjectDirectory(projectId),
+                    repoUrl, repoToken, repoBranch, projectId);
+            projectStatus.put("repoUrl", repoUrl);
+            projectStatus.put("repoBranch", repoBranch);
+            projectStatus.put("pushed", pushed);
+            projectStatus.put("status", pushed ? "PUSHED_TO_REPO" : "PUSH_FAILED");
+            projectStatus.put("progress", 100);
+
             projectStatuses.put(projectId, projectStatus);
-            
+
         } catch (Exception e) {
             projectStatus.put("status", "FAILED");
             projectStatus.put("error", e.getMessage());
             projectStatus.put("errorCount", 1);
         }
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
         response.put("project", projectStatus);
         response.put("message", "Project generation initiated");
-        
+
         return response;
     }
     
@@ -558,5 +622,135 @@ public class ProjectGenerationController {
         controller.append("}\n");
         
         fileOrchestrator.writeFile(projectId, "src/main/java/com/example/controller/FeaturesController.java", controller.toString());
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // REPO PUSH HELPERS
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Validate that the URL is a valid HTTPS git host URL.
+     * Strictly separates protocol, hostname, and path to prevent injection.
+     * Hostname must not have consecutive dots or hyphens.
+     * Path segments may not be empty or consist only of dots (blocks traversal).
+     * Pattern: https://<host>/<path> where host has no slashes.
+     */
+    private boolean isValidRepoUrl(String url) {
+        if (url == null) return false;
+        // Hostname: segments of [a-zA-Z0-9] joined by single dots or hyphens; no consecutive specials
+        // Path: one or more segments that are NOT purely dots (prevents `..` traversal)
+        return url.matches(
+            "^https://[a-zA-Z0-9]+([.\\-][a-zA-Z0-9]+)*(:[0-9]{1,5})?/[a-zA-Z0-9][a-zA-Z0-9._/\\-]*(\\.[gG][iI][tT])?$")
+            && !url.contains("/..")
+            && !url.contains("../");
+    }
+
+    /**
+     * Clone the target repo, copy generated files in, then commit & push.
+     * The authenticated clone URL is never written to logs.
+     */
+    private boolean pushGeneratedFilesToRepo(Path sourceDir, String repoUrl,
+                                             String repoToken, String branch,
+                                             String commitMsg) {
+        // Sanitize branch: only safe git ref characters allowed (no shell metacharacters)
+        if (branch == null || !branch.matches("[a-zA-Z0-9._/\\-]+") || branch.contains("..")) {
+            logger.warn("⚠️ pushGeneratedFilesToRepo: invalid branch name rejected: {}", branch);
+            return false;
+        }
+        Path cloneDir = Paths.get(System.getProperty("java.io.tmpdir"),
+                "supremeai-push-" + System.currentTimeMillis());
+        try {
+            Files.createDirectories(cloneDir);
+
+            // Build authenticated clone URL — token is already validated to [a-zA-Z0-9_\-]+
+            String cloneUrl = repoUrl;
+            if (repoToken != null && !repoToken.isBlank()) {
+                cloneUrl = repoUrl.replace("https://", "https://" + repoToken + "@");
+            }
+
+            // 1. Clone target repo (shallow) — log only the public URL, never the authenticated one
+            logger.info("🔄 Cloning {} (branch: {})", repoUrl, branch);
+            int cloneExit = runGit(cloneDir.getParent().toFile(),
+                    "git", "clone", "--branch", branch, "--depth", "1",
+                    cloneUrl, cloneDir.toString());
+            if (cloneExit != 0) {
+                logger.warn("⚠️ pushGeneratedFilesToRepo: clone failed for {}", repoUrl);
+                return false;
+            }
+
+            // 2. Copy generated files into cloned repo (skip .git)
+            copyDirectory(sourceDir, cloneDir);
+
+            // 3. Stage, commit, push
+            runGit(cloneDir.toFile(), "git", "add", "-A");
+            int commitExit = runGit(cloneDir.toFile(), "git", "commit", "-m",
+                    "SupremeAI: generated " + commitMsg,
+                    "--author=SupremeAI <supremeai@noreply>");
+            if (commitExit != 0) {
+                logger.info("ℹ️ Nothing to commit for repo push of {}", commitMsg);
+                return false;
+            }
+            int pushExit = runGit(cloneDir.toFile(), "git", "push", "origin", branch);
+            boolean ok = pushExit == 0;
+            logger.info("{} push generated files to {}/{}", ok ? "✅" : "❌", repoUrl, branch);
+            return ok;
+
+        } catch (Exception e) {
+            logger.error("❌ pushGeneratedFilesToRepo error: {}", e.getMessage());
+            return false;
+        } finally {
+            deleteQuietly(cloneDir);
+        }
+    }
+
+    /** Recursively copy {@code src} directory into {@code dest}, skipping .git. */
+    private void copyDirectory(Path src, Path dest) throws IOException {
+        try (var stream = Files.walk(src)) {
+            stream.forEach(source -> {
+                try {
+                    Path relative = src.relativize(source);
+                    // Skip .git directory at any depth in the tree (not just root),
+                    // and handle this cross-platform by comparing individual components.
+                    for (int i = 0; i < relative.getNameCount(); i++) {
+                        if (".git".equals(relative.getName(i).toString())) return;
+                    }
+                    Path target = dest.resolve(relative).normalize();
+                    // Guard: ensure resolved path is still inside dest (no traversal)
+                    if (!target.startsWith(dest)) {
+                        logger.warn("copyDirectory: skipping path outside dest: {}", target);
+                        return;
+                    }
+                    if (Files.isDirectory(source)) {
+                        Files.createDirectories(target);
+                    } else {
+                        Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+                    }
+                } catch (IOException e) {
+                    logger.warn("copy skipped {}: {}", source, e.getMessage());
+                }
+            });
+        }
+    }
+
+    /** Run a git command; returns process exit code. */
+    private int runGit(File workDir, String... command) throws IOException, InterruptedException {
+        ProcessBuilder pb = new ProcessBuilder(command);
+        pb.directory(workDir);
+        pb.redirectErrorStream(true);
+        Process proc = pb.start();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(proc.getInputStream()))) {
+            br.lines().forEach(line -> logger.debug("[git] {}", line));
+        }
+        return proc.waitFor();
+    }
+
+    /** Best-effort recursive delete of a temporary directory. */
+    private void deleteQuietly(Path dir) {
+        try {
+            if (!Files.exists(dir)) return;
+            Files.walk(dir)
+                 .sorted(Comparator.reverseOrder())
+                 .forEach(p -> { try { Files.delete(p); } catch (IOException ignored) {} });
+        } catch (IOException ignored) {}
     }
 }

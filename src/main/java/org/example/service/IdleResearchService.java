@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -55,11 +55,27 @@ public class IdleResearchService {
     private final AtomicLong lastResearchCycle = new AtomicLong(0);
     private final AtomicLong totalResearchCount = new AtomicLong(0);
 
-    /** Idle threshold: system must be idle for 2 minutes before research starts */
-    private static final long IDLE_THRESHOLD_MS = 2 * 60 * 1000;
+    /**
+     * Admin-controlled toggle: when false the scheduled idle research will not run.
+     * Defaults to true so learning starts immediately after the next push.
+     */
+    private final AtomicBoolean learningEnabled = new AtomicBoolean(true);
+
+    /** Idle threshold: system must be idle for 1 hour before research starts */
+    private static final long IDLE_THRESHOLD_MS = 60 * 60 * 1000;
 
     /** Minimum gap between research cycles: 5 minutes */
     private static final long RESEARCH_COOLDOWN_MS = 5 * 60 * 1000;
+
+    // --- Firebase quota tracking (free-tier guard) ---
+    /** Firebase free tier daily write limit (conservative safe ceiling). */
+    private static final long FIREBASE_DAILY_WRITE_LIMIT = 18_000;
+    /** Firebase free tier daily read limit (conservative safe ceiling). */
+    private static final long FIREBASE_DAILY_READ_LIMIT = 50_000;
+
+    private final AtomicLong firebaseWriteCount = new AtomicLong(0);
+    private final AtomicLong firebaseReadCount  = new AtomicLong(0);
+    private volatile long quotaWindowStartMs = System.currentTimeMillis();
 
     /** Max topics per research cycle */
     private static final int MAX_TOPICS_PER_CYCLE = 3;
@@ -160,8 +176,70 @@ public class IdleResearchService {
     private final Map<String, Integer> domainQuestionIndex = new ConcurrentHashMap<>();
 
     // ─────────────────────────────────────────────────
+    // STARTUP — Trigger learning immediately on first deploy
+    // ─────────────────────────────────────────────────
+
+    /**
+     * On startup, reset the idle timer so the system starts learning
+     * immediately on the next scheduled check (since the project was idle
+     * for a long time before this push).
+     */
+    @PostConstruct
+    public void onStartup() {
+        // Set lastProjectActivity far in the past so the first check sees the system as idle
+        lastProjectActivity.set(System.currentTimeMillis() - IDLE_THRESHOLD_MS - 1000);
+        logger.info("🚀 IdleResearchService started — learning will begin on first idle check (learningEnabled={})",
+                learningEnabled.get());
+    }
+
+    // ─────────────────────────────────────────────────
     // PUBLIC API — Called by other services
     // ─────────────────────────────────────────────────
+
+    /**
+     * Enable the auto-learning system (admin action).
+     */
+    public void enableLearning() {
+        learningEnabled.set(true);
+        logger.info("✅ Auto-learning system ENABLED by admin");
+    }
+
+    /**
+     * Disable the auto-learning system (admin action).
+     */
+    public void disableLearning() {
+        learningEnabled.set(false);
+        logger.info("🛑 Auto-learning system DISABLED by admin");
+    }
+
+    /**
+     * Whether auto-learning is currently enabled.
+     */
+    public boolean isLearningEnabled() {
+        return learningEnabled.get();
+    }
+
+    /**
+     * Return current Firebase quota usage for the rolling 24-hour window.
+     */
+    public Map<String, Object> getFirebaseQuotaStatus() {
+        maybeResetQuotaWindow();
+        Map<String, Object> quota = new LinkedHashMap<>();
+        long writes = firebaseWriteCount.get();
+        long reads  = firebaseReadCount.get();
+        quota.put("dailyWriteCount",  writes);
+        quota.put("dailyReadCount",   reads);
+        quota.put("dailyWriteLimit",  FIREBASE_DAILY_WRITE_LIMIT);
+        quota.put("dailyReadLimit",   FIREBASE_DAILY_READ_LIMIT);
+        quota.put("writeUsagePct",    Math.round(writes * 100.0 / FIREBASE_DAILY_WRITE_LIMIT));
+        quota.put("readUsagePct",     Math.round(reads  * 100.0 / FIREBASE_DAILY_READ_LIMIT));
+        quota.put("writesRemaining",  Math.max(0, FIREBASE_DAILY_WRITE_LIMIT - writes));
+        quota.put("readsRemaining",   Math.max(0, FIREBASE_DAILY_READ_LIMIT  - reads));
+        quota.put("withinSafeLimit",  isWithinFirebaseQuota());
+        quota.put("windowStartMs",    quotaWindowStartMs);
+        quota.put("windowResetIn",    "24h window — resets at " + new Date(quotaWindowStartMs + 86_400_000));
+        return quota;
+    }
 
     /**
      * Notify the engine that a project/generation task is active.
@@ -201,6 +279,7 @@ public class IdleResearchService {
      */
     public Map<String, Object> getResearchStats() {
         Map<String, Object> stats = new LinkedHashMap<>();
+        stats.put("learningEnabled", learningEnabled.get());
         stats.put("isIdle", isSystemIdle());
         stats.put("researchActive", researchActive.get());
         stats.put("totalResearchCompleted", totalResearchCount.get());
@@ -210,6 +289,7 @@ public class IdleResearchService {
         stats.put("idleForMs", System.currentTimeMillis() - lastProjectActivity.get());
         stats.put("idleThresholdMs", IDLE_THRESHOLD_MS);
         stats.put("researchCooldownMs", RESEARCH_COOLDOWN_MS);
+        stats.put("firebaseQuota", getFirebaseQuotaStatus());
 
         // Domain coverage
         Map<String, Long> domainCoverage = researchHistory.stream()
@@ -242,9 +322,14 @@ public class IdleResearchService {
     /**
      * Every 60 seconds, check if system is idle → start research.
      */
-    @Scheduled(fixedDelay = 60000, initialDelay = 120000)
+    @Scheduled(fixedDelay = 60000, initialDelay = 60000)
     public void checkIdleAndResearch() {
         try {
+            // Respect admin toggle
+            if (!learningEnabled.get()) {
+                return;
+            }
+
             // Don't research if admin set FORCE_STOP
             if (adminControlService.getPermissionMode().name().equals("FORCE_STOP")) {
                 return;
@@ -254,13 +339,19 @@ public class IdleResearchService {
                 return;
             }
 
+            // Guard Firebase free quota
+            if (!isWithinFirebaseQuota()) {
+                logger.warn("⚠️ Firebase free-tier quota nearly exhausted — skipping research cycle");
+                return;
+            }
+
             // Cooldown between cycles
             long timeSinceLastResearch = System.currentTimeMillis() - lastResearchCycle.get();
             if (timeSinceLastResearch < RESEARCH_COOLDOWN_MS) {
                 return;
             }
 
-            logger.info("💤 System idle detected — starting autonomous research cycle");
+            logger.info("💤 System idle for ≥1 h — starting autonomous research cycle");
             executeResearchCycle("IDLE_SCAN");
 
         } catch (Exception e) {
@@ -421,6 +512,8 @@ public class IdleResearchService {
                 long count = learningService.getTechniques(domain).size()
                            + learningService.getSolutionsFor(domain).size();
                 domainCounts.put(domain, count);
+                // Each getTechniques / getSolutionsFor is a Firebase read
+                firebaseReadCount.addAndGet(2);
             }
 
             // Find the domain with least knowledge
@@ -554,6 +647,8 @@ public class IdleResearchService {
                 topic.getConfidenceScore() != null ? topic.getConfidenceScore() : 0.7,
                 context
             );
+            // Each write to the learning system counts as one Firebase write
+            firebaseWriteCount.incrementAndGet();
 
             // Also record as a pattern for each actionable insight
             for (String insight : topic.getActionableInsights()) {
@@ -562,6 +657,7 @@ public class IdleResearchService {
                     truncate(insight, 300),
                     "Discovered during idle research on: " + topic.getQuestion()
                 );
+                firebaseWriteCount.incrementAndGet();
             }
 
             logger.info("📚 Integrated research [{}] into learning system: {} insights",
@@ -602,6 +698,27 @@ public class IdleResearchService {
         return idleTime >= IDLE_THRESHOLD_MS;
     }
 
+    /** Reset quota counters if 24 hours have passed since the window start. */
+    private void maybeResetQuotaWindow() {
+        long now = System.currentTimeMillis();
+        if (now - quotaWindowStartMs >= 86_400_000L) {
+            firebaseWriteCount.set(0);
+            firebaseReadCount.set(0);
+            quotaWindowStartMs = now;
+            logger.info("🔄 Firebase quota counters reset for new 24-hour window");
+        }
+    }
+
+    /**
+     * Returns true when both read and write counts are well below the free-tier limit.
+     * Stops learning at 80 % of the limit to leave headroom for normal app operations.
+     */
+    private boolean isWithinFirebaseQuota() {
+        maybeResetQuotaWindow();
+        return firebaseWriteCount.get() < (FIREBASE_DAILY_WRITE_LIMIT * 0.8)
+            && firebaseReadCount.get()  < (FIREBASE_DAILY_READ_LIMIT  * 0.8);
+    }
+
     private void addToHistory(ResearchTopic topic) {
         researchHistory.add(topic);
         // Trim history
@@ -617,6 +734,8 @@ public class IdleResearchService {
                 firebaseService.getDatabase()
                     .getReference("system/idle_research/" + key)
                     .setValueAsync(report);
+                // Count this as one write operation
+                firebaseWriteCount.incrementAndGet();
             }
         } catch (Exception e) {
             logger.debug("Could not persist research cycle to Firebase: {}", e.getMessage());

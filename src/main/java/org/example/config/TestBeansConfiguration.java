@@ -51,7 +51,8 @@ public class TestBeansConfiguration {
      * Provide AIAPIService bean for dependency injection
      */
     @Bean
-    public AIAPIService aiAPIService(org.example.service.ProviderRegistryService providerRegistryService) {
+    public AIAPIService aiAPIService(org.example.service.ProviderRegistryService providerRegistryService,
+                                    org.example.service.FallbackConfigService fallbackConfigService) {
         Map<String, String> keys = new HashMap<>();
         putIfPresent(keys, "GPT4", "OPENAI_API_KEY", "GPT4_API_KEY");
         putIfPresent(keys, "CLAUDE", "ANTHROPIC_API_KEY", "CLAUDE_API_KEY");
@@ -79,6 +80,7 @@ public class TestBeansConfiguration {
             aiCacheMaxSize
         );
         service.setProviderRegistryService(providerRegistryService);
+        service.setFallbackConfigService(fallbackConfigService);
 
         String airllmEndpoint = getConfigValue("AIRLLM_ENDPOINT");
         if (airllmEndpoint != null && !airllmEndpoint.isBlank()) {
