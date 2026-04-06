@@ -3879,10 +3879,17 @@
                 return;
             }
 
-            fetch('/api/v1/requirements')
-                .then(r => r.json())
+            fetch('/api/v1/requirements', {
+                    headers: (function() {
+                        const t = localStorage.getItem('supremeai_token');
+                        return t ? { 'Authorization': 'Bearer ' + t } : {};
+                    })()
+                })
+                .then(r => r.ok ? r.json() : [])
                 .then(reqs => {
-                    document.getElementById('pendingCount').innerText = reqs.filter(r => r.status === 'PENDING').length;
+                    if (Array.isArray(reqs)) {
+                        document.getElementById('pendingCount').innerText = reqs.filter(r => r.status === 'PENDING').length;
+                    }
                 }).catch(() => {});
 
             loadConfiguredProviders();

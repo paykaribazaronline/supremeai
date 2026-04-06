@@ -17,7 +17,7 @@ import java.util.*;
  */
 @RestController
 @RequestMapping("/api/validation")
-@CrossOrigin(origins = "http://localhost:8001")
+@CrossOrigin(origins = "*")
 public class CodeValidationController {
 
     @Autowired

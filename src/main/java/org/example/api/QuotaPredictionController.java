@@ -25,8 +25,8 @@ import java.util.*;
  * - GET /api/quota/analytics - Quota usage analytics
  */
 @RestController
-@RequestMapping("/api/quota")
-@CrossOrigin(origins = "http://localhost:8001")
+@RequestMapping("/api/quota/prediction")
+@CrossOrigin(origins = "*")
 public class QuotaPredictionController {
     
     private final QuotaTracker quotaTracker;
