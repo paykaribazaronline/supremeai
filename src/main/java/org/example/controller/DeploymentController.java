@@ -72,6 +72,10 @@ public class DeploymentController {
             "runs", runs.stream().map(AtomicDeploymentService.AtomicRun::toMap).toList()
         ));
     }
+
+    /**
+     * POST /configure
+     * Create a deployment configuration
      */
     @PostMapping("/configure")
     public ResponseEntity<Map<String, Object>> createDeploymentConfig(

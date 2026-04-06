@@ -516,6 +516,7 @@
         <div class="sidebar">
             <div class="logo">👑 SupremeAI Admin</div>
             <div class="menu-item active" onclick="showSection('dashboard')">📊 Dashboard</div>
+            <div class="menu-item" onclick="showSection('activity-summary')" id="sidebarActivityItem">📋 আজকের সারসংক্ষেপ</div>
             <div class="menu-item" onclick="showSection('system-alerts')" id="sidebarAlertsItem">🚨 System Alerts</div>
             <div class="menu-item" onclick="showSection('techniques')">🧠 Techniques</div>
             <div class="menu-item" onclick="showSection('provider-coverage')">🛰️ Provider Coverage</div>
@@ -1614,6 +1615,28 @@
                     <div id="settingsMsg" style="margin-top:10px;"></div>
                 </div>
 
+                <!-- Activity Summary Section (Last 24h) -->
+                <div id="activity-summary" class="content-section">
+                    <h1>📋 আজকের সারসংক্ষেপ — Last 24 Hours</h1>
+                    <p style="color:#a0aec0;">গত ২৪ ঘন্টায় সিস্টেম কতটুকু শিখলো, কোন প্রজেক্টে কতটুকু কাজ হলো — সবকিছুর সংক্ষিপ্ত বিবরণ।</p>
+                    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+                        <button class="btn" onclick="loadActivitySummary()">🔄 Refresh</button>
+                        <span id="activityLastRefreshed" style="color:#718096;font-size:13px;align-self:center;"></span>
+                    </div>
+
+                    <!-- KPI Cards -->
+                    <div id="activityKpiCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:28px;"></div>
+
+                    <!-- Detail Sections -->
+                    <div id="activityDetails"></div>
+
+                    <!-- Event Log -->
+                    <h2 style="margin-top:28px;">🕐 Activity Log (Last 24h)</h2>
+                    <div id="activityEventLog" style="background:#0d1117;border-radius:8px;padding:14px;max-height:320px;overflow-y:auto;font-family:monospace;font-size:12px;color:#a0aec0;">
+                        <em>Refresh to load events…</em>
+                    </div>
+                </div>
+
                 <!-- System Alerts Section -->
                 <div id="system-alerts" class="content-section">
                     <h1>🚨 System Alerts — ম্যানুয়াল অ্যাকশন দরকার</h1>
@@ -2057,6 +2080,7 @@
             if (sectionId === 'chat') focusChatInput();
             if (sectionId === 'system-alerts') loadSystemAlerts();
             if (sectionId === 'api-keys') { renderAPIKeysTable(); loadFallbackChain(); }
+            if (sectionId === 'activity-summary') loadActivitySummary();
         }
 
         function showModal(modalId) {
@@ -2838,6 +2862,190 @@
             } catch (error) {
                 tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 40px; color: #fca5a5;">${error.message}</td></tr>`;
             }
+        }
+
+        // =============================================
+        // ACTIVITY SUMMARY (Last 24h)
+        // =============================================
+
+        async function loadActivitySummary() {
+            document.getElementById('activityKpiCards').innerHTML = '<div style="color:#a0aec0;grid-column:1/-1;">⏳ Loading…</div>';
+            document.getElementById('activityDetails').innerHTML = '';
+            document.getElementById('activityEventLog').innerHTML = '<em>Loading…</em>';
+
+            try {
+                const res  = await fetch('/api/activity/summary', { headers: getAuthHeaders() });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed');
+
+                document.getElementById('activityLastRefreshed').textContent =
+                    'Last refreshed: ' + new Date().toLocaleTimeString();
+
+                renderActivityKpis(data);
+                renderActivityDetails(data);
+                renderActivityEventLog(data.recentEvents || []);
+            } catch (e) {
+                document.getElementById('activityKpiCards').innerHTML =
+                    `<div style="color:#f56565;grid-column:1/-1;">❌ ${escHtml(e.message)}</div>`;
+            }
+        }
+
+        function renderActivityKpis(data) {
+            const L = data.learning   || {};
+            const R = data.research   || {};
+            const H = data.harvest    || {};
+            const EP= data.existingProjects || {};
+            const NP= data.newProjects || {};
+            const AI= data.aiCalls    || {};
+
+            const cards = [
+                { icon:'🧠', label:'মোট জ্ঞান আইটেম',    value: L.totalKnowledgeItems ?? '—',  sub:'Total knowledge items' },
+                { icon:'✅', label:'Error সমাধান',         value: L.errorsResolved ?? '—',       sub:'Errors resolved' },
+                { icon:'🔍', label:'Pattern আবিষ্কার',     value: L.patternsFound ?? '—',        sub:'Patterns found' },
+                { icon:'📐', label:'Technique শেখা',       value: L.techniques ?? '—',           sub:'Techniques recorded' },
+                { icon:'🔬', label:'Research Cycle (24h)', value: R.cyclesLast24h ?? '—',        sub:'Research topics explored' },
+                { icon:'🌾', label:'Harvest Run (24h)',    value: H.harvestRunsLast24h ?? '—',   sub:'Data harvest events' },
+                { icon:'🔧', label:'Project উন্নতি (24h)',  value: EP.improvedLast24h ?? '—',     sub:'Existing projects improved' },
+                { icon:'📦', label:'নতুন Project (24h)',    value: NP.createdLast24h ?? '—',      sub:'New projects created' },
+                { icon:'🤖', label:'AI Call মোট',          value: AI.totalRequests ?? '—',       sub:'Total AI requests' },
+                { icon:'❗', label:'AI Error',              value: AI.totalErrors ?? '—',         sub:'AI call errors' },
+            ];
+
+            document.getElementById('activityKpiCards').innerHTML = cards.map(c => `
+                <div style="background:#1a202c;border:1px solid #2d3748;border-radius:10px;padding:16px;text-align:center;">
+                    <div style="font-size:28px;">${c.icon}</div>
+                    <div style="font-size:26px;font-weight:bold;color:#e2e8f0;margin:6px 0;">${escHtml(String(c.value))}</div>
+                    <div style="font-size:13px;color:#a0aec0;font-weight:600;">${c.label}</div>
+                    <div style="font-size:11px;color:#718096;margin-top:2px;">${c.sub}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderActivityDetails(data) {
+            const el = document.getElementById('activityDetails');
+            let html = '';
+
+            // ── Learning breakdown ─────────────────────────────────────────
+            const L = data.learning || {};
+            const byCategory = L.byCategory || {};
+            const catRows = Object.entries(byCategory).map(([k,v]) =>
+                `<tr><td style="color:#a0aec0;">${escHtml(k)}</td><td style="color:#63b3ed;">${v}</td></tr>`
+            ).join('') || '<tr><td colspan="2" style="color:#718096;">No data</td></tr>';
+
+            html += `
+            <div style="background:#1a202c;border:1px solid #2d3748;border-radius:10px;padding:18px;margin-bottom:20px;">
+                <h3 style="margin:0 0 12px;">🧠 Learning Breakdown — ক্যাটাগরি অনুযায়ী</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div>
+                        <table style="width:100%;font-size:13px;">
+                            <thead><tr><th style="text-align:left;color:#718096;padding-bottom:8px;">Category</th><th style="text-align:left;color:#718096;">Items</th></tr></thead>
+                            <tbody>${catRows}</tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <div style="color:#a0aec0;font-size:13px;margin-bottom:8px;">Average Confidence Score</div>
+                        <div style="font-size:32px;font-weight:bold;color:#48bb78;">${((L.avgConfidence||0)*100).toFixed(1)}%</div>
+                        <div style="color:#718096;font-size:12px;margin-top:4px;">Firebase Status: ${escHtml(String(L.status||'unknown'))}</div>
+                    </div>
+                </div>
+            </div>`;
+
+            // ── Research recent topics ─────────────────────────────────────
+            const R = data.research || {};
+            if (R.available !== false) {
+                const topics = R.recentTopicSamples || [];
+                const domainCov = R.domainCoverage || {};
+                const domainRows = Object.entries(domainCov).slice(0,6).map(([k,v]) =>
+                    `<span style="background:#2d3748;border-radius:4px;padding:4px 8px;font-size:12px;color:#a0aec0;margin:2px;">${escHtml(k)}: ${v}</span>`
+                ).join('');
+                const topicRows = topics.map(t => `
+                    <div style="border-bottom:1px solid #2d3748;padding:8px 0;font-size:13px;">
+                        <strong style="color:#e2e8f0;">${escHtml(String(t.domain||''))}</strong>
+                        <span style="color:#718096;margin-left:8px;">${escHtml(String(t.question||''))}</span>
+                    </div>`).join('') || '<div style="color:#718096;">No recent research topics</div>';
+
+                html += `
+                <div style="background:#1a202c;border:1px solid #2d3748;border-radius:10px;padding:18px;margin-bottom:20px;">
+                    <h3 style="margin:0 0 12px;">🔬 Research Activity — ২৪ ঘন্টার রিসার্চ</h3>
+                    <div style="margin-bottom:10px;flex-wrap:wrap;display:flex;gap:4px;">${domainRows || '<span style="color:#718096;">No domain data</span>'}</div>
+                    <div style="margin-top:12px;"><strong style="color:#a0aec0;font-size:12px;">Recent Topics:</strong>${topicRows}</div>
+                </div>`;
+            }
+
+            // ── Existing projects ──────────────────────────────────────────
+            const EP = data.existingProjects || {};
+            if (EP.available !== false) {
+                const allProj = EP.allProjectSummary || [];
+                const projRows = allProj.map(p => `
+                    <tr>
+                        <td style="color:#e2e8f0;">${escHtml(String(p.name||'—'))}</td>
+                        <td><span style="background:${p.status==='IMPROVED'?'#276749':p.status==='FAILED'?'#742a2a':'#2d3748'};color:#fff;border-radius:4px;padding:2px 8px;font-size:12px;">${escHtml(String(p.status||'—'))}</span></td>
+                        <td style="color:#718096;font-size:12px;">${escHtml(String(p.lastImprovedAt||'—'))}</td>
+                    </tr>`).join('') || '<tr><td colspan="3" style="color:#718096;">No projects registered</td></tr>';
+
+                html += `
+                <div style="background:#1a202c;border:1px solid #2d3748;border-radius:10px;padding:18px;margin-bottom:20px;">
+                    <h3 style="margin:0 0 12px;">🔧 Existing Project Improvements</h3>
+                    <table style="width:100%;font-size:13px;">
+                        <thead><tr>
+                            <th style="text-align:left;color:#718096;padding-bottom:8px;">Project</th>
+                            <th style="text-align:left;color:#718096;">Status</th>
+                            <th style="text-align:left;color:#718096;">Last Improved</th>
+                        </tr></thead>
+                        <tbody>${projRows}</tbody>
+                    </table>
+                </div>`;
+            }
+
+            // ── New projects generated ─────────────────────────────────────
+            const NP = data.newProjects || {};
+            if (NP.available !== false && (NP.createdLast24h > 0 || NP.totalGenerated > 0)) {
+                const npRows = (NP.projectDetails||[]).map(p => `
+                    <tr>
+                        <td style="color:#a0aec0;font-size:11px;">${escHtml(String(p.projectId||'').substring(0,8))}…</td>
+                        <td style="color:#e2e8f0;">${escHtml(String(p.description||'—').substring(0,60))}</td>
+                        <td style="color:#63b3ed;">${escHtml(String(p.templateType||'—'))}</td>
+                        <td><span style="background:${p.status==='PUSHED_TO_REPO'?'#276749':'#2d3748'};color:#fff;border-radius:4px;padding:2px 6px;font-size:11px;">${escHtml(String(p.status||'—'))}</span></td>
+                        <td style="color:#63b3ed;">${p.progress ?? '—'}%</td>
+                    </tr>`).join('') || '<tr><td colspan="5" style="color:#718096;">No projects created in last 24h</td></tr>';
+
+                html += `
+                <div style="background:#1a202c;border:1px solid #2d3748;border-radius:10px;padding:18px;margin-bottom:20px;">
+                    <h3 style="margin:0 0 12px;">📦 নতুন Project Generation (Last 24h)</h3>
+                    <div style="color:#a0aec0;font-size:13px;margin-bottom:10px;">Total generated: <strong>${NP.totalGenerated||0}</strong> | Completed: <strong>${NP.completedTotal||0}</strong></div>
+                    <table style="width:100%;font-size:12px;">
+                        <thead><tr>
+                            <th style="text-align:left;color:#718096;padding-bottom:8px;">ID</th>
+                            <th style="text-align:left;color:#718096;">Description</th>
+                            <th style="text-align:left;color:#718096;">Type</th>
+                            <th style="text-align:left;color:#718096;">Status</th>
+                            <th style="text-align:left;color:#718096;">Progress</th>
+                        </tr></thead>
+                        <tbody>${npRows}</tbody>
+                    </table>
+                </div>`;
+            }
+
+            el.innerHTML = html || '<div style="color:#a0aec0;">No detailed data available.</div>';
+        }
+
+        function renderActivityEventLog(events) {
+            const el = document.getElementById('activityEventLog');
+            if (!events.length) {
+                el.textContent = 'No events recorded in the last 24 hours.';
+                return;
+            }
+            el.innerHTML = events.map(e => {
+                const catColors = { LEARNING:'#63b3ed', RESEARCH:'#9f7aea', HARVEST:'#48bb78',
+                                    DEPLOY:'#f6ad55', ERROR:'#f56565', GENERAL:'#a0aec0' };
+                const col = catColors[e.category] || '#a0aec0';
+                return `<div style="border-bottom:1px solid #1a202c;padding:5px 0;">
+                    <span style="color:#718096;">${escHtml(e.time)}</span>
+                    <span style="color:${col};margin:0 8px;font-weight:bold;">[${escHtml(e.category)}]</span>
+                    <span style="color:#e2e8f0;">${escHtml(e.title)}</span>
+                    ${e.detail ? `<span style="color:#718096;margin-left:6px;">— ${escHtml(e.detail)}</span>` : ''}
+                </div>`;
+            }).join('');
         }
 
         // =============================================

@@ -632,13 +632,17 @@ public class ProjectGenerationController {
      * Validate that the URL is a valid HTTPS git host URL.
      * Strictly separates protocol, hostname, and path to prevent injection.
      * Hostname must not have consecutive dots or hyphens.
+     * Path segments may not be empty or consist only of dots (blocks traversal).
      * Pattern: https://<host>/<path> where host has no slashes.
      */
     private boolean isValidRepoUrl(String url) {
         if (url == null) return false;
         // Hostname: segments of [a-zA-Z0-9] joined by single dots or hyphens; no consecutive specials
+        // Path: one or more segments that are NOT purely dots (prevents `..` traversal)
         return url.matches(
-            "^https://[a-zA-Z0-9]+([.\\-][a-zA-Z0-9]+)*(:[0-9]{1,5})?/[a-zA-Z0-9._/\\-]+(\\.[gG][iI][tT])?$");
+            "^https://[a-zA-Z0-9]+([.\\-][a-zA-Z0-9]+)*(:[0-9]{1,5})?/[a-zA-Z0-9][a-zA-Z0-9._/\\-]*(\\.[gG][iI][tT])?$")
+            && !url.contains("/..")
+            && !url.contains("../");
     }
 
     /**
@@ -648,6 +652,11 @@ public class ProjectGenerationController {
     private boolean pushGeneratedFilesToRepo(Path sourceDir, String repoUrl,
                                              String repoToken, String branch,
                                              String commitMsg) {
+        // Sanitize branch: only safe git ref characters allowed (no shell metacharacters)
+        if (branch == null || !branch.matches("[a-zA-Z0-9._/\\-]+") || branch.contains("..")) {
+            logger.warn("⚠️ pushGeneratedFilesToRepo: invalid branch name rejected: {}", branch);
+            return false;
+        }
         Path cloneDir = Paths.get(System.getProperty("java.io.tmpdir"),
                 "supremeai-push-" + System.currentTimeMillis());
         try {
@@ -705,7 +714,12 @@ public class ProjectGenerationController {
                     for (int i = 0; i < relative.getNameCount(); i++) {
                         if (".git".equals(relative.getName(i).toString())) return;
                     }
-                    Path target = dest.resolve(relative);
+                    Path target = dest.resolve(relative).normalize();
+                    // Guard: ensure resolved path is still inside dest (no traversal)
+                    if (!target.startsWith(dest)) {
+                        logger.warn("copyDirectory: skipping path outside dest: {}", target);
+                        return;
+                    }
                     if (Files.isDirectory(source)) {
                         Files.createDirectories(target);
                     } else {
