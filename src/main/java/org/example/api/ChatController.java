@@ -2,6 +2,9 @@ package org.example.api;
 
 import org.example.service.MemoryManager;
 import org.example.service.AgentOrchestrator;
+import org.example.service.PublicAIRouter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -33,6 +36,8 @@ import java.util.*;
 @CrossOrigin(origins = "*")
 public class ChatController {
     
+    private static final Logger logger = LoggerFactory.getLogger(ChatController.class);
+
     private final MemoryManager memoryManager;
     private final AgentOrchestrator agentOrchestrator;
     private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
@@ -151,7 +156,7 @@ public class ChatController {
         userMsg.put("messageId", UUID.randomUUID().toString());
         chatHistory.add(userMsg);
         
-        // Step 3: Generate AI response (simulated for now)
+        // Step 3: Call actual AI via PublicAIRouter / AgentOrchestrator
         String aiResponse = generateAIResponse(userMessage, optimalAgentId, taskType);
         int executionTime = (int) (System.currentTimeMillis() - startTime);
         
@@ -386,10 +391,47 @@ public class ChatController {
     // ============================================================================
     
     private String generateAIResponse(String userMessage, String agentId, String taskType) {
-        // Simulated AI response generation
-        // In production, this would call the actual AI service
-        
-        return "Response from agent " + agentId + " to: " + userMessage.substring(0, Math.min(30, userMessage.length()));
+        // Determine the best provider for the task type
+        String provider = resolveProvider(taskType);
+
+        // Try actual AI call via PublicAIRouter (account-aware, budget-guarded)
+        try {
+            Map<String, String> meta = new HashMap<>();
+            meta.put("taskType", taskType);
+            meta.put("agentId", agentId);
+
+            PublicAIRouter.RouterResponse routerResponse =
+                agentOrchestrator.routeAIRequest(provider, userMessage, meta);
+
+            if (routerResponse != null && routerResponse.success
+                    && routerResponse.content != null
+                    && !routerResponse.content.isBlank()) {
+                return routerResponse.content;
+            }
+
+            // Graceful degradation: tell the user no provider is available
+            String errDetail = (routerResponse != null && routerResponse.error != null)
+                ? routerResponse.error : "no provider configured";
+            return "⚠️ No AI provider is currently available (" + errDetail + "). "
+                 + "Please add an API key in the Provider Coverage section and try again.";
+
+        } catch (Exception e) {
+            logger.warn("AI call failed (provider={}): {}", provider, e.getMessage());
+            return "⚠️ AI call failed: " + e.getMessage()
+                 + " — please check your provider configuration.";
+        }
+    }
+
+    /** Map task type to a canonical provider name used by AIAPIService. */
+    private String resolveProvider(String taskType) {
+        if (taskType == null) return "GPT4";
+        switch (taskType.toLowerCase()) {
+            case "code":  case "codegen":  case "build":   return "GPT4";
+            case "chat":  case "general":  case "explain": return "CLAUDE";
+            case "search": case "research":                return "PERPLEXITY";
+            case "fast":                                   return "GROQ";
+            default:                                       return "GPT4";
+        }
     }
     
     private void trackTaskExecution(String taskType, String agentId, int executionTime, Map<String, Object> message) {

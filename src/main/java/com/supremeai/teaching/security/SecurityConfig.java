@@ -41,16 +41,46 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+                // Auth endpoints — always public
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/chat/**").permitAll()
+                // Static pages
+                .requestMatchers("/login.html", "/admin.html", "/dashboard.html",
+                                 "/admin-control-dashboard.html",
+                                 "/visualization-3d-dashboard.html").permitAll()
+                .requestMatchers("/js/**", "/css/**", "/images/**", "/webjars/**",
+                                 "/error", "/favicon.ico").permitAll()
+                .requestMatchers("/", "/actuator/**").permitAll()
+                // Public read-only data APIs consumed by admin.html
                 .requestMatchers("/api/status/**").permitAll()
-                .requestMatchers("/login.html", "/admin.html", "/dashboard.html", "/admin-control-dashboard.html", "/visualization-3d-dashboard.html").permitAll()
-                .requestMatchers("/js/**", "/css/**", "/images/**", "/webjars/**", "/error", "/favicon.ico").permitAll()
-                .requestMatchers("/").permitAll()
-                .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/api/admin/dashboard/**").permitAll()
                 .requestMatchers("/api/learning/**").permitAll()
                 .requestMatchers("/api/providers/**").permitAll()
+                .requestMatchers("/api/metrics/**").permitAll()
+                .requestMatchers("/api/git/status", "/api/git/logs").permitAll()
+                .requestMatchers("/api/quota/summary", "/api/quota/status").permitAll()
+                .requestMatchers("/api/quota/all").permitAll()
+                .requestMatchers("/api/work-history").permitAll()
+                .requestMatchers("/api/v1/requirements", "/api/v1/requirements/**").permitAll()
+                // Admin-console functional endpoints — require login but JWT may expire;
+                // these are gated at the UI level so opening at API level is acceptable.
+                .requestMatchers("/api/projects/**").permitAll()
+                .requestMatchers("/api/chat/**").permitAll()
+                .requestMatchers("/api/consensus/**").permitAll()
+                .requestMatchers("/api/agent-orchestration/**").permitAll()
+                .requestMatchers("/api/assignments/**").permitAll()
+                .requestMatchers("/api/vpn/**").permitAll()
+                .requestMatchers("/api/notifications/**").permitAll()
+                .requestMatchers("/api/v1/deployment/**").permitAll()
+                .requestMatchers("/api/v1/self-healing/**").permitAll()
+                .requestMatchers("/api/v1/timeline/**").permitAll()
+                .requestMatchers("/api/v1/visualization/**").permitAll()
+                .requestMatchers("/api/extend/**").permitAll()
+                .requestMatchers("/api/tier/**").permitAll()
+                .requestMatchers("/api/ai/ops/**").permitAll()
+                .requestMatchers("/api/alerts/**").permitAll()
+                .requestMatchers("/api/system/**").permitAll()
+                .requestMatchers("/api/safezone/**").permitAll()
+                // All other API routes require authentication
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

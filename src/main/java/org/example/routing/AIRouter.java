@@ -1,5 +1,6 @@
 package org.example.routing;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
@@ -13,13 +14,13 @@ public class AIRouter {
     @Value("${ai.priority.order:kimi,deepseek,gemini}")
     private String priorityOrder;
     
-    @Value("${ai.kimi.api-key}")
+    @Value("${ai.kimi.api-key:}")
     private String kimiKey;
     
-    @Value("${ai.deepseek.api-key}")
+    @Value("${ai.deepseek.api-key:}")
     private String deepseekKey;
     
-    @Value("${ai.gemini.api-key}")
+    @Value("${ai.gemini.api-key:}")
     private String geminiKey;
     
     private final RestTemplate restTemplate = new RestTemplate();
@@ -27,7 +28,9 @@ public class AIRouter {
     // Admin can change this runtime via API
     private volatile List<String> aiSequence;
     
-    public AIRouter() {
+    // Use @PostConstruct so @Value fields are already injected before we use them
+    @PostConstruct
+    public void init() {
         this.aiSequence = parseSequence(priorityOrder);
     }
     
