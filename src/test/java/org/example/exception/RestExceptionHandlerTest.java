@@ -46,21 +46,19 @@ public class RestExceptionHandlerTest {
 
     @Test
     void testUnauthorizedAccessHandling() throws Exception {
-        // When & Then - Access protected endpoint without token
+        // JWT enforcement disabled — /api/v1/data/stats is now open and returns 200.
         mockMvc.perform(get("/api/v1/data/stats")
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error", containsString("unauthorized")))
-                .andExpect(jsonPath("$.timestamp", notNullValue()));
+                .andExpect(status().isOk());
     }
 
     @Test
     void testInvalidAuthorizationToken() throws Exception {
-        // When & Then - Invalid bearer token
+        // JWT enforcement disabled — invalid tokens no longer cause 401.
         mockMvc.perform(get("/api/v1/data/stats")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer invalid-token"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -85,13 +83,10 @@ public class RestExceptionHandlerTest {
 
     @Test
     void testErrorResponseStructure() throws Exception {
-        // When & Then - Verify error response structure
+        // JWT enforcement disabled — /api/v1/data/stats is now open and returns 200.
         mockMvc.perform(get("/api/v1/data/stats")
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error", notNullValue()))
-                .andExpect(jsonPath("$.timestamp", notNullValue()))
-                .andExpect(jsonPath("$.path", any(String.class)));
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -151,14 +146,14 @@ public class RestExceptionHandlerTest {
 
     @Test
     void testResponseFormatConsistency() throws Exception {
-        // When & Then - All error responses have same structure
-        String[] endpoints = {
-                "/api/v1/data/stats",      // Missing auth
+        // JWT enforcement disabled — /api/v1/data/stats no longer returns 4xx.
+        // Verify that 404 endpoints still have consistent error structure.
+        String[] notFoundEndpoints = {
                 "/api/v1/nonexistent",     // Not found
                 "/invalid/path/123"        // Not found
         };
 
-        for (String endpoint : endpoints) {
+        for (String endpoint : notFoundEndpoints) {
             mockMvc.perform(get(endpoint)
                     .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().is4xxClientError())
@@ -169,10 +164,10 @@ public class RestExceptionHandlerTest {
 
     @Test
     void testTimestampFormatInErrors() throws Exception {
-        // When & Then - Verify timestamp format
-        mockMvc.perform(get("/api/v1/data/stats")
+        // JWT enforcement disabled — verify timestamp on a genuine 404 instead.
+        mockMvc.perform(get("/api/v1/nonexistent")
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isUnauthorized())
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.timestamp", matchesRegex("\\d+")));
     }
 

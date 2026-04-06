@@ -94,12 +94,23 @@ public class ProviderCoverageService {
             && registryProvider.getApiKey() != null
             && !registryProvider.getApiKey().isBlank();
 
+        // Prefer registry metadata over hardcoded values when available
+        String displayName = (registryProvider != null && registryProvider.getName() != null && !registryProvider.getName().isBlank())
+            ? registryProvider.getName()
+            : aiApiService.getProviderDisplayName(providerId);
+        String endpoint = (registryProvider != null && registryProvider.getEndpoint() != null && !registryProvider.getEndpoint().isBlank())
+            ? registryProvider.getEndpoint()
+            : (String) connector.get("endpoint");
+        String baseModel = (registryProvider != null && registryProvider.getBaseModel() != null && !registryProvider.getBaseModel().isBlank())
+            ? registryProvider.getBaseModel()
+            : (String) connector.get("canonicalModel");
+
         row.put("providerId", providerId);
-        row.put("displayName", aiApiService.getProviderDisplayName(providerId));
-        row.put("canonicalModel", connector.get("canonicalModel"));
+        row.put("displayName", displayName);
+        row.put("canonicalModel", baseModel);
         row.put("nativeConnector", connector.get("nativeConnector"));
         row.put("configured", Boolean.TRUE.equals(connector.get("configured")) || registryConfigured);
-        row.put("endpoint", connector.get("endpoint"));
+        row.put("endpoint", endpoint);
         row.put("defaultModel", connector.get("defaultModel"));
         row.put("fallbackChain", connector.get("fallbackChain"));
         row.put("registryActive", registryProvider != null && (registryProvider.getStatus() == null || !registryProvider.getStatus().equalsIgnoreCase("inactive")));
@@ -127,14 +138,36 @@ public class ProviderCoverageService {
         return score;
     }
 
+    /**
+     * Builds the set of provider IDs to display in Provider Coverage.
+     *
+     * Priority:
+     *  1. Admin-configured providers from the registry (primary source of truth).
+     *  2. Any additional providers known to the knowledge-seed service.
+     *  3. The hardcoded canonical list is used ONLY as a last-resort fallback when
+     *     the registry is empty (e.g. first startup before any key is added).
+     *
+     * This ensures the UI always reflects what the admin has actually configured
+     * rather than showing a fixed set of "Missing Key" placeholders.
+     */
     private List<String> getProviderUniverse() {
-        LinkedHashSet<String> providerIds = new LinkedHashSet<>(aiApiService.getCanonicalProviderIds());
-        providerIds.addAll(knowledgeSeedService.getAllProviders());
+        LinkedHashSet<String> providerIds = new LinkedHashSet<>();
+
+        // 1. Admin-configured providers (registry) – always preferred
         if (providerRegistryService != null) {
             for (APIProvider provider : providerRegistryService.getAllProviders()) {
                 providerIds.add(provider.getId());
             }
         }
+
+        // 2. Additional providers from knowledge-seed service
+        providerIds.addAll(knowledgeSeedService.getAllProviders());
+
+        // 3. Fallback: only use hardcoded canonical list when registry is empty
+        if (providerIds.isEmpty()) {
+            providerIds.addAll(aiApiService.getCanonicalProviderIds());
+        }
+
         return new ArrayList<>(providerIds);
     }
 }
