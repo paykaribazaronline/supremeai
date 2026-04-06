@@ -631,12 +631,14 @@ public class ProjectGenerationController {
     /**
      * Validate that the URL is a valid HTTPS git host URL.
      * Strictly separates protocol, hostname, and path to prevent injection.
-     * Pattern: https://<host>/<path> where host contains no slashes.
+     * Hostname must not have consecutive dots or hyphens.
+     * Pattern: https://<host>/<path> where host has no slashes.
      */
     private boolean isValidRepoUrl(String url) {
         if (url == null) return false;
-        // Require https://, then a hostname (no slashes), then a path
-        return url.matches("^https://[a-zA-Z0-9.\\-]+(:[0-9]+)?/[a-zA-Z0-9._/\\-]+(\\.[gG][iI][tT])?$");
+        // Hostname: segments of [a-zA-Z0-9] joined by single dots or hyphens; no consecutive specials
+        return url.matches(
+            "^https://[a-zA-Z0-9]+([.\\-][a-zA-Z0-9]+)*(:[0-9]{1,5})?/[a-zA-Z0-9._/\\-]+(\\.[gG][iI][tT])?$");
     }
 
     /**
@@ -698,7 +700,8 @@ public class ProjectGenerationController {
             stream.forEach(source -> {
                 try {
                     Path relative = src.relativize(source);
-                    // Skip .git directory on any OS (check each path component)
+                    // Skip .git directory at any depth in the tree (not just root),
+                    // and handle this cross-platform by comparing individual components.
                     for (int i = 0; i < relative.getNameCount(); i++) {
                         if (".git".equals(relative.getName(i).toString())) return;
                     }
