@@ -37,6 +37,7 @@ firebase login:ci
 ```
 
 This will:
+
 - Open a browser window asking you to log in to Google
 - Log in with your Google account that has access to the Firebase project
 - Return a long token string
@@ -44,6 +45,7 @@ This will:
 **Step 4: Copy the Token**
 
 The output will look like:
+
 ```
 ✓ Success! Use this token to login on a CI server:
 
@@ -77,6 +79,7 @@ Example command:
 3. Click **Add secret**
 
 **Result:**
+
 ```
 ✅ FIREBASE_TOKEN
    Added by you just now
@@ -102,11 +105,13 @@ gh secret set FIREBASE_TOKEN --body "your-token-here"
 ## Verifying Secrets are Set
 
 ### Check in GitHub UI
+
 1. Go to Settings → Secrets and variables → Actions
 2. You should see `FIREBASE_TOKEN` listed
 3. Click it to verify (won't show the actual value, just confirms it exists)
 
 ### Check via GitHub CLI
+
 ```bash
 gh secret list
 # Output should show:
@@ -120,6 +125,7 @@ gh secret list
 These are optional but recommended for enhanced functionality:
 
 ### `GITHUB_TOKEN` (Automatic)
+
 ```
 Already Provided by GitHub Actions
 - Automatically created for every workflow run
@@ -128,6 +134,7 @@ Already Provided by GitHub Actions
 ```
 
 ### `SENTRY_DSN` (Optional - Future Use)
+
 ```
 For crash reporting (when Sentry integration is added)
 - Create account at https://sentry.io
@@ -140,34 +147,42 @@ For crash reporting (when Sentry integration is added)
 ## Troubleshooting
 
 ### ❌ Token is Expired
+
 **Symptoms:** `Error: Authentication failed`
 
 **Solution:**
+
 1. Generate a new token: `firebase login:ci`
 2. Update the secret in GitHub
 3. Re-run the workflow
 
 ### ❌ Permission Denied
+
 **Symptoms:** `Error: User doesn't have permission`
 
 **Solution:**
+
 1. Make sure you're logged in with the correct Google account
 2. Verify the Google account has "Editor" or "Firebase Admin" role in the Firebase project
 3. In Firebase Console → Project Settings → Permissions → Check your account
 
 ### ❌ Token Not Working in CI
+
 **Symptoms:** Deployment fails in GitHub Actions but works locally
 
 **Solution:**
+
 1. Re-generate token: `firebase login:ci`
 2. Make sure to use the EXACT token (no extra spaces)
 3. Update GitHub secret with the new token
 4. Clear any local Firebase cache: `rm ~/.config/firebase/tokens.json`
 
 ### ❌ Deployment Still Fails
+
 **Debug Steps:**
 
 1. Check the GitHub Actions logs:
+
    ```
    https://github.com/your-username/supremeai/actions
    ```
@@ -180,6 +195,7 @@ For crash reporting (when Sentry integration is added)
    - `firebase.json` has syntax errors
 
 4. Run locally to verify:
+
    ```bash
    firebase deploy --only hosting:flutter-admin --token $FIREBASE_TOKEN --debug
    ```
@@ -188,14 +204,16 @@ For crash reporting (when Sentry integration is added)
 
 ## Security Best Practices
 
-### ✅ DO:
+### ✅ DO
+
 - ✅ Keep your token secret
 - ✅ Regenerate tokens periodically
 - ✅ Use separate tokens for different CI/CD services
 - ✅ Limit token scope to necessary permissions
 - ✅ Monitor GitHub secret usage in logs
 
-### ❌ DON'T:
+### ❌ DON'T
+
 - ❌ Commit tokens to version control
 - ❌ Share tokens in issues, discussions, or emails
 - ❌ Use the same token across multiple services
@@ -209,12 +227,14 @@ For crash reporting (when Sentry integration is added)
 If you need separate deployments for staging and production:
 
 ### Create Multiple Secrets
+
 ```
 FIREBASE_TOKEN_STAGING    (for develop branch)
 FIREBASE_TOKEN_PRODUCTION (for main branch)
 ```
 
 ### Update Workflow
+
 ```yaml
 # Deploy to production (main branch)
 - if: github.ref == 'refs/heads/main'

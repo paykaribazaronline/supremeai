@@ -1,4 +1,4 @@
-﻿ AI MULTI-AGENT CODING SYSTEM
+ AI MULTI-AGENT CODING SYSTEM
 Complete Technical Documentation
 Version: 2.0
 Date: 26 March 2026

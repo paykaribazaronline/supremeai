@@ -196,16 +196,19 @@ Fallback to HTTP Polling (5s interval)
 ### Recommended Tests
 
 1. **WebSocket Connection:**
+
    ```bash
    wscat -c ws://localhost:8080/ws/metrics
    ```
 
 2. **Load Test:**
+
    ```bash
    curl -X POST http://localhost:8080/api/testing/load/quick-test
    ```
 
 3. **Rankings:**
+
    ```bash
    curl http://localhost:8080/api/intelligence/ranking/performance
    ```
@@ -295,6 +298,7 @@ Fallback to HTTP Polling (5s interval)
 To integrate with the new APIs:
 
 1. **Real-Time Metrics:**
+
    ```javascript
    const ws = new WebSocket('ws://your-app/ws/metrics');
    ws.onmessage = (event) => {
@@ -304,6 +308,7 @@ To integrate with the new APIs:
    ```
 
 2. **Load Testing:**
+
    ```bash
    curl -X POST http://your-app/api/testing/load/throughput-test \
      -H "Content-Type: application/json" \
@@ -311,6 +316,7 @@ To integrate with the new APIs:
    ```
 
 3. **Provider Selection:**
+
    ```bash
    curl http://your-app/api/intelligence/ranking/best-provider?taskType=code-generation
    ```

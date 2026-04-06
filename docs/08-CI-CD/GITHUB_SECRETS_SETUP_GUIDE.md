@@ -33,11 +33,13 @@ The self-healing CI/CD pipeline requires 2 GitHub secrets to be fully operationa
 1. Click **New repository secret**
 2. **Name:** `API_BASE_URL`
 3. **Value:** Your Cloud Run service URL
+
    ```
    https://supremeai-xxxxx-uc.a.run.app
    ```
-   
+
    **How to find your Cloud Run URL:**
+
    ```bash
    gcloud run services describe supremeai --region=us-central1 --format='value(status.url)'
    ```
@@ -49,10 +51,11 @@ The self-healing CI/CD pipeline requires 2 GitHub secrets to be fully operationa
 1. Click **New repository secret**
 2. **Name:** `ADMIN_TOKEN`
 3. **Value:** Your JWT admin token from login
-   
+
    **How to get your admin token:**
-   
+
    Option A - Using cURL:
+
    ```bash
    curl -X POST https://supremeai-xxxxx-uc.a.run.app/api/auth/login \
      -H "Content-Type: application/json" \
@@ -65,8 +68,9 @@ The self-healing CI/CD pipeline requires 2 GitHub secrets to be fully operationa
    # {"accessToken": "eyJhbGc...", "refreshToken": "..."}
    # Copy the accessToken value
    ```
-   
+
    Option B - Using local API (if running locally):
+
    ```bash
    curl -X POST http://localhost:8080/api/auth/login \
      -H "Content-Type: application/json" \
@@ -114,12 +118,14 @@ jobs:
 ## Workflows That Use These Secrets
 
 ### Self-Healing CI/CD (`.github/workflows/self-healing-cicd.yml`)
+
 - **Runs:** Every hour (24 times/day)
 - **Uses:** `API_BASE_URL` + `ADMIN_TOKEN`
 - **Does:** Health checks, failure prediction, auto-repair
 - **Status:** ⏳ BLOCKED without secrets (exits silently)
 
 ### Cloud Run Deployment (`.github/workflows/deploy-cloudrun.yml`)
+
 - **Runs:** On push to main branch
 - **Uses:** `GCP_SA_KEY`, `GCP_PROJECT_ID` (already set)
 - **Does:** Build, push to GCR, deploy to Cloud Run
@@ -164,6 +170,7 @@ gh run view <run-id> --log
 ```
 
 **Expected output if secrets are correct:**
+
 ```
 ✅ System Health Pulse
    Health Status: {"status":"healthy",...}
@@ -179,6 +186,7 @@ gh run view <run-id> --log
 ```
 
 **Expected output if secrets are missing:**
+
 ```
 ⚠️ API_BASE_URL not configured - skipping health check
 ⚠️ ADMIN_TOKEN not configured - cannot trigger auto-repair
@@ -196,7 +204,9 @@ gh run view <run-id> --log
 5. ✅ **Per-environment** - use branch protection for production
 
 ### Token Rotation
+
 If your admin token expires:
+
 1. Log in to get new token
 2. Update `ADMIN_TOKEN` secret
 3. Next workflow run uses new token
@@ -206,14 +216,17 @@ If your admin token expires:
 ## Troubleshooting
 
 ### Secret Appears Empty
+
 - **Problem:** `API_BASE_URL` value is blank
 - **Fix:** Re-copy the Cloud Run URL and update secret
 
 ### "PERMISSION_DENIED" in workflow
+
 - **Problem:** `ADMIN_TOKEN` is invalid or expired
 - **Fix:** Get new token via login and update secret
 
 ### Health check still skips
+
 - **Problem:** Secrets added but workflow hasn't run yet
 - **Fix:** Manually trigger: `gh workflow run self-healing-cicd.yml --ref main`
 - Wait 2-3 minutes for GitHub to sync secret changes
@@ -229,6 +242,7 @@ If your admin token expires:
 ---
 
 **Next Steps:**
+
 1. ✅ Add `API_BASE_URL` secret
 2. ✅ Add `ADMIN_TOKEN` secret
 3. ✅ Trigger self-healing workflow manually

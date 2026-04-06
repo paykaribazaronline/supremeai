@@ -9,6 +9,7 @@
 ## 1. MULTI-LAYER CACHING ARCHITECTURE
 
 ### Layer 1: In-Memory Cache (L1)
+
 ```
 Purpose: Ultra-fast access for hot data
 TTL: 5 minutes
@@ -18,12 +19,14 @@ Hit Rate Target: 70%+
 ```
 
 **Best for:**
+
 - Agent consensus votes (60-90 seconds valid)
 - Recent project metrics
 - Provider health status
 - User session data
 
 **Invalidation:**
+
 - Automatic (TTL expiry)
 - Manual (system learning updates)
 - Pattern-based (invalidatePattern())
@@ -31,6 +34,7 @@ Hit Rate Target: 70%+
 ---
 
 ### Layer 2: Distributed Cache (Future)
+
 ```
 Purpose: Shared across multiple instances
 TTL: 30 minutes
@@ -40,6 +44,7 @@ Hit Rate Target: 50%+
 ```
 
 **Best for:**
+
 - Cross-instance provider data
 - Long-lived AI model configs
 - Cost tracking aggregates
@@ -48,6 +53,7 @@ Hit Rate Target: 50%+
 ---
 
 ### Layer 3: Database (Primary Source of Truth)
+
 ```
 Purpose: Persistent storage
 TTL: Permanent
@@ -57,6 +63,7 @@ Availability: 99.9%
 ```
 
 **Best for:**
+
 - All user data
 - Project history
 - Audit trails
@@ -65,6 +72,7 @@ Availability: 99.9%
 ---
 
 ### Layer 4: Stale Cache Fallback
+
 ```
 Purpose: Keep system running even when fresh data unavailable
 TTL: Variable (stale data)
@@ -74,6 +82,7 @@ Recovery: Auto-refresh when available
 ```
 
 **When activated:**
+
 - Database down (rare)
 - All providers offline (rare)
 - Network partition (rare)
@@ -83,6 +92,7 @@ Recovery: Auto-refresh when available
 ## 2. FAILOVER MECHANISM HIERARCHY
 
 ### Failover Level 1: Provider Failover
+
 **Triggered by:** API provider timeout/failure
 
 ```
@@ -102,6 +112,7 @@ Reject request + alert admin
 ```
 
 **Configuration:**
+
 - Timeout per provider: 5 seconds
 - Retry attempts: 3
 - Circuit breaker threshold: 5 consecutive failures
@@ -110,6 +121,7 @@ Reject request + alert admin
 ---
 
 ### Failover Level 2: Cache Fallback
+
 **Triggered by:** Fresh data unavailable
 
 ```
@@ -128,6 +140,7 @@ Return error + use default/empty
 ```
 
 **Data Freshness Levels:**
+
 ```
 Fresh:      age < 5 min     (L1 cache)
 Warm:       age < 30 min    (L2 cache)
@@ -139,6 +152,7 @@ Expired:    age > 24 hours  (rejected)
 ---
 
 ### Failover Level 3: Database Failover
+
 **Triggered by:** Primary database unavailable
 
 ```
@@ -158,6 +172,7 @@ Background: Keep trying replicas
 ```
 
 **Configuration:**
+
 - Connection timeout: 3 seconds
 - Replica count: 2 (configurable)
 - Read-only mode alerts: Every 5 minutes
@@ -226,6 +241,7 @@ Max total: 5 seconds
 ```
 
 **When to retry:**
+
 - ✅ Timeout errors
 - ✅ 5xx server errors
 - ✅ Connection refused
@@ -234,6 +250,7 @@ Max total: 5 seconds
 - ❌ Invalid input
 
 **Max retries:**
+
 - Provider API: 3 attempts
 - Database: 2 attempts
 - Cache: 1 attempt (or fail-fast)
@@ -323,6 +340,7 @@ GET /api/health/circuit-breakers
 ## 7. CACHE INVALIDATION STRATEGY
 
 ### Automatic Invalidation
+
 ```
 Pattern: "learning:*"        → Invalidated when system learns
 Pattern: "metric:*"          → Invalidated every 5 minutes
@@ -331,6 +349,7 @@ Pattern: "user:{id}:*"       → Invalidated on user update
 ```
 
 ### Manual Invalidation
+
 ```
 Admin endpoint: POST /api/cache/invalidate/{pattern}
 Admin endpoint: POST /api/cache/invalidate/all
@@ -338,6 +357,7 @@ System endpoint: On error detection/fix
 ```
 
 ### TTL Strategy
+
 ```
 Real-time data (metrics):     5 min
 Reference data (providers):   30 min
@@ -498,6 +518,7 @@ curl http://localhost:8080/api/health/circuit-breakers
 | L4 | Stale Cache | 24h | Emergency | Manual |
 
 **Enterprise Resilience Score: 9.5/10**
+
 - ✅ Multi-layer caching
 - ✅ Circuit breaker pattern
 - ✅ Automatic failover
