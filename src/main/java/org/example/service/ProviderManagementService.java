@@ -28,18 +28,23 @@ public class ProviderManagementService {
     @Autowired
     private ProviderAuditService providerAuditService;
 
+    /**
+     * Return only providers that the admin has saved to the registry (data-driven).
+     * Hard-coded canonical model names are no longer exposed here.
+     * The admin uses the suggestion search in the UI to discover new providers.
+     */
     public List<Map<String, Object>> getAvailableProviders() {
         List<Map<String, Object>> providers = new ArrayList<>();
-        for (String providerId : aiApiService.getCanonicalProviderIds()) {
-            APIProvider registryProvider = providerRegistryService.getProvider(providerId);
+        for (APIProvider provider : providerRegistryService.getAllProviders()) {
             Map<String, Object> row = new LinkedHashMap<>();
-            row.put("providerId", providerId);
-            row.put("displayName", aiApiService.getProviderDisplayName(providerId));
-            row.put("nativeConnector", aiApiService.hasNativeConnector(providerId));
-            row.put("configured", aiApiService.isProviderConfigured(providerId)
-                || isProviderReady(registryProvider));
-            row.put("saved", registryProvider != null);
-            row.put("status", registryProvider == null ? "not-configured" : registryProvider.getStatus());
+            row.put("providerId", provider.getId());
+            row.put("displayName", firstNonBlank(provider.getName(),
+                aiApiService.getProviderDisplayName(provider.getId()), provider.getId()));
+            row.put("baseModel", provider.getBaseModel());
+            row.put("configured", true);
+            row.put("saved", true);
+            row.put("status", firstNonBlank(provider.getStatus(), "active"));
+            row.put("nativeConnector", aiApiService.hasNativeConnector(provider.getId()));
             providers.add(row);
         }
         return providers;

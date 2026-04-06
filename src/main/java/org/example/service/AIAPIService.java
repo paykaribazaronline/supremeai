@@ -61,8 +61,13 @@ public class AIAPIService {
     private final AtomicLong failedResponses = new AtomicLong();
 
     private ProviderRegistryService providerRegistryService;
+    private FallbackConfigService fallbackConfigService;
+
+    /** Called by Spring / TestBeansConfiguration after construction. */
+    public void setFallbackConfigService(FallbackConfigService fallbackConfigService) {
+        this.fallbackConfigService = fallbackConfigService;
+    }
     
-    // Dead-letter log: slow-queue requests that failed even after retry
     private final Deque<Map<String, Object>> deadLetterLog = new ArrayDeque<>();
     private static final int MAX_DEAD_LETTER = 200;
 
@@ -178,9 +183,7 @@ public class AIAPIService {
             return cached;
         }
 
-        List<String> resolvedChain = fallbackChain == null || fallbackChain.isEmpty()
-            ? DEFAULT_FALLBACK_CHAIN
-            : fallbackChain;
+        List<String> resolvedChain = resolveEffectiveFallbackChain(fallbackChain);
 
         for (String aiModel : resolvedChain) {
             try {
@@ -221,7 +224,7 @@ public class AIAPIService {
      * Compatibility wrapper for older callers that expect a primary-provider call.
      */
     public String callPrimaryProvider(String prompt) {
-        return callAI("PRIMARY", prompt, DEFAULT_FALLBACK_CHAIN);
+        return callAI("PRIMARY", prompt, null); // null → resolveEffectiveFallbackChain() picks DB chain
     }
 
     public String callProvider(String providerName, String prompt) {
@@ -268,9 +271,41 @@ public class AIAPIService {
 
         String direct = normalizeModelName(providerName);
         if (direct != null) {
-            return buildChain(direct, DEFAULT_FALLBACK_CHAIN);
+            return buildChain(direct, resolveEffectiveFallbackChain(null));
         }
 
+        return resolveEffectiveFallbackChain(null);
+    }
+
+    /**
+     * Resolve the fallback chain to actually use, in priority order:
+     * 1. Caller-supplied chain (if non-empty) — honours explicit per-call override.
+     * 2. Admin-configured chain from FallbackConfigService (if non-empty) — data-driven.
+     * 3. All active providers registered in ProviderRegistryService (if any) — DB-driven.
+     * 4. Hard-coded DEFAULT_FALLBACK_CHAIN — last resort bootstrap when DB is empty.
+     */
+    private List<String> resolveEffectiveFallbackChain(List<String> callerChain) {
+        if (callerChain != null && !callerChain.isEmpty()) {
+            return callerChain;
+        }
+        // Admin-configured order
+        if (fallbackConfigService != null) {
+            List<String> configured = fallbackConfigService.getFallbackChain();
+            if (configured != null && !configured.isEmpty()) {
+                return configured;
+            }
+        }
+        // All active DB providers (in registration order)
+        if (providerRegistryService != null) {
+            List<String> dbIds = providerRegistryService.getActiveProviders().stream()
+                .map(APIProvider::getId)
+                .filter(id -> id != null && !id.isBlank())
+                .toList();
+            if (!dbIds.isEmpty()) {
+                return dbIds;
+            }
+        }
+        // Bootstrap fallback — used only when no providers have been configured yet
         return DEFAULT_FALLBACK_CHAIN;
     }
     

@@ -1,10 +1,12 @@
 package org.example.api;
 
+import org.example.service.AdminChatService;
 import org.example.service.MemoryManager;
 import org.example.service.AgentOrchestrator;
 import org.example.service.PublicAIRouter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -41,6 +43,9 @@ public class ChatController {
     private final MemoryManager memoryManager;
     private final AgentOrchestrator agentOrchestrator;
     private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
+    @Autowired(required = false)
+    private AdminChatService adminChatService;
     
     // In-memory chat storage
     private final List<Map<String, Object>> chatHistory = new ArrayList<>();
@@ -394,6 +399,13 @@ public class ChatController {
         // Determine the best provider for the task type
         String provider = resolveProvider(taskType);
 
+        // Prepend admin-set rules as a system prompt prefix
+        String rulesPrefix = "";
+        if (adminChatService != null) {
+            try { rulesPrefix = adminChatService.getRulesPrompt(); } catch (Exception ignored) {}
+        }
+        String promptWithRules = rulesPrefix + userMessage;
+
         // Try actual AI call via PublicAIRouter (account-aware, budget-guarded)
         try {
             Map<String, String> meta = new HashMap<>();
@@ -401,7 +413,7 @@ public class ChatController {
             meta.put("agentId", agentId);
 
             PublicAIRouter.RouterResponse routerResponse =
-                agentOrchestrator.routeAIRequest(provider, userMessage, meta);
+                agentOrchestrator.routeAIRequest(provider, promptWithRules, meta);
 
             if (routerResponse != null && routerResponse.success
                     && routerResponse.content != null

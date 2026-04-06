@@ -28,6 +28,51 @@ public class DeploymentController {
     @Autowired
     private CICDPipelineService cicdService;
     
+    @Autowired
+    private AtomicDeploymentService atomicDeploymentService;
+
+    /**
+     * POST /api/v1/deployment/atomic
+     * Start an atomic all-or-nothing multi-target deployment run.
+     * Returns immediately with run ID; poll /atomic/{id} for status.
+     */
+    @PostMapping("/atomic")
+    public ResponseEntity<Map<String, Object>> startAtomicDeploy(
+            @RequestBody AtomicDeploymentService.AtomicRunRequest request) {
+        try {
+            AtomicDeploymentService.AtomicRun run = atomicDeploymentService.startRun(request);
+            return ResponseEntity.ok(run.toMap());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * GET /api/v1/deployment/atomic/{id}
+     * Poll the status + live log of a running or completed atomic run.
+     */
+    @GetMapping("/atomic/{id}")
+    public ResponseEntity<Map<String, Object>> getAtomicRunStatus(@PathVariable String id) {
+        AtomicDeploymentService.AtomicRun run = atomicDeploymentService.getRun(id);
+        if (run == null) {
+            return ResponseEntity.status(404).body(Map.of("error", "Run not found: " + id));
+        }
+        return ResponseEntity.ok(run.toMap());
+    }
+
+    /**
+     * GET /api/v1/deployment/atomic
+     * List all atomic deployment runs (newest first).
+     */
+    @GetMapping("/atomic")
+    public ResponseEntity<Map<String, Object>> listAtomicRuns() {
+        var runs = atomicDeploymentService.getAllRuns();
+        return ResponseEntity.ok(Map.of(
+            "total", runs.size(),
+            "runs", runs.stream().map(AtomicDeploymentService.AtomicRun::toMap).toList()
+        ));
+    }
+
     /**
      * POST /configure
      * Create a deployment configuration
