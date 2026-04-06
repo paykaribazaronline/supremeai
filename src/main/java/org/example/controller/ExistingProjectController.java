@@ -52,9 +52,12 @@ public class ExistingProjectController {
             if (repoUrl == null || repoUrl.isBlank()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "repoUrl is required"));
             }
-            // Basic URL safety check — must start with http(s):// or git@
-            if (!repoUrl.matches("^(https?://|git@)[\\w./@:\\-]+$")) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Invalid repoUrl format"));
+            // Strict URL validation: must be a well-formed https://github.com (or similar) URL
+            // or an SSH git@ URL.  We accept only safe characters to prevent injection.
+            if (!repoUrl.matches("^https://[a-zA-Z0-9.\\-]+/[a-zA-Z0-9_.\\-]+/[a-zA-Z0-9_.\\-]+(\\.git)?$")
+                    && !repoUrl.matches("^git@[a-zA-Z0-9.\\-]+:[a-zA-Z0-9_.\\-]+/[a-zA-Z0-9_.\\-]+(\\.git)?$")) {
+                return ResponseEntity.badRequest().body(Map.of("error",
+                    "Invalid repoUrl. Use https://github.com/user/repo or git@github.com:user/repo"));
             }
 
             ExistingProject project = projectService.registerProject(

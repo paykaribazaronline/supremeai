@@ -3663,6 +3663,14 @@
             const panel = document.getElementById('epDetailPanel');
             panel.style.display = 'block';
             panel.scrollIntoView({ behavior: 'smooth' });
+            // Attach Enter-to-send listener once (idempotent guard via dataset flag)
+            const chatInput = document.getElementById('epChatInput');
+            if (chatInput && !chatInput.dataset.listenerAttached) {
+                chatInput.addEventListener('keydown', e => {
+                    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendEpMessage(); }
+                });
+                chatInput.dataset.listenerAttached = 'true';
+            }
             await refreshEpDetail();
             await loadExistingProjects(); // re-render list to highlight selected
         }
@@ -3786,13 +3794,6 @@
                 conv.innerHTML += `<div style="color:#f56565;font-size:12px;">Error: ${e.message}</div>`;
             }
         }
-
-        // Allow pressing Enter to send
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('epChatInput')?.addEventListener('keydown', e => {
-                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendEpMessage(); }
-            });
-        });
 
         async function triggerExistingImprovement() {
             if (!_currentEpId) return;

@@ -52,7 +52,7 @@ public class ExistingProjectService {
             .filter(s -> !s.isBlank())
             .orElse(System.getProperty("java.io.tmpdir") + File.separator + "supremeai-external-projects");
 
-    /** Minimum minutes between automatic improvement cycles for the same project. */
+    /** Minimum interval (30 minutes in milliseconds) between automatic improvement cycles for the same project. */
     private static final long MIN_CYCLE_INTERVAL_MS = 30 * 60 * 1000;
 
     @PostConstruct
