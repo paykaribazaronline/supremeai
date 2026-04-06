@@ -49,6 +49,14 @@ public class IdleResearchService {
     @Autowired
     private AdminControlService adminControlService;
 
+    /**
+     * Active harvester — used as a self-sufficient learning source when no
+     * external AI providers are configured. Harvests from GitHub issues, PRs,
+     * CI logs, and optional Tavily web search; no AI API key required.
+     */
+    @Autowired
+    private ActiveLearningHarvesterService harvesterService;
+
     // --- State ---
     private final AtomicBoolean researchActive = new AtomicBoolean(false);
     private final AtomicLong lastProjectActivity = new AtomicLong(System.currentTimeMillis());
@@ -380,6 +388,7 @@ public class IdleResearchService {
             logger.info("🔬 Research cycle: {} topics selected", topics.size());
 
             // Step 2: Research each topic
+            int skippedTopics = 0;
             for (ResearchTopic topic : topics) {
                 // Abort if project starts
                 if (!isSystemIdle() && !"ADMIN_TRIGGER".equals(trigger)) {
@@ -394,12 +403,15 @@ public class IdleResearchService {
                     // Step 3: Feed findings into learning system
                     integrateIntoLearningSystem(result);
                     totalResearchCount.incrementAndGet();
+                } else if ("SKIPPED".equals(result.getStatus())) {
+                    skippedTopics++;
                 }
 
                 addToHistory(result);
             }
 
             cycleReport.put("completed", completedTopics.size());
+            cycleReport.put("skipped", skippedTopics);
             cycleReport.put("finishedAt", System.currentTimeMillis());
 
             // Step 4: Identify next gaps for future research
@@ -568,46 +580,81 @@ public class IdleResearchService {
     }
 
     /**
-     * Research a single topic using multi-AI consensus.
+     * Research a single topic.
+     *
+     * Strategy:
+     *   1. Try multi-AI consensus (rich, synthesised answer).
+     *   2. If no AI provider is configured or all quotas are exhausted, fall back
+     *      to the self-sufficient harvester which gathers knowledge from GitHub
+     *      issues, merged PRs, CI logs, and optional Tavily web search — no
+     *      external AI API key required.
+     *
+     * The system NEVER stops learning just because no AI is connected.
      */
     private ResearchTopic researchTopic(ResearchTopic topic) {
         topic.setStatus("RESEARCHING");
         logger.info("🔬 Researching [{}]: {}", topic.getDomain(), topic.getQuestion());
 
         try {
-            // Ask multi-AI consensus for deep research
+            // --- Step 1: Try external AI consensus ---
             ConsensusVote vote = consensusService.askAllAI(topic.getQuestion());
 
-            if (vote == null || vote.getWinningResponse() == null
+            boolean aiUnavailable = vote == null
+                    || vote.getWinningResponse() == null
+                    || vote.getWinningResponse().contains("[NO_PROVIDERS_CONFIGURED]")
                     || vote.getWinningResponse().contains("[QUOTA_EXCEEDED]")
-                    || vote.getWinningResponse().contains("[NO_PROVIDERS_CONFIGURED]")) {
-                topic.setStatus("FAILED");
-                topic.setSummary("Research skipped: AI providers unavailable or quota exceeded");
+                    || vote.getWinningResponse().contains("[LOCAL_FALLBACK]");
+
+            if (!aiUnavailable) {
+                // AI responded — use its enriched answer
+                topic.setSummary(vote.getWinningResponse());
+                topic.setConfidenceScore(vote.getConfidenceScore());
+                topic.setResearchDepth(vote.getTotalResponses());
+
+                if (vote.getProviderResponses() != null) {
+                    for (Map.Entry<String, String> entry : vote.getProviderResponses().entrySet()) {
+                        topic.addFinding("[" + entry.getKey() + "] " + truncate(entry.getValue(), 500));
+                    }
+                }
+                if (vote.getLearnings() != null) {
+                    topic.setActionableInsights(new ArrayList<>(vote.getLearnings()));
+                }
+
+                topic.setStatus("COMPLETED");
+                topic.setCompletedAt(System.currentTimeMillis());
+                logger.info("✅ AI research complete [{}]: confidence={}, depth={}",
+                        topic.getDomain(), topic.getConfidenceScore(), topic.getResearchDepth());
                 return topic;
             }
 
-            // Extract findings from the consensus result
-            topic.setSummary(vote.getWinningResponse());
-            topic.setConfidenceScore(vote.getConfidenceScore());
-            topic.setResearchDepth(vote.getTotalResponses());
+            // --- Step 2: No AI available — run self-sufficient harvester ---
+            logger.info("🌐 No AI providers available for [{}] — running self-harvest from GitHub/web",
+                    topic.getDomain());
+            Map<String, Object> harvest = harvesterService.runHarvest("idle-research-fallback");
 
-            // Parse findings from individual provider responses
-            if (vote.getProviderResponses() != null) {
-                for (Map.Entry<String, String> entry : vote.getProviderResponses().entrySet()) {
-                    String finding = "[" + entry.getKey() + "] " + truncate(entry.getValue(), 500);
-                    topic.addFinding(finding);
-                }
+            int total = harvest.get("total_learned") instanceof Number
+                    ? ((Number) harvest.get("total_learned")).intValue() : 0;
+
+            if (total > 0) {
+                topic.setSummary("Self-harvested " + total + " knowledge entries from GitHub issues, "
+                        + "merged PRs, CI logs, and web search for domain: " + topic.getDomain()
+                        + ". No external AI configured — learning continues independently.");
+                topic.setConfidenceScore(0.65);
+                topic.setResearchDepth(total);
+                topic.addFinding("github-issues: " + harvest.getOrDefault("issue_patterns_learned", 0) + " patterns");
+                topic.addFinding("merged-prs: "    + harvest.getOrDefault("pr_patterns_learned",    0) + " patterns");
+                topic.addFinding("ci-logs: "        + harvest.getOrDefault("ci_patterns_learned",    0) + " patterns");
+                topic.addFinding("web-search: "     + harvest.getOrDefault("web_patterns_learned",   0) + " patterns");
+                topic.setStatus("COMPLETED");
+                topic.setCompletedAt(System.currentTimeMillis());
+                logger.info("✅ Self-harvest complete for [{}]: {} entries learned", topic.getDomain(), total);
+            } else {
+                // Harvest found nothing new this cycle (e.g. no new GitHub activity, no Tavily key).
+                // This is normal — mark as SKIPPED so history stays clean.
+                topic.setStatus("SKIPPED");
+                topic.setSummary("No new knowledge found this cycle — no AI configured and no new GitHub/web activity. Will retry next idle cycle.");
+                logger.info("⏭️ Self-harvest found nothing new for [{}] this cycle", topic.getDomain());
             }
-
-            // Extract learnings from the vote itself
-            if (vote.getLearnings() != null) {
-                topic.setActionableInsights(new ArrayList<>(vote.getLearnings()));
-            }
-
-            topic.setStatus("COMPLETED");
-            topic.setCompletedAt(System.currentTimeMillis());
-            logger.info("✅ Research complete [{}]: confidence={}, depth={}",
-                    topic.getDomain(), topic.getConfidenceScore(), topic.getResearchDepth());
 
         } catch (Exception e) {
             topic.setStatus("FAILED");
