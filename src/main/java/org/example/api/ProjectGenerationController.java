@@ -116,23 +116,65 @@ public class ProjectGenerationController {
     @PostMapping("/generate")
     public Map<String, Object> generateProject(@RequestBody Map<String, Object> request) {
         long startTime = System.currentTimeMillis();
-        
+
         // Notify idle research engine the system is working
         if (idleResearchService != null) {
             idleResearchService.notifyProjectActivity();
         }
-        
-        String projectId = (String) request.getOrDefault("projectId", generateProjectId());
+
+        String projectId  = (String) request.getOrDefault("projectId", generateProjectId());
         String templateType = (String) request.getOrDefault("templateType", "REACT");
-        String description = (String) request.getOrDefault("description", "");
+        String description  = (String) request.getOrDefault("description", "");
         List<String> features = (List<String>) request.getOrDefault("features", new ArrayList<>());
 
-        // Optional: push generated code to a GitHub repo
-        String repoUrl   = (String) request.getOrDefault("repoUrl", "");
-        String repoToken = (String) request.getOrDefault("repoToken", "");
+        // repoUrl is MANDATORY — generated code must never go into the main SupremeAI repo
+        String repoUrl    = (String) request.getOrDefault("repoUrl", "");
+        String repoToken  = (String) request.getOrDefault("repoToken", "");
         String repoBranch = (String) request.getOrDefault("repoBranch", "main");
-        if (repoBranch == null || repoBranch.isBlank()) repoBranch = "main";
-        
+
+        // ── Input validation ──────────────────────────────────────────────────
+        // Reject blank repoUrl — every project needs its own dedicated GitHub repo
+        if (repoUrl == null || repoUrl.isBlank()) {
+            return Map.of(
+                "status", "error",
+                "message", "repoUrl is required. Please create a dedicated GitHub repo for this project and provide its HTTPS URL. Generated code must not be placed in the main SupremeAI repository.",
+                "timestamp", LocalDateTime.now().format(formatter)
+            );
+        }
+        if (!isValidRepoUrl(repoUrl)) {
+            return Map.of(
+                "status", "error",
+                "message", "Invalid repoUrl format. Use: https://github.com/your-org/your-repo",
+                "timestamp", LocalDateTime.now().format(formatter)
+            );
+        }
+        // Validate branch name — only safe chars allowed
+        if (repoBranch == null || repoBranch.isBlank()) {
+            repoBranch = "main";
+        } else if (!repoBranch.matches("^[a-zA-Z0-9._/-]{1,100}$")) {
+            return Map.of(
+                "status", "error",
+                "message", "Invalid branch name. Use only letters, digits, dots, hyphens, underscores, or slashes.",
+                "timestamp", LocalDateTime.now().format(formatter)
+            );
+        }
+        // Validate projectId — prevent path traversal
+        if (projectId == null || !projectId.matches("^[a-zA-Z0-9._-]{1,80}$")) {
+            return Map.of(
+                "status", "error",
+                "message", "Invalid projectId. Use only letters, digits, dots, hyphens, or underscores (max 80 chars).",
+                "timestamp", LocalDateTime.now().format(formatter)
+            );
+        }
+        // Validate token chars to prevent URL injection
+        if (repoToken != null && !repoToken.isBlank() && !repoToken.matches("^[a-zA-Z0-9_\\-]+$")) {
+            return Map.of(
+                "status", "error",
+                "message", "Invalid token format.",
+                "timestamp", LocalDateTime.now().format(formatter)
+            );
+        }
+
         Map<String, Object> projectStatus = new HashMap<>();
         projectStatus.put("projectId", projectId);
         projectStatus.put("templateType", templateType);
@@ -143,58 +185,45 @@ public class ProjectGenerationController {
         projectStatus.put("createdAt", LocalDateTime.now().format(formatter));
         projectStatus.put("fileCount", 0);
         projectStatus.put("errorCount", 0);
-        
+
         // Initialize project
         try {
             fileOrchestrator.createProjectStructure(projectId);
             templateManager.initializeProject(projectId, templateType);
-            
-            // Update progress
+
             projectStatus.put("progress", 30);
             projectStatus.put("status", "TEMPLATE_INITIALIZED");
-            
-            // Simulate code generation (in production, would use AIAPIService)
+
             generateProjectFiles(projectId, templateType, features);
-            
-            projectStatus.put("progress", 80);
-            projectStatus.put("status", "COMPLETED");
+
+            projectStatus.put("progress", 70);
             projectStatus.put("completedAt", LocalDateTime.now().format(formatter));
             projectStatus.put("generationTime", System.currentTimeMillis() - startTime + "ms");
-            
-            // Count files
             projectStatus.put("fileCount", fileOrchestrator.getFileCount(projectId));
 
-            // Push to GitHub repo if admin provided one
-            if (repoUrl != null && !repoUrl.isBlank()) {
-                if (!isValidRepoUrl(repoUrl)) {
-                    projectStatus.put("repoWarning", "Invalid repo URL format — skipped push.");
-                } else {
-                    boolean pushed = pushGeneratedFilesToRepo(
-                            fileOrchestrator.getProjectDirectory(projectId),
-                            repoUrl, repoToken, repoBranch, projectId);
-                    projectStatus.put("repoUrl", repoUrl);
-                    projectStatus.put("repoBranch", repoBranch);
-                    projectStatus.put("pushed", pushed);
-                    projectStatus.put("status", pushed ? "PUSHED_TO_REPO" : "COMPLETED_LOCAL_ONLY");
-                }
-            }
-
+            // Push generated files to the admin-supplied dedicated repo
+            boolean pushed = pushGeneratedFilesToRepo(
+                    fileOrchestrator.getProjectDirectory(projectId),
+                    repoUrl, repoToken, repoBranch, projectId);
+            projectStatus.put("repoUrl", repoUrl);
+            projectStatus.put("repoBranch", repoBranch);
+            projectStatus.put("pushed", pushed);
+            projectStatus.put("status", pushed ? "PUSHED_TO_REPO" : "PUSH_FAILED");
             projectStatus.put("progress", 100);
-            
-            // Store status
+
             projectStatuses.put(projectId, projectStatus);
-            
+
         } catch (Exception e) {
             projectStatus.put("status", "FAILED");
             projectStatus.put("error", e.getMessage());
             projectStatus.put("errorCount", 1);
         }
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
         response.put("project", projectStatus);
         response.put("message", "Project generation initiated");
-        
+
         return response;
     }
     
@@ -600,22 +629,19 @@ public class ProjectGenerationController {
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * Validate that the URL looks like a GitHub/GitLab HTTPS URL.
-     * Rejects anything with shell-special characters to prevent injection.
+     * Validate that the URL is a valid HTTPS git host URL.
+     * Strictly separates protocol, hostname, and path to prevent injection.
+     * Pattern: https://<host>/<path> where host contains no slashes.
      */
     private boolean isValidRepoUrl(String url) {
-        return url != null && url.matches("^https://[a-zA-Z0-9./_\\-]+\\.git$|^https://[a-zA-Z0-9./_\\-]+$");
+        if (url == null) return false;
+        // Require https://, then a hostname (no slashes), then a path
+        return url.matches("^https://[a-zA-Z0-9.\\-]+(:[0-9]+)?/[a-zA-Z0-9._/\\-]+(\\.[gG][iI][tT])?$");
     }
 
     /**
      * Clone the target repo, copy generated files in, then commit & push.
-     *
-     * @param sourceDir local directory with generated project files
-     * @param repoUrl   HTTPS URL of the target GitHub repo
-     * @param repoToken optional PAT (injected into the clone URL)
-     * @param branch    branch to push to
-     * @param commitMsg commit message prefix / project name
-     * @return true if push succeeded
+     * The authenticated clone URL is never written to logs.
      */
     private boolean pushGeneratedFilesToRepo(Path sourceDir, String repoUrl,
                                              String repoToken, String branch,
@@ -625,13 +651,14 @@ public class ProjectGenerationController {
         try {
             Files.createDirectories(cloneDir);
 
-            // Build authenticated clone URL
+            // Build authenticated clone URL — token is already validated to [a-zA-Z0-9_\-]+
             String cloneUrl = repoUrl;
-            if (repoToken != null && !repoToken.isBlank() && repoUrl.startsWith("https://")) {
+            if (repoToken != null && !repoToken.isBlank()) {
                 cloneUrl = repoUrl.replace("https://", "https://" + repoToken + "@");
             }
 
-            // 1. Clone target repo (shallow)
+            // 1. Clone target repo (shallow) — log only the public URL, never the authenticated one
+            logger.info("🔄 Cloning {} (branch: {})", repoUrl, branch);
             int cloneExit = runGit(cloneDir.getParent().toFile(),
                     "git", "clone", "--branch", branch, "--depth", "1",
                     cloneUrl, cloneDir.toString());
@@ -671,8 +698,10 @@ public class ProjectGenerationController {
             stream.forEach(source -> {
                 try {
                     Path relative = src.relativize(source);
-                    // Skip hidden git internals
-                    if (relative.toString().startsWith(".git")) return;
+                    // Skip .git directory on any OS (check each path component)
+                    for (int i = 0; i < relative.getNameCount(); i++) {
+                        if (".git".equals(relative.getName(i).toString())) return;
+                    }
                     Path target = dest.resolve(relative);
                     if (Files.isDirectory(source)) {
                         Files.createDirectories(target);
