@@ -1,6 +1,6 @@
 [ {
-  "eventId" : "ab6940a6-3e2d-4be8-a7d3-d0e5931fa68c",
-  "timestamp" : "2026-04-06 07:54:34",
+  "eventId" : "5d3fe6c6-15a2-4d4c-972c-398557821e5c",
+  "timestamp" : "2026-04-06 20:18:09",
   "eventType" : "GENERATION",
   "projectId" : "p1",
   "componentName" : "c1",
@@ -11,8 +11,8 @@
   "score" : 90.0,
   "metadata" : { }
 }, {
-  "eventId" : "45127b95-54f4-4c9f-afd5-7bdeb0b36443",
-  "timestamp" : "2026-04-06 07:54:34",
+  "eventId" : "542a195c-003e-489a-bac8-08c08465ded9",
+  "timestamp" : "2026-04-06 20:18:09",
   "eventType" : "GENERATION",
   "projectId" : "p1",
   "componentName" : "c1",
@@ -23,8 +23,8 @@
   "score" : 90.0,
   "metadata" : { }
 }, {
-  "eventId" : "73c813ff-3549-400f-8a22-a9791ab13029",
-  "timestamp" : "2026-04-06 07:54:34",
+  "eventId" : "c3039428-18b7-4820-981f-ca7a73344cfe",
+  "timestamp" : "2026-04-06 20:18:09",
   "eventType" : "GENERATION",
   "projectId" : "p1",
   "componentName" : "c2",
@@ -35,8 +35,8 @@
   "score" : 91.0,
   "metadata" : { }
 }, {
-  "eventId" : "4a1f6c6a-d5b8-4abd-a595-ad86101384c9",
-  "timestamp" : "2026-04-06 07:54:34",
+  "eventId" : "e6357af7-c6bf-4e87-b0c4-9cd557e7c2b5",
+  "timestamp" : "2026-04-06 20:18:09",
   "eventType" : "GENERATION",
   "projectId" : "p1",
   "componentName" : "c3",
@@ -47,8 +47,8 @@
   "score" : 88.0,
   "metadata" : { }
 }, {
-  "eventId" : "aebdf004-b3a8-431e-a3ab-489e4427d698",
-  "timestamp" : "2026-04-06 07:54:34",
+  "eventId" : "743aaf26-9b97-44b4-8418-2b492fbcfd52",
+  "timestamp" : "2026-04-06 20:18:09",
   "eventType" : "GENERATION",
   "projectId" : "p1",
   "componentName" : "comp1",
@@ -59,8 +59,8 @@
   "score" : 90.0,
   "metadata" : { }
 }, {
-  "eventId" : "2cfa5380-626c-4345-b62b-0f58a3be9b23",
-  "timestamp" : "2026-04-06 07:54:34",
+  "eventId" : "2bd3486d-2a99-44e8-85e5-dea8b63c68eb",
+  "timestamp" : "2026-04-06 20:18:09",
   "eventType" : "GENERATION",
   "projectId" : "p2",
   "componentName" : "comp2",
@@ -71,8 +71,8 @@
   "score" : 85.0,
   "metadata" : { }
 }, {
-  "eventId" : "5f1feec4-d709-4c15-8297-32fd6e144519",
-  "timestamp" : "2026-04-06 07:54:34",
+  "eventId" : "8fc4f882-79b8-441a-9ad1-f6b28979c6c5",
+  "timestamp" : "2026-04-06 20:18:09",
   "eventType" : "GENERATION",
   "projectId" : "p3",
   "componentName" : "comp3",
@@ -83,8 +83,8 @@
   "score" : 92.0,
   "metadata" : { }
 }, {
-  "eventId" : "5cb4414d-9e38-4048-b733-a2193b4781fc",
-  "timestamp" : "2026-04-06 07:54:34",
+  "eventId" : "b073b1f2-e448-4ba6-a520-5df9a6954305",
+  "timestamp" : "2026-04-06 20:18:09",
   "eventType" : "GENERATION",
   "projectId" : "project",
   "componentName" : "comp1",
@@ -95,8 +95,8 @@
   "score" : 90.0,
   "metadata" : { }
 }, {
-  "eventId" : "171e0830-9b1e-400b-94c3-9465999eb9c6",
-  "timestamp" : "2026-04-06 07:54:34",
+  "eventId" : "ac60bedb-50ce-432c-9cb5-a4434280669b",
+  "timestamp" : "2026-04-06 20:18:09",
   "eventType" : "GENERATION",
   "projectId" : "project",
   "componentName" : "comp2",
@@ -107,8 +107,8 @@
   "score" : 95.0,
   "metadata" : { }
 }, {
-  "eventId" : "034d92d4-0145-4db3-9190-d947761c0a98",
-  "timestamp" : "2026-04-06 07:54:34",
+  "eventId" : "49104a26-9655-44bb-9558-8e6b86e58ab7",
+  "timestamp" : "2026-04-06 20:18:09",
   "eventType" : "GENERATION",
   "projectId" : "test-project",
   "componentName" : "Button",
@@ -119,8 +119,8 @@
   "score" : 92.5,
   "metadata" : { }
 }, {
-  "eventId" : "e38f81dc-5236-42f5-9ebf-3269e9cf3519",
-  "timestamp" : "2026-04-06 07:54:34",
+  "eventId" : "bf9f3e15-0c65-4caa-9965-445ccdbb0187",
+  "timestamp" : "2026-04-06 20:18:09",
   "eventType" : "GENERATION",
   "projectId" : "p1",
   "componentName" : "comp1",
@@ -131,8 +131,8 @@
   "score" : 90.0,
   "metadata" : { }
 }, {
-  "eventId" : "2aed6915-cf01-4024-b5e8-f220fc54f4f1",
-  "timestamp" : "2026-04-06 07:54:34",
+  "eventId" : "a6ef26b3-5bd3-43a3-9739-1b9dafc2f0fb",
+  "timestamp" : "2026-04-06 20:18:09",
   "eventType" : "GENERATION",
   "projectId" : "p1",
   "componentName" : "comp2",
@@ -143,8 +143,8 @@
   "score" : 70.0,
   "metadata" : { }
 }, {
-  "eventId" : "9da50008-1fc3-4ddb-9a4f-94451d73054d",
-  "timestamp" : "2026-04-06 07:54:34",
+  "eventId" : "299ccbb9-b535-4d3e-9c6e-93ca68dd1c54",
+  "timestamp" : "2026-04-06 20:18:09",
   "eventType" : "GENERATION",
   "projectId" : "p1",
   "componentName" : "comp3",
