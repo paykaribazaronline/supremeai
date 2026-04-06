@@ -408,7 +408,7 @@ public class ExperienceCollectionService {
     /**
      * Scheduled learning job - weekly
      */
-    @Scheduled(cron = "0 0 2 * * 0") // Every Sunday at 2 AM
+    @Scheduled(cron = "0 0 2 * * ?") // Every day at 2 AM
     public void scheduledLearning() {
         logger.info("🧠 Running scheduled learning...");
         
