@@ -380,6 +380,7 @@ public class IdleResearchService {
             logger.info("🔬 Research cycle: {} topics selected", topics.size());
 
             // Step 2: Research each topic
+            int skippedTopics = 0;
             for (ResearchTopic topic : topics) {
                 // Abort if project starts
                 if (!isSystemIdle() && !"ADMIN_TRIGGER".equals(trigger)) {
@@ -394,12 +395,15 @@ public class IdleResearchService {
                     // Step 3: Feed findings into learning system
                     integrateIntoLearningSystem(result);
                     totalResearchCount.incrementAndGet();
+                } else if ("SKIPPED".equals(result.getStatus())) {
+                    skippedTopics++;
                 }
 
                 addToHistory(result);
             }
 
             cycleReport.put("completed", completedTopics.size());
+            cycleReport.put("skipped", skippedTopics);
             cycleReport.put("finishedAt", System.currentTimeMillis());
 
             // Step 4: Identify next gaps for future research
@@ -578,11 +582,20 @@ public class IdleResearchService {
             // Ask multi-AI consensus for deep research
             ConsensusVote vote = consensusService.askAllAI(topic.getQuestion());
 
-            if (vote == null || vote.getWinningResponse() == null
-                    || vote.getWinningResponse().contains("[QUOTA_EXCEEDED]")
-                    || vote.getWinningResponse().contains("[NO_PROVIDERS_CONFIGURED]")) {
-                topic.setStatus("FAILED");
-                topic.setSummary("Research skipped: AI providers unavailable or quota exceeded");
+            if (vote == null || vote.getWinningResponse() == null) {
+                topic.setStatus("SKIPPED");
+                topic.setSummary("Research skipped: no AI response received");
+                return topic;
+            }
+            if (vote.getWinningResponse().contains("[NO_PROVIDERS_CONFIGURED]")) {
+                topic.setStatus("SKIPPED");
+                topic.setSummary("Research skipped: no external AI providers configured (system runs independently)");
+                return topic;
+            }
+            if (vote.getWinningResponse().contains("[QUOTA_EXCEEDED]")
+                    || vote.getWinningResponse().contains("[LOCAL_FALLBACK]")) {
+                topic.setStatus("SKIPPED");
+                topic.setSummary("Research skipped: all AI provider quotas exhausted — will retry next cycle");
                 return topic;
             }
 
