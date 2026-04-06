@@ -20,7 +20,7 @@ import java.util.*;
  */
 @RestController
 @RequestMapping("/api/safezone")
-@CrossOrigin(origins = "http://localhost:8001")
+@CrossOrigin(origins = "*")
 public class SafeZoneProtectionController {
     
     private final MemoryManager memoryManager;
