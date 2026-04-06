@@ -77,7 +77,7 @@ public class AIAPIService {
         Map.entry("GROQ", "https://api.groq.com/openai/v1/chat/completions"),
         Map.entry("CLAUDE", "https://api.anthropic.com/v1/messages"),
         Map.entry("GPT4", "https://api.openai.com/v1/chat/completions"),
-        Map.entry("GEMINI", "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent"),
+        Map.entry("GEMINI", "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"),
         Map.entry("COHERE", "https://api.cohere.com/v2/chat"),
         Map.entry("PERPLEXITY", "https://api.perplexity.ai/chat/completions"),
         Map.entry("LLAMA", "https://api.llama.com/compat/v1/chat/completions"),
@@ -91,7 +91,7 @@ public class AIAPIService {
         Map.entry("CLAUDE", "claude-3-sonnet-20240229"),
         Map.entry("GROQ", "mixtral-8x7b-32768"),
         Map.entry("DEEPSEEK", "deepseek-coder"),
-        Map.entry("GEMINI", "gemini-1.5-pro"),
+        Map.entry("GEMINI", "gemini-1.5-flash"),
         Map.entry("COHERE", "command-r-plus"),
         Map.entry("PERPLEXITY", "sonar-pro"),
         Map.entry("LLAMA", "Llama-4-Scout-17B-16E-Instruct"),
@@ -305,7 +305,17 @@ public class AIAPIService {
                 return dbIds;
             }
         }
-        // Bootstrap fallback — used only when no providers have been configured yet
+        // Bootstrap fallback — only used when no providers have been configured yet.
+        // If providers ARE registered in the DB but all lack API keys we still use the
+        // DEFAULT_FALLBACK_CHAIN so the system can recover once keys are added.
+        // However, when ZERO providers are registered the admin has intentionally chosen
+        // to run without external AI: return an empty chain so callAI() returns null
+        // immediately instead of spinning through external services that will all fail.
+        if (providerRegistryService != null
+                && providerRegistryService.getActiveProviders().isEmpty()
+                && apiKeys.isEmpty()) {
+            return Collections.emptyList();
+        }
         return DEFAULT_FALLBACK_CHAIN;
     }
     

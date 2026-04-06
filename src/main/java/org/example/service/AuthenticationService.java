@@ -130,8 +130,8 @@ public class AuthenticationService {
         // email/password clients can recover on the next sign-in attempt.
         syncAdminToFirebaseAuth(user.getEmail(), password, user.getUsername());
         
-        // MFA required for admin
-        if (user.getRole() != null && user.getRole().equals("ADMIN")) {
+        // MFA required for admin (case-insensitive — role is stored as "admin")
+        if (user.getRole() != null && "ADMIN".equalsIgnoreCase(user.getRole())) {
             generateAndSendMfaCode(username, user.getEmail());
             throw new IllegalArgumentException("MFA required. Code sent to email.");
         }
