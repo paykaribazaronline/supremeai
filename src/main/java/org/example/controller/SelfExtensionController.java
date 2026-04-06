@@ -53,8 +53,8 @@ public class SelfExtensionController {
                     .body(Map.of("status", "error", "message", "Auth required"));
             }
             
-            // ✅ CHECK: Is user ADMIN?
-            if (!user.getRole().equals("ADMIN")) {
+            // ✅ CHECK: Is user ADMIN? (case-insensitive — role is stored as "admin")
+            if (!"ADMIN".equalsIgnoreCase(user.getRole())) {
                 logger.warn("❌ Non-admin user {} tried to extend system", user.getUsername());
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("status", "error", "message", "Admin access required"));
@@ -68,11 +68,15 @@ public class SelfExtensionController {
                     .body(Map.of("status", "error", "message", "App creation limit exceeded for today", "quotaDetails", quota));
             }
             
-            // ✅ NEW: Check provider quotas
-            if (quotaService.shouldUseFallback()) {
-                logger.warn("⚠️ Provider quotas critically low - no healthy AI providers currently have quota");
+            // ✅ Check provider quotas — only block when providers ARE configured but ALL are out of quota.
+            // When no external providers are configured the system runs without external AI (that is fine).
+            if (quotaService.getConfiguredProviderCount() > 0 && quotaService.shouldUseFallback()) {
+                logger.warn("⚠️ Provider quotas critically low - all configured AI providers are exhausted");
                 return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                    .body(Map.of("status", "error", "message", "System quota critically low. Please try again later."));
+                    .body(Map.of("status", "error", "message", "All configured AI providers are out of quota. Please try again later or add more providers."));
+            }
+            if (quotaService.getConfiguredProviderCount() == 0) {
+                logger.info("ℹ️ No external AI providers configured — self-extension will run on its own");
             }
             
             String requirement = request.get("requirement");
