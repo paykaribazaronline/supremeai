@@ -29,6 +29,7 @@ $env:SUPREMEAI_SETUP_TOKEN = "your-secure-random-token-min-32-chars-long"
 ```
 
 **Generate Strong Token:**
+
 ```bash
 # Linux/macOS
 openssl rand -hex 32
@@ -58,6 +59,7 @@ curl -X POST http://localhost:8080/api/auth/setup \
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -114,6 +116,7 @@ curl -X POST http://localhost:8080/api/auth/register \
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -140,6 +143,7 @@ curl -X POST http://localhost:8080/api/auth/hash-password \
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -226,21 +230,27 @@ curl -X POST http://localhost:8080/api/auth/hash-password \
 ## 🆘 Troubleshooting
 
 ### "Setup not configured"
+
 ```
 Error: Setup not configured. Contact administrator.
 ```
+
 **Fix:** Set SUPREMEAI_SETUP_TOKEN environment variable before starting backend
 
 ### "System already initialized"
+
 ```
 Error: System already initialized. Cannot re-run setup.
 ```
+
 **Normal:** Setup runs only once. This is expected behavior.
 
 ### "Invalid setup token"
+
 ```
 Error: Invalid setup token
 ```
+
 **Fix:** Ensure token matches environment variable exactly
 
 ---
@@ -248,10 +258,10 @@ Error: Invalid setup token
 ## ✅ Security Verification
 
 After setup:
+
 - ✅ Single admin user created
 - ✅ No public initialization endpoints
 - ✅ Token-protected setup
 - ✅ New users require admin auth
 - ✅ Passwords hashed with BCrypt
 - ✅ Ready for Firebase integration
-

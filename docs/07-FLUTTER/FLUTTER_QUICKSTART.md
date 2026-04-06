@@ -20,6 +20,7 @@ This guide walks you through setting up the fully automated Flutter CI/CD pipeli
 ## Step 1: Local Setup (2 minutes)
 
 ### Windows (PowerShell)
+
 ```powershell
 # Navigate to your repo
 cd supremeai
@@ -29,6 +30,7 @@ cd supremeai
 ```
 
 ### macOS/Linux (Bash)
+
 ```bash
 # Navigate to your repo
 cd supremeai
@@ -41,6 +43,7 @@ chmod +x setup-flutter-cicd.sh
 ```
 
 **What this does:**
+
 - ✅ Checks Flutter, Java, Firebase CLI, npm
 - ✅ Builds the Flutter web app
 - ✅ Verifies Firebase configuration
@@ -59,11 +62,13 @@ firebase login:ci
 ```
 
 **What happens:**
+
 1. Browser opens, asks you to log in to Google
 2. After login, terminal displays a token
 3. **Copy and save this token** (you'll need it next)
 
 **Example output:**
+
 ```
 ✓ Success! Use this token to login on a CI server:
 
@@ -102,6 +107,7 @@ gh secret list
 The workflow file is already in place: `.github/workflows/flutter-ci-cd.yml`
 
 **Automated stages:**
+
 1. **Build & Test** - Compiles web app, runs tests
 2. **Deploy to Firebase** - Pushes to hosting (main branch only)
 3. **Build Android** - Creates APK and App Bundle
@@ -145,6 +151,7 @@ git push origin main
    - ✅ Complete!
 
 **Typical times:**
+
 - Build & Test: 5-10 minutes
 - Firebase Deploy: 1-2 minutes
 - Total: ~10 minutes
@@ -156,18 +163,22 @@ git push origin main
 When deployment succeeds, you'll see:
 
 ✅ **GitHub Actions:**
+
 - All jobs show green checkmarks
 - Deployment step shows: "Deploy to Firebase Hosting" with ✅
 
 ✅ **Firebase Console:**
+
 - New deployment in Hosting → Deployment history
 - Status: "Deployed"
 
 ✅ **Live Web App:**
+
 - Accessible at: https://supremeai-a.web.app/admin/
 - Shows your Flutter app
 
 ✅ **GitHub Notification:**
+
 - PR comment shows: "✅ Flutter Build Successful!"
 - Provides preview URL
 
@@ -188,6 +199,7 @@ When deployment succeeds, you'll see:
 ## 🆘 Troubleshooting
 
 ### ❌ Build Fails with "Flutter not found"
+
 ```bash
 # Verify Flutter is in PATH
 flutter --version
@@ -197,6 +209,7 @@ flutter pub global activate
 ```
 
 ### ❌ Firebase Deployment Fails
+
 ```bash
 # Check GitHub Secrets are set
 gh secret list
@@ -209,6 +222,7 @@ firebase login:ci
 ```
 
 ### ❌ Tests Fail
+
 ```bash
 # Run tests locally first
 cd flutter_admin_app
@@ -218,6 +232,7 @@ flutter test
 ```
 
 ### ❌ Artifacts Not Created
+
 ```bash
 # Check build directory exists
 ls flutter_admin_app/build/web/
@@ -227,6 +242,7 @@ flutter build web --release --no-pub
 ```
 
 ### ❌ Stuck on "Building web app"
+
 ```bash
 # This can take 2-3 minutes on first build
 # Wait at least 5 minutes before canceling
@@ -264,6 +280,7 @@ Live at https://supremeai-a.web.app/admin/
 ## 📊 Monitoring Deployments
 
 ### Watch Real-Time in Terminal
+
 ```bash
 # While workflow is running
 gh run watch
@@ -273,11 +290,13 @@ gh run list --workflow=flutter-ci-cd.yml
 ```
 
 ### View in GitHub UI
+
 1. https://github.com/your-username/supremeai/actions
 2. Click "Flutter Admin App - Build & Deploy"
 3. Watch status of each stage
 
 ### Check Firebase Hosting
+
 1. https://console.firebase.google.com
 2. Select project
 3. Go to Hosting
@@ -305,6 +324,7 @@ Edit `.github/workflows/flutter-ci-cd.yml`:
 ### Automatic Changelog Generation
 
 Add to your commit message:
+
 ```
 feat: add user profile feature
 [CHANGELOG] Added user profile screen with avatar support
@@ -313,6 +333,7 @@ feat: add user profile feature
 ### Release APK to Google Play
 
 Add step to workflow:
+
 ```yaml
 - name: Upload to Google Play
   uses: r0adkll/upload-google-play@v1

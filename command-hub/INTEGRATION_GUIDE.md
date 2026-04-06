@@ -350,6 +350,7 @@ logger.info("[COMMAND] {} executed in {}ms - {}",
 ## Common Integration Points
 
 ### 1. Health Check Integration
+
 ```java
 // In your /health endpoint
 Map<String, Object> health = new HashMap<>();
@@ -357,6 +358,7 @@ health.put("commands", commandHealthCheck());
 ```
 
 ### 2. Audit Logging
+
 ```java
 // Log to central audit system
 auditService.log(new AuditEvent(
@@ -368,6 +370,7 @@ auditService.log(new AuditEvent(
 ```
 
 ### 3. Metrics/Monitoring
+
 ```java
 // Track metrics
 metricsService.increment("commands.executed");
@@ -376,6 +379,7 @@ metricsService.gauge("commands.registered", executor.listCommands().size());
 ```
 
 ### 4. Webhook Notifications
+
 ```java
 if (!result.isSuccess()) {
     notificationService.sendSlackAlert(
@@ -388,15 +392,19 @@ if (!result.isSuccess()) {
 ## Troubleshooting Integration
 
 ### Issue: CommandExecutor bean not found
+
 **Solution**: Ensure `@Configuration` class is in component scan path
 
 ### Issue: CommandController endpoints not found
+
 **Solution**: Check URL mappings - should be `/api/commands/*`
 
 ### Issue: Commands not registered
+
 **Solution**: Check logs for CommandHubConfiguration initialization
 
 ### Issue: Permission denied errors
+
 **Solution**: Verify auth token and role mapping in createContextFromRequest()
 
 ## Next Phase: Message Queue

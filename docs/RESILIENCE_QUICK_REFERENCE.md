@@ -124,6 +124,7 @@ Data Request
 ## Failover Chains
 
 ### AI Providers (10 in priority order)
+
 ```
 1. OpenAI            [primary]
    ├─→ 2. Anthropic  [backup 1]
@@ -140,6 +141,7 @@ Data Request
 ```
 
 ### Database (3-tier)
+
 ```
 Primary DB
    ├─→ Replica 1
@@ -178,6 +180,7 @@ Health Check (Every 10 seconds)
 ## Key Endpoints (Quick Reference)
 
 ### Health & Status
+
 ```
 GET  /api/v1/resilience/health
 GET  /api/v1/resilience/health/events?count=50
@@ -185,6 +188,7 @@ GET  /api/v1/resilience/report
 ```
 
 ### Circuit Breakers
+
 ```
 GET  /api/v1/resilience/circuit-breakers
 GET  /api/v1/resilience/circuit-breakers/{name}
@@ -192,6 +196,7 @@ POST /api/v1/resilience/circuit-breakers/{name}/reset
 ```
 
 ### Failover Control
+
 ```
 GET  /api/v1/resilience/failover-chain/{service}
 GET  /api/v1/resilience/failover/stats
@@ -199,6 +204,7 @@ POST /api/v1/resilience/failover/clear-cache
 ```
 
 ### Testing
+
 ```
 POST /api/v1/resilience/test/failover/provider
 POST /api/v1/resilience/test/failover/cache
@@ -210,6 +216,7 @@ POST /api/v1/resilience/test/failover/database
 ## Configuration Presets
 
 ### Provider API
+
 ```
 failureThreshold:    5 failures
 openTimeout:         30 seconds
@@ -218,6 +225,7 @@ successToClose:      3 consecutive
 ```
 
 ### Database
+
 ```
 failureThreshold:    3 failures
 openTimeout:         60 seconds
@@ -226,6 +234,7 @@ successToClose:      2 consecutive
 ```
 
 ### Cache
+
 ```
 failureThreshold:    10 failures
 openTimeout:         10 seconds
@@ -262,24 +271,28 @@ Attempt 1: Immediate
 ## Monitoring Checklist
 
 ### System Health ✅
+
 - [ ] Circuit breakers: All CLOSED
 - [ ] Memory usage: < 80%
 - [ ] CPU usage: reasonable
 - [ ] Disk space: adequate
 
 ### Performance ✅
+
 - [ ] Cache hit rate: > 70%
 - [ ] Response time: < 500ms avg
 - [ ] Error rate: < 0.5%
 - [ ] Uptime: > 99%
 
 ### Failover ✅
+
 - [ ] Failover events: < 10/hour
 - [ ] Recovery time: < 30 seconds
 - [ ] Stale data served: never (normal)
 - [ ] Circuit breaker resets: < 5/day
 
 ### Alerts ✅
+
 - [ ] Critical alerts: 0
 - [ ] High alerts: handled
 - [ ] Medium alerts: logged

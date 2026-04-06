@@ -5,6 +5,7 @@ A comprehensive command orchestration system to manage, monitor, and improve you
 ## 📋 Overview
 
 CommandHub provides a unified interface to:
+
 - **Monitor** system health and performance
 - **Execute** commands to improve data collection, AI providers, and deployments
 - **Queue** async tasks for batch improvements
@@ -56,6 +57,7 @@ CommandHub provides a unified interface to:
 ## 📦 Modules
 
 ### 1. **core/** - Command Framework (Java)
+
 Base classes and interfaces for the command system.
 
 ```
@@ -73,6 +75,7 @@ core/
 ```
 
 ### 2. **cli/** - Command-Line Tool (Go/Python)
+
 Lightweight CLI for admins to execute commands.
 
 ```
@@ -84,9 +87,11 @@ cli/
 ```
 
 ### 3. **dashboard/** - Admin Web UI (React/Vue)
+
 Real-time command execution and monitoring dashboard.
 
 ### 4. **api/** - REST Endpoints
+
 New Spring Boot controller for command management.
 
 ## 🚀 Quick Start
@@ -227,36 +232,43 @@ CLI/API Request
 ## 📚 Implementation Phases
 
 ### Phase 1: Core Framework ✅
+
 - [x] Command base classes
 - [x] Command registry
 - [x] Basic executor
 
 ### Phase 2: Monitoring Commands 🔄
+
 - [ ] Health check command
 - [ ] Quota status command
 - [ ] Metrics collection
 
 ### Phase 3: Data Collection Commands
+
 - [ ] Refresh GitHub data
 - [ ] Refresh Vercel status
 - [ ] Refresh Firebase metrics
 
 ### Phase 4: Admin Dashboard
+
 - [ ] React setup
 - [ ] Component library
 - [ ] Real-time updates
 
 ### Phase 5: CLI Tool
+
 - [ ] Go/Python CLI
 - [ ] Config management
 - [ ] Auto-completion
 
 ### Phase 6: Message Queue
+
 - [ ] RabbitMQ setup
 - [ ] Job persistence
 - [ ] Worker pool
 
 ### Phase 7: Production Ready
+
 - [ ] Unit tests
 - [ ] Integration tests
 - [ ] Documentation

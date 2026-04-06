@@ -1,0 +1,55 @@
+name: Active Knowledge Harvest
+
+on:
+  # Run every 6 hours around the clock
+  schedule:
+    - cron: '0 */6 * * *'
+  # Allow manual runs from the GitHub Actions UI
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual harvest trigger'
+        required: false
+        default: 'manual'
+
+jobs:
+  harvest:
+    name: Trigger active learning harvest
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check required secrets
+        id: check_secrets
+        run: |
+          if [ -z "${{ secrets.SUPREMEAI_BASE_URL }}" ] || [ -z "${{ secrets.SUPREMEAI_SETUP_TOKEN }}" ]; then
+            echo "⚠️  Skipping harvest: SUPREMEAI_BASE_URL or SUPREMEAI_SETUP_TOKEN is not configured."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Trigger knowledge harvest
+        if: steps.check_secrets.outputs.skip == 'false'
+        env:
+          SUPREMEAI_BASE_URL: ${{ secrets.SUPREMEAI_BASE_URL }}
+          SUPREMEAI_SETUP_TOKEN: ${{ secrets.SUPREMEAI_SETUP_TOKEN }}
+        run: |
+          echo "🌱 Triggering active knowledge harvest on $SUPREMEAI_BASE_URL"
+          RESPONSE=$(curl --fail --show-error --silent \
+            -X POST "$SUPREMEAI_BASE_URL/api/learning/harvest" \
+            -H "X-Setup-Token: $SUPREMEAI_SETUP_TOKEN" \
+            -H "Content-Type: application/json" \
+            -w "\n%{http_code}")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n-1)
+
+          echo "HTTP status: $HTTP_CODE"
+          echo "Response:    $BODY"
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ Harvest failed with HTTP $HTTP_CODE"
+            exit 1
+          fi
+          echo "✅ Harvest completed successfully"

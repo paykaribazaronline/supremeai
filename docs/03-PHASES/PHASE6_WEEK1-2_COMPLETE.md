@@ -12,8 +12,10 @@
 ### BACKEND (Java/Spring Boot)
 
 #### 1. VisualizationService.java (700 LOC) ✅
+
 **Purpose:** Real-time 3D visualization data generation  
 **Features:**
+
 - 3D scene initialization (nodes, edges, agents, decisions)
 - Build flow visualization (project structure as 3D graph)
 - Agent coordination nodes (sphere layout)
@@ -23,6 +25,7 @@
 - Performance optimized (target <100ms generation)
 
 **Key Methods:**
+
 - `registerVisualizationSession()` - New client connection
 - `broadcastVisualizationData()` - 30 FPS data push
 - `generateVisualizationFrame()` - Frame composition
@@ -30,6 +33,7 @@
 - `generateAgentNodes()` - Agent visualization
 
 **Performance:**
+
 ```
 Frame generation: ~10-15ms (well under 33ms budget)
 Memory per session: ~5KB overhead
@@ -37,8 +41,10 @@ Concurrent clients: Tested up to 100 clients
 ```
 
 #### 2. VisualizationWebSocketHandler.java (280 LOC) ✅
+
 **Purpose:** WebSocket endpoint for real-time frame streaming  
 **Features:**
+
 - Client connection/disconnection handling
 - Frame broadcasting at 30 FPS
 - Command handling (request_frame, scene_settings, stats)
@@ -48,16 +54,20 @@ Concurrent clients: Tested up to 100 clients
 **WebSocket Endpoint:** `/ws/visualization`
 
 #### 3. VisualizationController.java (180 LOC) ✅
+
 **Purpose:** REST API for visualization queries  
 **Endpoints:**
+
 - `GET /api/v1/visualization/frame` - Current frame
 - `GET /api/v1/visualization/stats` - Performance stats
 - `GET /api/v1/visualization/config` - Scene configuration
 - `GET /api/v1/visualization/health` - Service health
 
 #### 4. AutoFixLoopService.java (850 LOC) ✅
+
 **Purpose:** Automatic error detection and fix generation  
 **Features:**
+
 - Multi-strategy fix candidate generation
   - Pattern matching (common errors like NPE, imports, type mismatches)
   - AI-based suggestions
@@ -67,6 +77,7 @@ Concurrent clients: Tested up to 100 clients
 - Success rate tracking
 
 **Configuration:**
+
 ```java
 maxCandidates = 5
 maxTestTimeMs = 30000
@@ -75,13 +86,16 @@ maxRetries = 3
 ```
 
 **Process Flow:**
+
 1. Error detection → 2. Generate candidates (pattern, AI, template)
 3. Test candidates in parallel → 4. Rank by (confidence + test pass)
 5. Consensus voting → 6. Apply best fix → 7. Log decision
 
 #### 5. AutoFixController.java (220 LOC) ✅
+
 **Purpose:** REST API for auto-fix operations  
 **Endpoints:**
+
 - `POST /api/v1/autofix/fix-error` - Trigger auto-fix
 - `GET /api/v1/autofix/stats` - Success rate stats
 - `GET /api/v1/autofix/attempt/{id}` - Attempt details
@@ -89,8 +103,10 @@ maxRetries = 3
 - `GET /api/v1/autofix/health` - Service health
 
 #### WebSocket Configuration Update
+
 **File:** `WebSocketConfig.java` (updated)  
 **Changes:**
+
 - Added `VisualizationWebSocketHandler` registration
 - New endpoint: `/ws/visualization`
 - Maintains existing `/ws/metrics` endpoint
@@ -102,8 +118,10 @@ maxRetries = 3
 ### FRONTEND (React/TypeScript)
 
 #### 1. ThreeDashboard.tsx (450 LOC) ✅
+
 **Purpose:** 3D visualization rendering with Three.js  
 **Features:**
+
 - Three.js scene setup (camera, lighting, rendering)
 - Real-time node updates from WebSocket
 - Agent animations (rotation on voting)
@@ -113,6 +131,7 @@ maxRetries = 3
 - Auto-reconnection logic
 
 **Performance Targets:**
+
 ```
 Frame rate: 30 FPS (WebSocket) / 60 FPS (browser)
 Render time: <16ms per frame
@@ -121,6 +140,7 @@ Connection: Auto-reconnect every 3s if disconnected
 ```
 
 **Key Methods:**
+
 - `initScene()` - Three.js initialization
 - `animate()` - Animation loop
 - `connectWebSocket()` - WebSocket connection
@@ -128,8 +148,10 @@ Connection: Auto-reconnect every 3s if disconnected
 - `updateAgentNodes()` - Agent visualization
 
 #### 2. ThreeDashboard.css (280 LOC) ✅
+
 **Purpose:** HUD stylesheet with cyberpunk aesthetic  
 **Features:**
+
 - Terminal-style HUD display
 - Real-time metric boxes (FPS, connection, clients)
 - Legend color coding
@@ -138,12 +160,15 @@ Connection: Auto-reconnect every 3s if disconnected
 - Debug panel (hidden by default)
 
 **HUD Sections:**
+
 - Top-left: Title + FPS + Status
 - Bottom-right: Connected clients + Render time
 - Bottom-left: Legend (Services, Agents, Components)
 
 #### 3. React Dependencies (package.json) ✅
+
 **New Project File:** `/dashboard/package.json`
+
 ```json
 {
   "react": "^18.2.0",
@@ -182,6 +207,7 @@ OVERALL TOTAL: 2,830 LOC (target was 1,500 - we added extra features)
 ## WebSocket Integration
 
 ### Live Data Streaming
+
 ```
 Endpoint: ws://localhost:8080/ws/visualization
 Frame Rate: 30 FPS (33ms per frame)
@@ -190,6 +216,7 @@ Compression: JSON (can add gzip in future)
 ```
 
 ### Frame Structure
+
 ```json
 {
   "type": "frame_update",
@@ -231,6 +258,7 @@ Compression: JSON (can add gzip in future)
 ## Auto-Fix Success Tracking
 
 ### Metrics Tracked
+
 ```java
 totalAttempts         // Total fix attempts
 successfulFixes       // Successfully applied fixes  
@@ -240,6 +268,7 @@ recentAttempts        // Last N attempts in memory
 ```
 
 ### Fix Candidate Strategies
+
 1. **Pattern Matching** (70%+ confidence for common errors)
    - NullPointerException
    - Missing imports
@@ -254,6 +283,7 @@ recentAttempts        // Last N attempts in memory
    - Framework conventions
 
 ### Consensus Voting
+
 - Minimum threshold: 65% confidence
 - Requires ConsensusEngine approval
 - Logged to ExecutionLogManager
@@ -263,6 +293,7 @@ recentAttempts        // Last N attempts in memory
 ## API Reference
 
 ### Visualization Endpoints
+
 ```
 GET  /api/v1/visualization/frame       # Current frame
 GET  /api/v1/visualization/stats       # Performance stats
@@ -272,6 +303,7 @@ WS   /ws/visualization                 # Real-time stream
 ```
 
 ### Auto-Fix Endpoints
+
 ```
 POST /api/v1/autofix/fix-error         # Trigger fix
 GET  /api/v1/autofix/stats             # Success rate
@@ -285,17 +317,20 @@ GET  /api/v1/autofix/health            # Service health
 ## Testing & Validation
 
 ### Unit Tests Needed (Week 3)
+
 - [ ] VisualizationService frame generation
 - [ ] AutoFixLoopService candidate ranking
 - [ ] WebSocket message parsing
 - [ ] Error handling and recovery
 
 ### Integration Tests Needed (Week 3)
+
 - [ ] End-to-end WebSocket streaming
 - [ ] Fix attempt with consensus voting
 - [ ] Performance under load (100+ concurrent clients)
 
 ### Browser Compatibility
+
 - Chrome/Edge: ✅ Full support (WebGL, WebSocket)
 - Firefox: ✅ Full support
 - Safari: ✅ Full support
@@ -306,6 +341,7 @@ GET  /api/v1/autofix/health            # Service health
 ## Performance Benchmarks (Measured)
 
 ### Backend Performance
+
 | Metric | Target | Actual | Status |
 |--------|--------|--------|--------|
 | Frame generation | <100ms | ~12ms | ✅ 8x faster |
@@ -314,6 +350,7 @@ GET  /api/v1/autofix/health            # Service health
 | Session overhead | <10KB | ~5KB | ✅ Good |
 
 ### Frontend Performance
+
 | Metric | Target | Actual | Status |
 |--------|--------|--------|--------|
 | Scene init | <500ms | ~200ms | ✅ 2.5x faster |
@@ -326,18 +363,21 @@ GET  /api/v1/autofix/health            # Service health
 ## Next Steps: Week 3-4
 
 ### Agent Self-Reflection (600 LOC)
+
 - Decision logging service
 - Agent reasoning visualization
 - Historical decision patterns
 - Metrics aggregation
 
 ### Interactive Timeline (800 LOC)
+
 - Build process visualization over time
 - Clickable decision nodes
 - Drill-down capability
 - Export/sharing
 
-### Timeline:
+### Timeline
+
 - **Week 3:** Complete agent self-reflection
 - **Week 4:** Interactive timeline + integration testing
 
@@ -346,6 +386,7 @@ GET  /api/v1/autofix/health            # Service health
 ## Files Modified/Created
 
 ### New Files (7)
+
 1. ✅ `VisualizationService.java`
 2. ✅ `VisualizationWebSocketHandler.java`
 3. ✅ `VisualizationController.java`
@@ -356,6 +397,7 @@ GET  /api/v1/autofix/health            # Service health
 8. ✅ `dashboard/package.json`
 
 ### Modified Files (1)
+
 1. ✅ `WebSocketConfig.java` - Added visualization handler registration
 
 ---
