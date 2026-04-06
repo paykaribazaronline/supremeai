@@ -1584,6 +1584,26 @@
                 <label>Features (one per line)</label>
                 <textarea id="newProjectFeatures" placeholder="User authentication&#10;Dashboard with charts&#10;Export to CSV" style="height:80px;"></textarea>
             </div>
+            <div class="form-group">
+                <label>GitHub Repo URL <span style="font-size:11px;color:#a0aec0;">(optional — generated code will be pushed here)</span></label>
+                <input type="url" id="newProjectRepoUrl" placeholder="https://github.com/your-org/your-repo" style="width:100%;">
+                <div style="font-size:11px;color:#718096;margin-top:4px;">
+                    💡 Hint: create an <strong>empty</strong> GitHub repo first, then paste its HTTPS URL here.<br>
+                    Leave blank to save the code in a local folder only.
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Branch <span style="font-size:11px;color:#a0aec0;">(optional)</span></label>
+                <input type="text" id="newProjectRepoBranch" placeholder="main" style="width:100%;">
+            </div>
+            <div class="form-group">
+                <label>GitHub Personal Access Token <span style="font-size:11px;color:#a0aec0;">(optional — required for private repos)</span></label>
+                <input type="password" id="newProjectRepoToken" placeholder="ghp_xxxxxxxxxxxx" style="width:100%;">
+                <div style="font-size:11px;color:#718096;margin-top:4px;">
+                    💡 Hint: generate a token at <em>GitHub → Settings → Developer settings → Personal access tokens</em>.<br>
+                    Grant <strong>repo</strong> (full control) scope. Leave blank for public repos you own via SSH.
+                </div>
+            </div>
             <button class="btn" onclick="createProject()">🚀 Generate Project</button>
             <button class="btn btn-secondary" onclick="closeModal('createProjectModal')">❌ Cancel</button>
             <div id="createProjectMsg" style="margin-top:10px;"></div>
@@ -1751,12 +1771,23 @@
                 <input type="text" id="gitProjectId" placeholder="e.g. my-repo-2026">
             </div>
             <div class="form-group">
-                <label>Git Repository URL</label>
-                <input type="text" id="gitUrl" placeholder="https://github.com/user/repo">
+                <label>GitHub Repo URL <span style="font-size:11px;color:#a0aec0;">(optional — push generated code here)</span></label>
+                <input type="url" id="gitUrl" placeholder="https://github.com/user/repo">
+                <div style="font-size:11px;color:#718096;margin-top:4px;">
+                    💡 Hint: create an <strong>empty</strong> GitHub repo first, then paste its HTTPS URL here.<br>
+                    Leave blank to save locally in a folder.
+                </div>
             </div>
             <div class="form-group">
-                <label>Branch Name *</label>
+                <label>Branch Name <span style="font-size:11px;color:#a0aec0;">(defaults to main)</span></label>
                 <input type="text" id="gitBranchInput" placeholder="main">
+            </div>
+            <div class="form-group">
+                <label>GitHub Personal Access Token <span style="font-size:11px;color:#a0aec0;">(optional — required for private repos)</span></label>
+                <input type="password" id="gitRepoToken" placeholder="ghp_xxxxxxxxxxxx">
+                <div style="font-size:11px;color:#718096;margin-top:4px;">
+                    💡 Hint: generate at <em>GitHub → Settings → Developer settings → Personal access tokens</em>. Grant <strong>repo</strong> scope.
+                </div>
             </div>
             <div class="form-group">
                 <label>Development Task / Description *</label>
@@ -2687,6 +2718,9 @@
             const templateType = document.getElementById('newProjectTemplate').value;
             const description = document.getElementById('newProjectDesc').value.trim();
             const featuresRaw = document.getElementById('newProjectFeatures').value.trim();
+            const repoUrl   = document.getElementById('newProjectRepoUrl').value.trim();
+            const repoBranch = document.getElementById('newProjectRepoBranch').value.trim() || 'main';
+            const repoToken = document.getElementById('newProjectRepoToken').value.trim();
             const msg = document.getElementById('createProjectMsg');
 
             if (!projectId || !description) {
@@ -2696,22 +2730,30 @@
 
             const features = featuresRaw ? featuresRaw.split('\n').map(f => f.trim()).filter(Boolean) : [];
 
-            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Generating project...</span>';
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Generating project' + (repoUrl ? ' and pushing to repo…' : '…') + '</span>';
             try {
                 const res = await fetch('/api/projects/generate', {
                     method: 'POST',
                     headers: getAuthHeaders(),
-                    body: JSON.stringify({ projectId, templateType, description, features })
+                    body: JSON.stringify({ projectId, templateType, description, features, repoUrl, repoBranch, repoToken })
                 });
                 const data = await res.json();
-                if (data.status === 'success' || data.projectId) {
-                    msg.innerHTML = `<span style="color:#48bb78;">✅ Project "${data.projectId || projectId}" created! Status: ${data.status || 'started'}</span>`;
+                const proj = data.project || data;
+                if (data.status === 'success' || proj.projectId) {
+                    const pushInfo = proj.pushed === true
+                        ? ` ✅ Pushed to <a href="${escHtml(proj.repoUrl)}" target="_blank" style="color:#63b3ed;">${escHtml(proj.repoUrl)}</a>`
+                        : proj.pushed === false ? ' ⚠️ Push failed — code saved locally.'
+                        : '';
+                    msg.innerHTML = `<span style="color:#48bb78;">✅ Project "${escHtml(proj.projectId || projectId)}" created! Status: ${escHtml(proj.status || 'started')}${pushInfo}</span>`;
                     document.getElementById('newProjectId').value = '';
                     document.getElementById('newProjectDesc').value = '';
                     document.getElementById('newProjectFeatures').value = '';
+                    document.getElementById('newProjectRepoUrl').value = '';
+                    document.getElementById('newProjectRepoBranch').value = '';
+                    document.getElementById('newProjectRepoToken').value = '';
                     loadProjects();
                 } else {
-                    msg.innerHTML = `<span style="color:#f56565;">❌ ${data.message || data.error || 'Failed to create project'}</span>`;
+                    msg.innerHTML = `<span style="color:#f56565;">❌ ${escHtml(data.message || data.error || 'Failed to create project')}</span>`;
                 }
             } catch (e) {
                 msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
@@ -4325,10 +4367,12 @@
         }
 
         async function createGitProject() {
-            const projectId = document.getElementById('gitProjectId').value.trim();
+            const projectId   = document.getElementById('gitProjectId').value.trim();
             const templateType = document.getElementById('gitProjectTemplate').value;
             const description = document.getElementById('gitTask').value.trim();
-            const gitUrl = document.getElementById('gitUrl').value.trim();
+            const repoUrl     = document.getElementById('gitUrl').value.trim();
+            const repoBranch  = document.getElementById('gitBranchInput').value.trim() || 'main';
+            const repoToken   = document.getElementById('gitRepoToken').value.trim();
             const msg = document.getElementById('gitProjectModalMsg');
 
             if (!projectId || !description) {
@@ -4336,26 +4380,30 @@
                 return;
             }
 
-            const features = gitUrl ? [`Repository: ${gitUrl}`] : [];
-
-            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Starting development...</span>';
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Starting development' + (repoUrl ? ' and pushing to repo…' : '…') + '</span>';
             try {
                 const res = await fetch('/api/projects/generate', {
                     method: 'POST',
                     headers: getAuthHeaders(),
-                    body: JSON.stringify({ projectId, templateType, description, features })
+                    body: JSON.stringify({ projectId, templateType, description, features: [], repoUrl, repoBranch, repoToken })
                 });
                 const data = await res.json();
-                if (data.status === 'success' || data.projectId) {
-                    msg.innerHTML = `<span style="color:#48bb78;">✅ Project "${data.projectId || projectId}" started! Mode: ${data.status || 'GENERATING'}</span>`;
+                const proj = data.project || data;
+                if (data.status === 'success' || proj.projectId) {
+                    const pushInfo = proj.pushed === true
+                        ? ` ✅ Pushed to <a href="${escHtml(proj.repoUrl)}" target="_blank" style="color:#63b3ed;">${escHtml(proj.repoUrl)}</a>`
+                        : proj.pushed === false ? ' ⚠️ Push failed — code saved locally.'
+                        : '';
+                    msg.innerHTML = `<span style="color:#48bb78;">✅ Project "${escHtml(proj.projectId || projectId)}" started! Mode: ${escHtml(proj.status || 'GENERATING')}${pushInfo}</span>`;
                     document.getElementById('gitProjectId').value = '';
                     document.getElementById('gitUrl').value = '';
+                    document.getElementById('gitRepoToken').value = '';
                     document.getElementById('gitTask').value = '';
                     const mainMsg = document.getElementById('gitProjectMsg');
-                    if (mainMsg) mainMsg.innerHTML = `<span style="color:#48bb78;">✅ Latest: "${data.projectId || projectId}" — ${new Date().toLocaleTimeString()}</span>`;
+                    if (mainMsg) mainMsg.innerHTML = `<span style="color:#48bb78;">✅ Latest: "${escHtml(proj.projectId || projectId)}" — ${new Date().toLocaleTimeString()}</span>`;
                     loadGitLogs();
                 } else {
-                    msg.innerHTML = `<span style="color:#f56565;">❌ ${data.message || data.error || 'Failed'}</span>`;
+                    msg.innerHTML = `<span style="color:#f56565;">❌ ${escHtml(data.message || data.error || 'Failed')}</span>`;
                 }
             } catch (e) {
                 msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;

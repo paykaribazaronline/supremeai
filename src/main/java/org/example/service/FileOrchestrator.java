@@ -369,4 +369,12 @@ public class FileOrchestrator {
     private Path getProjectPath(String projectId) {
         return baseProjectsPath.resolve(projectId);
     }
+
+    /**
+     * Return the absolute path of the project folder on disk.
+     * Used by controllers that need to copy or push generated files.
+     */
+    public Path getProjectDirectory(String projectId) {
+        return baseProjectsPath.resolve(projectId);
+    }
 }
