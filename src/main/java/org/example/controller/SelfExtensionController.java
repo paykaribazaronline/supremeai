@@ -142,7 +142,7 @@ public class SelfExtensionController {
     
     /**
      * POST /api/extend/batch
-     * Submit multiple requirements at once
+     * Submit multiple requirements at once (queued asynchronously)
      */
     @PostMapping("/batch")
     public ResponseEntity<?> submitBatch(
@@ -154,6 +154,11 @@ public class SelfExtensionController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
             
+            if (!"ADMIN".equalsIgnoreCase(user.getRole())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("status", "error", "message", "Admin access required"));
+            }
+            
             @SuppressWarnings("unchecked")
             List<String> requirements = (List<String>) request.get("requirements");
             if (requirements == null || requirements.isEmpty()) {
@@ -161,26 +166,34 @@ public class SelfExtensionController {
                     .body(Map.of("status", "error", "message", "Requirements list required"));
             }
             
-            Map<String, Boolean> results = new HashMap<>();
-            int successCount = 0;
-            
+            // Queue each requirement asynchronously instead of blocking
+            List<String> requirementIds = new ArrayList<>();
             for (String req : requirements) {
-                boolean success = selfExtender.implementRequirement(req);
-                results.put(req, success);
-                if (success) successCount++;
+                String requirementId = UUID.randomUUID().toString();
+                requirementIds.add(requirementId);
+                requestQueue.queueExtensionRequest(requirementId, () -> {
+                    boolean success = selfExtender.implementRequirement(req);
+                    if (success) {
+                        logger.info("✅ Batch requirement implemented: {}", requirementId);
+                        userQuotaService.recordAppCreation(user.getUsername());
+                    } else {
+                        logger.error("❌ Batch requirement failed: {}", requirementId);
+                    }
+                });
             }
             
-            logger.info("✅ Batch processing: {}/{} successful", successCount, requirements.size());
+            logger.info("📦 Batch of {} requirements queued for user {}", requirements.size(), user.getUsername());
             
-            return ResponseEntity.ok(Map.of(
-                "status", successCount == requirements.size() ? "success" : "partial",
-                "processed", requirements.size(),
-                "successful", successCount,
-                "results", results
+            return ResponseEntity.accepted().body(Map.of(
+                "status", "queued",
+                "message", "All requirements queued for async processing",
+                "totalQueued", requirements.size(),
+                "requirementIds", requirementIds
             ));
             
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("status", "error", "message", e.getMessage()));
         }
     }
     

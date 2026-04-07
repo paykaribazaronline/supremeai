@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * PHASE 10: SELF-EVOLUTION ORCHESTRATOR
@@ -14,6 +15,9 @@ import java.util.*;
 @Service
 public class SelfEvolutionOrchestrator {
     private static final Logger logger = LoggerFactory.getLogger(SelfEvolutionOrchestrator.class);
+
+    /** Maximum time any single agent call is allowed to take before being abandoned. */
+    private static final long AGENT_TIMEOUT_MINUTES = 10;
 
     @Autowired
     private EtaMetaAgent etaAgent;
@@ -26,36 +30,65 @@ public class SelfEvolutionOrchestrator {
     @Autowired
     private FirebaseService firebaseService;
 
+    private final ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "evolution-worker");
+        t.setDaemon(true);
+        return t;
+    });
+
+    @jakarta.annotation.PreDestroy
+    void shutdownExecutor() {
+        executor.shutdownNow();
+    }
+
     /**
-     * Run a full evolution cycle every 24 hours
+     * Run a full evolution cycle every 24 hours.
+     * Each agent call is wrapped in a timeout to prevent the scheduled thread from hanging.
      */
     @Scheduled(fixedRate = 86400000)
     public void runDailyEvolution() {
         logger.info("🌌 Starting Daily Self-Evolution Cycle...");
 
-        // 1. Learn from previous day's builds
-        Map<String, Object> learningReport = thetaAgent.learnPatterns();
-        if (learningReport.containsKey("top_patterns")) {
-            List<Map<String, Object>> patterns = (List<Map<String, Object>>) learningReport.get("top_patterns");
-            patterns.forEach(firebaseService::saveLearnedPattern);
+        try {
+            // 1. Learn from previous day's builds
+            Map<String, Object> learningReport = runWithTimeout("ThetaAgent.learnPatterns",
+                    () -> thetaAgent.learnPatterns());
+            if (learningReport != null && learningReport.containsKey("top_patterns")) {
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> patterns =
+                        (List<Map<String, Object>>) learningReport.get("top_patterns");
+                patterns.forEach(firebaseService::saveLearnedPattern);
+            }
+
+            // 2. Synchronize knowledge base
+            runWithTimeout("IotaAgent.manageKnowledge", () -> {
+                iotaAgent.manageKnowledge();
+                return null;
+            });
+
+            // 3. Evolve agent configurations (Genetic Algorithm)
+            Map<String, Object> evolutionReport = runWithTimeout("EtaAgent.evolveAgents",
+                    () -> etaAgent.evolveAgents());
+            if (evolutionReport != null) {
+                firebaseService.saveEvolutionReport(evolutionReport);
+            }
+
+            // 4. Evaluate Meta-Consensus & Apply improvements
+            Map<String, Object> consensusReport = runWithTimeout("KappaAgent.orchestrateEvolution",
+                    () -> kappaAgent.orchestrateEvolution());
+            if (consensusReport != null) {
+                processConsensus(consensusReport);
+            }
+
+            logger.info("✓ Daily Self-Evolution Cycle completed successfully.");
+        } catch (Exception e) {
+            logger.error("❌ Daily Self-Evolution Cycle failed: {}", e.getMessage(), e);
         }
-
-        // 2. Synchronize knowledge base
-        iotaAgent.manageKnowledge();
-
-        // 3. Evolve agent configurations (Genetic Algorithm)
-        Map<String, Object> evolutionReport = etaAgent.evolveAgents();
-        firebaseService.saveEvolutionReport(evolutionReport);
-
-        // 4. Evaluate Meta-Consensus & Apply improvements
-        Map<String, Object> consensusReport = kappaAgent.orchestrateEvolution();
-        processConsensus(consensusReport);
-
-        logger.info("✓ Daily Self-Evolution Cycle completed successfully.");
     }
 
     private void processConsensus(Map<String, Object> report) {
         if (report.containsKey("promotion_status")) {
+            @SuppressWarnings("unchecked")
             Map<String, Object> promotion = (Map<String, Object>) report.get("promotion_status");
             if ("READY_FOR_PROMOTION".equals(promotion.get("status"))) {
                 String variantId = (String) promotion.get("pending_promotion");
@@ -78,5 +111,23 @@ public class SelfEvolutionOrchestrator {
         state.put("eta_meta", etaAgent.evolveAgents());
         state.put("kappa_consensus", kappaAgent.orchestrateEvolution());
         return state;
+    }
+
+    /**
+     * Run a {@link Callable} on the worker thread with a timeout.
+     * Returns null if the call times out or throws.
+     */
+    private <T> T runWithTimeout(String label, Callable<T> task) {
+        Future<T> future = executor.submit(task);
+        try {
+            return future.get(AGENT_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+        } catch (TimeoutException e) {
+            future.cancel(true);
+            logger.warn("⏱️ {} timed out after {} minutes — skipping", label, AGENT_TIMEOUT_MINUTES);
+            return null;
+        } catch (Exception e) {
+            logger.warn("⚠️ {} failed: {}", label, e.getMessage());
+            return null;
+        }
     }
 }

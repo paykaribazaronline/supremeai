@@ -597,7 +597,7 @@ public class IdleResearchService {
 
         try {
             // --- Step 1: Try external AI consensus ---
-            ConsensusVote vote = consensusService.askAllAI(topic.getQuestion());
+            ConsensusVote vote = consensusService.askAllAISystemLevel(topic.getQuestion());
 
             boolean aiUnavailable = vote == null
                     || vote.getWinningResponse() == null
