@@ -79,14 +79,17 @@ public class IdleResearchService {
     /** Idle threshold: system must be idle for 1 hour before research starts */
     private static final long IDLE_THRESHOLD_MS = 60 * 60 * 1000;
 
-    /** Minimum gap between research cycles: 5 minutes */
-    private static final long RESEARCH_COOLDOWN_MS = 5 * 60 * 1000;
+    /** Minimum gap between research cycles (admin-configurable, in minutes) */
+    private static final long DEFAULT_CYCLE_INTERVAL_MINUTES = 5;
+    private volatile long cycleIntervalMinutes = DEFAULT_CYCLE_INTERVAL_MINUTES;
 
     // --- Firebase quota tracking (free-tier guard) ---
-    /** Firebase free tier daily write limit (conservative safe ceiling). */
-    private static final long FIREBASE_DAILY_WRITE_LIMIT = 18_000;
-    /** Firebase free tier daily read limit (conservative safe ceiling). */
-    private static final long FIREBASE_DAILY_READ_LIMIT = 50_000;
+    /** Firebase daily write limit (admin-configurable). */
+    private static final long DEFAULT_DAILY_WRITE_LIMIT = 18_000;
+    private volatile long dailyWriteLimit = DEFAULT_DAILY_WRITE_LIMIT;
+    /** Firebase daily read limit (admin-configurable). */
+    private static final long DEFAULT_DAILY_READ_LIMIT = 50_000;
+    private volatile long dailyReadLimit = DEFAULT_DAILY_READ_LIMIT;
 
     private final AtomicLong firebaseWriteCount = new AtomicLong(0);
     private final AtomicLong firebaseReadCount  = new AtomicLong(0);
@@ -234,8 +237,18 @@ public class IdleResearchService {
         }
         if (state.containsKey("maxTopicsPerCycle")) {
             maxTopicsPerCycle = ((Number) state.get("maxTopicsPerCycle")).intValue();
-            logger.info("📚 Restored learning limit: {} topics per cycle", maxTopicsPerCycle);
         }
+        if (state.containsKey("cycleIntervalMinutes")) {
+            cycleIntervalMinutes = ((Number) state.get("cycleIntervalMinutes")).longValue();
+        }
+        if (state.containsKey("dailyWriteLimit")) {
+            dailyWriteLimit = ((Number) state.get("dailyWriteLimit")).longValue();
+        }
+        if (state.containsKey("dailyReadLimit")) {
+            dailyReadLimit = ((Number) state.get("dailyReadLimit")).longValue();
+        }
+        logger.info("📚 Restored settings: {} topics/cycle, {}min interval, write={}, read={}",
+                maxTopicsPerCycle, cycleIntervalMinutes, dailyWriteLimit, dailyReadLimit);
 
         // Set lastProjectActivity far in the past so the first check sees the system as idle
         lastProjectActivity.set(System.currentTimeMillis() - IDLE_THRESHOLD_MS - 1000);
@@ -255,6 +268,9 @@ public class IdleResearchService {
             state.put("firebaseReadCount", firebaseReadCount.get());
             state.put("quotaWindowStartMs", quotaWindowStartMs);
             state.put("maxTopicsPerCycle", maxTopicsPerCycle);
+            state.put("cycleIntervalMinutes", cycleIntervalMinutes);
+            state.put("dailyWriteLimit", dailyWriteLimit);
+            state.put("dailyReadLimit", dailyReadLimit);
             jsonStore.write(RESEARCH_STATE_PATH, state);
         } catch (Exception e) {
             logger.warn("⚠️ Failed to persist research state: {}", e.getMessage());
@@ -287,6 +303,48 @@ public class IdleResearchService {
         logger.info("📚 Admin set learning limit to {} topics per cycle", limit);
     }
 
+    /** Get cycle interval in minutes. */
+    public long getCycleIntervalMinutes() {
+        return cycleIntervalMinutes;
+    }
+
+    /** Admin sets cycle interval (1-1440 minutes). */
+    public void setCycleIntervalMinutes(long minutes) {
+        if (minutes < 1) minutes = 1;
+        if (minutes > 1440) minutes = 1440;
+        this.cycleIntervalMinutes = minutes;
+        persistResearchState();
+        logger.info("⏱️ Admin set cycle interval to {} minutes", minutes);
+    }
+
+    /** Get daily Firebase write limit. */
+    public long getDailyWriteLimit() {
+        return dailyWriteLimit;
+    }
+
+    /** Admin sets daily write limit (100-1000000). */
+    public void setDailyWriteLimit(long limit) {
+        if (limit < 100) limit = 100;
+        if (limit > 1_000_000) limit = 1_000_000;
+        this.dailyWriteLimit = limit;
+        persistResearchState();
+        logger.info("✍️ Admin set daily write limit to {}", limit);
+    }
+
+    /** Get daily Firebase read limit. */
+    public long getDailyReadLimit() {
+        return dailyReadLimit;
+    }
+
+    /** Admin sets daily read limit (100-1000000). */
+    public void setDailyReadLimit(long limit) {
+        if (limit < 100) limit = 100;
+        if (limit > 1_000_000) limit = 1_000_000;
+        this.dailyReadLimit = limit;
+        persistResearchState();
+        logger.info("📖 Admin set daily read limit to {}", limit);
+    }
+
     /**
      * Disable the auto-learning system (admin action).
      */
@@ -312,12 +370,12 @@ public class IdleResearchService {
         long reads  = firebaseReadCount.get();
         quota.put("dailyWriteCount",  writes);
         quota.put("dailyReadCount",   reads);
-        quota.put("dailyWriteLimit",  FIREBASE_DAILY_WRITE_LIMIT);
-        quota.put("dailyReadLimit",   FIREBASE_DAILY_READ_LIMIT);
-        quota.put("writeUsagePct",    Math.round(writes * 100.0 / FIREBASE_DAILY_WRITE_LIMIT));
-        quota.put("readUsagePct",     Math.round(reads  * 100.0 / FIREBASE_DAILY_READ_LIMIT));
-        quota.put("writesRemaining",  Math.max(0, FIREBASE_DAILY_WRITE_LIMIT - writes));
-        quota.put("readsRemaining",   Math.max(0, FIREBASE_DAILY_READ_LIMIT  - reads));
+        quota.put("dailyWriteLimit",  dailyWriteLimit);
+        quota.put("dailyReadLimit",   dailyReadLimit);
+        quota.put("writeUsagePct",    Math.round(writes * 100.0 / dailyWriteLimit));
+        quota.put("readUsagePct",     Math.round(reads  * 100.0 / dailyReadLimit));
+        quota.put("writesRemaining",  Math.max(0, dailyWriteLimit - writes));
+        quota.put("readsRemaining",   Math.max(0, dailyReadLimit  - reads));
         quota.put("withinSafeLimit",  isWithinFirebaseQuota());
         quota.put("windowStartMs",    quotaWindowStartMs);
         quota.put("windowResetIn",    "24h window — resets at " + new Date(quotaWindowStartMs + 86_400_000));
@@ -371,8 +429,11 @@ public class IdleResearchService {
         stats.put("lastResearchCycle", lastResearchCycle.get());
         stats.put("idleForMs", System.currentTimeMillis() - lastProjectActivity.get());
         stats.put("idleThresholdMs", IDLE_THRESHOLD_MS);
-        stats.put("researchCooldownMs", RESEARCH_COOLDOWN_MS);
+        stats.put("researchCooldownMs", cycleIntervalMinutes * 60 * 1000);
+        stats.put("cycleIntervalMinutes", cycleIntervalMinutes);
         stats.put("maxTopicsPerCycle", maxTopicsPerCycle);
+        stats.put("dailyWriteLimit", dailyWriteLimit);
+        stats.put("dailyReadLimit", dailyReadLimit);
         stats.put("firebaseQuota", getFirebaseQuotaStatus());
 
         // Domain coverage
@@ -431,7 +492,7 @@ public class IdleResearchService {
 
             // Cooldown between cycles
             long timeSinceLastResearch = System.currentTimeMillis() - lastResearchCycle.get();
-            if (timeSinceLastResearch < RESEARCH_COOLDOWN_MS) {
+            if (timeSinceLastResearch < cycleIntervalMinutes * 60 * 1000) {
                 return;
             }
 
@@ -839,8 +900,8 @@ public class IdleResearchService {
      */
     private boolean isWithinFirebaseQuota() {
         maybeResetQuotaWindow();
-        return firebaseWriteCount.get() < (FIREBASE_DAILY_WRITE_LIMIT * 0.8)
-            && firebaseReadCount.get()  < (FIREBASE_DAILY_READ_LIMIT  * 0.8);
+        return firebaseWriteCount.get() < (dailyWriteLimit * 0.8)
+            && firebaseReadCount.get()  < (dailyReadLimit  * 0.8);
     }
 
     private void addToHistory(ResearchTopic topic) {

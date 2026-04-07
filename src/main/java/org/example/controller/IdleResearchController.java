@@ -150,4 +150,57 @@ public class IdleResearchController {
             "message", "Learning limit updated to " + limit + " topics per cycle"
         ));
     }
+
+    /**
+     * GET /api/research/settings - Get all admin-configurable learning settings
+     */
+    @GetMapping("/settings")
+    public ResponseEntity<Map<String, Object>> getSettings() {
+        Map<String, Object> settings = new java.util.LinkedHashMap<>();
+        settings.put("maxTopicsPerCycle", researchService.getMaxTopicsPerCycle());
+        settings.put("cycleIntervalMinutes", researchService.getCycleIntervalMinutes());
+        settings.put("dailyWriteLimit", researchService.getDailyWriteLimit());
+        settings.put("dailyReadLimit", researchService.getDailyReadLimit());
+        settings.put("learningEnabled", researchService.isLearningEnabled());
+        return ResponseEntity.ok(settings);
+    }
+
+    /**
+     * POST /api/research/settings - Update learning settings
+     * Body: { "maxTopicsPerCycle": 5, "cycleIntervalMinutes": 10, "dailyWriteLimit": 20000, "dailyReadLimit": 60000 }
+     * All fields optional — only provided fields are updated.
+     */
+    @PostMapping("/settings")
+    public ResponseEntity<Map<String, Object>> updateSettings(@RequestBody Map<String, Object> request) {
+        Map<String, Object> updated = new java.util.LinkedHashMap<>();
+
+        if (request.containsKey("maxTopicsPerCycle")) {
+            int val = ((Number) request.get("maxTopicsPerCycle")).intValue();
+            researchService.setMaxTopicsPerCycle(val);
+            updated.put("maxTopicsPerCycle", researchService.getMaxTopicsPerCycle());
+        }
+        if (request.containsKey("cycleIntervalMinutes")) {
+            long val = ((Number) request.get("cycleIntervalMinutes")).longValue();
+            researchService.setCycleIntervalMinutes(val);
+            updated.put("cycleIntervalMinutes", researchService.getCycleIntervalMinutes());
+        }
+        if (request.containsKey("dailyWriteLimit")) {
+            long val = ((Number) request.get("dailyWriteLimit")).longValue();
+            researchService.setDailyWriteLimit(val);
+            updated.put("dailyWriteLimit", researchService.getDailyWriteLimit());
+        }
+        if (request.containsKey("dailyReadLimit")) {
+            long val = ((Number) request.get("dailyReadLimit")).longValue();
+            researchService.setDailyReadLimit(val);
+            updated.put("dailyReadLimit", researchService.getDailyReadLimit());
+        }
+
+        if (updated.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "No valid settings provided"));
+        }
+
+        logger.info("⚙️ Admin updated learning settings: {}", updated);
+        updated.put("status", "updated");
+        return ResponseEntity.ok(updated);
+    }
 }
