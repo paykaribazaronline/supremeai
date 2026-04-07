@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -159,9 +160,13 @@ public class ExistingProjectService {
         String aiReply;
         try {
             ConsensusVote vote = consensusService.askAllAISystemLevel(contextPrompt);
-            aiReply = (vote != null && vote.getWinningResponse() != null)
+            String raw = (vote != null && vote.getWinningResponse() != null)
                     ? vote.getWinningResponse()
-                    : "I've noted your input and will apply it during the next improvement cycle.";
+                    : null;
+            // Filter out fallback/quota markers so the admin sees a useful message
+            aiReply = isAIUnavailableResponse(raw)
+                    ? "I've noted your input and will apply it during the next improvement cycle."
+                    : raw;
         } catch (Exception e) {
             logger.warn("⚠️ AI reply failed for project {}: {}", project.getId(), e.getMessage());
             aiReply = "I've recorded your update. The improvement will be applied on the next cycle.";
@@ -184,6 +189,23 @@ public class ExistingProjectService {
         ExistingProject project = requireProject(id);
         logger.info("⚡ Admin triggered improvement for project: {}", project.getName());
         return runImprovementCycle(project);
+    }
+
+    /**
+     * Trigger an improvement cycle asynchronously (fire-and-forget).
+     * Used by the REST controller so the HTTP request returns immediately.
+     */
+    public void triggerImprovementAsync(String id) {
+        ExistingProject project = requireProject(id);
+        logger.info("⚡ Admin triggered async improvement for project: {}", project.getName());
+        CompletableFuture.runAsync(() -> {
+            try {
+                runImprovementCycle(project);
+            } catch (Exception e) {
+                logger.error("❌ Async improvement failed for {}: {}", project.getName(), e.getMessage());
+                project.setStatus("ERROR");
+            }
+        });
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -357,6 +379,13 @@ public class ExistingProjectService {
                 logger.info("ℹ️ Nothing to commit for {}", project.getName());
                 return false;
             }
+
+            // Ensure the remote URL contains the token for push authentication.
+            // Shallow clones may lose the embedded-token remote, and git-pull
+            // using the default origin may strip it.
+            String pushUrl = buildCloneUrl(project);
+            runProcess(dir.toFile(), "git", "remote", "set-url", "origin", pushUrl);
+
             int pushExit = runProcess(dir.toFile(), "git", "push", "origin", project.getBranch());
             return pushExit == 0;
         } catch (Exception e) {
