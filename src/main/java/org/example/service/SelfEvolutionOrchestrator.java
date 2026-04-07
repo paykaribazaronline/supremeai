@@ -36,6 +36,11 @@ public class SelfEvolutionOrchestrator {
         return t;
     });
 
+    @jakarta.annotation.PreDestroy
+    void shutdownExecutor() {
+        executor.shutdownNow();
+    }
+
     /**
      * Run a full evolution cycle every 24 hours.
      * Each agent call is wrapped in a timeout to prevent the scheduled thread from hanging.
