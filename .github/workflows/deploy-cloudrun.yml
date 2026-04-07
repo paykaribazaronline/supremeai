@@ -180,6 +180,16 @@ jobs:
             SECRET_FLAG="--update-secrets=FIREBASE_SERVICE_ACCOUNT_JSON=firebase-service-account-json:latest"
           fi
 
+          # Build GitHub App env vars (passed only when the secret is non-empty)
+          GITHUB_APP_ENV=""
+          if [ -n "${{ secrets.SUPREMEAI_APP_PRIVATE_KEY }}" ]; then
+            GITHUB_APP_ENV="GITHUB_APP_PRIVATE_KEY_BASE64=${{ secrets.SUPREMEAI_APP_PRIVATE_KEY }},GITHUB_APP_ID=3300194,GITHUB_APP_INSTALLATION_ID=121998309"
+          fi
+
+          # Combine base env vars with optional GitHub App vars
+          BASE_ENV="FIREBASE_PROJECT_ID=supremeai-a,FIREBASE_DATABASE_URL=https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/"
+          FINAL_ENV="${BASE_ENV}${GITHUB_APP_ENV:+,$GITHUB_APP_ENV}"
+
           gcloud run deploy "${{ env.SERVICE_NAME }}" \
             --image="$IMAGE" \
             --region="${{ env.GCP_REGION }}" \
@@ -190,7 +200,7 @@ jobs:
             --max-instances=10 \
             --timeout=3600 \
             --allow-unauthenticated \
-            --update-env-vars="FIREBASE_PROJECT_ID=supremeai-a,FIREBASE_DATABASE_URL=https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/" \
+            --update-env-vars="$FINAL_ENV" \
             $SECRET_FLAG \
             --project="$PROJECT" \
             --quiet 2>&1 | tee /tmp/deploy_output.txt || {

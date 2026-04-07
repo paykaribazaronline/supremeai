@@ -45,8 +45,16 @@ public class VPNConnection {
     public String getServer() { return server; }
     public void setServer(String server) { this.server = server; }
 
+    /** Alias used by the admin dashboard frontend. */
+    public String getServerHost() { return server; }
+    public void setServerHost(String serverHost) { this.server = serverHost; }
+
     public int getPort() { return port; }
     public void setPort(int port) { this.port = port; }
+
+    /** Alias used by the admin dashboard frontend. */
+    public int getServerPort() { return port; }
+    public void setServerPort(int serverPort) { this.port = serverPort; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
