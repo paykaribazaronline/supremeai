@@ -76,6 +76,16 @@ public class ProviderRegistryService {
         } else {
             loadFromLocalJson();
         }
+
+        // Warn loudly on startup when no providers are available, since all AI
+        // features (self-improvement, project improvement, consensus) depend on
+        // having at least one configured provider.
+        if (providers.isEmpty()) {
+            logger.warn("⚠️⚠️⚠️ NO AI PROVIDERS CONFIGURED — all AI features will be unavailable until " +
+                    "an admin adds at least one provider via POST /api/providers");
+        } else {
+            logger.info("✅ Loaded {} AI provider(s) on startup", providers.size());
+        }
     }
 
     // ── read ──────────────────────────────────────────────────────────────────

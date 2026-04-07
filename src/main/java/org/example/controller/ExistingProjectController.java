@@ -143,12 +143,21 @@ public class ExistingProjectController {
     /**
      * POST /api/existing-projects/{id}/improve
      * Trigger an immediate improvement cycle (clone/pull → AI analyse → commit → push).
+     * Returns 202 Accepted immediately; the cycle runs in the background.
      */
     @PostMapping("/{id}/improve")
     public ResponseEntity<?> triggerImprovement(@PathVariable String id) {
         try {
-            Map<String, Object> report = projectService.triggerImprovement(id);
-            return ResponseEntity.ok(report);
+            // Validate project exists before queuing
+            if (projectService.getProject(id) == null) {
+                return ResponseEntity.status(404).body(Map.of("error", "Project not found: " + id));
+            }
+            projectService.triggerImprovementAsync(id);
+            return ResponseEntity.accepted().body(Map.of(
+                "status", "queued",
+                "projectId", id,
+                "message", "Improvement cycle started in background"
+            ));
         } catch (java.util.NoSuchElementException e) {
             return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {

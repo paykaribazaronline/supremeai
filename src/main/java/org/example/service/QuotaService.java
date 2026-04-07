@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Scheduled;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -168,6 +169,7 @@ public class QuotaService {
     /**
      * Reset daily quotas (called daily or on schedule)
      */
+    @Scheduled(cron = "0 0 0 * * *") // Midnight every day
     public void resetDailyQuotas() {
         logger.info("🔄 Resetting daily quotas for all providers");
         syncConfiguredProviders();
@@ -182,6 +184,7 @@ public class QuotaService {
         logger.info("✅ Daily quotas reset complete");
     }
 
+    @Scheduled(cron = "0 0 0 1 * *") // First day of each month at midnight
     public void resetMonthlyQuotas() {
         logger.info("🔄 Resetting monthly quotas for all providers");
         syncConfiguredProviders();
