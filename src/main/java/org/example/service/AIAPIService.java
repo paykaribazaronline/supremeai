@@ -83,7 +83,7 @@ public class AIAPIService {
         Map.entry("LLAMA", "https://api.llama.com/compat/v1/chat/completions"),
         Map.entry("HUGGINGFACE", "https://router.huggingface.co/v1/chat/completions"),
         Map.entry("XAI", "https://api.x.ai/v1/chat/completions"),
-        Map.entry("AIRLLM", "http://localhost:8081/v1/chat/completions")
+        Map.entry("AIRLLM", "https://unsymmetrical-unrepugnant-lilah.ngrok-free.dev/v1/chat/completions")
     );
 
     private final Map<String, String> defaultModels = Map.ofEntries(
@@ -97,7 +97,7 @@ public class AIAPIService {
         Map.entry("LLAMA", "Llama-4-Scout-17B-16E-Instruct"),
         Map.entry("HUGGINGFACE", "meta-llama/Llama-3.3-70B-Instruct"),
         Map.entry("XAI", "grok-2-latest"),
-        Map.entry("AIRLLM", "meta-llama/Llama-3.3-70B-Instruct")
+        Map.entry("AIRLLM", "mistralai/Mistral-7B-Instruct-v0.3")
     );
     
     private final Map<String, String> apiKeys = new HashMap<>();

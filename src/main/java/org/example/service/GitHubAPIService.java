@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -21,7 +22,7 @@ public class GitHubAPIService {
     private static final String GITHUB_API = "https://api.github.com";
     private static final String GITHUB_REPO = System.getenv("GITHUB_REPO") != null 
         ? System.getenv("GITHUB_REPO")
-        : "supremeai/supremeai";
+        : "paykaribazaronline/supremeai";
 
     /** GitHub App auth — preferred over a bare PAT when configured. */
     @Autowired
@@ -260,7 +261,110 @@ public class GitHubAPIService {
         }
     }
 
+    // ============ PUBLIC FILE CREATION API ============
+
+    /**
+     * Create or update a file in the GitHub repository via Contents API.
+     * Automatically fetches the current file SHA when the file already exists
+     * (required for updates — GitHub API rejects updates without the current SHA).
+     *
+     * @param repoFilePath  Path within the repo root (e.g., "src/main/java/org/example/service/MyService.java")
+     * @param content       Raw file content (will be Base64-encoded for the API)
+     * @param commitMessage Commit message
+     * @return true if file was successfully created/updated on GitHub
+     */
+    public boolean createOrUpdateFileInRepo(String repoFilePath, String content, String commitMessage) {
+        try {
+            // Normalize path separators for GitHub API
+            String normalizedPath = repoFilePath.replace('\\', '/');
+            String endpoint = String.format("%s/repos/%s/contents/%s", GITHUB_API, GITHUB_REPO, normalizedPath);
+
+            // Step 1: Try to GET existing file to obtain its SHA (required for updates)
+            String existingSha = null;
+            try {
+                String existingJson = makeGitHubRequest(endpoint);
+                if (existingJson != null && existingJson.contains("\"sha\":")) {
+                    int shaStart = existingJson.indexOf("\"sha\":") + 7;
+                    // skip the opening quote
+                    if (shaStart < existingJson.length() && existingJson.charAt(shaStart) == '"') shaStart++;
+                    int shaEnd = existingJson.indexOf('"', shaStart);
+                    if (shaEnd > shaStart) {
+                        existingSha = existingJson.substring(shaStart, shaEnd);
+                    }
+                }
+            } catch (Exception e) {
+                // File doesn't exist yet — that's fine, we create it
+                logger.debug("📄 File {} not found (will create): {}", normalizedPath, e.getMessage());
+            }
+
+            // Step 2: Base64-encode the file content
+            String encodedContent = Base64.getEncoder()
+                .encodeToString(content.getBytes(StandardCharsets.UTF_8));
+
+            // Step 3: Build JSON body
+            StringBuilder body = new StringBuilder();
+            body.append("{");
+            body.append("\"message\":\"").append(escapeJson(commitMessage)).append("\"");
+            body.append(",\"content\":\"").append(encodedContent).append("\"");
+            if (existingSha != null && !existingSha.isEmpty()) {
+                body.append(",\"sha\":\"").append(existingSha).append("\"");
+            }
+            body.append("}");
+
+            // Step 4: PUT to GitHub Contents API
+            String response = makePutRequest(endpoint, body.toString());
+            if (response != null) {
+                logger.info("✅ GitHub commit: {}", normalizedPath);
+                return true;
+            } else {
+                logger.error("❌ GitHub commit failed for: {}", normalizedPath);
+                return false;
+            }
+        } catch (Exception e) {
+            logger.error("❌ createOrUpdateFileInRepo error for {}: {}", repoFilePath, e.getMessage());
+            return false;
+        }
+    }
+
     // ============ PRIVATE HELPER METHODS ============
+
+    /**
+     * Make HTTP PUT request to GitHub API (used by Contents API for file create/update).
+     */
+    private String makePutRequest(String endpoint, String body) throws IOException {
+        String token = resolveToken();
+        URL url = new URL(endpoint);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("PUT");
+        conn.setRequestProperty("Authorization", "token " + token);
+        conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setDoOutput(true);
+        conn.setConnectTimeout(15_000);
+        conn.setReadTimeout(15_000);
+
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(body.getBytes(StandardCharsets.UTF_8));
+        }
+
+        int code = conn.getResponseCode();
+        // Read response or error stream
+        InputStream is = (code >= 200 && code < 300) ? conn.getInputStream() : conn.getErrorStream();
+        StringBuilder sb = new StringBuilder();
+        if (is != null) {
+            try (BufferedReader rd = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = rd.readLine()) != null) sb.append(line);
+            }
+        }
+        conn.disconnect();
+
+        if (code >= 200 && code < 300) {
+            return sb.toString();
+        }
+        logger.error("❌ GitHub PUT {} → HTTP {}: {}", endpoint, code, sb.toString().substring(0, Math.min(200, sb.length())));
+        return null;
+    }
 
     /**
      * Returns the best available GitHub auth token.
