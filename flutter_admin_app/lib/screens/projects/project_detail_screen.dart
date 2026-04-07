@@ -43,7 +43,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditMode ? 'Edit Project' : 'New Project'),
+        title: Text(isEditMode ? 'প্রজেক্ট সম্পাদনা' : 'নতুন প্রজেক্ট'),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -52,16 +52,18 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildFormField(
-              label: 'Project Name',
+              label: 'প্রজেক্টের নাম',
               controller: _nameController,
-              hint: 'Enter project name',
+              hint: 'যেমন: MyAwesomeApp',
+              helperText: '(প্রজেক্টের একটা নাম দিন)',
               required: true,
             ),
             const SizedBox(height: AppConstants.paddingLarge),
             _buildFormField(
-              label: 'Description',
+              label: 'বিবরণ',
               controller: _descriptionController,
-              hint: 'Enter project description',
+              hint: 'প্রজেক্টটি কী করবে তা লিখুন...',
+              helperText: '(প্রজেক্টের কাজ ও লক্ষ্য সংক্ষেপে লিখুন)',
               maxLines: 4,
               required: true,
             ),
@@ -85,6 +87,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     required String hint,
     bool required = false,
     int maxLines = 1,
+    String? helperText,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,6 +108,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               ),
           ],
         ),
+        if (helperText != null)
+          Text(helperText, style: const TextStyle(fontSize: 11, color: Colors.grey)),
         const SizedBox(height: AppConstants.paddingSmall),
         TextField(
           controller: controller,
@@ -129,12 +134,13 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Status',
+          'অবস্থা',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 14,
           ),
         ),
+        const Text('(প্রজেক্ট এখন কোন পর্যায়ে আছে)', style: TextStyle(fontSize: 11, color: Colors.grey)),
         const SizedBox(height: AppConstants.paddingSmall),
         DropdownButtonFormField<String>(
           value: _selectedStatus,
@@ -166,12 +172,13 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Assign AI Agent (Optional)',
+          'AI এজেন্ট নির্বাচন (ঐচ্ছিক)',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 14,
           ),
         ),
+        const Text('(কোন AI এজেন্ট এই প্রজেক্টে কাজ করবে তা বেছে নিন)', style: TextStyle(fontSize: 11, color: Colors.grey)),
         const SizedBox(height: AppConstants.paddingSmall),
         Container(
           padding: const EdgeInsets.all(AppConstants.paddingMedium),
@@ -183,21 +190,21 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             children: [
               ListTile(
                 title: const Text('Architect Agent'),
-                subtitle: const Text('Design & Architecture'),
+                subtitle: const Text('ডিজাইন ও স্থাপত্য তৈরি করে'),
                 selected: _selectedAgent == 'architect',
                 onTap: () => setState(() => _selectedAgent = 'architect'),
               ),
               Divider(color: Colors.grey[300]),
               ListTile(
                 title: const Text('Builder Agent'),
-                subtitle: const Text('Implementation & Building'),
+                subtitle: const Text('কোড লেখে ও তৈরি করে'),
                 selected: _selectedAgent == 'builder',
                 onTap: () => setState(() => _selectedAgent = 'builder'),
               ),
               Divider(color: Colors.grey[300]),
               ListTile(
                 title: const Text('Reviewer Agent'),
-                subtitle: const Text('Quality & Testing'),
+                subtitle: const Text('মান যাচাই ও টেস্ট করে'),
                 selected: _selectedAgent == 'reviewer',
                 onTap: () => setState(() => _selectedAgent = 'reviewer'),
               ),
@@ -219,12 +226,13 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Project Information',
+            'প্রজেক্টের তথ্য',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 14,
             ),
           ),
+          const Text('(সিস্টেম থেকে স্বয়ংক্রিয় তথ্য)', style: TextStyle(fontSize: 11, color: Colors.grey)),
           const SizedBox(height: AppConstants.paddingMedium),
           _buildInfoRow('Project ID', widget.project!.id),
           _buildInfoRow(
@@ -268,7 +276,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         Expanded(
           child: OutlinedButton(
             onPressed: _isSaving ? null : () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text('বাতিল'),
           ),
         ),
         const SizedBox(width: AppConstants.paddingMedium),
@@ -281,7 +289,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                     width: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Text(widget.project == null ? 'Create' : 'Update'),
+                : Text(widget.project == null ? 'তৈরি করুন' : 'আপডেট করুন'),
           ),
         ),
       ],
@@ -291,7 +299,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   void _saveProject() async {
     if (_nameController.text.isEmpty || _descriptionController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all required fields')),
+        const SnackBar(content: Text('সব ফিল্ড পূরণ করুন')),
       );
       return;
     }
@@ -323,8 +331,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           SnackBar(
             content: Text(
               widget.project == null
-                  ? 'Project created successfully'
-                  : 'Project updated successfully',
+                  ? 'প্রজেক্ট সফলভাবে তৈরি হয়েছে!'
+                  : 'প্রজেক্ট আপডেট হয়েছে!',
             ),
           ),
         );

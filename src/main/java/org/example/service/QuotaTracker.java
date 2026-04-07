@@ -1,5 +1,6 @@
 package org.example.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.time.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,6 +29,10 @@ public class QuotaTracker {
     
     // Firebase for persistence
     private final FirebaseService firebaseService;
+
+    // Disk persistence
+    private final LocalJsonStoreService jsonStore;
+    private static final String QUOTA_USAGE_PATH = "quota-tracker/usage.json";
     
     public enum QuotaWindow {
         HOURLY, DAILY, MONTHLY
@@ -63,9 +68,11 @@ public class QuotaTracker {
         }
     }
     
-    public QuotaTracker(FirebaseService firebase) {
+    public QuotaTracker(FirebaseService firebase, LocalJsonStoreService jsonStore) {
         this.firebaseService = firebase;
+        this.jsonStore = jsonStore;
         initializeTracking();
+        restoreUsageFromDisk();
     }
     
     // ========== INITIALIZATION ==========
@@ -204,8 +211,55 @@ public class QuotaTracker {
     }
     
     private void saveUsageToFirebase(UsageWindow usage) {
-        // TODO: Save to Firebase for auditing
-        // firebaseService.logQuotaUsage(usage);
+        persistUsageToDisk();
+    }
+
+    private void persistUsageToDisk() {
+        try {
+            Map<String, Map<String, Object>> data = new LinkedHashMap<>();
+            for (Map.Entry<String, UsageWindow> entry : usageTracking.entrySet()) {
+                UsageWindow uw = entry.getValue();
+                Map<String, Object> m = new LinkedHashMap<>();
+                m.put("service", uw.service);
+                m.put("currentUsage", uw.currentUsage);
+                m.put("quota", uw.quota);
+                m.put("window", uw.window.name());
+                m.put("windowStart", uw.windowStart.toString());
+                data.put(entry.getKey(), m);
+            }
+            if (jsonStore != null) jsonStore.write(QUOTA_USAGE_PATH, data);
+        } catch (Exception e) {
+            System.out.println("\u26a0\ufe0f Failed to persist quota usage: " + e.getMessage());
+        }
+    }
+
+    private void restoreUsageFromDisk() {
+        try {
+            if (jsonStore == null) return;
+            Map<String, Map<String, Object>> saved = jsonStore.read(
+                    QUOTA_USAGE_PATH,
+                    new TypeReference<Map<String, Map<String, Object>>>() {},
+                    Map.of());
+            for (Map.Entry<String, Map<String, Object>> entry : saved.entrySet()) {
+                UsageWindow uw = usageTracking.get(entry.getKey());
+                if (uw != null) {
+                    Map<String, Object> m = entry.getValue();
+                    uw.currentUsage = m.get("currentUsage") != null ? ((Number) m.get("currentUsage")).intValue() : 0;
+                    if (m.get("windowStart") != null) {
+                        try {
+                            uw.windowStart = LocalDateTime.parse(String.valueOf(m.get("windowStart")));
+                        } catch (Exception ignored) {}
+                    }
+                    // Check if window expired — if so, reset
+                    if (isWindowExpired(uw)) {
+                        resetWindow(uw);
+                    }
+                }
+            }
+            System.out.println("\u2705 QuotaTracker restored usage from disk for " + saved.size() + " services");
+        } catch (Exception e) {
+            System.out.println("\u26a0\ufe0f Could not restore quota usage: " + e.getMessage());
+        }
     }
     
     private void checkQuotaAlerts(UsageWindow usage) {

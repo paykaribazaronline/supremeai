@@ -1,5 +1,6 @@
 package org.example.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.example.model.ConsensusVote;
 import org.example.model.ExistingProject;
 import org.slf4j.Logger;
@@ -44,6 +45,11 @@ public class ExistingProjectService {
     @Autowired
     private IdleResearchService idleResearchService;
 
+    @Autowired
+    private LocalJsonStoreService jsonStore;
+
+    private static final String PROJECTS_STORE_PATH = "existing-projects/registry.json";
+
     /** In-memory store: projectId → ExistingProject */
     private final Map<String, ExistingProject> projects = new ConcurrentHashMap<>();
 
@@ -69,9 +75,29 @@ public class ExistingProjectService {
     public void init() {
         try {
             Files.createDirectories(Paths.get(WORKSPACE));
-            logger.info("✅ ExistingProjectService ready — workspace: {}", WORKSPACE);
+            // Restore persisted projects from disk
+            List<ExistingProject> saved = jsonStore.read(
+                    PROJECTS_STORE_PATH,
+                    new TypeReference<List<ExistingProject>>() {},
+                    List.of());
+            for (ExistingProject p : saved) {
+                projects.put(p.getId(), p);
+            }
+            logger.info("✅ ExistingProjectService ready — workspace: {}, restored {} projects from disk",
+                    WORKSPACE, saved.size());
         } catch (Exception e) {
-            logger.warn("⚠️ Could not create workspace dir {}: {}", WORKSPACE, e.getMessage());
+            logger.warn("⚠️ Could not initialise ExistingProjectService: {}", e.getMessage());
+        }
+    }
+
+    /** Persist current projects map to disk via LocalJsonStoreService. */
+    private void persistProjects() {
+        try {
+            // Clone the list so we don't serialize repoToken to disk
+            List<ExistingProject> toSave = new ArrayList<>(projects.values());
+            jsonStore.write(PROJECTS_STORE_PATH, toSave);
+        } catch (Exception e) {
+            logger.warn("⚠️ Failed to persist projects to disk: {}", e.getMessage());
         }
     }
 
@@ -109,6 +135,7 @@ public class ExistingProjectService {
         project.addConversationMessage("ai", welcomeMsg);
 
         projects.put(project.getId(), project);
+        persistProjects();
         logger.info("📝 Registered existing project: {} ({})", project.getName(), project.getId());
         return project;
     }
@@ -134,7 +161,9 @@ public class ExistingProjectService {
      * Remove a project from tracking (does NOT delete the cloned repo from disk).
      */
     public boolean removeProject(String id) {
-        return projects.remove(id) != null;
+        boolean removed = projects.remove(id) != null;
+        if (removed) persistProjects();
+        return removed;
     }
 
     /**
@@ -143,6 +172,7 @@ public class ExistingProjectService {
     public ExistingProject toggleContinuous(String id, boolean enabled) {
         ExistingProject project = requireProject(id);
         project.setContinuousImprovement(enabled);
+        persistProjects();
         logger.info("🔄 Continuous improvement {} for project {}", enabled ? "ENABLED" : "DISABLED", project.getName());
         return project;
     }
@@ -182,6 +212,7 @@ public class ExistingProjectService {
         }
 
         project.addConversationMessage("ai", aiReply);
+        persistProjects();
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("projectId", id);
@@ -317,6 +348,7 @@ public class ExistingProjectService {
             report.put("error", e.getMessage());
         }
 
+        persistProjects();
         return report;
     }
 

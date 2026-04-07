@@ -90,7 +90,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: AppConstants.paddingLarge),
               // Title
               const Text(
-                'Create Admin Account',
+                'নতুন অ্যাডমিন অ্যাকাউন্ট তৈরি',
                 style: TextStyle(
                   fontSize: AppConstants.titleFontSize,
                   fontWeight: FontWeight.bold,
@@ -98,11 +98,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: AppConstants.paddingSmall),
-              // Subtitle
               const Text(
-                'Register for SupremeAI Admin Portal',
+                'SupremeAI অ্যাডমিন পোর্টালে নিবন্ধন করুন',
                 style: TextStyle(
                   fontSize: AppConstants.bodyFontSize,
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: AppConstants.paddingXXSmall),
+              const Text(
+                '(এখানে নাম, ইমেইল ও পাসওয়ার্ড দিয়ে অ্যাকাউন্ট খুলুন)',
+                style: TextStyle(
+                  fontSize: AppConstants.captionFontSize,
                   color: Colors.grey,
                 ),
               ),
@@ -116,8 +123,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextFormField(
                       controller: _nameController,
                       decoration: const InputDecoration(
-                        labelText: 'Full Name',
-                        hintText: 'John Doe',
+                        labelText: 'পুরো নাম',
+                        hintText: 'যেমন: নাজিফা আক্তার',
+                        helperText: '(আপনার পুরো নাম লিখুন)',
                         prefixIcon: Icon(Icons.person_outline),
                       ),
                       validator: Validators.validateName,
@@ -128,8 +136,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextFormField(
                       controller: _emailController,
                       decoration: const InputDecoration(
-                        labelText: 'Email',
+                        labelText: 'ইমেইল',
                         hintText: 'admin@supremeai.com',
+                        helperText: '(এই ইমেইল দিয়ে লগইন করবেন)',
                         prefixIcon: Icon(Icons.email_outlined),
                       ),
                       keyboardType: TextInputType.emailAddress,
@@ -141,8 +150,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextFormField(
                       controller: _passwordController,
                       decoration: InputDecoration(
-                        labelText: 'Password',
-                        hintText: 'Enter password',
+                        labelText: 'পাসওয়ার্ড',
+                        hintText: 'গোপন পাসওয়ার্ড দিন',
+                        helperText: '(কমপক্ষে ৮ অক্ষরের হতে হবে)',
                         prefixIcon: const Icon(Icons.lock_outlined),
                         suffixIcon: IconButton(
                           onPressed: () {
@@ -166,8 +176,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextFormField(
                       controller: _confirmPasswordController,
                       decoration: InputDecoration(
-                        labelText: 'Confirm Password',
-                        hintText: 'Confirm password',
+                        labelText: 'পাসওয়ার্ড নিশ্চিত করুন',
+                        hintText: 'আবার লিখুন',
+                        helperText: '(উপরের পাসওয়ার্ডটি হুবহু আবার লিখুন)',
                         prefixIcon: const Icon(Icons.lock_outlined),
                         suffixIcon: IconButton(
                           onPressed: () {
@@ -200,7 +211,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             BorderRadius.circular(AppConstants.radiusMedium),
                       ),
                       child: const Text(
-                        'Password must be at least 8 characters long',
+                        'পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে',
                         style: TextStyle(
                           fontSize: AppConstants.captionFontSize,
                           color: Colors.grey,
@@ -265,7 +276,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     ),
                                   )
                                 : const Text(
-                                    'Register',
+                                    'নিবন্ধন করুন',
                                     style: TextStyle(
                                       fontSize: AppConstants.titleFontSize,
                                       fontWeight: FontWeight.bold,
@@ -283,12 +294,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Already have an account? '),
+                  const Text('ইতিমধ্যে অ্যাকাউন্ট আছে? '),
                   TextButton(
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: const Text('Login here'),
+                    child: const Text('লগইন করুন'),
                   ),
                 ],
               ),

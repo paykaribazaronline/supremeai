@@ -16,6 +16,23 @@ import 'screens/projects/projects_list_screen.dart';
 import 'screens/metrics_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/unified_admin/unified_admin_screen.dart';
+import 'screens/learning/learning_screen.dart';
+import 'screens/teaching/teaching_screen.dart';
+import 'screens/providers/ai_providers_screen.dart';
+import 'screens/extension/self_extension_screen.dart';
+import 'screens/alerts/alerts_logs_screen.dart';
+import 'screens/admin/admin_control_screen.dart';
+import 'screens/consensus/consensus_screen.dart';
+import 'screens/git/git_ops_screen.dart';
+import 'screens/quota/quota_screen.dart';
+import 'screens/vpn/vpn_screen.dart';
+import 'screens/resilience/resilience_screen.dart';
+import 'screens/ml/ml_intelligence_screen.dart';
+import 'screens/notifications/notifications_screen.dart';
+import 'screens/analytics/analytics_screen.dart';
+import 'screens/decisions/decision_history_screen.dart';
+import 'screens/phases/phases_screen.dart';
+import 'screens/tracing/tracing_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -139,6 +156,23 @@ class SupremeAIAdminApp extends StatelessWidget {
         AppRoutes.projectNew: (context) => const ProjectDetailScreen(),
         AppRoutes.metrics: (context) => const MetricsScreen(),
         AppRoutes.settings: (context) => const SettingsScreen(),
+        AppRoutes.learning: (context) => const LearningScreen(),
+        AppRoutes.teaching: (context) => const TeachingScreen(),
+        AppRoutes.aiProviders: (context) => const AIProvidersScreen(),
+        AppRoutes.selfExtension: (context) => const SelfExtensionScreen(),
+        AppRoutes.alertsLogs: (context) => const AlertsLogsScreen(),
+        AppRoutes.adminControl: (context) => const AdminControlScreen(),
+        AppRoutes.consensus: (context) => const ConsensusScreen(),
+        AppRoutes.gitOps: (context) => const GitOpsScreen(),
+        AppRoutes.quota: (context) => const QuotaScreen(),
+        AppRoutes.vpn: (context) => const VpnScreen(),
+        AppRoutes.resilience: (context) => const ResilienceScreen(),
+        AppRoutes.mlIntelligence: (context) => const MlIntelligenceScreen(),
+        AppRoutes.notifications: (context) => const NotificationsScreen(),
+        AppRoutes.analytics: (context) => const AnalyticsScreen(),
+        AppRoutes.decisionHistory: (context) => const DecisionHistoryScreen(),
+        AppRoutes.phases: (context) => const PhasesScreen(),
+        AppRoutes.tracing: (context) => const TracingScreen(),
       },
       onGenerateRoute: _onGenerateRoute,
       onUnknownRoute: _onUnknownRoute,
@@ -202,10 +236,18 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: AppConstants.paddingSmall),
             const Text(
-              'Admin Management System',
+              'অ্যাডমিন ম্যানেজমেন্ট সিস্টেম',
               style: TextStyle(
                 color: Colors.white70,
                 fontSize: AppConstants.bodyFontSize,
+              ),
+            ),
+            const SizedBox(height: AppConstants.paddingXSmall),
+            const Text(
+              '(লোড হচ্ছে, অপেক্ষা করুন...)',
+              style: TextStyle(
+                color: Colors.white54,
+                fontSize: AppConstants.captionFontSize,
               ),
             ),
             const SizedBox(height: AppConstants.paddingXLarge),

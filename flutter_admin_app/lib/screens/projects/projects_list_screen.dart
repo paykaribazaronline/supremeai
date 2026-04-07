@@ -25,7 +25,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Projects'),
+        title: const Text('প্রজেক্টসমূহ'),
         elevation: 0,
         actions: [
           IconButton(
@@ -33,6 +33,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
               Provider.of<ProjectsProvider>(context, listen: false).fetchProjects();
             },
             icon: const Icon(Icons.refresh),
+            tooltip: 'আবার লোড করুন',
           ),
         ],
       ),
@@ -64,7 +65,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                     onPressed: () {
                       provider.fetchProjects();
                     },
-                    child: const Text('Retry'),
+                    child: const Text('আবার চেষ্টা করুন'),
                   ),
                 ],
               ),
@@ -83,12 +84,12 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                   ),
                   const SizedBox(height: AppConstants.paddingMedium),
                   const Text(
-                    'No projects yet',
+                    'এখনো কোনো প্রজেক্ট নেই',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: AppConstants.paddingSmall),
                   const Text(
-                    'Create your first project to get started',
+                    'নতুন প্রজেক্ট তৈরি করতে + বাটনে চাপুন',
                     style: TextStyle(color: Colors.grey),
                   ),
                 ],
@@ -183,7 +184,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                 children: [
                   Icon(Icons.info_outline, size: 20),
                   SizedBox(width: 8),
-                  Text('View'),
+                  Text('বিস্তারিত দেখুন'),
                 ],
               ),
             ),
@@ -193,7 +194,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                 children: [
                   Icon(Icons.edit, size: 20),
                   SizedBox(width: 8),
-                  Text('Edit'),
+                  Text('সম্পাদনা করুন'),
                 ],
               ),
             ),
@@ -203,7 +204,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                 children: [
                   Icon(Icons.delete, size: 20, color: Colors.red),
                   SizedBox(width: 8),
-                  Text('Delete', style: TextStyle(color: Colors.red)),
+                  Text('মুছে ফেলুন', style: TextStyle(color: Colors.red)),
                 ],
               ),
             ),
@@ -248,12 +249,23 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Project'),
-        content: Text('Are you sure you want to delete "${project.name}"?'),
+        title: const Text('প্রজেক্ট মুছে ফেলবেন?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('"${project.name}" মুছে ফেলতে চান?'),
+            const SizedBox(height: 8),
+            const Text(
+              '(এটা মুছলে আর ফেরত আনা যাবে না)',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text('না, রাখুন'),
           ),
           TextButton(
             onPressed: () {
@@ -261,10 +273,10 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                   .deleteProject(project.id);
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Project "${project.name}" deleted')),
+                SnackBar(content: Text('"${project.name}" মুছে ফেলা হয়েছে')),
               );
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: const Text('হ্যাঁ, মুছুন', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

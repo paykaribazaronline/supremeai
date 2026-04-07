@@ -1,9 +1,11 @@
 package org.example.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.example.api.ProjectGenerationController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import jakarta.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -49,9 +51,29 @@ public class ActivitySummaryService {
     @Autowired(required = false)
     private MetricsService metricsService;
 
+    @Autowired
+    private LocalJsonStoreService jsonStore;
+
+    private static final String EVENT_LOG_PATH = "activity/event-log.json";
+
     /** Lightweight in-process event log (newest first, capped at 500 entries). */
     private final ConcurrentLinkedDeque<ActivityEvent> eventLog = new ConcurrentLinkedDeque<>();
     private static final int MAX_EVENTS = 500;
+
+    @PostConstruct
+    public void init() {
+        List<Map<String, Object>> saved = jsonStore.read(
+                EVENT_LOG_PATH,
+                new TypeReference<List<Map<String, Object>>>() {},
+                List.of());
+        for (Map<String, Object> m : saved) {
+            long ts = m.get("timestampMs") != null ? ((Number) m.get("timestampMs")).longValue() : 0;
+            String cat = String.valueOf(m.getOrDefault("category", ""));
+            String title = String.valueOf(m.getOrDefault("title", ""));
+            String detail = String.valueOf(m.getOrDefault("detail", ""));
+            eventLog.addLast(new ActivityEvent(ts, cat, title, detail));
+        }
+    }
 
     // ── Public API ────────────────────────────────────────────────────────────
 
@@ -62,6 +84,18 @@ public class ActivitySummaryService {
         ActivityEvent e = new ActivityEvent(System.currentTimeMillis(), category, title, detail);
         eventLog.addFirst(e);
         while (eventLog.size() > MAX_EVENTS) eventLog.pollLast();
+        persistEventLog();
+    }
+
+    private void persistEventLog() {
+        try {
+            List<Map<String, Object>> toSave = eventLog.stream()
+                    .map(ActivityEvent::toMap)
+                    .collect(Collectors.toList());
+            jsonStore.write(EVENT_LOG_PATH, toSave);
+        } catch (Exception ex) {
+            // Non-critical — don't crash
+        }
     }
 
     /**
@@ -313,6 +347,7 @@ public class ActivitySummaryService {
 
         public Map<String, Object> toMap() {
             Map<String, Object> m = new LinkedHashMap<>();
+            m.put("timestampMs", timestampMs);
             m.put("time",     LocalDateTime.ofInstant(Instant.ofEpochMilli(timestampMs), ZoneId.systemDefault())
                                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             m.put("category", category);
