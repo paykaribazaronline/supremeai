@@ -21,6 +21,14 @@ interface CriticalItem {
     category: string;
 }
 
+interface LearningSettings {
+    maxTopicsPerCycle: number;
+    cycleIntervalMinutes: number;
+    dailyWriteLimit: number;
+    dailyReadLimit: number;
+    learningEnabled: boolean;
+}
+
 const LearningResearch: React.FC = () => {
     const [learningStats, setLearningStats] = useState<LearningStats | null>(null);
     const [researchStats, setResearchStats] = useState<ResearchStats | null>(null);
@@ -28,10 +36,12 @@ const LearningResearch: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [researching, setResearching] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [learningLimit, setLearningLimit] = useState<number>(3);
-    const [limitInput, setLimitInput] = useState<string>('3');
-    const [savingLimit, setSavingLimit] = useState(false);
-    const [limitMsg, setLimitMsg] = useState<string | null>(null);
+    const [settings, setSettings] = useState<LearningSettings>({
+        maxTopicsPerCycle: 3, cycleIntervalMinutes: 5, dailyWriteLimit: 18000, dailyReadLimit: 50000, learningEnabled: true,
+    });
+    const [draft, setDraft] = useState<LearningSettings>({ ...settings });
+    const [savingSettings, setSavingSettings] = useState(false);
+    const [settingsMsg, setSettingsMsg] = useState<string | null>(null);
 
     const getToken = () => localStorage.getItem('supremeai_token') || localStorage.getItem('authToken');
 
@@ -61,13 +71,13 @@ const LearningResearch: React.FC = () => {
                 setCriticalItems(Array.isArray(data) ? data : []);
             }
 
-            // Fetch learning limit
+            // Fetch learning settings
             try {
-                const limitRes = await fetch('/api/research/learning-limit', { headers });
-                if (limitRes.ok) {
-                    const limitData = await limitRes.json();
-                    setLearningLimit(limitData.maxTopicsPerCycle ?? 3);
-                    setLimitInput(String(limitData.maxTopicsPerCycle ?? 3));
+                const settingsRes = await fetch('/api/research/settings', { headers });
+                if (settingsRes.ok) {
+                    const s = await settingsRes.json();
+                    setSettings(s);
+                    setDraft(s);
                 }
             } catch (_) { /* ignore */ }
         } catch (err) {
@@ -102,35 +112,31 @@ const LearningResearch: React.FC = () => {
         }
     };
 
-    const saveLearningLimit = async () => {
-        const val = parseInt(limitInput, 10);
-        if (isNaN(val) || val < 1 || val > 50) {
-            setLimitMsg('Must be 1-50');
-            return;
-        }
-        setSavingLimit(true);
-        setLimitMsg(null);
+    const saveSettings = async () => {
+        setSavingSettings(true);
+        setSettingsMsg(null);
         try {
             const token = getToken();
-            const res = await fetch('/api/research/learning-limit', {
+            const res = await fetch('/api/research/settings', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
-                body: JSON.stringify({ limit: val }),
+                body: JSON.stringify(draft),
             });
             if (res.ok) {
-                setLearningLimit(val);
-                setLimitMsg(`Updated to ${val} topics per cycle`);
+                const data = await res.json();
+                setSettings({ ...settings, ...data });
+                setSettingsMsg('Settings saved successfully!');
             } else {
                 const data = await res.json().catch(() => ({}));
-                setLimitMsg(data.error || 'Failed to update');
+                setSettingsMsg(data.error || 'Failed to save');
             }
         } catch (_) {
-            setLimitMsg('Network error');
+            setSettingsMsg('Network error');
         } finally {
-            setSavingLimit(false);
+            setSavingSettings(false);
         }
     };
 
@@ -167,29 +173,50 @@ const LearningResearch: React.FC = () => {
                 <StatCard title="Last Research" value={researchStats?.lastResearchTime ?? 'N/A'} color="#64748B" />
             </div>
 
-            {/* Learning Limit Control */}
+            {/* Learning Settings Control Panel */}
             <div style={limitPanelStyle}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-                    <span style={{ fontWeight: 600, fontSize: 14 }}>Learning Limit per Cycle:</span>
-                    <span style={{ color: '#6366F1', fontWeight: 700, fontSize: 20 }}>{learningLimit}</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
-                        <input
-                            type="number"
-                            min={1}
-                            max={50}
-                            value={limitInput}
-                            onChange={e => setLimitInput(e.target.value)}
-                            style={limitInputStyle}
-                        />
-                        <button onClick={saveLearningLimit} disabled={savingLimit} style={{ ...btnStyle, ...primaryBtnStyle }}>
-                            {savingLimit ? 'Saving...' : 'Set Limit'}
-                        </button>
-                    </div>
+                <h3 style={{ margin: '0 0 16px 0', fontSize: 16 }}>⚙️ Learning Settings</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
+                    <SettingField
+                        label="Topics per Cycle"
+                        hint="1-50 — how many topics learned each cycle"
+                        value={draft.maxTopicsPerCycle}
+                        onChange={v => setDraft({ ...draft, maxTopicsPerCycle: v })}
+                        min={1} max={50}
+                    />
+                    <SettingField
+                        label="Cycle Interval (min)"
+                        hint="1-1440 — minutes between research cycles"
+                        value={draft.cycleIntervalMinutes}
+                        onChange={v => setDraft({ ...draft, cycleIntervalMinutes: v })}
+                        min={1} max={1440}
+                    />
+                    <SettingField
+                        label="Daily Write Limit"
+                        hint="Firebase daily write quota cap"
+                        value={draft.dailyWriteLimit}
+                        onChange={v => setDraft({ ...draft, dailyWriteLimit: v })}
+                        min={100} max={1000000}
+                    />
+                    <SettingField
+                        label="Daily Read Limit"
+                        hint="Firebase daily read quota cap"
+                        value={draft.dailyReadLimit}
+                        onChange={v => setDraft({ ...draft, dailyReadLimit: v })}
+                        min={100} max={1000000}
+                    />
                 </div>
-                <div style={{ fontSize: 12, color: '#6B7280', marginTop: 6 }}>
-                    Controls how many topics the system learns per research cycle (1-50). Higher = learns faster but uses more quota.
+                <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <button onClick={saveSettings} disabled={savingSettings} style={{ ...btnStyle, ...primaryBtnStyle }}>
+                        {savingSettings ? 'Saving...' : 'Save Settings'}
+                    </button>
+                    <button onClick={() => setDraft({ ...settings })} style={btnStyle}>Reset</button>
+                    {settingsMsg && (
+                        <span style={{ fontSize: 13, color: settingsMsg.includes('success') ? '#059669' : '#DC2626' }}>
+                            {settingsMsg}
+                        </span>
+                    )}
                 </div>
-                {limitMsg && <div style={{ marginTop: 6, fontSize: 13, color: limitMsg.startsWith('Updated') ? '#059669' : '#DC2626' }}>{limitMsg}</div>}
             </div>
 
             <h3 style={{ marginTop: 24 }}>Critical Requirements ({criticalItems.length})</h3>
@@ -240,6 +267,21 @@ const StatCard: React.FC<{ title: string; value: string | number; color: string 
     </div>
 );
 
+const SettingField: React.FC<{
+    label: string; hint: string; value: number;
+    onChange: (v: number) => void; min: number; max: number;
+}> = ({ label, hint, value, onChange, min, max }) => (
+    <div style={{ background: '#fff', borderRadius: 8, padding: 12, border: '1px solid #e5e7eb' }}>
+        <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{label}</div>
+        <input
+            type="number" min={min} max={max} value={value}
+            onChange={e => onChange(Number(e.target.value))}
+            style={limitInputStyle}
+        />
+        <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>{hint}</div>
+    </div>
+);
+
 const gridStyle: React.CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 };
 const btnStyle: React.CSSProperties = { padding: '8px 16px', borderRadius: 6, border: '1px solid #d1d5db', cursor: 'pointer', background: '#fff' };
 const primaryBtnStyle: React.CSSProperties = { background: '#6366F1', color: '#fff', border: 'none' };
@@ -252,7 +294,7 @@ const limitPanelStyle: React.CSSProperties = {
     marginTop: 24, background: '#F0F0FF', border: '1px solid #C7D2FE', borderRadius: 8, padding: 16,
 };
 const limitInputStyle: React.CSSProperties = {
-    width: 70, padding: '6px 10px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 14, textAlign: 'center',
+    width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 14, boxSizing: 'border-box',
 };
 
 export default LearningResearch;
