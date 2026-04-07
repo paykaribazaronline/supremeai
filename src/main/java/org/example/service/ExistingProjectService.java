@@ -158,7 +158,7 @@ public class ExistingProjectService {
 
         String aiReply;
         try {
-            ConsensusVote vote = consensusService.askAllAI(contextPrompt);
+            ConsensusVote vote = consensusService.askAllAISystemLevel(contextPrompt);
             aiReply = (vote != null && vote.getWinningResponse() != null)
                     ? vote.getWinningResponse()
                     : "I've noted your input and will apply it during the next improvement cycle.";
@@ -241,14 +241,15 @@ public class ExistingProjectService {
             // Step 3: Ask AI for specific improvements
             project.setStatus("IMPROVING");
             String improvementPrompt = buildImprovementPrompt(project, repoSnapshot);
-            ConsensusVote vote = consensusService.askAllAI(improvementPrompt);
+            ConsensusVote vote = consensusService.askAllAISystemLevel(improvementPrompt);
 
             String aiSuggestion = (vote != null && vote.getWinningResponse() != null)
                     ? vote.getWinningResponse()
                     : null;
 
             if (aiSuggestion == null || aiSuggestion.contains("[QUOTA_EXCEEDED]")
-                    || aiSuggestion.contains("[NO_PROVIDERS_CONFIGURED]")) {
+                    || aiSuggestion.contains("[NO_PROVIDERS_CONFIGURED]")
+                    || aiSuggestion.contains("[LOCAL_FALLBACK]")) {
                 project.setStatus("IDLE");
                 report.put("skipped", "AI providers unavailable or quota exceeded");
                 return report;
