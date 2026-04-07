@@ -12,8 +12,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Service
 public class LocalJsonStoreService {
+    private static final Logger logger = LoggerFactory.getLogger(LocalJsonStoreService.class);
     private final ObjectMapper mapper;
     private final Path baseDirectory = Paths.get("data", "supremeai");
 
@@ -46,7 +50,9 @@ public class LocalJsonStoreService {
             Files.createDirectories(target.getParent());
             mapper.writerWithDefaultPrettyPrinter().writeValue(target.toFile(), value);
         } catch (IOException exception) {
-            throw new IllegalStateException("Failed to write local store: " + target, exception);
+            // Log instead of throwing — a disk I/O failure should not crash the caller
+            // (e.g. QuotaService.persistQuotas or ProviderRegistryService).
+            logger.error("❌ Failed to write local store: {} — {}", target, exception.getMessage());
         }
     }
 }

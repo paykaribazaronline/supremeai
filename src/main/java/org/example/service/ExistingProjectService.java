@@ -16,7 +16,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -43,6 +46,13 @@ public class ExistingProjectService {
 
     /** In-memory store: projectId → ExistingProject */
     private final Map<String, ExistingProject> projects = new ConcurrentHashMap<>();
+
+    /** Dedicated executor for async improvement cycles (avoids starving the common ForkJoinPool). */
+    private final ExecutorService improvementExecutor = Executors.newFixedThreadPool(2, r -> {
+        Thread t = new Thread(r, "project-improvement");
+        t.setDaemon(true);
+        return t;
+    });
 
     /**
      * Root directory where external repos are checked out.
@@ -158,10 +168,14 @@ public class ExistingProjectService {
 
         String aiReply;
         try {
-            ConsensusVote vote = consensusService.askAllAI(contextPrompt);
-            aiReply = (vote != null && vote.getWinningResponse() != null)
+            ConsensusVote vote = consensusService.askAllAISystemLevel(contextPrompt);
+            String raw = (vote != null && vote.getWinningResponse() != null)
                     ? vote.getWinningResponse()
-                    : "I've noted your input and will apply it during the next improvement cycle.";
+                    : null;
+            // Filter out fallback/quota markers so the admin sees a useful message
+            aiReply = isAIUnavailableResponse(raw)
+                    ? "I've noted your input and will apply it during the next improvement cycle."
+                    : raw;
         } catch (Exception e) {
             logger.warn("⚠️ AI reply failed for project {}: {}", project.getId(), e.getMessage());
             aiReply = "I've recorded your update. The improvement will be applied on the next cycle.";
@@ -184,6 +198,23 @@ public class ExistingProjectService {
         ExistingProject project = requireProject(id);
         logger.info("⚡ Admin triggered improvement for project: {}", project.getName());
         return runImprovementCycle(project);
+    }
+
+    /**
+     * Trigger an improvement cycle asynchronously (fire-and-forget).
+     * Used by the REST controller so the HTTP request returns immediately.
+     */
+    public void triggerImprovementAsync(String id) {
+        ExistingProject project = requireProject(id);
+        logger.info("⚡ Admin triggered async improvement for project: {}", project.getName());
+        CompletableFuture.runAsync(() -> {
+            try {
+                runImprovementCycle(project);
+            } catch (Exception e) {
+                logger.error("❌ Async improvement failed for {}: {}", project.getName(), e.getMessage());
+                project.setStatus("ERROR");
+            }
+        }, improvementExecutor);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -241,14 +272,13 @@ public class ExistingProjectService {
             // Step 3: Ask AI for specific improvements
             project.setStatus("IMPROVING");
             String improvementPrompt = buildImprovementPrompt(project, repoSnapshot);
-            ConsensusVote vote = consensusService.askAllAI(improvementPrompt);
+            ConsensusVote vote = consensusService.askAllAISystemLevel(improvementPrompt);
 
             String aiSuggestion = (vote != null && vote.getWinningResponse() != null)
                     ? vote.getWinningResponse()
                     : null;
 
-            if (aiSuggestion == null || aiSuggestion.contains("[QUOTA_EXCEEDED]")
-                    || aiSuggestion.contains("[NO_PROVIDERS_CONFIGURED]")) {
+            if (isAIUnavailableResponse(aiSuggestion)) {
                 project.setStatus("IDLE");
                 report.put("skipped", "AI providers unavailable or quota exceeded");
                 return report;
@@ -358,6 +388,13 @@ public class ExistingProjectService {
                 logger.info("ℹ️ Nothing to commit for {}", project.getName());
                 return false;
             }
+
+            // Ensure the remote URL contains the token for push authentication.
+            // Shallow clones may lose the embedded-token remote, and git-pull
+            // using the default origin may strip it.
+            String pushUrl = buildCloneUrl(project);
+            runProcess(dir.toFile(), "git", "remote", "set-url", "origin", pushUrl);
+
             int pushExit = runProcess(dir.toFile(), "git", "push", "origin", project.getBranch());
             return pushExit == 0;
         } catch (Exception e) {
@@ -456,6 +493,17 @@ public class ExistingProjectService {
     private String truncate(String text, int max) {
         if (text == null) return "";
         return text.length() <= max ? text : text.substring(0, max) + "…";
+    }
+
+    /**
+     * Returns true when the AI response indicates that no real suggestion was produced
+     * (quota exhausted, no providers configured, or local fallback).
+     */
+    private static boolean isAIUnavailableResponse(String response) {
+        return response == null
+                || response.contains("[QUOTA_EXCEEDED]")
+                || response.contains("[NO_PROVIDERS_CONFIGURED]")
+                || response.contains("[LOCAL_FALLBACK]");
     }
 
     private ExistingProject requireProject(String id) {
