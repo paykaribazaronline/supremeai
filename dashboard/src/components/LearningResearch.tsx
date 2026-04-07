@@ -28,6 +28,10 @@ const LearningResearch: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [researching, setResearching] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [learningLimit, setLearningLimit] = useState<number>(3);
+    const [limitInput, setLimitInput] = useState<string>('3');
+    const [savingLimit, setSavingLimit] = useState(false);
+    const [limitMsg, setLimitMsg] = useState<string | null>(null);
 
     const getToken = () => localStorage.getItem('supremeai_token') || localStorage.getItem('authToken');
 
@@ -56,6 +60,16 @@ const LearningResearch: React.FC = () => {
                 const data = await criticalRes.json();
                 setCriticalItems(Array.isArray(data) ? data : []);
             }
+
+            // Fetch learning limit
+            try {
+                const limitRes = await fetch('/api/research/learning-limit', { headers });
+                if (limitRes.ok) {
+                    const limitData = await limitRes.json();
+                    setLearningLimit(limitData.maxTopicsPerCycle ?? 3);
+                    setLimitInput(String(limitData.maxTopicsPerCycle ?? 3));
+                }
+            } catch (_) { /* ignore */ }
         } catch (err) {
             setError('Failed to load learning data');
         } finally {
@@ -85,6 +99,38 @@ const LearningResearch: React.FC = () => {
             // ignore
         } finally {
             setResearching(false);
+        }
+    };
+
+    const saveLearningLimit = async () => {
+        const val = parseInt(limitInput, 10);
+        if (isNaN(val) || val < 1 || val > 50) {
+            setLimitMsg('Must be 1-50');
+            return;
+        }
+        setSavingLimit(true);
+        setLimitMsg(null);
+        try {
+            const token = getToken();
+            const res = await fetch('/api/research/learning-limit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                body: JSON.stringify({ limit: val }),
+            });
+            if (res.ok) {
+                setLearningLimit(val);
+                setLimitMsg(`Updated to ${val} topics per cycle`);
+            } else {
+                const data = await res.json().catch(() => ({}));
+                setLimitMsg(data.error || 'Failed to update');
+            }
+        } catch (_) {
+            setLimitMsg('Network error');
+        } finally {
+            setSavingLimit(false);
         }
     };
 
@@ -119,6 +165,31 @@ const LearningResearch: React.FC = () => {
                 <StatCard title="Sources Scanned" value={researchStats?.sourcesScanned ?? 0} color="#06B6D4" />
                 <StatCard title="Trends Found" value={researchStats?.trendsFound ?? 0} color="#EC4899" />
                 <StatCard title="Last Research" value={researchStats?.lastResearchTime ?? 'N/A'} color="#64748B" />
+            </div>
+
+            {/* Learning Limit Control */}
+            <div style={limitPanelStyle}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                    <span style={{ fontWeight: 600, fontSize: 14 }}>Learning Limit per Cycle:</span>
+                    <span style={{ color: '#6366F1', fontWeight: 700, fontSize: 20 }}>{learningLimit}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
+                        <input
+                            type="number"
+                            min={1}
+                            max={50}
+                            value={limitInput}
+                            onChange={e => setLimitInput(e.target.value)}
+                            style={limitInputStyle}
+                        />
+                        <button onClick={saveLearningLimit} disabled={savingLimit} style={{ ...btnStyle, ...primaryBtnStyle }}>
+                            {savingLimit ? 'Saving...' : 'Set Limit'}
+                        </button>
+                    </div>
+                </div>
+                <div style={{ fontSize: 12, color: '#6B7280', marginTop: 6 }}>
+                    Controls how many topics the system learns per research cycle (1-50). Higher = learns faster but uses more quota.
+                </div>
+                {limitMsg && <div style={{ marginTop: 6, fontSize: 13, color: limitMsg.startsWith('Updated') ? '#059669' : '#DC2626' }}>{limitMsg}</div>}
             </div>
 
             <h3 style={{ marginTop: 24 }}>Critical Requirements ({criticalItems.length})</h3>
@@ -177,5 +248,11 @@ const tableStyle: React.CSSProperties = { width: '100%', borderCollapse: 'collap
 const thStyle: React.CSSProperties = { textAlign: 'left', padding: '10px 12px', borderBottom: '2px solid #e5e7eb', background: '#f9fafb', fontSize: 13 };
 const tdStyle: React.CSSProperties = { padding: '10px 12px', borderBottom: '1px solid #f3f4f6', fontSize: 13 };
 const tagStyle: React.CSSProperties = { padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600 };
+const limitPanelStyle: React.CSSProperties = {
+    marginTop: 24, background: '#F0F0FF', border: '1px solid #C7D2FE', borderRadius: 8, padding: 16,
+};
+const limitInputStyle: React.CSSProperties = {
+    width: 70, padding: '6px 10px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 14, textAlign: 'center',
+};
 
 export default LearningResearch;

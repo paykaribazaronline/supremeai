@@ -110,4 +110,44 @@ public class IdleResearchController {
     public ResponseEntity<Map<String, Object>> getFirebaseQuota() {
         return ResponseEntity.ok(researchService.getFirebaseQuotaStatus());
     }
+
+    /**
+     * GET /api/research/learning-limit - Get current learning limit per cycle
+     */
+    @GetMapping("/learning-limit")
+    public ResponseEntity<Map<String, Object>> getLearningLimit() {
+        return ResponseEntity.ok(Map.of(
+            "maxTopicsPerCycle", researchService.getMaxTopicsPerCycle(),
+            "min", 1,
+            "max", 50
+        ));
+    }
+
+    /**
+     * POST /api/research/learning-limit - Admin sets learning limit per cycle
+     * Body: { "limit": 5 }
+     */
+    @PostMapping("/learning-limit")
+    public ResponseEntity<Map<String, Object>> setLearningLimit(@RequestBody Map<String, Object> request) {
+        Object limitObj = request.get("limit");
+        if (limitObj == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "limit is required"));
+        }
+        int limit;
+        try {
+            limit = ((Number) limitObj).intValue();
+        } catch (ClassCastException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "limit must be a number"));
+        }
+        if (limit < 1 || limit > 50) {
+            return ResponseEntity.badRequest().body(Map.of("error", "limit must be between 1 and 50"));
+        }
+        researchService.setMaxTopicsPerCycle(limit);
+        logger.info("📚 Admin set learning limit to {} topics per cycle", limit);
+        return ResponseEntity.ok(Map.of(
+            "status", "updated",
+            "maxTopicsPerCycle", limit,
+            "message", "Learning limit updated to " + limit + " topics per cycle"
+        ));
+    }
 }

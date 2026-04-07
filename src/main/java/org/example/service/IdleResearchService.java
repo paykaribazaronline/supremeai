@@ -92,8 +92,9 @@ public class IdleResearchService {
     private final AtomicLong firebaseReadCount  = new AtomicLong(0);
     private volatile long quotaWindowStartMs = System.currentTimeMillis();
 
-    /** Max topics per research cycle */
-    private static final int MAX_TOPICS_PER_CYCLE = 3;
+    /** Max topics per research cycle (admin-configurable) */
+    private static final int DEFAULT_MAX_TOPICS_PER_CYCLE = 3;
+    private volatile int maxTopicsPerCycle = DEFAULT_MAX_TOPICS_PER_CYCLE;
 
     /** Research history (bounded) */
     private final List<ResearchTopic> researchHistory =
@@ -231,6 +232,10 @@ public class IdleResearchService {
         if (state.containsKey("quotaWindowStartMs")) {
             quotaWindowStartMs = ((Number) state.get("quotaWindowStartMs")).longValue();
         }
+        if (state.containsKey("maxTopicsPerCycle")) {
+            maxTopicsPerCycle = ((Number) state.get("maxTopicsPerCycle")).intValue();
+            logger.info("📚 Restored learning limit: {} topics per cycle", maxTopicsPerCycle);
+        }
 
         // Set lastProjectActivity far in the past so the first check sees the system as idle
         lastProjectActivity.set(System.currentTimeMillis() - IDLE_THRESHOLD_MS - 1000);
@@ -249,6 +254,7 @@ public class IdleResearchService {
             state.put("firebaseWriteCount", firebaseWriteCount.get());
             state.put("firebaseReadCount", firebaseReadCount.get());
             state.put("quotaWindowStartMs", quotaWindowStartMs);
+            state.put("maxTopicsPerCycle", maxTopicsPerCycle);
             jsonStore.write(RESEARCH_STATE_PATH, state);
         } catch (Exception e) {
             logger.warn("⚠️ Failed to persist research state: {}", e.getMessage());
@@ -265,6 +271,20 @@ public class IdleResearchService {
     public void enableLearning() {
         learningEnabled.set(true);
         logger.info("✅ Auto-learning system ENABLED by admin");
+    }
+
+    /** Get current learning limit per cycle. */
+    public int getMaxTopicsPerCycle() {
+        return maxTopicsPerCycle;
+    }
+
+    /** Admin sets the learning limit per cycle (1-50). */
+    public void setMaxTopicsPerCycle(int limit) {
+        if (limit < 1) limit = 1;
+        if (limit > 50) limit = 50;
+        this.maxTopicsPerCycle = limit;
+        persistResearchState();
+        logger.info("📚 Admin set learning limit to {} topics per cycle", limit);
     }
 
     /**
@@ -352,6 +372,7 @@ public class IdleResearchService {
         stats.put("idleForMs", System.currentTimeMillis() - lastProjectActivity.get());
         stats.put("idleThresholdMs", IDLE_THRESHOLD_MS);
         stats.put("researchCooldownMs", RESEARCH_COOLDOWN_MS);
+        stats.put("maxTopicsPerCycle", maxTopicsPerCycle);
         stats.put("firebaseQuota", getFirebaseQuotaStatus());
 
         // Domain coverage
@@ -499,12 +520,12 @@ public class IdleResearchService {
         List<ResearchTopic> selected = new ArrayList<>();
 
         // Priority 1: Custom queued topics
-        while (!topicQueue.isEmpty() && selected.size() < MAX_TOPICS_PER_CYCLE) {
+        while (!topicQueue.isEmpty() && selected.size() < maxTopicsPerCycle) {
             selected.add(topicQueue.poll());
         }
 
         // Priority 2: Error-pattern-driven research
-        if (selected.size() < MAX_TOPICS_PER_CYCLE) {
+        if (selected.size() < maxTopicsPerCycle) {
             ResearchTopic errorTopic = identifyErrorPatternTopic();
             if (errorTopic != null) {
                 selected.add(errorTopic);
@@ -512,7 +533,7 @@ public class IdleResearchService {
         }
 
         // Priority 3: Knowledge gap analysis
-        if (selected.size() < MAX_TOPICS_PER_CYCLE) {
+        if (selected.size() < maxTopicsPerCycle) {
             ResearchTopic gapTopic = identifyKnowledgeGap();
             if (gapTopic != null) {
                 selected.add(gapTopic);
@@ -520,7 +541,7 @@ public class IdleResearchService {
         }
 
         // Priority 4: Rotating domain exploration
-        while (selected.size() < MAX_TOPICS_PER_CYCLE) {
+        while (selected.size() < maxTopicsPerCycle) {
             ResearchTopic domainTopic = getNextDomainTopic();
             if (domainTopic != null) {
                 selected.add(domainTopic);
