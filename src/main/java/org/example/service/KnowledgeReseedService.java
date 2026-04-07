@@ -1,6 +1,7 @@
 package org.example.service;
 
 import org.example.learning.CIErrorLearningInitializer;
+import org.example.learning.EngineeringExcellenceKnowledgeInitializer;
 import org.example.learning.OperationalTechniqueLearningInitializer;
 import org.example.learning.StrategicKnowledgeLearningInitializer;
 import org.slf4j.Logger;
@@ -29,6 +30,9 @@ public class KnowledgeReseedService {
     private CIErrorLearningInitializer ciErrorLearningInitializer;
 
     @Autowired
+    private EngineeringExcellenceKnowledgeInitializer engineeringExcellenceKnowledgeInitializer;
+
+    @Autowired
     private SystemLearningService systemLearningService;
 
     public Map<String, Object> reseedAllKnowledge(String trigger) {
@@ -38,6 +42,7 @@ public class KnowledgeReseedService {
         operationalTechniqueLearningInitializer.seedOperationalTechniques();
         strategicKnowledgeLearningInitializer.seedStrategicKnowledge();
         ciErrorLearningInitializer.teachCIErrors();
+        engineeringExcellenceKnowledgeInitializer.seedEngineeringExcellence();
 
         Map<String, Object> result = new HashMap<>();
         result.put("status", "success");
