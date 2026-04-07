@@ -219,6 +219,54 @@ public class AuthenticationController {
         }
     }
 
+    /**
+     * PUT /api/auth/profile
+     * Update current user's profile (name/username)
+     * 
+     * Body: { "name": "New Display Name" }
+     * Headers: Authorization: Bearer <token>
+     */
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(
+            @RequestBody @NotNull Map<String, String> request,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            User user = extractUserFromToken(authHeader);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("status", "error", "message", "Unauthorized"));
+            }
+            
+            String name = request.get("name");
+            if (name == null || name.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("status", "error", "message", "Name is required"));
+            }
+            
+            // Sanitize name (prevent XSS)
+            name = name.trim().replaceAll("[<>\"']", "");
+            if (name.length() > 100) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("status", "error", "message", "Name too long (max 100 characters)"));
+            }
+            
+            user.setUsername(name);
+            authService.updateUserProfile(user);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", "Profile updated successfully");
+            response.put("user", new AuthToken.UserResponse(user));
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("❌ Profile update failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("status", "error", "message", e.getMessage()));
+        }
+    }
+
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest servletRequest,
                                     HttpServletResponse servletResponse) {

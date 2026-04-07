@@ -568,6 +568,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const SizedBox(height: AppConstants.paddingMedium),
         _buildActionButton(
+          title: 'Offline AI Chat',
+          subtitle: 'অফলাইন চ্যাট — ফোনেই AI মডেল চলবে, ইন্টারনেট ছাড়া',
+          icon: Icons.chat_bubble_outline,
+          color: Colors.cyan.shade700,
+          onTap: () => Navigator.pushNamed(context, AppRoutes.offlineChat),
+        ),
+        const SizedBox(height: AppConstants.paddingMedium),
+        _buildActionButton(
           title: 'Self-Extension',
           subtitle: 'নিজে বড় হওয়া — AI-কে বলুন নতুন সার্ভিস বানাতে, নিজেই কোড লিখবে',
           icon: Icons.auto_fix_high,

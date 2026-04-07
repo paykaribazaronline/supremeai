@@ -95,3 +95,10 @@ android {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // MediaPipe GenAI LLM Inference for on-device Gemma 2B
+    implementation("com.google.mediapipe:tasks-genai:0.10.22")
+    // Coroutines for async model loading/inference
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+}

@@ -398,6 +398,16 @@ public class AuthenticationService {
         logger.info("✅ Password changed for user: {}", user.getUsername());
     }
     
+    /**
+     * Update user profile (name)
+     */
+    public void updateUserProfile(User user) {
+        userCache.put(user.getId(), user);
+        persistUsers();
+        firebaseService.updateUser(user);
+        logger.info("✅ Profile updated for user: {}", user.getUsername());
+    }
+    
     // ============ PRIVATE HELPER METHODS ============
     
     /**

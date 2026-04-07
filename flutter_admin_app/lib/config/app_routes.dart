@@ -24,4 +24,5 @@ class AppRoutes {
   static const String decisionHistory = '/decision-history';
   static const String phases = '/phases';
   static const String tracing = '/tracing';
+  static const String offlineChat = '/offline-chat';
 }
