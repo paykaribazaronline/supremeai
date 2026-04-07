@@ -247,9 +247,7 @@ public class ExistingProjectService {
                     ? vote.getWinningResponse()
                     : null;
 
-            if (aiSuggestion == null || aiSuggestion.contains("[QUOTA_EXCEEDED]")
-                    || aiSuggestion.contains("[NO_PROVIDERS_CONFIGURED]")
-                    || aiSuggestion.contains("[LOCAL_FALLBACK]")) {
+            if (isAIUnavailableResponse(aiSuggestion)) {
                 project.setStatus("IDLE");
                 report.put("skipped", "AI providers unavailable or quota exceeded");
                 return report;
@@ -457,6 +455,17 @@ public class ExistingProjectService {
     private String truncate(String text, int max) {
         if (text == null) return "";
         return text.length() <= max ? text : text.substring(0, max) + "…";
+    }
+
+    /**
+     * Returns true when the AI response indicates that no real suggestion was produced
+     * (quota exhausted, no providers configured, or local fallback).
+     */
+    private static boolean isAIUnavailableResponse(String response) {
+        return response == null
+                || response.contains("[QUOTA_EXCEEDED]")
+                || response.contains("[NO_PROVIDERS_CONFIGURED]")
+                || response.contains("[LOCAL_FALLBACK]");
     }
 
     private ExistingProject requireProject(String id) {
