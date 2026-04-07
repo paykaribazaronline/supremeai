@@ -39,7 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: const Text('সেটিংস'),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -47,18 +47,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             // Profile Section
             _buildSection(
-              'Profile',
+              'প্রোফাইল',
+              '(আপনার নাম ও ইমেইল পরিবর্তন করুন)',
               [
                 _buildTextField(
-                  label: 'Full Name',
+                  label: 'পুরো নাম',
                   controller: _nameController,
                   icon: Icons.person,
+                  helperText: '(আপনার নাম)',
                 ),
                 _buildTextField(
-                  label: 'Email',
+                  label: 'ইমেইল',
                   controller: _emailController,
                   icon: Icons.email,
                   readOnly: true,
+                  helperText: '(পরিবর্তন করা যাবে না)',
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(
@@ -67,7 +70,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   child: ElevatedButton(
                     onPressed: _updateProfile,
-                    child: const Text('Update Profile'),
+                    child: const Text('প্রোফাইল আপডেট করুন'),
                   ),
                 ),
               ],
@@ -75,34 +78,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             // Preferences Section
             _buildSection(
-              'Preferences',
+              'পছন্দসমূহ',
+              '(সিস্টেমের আচরণ পরিবর্তন করুন)',
               [
                 _buildToggleTile(
-                  title: 'Enable Notifications',
-                  subtitle: 'Receive real-time alerts and updates',
+                  title: 'নোটিফিকেশন চালু',
+                  subtitle: 'সিস্টেমের খবর ও সতর্কতা পান (চালু রাখুন)',
                   value: _notificationsEnabled,
                   onChanged: (value) {
                     setState(() => _notificationsEnabled = value);
                   },
                 ),
                 _buildToggleTile(
-                  title: 'Dark Mode',
-                  subtitle: 'Switch to dark theme',
+                  title: 'ডার্ক মোড',
+                  subtitle: 'অন্ধকার থিমে বদলান (চোখে আরাম হয়)',
                   value: _darkModeEnabled,
                   onChanged: (value) {
                     setState(() => _darkModeEnabled = value);
                   },
                 ),
                 _buildDropdownTile(
-                  title: 'Auto-Refresh Interval',
-                  subtitle: 'How often to refresh data',
+                  title: 'অটো-রিফ্রেশ সময়',
+                  subtitle: 'কতক্ষণ পরপর ডেটা আপনাআপনি রিফ্রেশ হবে',
                   value: _autoRefreshInterval,
                   options: {
-                    '1min': '1 minute',
-                    '5min': '5 minutes',
-                    '10min': '10 minutes',
-                    '30min': '30 minutes',
-                    'manual': 'Manual only',
+                    '1min': '১ মিনিট',
+                    '5min': '৫ মিনিট',
+                    '10min': '১০ মিনিট',
+                    '30min': '৩০ মিনিট',
+                    'manual': 'নিজে রিফ্রেশ করবো',
                   },
                   onChanged: (value) {
                     setState(() => _autoRefreshInterval = value);
@@ -113,24 +117,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             // Security Section
             _buildSection(
-              'Security',
+              'নিরাপত্তা',
+              '(পাসওয়ার্ড ও টু-ফ্যাক্টর অথেন্টিকেশন)',
               [
                 ListTile(
                   leading: const Icon(Icons.lock),
-                  title: const Text('Change Password'),
-                  subtitle: const Text('Update your account password'),
+                  title: const Text('পাসওয়ার্ড পরিবর্তন'),
+                  subtitle: const Text('আপনার গোপন পাসওয়ার্ড বদলান', style: TextStyle(fontSize: 12)),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: _changePassword,
                 ),
                 ListTile(
                   leading: const Icon(Icons.security),
-                  title: const Text('Two-Factor Authentication'),
-                  subtitle: const Text('Add extra security to your account'),
+                  title: const Text('টু-ফ্যাক্টর অথেন্টিকেশন'),
+                  subtitle: const Text('অতিরিক্ত নিরাপত্তা যোগ করুন (শীঘ্রই আসছে)', style: TextStyle(fontSize: 12)),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('2FA setup coming soon'),
+                        content: Text('2FA শীঘ্রই আসছে'),
                       ),
                     );
                   },
@@ -140,20 +145,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             // About Section
             _buildSection(
-              'About',
+              'তথ্য',
+              '(অ্যাপের ভার্সন ও লাইসেন্স)',
               [
                 _buildInfoTile(
-                  title: 'App Version',
+                  title: 'অ্যাপ ভার্সন',
                   value: '1.0.0',
                 ),
                 _buildInfoTile(
-                  title: 'Build Number',
+                  title: 'বিল্ড নম্বর',
                   value: '2026.04.01',
                 ),
                 ListTile(
                   leading: const Icon(Icons.info),
-                  title: const Text('Licenses'),
-                  subtitle: const Text('View open source licenses'),
+                  title: const Text('লাইসেন্স'),
+                  subtitle: const Text('ওপেন সোর্স লাইসেন্স দেখুন', style: TextStyle(fontSize: 12)),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {
                     showLicensePage(context: context);
@@ -164,14 +170,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             // Danger Zone
             _buildSection(
-              'Danger Zone',
+              'সতর্কতা!',
+              '(সাবধানে ব্যবহার করুন)',
               [
                 ListTile(
                   leading: const Icon(Icons.logout, color: Colors.red),
                   title: const Text(
-                    'Logout',
+                    'লগআউট',
                     style: TextStyle(color: Colors.red),
                   ),
+                  subtitle: const Text('অ্যাকাউন্ট থেকে বের হন', style: TextStyle(fontSize: 12, color: Colors.red)),
                   onTap: _logout,
                 ),
               ],
@@ -184,7 +192,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSection(String title, List<Widget> children) {
+  Widget _buildSection(String title, String hint, List<Widget> children) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -193,14 +201,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
             AppConstants.paddingLarge,
             AppConstants.paddingXLarge,
             AppConstants.paddingLarge,
-            AppConstants.paddingMedium,
+            AppConstants.paddingXSmall,
           ),
-          child: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                hint,
+                style: const TextStyle(fontSize: 11, color: Colors.grey),
+              ),
+            ],
           ),
         ),
         Card(
@@ -220,6 +237,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required TextEditingController controller,
     required IconData icon,
     bool readOnly = false,
+    String? helperText,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -231,6 +249,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         readOnly: readOnly,
         decoration: InputDecoration(
           labelText: label,
+          helperText: helperText,
           prefixIcon: Icon(icon),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
@@ -310,7 +329,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _updateProfile() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile updated successfully')),
+      const SnackBar(content: Text('প্রোফাইল সফলভাবে আপডেট হয়েছে')),
     );
   }
 
@@ -318,28 +337,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Change Password'),
+        title: const Text('পাসওয়ার্ড পরিবর্তন'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            const Text('(নতুন পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            const SizedBox(height: AppConstants.paddingMedium),
             TextField(
               obscureText: true,
               decoration: const InputDecoration(
-                labelText: 'Current Password',
+                labelText: 'বর্তমান পাসওয়ার্ড',
+                helperText: '(এখন যে পাসওয়ার্ড ব্যবহার করছেন)',
               ),
             ),
             const SizedBox(height: AppConstants.paddingMedium),
             TextField(
               obscureText: true,
               decoration: const InputDecoration(
-                labelText: 'New Password',
+                labelText: 'নতুন পাসওয়ার্ড',
+                helperText: '(নতুন পাসওয়ার্ড দিন)',
               ),
             ),
             const SizedBox(height: AppConstants.paddingMedium),
             TextField(
               obscureText: true,
               decoration: const InputDecoration(
-                labelText: 'Confirm Password',
+                labelText: 'নতুন পাসওয়ার্ড নিশ্চিত',
+                helperText: '(আবার লিখুন)',
               ),
             ),
           ],
@@ -347,16 +371,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text('বাতিল'),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Password changed successfully')),
+                const SnackBar(content: Text('পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে')),
               );
             },
-            child: const Text('Change'),
+            child: const Text('পরিবর্তন করুন'),
           ),
         ],
       ),
@@ -367,12 +391,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
+        title: const Text('লগআউট করবেন?'),
+        content: const Text('আপনি কি নিশ্চিত লগআউট করতে চান?\n(লগআউট করলে আবার লগইন করতে হবে)'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text('না, থাকুন'),
           ),
           TextButton(
             onPressed: () {
@@ -380,7 +404,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.pop(context);
               Navigator.of(context).pushReplacementNamed(AppRoutes.login);
             },
-            child: const Text('Logout', style: TextStyle(color: Colors.red)),
+            child: const Text('হ্যাঁ, লগআউট', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

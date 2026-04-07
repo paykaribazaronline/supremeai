@@ -100,7 +100,7 @@ public class AgentOrchestrator {
         this.publicRouter = new PublicAIRouter(accountManager, budgetManager, aiService, firebase);
         
         // Initialize Phase 6 (Hybrid Data Collection)
-        this.quotaTracker = new QuotaTracker(firebase);
+        this.quotaTracker = new QuotaTracker(firebase, null);
         this.apiDataCollector = new APIDataCollector(quotaTracker, firebase);
         this.browserDataCollector = new BrowserDataCollector(quotaTracker, firebase);
         this.hybridDataCollector = new HybridDataCollector(apiDataCollector, browserDataCollector, quotaTracker, firebase);

@@ -6,6 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import jakarta.annotation.PostConstruct;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -51,8 +53,38 @@ public class AuthenticationService {
     // In-memory user cache (fast local access, synced with Firebase async)
     private final Map<String, User> userCache = new ConcurrentHashMap<>();
     
+    private static final String USERS_STORE_PATH = "auth/users.json";
+    
     @Autowired
     private FirebaseService firebaseService;
+    
+    @Autowired
+    private LocalJsonStoreService jsonStore;
+    
+    @PostConstruct
+    public void init() {
+        try {
+            List<User> stored = jsonStore.load(USERS_STORE_PATH, new TypeReference<List<User>>() {});
+            if (stored != null) {
+                for (User u : stored) {
+                    if (u.getUsername() != null) {
+                        userCache.put(u.getUsername(), u);
+                    }
+                }
+                logger.info("✅ Restored {} users from local store", userCache.size());
+            }
+        } catch (Exception e) {
+            logger.warn("⚠️ Could not restore users from disk: {}", e.getMessage());
+        }
+    }
+    
+    private void persistUsers() {
+        try {
+            jsonStore.save(USERS_STORE_PATH, new ArrayList<>(userCache.values()));
+        } catch (Exception e) {
+            logger.warn("⚠️ Could not persist users to disk: {}", e.getMessage());
+        }
+    }
     
     /**
      * Register a new admin user
@@ -83,6 +115,9 @@ public class AuthenticationService {
         // Save to in-memory cache IMMEDIATELY (Firebase is async)
         userCache.put(username, user);
         logger.debug("✅ User added to in-memory cache: {}", username);
+        
+        // Persist to local disk (always works, even without Firebase)
+        persistUsers();
         
         // Also save to Firebase (async, will eventually persist)
         firebaseService.saveUser(user);
@@ -142,9 +177,8 @@ public class AuthenticationService {
         
         // Update last login
         user.setLastLogin(System.currentTimeMillis());
+        persistUsers();
         firebaseService.updateUser(user);
-        
-        // Generate tokens
         String token = generateJWT(user);
         String refreshToken = generateRefreshToken(user);
         
@@ -319,6 +353,7 @@ public class AuthenticationService {
         }
         
         user.setActive(false);
+        persistUsers();
         firebaseService.updateUser(user);
         
         logger.info("✅ User disabled: {}", user.getUsername());
@@ -328,7 +363,12 @@ public class AuthenticationService {
      * Get all users (admin only)
      */
     public List<User> getAllUsers() throws Exception {
-        return firebaseService.getAllUsers();
+        try {
+            List<User> fbUsers = firebaseService.getAllUsers();
+            if (fbUsers != null && !fbUsers.isEmpty()) return fbUsers;
+        } catch (Exception ignored) {}
+        // Fallback to local cache
+        return new ArrayList<>(userCache.values());
     }
     
     /**
@@ -352,6 +392,7 @@ public class AuthenticationService {
         
         // Hash and save
         user.setPasswordHash(hashPassword(newPassword));
+        persistUsers();
         firebaseService.updateUser(user);
         
         logger.info("✅ Password changed for user: {}", user.getUsername());

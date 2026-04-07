@@ -1,5 +1,6 @@
 package org.example.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.example.model.ConsensusVote;
 import org.example.model.ResearchTopic;
 import org.example.model.SystemLearning;
@@ -56,6 +57,12 @@ public class IdleResearchService {
      */
     @Autowired
     private ActiveLearningHarvesterService harvesterService;
+
+    @Autowired
+    private LocalJsonStoreService jsonStore;
+
+    private static final String RESEARCH_HISTORY_PATH = "research/history.json";
+    private static final String RESEARCH_STATE_PATH = "research/state.json";
 
     // --- State ---
     private final AtomicBoolean researchActive = new AtomicBoolean(false);
@@ -194,10 +201,58 @@ public class IdleResearchService {
      */
     @PostConstruct
     public void onStartup() {
+        // Restore persisted research history
+        List<ResearchTopic> savedHistory = jsonStore.read(
+                RESEARCH_HISTORY_PATH,
+                new TypeReference<List<ResearchTopic>>() {},
+                List.of());
+        researchHistory.addAll(savedHistory);
+        totalResearchCount.set(savedHistory.size());
+
+        // Restore domain cycle state
+        Map<String, Object> state = jsonStore.read(
+                RESEARCH_STATE_PATH,
+                new TypeReference<Map<String, Object>>() {},
+                Map.of());
+        if (state.containsKey("domainCycleIndex")) {
+            domainCycleIndex = ((Number) state.get("domainCycleIndex")).intValue();
+        }
+        if (state.containsKey("domainQuestionIndex") && state.get("domainQuestionIndex") instanceof Map) {
+            ((Map<?, ?>) state.get("domainQuestionIndex")).forEach((k, v) ->
+                    domainQuestionIndex.put(String.valueOf(k), ((Number) v).intValue()));
+        }
+        // Restore Firebase quota counters
+        if (state.containsKey("firebaseWriteCount")) {
+            firebaseWriteCount.set(((Number) state.get("firebaseWriteCount")).longValue());
+        }
+        if (state.containsKey("firebaseReadCount")) {
+            firebaseReadCount.set(((Number) state.get("firebaseReadCount")).longValue());
+        }
+        if (state.containsKey("quotaWindowStartMs")) {
+            quotaWindowStartMs = ((Number) state.get("quotaWindowStartMs")).longValue();
+        }
+
         // Set lastProjectActivity far in the past so the first check sees the system as idle
         lastProjectActivity.set(System.currentTimeMillis() - IDLE_THRESHOLD_MS - 1000);
-        logger.info("🚀 IdleResearchService started — learning will begin on first idle check (learningEnabled={})",
-                learningEnabled.get());
+        logger.info("🚀 IdleResearchService started — restored {} research items, learningEnabled={}",
+                savedHistory.size(), learningEnabled.get());
+    }
+
+    /** Persist research history and cycle state to disk. */
+    private void persistResearchState() {
+        try {
+            jsonStore.write(RESEARCH_HISTORY_PATH, new ArrayList<>(researchHistory));
+            Map<String, Object> state = new LinkedHashMap<>();
+            state.put("domainCycleIndex", domainCycleIndex);
+            state.put("domainQuestionIndex", new HashMap<>(domainQuestionIndex));
+            state.put("totalResearchCount", totalResearchCount.get());
+            state.put("firebaseWriteCount", firebaseWriteCount.get());
+            state.put("firebaseReadCount", firebaseReadCount.get());
+            state.put("quotaWindowStartMs", quotaWindowStartMs);
+            jsonStore.write(RESEARCH_STATE_PATH, state);
+        } catch (Exception e) {
+            logger.warn("⚠️ Failed to persist research state: {}", e.getMessage());
+        }
     }
 
     // ─────────────────────────────────────────────────
@@ -429,6 +484,7 @@ public class IdleResearchService {
 
         // Persist cycle report to Firebase
         persistCycleReport(cycleReport);
+        persistResearchState();
 
         return cycleReport;
     }
@@ -772,6 +828,7 @@ public class IdleResearchService {
         while (researchHistory.size() > MAX_HISTORY) {
             researchHistory.remove(0);
         }
+        persistResearchState();
     }
 
     private void persistCycleReport(Map<String, Object> report) {

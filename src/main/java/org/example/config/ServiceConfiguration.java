@@ -97,9 +97,9 @@ public class ServiceConfiguration {
      * Initialize Quota Tracker
      */
     @Bean
-    public QuotaTracker quotaTracker(FirebaseService firebase) {
-        logger.info("🔧 Initializing Quota Tracker...");
-        return new QuotaTracker(firebase);
+    public QuotaTracker quotaTracker(FirebaseService firebase, LocalJsonStoreService jsonStore) {
+        logger.info("\ud83d\udd27 Initializing Quota Tracker...");
+        return new QuotaTracker(firebase, jsonStore);
     }
     
     /**

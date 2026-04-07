@@ -9,6 +9,9 @@ import KingModePanel from './components/KingModePanel';
 import AuditLog from './components/AuditLog';
 import ThreeDashboard from './components/ThreeDashboard';
 import CostDashboard from './components/CostDashboard';
+import LearningResearch from './components/LearningResearch';
+import Teaching from './components/Teaching';
+import SelfExtension from './components/SelfExtension';
 import LoginPage from './pages/LoginPage';
 
 function isAuthenticated(): boolean {
@@ -41,6 +44,9 @@ const App: React.FC = () => {
                     <Route path="/kingmode" component={KingModePanel} />
                     <Route path="/audit" component={AuditLog} />
                     <Route path="/costs" component={CostDashboard} />
+                    <Route path="/learning" component={LearningResearch} />
+                    <Route path="/teaching" component={Teaching} />
+                    <Route path="/self-extension" component={SelfExtension} />
                     <Redirect from="/" to="/chat" />
                 </Switch>
             </div>

@@ -1,13 +1,16 @@
 package org.example.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.example.service.RequirementAnalyzer.Requirement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import jakarta.annotation.PostConstruct;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Self Extender
@@ -34,8 +37,41 @@ public class SelfExtender {
 
     @Autowired(required = false)
     private IdleResearchService idleResearchService;
+
+    @Autowired
+    private LocalJsonStoreService jsonStore;
     
     private static final String SRC_PATH = "src/main/java/org/example";
+    private static final String HISTORY_STORE_PATH = "self-extension/history.json";
+
+    /** Persisted history of all extension commands submitted */
+    private final List<Map<String, Object>> extensionHistory = new CopyOnWriteArrayList<>();
+
+    @PostConstruct
+    public void init() {
+        List<Map<String, Object>> saved = jsonStore.read(
+                HISTORY_STORE_PATH,
+                new TypeReference<List<Map<String, Object>>>() {},
+                List.of());
+        extensionHistory.addAll(saved);
+        logger.info("✅ SelfExtender ready — restored {} extension history entries", saved.size());
+    }
+
+    private void recordExtension(String requirement, boolean success, int filesCreated) {
+        Map<String, Object> record = new LinkedHashMap<>();
+        record.put("requirement", requirement);
+        record.put("success", success);
+        record.put("filesCreated", filesCreated);
+        record.put("timestamp", System.currentTimeMillis());
+        extensionHistory.add(record);
+        // Cap at 500
+        while (extensionHistory.size() > 500) extensionHistory.remove(0);
+        jsonStore.write(HISTORY_STORE_PATH, extensionHistory);
+    }
+
+    public List<Map<String, Object>> getExtensionHistory() {
+        return new ArrayList<>(extensionHistory);
+    }
     
     /**
      * Process new requirement and create code
@@ -74,10 +110,12 @@ public class SelfExtender {
             }
             
             logger.info("✅ Requirement implemented: {} -> {} files created", req.name, generated.size());
+            recordExtension(requirementText, true, generated.size());
             return true;
             
         } catch (Exception e) {
             logger.error("❌ Failed to implement requirement: {}", e.getMessage());
+            recordExtension(requirementText, false, 0);
             return false;
         }
     }
@@ -179,6 +217,15 @@ public class SelfExtender {
         status.put("status", "ready");
         status.put("message", "SelfExtender active - SupremeAI can create its own code");
         status.put("timestamp", System.currentTimeMillis());
+        status.put("totalExtensions", extensionHistory.size());
+        long successCount = extensionHistory.stream()
+                .filter(e -> Boolean.TRUE.equals(e.get("success")))
+                .count();
+        status.put("successfulExtensions", successCount);
+        status.put("failedExtensions", extensionHistory.size() - successCount);
+        // Include last 10 entries
+        int size = extensionHistory.size();
+        status.put("recentHistory", extensionHistory.subList(Math.max(0, size - 10), size));
         
         return status;
     }

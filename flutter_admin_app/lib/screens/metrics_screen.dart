@@ -24,7 +24,7 @@ class _MetricsScreenState extends State<MetricsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Metrics & Monitoring'),
+        title: const Text('কর্মক্ষমতা ও পর্যবেক্ষণ'),
         elevation: 0,
         actions: [
           IconButton(
@@ -32,6 +32,7 @@ class _MetricsScreenState extends State<MetricsScreen> {
               Provider.of<MetricsProvider>(context, listen: false).fetchMetrics();
             },
             icon: const Icon(Icons.refresh),
+            tooltip: 'ডেটা আবার লোড করুন',
           ),
         ],
       ),
@@ -58,7 +59,7 @@ class _MetricsScreenState extends State<MetricsScreen> {
                   const SizedBox(height: AppConstants.paddingMedium),
                   ElevatedButton(
                     onPressed: () => provider.fetchMetrics(),
-                    child: const Text('Retry'),
+                    child: const Text('আবার চেষ্টা করুন'),
                   ),
                 ],
               ),
@@ -73,25 +74,25 @@ class _MetricsScreenState extends State<MetricsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // System Health
-                  _buildSectionTitle('System Health'),
+                  _buildSectionTitle('সিস্টেম স্বাস্থ্য', 'সার্ভারের মেমরি, CPU, অনুরোধ ও ত্রুটির অবস্থা'),
                   const SizedBox(height: AppConstants.paddingMedium),
                   _buildHealthCards(provider),
                   const SizedBox(height: AppConstants.paddingXLarge),
 
                   // Memory Usage Chart
-                  _buildSectionTitle('Memory Usage (Last 24h)'),
+                  _buildSectionTitle('মেমরি ব্যবহার (শেষ ২৪ ঘন্টা)', 'সার্ভার কতটুকু মেমরি ব্যবহার করছে'),
                   const SizedBox(height: AppConstants.paddingMedium),
                   _buildMemoryChart(provider),
                   const SizedBox(height: AppConstants.paddingXLarge),
 
                   // Request Rate Chart
-                  _buildSectionTitle('Request Rate (Last 24h)'),
+                  _buildSectionTitle('অনুরোধের হার (শেষ ২৪ ঘন্টা)', 'প্রতি ঘন্টায় কতটি অনুরোধ আসছে'),
                   const SizedBox(height: AppConstants.paddingMedium),
                   _buildRequestChart(provider),
                   const SizedBox(height: AppConstants.paddingXLarge),
 
                   // Error Distribution
-                  _buildSectionTitle('Error Distribution'),
+                  _buildSectionTitle('ত্রুটির বিন্যাস', 'কোন ধরনের ত্রুটি কতবার হচ্ছে'),
                   const SizedBox(height: AppConstants.paddingMedium),
                   _buildErrorDistribution(provider),
                 ],
@@ -103,13 +104,23 @@ class _MetricsScreenState extends State<MetricsScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-      ),
+  Widget _buildSectionTitle(String title, [String? hint]) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        if (hint != null)
+          Text(
+            '($hint)',
+            style: const TextStyle(fontSize: 11, color: Colors.grey),
+          ),
+      ],
     );
   }
 

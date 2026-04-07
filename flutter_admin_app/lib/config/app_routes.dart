@@ -7,4 +7,21 @@ class AppRoutes {
   static const String projectDetail = '/projects/detail';
   static const String metrics = '/metrics';
   static const String settings = '/settings';
+  static const String learning = '/learning';
+  static const String teaching = '/teaching';
+  static const String aiProviders = '/ai-providers';
+  static const String selfExtension = '/self-extension';
+  static const String alertsLogs = '/alerts-logs';
+  static const String adminControl = '/admin-control';
+  static const String consensus = '/consensus';
+  static const String gitOps = '/git-ops';
+  static const String quota = '/quota';
+  static const String vpn = '/vpn';
+  static const String resilience = '/resilience';
+  static const String mlIntelligence = '/ml-intelligence';
+  static const String notifications = '/notifications';
+  static const String analytics = '/analytics';
+  static const String decisionHistory = '/decision-history';
+  static const String phases = '/phases';
+  static const String tracing = '/tracing';
 }

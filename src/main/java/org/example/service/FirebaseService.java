@@ -31,6 +31,8 @@ public class FirebaseService {
     @PostConstruct
     public void init() {
         try {
+            // Prevent hanging on metadata server when not on GCP
+            System.setProperty("com.google.cloud.compute.metadata.timeout", "3000");
             initializeFirebase(null);
             this.isInitialized = true;
         } catch (Exception e) {
@@ -76,8 +78,13 @@ public class FirebaseService {
             if (serviceAccount != null) {
                 builder.setCredentials(GoogleCredentials.fromStream(serviceAccount));
             } else {
-                // Fallback to default GCP credentials if running on Cloud Run
-                builder.setCredentials(GoogleCredentials.getApplicationDefault());
+                // No explicit credentials — skip default lookup (hangs on non-GCP machines)
+                String googleAppCreds = System.getenv("GOOGLE_APPLICATION_CREDENTIALS");
+                if (googleAppCreds != null && !googleAppCreds.isBlank()) {
+                    builder.setCredentials(GoogleCredentials.getApplicationDefault());
+                } else {
+                    throw new IOException("No Firebase credentials found — set FIREBASE_SERVICE_ACCOUNT_JSON or GOOGLE_APPLICATION_CREDENTIALS");
+                }
             }
             
             FirebaseApp.initializeApp(builder.build());

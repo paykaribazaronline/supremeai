@@ -41,9 +41,11 @@ public class FirebaseConfig {
                 // Try to load credentials from file if path provided
                 if (firebaseCredentialsPath != null && !firebaseCredentialsPath.isEmpty()) {
                     credentials = GoogleCredentials.fromStream(new FileInputStream(firebaseCredentialsPath));
-                } else {
-                    // Use Application Default Credentials (works in GCP environment)
+                } else if (System.getenv("GOOGLE_APPLICATION_CREDENTIALS") != null
+                        && !System.getenv("GOOGLE_APPLICATION_CREDENTIALS").isBlank()) {
                     credentials = GoogleCredentials.getApplicationDefault();
+                } else {
+                    throw new IOException("No Firebase credentials — set GOOGLE_APPLICATION_CREDENTIALS or firebase.credentials.path");
                 }
 
                 FirebaseOptions options = FirebaseOptions.builder()

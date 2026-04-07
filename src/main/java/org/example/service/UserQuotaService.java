@@ -1,10 +1,13 @@
 package org.example.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.example.model.UserTier;
 import org.example.model.UserQuotaAllocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import jakarta.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,7 +20,26 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UserQuotaService {
     private static final Logger logger = LoggerFactory.getLogger(UserQuotaService.class);
     
+    @Autowired
+    private LocalJsonStoreService jsonStore;
+
+    private static final String QUOTA_STORE_PATH = "user-quotas/quotas.json";
+
     private Map<String, UserQuotaAllocation> userQuotas = new ConcurrentHashMap<>();
+
+    @PostConstruct
+    public void init() {
+        Map<String, UserQuotaAllocation> saved = jsonStore.read(
+                QUOTA_STORE_PATH,
+                new TypeReference<Map<String, UserQuotaAllocation>>() {},
+                Map.of());
+        userQuotas.putAll(saved);
+        logger.info("✅ UserQuotaService ready — restored {} user quotas from disk", saved.size());
+    }
+
+    private void persistQuotas() {
+        jsonStore.write(QUOTA_STORE_PATH, userQuotas);
+    }
     
     /**
      * Get or create user quota allocation
@@ -73,6 +95,7 @@ public class UserQuotaService {
     public void recordRequest(String userId) {
         UserQuotaAllocation quota = getUserQuota(userId);
         quota.recordAPIRequest();
+        persistQuotas();
         logger.debug("📊 User {} API request recorded: {}/{} requests today",
             userId, quota.getRequestsUsedToday(), quota.getTier().dailyLimit);
     }
@@ -83,6 +106,7 @@ public class UserQuotaService {
     public void recordAppCreation(String userId) {
         UserQuotaAllocation quota = getUserQuota(userId);
         quota.recordAppCreation();
+        persistQuotas();
         logger.debug("📝 User {} app creation recorded: {}/{} apps today",
             userId, quota.getAppsCreatedToday(), quota.getTier().appCreationsPerDay);
     }
@@ -93,6 +117,7 @@ public class UserQuotaService {
     public void setUserTier(String userId, UserTier tier) {
         UserQuotaAllocation quota = getUserQuota(userId);
         quota.setTier(tier);
+        persistQuotas();
         logger.info("⚙️ User {} tier changed to: {}", userId, tier.name);
     }
     
@@ -128,6 +153,7 @@ public class UserQuotaService {
         for (UserQuotaAllocation quota : userQuotas.values()) {
             quota.setRequestsUsedThisMonth(0);
         }
+        persistQuotas();
     }
     
     /**

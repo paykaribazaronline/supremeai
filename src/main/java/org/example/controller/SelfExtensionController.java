@@ -197,6 +197,32 @@ public class SelfExtensionController {
         }
     }
     
+    /**
+     * GET /api/extend/history
+     * Get extension command history (ADMIN ONLY)
+     */
+    @GetMapping("/history")
+    public ResponseEntity<?> getHistory(
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            User user = extractUser(authHeader);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            if (!"ADMIN".equalsIgnoreCase(user.getRole())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("status", "error", "message", "Admin access required"));
+            }
+            return ResponseEntity.ok(Map.of(
+                "history", selfExtender.getExtensionHistory(),
+                "total", selfExtender.getExtensionHistory().size()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("status", "error", "message", e.getMessage()));
+        }
+    }
+
     // ========== PRIVATE HELPERS ==========
     
     private User extractUser(String authHeader) throws Exception {

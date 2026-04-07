@@ -85,11 +85,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: AppConstants.paddingSmall),
-              // Subtitle
               const Text(
-                'Admin Management Portal',
+                'অ্যাডমিন ম্যানেজমেন্ট পোর্টাল',
                 style: TextStyle(
                   fontSize: AppConstants.subtitleFontSize,
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: AppConstants.paddingXXSmall),
+              const Text(
+                '(লগইন করে সিস্টেম নিয়ন্ত্রণ করুন)',
+                style: TextStyle(
+                  fontSize: AppConstants.captionFontSize,
                   color: Colors.grey,
                 ),
               ),
@@ -104,7 +111,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: _emailController,
                       decoration: const InputDecoration(
                         labelText: 'Email',
-                        hintText: 'Enter your Firebase Auth email',
+                        hintText: 'আপনার ইমেইল লিখুন',
+                        helperText: '(যে ইমেইল দিয়ে অ্যাকাউন্ট খুলেছেন)',
                         prefixIcon: Icon(Icons.email_outlined),
                       ),
                       keyboardType: TextInputType.emailAddress,
@@ -117,7 +125,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: _passwordController,
                       decoration: InputDecoration(
                         labelText: 'Password',
-                        hintText: 'Enter your password',
+                        hintText: 'আপনার পাসওয়ার্ড লিখুন',
+                        helperText: '(অ্যাকাউন্টের গোপন পাসওয়ার্ড)',
                         prefixIcon: const Icon(Icons.lock_outlined),
                         suffixIcon: IconButton(
                           onPressed: () {
@@ -214,7 +223,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   )
                                 : const Text(
-                                    'Login',
+                                    'লগইন',
                                     style: TextStyle(
                                       fontSize: AppConstants.titleFontSize,
                                       fontWeight: FontWeight.bold,
@@ -232,12 +241,12 @@ class _LoginScreenState extends State<LoginScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Don\'t have an account? '),
+                  const Text('অ্যাকাউন্ট নেই? '),
                   TextButton(
                     onPressed: () {
                       Navigator.of(context).pushNamed(AppRoutes.register);
                     },
-                    child: const Text('Register here'),
+                    child: const Text('এখানে নতুন অ্যাকাউন্ট খুলুন'),
                   ),
                 ],
               ),

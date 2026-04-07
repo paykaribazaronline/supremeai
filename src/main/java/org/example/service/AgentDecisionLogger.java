@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -45,6 +46,38 @@ public class AgentDecisionLogger {
             Files.createDirectories(Paths.get(LOG_DIR));
         } catch (IOException e) {
             logger.warn("Failed to create agent decisions directory: {}", e.getMessage());
+        }
+    }
+
+    @PostConstruct
+    public void loadPersistedDecisions() {
+        try {
+            java.nio.file.Path logDir = Paths.get(LOG_DIR);
+            if (!Files.exists(logDir)) return;
+            // Walk all decision JSON files and reload into memory
+            Files.walk(logDir)
+                    .filter(p -> p.toString().endsWith(".json"))
+                    .forEach(p -> {
+                        try {
+                            String content = Files.readString(p);
+                            @SuppressWarnings("unchecked")
+                            List<Map<String, Object>> entries = mapper.readValue(content, List.class);
+                            for (Map<String, Object> entry : entries) {
+                                AgentDecision d = mapper.convertValue(entry, AgentDecision.class);
+                                if (d.decisionId != null) {
+                                    recentDecisions.put(d.decisionId, d);
+                                    if (d.projectId != null) {
+                                        decisionHistory.computeIfAbsent(d.projectId, k -> new ArrayList<>()).add(d);
+                                    }
+                                }
+                            }
+                        } catch (Exception ex) {
+                            logger.debug("Skip loading {}: {}", p.getFileName(), ex.getMessage());
+                        }
+                    });
+            logger.info("✅ AgentDecisionLogger ready — loaded {} decisions from disk", recentDecisions.size());
+        } catch (Exception e) {
+            logger.warn("⚠️ Could not load persisted decisions: {}", e.getMessage());
         }
     }
 

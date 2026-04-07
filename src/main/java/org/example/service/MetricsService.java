@@ -1,6 +1,9 @@
 package org.example.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import jakarta.annotation.PostConstruct;
 import java.lang.management.*;
 import java.time.Instant;
 import java.util.*;
@@ -15,6 +18,11 @@ import java.util.concurrent.atomic.AtomicLong;
 @Service
 public class MetricsService {
 
+    @Autowired
+    private LocalJsonStoreService jsonStore;
+
+    private static final String METRICS_STORE_PATH = "metrics/generation-stats.json";
+
     private final AtomicLong totalRequests = new AtomicLong(0);
     private final AtomicLong totalErrors = new AtomicLong(0);
     private final AtomicLong totalSuccessfulGenerations = new AtomicLong(0);
@@ -25,6 +33,56 @@ public class MetricsService {
     private final List<Long> requestLatencies = Collections.synchronizedList(new ArrayList<>());
     
     private final long startTime = System.currentTimeMillis();
+
+    @PostConstruct
+    public void init() {
+        Map<String, Object> saved = jsonStore.read(
+                METRICS_STORE_PATH,
+                new TypeReference<Map<String, Object>>() {},
+                Map.of());
+        if (!saved.isEmpty()) {
+            totalRequests.set(toLong(saved.get("totalRequests")));
+            totalErrors.set(toLong(saved.get("totalErrors")));
+            totalSuccessfulGenerations.set(toLong(saved.get("totalSuccessful")));
+            totalFailedGenerations.set(toLong(saved.get("totalFailed")));
+            Object fw = saved.get("byFramework");
+            if (fw instanceof Map) {
+                ((Map<?, ?>) fw).forEach((k, v) -> {
+                    if (v instanceof Map) {
+                        Map<?, ?> fwMap = (Map<?, ?>) v;
+                        generationCountByFramework.put(String.valueOf(k), toLong(fwMap.get("count")));
+                        averageGenerationTime.put(String.valueOf(k),
+                                fwMap.get("avgTime") != null ? ((Number) fwMap.get("avgTime")).doubleValue() : 0.0);
+                    }
+                });
+            }
+        }
+        logger.info("✅ MetricsService ready — restored stats (total={}, success={}, failed={})",
+                totalRequests.get(), totalSuccessfulGenerations.get(), totalFailedGenerations.get());
+    }
+
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MetricsService.class);
+
+    private long toLong(Object o) {
+        return o instanceof Number ? ((Number) o).longValue() : 0;
+    }
+
+    private void persistMetrics() {
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("totalRequests", totalRequests.get());
+        data.put("totalErrors", totalErrors.get());
+        data.put("totalSuccessful", totalSuccessfulGenerations.get());
+        data.put("totalFailed", totalFailedGenerations.get());
+        Map<String, Object> fw = new LinkedHashMap<>();
+        generationCountByFramework.forEach((k, v) -> {
+            Map<String, Object> entry = new LinkedHashMap<>();
+            entry.put("count", v);
+            entry.put("avgTime", averageGenerationTime.getOrDefault(k, 0.0));
+            fw.put(k, entry);
+        });
+        data.put("byFramework", fw);
+        jsonStore.write(METRICS_STORE_PATH, data);
+    }
 
     /**
      * Record a generation attempt
@@ -54,6 +112,8 @@ public class MetricsService {
         if (requestLatencies.size() > 1000) {
             requestLatencies.remove(0); // Keep last 1000
         }
+        
+        persistMetrics();
     }
 
     /**
