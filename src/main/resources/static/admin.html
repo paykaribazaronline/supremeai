@@ -508,8 +508,8 @@
             flex-wrap: wrap;
             gap: 6px;
         }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
-</head>
 <body>
     <div class="container">
         <!-- Sidebar -->
@@ -540,6 +540,7 @@
             <div class="menu-item" onclick="showSection('system-learning')">📖 System Learning</div>
             <div class="menu-item" onclick="showSection('existing-projects')">🔧 Improve Existing App</div>
             <div class="menu-item" onclick="showSection('notifications')">📬 Notifications</div>
+            <div class="menu-item" onclick="showSection('live-activity')">⚡ Live Activity</div>
             <div class="menu-item" onclick="showSection('kimi-k2')">🔮 AI Learning Orchestration</div>
             <div class="menu-item" onclick="showSection('chat')">💬 Chat with SupremeAI</div>
             <div class="menu-item" onclick="showSection('settings')">⚙️ Settings</div>
@@ -1674,6 +1675,38 @@
                     </div>
                 </div>
 
+                <!-- Live Activity Section -->
+                <div id="live-activity" class="content-section">
+                    <h1>⚡ Live Activity</h1>
+                    <p>Real-time view of everything SupremeAI is doing right now — improvement cycles, self-extension tasks, and background jobs.</p>
+                    <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center;">
+                        <button class="btn btn-secondary" onclick="loadLiveActivity()">🔄 Refresh</button>
+                        <span id="liveActivityAutoRefreshLabel" style="font-size:12px;color:#718096;">Auto-refreshes every 5 s while this tab is open</span>
+                    </div>
+
+                    <!-- Running Improvement Cycles -->
+                    <div style="background:#1a202c;border:1px solid #2d3748;border-radius:10px;padding:16px;margin-bottom:16px;">
+                        <div style="font-size:16px;font-weight:700;color:#e2e8f0;margin-bottom:12px;">🔧 Existing-Project Improvements</div>
+                        <div id="liveImprovementRows" style="font-size:13px;color:#a0aec0;">Loading…</div>
+                    </div>
+
+                    <!-- Self-Extension Queue -->
+                    <div style="background:#1a202c;border:1px solid #2d3748;border-radius:10px;padding:16px;margin-bottom:16px;">
+                        <div style="font-size:16px;font-weight:700;color:#e2e8f0;margin-bottom:12px;">⚕️ Self-Extension Engine</div>
+                        <div id="liveExtensionStatus" style="font-size:13px;color:#a0aec0;">Loading…</div>
+                    </div>
+
+                    <!-- System Activity Feed -->
+                    <div style="background:#1a202c;border:1px solid #2d3748;border-radius:10px;padding:16px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                            <div style="font-size:16px;font-weight:700;color:#e2e8f0;">📋 Activity Feed</div>
+                            <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="document.getElementById('liveActivityFeed').innerHTML=''">🗑 Clear</button>
+                        </div>
+                        <div id="liveActivityFeed" style="font-family:monospace;font-size:12px;color:#a0aec0;max-height:320px;overflow-y:auto;"></div>
+                        <div id="liveActivityEmpty" style="color:#718096;font-size:13px;display:none;">No activity recorded yet — tasks appear here as they run.</div>
+                    </div>
+                </div>
+
                 <!-- Settings Section -->
                 <div id="settings" class="content-section">
                     <h1>⚙️ Settings</h1>
@@ -2141,6 +2174,7 @@
                 'system-learning': 'System Learning',
                 'existing-projects': 'Improve Existing App',
                 'notifications': 'Notifications',
+                'live-activity': 'Live Activity',
                 'kimi-k2': 'AI Learning Orchestration',
                 'chat': 'Chat with SupremeAI',
                 'settings': 'Settings'
@@ -2165,6 +2199,7 @@
             if (sectionId === 'existing-projects') loadExistingProjects();
             if (sectionId === 'consensus') loadConsensusStats();
             if (sectionId === 'notifications') loadNotificationHistory();
+            if (sectionId === 'live-activity') startLiveActivity();
             if (sectionId === 'kimi-k2') loadKimiStatus();
             if (sectionId === 'chat') { switchChatMode('session'); focusChatInput(); }
             if (sectionId === 'system-alerts') loadSystemAlerts();
@@ -4040,11 +4075,14 @@
                     body: JSON.stringify({ requirement })
                 });
                 const d = await res.json();
-                if (d.status === 'success') {
-                    msg.innerHTML = `<span style="color:#48bb78;">✅ ${d.message || 'Requirement accepted. SupremeAI is building...'}</span>`;
+                // Server returns status "queued" (HTTP 202) on success — also accept "success"
+                if (d.status === 'queued' || d.status === 'success' || res.status === 202) {
+                    msg.innerHTML = `<span style="color:#48bb78;">✅ Requirement queued — SupremeAI is working on it in the background. Check <em>Live Activity</em> for progress.</span>`;
                     document.getElementById('extensionRequirement').value = '';
+                } else if (d.status === 'error') {
+                    msg.innerHTML = `<span style="color:#f56565;">❌ ${escHtml(d.message || 'Failed')}</span>`;
                 } else {
-                    msg.innerHTML = `<span style="color:#f56565;">❌ ${d.message || 'Failed'}</span>`;
+                    msg.innerHTML = `<span style="color:#ed8936;">⚠️ ${escHtml(d.message || JSON.stringify(d))}</span>`;
                 }
             } catch(e) { msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`; }
         }
@@ -4546,7 +4584,7 @@
             const msg = document.getElementById('epImprovementMsg');
             const btn = document.getElementById('epImproveBtn');
             btn.disabled = true;
-            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Running improvement cycle — cloning/pulling repo and consulting AI… (may take a minute)</span>';
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Improvement cycle started — cloning/pulling repo and consulting AI… watching for result…</span>';
             try {
                 const res = await fetch(`/api/existing-projects/${_currentEpId}/improve`, {
                     method: 'POST', headers: getAuthHeaders()
@@ -4554,15 +4592,44 @@
                 const d = await res.json();
                 if (d.error) {
                     msg.innerHTML = `<span style="color:#f56565;">❌ ${escHtml(d.error)}</span>`;
-                } else if (d.skipped) {
-                    msg.innerHTML = `<span style="color:#ed8936;">⚠️ Skipped: ${escHtml(d.skipped)}</span>`;
-                } else {
-                    msg.innerHTML = `<span style="color:#48bb78;">✅ Done! AI suggestion: ${escHtml((d.aiSuggestion||'').substring(0,120))}… ${d.pushed ? '(pushed to repo)' : '(note written)'}</span>`;
+                    btn.disabled = false;
+                    return;
                 }
-                await refreshEpDetail();
+                // Server returns 202 (queued) — poll until status leaves IMPROVING/ANALYSING
+                let polls = 0;
+                const maxPolls = 24; // up to ~2 min (every 5s)
+                const pollInterval = setInterval(async () => {
+                    polls++;
+                    try {
+                        const pr = await fetch(`/api/existing-projects/${_currentEpId}`, { headers: getAuthHeaders() });
+                        const p = await pr.json();
+                        const busy = p.status === 'IMPROVING' || p.status === 'ANALYSING';
+                        const dots = '.'.repeat((polls % 3) + 1);
+                        if (busy) {
+                            msg.innerHTML = `<span style="color:#63b3ed;">⏳ ${p.status}${dots} (${polls * 5}s elapsed)</span>`;
+                        } else {
+                            clearInterval(pollInterval);
+                            btn.disabled = false;
+                            const hist = (p.improvementHistory || []);
+                            const last = hist[hist.length - 1];
+                            if (last && last.status === 'ok') {
+                                msg.innerHTML = `<span style="color:#48bb78;">✅ Done! ${escHtml((last.summary || '').substring(0, 150))} ${last.pushed ? '(pushed to repo ✅)' : '(note written, push skipped — check GitHub token)'}</span>`;
+                            } else if (last) {
+                                msg.innerHTML = `<span style="color:#f56565;">❌ Improvement completed with error: ${escHtml((last.summary || '').substring(0, 150))}</span>`;
+                            } else {
+                                msg.innerHTML = `<span style="color:#ed8936;">⚠️ Cycle finished but no history recorded. Check server logs.</span>`;
+                            }
+                            await refreshEpDetail();
+                        }
+                        if (polls >= maxPolls) {
+                            clearInterval(pollInterval);
+                            btn.disabled = false;
+                            msg.innerHTML = `<span style="color:#ed8936;">⚠️ Still running after 2 min — refresh the page to check the result.</span>`;
+                        }
+                    } catch (_) { /* ignore transient poll errors */ }
+                }, 5000);
             } catch(e) {
                 msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
-            } finally {
                 btn.disabled = false;
             }
         }
@@ -5478,7 +5545,124 @@
             loadDashboardStats();
         });
 
-        // Close modals when clicking outside
+        // =============================================
+        // LIVE ACTIVITY
+        // =============================================
+
+        let _liveActivityTimer = null;
+        const _activityFeedLog = [];
+
+        function _logActivity(text) {
+            const ts = new Date().toLocaleTimeString();
+            _activityFeedLog.unshift(`[${ts}] ${text}`);
+            if (_activityFeedLog.length > 100) _activityFeedLog.pop();
+            const feed = document.getElementById('liveActivityFeed');
+            const empty = document.getElementById('liveActivityEmpty');
+            if (feed) {
+                feed.innerHTML = _activityFeedLog.map(l => `<div style="padding:2px 0;border-bottom:1px solid #2d3748;">${escHtml(l)}</div>`).join('');
+            }
+            if (empty) empty.style.display = 'none';
+        }
+
+        async function loadLiveActivity() {
+            // 1. Improvement cycles
+            try {
+                const r = await fetch('/api/existing-projects', { headers: getAuthHeaders() });
+                const data = await r.json();
+                const projects = data.projects || [];
+                const improving = projects.filter(p => p.status === 'IMPROVING' || p.status === 'ANALYSING');
+                const el = document.getElementById('liveImprovementRows');
+                if (el) {
+                    if (!projects.length) {
+                        el.innerHTML = '<span style="color:#718096;">No projects registered yet.</span>';
+                    } else if (!improving.length) {
+                        el.innerHTML = projects.map(p =>
+                            `<div style="padding:6px 0;border-bottom:1px solid #2d3748;display:flex;gap:10px;align-items:center;">
+                                <span style="font-size:18px;">${p.status === 'IDLE' ? '🟢' : p.status === 'ERROR' ? '🔴' : '🟠'}</span>
+                                <div>
+                                    <strong style="color:#e2e8f0;">${escHtml(p.name || p.repoUrl)}</strong>
+                                    <span style="font-size:11px;color:#718096;margin-left:8px;">${p.status}</span>
+                                    <span style="font-size:11px;color:#718096;margin-left:8px;">Improved ${p.totalImprovementsApplied}×</span>
+                                </div>
+                            </div>`
+                        ).join('');
+                    } else {
+                        el.innerHTML = improving.map(p =>
+                            `<div style="padding:8px;background:#2d3748;border-radius:6px;margin-bottom:8px;">
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <span style="animation:spin 1s linear infinite;display:inline-block;">⚙️</span>
+                                    <strong style="color:#ed8936;">${escHtml(p.name || p.repoUrl)}</strong>
+                                    <span style="font-size:11px;background:#ed8936;color:#000;padding:2px 6px;border-radius:10px;">${p.status}</span>
+                                </div>
+                                <div style="font-size:12px;color:#a0aec0;margin-top:4px;">${escHtml(p.repoUrl)}</div>
+                                <div style="font-size:12px;color:#718096;margin-top:2px;">Goal: ${escHtml((p.improvementGoal||'').substring(0,80))}</div>
+                            </div>`
+                        ).join('');
+                        improving.forEach(p => _logActivity(`⚙️ ${p.name} is ${p.status}`));
+                    }
+                }
+            } catch(e) {
+                const el = document.getElementById('liveImprovementRows');
+                if (el) el.innerHTML = `<span style="color:#f56565;">Error: ${escHtml(e.message)}</span>`;
+            }
+
+            // 2. Self-extension status
+            try {
+                const r = await fetch('/api/extend/status', { headers: getAuthHeaders() });
+                const d = await r.json();
+                const el = document.getElementById('liveExtensionStatus');
+                if (el) {
+                    const statusColor = d.status === 'ready' ? '#48bb78' : '#ed8936';
+                    el.innerHTML = `
+                        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                            <div style="background:#2d3748;border-radius:6px;padding:10px 16px;min-width:120px;">
+                                <div style="font-size:11px;color:#718096;">Engine</div>
+                                <div style="font-size:14px;font-weight:700;color:${statusColor};">${escHtml(d.status || 'unknown')}</div>
+                            </div>
+                            <div style="background:#2d3748;border-radius:6px;padding:10px 16px;min-width:120px;">
+                                <div style="font-size:11px;color:#718096;">Message</div>
+                                <div style="font-size:12px;color:#e2e8f0;">${escHtml((d.message || '').substring(0,80))}</div>
+                            </div>
+                            ${d.user ? `<div style="background:#2d3748;border-radius:6px;padding:10px 16px;min-width:120px;">
+                                <div style="font-size:11px;color:#718096;">Last user</div>
+                                <div style="font-size:14px;color:#63b3ed;">${escHtml(d.user)}</div>
+                            </div>` : ''}
+                        </div>`;
+                }
+            } catch(e) {
+                const el = document.getElementById('liveExtensionStatus');
+                if (el) el.innerHTML = `<span style="color:#718096;">Not available (requires auth)</span>`;
+            }
+        }
+
+        function startLiveActivity() {
+            // Clear any previous interval
+            if (_liveActivityTimer) clearInterval(_liveActivityTimer);
+            loadLiveActivity();
+            // Auto-refresh every 5 s while tab is active
+            _liveActivityTimer = setInterval(() => {
+                const section = document.getElementById('live-activity');
+                if (section && section.style.display !== 'none') {
+                    loadLiveActivity();
+                } else {
+                    clearInterval(_liveActivityTimer);
+                    _liveActivityTimer = null;
+                }
+            }, 5000);
+        }
+
+        // Stop live-activity poller when switching away
+        const _origShowSection = typeof showSection === 'function' ? showSection : null;
+        // Patch showSection to stop poller when leaving live-activity
+        document.addEventListener('click', function(e) {
+            const item = e.target.closest('.menu-item');
+            if (item && _liveActivityTimer && !item.getAttribute('onclick')?.includes('live-activity')) {
+                clearInterval(_liveActivityTimer);
+                _liveActivityTimer = null;
+            }
+        });
+
+
         window.onclick = function(event) {
             if (event.target.classList.contains('modal')) {
                 event.target.classList.remove('active');
