@@ -1773,6 +1773,25 @@
                     <button class="btn" style="margin-top: 20px;" onclick="saveSettings()">💾 Save Settings</button>
                     <button class="btn btn-danger" style="margin-top: 20px;" onclick="logout()">🚨 Logout</button>
                     <div id="settingsMsg" style="margin-top:10px;"></div>
+
+                    <!-- ═══════════════════════════════════════════════════════════
+                         FEATURE SYNC DASHBOARD  (Single Source of Truth monitor)
+                         ═══════════════════════════════════════════════════════════ -->
+                    <h2 style="margin-top:40px;color:#4299e1;">🔗 Feature Sync Status</h2>
+                    <p style="color:#a0aec0;margin-bottom:12px;">
+                        Shows which features are implemented in each platform. Goal: 100% sync across admin.html, React, and Flutter.
+                    </p>
+                    <div style="display:flex;gap:10px;margin-bottom:16px;">
+                        <button class="btn" onclick="loadFeatureSync()">📊 Check Sync</button>
+                        <button class="btn btn-secondary" onclick="reloadFeatureRegistry()">🔄 Reload Registry</button>
+                    </div>
+                    <div id="featureSyncPanel" style="display:none;background:#1a202c;border:1px solid #2d3748;border-radius:10px;padding:20px;margin-bottom:16px;">
+                        <!-- Coverage cards -->
+                        <div id="featureSyncCoverage" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;"></div>
+                        <!-- Missing features -->
+                        <div id="featureSyncMissing" style="margin-top:12px;"></div>
+                    </div>
+                    <div id="featureSyncMsg" style="margin-top:8px;font-size:13px;"></div>
                 </div>
 
                 <!-- Activity Summary Section (Last 24h) -->
@@ -5171,6 +5190,72 @@
             localStorage.setItem('supremeai_email_notifications', emailNotif);
             localStorage.setItem('supremeai_sms_alerts', smsAlerts);
             msg.innerHTML = '<span style="color:#48bb78;">✅ Settings saved locally.</span>';
+        }
+
+        /* ── Feature Sync Dashboard ─────────────────────── */
+        async function loadFeatureSync() {
+            const msg = document.getElementById('featureSyncMsg');
+            const panel = document.getElementById('featureSyncPanel');
+            if (msg) msg.innerHTML = '<span style="color:#63b3ed;">⏳ Loading sync report...</span>';
+            try {
+                const res = await fetch('/api/features/sync', { headers: getAuthHeaders() });
+                const d = await res.json();
+                panel.style.display = 'block';
+                if (msg) msg.innerHTML = '';
+
+                // Coverage cards
+                const cov = d.coverage || {};
+                const covEl = document.getElementById('featureSyncCoverage');
+                covEl.innerHTML = `
+                    <div style="flex:1;min-width:150px;background:#2d3748;border-radius:8px;padding:14px;text-align:center;">
+                        <div style="font-size:11px;color:#718096;text-transform:uppercase;margin-bottom:6px;">Sync Score</div>
+                        <div style="font-size:28px;font-weight:700;color:${(d.syncPercentage||0) >= 80 ? '#48bb78' : (d.syncPercentage||0) >= 50 ? '#ecc94b' : '#f56565'};">${d.syncPercentage || 0}%</div>
+                        <div style="font-size:11px;color:#718096;">${d.fullySynced?.length || 0} / ${d.totalFeatures || 0} fully synced</div>
+                    </div>
+                    <div style="flex:1;min-width:150px;background:#2d3748;border-radius:8px;padding:14px;text-align:center;">
+                        <div style="font-size:11px;color:#718096;text-transform:uppercase;margin-bottom:6px;">Admin HTML</div>
+                        <div style="font-size:22px;font-weight:700;color:#4299e1;">${cov.adminHtml || '?'}</div>
+                    </div>
+                    <div style="flex:1;min-width:150px;background:#2d3748;border-radius:8px;padding:14px;text-align:center;">
+                        <div style="font-size:11px;color:#718096;text-transform:uppercase;margin-bottom:6px;">React</div>
+                        <div style="font-size:22px;font-weight:700;color:#63b3ed;">${cov.react || '?'}</div>
+                    </div>
+                    <div style="flex:1;min-width:150px;background:#2d3748;border-radius:8px;padding:14px;text-align:center;">
+                        <div style="font-size:11px;color:#718096;text-transform:uppercase;margin-bottom:6px;">Flutter</div>
+                        <div style="font-size:22px;font-weight:700;color:#b794f4;">${cov.flutter || '?'}</div>
+                    </div>`;
+
+                // Missing features
+                const miss = d.missing || {};
+                const missEl = document.getElementById('featureSyncMissing');
+                let missHtml = '';
+                for (const [platform, list] of Object.entries(miss)) {
+                    if (!Array.isArray(list) || !list.length) continue;
+                    const color = platform === 'adminHtml' ? '#4299e1' : platform === 'react' ? '#63b3ed' : '#b794f4';
+                    missHtml += `<div style="margin-bottom:12px;">
+                        <div style="font-weight:600;color:${color};margin-bottom:6px;">❌ Missing in ${platform} (${list.length})</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                            ${list.map(f => `<span style="background:#2d3748;border:1px solid #4a5568;padding:4px 10px;border-radius:4px;font-size:12px;color:#e2e8f0;">${f.name} <span style="color:#718096;font-size:10px;">[${f.priority}]</span></span>`).join('')}
+                        </div>
+                    </div>`;
+                }
+                missEl.innerHTML = missHtml || '<div style="color:#48bb78;">✅ All features synced across all platforms!</div>';
+            } catch(e) {
+                if (msg) msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        async function reloadFeatureRegistry() {
+            const msg = document.getElementById('featureSyncMsg');
+            if (msg) msg.innerHTML = '<span style="color:#63b3ed;">⏳ Reloading registry...</span>';
+            try {
+                const res = await fetch('/api/features/reload', { method: 'POST', headers: getAuthHeaders() });
+                const d = await res.json();
+                if (msg) msg.innerHTML = `<span style="color:#48bb78;">✅ ${d.message} (${d.features} features)</span>`;
+                loadFeatureSync();
+            } catch(e) {
+                if (msg) msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
         }
 
         function logout() {
