@@ -118,10 +118,20 @@ public class GitHubAppService {
      * (e.g. {@code base64 supremeai-bot.pem}).
      */
     PrivateKey loadRsaPrivateKey(String base64PemContent) throws Exception {
-        // 1. Decode outer base64 to get the PEM text
-        byte[] pemRaw = Base64.getDecoder().decode(
-                base64PemContent.replaceAll("\\s", ""));
-        String pem = new String(pemRaw, StandardCharsets.UTF_8);
+        String pem;
+        // The env var may contain either:
+        //   (a) a base64-encoded PEM file (original design)
+        //   (b) the raw PEM file itself (actual Cloud Run configuration)
+        // Detect which format is present and normalise to the raw PEM string.
+        String trimmed = base64PemContent.trim();
+        if (trimmed.startsWith("-----BEGIN")) {
+            // Already raw PEM — use directly
+            pem = trimmed;
+        } else {
+            // Assume base64-encoded PEM — decode first
+            byte[] pemRaw = Base64.getDecoder().decode(trimmed.replaceAll("\\s", ""));
+            pem = new String(pemRaw, StandardCharsets.UTF_8);
+        }
 
         boolean isPkcs1 = pem.contains("BEGIN RSA PRIVATE KEY");
 

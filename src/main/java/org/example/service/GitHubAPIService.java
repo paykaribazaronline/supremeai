@@ -133,10 +133,8 @@ public class GitHubAPIService {
      */
     public String createIssue(String title, String body, String label) {
         try {
-            if (!gitHubAppService.isConfigured()
-                    && (System.getenv("GITHUB_TOKEN") == null
-                        || System.getenv("GITHUB_TOKEN").trim().isEmpty())) {
-                logger.error("❌ GitHub token not configured. Set GITHUB_APP_PRIVATE_KEY_BASE64 or GITHUB_TOKEN.");
+            if (gitHubAppService == null || !gitHubAppService.isConfigured()) {
+                logger.error("❌ GitHub App credentials not configured. Set GITHUB_APP_PRIVATE_KEY_BASE64, GITHUB_APP_ID, and GITHUB_APP_INSTALLATION_ID.");
                 return null;
             }
             
@@ -367,26 +365,20 @@ public class GitHubAPIService {
     }
 
     /**
-     * Returns the best available GitHub auth token.
-     * Prefers a GitHub App installation token (when {@link GitHubAppService} is
-     * configured); falls back to the {@code GITHUB_TOKEN} PAT env var.
+     * Returns a GitHub App installation token.
      *
-     * @throws IOException when neither token source is available
+     * @throws IOException when GitHub App credentials are missing or token minting fails
      */
     private String resolveToken() throws IOException {
-        if (gitHubAppService != null && gitHubAppService.isConfigured()) {
-            String appToken = gitHubAppService.getInstallationToken();
-            if (appToken != null && !appToken.isBlank()) {
-                return appToken;
-            }
+        if (gitHubAppService == null || !gitHubAppService.isConfigured()) {
+            throw new IOException("GitHub App credentials are not configured. Set GITHUB_APP_PRIVATE_KEY_BASE64, GITHUB_APP_ID, and GITHUB_APP_INSTALLATION_ID.");
         }
-        String pat = System.getenv("GITHUB_TOKEN");
-        if (pat == null || pat.isBlank()) {
-            throw new IOException("No GitHub credentials configured. "
-                + "Set GITHUB_APP_PRIVATE_KEY_BASE64 + GITHUB_APP_ID + GITHUB_APP_INSTALLATION_ID, "
-                + "or set GITHUB_TOKEN.");
+
+        String appToken = gitHubAppService.getInstallationToken();
+        if (appToken == null || appToken.isBlank()) {
+            throw new IOException("GitHub App token minting failed. Check GitHub App private key and installation configuration.");
         }
-        return pat;
+        return appToken;
     }
 
     /**
