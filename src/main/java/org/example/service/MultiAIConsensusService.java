@@ -66,10 +66,10 @@ public class MultiAIConsensusService {
         }
         
         // SUPERADMIN / ENTERPRISE users bypass the provider quota 20% reserve buffer
-        boolean systemMode = userQuotaService.getUserQuota(userId).getTier().isUnlimited();
+        boolean bypassProviderReserve = userQuotaService.getUserQuota(userId).getTier().isUnlimited();
         
         // User has quota, proceed with consensus
-        ConsensusVote vote = askAllAI(question, systemMode);
+        ConsensusVote vote = askAllAI(question, bypassProviderReserve);
         
         if (vote != null
             && vote.getWinningResponse() != null
