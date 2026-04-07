@@ -18,6 +18,8 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class GitHubAPIService {
     private static final Logger logger = LoggerFactory.getLogger(GitHubAPIService.class);
+    private static final int HTTP_CONNECT_TIMEOUT_MS = 15_000;
+    private static final int HTTP_READ_TIMEOUT_MS = 20_000;
     
     private static final String GITHUB_API = "https://api.github.com";
     private static final String GITHUB_REPO = System.getenv("GITHUB_REPO") != null 
@@ -338,8 +340,8 @@ public class GitHubAPIService {
         conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setDoOutput(true);
-        conn.setConnectTimeout(15_000);
-        conn.setReadTimeout(15_000);
+        conn.setConnectTimeout(HTTP_CONNECT_TIMEOUT_MS);
+        conn.setReadTimeout(HTTP_READ_TIMEOUT_MS);
 
         try (OutputStream os = conn.getOutputStream()) {
             os.write(body.getBytes(StandardCharsets.UTF_8));
@@ -390,6 +392,8 @@ public class GitHubAPIService {
         conn.setRequestMethod("GET");
         conn.setRequestProperty("Authorization", "token " + resolveToken());
         conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
+        conn.setConnectTimeout(HTTP_CONNECT_TIMEOUT_MS);
+        conn.setReadTimeout(HTTP_READ_TIMEOUT_MS);
         
         BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
         StringBuilder response = new StringBuilder();
@@ -418,6 +422,8 @@ public class GitHubAPIService {
         conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setDoOutput(true);
+        conn.setConnectTimeout(HTTP_CONNECT_TIMEOUT_MS);
+        conn.setReadTimeout(HTTP_READ_TIMEOUT_MS);
         
         try (OutputStream os = conn.getOutputStream()) {
             byte[] input = body.getBytes("utf-8");
