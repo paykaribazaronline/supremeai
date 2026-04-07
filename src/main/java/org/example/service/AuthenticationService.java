@@ -64,7 +64,7 @@ public class AuthenticationService {
     @PostConstruct
     public void init() {
         try {
-            List<User> stored = jsonStore.load(USERS_STORE_PATH, new TypeReference<List<User>>() {});
+            List<User> stored = jsonStore.read(USERS_STORE_PATH, new TypeReference<List<User>>() {}, List.of());
             if (stored != null) {
                 for (User u : stored) {
                     if (u.getUsername() != null) {
@@ -80,7 +80,7 @@ public class AuthenticationService {
     
     private void persistUsers() {
         try {
-            jsonStore.save(USERS_STORE_PATH, new ArrayList<>(userCache.values()));
+            jsonStore.write(USERS_STORE_PATH, new ArrayList<>(userCache.values()));
         } catch (Exception e) {
             logger.warn("⚠️ Could not persist users to disk: {}", e.getMessage());
         }
