@@ -35,6 +35,9 @@ public class SelfExtender {
     @Autowired
     private RequestQueueService requestQueueService;
 
+    @Autowired
+    private GitHubAPIService gitHubAPIService;
+
     @Autowired(required = false)
     private IdleResearchService idleResearchService;
 
@@ -74,6 +77,51 @@ public class SelfExtender {
     }
     
     /**
+     * Check if running in cloud/container mode where local recompilation is impossible
+     * (i.e., no gradlew script available in the current working directory).
+     */
+    private boolean isCloudMode() {
+        return !new File("gradlew").exists() && !new File("./gradlew").exists();
+    }
+
+    /**
+     * Commit all generated files directly to GitHub via Contents API.
+     * Used in cloud mode instead of local recompile.
+     * CI/CD will automatically build and redeploy the new code (~5 minutes).
+     *
+     * @return number of files successfully committed
+     */
+    private int commitToGitHub(Requirement req, Map<String, String> generated) {
+        int committed = 0;
+        for (Map.Entry<String, String> entry : generated.entrySet()) {
+            String type = entry.getKey(); // "Model", "Service", "Controller"
+            String code = entry.getValue();
+
+            String folder;
+            if ("Model".equals(type)) {
+                folder = "model";
+            } else if ("Controller".equals(type)) {
+                folder = "controller";
+            } else {
+                folder = "service";
+            }
+
+            String filename  = req.name + type + ".java";
+            String repoPath  = "src/main/java/org/example/" + folder + "/" + filename;
+            String commitMsg = "feat(self-extension): auto-generate " + filename + " [ci deploy]";
+
+            boolean ok = gitHubAPIService.createOrUpdateFileInRepo(repoPath, code, commitMsg);
+            if (ok) {
+                committed++;
+                logger.info("✅ Committed to GitHub: {}/{}", folder, filename);
+            } else {
+                logger.error("❌ GitHub commit failed: {}/{}", folder, filename);
+            }
+        }
+        return committed;
+    }
+
+    /**
      * Process new requirement and create code
      */
     public boolean implementRequirement(String requirementText) {
@@ -83,36 +131,53 @@ public class SelfExtender {
                 idleResearchService.notifyProjectActivity();
             }
             logger.info("🤖 Processing requirement: {}", requirementText);
-            
+
             // 1. Analyze requirement
             Requirement req = analyzerService.analyze(requirementText);
-            
+
             // 2. Record as critical if needed
             if (analyzerService.isCritical(requirementText)) {
                 learningService.recordRequirement(req.name, requirementText);
             }
-            
+
             // 3. Generate code
             Map<String, String> generated = codeGenerator.generateComplete(req);
-            
+
+            // ── Cloud mode: commit generated files to GitHub, CI/CD deploys ──
+            if (isCloudMode()) {
+                logger.info("☁️ Cloud mode detected — committing {} generated file(s) to GitHub (CI/CD will deploy)", generated.size());
+                int committed = commitToGitHub(req, generated);
+                if (committed == 0) {
+                    logger.error("❌ GitHub commit failed — no files committed for: {}", req.name);
+                    recordExtension(requirementText, false, 0);
+                    return false;
+                }
+                logger.info("✅ Cloud self-extension: {} file(s) committed to GitHub → deploy triggered", committed);
+                recordExtension(requirementText, true, committed);
+                return true;
+            }
+
+            // ── Local mode: write files + recompile + hot-reload ──
             // 4. Write to files
             boolean written = writeFiles(req, generated);
             if (!written) {
                 logger.error("❌ Failed to write files");
+                recordExtension(requirementText, false, 0);
                 return false;
             }
-            
+
             // 5. Compile
             boolean compiled = recompile();
             if (!compiled) {
                 logger.error("❌ Compilation failed");
+                recordExtension(requirementText, false, 0);
                 return false;
             }
-            
+
             logger.info("✅ Requirement implemented: {} -> {} files created", req.name, generated.size());
             recordExtension(requirementText, true, generated.size());
             return true;
-            
+
         } catch (Exception e) {
             logger.error("❌ Failed to implement requirement: {}", e.getMessage());
             recordExtension(requirementText, false, 0);
@@ -215,7 +280,12 @@ public class SelfExtender {
     public Map<String, Object> getStatus() {
         Map<String, Object> status = new HashMap<>();
         status.put("status", "ready");
-        status.put("message", "SelfExtender active - SupremeAI can create its own code");
+        if (isCloudMode()) {
+            status.put("message", "SelfExtender active - Cloud mode: new code committed to GitHub and deployed via CI/CD (~5 min)");
+        } else {
+            status.put("message", "SelfExtender active - Local mode: new code compiled and hot-reloaded immediately");
+        }
+        status.put("cloudMode", isCloudMode());
         status.put("timestamp", System.currentTimeMillis());
         status.put("totalExtensions", extensionHistory.size());
         long successCount = extensionHistory.stream()
