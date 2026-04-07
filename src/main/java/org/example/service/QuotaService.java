@@ -67,19 +67,37 @@ public class QuotaService {
      * Check if an AI provider has available quota
      */
     public boolean canUseAI(String providerId) {
+        return canUseAI(providerId, false);
+    }
+
+    /**
+     * Check if an AI provider has available quota.
+     * @param systemOperation when true, only checks the hard daily/monthly limit
+     *                        (skips the 20% reserve buffer). Used by internal system
+     *                        operations such as project improvement and idle research
+     *                        so that SUPERADMIN / system tasks can use providers up
+     *                        to their actual limit.
+     */
+    public boolean canUseAI(String providerId, boolean systemOperation) {
         syncConfiguredProviders();
         Quota quota = quotas.get(providerId);
         if (quota == null) {
             logger.warn("⚠️ No quota found for provider: {}", providerId);
             return false;
         }
-        
-        boolean available = quota.hasQuotaAvailable() && 
-                           quota.getRemainingPercentage() >= MINIMUM_QUOTA_PERCENT;
-        
+
+        boolean available;
+        if (systemOperation) {
+            // System operations only respect the hard limit — no 20% reserve
+            available = quota.hasQuotaAvailable();
+        } else {
+            available = quota.hasQuotaAvailable() &&
+                       quota.getRemainingPercentage() >= MINIMUM_QUOTA_PERCENT;
+        }
+
         if (!available) {
-            logger.warn("❌ Quota exhausted for {}: {}% used, status = {}",
-                providerId, quota.getUsagePercentage(), quota.getStatus());
+            logger.warn("❌ Quota exhausted for {}: {}% used, status = {} (system={})",
+                providerId, quota.getUsagePercentage(), quota.getStatus(), systemOperation);
         }
         
         return available;
@@ -89,14 +107,22 @@ public class QuotaService {
      * Get all providers with available quota (for intelligent selection)
      */
     public List<String> getAvailableProviders() {
+        return getAvailableProviders(false);
+    }
+
+    /**
+     * Get all providers with available quota.
+     * @param systemOperation when true, skips the 20% reserve buffer check.
+     */
+    public List<String> getAvailableProviders(boolean systemOperation) {
         syncConfiguredProviders();
         List<String> available = new ArrayList<>();
         for (String providerId : quotas.keySet()) {
-            if (canUseAI(providerId)) {
+            if (canUseAI(providerId, systemOperation)) {
                 available.add(providerId);
             }
         }
-        logger.info("📊 Available providers: {}/{}", available.size(), quotas.size());
+        logger.info("📊 Available providers: {}/{} (system={})", available.size(), quotas.size(), systemOperation);
         return available;
     }
     
@@ -174,6 +200,13 @@ public class QuotaService {
      */
     public boolean shouldUseFallback() {
         return getAvailableProviders().isEmpty();
+    }
+
+    /**
+     * Check if we need fallback for system operations (relaxed threshold).
+     */
+    public boolean shouldUseFallbackForSystem() {
+        return getAvailableProviders(true).isEmpty();
     }
     
     /**

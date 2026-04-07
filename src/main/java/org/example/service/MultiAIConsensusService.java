@@ -65,8 +65,11 @@ public class MultiAIConsensusService {
             return errorVote;
         }
         
+        // SUPERADMIN / ENTERPRISE users bypass the provider quota 20% reserve buffer
+        boolean systemMode = userQuotaService.getUserQuota(userId).getTier().isUnlimited();
+        
         // User has quota, proceed with consensus
-        ConsensusVote vote = askAllAI(question);
+        ConsensusVote vote = askAllAI(question, systemMode);
         
         if (vote != null
             && vote.getWinningResponse() != null
@@ -83,13 +86,27 @@ public class MultiAIConsensusService {
      * Ask all AI providers and get consensus
      */
     public ConsensusVote askAllAI(String question) {
+        return askAllAI(question, false);
+    }
+
+    /**
+     * Ask all AI providers for system-level operations (project improvement, idle research).
+     * Skips the 20% reserve buffer so providers are used up to their actual hard limit.
+     */
+    public ConsensusVote askAllAISystemLevel(String question) {
+        return askAllAI(question, true);
+    }
+
+    private ConsensusVote askAllAI(String question, boolean systemOperation) {
         try {
             ConsensusVote vote = new ConsensusVote();
             vote.setQuestion(question);
             
-            // NEW: Check which AIs have available quota
-            List<String> availableProviders = quotaService.getAvailableProviders();
-            boolean needsFallback = quotaService.shouldUseFallback();
+            // Check which AIs have available quota (system ops skip the 20% reserve)
+            List<String> availableProviders = quotaService.getAvailableProviders(systemOperation);
+            boolean needsFallback = systemOperation
+                    ? quotaService.shouldUseFallbackForSystem()
+                    : quotaService.shouldUseFallback();
             int configuredProviderCount = quotaService.getConfiguredProviderCount();
 
             if (configuredProviderCount == 0) {
@@ -100,7 +117,7 @@ public class MultiAIConsensusService {
             }
             
             if (availableProviders.isEmpty()) {
-                logger.error("❌ ALL AI PROVIDERS OUT OF QUOTA! Falling back...");
+                logger.error("❌ ALL AI PROVIDERS OUT OF QUOTA! Falling back... (system={})", systemOperation);
                 return handleQuotaFallback(question);
             }
             
