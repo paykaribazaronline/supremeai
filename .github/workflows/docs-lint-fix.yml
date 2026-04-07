@@ -15,6 +15,7 @@ on:
 
 env:
   NODE_VERSION: '24'
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   BATCH_SIZE: '50'  # Files per batch (tuned to avoid "argument list too long")
 
 jobs:
@@ -30,7 +31,7 @@ jobs:
     
     steps:
       - name: ⬇️ Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -112,7 +113,7 @@ jobs:
     
     steps:
       - name: ⬇️ Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -261,7 +262,7 @@ jobs:
     
     steps:
       - name: ⬇️ Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -351,7 +352,7 @@ jobs:
     
     steps:
       - name: ⬇️ Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: 📦 Set up Node.js
         uses: actions/setup-node@v4

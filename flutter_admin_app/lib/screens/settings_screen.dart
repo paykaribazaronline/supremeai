@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../config/app_routes.dart';
 import '../config/constants.dart';
 import '../providers/auth_provider.dart';
+import '../services/api_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -12,11 +13,14 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  final ApiService _apiService = ApiService();
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   bool _notificationsEnabled = true;
   bool _darkModeEnabled = false;
   String _autoRefreshInterval = '5min';
+  bool _isUpdatingProfile = false;
+  bool _isChangingPassword = false;
 
   @override
   void initState() {
@@ -69,8 +73,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     vertical: AppConstants.paddingMedium,
                   ),
                   child: ElevatedButton(
-                    onPressed: _updateProfile,
-                    child: const Text('প্রোফাইল আপডেট করুন'),
+                    onPressed: _isUpdatingProfile ? null : _updateProfile,
+                    child: _isUpdatingProfile
+                        ? const SizedBox(
+                            width: 20, height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Text('প্রোফাইল আপডেট করুন'),
                   ),
                 ),
               ],
@@ -327,62 +336,200 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _updateProfile() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('প্রোফাইল সফলভাবে আপডেট হয়েছে')),
-    );
+  void _updateProfile() async {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('নাম খালি রাখা যাবে না'), backgroundColor: Color(AppConstants.errorColor)),
+      );
+      return;
+    }
+
+    setState(() => _isUpdatingProfile = true);
+
+    try {
+      final response = await _apiService.put<Map<String, dynamic>>(
+        '/api/auth/profile',
+        data: {'name': name},
+      );
+
+      if (!mounted) return;
+      setState(() => _isUpdatingProfile = false);
+
+      if (response.success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('প্রোফাইল সফলভাবে আপডেট হয়েছে ✅'),
+            backgroundColor: Color(AppConstants.successColor),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('আপডেট ব্যর্থ: ${response.error ?? "অজানা সমস্যা"}'),
+            backgroundColor: const Color(AppConstants.errorColor),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isUpdatingProfile = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('ত্রুটি: $e'),
+          backgroundColor: const Color(AppConstants.errorColor),
+        ),
+      );
+    }
   }
 
   void _changePassword() {
+    final oldPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('পাসওয়ার্ড পরিবর্তন'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('(নতুন পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে)', style: TextStyle(fontSize: 12, color: Colors.grey)),
-            const SizedBox(height: AppConstants.paddingMedium),
-            TextField(
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'বর্তমান পাসওয়ার্ড',
-                helperText: '(এখন যে পাসওয়ার্ড ব্যবহার করছেন)',
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('পাসওয়ার্ড পরিবর্তন'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('(নতুন পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+              const SizedBox(height: AppConstants.paddingMedium),
+              TextField(
+                controller: oldPasswordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'বর্তমান পাসওয়ার্ড',
+                  helperText: '(এখন যে পাসওয়ার্ড ব্যবহার করছেন)',
+                ),
               ),
+              const SizedBox(height: AppConstants.paddingMedium),
+              TextField(
+                controller: newPasswordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'নতুন পাসওয়ার্ড',
+                  helperText: '(নতুন পাসওয়ার্ড দিন)',
+                ),
+              ),
+              const SizedBox(height: AppConstants.paddingMedium),
+              TextField(
+                controller: confirmPasswordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'নতুন পাসওয়ার্ড নিশ্চিত',
+                  helperText: '(আবার লিখুন)',
+                ),
+              ),
+              if (_isChangingPassword)
+                const Padding(
+                  padding: EdgeInsets.only(top: 16),
+                  child: CircularProgressIndicator(),
+                ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: _isChangingPassword ? null : () {
+                oldPasswordController.dispose();
+                newPasswordController.dispose();
+                confirmPasswordController.dispose();
+                Navigator.pop(dialogContext);
+              },
+              child: const Text('বাতিল'),
             ),
-            const SizedBox(height: AppConstants.paddingMedium),
-            TextField(
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'নতুন পাসওয়ার্ড',
-                helperText: '(নতুন পাসওয়ার্ড দিন)',
-              ),
-            ),
-            const SizedBox(height: AppConstants.paddingMedium),
-            TextField(
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'নতুন পাসওয়ার্ড নিশ্চিত',
-                helperText: '(আবার লিখুন)',
-              ),
+            TextButton(
+              onPressed: _isChangingPassword ? null : () async {
+                final oldPass = oldPasswordController.text;
+                final newPass = newPasswordController.text;
+                final confirmPass = confirmPasswordController.text;
+
+                if (oldPass.isEmpty || newPass.isEmpty || confirmPass.isEmpty) {
+                  ScaffoldMessenger.of(this.context).showSnackBar(
+                    const SnackBar(
+                      content: Text('সব ফিল্ড পূরণ করুন'),
+                      backgroundColor: Color(AppConstants.errorColor),
+                    ),
+                  );
+                  return;
+                }
+
+                if (newPass != confirmPass) {
+                  ScaffoldMessenger.of(this.context).showSnackBar(
+                    const SnackBar(
+                      content: Text('নতুন পাসওয়ার্ড মিলছে না'),
+                      backgroundColor: Color(AppConstants.errorColor),
+                    ),
+                  );
+                  return;
+                }
+
+                if (newPass.length < 6) {
+                  ScaffoldMessenger.of(this.context).showSnackBar(
+                    const SnackBar(
+                      content: Text('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে'),
+                      backgroundColor: Color(AppConstants.errorColor),
+                    ),
+                  );
+                  return;
+                }
+
+                setState(() => _isChangingPassword = true);
+                setDialogState(() {});
+
+                try {
+                  final response = await _apiService.post<Map<String, dynamic>>(
+                    '/api/auth/change-password',
+                    data: {
+                      'oldPassword': oldPass,
+                      'newPassword': newPass,
+                    },
+                  );
+
+                  setState(() => _isChangingPassword = false);
+
+                  oldPasswordController.dispose();
+                  newPasswordController.dispose();
+                  confirmPasswordController.dispose();
+
+                  if (!mounted) return;
+
+                  Navigator.pop(dialogContext);
+
+                  if (response.success) {
+                    ScaffoldMessenger.of(this.context).showSnackBar(
+                      const SnackBar(
+                        content: Text('পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে ✅'),
+                        backgroundColor: Color(AppConstants.successColor),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(this.context).showSnackBar(
+                      SnackBar(
+                        content: Text('ব্যর্থ: ${response.error ?? "অজানা সমস্যা"}'),
+                        backgroundColor: const Color(AppConstants.errorColor),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  setState(() => _isChangingPassword = false);
+                  if (!mounted) return;
+                  Navigator.pop(dialogContext);
+                  ScaffoldMessenger.of(this.context).showSnackBar(
+                    SnackBar(
+                      content: Text('ত্রুটি: $e'),
+                      backgroundColor: const Color(AppConstants.errorColor),
+                    ),
+                  );
+                }
+              },
+              child: const Text('পরিবর্তন করুন'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('বাতিল'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে')),
-              );
-            },
-            child: const Text('পরিবর্তন করুন'),
-          ),
-        ],
       ),
     );
   }

@@ -157,7 +157,7 @@
 
 > ⚠️ **"Missing Key"** মানে ওই Provider-এর জন্য API Key যোগ করা হয়নি।  
 > **সমাধান:** API Key Manager-এ গিয়ে ওই Provider-এর Key যোগ করুন।
-
+>
 > ℹ️ **নোট:** শুধুমাত্র API Key Manager-এ যোগ করা Provider-ই এখানে দেখাবে।
 
 ---
@@ -370,6 +370,7 @@ AI স্বয়ংক্রিয়ভাবে Git repository-তে কো
 ### Provider Quotas দেখা
 
 **"Provider Quotas"** বাটন চাপুন। প্রতিটি AI Provider-এর:
+
 - আজকে কতটুকু ব্যবহার হয়েছে
 - দৈনিক সীমা কতটুকু
 - বাকি কত আছে
@@ -747,6 +748,7 @@ Email, Slack, Discord বা SMS-এ বার্তা পাঠান।
 **কারণ:** ওই Provider-এর API Key যোগ করা হয়নি।
 
 **সমাধান:**
+
 1. **API Key Manager**-এ যান।
 2. Provider-টির API Key যোগ করুন।
 3. **Provider Coverage**-এ ফিরে **"Load Coverage"** চাপুন।
@@ -756,6 +758,7 @@ Email, Slack, Discord বা SMS-এ বার্তা পাঠান।
 ### সমস্যা ২: AI কাজ করছে না
 
 **সমাধান:**
+
 1. **Commands → System Status** চেক করুন।
 2. **Metrics → Error Rate** দেখুন।
 3. **API Key Manager** থেকে Provider-এর Key **"Test"** করুন।
@@ -768,6 +771,7 @@ Email, Slack, Discord বা SMS-এ বার্তা পাঠান।
 **কারণ:** Auto-Learning অনেক বেশি তথ্য সংরক্ষণ করেছে।
 
 **সমাধান:**
+
 1. **System Learning → Disable Learning** চাপুন।
 2. পরের দিন সকালে quota রিসেট হলে আবার **Enable** করুন।
 
@@ -776,6 +780,7 @@ Email, Slack, Discord বা SMS-এ বার্তা পাঠান।
 ### সমস্যা ৪: Deployment ব্যর্থ হয়েছে
 
 **সমাধান:**
+
 1. **Deployment → Pipeline History** থেকে error message পড়ুন।
 2. **Validation Command** ঠিক আছে কিনা দেখুন।
 3. GitHub Token সঠিক কিনা যাচাই করুন।
@@ -786,6 +791,7 @@ Email, Slack, Discord বা SMS-এ বার্তা পাঠান।
 ### সমস্যা ৫: "Improve Existing App" কাজ করছে না
 
 **সমাধান:**
+
 1. GitHub Token সঠিক কিনা যাচাই করুন (private repo-র জন্য)।
 2. **Improvement Goal** যথেষ্ট বিস্তারিত কিনা দেখুন।
 3. **💬 Discuss Improvement Plan**-এ AI-এর সাথে আলোচনা করুন।
@@ -811,6 +817,7 @@ Email, Slack, Discord বা SMS-এ বার্তা পাঠান।
 ## 📞 সাহায্য দরকার?
 
 সমস্যা হলে:
+
 1. **Audit Logs** দেখুন — কী ঘটেছে তা জানুন।
 2. **Commands → System Status** চালান — সিস্টেম অবস্থা জানুন।
 3. **💬 Chat with SupremeAI** — AI-কে সরাসরি জিজ্ঞেস করুন।

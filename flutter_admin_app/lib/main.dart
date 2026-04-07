@@ -33,6 +33,7 @@ import 'screens/analytics/analytics_screen.dart';
 import 'screens/decisions/decision_history_screen.dart';
 import 'screens/phases/phases_screen.dart';
 import 'screens/tracing/tracing_screen.dart';
+import 'screens/chat/offline_chat_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -173,6 +174,7 @@ class SupremeAIAdminApp extends StatelessWidget {
         AppRoutes.decisionHistory: (context) => const DecisionHistoryScreen(),
         AppRoutes.phases: (context) => const PhasesScreen(),
         AppRoutes.tracing: (context) => const TracingScreen(),
+        AppRoutes.offlineChat: (context) => const OfflineChatScreen(),
       },
       onGenerateRoute: _onGenerateRoute,
       onUnknownRoute: _onUnknownRoute,

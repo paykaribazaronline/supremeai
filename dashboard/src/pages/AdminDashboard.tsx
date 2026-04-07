@@ -28,6 +28,7 @@ import ImprovementTracking from '../components/ImprovementTracking';
 import AIWorkHistory from '../components/AIWorkHistory';
 import AuditLog from '../components/AuditLog';
 import SystemMetrics from '../components/SystemMetrics';
+import APIKeysManager from '../components/APIKeysManager';
 
 const { Header, Content, Sider } = Layout;
 
@@ -101,6 +102,16 @@ const AdminDashboard: React.FC = () => {
             key: 'overview',
             icon: <DashboardOutlined />,
             label: 'Dashboard',
+        },
+        {
+            key: 'api-keys',
+            icon: <ApiOutlined />,
+            label: 'API Keys & Models',
+            children: [
+                { key: 'api-keys-manage', label: 'Manage API Keys' },
+                { key: 'api-keys-discover', label: 'Discover Models' },
+                { key: 'api-keys-usage', label: 'Usage Stats' },
+            ],
         },
         {
             key: 'api-management',
@@ -211,6 +222,11 @@ const AdminDashboard: React.FC = () => {
         switch (selectedTab) {
             case 'overview':
                 return <OverviewTab stats={stats} loading={loading} />;
+            case 'api-keys':
+            case 'api-keys-manage':
+            case 'api-keys-discover':
+            case 'api-keys-usage':
+                return <APIKeysManager />;
             case 'api-management':
             case 'api-add':
             case 'api-list':
