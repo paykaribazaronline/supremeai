@@ -2,6 +2,7 @@ package org.example.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -18,10 +19,13 @@ public class GitHubAPIService {
     private static final Logger logger = LoggerFactory.getLogger(GitHubAPIService.class);
     
     private static final String GITHUB_API = "https://api.github.com";
-    private static final String GITHUB_TOKEN = System.getenv("GITHUB_TOKEN");
     private static final String GITHUB_REPO = System.getenv("GITHUB_REPO") != null 
         ? System.getenv("GITHUB_REPO")
         : "supremeai/supremeai";
+
+    /** GitHub App auth — preferred over a bare PAT when configured. */
+    @Autowired
+    private GitHubAppService gitHubAppService;
     
     /**
      * Get latest workflow run status
@@ -128,8 +132,10 @@ public class GitHubAPIService {
      */
     public String createIssue(String title, String body, String label) {
         try {
-            if (GITHUB_TOKEN == null || GITHUB_TOKEN.trim().isEmpty()) {
-                logger.error("❌ GitHub token not configured. Set GITHUB_TOKEN environment variable.");
+            if (!gitHubAppService.isConfigured()
+                    && (System.getenv("GITHUB_TOKEN") == null
+                        || System.getenv("GITHUB_TOKEN").trim().isEmpty())) {
+                logger.error("❌ GitHub token not configured. Set GITHUB_APP_PRIVATE_KEY_BASE64 or GITHUB_TOKEN.");
                 return null;
             }
             
@@ -255,7 +261,30 @@ public class GitHubAPIService {
     }
 
     // ============ PRIVATE HELPER METHODS ============
-    
+
+    /**
+     * Returns the best available GitHub auth token.
+     * Prefers a GitHub App installation token (when {@link GitHubAppService} is
+     * configured); falls back to the {@code GITHUB_TOKEN} PAT env var.
+     *
+     * @throws IOException when neither token source is available
+     */
+    private String resolveToken() throws IOException {
+        if (gitHubAppService != null && gitHubAppService.isConfigured()) {
+            String appToken = gitHubAppService.getInstallationToken();
+            if (appToken != null && !appToken.isBlank()) {
+                return appToken;
+            }
+        }
+        String pat = System.getenv("GITHUB_TOKEN");
+        if (pat == null || pat.isBlank()) {
+            throw new IOException("No GitHub credentials configured. "
+                + "Set GITHUB_APP_PRIVATE_KEY_BASE64 + GITHUB_APP_ID + GITHUB_APP_INSTALLATION_ID, "
+                + "or set GITHUB_TOKEN.");
+        }
+        return pat;
+    }
+
     /**
      * Make GET request to GitHub API
      */
@@ -263,7 +292,7 @@ public class GitHubAPIService {
         URL url = new URL(endpoint);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
-        conn.setRequestProperty("Authorization", "token " + GITHUB_TOKEN);
+        conn.setRequestProperty("Authorization", "token " + resolveToken());
         conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
         
         BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -284,14 +313,12 @@ public class GitHubAPIService {
      * Make POST request to GitHub API - with response body
      */
     private String makeGitHubRequestWithResponse(String endpoint, String body) throws IOException {
-        if (GITHUB_TOKEN == null || GITHUB_TOKEN.trim().isEmpty()) {
-            throw new IOException("GitHub token not configured");
-        }
-        
+        String token = resolveToken();
+
         URL url = new URL(endpoint);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
-        conn.setRequestProperty("Authorization", "token " + GITHUB_TOKEN);
+        conn.setRequestProperty("Authorization", "token " + token);
         conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setDoOutput(true);
