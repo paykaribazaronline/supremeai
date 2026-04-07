@@ -1347,6 +1347,44 @@
                             </div>
                         </div>
 
+                        <!-- ═══════════════════════════════════════════════════════════
+                             LEARNING SETTINGS (Admin-configurable limits)
+                             ═══════════════════════════════════════════════════════════ -->
+                        <div style="margin-top:16px;">
+                            <div style="font-weight:600;color:#e2e8f0;margin-bottom:10px;">⚙️ Learning Settings</div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" id="learningSettingsPanel">
+                                <div style="background:#2d3748;border-radius:8px;padding:12px;">
+                                    <label style="font-size:11px;color:#718096;text-transform:uppercase;display:block;margin-bottom:4px;">Topics per Cycle</label>
+                                    <input type="number" id="settingTopicsPerCycle" min="1" max="50" value="3"
+                                           style="width:100%;padding:8px;background:#1a202c;border:1px solid #4a5568;border-radius:5px;color:#fff;font-size:16px;font-weight:700;">
+                                    <div style="font-size:10px;color:#718096;margin-top:4px;">How many topics to study per cycle (1-50)</div>
+                                </div>
+                                <div style="background:#2d3748;border-radius:8px;padding:12px;">
+                                    <label style="font-size:11px;color:#718096;text-transform:uppercase;display:block;margin-bottom:4px;">Cycle Interval (minutes)</label>
+                                    <input type="number" id="settingCycleInterval" min="1" max="1440" value="5"
+                                           style="width:100%;padding:8px;background:#1a202c;border:1px solid #4a5568;border-radius:5px;color:#fff;font-size:16px;font-weight:700;">
+                                    <div style="font-size:10px;color:#718096;margin-top:4px;">Minutes between research cycles (1-1440)</div>
+                                </div>
+                                <div style="background:#2d3748;border-radius:8px;padding:12px;">
+                                    <label style="font-size:11px;color:#718096;text-transform:uppercase;display:block;margin-bottom:4px;">Daily Write Limit</label>
+                                    <input type="number" id="settingDailyWriteLimit" min="100" max="1000000" value="18000"
+                                           style="width:100%;padding:8px;background:#1a202c;border:1px solid #4a5568;border-radius:5px;color:#fff;font-size:16px;font-weight:700;">
+                                    <div style="font-size:10px;color:#718096;margin-top:4px;">Max Firebase writes per day (100-1,000,000)</div>
+                                </div>
+                                <div style="background:#2d3748;border-radius:8px;padding:12px;">
+                                    <label style="font-size:11px;color:#718096;text-transform:uppercase;display:block;margin-bottom:4px;">Daily Read Limit</label>
+                                    <input type="number" id="settingDailyReadLimit" min="100" max="1000000" value="50000"
+                                           style="width:100%;padding:8px;background:#1a202c;border:1px solid #4a5568;border-radius:5px;color:#fff;font-size:16px;font-weight:700;">
+                                    <div style="font-size:10px;color:#718096;margin-top:4px;">Max Firebase reads per day (100-1,000,000)</div>
+                                </div>
+                            </div>
+                            <div style="display:flex;gap:10px;margin-top:12px;">
+                                <button class="btn btn-success" onclick="saveLearningSettings()" style="min-width:130px;">💾 Save Settings</button>
+                                <button class="btn btn-secondary" onclick="loadLearningSettings()" style="min-width:130px;">🔄 Reset</button>
+                            </div>
+                            <div id="settingsMsg" style="margin-top:8px;font-size:13px;"></div>
+                        </div>
+
                         <!-- Research cycle stats -->
                         <div id="researchStatsPanel" style="margin-top:16px;display:none;">
                             <div style="font-weight:600;color:#e2e8f0;margin-bottom:8px;">📊 Current Research Status</div>
@@ -2195,7 +2233,7 @@
             if (sectionId === 'metrics') loadMetrics();
                         if (sectionId === 'metrics') loadAiOps();
             if (sectionId === 'self-healing') loadSelfHealingHealth();
-            if (sectionId === 'system-learning') { loadLearningStats(); loadResearchStats(); }
+            if (sectionId === 'system-learning') { loadLearningStats(); loadResearchStats(); loadLearningSettings(); }
             if (sectionId === 'existing-projects') loadExistingProjects();
             if (sectionId === 'consensus') loadConsensusStats();
             if (sectionId === 'notifications') loadNotificationHistory();
@@ -4320,6 +4358,49 @@
                 await loadResearchStats();
             } catch(e) {
                 msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        /* ── Learning Settings (admin-configurable limits) ─── */
+        async function loadLearningSettings() {
+            try {
+                const res = await fetch('/api/research/settings', { headers: getAuthHeaders() });
+                const d = await res.json();
+                const f = (id, v) => { const e = document.getElementById(id); if (e) e.value = v; };
+                f('settingTopicsPerCycle',   d.maxTopicsPerCycle   || 3);
+                f('settingCycleInterval',    d.cycleIntervalMinutes || 5);
+                f('settingDailyWriteLimit',  d.dailyWriteLimit     || 18000);
+                f('settingDailyReadLimit',   d.dailyReadLimit      || 50000);
+                const msg = document.getElementById('settingsMsg');
+                if (msg) msg.innerHTML = '<span style="color:#48bb78;">✅ Settings loaded</span>';
+                setTimeout(() => { if (msg) msg.innerHTML = ''; }, 2000);
+            } catch(e) {
+                const msg = document.getElementById('settingsMsg');
+                if (msg) msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
+            }
+        }
+
+        async function saveLearningSettings() {
+            const msg = document.getElementById('settingsMsg');
+            if (msg) msg.innerHTML = '<span style="color:#63b3ed;">⏳ Saving...</span>';
+            try {
+                const body = {
+                    maxTopicsPerCycle:    parseInt(document.getElementById('settingTopicsPerCycle').value)   || 3,
+                    cycleIntervalMinutes: parseInt(document.getElementById('settingCycleInterval').value)    || 5,
+                    dailyWriteLimit:      parseInt(document.getElementById('settingDailyWriteLimit').value)  || 18000,
+                    dailyReadLimit:       parseInt(document.getElementById('settingDailyReadLimit').value)   || 50000
+                };
+                const res = await fetch('/api/research/settings', {
+                    method: 'POST',
+                    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const d = await res.json();
+                if (msg) msg.innerHTML = `<span style="color:#48bb78;">✅ ${d.message || 'Settings saved successfully!'}</span>`;
+                // Reload quota limits display too
+                loadResearchStats();
+            } catch(e) {
+                if (msg) msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
             }
         }
 
