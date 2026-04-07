@@ -169,7 +169,7 @@ public class SelfExtensionController {
             // Queue each requirement asynchronously instead of blocking
             List<String> requirementIds = new ArrayList<>();
             for (String req : requirements) {
-                String requirementId = req.hashCode() + "_" + System.currentTimeMillis();
+                String requirementId = UUID.randomUUID().toString();
                 requirementIds.add(requirementId);
                 requestQueue.queueExtensionRequest(requirementId, () -> {
                     boolean success = selfExtender.implementRequirement(req);

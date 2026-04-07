@@ -18,6 +18,8 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -44,6 +46,13 @@ public class ExistingProjectService {
 
     /** In-memory store: projectId → ExistingProject */
     private final Map<String, ExistingProject> projects = new ConcurrentHashMap<>();
+
+    /** Dedicated executor for async improvement cycles (avoids starving the common ForkJoinPool). */
+    private final ExecutorService improvementExecutor = Executors.newFixedThreadPool(2, r -> {
+        Thread t = new Thread(r, "project-improvement");
+        t.setDaemon(true);
+        return t;
+    });
 
     /**
      * Root directory where external repos are checked out.
@@ -205,7 +214,7 @@ public class ExistingProjectService {
                 logger.error("❌ Async improvement failed for {}: {}", project.getName(), e.getMessage());
                 project.setStatus("ERROR");
             }
-        });
+        }, improvementExecutor);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
