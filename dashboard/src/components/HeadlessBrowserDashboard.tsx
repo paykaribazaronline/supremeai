@@ -24,6 +24,8 @@ import {
     Empty,
     Progress,
     Switch,
+    Divider,
+    Popconfirm,
 } from 'antd';
 import {
     ChromeOutlined,
@@ -74,10 +76,14 @@ const HeadlessBrowserDashboard: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [scraping, setScraping] = useState(false);
     const [form] = Form.useForm();
+    const [credentialsForm] = Form.useForm();
     const [scrapeModalVisible, setScrapeModalVisible] = useState(false);
     const [resultDrawerVisible, setResultDrawerVisible] = useState(false);
+    const [credentialsModalVisible, setCredentialsModalVisible] = useState(false);
     const [selectedResult, setSelectedResult] = useState<ScrapeResult | null>(null);
     const [useAuth, setUseAuth] = useState(false);
+    const [autoLoginEnabled, setAutoLoginEnabled] = useState(false);
+    const [storedCredentials, setStoredCredentials] = useState<any[]>([]);
 
     useEffect(() => {
         fetchBrowserData();
@@ -106,6 +112,14 @@ const HeadlessBrowserDashboard: React.FC = () => {
                 const data = await auditRes.json();
                 setAuditLogs(data.logs || []);
             }
+
+            // Fetch auto-login settings
+            const autoLoginRes = await fetch('/api/browser/auto-login/settings', { headers });
+            if (autoLoginRes.ok) {
+                const data = await autoLoginRes.json();
+                setAutoLoginEnabled(data.enabled || false);
+                setStoredCredentials(data.credentials || []);
+            }
         } catch (error) {
             console.error('Failed to fetch browser data:', error);
         } finally {
@@ -131,6 +145,7 @@ const HeadlessBrowserDashboard: React.FC = () => {
                     timeout: values.timeout || 30,
                     username: useAuth ? values.username : undefined,
                     password: useAuth ? values.password : undefined,
+                    autoLogin: autoLoginEnabled,
                 }),
             });
 
@@ -203,6 +218,83 @@ const HeadlessBrowserDashboard: React.FC = () => {
             });
         } finally {
             setScraping(false);
+        }
+    };
+
+    const handleToggleAutoLogin = async (enabled: boolean) => {
+        try {
+            const token = getToken();
+            const response = await fetch('/api/browser/auto-login/toggle', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ enabled }),
+            });
+
+            if (response.ok) {
+                setAutoLoginEnabled(enabled);
+                Modal.success({
+                    title: 'Auto-Login Updated',
+                    content: `Auto-Login ${enabled ? 'enabled' : 'disabled'}`,
+                });
+            } else {
+                Modal.error({ title: 'Failed', content: 'Could not update setting' });
+            }
+        } catch (error) {
+            Modal.error({ title: 'Error', content: String(error) });
+        }
+    };
+
+    const handleSaveCredentials = async (values: any) => {
+        try {
+            const token = getToken();
+            const response = await fetch('/api/browser/auto-login/credentials', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    website: values.website,
+                    username: values.username,
+                    password: values.password,
+                    selectorUsername: values.selectorUsername,
+                    selectorPassword: values.selectorPassword,
+                    selectorSubmit: values.selectorSubmit,
+                }),
+            });
+
+            if (response.ok) {
+                Modal.success({ title: 'Success', content: 'Credentials saved securely!' });
+                credentialsForm.resetFields();
+                setCredentialsModalVisible(false);
+                fetchBrowserData();
+            } else {
+                Modal.error({ title: 'Failed', content: 'Could not save credentials' });
+            }
+        } catch (error) {
+            Modal.error({ title: 'Error', content: String(error) });
+        }
+    };
+
+    const handleDeleteCredential = async (website: string) => {
+        try {
+            const token = getToken();
+            const response = await fetch(`/api/browser/auto-login/credentials/${website}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+
+            if (response.ok) {
+                Modal.success({ title: 'Deleted', content: 'Credential removed' });
+                fetchBrowserData();
+            } else {
+                Modal.error({ title: 'Failed', content: 'Could not delete credential' });
+            }
+        } catch (error) {
+            Modal.error({ title: 'Error', content: String(error) });
         }
     };
 
@@ -282,7 +374,35 @@ const HeadlessBrowserDashboard: React.FC = () => {
                     showIcon
                     style={{ marginBottom: '20px' }}
                 />
-
+                {/* Auto-Login Control */}
+                <Card
+                    title="🔐 Auto-Login Control"
+                    style={{ marginBottom: '20px' }}
+                    type="inner"
+                    extra={
+                        <Switch
+                            checked={autoLoginEnabled}
+                            onChange={handleToggleAutoLogin}
+                            loading={loading}
+                        />
+                    }
+                >
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                        <Alert
+                            message="Auto-Login Enabled"
+                            description="When enabled, the browser will automatically use stored credentials for website login"
+                            type={autoLoginEnabled ? 'success' : 'info'}
+                            showIcon
+                        />
+                        <Button
+                            type="primary"
+                            onClick={() => setCredentialsModalVisible(true)}
+                            disabled={!autoLoginEnabled}
+                        >
+                            Manage Stored Credentials ({storedCredentials.length})
+                        </Button>
+                    </Space>
+                </Card>
                 {/* Stats */}
                 {browserStats && (
                     <Row gutter={16} style={{ marginBottom: '20px' }}>
@@ -576,6 +696,143 @@ const HeadlessBrowserDashboard: React.FC = () => {
                     </div>
                 )}
             </Drawer>
+
+            {/* Credentials Modal */}
+            <Modal
+                title="Add Auto-Login Credentials"
+                open={credentialsModalVisible}
+                onCancel={() => {
+                    setCredentialsModalVisible(false);
+                    credentialsForm.resetFields();
+                }}
+                footer={null}
+                width={600}
+            >
+                <Form
+                    form={credentialsForm}
+                    layout="vertical"
+                    onFinish={handleSaveCredentials}
+                >
+                    <Form.Item
+                        label="Website URL"
+                        name="website"
+                        rules={[
+                            { required: true, message: 'Website URL required' },
+                            { pattern: /^https?:\/\/.+/, message: 'Must start with http:// or https://' },
+                        ]}
+                    >
+                        <Input placeholder="https://example.com" />
+                    </Form.Item>
+
+                    <Form.Item
+                        label="Username/Email"
+                        name="username"
+                        rules={[{ required: true, message: 'Username or email required' }]}
+                    >
+                        <Input placeholder="username or email" />
+                    </Form.Item>
+
+                    <Form.Item
+                        label="Password"
+                        name="password"
+                        rules={[{ required: true, message: 'Password required' }]}
+                    >
+                        <Input.Password placeholder="password" />
+                    </Form.Item>
+
+                    <Divider>Login Form Selectors (Optional)</Divider>
+
+                    <Form.Item
+                        label="Username Input Selector"
+                        name="usernameSelector"
+                        tooltip="CSS selector for username input field (e.g., #login-username, input[type='email'])"
+                    >
+                        <Input placeholder="e.g., #email" />
+                    </Form.Item>
+
+                    <Form.Item
+                        label="Password Input Selector"
+                        name="passwordSelector"
+                        tooltip="CSS selector for password input field (e.g., #login-password, input[type='password'])"
+                    >
+                        <Input placeholder="e.g., #password" />
+                    </Form.Item>
+
+                    <Form.Item
+                        label="Submit Button Selector"
+                        name="submitSelector"
+                        tooltip="CSS selector for login submit button (e.g., button[type='submit'], #login-btn)"
+                    >
+                        <Input placeholder="e.g., button[type='submit']" />
+                    </Form.Item>
+
+                    <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+                        <Button onClick={() => {
+                            setCredentialsModalVisible(false);
+                            credentialsForm.resetFields();
+                        }}>
+                            Cancel
+                        </Button>
+                        <Button type="primary" htmlType="submit">
+                            Save Credentials
+                        </Button>
+                    </Space>
+                </Form>
+            </Modal>
+
+            {/* Stored Credentials Table Modal */}
+            <Modal
+                title="Manage Auto-Login Credentials"
+                open={credentialsModalVisible && storedCredentials.length > 0}
+                onCancel={() => setCredentialsModalVisible(false)}
+                footer={null}
+                width={700}
+            >
+                <Table
+                    columns={[
+                        {
+                            title: 'Website',
+                            dataIndex: 'website',
+                            key: 'website',
+                            render: (text) => <a href={text} target="_blank" rel="noopener noreferrer">{text}</a>,
+                        },
+                        {
+                            title: 'Username',
+                            dataIndex: 'username',
+                            key: 'username',
+                        },
+                        {
+                            title: 'Actions',
+                            key: 'actions',
+                            render: (_, record) => (
+                                <Popconfirm
+                                    title="Delete Credential?"
+                                    description="This action cannot be undone."
+                                    onConfirm={() => handleDeleteCredential(record.website)}
+                                    okText="Yes"
+                                    cancelText="No"
+                                >
+                                    <Button danger size="small">Delete</Button>
+                                </Popconfirm>
+                            ),
+                        },
+                    ]}
+                    dataSource={storedCredentials.map((cred) => ({
+                        ...cred,
+                        key: cred.website,
+                    }))}
+                    pagination={false}
+                    bordered
+                />
+                <Button
+                    type="primary"
+                    block
+                    style={{ marginTop: '16px' }}
+                    onClick={() => credentialsForm.resetFields()}
+                >
+                    Add New Credential
+                </Button>
+            </Modal>
         </div>
     );
 };
