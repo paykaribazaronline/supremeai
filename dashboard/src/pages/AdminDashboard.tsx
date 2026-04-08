@@ -18,6 +18,7 @@ import {
     GithubOutlined,
     ChromeOutlined,
     ChatOutlined,
+    BrainOutlined,
 } from '@ant-design/icons';
 import APIManagement from '../components/APIManagement';
 import AIModelSearch from '../components/AIModelSearch';
@@ -35,6 +36,7 @@ import APIKeysManager from '../components/APIKeysManager';
 import GitHubDashboard from '../components/GitHubDashboard';
 import HeadlessBrowserDashboard from '../components/HeadlessBrowserDashboard';
 import ChatHistoryDashboard from '../components/ChatHistoryDashboard';
+import SystemLearningDashboard from '../components/SystemLearningDashboard';
 
 const { Header, Content, Sider } = Layout;
 
@@ -250,6 +252,11 @@ const AdminDashboard: React.FC = () => {
             icon: <ChatOutlined />,
             label: 'Chat History & Process',
         },
+        {
+            key: 'system-learning',
+            icon: <BrainOutlined />,
+            label: 'AI System Learning',
+        },
 
         // ╔═══════════════════════════════════╗
         // ║ 9️⃣  ⚙️  SETTINGS                  ║
@@ -335,10 +342,12 @@ const AdminDashboard: React.FC = () => {
                 return <HeadlessBrowserDashboard />;
             case 'ai-decisions':
                 return <AIWorkHistory />;
+            case 'system-learning':
+                return <SystemLearningDashboard />;
             case 'settings':
                 return <SystemMetrics />;
             default:
-                return <OverviewTab stats={stats} loading={loading} />;
+                return <OverviewTab stats={stats} loading={loading} />;,
         }
     };
 
