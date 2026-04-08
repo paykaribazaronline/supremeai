@@ -5,7 +5,7 @@
  * Browser-based web scraping fallback (emergency only, 10 req/day).
  * Called by BrowserDataCollector.java via ProcessBuilder subprocess.
  * 
- * Usage: node scripts/puppeteer-collector.js <url> [--screenshot]
+ * Usage: node scripts/puppeteer-collector.js <url> [--screenshot] [--auth-file <path>]
  * Output: JSON to stdout (parsed by Java caller)
  * Errors: stderr only (never pollute stdout)
  * 
@@ -19,6 +19,7 @@
 
 const TIMEOUT_MS = 30000;
 const NAVIGATION_TIMEOUT_MS = 20000;
+const fs = require('fs');
 
 async function main() {
     const args = process.argv.slice(2);
@@ -30,6 +31,19 @@ async function main() {
     
     const url = args[0];
     const takeScreenshot = args.includes('--screenshot');
+    const authFileIndex = args.indexOf('--auth-file');
+    const authFilePath = authFileIndex >= 0 ? args[authFileIndex + 1] : null;
+
+    let auth = null;
+    if (authFilePath) {
+        try {
+            const content = fs.readFileSync(authFilePath, 'utf8');
+            auth = JSON.parse(content);
+        } catch (e) {
+            process.stderr.write(`Invalid auth file: ${e.message}\n`);
+            process.exit(1);
+        }
+    }
     
     // Validate URL
     try {
@@ -76,6 +90,45 @@ async function main() {
         
         // Set viewport
         await page.setViewport({ width: 1280, height: 720 });
+
+        // Auth bootstrap before target navigation.
+        if (auth && auth.type) {
+            const type = String(auth.type).toLowerCase();
+            if (type === 'basic') {
+                const user = auth.username || '';
+                const pass = auth.password || '';
+                const basic = Buffer.from(`${user}:${pass}`, 'utf8').toString('base64');
+                await page.setExtraHTTPHeaders({
+                    Authorization: `Basic ${basic}`
+                });
+            } else if (type === 'bearer') {
+                await page.setExtraHTTPHeaders({
+                    Authorization: `Bearer ${auth.token || ''}`
+                });
+            } else if (type === 'cookie') {
+                await page.setExtraHTTPHeaders({
+                    Cookie: auth.cookieHeader || ''
+                });
+            } else if (type === 'form') {
+                const loginUrl = auth.loginUrl || url;
+
+                await page.goto(loginUrl, {
+                    waitUntil: 'networkidle2',
+                    timeout: NAVIGATION_TIMEOUT_MS
+                });
+
+                await page.waitForSelector(auth.usernameSelector, { timeout: 8000 });
+                await page.waitForSelector(auth.passwordSelector, { timeout: 8000 });
+
+                await page.type(auth.usernameSelector, auth.username || '', { delay: 20 });
+                await page.type(auth.passwordSelector, auth.password || '', { delay: 20 });
+
+                await Promise.all([
+                    page.waitForNavigation({ waitUntil: 'networkidle2', timeout: NAVIGATION_TIMEOUT_MS }).catch(() => {}),
+                    page.click(auth.submitSelector)
+                ]);
+            }
+        }
         
         // Block unnecessary resources to speed up
         await page.setRequestInterception(true);

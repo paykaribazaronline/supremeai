@@ -490,6 +490,54 @@
             font-weight: 700;
         }
 
+        .browser-layout {
+            display: grid;
+            grid-template-columns: minmax(300px, 1fr) minmax(360px, 1.2fr);
+            gap: 20px;
+            align-items: start;
+        }
+
+        .browser-card {
+            background: #1a202c;
+            border: 1px solid #2d3748;
+            border-radius: 12px;
+            padding: 18px;
+        }
+
+        .browser-log {
+            background: #0b1118;
+            border: 1px solid #243447;
+            border-radius: 10px;
+            height: 360px;
+            overflow-y: auto;
+            padding: 12px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .browser-log-line {
+            margin-bottom: 4px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .browser-output {
+            margin-top: 12px;
+            background: #111827;
+            border: 1px solid #2d3748;
+            border-radius: 10px;
+            padding: 12px;
+            min-height: 120px;
+            color: #cbd5e1;
+        }
+
+        @media (max-width: 980px) {
+            .browser-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .coverage-table-wrap {
             margin-top: 18px;
             overflow-x: auto;
@@ -522,6 +570,7 @@
             <div class="menu-item" onclick="showSection('provider-coverage')">🛰️ Provider Coverage</div>
             <div class="menu-item" onclick="showSection('approvals')">✅ Approvals</div>
             <div class="menu-item" onclick="showSection('commands')">💻 Commands</div>
+            <div class="menu-item" onclick="showSection('browser-automation')">🌐 Browser Automation</div>
             <div class="menu-item" onclick="showSection('api-keys')">🔑 API Key Manager</div>
             <div class="menu-item" onclick="showSection('airllm-config')">🧠 AirLLM Config</div>
             <div class="menu-item" onclick="showSection('ai-agents')">🤖 AI Agent Assignment</div>
@@ -760,6 +809,104 @@
                         <button class="btn btn-secondary" onclick="runCommand('metrics')">Metrics</button>
                         <button class="btn btn-secondary" onclick="runCommand('clear')">Clear</button>
                         <button class="btn btn-danger" onclick="runCommand('emergency-stop')">Emergency Stop</button>
+                    </div>
+                </div>
+
+                <!-- Browser Automation Section -->
+                <div id="browser-automation" class="content-section">
+                    <h1>🌐 Browser Automation Workspace</h1>
+                    <p>Open and process links through the built-in browser engine. If login is needed, provide credentials directly here for one-time execution.</p>
+
+                    <div class="summary-grid" id="browserSummaryCards">
+                        <div class="summary-card"><div class="label">Quota Used</div><div class="value" id="browserQuotaUsed">--</div></div>
+                        <div class="summary-card"><div class="label">Remaining</div><div class="value" id="browserQuotaRemaining">--</div></div>
+                        <div class="summary-card"><div class="label">Health</div><div class="value" id="browserHealthValue">--</div></div>
+                        <div class="summary-card"><div class="label">Puppeteer</div><div class="value" id="browserEngineValue">--</div></div>
+                    </div>
+
+                    <div class="browser-layout">
+                        <div class="browser-card">
+                            <h2>Task Setup</h2>
+                            <div class="form-group">
+                                <label>Target URL *</label>
+                                <input type="text" id="browserTargetUrl" placeholder="https://example.com/protected/page">
+                            </div>
+                            <div class="form-group">
+                                <label>Authentication Mode</label>
+                                <select id="browserAuthType" onchange="toggleBrowserAuthFields()">
+                                    <option value="none">None (public link)</option>
+                                    <option value="bearer">Bearer Token</option>
+                                    <option value="basic">Basic Auth (username/password)</option>
+                                    <option value="cookie">Cookie Header</option>
+                                    <option value="form">Login Form (username/password + selectors)</option>
+                                </select>
+                            </div>
+
+                            <div id="browserAuthBearer" style="display:none;">
+                                <div class="form-group">
+                                    <label>Bearer Token</label>
+                                    <input type="password" id="browserBearerToken" placeholder="Paste access token">
+                                </div>
+                            </div>
+
+                            <div id="browserAuthBasic" style="display:none;">
+                                <div class="form-group">
+                                    <label>Username</label>
+                                    <input type="text" id="browserBasicUsername" placeholder="Username or email">
+                                </div>
+                                <div class="form-group">
+                                    <label>Password</label>
+                                    <input type="password" id="browserBasicPassword" placeholder="Password">
+                                </div>
+                            </div>
+
+                            <div id="browserAuthCookie" style="display:none;">
+                                <div class="form-group">
+                                    <label>Cookie Header</label>
+                                    <textarea id="browserCookieHeader" rows="3" placeholder="session=...; csrftoken=..."></textarea>
+                                </div>
+                            </div>
+
+                            <div id="browserAuthForm" style="display:none;">
+                                <div class="form-group">
+                                    <label>Login URL</label>
+                                    <input type="text" id="browserLoginUrl" placeholder="https://example.com/login">
+                                </div>
+                                <div class="form-group">
+                                    <label>Login Username</label>
+                                    <input type="text" id="browserLoginUsername" placeholder="Username or email">
+                                </div>
+                                <div class="form-group">
+                                    <label>Login Password</label>
+                                    <input type="password" id="browserLoginPassword" placeholder="Password">
+                                </div>
+                                <div class="form-group">
+                                    <label>Username Selector</label>
+                                    <input type="text" id="browserUsernameSelector" placeholder="#email">
+                                </div>
+                                <div class="form-group">
+                                    <label>Password Selector</label>
+                                    <input type="text" id="browserPasswordSelector" placeholder="#password">
+                                </div>
+                                <div class="form-group">
+                                    <label>Submit Selector</label>
+                                    <input type="text" id="browserSubmitSelector" placeholder="button[type='submit']">
+                                </div>
+                            </div>
+
+                            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:8px;">
+                                <button class="btn" onclick="runBrowserAutomation()">▶ Run Browser Task</button>
+                                <button class="btn btn-secondary" onclick="refreshBrowserWorkspace()">↻ Refresh Health</button>
+                                <button class="btn btn-secondary" onclick="clearBrowserWorkspace()">🧹 Clear</button>
+                            </div>
+                            <div id="browserActionMsg" class="status-note">Ready.</div>
+                        </div>
+
+                        <div class="browser-card">
+                            <h2>Live Process View</h2>
+                            <div id="browserProcessLog" class="browser-log"></div>
+                            <div id="browserResultOutput" class="browser-output">No result yet.</div>
+                        </div>
                     </div>
                 </div>
 
@@ -2265,6 +2412,7 @@
                 'provider-coverage': 'Provider Coverage',
                 'approvals': 'Approvals',
                 'commands': 'Commands',
+                'browser-automation': 'Browser Automation',
                 'api-keys': 'API Key Manager',
                 'airllm-config': 'AirLLM Configuration',
                 'ai-agents': 'AI Agent Assignment',
@@ -2315,6 +2463,7 @@
             if (sectionId === 'api-keys') { renderAPIKeysTable(); loadFallbackChain(); }
             if (sectionId === 'airllm-config') { loadAirllmConfig(); }
             if (sectionId === 'activity-summary') loadActivitySummary();
+            if (sectionId === 'browser-automation') refreshBrowserWorkspace();
         }
 
         function showModal(modalId) {
@@ -5644,6 +5793,169 @@
         }
 
         // =============================================
+        // BROWSER AUTOMATION WORKSPACE
+        // =============================================
+
+        function logBrowserProcess(message, color = '#cbd5e1') {
+            const target = document.getElementById('browserProcessLog');
+            if (!target) return;
+            const ts = new Date().toLocaleTimeString();
+            const line = document.createElement('div');
+            line.className = 'browser-log-line';
+            line.style.color = color;
+            line.textContent = `[${ts}] ${message}`;
+            target.appendChild(line);
+            target.scrollTop = target.scrollHeight;
+        }
+
+        function setBrowserActionMessage(text, color = '#94a3b8') {
+            const msg = document.getElementById('browserActionMsg');
+            if (!msg) return;
+            msg.style.color = color;
+            msg.textContent = text;
+        }
+
+        function toggleBrowserAuthFields() {
+            const type = document.getElementById('browserAuthType')?.value || 'none';
+            const sections = {
+                bearer: document.getElementById('browserAuthBearer'),
+                basic: document.getElementById('browserAuthBasic'),
+                cookie: document.getElementById('browserAuthCookie'),
+                form: document.getElementById('browserAuthForm')
+            };
+
+            Object.values(sections).forEach(el => {
+                if (el) el.style.display = 'none';
+            });
+
+            if (sections[type]) {
+                sections[type].style.display = 'block';
+            }
+        }
+
+        async function refreshBrowserWorkspace() {
+            try {
+                const [statsRes, healthRes] = await Promise.all([
+                    fetch('/api/browser/stats', { headers: getAuthHeaders() }),
+                    fetch('/api/browser/health', { headers: getAuthHeaders() })
+                ]);
+
+                const stats = await statsRes.json();
+                const health = await healthRes.json();
+
+                document.getElementById('browserQuotaUsed').textContent = `${stats.quotaUsedPercent ?? '--'}%`;
+                document.getElementById('browserQuotaRemaining').textContent = `${stats.remaining ?? '--'}`;
+                document.getElementById('browserHealthValue').textContent = (health.status || '--').toUpperCase();
+                document.getElementById('browserEngineValue').textContent = stats.puppeteerAvailable ? 'READY' : 'MISSING';
+
+                logBrowserProcess('Browser workspace status refreshed.', '#63b3ed');
+            } catch (e) {
+                logBrowserProcess(`Failed to refresh workspace: ${e.message}`, '#f56565');
+            }
+        }
+
+        function buildBrowserAuthPayload() {
+            const type = document.getElementById('browserAuthType')?.value || 'none';
+            if (type === 'none') return null;
+
+            if (type === 'bearer') {
+                return {
+                    type,
+                    token: (document.getElementById('browserBearerToken')?.value || '').trim()
+                };
+            }
+
+            if (type === 'basic') {
+                return {
+                    type,
+                    username: (document.getElementById('browserBasicUsername')?.value || '').trim(),
+                    password: document.getElementById('browserBasicPassword')?.value || ''
+                };
+            }
+
+            if (type === 'cookie') {
+                return {
+                    type,
+                    cookieHeader: (document.getElementById('browserCookieHeader')?.value || '').trim()
+                };
+            }
+
+            if (type === 'form') {
+                return {
+                    type,
+                    loginUrl: (document.getElementById('browserLoginUrl')?.value || '').trim(),
+                    username: (document.getElementById('browserLoginUsername')?.value || '').trim(),
+                    password: document.getElementById('browserLoginPassword')?.value || '',
+                    usernameSelector: (document.getElementById('browserUsernameSelector')?.value || '').trim(),
+                    passwordSelector: (document.getElementById('browserPasswordSelector')?.value || '').trim(),
+                    submitSelector: (document.getElementById('browserSubmitSelector')?.value || '').trim()
+                };
+            }
+
+            return null;
+        }
+
+        async function runBrowserAutomation() {
+            const url = (document.getElementById('browserTargetUrl')?.value || '').trim();
+            if (!url) {
+                setBrowserActionMessage('Target URL is required.', '#f56565');
+                return;
+            }
+
+            const auth = buildBrowserAuthPayload();
+            const useAuth = !!auth;
+
+            const endpoint = useAuth ? '/api/browser/scrape-auth' : '/api/browser/scrape';
+            const payload = useAuth ? { url, auth } : { url };
+
+            setBrowserActionMessage('Running browser task...', '#63b3ed');
+            logBrowserProcess(`Starting task for ${url}`);
+            if (useAuth) {
+                logBrowserProcess(`Auth mode: ${auth.type} (sensitive values hidden)`);
+            }
+
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (!res.ok || data.error) {
+                    throw new Error(data.error || data.message || `HTTP ${res.status}`);
+                }
+
+                const output = document.getElementById('browserResultOutput');
+                const safeTitle = data.title || '(no title)';
+                const safeDesc = data.description || '';
+                const safePreview = (data.content || '').substring(0, 1200);
+
+                output.innerHTML = `
+                    <div style="margin-bottom:6px;"><strong>Title:</strong> ${escHtml(safeTitle)}</div>
+                    <div style="margin-bottom:6px;"><strong>Status:</strong> ${escHtml(String(data.statusCode || '--'))} | <strong>Links:</strong> ${escHtml(String(data.linkCount || 0))} | <strong>Words:</strong> ${escHtml(String(data.wordCount || 0))}</div>
+                    <div style="margin-bottom:6px;"><strong>Description:</strong> ${escHtml(safeDesc)}</div>
+                    <div><strong>Content Preview:</strong><br>${escHtml(safePreview)}</div>
+                `;
+
+                setBrowserActionMessage('Browser task completed successfully.', '#48bb78');
+                logBrowserProcess('Task completed successfully.', '#48bb78');
+                await refreshBrowserWorkspace();
+            } catch (e) {
+                setBrowserActionMessage(`Browser task failed: ${e.message}`, '#f56565');
+                logBrowserProcess(`Task failed: ${e.message}`, '#f56565');
+            }
+        }
+
+        function clearBrowserWorkspace() {
+            const log = document.getElementById('browserProcessLog');
+            const output = document.getElementById('browserResultOutput');
+            if (log) log.innerHTML = '';
+            if (output) output.textContent = 'No result yet.';
+            setBrowserActionMessage('Workspace cleared.', '#94a3b8');
+        }
+
+        // =============================================
         // GIT PROJECTS (wired to real APIs)
         // =============================================
 
@@ -5826,6 +6138,7 @@
             loadProviderCoveragePreview();
             loadAuditLogs();
             loadDashboardStats();
+            toggleBrowserAuthFields();
         });
 
         // =============================================
