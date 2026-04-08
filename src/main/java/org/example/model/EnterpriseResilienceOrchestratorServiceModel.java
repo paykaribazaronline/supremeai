@@ -7,7 +7,7 @@ import java.util.*;
  * EnterpriseResilienceOrchestratorService Model
  * Generated: 2026-04-08T02:23:46.290568527
  */
-public class EnterpriseResilienceOrchestratorService implements Serializable {
+public class EnterpriseResilienceOrchestratorServiceModel implements Serializable {
     private String id;
     private String name;
     private Map<String, Object> data = new HashMap<>();

@@ -16,7 +16,7 @@ public class EnterpriseResilienceOrchestratorServiceService {
     /**
      * dynamicFailoverRouting
      */
-    public void dynamicFailoverRouting() {
+    public boolean dynamicFailoverRouting() {
         try {
             logger.info("🔧 Executing dynamicFailoverRouting");
             // Implementation here
@@ -30,7 +30,7 @@ public class EnterpriseResilienceOrchestratorServiceService {
     /**
      * quotaPrediction
      */
-    public void quotaPrediction() {
+    public boolean quotaPrediction() {
         try {
             logger.info("🔧 Executing quotaPrediction");
             // Implementation here
@@ -44,7 +44,7 @@ public class EnterpriseResilienceOrchestratorServiceService {
     /**
      * compileIncidentReport
      */
-    public void compileIncidentReport() {
+    public boolean compileIncidentReport() {
         try {
             logger.info("🔧 Executing compileIncidentReport");
             // Implementation here
@@ -58,7 +58,7 @@ public class EnterpriseResilienceOrchestratorServiceService {
     /**
      * evaluateProviderHealth
      */
-    public void evaluateProviderHealth() {
+    public boolean evaluateProviderHealth() {
         try {
             logger.info("🔧 Executing evaluateProviderHealth");
             // Implementation here
@@ -72,7 +72,7 @@ public class EnterpriseResilienceOrchestratorServiceService {
     /**
      * costAwareModelSelection
      */
-    public void costAwareModelSelection() {
+    public boolean costAwareModelSelection() {
         try {
             logger.info("🔧 Executing costAwareModelSelection");
             // Implementation here
@@ -84,11 +84,11 @@ public class EnterpriseResilienceOrchestratorServiceService {
     }
 
     /**
-     * and expose REST endpoints under /api/resilience/orchestrator
+     * exposeResilienceEndpoints
      */
-    public void and expose REST endpoints under /api/resilience/orchestrator() {
+    public boolean exposeResilienceEndpoints() {
         try {
-            logger.info("🔧 Executing and expose REST endpoints under /api/resilience/orchestrator");
+            logger.info("🔧 Executing exposeResilienceEndpoints");
             // Implementation here
             return true;
         } catch (Exception e) {
@@ -100,7 +100,7 @@ public class EnterpriseResilienceOrchestratorServiceService {
     /**
      * emergencyRateLimitShield
      */
-    public void emergencyRateLimitShield() {
+    public boolean emergencyRateLimitShield() {
         try {
             logger.info("🔧 Executing emergencyRateLimitShield");
             // Implementation here
