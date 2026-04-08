@@ -564,29 +564,27 @@
         <div class="sidebar">
             <div class="logo">👑 SupremeAI Admin</div>
             <div class="menu-item active" onclick="showSection('dashboard')">📊 Dashboard</div>
-            <div class="menu-item" onclick="showSection('activity-summary')" id="sidebarActivityItem">📋 আজকের সারসংক্ষেপ</div>
+            <div class="menu-item" onclick="showSection('activity-summary')" id="sidebarActivityItem">� Activity Summary</div>
             <div class="menu-item" onclick="showSection('system-alerts')" id="sidebarAlertsItem">🚨 System Alerts</div>
-            <div class="menu-item" onclick="showSection('techniques')">🧠 Techniques</div>
+            <div class="menu-item" onclick="showSection('techniques')">💡 Techniques</div>
             <div class="menu-item" onclick="showSection('provider-coverage')">🛰️ Provider Coverage</div>
             <div class="menu-item" onclick="showSection('approvals')">✅ Approvals</div>
             <div class="menu-item" onclick="showSection('commands')">💻 Commands</div>
             <div class="menu-item" onclick="showSection('browser-automation')">🌐 Browser Automation</div>
             <div class="menu-item" onclick="showSection('api-keys')">🔑 API Key Manager</div>
-            <div class="menu-item" onclick="showSection('airllm-config')">🧠 AirLLM Config</div>
+            <div class="menu-item" onclick="showSection('airllm-config')">⚙️ AirLLM Config</div>
             <div class="menu-item" onclick="showSection('ai-agents')">🤖 AI Agent Assignment</div>
             <div class="menu-item" onclick="showSection('git-projects')">🔄 Git Projects</div>
             <div class="menu-item" onclick="showSection('projects')">📦 Projects</div>
             <div class="menu-item" onclick="showSection('logs')">📝 Audit Logs</div>
-            <div class="menu-item" onclick="showSection('user-management')">👥 User Management</div>
-            <div class="menu-item" onclick="showSection('tier-quota')">🏷️ Tiers & Quotas</div>
+            <div class="menu-item" onclick="showSection('user-management')">👥 User Management & Tiers</div>
             <div class="menu-item" onclick="showSection('vpn-management')">🔒 VPN Management</div>
             <div class="menu-item" onclick="openVisualization3D()">🌐 3D Visualization ↗</div>
-            <div class="menu-item" onclick="showSection('timeline')">📅 Decision Timeline</div>
-            <div class="menu-item" onclick="showSection('metrics')">📊 Metrics &amp; Alerts</div>
+            <div class="menu-item" onclick="showSection('timeline')">� AI Decision Log</div>
+            <div class="menu-item" onclick="showSection('metrics')">📈 Metrics &amp; Alerts</div>
             <div class="menu-item" onclick="showSection('deployment')">🚀 Deployment</div>
-            <div class="menu-item" onclick="showSection('self-healing')">🧐 Self-Healing</div>
-            <div class="menu-item" onclick="showSection('self-extension')">⚕️ Self-Extension</div>
-            <div class="menu-item" onclick="showSection('consensus')">🧠 Multi-AI Consensus</div>
+            <div class="menu-item" onclick="showSection('system-engine')">🛠️ System Engine</div>
+            <div class="menu-item" onclick="showSection('consensus')">� Multi-AI Consensus</div>
             <div class="menu-item" onclick="showSection('system-learning')">📖 System Learning</div>
             <div class="menu-item" onclick="showSection('existing-projects')">🔧 Improve Existing App</div>
             <div class="menu-item" onclick="showSection('notifications')">📬 Notifications</div>
@@ -1039,6 +1037,7 @@
                 <!-- VPN Management Section -->
                 <div id="vpn-management" class="content-section">
                     <h1>🔒 VPN Management</h1>
+                    <p style="color:#a0aec0;font-size:13px;margin-bottom:16px;"><em>⚠️ Note: "Connect" status updates the record only. It does not establish an OS-level tunnel or route traffic through VPN.</em></p>
                     <p>Manage VPN connections used by SupremeAI agents for secure external access.</p>
 
                     <div style="display:flex; gap:10px; margin-bottom:20px;">
@@ -1122,8 +1121,8 @@
 
                 <!-- User Management Section -->
                 <div id="user-management" class="content-section">
-                    <h1>👥 User Management</h1>
-                    <p>Create, view, and manage admin users. Change passwords and roles.</p>
+                    <h1>👥 User Management, Tiers &amp; Quotas</h1>
+                    <p>Manage admin users, roles, tier levels, and quota usage in one place.</p>
 
                     <div style="display:flex; gap:10px; margin-bottom:20px;">
                         <button class="btn" onclick="showModal('createUserModal')">➕ Create New User</button>
@@ -1159,12 +1158,9 @@
                         <button class="btn" onclick="changeMyPassword()">🔒 Change Password</button>
                         <div id="cpMsg" style="margin-top:8px;"></div>
                     </div>
-                </div>
 
-                <!-- Tier & Quota Section -->
-                <div id="tier-quota" class="content-section">
-                    <h1>🏷️ User Tiers &amp; Quotas</h1>
-                    <p>Manage per-user tier levels and view AI provider quota usage.</p>
+                    <h2 style="margin-top:32px;">🏷️ User Tiers &amp; Quotas</h2>
+                    <p style="color:#a0aec0;">Manage per-user tier levels and view AI provider quota usage.</p>
 
                     <div style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
                         <button class="btn" onclick="loadAllUserQuotas()">↻ Load All User Quotas</button>
@@ -1219,9 +1215,9 @@
                     </table>
                 </div>
 
-                <!-- Timeline Section -->
+                <!-- AI Decision Log Section -->
                 <div id="timeline" class="content-section">
-                    <h1>📅 Decision Timeline</h1>
+                    <h1>📋 AI Decision Log</h1>
                     <p>Color-coded history of all AI agent decisions. Green = SUCCESS, Red = FAILED, Yellow = PARTIAL.</p>
 
                     <div style="display:flex;gap:10px;margin-bottom:20px;align-items:flex-end;flex-wrap:wrap;">
@@ -1238,12 +1234,10 @@
                         <div id="timelineStatsContent" style="display:flex;gap:24px;flex-wrap:wrap;"></div>
                     </div>
 
-                    <h2>Timeline Entries</h2>
+                    <h2>Decision Entries</h2>
                     <div id="timelineContainer" style="max-height:500px;overflow-y:auto;padding-right:8px;">
-                        <div style="text-align:center;padding:40px;color:#a0aec0;">Enter a Project ID above and click "Load Timeline" to view decisions.</div>
+                        <div style="text-align:center;padding:40px;color:#a0aec0;">Enter a Project ID above and click "Load Timeline" to view AI decisions.</div>
                     </div>
-                </div>
-
                 </div>
 
                 <!-- Metrics & Alerts Section -->
@@ -1402,10 +1396,12 @@
                     </div>
                 </div>
 
-                <!-- Self-Healing Section -->
-                <div id="self-healing" class="content-section">
-                    <h1>🧐 Self-Healing Controls</h1>
-                    <p>Monitor circuit breakers, trigger recovery, and control the self-healing engine.</p>
+                <!-- System Engine Section -->
+                <div id="system-engine" class="content-section">
+                    <h1>🛠️ System Engine</h1>
+                    <p>Unified control for self-healing recovery and self-extension generation.</p>
+
+                    <h2>🧐 Self-Healing Controls</h2>
                     <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
                         <button class="btn" onclick="loadSelfHealingHealth()">📊 System Health</button>
                         <button class="btn btn-secondary" onclick="startSelfHealing()">▶️ Start Healing</button>
@@ -1423,11 +1419,8 @@
                         <button class="btn" onclick="recoverService()">♻️ Recover</button>
                     </div>
                     <div id="selfHealingMsg" style="margin-top:12px;"></div>
-                </div>
 
-                <!-- Self-Extension Section -->
-                <div id="self-extension" class="content-section">
-                    <h1>⚕️ Self-Extension Engine</h1>
+                    <h2 style="margin-top:28px;">⚕️ Self-Extension Engine</h2>
                     <p>Submit a requirement and SupremeAI will auto-generate the service, controller, and model, then recompile itself.</p>
                     <div style="display:flex;gap:10px;margin-bottom:16px;">
                         <button class="btn btn-secondary" onclick="loadExtensionStatus()">💻 Engine Status</button>
@@ -1948,7 +1941,7 @@
 
                 <!-- Activity Summary Section (Last 24h) -->
                 <div id="activity-summary" class="content-section">
-                    <h1>📋 আজকের সারসংক্ষেপ — Last 24 Hours</h1>
+                    <h1>� Activity Summary — Last 24 Hours</h1>
                     <p style="color:#a0aec0;">গত ২৪ ঘন্টায় সিস্টেম কতটুকু শিখলো, কোন প্রজেক্টে কতটুকু কাজ হলো — সবকিছুর সংক্ষিপ্ত বিবরণ।</p>
                     <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
                         <button class="btn" onclick="loadActivitySummary()">🔄 Refresh</button>
@@ -2347,6 +2340,13 @@
         }
 
         function showSection(sectionId) {
+            if (sectionId === 'self-healing' || sectionId === 'self-extension') {
+                sectionId = 'system-engine';
+            }
+            if (sectionId === 'tier-quota') {
+                sectionId = 'user-management';
+            }
+
             document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
             
@@ -2373,14 +2373,12 @@
                 'git-projects': 'Git Projects',
                 'projects': 'Projects',
                 'logs': 'Audit Logs',
-                'user-management': 'User Management',
-                'tier-quota': 'Tiers & Quotas',
+                'user-management': 'User Management, Tiers & Quotas',
                 'vpn-management': 'VPN Management',
                 'timeline': 'Decision Timeline',
                 'metrics': 'Metrics & Alerts',
                 'deployment': 'Deployment',
-                'self-healing': 'Self-Healing Controls',
-                'self-extension': 'Self-Extension Engine',
+                'system-engine': 'System Engine',
                 'consensus': 'Multi-AI Consensus',
                 'system-learning': 'System Learning',
                 'existing-projects': 'Improve Existing App',
@@ -2396,8 +2394,7 @@
             if (sectionId === 'techniques') loadTechniques();
             if (sectionId === 'provider-coverage') loadProviderCoverage();
             if (sectionId === 'logs') loadAuditLogs();
-            if (sectionId === 'user-management') loadAllUsers();
-            if (sectionId === 'tier-quota') { loadTierCards(); loadAllUserQuotas(); loadProviderQuotas(); }
+            if (sectionId === 'user-management') { loadAllUsers(); loadTierCards(); loadAllUserQuotas(); loadProviderQuotas(); }
             if (sectionId === 'vpn-management') loadVpnList();
             if (sectionId === 'projects') loadProjects();
             if (sectionId === 'ai-agents') loadAssignments();
@@ -2405,8 +2402,8 @@
             if (sectionId === 'timeline') loadTimelineStats();
             if (sectionId === 'metrics') loadMetrics();
                         if (sectionId === 'metrics') loadAiOps();
-            if (sectionId === 'self-healing') loadSelfHealingHealth();
-            if (sectionId === 'system-learning') { loadResearchStats(); loadLearningSettings(); }
+            if (sectionId === 'system-engine') { loadSelfHealingHealth(); loadExtensionStatus(); }
+            if (sectionId === 'system-learning') { loadLearningStats(); loadResearchStats(); loadLearningSettings(); }
             if (sectionId === 'existing-projects') loadExistingProjects();
             if (sectionId === 'consensus') loadConsensusStats();
             if (sectionId === 'notifications') loadNotificationHistory();
@@ -3740,8 +3737,8 @@
                         <td><span class="badge ${u.enabled !== false ? 'badge-success' : 'badge-danger'}">${u.enabled !== false ? 'Active' : 'Disabled'}</span></td>
                         <td>${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '-'}</td>
                         <td>
-                            <button class="btn btn-secondary" style="padding:4px 8px;font-size:11px;" onclick="disableUser('${u.id || u.username}')">🚫 Disable</button>
-                            <button class="btn btn-secondary" style="padding:4px 8px;font-size:11px;" onclick="makeSuperAdmin('${u.id || u.username}')">👑 SUPER</button>
+                            <button class="btn btn-secondary" style="padding:4px 8px;font-size:11px;" ${!u.id ? 'disabled title="User ID missing"' : `onclick="disableUser('${String(u.id).replace(/'/g, "\\'")}')"` }>🚫 Disable</button>
+                            <button class="btn btn-secondary" style="padding:4px 8px;font-size:11px;" ${!u.id ? 'disabled title="User ID missing"' : `onclick="makeSuperAdmin('${String(u.id).replace(/'/g, "\\'")}')"` }>👑 SUPER</button>
                         </td>
                     </tr>
                 `).join('');
@@ -4165,16 +4162,33 @@
 
         function pollAtomicRun(id) {
             if (_atomicPollTimer) clearInterval(_atomicPollTimer);
+            let attempts = 0;
+            const maxAttempts = 180; // ~6 minutes at 2s interval
             _atomicPollTimer = setInterval(async () => {
+                attempts++;
+                if (attempts > maxAttempts) {
+                    clearInterval(_atomicPollTimer);
+                    const logEl = document.getElementById('atomicRunLog');
+                    if (logEl) {
+                        logEl.textContent += '\n[poll] Stopped after timeout. Use Refresh or History to check latest state.';
+                        logEl.scrollTop = logEl.scrollHeight;
+                    }
+                    return;
+                }
                 try {
                     const res = await fetch(`/api/v1/deployment/atomic/${id}`, { headers: getAuthHeaders() });
-                    if (!res.ok) return;
+                    if (!res.ok) {
+                        if (attempts >= maxAttempts) clearInterval(_atomicPollTimer);
+                        return;
+                    }
                     const run = await res.json();
                     updateAtomicRunUI(run);
                     if (run.status === 'DEPLOYED' || run.status === 'FAILED') {
                         clearInterval(_atomicPollTimer);
                     }
-                } catch(e) {}
+                } catch(e) {
+                    if (attempts >= maxAttempts) clearInterval(_atomicPollTimer);
+                }
             }, 2000);
         }
 
@@ -4443,6 +4457,11 @@
         async function loadLearningStats() {
             const bar = document.getElementById('learningStatsPanel');
             const content = document.getElementById('learningStatsContent');
+            // Guard: if elements don't exist in the current UI, skip rendering
+            if (!bar || !content) {
+                console.log('ℹ️ Learning Stats panel elements not found in current UI');
+                return;
+            }
             bar.style.display = 'block';
             content.innerHTML = 'Loading...';
             try {
@@ -5204,13 +5223,9 @@
             const time = timestamp ? new Date(timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
             const div = document.createElement('div');
             div.className = cls;
-            div.innerHTML = `<div class="${bubbleCls}">${escapeHtml(content)}</div><div class="chat-meta">${escapeHtml(label)} &bull; ${time}</div>`;
+            div.innerHTML = `<div class="${bubbleCls}">${escHtml(content)}</div><div class="chat-meta">${escHtml(label)} &bull; ${time}</div>`;
             box.appendChild(div);
             box.scrollTop = box.scrollHeight;
-        }
-
-        function escapeHtml(str) {
-            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
         }
 
         async function sendChatMessage() {

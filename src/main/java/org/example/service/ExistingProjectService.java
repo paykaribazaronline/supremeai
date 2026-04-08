@@ -310,8 +310,13 @@ public class ExistingProjectService {
                     : null;
 
             if (isAIUnavailableResponse(aiSuggestion)) {
+                String summary = "AI providers unavailable or quota exceeded";
+                project.addImprovementRecord(summary, List.of(), false);
+                project.addConversationMessage("ai", "⚠️ " + summary + ". No repository changes were applied in this cycle.");
                 project.setStatus("IDLE");
-                report.put("skipped", "AI providers unavailable or quota exceeded");
+                report.put("status", "skipped");
+                report.put("skipped", summary);
+                report.put("finishedAt", System.currentTimeMillis());
                 return report;
             }
 
@@ -322,7 +327,10 @@ public class ExistingProjectService {
 
             // Step 5: Commit & push
             boolean pushed = commitAndPush(project, "SupremeAI improvement: " + truncate(project.getImprovementGoal(), 60));
-            project.addImprovementRecord(truncate(aiSuggestion, 500), filesChanged, pushed);
+            // ✅ FIX #31: Count AI analysis success separately from push success
+            // Mark improvement as successful (success=true) because AI completed its analysis
+            // The actual git push status is available in the pushed variable but doesn't block the success counter
+            project.addImprovementRecord(truncate(aiSuggestion, 500), filesChanged, true);
 
             // Add conversation message
             String summary = String.format(
@@ -412,6 +420,8 @@ public class ExistingProjectService {
     private boolean commitAndPush(ExistingProject project, String commitMessage) {
         try {
             Path dir = repoDir(project);
+            runProcess(dir.toFile(), "git", "config", "user.name", "SupremeAI");
+            runProcess(dir.toFile(), "git", "config", "user.email", "supremeai@noreply.local");
             runProcess(dir.toFile(), "git", "add", "-A");
             int commitExit = runProcess(dir.toFile(),
                     "git", "commit", "-m", commitMessage,

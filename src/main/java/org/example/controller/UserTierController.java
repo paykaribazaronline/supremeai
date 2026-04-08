@@ -2,10 +2,13 @@ package org.example.controller;
 
 import org.example.model.UserTier;
 import org.example.model.UserQuotaAllocation;
+import org.example.model.User;
+import org.example.service.AuthenticationService;
 import org.example.service.UserQuotaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
@@ -21,6 +24,9 @@ public class UserTierController {
     
     @Autowired
     private UserQuotaService userQuotaService;
+
+    @Autowired
+    private AuthenticationService authService;
     
     /**
      * GET /api/tier/my-quota - Get current user's quota status
@@ -36,7 +42,12 @@ public class UserTierController {
      * GET /api/tier/user/{userId} - Get specific user's quota (admin only)
      */
     @GetMapping("/user/{userId}")
-    public ResponseEntity<Map<String, Object>> getUserQuota(@PathVariable String userId) {
+    public ResponseEntity<Map<String, Object>> getUserQuota(
+            @PathVariable String userId,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (requireAdmin(authHeader) == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Admin access required"));
+        }
         logger.info("📊 Admin requesting quota for user: {}", userId);
         Map<String, Object> status = userQuotaService.getQuotaStatus(userId);
         return ResponseEntity.ok(status);
@@ -46,7 +57,11 @@ public class UserTierController {
      * GET /api/tier/all - Get all users' quotas (admin only)
      */
     @GetMapping("/all")
-    public ResponseEntity<Map<String, UserQuotaAllocation>> getAllQuotas() {
+    public ResponseEntity<?> getAllQuotas(
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (requireAdmin(authHeader) == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Admin access required"));
+        }
         logger.info("📊 Admin requesting all user quotas");
         return ResponseEntity.ok(userQuotaService.getAllUserQuotas());
     }
@@ -57,7 +72,12 @@ public class UserTierController {
     @PostMapping("/set-user-tier")
     public ResponseEntity<Map<String, String>> setUserTier(
             @RequestParam String userId,
-            @RequestParam String tier) {
+            @RequestParam String tier,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (requireAdmin(authHeader) == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("status", "error", "message", "Admin access required"));
+        }
         
         logger.info("⚙️ Admin setting tier for user {}: {}", userId, tier);
         
@@ -86,7 +106,13 @@ public class UserTierController {
      * POST /api/tier/make-superadmin - Make user SUPERADMIN (admin only)
      */
     @PostMapping("/make-superadmin")
-    public ResponseEntity<Map<String, String>> makeSuperAdmin(@RequestParam String userId) {
+    public ResponseEntity<Map<String, String>> makeSuperAdmin(
+            @RequestParam String userId,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (requireAdmin(authHeader) == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("status", "error", "message", "Admin access required"));
+        }
         logger.warn("⚙️ Making user {} SUPERADMIN", userId);
         
         userQuotaService.setUserTier(userId, UserTier.SUPERADMIN);
@@ -128,7 +154,12 @@ public class UserTierController {
      * POST /api/tier/reset-monthly - Reset monthly quotas for all users (admin only)
      */
     @PostMapping("/reset-monthly")
-    public ResponseEntity<Map<String, String>> resetMonthlyQuotas() {
+    public ResponseEntity<Map<String, String>> resetMonthlyQuotas(
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (requireAdmin(authHeader) == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("status", "error", "message", "Admin access required"));
+        }
         logger.warn("🔄 Admin resetting monthly quotas for all users");
         
         userQuotaService.resetMonthlyQuotas();
@@ -199,5 +230,18 @@ public class UserTierController {
         info.put("monthlyRequests", tier.monthlyLimit == -1 ? "UNLIMITED" : tier.monthlyLimit);
         info.put("appsPerDay", tier.appCreationsPerDay == -1 ? "UNLIMITED" : tier.appCreationsPerDay);
         return info;
+    }
+
+    private User requireAdmin(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return null;
+        }
+        try {
+            String token = authHeader.substring(7);
+            User user = authService.validateToken(token);
+            return authService.isAdmin(user) ? user : null;
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
