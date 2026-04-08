@@ -17,6 +17,7 @@ import {
     BugOutlined,
     GithubOutlined,
     ChromeOutlined,
+    ChatOutlined,
 } from '@ant-design/icons';
 import APIManagement from '../components/APIManagement';
 import AIModelSearch from '../components/AIModelSearch';
@@ -33,6 +34,7 @@ import SystemMetrics from '../components/SystemMetrics';
 import APIKeysManager from '../components/APIKeysManager';
 import GitHubDashboard from '../components/GitHubDashboard';
 import HeadlessBrowserDashboard from '../components/HeadlessBrowserDashboard';
+import ChatHistoryDashboard from '../components/ChatHistoryDashboard';
 
 const { Header, Content, Sider } = Layout;
 
@@ -243,6 +245,11 @@ const AdminDashboard: React.FC = () => {
             icon: <CheckCircleOutlined />,
             label: 'Audit & Logs',
         },
+        {
+            key: 'chat-history',
+            icon: <ChatOutlined />,
+            label: 'Chat History & Process',
+        },
 
         // ╔═══════════════════════════════════╗
         // ║ 9️⃣  ⚙️  SETTINGS                  ║
@@ -314,6 +321,8 @@ const AdminDashboard: React.FC = () => {
                 return <ImprovementTracking />;
             case 'audit':
                 return <AuditLog />;
+            case 'chat-history':
+                return <ChatHistoryDashboard />;
             case 'github':
             case 'github-workflows':
             case 'github-commits':
