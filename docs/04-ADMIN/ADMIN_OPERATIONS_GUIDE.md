@@ -1,7 +1,7 @@
 # 👑 SupremeAI - Complete Admin Guide
 
-**Version:** 3.5 Complete Edition  
-**Last Updated:** March 27, 2026  
+**Version:** 3.6 Complete Edition  
+**Last Updated:** April 8, 2026  
 **Language:** বাংলা + English  
 
 ---
@@ -13,7 +13,9 @@
 3. [AI Agent Assignment](#ai-agent-assignment)
 4. [Admin Dashboard](#admin-dashboard)
 5. [Daily Admin Tasks](#daily-admin-tasks)
-6. [Emergency Procedures](#emergency-procedures)
+6. [AirLLM Auto-Refresh Operations](#airllm-auto-refresh-operations)
+7. [Consensus Troubleshooting](#consensus-troubleshooting)
+8. [Emergency Procedures](#emergency-procedures)
 
 ---
 
@@ -700,6 +702,96 @@ ETA: 2 hours 45 minutes
 
 ---
 
+## 🔄 AIRLLM AUTO-REFRESH OPERATIONS
+
+### Why This Exists
+
+AirLLM public tunnel URLs (for example ngrok) rotate frequently. SupremeAI now supports secure automatic endpoint refresh from Colab/server runners.
+
+### Model Configuration
+
+AirLLM can be configured with various open-source models for chatting and inference:
+
+- **Gemma 2B**: Lightweight conversational model (currently configured)
+- **Mistral 7B**: General-purpose chat model
+- **Llama 2/3**: Meta's open-source models
+- **Other HF models**: Any HuggingFace model with chat template
+
+**To change model:** Edit `colab/SupremeAI_AirLLM_Server.ipynb` Cell 2 (model selection), restart Colab runtime, then update URL via auto-refresh.
+
+### Secure Endpoint
+
+```
+POST /api/providers/airllm/auto-refresh
+Header: X-Setup-Token: <SUPREMEAI_SETUP_TOKEN>
+Body: {
+  "endpoint": "https://<new-public-url>",
+  "actor": "airllm-colab",
+  "source": "colab-auto-refresh",
+  "verifyHealth": true,
+  "rollbackOnFailure": true
+}
+```
+
+### Behavior
+
+```
+1. Validates X-Setup-Token against SUPREMEAI_SETUP_TOKEN
+2. Normalizes endpoint to /v1/chat/completions format
+3. Updates AIRLLM provider endpoint
+4. Runs health probe (optional via verifyHealth)
+5. If probe fails and rollbackOnFailure=true, restores previous endpoint
+6. Writes provider audit log for success/failure/rollback
+```
+
+### Required Environment Variables
+
+```bash
+SUPREMEAI_SETUP_TOKEN=<strong-random-secret>
+SUPREMEAI_BASE_URL=https://supremeai-565236080752.us-central1.run.app
+```
+
+### Admin Runbook (Every URL Rotation)
+
+```
+□ Confirm AirLLM server started with desired model (Gemma 2B, etc.)
+□ Capture new public URL from Colab Cell 4
+□ Trigger /api/providers/airllm/auto-refresh
+□ Verify API response success=true
+□ Check AirLLM health card in Admin Dashboard
+□ Confirm provider audit entry exists
+□ Test chat functionality with new model
+```
+
+---
+
+## 🧠 CONSENSUS TROUBLESHOOTING
+
+### Symptom: "Unexpected end of JSON input" in Admin UI
+
+This issue was caused by null values in consensus response mapping. It is now fixed in backend response handling.
+
+### Current Safe Behavior
+
+```
+If all configured providers fail to respond:
+  - API still returns valid JSON
+  - HTTP status remains 200 for successful request handling
+  - winningResponse is set to:
+    "[No consensus reached — all configured providers failed to respond]"
+```
+
+### Operator Checks
+
+```
+□ Confirm /api/consensus/ask returns JSON body
+□ Verify winningResponse field is always present
+□ If responses=0 repeatedly, inspect provider health/quota
+□ Check provider configuration and token limits
+```
+
+---
+
 ## 🚨 EMERGENCY PROCEDURES
 
 ### Scenario 1: High Error Rate (> 10%)
@@ -823,9 +915,11 @@ Once all above done, you're ready! 🎉
 ```
 Firebase Console:    https://console.firebase.google.com
 Google Cloud:        https://console.cloud.google.com
-Admin Dashboard:     http://localhost:8001/admin
+Admin Dashboard:     https://supremeai-565236080752.us-central1.run.app/admin.html
+Admin (local):       http://localhost:8001/admin
 Monitoring:          http://localhost:8000
 API Documentation:   Your local docs/api.md
+AirLLM Refresh API:  /api/providers/airllm/auto-refresh
 ```
 
 ### Important Commands
@@ -901,4 +995,4 @@ You're a good admin when:
 
 **Created:** March 27, 2026  
 **For:** SupremeAI Admins
-**Version:** 3.5 Complete
+**Version:** 3.6 Complete
