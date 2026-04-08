@@ -1,10 +1,12 @@
 package org.example.model;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 /**
- * Represents a VPN connection configuration
+ * Represents a VPN connection configuration.
+ *
+ * Note: "status" tracks the configured/intended state in SupremeAI's records.
+ * Actual OS-level tunnel management depends on the host network configuration.
  */
 public class VPNConnection {
     private String id;
@@ -15,7 +17,8 @@ public class VPNConnection {
     private String status; // "connected", "disconnected"
     private String encryption; // "AES-256", "AES-128", "ChaCha20"
     private boolean autoConnect;
-    private LocalDateTime lastConnected;
+    /** Epoch milliseconds of the last time Connect was clicked; 0 = never. */
+    private long lastConnectedAt = 0;
     private String config; // Base64 encoded config file
 
     public VPNConnection() {
@@ -65,8 +68,8 @@ public class VPNConnection {
     public boolean isAutoConnect() { return autoConnect; }
     public void setAutoConnect(boolean autoConnect) { this.autoConnect = autoConnect; }
 
-    public LocalDateTime getLastConnected() { return lastConnected; }
-    public void setLastConnected(LocalDateTime lastConnected) { this.lastConnected = lastConnected; }
+    public long getLastConnectedAt() { return lastConnectedAt; }
+    public void setLastConnectedAt(long lastConnectedAt) { this.lastConnectedAt = lastConnectedAt; }
 
     public String getConfig() { return config; }
     public void setConfig(String config) { this.config = config; }
