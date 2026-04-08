@@ -161,9 +161,13 @@ public class SelfExtensionController {
             
             @SuppressWarnings("unchecked")
             List<String> requirements = (List<String>) request.get("requirements");
-            if (requirements == null || requirements.isEmpty()) {
+            if (requirements == null) {
                 return ResponseEntity.badRequest()
-                    .body(Map.of("status", "error", "message", "Requirements list required"));
+                    .body(Map.of("status", "error", "message", "Requirements list is required (cannot be null)"));
+            }
+            if (requirements.isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("status", "error", "message", "Requirements list cannot be empty"));
             }
             
             // Queue each requirement asynchronously instead of blocking

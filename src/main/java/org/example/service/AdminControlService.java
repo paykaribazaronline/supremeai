@@ -4,6 +4,7 @@ import org.example.model.AdminControl;
 import org.example.model.PendingAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,25 +13,103 @@ import java.util.concurrent.ConcurrentHashMap;
  * Admin Control Service
  * Manages system permissions: AUTO, WAIT, FORCE_STOP
  * Tracks pending actions awaiting approval
+ * Persists settings to Firebase for durability across restarts
  */
 @Service
 public class AdminControlService {
     private static final Logger logger = LoggerFactory.getLogger(AdminControlService.class);
+    private static final String FIREBASE_ADMIN_CONTROL_PATH = "admin/control";
+    private static final String FIREBASE_PENDING_ACTIONS_PATH = "admin/pending-actions";
     
-    // In-memory storage (can be switched to Firebase)
+    // In-memory cache
     private final Map<String, AdminControl> adminControls = new ConcurrentHashMap<>();
     private final Map<String, PendingAction> pendingActions = new ConcurrentHashMap<>();
     
+    @Autowired(required = false)
+    private FirebaseService firebaseService;
+    
+    /**
+     * Initialize admin control from Firebase on startup
+     */
+    private void loadFromFirebase() {
+        try {
+            if (firebaseService == null || !firebaseService.isInitialized()) {
+                logger.warn("⚠️ FirebaseService not available, using in-memory storage only");
+                return;
+            }
+            
+            // Try to load existing admin control from Firebase using Realtime Database
+            Map<String, Object> data = firebaseService.getSystemConfig("admin/control");
+            if (data != null && !data.isEmpty()) {
+                AdminControl control = new AdminControl();
+                control.setId("default");
+                if (data.containsKey("permissionMode")) {
+                    control.setPermissionMode(AdminControl.PermissionMode.valueOf((String) data.get("permissionMode")));
+                }
+                if (data.containsKey("isRunning")) {
+                    control.setRunning((Boolean) data.getOrDefault("isRunning", true));
+                }
+                if (data.containsKey("canCommit")) {
+                    control.setCanCommit((Boolean) data.getOrDefault("canCommit", false));
+                }
+                if (data.containsKey("description")) {
+                    control.setDescription((String) data.get("description"));
+                }
+                if (data.containsKey("updatedBy")) {
+                    control.setUpdatedBy((String) data.get("updatedBy"));
+                }
+                adminControls.put("default", control);
+                logger.info("✅ AdminControl loaded from Firebase: {}", control.getPermissionMode());
+            }
+        } catch (Exception e) {
+            logger.warn("⚠️ Failed to load admin control from Firebase, using defaults: {}", e.getMessage());
+        }
+    }
+
     /**
      * Get or create admin control (singleton pattern)
      */
     public AdminControl getAdminControl() {
         return adminControls.computeIfAbsent("default", k -> {
-            AdminControl control = new AdminControl();
-            control.setId("default");
-            logger.info("✅ AdminControl initialized with WAIT mode (safe default)");
-            return control;
+            // Try to load from Firebase first
+            loadFromFirebase();
+            
+            // If not in cache yet, create new one
+            if (!adminControls.containsKey("default")) {
+                AdminControl control = new AdminControl();
+                control.setId("default");
+                logger.info("✅ AdminControl initialized with WAIT mode (safe default)");
+                adminControls.put("default", control);
+                saveToFirebase(control);
+            }
+            
+            return adminControls.get("default");
         });
+    }
+    
+    /**
+     * Save admin control to Firebase
+     */
+    private void saveToFirebase(AdminControl control) {
+        try {
+            if (firebaseService == null || !firebaseService.isInitialized()) {
+                return;
+            }
+            
+            Map<String, Object> data = new HashMap<>();
+            data.put("id", control.getId());
+            data.put("permissionMode", control.getPermissionMode().toString());
+            data.put("isRunning", control.isRunning());
+            data.put("canCommit", control.isCanCommit());
+            data.put("description", control.getDescription());
+            data.put("updatedBy", control.getUpdatedBy());
+            data.put("lastUpdatedAt", System.currentTimeMillis());
+            
+            firebaseService.saveSystemConfig("admin/control", data);
+            logger.debug("✅ AdminControl saved to Firebase");
+        } catch (Exception e) {
+            logger.warn("⚠️ Failed to save AdminControl to Firebase: {}", e.getMessage());
+        }
     }
     
     /**
@@ -74,6 +153,9 @@ public class AdminControlService {
             logger.info("✅ Permission mode changed from {} to {} by {}", oldMode, mode, adminUsername);
         }
         
+        // Persist to Firebase
+        saveToFirebase(control);
+        
         return control;
     }
     
@@ -105,8 +187,38 @@ public class AdminControlService {
         action.setDetails(details);
         pendingActions.put(action.getId(), action);
         
+        // Save to Firebase
+        savePendingActionToFirebase(action);
+        
         logger.info("📋 Pending action created: {} - {}", type, description);
         return action;
+    }
+    
+    /**
+     * Save pending action to Firebase
+     */
+    private void savePendingActionToFirebase(PendingAction action) {
+        try {
+            if (firebaseService == null || !firebaseService.isInitialized()) {
+                return;
+            }
+            
+            Map<String, Object> data = new HashMap<>();
+            data.put("id", action.getId());
+            data.put("actionType", action.getActionType().toString());
+            data.put("description", action.getDescription());
+            data.put("status", action.getStatus().toString());
+            data.put("details", action.getDetails());
+            data.put("createdAt", action.getCreatedAt());
+            data.put("approvedAt", action.getApprovedAt());
+            data.put("approvedBy", action.getApprovedBy());
+            data.put("reason", action.getReason());
+            
+            firebaseService.saveSystemConfig("admin/pending-actions/" + action.getId(), data);
+            logger.debug("✅ Pending action saved to Firebase: {}", action.getId());
+        } catch (Exception e) {
+            logger.warn("⚠️ Failed to save pending action to Firebase: {}", e.getMessage());
+        }
     }
     
     /**
@@ -143,6 +255,9 @@ public class AdminControlService {
         action.setApprovedBy(adminUsername);
         action.setReason(reason);
         
+        // Save to Firebase
+        savePendingActionToFirebase(action);
+        
         logger.info("✅ Action approved by {}: {}", adminUsername, actionId);
         return action;
     }
@@ -161,6 +276,9 @@ public class AdminControlService {
         action.setApprovedBy(adminUsername);
         action.setReason(reason);
         
+        // Save to Firebase
+        savePendingActionToFirebase(action);
+        
         logger.warn("❌ Action rejected by {}: {}", adminUsername, actionId);
         return action;
     }
@@ -177,6 +295,9 @@ public class AdminControlService {
         action.setStatus(PendingAction.ActionStatus.EXECUTED);
         action.setDetails(action.getDetails() + "\n\nRESULT: " + result);
         
+        // Save to Firebase
+        savePendingActionToFirebase(action);
+        
         logger.info("✅ Action executed: {}", actionId);
         return action;
     }
@@ -192,6 +313,9 @@ public class AdminControlService {
         
         action.setStatus(PendingAction.ActionStatus.FAILED);
         action.setDetails(action.getDetails() + "\n\nERROR: " + error);
+        
+        // Save to Firebase
+        savePendingActionToFirebase(action);
         
         logger.error("❌ Action failed: {}", actionId);
         return action;
