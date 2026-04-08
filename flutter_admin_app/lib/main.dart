@@ -35,6 +35,7 @@ import 'screens/decisions/decision_history_screen.dart';
 import 'screens/phases/phases_screen.dart';
 import 'screens/tracing/tracing_screen.dart';
 import 'screens/chat/offline_chat_screen.dart';
+import 'screens/chat_history_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -167,6 +168,7 @@ class SupremeAIAdminApp extends StatelessWidget {
         AppRoutes.consensus: (context) => const ConsensusScreen(),
         AppRoutes.gitOps: (context) => const GitOpsScreen(),
         AppRoutes.headlessBrowser: (context) => const HeadlessBrowserScreen(),
+        AppRoutes.chatHistory: (context) => const ChatHistoryScreen(),
         AppRoutes.quota: (context) => const QuotaScreen(),
         AppRoutes.vpn: (context) => const VpnScreen(),
         AppRoutes.resilience: (context) => const ResilienceScreen(),
