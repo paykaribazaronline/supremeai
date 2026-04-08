@@ -814,96 +814,86 @@
 
                 <!-- Browser Automation Section -->
                 <div id="browser-automation" class="content-section">
-                    <h1>🌐 Browser Automation Workspace</h1>
-                    <p>Open and process links through the built-in browser engine. If login is needed, provide credentials directly here for one-time execution.</p>
+                    <h1>🌐 Browser Automation</h1>
+                    <p style="color:#a0aec0;">Browse any website. If login is needed, saved credentials are used automatically. Add credentials once — the system reuses them every time.</p>
 
-                    <div class="summary-grid" id="browserSummaryCards">
+                    <div class="summary-grid" id="browserSummaryCards" style="margin-bottom:24px;">
                         <div class="summary-card"><div class="label">Quota Used</div><div class="value" id="browserQuotaUsed">--</div></div>
                         <div class="summary-card"><div class="label">Remaining</div><div class="value" id="browserQuotaRemaining">--</div></div>
                         <div class="summary-card"><div class="label">Health</div><div class="value" id="browserHealthValue">--</div></div>
-                        <div class="summary-card"><div class="label">Puppeteer</div><div class="value" id="browserEngineValue">--</div></div>
+                        <div class="summary-card"><div class="label">Engine</div><div class="value" id="browserEngineValue">--</div></div>
                     </div>
 
+                    <!-- ── Saved Credentials ─────────────────────────────────────── -->
+                    <div style="background:#1a202c;border:1px solid #2d3748;border-radius:10px;padding:20px;margin-bottom:24px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+                            <div>
+                                <div style="font-size:16px;font-weight:700;color:#e2e8f0;">🔑 Saved Login Credentials</div>
+                                <div style="font-size:12px;color:#718096;margin-top:2px;">Stored securely on the server. Used automatically when browsing matching sites.</div>
+                            </div>
+                            <button class="btn btn-secondary" onclick="showModal('addWebCredModal')">➕ Add Credentials</button>
+                        </div>
+                        <div id="webCredTableWrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Site</th>
+                                        <th>URL</th>
+                                        <th>Username / Email</th>
+                                        <th>Password</th>
+                                        <th>Saved</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="webCredTableBody">
+                                    <tr><td colspan="6" style="text-align:center;padding:20px;color:#a0aec0;">Loading…</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ── Browse ────────────────────────────────────────────────── -->
                     <div class="browser-layout">
                         <div class="browser-card">
-                            <h2>Task Setup</h2>
+                            <h2>Browse a URL</h2>
+
                             <div class="form-group">
-                                <label>Target URL *</label>
-                                <input type="text" id="browserTargetUrl" placeholder="https://example.com/protected/page">
-                            </div>
-                            <div class="form-group">
-                                <label>Authentication Mode</label>
-                                <select id="browserAuthType" onchange="toggleBrowserAuthFields()">
-                                    <option value="none">None (public link)</option>
-                                    <option value="bearer">Bearer Token</option>
-                                    <option value="basic">Basic Auth (username/password)</option>
-                                    <option value="cookie">Cookie Header</option>
-                                    <option value="form">Login Form (username/password + selectors)</option>
-                                </select>
+                                <label>Target URL <span style="color:#f56565;">*</span></label>
+                                <input type="text" id="browserTargetUrl" placeholder="https://example.com/page"
+                                       oninput="onBrowserUrlChange()" autocomplete="off">
                             </div>
 
-                            <div id="browserAuthBearer" style="display:none;">
-                                <div class="form-group">
-                                    <label>Bearer Token</label>
-                                    <input type="password" id="browserBearerToken" placeholder="Paste access token">
-                                </div>
-                            </div>
+                            <!-- Credential status banner -->
+                            <div id="browserCredStatus" style="display:none;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;"></div>
 
-                            <div id="browserAuthBasic" style="display:none;">
-                                <div class="form-group">
-                                    <label>Username</label>
-                                    <input type="text" id="browserBasicUsername" placeholder="Username or email">
+                            <!-- Manual credential override (shown when no saved creds found) -->
+                            <div id="browserManualCreds" style="display:none;">
+                                <div style="font-size:13px;color:#f6ad55;font-weight:600;margin-bottom:8px;">✏️ Enter login details for this site (one-time use):</div>
+                                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                                    <div class="form-group" style="flex:1;min-width:160px;margin:0;">
+                                        <label>Email / Username</label>
+                                        <input type="text" id="browserManualUser" placeholder="user@example.com" autocomplete="off">
+                                    </div>
+                                    <div class="form-group" style="flex:1;min-width:160px;margin:0;">
+                                        <label>Password</label>
+                                        <input type="password" id="browserManualPass" placeholder="Password" autocomplete="new-password">
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label>Password</label>
-                                    <input type="password" id="browserBasicPassword" placeholder="Password">
+                                <div style="margin-top:8px;">
+                                    <button class="btn btn-secondary" style="font-size:12px;" onclick="saveCurrentCredentials()">💾 Also save for next time</button>
                                 </div>
                             </div>
 
-                            <div id="browserAuthCookie" style="display:none;">
-                                <div class="form-group">
-                                    <label>Cookie Header</label>
-                                    <textarea id="browserCookieHeader" rows="3" placeholder="session=...; csrftoken=..."></textarea>
-                                </div>
-                            </div>
-
-                            <div id="browserAuthForm" style="display:none;">
-                                <div class="form-group">
-                                    <label>Login URL</label>
-                                    <input type="text" id="browserLoginUrl" placeholder="https://example.com/login">
-                                </div>
-                                <div class="form-group">
-                                    <label>Login Username</label>
-                                    <input type="text" id="browserLoginUsername" placeholder="Username or email">
-                                </div>
-                                <div class="form-group">
-                                    <label>Login Password</label>
-                                    <input type="password" id="browserLoginPassword" placeholder="Password">
-                                </div>
-                                <div class="form-group">
-                                    <label>Username Selector</label>
-                                    <input type="text" id="browserUsernameSelector" placeholder="#email">
-                                </div>
-                                <div class="form-group">
-                                    <label>Password Selector</label>
-                                    <input type="text" id="browserPasswordSelector" placeholder="#password">
-                                </div>
-                                <div class="form-group">
-                                    <label>Submit Selector</label>
-                                    <input type="text" id="browserSubmitSelector" placeholder="button[type='submit']">
-                                </div>
-                            </div>
-
-                            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:8px;">
-                                <button class="btn" onclick="runBrowserAutomation()">▶ Run Browser Task</button>
-                                <button class="btn btn-secondary" onclick="refreshBrowserWorkspace()">↻ Refresh Health</button>
+                            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
+                                <button class="btn" onclick="runBrowserAutomation()">▶ Browse</button>
+                                <button class="btn btn-secondary" onclick="refreshBrowserWorkspace()">↻ Health</button>
                                 <button class="btn btn-secondary" onclick="clearBrowserWorkspace()">🧹 Clear</button>
                             </div>
-                            <div id="browserActionMsg" class="status-note">Ready.</div>
+                            <div id="browserActionMsg" class="status-note" style="margin-top:8px;">Ready.</div>
                         </div>
 
                         <div class="browser-card">
-                            <h2>Live Process View</h2>
+                            <h2>Live Output</h2>
                             <div id="browserProcessLog" class="browser-log"></div>
                             <div id="browserResultOutput" class="browser-output">No result yet.</div>
                         </div>
