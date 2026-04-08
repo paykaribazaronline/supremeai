@@ -102,11 +102,18 @@ const AdminDashboard: React.FC = () => {
     const fetchDashboardStats = fetchDashboardContract;
 
     const defaultMenuItems = [
+        // ╔═══════════════════════════════════╗
+        // ║ 1️⃣  DASHBOARD & OVERVIEW          ║
+        // ╚═══════════════════════════════════╝
         {
             key: 'overview',
             icon: <DashboardOutlined />,
             label: 'Dashboard',
         },
+        
+        // ╔═══════════════════════════════════╗
+        // ║ 2️⃣  🤖 AI & MODELS MANAGEMENT     ║
+        // ╚═══════════════════════════════════╝
         {
             key: 'api-keys',
             icon: <ApiOutlined />,
@@ -138,21 +145,6 @@ const AdminDashboard: React.FC = () => {
             ],
         },
         {
-            key: 'vpn',
-            icon: <ApiOutlined />,
-            label: 'VPN Management',
-            children: [
-                { key: 'vpn-list', label: 'VPN Connections' },
-                { key: 'vpn-add', label: 'Add VPN' },
-                { key: 'vpn-security', label: 'Security Settings' },
-            ],
-        },
-        {
-            key: 'ai-chat',
-            icon: <ChatWithAI />,
-            label: 'Chat & Commands',
-        },
-        {
             key: 'ai-assignment',
             icon: <TeamOutlined />,
             label: 'AI Assignment',
@@ -162,6 +154,19 @@ const AdminDashboard: React.FC = () => {
                 { key: 'workload-balance', label: 'Workload Balance' },
             ],
         },
+
+        // ╔═══════════════════════════════════╗
+        // ║ 3️⃣  💬 AI COMMUNICATION           ║
+        // ╚═══════════════════════════════════╝
+        {
+            key: 'ai-chat',
+            icon: <ChatWithAI />,
+            label: 'Chat & Commands',
+        },
+
+        // ╔═══════════════════════════════════╗
+        // ║ 4️⃣  🎯 AI CONTROL & DECISIONS     ║
+        // ╚═══════════════════════════════════╝
         {
             key: 'voting',
             icon: <LikeOutlined />,
@@ -177,41 +182,10 @@ const AdminDashboard: React.FC = () => {
             icon: <CrownOutlined />,
             label: 'King Mode (Override)',
         },
-        {
-            key: 'progress',
-            icon: <BarChartOutlined />,
-            label: 'Progress Tracking',
-            children: [
-                { key: 'progress-overview', label: 'Work Progress' },
-                { key: 'improvements', label: 'AI Improvements' },
-                { key: 'ai-decisions', label: 'AI Decisions' },
-            ],
-        },
-        {
-            key: 'improvements',
-            icon: <BugOutlined />,
-            label: 'Improvement Plan',
-            children: [
-                { key: 'planned-improvements', label: 'Planned Changes' },
-                { key: 'implemented', label: 'Implemented' },
-                { key: 'in-progress', label: 'In Progress' },
-            ],
-        },
-        {
-            key: 'audit',
-            icon: <CheckCircleOutlined />,
-            label: 'Audit & Logs',
-        },
-        {
-            key: 'github',
-            icon: <GithubOutlined />,
-            label: 'GitHub Integration',
-            children: [
-                { key: 'github-workflows', label: 'Workflows & Runs' },
-                { key: 'github-commits', label: 'Commits & History' },
-                { key: 'github-issues', label: 'Issues & PRs' },
-            ],
-        },
+
+        // ╔═══════════════════════════════════╗
+        // ║ 5️⃣  🔧 INFRASTRUCTURE & TOOLS     ║
+        // ╚═══════════════════════════════════╝
         {
             key: 'browser',
             icon: <ChromeOutlined />,
@@ -222,6 +196,57 @@ const AdminDashboard: React.FC = () => {
                 { key: 'browser-logs', label: 'Activity Logs' },
             ],
         },
+        {
+            key: 'vpn',
+            icon: <ApiOutlined />,
+            label: 'VPN Management',
+            children: [
+                { key: 'vpn-list', label: 'VPN Connections' },
+                { key: 'vpn-add', label: 'Add VPN' },
+                { key: 'vpn-security', label: 'Security Settings' },
+            ],
+        },
+
+        // ╔═══════════════════════════════════╗
+        // ║ 6️⃣  🐙 DEVELOPMENT & DEPLOYMENT   ║
+        // ╚═══════════════════════════════════╝
+        {
+            key: 'github',
+            icon: <GithubOutlined />,
+            label: 'GitHub Integration',
+            children: [
+                { key: 'github-workflows', label: 'Workflows & Runs' },
+                { key: 'github-commits', label: 'Commits & History' },
+                { key: 'github-issues', label: 'Issues & PRs' },
+            ],
+        },
+
+        // ╔═══════════════════════════════════╗
+        // ║ 7️⃣  📊 MONITORING & ANALYTICS     ║
+        // ╚═══════════════════════════════════╝
+        {
+            key: 'progress',
+            icon: <BarChartOutlined />,
+            label: 'Progress Tracking',
+            children: [
+                { key: 'progress-overview', label: 'Work Progress' },
+                { key: 'improvements', label: 'AI Improvements' },
+                { key: 'ai-decisions', label: 'AI Decisions' },
+            ],
+        },
+
+        // ╔═══════════════════════════════════╗
+        // ║ 8️⃣  🛡️  SYSTEM & SECURITY        ║
+        // ╚═══════════════════════════════════╝
+        {
+            key: 'audit',
+            icon: <CheckCircleOutlined />,
+            label: 'Audit & Logs',
+        },
+
+        // ╔═══════════════════════════════════╗
+        // ║ 9️⃣  ⚙️  SETTINGS                  ║
+        // ╚═══════════════════════════════════╝
         {
             key: 'settings',
             icon: <SettingOutlined />,
