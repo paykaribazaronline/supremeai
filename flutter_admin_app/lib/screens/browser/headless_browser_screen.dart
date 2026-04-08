@@ -59,10 +59,12 @@ class _HeadlessBrowserScreenState extends State<HeadlessBrowserScreen>
     setState(() {
       _isLoading = false;
       if (results[0].success) {
-        _browserStats =
-            (results[0].data as Map<String, dynamic>?)?.containsKey('stats')
-                ? results[0].data!['stats']
-                : results[0].data;
+        final data = results[0].data;
+        if (data is Map<String, dynamic> && data.containsKey('stats')) {
+          _browserStats = data['stats'] as Map<String, dynamic>?;
+        } else if (data is Map<String, dynamic>) {
+          _browserStats = data;
+        }
       }
       if (results[1].success) {
         _auditLogs =
@@ -77,12 +79,12 @@ class _HeadlessBrowserScreenState extends State<HeadlessBrowserScreen>
   Future<void> _scrapeURL() async {
     final url = _urlController.text.trim();
     if (url.isEmpty) {
-      _showSnackBar('URL লিখুন', Colors.orange);
+      _showSnackBar('URL লিখুন', Colors.orange[400]!);
       return;
     }
 
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      _showSnackBar('URL must start with http:// or https://', Colors.orange);
+      _showSnackBar('URL must start with http:// or https://', Colors.orange[400]!);
       return;
     }
 
@@ -106,21 +108,21 @@ class _HeadlessBrowserScreenState extends State<HeadlessBrowserScreen>
     setState(() => _isScraping = false);
 
     if (response.success) {
-      _showSnackBar('স্ক্র্যাপিং সফল হয়েছে!', Colors.green);
+      _showSnackBar('স্ক্র্যাপিং সফল হয়েছে!', Colors.green[400]!);
       _urlController.clear();
       _usernameController.clear();
       _passwordController.clear();
       setState(() => _useAuth = false);
       _loadAll();
     } else {
-      _showSnackBar('ত্রুটি: ${response.error}', Colors.red);
+      _showSnackBar('ত্রুটি: ${response.error}', Colors.red[400]!);
     }
   }
 
   Future<void> _takeScreenshot() async {
     final url = _urlController.text.trim();
     if (url.isEmpty) {
-      _showSnackBar('URL লিখুন', Colors.orange);
+      _showSnackBar('URL লিখুন', Colors.orange[400]!);
       return;
     }
 
@@ -136,9 +138,9 @@ class _HeadlessBrowserScreenState extends State<HeadlessBrowserScreen>
     setState(() => _isScraping = false);
 
     if (response.success) {
-      _showSnackBar('স্ক্রিনশট সফল হয়েছে!', Colors.green);
+      _showSnackBar('স্ক্রিনশট সফল হয়েছে!', Colors.green[400]!);
     } else {
-      _showSnackBar('ত্রুটি: ${response.error}', Colors.red);
+      _showSnackBar('ত্রুটি: ${response.error}', Colors.red[400]!);
     }
   }
 
@@ -149,11 +151,11 @@ class _HeadlessBrowserScreenState extends State<HeadlessBrowserScreen>
     };
   }
 
-  void _showSnackBar(String message, int bgColor) {
+  void _showSnackBar(String message, Color bgColor) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Color(bgColor),
+        backgroundColor: bgColor,
       ),
     );
   }
