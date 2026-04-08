@@ -7,7 +7,7 @@ import java.util.*;
  * HealthPingService Model
  * Generated: 2026-04-07T12:23:11.840987154
  */
-public class HealthPingService implements Serializable {
+public class HealthPingServiceModel implements Serializable {
     private String id;
     private String name;
     private Map<String, Object> data = new HashMap<>();
