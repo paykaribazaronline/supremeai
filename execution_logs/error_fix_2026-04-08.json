@@ -1,0 +1,17 @@
+[ {
+  "eventId" : "c50e7a25-e446-452b-a6b9-5403000e94bc",
+  "timestamp" : "2026-04-08 08:03:51",
+  "eventType" : "ERROR_FIX",
+  "projectId" : "p1",
+  "componentName" : "",
+  "framework" : "",
+  "durationMs" : 0,
+  "status" : "SUCCESS",
+  "agent" : null,
+  "score" : 100.0,
+  "metadata" : {
+    "totalIssues" : 1,
+    "autoFixable" : 1,
+    "appliedFixes" : 1
+  }
+} ]

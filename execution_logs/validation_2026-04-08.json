@@ -1,0 +1,29 @@
+[ {
+  "eventId" : "8daa97ab-0ae5-477a-bf54-4e89705a9ed8",
+  "timestamp" : "2026-04-08 08:03:51",
+  "eventType" : "VALIDATION",
+  "projectId" : "p1",
+  "componentName" : "",
+  "framework" : "REACT",
+  "durationMs" : 0,
+  "status" : "SUCCESS",
+  "agent" : null,
+  "score" : 100.0,
+  "metadata" : {
+    "totalIssues" : 0
+  }
+}, {
+  "eventId" : "e7cdd01a-cb78-4a13-99c2-082e69167d72",
+  "timestamp" : "2026-04-08 08:03:51",
+  "eventType" : "VALIDATION",
+  "projectId" : "test-project",
+  "componentName" : "",
+  "framework" : "REACT",
+  "durationMs" : 0,
+  "status" : "SUCCESS",
+  "agent" : null,
+  "score" : 100.0,
+  "metadata" : {
+    "totalIssues" : 0
+  }
+} ]

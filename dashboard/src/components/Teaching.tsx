@@ -150,7 +150,8 @@ const Teaching: React.FC = () => {
                         borderRadius: 6,
                         overflowX: 'auto',
                         fontSize: 13,
-                        maxHeight: 400,
+                        maxHeight: 'calc(100vh - 600px)',
+                        minHeight: 300,
                     }}>
                         {result}
                     </pre>

@@ -24,6 +24,7 @@ import 'screens/alerts/alerts_logs_screen.dart';
 import 'screens/admin/admin_control_screen.dart';
 import 'screens/consensus/consensus_screen.dart';
 import 'screens/git/git_ops_screen.dart';
+import 'screens/browser/headless_browser_screen.dart';
 import 'screens/quota/quota_screen.dart';
 import 'screens/vpn/vpn_screen.dart';
 import 'screens/resilience/resilience_screen.dart';
@@ -165,6 +166,7 @@ class SupremeAIAdminApp extends StatelessWidget {
         AppRoutes.adminControl: (context) => const AdminControlScreen(),
         AppRoutes.consensus: (context) => const ConsensusScreen(),
         AppRoutes.gitOps: (context) => const GitOpsScreen(),
+        AppRoutes.headlessBrowser: (context) => const HeadlessBrowserScreen(),
         AppRoutes.quota: (context) => const QuotaScreen(),
         AppRoutes.vpn: (context) => const VpnScreen(),
         AppRoutes.resilience: (context) => const ResilienceScreen(),

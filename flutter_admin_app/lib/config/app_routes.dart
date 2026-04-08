@@ -15,6 +15,7 @@ class AppRoutes {
   static const String adminControl = '/admin-control';
   static const String consensus = '/consensus';
   static const String gitOps = '/git-ops';
+  static const String headlessBrowser = '/headless-browser';
   static const String quota = '/quota';
   static const String vpn = '/vpn';
   static const String resilience = '/resilience';
