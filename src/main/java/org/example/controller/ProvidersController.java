@@ -396,11 +396,14 @@ public class ProvidersController {
                 "AIRLLM",
                 actor,
                 "ERROR",
-                Map.of("source", source, "error", e.getMessage())
+                Map.of(
+                    "source", firstNonBlank(source, "unknown"),
+                    "error", firstNonBlank(e.getMessage(), e.getClass().getSimpleName())
+                )
             );
             return ResponseEntity.status(500).body(Map.of(
                 "success", false,
-                "error", e.getMessage()
+                "error", firstNonBlank(e.getMessage(), "Internal server error")
             ));
         }
     }
@@ -442,7 +445,10 @@ public class ProvidersController {
             }
             return result;
         } catch (Exception e) {
-            return Map.of("healthy", false, "error", e.getMessage());
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("healthy", false);
+            result.put("error", firstNonBlank(e.getMessage(), e.getClass().getSimpleName()));
+            return result;
         }
     }
 
