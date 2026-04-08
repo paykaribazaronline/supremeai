@@ -29,7 +29,7 @@ import {
     RocketOutlined,
     BugOutlined,
     PullRequestOutlined,
-    GitCommitOutlined,
+    FileOutlined,
     ReloadOutlined,
     DownloadOutlined,
 } from '@ant-design/icons';
@@ -368,7 +368,7 @@ const GitHubDashboard: React.FC = () => {
                 <Card
                     title={
                         <span>
-                            <GitCommitOutlined /> Recent Commits
+                            <FileOutlined /> Recent Commits
                         </span>
                     }
                     style={{ marginBottom: '20px' }}
