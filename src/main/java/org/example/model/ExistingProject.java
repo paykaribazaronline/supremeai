@@ -116,10 +116,15 @@ public class ExistingProject {
     }
 
     public void addImprovementRecord(String summary, List<String> filesChanged, boolean success) {
+        addImprovementRecord(summary, filesChanged, success, false);
+    }
+
+    public void addImprovementRecord(String summary, List<String> filesChanged, boolean success, boolean pushed) {
         Map<String, Object> record = new LinkedHashMap<>();
         record.put("summary", summary);
         record.put("filesChanged", filesChanged != null ? filesChanged : List.of());
         record.put("status", success ? "ok" : "failed");
+        record.put("pushed", pushed);
         record.put("appliedAt", System.currentTimeMillis());
         improvementHistory.add(record);
         if (success) {
