@@ -134,9 +134,11 @@ const ChatWithAI: React.FC = () => {
     };
 
     return (
-        <div>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 'calc(100vh - 300px)' }}>
             <Card
                 title="Chat with AI Agents"
+                style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+                bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '16px' }}
                 extra={
                     <Space>
                         {agents.length > 0 && (
@@ -171,12 +173,13 @@ const ChatWithAI: React.FC = () => {
             >
                 <div
                     style={{
-                        height: '500px',
+                        flex: 1,
                         overflowY: 'auto',
                         marginBottom: '16px',
                         padding: '16px',
                         backgroundColor: '#fafafa',
                         borderRadius: '4px',
+                        minHeight: '300px',
                     }}
                 >
                     {messages.length === 0 ? (

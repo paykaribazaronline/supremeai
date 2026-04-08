@@ -15,6 +15,8 @@ import {
     CrownOutlined,
     BarChartOutlined,
     BugOutlined,
+    GithubOutlined,
+    ChromeOutlined,
 } from '@ant-design/icons';
 import APIManagement from '../components/APIManagement';
 import AIModelSearch from '../components/AIModelSearch';
@@ -29,6 +31,8 @@ import AIWorkHistory from '../components/AIWorkHistory';
 import AuditLog from '../components/AuditLog';
 import SystemMetrics from '../components/SystemMetrics';
 import APIKeysManager from '../components/APIKeysManager';
+import GitHubDashboard from '../components/GitHubDashboard';
+import HeadlessBrowserDashboard from '../components/HeadlessBrowserDashboard';
 
 const { Header, Content, Sider } = Layout;
 
@@ -199,6 +203,26 @@ const AdminDashboard: React.FC = () => {
             label: 'Audit & Logs',
         },
         {
+            key: 'github',
+            icon: <GithubOutlined />,
+            label: 'GitHub Integration',
+            children: [
+                { key: 'github-workflows', label: 'Workflows & Runs' },
+                { key: 'github-commits', label: 'Commits & History' },
+                { key: 'github-issues', label: 'Issues & PRs' },
+            ],
+        },
+        {
+            key: 'browser',
+            icon: <ChromeOutlined />,
+            label: 'Headless Browser',
+            children: [
+                { key: 'browser-scrape', label: 'Scraping & Automation' },
+                { key: 'browser-screenshots', label: 'Screenshots' },
+                { key: 'browser-logs', label: 'Activity Logs' },
+            ],
+        },
+        {
             key: 'settings',
             icon: <SettingOutlined />,
             label: 'System Settings',
@@ -265,6 +289,16 @@ const AdminDashboard: React.FC = () => {
                 return <ImprovementTracking />;
             case 'audit':
                 return <AuditLog />;
+            case 'github':
+            case 'github-workflows':
+            case 'github-commits':
+            case 'github-issues':
+                return <GitHubDashboard />;
+            case 'browser':
+            case 'browser-scrape':
+            case 'browser-screenshots':
+            case 'browser-logs':
+                return <HeadlessBrowserDashboard />;
             case 'ai-decisions':
                 return <AIWorkHistory />;
             case 'settings':
@@ -295,7 +329,7 @@ const AdminDashboard: React.FC = () => {
                 />
             </Sider>
 
-            <Layout style={{ marginLeft: collapsed ? 80 : 250 }}>
+            <Layout style={{ marginLeft: collapsed ? 80 : 250, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
                 <Header
                     style={{
                         background: '#fff',
@@ -304,6 +338,7 @@ const AdminDashboard: React.FC = () => {
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
+                        flexShrink: 0,
                     }}
                 >
                     <h1 style={{ margin: 0 }}>{dashboardContract?.title || 'SupremeAI Admin Control Panel'}</h1>
@@ -316,12 +351,14 @@ const AdminDashboard: React.FC = () => {
                     </Space>
                 </Header>
 
-                <Content style={{ margin: '24px 16px 0' }}>
-                    <Breadcrumb style={{ marginBottom: '24px' }}>
+                <Content style={{ margin: '24px 16px', flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+                    <Breadcrumb style={{ marginBottom: '24px', flexShrink: 0 }}>
                         <Breadcrumb.Item>Admin</Breadcrumb.Item>
                         <Breadcrumb.Item>{selectedTab}</Breadcrumb.Item>
                     </Breadcrumb>
-                    {renderContent()}
+                    <div style={{ flex: 1, overflow: 'auto' }}>
+                        {renderContent()}
+                    </div>
                 </Content>
             </Layout>
         </Layout>

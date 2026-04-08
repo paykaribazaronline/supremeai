@@ -232,7 +232,7 @@ const StatBox: React.FC<{ label: string; value: string; color: string }> = ({ la
 const cardStyle: React.CSSProperties = { background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: 24 };
 const inputStyle: React.CSSProperties = { width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, boxSizing: 'border-box' };
 const btnStyle: React.CSSProperties = { padding: '10px 24px', background: '#6366F1', color: '#fff', border: 'none', borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: 'pointer' };
-const codeStyle: React.CSSProperties = { background: '#1e1e1e', color: '#d4d4d4', padding: 16, borderRadius: 6, overflowX: 'auto', fontSize: 13, maxHeight: 400, marginTop: 16 };
+const codeStyle: React.CSSProperties = { background: '#1e1e1e', color: '#d4d4d4', padding: 16, borderRadius: 6, overflowX: 'auto', fontSize: 13, maxHeight: 'calc(100vh - 600px)', minHeight: 300, marginTop: 16 };
 const thStyle: React.CSSProperties = { textAlign: 'left', padding: '8px 12px', borderBottom: '1px solid #e5e7eb' };
 const tdStyle: React.CSSProperties = { padding: '8px 12px', borderBottom: '1px solid #e5e7eb' };
 
