@@ -16,7 +16,7 @@ public class HealthPingServiceService {
     /**
      * getPingHistory
      */
-    public void getPingHistory() {
+    public boolean getPingHistory() {
         try {
             logger.info("🔧 Executing getPingHistory");
             // Implementation here
@@ -30,7 +30,7 @@ public class HealthPingServiceService {
     /**
      * pingHealth
      */
-    public void pingHealth() {
+    public boolean pingHealth() {
         try {
             logger.info("🔧 Executing pingHealth");
             // Implementation here
