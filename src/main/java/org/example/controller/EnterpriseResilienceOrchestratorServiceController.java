@@ -2,6 +2,7 @@ package org.example.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.example.service.EnterpriseResilienceOrchestratorServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -75,10 +76,10 @@ public class EnterpriseResilienceOrchestratorServiceController {
         }
     }
 
-    @PostMapping("and expose -r-e-s-t endpoints under /api/resilience/orchestrator")
-    public ResponseEntity<?> and expose REST endpoints under /api/resilience/orchestrator() {
+    @PostMapping("expose-resilience-endpoints")
+    public ResponseEntity<?> exposeResilienceEndpoints() {
         try {
-            enterpriseResilienceOrchestratorServiceService.and expose REST endpoints under /api/resilience/orchestrator();
+            enterpriseResilienceOrchestratorServiceService.exposeResilienceEndpoints();
             return ResponseEntity.ok(Map.of("status", "success"));
         } catch (Exception e) {
             logger.error("❌ Error: {}", e.getMessage());
