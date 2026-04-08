@@ -84,6 +84,71 @@ public class BrowserAutomationController {
     }
 
     /**
+     * POST /api/browser/scrape-auth - Scrape URL with optional auth bootstrap.
+     *
+     * Body example:
+     * {
+     *   "url": "https://example.com/private",
+     *   "auth": {
+     *     "type": "bearer",
+     *     "token": "..."
+     *   }
+     * }
+     */
+    @PostMapping("/api/browser/scrape-auth")
+    public ResponseEntity<Map<String, Object>> scrapeUrlWithAuth(@RequestBody Map<String, Object> request) {
+        String url = String.valueOf(request.getOrDefault("url", "")).trim();
+        if (url.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "Missing 'url' in request body"
+            ));
+        }
+
+        BrowserDataCollector.BrowserAuthOptions authOptions = null;
+        Object authRaw = request.get("auth");
+        if (authRaw instanceof Map<?, ?> authMap) {
+            authOptions = new BrowserDataCollector.BrowserAuthOptions();
+            authOptions.type = getAsString(authMap, "type");
+            authOptions.username = getAsString(authMap, "username");
+            authOptions.password = getAsString(authMap, "password");
+            authOptions.token = getAsString(authMap, "token");
+            authOptions.cookieHeader = getAsString(authMap, "cookieHeader");
+            authOptions.loginUrl = getAsString(authMap, "loginUrl");
+            authOptions.usernameSelector = getAsString(authMap, "usernameSelector");
+            authOptions.passwordSelector = getAsString(authMap, "passwordSelector");
+            authOptions.submitSelector = getAsString(authMap, "submitSelector");
+        }
+
+        logger.info("🌐 Auth browser scrape requested: {}", url);
+
+        try {
+            BrowserDataCollector.BrowserScrapedData result = browserDataCollector.scrapeWithPuppeteer(url, authOptions);
+
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("success", true);
+            response.put("url", result.url);
+            response.put("title", result.title);
+            response.put("content", result.content != null ? result.content.substring(0, Math.min(result.content.length(), 5000)) : "");
+            response.put("description", result.description);
+            response.put("statusCode", result.statusCode);
+            response.put("linkCount", result.linkCount);
+            response.put("wordCount", result.wordCount);
+            response.put("scrapedAt", result.scrapedAt);
+            response.put("puppeteerUsed", result.puppeteerUsed);
+
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            logger.error("❌ Auth browser scrape failed: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body(Map.of(
+                "error", "Scrape failed: " + e.getMessage(),
+                "url", url
+            ));
+        }
+    }
+
+    /**
      * GET /api/browser/stats - Browser quota and usage statistics
      */
     @GetMapping("/api/browser/stats")
@@ -222,5 +287,10 @@ public class BrowserAutomationController {
                 "error", e.getMessage()
             ));
         }
+    }
+
+    private String getAsString(Map<?, ?> map, String key) {
+        Object value = map.get(key);
+        return value == null ? null : String.valueOf(value);
     }
 }

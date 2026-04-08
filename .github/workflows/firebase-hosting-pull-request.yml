@@ -19,6 +19,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+
+      - name: 🔐 Validate Firebase credentials
+        run: |
+          if [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}" ]; then
+            echo "❌ FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A secret is missing"
+            echo "   Configure it in GitHub: Settings -> Secrets and variables -> Actions"
+            exit 1
+          fi
+
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
