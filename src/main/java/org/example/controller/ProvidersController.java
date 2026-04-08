@@ -3,6 +3,7 @@ package org.example.controller;
 import org.example.model.APIProvider;
 import org.example.service.AIAPIService;
 import org.example.service.FallbackConfigService;
+import org.example.service.ProviderAuditService;
 import org.example.service.ProviderManagementService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,9 @@ public class ProvidersController {
 
     @Autowired
     private AIAPIService aiApiService;
+
+    @Autowired
+    private ProviderAuditService providerAuditService;
 
     @GetMapping("/available")
     public ResponseEntity<?> getAvailableProviders() {
@@ -290,5 +294,201 @@ public class ProvidersController {
         } catch (Exception e) {
             return ResponseEntity.ok(Map.of("healthy", false, "error", e.getMessage()));
         }
+    }
+
+    /**
+     * POST /api/providers/airllm/auto-refresh
+     * Token-protected endpoint for Colab/automation to refresh rotating ngrok URLs.
+     */
+    @PostMapping("/airllm/auto-refresh")
+    public ResponseEntity<?> autoRefreshAirllm(
+        @RequestHeader(value = "X-Setup-Token", required = false) String setupToken,
+        @RequestBody Map<String, Object> body
+    ) {
+        String actor = trimToNull(body == null ? null : asString(body.get("actor")));
+        String source = trimToNull(body == null ? null : asString(body.get("source")));
+        if (actor == null) {
+            actor = "airllm-automation";
+        }
+        if (source == null) {
+            source = "colab";
+        }
+
+        if (!isSetupTokenAuthorized(setupToken)) {
+            providerAuditService.log(
+                "AIRLLM_AUTO_REFRESH",
+                "AIRLLM",
+                actor,
+                "ERROR",
+                Map.of("reason", "unauthorized", "source", source)
+            );
+            return ResponseEntity.status(401).body(Map.of(
+                "success", false,
+                "error", "Invalid or missing setup token"
+            ));
+        }
+
+        try {
+            String endpoint = normalizeAirllmEndpoint(body);
+            if (endpoint == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "error", "Provide endpoint or baseUrl"
+                ));
+            }
+
+            boolean verifyHealth = booleanValue(body.get("verifyHealth"), true);
+            boolean rollbackOnFailure = booleanValue(body.get("rollbackOnFailure"), true);
+            String previousEndpoint = aiApiService.getDefaultEndpoint("AIRLLM");
+
+            aiApiService.updateProviderEndpoint("AIRLLM", endpoint);
+            Map<String, Object> health = verifyHealth ? probeAirllmHealth(endpoint) : Map.of("healthy", true, "skipped", true);
+            boolean healthy = Boolean.TRUE.equals(health.get("healthy"));
+
+            if (verifyHealth && !healthy && rollbackOnFailure && previousEndpoint != null && !previousEndpoint.isBlank()) {
+                aiApiService.updateProviderEndpoint("AIRLLM", previousEndpoint);
+                providerAuditService.log(
+                    "AIRLLM_AUTO_REFRESH",
+                    "AIRLLM",
+                    actor,
+                    "ERROR",
+                    Map.of(
+                        "source", source,
+                        "result", "rolled_back",
+                        "newEndpoint", endpoint,
+                        "previousEndpoint", previousEndpoint,
+                        "health", health
+                    )
+                );
+                return ResponseEntity.status(502).body(Map.of(
+                    "success", false,
+                    "rolledBack", true,
+                    "message", "Health check failed; reverted to previous endpoint",
+                    "endpoint", previousEndpoint,
+                    "failedEndpoint", endpoint,
+                    "health", health
+                ));
+            }
+
+            providerAuditService.log(
+                "AIRLLM_AUTO_REFRESH",
+                "AIRLLM",
+                actor,
+                healthy ? "SUCCESS" : "WARNING",
+                Map.of(
+                    "source", source,
+                    "newEndpoint", endpoint,
+                    "previousEndpoint", firstNonBlank(previousEndpoint, "none"),
+                    "health", health
+                )
+            );
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "endpoint", endpoint,
+                "previousEndpoint", firstNonBlank(previousEndpoint, ""),
+                "health", health,
+                "message", "AirLLM endpoint refreshed successfully"
+            ));
+        } catch (Exception e) {
+            providerAuditService.log(
+                "AIRLLM_AUTO_REFRESH",
+                "AIRLLM",
+                actor,
+                "ERROR",
+                Map.of("source", source, "error", e.getMessage())
+            );
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "error", e.getMessage()
+            ));
+        }
+    }
+
+    private String normalizeAirllmEndpoint(Map<String, Object> body) {
+        String endpoint = trimToNull(asString(body == null ? null : body.get("endpoint")));
+        if (endpoint == null) {
+            endpoint = trimToNull(asString(body == null ? null : body.get("baseUrl")));
+        }
+        if (endpoint == null) {
+            return null;
+        }
+        if (!endpoint.startsWith("http://") && !endpoint.startsWith("https://")) {
+            return null;
+        }
+        if (!endpoint.contains("/v1/chat/completions")) {
+            endpoint = endpoint.replaceAll("/+$", "") + "/v1/chat/completions";
+        }
+        return endpoint;
+    }
+
+    private Map<String, Object> probeAirllmHealth(String endpoint) {
+        try {
+            String healthUrl = endpoint.replace("/v1/chat/completions", "/health");
+            java.net.http.HttpClient client = java.net.http.HttpClient.newBuilder()
+                .connectTimeout(java.time.Duration.ofSeconds(5)).build();
+            java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
+                .uri(java.net.URI.create(healthUrl))
+                .timeout(java.time.Duration.ofSeconds(10))
+                .GET().build();
+            java.net.http.HttpResponse<String> resp = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
+            boolean healthy = resp.statusCode() == 200;
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("healthy", healthy);
+            result.put("statusCode", resp.statusCode());
+            result.put("healthUrl", healthUrl);
+            if (healthy) {
+                result.put("body", resp.body());
+            }
+            return result;
+        } catch (Exception e) {
+            return Map.of("healthy", false, "error", e.getMessage());
+        }
+    }
+
+    private boolean isSetupTokenAuthorized(String setupToken) {
+        if (setupToken == null || setupToken.isBlank()) {
+            return false;
+        }
+        String expected = System.getenv("SUPREMEAI_SETUP_TOKEN");
+        return expected != null && !expected.isBlank() && expected.equals(setupToken);
+    }
+
+    private String asString(Object value) {
+        return value == null ? null : String.valueOf(value);
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private boolean booleanValue(Object value, boolean defaultValue) {
+        if (value == null) {
+            return defaultValue;
+        }
+        if (value instanceof Boolean b) {
+            return b;
+        }
+        String text = String.valueOf(value).trim();
+        if (text.isEmpty()) {
+            return defaultValue;
+        }
+        return "true".equalsIgnoreCase(text) || "1".equals(text) || "yes".equalsIgnoreCase(text);
+    }
+
+    private String firstNonBlank(String... values) {
+        if (values == null) {
+            return null;
+        }
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
     }
 }
