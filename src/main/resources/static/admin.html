@@ -1470,138 +1470,102 @@
 
                 <!-- System Learning Section -->
                 <div id="system-learning" class="content-section">
-                    <h1>📖 System Learning Dashboard</h1>
-                    <p>SupremeAI's memory — what it has learned, critical requirements, and past solutions.</p>
+                    <h1>📖 System Learning</h1>
+                    <p style="color:#a0aec0;">When the system is idle, SupremeAI quietly learns new topics in the background. Set your Firebase limits — learning stops the moment it hits your cap.</p>
 
-                    <!-- ═══════════════════════════════════════════════════════════
-                         AUTO-LEARNING CONTROL PANEL
-                         ═══════════════════════════════════════════════════════════ -->
+                    <!-- ── Master Control Card ──────────────────────────────────────── -->
                     <div style="background:#1a202c;border:2px solid #4a5568;border-radius:10px;padding:20px;margin-bottom:20px;">
-                        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+
+                        <!-- Row 1: ON/OFF + status -->
+                        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
                             <div>
-                                <div style="font-size:18px;font-weight:700;color:#e2e8f0;">🤖 Auto-Learning System</div>
-                                <div id="learningStatusText" style="font-size:13px;color:#a0aec0;margin-top:4px;">
-                                    Checking status…
-                                </div>
+                                <div style="font-size:17px;font-weight:700;color:#e2e8f0;">🤖 Auto-Learning</div>
+                                <div id="learningStatusText" style="font-size:13px;color:#a0aec0;margin-top:3px;">Checking…</div>
                             </div>
-                            <div style="display:flex;gap:10px;align-items:center;">
-                                <button id="btnEnableLearning"  class="btn"            onclick="setLearning(true)"  style="min-width:120px;">✅ Enable Learning</button>
-                                <button id="btnDisableLearning" class="btn btn-danger"  onclick="setLearning(false)" style="min-width:120px;">🛑 Disable Learning</button>
-                                <button class="btn btn-secondary" onclick="loadResearchStats()" style="min-width:120px;">🔄 Refresh Status</button>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                <button id="btnEnableLearning"  class="btn"           onclick="setLearning(true)">✅ Enable</button>
+                                <button id="btnDisableLearning" class="btn btn-danger" onclick="setLearning(false)">🛑 Disable</button>
+                                <button class="btn btn-secondary" onclick="loadResearchStats()">🔄 Refresh</button>
                             </div>
                         </div>
 
-                        <!-- Tips for laymen -->
-                        <div style="background:#2d3748;border-radius:8px;padding:14px;margin-top:16px;">
-                            <div style="font-weight:600;color:#63b3ed;margin-bottom:8px;">💡 Tips — How does Auto-Learning work?</div>
-                            <ul style="color:#a0aec0;font-size:13px;line-height:1.8;margin:0;padding-left:18px;">
-                                <li><strong style="color:#e2e8f0;">When is it active?</strong> — The system waits until no project has been running for <strong>1 full hour</strong>. It then quietly studies new topics in the background.</li>
-                                <li><strong style="color:#e2e8f0;">What does it learn?</strong> — Architecture, Security, Performance, DevOps, AI/ML patterns and more. Each cycle picks the weakest topic area first.</li>
-                                <li><strong style="color:#e2e8f0;">Does it cost money?</strong> — No. It uses the <strong>Firebase free tier</strong> and stays well below the daily limits (shown below).</li>
-                                <li><strong style="color:#e2e8f0;">How to turn it OFF?</strong> — Click <em>"🛑 Disable Learning"</em> above. The system will stop all background research immediately.</li>
-                                <li><strong style="color:#e2e8f0;">How to turn it ON?</strong> — Click <em>"✅ Enable Learning"</em>. Learning resumes automatically the next time the system is idle for 1 hour.</li>
-                                <li><strong style="color:#e2e8f0;">Force-learn now?</strong> — Click <em>"⚡ Trigger Now"</em> to start a research cycle immediately without waiting for idle time.</li>
-                            </ul>
-                        </div>
-
-                        <!-- Firebase quota monitor -->
-                        <div style="margin-top:16px;">
-                            <div style="font-weight:600;color:#e2e8f0;margin-bottom:10px;">🔥 Firebase Free-Tier Quota Monitor</div>
-                            <div style="display:flex;gap:24px;flex-wrap:wrap;" id="quotaPanel">
-                                <div style="flex:1;min-width:200px;background:#2d3748;border-radius:8px;padding:12px;">
-                                    <div style="font-size:11px;color:#718096;text-transform:uppercase;margin-bottom:4px;">Daily Writes Used</div>
-                                    <div style="font-size:22px;font-weight:700;" id="quotaWriteCount">—</div>
-                                    <div style="font-size:11px;color:#718096;" id="quotaWriteLimit">limit: 18 000 / day</div>
-                                    <div style="background:#1a202c;border-radius:4px;height:6px;margin-top:8px;overflow:hidden;">
-                                        <div id="quotaWriteBar" style="background:#48bb78;height:100%;width:0%;transition:width 0.4s;"></div>
-                                    </div>
+                        <!-- Row 2: Live quota bars -->
+                        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:18px;">
+                            <div style="flex:1;min-width:200px;background:#2d3748;border-radius:8px;padding:14px;">
+                                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                                    <span style="font-size:12px;color:#718096;text-transform:uppercase;">🔥 Daily Writes Used</span>
+                                    <span id="quotaWriteCount" style="font-size:14px;font-weight:700;">—</span>
                                 </div>
-                                <div style="flex:1;min-width:200px;background:#2d3748;border-radius:8px;padding:12px;">
-                                    <div style="font-size:11px;color:#718096;text-transform:uppercase;margin-bottom:4px;">Daily Reads Used</div>
-                                    <div style="font-size:22px;font-weight:700;" id="quotaReadCount">—</div>
-                                    <div style="font-size:11px;color:#718096;" id="quotaReadLimit">limit: 50 000 / day</div>
-                                    <div style="background:#1a202c;border-radius:4px;height:6px;margin-top:8px;overflow:hidden;">
-                                        <div id="quotaReadBar" style="background:#63b3ed;height:100%;width:0%;transition:width 0.4s;"></div>
-                                    </div>
+                                <div style="background:#1a202c;border-radius:4px;height:8px;overflow:hidden;">
+                                    <div id="quotaWriteBar" style="background:#48bb78;height:100%;width:0%;transition:width 0.4s;border-radius:4px;"></div>
                                 </div>
-                                <div style="flex:1;min-width:200px;background:#2d3748;border-radius:8px;padding:12px;">
-                                    <div style="font-size:11px;color:#718096;text-transform:uppercase;margin-bottom:4px;">Quota Status</div>
-                                    <div style="font-size:18px;font-weight:700;" id="quotaSafeStatus">—</div>
-                                    <div style="font-size:11px;color:#718096;margin-top:4px;" id="quotaWindow">—</div>
-                                </div>
+                                <div id="quotaWriteLimit" style="font-size:11px;color:#718096;margin-top:4px;">limit: 18,000 / day</div>
                             </div>
-                            <div style="font-size:11px;color:#718096;margin-top:8px;">
-                                💡 Learning pauses automatically at 80% of quota to protect normal app operations.
+                            <div style="flex:1;min-width:200px;background:#2d3748;border-radius:8px;padding:14px;">
+                                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                                    <span style="font-size:12px;color:#718096;text-transform:uppercase;">📖 Daily Reads Used</span>
+                                    <span id="quotaReadCount" style="font-size:14px;font-weight:700;">—</span>
+                                </div>
+                                <div style="background:#1a202c;border-radius:4px;height:8px;overflow:hidden;">
+                                    <div id="quotaReadBar" style="background:#63b3ed;height:100%;width:0%;transition:width 0.4s;border-radius:4px;"></div>
+                                </div>
+                                <div id="quotaReadLimit" style="font-size:11px;color:#718096;margin-top:4px;">limit: 50,000 / day</div>
+                            </div>
+                            <div style="flex:1;min-width:160px;background:#2d3748;border-radius:8px;padding:14px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;">
+                                <div id="quotaSafeStatus" style="font-size:20px;font-weight:700;">—</div>
+                                <div id="quotaWindow" style="font-size:11px;color:#718096;text-align:center;">—</div>
                             </div>
                         </div>
 
-                        <!-- ═══════════════════════════════════════════════════════════
-                             LEARNING SETTINGS (Admin-configurable limits)
-                             ═══════════════════════════════════════════════════════════ -->
-                        <div style="margin-top:16px;">
-                            <div style="font-weight:600;color:#e2e8f0;margin-bottom:10px;">⚙️ Learning Settings</div>
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" id="learningSettingsPanel">
-                                <div style="background:#2d3748;border-radius:8px;padding:12px;">
-                                    <label style="font-size:11px;color:#718096;text-transform:uppercase;display:block;margin-bottom:4px;">Topics per Cycle</label>
-                                    <input type="number" id="settingTopicsPerCycle" min="1" max="50" value="3"
-                                           style="width:100%;padding:8px;background:#1a202c;border:1px solid #4a5568;border-radius:5px;color:#fff;font-size:16px;font-weight:700;">
-                                    <div style="font-size:10px;color:#718096;margin-top:4px;">How many topics to study per cycle (1-50)</div>
-                                </div>
-                                <div style="background:#2d3748;border-radius:8px;padding:12px;">
-                                    <label style="font-size:11px;color:#718096;text-transform:uppercase;display:block;margin-bottom:4px;">Cycle Interval (minutes)</label>
-                                    <input type="number" id="settingCycleInterval" min="1" max="1440" value="5"
-                                           style="width:100%;padding:8px;background:#1a202c;border:1px solid #4a5568;border-radius:5px;color:#fff;font-size:16px;font-weight:700;">
-                                    <div style="font-size:10px;color:#718096;margin-top:4px;">Minutes between research cycles (1-1440)</div>
-                                </div>
-                                <div style="background:#2d3748;border-radius:8px;padding:12px;">
-                                    <label style="font-size:11px;color:#718096;text-transform:uppercase;display:block;margin-bottom:4px;">Daily Write Limit</label>
+                        <!-- Row 3: Stat chips -->
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;" id="researchStatsContent"></div>
+
+                        <!-- Row 4: Admin limits (inline) -->
+                        <div style="background:#2d3748;border-radius:8px;padding:14px;margin-bottom:14px;">
+                            <div style="font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:10px;">⚙️ Your Limits — learning stops the moment any counter hits its cap</div>
+                            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+                                <div style="flex:1;min-width:140px;">
+                                    <label style="font-size:11px;color:#718096;display:block;margin-bottom:4px;">Max Writes / day</label>
                                     <input type="number" id="settingDailyWriteLimit" min="100" max="1000000" value="18000"
-                                           style="width:100%;padding:8px;background:#1a202c;border:1px solid #4a5568;border-radius:5px;color:#fff;font-size:16px;font-weight:700;">
-                                    <div style="font-size:10px;color:#718096;margin-top:4px;">Max Firebase writes per day (100-1,000,000)</div>
+                                           style="width:100%;padding:8px;background:#1a202c;border:1px solid #4a5568;border-radius:5px;color:#fff;font-size:15px;font-weight:700;">
                                 </div>
-                                <div style="background:#2d3748;border-radius:8px;padding:12px;">
-                                    <label style="font-size:11px;color:#718096;text-transform:uppercase;display:block;margin-bottom:4px;">Daily Read Limit</label>
+                                <div style="flex:1;min-width:140px;">
+                                    <label style="font-size:11px;color:#718096;display:block;margin-bottom:4px;">Max Reads / day</label>
                                     <input type="number" id="settingDailyReadLimit" min="100" max="1000000" value="50000"
-                                           style="width:100%;padding:8px;background:#1a202c;border:1px solid #4a5568;border-radius:5px;color:#fff;font-size:16px;font-weight:700;">
-                                    <div style="font-size:10px;color:#718096;margin-top:4px;">Max Firebase reads per day (100-1,000,000)</div>
+                                           style="width:100%;padding:8px;background:#1a202c;border:1px solid #4a5568;border-radius:5px;color:#fff;font-size:15px;font-weight:700;">
                                 </div>
+                                <div style="flex:1;min-width:120px;">
+                                    <label style="font-size:11px;color:#718096;display:block;margin-bottom:4px;">Topics / cycle</label>
+                                    <input type="number" id="settingTopicsPerCycle" min="1" max="50" value="3"
+                                           style="width:100%;padding:8px;background:#1a202c;border:1px solid #4a5568;border-radius:5px;color:#fff;font-size:15px;font-weight:700;">
+                                </div>
+                                <div style="flex:1;min-width:120px;">
+                                    <label style="font-size:11px;color:#718096;display:block;margin-bottom:4px;">Interval (min)</label>
+                                    <input type="number" id="settingCycleInterval" min="1" max="1440" value="5"
+                                           style="width:100%;padding:8px;background:#1a202c;border:1px solid #4a5568;border-radius:5px;color:#fff;font-size:15px;font-weight:700;">
+                                </div>
+                                <button class="btn btn-success" onclick="saveLearningSettings()" style="height:38px;white-space:nowrap;">💾 Save Limits</button>
                             </div>
-                            <div style="display:flex;gap:10px;margin-top:12px;">
-                                <button class="btn btn-success" onclick="saveLearningSettings()" style="min-width:130px;">💾 Save Settings</button>
-                                <button class="btn btn-secondary" onclick="loadLearningSettings()" style="min-width:130px;">🔄 Reset</button>
-                            </div>
-                            <div id="settingsMsg" style="margin-top:8px;font-size:13px;"></div>
+                            <div id="settingsMsg" style="margin-top:6px;font-size:12px;"></div>
                         </div>
 
-                        <!-- Research cycle stats -->
-                        <div id="researchStatsPanel" style="margin-top:16px;display:none;">
-                            <div style="font-weight:600;color:#e2e8f0;margin-bottom:8px;">📊 Current Research Status</div>
-                            <div style="display:flex;gap:16px;flex-wrap:wrap;" id="researchStatsContent"></div>
-                        </div>
-
-                        <!-- Action buttons -->
-                        <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
-                            <button class="btn btn-secondary" onclick="triggerResearchNow()">⚡ Trigger Research Now</button>
-                            <button class="btn btn-secondary" onclick="loadResearchHistory()">📜 Research History</button>
+                        <!-- Row 5: Actions -->
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                            <button class="btn btn-secondary" onclick="triggerResearchNow()">⚡ Run Now</button>
+                            <button class="btn btn-secondary" onclick="toggleResearchHistory()">📜 History</button>
+                            <button class="btn btn-secondary" onclick="loadCriticalRequirements()">⚠️ Critical Reqs</button>
+                            <button class="btn btn-secondary" onclick="reseedKnowledge()">🌱 Reseed</button>
                         </div>
                         <div id="researchActionMsg" style="margin-top:8px;font-size:13px;"></div>
-                        <div id="researchHistoryPanel" style="display:none;margin-top:12px;max-height:320px;overflow-y:auto;background:#0f1117;border:1px solid #2d3748;border-radius:8px;padding:12px;"></div>
+                        <div id="researchHistoryPanel" style="display:none;margin-top:12px;max-height:300px;overflow-y:auto;background:#0f1117;border:1px solid #2d3748;border-radius:8px;padding:12px;"></div>
                     </div>
 
-                    <!-- Existing learning controls -->
-                    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
-                        <button class="btn" onclick="loadLearningStats()">📊 Learning Stats</button>
-                        <button class="btn btn-secondary" onclick="loadCriticalRequirements()">⚠️ Critical Reqs</button>
-                        <button class="btn btn-secondary" onclick="reseedKnowledge()">🌱 Reseed Knowledge</button>
-                    </div>
-                    <div id="learningStatsPanel" style="display:none;background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:16px;margin-bottom:16px;">
-                        <div id="learningStatsContent" style="display:flex;gap:24px;flex-wrap:wrap;"></div>
-                    </div>
-                    <h2>Critical Requirements</h2>
+                    <!-- Critical Requirements (secondary) -->
+                    <h2 style="margin-top:0;">Critical Requirements</h2>
                     <div id="criticalReqsContainer">
-                        <div style="text-align:center;padding:30px;color:#a0aec0;">Click "⚠️ Critical Reqs" to load.</div>
+                        <div style="text-align:center;padding:20px;color:#a0aec0;">Click "⚠️ Critical Reqs" to load.</div>
                     </div>
-                    <div id="learningMsg" style="margin-top:12px;"></div>
+                    <div id="learningMsg" style="margin-top:8px;"></div>
                 </div>
 
                 <!-- Improve Existing App Section -->
@@ -2442,7 +2406,7 @@
             if (sectionId === 'metrics') loadMetrics();
                         if (sectionId === 'metrics') loadAiOps();
             if (sectionId === 'self-healing') loadSelfHealingHealth();
-            if (sectionId === 'system-learning') { loadLearningStats(); loadResearchStats(); loadLearningSettings(); }
+            if (sectionId === 'system-learning') { loadResearchStats(); loadLearningSettings(); }
             if (sectionId === 'existing-projects') loadExistingProjects();
             if (sectionId === 'consensus') loadConsensusStats();
             if (sectionId === 'notifications') loadNotificationHistory();
@@ -4537,9 +4501,9 @@
                     const idleMins = Math.round((d.idleForMs || 0) / 60000);
                     const thresholdMins = Math.round((d.idleThresholdMs || 3600000) / 60000);
                     if (enabled) {
-                        statusText.innerHTML = `<span style="color:#48bb78;">● ACTIVE</span> — System idle for ${idleMins} min (learning starts after ${thresholdMins} min idle). Total research cycles: <strong>${d.totalResearchCompleted || 0}</strong>`;
+                        statusText.innerHTML = `<span style="color:#48bb78;">● ACTIVE</span> — idle ${idleMins} min (starts after ${thresholdMins} min idle) · cycles: <strong>${d.totalResearchCompleted || 0}</strong>`;
                     } else {
-                        statusText.innerHTML = `<span style="color:#f56565;">● PAUSED</span> — Auto-learning is disabled by admin. Click "✅ Enable Learning" to resume.`;
+                        statusText.innerHTML = `<span style="color:#f56565;">● PAUSED</span> — learning disabled by admin`;
                     }
                 }
 
@@ -4549,25 +4513,23 @@
                 if (btnEnable)  btnEnable.disabled  = enabled;
                 if (btnDisable) btnDisable.disabled = !enabled;
 
-                // Update Firebase quota
+                // Update Firebase quota bars
                 const quota = d.firebaseQuota || {};
                 renderQuota(quota);
 
-                // Show research stats panel
-                const panel = document.getElementById('researchStatsPanel');
+                // Stat chips (inline, always visible)
                 const content = document.getElementById('researchStatsContent');
-                if (panel && content) {
-                    panel.style.display = 'block';
+                if (content) {
                     const items = [
-                        { label: 'Topics In Queue', value: d.topicsInQueue || 0, color: '#ed8936' },
-                        { label: 'Research Cycles', value: d.totalResearchCompleted || 0, color: '#48bb78' },
-                        { label: 'History Size',    value: d.historySize || 0,          color: '#63b3ed' },
-                        { label: 'System Idle',     value: d.isIdle ? 'YES ✅' : 'NO 🏃', color: d.isIdle ? '#48bb78' : '#fc8181' },
+                        { label: 'In Queue',    value: d.topicsInQueue || 0,         color: '#ed8936' },
+                        { label: 'Cycles Done', value: d.totalResearchCompleted || 0, color: '#48bb78' },
+                        { label: 'History',     value: d.historySize || 0,            color: '#63b3ed' },
+                        { label: 'Idle Now',    value: d.isIdle ? '✅ Yes' : '🏃 No', color: d.isIdle ? '#48bb78' : '#fc8181' },
                     ];
                     content.innerHTML = items.map(i =>
-                        `<div style="background:#2d3748;border-radius:8px;padding:10px 16px;text-align:center;">
-                            <div style="font-size:11px;color:#718096;text-transform:uppercase;">${i.label}</div>
-                            <div style="font-size:20px;font-weight:700;color:${i.color};">${i.value}</div>
+                        `<div style="background:#2d3748;border-radius:8px;padding:8px 16px;text-align:center;min-width:80px;">
+                            <div style="font-size:10px;color:#718096;text-transform:uppercase;">${i.label}</div>
+                            <div style="font-size:18px;font-weight:700;color:${i.color};">${i.value}</div>
                         </div>`
                     ).join('');
                 }
@@ -4575,6 +4537,10 @@
                 const statusText = document.getElementById('learningStatusText');
                 if (statusText) statusText.innerHTML = `<span style="color:#718096;">Could not reach server (${e.message})</span>`;
             }
+        }
+
+        function toggleResearchHistory() {
+            loadResearchHistory();
         }
 
         function renderQuota(quota) {
@@ -4587,20 +4553,20 @@
             const safe       = quota.withinSafeLimit;
 
             const el = (id) => document.getElementById(id);
-            if (el('quotaWriteCount')) el('quotaWriteCount').textContent = writeCount.toLocaleString();
-            if (el('quotaWriteLimit')) el('quotaWriteLimit').textContent = `limit: ${writeLimit.toLocaleString()} / day`;
-            if (el('quotaReadCount'))  el('quotaReadCount').textContent  = readCount.toLocaleString();
-            if (el('quotaReadLimit'))  el('quotaReadLimit').textContent  = `limit: ${readLimit.toLocaleString()} / day`;
+            if (el('quotaWriteCount')) el('quotaWriteCount').textContent = `${writeCount.toLocaleString()} / ${writeLimit.toLocaleString()}`;
+            if (el('quotaWriteLimit')) el('quotaWriteLimit').textContent = `${writeLimit.toLocaleString()} writes / day max`;
+            if (el('quotaReadCount'))  el('quotaReadCount').textContent  = `${readCount.toLocaleString()} / ${readLimit.toLocaleString()}`;
+            if (el('quotaReadLimit'))  el('quotaReadLimit').textContent  = `${readLimit.toLocaleString()} reads / day max`;
 
             const writeBar = el('quotaWriteBar');
             const readBar  = el('quotaReadBar');
-            if (writeBar) { writeBar.style.width = Math.min(writePct, 100) + '%'; writeBar.style.background = writePct > 70 ? '#f56565' : writePct > 40 ? '#ed8936' : '#48bb78'; }
-            if (readBar)  { readBar.style.width  = Math.min(readPct,  100) + '%'; readBar.style.background  = readPct  > 70 ? '#f56565' : readPct  > 40 ? '#ed8936' : '#63b3ed'; }
+            if (writeBar) { writeBar.style.width = Math.min(writePct, 100) + '%'; writeBar.style.background = writePct >= 100 ? '#f56565' : writePct > 70 ? '#ed8936' : '#48bb78'; }
+            if (readBar)  { readBar.style.width  = Math.min(readPct,  100) + '%'; readBar.style.background  = readPct  >= 100 ? '#f56565' : readPct  > 70 ? '#ed8936' : '#63b3ed'; }
 
             const safeEl = el('quotaSafeStatus');
             if (safeEl) {
-                if (safe === true)       safeEl.innerHTML = '<span style="color:#48bb78;">✅ Safe</span>';
-                else if (safe === false) safeEl.innerHTML = '<span style="color:#f56565;">⚠️ Near Limit</span>';
+                if (safe === true)       safeEl.innerHTML = '<span style="color:#48bb78;">✅ Within Limit</span>';
+                else if (safe === false) safeEl.innerHTML = '<span style="color:#f56565;">🛑 Limit Reached — Learning Paused</span>';
                 else                     safeEl.innerHTML = '<span style="color:#718096;">—</span>';
             }
             const winEl = el('quotaWindow');

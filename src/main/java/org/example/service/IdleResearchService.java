@@ -895,13 +895,13 @@ public class IdleResearchService {
     }
 
     /**
-     * Returns true when both read and write counts are well below the free-tier limit.
-     * Stops learning at 80 % of the limit to leave headroom for normal app operations.
+     * Returns true when both read and write counts are below the admin-set daily limit.
+     * The limit set by the admin IS the hard stop — no hidden multiplier is applied.
      */
     private boolean isWithinFirebaseQuota() {
         maybeResetQuotaWindow();
-        return firebaseWriteCount.get() < (dailyWriteLimit * 0.8)
-            && firebaseReadCount.get()  < (dailyReadLimit  * 0.8);
+        return firebaseWriteCount.get() < dailyWriteLimit
+            && firebaseReadCount.get()  < dailyReadLimit;
     }
 
     private void addToHistory(ResearchTopic topic) {
