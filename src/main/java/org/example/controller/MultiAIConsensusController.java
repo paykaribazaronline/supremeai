@@ -52,24 +52,28 @@ public class MultiAIConsensusController {
             ConsensusVote vote = consensusService.askAllAI(question);
             
             if (vote == null) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("status", "error", "message", "Consensus service returned no result"));
             }
             
-            return ResponseEntity.ok(Map.of(
-                "status", "success",
-                "question", vote.getQuestion(),
-                "voteId", vote.getId(),
-                "responses", vote.getTotalResponses(),
-                "winningResponse", vote.getWinningResponse(),
-                "consensusPercentage", vote.getConsensusPercentage(),
-                "confidenceScore", vote.getConfidenceScore(),
-                "learnings", vote.getLearnings(),
-                "timestamp", vote.getTimestamp()
-            ));
+            Map<String, Object> responseBody = new LinkedHashMap<>();
+            responseBody.put("status", "success");
+            responseBody.put("question", vote.getQuestion());
+            responseBody.put("voteId", vote.getId());
+            responseBody.put("responses", vote.getTotalResponses());
+            responseBody.put("winningResponse", vote.getWinningResponse() != null
+                ? vote.getWinningResponse()
+                : "[No consensus reached — all configured providers failed to respond]");
+            responseBody.put("consensusPercentage", vote.getConsensusPercentage());
+            responseBody.put("confidenceScore", vote.getConfidenceScore());
+            responseBody.put("learnings", vote.getLearnings());
+            responseBody.put("timestamp", vote.getTimestamp());
+            return ResponseEntity.ok(responseBody);
             
         } catch (Exception e) {
-            logger.error("❌ Consensus error: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            logger.error("❌ Consensus error: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("status", "error", "message", "Consensus failed: " + e.getMessage()));
         }
     }
     
@@ -92,19 +96,24 @@ public class MultiAIConsensusController {
                 "status", "success",
                 "totalVotes", votes.size(),
                 "votes", votes.stream()
-                    .map(v -> Map.of(
-                        "id", v.getId(),
-                        "question", v.getQuestion(),
-                        "winningResponse", v.getWinningResponse(),
-                        "consensusPercentage", v.getConsensusPercentage(),
-                        "providersConsulted", v.getTotalResponses(),
-                        "timestamp", v.getTimestamp()
-                    ))
+                    .map(v -> {
+                        Map<String, Object> entry = new LinkedHashMap<>();
+                        entry.put("id", v.getId());
+                        entry.put("question", v.getQuestion() != null ? v.getQuestion() : "");
+                        entry.put("winningResponse", v.getWinningResponse() != null
+                            ? v.getWinningResponse()
+                            : "[No consensus reached]");
+                        entry.put("consensusPercentage", v.getConsensusPercentage());
+                        entry.put("providersConsulted", v.getTotalResponses());
+                        entry.put("timestamp", v.getTimestamp());
+                        return entry;
+                    })
                     .toList()
             ));
             
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("status", "error", "message", "Failed to retrieve history: " + e.getMessage()));
         }
     }
     
@@ -131,7 +140,8 @@ public class MultiAIConsensusController {
             ));
             
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("status", "error", "message", "Failed to retrieve stats: " + e.getMessage()));
         }
     }
     
