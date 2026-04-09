@@ -326,14 +326,9 @@ public class ExistingProjectService {
                     : null;
 
             if (isAIUnavailableResponse(aiSuggestion)) {
-                String summary = "AI providers unavailable or quota exceeded";
-                project.addImprovementRecord(summary, List.of(), false);
-                project.addConversationMessage("ai", "⚠️ " + summary + ". No repository changes were applied in this cycle.");
-                project.setStatus("IDLE");
-                report.put("status", "skipped");
-                report.put("skipped", summary);
-                report.put("finishedAt", System.currentTimeMillis());
-                return report;
+                // Solo mode: generate rule-based improvements instead of skipping
+                logger.info("🧠 Solo mode: generating rule-based improvements for {}", project.getName());
+                aiSuggestion = generateSoloImprovements(project, repoSnapshot);
             }
 
             project.setLatestAnalysis(truncate(aiSuggestion, 2000));
@@ -569,6 +564,119 @@ public class ExistingProjectService {
         return response == null
                 || response.contains("[QUOTA_EXCEEDED]");
         // [SOLO] and [LOCAL_FALLBACK] responses are now valid solo-mode output — not failures
+    }
+
+    /**
+     * Solo mode: generate real, actionable improvements from repo structure and project goal.
+     * Produces rule-based analysis when no external AI is available.
+     */
+    private String generateSoloImprovements(ExistingProject project, String repoSnapshot) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[SOLO] SupremeAI Solo Improvement Analysis\n\n");
+
+        String goal = project.getImprovementGoal();
+        if (goal != null && !goal.isBlank()) {
+            sb.append("## Improvement Goal\n").append(goal).append("\n\n");
+        }
+
+        sb.append("## Automated Code Analysis\n\n");
+
+        String snapshot = repoSnapshot != null ? repoSnapshot.toLowerCase() : "";
+
+        // Security improvements
+        sb.append("### Security\n");
+        if (snapshot.contains(".java") || snapshot.contains(".kt")) {
+            sb.append("- Add input validation annotations (@NotNull, @Valid) on all controller parameters\n");
+            sb.append("- Use parameterized queries to prevent SQL injection\n");
+            sb.append("- Add CSRF protection for state-changing endpoints\n");
+        }
+        if (snapshot.contains(".js") || snapshot.contains(".ts") || snapshot.contains(".html")) {
+            sb.append("- Sanitize user inputs to prevent XSS attacks\n");
+            sb.append("- Add Content-Security-Policy headers\n");
+            sb.append("- Use HTTPS for all external requests\n");
+        }
+        sb.append("- Review authentication and authorization on all endpoints\n\n");
+
+        // Testing improvements
+        sb.append("### Testing\n");
+        boolean hasTests = snapshot.contains("test") || snapshot.contains("spec");
+        if (!hasTests) {
+            sb.append("- **CRITICAL:** No test files detected. Add unit tests for core business logic\n");
+            sb.append("- Add integration tests for API endpoints\n");
+            sb.append("- Set up test coverage reporting\n");
+        } else {
+            sb.append("- Verify test coverage is above 80%\n");
+            sb.append("- Add edge case tests (null inputs, boundary values, error paths)\n");
+        }
+        sb.append("- Add smoke tests for critical user flows\n\n");
+
+        // Error handling
+        sb.append("### Error Handling\n");
+        sb.append("- Add global exception handler with proper HTTP status codes\n");
+        sb.append("- Use try-catch with specific exceptions (not generic Exception)\n");
+        sb.append("- Add structured logging with context (request ID, user ID)\n");
+        sb.append("- Return user-friendly error messages (hide internal details)\n\n");
+
+        // CI/CD
+        boolean hasCiCd = snapshot.contains(".github/workflows") || snapshot.contains("jenkinsfile")
+                || snapshot.contains("gitlab-ci") || snapshot.contains("cloudbuild");
+        sb.append("### CI/CD\n");
+        if (!hasCiCd) {
+            sb.append("- **CRITICAL:** No CI/CD pipeline detected. Add .github/workflows/ci.yml\n");
+            sb.append("- Configure automated build, test, and deploy stages\n");
+        } else {
+            sb.append("- Verify CI pipeline runs tests on every push\n");
+        }
+        sb.append("- Add automated code quality checks (linting, formatting)\n\n");
+
+        // Documentation
+        boolean hasReadme = snapshot.contains("readme");
+        sb.append("### Documentation\n");
+        if (!hasReadme) {
+            sb.append("- **Add README.md** with project description, setup instructions, and API docs\n");
+        }
+        sb.append("- Add API documentation (Swagger/OpenAPI for REST APIs)\n");
+        sb.append("- Document environment variables and configuration\n\n");
+
+        // Performance
+        sb.append("### Performance\n");
+        sb.append("- Add caching for frequently accessed data\n");
+        sb.append("- Use database connection pooling\n");
+        sb.append("- Implement pagination for list endpoints\n");
+        if (snapshot.contains("package.json")) {
+            sb.append("- Run `npm audit` and update vulnerable dependencies\n");
+            sb.append("- Add bundle size optimization (tree shaking, code splitting)\n");
+        }
+        if (snapshot.contains("build.gradle") || snapshot.contains("pom.xml")) {
+            sb.append("- Review and update dependency versions\n");
+            sb.append("- Enable compiler optimizations for production builds\n");
+        }
+
+        // Goal-specific improvements
+        if (goal != null) {
+            String lowerGoal = goal.toLowerCase();
+            sb.append("\n### Goal-Specific Improvements\n");
+            if (lowerGoal.contains("crud") || lowerGoal.contains("database") || lowerGoal.contains("data")) {
+                sb.append("- Add proper data validation at service layer\n");
+                sb.append("- Implement soft delete instead of hard delete\n");
+                sb.append("- Add audit fields (createdAt, updatedAt, createdBy)\n");
+            }
+            if (lowerGoal.contains("api") || lowerGoal.contains("rest")) {
+                sb.append("- Add rate limiting to prevent abuse\n");
+                sb.append("- Implement API versioning (e.g., /v1/resource)\n");
+                sb.append("- Add request/response logging middleware\n");
+            }
+            if (lowerGoal.contains("frontend") || lowerGoal.contains("ui") || lowerGoal.contains("react")) {
+                sb.append("- Add loading states and error boundaries\n");
+                sb.append("- Implement responsive design for mobile\n");
+                sb.append("- Add form validation with user-friendly messages\n");
+            }
+        }
+
+        sb.append("\n## Mode: Solo (rule-based analysis, no external AI)\n");
+        sb.append("*Connect an AI provider for deeper, context-aware analysis.*\n");
+
+        return sb.toString();
     }
 
     private ExistingProject requireProject(String id) {
