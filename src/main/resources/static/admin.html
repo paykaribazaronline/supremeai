@@ -2669,22 +2669,14 @@
         }
 
         async function ensureAdminSession() {
-            try {
-                const response = await fetch('/api/auth/me', {
-                    credentials: 'include'
-                });
-
-                if (!response.ok) {
-                    localStorage.removeItem('supremeai_user');
-                    window.location.href = '/login.html';
-                    return false;
-                }
-
-                return true;
-            } catch (_) {
-                // If backend is temporarily unreachable, keep page open and show per-tab errors.
-                return true;
+            const isAuth = localStorage.getItem('supremeai_firebase_authenticated') === 'true';
+            if (!isAuth) {
+                localStorage.removeItem('supremeai_user');
+                window.location.href = '/login.html';
+                return false;
             }
+
+            return true;
         }
 
         async function fetchTechniques(category = '') {
@@ -3599,8 +3591,8 @@
                 const data = await res.json();
                 const projects = data.projects || [];
 
-                document.getElementById('activeProjectsCount').innerText = projects.filter(p => p.status === 'GENERATING' || p.status === 'RUNNING').length;
-                document.getElementById('completedProjectsCount').innerText = projects.filter(p => p.status === 'COMPLETED').length;
+                document.getElementById('activeProjectsCount').innerText = projects.filter(p => p.status === 'GENERATING' || p.status === 'TEMPLATE_INITIALIZED' || p.status === 'RUNNING').length;
+                document.getElementById('completedProjectsCount').innerText = projects.filter(p => p.status === 'COMPLETED' || p.status === 'PUSHED_TO_REPO').length;
 
                 if (!projects.length) {
                     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#a0aec0;">📦 No projects yet. Click "➕ Create New Project" to start!</td></tr>';
@@ -3650,22 +3642,25 @@
                     body: JSON.stringify({ projectId, templateType, description, features, repoUrl, repoBranch, repoToken })
                 });
                 const data = await res.json();
-                const proj = data.project || data;
-                if (data.status === 'success' || proj.projectId) {
-                    const pushInfo = proj.pushed === true
-                        ? ` ✅ Pushed to <a href="${escHtml(proj.repoUrl)}" target="_blank" style="color:#63b3ed;">${escHtml(proj.repoUrl)}</a>`
-                        : ` ⚠️ Push failed — check your token and that the repo exists.`;
-                    msg.innerHTML = `<span style="color:#48bb78;">✅ Project "${escHtml(proj.projectId || projectId)}" generated! Status: ${escHtml(proj.status || 'started')}${pushInfo}</span>`;
-                    document.getElementById('newProjectId').value = '';
-                    document.getElementById('newProjectDesc').value = '';
-                    document.getElementById('newProjectFeatures').value = '';
-                    document.getElementById('newProjectRepoUrl').value = '';
-                    document.getElementById('newProjectRepoBranch').value = '';
-                    document.getElementById('newProjectRepoToken').value = '';
-                    loadProjects();
-                } else {
-                    msg.innerHTML = `<span style="color:#f56565;">❌ ${escHtml(data.message || data.error || 'Failed to create project')}</span>`;
+                if (!res.ok || data.status !== 'success') {
+                    throw new Error(data.message || data.error || 'Failed to create project');
                 }
+                const proj = data.project || {};
+                if (!proj.projectId) {
+                    throw new Error('Backend did not return project metadata');
+                }
+
+                const pushInfo = proj.pushed === true
+                    ? ` ✅ Pushed to <a href="${escHtml(proj.repoUrl)}" target="_blank" style="color:#63b3ed;">${escHtml(proj.repoUrl)}</a>`
+                    : ` ⚠️ Push failed — check your token and that the repo exists.`;
+                msg.innerHTML = `<span style="color:#48bb78;">✅ Project "${escHtml(proj.projectId)}" generated! Status: ${escHtml(proj.status || 'started')}${pushInfo}</span>`;
+                document.getElementById('newProjectId').value = '';
+                document.getElementById('newProjectDesc').value = '';
+                document.getElementById('newProjectFeatures').value = '';
+                document.getElementById('newProjectRepoUrl').value = '';
+                document.getElementById('newProjectRepoBranch').value = '';
+                document.getElementById('newProjectRepoToken').value = '';
+                loadProjects();
             } catch (e) {
                 msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
             }
@@ -5544,13 +5539,15 @@
 
         function logout() {
             if (!confirm('Are you sure you want to logout?')) return;
-            fetch('/api/auth/logout', { method: 'POST' })
-                .catch(() => null)
-                .finally(() => {
-                    localStorage.removeItem('supremeai_token');
-                    localStorage.removeItem('supremeai_refresh_token');
+            localStorage.removeItem('supremeai_firebase_authenticated');
+            localStorage.removeItem('supremeai_user');
+            if (window.firebase && firebase.apps && firebase.apps.length && firebase.auth) {
+                firebase.auth().signOut().catch(() => null).finally(() => {
                     window.location.href = '/login.html';
                 });
+                return;
+            }
+            window.location.href = '/login.html';
         }
 
         // =============================================

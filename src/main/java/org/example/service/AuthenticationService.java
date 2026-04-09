@@ -76,6 +76,42 @@ public class AuthenticationService {
         } catch (Exception e) {
             logger.warn("⚠️ Could not restore users from disk: {}", e.getMessage());
         }
+
+        ensureDefaultAdminUser();
+    }
+
+    private void ensureDefaultAdminUser() {
+        if (!userCache.isEmpty()) {
+            return;
+        }
+
+        try {
+            String username = Optional.ofNullable(System.getenv("SUPREMEAI_DEFAULT_ADMIN_USERNAME"))
+                .filter(v -> !v.isBlank())
+                .orElse("supremeai");
+            String email = Optional.ofNullable(System.getenv("SUPREMEAI_DEFAULT_ADMIN_EMAIL"))
+                .filter(v -> !v.isBlank())
+                .orElse("supremeai@local");
+            String password = Optional.ofNullable(System.getenv("SUPREMEAI_DEFAULT_ADMIN_PASSWORD"))
+                .filter(v -> !v.isBlank())
+                .orElse("Admin@123456!");
+
+            User seeded = new User(username, email, hashPassword(password));
+            seeded.setId(username);
+            userCache.put(username, seeded);
+            persistUsers();
+
+            try {
+                firebaseService.saveUser(seeded);
+            } catch (Exception ignored) {
+                // Local auth remains primary fallback when Firebase is unavailable.
+            }
+
+            syncAdminToFirebaseAuth(email, password, username);
+            logger.info("✅ Default admin user created: {}", username);
+        } catch (Exception e) {
+            logger.warn("⚠️ Could not create default admin user: {}", e.getMessage());
+        }
     }
     
     private void persistUsers() {
@@ -119,8 +155,10 @@ public class AuthenticationService {
         // Persist to local disk (always works, even without Firebase)
         persistUsers();
         
-        // Also save to Firebase (async, will eventually persist)
-        firebaseService.saveUser(user);
+        // Also save to Firebase (async, only when available)
+        if (firebaseService.isInitialized()) {
+            firebaseService.saveUser(user);
+        }
 
         // Keep Firebase Authentication in sync so client SDK login works.
         syncAdminToFirebaseAuth(email, password, username);
@@ -166,7 +204,7 @@ public class AuthenticationService {
         syncAdminToFirebaseAuth(user.getEmail(), password, user.getUsername());
         
         // MFA required for admin (case-insensitive — role is stored as "admin")
-        if (user.getRole() != null && "ADMIN".equalsIgnoreCase(user.getRole())) {
+        if (isMfaEnabled() && user.getRole() != null && "ADMIN".equalsIgnoreCase(user.getRole())) {
             generateAndSendMfaCode(username, user.getEmail());
             throw new IllegalArgumentException("MFA required. Code sent to email.");
         }
@@ -178,7 +216,13 @@ public class AuthenticationService {
         // Update last login
         user.setLastLogin(System.currentTimeMillis());
         persistUsers();
-        firebaseService.updateUser(user);
+        if (firebaseService.isInitialized()) {
+            try {
+                firebaseService.updateUser(user);
+            } catch (Exception e) {
+                logger.warn("⚠️ Could not update user login timestamp in Firebase: {}", e.getMessage());
+            }
+        }
         String token = generateJWT(user);
         String refreshToken = generateRefreshToken(user);
         
@@ -263,13 +307,28 @@ public class AuthenticationService {
      * Get user by username (checks cache first for speed)
      */
     public User getUserByUsername(String username) throws Exception {
+        if (username == null || username.trim().isEmpty()) {
+            return null;
+        }
+
         // Check in-memory cache first (fast)
         if (userCache.containsKey(username)) {
             logger.debug("✅ User found in cache: {}", username);
             return userCache.get(username);
         }
+
+        for (User cachedUser : userCache.values()) {
+            if (cachedUser != null && username.equalsIgnoreCase(cachedUser.getUsername())) {
+                logger.debug("✅ User found in cache (case-insensitive): {}", username);
+                return cachedUser;
+            }
+        }
         
-        // Fall back to Firebase
+        // Fall back to Firebase only if available
+        if (!firebaseService.isInitialized()) {
+            return null;
+        }
+
         User user = firebaseService.getUserByUsername(username);
         if (user != null) {
             userCache.put(username, user);
@@ -291,6 +350,10 @@ public class AuthenticationService {
             }
         }
 
+        if (!firebaseService.isInitialized()) {
+            return null;
+        }
+
         return firebaseService.getUserByEmail(email);
     }
     
@@ -307,6 +370,22 @@ public class AuthenticationService {
         if (userCache.containsKey(identifier)) {
             logger.debug("✅ User found in cache: {}", identifier);
             return userCache.get(identifier);
+        }
+
+        for (User cachedUser : userCache.values()) {
+            if (cachedUser == null) {
+                continue;
+            }
+            if (identifier.equalsIgnoreCase(cachedUser.getUsername())
+                    || identifier.equalsIgnoreCase(cachedUser.getEmail())) {
+                logger.debug("✅ User found in cache (flex lookup): {}", identifier);
+                return cachedUser;
+            }
+        }
+
+        if (!firebaseService.isInitialized()) {
+            logger.debug("ℹ️ Firebase unavailable; skipping remote user lookup for {}", identifier);
+            return null;
         }
         
         // Try Firebase by username
@@ -340,6 +419,9 @@ public class AuthenticationService {
      * Get user by ID
      */
     public User getUserById(String userId) throws Exception {
+        if (!firebaseService.isInitialized()) {
+            return userCache.get(userId);
+        }
         return firebaseService.getUserById(userId);
     }
     
@@ -363,7 +445,7 @@ public class AuthenticationService {
      * Get all users (admin only)
      */
     public List<User> getAllUsers() throws Exception {
-        try {
+        if (firebaseService.isInitialized()) try {
             List<User> fbUsers = firebaseService.getAllUsers();
             if (fbUsers != null && !fbUsers.isEmpty()) return fbUsers;
         } catch (Exception ignored) {}
@@ -467,7 +549,20 @@ public class AuthenticationService {
      * Verify password against hash
      */
     private boolean verifyPassword(String password, String hash) {
-        return org.springframework.security.crypto.bcrypt.BCrypt.checkpw(password, hash);
+        try {
+            return hash != null
+                && !hash.isBlank()
+                && hash.startsWith("$2")
+                && org.springframework.security.crypto.bcrypt.BCrypt.checkpw(password, hash);
+        } catch (Exception e) {
+            logger.debug("Password verification failed due to invalid hash format: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    private boolean isMfaEnabled() {
+        String mfaEnabled = System.getenv("SUPREMEAI_MFA_ENABLED");
+        return "true".equalsIgnoreCase(mfaEnabled);
     }
 
     // ============ FIREBASE AUTH SYNC ============

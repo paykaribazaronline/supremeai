@@ -3,6 +3,7 @@ package org.example.api;
 import org.example.service.FileOrchestrator;
 import org.example.service.TemplateManager;
 import org.example.service.AgentOrchestrator;
+import org.example.service.GeneratedProjectRegistryService;
 import org.example.service.IdleResearchService;
 import org.example.service.PublicAIRouter;
 import org.slf4j.Logger;
@@ -54,20 +55,20 @@ public class ProjectGenerationController {
     private final FileOrchestrator fileOrchestrator;
     private final TemplateManager templateManager;
     private final AgentOrchestrator agentOrchestrator;
+    private final GeneratedProjectRegistryService projectRegistryService;
     private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     
     @Autowired(required = false)
     private IdleResearchService idleResearchService;
     
-    // Project status tracking (projectId -> status)
-    private final Map<String, Map<String, Object>> projectStatuses = new HashMap<>();
-    
     public ProjectGenerationController(FileOrchestrator fileOrchestrator,
                                       TemplateManager templateManager,
-                                      AgentOrchestrator agentOrchestrator) {
+                                      AgentOrchestrator agentOrchestrator,
+                                      GeneratedProjectRegistryService projectRegistryService) {
         this.fileOrchestrator = fileOrchestrator;
         this.templateManager = templateManager;
         this.agentOrchestrator = agentOrchestrator;
+        this.projectRegistryService = projectRegistryService;
     }
     
     /**
@@ -79,7 +80,7 @@ public class ProjectGenerationController {
      */
     @GetMapping
     public Map<String, Object> listProjects() {
-        List<Map<String, Object>> projects = new ArrayList<>(projectStatuses.values());
+        List<Map<String, Object>> projects = new ArrayList<>(projectRegistryService.listProjects());
         
         // Sort by creation date
         projects.sort((a, b) -> ((String) b.get("createdAt")).compareTo((String) a.get("createdAt")));
@@ -116,6 +117,7 @@ public class ProjectGenerationController {
     @PostMapping("/generate")
     public Map<String, Object> generateProject(@RequestBody Map<String, Object> request) {
         long startTime = System.currentTimeMillis();
+        boolean generationSucceeded = true;
 
         // Notify idle research engine the system is working
         if (idleResearchService != null) {
@@ -211,18 +213,20 @@ public class ProjectGenerationController {
             projectStatus.put("status", pushed ? "PUSHED_TO_REPO" : "PUSH_FAILED");
             projectStatus.put("progress", 100);
 
-            projectStatuses.put(projectId, projectStatus);
+            projectRegistryService.saveProject(projectStatus);
 
         } catch (Exception e) {
+            generationSucceeded = false;
             projectStatus.put("status", "FAILED");
             projectStatus.put("error", e.getMessage());
             projectStatus.put("errorCount", 1);
+            projectRegistryService.saveProject(projectStatus);
         }
 
         Map<String, Object> response = new HashMap<>();
-        response.put("status", "success");
+        response.put("status", generationSucceeded ? "success" : "error");
         response.put("project", projectStatus);
-        response.put("message", "Project generation initiated");
+        response.put("message", generationSucceeded ? "Project generation initiated" : "Project generation failed");
 
         return response;
     }
@@ -237,8 +241,10 @@ public class ProjectGenerationController {
      */
     @GetMapping("/{projectId}/status")
     public Map<String, Object> getProjectStatus(@PathVariable String projectId) {
-        Map<String, Object> status = projectStatuses.getOrDefault(projectId, 
-            Map.of("error", "Project not found"));
+        Map<String, Object> status = projectRegistryService.getProject(projectId);
+        if (status == null) {
+            status = Map.of("error", "Project not found");
+        }
         
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
@@ -348,7 +354,7 @@ public class ProjectGenerationController {
      */
     @DeleteMapping("/{projectId}")
     public Map<String, Object> deleteProject(@PathVariable String projectId) {
-        projectStatuses.remove(projectId);
+        projectRegistryService.removeProject(projectId);
         
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
@@ -412,7 +418,7 @@ public class ProjectGenerationController {
     @PostMapping("/{projectId}/validate")
     public Map<String, Object> validateProject(@PathVariable String projectId) {
         // In production, would actually run build/lint tools
-        Map<String, Object> status = projectStatuses.getOrDefault(projectId, new HashMap<>());
+        Map<String, Object> status = Optional.ofNullable(projectRegistryService.getProject(projectId)).orElseGet(HashMap::new);
         
         // Simulated validation
         boolean valid = Math.random() > 0.1; // 90% pass rate
@@ -439,12 +445,13 @@ public class ProjectGenerationController {
      */
     @GetMapping("/stats/overview")
     public Map<String, Object> getGenerationStats() {
-        int totalProjects = projectStatuses.size();
-        long completed = projectStatuses.values().stream()
-                .filter(p -> "COMPLETED".equals(p.get("status")))
+        List<Map<String, Object>> projects = projectRegistryService.listProjects();
+        int totalProjects = projects.size();
+        long completed = projects.stream()
+            .filter(p -> "COMPLETED".equals(p.get("status")) || "PUSHED_TO_REPO".equals(p.get("status")))
                 .count();
-        long failed = projectStatuses.values().stream()
-                .filter(p -> "FAILED".equals(p.get("status")))
+        long failed = projects.stream()
+            .filter(p -> "FAILED".equals(p.get("status")) || "PUSH_FAILED".equals(p.get("status")))
                 .count();
         
         Map<String, Object> stats = new HashMap<>();
