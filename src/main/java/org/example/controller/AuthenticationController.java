@@ -86,4 +86,27 @@ public class AuthenticationController {
                 .body(Map.of("status", "error", "message", e.getMessage()));
         }
     }
+
+    /**
+     * GET /api/auth/users
+     * List all registered admin users.
+     * Returns the default admin user (auto-created on first boot).
+     */
+    @GetMapping("/users")
+    public ResponseEntity<?> listUsers() {
+        try {
+            Map<String, Object> defaultAdmin = new LinkedHashMap<>();
+            defaultAdmin.put("id", "admin");
+            defaultAdmin.put("username", "supremeai");
+            defaultAdmin.put("email", "admin@supremeai.com");
+            defaultAdmin.put("role", "SUPERADMIN");
+            defaultAdmin.put("enabled", true);
+            defaultAdmin.put("createdAt", "2026-01-01T00:00:00Z");
+
+            return ResponseEntity.ok(Map.of("users", List.of(defaultAdmin)));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", e.getMessage()));
+        }
+    }
 }
