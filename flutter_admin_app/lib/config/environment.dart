@@ -24,6 +24,9 @@ class Environment {
     return cloudBaseUrl;
   }
 
+  // Alias for baseUrl (used by admin screens)
+  static String get apiBaseUrl => baseUrl;
+
   static const String projectsList = '/api/projects';
   static const String projectGenerate = '/api/projects/generate';
   static const String projectRunning = '/api/projects/running';
