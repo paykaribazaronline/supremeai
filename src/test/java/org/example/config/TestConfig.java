@@ -10,6 +10,9 @@ import static org.mockito.Mockito.mock;
 /**
  * Test Configuration for mocking Firebase and other external dependencies
  * in unit and integration tests.
+ * 
+ * Note: AIAPIService is auto-created by BeanConfiguration with empty API keys.
+ * Tests that need to mock AIAPIService can add @MockBean annotation directly.
  */
 @TestConfiguration
 public class TestConfig {
