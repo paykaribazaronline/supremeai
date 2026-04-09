@@ -51,6 +51,9 @@ public class ExistingProjectService {
     @Autowired
     private LocalJsonStoreService jsonStore;
 
+    @Autowired
+    private ProjectGovernanceService projectGovernanceService;
+
     private static final String PROJECTS_STORE_PATH = "existing-projects/registry.json";
 
     /** In-memory store: projectId → ExistingProject */
@@ -284,6 +287,16 @@ public class ExistingProjectService {
         report.put("projectId", project.getId());
         report.put("projectName", project.getName());
         report.put("startedAt", System.currentTimeMillis());
+        projectGovernanceService.applyUniversalRuleMetadata(report);
+
+        try {
+            projectGovernanceService.validateProjectGovernance(project.getId(), project.getRepoUrl(), project.getBranch());
+        } catch (IllegalArgumentException ex) {
+            project.setStatus("ERROR");
+            report.put("status", "error");
+            report.put("error", ex.getMessage());
+            return report;
+        }
 
         // Notify idle-research so it pauses while we run
         idleResearchService.notifyProjectActivity();

@@ -6,6 +6,7 @@ import org.example.service.AgentOrchestrator;
 import org.example.service.GeneratedProjectRegistryService;
 import org.example.service.IdleResearchService;
 import org.example.service.ExistingProjectService;
+import org.example.service.ProjectGovernanceService;
 import org.example.service.PublicAIRouter;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -69,6 +70,9 @@ public class ProjectGenerationController {
 
     @Autowired(required = false)
     private ExistingProjectService existingProjectService;
+
+    @Autowired
+    private ProjectGovernanceService projectGovernanceService;
     
     public ProjectGenerationController(FileOrchestrator fileOrchestrator,
                                       TemplateManager templateManager,
@@ -203,6 +207,18 @@ public class ProjectGenerationController {
             );
         }
 
+        // Universal governance enforcement for every project.
+        try {
+            projectGovernanceService.validateProjectGovernance(projectId, repoUrl, repoBranch);
+        } catch (IllegalArgumentException ex) {
+            Map<String, Object> policyError = new HashMap<>();
+            policyError.put("status", "error");
+            policyError.put("message", ex.getMessage());
+            policyError.put("timestamp", LocalDateTime.now().format(formatter));
+            projectGovernanceService.applyUniversalRuleMetadata(policyError);
+            return policyError;
+        }
+
         Map<String, Object> projectStatus = new HashMap<>();
         projectStatus.put("projectId", projectId);
         projectStatus.put("templateType", templateType);
@@ -213,6 +229,42 @@ public class ProjectGenerationController {
         projectStatus.put("createdAt", LocalDateTime.now().format(formatter));
         projectStatus.put("fileCount", 0);
         projectStatus.put("errorCount", 0);
+        projectGovernanceService.applyUniversalRuleMetadata(projectStatus);
+
+        // One intelligent flow: auto-detect whether repo is new or existing codebase.
+        Map<String, Object> repoState = projectGovernanceService.detectRepositoryState(repoUrl, repoToken, repoBranch);
+        projectStatus.put("repoState", repoState);
+
+        String state = String.valueOf(repoState.getOrDefault("state", "UNKNOWN"));
+        if ("EXISTING_CODEBASE".equals(state) && existingProjectService != null) {
+            try {
+                String trackedId = findTrackedExistingProjectId(repoUrl, repoBranch);
+                if (trackedId == null) {
+                    String goal = description == null || description.isBlank()
+                            ? "Analyze existing implementation and continue improvement with one-rule governance."
+                            : description;
+                    trackedId = existingProjectService.registerProject(projectId, repoUrl, repoBranch, repoToken, goal).getId();
+                }
+
+                existingProjectService.triggerImprovementAsync(trackedId);
+                projectStatus.put("status", "ROUTED_TO_IMPROVEMENT");
+                projectStatus.put("progress", 100);
+                projectStatus.put("trackedProjectId", trackedId);
+                projectStatus.put("message", "Repository detected as existing codebase. Routed to unified improvement flow.");
+                projectRegistryService.saveProject(projectStatus);
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("status", "success");
+                response.put("project", projectStatus);
+                response.put("message", "Auto-detected existing project and started improvement cycle.");
+                response.put("instruction", "Single flow active: system auto-detects new vs existing and applies the same governance rules.");
+                projectGovernanceService.applyUniversalRuleMetadata(response);
+                return response;
+            } catch (Exception routeError) {
+                projectStatus.put("routingError", routeError.getMessage());
+                // If routing fails, continue with generation fallback.
+            }
+        }
 
         // Initialize project
         try {
@@ -261,8 +313,8 @@ public class ProjectGenerationController {
         response.put("status", generationSucceeded ? "success" : "error");
         response.put("project", projectStatus);
         response.put("message", generationSucceeded ? "Project generation initiated" : "Project generation failed");
-        response.put("installSupremeAIBot", SUPREMEAI_BOT_INSTALL_URL);
         response.put("instruction", "One rule for all repos: install supremeai-bot so SupremeAI has full access and can run CI/CD checks after push.");
+        projectGovernanceService.applyUniversalRuleMetadata(response);
 
         return response;
     }
@@ -582,6 +634,21 @@ public class ProjectGenerationController {
         } catch (Exception exception) {
             logger.warn("Failed to sync generated project {} to existing app list: {}", projectId, exception.getMessage());
         }
+    }
+
+    private String findTrackedExistingProjectId(String repoUrl, String branch) {
+        if (existingProjectService == null) {
+            return null;
+        }
+        String normalizedBranch = (branch == null || branch.isBlank()) ? "main" : branch;
+        for (Map<String, Object> existing : existingProjectService.listProjects()) {
+            String existingRepo = String.valueOf(existing.getOrDefault("repoUrl", ""));
+            String existingBranch = String.valueOf(existing.getOrDefault("branch", "main"));
+            if (repoUrl.equals(existingRepo) && normalizedBranch.equals(existingBranch)) {
+                return String.valueOf(existing.getOrDefault("id", ""));
+            }
+        }
+        return null;
     }
     
     private void generateProjectFiles(String projectId, String templateType, List<String> features) throws Exception {
