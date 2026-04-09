@@ -3,14 +3,18 @@ package org.example.config;
 import org.example.service.AIAPIService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Spring Bean Configuration
- * Defines beans that require constructor parameters 
+ * Defines beans that require constructor parameters
+ * 
+ * NOTE: Disabled for 'test' profile - uses TestBeansConfiguration instead
  */
 @Configuration
+@Profile("!test")
 public class BeanConfiguration {
     
     private static final Logger logger = LoggerFactory.getLogger(BeanConfiguration.class);
