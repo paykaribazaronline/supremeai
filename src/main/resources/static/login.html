@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SupremeAI - Login</title>
-    <!-- Firebase SDKs (compat) for Firebase Authentication -->
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -222,7 +219,7 @@
                     type="text" 
                     id="email" 
                     name="email" 
-                    placeholder="Enter your Firebase Auth email"
+                    placeholder="Enter your email"
                     autocomplete="username"
                     required
                 >
@@ -277,28 +274,6 @@
         const STORAGE_PERSISTENCE_KEY = 'supremeai_token_persistence_enabled';
         const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
-        // ─── Firebase Authentication Init ───────────────────────────────────────
-        const firebaseConfig = {
-            apiKey: "AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8",
-            authDomain: "supremeai-a.firebaseapp.com",
-            databaseURL: "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/",
-            projectId: "supremeai-a",
-            storageBucket: "supremeai-a.firebasestorage.app",
-            messagingSenderId: "565236080752",
-            appId: "1:565236080752:web:572bb9313db9afb355d4b5"
-        };
-        let firebaseAuth = null;
-        try {
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            firebaseAuth = firebase.auth();
-            console.log('✅ Firebase Auth initialized');
-        } catch (err) {
-            console.warn('⚠️ Firebase Auth init failed:', err.message);
-        }
-        // ────────────────────────────────────────────────────────────────────────
-
         // Load remembered username on page load
         window.addEventListener('DOMContentLoaded', () => {
             checkRememberedUser();
@@ -329,33 +304,28 @@
         }
 
         function checkExistingSession() {
-            const token = localStorage.getItem('supremeai_token');
             const persistenceEnabled = localStorage.getItem(STORAGE_PERSISTENCE_KEY);
-            
-            if (token && persistenceEnabled === 'true') {
-                // Check if token is still valid
-                validateTokenAndRedirect(token);
+            if (persistenceEnabled === 'true') {
+                validateSessionAndRedirect();
             }
         }
 
-        async function validateTokenAndRedirect(token) {
+        async function validateSessionAndRedirect() {
             try {
                 const response = await fetch('/api/auth/me', {
                     method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                    credentials: 'include'
                 });
                 
                 if (response.ok) {
-                    // Token is valid, redirect to admin
+                    // Cookie session is valid, redirect to admin
                     window.location.href = '/admin.html';
                 } else {
-                    // Token invalid, clear it
+                    // Session invalid, clear local client state
                     clearAuthStorage();
                 }
             } catch (error) {
-                // Can't verify token, let user login manually
+                // Can't verify session, let user login manually
                 console.log('Could not auto-login:', error);
             }
         }
@@ -380,32 +350,19 @@
                 loading.classList.add('show');
                 loginButton.disabled = true;
 
-                if (!firebaseAuth) {
-                    throw new Error('Firebase Auth is not initialized');
-                }
-
-                const credential = await firebaseAuth.signInWithEmailAndPassword(email, password);
-                const idToken = await credential.user.getIdToken();
-
-                const response = await fetch('/api/auth/firebase-login', {
+                const response = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ idToken })
+                    credentials: 'include',
+                    body: JSON.stringify({ email, password })
                 });
 
                 const data = await response.json();
                 if (!response.ok) {
-                    throw new Error(data.message || data.error || 'Firebase login failed');
+                    throw new Error(data.message || data.error || 'Login failed');
                 }
 
-                const token = data.token;
-                const refreshToken = data.refreshToken;
-                const userData = data.user;
-
-                // ── Save auth data ──────────────────────────────────────────────
-                localStorage.setItem('supremeai_token', token);
-                localStorage.setItem('supremeai_refresh_token', refreshToken || '');
-                localStorage.setItem('supremeai_user', JSON.stringify(userData || {}));
+                localStorage.setItem('supremeai_user', JSON.stringify(data.user || {}));
 
                 if (rememberMe.checked) {
                     const expiryTime = Date.now() + THIRTY_DAYS_MS;
@@ -448,8 +405,6 @@
         }
 
         function clearAuthStorage() {
-            localStorage.removeItem('supremeai_token');
-            localStorage.removeItem('supremeai_refresh_token');
             localStorage.removeItem('supremeai_user');
             localStorage.removeItem(STORAGE_PERSISTENCE_KEY);
         }
