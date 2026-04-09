@@ -567,9 +567,8 @@ public class ExistingProjectService {
      */
     private static boolean isAIUnavailableResponse(String response) {
         return response == null
-                || response.contains("[QUOTA_EXCEEDED]")
-                || response.contains("[NO_PROVIDERS_CONFIGURED]")
-                || response.contains("[LOCAL_FALLBACK]");
+                || response.contains("[QUOTA_EXCEEDED]");
+        // [SOLO] and [LOCAL_FALLBACK] responses are now valid solo-mode output — not failures
     }
 
     private ExistingProject requireProject(String id) {

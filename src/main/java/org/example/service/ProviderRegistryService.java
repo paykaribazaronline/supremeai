@@ -347,12 +347,14 @@ public class ProviderRegistryService {
         }
     }
 
-    /** Returns the uppercase canonical provider identifier used by AIAPIService. */
+    /** Returns the uppercase canonical provider identifier used by AIAPIService.
+     *  Handles known names + dynamic fallback for any new provider admin adds. */
     private String canonicalName(APIProvider provider) {
         String id = provider.getId();
         if (id == null) return null;
-        // Common canonical IDs (must match AIAPIService.NATIVE_MODELS)
-        switch (id.toLowerCase()) {
+        String lower = id.toLowerCase();
+        // Known canonical IDs (hint-based, not a restriction)
+        switch (lower) {
             case "openai-gpt4":    case "gpt4":    return "GPT4";
             case "anthropic-claude": case "claude": return "CLAUDE";
             case "google-gemini":  case "gemini":  return "GEMINI";
@@ -364,9 +366,10 @@ public class ProviderRegistryService {
             case "xai":                            return "XAI";
             case "llama":          case "meta":    return "LLAMA";
             default:
-                // Try base model
+                // Dynamic: any new provider admin adds gets its ID uppercased as canonical name
                 String base = provider.getBaseModel();
-                return base != null ? base.toUpperCase() : null;
+                if (base != null && !base.isBlank()) return base.toUpperCase();
+                return id.toUpperCase();
         }
     }
 

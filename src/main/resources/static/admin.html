@@ -1187,9 +1187,10 @@
                                 <option value="FREE">FREE</option>
                                 <option value="STARTER">STARTER ($9/mo)</option>
                                 <option value="PROFESSIONAL">PROFESSIONAL ($99/mo)</option>
-                                <option value="ENTERPRISE">ENTERPRISE</option>
-                                <option value="SUPERADMIN">SUPERADMIN</option>
+                                <option value="ENTERPRISE">ENTERPRISE (Unlimited)</option>
+                                <option value="SUPERADMIN">SUPERADMIN (Unlimited)</option>
                             </select>
+                            <div style="color:#718096;font-size:11px;margin-top:4px;">All tier limits are dynamic — no hardcoded caps</div>
                         </div>
                         <button class="btn" onclick="setUserTier()">✅ Apply Tier</button>
                         <div id="tierMsg" style="align-self:center;"></div>
@@ -1979,6 +1980,28 @@
                         <label>
                             <input type="checkbox" checked> Enable SMS Alerts
                         </label>
+                    </div>
+
+                    <h2 style="margin-top:30px;color:#f6ad55;">🛡️ Resource Protection Strategy</h2>
+                    <p style="color:#a0aec0;margin-bottom:12px;">When external resource quotas (Firebase, GCloud, AI providers) approach their limits, what should the system do?</p>
+                    <div class="form-group">
+                        <label>Protection Mode</label>
+                        <select id="resourceProtectionStrategy" style="padding:10px;background:#2d3748;color:#fff;border:1px solid #4a5568;border-radius:5px;width:100%;max-width:400px;">
+                            <option value="UNLIMITED">♾️ UNLIMITED — Use everything, no restrictions</option>
+                            <option value="SLOW_DOWN" selected>🐢 SLOW DOWN — Reduce request rate near limits</option>
+                            <option value="FORCE_STOP">🛑 FORCE STOP — Hard stop before quota exhausts</option>
+                        </select>
+                    </div>
+                    <div style="background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:16px;margin-top:12px;max-width:600px;">
+                        <div style="color:#68d391;font-weight:bold;margin-bottom:8px;">📋 Master Rules (Active)</div>
+                        <ul style="color:#a0aec0;margin:0;padding-left:20px;line-height:1.8;">
+                            <li>Solo mode always active — system works without external AI</li>
+                            <li>External AI = energy boost, not dependency</li>
+                            <li>No artificial limits — only real resource availability matters</li>
+                            <li>Admin (SUPERADMIN) = truly unlimited</li>
+                            <li>User quotas managed from User Management & Tiers</li>
+                            <li>AI providers are fully dynamic — add any AI from API Key Manager</li>
+                        </ul>
                     </div>
 
                     <button class="btn" style="margin-top: 20px;" onclick="saveSettings()">💾 Save Settings</button>
