@@ -26,13 +26,17 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _projectIdController = TextEditingController(text: widget.project?.id ?? '');
+    _projectIdController =
+        TextEditingController(text: widget.project?.id ?? '');
     _descriptionController =
         TextEditingController(text: widget.project?.description ?? '');
-    _repoUrlController = TextEditingController(text: widget.project?.repoUrl ?? '');
-    _repoBranchController = TextEditingController(text: widget.project?.repoBranch ?? 'main');
+    _repoUrlController =
+        TextEditingController(text: widget.project?.repoUrl ?? '');
+    _repoBranchController =
+        TextEditingController(text: widget.project?.repoBranch ?? 'main');
     _repoTokenController = TextEditingController();
-    _featuresController = TextEditingController(text: widget.project?.features.join('\n') ?? '');
+    _featuresController =
+        TextEditingController(text: widget.project?.features.join('\n') ?? '');
     _selectedTemplate = widget.project?.templateType ?? 'REACT';
   }
 
@@ -78,7 +82,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                 label: 'Description',
                 controller: _descriptionController,
                 hint: 'প্রজেক্টটি কী করবে তা লিখুন...',
-                helperText: '(এই বিবরণ Existing App workflow তেও improvement goal হিসেবে যাবে)',
+                helperText:
+                    '(এই বিবরণ Existing App workflow তেও improvement goal হিসেবে যাবে)',
                 maxLines: 4,
                 required: true,
               ),
@@ -149,7 +154,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           ],
         ),
         if (helperText != null)
-          Text(helperText, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+          Text(helperText,
+              style: const TextStyle(fontSize: 11, color: Colors.grey)),
         const SizedBox(height: AppConstants.paddingSmall),
         TextField(
           controller: controller,
@@ -180,10 +186,11 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             fontSize: 14,
           ),
         ),
-        const Text('(কোন ধরনের project generate হবে)', style: TextStyle(fontSize: 11, color: Colors.grey)),
+        const Text('(কোন ধরনের project generate হবে)',
+            style: TextStyle(fontSize: 11, color: Colors.grey)),
         const SizedBox(height: AppConstants.paddingSmall),
         DropdownButtonFormField<String>(
-          initialValue: _selectedTemplate,
+          value: _selectedTemplate,
           items: ['REACT', 'SPRING_BOOT', 'FLUTTER', 'FULL_STACK', 'REST_API']
               .map((template) => DropdownMenuItem(
                     value: template,
@@ -224,16 +231,19 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               fontSize: 14,
             ),
           ),
-          const Text('(সিস্টেম থেকে স্বয়ংক্রিয় তথ্য)', style: TextStyle(fontSize: 11, color: Colors.grey)),
+          const Text('(সিস্টেম থেকে স্বয়ংক্রিয় তথ্য)',
+              style: TextStyle(fontSize: 11, color: Colors.grey)),
           const SizedBox(height: AppConstants.paddingMedium),
           _buildInfoRow('Project ID', widget.project!.id),
           _buildInfoRow('Template', widget.project!.templateType),
           _buildInfoRow('Status', widget.project!.status),
-          _buildInfoRow('Repo', widget.project!.repoUrl.isEmpty ? '-' : widget.project!.repoUrl),
+          _buildInfoRow('Repo',
+              widget.project!.repoUrl.isEmpty ? '-' : widget.project!.repoUrl),
           _buildInfoRow('Branch', widget.project!.repoBranch),
           _buildInfoRow('Progress', '${widget.project!.progress}%'),
           _buildInfoRow('Files', widget.project!.fileCount.toString()),
-          _buildInfoRow('Tracked For Improvement', widget.project!.trackedForImprovement ? 'Yes' : 'No'),
+          _buildInfoRow('Tracked For Improvement',
+              widget.project!.trackedForImprovement ? 'Yes' : 'No'),
           _buildInfoRow(
             'Created',
             widget.project!.createdAt.toString().split('.')[0],
@@ -306,7 +316,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         _descriptionController.text.isEmpty ||
         _repoUrlController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('সব ফিল্ড পূরণ করুন')),
+        const SnackBar(content: Text('সব ফিল্ড পূরণ করুন')),
       );
       return;
     }
@@ -327,7 +337,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         status: 'GENERATING',
         templateType: _selectedTemplate,
         repoUrl: _repoUrlController.text.trim(),
-        repoBranch: _repoBranchController.text.trim().isEmpty ? 'main' : _repoBranchController.text.trim(),
+        repoBranch: _repoBranchController.text.trim().isEmpty
+            ? 'main'
+            : _repoBranchController.text.trim(),
         repoToken: _repoTokenController.text.trim(),
         progress: 0,
         fileCount: 0,
@@ -343,7 +355,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('প্রজেক্ট সফলভাবে তৈরি হয়েছে এবং Existing App workflow-এ sync হবে।'),
+            content: Text(
+                'প্রজেক্ট সফলভাবে তৈরি হয়েছে এবং Existing App workflow-এ sync হবে।'),
           ),
         );
       }
