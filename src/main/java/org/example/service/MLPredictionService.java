@@ -594,6 +594,10 @@ public class MLPredictionService {
         double getMetric(String name) {
             return metrics.getOrDefault(name, 0.0);
         }
+        
+        double[] toDoubleArray() {
+            return metrics.values().stream().mapToDouble(Double::doubleValue).toArray();
+        }
     }
     
     /**

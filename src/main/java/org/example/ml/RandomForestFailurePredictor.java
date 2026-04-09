@@ -93,11 +93,12 @@ public class RandomForestFailurePredictor {
         Map<Integer, Double> importance = new HashMap<>();
 
         for (int i = 0; i < numFeatures; i++) {
+            final int featureIdx = i;  // Make effectively final for lambda
             double avgImportance = trees.stream()
-                .mapToDouble(tree -> tree.getFeatureImportance(i))
+                .mapToDouble(tree -> tree.getFeatureImportance(featureIdx))
                 .average()
                 .orElse(0.0);
-            importance.put(i, avgImportance);
+            importance.put(featureIdx, avgImportance);
         }
 
         return importance;
