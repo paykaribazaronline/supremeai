@@ -21,11 +21,12 @@ class AdminDashboardControllerTest {
 
         @SuppressWarnings("unchecked")
         Map<String, Object> contract = (Map<String, Object>) response.getBody();
-        assertEquals("2026-04-03", contract.get("contractVersion"));
+        assertEquals("2026-04-09-unified", contract.get("contractVersion"));
         assertEquals("/admin.html", contract.get("entryPath"));
-        assertTrue(contract.containsKey("stats"));
-        assertTrue(contract.containsKey("navigation"));
-        assertTrue(contract.containsKey("orchestration"));
+        assertTrue(contract.containsKey("stats"), "Contract must contain 'stats'");
+        assertTrue(contract.containsKey("navigation"), "Contract must contain 'navigation'");
+        assertTrue(contract.containsKey("components"), "Contract must contain 'components'");
+        assertTrue(contract.containsKey("apiEndpoints"), "Contract must contain 'apiEndpoints'");
 
         @SuppressWarnings("unchecked")
         Map<String, Object> stats = (Map<String, Object>) contract.get("stats");
