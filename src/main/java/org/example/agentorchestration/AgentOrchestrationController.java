@@ -128,6 +128,25 @@ public class AgentOrchestrationController {
     }
 
     /**
+     * Backward-compatible task lookup endpoint used by older dashboard flows.
+     */
+    @GetMapping("/task/{taskId}")
+    public ResponseEntity<Map<String, Object>> taskStatus(@PathVariable String taskId) {
+        if (taskId == null || taskId.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "taskId is required"));
+        }
+
+        for (AdaptiveAgentOrchestrator.TaskExecution exec : orchestrator.getHistory(1000)) {
+            if (taskId.equals(exec.getTaskId())) {
+                return ResponseEntity.ok(exec.toSummary());
+            }
+        }
+
+        return ResponseEntity.status(404)
+            .body(Map.of("error", "Task not found", "taskId", taskId));
+    }
+
+    /**
      * List all agentic tools currently registered in the loop.
      */
     @GetMapping("/tools")
