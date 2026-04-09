@@ -37,7 +37,7 @@ public class FirebaseService {
             this.isInitialized = true;
         } catch (Exception e) {
             System.err.println("⚠️ Firebase initialization failed: " + e.getMessage());
-            System.err.println("🔄 Continuing without Firebase - using fallback mode");
+            System.err.println("☁️ Cloud Firebase unavailable in this runtime - local cache remains active until cloud credentials are restored");
             this.isInitialized = false;
         }
     }

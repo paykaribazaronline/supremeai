@@ -42,7 +42,7 @@ public class RealCostIntelligenceService {
         if (bigQuery != null) {
             log.info("✅ RealCostIntelligenceService initialized with BigQuery");
         } else {
-            log.info("⚠️ RealCostIntelligenceService initialized in fallback mode");
+            log.info("⚠️ RealCostIntelligenceService initialized without BigQuery - cloud billing data unavailable in this runtime");
         }
     }
 

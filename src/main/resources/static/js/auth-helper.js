@@ -28,13 +28,16 @@ const AuthHelper = {
      * Clear all authentication data
      */
     logout() {
+        localStorage.removeItem('supremeai_firebase_authenticated');
         localStorage.removeItem('supremeai_user');
         localStorage.removeItem('supremeai_remembered_username');
-        fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
-            .catch(() => {})
-            .finally(() => {
+        if (window.firebase && firebase.apps && firebase.apps.length && firebase.auth) {
+            firebase.auth().signOut().catch(() => {}).finally(() => {
                 window.location.href = '/login.html';
             });
+            return;
+        }
+        window.location.href = '/login.html';
     },
     
     /**
@@ -64,25 +67,14 @@ const AuthHelper = {
     },
     
     async initializeAuth(redirectToLoginIfNotAuth = true) {
-        try {
-            const res = await fetch('/api/auth/me', { credentials: 'include' });
-            if (!res.ok) {
-                if (redirectToLoginIfNotAuth && !window.location.pathname.includes('login')) {
-                    window.location.href = '/login.html';
-                }
-                return false;
-            }
-            const data = await res.json().catch(() => ({}));
-            if (data.user) {
-                this.setUser(data.user);
-            }
-            return true;
-        } catch (_) {
+        const isAuth = localStorage.getItem('supremeai_firebase_authenticated') === 'true';
+        if (!isAuth) {
             if (redirectToLoginIfNotAuth && !window.location.pathname.includes('login')) {
                 window.location.href = '/login.html';
             }
             return false;
         }
+        return true;
     },
     
     /**

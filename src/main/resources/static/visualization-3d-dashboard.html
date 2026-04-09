@@ -353,8 +353,7 @@
             }
 
             getAuthHeaders() {
-                const token = localStorage.getItem('supremeai_token');
-                return token ? { 'Authorization': `Bearer ${token}` } : {};
+                return {};
             }
 
             getWebSocketUrl() {
