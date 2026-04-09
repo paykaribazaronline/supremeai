@@ -26,7 +26,7 @@
   - [ ] Query methods for pattern lookup
   - [ ] Unit tests
 
-- [ ] **Firebase Schema Addition**
+- [ ] **Firebase Collections Structure Addition**
   - [ ] Add collection: `healing_patterns`
   - [ ] Document schema
   - [ ] Create indexes for performance

@@ -172,4 +172,90 @@ public class NotificationController {
             "recipient", recipient
         ));
     }
+
+    /**
+     * GET /api/notifications/sms/budget
+     * Get current SMS daily budget configuration (ADMIN)
+     * Returns current budget, default budget, cost per message, estimated messages per day
+     */
+    @GetMapping("/sms/budget")
+    public ResponseEntity<?> getSmsBudgetConfig() {
+        if (notificationService == null) {
+            return ResponseEntity.ok(Map.of("message", "Notification service not available"));
+        }
+        
+        return ResponseEntity.ok(notificationService.getSmsBudgetConfig());
+    }
+
+    /**
+     * GET /api/notifications/sms/stats
+     * Get SMS cost and budget tracking statistics
+     * Returns: today's spending, remaining budget, percent used, messages remaining
+     */
+    @GetMapping("/sms/stats")
+    public ResponseEntity<?> getSmsCostStats() {
+        if (notificationService == null) {
+            return ResponseEntity.ok(Map.of("message", "Notification service not available"));
+        }
+        
+        return ResponseEntity.ok(notificationService.getSmsCoststats());
+    }
+
+    /**
+     * POST /api/notifications/sms/budget/set
+     * Set the daily SMS budget (ADMIN ONLY)
+     * 
+     * Request body: { "dailyBudget": 100.00 }
+     * Example: Set budget to $100/day
+     */
+    @PostMapping("/sms/budget/set")
+    public ResponseEntity<?> setSmsDailyBudget(@RequestBody Map<String, Object> request) {
+        if (notificationService == null) {
+            return ResponseEntity.ok(Map.of("message", "Notification service not available"));
+        }
+        
+        // TODO: Add @Secured or @PreAuthorize annotation for admin-only access in production
+        
+        Object budgetObj = request.get("dailyBudget");
+        if (budgetObj == null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "error", "Missing 'dailyBudget' parameter",
+                "example", Map.of("dailyBudget", 50.00)
+            ));
+        }
+        
+        try {
+            double newBudget = Double.parseDouble(budgetObj.toString());
+            return ResponseEntity.ok(notificationService.setSmsDailyBudget(newBudget));
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "error", "Invalid budget format: must be a number",
+                "example", budgetObj
+            ));
+        }
+    }
+
+    /**
+     * POST /api/notifications/sms/budget/reset
+     * Reset the daily SMS cost tracker to $0 (ADMIN ONLY)
+     * Use when manually changing budget or for testing
+     */
+    @PostMapping("/sms/budget/reset")
+    public ResponseEntity<?> resetSmsDailyCost() {
+        if (notificationService == null) {
+            return ResponseEntity.ok(Map.of("message", "Notification service not available"));
+        }
+        
+        // TODO: Add @Secured or @PreAuthorize annotation for admin-only access in production
+        
+        notificationService.resetSmsDailyCost();
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "SMS daily cost tracker reset to $0.00",
+            "budgetConfig", notificationService.getSmsBudgetConfig(),
+            "timestamp", System.currentTimeMillis()
+        ));
+    }
 }

@@ -108,7 +108,7 @@ test_learning_live.bat
 **Contains**:
 
 - Real-time monitoring instructions
-- Firebase schema structure
+- Firebase collections data structure
 - API endpoint documentation
 - How learning happens step-by-step
 - Expected results before/after testing

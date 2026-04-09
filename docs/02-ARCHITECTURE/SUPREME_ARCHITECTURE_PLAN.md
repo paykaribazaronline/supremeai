@@ -29,16 +29,16 @@
 | **Dynamic Provider System** | ✅ Complete | Add ANY AI provider, no hardcoded lists, live switching |
 | **Monitoring** | ✅ Complete | Real-time metrics, alerts, performance tracking |
 | **Flutter Admin App** | ✅ Complete | Material Design 3, CI/CD pipeline, Firebase integration |
-| **CommandHub System** | ✅ Complete | 7-command framework, REST API, Python CLI |
+| **CommandHub System** | ✅ Complete (Phase 2-5) | Core framework (7 classes), Monitoring Commands (3), Data Refresh Commands (4), REST API (5 endpoints), Python CLI (supcmd.py) |
 | **CI/CD Pipeline** | ✅ Complete | GitHub Actions, Flutter APK/AAB builds, Firebase deployment |
 
 ### 📊 Current Metrics
 
-- **Total Lines of Code:** 9,000+
-- **Backend Classes:** 40+
+- **Total Lines of Code:** 9,000+ (Core) + 2,500+ (CommandHub Phase 2-5)
+- **Backend Classes:** 40+ (Core) + 12 (CommandHub)
 - **Flutter Screens:** 8+
-- **API Endpoints:** 30+
-- **Commands Implemented:** 7
+- **API Endpoints:** 30+ (Core) + 5 (CommandHub)
+- **Commands Implemented:** 7 (health-check, quota-status, metrics, refresh-github, refresh-vercel, refresh-firebase, refresh-all)
 - **Test Coverage:** Basic (30%)
 
 ---

@@ -345,7 +345,7 @@ DecisionAuditRecord {
 |-----------|----------|--------|--------------|
 | **Quota-based Rotation** | 🔴 HIGH | 2-3 days | Failover Registry |
 | **AI Role Assignment UI** | 🟡 MEDIUM | 3-4 days | Admin Dashboard |
-| **Performance Tracking DB** | 🔴 HIGH | 2 days | Firebase Schema |
+| **Performance Tracking DB** | 🔴 HIGH | 2 days | Firebase Collections |
 | **Smart Routing Logic** | 🔴 HIGH | 2-3 days | Role Assignment + Tracking |
 | **Suggestion Engine** | 🟡 MEDIUM | 2 days | Performance DB |
 | **Blockchain Integration** | 🟡 MEDIUM | 3-4 days | Audit Trail |

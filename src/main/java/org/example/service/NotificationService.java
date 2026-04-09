@@ -1,15 +1,31 @@
 package org.example.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Phase 5: Notification Service
  * Sends alerts via Email, Slack, Discord, and SMS
+ * SMS budget is configurable by admin via admin panel (not hardcoded)
  */
 @Service
 public class NotificationService {
+
+    // SMS cost tracking
+    private static final double SMS_COST_PER_MESSAGE = 0.0075; // $0.0075 per SMS (Twilio standard)
+    private static final double DEFAULT_DAILY_SMS_BUDGET = 50.00; // Default $50, overridable by admin
+    
+    // Admin configurable SMS budget (can be set via admin dashboard)
+    private double adminConfiguredDailyBudget = DEFAULT_DAILY_SMS_BUDGET;
+    
+    private LocalDate smsCostTrackingDate = LocalDate.now();
+    private double smsCostToday = 0.0;
+    
+    @Autowired(required = false)
+    private FirebaseService firebaseService;
 
     private static class NotificationConfig {
         public String type; // EMAIL, SLACK, DISCORD, SMS
@@ -139,12 +155,29 @@ public class NotificationService {
     }
 
     /**
-     * Send alert via SMS (Twilio)
+     * Send alert via SMS (Twilio) with admin-configurable daily budget guard
      */
     public boolean sendSmsAlert(String phoneNumber, String message) {
         NotificationConfig sms = channels.get("SMS");
         if (!sms.enabled) {
             logNotification("SMS", "DISABLED");
+            return false;
+        }
+
+        // Check if date has changed, reset cost tracking
+        LocalDate today = LocalDate.now();
+        if (!today.equals(smsCostTrackingDate)) {
+            smsCostToday = 0.0;
+            smsCostTrackingDate = today;
+            logNotification("SMS_BUDGET", "Reset for new day - Budget: $" + String.format("%.2f", adminConfiguredDailyBudget));
+        }
+
+        // Check daily budget before sending
+        double projectedCost = smsCostToday + SMS_COST_PER_MESSAGE;
+        if (projectedCost > adminConfiguredDailyBudget) {
+            logNotification("SMS", String.format(
+                "BLOCKED: Budget limit exceeded. Today: $%.2f, Limit: $%.2f", 
+                smsCostToday, adminConfiguredDailyBudget));
             return false;
         }
 
@@ -155,6 +188,13 @@ public class NotificationService {
             
             // Simulated Twilio SMS call
             logNotification("SMS", "SENT to " + maskPhone(phoneNumber));
+            
+            // Track cost
+            smsCostToday += SMS_COST_PER_MESSAGE;
+            logNotification("SMS_BUDGET", String.format(
+                "Cost: $%.4f, Today: $%.2f, Remaining: $%.2f",
+                SMS_COST_PER_MESSAGE, smsCostToday, adminConfiguredDailyBudget - smsCostToday));
+            
             return true;
         } catch (Exception e) {
             logNotification("SMS", "FAILED: " + e.getMessage());
@@ -288,5 +328,76 @@ public class NotificationService {
      */
     public void clearHistory() {
         notificationLog.clear();
+    }
+
+    /**
+     * Get SMS cost tracking statistics
+     */
+    public Map<String, Object> getSmsCoststats() {
+        LocalDate today = LocalDate.now();
+        double remaining = adminConfiguredDailyBudget - smsCostToday;
+        
+        return Map.of(
+            "date", today.toString(),
+            "costPerMessage", SMS_COST_PER_MESSAGE,
+            "dailyBudget", adminConfiguredDailyBudget,
+            "spentToday", String.format("$%.2f", smsCostToday),
+            "remaining", String.format("$%.2f", remaining),
+            "percentUsed", String.format("%.1f%%", (smsCostToday / adminConfiguredDailyBudget) * 100),
+            "maxMessagesRemaining", (int) (remaining / SMS_COST_PER_MESSAGE),
+            "isBudgetExceeded", smsCostToday >= adminConfiguredDailyBudget
+        );
+    }
+
+    /**
+     * Set SMS daily budget (admin-only operation)
+     * @param newBudget New daily SMS budget in dollars
+     * @return Result of the operation
+     */
+    public Map<String, Object> setSmsDailyBudget(double newBudget) {
+        if (newBudget <= 0) {
+            logNotification("SMS_BUDGET", "REJECTED: Budget must be > 0");
+            return Map.of(
+                "success", false,
+                "error", "Budget must be greater than $0",
+                "currentBudget", adminConfiguredDailyBudget
+            );
+        }
+        
+        double oldBudget = adminConfiguredDailyBudget;
+        adminConfiguredDailyBudget = newBudget;
+        logNotification("SMS_BUDGET", String.format(
+            "UPDATED by Admin: $%.2f → $%.2f", oldBudget, newBudget));
+        
+        return Map.of(
+            "success", true,
+            "previousBudget", String.format("$%.2f", oldBudget),
+            "newBudget", String.format("$%.2f", newBudget),
+            "timestamp", System.currentTimeMillis()
+        );
+    }
+
+    /**
+     * Get current SMS budget configuration
+     */
+    public Map<String, Object> getSmsBudgetConfig() {
+        return Map.of(
+            "currentDailyBudget", String.format("$%.2f", adminConfiguredDailyBudget),
+            "defaultBudget", String.format("$%.2f", DEFAULT_DAILY_SMS_BUDGET),
+            "costPerMessage", String.format("$%.4f", SMS_COST_PER_MESSAGE),
+            "estimatedMessagesPerDay", (int) (adminConfiguredDailyBudget / SMS_COST_PER_MESSAGE),
+            "spentToday", String.format("$%.2f", smsCostToday),
+            "budgetRemaining", String.format("$%.2f", adminConfiguredDailyBudget - smsCostToday),
+            "trackedDate", smsCostTrackingDate.toString()
+        );
+    }
+
+    /**
+     * Reset SMS daily cost tracking (admin only, for manual reset or testing)
+     */
+    public void resetSmsDailyCost() {
+        smsCostToday = 0.0;
+        smsCostTrackingDate = LocalDate.now();
+        logNotification("SMS_BUDGET", "Manually reset by admin");
     }
 }
