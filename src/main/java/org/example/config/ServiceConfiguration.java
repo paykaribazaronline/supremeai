@@ -2,9 +2,9 @@ package org.example.config;
 
 import org.example.model.SystemConfig;
 import org.example.service.*;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.HashMap;
@@ -16,17 +16,16 @@ import java.util.Map;
  * Configures service beans and their dependencies
  * Enables dependency injection throughout REST layer
  * 
- * Initializes:
+ * Initializes (if not already provided by test config):
  * - Firebase (cloud connection)
  * - HybridDataCollector (Phase 3)
  * - DataCollectorService (Phase 4)
  * - WebhookListener (Phase 4)
  * - AdminMessagePusher (Phase 4)
  * 
- * NOTE: Disabled for 'test' profile - uses TestBeansConfiguration instead
+ * NOTE: Uses @ConditionalOnMissingBean to allow TestBeansConfiguration to override
  */
 @Configuration
-@Profile("!test")
 public class ServiceConfiguration {
     private static final Logger logger = LoggerFactory.getLogger(ServiceConfiguration.class);
     
@@ -34,6 +33,7 @@ public class ServiceConfiguration {
      * Initialize Firebase Service
      */
     @Bean
+    @ConditionalOnMissingBean
     public FirebaseService firebaseService() {
         logger.info("🔧 Initializing Firebase Service...");
         return new FirebaseService();
@@ -44,6 +44,7 @@ public class ServiceConfiguration {
      * Provides default system settings for Agent Orchestration
      */
     @Bean
+    @ConditionalOnMissingBean
     public SystemConfig systemConfig() {
         logger.info("🔧 Initializing System Configuration...");
         SystemConfig config = new SystemConfig();
@@ -79,6 +80,7 @@ public class ServiceConfiguration {
      *   TAVILY_API_KEY        → TAVILY  (web-search for active learning)
      */
     @Bean
+    @ConditionalOnMissingBean
     public Map<String, String> apiKeys() {
         logger.info("🔧 Loading API Keys from environment variables...");
         Map<String, String> keys = new HashMap<>();
@@ -101,6 +103,7 @@ public class ServiceConfiguration {
      * Initialize Quota Tracker
      */
     @Bean
+    @ConditionalOnMissingBean
     public QuotaTracker quotaTracker(FirebaseService firebase, LocalJsonStoreService jsonStore) {
         logger.info("\ud83d\udd27 Initializing Quota Tracker...");
         return new QuotaTracker(firebase, jsonStore);
@@ -110,6 +113,7 @@ public class ServiceConfiguration {
      * Initialize API Data Collector
      */
     @Bean
+    @ConditionalOnMissingBean
     public APIDataCollector apiDataCollector(QuotaTracker quota, FirebaseService firebase) {
         logger.info("🔧 Initializing API Data Collector...");
         return new APIDataCollector(quota, firebase);
@@ -119,6 +123,7 @@ public class ServiceConfiguration {
      * Initialize Browser Data Collector (Puppeteer fallback)
      */
     @Bean
+    @ConditionalOnMissingBean
     public BrowserDataCollector browserDataCollector(QuotaTracker quota, FirebaseService firebase) {
         logger.info("🔧 Initializing Browser Data Collector...");
         return new BrowserDataCollector(quota, firebase);
@@ -129,6 +134,7 @@ public class ServiceConfiguration {
      * Combines API-first with browser fallback
      */
     @Bean
+    @ConditionalOnMissingBean
     public HybridDataCollector hybridDataCollector(
             APIDataCollector apiCollector,
             BrowserDataCollector browserCollector,
@@ -143,6 +149,7 @@ public class ServiceConfiguration {
      * Initialize Data Collector Service (REST API Layer)
      */
     @Bean
+    @ConditionalOnMissingBean
     public DataCollectorService dataCollectorService(HybridDataCollector hybridCollector) {
         logger.info("🔧 Initializing Data Collector Service...");
         return new DataCollectorService(hybridCollector);
@@ -152,6 +159,7 @@ public class ServiceConfiguration {
      * Initialize Webhook Listener (GitHub webhooks)
      */
     @Bean
+    @ConditionalOnMissingBean
     public WebhookListener webhookListener(DataCollectorService collectorService) {
         logger.info("🔧 Initializing Webhook Listener...");
         return new WebhookListener(collectorService);
@@ -161,6 +169,7 @@ public class ServiceConfiguration {
      * Initialize Admin Message Pusher (real-time updates to dashboard)
      */
     @Bean
+    @ConditionalOnMissingBean
     public AdminMessagePusher adminMessagePusher() {
         logger.info("🔧 Initializing Admin Message Pusher...");
         return new AdminMessagePusher();
