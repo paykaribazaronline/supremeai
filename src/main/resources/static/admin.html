@@ -2606,10 +2606,7 @@
             tbody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
             
             try {
-                const headers = {};
-                const token = localStorage.getItem('supremeai_token');
-                if (token) headers['Authorization'] = 'Bearer ' + token;
-                const res = await fetch('/api/v1/requirements', { headers });
+                const res = await fetch('/api/v1/requirements', { headers: getAuthHeaders(), credentials: 'include' });
                 if (!res.ok) {
                     const err = await res.json().catch(() => ({}));
                     throw new Error(err.message || `HTTP ${res.status}`);
@@ -2643,10 +2640,7 @@
             if (!confirm(`Are you sure you want to ${action} this requirement?`)) return;
             
             try {
-                const headers = { 'Content-Type': 'application/json' };
-                const token = localStorage.getItem('supremeai_token');
-                if (token) headers['Authorization'] = 'Bearer ' + token;
-                const res = await fetch(`/api/v1/requirements/${id}/${action}`, { method: 'POST', headers });
+                const res = await fetch(`/api/v1/requirements/${id}/${action}`, { method: 'POST', headers: getAuthHeaders(), credentials: 'include' });
                 if (res.ok) {
                     alert(`Requirement ${id} ${action}d!`);
                     loadApprovals();
@@ -2661,12 +2655,7 @@
         // --- Commands Logic (wired in COMMANDS CONSOLE section above) ---
 
         function getAuthHeaders() {
-            const token = localStorage.getItem('supremeai_token');
-            if (!token) {
-                throw new Error('Admin session not found. Please log in again.');
-            }
             return {
-                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             };
         }
@@ -2680,22 +2669,12 @@
         }
 
         async function ensureAdminSession() {
-            const token = localStorage.getItem('supremeai_token');
-            if (!token) {
-                window.location.href = '/login.html';
-                return false;
-            }
-
             try {
                 const response = await fetch('/api/auth/me', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                    credentials: 'include'
                 });
 
                 if (!response.ok) {
-                    localStorage.removeItem('supremeai_token');
-                    localStorage.removeItem('supremeai_refresh_token');
                     localStorage.removeItem('supremeai_user');
                     window.location.href = '/login.html';
                     return false;
@@ -6159,10 +6138,8 @@
             }
 
             fetch('/api/v1/requirements', {
-                    headers: (function() {
-                        const t = localStorage.getItem('supremeai_token');
-                        return t ? { 'Authorization': 'Bearer ' + t } : {};
-                    })()
+                    headers: getAuthHeaders(),
+                    credentials: 'include'
                 })
                 .then(r => r.ok ? r.json() : [])
                 .then(reqs => {

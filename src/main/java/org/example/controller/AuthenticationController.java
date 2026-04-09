@@ -15,6 +15,9 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Cookie;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.*;
 
@@ -664,12 +667,31 @@ public class AuthenticationController {
      * Extract user from JWT token in Authorization header
      */
     private User extractUserFromToken(String authHeader) throws Exception {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            return authService.validateToken(token);
+        }
+
+        // Fallback: use HttpOnly auth cookie when no Authorization header is present.
+        ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attrs == null || attrs.getRequest() == null) {
             return null;
         }
-        
-        String token = authHeader.substring(7);
-        return authService.validateToken(token);
+
+        HttpServletRequest request = attrs.getRequest();
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return null;
+        }
+
+        for (Cookie cookie : cookies) {
+            if (ADMIN_AUTH_COOKIE.equals(cookie.getName())
+                    && cookie.getValue() != null
+                    && !cookie.getValue().isBlank()) {
+                return authService.validateToken(cookie.getValue());
+            }
+        }
+        return null;
     }
 
     private User extractAdminUserFromToken(String authHeader) throws Exception {

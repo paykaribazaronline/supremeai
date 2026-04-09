@@ -1,29 +1,11 @@
 /**
- * SupremeAI Authentication Helper
- * 
- * Provides functions for:
- * - Token management (get, set, clear)
- * - User info retrieval
- * - Permission checking
- * - Automatic redirect to login if unauthorized
- * - Token refresh logic
+ * SupremeAI Authentication Helper (cookie-session mode)
+ *
+ * Uses backend HttpOnly cookie session only.
+ * No token is stored in localStorage or attached as Bearer header.
  */
 
 const AuthHelper = {
-    
-    /**
-     * Get the stored JWT token
-     */
-    getToken() {
-        return localStorage.getItem('supremeai_token');
-    },
-    
-    /**
-     * Get the stored refresh token
-     */
-    getRefreshToken() {
-        return localStorage.getItem('supremeai_refresh_token');
-    },
     
     /**
      * Get the stored user object
@@ -33,27 +15,12 @@ const AuthHelper = {
         return userStr ? JSON.parse(userStr) : null;
     },
     
-    /**
-     * Check if user is authenticated
-     */
-    isAuthenticated() {
-        return !!this.getToken();
-    },
-    
-    /**
-     * Get authorization header for API calls
-     */
+    // Cookie auth does not require Authorization headers from frontend.
     getAuthHeader() {
-        const token = this.getToken();
-        return token ? { 'Authorization': `Bearer ${token}` } : {};
+        return {};
     },
-    
-    /**
-     * Set authenticated user and tokens
-     */
-    setTokens(token, refreshToken, user) {
-        localStorage.setItem('supremeai_token', token);
-        localStorage.setItem('supremeai_refresh_token', refreshToken);
+
+    setUser(user) {
         localStorage.setItem('supremeai_user', JSON.stringify(user));
     },
     
@@ -61,44 +28,13 @@ const AuthHelper = {
      * Clear all authentication data
      */
     logout() {
-        localStorage.removeItem('supremeai_token');
-        localStorage.removeItem('supremeai_refresh_token');
         localStorage.removeItem('supremeai_user');
         localStorage.removeItem('supremeai_remembered_username');
-        window.location.href = '/login.html';
-    },
-    
-    /**
-     * Refresh the access token using refresh token
-     */
-    async refreshAccessToken() {
-        try {
-            const refreshToken = this.getRefreshToken();
-            if (!refreshToken) {
-                this.logout();
-                return false;
-            }
-            
-            const response = await fetch('/api/auth/refresh', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ refreshToken })
+        fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+            .catch(() => {})
+            .finally(() => {
+                window.location.href = '/login.html';
             });
-            
-            if (!response.ok) {
-                this.logout();
-                return false;
-            }
-            
-            const data = await response.json();
-            this.setTokens(data.token, data.refreshToken, data.user);
-            return true;
-            
-        } catch (error) {
-            console.error('Token refresh failed:', error);
-            this.logout();
-            return false;
-        }
     },
     
     /**
@@ -106,29 +42,17 @@ const AuthHelper = {
      */
     async apiCall(url, options = {}) {
         try {
-            // Add authorization header
             options.headers = {
                 ...options.headers,
                 ...this.getAuthHeader(),
                 'Content-Type': options.headers?.['Content-Type'] || 'application/json'
             };
+            options.credentials = options.credentials || 'include';
             
             const response = await fetch(url, options);
             
-            // If 401, try to refresh token and retry once
             if (response.status === 401) {
-                const refreshed = await this.refreshAccessToken();
-                if (refreshed) {
-                    // Retry the request with new token
-                    options.headers = {
-                        ...options.headers,
-                        ...this.getAuthHeader()
-                    };
-                    return fetch(url, options);
-                } else {
-                    this.logout();
-                    return response;
-                }
+                this.logout();
             }
             
             return response;
@@ -139,18 +63,26 @@ const AuthHelper = {
         }
     },
     
-    /**
-     * Initialize authentication on page load
-     * Redirects to login if not authenticated
-     */
-    initializeAuth(redirectToLoginIfNotAuth = true) {
-        if (!this.isAuthenticated()) {
+    async initializeAuth(redirectToLoginIfNotAuth = true) {
+        try {
+            const res = await fetch('/api/auth/me', { credentials: 'include' });
+            if (!res.ok) {
+                if (redirectToLoginIfNotAuth && !window.location.pathname.includes('login')) {
+                    window.location.href = '/login.html';
+                }
+                return false;
+            }
+            const data = await res.json().catch(() => ({}));
+            if (data.user) {
+                this.setUser(data.user);
+            }
+            return true;
+        } catch (_) {
             if (redirectToLoginIfNotAuth && !window.location.pathname.includes('login')) {
                 window.location.href = '/login.html';
             }
             return false;
         }
-        return true;
     },
     
     /**
@@ -208,20 +140,15 @@ const AuthHelper = {
  * On page load, check authentication
  */
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize auth (redirect to login if needed)
-    AuthHelper.initializeAuth(true);
-    
-    // Display user info in top bar
-    AuthHelper.displayUserInfo('userAvatar', 'userName');
-    
-    // Apply permission-based UI visibility
-    AuthHelper.applyPermissionVisibility();
-    
-    // Handle logout button if it exists
-    const logoutBtn = document.querySelector('[data-action="logout"]');
-    if (logoutBtn) {
-        logoutBtn.onclick = () => AuthHelper.logout();
-    }
+    AuthHelper.initializeAuth(true).then((ok) => {
+        if (!ok) return;
+        AuthHelper.displayUserInfo('userAvatar', 'userName');
+        AuthHelper.applyPermissionVisibility();
+        const logoutBtn = document.querySelector('[data-action="logout"]');
+        if (logoutBtn) {
+            logoutBtn.onclick = () => AuthHelper.logout();
+        }
+    });
 });
 
 /**
