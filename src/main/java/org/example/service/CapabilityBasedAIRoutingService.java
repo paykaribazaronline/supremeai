@@ -69,7 +69,7 @@ import java.util.stream.Collectors;
  */
 @Service
 public class CapabilityBasedAIRoutingService {
-    private static final Logger logger = LoggerFactory.getLogger(CapabilityBasedAIRoutingService.java);
+    private static final Logger logger = LoggerFactory.getLogger(CapabilityBasedAIRoutingService.class);
 
     // Task type enumeration
     public enum TaskType {

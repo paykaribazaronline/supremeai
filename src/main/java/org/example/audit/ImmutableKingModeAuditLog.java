@@ -279,31 +279,3 @@ public class ImmutableKingModeAuditLog {
         }
     }
 }
-
-    /**
-     * Verify audit log integrity (detect tampering)
-     * In production, implement cryptographic signatures
-     */
-    public Map<String, Object> verifyAuditIntegrity() {
-        Map<String, Object> result = new HashMap<>();
-        result.put("status", "VERIFIED");
-        result.put("storage", "Firestore (immutable) / In-Memory Fallback");
-        result.put("tampering_detection", "Cryptographic signatures (TODO: implement)");
-        result.put("audit_locked", true);
-        result.put("record_count", auditRecords.size());
-        return result;
-    }
-
-    /**
-     * Exception for audit log operations
-     */
-    public static class AuditLogException extends RuntimeException {
-        public AuditLogException(String message) {
-            super(message);
-        }
-
-        public AuditLogException(String message, Throwable cause) {
-            super(message, cause);
-        }
-    }
-}

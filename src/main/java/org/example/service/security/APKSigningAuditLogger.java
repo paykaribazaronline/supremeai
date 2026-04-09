@@ -154,22 +154,4 @@ public class APKSigningAuditLogger {
         );
         return result;
     }
-
-    /**
-     * Retrieve audit trail for an app
-     * (In production, uses Cloud Logging filter query)
-     */
-    public Map<String, Object> getAuditTrail(String appIdentifier, int limitResults) {
-        Map<String, Object> result = new HashMap<>();
-        result.put("app_identifier", appIdentifier);
-        result.put("retrieve_status", "Use Cloud Console to view full audit trail");
-        result.put("cloud_logging_filter", 
-            String.format(
-                "logName=\"projects/%%PROJECT_ID%%/logs/%s\" AND jsonPayload.app_identifier=\"%s\"",
-                LOG_NAME, appIdentifier
-            )
-        );
-        return result;
-    }
-}
 }
