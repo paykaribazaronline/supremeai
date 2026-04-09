@@ -286,18 +286,25 @@ public class QuotaRotationService {
         return providers;
     }
 
+    /**
+     * Estimate daily quota from admin-configured provider settings.
+     * No hardcoded provider names — reads from the provider registry.
+     */
     private int estimateDailyQuota(String providerName) {
-        String normalized = providerName == null ? "" : providerName.toLowerCase(Locale.ROOT);
-        if (normalized.contains("openai")) return 3;
-        if (normalized.contains("anthropic") || normalized.contains("claude")) return 5;
-        if (normalized.contains("gemini") || normalized.contains("google")) return 15;
-        if (normalized.contains("meta") || normalized.contains("llama")) return 100;
-        if (normalized.contains("mistral")) return 10;
-        if (normalized.contains("cohere")) return 20;
-        if (normalized.contains("huggingface")) return 50;
-        if (normalized.contains("xai") || normalized.contains("grok")) return 25;
-        if (normalized.contains("deepseek")) return 30;
-        if (normalized.contains("perplexity")) return 40;
-        return 20;
+        // Look up admin-configured quota from provider registry
+        List<APIProvider> providers = providerRegistryService.getActiveProviders();
+        for (APIProvider p : providers) {
+            if (providerName != null && providerName.equalsIgnoreCase(p.getName())) {
+                if (p.getMonthlyQuota() != null && p.getMonthlyQuota() > 0) {
+                    return Math.max(1, p.getMonthlyQuota() / 30);
+                }
+                if (p.getRateLimitPerMinute() != null && p.getRateLimitPerMinute() > 0) {
+                    // Estimate: RPM * 60 min * 8 hours conservative usage per day
+                    return p.getRateLimitPerMinute() * 60 * 8;
+                }
+            }
+        }
+        // Sensible default for unknown providers — admin can override anytime
+        return 100;
     }
 }

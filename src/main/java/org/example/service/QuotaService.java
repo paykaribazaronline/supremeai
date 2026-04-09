@@ -290,43 +290,28 @@ public class QuotaService {
         return quotas.size();
     }
 
+    /**
+     * Create quota for ANY provider — fully dynamic, no hardcoded provider names.
+     * Uses admin-configured limits from APIProvider model. Falls back to sensible defaults.
+     * When admin adds a new AI provider, its quota auto-appears with these defaults.
+     */
     private Quota createQuota(APIProvider provider) {
         String providerId = provider.getId();
         String providerName = provider.getName();
-        String normalized = providerName == null ? "" : providerName.toLowerCase(Locale.ROOT);
 
-        if (normalized.contains("openai")) {
-            return applyProviderLimits(new Quota(providerId, providerName, 3500, 200000, 3500), provider);
+        // Use admin-configured values from APIProvider, or sensible defaults
+        long dailyLimit = DEFAULT_DAILY_LIMIT;
+        long dailyTokenLimit = DEFAULT_DAILY_TOKEN_LIMIT;
+        double rpmLimit = DEFAULT_RPM_LIMIT;
+
+        if (provider.getMonthlyQuota() != null && provider.getMonthlyQuota() > 0) {
+            dailyLimit = Math.max(1, provider.getMonthlyQuota() / 30);
         }
-        if (normalized.contains("anthropic") || normalized.contains("claude")) {
-            return applyProviderLimits(new Quota(providerId, providerName, 1000, 50000, 100), provider);
-        }
-        if (normalized.contains("gemini") || normalized.contains("google")) {
-            return applyProviderLimits(new Quota(providerId, providerName, 6000, 150000, 6000), provider);
-        }
-        if (normalized.contains("meta") || normalized.contains("llama")) {
-            return applyProviderLimits(new Quota(providerId, providerName, 5000, 100000, 500), provider);
-        }
-        if (normalized.contains("mistral")) {
-            return applyProviderLimits(new Quota(providerId, providerName, 300, 50000, 300), provider);
-        }
-        if (normalized.contains("cohere")) {
-            return applyProviderLimits(new Quota(providerId, providerName, 1000, 100000, 200), provider);
-        }
-        if (normalized.contains("huggingface")) {
-            return applyProviderLimits(new Quota(providerId, providerName, 500, 50000, 100), provider);
-        }
-        if (normalized.contains("xai") || normalized.contains("grok")) {
-            return applyProviderLimits(new Quota(providerId, providerName, 500, 30000, 100), provider);
-        }
-        if (normalized.contains("deepseek")) {
-            return applyProviderLimits(new Quota(providerId, providerName, 2000, 80000, 200), provider);
-        }
-        if (normalized.contains("perplexity")) {
-            return applyProviderLimits(new Quota(providerId, providerName, 1000, 60000, 150), provider);
+        if (provider.getRateLimitPerMinute() != null && provider.getRateLimitPerMinute() > 0) {
+            rpmLimit = provider.getRateLimitPerMinute();
         }
 
-        return applyProviderLimits(new Quota(providerId, providerName, DEFAULT_DAILY_LIMIT, DEFAULT_DAILY_TOKEN_LIMIT, DEFAULT_RPM_LIMIT), provider);
+        return applyProviderLimits(new Quota(providerId, providerName, dailyLimit, dailyTokenLimit, rpmLimit), provider);
     }
 
     private Quota applyProviderLimits(Quota quota, APIProvider provider) {

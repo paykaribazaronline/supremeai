@@ -112,16 +112,12 @@ public class MultiAIConsensusService {
                     : quotaService.shouldUseFallback();
             int configuredProviderCount = quotaService.getConfiguredProviderCount();
 
-            if (configuredProviderCount == 0) {
-                logger.warn("⚠️ No AI providers configured - admin must add providers before consensus can run");
-                vote.setWinningResponse("[NO_PROVIDERS_CONFIGURED] Admin has not configured any AI providers yet");
-                vote.setConfidenceScore(0.0);
-                return vote;
-            }
-            
-            if (availableProviders.isEmpty()) {
-                logger.error("❌ ALL AI PROVIDERS OUT OF QUOTA! Falling back... (system={})", systemOperation);
-                return handleQuotaFallback(question);
+            if (configuredProviderCount == 0 || availableProviders.isEmpty()) {
+                String reason = configuredProviderCount == 0
+                        ? "No external AI providers configured"
+                        : "All AI provider quotas exhausted";
+                logger.info("🔧 {} — switching to SOLO MODE", reason);
+                return handleSoloMode(question, reason);
             }
             
             if (needsFallback) {
@@ -191,38 +187,133 @@ public class MultiAIConsensusService {
     }
     
     /**
-     * Fallback when quotas are exhausted
+     * SOLO MODE: Generate improvement response locally when no external AI is available.
+     * Simple rule: external API available → use it, not available → work solo.
      */
-    private ConsensusVote handleQuotaFallback(String question) {
-        logger.warn("⚠️ QUOTA FALLBACK triggered - using cached consensus or local model");
-        
+    private ConsensusVote handleSoloMode(String question, String reason) {
+        logger.info("🔧 SOLO MODE active ({})", reason);
+
         ConsensusVote vote = new ConsensusVote();
         vote.setQuestion(question);
-        
-        // Try to use cached consensus from last successful vote
+
+        // 1) If we have a cached response from a previous successful vote, reuse it
         ConsensusVote lastVote = voteHistory.values().stream()
             .max(Comparator.comparingLong(ConsensusVote::getTimestamp))
             .orElse(null);
-        
-        if (lastVote != null && lastVote.getWinningResponse() != null) {
-            logger.info("📚 Using cached consensus from previous vote");
+
+        if (lastVote != null && lastVote.getWinningResponse() != null
+                && !lastVote.getWinningResponse().startsWith("[SOLO]")) {
+            logger.info("📚 Solo mode: reusing cached consensus response");
             vote.setWinningResponse(lastVote.getWinningResponse());
-            vote.setConfidenceScore(lastVote.getConfidenceScore());
-            // Copy votes by re-voting
-            for (Map.Entry<String, Integer> voteEntry : lastVote.getVotes().entrySet()) {
-                for (int i = 0; i < voteEntry.getValue(); i++) {
-                    vote.voteFor(voteEntry.getKey());
-                }
-            }
+            vote.setConfidenceScore(lastVote.getConfidenceScore() * 0.8);
+            vote.addResponse("solo-cache", lastVote.getWinningResponse());
+            voteHistory.put(vote.getId(), vote);
             return vote;
         }
-        
-        // Fallback: Local model response
-        logger.warn("📍 All quotas exceeded and no cache - using local fallback response");
-        vote.setWinningResponse("[LOCAL_FALLBACK] Please wait for quota reset or reduce requests");
-        vote.setConfidenceScore(0.3);
-        
+
+        // 2) Generate a solo analysis from the prompt context
+        String soloResponse = generateSoloAnalysis(question);
+        vote.setWinningResponse(soloResponse);
+        vote.setConfidenceScore(0.7); // Solo mode: 70% confidence
+        vote.addResponse("solo-local", soloResponse);
+        vote.voteFor("solo-local");
+        voteHistory.put(vote.getId(), vote);
+
+        logger.info("✅ Solo mode produced analysis ({} chars)", soloResponse.length());
         return vote;
+    }
+
+    /**
+     * Generate a structured improvement analysis from the prompt context alone.
+     * Extracts repo structure and goal from the prompt and produces actionable suggestions.
+     */
+    private String generateSoloAnalysis(String prompt) {
+        StringBuilder analysis = new StringBuilder();
+        analysis.append("[SOLO] SupremeAI Solo Analysis\n\n");
+
+        // Extract goal from the prompt (usually between quotes or after "goal:")
+        String goal = extractGoal(prompt);
+        if (goal != null) {
+            analysis.append("## Goal\n").append(goal).append("\n\n");
+        }
+
+        // Extract file listing from prompt context
+        List<String> files = extractFileList(prompt);
+
+        analysis.append("## Analysis\n");
+        analysis.append("Running in solo mode (no external AI providers).\n\n");
+
+        analysis.append("## Recommended Improvements\n");
+        if (files.isEmpty()) {
+            analysis.append("1. Set up project structure with standard directories\n");
+            analysis.append("2. Add a README.md describing the project\n");
+            analysis.append("3. Add CI/CD workflow (.github/workflows/ci.yml)\n");
+        } else {
+            boolean hasReadme = files.stream().anyMatch(f -> f.toLowerCase().contains("readme"));
+            boolean hasCiCd = files.stream().anyMatch(f -> f.contains(".github/workflows"));
+            boolean hasTests = files.stream().anyMatch(f -> f.toLowerCase().contains("test"));
+            boolean hasPackageJson = files.stream().anyMatch(f -> f.contains("package.json"));
+            boolean hasBuildGradle = files.stream().anyMatch(f -> f.contains("build.gradle"));
+            boolean hasIndex = files.stream().anyMatch(f -> f.contains("index.html"));
+
+            int step = 1;
+            if (!hasReadme) {
+                analysis.append(step++).append(". Add README.md with project description and setup instructions\n");
+            }
+            if (!hasCiCd) {
+                analysis.append(step++).append(". Add CI/CD pipeline (.github/workflows/ci.yml)\n");
+            }
+            if (!hasTests) {
+                analysis.append(step++).append(". Add unit tests for core functionality\n");
+            }
+            if (hasPackageJson) {
+                analysis.append(step++).append(". Verify dependencies are up to date (npm audit)\n");
+            }
+            if (hasBuildGradle) {
+                analysis.append(step++).append(". Verify Gradle build configuration and dependencies\n");
+            }
+            if (hasIndex) {
+                analysis.append(step++).append(". Add input validation and error handling to frontend\n");
+            }
+            if (goal != null && goal.toLowerCase().contains("crud") || goal != null && goal.toLowerCase().contains("edit")) {
+                analysis.append(step++).append(". Implement CRUD operations with proper validation\n");
+            }
+            if (goal != null && goal.toLowerCase().contains("export") || goal != null && goal.toLowerCase().contains("csv")) {
+                analysis.append(step++).append(". Add CSV export functionality\n");
+            }
+            analysis.append(step).append(". Review and improve code quality, add error handling\n");
+        }
+
+        analysis.append("\n## Files Identified: ").append(files.size()).append("\n");
+        analysis.append("## Mode: Solo (local analysis, no external AI)\n");
+
+        return analysis.toString();
+    }
+
+    private String extractGoal(String prompt) {
+        // Look for goal patterns in the prompt
+        for (String marker : new String[]{"goal:", "Goal:", "objective:", "Your goal is:"}) {
+            int idx = prompt.indexOf(marker);
+            if (idx >= 0) {
+                int start = idx + marker.length();
+                int end = prompt.indexOf("\n", start);
+                if (end < 0) end = Math.min(start + 200, prompt.length());
+                return prompt.substring(start, end).trim().replaceAll("^\"|\"$", "");
+            }
+        }
+        return null;
+    }
+
+    private List<String> extractFileList(String prompt) {
+        List<String> files = new ArrayList<>();
+        for (String line : prompt.split("\n")) {
+            String trimmed = line.trim();
+            // Match lines that look like file paths (contain . and / or \)
+            if (trimmed.matches(".*[/\\\\].*\\.[a-zA-Z]{1,10}$") || trimmed.matches("^[a-zA-Z0-9_-]+\\.[a-zA-Z]{1,10}$")) {
+                files.add(trimmed.replaceAll("^[\\-\\s*]+", ""));
+            }
+        }
+        return files;
     }
     
     /**

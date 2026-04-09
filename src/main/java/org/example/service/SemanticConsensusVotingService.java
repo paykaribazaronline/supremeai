@@ -36,7 +36,8 @@ import java.util.stream.Collectors;
 public class SemanticConsensusVotingService {
     private static final Logger logger = LoggerFactory.getLogger(SemanticConsensusVotingService.class);
 
-    // Default weights for provider reliability (can be learned/updated over time)
+    // Dynamic provider weights — learned from actual success rates, NOT hardcoded.
+    // New providers start at 0.80 default, weight adjusts based on actual performance.
     private final Map<String, Double> providerWeights = new HashMap<>();
 
     // Semantic similarity threshold for grouping responses (0.0-1.0)
@@ -46,17 +47,8 @@ public class SemanticConsensusVotingService {
     private static final double CONSENSUS_THRESHOLD = 0.66;
 
     public SemanticConsensusVotingService() {
-        // Initialize default provider weights
-        providerWeights.put("openai", 0.95);
-        providerWeights.put("anthropic", 0.93);
-        providerWeights.put("google", 0.91);
-        providerWeights.put("meta", 0.85);
-        providerWeights.put("mistral", 0.80);
-        providerWeights.put("cohere", 0.78);
-        providerWeights.put("huggingface", 0.75);
-        providerWeights.put("xai", 0.82);
-        providerWeights.put("deepseek", 0.80);
-        providerWeights.put("perplexity", 0.88);
+        // No hardcoded provider weights — all providers start equal at 0.80
+        // Weights are learned dynamically via updateProviderWeight() as providers succeed/fail
     }
 
     /**
@@ -236,7 +228,7 @@ public class SemanticConsensusVotingService {
      */
     private double getProviderWeight(String provider) {
         String normalizedProvider = provider.toLowerCase().replaceAll("-.*", "");
-        return providerWeights.getOrDefault(normalizedProvider, 0.7);  // Default 0.7 if unknown
+        return providerWeights.getOrDefault(normalizedProvider, 0.80);  // All providers start equal
     }
 
     /**
@@ -255,7 +247,7 @@ public class SemanticConsensusVotingService {
      */
     public void updateProviderWeight(String provider, double accuracy) {
         String normalized = provider.toLowerCase().replaceAll("-.*", "");
-        double currentWeight = providerWeights.getOrDefault(normalized, 0.7);
+        double currentWeight = providerWeights.getOrDefault(normalized, 0.80);
         double newWeight = (currentWeight + accuracy) / 2.0;  // Moving average
         providerWeights.put(normalized, Math.min(1.0, Math.max(0.1, newWeight)));
         logger.info("📊 Updated {} weight: {:.3f} -> {:.3f}", normalized, currentWeight, newWeight);

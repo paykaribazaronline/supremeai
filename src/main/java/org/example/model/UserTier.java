@@ -2,20 +2,24 @@ package org.example.model;
 
 /**
  * User Tier Enumeration
- * Defines tier levels with quotas for free/paid users
- * SUPERADMIN = you (unlimited access)
+ *
+ * MASTER RULE: No artificial hardcoded limits.
+ * - SUPERADMIN/ENTERPRISE = truly unlimited, zero checks
+ * - Other tiers: defaults below are just INITIAL values
+ * - Admin can override any tier's limits from the dashboard (User Management & Tiers)
+ * - The ONLY real limit is actual resource availability (API quota, Firebase, GCloud)
  */
 public enum UserTier {
-    FREE("free", 5, 1000, 1, 0),                    // 5 req/day, 1,000/month, 1 app/day, $0
-    STARTER("starter", 500, 10000, 5, 9),          // 500 req/day, 10k/month, 5 apps/day, $9/mo
-    PROFESSIONAL("professional", 5000, 100000, 50, 99),  // 5k req/day, 100k/month, 50 apps/day, $99/mo
+    FREE("free", -1, -1, -1, 0),                   // Default: unlimited (admin can restrict from dashboard)
+    STARTER("starter", -1, -1, -1, 9),             // Default: unlimited (admin can restrict from dashboard)
+    PROFESSIONAL("professional", -1, -1, -1, 99),  // Default: unlimited (admin can restrict from dashboard)
     ENTERPRISE("enterprise", -1, -1, -1, 9999),    // Unlimited, custom pricing
     SUPERADMIN("superadmin", -1, -1, -1, 0);       // YOU - Unlimited everything, free
     
     public final String name;
-    public final int dailyLimit;           // -1 = unlimited
-    public final int monthlyLimit;         // -1 = unlimited
-    public final int appCreationsPerDay;   // -1 = unlimited
+    public final int dailyLimit;           // -1 = unlimited (no artificial cap)
+    public final int monthlyLimit;         // -1 = unlimited (no artificial cap)
+    public final int appCreationsPerDay;   // -1 = unlimited (no artificial cap)
     public final int monthlyPrice;         // In USD
     
     UserTier(String name, int dailyLimit, int monthlyLimit, int appCreationsPerDay, int monthlyPrice) {
@@ -27,7 +31,7 @@ public enum UserTier {
     }
     
     public boolean isUnlimited() {
-        return this == ENTERPRISE || this == SUPERADMIN;
+        return dailyLimit == -1 && monthlyLimit == -1 && appCreationsPerDay == -1;
     }
     
     public static UserTier fromString(String tier) {
