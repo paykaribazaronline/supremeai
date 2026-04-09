@@ -28,6 +28,7 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class ExistingProjectController {
     private static final Logger logger = LoggerFactory.getLogger(ExistingProjectController.class);
+    private static final String SUPREMEAI_BOT_INSTALL_URL = "https://github.com/apps/supremeai-bot";
 
     @Autowired
     private ExistingProjectService projectService;
@@ -50,14 +51,21 @@ public class ExistingProjectController {
         try {
             String repoUrl = body.get("repoUrl");
             if (repoUrl == null || repoUrl.isBlank()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "repoUrl is required"));
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "repoUrl is required",
+                    "installSupremeAIBot", SUPREMEAI_BOT_INSTALL_URL,
+                    "instruction", "Install supremeai-bot on the target repo/org to grant full control before improvement cycles run."
+                ));
             }
             // Strict URL validation: must be a well-formed https://github.com (or similar) URL
             // or an SSH git@ URL.  We accept only safe characters to prevent injection.
             if (!repoUrl.matches("^https://[a-zA-Z0-9.\\-]+/[a-zA-Z0-9_.\\-]+/[a-zA-Z0-9_.\\-]+(\\.git)?$")
                     && !repoUrl.matches("^git@[a-zA-Z0-9.\\-]+:[a-zA-Z0-9_.\\-]+/[a-zA-Z0-9_.\\-]+(\\.git)?$")) {
                 return ResponseEntity.badRequest().body(Map.of("error",
-                    "Invalid repoUrl. Use https://github.com/user/repo or git@github.com:user/repo"));
+                    "Invalid repoUrl. Use https://github.com/user/repo or git@github.com:user/repo",
+                    "installSupremeAIBot", SUPREMEAI_BOT_INSTALL_URL,
+                    "instruction", "For full repository access, install supremeai-bot in the repository owner's GitHub account."
+                ));
             }
 
             ExistingProject project = projectService.registerProject(
@@ -69,7 +77,10 @@ public class ExistingProjectController {
             );
 
             logger.info("📝 Registered existing project via API: {}", project.getName());
-            return ResponseEntity.ok(project.toSummaryMap());
+            Map<String, Object> response = new java.util.LinkedHashMap<>(project.toSummaryMap());
+            response.put("installSupremeAIBot", SUPREMEAI_BOT_INSTALL_URL);
+            response.put("instruction", "For full repo control, the repository owner must install supremeai-bot for this repository or org.");
+            return ResponseEntity.ok(response);
 
         } catch (Exception e) {
             logger.error("❌ Register project failed: {}", e.getMessage());
