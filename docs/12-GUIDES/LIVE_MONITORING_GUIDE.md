@@ -143,7 +143,7 @@ Example provider set can include OpenAI, Anthropic, Google, Meta, Mistral, Coher
 
 ---
 
-## 🔗 FIREBASE SCHEMA (Where Learning is Stored)
+## 🔗 FIREBASE COLLECTIONS (Where Learning is Stored)
 
 ### Database Structure
 

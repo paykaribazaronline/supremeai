@@ -37,6 +37,7 @@ import GitHubDashboard from '../components/GitHubDashboard';
 import HeadlessBrowserDashboard from '../components/HeadlessBrowserDashboard';
 import ChatHistoryDashboard from '../components/ChatHistoryDashboard';
 import SystemLearningDashboard from '../components/SystemLearningDashboard';
+import AdminTips from '../components/AdminTips';
 
 const { Header, Content, Sider } = Layout;
 
@@ -404,6 +405,7 @@ const AdminDashboard: React.FC = () => {
                     </div>
                 </Content>
             </Layout>
+            <AdminTips />
         </Layout>
     );
 };

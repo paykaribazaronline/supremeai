@@ -41,6 +41,9 @@ public class CodeGenerationOrchestrator {
     @Autowired(required = false)
     private IdleResearchService idleResearchService;
 
+    @Autowired(required = false)
+    private XBuilderFailurePatternService failurePatternService;
+
     private static final ObjectMapper mapper = new ObjectMapper();
     private final Map<String, GenerationMetrics> generationHistory = new HashMap<>();
 
@@ -184,6 +187,20 @@ public class CodeGenerationOrchestrator {
             metrics.status = "failed";
             result.put("status", "failed");
             result.put("error", e.getMessage());
+            
+            // Track failure in X-Builder failure pattern database
+            if (failurePatternService != null) {
+                String failureType = determineFailureType(e);
+                failurePatternService.recordFailure(
+                    projectId,
+                    componentName,
+                    "REACT",
+                    failureType,
+                    e.getMessage(),
+                    null, // Generated code (if available)
+                    e.getClass().getSimpleName() + ": " + e.getMessage()
+                );
+            }
         }
 
         // Log generation event
@@ -691,5 +708,27 @@ public class CodeGenerationOrchestrator {
     private String capitalize(String str) {
         if (str == null || str.isEmpty()) return str;
         return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+
+    /**
+     * Classify the type of failure based on exception message and type
+     */
+    private String determineFailureType(Exception e) {
+        String message = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+        String type = e.getClass().getSimpleName();
+
+        if (message.contains("syntax") || type.contains("Syntax")) {
+            return "SYNTAX";
+        } else if (message.contains("import") || message.contains("dependency")) {
+            return "DEPENDENCY";
+        } else if (message.contains("timeout") || message.contains("connection")) {
+            return "NETWORK";
+        } else if (message.contains("validation") || message.contains("valid")) {
+            return "VALIDATION";
+        } else if (message.contains("null") || message.contains("npe")) {
+            return "LOGIC";
+        } else {
+            return "UNKNOWN";
+        }
     }
 }

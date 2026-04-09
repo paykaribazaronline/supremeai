@@ -6,6 +6,30 @@
 
 ---
 
+## 🎓 Guide for Non-Technical Users
+
+👋 **Welcome!** If you've never run an admin dashboard before, this section is for you. We'll explain everything in simple terms.
+
+### **What Does This Dashboard Do?**
+
+Imagine you have a helpful robot assistant working for you. This dashboard is your **remote control for that robot**. You can:
+
+- 🎚️ **Control speed:** Fast (AUTO) or careful (WAIT)
+- ⏹️ **Stop it:** Emergency stop if something goes wrong
+- 👀 **Watch it:** See everything it does in the audit log
+- ✅ **Approve work:** Check things before they're finished
+- 📝 **See history:** Know exactly what happened when
+
+### **The 3 Modes Explained (Not Technically)**
+
+| Mode | Feels Like | Safe For Beginners? |
+|------|---------|---|
+| **⚡ AUTO** | Autopilot on a plane - things happen automatically | ❌ Start with WAIT |
+| **⏸️ WAIT** | Manual gear shift - you control each step | ✅ Recommended! |
+| **🛑 STOP** | Emergency brake - stops everything instantly | ✅ Use if worried |
+
+---
+
 ## 🎯 What You Can Control
 
 The admin dashboard gives you **complete control** over SupremeAI with three operating modes:
@@ -395,7 +419,304 @@ You can filter by:
 
 ---
 
-## 🔧 Troubleshooting
+## � Beginner's Tips: What You Need to Know
+
+### **🎯 Your First Week as Admin**
+
+**Day 1: Observation**
+
+- ✅ Log in and look around
+- ✅ Don't change anything yet
+- ✅ Read each section title
+- ✅ Understand the 3 mode buttons
+- ✅ Get comfortable with the interface
+
+**Day 2-3: Safe Testing in WAIT Mode**
+
+- ✅ Switch to ⏸️ WAIT mode
+- ✅ Make small test changes
+- ✅ See them appear in "Pending Actions"
+- ✅ Practice approving and rejecting
+- ✅ Watch results in Audit Trail
+
+**Day 4-5: Real Work in WAIT Mode**
+
+- ✅ Continue using WAIT mode
+- ✅ Do actual work that matters
+- ✅ Each action waits for your approval
+- ✅ You maintain complete control
+- ✅ Build confidence
+
+**Day 6-7: Learn When to Use AUTO**
+
+- ✅ You now understand how it works
+- ✅ You can use AUTO mode occasionally
+- ✅ Still check audit logs weekly
+- ✅ Know when to use STOP if needed
+
+---
+
+### **📋 Simple Checklists**
+
+#### **Before Making Changes (WAIT Mode)**
+
+- [ ] I'm in WAIT mode (orange button)
+- [ ] I understand what I'm about to do
+- [ ] This change is safe to test
+- [ ] I've written a clear message
+- [ ] I'm ready to see results
+
+#### **After Making Changes (WAIT Mode)**
+
+- [ ] Pending action appeared
+- [ ] I read it carefully
+- [ ] I'm sure it's correct
+- [ ] I clicked ✅ Approve
+- [ ] I saw it execute
+
+#### **Monthly Maintenance**
+
+- [ ] Reviewed audit trail
+- [ ] No suspicious activity logged
+- [ ] Understood all mode changes
+- [ ] System is healthy
+- [ ] No error patterns
+
+---
+
+### **🚨 Safety Rules (Very Important)**
+
+**RULE 1: Never use AUTO Mode Immediately**
+
+- Always learn in WAIT mode first
+- Only use AUTO after several days in WAIT
+- AUTO mode removes your safety net
+
+**RULE 2: Check Audit Trail Before Panicking**
+
+- Something unexpected happened?
+- Check Audit Trail first
+- Exactly what occurred will be logged
+- Helps you understand what went wrong
+
+**RULE 3: When in Doubt, Use STOP**
+
+- Something feels wrong?
+- Click the 🛑 STOP button immediately
+- Nothing bad can happen while stopped
+- Investigate, then resume
+
+**RULE 4: Read All Pending Actions Carefully**
+
+- Each action could matter
+- Don't approve without understanding
+- If unsure, click ❌ Reject
+- You can try again
+
+**RULE 5: Don't Ignore the Audit Trail**
+
+- It's not just for compliance
+- Shows you exact what happened
+- Helps diagnose problems
+- Your safety record
+
+---
+
+### **❓ Common Questions Answered Simply**
+
+**Q: What happens if I click ❌ Reject by mistake?**
+A: Nothing bad! You can just make the change again and click ✅ Approve the next time.
+
+**Q: Can I switch from WAIT to AUTO mode in the middle of work?**
+A: Yes, but not recommended while learning. Finish your current pending actions first.
+
+**Q: What if the system is in STOP mode and I forget why?**
+A: Check the Audit Trail! It shows the reason you entered when you hit STOP.
+
+**Q: Is it dangerous to use AUTO mode?**
+A: Only if you don't understand what you're doing. After a week in WAIT mode, you'll be ready.
+
+**Q: How do I know if my action was successful?**
+A: Check Audit Trail and look for SUCCESS status. Also see if expected changes appeared.
+
+**Q: Can the system email me when actions are done?**
+A: Check system settings. Your admin can configure notifications.
+
+**Q: What if I leave for vacation?**
+A: Switch to WAIT mode or STOP mode before you leave. System won't do anything without approval.
+
+**Q: How long does the token last?**
+A: 24 hours. After that, refresh the page to get a new one. Very secure!
+
+---
+
+### **🎨 Understanding the Visual Indicators**
+
+#### **Mode Buttons (Big, Colorful, Important)**
+
+```
+🟢 ⚡ AUTO        → Green light
+   System runs everything instantly
+   Use when: Confident and experienced
+
+🟠 ⏸️ WAIT        → Orange light  
+   System waits for your approval
+   Use when: Learning or want control
+
+🔴 🛑 STOP        → Red light
+   System stops everything
+   Use when: Something is wrong
+```
+
+**Pro Tip:** If you can't find a button, it's one of these three big ones at the top!
+
+---
+
+### **📊 How to Read the Audit Trail (Important!)**
+
+The Audit Trail is like a security camera. It records everything.
+
+**Columns You'll See:**
+
+| Column | What It Means | Example |
+|--------|---|---|
+| **Time** | When it happened | 2:34 PM today |
+| **User** | Which admin did it | admin@supremeai.com |
+| **Event** | What happened | Git Commit Created |
+| **Status** | Did it work? | ✅ SUCCESS |
+| **Details** | Full story | Message: "Fixed typo" |
+
+**How to Read One Entry:**
+
+```
+Time:     2:34 PM
+User:     admin@supremeai.com  (That's you)
+Event:    Mode Changed
+Status:   ✅ SUCCESS
+Details:  Changed from WAIT to AUTO mode
+```
+
+**Translation to Normal English:**
+"You changed the setting from WAIT to AUTO at 2:34 PM and it worked."
+
+---
+
+### **🛠️ Fixing Common Mistakes**
+
+**Mistake 1: "I made a change but can't find it"**
+
+- Look in "Pending Actions" - is it waiting there?
+- Check Audit Trail - did it succeed?
+- Refresh page - maybe it's slow to display
+- The change probably exists, just might not be visible yet
+
+**Mistake 2: "I don't remember what I did"**
+
+- Scroll to Audit Trail
+- Look at entries with your name
+- Click on entries to see full details
+- Now you remember!
+
+**Mistake 3: "I approved something I didn't mean to"**
+
+- Don't panic!
+- Check Audit Trail to see what you approved
+- It's already done, so fix it manually or:
+- Undo the change and commit the opposite
+
+**Mistake 4: "Mode button isn't working"**
+
+- Try refreshing the page (Ctrl+R)
+- Clear browser cache (Ctrl+Shift+Delete)
+- Check you're logged in (top right shows your email?)
+- Try in a different browser tab
+
+**Mistake 5: "I can't see any pending actions in WAIT mode"**
+
+- Are you sure you're in WAIT mode? (Check color)
+- Did you make a change yet? (Make count in WAIT mode)
+- Try refreshing the page
+- Changes might take 5-10 seconds to appear
+
+---
+
+### **💪 Building Confidence Over Time**
+
+**Week 1 Confidence:** 20%
+
+- "I don't understand most of this yet"
+- That's normal and expected
+- You're learning rapidly
+- Keep notes of what confused you
+
+**Week 2 Confidence:** 50%
+
+- "I understand the basics now"
+- WAIT mode makes sense
+- Audit Trail tells a story
+- You made successful changes
+
+**Week 3 Confidence:** 80%
+
+- "I know what I'm doing"
+- You troubleshot problems yourself
+- You understand mode switching
+- You read audit logs confidently
+
+**Week 4+ Confidence:** 95%
+
+- "I'm a confident admin"
+- You might use AUTO mode sometimes
+- You help others understand it
+- You maintain the system regularly
+
+---
+
+### **📝 Creating a Cheat Sheet**
+
+Print this or keep it nearby:
+
+```
+WHEN YOU WANT TO:          WHAT TO DO:
+Don't lose control         Use ⏸️ WAIT mode
+Go faster (experienced)    Use ⚡ AUTO mode
+Stop everything NOW        Use 🛑 STOP button
+See what happened          Look at Audit Trail
+Can't find a feature       Check the top buttons
+Forgot your authorization  Refresh page
+Unsure if change worked    Check Audit Trail
+Something went wrong       STOP button first!
+Want to learn more         Check audit entries
+Need to undo mistake       Next change can fix it
+```
+
+---
+
+### **🎓 Advanced Tips (After 2 Weeks)**
+
+1. **Keyboard Shortcuts**
+   - Refresh page: Ctrl+R
+   - Clear fields: Ctrl+A then Delete
+   - Check browser console: F12 (for errors)
+
+2. **Time-saving**
+   - Audit Trail auto-refreshes - don't manually refresh
+   - You can switch modes while tasks run
+   - Multiple actions can be pending at once
+
+3. **Permission Levels**
+   - You have full admin access
+   - Tokens are per-person and logged
+   - Audit trail proves you did it
+   - Always verify before approving
+
+4. **Emergency Procedures**
+   - Something broken? Hit STOP
+   - Can't login? Clear browser cache
+   - Unsure? Always use WAIT mode
+   - Still stuck? Check Audit Trail
+
+---
 
 ### **"Admin authentication required"**
 

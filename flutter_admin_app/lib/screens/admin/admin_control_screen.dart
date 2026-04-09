@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../config/app_constants.dart';
 import '../../config/environment.dart';
 import '../../services/api_service.dart';
+import 'admin_help_screen.dart';
 
 class AdminControlScreen extends StatefulWidget {
   const AdminControlScreen({Key? key}) : super(key: key);
@@ -119,6 +120,16 @@ class _AdminControlScreenState extends State<AdminControlScreen> {
       appBar: AppBar(
         title: const Text('অ্যাডমিন কন্ট্রোল'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            tooltip: 'সাহায্য এবং টিপস',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AdminHelpScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'রিফ্রেশ করুন',

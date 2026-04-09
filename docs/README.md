@@ -91,14 +91,16 @@ Phase-by-phase implementation documentation (Phases 1-10+).
 
 Admin dashboard, user management, and operational guides.
 
+- **[👶 Admin Beginner Guide](./04-ADMIN/ADMIN_BEGINNER_GUIDE.md)** ← **Start here if you're new!**
+- [Admin Dashboard Quickstart](./04-ADMIN/ADMIN_DASHBOARD_QUICKSTART.md)
 - [Admin Complete Guide](./04-ADMIN/ADMIN_COMPLETE_GUIDE.md)
 - [Admin Control Complete Guide](./04-ADMIN/ADMIN_CONTROL_COMPLETE_GUIDE.md)
 - [Admin Dashboard API Reference](./04-ADMIN/ADMIN_DASHBOARD_API_REFERENCE.md)
 - [Admin Dashboard Implementation Guide](./04-ADMIN/ADMIN_DASHBOARD_IMPLEMENTATION_GUIDE.md)
-- [Admin Dashboard Quickstart](./04-ADMIN/ADMIN_DASHBOARD_QUICKSTART.md)
 - [Create Admin Guide](./04-ADMIN/CREATE_ADMIN_GUIDE.md)
 - [Alert Configuration](./04-ADMIN/ALERT_CONFIGURATION.md)
 - [Admin Operations Guide](./04-ADMIN/ADMIN_OPERATIONS_GUIDE.md)
+**👉 Also see:** [CommandHub System](../command-hub/README.md) - Command orchestration, monitoring, and automation
 
 ### ðŸ” [05-AUTHENTICATION-SECURITY](./05-AUTHENTICATION-SECURITY/)
 
@@ -119,9 +121,10 @@ Feature-specific documentation and implementation guides.
 
 - [Teaching and Learning System](./06-FEATURES/TEACHING_AND_LEARNING_SYSTEM.md)
 - [Incident Learning Playbook](./06-FEATURES/INCIDENT_LEARNING_PLAYBOOK.md)
-- [Firebase Schema App Generation](./06-FEATURES/FIREBASE_SCHEMA_APP_GENERATION.md)
+- [Firebase Collections App Generation](./06-FEATURES/FIREBASE_SCHEMA_APP_GENERATION.md)
 - [Knowledge Reseed Setup](./06-FEATURES/KNOWLEDGE_RESEED_SETUP.md)
 - [Distributed Tracing Failover](./06-FEATURES/DISTRIBUTED_TRACING_FAILOVER.md)
+**👉 Also see:** [CommandHub - Command Orchestration](../command-hub/IMPLEMENTATION.md) - REST APIs, CLI tool, monitoring, and data refresh commands
 
 ### ðŸ“± [07-FLUTTER](./07-FLUTTER/)
 
@@ -166,6 +169,7 @@ Implementation planning, status reports, and progress tracking.
 - [Phase 10 Final Status](./10-IMPLEMENTATION/SUPREMEAI_PHASE10_FINAL_STATUS.md)
 - [Production Readiness](./10-IMPLEMENTATION/PRODUCTION_READINESS.md)
 - [Service Consolidation And Validation Plan](./10-IMPLEMENTATION/SERVICE_CONSOLIDATION_AND_VALIDATION_PLAN.md)
+**👉 Also see:** [CommandHub Phase 2-5 Complete](../command-hub/PHASE2_COMPLETE.md) - Command implementation, REST API, and CLI tool status
 
 ### ðŸ“Š [11-PROJECT-MANAGEMENT](./11-PROJECT-MANAGEMENT/)
 

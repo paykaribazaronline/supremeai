@@ -43,7 +43,7 @@ Purpose: HOW does SupremeAI learn?
 Topics:
   • 3-layer storage (in-memory → monthly → permanent)
   • Confidence scores (0.85-0.99)
-  • Firebase schema overview
+  • Firebase collections overview
   • Learning loop architecture
   • Pre-push verification workflow
 When to read: Understand the "big picture" learning system

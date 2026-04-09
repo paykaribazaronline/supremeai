@@ -249,7 +249,19 @@
         let ws = null;
         let reconnectAttempts = 0;
         const maxReconnectAttempts = 10;
-        const reconnectDelay = 3000; // 3 seconds
+        const minReconnectDelay = 2000; // 2 seconds
+        const maxReconnectDelay = 30000; // 30 seconds
+
+        // Calculate adaptive reconnect delay with exponential backoff
+        function getAdaptiveReconnectDelay() {
+            // Exponential backoff: delay = min * (2 ^ attempts), capped at max
+            const exponentialDelay = minReconnectDelay * Math.pow(2, reconnectAttempts);
+            const adaptiveDelay = Math.min(exponentialDelay, maxReconnectDelay);
+            // Add jitter (±10%) to prevent thundering herd
+            const jitter = adaptiveDelay * (0.9 + Math.random() * 0.2);
+            console.log(`WebSocket reconnect attempt ${reconnectAttempts + 1}: delay ${Math.round(jitter)}ms`);
+            return jitter;
+        }
 
         function connectWebSocket() {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -293,7 +305,8 @@
                     
                     if (reconnectAttempts < maxReconnectAttempts) {
                         reconnectAttempts++;
-                        setTimeout(connectWebSocket, reconnectDelay);
+                        const delay = getAdaptiveReconnectDelay();
+                        setTimeout(connectWebSocket, delay);
                     } else {
                         console.warn('Max reconnection attempts reached, falling back to HTTP polling');
                         startHttpPolling();

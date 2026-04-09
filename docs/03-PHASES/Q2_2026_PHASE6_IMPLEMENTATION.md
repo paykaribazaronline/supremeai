@@ -202,7 +202,7 @@ DECISION LOGGING SYSTEM (Java - 250 LOC)
 └── Tests (50 LOC)
     └── Decision log accuracy tests
 
-FIREBASE SCHEMA
+FIREBASE COLLECTIONS
 ├── Collection: agent_decisions
 │   ├── Fields:
 │   │   ├── agent_id (X, Y, Z, A, B, C)
