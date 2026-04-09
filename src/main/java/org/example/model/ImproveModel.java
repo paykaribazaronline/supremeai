@@ -7,7 +7,7 @@ import java.util.*;
  * Improve Model
  * Generated: 2026-04-08T16:28:38.279024307
  */
-public class Improve implements Serializable {
+public class ImproveModel implements Serializable {
     private String id;
     private String name;
     private Map<String, Object> data = new HashMap<>();
