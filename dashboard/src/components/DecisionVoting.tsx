@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Modal, Form, Input, Select, Checkbox, Tag, message, Row, Col, Progress, Timeline, Avatar } from 'antd';
 import { PlusOutlined, CheckCircleOutlined, CloseCircleOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import { authUtils } from '../lib/authUtils';
 
 interface Vote {
     agentName: string;
@@ -39,7 +40,7 @@ const DecisionVoting: React.FC = () => {
     const fetchDecisions = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('authToken');
+            const token = authUtils.getToken();
             const response = await fetch('/api/decisions/list', {
                 headers: { 'Authorization': `Bearer ${token}` },
             });

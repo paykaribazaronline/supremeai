@@ -56,7 +56,7 @@ const Teaching: React.FC = () => {
         setError(null);
 
         try {
-            const token = localStorage.getItem('supremeai_token') || localStorage.getItem('authToken');
+            const token = authUtils.getToken();
             const res = await fetch(currentTab.endpoint, {
                 method: 'POST',
                 headers: {

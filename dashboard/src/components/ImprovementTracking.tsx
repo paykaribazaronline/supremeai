@@ -31,7 +31,7 @@ const ImprovementTracking: React.FC = () => {
     const fetchImprovements = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('authToken');
+            const token = authUtils.getToken();
             const response = await fetch('/api/improvements/list', {
                 headers: { 'Authorization': `Bearer ${token}` },
             });

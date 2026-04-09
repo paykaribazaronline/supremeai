@@ -36,12 +36,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         "/webhook",
         "/api/v1/data/health",
         "/actuator/health",
-        "/api/auth/login",
-        "/api/auth/firebase-login",
-        "/api/auth/bootstrap",
-        "/api/auth/hash-password",
-        "/api/auth/register",
-        "/api/auth/refresh",
+        "/api/auth/firebase-login",  // ONLY Firebase auth endpoint
         "/index.html",
         "/login.html",
         "/"
@@ -53,13 +48,11 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         "/admin-control-dashboard.html"
     );
 
-    // Paths under /api/admin/ that require admin role (dashboard/contract is read-only + public)
+    // Paths under /api/admin/ that require admin role
     private static final Set<String> ADMIN_API_PREFIXES = Set.of(
         "/api/admin/control",
         "/api/admin/users",
-        "/api/admin/settings",
-        "/api/auth/register",
-        "/api/auth/users"
+        "/api/admin/settings"
     );
 
     // Admin-prefixed paths that are openly readable (no auth required)

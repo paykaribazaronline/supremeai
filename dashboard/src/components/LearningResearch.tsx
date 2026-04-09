@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { authUtils } from '../lib/authUtils';
 
 interface LearningStats {
     totalLearnings: number;
@@ -43,7 +44,7 @@ const LearningResearch: React.FC = () => {
     const [savingSettings, setSavingSettings] = useState(false);
     const [settingsMsg, setSettingsMsg] = useState<string | null>(null);
 
-    const getToken = () => localStorage.getItem('supremeai_token') || localStorage.getItem('authToken');
+    const getToken = () => authUtils.getToken();
 
     const fetchAll = useCallback(async () => {
         setLoading(true);

@@ -1,43 +1,24 @@
-// AdminDashboard.tsx - Main SupremeAI Admin Control Panel
+/**
+ * DEPRECATED: AdminDashboard.tsx
+ * 
+ * ⚠️ This file is DEPRECATED and should NOT be used.
+ * 
+ * All admin functionality is now handled by a unified contract-driven architecture:
+ * - Backend: `/api/admin/dashboard/contract` (AdminDashboardController.java)
+ * - Frontend: AdminDashboardUnified.tsx (consumes backend contract)
+ * - Route: /admin → AdminDashboardUnified
+ * 
+ * Benefits:
+ * ✅ Single source of truth (backend contract)
+ * ✅ Automatic consistency across all platforms (React, Flutter)
+ * ✅ No duplicate code in 4 different dashboards
+ * ✅ Change backend = all UIs update instantly
+ * ✅ 19 components, 13 menu items defined centrally
+ * 
+ * If you're looking for the admin panel, import AdminDashboardUnified instead.
+ */
 
-import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Breadcrumb, Card, Statistic, Row, Col, Alert, Badge, Space } from 'antd';
-import {
-    DashboardOutlined,
-    CloudServerOutlined,
-    ApiOutlined,
-    RobotOutlined,
-    TeamOutlined,
-    SettingOutlined,
-    CheckCircleOutlined,
-    WarningOutlined,
-    LikeOutlined,
-    CrownOutlined,
-    BarChartOutlined,
-    BugOutlined,
-    GithubOutlined,
-    ChromeOutlined,
-    ChatOutlined,
-    BrainOutlined,
-} from '@ant-design/icons';
-import APIManagement from '../components/APIManagement';
-import AIModelSearch from '../components/AIModelSearch';
-import VPNManagement from '../components/VPNManagement';
-import ChatWithAI from '../components/ChatWithAI';
-import AIAssignment from '../components/AIAssignment';
-import DecisionVoting from '../components/DecisionVoting';
-import KingModePanel from '../components/KingModePanel';
-import ProgressMo from '../components/ProgressMonitor';
-import ImprovementTracking from '../components/ImprovementTracking';
-import AIWorkHistory from '../components/AIWorkHistory';
-import AuditLog from '../components/AuditLog';
-import SystemMetrics from '../components/SystemMetrics';
-import APIKeysManager from '../components/APIKeysManager';
-import GitHubDashboard from '../components/GitHubDashboard';
-import HeadlessBrowserDashboard from '../components/HeadlessBrowserDashboard';
-import ChatHistoryDashboard from '../components/ChatHistoryDashboard';
-import SystemLearningDashboard from '../components/SystemLearningDashboard';
-import AdminTips from '../components/AdminTips';
+import React from 'react';
 
 const { Header, Content, Sider } = Layout;
 
@@ -88,7 +69,7 @@ const AdminDashboard: React.FC = () => {
 
     const fetchDashboardContract = async () => {
         try {
-            const token = localStorage.getItem('supremeai_token') || localStorage.getItem('authToken');
+            const token = authUtils.getToken();
             const response = await fetch('/api/admin/dashboard/contract', {
                 headers: { 'Authorization': `Bearer ${token}` },
             });

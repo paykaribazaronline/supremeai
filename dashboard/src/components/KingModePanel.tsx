@@ -29,7 +29,7 @@ const KingModePanel: React.FC = () => {
     const [actionLoading, setActionLoading] = useState<string | null>(null);
 
     const getHeaders = () => {
-        const token = localStorage.getItem('authToken');
+        const token = authUtils.getToken();
         return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
     };
 

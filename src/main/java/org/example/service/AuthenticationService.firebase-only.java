@@ -16,12 +16,12 @@ import java.util.Locale;
 /**
  * Authentication Service - FIREBASE ONLY (STRICT ENFORCEMENT)
  * 
- * ⚠️ MASTER RULE: NO fallback, NO local authentication
- * ⚠️ ONLY Firebase Authentication is supported
- * ⚠️ NO local user store (auth/users.json deleted)
- * ⚠️ NO BCrypt password hashing
- * ⚠️ NO rate limiting (Firebase handles that)
- * ⚠️ NO MFA generation (Firebase handles that)
+ * ⚠️️ MASTER RULE: NO fallback, NO local authentication
+ * ⚠️️ ONLY Firebase Authentication is supported
+ * ⚠️️ NO local user store (auth/users.json deleted)
+ * ⚠️️ NO BCrypt password hashing
+ * ⚠️️ NO rate limiting (Firebase handles that)
+ * ⚠️️ NO MFA generation (Firebase handles that)
  * 
  * Handles ONLY:
  * 1. Firebase ID token exchange → Backend JWT
@@ -82,7 +82,7 @@ public class AuthenticationService {
         try {
             decoded = com.google.firebase.auth.FirebaseAuth.getInstance().verifyIdToken(idToken);
         } catch (Exception e) {
-            logger.warn("Firebase ID token verification failed: {}", e.getMessage());
+            logger.warn("❌ Firebase ID token verification failed: {}", e.getMessage());
             throw new IllegalArgumentException("Invalid Firebase ID token");
         }
 
@@ -98,7 +98,7 @@ public class AuthenticationService {
         User user = getUserByEmail(email);
         if (user == null) {
             user = provisionFirebaseUser(firebaseUid, email, firebaseDisplayName);
-            logger.info("Auto-provisioned SupremeAI user from Firebase Auth: {}", email);
+            logger.info("✅ Auto-provisioned SupremeAI user from Firebase Auth: {}", email);
         }
 
         if (!user.isActive()) {
@@ -113,7 +113,7 @@ public class AuthenticationService {
         String token = generateJWT(user);
         String refreshToken = generateRefreshToken(user);
 
-        logger.info("Firebase Auth login successful: email={}, uid={}, role={}", 
+        logger.info("✅ Firebase Auth login successful: email={}, uid={}, role={}", 
             email, firebaseUid, user.getRole());
         
         return new AuthToken(token, refreshToken, user, TOKEN_EXPIRATION_HOURS * 3600);
@@ -148,7 +148,7 @@ public class AuthenticationService {
 
         // Save to Firebase
         firebaseService.saveUser(user);
-        logger.info("New user provisioned from Firebase: {}", email);
+        logger.info("✅ New user provisioned from Firebase: {}", email);
         
         return user;
     }
@@ -162,7 +162,7 @@ public class AuthenticationService {
         }
 
         if (!firebaseService.isInitialized()) {
-            logger.warn("Firebase not initialized");
+            logger.warn("⚠️ Firebase not initialized");
             return null;
         }
 
@@ -178,7 +178,7 @@ public class AuthenticationService {
         }
 
         if (!firebaseService.isInitialized()) {
-            logger.warn("Firebase not initialized");
+            logger.warn("⚠️ Firebase not initialized");
             return null;
         }
 
@@ -194,7 +194,7 @@ public class AuthenticationService {
         }
 
         if (!firebaseService.isInitialized()) {
-            logger.warn("Firebase not initialized");
+            logger.warn("⚠️ Firebase not initialized");
             return null;
         }
 
@@ -225,7 +225,7 @@ public class AuthenticationService {
             
             return user;
         } catch (Exception e) {
-            logger.warn("Invalid JWT token: {}", e.getMessage());
+            logger.warn("❌ Invalid JWT token: {}", e.getMessage());
             throw e;
         }
     }
@@ -242,7 +242,7 @@ public class AuthenticationService {
         String newToken = generateJWT(user);
         String newRefreshToken = generateRefreshToken(user);
         
-        logger.info("Token refreshed for user: {}", user.getUsername());
+        logger.info("✅ Token refreshed for user: {}", user.getUsername());
         
         return new AuthToken(newToken, newRefreshToken, user, TOKEN_EXPIRATION_HOURS * 3600);
     }

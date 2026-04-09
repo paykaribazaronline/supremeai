@@ -32,7 +32,7 @@ const SystemMetrics: React.FC = () => {
 
     const fetchMetrics = async () => {
         try {
-            const token = localStorage.getItem('authToken');
+            const token = authUtils.getToken();
             const response = await fetch('/api/system/metrics', {
                 headers: { 'Authorization': `Bearer ${token}` },
             });

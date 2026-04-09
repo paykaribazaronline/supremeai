@@ -2,17 +2,12 @@
 import React, { useState, useCallback } from 'react';
 import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
 import ChatWithAI from './components/ChatWithAI';
-import CommandPanel from './components/CommandPanel';
 import ProgressMonitor from './components/ProgressMonitor';
-import DecisionHistory from './components/DecisionHistory';
 import KingModePanel from './components/KingModePanel';
 import AuditLog from './components/AuditLog';
 import ThreeDashboard from './components/ThreeDashboard';
-import CostDashboard from './components/CostDashboard';
-import LearningResearch from './components/LearningResearch';
-import Teaching from './components/Teaching';
-import SelfExtension from './components/SelfExtension';
 import LoginPage from './pages/LoginPage';
+import AdminDashboardUnified from './pages/AdminDashboardUnified';
 
 function isAuthenticated(): boolean {
     return !!localStorage.getItem('supremeai_token');
@@ -36,17 +31,12 @@ const App: React.FC = () => {
                     {/* Sidebar navigation here */}
                 </nav>
                 <Switch>
+                    <Route path="/admin" component={AdminDashboardUnified} />
                     <Route path="/dashboard/3d" component={ThreeDashboard} />
                     <Route path="/chat" component={ChatWithAI} />
-                    <Route path="/command" component={CommandPanel} />
                     <Route path="/progress" component={ProgressMonitor} />
-                    <Route path="/history" component={DecisionHistory} />
                     <Route path="/kingmode" component={KingModePanel} />
                     <Route path="/audit" component={AuditLog} />
-                    <Route path="/costs" component={CostDashboard} />
-                    <Route path="/learning" component={LearningResearch} />
-                    <Route path="/teaching" component={Teaching} />
-                    <Route path="/self-extension" component={SelfExtension} />
                     <Redirect from="/" to="/chat" />
                 </Switch>
             </div>

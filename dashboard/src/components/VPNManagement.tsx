@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Modal, Form, Input, Select, Switch, Space, Tag, message, Popconfirm, Row, Col, Alert } from 'antd';
 import { PlusOutlined, DeleteOutlined, EditOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import { authUtils } from '../lib/authUtils';
 
 interface VPNConnection {
     id: string;
@@ -30,9 +31,8 @@ const VPNManagement: React.FC = () => {
     const fetchVPNConnections = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('authToken');
             const response = await fetch('/api/vpn/list', {
-                headers: { 'Authorization': `Bearer ${token}` },
+                headers: authUtils.getAuthHeaders(),
             });
             if (response.ok) {
                 const data = await response.json();
@@ -47,7 +47,7 @@ const VPNManagement: React.FC = () => {
 
     const handleSaveVPN = async (values: any) => {
         try {
-            const token = localStorage.getItem('authToken');
+            const token = authUtils.getToken();
             const response = await fetch(editingId ? `/api/vpn/${editingId}` : '/api/vpn/add', {
                 method: editingId ? 'PUT' : 'POST',
                 headers: {
