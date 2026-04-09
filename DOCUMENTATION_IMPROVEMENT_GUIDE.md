@@ -134,6 +134,63 @@ supremeai admin:command --name=docs:grammar-check \
 
 ---
 
+## ❓ FAQ: Do We Need API Keys to Run SupremeAI?
+
+### **Short Answer: NO - API Keys Are Optional**
+
+SupremeAI **does not require API keys** to:
+
+- Set up and configure the system
+- Create projects
+- Define project requirements
+- Update configuration settings
+- Run the admin dashboard
+- View system status
+
+### **When API Keys ARE Needed**
+
+API keys become **required only when**:
+
+- Making actual calls to external AI providers (OpenAI, Claude, Groq, DeepSeek, etc.)
+- Running the AI orchestrator to process project requirements
+- Generating code with real AI models
+- Running chatbots that need to call LLMs
+
+### **Current Testing Status**
+
+✅ **Can Test Without API Keys**:
+
+- Admin dashboard UI/UX
+- Form validation and navigation
+- Configuration management
+- Project creation workflow (UI side)
+- Help tips and admin guides
+- System status monitoring
+
+❌ **Cannot Test Without API Keys + Backend**:
+
+- Actual AI code generation
+- Project orchestration
+- Multi-model consensus
+- AI-powered feature analysis
+
+### **Example**
+
+```
+# This works WITHOUT API keys:
+1. Create project: "Build e-commerce mobile app"
+2. Set consensus threshold to 0.80
+3. Configure system settings
+
+# This needs API keys to actually work:
+1. Click "Launch AI Orchestrator"
+2. System queries multiple AI models
+3. Models need API keys to respond
+4. Results are generated and presented
+```
+
+---
+
 ## 🚀 Combined Workflow: Full Documentation Update
 
 Run this complete workflow to refresh everything:

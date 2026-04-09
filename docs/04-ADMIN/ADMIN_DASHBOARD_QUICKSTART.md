@@ -246,8 +246,8 @@ Now you understand the system and can use it safely!
 | You're new to admin dashboards | **WAIT mode** | You can see changes before they happen |
 | You've been using it for days & trust it | **AUTO mode** | Faster, but you still have audit logs |
 | You want to test if something works | **WAIT mode** | You can reject bad changes before they stick |
-| You're in a hurry | **AUTO mode only if** you've tested in WAIT mode first |
-| Something seems broken | **STOP mode** immediately | Stop everything, investigate, then resume |
+| You're in a hurry | **AUTO mode** | Only if you've tested in WAIT mode first |
+| Something seems broken | **STOP mode** | Stop everything, investigate, then resume |
 
 ---
 
