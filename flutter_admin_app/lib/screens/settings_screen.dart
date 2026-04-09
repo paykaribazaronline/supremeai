@@ -76,8 +76,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onPressed: _isUpdatingProfile ? null : _updateProfile,
                     child: _isUpdatingProfile
                         ? const SizedBox(
-                            width: 20, height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
                           )
                         : const Text('প্রোফাইল আপডেট করুন'),
                   ),
@@ -132,14 +134,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ListTile(
                   leading: const Icon(Icons.lock),
                   title: const Text('পাসওয়ার্ড পরিবর্তন'),
-                  subtitle: const Text('আপনার গোপন পাসওয়ার্ড বদলান', style: TextStyle(fontSize: 12)),
+                  subtitle: const Text('আপনার গোপন পাসওয়ার্ড বদলান',
+                      style: TextStyle(fontSize: 12)),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: _changePassword,
                 ),
                 ListTile(
                   leading: const Icon(Icons.security),
                   title: const Text('টু-ফ্যাক্টর অথেন্টিকেশন'),
-                  subtitle: const Text('অতিরিক্ত নিরাপত্তা যোগ করুন (শীঘ্রই আসছে)', style: TextStyle(fontSize: 12)),
+                  subtitle: const Text(
+                      'অতিরিক্ত নিরাপত্তা যোগ করুন (শীঘ্রই আসছে)',
+                      style: TextStyle(fontSize: 12)),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -168,7 +173,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ListTile(
                   leading: const Icon(Icons.info),
                   title: const Text('লাইসেন্স'),
-                  subtitle: const Text('ওপেন সোর্স লাইসেন্স দেখুন', style: TextStyle(fontSize: 12)),
+                  subtitle: const Text('ওপেন সোর্স লাইসেন্স দেখুন',
+                      style: TextStyle(fontSize: 12)),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {
                     showLicensePage(context: context);
@@ -188,7 +194,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     'লগআউট',
                     style: TextStyle(color: Colors.red),
                   ),
-                  subtitle: const Text('অ্যাকাউন্ট থেকে বের হন', style: TextStyle(fontSize: 12, color: Colors.red)),
+                  subtitle: const Text('অ্যাকাউন্ট থেকে বের হন',
+                      style: TextStyle(fontSize: 12, color: Colors.red)),
                   onTap: _logout,
                 ),
               ],
@@ -307,7 +314,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: AppConstants.paddingSmall),
           DropdownButtonFormField<String>(
-            value: value,
+            initialValue: value,
             items: options.entries
                 .map((e) => DropdownMenuItem(
                       value: e.key,
@@ -340,7 +347,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('নাম খালি রাখা যাবে না'), backgroundColor: Color(AppConstants.errorColor)),
+        const SnackBar(
+            content: Text('নাম খালি রাখা যাবে না'),
+            backgroundColor: Color(AppConstants.errorColor)),
       );
       return;
     }
@@ -396,7 +405,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('(নতুন পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+              const Text('(নতুন পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে)',
+                  style: TextStyle(fontSize: 12, color: Colors.grey)),
               const SizedBox(height: AppConstants.paddingMedium),
               TextField(
                 controller: oldPasswordController,
@@ -433,99 +443,111 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: _isChangingPassword ? null : () {
-                oldPasswordController.dispose();
-                newPasswordController.dispose();
-                confirmPasswordController.dispose();
-                Navigator.pop(dialogContext);
-              },
+              onPressed: _isChangingPassword
+                  ? null
+                  : () {
+                      oldPasswordController.dispose();
+                      newPasswordController.dispose();
+                      confirmPasswordController.dispose();
+                      Navigator.pop(dialogContext);
+                    },
               child: const Text('বাতিল'),
             ),
             TextButton(
-              onPressed: _isChangingPassword ? null : () async {
-                final oldPass = oldPasswordController.text;
-                final newPass = newPasswordController.text;
-                final confirmPass = confirmPasswordController.text;
+              onPressed: _isChangingPassword
+                  ? null
+                  : () async {
+                      final oldPass = oldPasswordController.text;
+                      final newPass = newPasswordController.text;
+                      final confirmPass = confirmPasswordController.text;
 
-                if (oldPass.isEmpty || newPass.isEmpty || confirmPass.isEmpty) {
-                  ScaffoldMessenger.of(this.context).showSnackBar(
-                    const SnackBar(
-                      content: Text('সব ফিল্ড পূরণ করুন'),
-                      backgroundColor: Color(AppConstants.errorColor),
-                    ),
-                  );
-                  return;
-                }
+                      if (oldPass.isEmpty ||
+                          newPass.isEmpty ||
+                          confirmPass.isEmpty) {
+                        ScaffoldMessenger.of(this.context).showSnackBar(
+                          const SnackBar(
+                            content: Text('সব ফিল্ড পূরণ করুন'),
+                            backgroundColor: Color(AppConstants.errorColor),
+                          ),
+                        );
+                        return;
+                      }
 
-                if (newPass != confirmPass) {
-                  ScaffoldMessenger.of(this.context).showSnackBar(
-                    const SnackBar(
-                      content: Text('নতুন পাসওয়ার্ড মিলছে না'),
-                      backgroundColor: Color(AppConstants.errorColor),
-                    ),
-                  );
-                  return;
-                }
+                      if (newPass != confirmPass) {
+                        ScaffoldMessenger.of(this.context).showSnackBar(
+                          const SnackBar(
+                            content: Text('নতুন পাসওয়ার্ড মিলছে না'),
+                            backgroundColor: Color(AppConstants.errorColor),
+                          ),
+                        );
+                        return;
+                      }
 
-                if (newPass.length < 6) {
-                  ScaffoldMessenger.of(this.context).showSnackBar(
-                    const SnackBar(
-                      content: Text('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে'),
-                      backgroundColor: Color(AppConstants.errorColor),
-                    ),
-                  );
-                  return;
-                }
+                      if (newPass.length < 6) {
+                        ScaffoldMessenger.of(this.context).showSnackBar(
+                          const SnackBar(
+                            content:
+                                Text('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে'),
+                            backgroundColor: Color(AppConstants.errorColor),
+                          ),
+                        );
+                        return;
+                      }
 
-                setState(() => _isChangingPassword = true);
-                setDialogState(() {});
+                      setState(() => _isChangingPassword = true);
+                      setDialogState(() {});
 
-                try {
-                  final response = await _apiService.post<Map<String, dynamic>>(
-                    '/api/auth/change-password',
-                    data: {
-                      'oldPassword': oldPass,
-                      'newPassword': newPass,
+                      try {
+                        final response =
+                            await _apiService.post<Map<String, dynamic>>(
+                          '/api/auth/change-password',
+                          data: {
+                            'oldPassword': oldPass,
+                            'newPassword': newPass,
+                          },
+                        );
+
+                        setState(() => _isChangingPassword = false);
+
+                        oldPasswordController.dispose();
+                        newPasswordController.dispose();
+                        confirmPasswordController.dispose();
+
+                        if (!mounted) return;
+
+                        Navigator.pop(dialogContext);
+
+                        if (response.success) {
+                          ScaffoldMessenger.of(this.context).showSnackBar(
+                            const SnackBar(
+                              content:
+                                  Text('পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে ✅'),
+                              backgroundColor: Color(AppConstants.successColor),
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(this.context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  'ব্যর্থ: ${response.error ?? "অজানা সমস্যা"}'),
+                              backgroundColor:
+                                  const Color(AppConstants.errorColor),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        setState(() => _isChangingPassword = false);
+                        if (!mounted) return;
+                        Navigator.pop(dialogContext);
+                        ScaffoldMessenger.of(this.context).showSnackBar(
+                          SnackBar(
+                            content: Text('ত্রুটি: $e'),
+                            backgroundColor:
+                                const Color(AppConstants.errorColor),
+                          ),
+                        );
+                      }
                     },
-                  );
-
-                  setState(() => _isChangingPassword = false);
-
-                  oldPasswordController.dispose();
-                  newPasswordController.dispose();
-                  confirmPasswordController.dispose();
-
-                  if (!mounted) return;
-
-                  Navigator.pop(dialogContext);
-
-                  if (response.success) {
-                    ScaffoldMessenger.of(this.context).showSnackBar(
-                      const SnackBar(
-                        content: Text('পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে ✅'),
-                        backgroundColor: Color(AppConstants.successColor),
-                      ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(this.context).showSnackBar(
-                      SnackBar(
-                        content: Text('ব্যর্থ: ${response.error ?? "অজানা সমস্যা"}'),
-                        backgroundColor: const Color(AppConstants.errorColor),
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  setState(() => _isChangingPassword = false);
-                  if (!mounted) return;
-                  Navigator.pop(dialogContext);
-                  ScaffoldMessenger.of(this.context).showSnackBar(
-                    SnackBar(
-                      content: Text('ত্রুটি: $e'),
-                      backgroundColor: const Color(AppConstants.errorColor),
-                    ),
-                  );
-                }
-              },
               child: const Text('পরিবর্তন করুন'),
             ),
           ],
@@ -539,7 +561,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('লগআউট করবেন?'),
-        content: const Text('আপনি কি নিশ্চিত লগআউট করতে চান?\n(লগআউট করলে আবার লগইন করতে হবে)'),
+        content: const Text(
+            'আপনি কি নিশ্চিত লগআউট করতে চান?\n(লগআউট করলে আবার লগইন করতে হবে)'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -551,7 +574,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.pop(context);
               Navigator.of(context).pushReplacementNamed(AppRoutes.login);
             },
-            child: const Text('হ্যাঁ, লগআউট', style: TextStyle(color: Colors.red)),
+            child:
+                const Text('হ্যাঁ, লগআউট', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

@@ -10,7 +10,8 @@ class TeachingScreen extends StatefulWidget {
   State<TeachingScreen> createState() => _TeachingScreenState();
 }
 
-class _TeachingScreenState extends State<TeachingScreen> with SingleTickerProviderStateMixin {
+class _TeachingScreenState extends State<TeachingScreen>
+    with SingleTickerProviderStateMixin {
   final ApiService _apiService = ApiService();
   late TabController _tabController;
 
@@ -72,7 +73,8 @@ class _TeachingScreenState extends State<TeachingScreen> with SingleTickerProvid
       _appDescController.clear();
       _appTypeController.clear();
     } else {
-      _showSnackBar('ত্রুটি: ${response.error ?? "অ্যাপ তৈরি করা যায়নি"}', isError: true);
+      _showSnackBar('ত্রুটি: ${response.error ?? "অ্যাপ তৈরি করা যায়নি"}',
+          isError: true);
     }
   }
 
@@ -96,7 +98,8 @@ class _TeachingScreenState extends State<TeachingScreen> with SingleTickerProvid
       _errorMessageController.clear();
       _errorContextController.clear();
     } else {
-      _showSnackBar('ত্রুটি: ${response.error ?? "সমাধান করা যায়নি"}', isError: true);
+      _showSnackBar('ত্রুটি: ${response.error ?? "সমাধান করা যায়নি"}',
+          isError: true);
     }
   }
 
@@ -122,7 +125,8 @@ class _TeachingScreenState extends State<TeachingScreen> with SingleTickerProvid
       _techCategoryController.clear();
       _techDescController.clear();
     } else {
-      _showSnackBar('ত্রুটি: ${response.error ?? "টেকনিক শেখানো যায়নি"}', isError: true);
+      _showSnackBar('ত্রুটি: ${response.error ?? "টেকনিক শেখানো যায়নি"}',
+          isError: true);
     }
   }
 
@@ -130,7 +134,9 @@ class _TeachingScreenState extends State<TeachingScreen> with SingleTickerProvid
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Color(AppConstants.errorColor) : Color(AppConstants.successColor),
+        backgroundColor: isError
+            ? const Color(AppConstants.errorColor)
+            : const Color(AppConstants.successColor),
       ),
     );
   }
@@ -170,7 +176,8 @@ class _TeachingScreenState extends State<TeachingScreen> with SingleTickerProvid
           _buildTabHeader(
             icon: Icons.apps,
             title: 'অ্যাপ তৈরি করো',
-            subtitle: 'AI-কে একটি নতুন অ্যাপ বানাতে নির্দেশ দিন। নাম, বিবরণ ও ধরন দিলে AI নিজে কোড লিখবে।',
+            subtitle:
+                'AI-কে একটি নতুন অ্যাপ বানাতে নির্দেশ দিন। নাম, বিবরণ ও ধরন দিলে AI নিজে কোড লিখবে।',
           ),
           const SizedBox(height: AppConstants.paddingLarge),
           _buildTextField(
@@ -213,7 +220,8 @@ class _TeachingScreenState extends State<TeachingScreen> with SingleTickerProvid
           _buildTabHeader(
             icon: Icons.bug_report,
             title: 'ত্রুটি সমাধান করো',
-            subtitle: 'কোনো error বা সমস্যা AI-কে দিন, AI নিজে সমাধান খুঁজে বের করবে ও শিখবে।',
+            subtitle:
+                'কোনো error বা সমস্যা AI-কে দিন, AI নিজে সমাধান খুঁজে বের করবে ও শিখবে।',
           ),
           const SizedBox(height: AppConstants.paddingLarge),
           _buildTextField(
@@ -249,7 +257,8 @@ class _TeachingScreenState extends State<TeachingScreen> with SingleTickerProvid
           _buildTabHeader(
             icon: Icons.lightbulb,
             title: 'নতুন টেকনিক শেখাও',
-            subtitle: 'AI-কে নতুন কোনো টেকনিক বা জ্ঞান শেখান। এটি সিস্টেমের জ্ঞানভাণ্ডারে যোগ হবে।',
+            subtitle:
+                'AI-কে নতুন কোনো টেকনিক বা জ্ঞান শেখান। এটি সিস্টেমের জ্ঞানভাণ্ডারে যোগ হবে।',
           ),
           const SizedBox(height: AppConstants.paddingLarge),
           _buildTextField(
@@ -272,7 +281,8 @@ class _TeachingScreenState extends State<TeachingScreen> with SingleTickerProvid
             controller: _techDescController,
             label: 'বিবরণ',
             hint: 'টেকনিকটি কীভাবে কাজ করে তা বিস্তারিত লিখুন...',
-            helperText: '(টেকনিকের বিস্তারিত ব্যাখ্যা — কীভাবে কাজ করে, কেন দরকার)',
+            helperText:
+                '(টেকনিকের বিস্তারিত ব্যাখ্যা — কীভাবে কাজ করে, কেন দরকার)',
             icon: Icons.description,
             maxLines: 4,
           ),
@@ -283,24 +293,33 @@ class _TeachingScreenState extends State<TeachingScreen> with SingleTickerProvid
     );
   }
 
-  Widget _buildTabHeader({required IconData icon, required String title, required String subtitle}) {
+  Widget _buildTabHeader(
+      {required IconData icon,
+      required String title,
+      required String subtitle}) {
     return Container(
       padding: const EdgeInsets.all(AppConstants.paddingLarge),
       decoration: BoxDecoration(
-        color: Color(AppConstants.primaryColor).withOpacity(0.08),
+        color: const Color(AppConstants.primaryColor).withOpacity(0.08),
         borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
       ),
       child: Row(
         children: [
-          Icon(icon, size: 40, color: Color(AppConstants.primaryColor)),
+          Icon(icon, size: 40, color: const Color(AppConstants.primaryColor)),
           const SizedBox(width: AppConstants.paddingMedium),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: AppConstants.titleFontSize, fontWeight: FontWeight.bold)),
+                Text(title,
+                    style: const TextStyle(
+                        fontSize: AppConstants.titleFontSize,
+                        fontWeight: FontWeight.bold)),
                 const SizedBox(height: AppConstants.paddingXXSmall),
-                Text(subtitle, style: const TextStyle(fontSize: AppConstants.captionFontSize, color: Colors.grey)),
+                Text(subtitle,
+                    style: const TextStyle(
+                        fontSize: AppConstants.captionFontSize,
+                        color: Colors.grey)),
               ],
             ),
           ),
@@ -340,9 +359,14 @@ class _TeachingScreenState extends State<TeachingScreen> with SingleTickerProvid
       child: ElevatedButton.icon(
         onPressed: _isSubmitting ? null : onPressed,
         icon: _isSubmitting
-            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: Colors.white))
             : const Icon(Icons.send),
-        label: Text(text, style: const TextStyle(fontSize: AppConstants.subtitleFontSize)),
+        label: Text(text,
+            style: const TextStyle(fontSize: AppConstants.subtitleFontSize)),
       ),
     );
   }

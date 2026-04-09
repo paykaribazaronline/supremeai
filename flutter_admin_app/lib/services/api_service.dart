@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 import '../config/environment.dart';
-import 'storage_service.dart';
 
 class ApiResponse<T> {
   final bool success;
@@ -21,7 +20,6 @@ class ApiService {
   static final ApiService _instance = ApiService._internal();
   late Dio _dio;
   final Logger _logger = Logger();
-  final StorageService _storageService = StorageService();
 
   factory ApiService() {
     return _instance;
@@ -35,8 +33,8 @@ class ApiService {
     _dio = Dio(
       BaseOptions(
         baseUrl: Environment.baseUrl,
-        connectTimeout: Duration(seconds: Environment.connectionTimeout),
-        receiveTimeout: Duration(seconds: Environment.receiveTimeout),
+        connectTimeout: const Duration(seconds: Environment.connectionTimeout),
+        receiveTimeout: const Duration(seconds: Environment.receiveTimeout),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -47,11 +45,7 @@ class ApiService {
     // Add interceptors
     _dio.interceptors.add(
       InterceptorsWrapper(
-        onRequest: (options, handler) async {
-          final token = await _storageService.getToken();
-          if (token != null) {
-            options.headers['Authorization'] = 'Bearer $token';
-          }
+        onRequest: (options, handler) {
           _logger.i('🔵 REQUEST: ${options.method} ${options.path}');
           return handler.next(options);
         },
@@ -251,9 +245,7 @@ class ApiService {
   }
 
   void _handleUnauthorized() {
-    _logger.w('Unauthorized access - Token may have expired');
-    _storageService.clearToken();
-    // Trigger navigation to login (implement in your app)
+    _logger.w('Unauthorized access from API request');
   }
 
   // Update base URL if needed

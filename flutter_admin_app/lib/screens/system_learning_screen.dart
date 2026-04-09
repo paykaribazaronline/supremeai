@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 /// SystemLearningScreen - Flutter Mobile Version
-/// 
+///
 /// Shows learned patterns and allows executing work autonomously
 class SystemLearningScreen extends StatefulWidget {
   const SystemLearningScreen({Key? key}) : super(key: key);
@@ -27,14 +27,17 @@ class _SystemLearningScreenState extends State<SystemLearningScreen> {
     _loadPatterns();
     _loadStats();
     // Auto-refresh every 5 seconds
-    Future.delayed(Duration(seconds: 5), _refreshData);
+    Future.delayed(const Duration(seconds: 5), _refreshData);
   }
 
   Future<void> _loadPatterns() async {
     try {
-      final response = await http.get(
-        Uri.parse('https://supremeai-565236080752.us-central1.run.app/api/teach/patterns'),
-      ).timeout(Duration(seconds: 10));
+      final response = await http
+          .get(
+            Uri.parse(
+                'https://supremeai-565236080752.us-central1.run.app/api/teach/patterns'),
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -51,9 +54,12 @@ class _SystemLearningScreenState extends State<SystemLearningScreen> {
 
   Future<void> _loadStats() async {
     try {
-      final response = await http.get(
-        Uri.parse('https://supremeai-565236080752.us-central1.run.app/api/teach/stats'),
-      ).timeout(Duration(seconds: 10));
+      final response = await http
+          .get(
+            Uri.parse(
+                'https://supremeai-565236080752.us-central1.run.app/api/teach/stats'),
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -69,7 +75,7 @@ class _SystemLearningScreenState extends State<SystemLearningScreen> {
   Future<void> _refreshData() async {
     await _loadPatterns();
     await _loadStats();
-    Future.delayed(Duration(seconds: 5), _refreshData);
+    Future.delayed(const Duration(seconds: 5), _refreshData);
   }
 
   Future<void> _executePattern(Map<String, dynamic> pattern) async {
@@ -85,36 +91,36 @@ class _SystemLearningScreenState extends State<SystemLearningScreen> {
               Text(
                 'Action Sequence:',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               ...(pattern['actions'] as List).asMap().entries.map((e) => Text(
-                '${e.key + 1}. ${e.value}',
-              )),
-              SizedBox(height: 16),
+                    '${e.key + 1}. ${e.value}',
+                  )),
+              const SizedBox(height: 16),
               TextField(
                 controller: requirementController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Requirement',
                   hintText: 'What do you want?',
                   border: OutlineInputBorder(),
                 ),
                 maxLines: 2,
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               TextField(
                 controller: frameworkController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Framework',
                   hintText: 'React, Flutter, Spring Boot',
                   border: OutlineInputBorder(),
                 ),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               TextField(
                 controller: branchController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Target Branch',
                   hintText: 'main',
                   border: OutlineInputBorder(),
@@ -126,14 +132,14 @@ class _SystemLearningScreenState extends State<SystemLearningScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancel'),
+            child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(ctx);
               await _doExecutePattern(pattern);
             },
-            child: Text('🚀 Execute'),
+            child: const Text('🚀 Execute'),
           ),
         ],
       ),
@@ -146,18 +152,21 @@ class _SystemLearningScreenState extends State<SystemLearningScreen> {
         SnackBar(content: Text('⚡ Executing pattern: ${pattern['name']}...')),
       );
 
-      final response = await http.post(
-        Uri.parse('https://supremeai-565236080752.us-central1.run.app/api/teach/execute'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'pattern': pattern['name'],
-          'inputs': {
-            'requirement': requirementController.text,
-            'framework': frameworkController.text,
-            'targetBranch': branchController.text,
-          }
-        }),
-      ).timeout(Duration(seconds: 30));
+      final response = await http
+          .post(
+            Uri.parse(
+                'https://supremeai-565236080752.us-central1.run.app/api/teach/execute'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'pattern': pattern['name'],
+              'inputs': {
+                'requirement': requirementController.text,
+                'framework': frameworkController.text,
+                'targetBranch': branchController.text,
+              }
+            }),
+          )
+          .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -199,7 +208,7 @@ class _SystemLearningScreenState extends State<SystemLearningScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
+        title: const Row(
           children: [
             Icon(Icons.psychology, color: Colors.amber),
             SizedBox(width: 8),
@@ -210,200 +219,224 @@ class _SystemLearningScreenState extends State<SystemLearningScreen> {
         elevation: 2,
       ),
       body: loading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
-            onRefresh: _refreshData,
-            child: SingleChildScrollView(
-              physics: AlwaysScrollableScrollPhysics(),
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Stats Cards
-                    if (stats != null) ...[
+              onRefresh: _refreshData,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Stats Cards
+                      if (stats != null) ...[
+                        Card(
+                          elevation: 2,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Learning Progress',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    Column(
+                                      children: [
+                                        Text(
+                                          '${stats!['patternsLearned'] ?? 0}',
+                                          style: const TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.deepPurple,
+                                          ),
+                                        ),
+                                        const Text(
+                                          'Patterns',
+                                          style: TextStyle(color: Colors.grey),
+                                        ),
+                                      ],
+                                    ),
+                                    Column(
+                                      children: [
+                                        Text(
+                                          '${((stats!['patternsLearned'] ?? 0) * 20).toInt()}%',
+                                          style: const TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.green,
+                                          ),
+                                        ),
+                                        const Text(
+                                          'Autonomy',
+                                          style: TextStyle(color: Colors.grey),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue[50],
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    'শেষ ৫টি প্যাটার্ন দেখানো হচ্ছে (Firebase কোটা সংরক্ষণ)',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.blue[900],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+
+                      // Patterns List
+                      Text(
+                        'Learned Patterns',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const SizedBox(height: 12),
+                      if (patterns.isEmpty)
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(32),
+                            child: Column(
+                              children: [
+                                Icon(Icons.school,
+                                    size: 48, color: Colors.grey),
+                                SizedBox(height: 12),
+                                Text('No patterns learned yet'),
+                                Text(
+                                  'Keep working, I\'m learning your patterns! 🧠',
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      else
+                        ...patterns
+                            .map((pattern) => Card(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  child: ListTile(
+                                    title: Text(
+                                      pattern['name'] ?? 'Unknown',
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const SizedBox(height: 8),
+                                        Wrap(
+                                          spacing: 4,
+                                          children:
+                                              (pattern['actions'] as List?)
+                                                      ?.map((action) => Chip(
+                                                            label: Text(
+                                                              action,
+                                                              style:
+                                                                  const TextStyle(
+                                                                      fontSize:
+                                                                          11),
+                                                            ),
+                                                            visualDensity:
+                                                                VisualDensity
+                                                                    .compact,
+                                                          ))
+                                                      .toList() ??
+                                                  [],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          children: [
+                                            Chip(
+                                              label: Text(
+                                                  'Used: ${pattern['frequency']}'),
+                                              avatar: const Icon(Icons.repeat,
+                                                  size: 16),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Chip(
+                                              label: Text(
+                                                  '${pattern['confidence']}'),
+                                              avatar: const Icon(
+                                                  Icons.trending_up,
+                                                  size: 16),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                    trailing: ElevatedButton.icon(
+                                      onPressed: () => _executePattern(pattern),
+                                      icon: const Icon(Icons.rocket),
+                                      label: const Text('Run'),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.deepOrange,
+                                      ),
+                                    ),
+                                  ),
+                                ))
+                            .toList(),
+
+                      const SizedBox(height: 40),
+
+                      // How It Works
                       Card(
                         elevation: 2,
                         child: Padding(
-                          padding: EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(16),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Learning Progress',
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                '🚀 How It Works',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                               ),
-                              SizedBox(height: 12),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                children: [
-                                  Column(
-                                    children: [
-                                      Text(
-                                        '${stats!['patternsLearned'] ?? 0}',
-                                        style: TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.deepPurple,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Patterns',
-                                        style: TextStyle(color: Colors.grey),
-                                      ),
-                                    ],
-                                  ),
-                                  Column(
-                                    children: [
-                                      Text(
-                                        '${((stats!['patternsLearned'] ?? 0) * 20).toInt()}%',
-                                        style: TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.green,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Autonomy',
-                                        style: TextStyle(color: Colors.grey),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 12),
-                              Container(
-                                padding: EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue[50],
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  'শেষ ৫টি প্যাটার্ন দেখানো হচ্ছে (Firebase কোটা সংরক্ষণ)',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.blue[900],
-                                  ),
-                                ),
+                              const SizedBox(height: 12),
+                              const Text(
+                                '1. Recording: System records every action you take\n'
+                                '2. Pattern Recognition: Extracts reusable work patterns\n'
+                                '3. Learning: Stores patterns with confidence scores\n'
+                                '4. Execution: Run entire patterns with one tap! ⚡',
+                                style: TextStyle(height: 1.6),
                               ),
                             ],
                           ),
                         ),
                       ),
-                      SizedBox(height: 20),
                     ],
-
-                    // Patterns List
-                    Text(
-                      'Learned Patterns',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 12),
-                    if (patterns.isEmpty)
-                      Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(32),
-                          child: Column(
-                            children: [
-                              Icon(Icons.school, size: 48, color: Colors.grey),
-                              SizedBox(height: 12),
-                              Text('No patterns learned yet'),
-                              Text(
-                                'Keep working, I\'m learning your patterns! 🧠',
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    else
-                      ...patterns.map((pattern) => Card(
-                        margin: EdgeInsets.only(bottom: 12),
-                        child: ListTile(
-                          title: Text(
-                            pattern['name'] ?? 'Unknown',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(height: 8),
-                              Wrap(
-                                spacing: 4,
-                                children: (pattern['actions'] as List?)
-                                    ?.map((action) => Chip(
-                                  label: Text(
-                                    action,
-                                    style: TextStyle(fontSize: 11),
-                                  ),
-                                  visualDensity: VisualDensity.compact,
-                                ))
-                                    .toList() ?? [],
-                              ),
-                              SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Chip(
-                                    label: Text('Used: ${pattern['frequency']}'),
-                                    avatar: Icon(Icons.repeat, size: 16),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Chip(
-                                    label: Text('${pattern['confidence']}'),
-                                    avatar: Icon(Icons.trending_up, size: 16),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          trailing: ElevatedButton.icon(
-                            onPressed: () => _executePattern(pattern),
-                            icon: Icon(Icons.rocket),
-                            label: Text('Run'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.deepOrange,
-                            ),
-                          ),
-                        ),
-                      )).toList(),
-
-                    SizedBox(height: 40),
-                    
-                    // How It Works
-                    Card(
-                      elevation: 2,
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '🚀 How It Works',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 12),
-                            Text(
-                              '1. Recording: System records every action you take\n'
-                              '2. Pattern Recognition: Extracts reusable work patterns\n'
-                              '3. Learning: Stores patterns with confidence scores\n'
-                              '4. Execution: Run entire patterns with one tap! ⚡',
-                              style: TextStyle(height: 1.6),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
     );
   }
 

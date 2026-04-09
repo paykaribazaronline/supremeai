@@ -49,49 +49,115 @@ class Project {
   final String name;
   final String description;
   final String status;
+  final String templateType;
+  final String repoUrl;
+  final String repoBranch;
+  final String repoToken;
+  final int progress;
+  final int fileCount;
+  final bool pushed;
+  final bool trackedForImprovement;
+  final List<String> features;
   final String? aiAgentId;
   final Map<String, dynamic>? metadata;
   final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? updatedAt;
+  final DateTime? completedAt;
 
   Project({
     required this.id,
     required this.name,
     required this.description,
     required this.status,
+    required this.templateType,
+    required this.repoUrl,
+    required this.repoBranch,
+    this.repoToken = '',
+    required this.progress,
+    required this.fileCount,
+    required this.pushed,
+    this.trackedForImprovement = false,
+    this.features = const [],
     this.aiAgentId,
     this.metadata,
     required this.createdAt,
-    required this.updatedAt,
+    this.updatedAt,
+    this.completedAt,
   });
 
   factory Project.fromJson(Map<String, dynamic> json) {
+    final createdAtRaw = json['createdAt'];
+    final updatedAtRaw = json['updatedAt'];
+    final completedAtRaw = json['completedAt'];
+    final projectId = (json['projectId'] ?? json['id'] ?? '').toString();
+    final repoUrl = (json['repoUrl'] ?? '').toString();
+    final featuresRaw = json['features'];
     return Project(
-      id: json['id'] ?? '',
-      name: json['name'] ?? '',
+      id: projectId,
+      name: (json['name'] ?? projectId).toString(),
       description: json['description'] ?? '',
-      status: json['status'] ?? 'active',
+      status: (json['status'] ?? 'GENERATING').toString(),
+      templateType: (json['templateType'] ?? 'REACT').toString(),
+      repoUrl: repoUrl,
+      repoBranch: (json['repoBranch'] ?? 'main').toString(),
+      repoToken: '',
+      progress: json['progress'] is int ? json['progress'] as int : int.tryParse('${json['progress'] ?? 0}') ?? 0,
+      fileCount: json['fileCount'] is int ? json['fileCount'] as int : int.tryParse('${json['fileCount'] ?? 0}') ?? 0,
+      pushed: json['pushed'] == true,
+      trackedForImprovement: json['trackedForImprovement'] == true,
+      features: featuresRaw is List
+          ? featuresRaw.map((item) => item.toString()).where((item) => item.trim().isNotEmpty).toList()
+          : const [],
       aiAgentId: json['aiAgentId'],
-      metadata: json['metadata'],
-      createdAt: json['createdAt'] != null 
-          ? DateTime.parse(json['createdAt']) 
+      metadata: json['metadata'] is Map<String, dynamic>
+          ? json['metadata'] as Map<String, dynamic>
+          : null,
+      createdAt: createdAtRaw != null
+          ? DateTime.tryParse(createdAtRaw.toString()) ?? DateTime.now()
           : DateTime.now(),
-      updatedAt: json['updatedAt'] != null 
-          ? DateTime.parse(json['updatedAt']) 
-          : DateTime.now(),
+      updatedAt: updatedAtRaw != null
+          ? DateTime.tryParse(updatedAtRaw.toString())
+          : null,
+      completedAt: completedAtRaw != null
+          ? DateTime.tryParse(completedAtRaw.toString())
+          : null,
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Project copyWith({
+    bool? trackedForImprovement,
+  }) {
+    return Project(
+      id: id,
+      name: name,
+      description: description,
+      status: status,
+      templateType: templateType,
+      repoUrl: repoUrl,
+      repoBranch: repoBranch,
+      repoToken: repoToken,
+      progress: progress,
+      fileCount: fileCount,
+      pushed: pushed,
+      trackedForImprovement: trackedForImprovement ?? this.trackedForImprovement,
+      features: features,
+      aiAgentId: aiAgentId,
+      metadata: metadata,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      completedAt: completedAt,
+    );
+  }
+
+  Map<String, dynamic> toCreateJson() {
     return {
-      'id': id,
-      'name': name,
+      'projectId': id,
+      'templateType': templateType,
       'description': description,
-      'status': status,
-      'aiAgentId': aiAgentId,
-      'metadata': metadata,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
+      'features': features,
+      'repoUrl': repoUrl,
+      'repoBranch': repoBranch,
+      'repoToken': repoToken,
     };
   }
 }

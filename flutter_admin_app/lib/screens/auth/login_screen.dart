@@ -28,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _handleLogin(BuildContext context) async {
     if (_formKey.currentState?.validate() ?? false) {
       final authProvider = context.read<AuthProvider>();
-      
+
       final success = await authProvider.login(
         _emailController.text.trim(),
         _passwordController.text,
@@ -42,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(authProvider.error ?? 'Login failed'),
-            backgroundColor: Color(AppConstants.errorColor),
+            backgroundColor: const Color(AppConstants.errorColor),
           ),
         );
       }
@@ -52,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(AppConstants.backgroundColor),
+      backgroundColor: const Color(AppConstants.backgroundColor),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppConstants.paddingLarge),
@@ -65,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: Color(AppConstants.primaryColor),
+                  color: const Color(AppConstants.primaryColor),
                   borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
                 ),
                 child: const Icon(
@@ -179,25 +179,25 @@ class _LoginScreenState extends State<LoginScreen> {
                                 AppConstants.paddingMedium,
                               ),
                               decoration: BoxDecoration(
-                                color: Color(AppConstants.errorColor)
+                                color: const Color(AppConstants.errorColor)
                                     .withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(
                                   AppConstants.radiusMedium,
                                 ),
                                 border: Border.all(
-                                  color: Color(AppConstants.errorColor),
+                                  color: const Color(AppConstants.errorColor),
                                 ),
                               ),
                               child: Text(
                                 authProvider.error ?? '',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Color(AppConstants.errorColor),
                                 ),
                               ),
                             ),
                           );
                         }
-                        return SizedBox.shrink();
+                        return const SizedBox.shrink();
                       },
                     ),
                     // Login Button
@@ -216,8 +216,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     height: 20,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor:
-                                          AlwaysStoppedAnimation<Color>(
+                                      valueColor: AlwaysStoppedAnimation<Color>(
                                         Colors.white,
                                       ),
                                     ),

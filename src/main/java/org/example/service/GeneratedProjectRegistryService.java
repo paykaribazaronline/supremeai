@@ -21,6 +21,8 @@ public class GeneratedProjectRegistryService {
     private static final Logger logger = LoggerFactory.getLogger(GeneratedProjectRegistryService.class);
     private static final String LOCAL_CACHE_PATH = "generated-projects/metadata.json";
     private static final String FIREBASE_PATH = "generated-projects/metadata";
+    private static final String FIREBASE_RUNNING_PATH = "generated-projects/running";
+    private static final String FIREBASE_FINISHED_PATH = "generated-projects/finished";
 
     private final FirebaseService firebaseService;
     private final LocalJsonStoreService jsonStore;
@@ -46,6 +48,26 @@ public class GeneratedProjectRegistryService {
         return new ArrayList<>(projectStatuses.values().stream().map(this::copyProject).toList());
     }
 
+    public synchronized List<Map<String, Object>> listRunningProjects() {
+        syncFromCloudIfAvailable();
+        return projectStatuses.values().stream()
+                .filter(this::isRunningStatus)
+                .map(this::copyProject)
+                .toList();
+    }
+
+    public synchronized List<Map<String, Object>> listFinishedProjects() {
+        syncFromCloudIfAvailable();
+        return projectStatuses.values().stream()
+                .filter(this::isFinishedStatus)
+                .map(this::copyProject)
+                .toList();
+    }
+
+    public boolean isCloudStorageActive() {
+        return firebaseService != null && firebaseService.isInitialized();
+    }
+
     public synchronized Map<String, Object> getProject(String projectId) {
         syncFromCloudIfAvailable();
         Map<String, Object> project = projectStatuses.get(projectId);
@@ -69,6 +91,8 @@ public class GeneratedProjectRegistryService {
         if (firebaseService != null && firebaseService.isInitialized()) {
             try {
                 firebaseService.getDatabase().getReference(FIREBASE_PATH).child(projectId).removeValueAsync().get();
+                firebaseService.getDatabase().getReference(FIREBASE_RUNNING_PATH).child(projectId).removeValueAsync().get();
+                firebaseService.getDatabase().getReference(FIREBASE_FINISHED_PATH).child(projectId).removeValueAsync().get();
             } catch (Exception exception) {
                 logger.warn("Failed to delete generated project {} from Firebase: {}", projectId, exception.getMessage());
             }
@@ -81,6 +105,13 @@ public class GeneratedProjectRegistryService {
         if (firebaseService != null && firebaseService.isInitialized()) {
             try {
                 firebaseService.getDatabase().getReference(FIREBASE_PATH).child(projectId).setValueAsync(projectStatus).get();
+                if (isFinishedStatus(projectStatus)) {
+                    firebaseService.getDatabase().getReference(FIREBASE_FINISHED_PATH).child(projectId).setValueAsync(projectStatus).get();
+                    firebaseService.getDatabase().getReference(FIREBASE_RUNNING_PATH).child(projectId).removeValueAsync().get();
+                } else {
+                    firebaseService.getDatabase().getReference(FIREBASE_RUNNING_PATH).child(projectId).setValueAsync(projectStatus).get();
+                    firebaseService.getDatabase().getReference(FIREBASE_FINISHED_PATH).child(projectId).removeValueAsync().get();
+                }
             } catch (Exception exception) {
                 logger.warn("Failed to write generated project {} to Firebase, keeping local cache in sync: {}", projectId, exception.getMessage());
             }
@@ -160,5 +191,15 @@ public class GeneratedProjectRegistryService {
 
     private Map<String, Object> copyProject(Map<String, Object> project) {
         return new LinkedHashMap<>(project);
+    }
+
+    private boolean isRunningStatus(Map<String, Object> project) {
+        String status = String.valueOf(project.getOrDefault("status", ""));
+        return "GENERATING".equals(status) || "TEMPLATE_INITIALIZED".equals(status) || "RUNNING".equals(status);
+    }
+
+    private boolean isFinishedStatus(Map<String, Object> project) {
+        String status = String.valueOf(project.getOrDefault("status", ""));
+        return "COMPLETED".equals(status) || "PUSHED_TO_REPO".equals(status) || "PUSH_FAILED".equals(status) || "FAILED".equals(status);
     }
 }

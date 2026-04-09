@@ -119,7 +119,8 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen>
       if (_filterType == 'warnings' && msgType != 'warning') return false;
 
       // Filter by search
-      if (_searchText.isNotEmpty && !msgContent.contains(_searchText.toLowerCase())) {
+      if (_searchText.isNotEmpty &&
+          !msgContent.contains(_searchText.toLowerCase())) {
         return false;
       }
 
@@ -139,7 +140,7 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen>
           tabs: [
             Tab(text: 'চ্যাট (${filteredMessages.length}/5 - অপ্টিমাইজড)'),
             Tab(text: 'প্রক্রিয়া (${_workProcesses.length})'),
-            Tab(text: 'সময়সীমা'),
+            const Tab(text: 'সময়সীমা'),
           ],
         ),
         actions: [
@@ -198,9 +199,12 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen>
                           value: _filterType,
                           items: const [
                             DropdownMenuItem(value: 'all', child: Text('সব')),
-                            DropdownMenuItem(value: 'errors', child: Text('শুধু ত্রুটি')),
-                            DropdownMenuItem(value: 'success', child: Text('শুধু সফল')),
-                            DropdownMenuItem(value: 'warnings', child: Text('শুধু সতর্কতা')),
+                            DropdownMenuItem(
+                                value: 'errors', child: Text('শুধু ত্রুটি')),
+                            DropdownMenuItem(
+                                value: 'success', child: Text('শুধু সফল')),
+                            DropdownMenuItem(
+                                value: 'warnings', child: Text('শুধু সতর্কতা')),
                           ],
                           onChanged: (val) {
                             if (val != null) {
@@ -214,7 +218,8 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen>
                             setState(() => _autoRefresh = !_autoRefresh);
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: _autoRefresh ? Colors.green : Colors.grey,
+                            backgroundColor:
+                                _autoRefresh ? Colors.green : Colors.grey,
                           ),
                           child: Text(
                             _autoRefresh ? '🔄 চলছে' : '⏸ বন্ধ',
@@ -267,11 +272,11 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen>
         Container(
           color: Colors.blue[50],
           padding: const EdgeInsets.all(AppConstants.paddingSmall),
-          child: Row(
+          child: const Row(
             children: [
-              const Icon(Icons.info_outline, color: Colors.blue),
-              const SizedBox(width: 8),
-              const Expanded(
+              Icon(Icons.info_outline, color: Colors.blue),
+              SizedBox(width: 8),
+              Expanded(
                 child: Text(
                   'শেষ ৫টি বার্তা দেখানো হচ্ছে (Firebase কোটা সংরক্ষণ)',
                   style: TextStyle(fontSize: 12),
@@ -282,75 +287,76 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen>
         ),
         Expanded(
           child: ListView.builder(
-      controller: _scrollController,
-      itemCount: messages.length,
-      itemBuilder: (context, index) {
-        final msg = messages[index];
-        final timestamp = msg['timestamp'] ?? '';
-        final sender = msg['sender']?.toString().toUpperCase() ?? 'UNKNOWN';
-        final type = msg['type']?.toString().toUpperCase() ?? 'INFO';
-        final message = msg['message'] ?? '';
-        final projectId = msg['projectId'] as String?;
+            controller: _scrollController,
+            itemCount: messages.length,
+            itemBuilder: (context, index) {
+              final msg = messages[index];
+              final timestamp = msg['timestamp'] ?? '';
+              final sender =
+                  msg['sender']?.toString().toUpperCase() ?? 'UNKNOWN';
+              final type = msg['type']?.toString().toUpperCase() ?? 'INFO';
+              final message = msg['message'] ?? '';
+              final projectId = msg['projectId'] as String?;
 
-        return Card(
-          margin: const EdgeInsets.symmetric(
-            horizontal: AppConstants.paddingSmall,
-            vertical: AppConstants.paddingSmall,
-          ),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: _getSenderColor(sender),
-              child: Text(
-                sender[0],
-                style: const TextStyle(color: Colors.white),
-              ),
-            ),
-            title: Row(
-              children: [
-                Chip(
-                  label: Text(sender),
-                  backgroundColor: _getSenderColor(sender),
-                  labelStyle: const TextStyle(color: Colors.white),
+              return Card(
+                margin: const EdgeInsets.symmetric(
+                  horizontal: AppConstants.paddingSmall,
+                  vertical: AppConstants.paddingSmall,
                 ),
-                const SizedBox(width: 8),
-                Chip(
-                  label: Text(type),
-                  backgroundColor: _getStatusColor(type),
-                  labelStyle: const TextStyle(color: Colors.white),
-                ),
-              ],
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 8),
-                Text(message),
-                if (projectId != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4.0),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: _getSenderColor(sender),
                     child: Text(
-                      'প্রকল্প: $projectId',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
+                      sender[0],
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 4.0),
-                  child: Text(
-                    timestamp,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.grey[500],
-                    ),
+                  title: Row(
+                    children: [
+                      Chip(
+                        label: Text(sender),
+                        backgroundColor: _getSenderColor(sender),
+                        labelStyle: const TextStyle(color: Colors.white),
+                      ),
+                      const SizedBox(width: 8),
+                      Chip(
+                        label: Text(type),
+                        backgroundColor: _getStatusColor(type),
+                        labelStyle: const TextStyle(color: Colors.white),
+                      ),
+                    ],
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 8),
+                      Text(message),
+                      if (projectId != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Text(
+                            'প্রকল্প: $projectId',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Text(
+                          timestamp,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
-        );
-      },
+              );
+            },
           ),
         ),
       ],
@@ -477,7 +483,8 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen>
                 children: [
                   CircleAvatar(
                     radius: 12,
-                    backgroundColor: _getStatusColor(event['status']?.toString() ?? ''),
+                    backgroundColor:
+                        _getStatusColor(event['status']?.toString() ?? ''),
                     child: Icon(
                       isChat ? Icons.chat : Icons.settings,
                       size: 16,

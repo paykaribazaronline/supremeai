@@ -46,8 +46,8 @@ class _AIProvidersScreenState extends State<AIProvidersScreen> {
 
     setState(() {
       _isLoading = false;
-      if (results[0].success) _availableProviders = (results[0].data as List<dynamic>?) ?? [];
-      if (results[1].success) _configuredProviders = (results[1].data as List<dynamic>?) ?? [];
+      if (results[0].success) _availableProviders = results[0].data ?? [];
+      if (results[1].success) _configuredProviders = results[1].data ?? [];
       if (!results[0].success && !results[1].success) {
         _error = results[0].error ?? 'প্রোভাইডার লোড করা যায়নি';
       }
@@ -66,7 +66,8 @@ class _AIProvidersScreenState extends State<AIProvidersScreen> {
     if (response.success) {
       _showSnackBar('$providerId সফলভাবে কাজ করছে!');
     } else {
-      _showSnackBar('$providerId পরীক্ষায় ব্যর্থ: ${response.error}', isError: true);
+      _showSnackBar('$providerId পরীক্ষায় ব্যর্থ: ${response.error}',
+          isError: true);
     }
   }
 
@@ -82,7 +83,9 @@ class _AIProvidersScreenState extends State<AIProvidersScreen> {
           children: [
             Text(
               'এই AI প্রোভাইডারের API Key দিন।\n(প্রোভাইডারের ওয়েবসাইট থেকে API Key সংগ্রহ করুন)',
-              style: TextStyle(fontSize: AppConstants.captionFontSize, color: Colors.grey.shade600),
+              style: TextStyle(
+                  fontSize: AppConstants.captionFontSize,
+                  color: Colors.grey.shade600),
             ),
             const SizedBox(height: AppConstants.paddingMedium),
             TextField(
@@ -94,18 +97,23 @@ class _AIProvidersScreenState extends State<AIProvidersScreen> {
                 helperText: '(প্রোভাইডারের গোপন API কী)',
                 prefixIcon: const Icon(Icons.key),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                  borderRadius:
+                      BorderRadius.circular(AppConstants.radiusMedium),
                 ),
               ),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('বাতিল')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('বাতিল')),
           ElevatedButton(
             onPressed: () {
               if (_apiKeyController.text.trim().isNotEmpty) {
-                Navigator.pop(ctx, {'name': providerName, 'apiKey': _apiKeyController.text.trim()});
+                Navigator.pop(ctx, {
+                  'name': providerName,
+                  'apiKey': _apiKeyController.text.trim()
+                });
               }
             },
             child: const Text('যোগ করো'),
@@ -127,7 +135,8 @@ class _AIProvidersScreenState extends State<AIProvidersScreen> {
       _showSnackBar('$providerName সফলভাবে যোগ হয়েছে!');
       _loadProviders();
     } else {
-      _showSnackBar('ত্রুটি: ${response.error ?? "যোগ করা যায়নি"}', isError: true);
+      _showSnackBar('ত্রুটি: ${response.error ?? "যোগ করা যায়নি"}',
+          isError: true);
     }
   }
 
@@ -141,9 +150,12 @@ class _AIProvidersScreenState extends State<AIProvidersScreen> {
           '(এটি সরালে এই AI প্রোভাইডার আর কাজ করবে না)',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('না')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('না')),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Color(AppConstants.errorColor)),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(AppConstants.errorColor)),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('হ্যাঁ, সরাও'),
           ),
@@ -163,19 +175,21 @@ class _AIProvidersScreenState extends State<AIProvidersScreen> {
       _showSnackBar('$providerId সরানো হয়েছে');
       _loadProviders();
     } else {
-      _showSnackBar('ত্রুটি: ${response.error ?? "সরানো যায়নি"}', isError: true);
+      _showSnackBar('ত্রুটি: ${response.error ?? "সরানো যায়নি"}',
+          isError: true);
     }
   }
 
-  void _showSnackBar(String message, {bool isError = false, bool isInfo = false}) {
+  void _showSnackBar(String message,
+      {bool isError = false, bool isInfo = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         backgroundColor: isError
-            ? Color(AppConstants.errorColor)
+            ? const Color(AppConstants.errorColor)
             : isInfo
-                ? Color(AppConstants.infoColor)
-                : Color(AppConstants.successColor),
+                ? const Color(AppConstants.infoColor)
+                : const Color(AppConstants.successColor),
       ),
     );
   }
@@ -227,7 +241,8 @@ class _AIProvidersScreenState extends State<AIProvidersScreen> {
           const SizedBox(height: AppConstants.paddingMedium),
           Text(_error!, textAlign: TextAlign.center),
           const SizedBox(height: AppConstants.paddingMedium),
-          ElevatedButton(onPressed: _loadProviders, child: const Text('আবার চেষ্টা করুন')),
+          ElevatedButton(
+              onPressed: _loadProviders, child: const Text('আবার চেষ্টা করুন')),
         ],
       ),
     );
@@ -238,7 +253,10 @@ class _AIProvidersScreenState extends State<AIProvidersScreen> {
       padding: const EdgeInsets.all(AppConstants.paddingLarge),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(AppConstants.secondaryColor), Color(AppConstants.secondaryColor).withOpacity(0.7)],
+          colors: [
+            const Color(AppConstants.secondaryColor),
+            const Color(AppConstants.secondaryColor).withOpacity(0.7)
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -251,24 +269,31 @@ class _AIProvidersScreenState extends State<AIProvidersScreen> {
           const SizedBox(height: AppConstants.paddingSmall),
           const Text(
             'AI প্রোভাইডার ব্যবস্থাপনা',
-            style: TextStyle(color: Colors.white, fontSize: AppConstants.titleFontSize, fontWeight: FontWeight.bold),
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: AppConstants.titleFontSize,
+                fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: AppConstants.paddingXSmall),
           const Text(
             '১০টি AI প্রোভাইডার সংযুক্ত করুন। যত বেশি AI যুক্ত, তত ভালো Consensus ভোটিং।\n'
             'প্রতিটি সিদ্ধান্ত ১০টি AI-এর মতামতের ভিত্তিতে নেওয়া হয়।',
-            style: TextStyle(color: Colors.white70, fontSize: AppConstants.bodyFontSize),
+            style: TextStyle(
+                color: Colors.white70, fontSize: AppConstants.bodyFontSize),
           ),
           const SizedBox(height: AppConstants.paddingMedium),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium, vertical: AppConstants.paddingSmall),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppConstants.paddingMedium,
+                vertical: AppConstants.paddingSmall),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
             ),
             child: Text(
               'সক্রিয়: ${_configuredProviders.length} / ${_availableProviders.length + _configuredProviders.length} প্রোভাইডার',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -282,23 +307,28 @@ class _AIProvidersScreenState extends State<AIProvidersScreen> {
       children: [
         const Text(
           'সক্রিয় প্রোভাইডার',
-          style: TextStyle(fontSize: AppConstants.titleFontSize, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontSize: AppConstants.titleFontSize,
+              fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: AppConstants.paddingXSmall),
         const Text(
           '(এই AI গুলো এখন কাজ করছে ও ভোট দিচ্ছে)',
-          style: TextStyle(fontSize: AppConstants.captionFontSize, color: Colors.grey),
+          style: TextStyle(
+              fontSize: AppConstants.captionFontSize, color: Colors.grey),
         ),
         const SizedBox(height: AppConstants.paddingMedium),
         if (_configuredProviders.isEmpty)
-          Card(
+          const Card(
             child: Padding(
-              padding: const EdgeInsets.all(AppConstants.paddingLarge),
+              padding: EdgeInsets.all(AppConstants.paddingLarge),
               child: Row(
-                children: const [
+                children: [
                   Icon(Icons.info_outline, color: Colors.orange),
                   SizedBox(width: AppConstants.paddingMedium),
-                  Expanded(child: Text('কোনো প্রোভাইডার সক্রিয় নেই। নিচে থেকে যোগ করুন।')),
+                  Expanded(
+                      child: Text(
+                          'কোনো প্রোভাইডার সক্রিয় নেই। নিচে থেকে যোগ করুন।')),
                 ],
               ),
             ),
@@ -312,10 +342,13 @@ class _AIProvidersScreenState extends State<AIProvidersScreen> {
               margin: const EdgeInsets.only(bottom: AppConstants.paddingSmall),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: Color(AppConstants.successColor).withOpacity(0.1),
-                  child: Icon(Icons.check_circle, color: Color(AppConstants.successColor)),
+                  backgroundColor:
+                      const Color(AppConstants.successColor).withOpacity(0.1),
+                  child: const Icon(Icons.check_circle,
+                      color: Color(AppConstants.successColor)),
                 ),
-                title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                title: Text(name,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: Text('অবস্থা: $status (সক্রিয় — ভোটে অংশ নিচ্ছে)'),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -327,7 +360,8 @@ class _AIProvidersScreenState extends State<AIProvidersScreen> {
                     ),
                     IconButton(
                       onPressed: () => _removeProvider(name),
-                      icon: Icon(Icons.delete_outline, color: Color(AppConstants.errorColor)),
+                      icon: const Icon(Icons.delete_outline,
+                          color: Color(AppConstants.errorColor)),
                       tooltip: 'সরাও (এই প্রোভাইডার বাদ দাও)',
                     ),
                   ],
@@ -345,20 +379,23 @@ class _AIProvidersScreenState extends State<AIProvidersScreen> {
       children: [
         const Text(
           'উপলব্ধ প্রোভাইডার',
-          style: TextStyle(fontSize: AppConstants.titleFontSize, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontSize: AppConstants.titleFontSize,
+              fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: AppConstants.paddingXSmall),
         const Text(
           '(এই AI গুলো যোগ করা যাবে — API Key দিয়ে সক্রিয় করুন)',
-          style: TextStyle(fontSize: AppConstants.captionFontSize, color: Colors.grey),
+          style: TextStyle(
+              fontSize: AppConstants.captionFontSize, color: Colors.grey),
         ),
         const SizedBox(height: AppConstants.paddingMedium),
         if (_availableProviders.isEmpty)
-          Card(
+          const Card(
             child: Padding(
-              padding: const EdgeInsets.all(AppConstants.paddingLarge),
+              padding: EdgeInsets.all(AppConstants.paddingLarge),
               child: Row(
-                children: const [
+                children: [
                   Icon(Icons.celebration, color: Colors.green),
                   SizedBox(width: AppConstants.paddingMedium),
                   Expanded(child: Text('সব প্রোভাইডার ইতিমধ্যে সক্রিয়! 🎉')),
@@ -375,17 +412,22 @@ class _AIProvidersScreenState extends State<AIProvidersScreen> {
               margin: const EdgeInsets.only(bottom: AppConstants.paddingSmall),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: Color(AppConstants.warningColor).withOpacity(0.1),
-                  child: Icon(Icons.add_circle_outline, color: Color(AppConstants.warningColor)),
+                  backgroundColor:
+                      const Color(AppConstants.warningColor).withOpacity(0.1),
+                  child: const Icon(Icons.add_circle_outline,
+                      color: Color(AppConstants.warningColor)),
                 ),
-                title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text(desc.isNotEmpty ? desc : 'API Key দিয়ে সক্রিয় করুন'),
+                title: Text(name,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle:
+                    Text(desc.isNotEmpty ? desc : 'API Key দিয়ে সক্রিয় করুন'),
                 trailing: ElevatedButton.icon(
                   onPressed: () => _addProvider(name),
                   icon: const Icon(Icons.add, size: 18),
                   label: const Text('যোগ করো'),
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppConstants.paddingMedium),
                   ),
                 ),
               ),

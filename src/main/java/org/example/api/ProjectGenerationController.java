@@ -5,7 +5,9 @@ import org.example.service.TemplateManager;
 import org.example.service.AgentOrchestrator;
 import org.example.service.GeneratedProjectRegistryService;
 import org.example.service.IdleResearchService;
+import org.example.service.ExistingProjectService;
 import org.example.service.PublicAIRouter;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +62,9 @@ public class ProjectGenerationController {
     
     @Autowired(required = false)
     private IdleResearchService idleResearchService;
+
+    @Autowired(required = false)
+    private ExistingProjectService existingProjectService;
     
     public ProjectGenerationController(FileOrchestrator fileOrchestrator,
                                       TemplateManager templateManager,
@@ -69,6 +74,19 @@ public class ProjectGenerationController {
         this.templateManager = templateManager;
         this.agentOrchestrator = agentOrchestrator;
         this.projectRegistryService = projectRegistryService;
+    }
+
+    @PostConstruct
+    public void syncExistingListFromFinishedProjects() {
+        if (existingProjectService == null) {
+            return;
+        }
+        for (Map<String, Object> project : projectRegistryService.listFinishedProjects()) {
+            boolean pushed = Boolean.TRUE.equals(project.get("pushed"));
+            if (pushed) {
+                syncToExistingAppList(project, "");
+            }
+        }
     }
     
     /**
@@ -214,6 +232,9 @@ public class ProjectGenerationController {
             projectStatus.put("progress", 100);
 
             projectRegistryService.saveProject(projectStatus);
+            if (pushed) {
+                syncToExistingAppList(projectStatus, repoToken);
+            }
 
         } catch (Exception e) {
             generationSucceeded = false;
@@ -228,6 +249,45 @@ public class ProjectGenerationController {
         response.put("project", projectStatus);
         response.put("message", generationSucceeded ? "Project generation initiated" : "Project generation failed");
 
+        return response;
+    }
+
+    @GetMapping("/running")
+    public Map<String, Object> listRunningProjects() {
+        List<Map<String, Object>> running = new ArrayList<>(projectRegistryService.listRunningProjects());
+        running.sort((a, b) -> String.valueOf(b.getOrDefault("createdAt", "")).compareTo(String.valueOf(a.getOrDefault("createdAt", ""))));
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("total", running.size());
+        response.put("projects", running);
+        response.put("timestamp", LocalDateTime.now().format(formatter));
+        return response;
+    }
+
+    @GetMapping("/finished")
+    public Map<String, Object> listFinishedProjects() {
+        List<Map<String, Object>> finished = new ArrayList<>(projectRegistryService.listFinishedProjects());
+        finished.sort((a, b) -> String.valueOf(b.getOrDefault("completedAt", b.getOrDefault("createdAt", "")))
+            .compareTo(String.valueOf(a.getOrDefault("completedAt", a.getOrDefault("createdAt", "")))));
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("total", finished.size());
+        response.put("projects", finished);
+        response.put("timestamp", LocalDateTime.now().format(formatter));
+        return response;
+    }
+
+    @GetMapping("/storage-status")
+    public Map<String, Object> getProjectStorageStatus() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("cloudStorageActive", projectRegistryService.isCloudStorageActive());
+        response.put("totalProjects", projectRegistryService.listProjects().size());
+        response.put("runningProjects", projectRegistryService.listRunningProjects().size());
+        response.put("finishedProjects", projectRegistryService.listFinishedProjects().size());
+        response.put("timestamp", LocalDateTime.now().format(formatter));
         return response;
     }
     
@@ -474,6 +534,39 @@ public class ProjectGenerationController {
     
     private String generateProjectId() {
         return "project-" + System.currentTimeMillis();
+    }
+
+    private void syncToExistingAppList(Map<String, Object> projectStatus, String repoToken) {
+        if (existingProjectService == null) {
+            return;
+        }
+
+        String repoUrl = String.valueOf(projectStatus.getOrDefault("repoUrl", ""));
+        if (repoUrl.isBlank()) {
+            return;
+        }
+
+        String branch = String.valueOf(projectStatus.getOrDefault("repoBranch", "main"));
+        boolean alreadyTracked = existingProjectService.listProjects().stream().anyMatch(p ->
+                repoUrl.equals(String.valueOf(p.getOrDefault("repoUrl", ""))) &&
+                branch.equals(String.valueOf(p.getOrDefault("branch", "main"))));
+
+        if (alreadyTracked) {
+            return;
+        }
+
+        String projectId = String.valueOf(projectStatus.getOrDefault("projectId", "generated-project"));
+        String description = String.valueOf(projectStatus.getOrDefault("description", ""));
+        String goal = description.isBlank()
+                ? "Continuously improve this generated project according to admin demand."
+                : description;
+
+        try {
+            existingProjectService.registerProject(projectId, repoUrl, branch, repoToken, goal);
+            logger.info("Synced generated project {} to existing app list for continuous improvement", projectId);
+        } catch (Exception exception) {
+            logger.warn("Failed to sync generated project {} to existing app list: {}", projectId, exception.getMessage());
+        }
     }
     
     private void generateProjectFiles(String projectId, String templateType, List<String> features) throws Exception {

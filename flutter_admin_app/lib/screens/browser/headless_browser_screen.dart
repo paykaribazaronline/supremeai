@@ -20,7 +20,7 @@ class _HeadlessBrowserScreenState extends State<HeadlessBrowserScreen>
 
   Map<String, dynamic>? _browserStats;
   List<dynamic> _auditLogs = [];
-  List<dynamic> _scrapeHistory = [];
+  final List<dynamic> _scrapeHistory = [];
   bool _isLoading = true;
   bool _isScraping = false;
   bool _useAuth = false;
@@ -67,8 +67,7 @@ class _HeadlessBrowserScreenState extends State<HeadlessBrowserScreen>
         }
       }
       if (results[1].success) {
-        _auditLogs =
-            (results[1].data as List<dynamic>?) ?? [];
+        _auditLogs = (results[1].data as List<dynamic>?) ?? [];
       }
       if (!results[0].success && _error == null) {
         _error = results[0].error ?? 'ব্রাউজার তথ্য লোড করা যায়নি';
@@ -84,13 +83,15 @@ class _HeadlessBrowserScreenState extends State<HeadlessBrowserScreen>
     }
 
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      _showSnackBar('URL must start with http:// or https://', Colors.orange[400]!);
+      _showSnackBar(
+          'URL must start with http:// or https://', Colors.orange[400]!);
       return;
     }
 
     setState(() => _isScraping = true);
 
-    final endpoint = _useAuth ? '/api/browser/scrape-auth' : '/api/browser/scrape';
+    final endpoint =
+        _useAuth ? '/api/browser/scrape-auth' : '/api/browser/scrape';
     final data = {
       'url': url,
       'includeScreenshot': _includeScreenshot,
@@ -202,8 +203,7 @@ class _HeadlessBrowserScreenState extends State<HeadlessBrowserScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline,
-                size: 64, color: Colors.red.shade400),
+            Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
             const SizedBox(height: 16),
             Text(_error ?? 'অজানা ত্রুটি',
                 textAlign: TextAlign.center,
@@ -220,7 +220,8 @@ class _HeadlessBrowserScreenState extends State<HeadlessBrowserScreen>
     final dailyUsage = stats['dailyUsage'] ?? 0;
     final healthStatus = stats['healthStatus'] ?? 'unknown';
 
-    final usagePercent = ((quotaLimit - quotaRemaining) / quotaLimit * 100).toInt();
+    final usagePercent =
+        ((quotaLimit - quotaRemaining) / quotaLimit * 100).toInt();
 
     return RefreshIndicator(
       onRefresh: _loadAll,
@@ -236,7 +237,7 @@ class _HeadlessBrowserScreenState extends State<HeadlessBrowserScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(children: [
-                      Icon(Icons.chrome_reader_mode,
+                      const Icon(Icons.chrome_reader_mode,
                           color: Color(AppConstants.primaryColor)),
                       const SizedBox(width: 8),
                       const Expanded(
@@ -256,20 +257,17 @@ class _HeadlessBrowserScreenState extends State<HeadlessBrowserScreen>
                         child: Text(
                           available ? 'সক্রিয়' : 'নিষ্ক্রিয়',
                           style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold),
+                              color: Colors.white, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ]),
                     const SizedBox(height: 16),
-                    _buildStatRow(
-                        'স্বাস্থ্য অবস্থা', healthStatus.toString(), Icons.favorite),
+                    _buildStatRow('স্বাস্থ্য অবস্থা', healthStatus.toString(),
+                        Icons.favorite),
                     _buildStatRow(
                         'আজকের ব্যবহার', '$dailyUsage', Icons.assessment),
-                    _buildStatRow(
-                        'অবশিষ্ট কোটা',
-                        '$quotaRemaining / $quotaLimit',
-                        Icons.storage),
+                    _buildStatRow('অবশিষ্ট কোটা',
+                        '$quotaRemaining / $quotaLimit', Icons.storage),
                     const SizedBox(height: 16),
                     _buildProgressIndicator(usagePercent),
                   ],
@@ -350,7 +348,9 @@ class _HeadlessBrowserScreenState extends State<HeadlessBrowserScreen>
                     child: ElevatedButton.icon(
                       onPressed: _isScraping ? null : _scrapeURL,
                       icon: const Icon(Icons.language),
-                      label: _isScraping ? const Text('স্ক্র্যাপ করা হচ্ছে...') : const Text('স্ক্র্যাপ করুন'),
+                      label: _isScraping
+                          ? const Text('স্ক্র্যাপ করা হচ্ছে...')
+                          : const Text('স্ক্র্যাপ করুন'),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -359,7 +359,9 @@ class _HeadlessBrowserScreenState extends State<HeadlessBrowserScreen>
                     child: ElevatedButton.icon(
                       onPressed: _isScraping ? null : _takeScreenshot,
                       icon: const Icon(Icons.screenshot),
-                      label: _isScraping ? const Text('ক্যাপচার করা হচ্ছে...') : const Text('স্ক্রিনশট নিন'),
+                      label: _isScraping
+                          ? const Text('ক্যাপচার করা হচ্ছে...')
+                          : const Text('স্ক্রিনশট নিন'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.orange,
                       ),
@@ -388,7 +390,7 @@ class _HeadlessBrowserScreenState extends State<HeadlessBrowserScreen>
             .map(
               (item) => Card(
                 child: ListTile(
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.check_circle,
                     color: Colors.green,
                   ),
@@ -427,11 +429,11 @@ class _HeadlessBrowserScreenState extends State<HeadlessBrowserScreen>
                     log['status'] == 'success'
                         ? Icons.check_circle
                         : Icons.error,
-                    color: log['status'] == 'success'
-                        ? Colors.green
-                        : Colors.red,
+                    color:
+                        log['status'] == 'success' ? Colors.green : Colors.red,
                   ),
-                  title: Text(log['action']?.toString().toUpperCase() ?? 'UNKNOWN'),
+                  title: Text(
+                      log['action']?.toString().toUpperCase() ?? 'UNKNOWN'),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -483,7 +485,8 @@ class _HeadlessBrowserScreenState extends State<HeadlessBrowserScreen>
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text('কোটা ব্যবহার'),
-            Text('$percent%', style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text('$percent%',
+                style: const TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
         const SizedBox(height: 8),
@@ -497,8 +500,8 @@ class _HeadlessBrowserScreenState extends State<HeadlessBrowserScreen>
               percent > 80
                   ? Colors.red
                   : percent > 50
-                  ? Colors.orange
-                  : Colors.green,
+                      ? Colors.orange
+                      : Colors.green,
             ),
           ),
         ),

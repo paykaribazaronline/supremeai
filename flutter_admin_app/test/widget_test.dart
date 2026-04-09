@@ -42,17 +42,25 @@ void main() {
     expect(find.byType(SupremeAIAdminApp), findsOneWidget);
   });
 
-  testWidgets('Named project detail route loads edit screen', (WidgetTester tester) async {
+  testWidgets('Named project detail route loads edit screen',
+      (WidgetTester tester) async {
     await tester.pumpWidget(buildApp());
     await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();
 
-    final navigator = tester.state<NavigatorState>(find.byType(Navigator).first);
+    final navigator =
+        tester.state<NavigatorState>(find.byType(Navigator).first);
     final project = Project(
       id: 'p-1',
       name: 'Route Test Project',
       description: 'Verify named route navigation',
-      status: 'active',
+      status: 'PUSHED_TO_REPO',
+      templateType: 'REACT',
+      repoUrl: 'https://github.com/example/route-test-project',
+      repoBranch: 'main',
+      progress: 100,
+      fileCount: 24,
+      pushed: true,
       createdAt: DateTime(2026, 1, 1),
       updatedAt: DateTime(2026, 1, 1),
     );
@@ -60,19 +68,21 @@ void main() {
     navigator.pushNamed(AppRoutes.projectDetail, arguments: project);
     await tester.pumpAndSettle();
 
-    expect(find.text('Edit Project'), findsOneWidget);
-    expect(find.text('Project Information'), findsOneWidget);
+    expect(find.text('প্রজেক্ট সম্পাদনা'), findsOneWidget);
+    expect(find.text('Project ID'), findsOneWidget);
   });
 
-  testWidgets('Unknown route falls back to login screen', (WidgetTester tester) async {
+  testWidgets('Unknown route falls back to login screen',
+      (WidgetTester tester) async {
     await tester.pumpWidget(buildApp());
     await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();
 
-    final navigator = tester.state<NavigatorState>(find.byType(Navigator).first);
+    final navigator =
+        tester.state<NavigatorState>(find.byType(Navigator).first);
     navigator.pushNamed('/not-a-real-route');
     await tester.pumpAndSettle();
 
-    expect(find.text('Admin Management Portal'), findsOneWidget);
+    expect(find.text('অ্যাডমিন ম্যানেজমেন্ট পোর্টাল'), findsOneWidget);
   });
 }

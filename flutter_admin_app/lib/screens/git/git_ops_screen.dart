@@ -10,11 +10,13 @@ class GitOpsScreen extends StatefulWidget {
   State<GitOpsScreen> createState() => _GitOpsScreenState();
 }
 
-class _GitOpsScreenState extends State<GitOpsScreen> with SingleTickerProviderStateMixin {
+class _GitOpsScreenState extends State<GitOpsScreen>
+    with SingleTickerProviderStateMixin {
   final ApiService _apiService = ApiService();
   late TabController _tabController;
   final TextEditingController _commitMsgController = TextEditingController();
-  final TextEditingController _branchController = TextEditingController(text: 'main');
+  final TextEditingController _branchController =
+      TextEditingController(text: 'main');
 
   Map<String, dynamic>? _gitStatus;
   List<dynamic> _gitLogs = [];
@@ -39,7 +41,10 @@ class _GitOpsScreenState extends State<GitOpsScreen> with SingleTickerProviderSt
   }
 
   Future<void> _loadAll() async {
-    setState(() { _isLoading = true; _error = null; });
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
     final results = await Future.wait([
       _apiService.get<Map<String, dynamic>>(Environment.gitStatus),
       _apiService.get<List<dynamic>>(Environment.gitLogs),
@@ -47,9 +52,12 @@ class _GitOpsScreenState extends State<GitOpsScreen> with SingleTickerProviderSt
     if (!mounted) return;
     setState(() {
       _isLoading = false;
-      if (results[0].success) _gitStatus = results[0].data as Map<String, dynamic>?;
-      if (results[1].success) _gitLogs = (results[1].data as List<dynamic>?) ?? [];
-      if (!results[0].success) _error = results[0].error ?? 'Git তথ্য লোড করা যায়নি';
+      if (results[0].success)
+        _gitStatus = results[0].data as Map<String, dynamic>?;
+      if (results[1].success)
+        _gitLogs = (results[1].data as List<dynamic>?) ?? [];
+      if (!results[0].success)
+        _error = results[0].error ?? 'Git তথ্য লোড করা যায়নি';
     });
   }
 
@@ -57,7 +65,8 @@ class _GitOpsScreenState extends State<GitOpsScreen> with SingleTickerProviderSt
     final msg = _commitMsgController.text.trim();
     if (msg.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('কমিট মেসেজ লিখুন'), backgroundColor: Colors.orange),
+        const SnackBar(
+            content: Text('কমিট মেসেজ লিখুন'), backgroundColor: Colors.orange),
       );
       return;
     }
@@ -69,10 +78,16 @@ class _GitOpsScreenState extends State<GitOpsScreen> with SingleTickerProviderSt
     if (!mounted) return;
     setState(() => _isCommitting = false);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(response.success ? 'কমিট সফল হয়েছে!' : 'ত্রুটি: ${response.error}'),
-      backgroundColor: Color(response.success ? AppConstants.successColor : AppConstants.errorColor),
+      content: Text(
+          response.success ? 'কমিট সফল হয়েছে!' : 'ত্রুটি: ${response.error}'),
+      backgroundColor: Color(response.success
+          ? AppConstants.successColor
+          : AppConstants.errorColor),
     ));
-    if (response.success) { _commitMsgController.clear(); _loadAll(); }
+    if (response.success) {
+      _commitMsgController.clear();
+      _loadAll();
+    }
   }
 
   Future<void> _pushChanges() async {
@@ -86,8 +101,11 @@ class _GitOpsScreenState extends State<GitOpsScreen> with SingleTickerProviderSt
     if (!mounted) return;
     setState(() => _isPushing = false);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(response.success ? 'পুশ সফল হয়েছে!' : 'ত্রুটি: ${response.error}'),
-      backgroundColor: Color(response.success ? AppConstants.successColor : AppConstants.errorColor),
+      content: Text(
+          response.success ? 'পুশ সফল হয়েছে!' : 'ত্রুটি: ${response.error}'),
+      backgroundColor: Color(response.success
+          ? AppConstants.successColor
+          : AppConstants.errorColor),
     ));
     if (response.success) _loadAll();
   }
@@ -105,7 +123,12 @@ class _GitOpsScreenState extends State<GitOpsScreen> with SingleTickerProviderSt
             Tab(icon: Icon(Icons.history), text: 'লগ'),
           ],
         ),
-        actions: [IconButton(icon: const Icon(Icons.refresh), tooltip: 'রিফ্রেশ', onPressed: _loadAll)],
+        actions: [
+          IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'রিফ্রেশ',
+              onPressed: _loadAll)
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -136,17 +159,25 @@ class _GitOpsScreenState extends State<GitOpsScreen> with SingleTickerProviderSt
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(children: [
-                      Icon(Icons.source, color: Color(AppConstants.primaryColor)),
-                      const SizedBox(width: 8),
-                      const Text('রিপোজিটরি অবস্থা', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Row(children: [
+                      Icon(Icons.source,
+                          color: Color(AppConstants.primaryColor)),
+                      SizedBox(width: 8),
+                      Text('রিপোজিটরি অবস্থা',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
                     ]),
-                    const Text('(কোডের বর্তমান অবস্থা)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    const Text('(কোডের বর্তমান অবস্থা)',
+                        style: TextStyle(fontSize: 12, color: Colors.grey)),
                     const SizedBox(height: 16),
-                    _buildStatusRow('শাখা (Branch)', branch, Icons.account_tree),
-                    _buildStatusRow('পরিবর্তিত ফাইল', '$modified', Icons.edit_note),
-                    _buildStatusRow('নতুন ফাইল', '$untracked', Icons.add_circle_outline),
-                    _buildStatusRow('প্রস্তুত (Staged)', '$staged', Icons.check_circle_outline),
+                    _buildStatusRow(
+                        'শাখা (Branch)', branch, Icons.account_tree),
+                    _buildStatusRow(
+                        'পরিবর্তিত ফাইল', '$modified', Icons.edit_note),
+                    _buildStatusRow(
+                        'নতুন ফাইল', '$untracked', Icons.add_circle_outline),
+                    _buildStatusRow('প্রস্তুত (Staged)', '$staged',
+                        Icons.check_circle_outline),
                   ],
                 ),
               ),
@@ -182,8 +213,11 @@ class _GitOpsScreenState extends State<GitOpsScreen> with SingleTickerProviderSt
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('কমিট করুন', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const Text('(পরিবর্তনগুলো সংরক্ষণ করুন)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  const Text('কমিট করুন',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text('(পরিবর্তনগুলো সংরক্ষণ করুন)',
+                      style: TextStyle(fontSize: 12, color: Colors.grey)),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _commitMsgController,
@@ -201,9 +235,13 @@ class _GitOpsScreenState extends State<GitOpsScreen> with SingleTickerProviderSt
                     child: ElevatedButton.icon(
                       onPressed: _isCommitting ? null : _commitChanges,
                       icon: _isCommitting
-                          ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2))
                           : const Icon(Icons.save),
-                      label: Text(_isCommitting ? 'কমিট হচ্ছে...' : 'কমিট করুন'),
+                      label:
+                          Text(_isCommitting ? 'কমিট হচ্ছে...' : 'কমিট করুন'),
                     ),
                   ),
                 ],
@@ -217,8 +255,11 @@ class _GitOpsScreenState extends State<GitOpsScreen> with SingleTickerProviderSt
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('পুশ করুন', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const Text('(কোড GitHub-এ পাঠান)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  const Text('পুশ করুন',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text('(কোড GitHub-এ পাঠান)',
+                      style: TextStyle(fontSize: 12, color: Colors.grey)),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _branchController,
@@ -235,7 +276,10 @@ class _GitOpsScreenState extends State<GitOpsScreen> with SingleTickerProviderSt
                     child: ElevatedButton.icon(
                       onPressed: _isPushing ? null : _pushChanges,
                       icon: _isPushing
-                          ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2))
                           : const Icon(Icons.cloud_upload),
                       label: Text(_isPushing ? 'পুশ হচ্ছে...' : 'পুশ করুন'),
                     ),
@@ -258,20 +302,30 @@ class _GitOpsScreenState extends State<GitOpsScreen> with SingleTickerProviderSt
               padding: const EdgeInsets.all(AppConstants.paddingMedium),
               itemCount: _gitLogs.length,
               itemBuilder: (ctx, i) {
-                final log = _gitLogs[i] is Map<String, dynamic> ? _gitLogs[i] as Map<String, dynamic> : <String, dynamic>{};
+                final log = _gitLogs[i] is Map<String, dynamic>
+                    ? _gitLogs[i] as Map<String, dynamic>
+                    : <String, dynamic>{};
                 return Card(
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: Color(AppConstants.primaryColor).withOpacity(0.1),
+                      backgroundColor: const Color(AppConstants.primaryColor)
+                          .withOpacity(0.1),
                       child: const Icon(Icons.commit, size: 18),
                     ),
-                    title: Text('${log['message'] ?? 'No message'}', maxLines: 2, overflow: TextOverflow.ellipsis),
-                    subtitle: Text('${log['author'] ?? ''} • ${log['date'] ?? log['timestamp'] ?? ''}',
+                    title: Text('${log['message'] ?? 'No message'}',
+                        maxLines: 2, overflow: TextOverflow.ellipsis),
+                    subtitle: Text(
+                        '${log['author'] ?? ''} • ${log['date'] ?? log['timestamp'] ?? ''}',
                         style: const TextStyle(fontSize: 11)),
-                    trailing: Text('${log['hash'] ?? ''}'.length > 7
-                        ? '${log['hash']}'.substring(0, 7) : '${log['hash'] ?? ''}',
-                        style: TextStyle(fontFamily: 'monospace', fontSize: 11, color: Colors.grey.shade600)),
+                    trailing: Text(
+                        '${log['hash'] ?? ''}'.length > 7
+                            ? '${log['hash']}'.substring(0, 7)
+                            : '${log['hash'] ?? ''}',
+                        style: TextStyle(
+                            fontFamily: 'monospace',
+                            fontSize: 11,
+                            color: Colors.grey.shade600)),
                   ),
                 );
               },
