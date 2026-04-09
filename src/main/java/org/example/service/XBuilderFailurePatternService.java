@@ -214,21 +214,21 @@ public class XBuilderFailurePatternService {
             return Map.of("success", false, "error", "Failure record not found");
         }
 
-        return Map.of(
-            "failureId", failureId,
-            "projectId", record.projectId,
-            "componentName", record.componentName,
-            "framework", record.framework,
-            "failureType", record.failureType,
-            "failureReason", record.failureReason,
-            "errorMessage", record.errorMessage,
-            "failureTime", record.failureTime.toString(),
-            "wasFixed", record.wasFixed,
-            "fixApplied", record.fixApplied != null ? record.fixApplied : "not fixed",
-            "fixAttempts", record.fixAttemptCount,
-            "confidenceScore", String.format("%.2f%%", record.confidenceScore * 100),
-            "selectedAgent", record.selectedAgent != null ? record.selectedAgent : "unknown"
-        );
+        Map<String, Object> details = new java.util.LinkedHashMap<>();
+        details.put("failureId", failureId);
+        details.put("projectId", record.projectId);
+        details.put("componentName", record.componentName);
+        details.put("framework", record.framework);
+        details.put("failureType", record.failureType);
+        details.put("failureReason", record.failureReason);
+        details.put("errorMessage", record.errorMessage);
+        details.put("failureTime", record.failureTime.toString());
+        details.put("wasFixed", record.wasFixed);
+        details.put("fixApplied", record.fixApplied != null ? record.fixApplied : "not fixed");
+        details.put("fixAttempts", record.fixAttemptCount);
+        details.put("confidenceScore", String.format("%.2f%%", record.confidenceScore * 100));
+        details.put("selectedAgent", record.selectedAgent != null ? record.selectedAgent : "unknown");
+        return details;
     }
 
     /**

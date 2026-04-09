@@ -89,13 +89,13 @@ public class SemanticVectorDatabase {
         totalSearches++;
 
         double[] queryVector = textToVector(errorText);
-        queryVector = normalizeVector(queryVector);
+        double[] normalizedQueryVector = normalizeVector(queryVector);
 
         List<VectorEntry> categoryVectors = vectorStore.getOrDefault(category, new ArrayList<>());
 
         List<SimilarityResult> results = categoryVectors.stream()
             .map(entry -> {
-                double similarity = cosineSimilarity(queryVector, entry.vector);
+                double similarity = cosineSimilarity(normalizedQueryVector, entry.vector);
                 return new SimilarityResult(
                     entry.vectorId,
                     entry.errorText,
