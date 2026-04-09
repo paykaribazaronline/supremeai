@@ -20,9 +20,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 
-@Service
 public class AIAPIService {
     private static final Logger logger = LoggerFactory.getLogger(AIAPIService.class);
     private static final ObjectMapper mapper = new ObjectMapper();
