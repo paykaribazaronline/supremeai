@@ -16,6 +16,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -228,8 +231,13 @@ public class ProjectGenerationController {
             projectStatus.put("repoUrl", repoUrl);
             projectStatus.put("repoBranch", repoBranch);
             projectStatus.put("pushed", pushed);
+            projectStatus.put("ciCdEnabled", true);
             projectStatus.put("status", pushed ? "PUSHED_TO_REPO" : "PUSH_FAILED");
             projectStatus.put("progress", 100);
+
+            if (pushed) {
+                projectStatus.put("latestActionRun", fetchLatestActionRunStatus(repoUrl, repoToken));
+            }
 
             projectRegistryService.saveProject(projectStatus);
             if (pushed) {
@@ -781,6 +789,9 @@ public class ProjectGenerationController {
             // 2. Copy generated files into cloned repo (skip .git)
             copyDirectory(sourceDir, cloneDir);
 
+            // 2.1 One-rule-for-all: always bootstrap CI/CD workflow if missing
+            ensureGitHubActionsWorkflowEnabled(cloneDir);
+
             // 3. Stage, commit, push
             runGit(cloneDir.toFile(), "git", "add", "-A");
             int commitExit = runGit(cloneDir.toFile(), "git", "commit", "-m",
@@ -852,5 +863,152 @@ public class ProjectGenerationController {
                  .sorted(Comparator.reverseOrder())
                  .forEach(p -> { try { Files.delete(p); } catch (IOException ignored) {} });
         } catch (IOException ignored) {}
+    }
+
+    /**
+     * One-rule-for-all CI/CD bootstrap.
+     * Creates .github/workflows/ci.yml if missing so every managed project has Actions enabled.
+     */
+    private void ensureGitHubActionsWorkflowEnabled(Path repoDir) throws IOException {
+        Path workflowFile = repoDir.resolve(".github").resolve("workflows").resolve("ci.yml");
+        if (Files.exists(workflowFile)) {
+            return;
+        }
+
+        Files.createDirectories(workflowFile.getParent());
+        String workflow = String.join("\n",
+            "name: CI",
+            "",
+            "on:",
+            "  push:",
+            "    branches: [ \"**\" ]",
+            "  pull_request:",
+            "    branches: [ \"**\" ]",
+            "",
+            "jobs:",
+            "  build:",
+            "    runs-on: ubuntu-latest",
+            "    steps:",
+            "      - name: Checkout",
+            "        uses: actions/checkout@v5",
+            "",
+            "      - name: Set up Node.js",
+            "        uses: actions/setup-node@v4",
+            "        with:",
+            "          node-version: '20'",
+            "",
+            "      - name: Install deps (if package.json exists)",
+            "        run: |",
+            "          if [ -f package-lock.json ]; then npm ci;",
+            "          elif [ -f package.json ]; then npm install;",
+            "          else echo \"No Node project detected\"; fi",
+            "",
+            "      - name: Build/Test (best effort)",
+            "        run: |",
+            "          if [ -f package.json ]; then",
+            "            npm run test --if-present",
+            "            npm run build --if-present",
+            "          else",
+            "            echo \"No package.json - skipping build/test\"",
+            "          fi",
+            "");
+        Files.writeString(workflowFile, workflow, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Reads latest GitHub Actions run status for this repo using the provided token.
+     * Returns lightweight status map; never throws.
+     */
+    private Map<String, Object> fetchLatestActionRunStatus(String repoUrl, String repoToken) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("checked", false);
+
+        try {
+            if (repoToken == null || repoToken.isBlank()) {
+                result.put("reason", "No repoToken provided");
+                return result;
+            }
+
+            String ownerRepo = extractGitHubOwnerRepo(repoUrl);
+            if (ownerRepo == null) {
+                result.put("reason", "Not a valid GitHub repository URL");
+                return result;
+            }
+
+            URL url = new URL("https://api.github.com/repos/" + ownerRepo + "/actions/runs?per_page=1");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Authorization", "token " + repoToken);
+            conn.setRequestProperty("Accept", "application/vnd.github+json");
+            conn.setConnectTimeout(15_000);
+            conn.setReadTimeout(20_000);
+
+            int code = conn.getResponseCode();
+            String body;
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(
+                    code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream(),
+                    StandardCharsets.UTF_8))) {
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) {
+                    sb.append(line);
+                }
+                body = sb.toString();
+            }
+            conn.disconnect();
+
+            result.put("checked", code >= 200 && code < 300);
+            result.put("httpCode", code);
+            result.put("status", extractJsonString(body, "status"));
+            result.put("conclusion", extractJsonString(body, "conclusion"));
+            result.put("runId", extractJsonNumber(body, "id"));
+            return result;
+        } catch (Exception e) {
+            result.put("reason", "Action status check failed: " + e.getMessage());
+            return result;
+        }
+    }
+
+    private String extractGitHubOwnerRepo(String repoUrl) {
+        if (repoUrl == null) return null;
+        String cleaned = repoUrl.trim().replaceAll("\\.git$", "");
+        if (!cleaned.startsWith("https://github.com/")) {
+            return null;
+        }
+        String path = cleaned.substring("https://github.com/".length());
+        String[] parts = path.split("/");
+        if (parts.length < 2 || parts[0].isBlank() || parts[1].isBlank()) {
+            return null;
+        }
+        return parts[0] + "/" + parts[1];
+    }
+
+    private String extractJsonString(String json, String key) {
+        if (json == null) return null;
+        String pattern = "\"" + key + "\":\"";
+        int start = json.indexOf(pattern);
+        if (start < 0) return null;
+        int from = start + pattern.length();
+        int end = json.indexOf('"', from);
+        if (end <= from) return null;
+        return json.substring(from, end);
+    }
+
+    private Long extractJsonNumber(String json, String key) {
+        if (json == null) return null;
+        String pattern = "\"" + key + "\":";
+        int start = json.indexOf(pattern);
+        if (start < 0) return null;
+        int from = start + pattern.length();
+        int end = from;
+        while (end < json.length() && Character.isDigit(json.charAt(end))) {
+            end++;
+        }
+        if (end <= from) return null;
+        try {
+            return Long.parseLong(json.substring(from, end));
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
     }
 }
