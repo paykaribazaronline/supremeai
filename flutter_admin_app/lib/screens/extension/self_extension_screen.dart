@@ -40,7 +40,8 @@ class _SelfExtensionScreenState extends State<SelfExtensionScreen> {
       _error = null;
     });
 
-    final response = await _apiService.get<Map<String, dynamic>>(Environment.extendStatus);
+    final response =
+        await _apiService.get<Map<String, dynamic>>(Environment.extendStatus);
 
     if (!mounted) return;
 
@@ -85,7 +86,8 @@ class _SelfExtensionScreenState extends State<SelfExtensionScreen> {
       _showSnackBar('নতুন সার্ভিস তৈরি হচ্ছে!');
       _loadStatus();
     } else {
-      _showSnackBar('ত্রুটি: ${response.error ?? "তৈরি করা যায়নি"}', isError: true);
+      _showSnackBar('ত্রুটি: ${response.error ?? "তৈরি করা যায়নি"}',
+          isError: true);
     }
   }
 
@@ -96,7 +98,8 @@ class _SelfExtensionScreenState extends State<SelfExtensionScreen> {
       return;
     }
 
-    final requirements = text.split('\n').where((l) => l.trim().isNotEmpty).toList();
+    final requirements =
+        text.split('\n').where((l) => l.trim().isNotEmpty).toList();
     if (requirements.isEmpty) {
       _showSnackBar('কোনো বৈধ প্রয়োজনীয়তা নেই', isError: true);
       return;
@@ -126,7 +129,8 @@ class _SelfExtensionScreenState extends State<SelfExtensionScreen> {
       _showSnackBar('${requirements.length}টি সার্ভিস তৈরি হচ্ছে!');
       _loadStatus();
     } else {
-      _showSnackBar('ত্রুটি: ${response.error ?? "ব্যাচ তৈরি ব্যর্থ"}', isError: true);
+      _showSnackBar('ত্রুটি: ${response.error ?? "ব্যাচ তৈরি ব্যর্থ"}',
+          isError: true);
     }
   }
 
@@ -134,7 +138,9 @@ class _SelfExtensionScreenState extends State<SelfExtensionScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Color(AppConstants.errorColor) : Color(AppConstants.successColor),
+        backgroundColor: isError
+            ? const Color(AppConstants.errorColor)
+            : const Color(AppConstants.successColor),
       ),
     );
   }
@@ -192,20 +198,24 @@ class _SelfExtensionScreenState extends State<SelfExtensionScreen> {
         ),
         borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
       ),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
+        children: [
           Icon(Icons.auto_fix_high, color: Colors.white, size: 36),
           SizedBox(height: AppConstants.paddingSmall),
           Text(
             'নিজে নিজে বড় হওয়া',
-            style: TextStyle(color: Colors.white, fontSize: AppConstants.titleFontSize, fontWeight: FontWeight.bold),
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: AppConstants.titleFontSize,
+                fontWeight: FontWeight.bold),
           ),
           SizedBox(height: AppConstants.paddingXSmall),
           Text(
             'AI নিজেই নতুন সার্ভিস ও কন্ট্রোলার তৈরি করতে পারে!\n'
             'আপনি শুধু বলুন কী দরকার — AI কোড লিখবে, কম্পাইল করবে, লোড করবে।',
-            style: TextStyle(color: Colors.white70, fontSize: AppConstants.bodyFontSize),
+            style: TextStyle(
+                color: Colors.white70, fontSize: AppConstants.bodyFontSize),
           ),
         ],
       ),
@@ -219,12 +229,15 @@ class _SelfExtensionScreenState extends State<SelfExtensionScreen> {
       children: [
         const Text(
           'এক্সটেনশন স্ট্যাটাস',
-          style: TextStyle(fontSize: AppConstants.titleFontSize, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontSize: AppConstants.titleFontSize,
+              fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: AppConstants.paddingXSmall),
         const Text(
           '(সিস্টেম এখন নতুন কোড তৈরি করতে প্রস্তুত কিনা)',
-          style: TextStyle(fontSize: AppConstants.captionFontSize, color: Colors.grey),
+          style: TextStyle(
+              fontSize: AppConstants.captionFontSize, color: Colors.grey),
         ),
         const SizedBox(height: AppConstants.paddingMedium),
         if (_error != null)
@@ -247,11 +260,23 @@ class _SelfExtensionScreenState extends State<SelfExtensionScreen> {
               padding: const EdgeInsets.all(AppConstants.paddingLarge),
               child: Column(
                 children: [
-                  _buildStatusRow(Icons.power, 'প্রস্তুত', '${status?['ready'] ?? 'unknown'}', 'সিস্টেম কোড তৈরি করতে পারবে কিনা'),
+                  _buildStatusRow(
+                      Icons.power,
+                      'প্রস্তুত',
+                      '${status?['ready'] ?? 'unknown'}',
+                      'সিস্টেম কোড তৈরি করতে পারবে কিনা'),
                   const Divider(),
-                  _buildStatusRow(Icons.history, 'তৈরি হয়েছে', '${status?['totalGenerated'] ?? 0}টি', 'এ পর্যন্ত কতটি সার্ভিস তৈরি হয়েছে'),
+                  _buildStatusRow(
+                      Icons.history,
+                      'তৈরি হয়েছে',
+                      '${status?['totalGenerated'] ?? 0}টি',
+                      'এ পর্যন্ত কতটি সার্ভিস তৈরি হয়েছে'),
                   const Divider(),
-                  _buildStatusRow(Icons.memory, 'লোড হয়েছে', '${status?['totalLoaded'] ?? 0}টি', 'কতটি সার্ভিস সফলভাবে চালু আছে'),
+                  _buildStatusRow(
+                      Icons.memory,
+                      'লোড হয়েছে',
+                      '${status?['totalLoaded'] ?? 0}টি',
+                      'কতটি সার্ভিস সফলভাবে চালু আছে'),
                 ],
               ),
             ),
@@ -260,7 +285,8 @@ class _SelfExtensionScreenState extends State<SelfExtensionScreen> {
     );
   }
 
-  Widget _buildStatusRow(IconData icon, String label, String value, String hint) {
+  Widget _buildStatusRow(
+      IconData icon, String label, String value, String hint) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppConstants.paddingXSmall),
       child: Row(
@@ -271,8 +297,12 @@ class _SelfExtensionScreenState extends State<SelfExtensionScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
-                Text(hint, style: const TextStyle(fontSize: AppConstants.captionFontSize, color: Colors.grey)),
+                Text(label,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text(hint,
+                    style: const TextStyle(
+                        fontSize: AppConstants.captionFontSize,
+                        color: Colors.grey)),
               ],
             ),
           ),
@@ -288,12 +318,15 @@ class _SelfExtensionScreenState extends State<SelfExtensionScreen> {
       children: [
         const Text(
           'নতুন সার্ভিস তৈরি করো',
-          style: TextStyle(fontSize: AppConstants.titleFontSize, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontSize: AppConstants.titleFontSize,
+              fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: AppConstants.paddingXSmall),
         const Text(
           '(একটি প্রয়োজনীয়তা লিখুন, AI নিজে সার্ভিস বানাবে)',
-          style: TextStyle(fontSize: AppConstants.captionFontSize, color: Colors.grey),
+          style: TextStyle(
+              fontSize: AppConstants.captionFontSize, color: Colors.grey),
         ),
         const SizedBox(height: AppConstants.paddingMedium),
         TextField(
@@ -301,8 +334,10 @@ class _SelfExtensionScreenState extends State<SelfExtensionScreen> {
           maxLines: 3,
           decoration: InputDecoration(
             labelText: 'প্রয়োজনীয়তা',
-            hintText: 'যেমন: create UserAuditService with methods: audit, log, export',
-            helperText: '(কী ধরনের সার্ভিস, কোন মেথড থাকবে — ইংরেজিতে বা বাংলায় লিখুন)',
+            hintText:
+                'যেমন: create UserAuditService with methods: audit, log, export',
+            helperText:
+                '(কী ধরনের সার্ভিস, কোন মেথড থাকবে — ইংরেজিতে বা বাংলায় লিখুন)',
             helperMaxLines: 2,
             prefixIcon: const Icon(Icons.auto_fix_high),
             border: OutlineInputBorder(
@@ -317,9 +352,14 @@ class _SelfExtensionScreenState extends State<SelfExtensionScreen> {
           child: ElevatedButton.icon(
             onPressed: _isSubmitting ? null : _submitRequirement,
             icon: _isSubmitting
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white))
                 : const Icon(Icons.rocket_launch),
-            label: const Text('তৈরি করো', style: TextStyle(fontSize: AppConstants.subtitleFontSize)),
+            label: const Text('তৈরি করো',
+                style: TextStyle(fontSize: AppConstants.subtitleFontSize)),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
           ),
         ),
@@ -333,12 +373,15 @@ class _SelfExtensionScreenState extends State<SelfExtensionScreen> {
       children: [
         const Text(
           'ব্যাচ তৈরি (একসাথে অনেকগুলো)',
-          style: TextStyle(fontSize: AppConstants.titleFontSize, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontSize: AppConstants.titleFontSize,
+              fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: AppConstants.paddingXSmall),
         const Text(
           '(প্রতি লাইনে একটি করে প্রয়োজনীয়তা লিখুন — সব একসাথে তৈরি হবে)',
-          style: TextStyle(fontSize: AppConstants.captionFontSize, color: Colors.grey),
+          style: TextStyle(
+              fontSize: AppConstants.captionFontSize, color: Colors.grey),
         ),
         const SizedBox(height: AppConstants.paddingMedium),
         TextField(
@@ -346,7 +389,8 @@ class _SelfExtensionScreenState extends State<SelfExtensionScreen> {
           maxLines: 5,
           decoration: InputDecoration(
             labelText: 'একাধিক প্রয়োজনীয়তা',
-            hintText: 'create PaymentService with methods: pay, refund\ncreate NotificationService with methods: send, schedule',
+            hintText:
+                'create PaymentService with methods: pay, refund\ncreate NotificationService with methods: send, schedule',
             helperText: '(প্রতিটি লাইনে একটি সার্ভিসের বিবরণ লিখুন)',
             helperMaxLines: 2,
             prefixIcon: const Icon(Icons.list_alt),
@@ -362,10 +406,16 @@ class _SelfExtensionScreenState extends State<SelfExtensionScreen> {
           child: ElevatedButton.icon(
             onPressed: _isSubmitting ? null : _submitBatch,
             icon: _isSubmitting
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white))
                 : const Icon(Icons.batch_prediction),
-            label: const Text('সব তৈরি করো', style: TextStyle(fontSize: AppConstants.subtitleFontSize)),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple.shade700),
+            label: const Text('সব তৈরি করো',
+                style: TextStyle(fontSize: AppConstants.subtitleFontSize)),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepPurple.shade700),
           ),
         ),
       ],
@@ -378,26 +428,33 @@ class _SelfExtensionScreenState extends State<SelfExtensionScreen> {
       children: [
         const Text(
           'ফলাফল',
-          style: TextStyle(fontSize: AppConstants.titleFontSize, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontSize: AppConstants.titleFontSize,
+              fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: AppConstants.paddingXSmall),
         const Text(
           '(শেষ অনুরোধের ফলাফল)',
-          style: TextStyle(fontSize: AppConstants.captionFontSize, color: Colors.grey),
+          style: TextStyle(
+              fontSize: AppConstants.captionFontSize, color: Colors.grey),
         ),
         const SizedBox(height: AppConstants.paddingMedium),
         Card(
-          color: Color(AppConstants.successColor).withOpacity(0.05),
+          color: const Color(AppConstants.successColor).withOpacity(0.05),
           child: Padding(
             padding: const EdgeInsets.all(AppConstants.paddingLarge),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                const Row(
                   children: [
-                    Icon(Icons.check_circle, color: Color(AppConstants.successColor)),
-                    const SizedBox(width: AppConstants.paddingSmall),
-                    const Text('সফল!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppConstants.subtitleFontSize)),
+                    Icon(Icons.check_circle,
+                        color: Color(AppConstants.successColor)),
+                    SizedBox(width: AppConstants.paddingSmall),
+                    Text('সফল!',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: AppConstants.subtitleFontSize)),
                   ],
                 ),
                 const SizedBox(height: AppConstants.paddingMedium),

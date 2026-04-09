@@ -24,7 +24,10 @@ class _DecisionHistoryScreenState extends State<DecisionHistoryScreen> {
   }
 
   Future<void> _loadAll() async {
-    setState(() { _isLoading = true; _error = null; });
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
     final results = await Future.wait([
       _apiService.get<List<dynamic>>(Environment.timelineRange),
       _apiService.get<Map<String, dynamic>>(Environment.timelineStats),
@@ -32,9 +35,11 @@ class _DecisionHistoryScreenState extends State<DecisionHistoryScreen> {
     if (!mounted) return;
     setState(() {
       _isLoading = false;
-      if (results[0].success) _timeline = (results[0].data as List<dynamic>?) ?? [];
+      if (results[0].success)
+        _timeline = (results[0].data as List<dynamic>?) ?? [];
       if (results[1].success) _stats = results[1].data as Map<String, dynamic>?;
-      if (!results[0].success) _error = results[0].error ?? 'টাইমলাইন লোড করা যায়নি';
+      if (!results[0].success)
+        _error = results[0].error ?? 'টাইমলাইন লোড করা যায়নি';
     });
   }
 
@@ -43,16 +48,26 @@ class _DecisionHistoryScreenState extends State<DecisionHistoryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('সিদ্ধান্তের ইতিহাস'),
-        actions: [IconButton(icon: const Icon(Icons.refresh), tooltip: 'রিফ্রেশ', onPressed: _loadAll)],
+        actions: [
+          IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'রিফ্রেশ',
+              onPressed: _loadAll)
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  const Icon(Icons.timeline, size: 48, color: Colors.grey),
-                  Text(_error!),
-                  ElevatedButton(onPressed: _loadAll, child: const Text('আবার চেষ্টা করুন')),
-                ]))
+              ? Center(
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                      const Icon(Icons.timeline, size: 48, color: Colors.grey),
+                      Text(_error!),
+                      ElevatedButton(
+                          onPressed: _loadAll,
+                          child: const Text('আবার চেষ্টা করুন')),
+                    ]))
               : RefreshIndicator(
                   onRefresh: _loadAll,
                   child: SingleChildScrollView(
@@ -79,12 +94,14 @@ class _DecisionHistoryScreenState extends State<DecisionHistoryScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [
+            const Row(children: [
               Icon(Icons.analytics, color: Color(AppConstants.primaryColor)),
-              const SizedBox(width: 8),
-              const Text('সিদ্ধান্তের পরিসংখ্যান', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              SizedBox(width: 8),
+              Text('সিদ্ধান্তের পরিসংখ্যান',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ]),
-            const Text('(AI কতটি সিদ্ধান্ত নিয়েছে এবং সেগুলোর ফলাফল)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            const Text('(AI কতটি সিদ্ধান্ত নিয়েছে এবং সেগুলোর ফলাফল)',
+                style: TextStyle(fontSize: 12, color: Colors.grey)),
             const SizedBox(height: 16),
             GridView.count(
               crossAxisCount: 2,
@@ -94,10 +111,14 @@ class _DecisionHistoryScreenState extends State<DecisionHistoryScreen> {
               crossAxisSpacing: 8,
               childAspectRatio: 1.5,
               children: [
-                _buildStatCard('মোট সিদ্ধান্ত', '${s['totalDecisions'] ?? 0}', Icons.gavel, AppConstants.primaryColor),
-                _buildStatCard('সফল', '${s['successful'] ?? 0}', Icons.check_circle, AppConstants.successColor),
-                _buildStatCard('ব্যর্থ', '${s['failed'] ?? 0}', Icons.cancel, AppConstants.errorColor),
-                _buildStatCard('অপেক্ষমাণ', '${s['pending'] ?? 0}', Icons.hourglass_empty, AppConstants.warningColor),
+                _buildStatCard('মোট সিদ্ধান্ত', '${s['totalDecisions'] ?? 0}',
+                    Icons.gavel, AppConstants.primaryColor),
+                _buildStatCard('সফল', '${s['successful'] ?? 0}',
+                    Icons.check_circle, AppConstants.successColor),
+                _buildStatCard('ব্যর্থ', '${s['failed'] ?? 0}', Icons.cancel,
+                    AppConstants.errorColor),
+                _buildStatCard('অপেক্ষমাণ', '${s['pending'] ?? 0}',
+                    Icons.hourglass_empty, AppConstants.warningColor),
               ],
             ),
           ],
@@ -110,29 +131,44 @@ class _DecisionHistoryScreenState extends State<DecisionHistoryScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('টাইমলাইন', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        const Text('(সময়ের ক্রমানুসারে সিদ্ধান্তের তালিকা)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+        const Text('টাইমলাইন',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text('(সময়ের ক্রমানুসারে সিদ্ধান্তের তালিকা)',
+            style: TextStyle(fontSize: 12, color: Colors.grey)),
         const SizedBox(height: 12),
         if (_timeline.isEmpty)
-          const Center(child: Padding(
+          const Center(
+              child: Padding(
             padding: EdgeInsets.all(32),
-            child: Text('কোনো সিদ্ধান্তের ইতিহাস নেই', style: TextStyle(color: Colors.grey)),
+            child: Text('কোনো সিদ্ধান্তের ইতিহাস নেই',
+                style: TextStyle(color: Colors.grey)),
           ))
         else
           ..._timeline.map((item) {
-            final map = item is Map<String, dynamic> ? item : <String, dynamic>{};
+            final map =
+                item is Map<String, dynamic> ? item : <String, dynamic>{};
             final action = '${map['action'] ?? map['decision'] ?? 'Unknown'}';
             final agent = '${map['agent'] ?? map['agentName'] ?? ''}';
             final timestamp = '${map['timestamp'] ?? map['createdAt'] ?? ''}';
-            final outcome = '${map['outcome'] ?? map['status'] ?? ''}'.toUpperCase();
+            final outcome =
+                '${map['outcome'] ?? map['status'] ?? ''}'.toUpperCase();
             final details = '${map['details'] ?? map['description'] ?? ''}';
 
             Color outcomeColor;
             switch (outcome) {
-              case 'SUCCESS': case 'APPROVED': outcomeColor = Colors.green; break;
-              case 'FAILED': case 'REJECTED': outcomeColor = Colors.red; break;
-              case 'PENDING': outcomeColor = Colors.orange; break;
-              default: outcomeColor = Colors.grey;
+              case 'SUCCESS':
+              case 'APPROVED':
+                outcomeColor = Colors.green;
+                break;
+              case 'FAILED':
+              case 'REJECTED':
+                outcomeColor = Colors.red;
+                break;
+              case 'PENDING':
+                outcomeColor = Colors.orange;
+                break;
+              default:
+                outcomeColor = Colors.grey;
             }
 
             return Card(
@@ -159,18 +195,31 @@ class _DecisionHistoryScreenState extends State<DecisionHistoryScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Expanded(child: Text(action, style: const TextStyle(fontWeight: FontWeight.bold))),
+                                Expanded(
+                                    child: Text(action,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold))),
                                 Chip(
-                                  label: Text(outcome.isEmpty ? 'N/A' : outcome, style: TextStyle(fontSize: 10, color: outcomeColor)),
-                                  backgroundColor: outcomeColor.withOpacity(0.1),
+                                  label: Text(outcome.isEmpty ? 'N/A' : outcome,
+                                      style: TextStyle(
+                                          fontSize: 10, color: outcomeColor)),
+                                  backgroundColor:
+                                      outcomeColor.withOpacity(0.1),
                                   padding: EdgeInsets.zero,
                                   visualDensity: VisualDensity.compact,
                                 ),
                               ],
                             ),
-                            if (agent.isNotEmpty) Text('এজেন্ট: $agent', style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                            if (details.isNotEmpty) Text(details, style: const TextStyle(fontSize: 12)),
-                            Text(timestamp, style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                            if (agent.isNotEmpty)
+                              Text('এজেন্ট: $agent',
+                                  style: const TextStyle(
+                                      fontSize: 12, color: Colors.grey)),
+                            if (details.isNotEmpty)
+                              Text(details,
+                                  style: const TextStyle(fontSize: 12)),
+                            Text(timestamp,
+                                style: TextStyle(
+                                    fontSize: 11, color: Colors.grey.shade500)),
                           ],
                         ),
                       ),
@@ -195,8 +244,11 @@ class _DecisionHistoryScreenState extends State<DecisionHistoryScreen> {
           children: [
             Icon(icon, color: Color(color), size: 20),
             const SizedBox(height: 4),
-            Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            Text(title, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+            Text(value,
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(title,
+                style: const TextStyle(fontSize: 10, color: Colors.grey)),
           ],
         ),
       ),

@@ -30,7 +30,8 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              Provider.of<ProjectsProvider>(context, listen: false).fetchProjects();
+              Provider.of<ProjectsProvider>(context, listen: false)
+                  .fetchProjects();
             },
             icon: const Icon(Icons.refresh),
             tooltip: 'আবার লোড করুন',
@@ -99,13 +100,26 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
 
           return RefreshIndicator(
             onRefresh: () => provider.fetchProjects(),
-            child: ListView.builder(
+            child: ListView(
               padding: const EdgeInsets.all(AppConstants.paddingMedium),
-              itemCount: provider.projects.length,
-              itemBuilder: (context, index) {
-                final project = provider.projects[index];
-                return _buildProjectCard(context, project);
-              },
+              children: [
+                _buildSummaryCard(provider),
+                const SizedBox(height: AppConstants.paddingMedium),
+                if (provider.runningProjects.isNotEmpty) ...[
+                  _buildSectionHeader('Running Projects',
+                      provider.runningProjects.length, Colors.blue),
+                  const SizedBox(height: AppConstants.paddingSmall),
+                  ...provider.runningProjects
+                      .map((project) => _buildProjectCard(context, project)),
+                ],
+                if (provider.finishedProjects.isNotEmpty) ...[
+                  _buildSectionHeader('Finished Projects',
+                      provider.finishedProjects.length, Colors.green),
+                  const SizedBox(height: AppConstants.paddingSmall),
+                  ...provider.finishedProjects
+                      .map((project) => _buildProjectCard(context, project)),
+                ],
+              ],
             ),
           );
         },
@@ -114,8 +128,79 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
         onPressed: () {
           Navigator.of(context).pushNamed(AppRoutes.projectNew);
         },
-        backgroundColor: Color(AppConstants.primaryColor),
+        backgroundColor: const Color(AppConstants.primaryColor),
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildSummaryCard(ProjectsProvider provider) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppConstants.paddingMedium),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Project Storage Status',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: AppConstants.paddingSmall),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _buildInfoChip(
+                    provider.cloudStorageActive
+                        ? 'Cloud Active'
+                        : 'Local Cache Active',
+                    provider.cloudStorageActive ? Colors.green : Colors.orange),
+                _buildInfoChip('Running ${provider.runningCount}', Colors.blue),
+                _buildInfoChip(
+                    'Finished ${provider.finishedCount}', Colors.green),
+                _buildInfoChip(
+                    'Tracked ${provider.trackedProjectsCount}', Colors.purple),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, int count, Color color) {
+    return Row(
+      children: [
+        Text(
+          title,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            '$count',
+            style: TextStyle(color: color, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoChip(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: color, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -156,6 +241,25 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
               style: const TextStyle(fontSize: 12),
             ),
             const SizedBox(height: AppConstants.paddingSmall),
+            if (project.repoUrl.isNotEmpty)
+              Text(
+                project.repoUrl,
+                style: const TextStyle(fontSize: 11, color: Colors.blueGrey),
+              ),
+            const SizedBox(height: AppConstants.paddingSmall),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                _buildTag(project.templateType, Colors.indigo),
+                _buildTag('Branch ${project.repoBranch}', Colors.teal),
+                _buildTag('Progress ${project.progress}%', Colors.blue),
+                if (project.pushed) _buildTag('Pushed', Colors.green),
+                if (project.trackedForImprovement)
+                  _buildTag('Tracked for Improvement', Colors.purple),
+              ],
+            ),
+            const SizedBox(height: AppConstants.paddingSmall),
             Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppConstants.paddingSmall,
@@ -189,16 +293,6 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
               ),
             ),
             const PopupMenuItem(
-              value: 'edit',
-              child: Row(
-                children: [
-                  Icon(Icons.edit, size: 20),
-                  SizedBox(width: 8),
-                  Text('সম্পাদনা করুন'),
-                ],
-              ),
-            ),
-            const PopupMenuItem(
               value: 'delete',
               child: Row(
                 children: [
@@ -210,7 +304,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
             ),
           ],
           onSelected: (value) {
-            if (value == 'view' || value == 'edit') {
+            if (value == 'view') {
               Navigator.of(context).pushNamed(
                 AppRoutes.projectDetail,
                 arguments: project,
@@ -230,15 +324,31 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
     );
   }
 
+  Widget _buildTag(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
+      ),
+      child: Text(
+        label,
+        style:
+            TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'active':
+      case 'pushed_to_repo':
         return Colors.green;
-      case 'inactive':
-        return Colors.grey;
-      case 'error':
+      case 'push_failed':
+      case 'failed':
         return Colors.red;
-      case 'building':
+      case 'generating':
+      case 'template_initialized':
+      case 'running':
         return Colors.blue;
       default:
         return Colors.grey;
@@ -276,7 +386,8 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                 SnackBar(content: Text('"${project.name}" মুছে ফেলা হয়েছে')),
               );
             },
-            child: const Text('হ্যাঁ, মুছুন', style: TextStyle(color: Colors.red)),
+            child:
+                const Text('হ্যাঁ, মুছুন', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

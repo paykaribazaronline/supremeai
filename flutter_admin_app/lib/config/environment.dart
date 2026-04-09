@@ -1,32 +1,35 @@
-// Environment configuration for SupremeAI Admin App
-//
-// PRODUCTION DEPLOYMENT INSTRUCTIONS:
-// 1. Deploy backend to Google Cloud Run (see PRODUCTION_DEPLOYMENT_GUIDE.md)
-// 2. Get the service URL from: gcloud run services describe supremeai --format='value(status.url)'
-// 3. Replace 'YOUR_GCP_PROJECT_ID' below with your actual GCP project ID
-// 4. Rebuild Flutter web: flutter build web --base-href "/admin/" --release
-// 5. The URL format will be: https://supremeai-YOUR_GCP_PROJECT_ID.us-central1.run.app
+import 'package:flutter/foundation.dart';
 
 class Environment {
-  // 🚀 PRODUCTION: Cloud Run Backend URL
-  // GCP Project: supremeai-a
-  // Deployed at: https://supremeai-565236080752.us-central1.run.app/
-  static const String baseUrl = 'https://supremeai-565236080752.us-central1.run.app';
-  
-  // 🔧 LOCAL DEVELOPMENT: Uncomment to test against local backend
-  // Requires: ./gradlew bootRun (running on http://localhost:8080)
-  // static const String baseUrl = 'http://localhost:8080';
-  
-  // API Endpoints
-  static const String authLogin = '/api/auth/login';
-  static const String authRegister = '/api/auth/register';
-  static const String authLogout = '/api/auth/logout';
-  static const String authRefresh = '/api/auth/refresh';
-  
+  // Single setup for Flutter web/app and backend:
+  // - Web uses the same host it is served from.
+  // - Mobile/desktop can override with --dart-define=SUPREMEAI_API_BASE_URL=...
+  // - Otherwise fall back to the deployed cloud backend.
+  static const String _apiBaseUrlOverride = String.fromEnvironment(
+    'SUPREMEAI_API_BASE_URL',
+    defaultValue: '',
+  );
+  static const String cloudBaseUrl =
+      'https://supremeai-565236080752.us-central1.run.app';
+
+  static String get baseUrl {
+    if (_apiBaseUrlOverride.trim().isNotEmpty) {
+      return _apiBaseUrlOverride.trim();
+    }
+
+    if (kIsWeb) {
+      return Uri.base.origin;
+    }
+
+    return cloudBaseUrl;
+  }
+
   static const String projectsList = '/api/projects';
-  static const String projectCreate = '/api/projects/create';
-  static const String projectUpdate = '/api/projects/update';
-  static const String projectDelete = '/api/projects/delete';
+  static const String projectGenerate = '/api/projects/generate';
+  static const String projectRunning = '/api/projects/running';
+  static const String projectFinished = '/api/projects/finished';
+  static const String projectStorageStatus = '/api/projects/storage-status';
+  static const String existingProjects = '/api/existing-projects';
   
   static const String providersAvailable = '/api/providers/available';
   static const String providersConfigured = '/api/providers/configured';
@@ -139,9 +142,4 @@ class Environment {
   // Timeouts (in seconds)
   static const int connectionTimeout = 30;
   static const int receiveTimeout = 30;
-  
-  // Token storage key
-  static const String tokenStorageKey = 'supremeai_token';
-  static const String refreshTokenStorageKey = 'supremeai_refresh_token';
-  static const String userStorageKey = 'supremeai_user';
 }

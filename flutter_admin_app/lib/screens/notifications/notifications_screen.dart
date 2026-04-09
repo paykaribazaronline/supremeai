@@ -10,7 +10,8 @@ class NotificationsScreen extends StatefulWidget {
   State<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
-class _NotificationsScreenState extends State<NotificationsScreen> with SingleTickerProviderStateMixin {
+class _NotificationsScreenState extends State<NotificationsScreen>
+    with SingleTickerProviderStateMixin {
   final ApiService _apiService = ApiService();
   late TabController _tabController;
 
@@ -43,7 +44,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
   }
 
   Future<void> _loadAll() async {
-    setState(() { _isLoading = true; _error = null; });
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
     final results = await Future.wait([
       _apiService.get<List<dynamic>>(Environment.notificationChannels),
       _apiService.get<List<dynamic>>(Environment.notificationHistory),
@@ -51,16 +55,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
     if (!mounted) return;
     setState(() {
       _isLoading = false;
-      if (results[0].success) _channels = (results[0].data as List<dynamic>?) ?? [];
-      if (results[1].success) _history = (results[1].data as List<dynamic>?) ?? [];
-      if (!results[0].success && !results[1].success) _error = 'নোটিফিকেশন তথ্য লোড করা যায়নি';
+      if (results[0].success) _channels = results[0].data ?? [];
+      if (results[1].success) _history = results[1].data ?? [];
+      if (!results[0].success && !results[1].success)
+        _error = 'নোটিফিকেশন তথ্য লোড করা যায়নি';
     });
   }
 
   Future<void> _sendNotification() async {
     if (_messageController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('মেসেজ লিখুন'), backgroundColor: Colors.orange),
+        const SnackBar(
+            content: Text('মেসেজ লিখুন'), backgroundColor: Colors.orange),
       );
       return;
     }
@@ -69,8 +75,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
 
     String endpoint;
     switch (_selectedChannel) {
-      case 'slack': endpoint = Environment.notificationSlack; break;
-      case 'email': default: endpoint = Environment.notificationEmail; break;
+      case 'slack':
+        endpoint = Environment.notificationSlack;
+        break;
+      case 'email':
+      default:
+        endpoint = Environment.notificationEmail;
+        break;
     }
 
     final response = await _apiService.post<Map<String, dynamic>>(
@@ -84,8 +95,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
     if (!mounted) return;
     setState(() => _isSending = false);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(response.success ? 'নোটিফিকেশন পাঠানো হয়েছে!' : 'ত্রুটি: ${response.error}'),
-      backgroundColor: Color(response.success ? AppConstants.successColor : AppConstants.errorColor),
+      content: Text(response.success
+          ? 'নোটিফিকেশন পাঠানো হয়েছে!'
+          : 'ত্রুটি: ${response.error}'),
+      backgroundColor: Color(response.success
+          ? AppConstants.successColor
+          : AppConstants.errorColor),
     ));
     if (response.success) {
       _recipientController.clear();
@@ -108,13 +123,22 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
             Tab(icon: Icon(Icons.settings_input_component), text: 'চ্যানেল'),
           ],
         ),
-        actions: [IconButton(icon: const Icon(Icons.refresh), tooltip: 'রিফ্ রেশ', onPressed: _loadAll)],
+        actions: [
+          IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'রিফ্ রেশ',
+              onPressed: _loadAll)
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : TabBarView(
               controller: _tabController,
-              children: [_buildSendTab(), _buildHistoryTab(), _buildChannelsTab()],
+              children: [
+                _buildSendTab(),
+                _buildHistoryTab(),
+                _buildChannelsTab()
+              ],
             ),
     );
   }
@@ -128,11 +152,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('নোটিফিকেশন পাঠান', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const Text('(ইমেইল, স্ল্যাক বা ডিসকর্ডে মেসেজ পাঠান)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+              const Text('নোটিফিকেশন পাঠান',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text('(ইমেইল, স্ল্যাক বা ডিসকর্ডে মেসেজ পাঠান)',
+                  style: TextStyle(fontSize: 12, color: Colors.grey)),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _selectedChannel,
+                initialValue: _selectedChannel,
                 decoration: const InputDecoration(
                   labelText: 'চ্যানেল বেছে নিন',
                   helperText: '(কোন মাধ্যমে পাঠাবেন)',
@@ -142,7 +168,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
                   DropdownMenuItem(value: 'email', child: Text('ইমেইল')),
                   DropdownMenuItem(value: 'slack', child: Text('স্ল্যাক')),
                 ],
-                onChanged: (v) => setState(() => _selectedChannel = v ?? 'email'),
+                onChanged: (v) =>
+                    setState(() => _selectedChannel = v ?? 'email'),
               ),
               const SizedBox(height: 12),
               TextField(
@@ -181,7 +208,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
                 child: ElevatedButton.icon(
                   onPressed: _isSending ? null : _sendNotification,
                   icon: _isSending
-                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.send),
                   label: Text(_isSending ? 'পাঠানো হচ্ছে...' : 'পাঠান'),
                 ),
@@ -197,16 +227,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
     return RefreshIndicator(
       onRefresh: _loadAll,
       child: _history.isEmpty
-          ? const Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(Icons.notifications_none, size: 64, color: Colors.grey),
-              SizedBox(height: 16),
-              Text('কোনো নোটিফিকেশন ইতিহাস নেই'),
-            ]))
+          ? const Center(
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                  Icon(Icons.notifications_none, size: 64, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text('কোনো নোটিফিকেশন ইতিহাস নেই'),
+                ]))
           : ListView.builder(
               padding: const EdgeInsets.all(AppConstants.paddingMedium),
               itemCount: _history.length,
               itemBuilder: (ctx, i) {
-                final n = _history[i] is Map<String, dynamic> ? _history[i] as Map<String, dynamic> : <String, dynamic>{};
+                final n = _history[i] is Map<String, dynamic>
+                    ? _history[i] as Map<String, dynamic>
+                    : <String, dynamic>{};
                 final channel = '${n['channel'] ?? 'email'}';
                 final to = '${n['to'] ?? n['recipient'] ?? ''}';
                 final subject = '${n['subject'] ?? ''}';
@@ -215,22 +250,35 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
 
                 IconData channelIcon;
                 switch (channel.toLowerCase()) {
-                  case 'slack': channelIcon = Icons.tag; break;
-                  case 'discord': channelIcon = Icons.discord; break;
-                  case 'sms': channelIcon = Icons.sms; break;
-                  default: channelIcon = Icons.email;
+                  case 'slack':
+                    channelIcon = Icons.tag;
+                    break;
+                  case 'discord':
+                    channelIcon = Icons.discord;
+                    break;
+                  case 'sms':
+                    channelIcon = Icons.sms;
+                    break;
+                  default:
+                    channelIcon = Icons.email;
                 }
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
                     leading: CircleAvatar(child: Icon(channelIcon, size: 20)),
-                    title: Text(subject.isEmpty ? to : subject, maxLines: 1, overflow: TextOverflow.ellipsis),
-                    subtitle: Text('$channel → $to\n$time', style: const TextStyle(fontSize: 11)),
+                    title: Text(subject.isEmpty ? to : subject,
+                        maxLines: 1, overflow: TextOverflow.ellipsis),
+                    subtitle: Text('$channel → $to\n$time',
+                        style: const TextStyle(fontSize: 11)),
                     isThreeLine: true,
                     trailing: Chip(
                       label: Text(status, style: const TextStyle(fontSize: 10)),
-                      backgroundColor: (status == 'SENT' || status == 'DELIVERED' ? Colors.green : Colors.red).withOpacity(0.1),
+                      backgroundColor:
+                          (status == 'SENT' || status == 'DELIVERED'
+                                  ? Colors.green
+                                  : Colors.red)
+                              .withOpacity(0.1),
                       padding: EdgeInsets.zero,
                       visualDensity: VisualDensity.compact,
                     ),
@@ -245,17 +293,24 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
     return RefreshIndicator(
       onRefresh: _loadAll,
       child: _channels.isEmpty
-          ? const Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(Icons.settings_input_component, size: 64, color: Colors.grey),
-              SizedBox(height: 16),
-              Text('কোনো চ্যানেল কনফিগার করা নেই'),
-              Text('(ইমেইল, স্ল্যাক, ডিসকর্ড সেটআপ করুন)', style: TextStyle(fontSize: 12, color: Colors.grey)),
-            ]))
+          ? const Center(
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                  Icon(Icons.settings_input_component,
+                      size: 64, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text('কোনো চ্যানেল কনফিগার করা নেই'),
+                  Text('(ইমেইল, স্ল্যাক, ডিসকর্ড সেটআপ করুন)',
+                      style: TextStyle(fontSize: 12, color: Colors.grey)),
+                ]))
           : ListView.builder(
               padding: const EdgeInsets.all(AppConstants.paddingMedium),
               itemCount: _channels.length,
               itemBuilder: (ctx, i) {
-                final ch = _channels[i] is Map<String, dynamic> ? _channels[i] as Map<String, dynamic> : <String, dynamic>{};
+                final ch = _channels[i] is Map<String, dynamic>
+                    ? _channels[i] as Map<String, dynamic>
+                    : <String, dynamic>{};
                 final name = '${ch['name'] ?? ch['type'] ?? 'Unknown'}';
                 final enabled = ch['enabled'] == true;
 
@@ -263,7 +318,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> with SingleTi
                   child: SwitchListTile(
                     secondary: CircleAvatar(child: Text(name[0].toUpperCase())),
                     title: Text(name),
-                    subtitle: Text(enabled ? 'সক্রিয়' : 'নিষ্ক্রিয়', style: TextStyle(color: enabled ? Colors.green : Colors.grey)),
+                    subtitle: Text(enabled ? 'সক্রিয়' : 'নিষ্ক্রিয়',
+                        style: TextStyle(
+                            color: enabled ? Colors.green : Colors.grey)),
                     value: enabled,
                     onChanged: null, // Read-only for now
                   ),

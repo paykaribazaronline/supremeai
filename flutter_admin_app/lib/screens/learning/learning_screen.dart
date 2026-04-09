@@ -41,9 +41,12 @@ class _LearningScreenState extends State<LearningScreen> {
 
     setState(() {
       _isLoading = false;
-      if (results[0].success) _learningStats = results[0].data as Map<String, dynamic>?;
-      if (results[1].success) _researchStats = results[1].data as Map<String, dynamic>?;
-      if (results[2].success) _criticalItems = results[2].data as List<dynamic>?;
+      if (results[0].success)
+        _learningStats = results[0].data as Map<String, dynamic>?;
+      if (results[1].success)
+        _researchStats = results[1].data as Map<String, dynamic>?;
+      if (results[2].success)
+        _criticalItems = results[2].data as List<dynamic>?;
       if (!results[0].success && !results[1].success) {
         _error = results[0].error ?? 'Failed to load learning data';
       }
@@ -53,7 +56,8 @@ class _LearningScreenState extends State<LearningScreen> {
   Future<void> _triggerResearch() async {
     setState(() => _isResearching = true);
 
-    final response = await _apiService.post<Map<String, dynamic>>(Environment.learningResearchNow);
+    final response = await _apiService
+        .post<Map<String, dynamic>>(Environment.learningResearchNow);
 
     if (!mounted) return;
 
@@ -66,7 +70,9 @@ class _LearningScreenState extends State<LearningScreen> {
               ? 'রিসার্চ সাইকেল শুরু হয়েছে!'
               : 'ত্রুটি: ${response.error ?? "রিসার্চ শুরু করা যায়নি"}',
         ),
-        backgroundColor: response.success ? Color(AppConstants.successColor) : Color(AppConstants.errorColor),
+        backgroundColor: response.success
+            ? const Color(AppConstants.successColor)
+            : const Color(AppConstants.errorColor),
       ),
     );
 
@@ -93,10 +99,14 @@ class _LearningScreenState extends State<LearningScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _isResearching ? null : _triggerResearch,
         icon: _isResearching
-            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: Colors.white))
             : const Icon(Icons.rocket_launch),
         label: Text(_isResearching ? 'গবেষণা চলছে...' : 'এখনই গবেষণা করো'),
-        backgroundColor: Color(AppConstants.primaryColor),
+        backgroundColor: const Color(AppConstants.primaryColor),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -133,7 +143,8 @@ class _LearningScreenState extends State<LearningScreen> {
           const SizedBox(height: AppConstants.paddingMedium),
           Text(_error!, textAlign: TextAlign.center),
           const SizedBox(height: AppConstants.paddingMedium),
-          ElevatedButton(onPressed: _loadAll, child: const Text('আবার চেষ্টা করুন')),
+          ElevatedButton(
+              onPressed: _loadAll, child: const Text('আবার চেষ্টা করুন')),
         ],
       ),
     );
@@ -144,26 +155,33 @@ class _LearningScreenState extends State<LearningScreen> {
       padding: const EdgeInsets.all(AppConstants.paddingLarge),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(AppConstants.primaryColor), Color(AppConstants.primaryColor).withOpacity(0.7)],
+          colors: [
+            const Color(AppConstants.primaryColor),
+            const Color(AppConstants.primaryColor).withOpacity(0.7)
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
       ),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
+        children: [
           Icon(Icons.psychology, color: Colors.white, size: 36),
           SizedBox(height: AppConstants.paddingSmall),
           Text(
             'শেখা ও গবেষণা',
-            style: TextStyle(color: Colors.white, fontSize: AppConstants.titleFontSize, fontWeight: FontWeight.bold),
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: AppConstants.titleFontSize,
+                fontWeight: FontWeight.bold),
           ),
           SizedBox(height: AppConstants.paddingXSmall),
           Text(
             'সিস্টেম স্বয়ংক্রিয়ভাবে ইন্টারনেট থেকে নতুন প্রযুক্তি ও সমাধান শেখে। '
             'এখানে শেখার অগ্রগতি ও গবেষণার ফলাফল দেখুন।',
-            style: TextStyle(color: Colors.white70, fontSize: AppConstants.bodyFontSize),
+            style: TextStyle(
+                color: Colors.white70, fontSize: AppConstants.bodyFontSize),
           ),
         ],
       ),
@@ -177,12 +195,15 @@ class _LearningScreenState extends State<LearningScreen> {
       children: [
         const Text(
           'শেখার পরিসংখ্যান',
-          style: TextStyle(fontSize: AppConstants.titleFontSize, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontSize: AppConstants.titleFontSize,
+              fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: AppConstants.paddingSmall),
         const Text(
           '(সিস্টেম কতটুকু শিখেছে তার সারসংক্ষেপ)',
-          style: TextStyle(fontSize: AppConstants.captionFontSize, color: Colors.grey),
+          style: TextStyle(
+              fontSize: AppConstants.captionFontSize, color: Colors.grey),
         ),
         const SizedBox(height: AppConstants.paddingMedium),
         GridView.count(
@@ -234,12 +255,15 @@ class _LearningScreenState extends State<LearningScreen> {
       children: [
         const Text(
           'ইন্টারনেট গবেষণা',
-          style: TextStyle(fontSize: AppConstants.titleFontSize, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontSize: AppConstants.titleFontSize,
+              fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: AppConstants.paddingSmall),
         const Text(
           '(GitHub, StackOverflow, HackerNews থেকে স্বয়ংক্রিয় শেখা)',
-          style: TextStyle(fontSize: AppConstants.captionFontSize, color: Colors.grey),
+          style: TextStyle(
+              fontSize: AppConstants.captionFontSize, color: Colors.grey),
         ),
         const SizedBox(height: AppConstants.paddingMedium),
         Card(
@@ -247,13 +271,26 @@ class _LearningScreenState extends State<LearningScreen> {
             padding: const EdgeInsets.all(AppConstants.paddingLarge),
             child: Column(
               children: [
-                _buildResearchRow(Icons.access_time, 'শেষ গবেষণা', '${stats?['lastResearchTime'] ?? 'এখনো হয়নি'}', 'সর্বশেষ কবে গবেষণা হয়েছে'),
+                _buildResearchRow(
+                    Icons.access_time,
+                    'শেষ গবেষণা',
+                    '${stats?['lastResearchTime'] ?? 'এখনো হয়নি'}',
+                    'সর্বশেষ কবে গবেষণা হয়েছে'),
                 const Divider(),
-                _buildResearchRow(Icons.repeat, 'মোট সাইকেল', '${stats?['totalCycles'] ?? 0}', 'কতবার গবেষণা চালানো হয়েছে'),
+                _buildResearchRow(
+                    Icons.repeat,
+                    'মোট সাইকেল',
+                    '${stats?['totalCycles'] ?? 0}',
+                    'কতবার গবেষণা চালানো হয়েছে'),
                 const Divider(),
-                _buildResearchRow(Icons.library_books, 'শেখা বিষয়', '${stats?['itemsLearned'] ?? 0}', 'গবেষণা থেকে শেখা আইটেম'),
+                _buildResearchRow(Icons.library_books, 'শেখা বিষয়',
+                    '${stats?['itemsLearned'] ?? 0}', 'গবেষণা থেকে শেখা আইটেম'),
                 const Divider(),
-                _buildResearchRow(Icons.source, 'সোর্সগুলো', '${stats?['sources'] ?? 'GitHub, SO, HN, DEV'}', 'কোন কোন উৎস থেকে শেখে'),
+                _buildResearchRow(
+                    Icons.source,
+                    'সোর্সগুলো',
+                    '${stats?['sources'] ?? 'GitHub, SO, HN, DEV'}',
+                    'কোন কোন উৎস থেকে শেখে'),
               ],
             ),
           ),
@@ -262,19 +299,24 @@ class _LearningScreenState extends State<LearningScreen> {
     );
   }
 
-  Widget _buildResearchRow(IconData icon, String label, String value, String hint) {
+  Widget _buildResearchRow(
+      IconData icon, String label, String value, String hint) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppConstants.paddingXSmall),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: Color(AppConstants.primaryColor)),
+          Icon(icon, size: 20, color: const Color(AppConstants.primaryColor)),
           const SizedBox(width: AppConstants.paddingMedium),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
-                Text(hint, style: const TextStyle(fontSize: AppConstants.captionFontSize, color: Colors.grey)),
+                Text(label,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text(hint,
+                    style: const TextStyle(
+                        fontSize: AppConstants.captionFontSize,
+                        color: Colors.grey)),
               ],
             ),
           ),
@@ -291,39 +333,46 @@ class _LearningScreenState extends State<LearningScreen> {
       children: [
         const Text(
           'গুরুত্বপূর্ণ প্রয়োজনীয়তা',
-          style: TextStyle(fontSize: AppConstants.titleFontSize, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontSize: AppConstants.titleFontSize,
+              fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: AppConstants.paddingSmall),
         const Text(
           '(সিস্টেম যেসব বিষয় অবশ্যই মনে রাখবে)',
-          style: TextStyle(fontSize: AppConstants.captionFontSize, color: Colors.grey),
+          style: TextStyle(
+              fontSize: AppConstants.captionFontSize, color: Colors.grey),
         ),
         const SizedBox(height: AppConstants.paddingMedium),
         if (items.isEmpty)
-          Card(
+          const Card(
             child: Padding(
-              padding: const EdgeInsets.all(AppConstants.paddingLarge),
+              padding: EdgeInsets.all(AppConstants.paddingLarge),
               child: Row(
-                children: const [
+                children: [
                   Icon(Icons.check_circle_outline, color: Colors.green),
                   SizedBox(width: AppConstants.paddingMedium),
-                  Expanded(child: Text('কোনো গুরুত্বপূর্ণ আইটেম নেই — সব ঠিক আছে!')),
+                  Expanded(
+                      child: Text('কোনো গুরুত্বপূর্ণ আইটেম নেই — সব ঠিক আছে!')),
                 ],
               ),
             ),
           )
         else
           ...items.map((item) {
-            final map = item is Map<String, dynamic> ? item : <String, dynamic>{};
+            final map =
+                item is Map<String, dynamic> ? item : <String, dynamic>{};
             return Card(
               margin: const EdgeInsets.only(bottom: AppConstants.paddingSmall),
               child: ListTile(
-                leading: Icon(
+                leading: const Icon(
                   Icons.warning_amber_rounded,
                   color: Color(AppConstants.warningColor),
                 ),
-                title: Text('${map['description'] ?? map['category'] ?? 'Unknown'}'),
-                subtitle: Text('গুরুত্ব: ${map['severity'] ?? 'N/A'} | আত্মবিশ্বাস: ${map['confidence'] ?? 'N/A'}'),
+                title: Text(
+                    '${map['description'] ?? map['category'] ?? 'Unknown'}'),
+                subtitle: Text(
+                    'গুরুত্ব: ${map['severity'] ?? 'N/A'} | আত্মবিশ্বাস: ${map['confidence'] ?? 'N/A'}'),
               ),
             );
           }),
@@ -331,13 +380,17 @@ class _LearningScreenState extends State<LearningScreen> {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, int color, String hint) {
+  Widget _buildStatCard(
+      String title, String value, IconData icon, int color, String hint) {
     return Card(
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
           gradient: LinearGradient(
-            colors: [Color(color).withOpacity(0.1), Color(color).withOpacity(0.05)],
+            colors: [
+              Color(color).withOpacity(0.1),
+              Color(color).withOpacity(0.05)
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -354,16 +407,20 @@ class _LearningScreenState extends State<LearningScreen> {
                   const Spacer(),
                   Tooltip(
                     message: hint,
-                    child: Icon(Icons.info_outline, size: 16, color: Colors.grey.shade400),
+                    child: Icon(Icons.info_outline,
+                        size: 16, color: Colors.grey.shade400),
                   ),
                 ],
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  Text(value,
+                      style: const TextStyle(
+                          fontSize: 22, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 2),
-                  Text(title, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                  Text(title,
+                      style: const TextStyle(fontSize: 11, color: Colors.grey)),
                 ],
               ),
             ],

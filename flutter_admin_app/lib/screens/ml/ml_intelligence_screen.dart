@@ -27,8 +27,12 @@ class _MlIntelligenceScreenState extends State<MlIntelligenceScreen> {
   }
 
   Future<void> _loadAll() async {
-    setState(() { _isLoading = true; _error = null; });
-    final response = await _apiService.get<Map<String, dynamic>>(Environment.mlAnomalySummary);
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    final response = await _apiService
+        .get<Map<String, dynamic>>(Environment.mlAnomalySummary);
     if (!mounted) return;
     setState(() {
       _isLoading = false;
@@ -42,41 +46,56 @@ class _MlIntelligenceScreenState extends State<MlIntelligenceScreen> {
 
   Future<void> _detectAnomalies() async {
     setState(() => _isDetecting = true);
-    final response = await _apiService.post<Map<String, dynamic>>(Environment.mlDetectAnomalies);
+    final response = await _apiService
+        .post<Map<String, dynamic>>(Environment.mlDetectAnomalies);
     if (!mounted) return;
     setState(() {
       _isDetecting = false;
       if (response.success) _anomalySummary = response.data;
     });
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(response.success ? 'অ্যানোমালি ডিটেকশন সম্পন্ন!' : 'ত্রুটি: ${response.error}'),
-      backgroundColor: Color(response.success ? AppConstants.successColor : AppConstants.errorColor),
+      content: Text(response.success
+          ? 'অ্যানোমালি ডিটেকশন সম্পন্ন!'
+          : 'ত্রুটি: ${response.error}'),
+      backgroundColor: Color(response.success
+          ? AppConstants.successColor
+          : AppConstants.errorColor),
     ));
   }
 
   Future<void> _predictFailure() async {
     setState(() => _isPredicting = true);
-    final response = await _apiService.post<Map<String, dynamic>>(Environment.mlPredictFailure);
+    final response = await _apiService
+        .post<Map<String, dynamic>>(Environment.mlPredictFailure);
     if (!mounted) return;
     setState(() {
       _isPredicting = false;
       if (response.success) _prediction = response.data;
     });
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(response.success ? 'ভবিষ্যদ্বাণী সম্পন্ন!' : 'ত্রুটি: ${response.error}'),
-      backgroundColor: Color(response.success ? AppConstants.successColor : AppConstants.errorColor),
+      content: Text(response.success
+          ? 'ভবিষ্যদ্বাণী সম্পন্ন!'
+          : 'ত্রুটি: ${response.error}'),
+      backgroundColor: Color(response.success
+          ? AppConstants.successColor
+          : AppConstants.errorColor),
     ));
   }
 
   Future<void> _getRecommendation() async {
-    final response = await _apiService.post<Map<String, dynamic>>(Environment.mlRecommendProvider);
+    final response = await _apiService
+        .post<Map<String, dynamic>>(Environment.mlRecommendProvider);
     if (!mounted) return;
     setState(() {
       if (response.success) _recommendation = response.data;
     });
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(response.success ? 'সুপারিশ পাওয়া গেছে!' : 'ত্রুটি: ${response.error}'),
-      backgroundColor: Color(response.success ? AppConstants.successColor : AppConstants.errorColor),
+      content: Text(response.success
+          ? 'সুপারিশ পাওয়া গেছে!'
+          : 'ত্রুটি: ${response.error}'),
+      backgroundColor: Color(response.success
+          ? AppConstants.successColor
+          : AppConstants.errorColor),
     ));
   }
 
@@ -85,16 +104,27 @@ class _MlIntelligenceScreenState extends State<MlIntelligenceScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('ML বুদ্ধিমত্তা'),
-        actions: [IconButton(icon: const Icon(Icons.refresh), tooltip: 'রিফ্রেশ', onPressed: _loadAll)],
+        actions: [
+          IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'রিফ্রেশ',
+              onPressed: _loadAll)
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  const Icon(Icons.psychology, size: 48, color: Colors.grey),
-                  Text(_error!),
-                  ElevatedButton(onPressed: _loadAll, child: const Text('আবার চেষ্টা করুন')),
-                ]))
+              ? Center(
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                      const Icon(Icons.psychology,
+                          size: 48, color: Colors.grey),
+                      Text(_error!),
+                      ElevatedButton(
+                          onPressed: _loadAll,
+                          child: const Text('আবার চেষ্টা করুন')),
+                    ]))
               : RefreshIndicator(
                   onRefresh: _loadAll,
                   child: SingleChildScrollView(
@@ -127,12 +157,14 @@ class _MlIntelligenceScreenState extends State<MlIntelligenceScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [
+            const Row(children: [
               Icon(Icons.troubleshoot, color: Color(AppConstants.warningColor)),
-              const SizedBox(width: 8),
-              const Text('অ্যানোমালি সারসংক্ষেপ', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              SizedBox(width: 8),
+              Text('অ্যানোমালি সারসংক্ষেপ',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ]),
-            const Text('(সিস্টেমে অস্বাভাবিক কিছু হলে ML তা ধরে)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            const Text('(সিস্টেমে অস্বাভাবিক কিছু হলে ML তা ধরে)',
+                style: TextStyle(fontSize: 12, color: Colors.grey)),
             const SizedBox(height: 16),
             GridView.count(
               crossAxisCount: 2,
@@ -142,10 +174,14 @@ class _MlIntelligenceScreenState extends State<MlIntelligenceScreen> {
               crossAxisSpacing: 8,
               childAspectRatio: 1.5,
               children: [
-                _buildStatCard('মোট অ্যানোমালি', '${a['totalAnomalies'] ?? 0}', Icons.warning_amber, AppConstants.warningColor),
-                _buildStatCard('জরুরি', '${a['criticalAnomalies'] ?? 0}', Icons.error, AppConstants.errorColor),
-                _buildStatCard('সমাধিত', '${a['resolvedAnomalies'] ?? 0}', Icons.check_circle, AppConstants.successColor),
-                _buildStatCard('নতুন', '${a['newAnomalies'] ?? 0}', Icons.new_releases, AppConstants.infoColor),
+                _buildStatCard('মোট অ্যানোমালি', '${a['totalAnomalies'] ?? 0}',
+                    Icons.warning_amber, AppConstants.warningColor),
+                _buildStatCard('জরুরি', '${a['criticalAnomalies'] ?? 0}',
+                    Icons.error, AppConstants.errorColor),
+                _buildStatCard('সমাধিত', '${a['resolvedAnomalies'] ?? 0}',
+                    Icons.check_circle, AppConstants.successColor),
+                _buildStatCard('নতুন', '${a['newAnomalies'] ?? 0}',
+                    Icons.new_releases, AppConstants.infoColor),
               ],
             ),
           ],
@@ -161,8 +197,10 @@ class _MlIntelligenceScreenState extends State<MlIntelligenceScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('ML কার্যক্রম', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const Text('(মেশিন লার্নিং দিয়ে সিস্টেম বিশ্লেষণ করুন)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            const Text('ML কার্যক্রম',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('(মেশিন লার্নিং দিয়ে সিস্টেম বিশ্লেষণ করুন)',
+                style: TextStyle(fontSize: 12, color: Colors.grey)),
             const SizedBox(height: 16),
             _buildActionButton(
               'অ্যানোমালি ডিটেকশন',
@@ -196,7 +234,8 @@ class _MlIntelligenceScreenState extends State<MlIntelligenceScreen> {
     );
   }
 
-  Widget _buildActionButton(String title, String hint, IconData icon, Color color, VoidCallback? onPressed, bool loading) {
+  Widget _buildActionButton(String title, String hint, IconData icon,
+      Color color, VoidCallback? onPressed, bool loading) {
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton(
@@ -207,13 +246,23 @@ class _MlIntelligenceScreenState extends State<MlIntelligenceScreen> {
         ),
         child: Row(children: [
           loading
-              ? SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: color))
+              ? SizedBox(
+                  width: 24,
+                  height: 24,
+                  child:
+                      CircularProgressIndicator(strokeWidth: 2, color: color))
               : Icon(icon, color: color),
           const SizedBox(width: 12),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: color)),
-            Text(hint, style: const TextStyle(fontSize: 11, color: Colors.grey)),
-          ])),
+          Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Text(title,
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, color: color)),
+                Text(hint,
+                    style: const TextStyle(fontSize: 11, color: Colors.grey)),
+              ])),
         ]),
       ),
     );
@@ -227,19 +276,23 @@ class _MlIntelligenceScreenState extends State<MlIntelligenceScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [
+            const Row(children: [
               Icon(Icons.timeline, color: Color(AppConstants.infoColor)),
-              const SizedBox(width: 8),
-              const Text('ভবিষ্যদ্বাণী ফলাফল', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              SizedBox(width: 8),
+              Text('ভবিষ্যদ্বাণী ফলাফল',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ]),
-            const Text('(ML কি ভবিষ্যদ্বাণী করেছে)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            const Text('(ML কি ভবিষ্যদ্বাণী করেছে)',
+                style: TextStyle(fontSize: 12, color: Colors.grey)),
             const SizedBox(height: 12),
-            Text('ঝুঁকির মাত্রা: ${p['riskLevel'] ?? 'N/A'}', style: const TextStyle(fontWeight: FontWeight.w600)),
+            Text('ঝুঁকির মাত্রা: ${p['riskLevel'] ?? 'N/A'}',
+                style: const TextStyle(fontWeight: FontWeight.w600)),
             if (p['predictions'] is List)
               ...(p['predictions'] as List).map((pred) => ListTile(
                     dense: true,
                     leading: const Icon(Icons.arrow_right, size: 18),
-                    title: Text('${pred['message'] ?? pred}', style: const TextStyle(fontSize: 13)),
+                    title: Text('${pred['message'] ?? pred}',
+                        style: const TextStyle(fontSize: 13)),
                   )),
           ],
         ),
@@ -255,16 +308,23 @@ class _MlIntelligenceScreenState extends State<MlIntelligenceScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [
+            const Row(children: [
               Icon(Icons.recommend, color: Color(AppConstants.successColor)),
-              const SizedBox(width: 8),
-              const Text('AI প্রোভাইডার সুপারিশ', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              SizedBox(width: 8),
+              Text('AI প্রোভাইডার সুপারিশ',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ]),
             const SizedBox(height: 12),
-            Text('সেরা প্রোভাইডার: ${r['recommended'] ?? r['provider'] ?? 'N/A'}',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            if (r['reason'] != null) Text('কারণ: ${r['reason']}', style: const TextStyle(fontSize: 13, color: Colors.grey)),
-            if (r['score'] != null) Text('স্কোর: ${r['score']}', style: const TextStyle(fontSize: 13)),
+            Text(
+                'সেরা প্রোভাইডার: ${r['recommended'] ?? r['provider'] ?? 'N/A'}',
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            if (r['reason'] != null)
+              Text('কারণ: ${r['reason']}',
+                  style: const TextStyle(fontSize: 13, color: Colors.grey)),
+            if (r['score'] != null)
+              Text('স্কোর: ${r['score']}',
+                  style: const TextStyle(fontSize: 13)),
           ],
         ),
       ),
@@ -282,8 +342,11 @@ class _MlIntelligenceScreenState extends State<MlIntelligenceScreen> {
           children: [
             Icon(icon, color: Color(color), size: 20),
             const SizedBox(height: 4),
-            Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            Text(title, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+            Text(value,
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(title,
+                style: const TextStyle(fontSize: 10, color: Colors.grey)),
           ],
         ),
       ),

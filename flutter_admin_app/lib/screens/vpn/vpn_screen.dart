@@ -22,13 +22,16 @@ class _VpnScreenState extends State<VpnScreen> {
   }
 
   Future<void> _loadVpns() async {
-    setState(() { _isLoading = true; _error = null; });
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
     final response = await _apiService.get<List<dynamic>>(Environment.vpnList);
     if (!mounted) return;
     setState(() {
       _isLoading = false;
       if (response.success) {
-        _vpnList = (response.data as List<dynamic>?) ?? [];
+        _vpnList = response.data ?? [];
       } else {
         _error = response.error ?? 'VPN তথ্য লোড করা যায়নি';
       }
@@ -36,20 +39,26 @@ class _VpnScreenState extends State<VpnScreen> {
   }
 
   Future<void> _connectVpn(String id) async {
-    final response = await _apiService.post<Map<String, dynamic>>('/api/vpn/$id/connect');
+    final response =
+        await _apiService.post<Map<String, dynamic>>('/api/vpn/$id/connect');
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(response.success ? 'VPN সংযুক্ত হয়েছে!' : 'ত্রুটি: ${response.error}'),
+      content: Text(response.success
+          ? 'VPN সংযুক্ত হয়েছে!'
+          : 'ত্রুটি: ${response.error}'),
       backgroundColor: response.success ? Colors.green : Colors.red,
     ));
     if (response.success) _loadVpns();
   }
 
   Future<void> _disconnectVpn(String id) async {
-    final response = await _apiService.post<Map<String, dynamic>>('/api/vpn/$id/disconnect');
+    final response =
+        await _apiService.post<Map<String, dynamic>>('/api/vpn/$id/disconnect');
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(response.success ? 'VPN বিচ্ছিন্ন হয়েছে' : 'ত্রুটি: ${response.error}'),
+      content: Text(response.success
+          ? 'VPN বিচ্ছিন্ন হয়েছে'
+          : 'ত্রুটি: ${response.error}'),
       backgroundColor: response.success ? Colors.green : Colors.red,
     ));
     if (response.success) _loadVpns();
@@ -63,21 +72,32 @@ class _VpnScreenState extends State<VpnScreen> {
       builder: (ctx) => AlertDialog(
         title: const Text('নতুন VPN যোগ করুন'),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Text('(নতুন VPN সংযোগ তৈরি করুন)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          const Text('(নতুন VPN সংযোগ তৈরি করুন)',
+              style: TextStyle(fontSize: 12, color: Colors.grey)),
           const SizedBox(height: 12),
           TextField(
             controller: nameController,
-            decoration: const InputDecoration(labelText: 'VPN নাম', helperText: '(সহজ নাম দিন, যেমন: Office VPN)', border: OutlineInputBorder()),
+            decoration: const InputDecoration(
+                labelText: 'VPN নাম',
+                helperText: '(সহজ নাম দিন, যেমন: Office VPN)',
+                border: OutlineInputBorder()),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: hostController,
-            decoration: const InputDecoration(labelText: 'হোস্ট ঠিকানা', helperText: '(সার্ভারের IP বা ডোমেইন)', border: OutlineInputBorder()),
+            decoration: const InputDecoration(
+                labelText: 'হোস্ট ঠিকানা',
+                helperText: '(সার্ভারের IP বা ডোমেইন)',
+                border: OutlineInputBorder()),
           ),
         ]),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('বাতিল')),
-          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('যোগ করুন')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('বাতিল')),
+          ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('যোগ করুন')),
         ],
       ),
     );
@@ -97,7 +117,12 @@ class _VpnScreenState extends State<VpnScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('VPN ব্যবস্থাপনা'),
-        actions: [IconButton(icon: const Icon(Icons.refresh), tooltip: 'রিফ্রেশ', onPressed: _loadVpns)],
+        actions: [
+          IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'রিফ্রেশ',
+              onPressed: _loadVpns)
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _addVpn,
@@ -107,20 +132,31 @@ class _VpnScreenState extends State<VpnScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  const Icon(Icons.vpn_lock, size: 48, color: Colors.grey),
-                  Text(_error!),
-                  ElevatedButton(onPressed: _loadVpns, child: const Text('আবার চেষ্টা করুন')),
-                ]))
+              ? Center(
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                      const Icon(Icons.vpn_lock, size: 48, color: Colors.grey),
+                      Text(_error!),
+                      ElevatedButton(
+                          onPressed: _loadVpns,
+                          child: const Text('আবার চেষ্টা করুন')),
+                    ]))
               : RefreshIndicator(
                   onRefresh: _loadVpns,
                   child: _vpnList.isEmpty
-                      ? const Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                          Icon(Icons.vpn_lock, size: 64, color: Colors.grey),
-                          SizedBox(height: 16),
-                          Text('কোনো VPN কনফিগার করা নেই'),
-                          Text('(+ বাটন দিয়ে নতুন VPN যোগ করুন)', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                        ]))
+                      ? const Center(
+                          child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                              Icon(Icons.vpn_lock,
+                                  size: 64, color: Colors.grey),
+                              SizedBox(height: 16),
+                              Text('কোনো VPN কনফিগার করা নেই'),
+                              Text('(+ বাটন দিয়ে নতুন VPN যোগ করুন)',
+                                  style: TextStyle(
+                                      fontSize: 12, color: Colors.grey)),
+                            ]))
                       : ListView.builder(
                           padding: const EdgeInsets.all(16),
                           itemCount: _vpnList.length,
@@ -135,18 +171,21 @@ class _VpnScreenState extends State<VpnScreen> {
     final id = '${map['id'] ?? ''}';
     final name = '${map['name'] ?? 'Unknown VPN'}';
     final host = '${map['host'] ?? ''}';
-    final connected = map['connected'] == true || '${map['status']}'.toUpperCase() == 'CONNECTED';
+    final connected = map['connected'] == true ||
+        '${map['status']}'.toUpperCase() == 'CONNECTED';
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: (connected ? Colors.green : Colors.grey).withOpacity(0.1),
+          backgroundColor:
+              (connected ? Colors.green : Colors.grey).withOpacity(0.1),
           child: Icon(connected ? Icons.vpn_lock : Icons.vpn_key_off,
               color: connected ? Colors.green : Colors.grey),
         ),
         title: Text(name),
-        subtitle: Text('$host\n${connected ? "সংযুক্ত আছে" : "বিচ্ছিন্ন"}', style: const TextStyle(fontSize: 12)),
+        subtitle: Text('$host\n${connected ? "সংযুক্ত আছে" : "বিচ্ছিন্ন"}',
+            style: const TextStyle(fontSize: 12)),
         isThreeLine: true,
         trailing: ElevatedButton(
           onPressed: () => connected ? _disconnectVpn(id) : _connectVpn(id),

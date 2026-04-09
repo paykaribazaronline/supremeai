@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
 Widget buildAdminSurface({
   required String dashboardUrl,
@@ -56,8 +55,7 @@ class _MobileAdminSurfaceState extends State<_MobileAdminSurface> {
     return Stack(
       children: [
         WebViewWidget(controller: _controller),
-        if (_progress < 100)
-          const LinearProgressIndicator(minHeight: 3),
+        if (_progress < 100) const LinearProgressIndicator(minHeight: 3),
       ],
     );
   }

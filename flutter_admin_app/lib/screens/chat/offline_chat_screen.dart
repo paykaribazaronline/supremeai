@@ -168,12 +168,16 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('মডেল মুছে ফেলবেন?'),
-        content: const Text('এটা ডাউনলোড করা ফাইল মুছে ফেলবে। আবার ব্যবহার করতে হলে নতুন করে ডাউনলোড করতে হবে।'),
+        content: const Text(
+            'এটা ডাউনলোড করা ফাইল মুছে ফেলবে। আবার ব্যবহার করতে হলে নতুন করে ডাউনলোড করতে হবে।'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('না')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('না')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: Color(AppConstants.errorColor)),
+            style: TextButton.styleFrom(
+                foregroundColor: const Color(AppConstants.errorColor)),
             child: const Text('হ্যাঁ, মুছুন'),
           ),
         ],
@@ -273,7 +277,8 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
               _selectedModelId != null
                   ? '🟢 ${_selectedModelId!} — ইন্টারনেট ছাড়া'
                   : '⚪ কোনো মডেল লোড হয়নি',
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.normal),
+              style:
+                  const TextStyle(fontSize: 11, fontWeight: FontWeight.normal),
             ),
           ],
         ),
@@ -313,7 +318,8 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.smart_toy_outlined, size: 80, color: Colors.grey.shade400),
+              Icon(Icons.smart_toy_outlined,
+                  size: 80, color: Colors.grey.shade400),
               const SizedBox(height: AppConstants.paddingLarge),
               const Text(
                 'অফলাইন AI চ্যাট',
@@ -359,7 +365,8 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
                     vertical: AppConstants.paddingSmall,
                   ),
                   itemCount: _messages.length,
-                  itemBuilder: (context, index) => _buildMessageBubble(_messages[index]),
+                  itemBuilder: (context, index) =>
+                      _buildMessageBubble(_messages[index]),
                 ),
         ),
         _buildInputBar(),
@@ -379,7 +386,7 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
         ),
         decoration: BoxDecoration(
           color: isUser
-              ? Color(AppConstants.primaryColor)
+              ? const Color(AppConstants.primaryColor)
               : Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
@@ -451,7 +458,8 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
         left: AppConstants.paddingMedium,
         right: AppConstants.paddingSmall,
         top: AppConstants.paddingSmall,
-        bottom: MediaQuery.of(context).padding.bottom + AppConstants.paddingSmall,
+        bottom:
+            MediaQuery.of(context).padding.bottom + AppConstants.paddingSmall,
       ),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
@@ -480,8 +488,10 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
-                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                fillColor:
+                    Theme.of(context).colorScheme.surfaceContainerHighest,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               ),
             ),
           ),
@@ -489,7 +499,7 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
           Material(
             color: _isGenerating
                 ? Colors.grey
-                : Color(AppConstants.primaryColor),
+                : const Color(AppConstants.primaryColor),
             shape: const CircleBorder(),
             child: InkWell(
               customBorder: const CircleBorder(),
@@ -521,9 +531,10 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
           Container(
             padding: const EdgeInsets.all(AppConstants.paddingMedium),
             decoration: BoxDecoration(
-              color: Color(AppConstants.infoColor).withOpacity(0.1),
+              color: const Color(AppConstants.infoColor).withOpacity(0.1),
               borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
-              border: Border.all(color: Color(AppConstants.infoColor).withOpacity(0.3)),
+              border: Border.all(
+                  color: const Color(AppConstants.infoColor).withOpacity(0.3)),
             ),
             child: const Row(
               children: [
@@ -556,14 +567,16 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text('ডিভাইসের তথ্য',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 15)),
                       const SizedBox(height: 8),
                       if (info['totalRamMb'] != null)
                         Text('RAM: ${info['totalRamMb']} MB'),
                       if (info['availableRamMb'] != null)
                         Text('ফাঁকা RAM: ${info['availableRamMb']} MB'),
                       if (info['gpuSupported'] != null)
-                        Text('GPU সাপোর্ট: ${info['gpuSupported'] == true ? '✅ হ্যাঁ' : '❌ না'}'),
+                        Text(
+                            'GPU সাপোর্ট: ${info['gpuSupported'] == true ? '✅ হ্যাঁ' : '❌ না'}'),
                     ],
                   ),
                 ),
@@ -582,29 +595,35 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
           const SizedBox(height: AppConstants.paddingXSmall),
           const Text(
             '(মডেল ডাউনলোড → লোড → চ্যাট শুরু)',
-            style: TextStyle(fontSize: AppConstants.captionFontSize, color: Colors.grey),
+            style: TextStyle(
+                fontSize: AppConstants.captionFontSize, color: Colors.grey),
           ),
           const SizedBox(height: AppConstants.paddingMedium),
 
           // Model cards (dynamically loaded from cloud)
           if (_isLoadingModels)
-            const Center(child: Padding(
+            const Center(
+                child: Padding(
               padding: EdgeInsets.all(32),
               child: Column(children: [
                 CircularProgressIndicator(),
                 SizedBox(height: 16),
-                Text('ক্লাউড থেকে মডেল খুঁজছি...', style: TextStyle(color: Colors.grey)),
+                Text('ক্লাউড থেকে মডেল খুঁজছি...',
+                    style: TextStyle(color: Colors.grey)),
               ]),
             )),
           if (!_isLoadingModels && _availableModels.isEmpty)
-            Center(child: Padding(
+            Center(
+                child: Padding(
               padding: const EdgeInsets.all(32),
               child: Column(children: [
                 Icon(Icons.cloud_off, size: 48, color: Colors.grey.shade400),
                 const SizedBox(height: 16),
-                const Text('কোনো মডেল পাওয়া যায়নি', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text('কোনো মডেল পাওয়া যায়নি',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                const Text('ইন্টারনেট সংযোগ চেক করুন ও আবার চেষ্টা করুন', style: TextStyle(color: Colors.grey)),
+                const Text('ইন্টারনেট সংযোগ চেক করুন ও আবার চেষ্টা করুন',
+                    style: TextStyle(color: Colors.grey)),
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
                   icon: const Icon(Icons.refresh),
@@ -622,14 +641,16 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
             final isDownloaded = _downloadedModels[id] ?? false;
             final isDownloading = _downloadProgress.containsKey(id);
             final progress = _downloadProgress[id] ?? 0.0;
-            final isLoaded = _selectedModelId == id && _llmService.isModelLoaded;
+            final isLoaded =
+                _selectedModelId == id && _llmService.isModelLoaded;
 
             return Card(
               margin: const EdgeInsets.only(bottom: AppConstants.paddingMedium),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
                 side: isLoaded
-                    ? BorderSide(color: Color(AppConstants.successColor), width: 2)
+                    ? const BorderSide(
+                        color: Color(AppConstants.successColor), width: 2)
                     : BorderSide.none,
               ),
               child: Padding(
@@ -642,12 +663,16 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Color(AppConstants.primaryColor).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                            color: const Color(AppConstants.primaryColor)
+                                .withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(
+                                AppConstants.radiusMedium),
                           ),
                           child: Icon(
-                            id.contains('gpu') ? Icons.memory : Icons.developer_board,
-                            color: Color(AppConstants.primaryColor),
+                            id.contains('gpu')
+                                ? Icons.memory
+                                : Icons.developer_board,
+                            color: const Color(AppConstants.primaryColor),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -656,10 +681,14 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(model['name']!,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16)),
                               const SizedBox(height: 2),
                               Text(model['description']!,
-                                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600)),
                             ],
                           ),
                         ),
@@ -697,13 +726,14 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
                                 value: progress,
                                 minHeight: 8,
                                 backgroundColor: Colors.grey.shade200,
-                                color: Color(AppConstants.primaryColor),
+                                color: const Color(AppConstants.primaryColor),
                               ),
                             ),
                           ),
                           const SizedBox(width: 12),
                           Text('${(progress * 100).toInt()}%',
-                              style: const TextStyle(fontWeight: FontWeight.bold)),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ],
@@ -718,7 +748,8 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
                             child: ElevatedButton.icon(
                               icon: const Icon(Icons.download_rounded),
                               label: const Text('ডাউনলোড'),
-                              onPressed: () => _downloadModel(id, model['url']!),
+                              onPressed: () =>
+                                  _downloadModel(id, model['url']!),
                             ),
                           ),
                         if (isDownloaded && !isLoaded) ...[
@@ -728,16 +759,22 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
                                   ? const SizedBox(
                                       width: 16,
                                       height: 16,
-                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2, color: Colors.white),
                                     )
                                   : const Icon(Icons.play_arrow_rounded),
-                              label: Text(_isLoadingModel ? 'লোড হচ্ছে...' : 'লোড ও চ্যাট শুরু'),
-                              onPressed: _isLoadingModel ? null : () => _loadAndStartChat(id),
+                              label: Text(_isLoadingModel
+                                  ? 'লোড হচ্ছে...'
+                                  : 'লোড ও চ্যাট শুরু'),
+                              onPressed: _isLoadingModel
+                                  ? null
+                                  : () => _loadAndStartChat(id),
                             ),
                           ),
                           const SizedBox(width: 8),
                           IconButton(
-                            icon: Icon(Icons.delete_outline, color: Color(AppConstants.errorColor)),
+                            icon: const Icon(Icons.delete_outline,
+                                color: Color(AppConstants.errorColor)),
                             tooltip: 'মডেল মুছুন',
                             onPressed: () => _deleteModel(id),
                           ),
@@ -748,7 +785,8 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
                               icon: const Icon(Icons.stop_rounded),
                               label: const Text('মডেল আনলোড'),
                               style: OutlinedButton.styleFrom(
-                                foregroundColor: Color(AppConstants.errorColor),
+                                foregroundColor:
+                                    const Color(AppConstants.errorColor),
                               ),
                               onPressed: () async {
                                 await _llmService.unloadModel();
@@ -776,7 +814,9 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withOpacity(0.3)),
       ),
-      child: Text(text, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w500)),
+      child: Text(text,
+          style: TextStyle(
+              fontSize: 11, color: color, fontWeight: FontWeight.w500)),
     );
   }
 }

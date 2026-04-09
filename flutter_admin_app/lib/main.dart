@@ -5,38 +5,13 @@ import 'config/app_routes.dart';
 import 'config/constants.dart';
 import 'firebase_options.dart';
 import 'models/models.dart';
-import 'services/storage_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/projects_provider.dart';
 import 'providers/metrics_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/projects/project_detail_screen.dart';
-import 'screens/projects/projects_list_screen.dart';
-import 'screens/metrics_screen.dart';
-import 'screens/settings_screen.dart';
 import 'screens/unified_admin/unified_admin_screen.dart';
-import 'screens/learning/learning_screen.dart';
-import 'screens/teaching/teaching_screen.dart';
-import 'screens/providers/ai_providers_screen.dart';
-import 'screens/extension/self_extension_screen.dart';
-import 'screens/alerts/alerts_logs_screen.dart';
-import 'screens/admin/admin_control_screen.dart';
-import 'screens/consensus/consensus_screen.dart';
-import 'screens/git/git_ops_screen.dart';
-import 'screens/browser/headless_browser_screen.dart';
-import 'screens/quota/quota_screen.dart';
-import 'screens/vpn/vpn_screen.dart';
-import 'screens/resilience/resilience_screen.dart';
-import 'screens/ml/ml_intelligence_screen.dart';
-import 'screens/notifications/notifications_screen.dart';
-import 'screens/analytics/analytics_screen.dart';
-import 'screens/decisions/decision_history_screen.dart';
-import 'screens/phases/phases_screen.dart';
-import 'screens/tracing/tracing_screen.dart';
-import 'screens/chat/offline_chat_screen.dart';
-import 'screens/chat_history_screen.dart';
-import 'screens/system_learning_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,10 +20,6 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
-  // Initialize storage service
-  final storageService = StorageService();
-  await storageService.init();
   
   runApp(
     MultiProvider(
@@ -70,6 +41,10 @@ void main() async {
 
 class SupremeAIAdminApp extends StatelessWidget {
   const SupremeAIAdminApp({Key? key}) : super(key: key);
+
+  Widget _dashboardScreen(BuildContext context) {
+    return const UnifiedAdminScreen();
+  }
 
   Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -98,7 +73,7 @@ class SupremeAIAdminApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Color(AppConstants.primaryColor),
+          seedColor: const Color(AppConstants.primaryColor),
           brightness: Brightness.light,
         ),
         appBarTheme: const AppBarTheme(
@@ -107,7 +82,7 @@ class SupremeAIAdminApp extends StatelessWidget {
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: Color(AppConstants.backgroundColor),
+          fillColor: const Color(AppConstants.backgroundColor),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
             borderSide: const BorderSide(color: Colors.transparent),
@@ -118,7 +93,7 @@ class SupremeAIAdminApp extends StatelessWidget {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-            borderSide: BorderSide(
+            borderSide: const BorderSide(
               color: Color(AppConstants.primaryColor),
               width: 2,
             ),
@@ -130,7 +105,7 @@ class SupremeAIAdminApp extends StatelessWidget {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Color(AppConstants.primaryColor),
+            backgroundColor: const Color(AppConstants.primaryColor),
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(
               horizontal: AppConstants.paddingLarge,
@@ -146,7 +121,7 @@ class SupremeAIAdminApp extends StatelessWidget {
         useMaterial3: true,
         brightness: Brightness.dark,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Color(AppConstants.primaryColor),
+          seedColor: const Color(AppConstants.primaryColor),
           brightness: Brightness.dark,
         ),
       ),
@@ -155,32 +130,32 @@ class SupremeAIAdminApp extends StatelessWidget {
       routes: {
         AppRoutes.login: (context) => const LoginScreen(),
         AppRoutes.register: (context) => const RegisterScreen(),
-        AppRoutes.home: (context) => const UnifiedAdminScreen(),
-        AppRoutes.projects: (context) => const ProjectsListScreen(),
-        AppRoutes.projectNew: (context) => const ProjectDetailScreen(),
-        AppRoutes.metrics: (context) => const MetricsScreen(),
-        AppRoutes.settings: (context) => const SettingsScreen(),
-        AppRoutes.learning: (context) => const LearningScreen(),
-        AppRoutes.teaching: (context) => const TeachingScreen(),
-        AppRoutes.aiProviders: (context) => const AIProvidersScreen(),
-        AppRoutes.selfExtension: (context) => const SelfExtensionScreen(),
-        AppRoutes.alertsLogs: (context) => const AlertsLogsScreen(),
-        AppRoutes.adminControl: (context) => const AdminControlScreen(),
-        AppRoutes.consensus: (context) => const ConsensusScreen(),
-        AppRoutes.gitOps: (context) => const GitOpsScreen(),
-        AppRoutes.headlessBrowser: (context) => const HeadlessBrowserScreen(),
-        AppRoutes.chatHistory: (context) => const ChatHistoryScreen(),
-        AppRoutes.systemLearning: (context) => const SystemLearningScreen(),
-        AppRoutes.quota: (context) => const QuotaScreen(),
-        AppRoutes.vpn: (context) => const VpnScreen(),
-        AppRoutes.resilience: (context) => const ResilienceScreen(),
-        AppRoutes.mlIntelligence: (context) => const MlIntelligenceScreen(),
-        AppRoutes.notifications: (context) => const NotificationsScreen(),
-        AppRoutes.analytics: (context) => const AnalyticsScreen(),
-        AppRoutes.decisionHistory: (context) => const DecisionHistoryScreen(),
-        AppRoutes.phases: (context) => const PhasesScreen(),
-        AppRoutes.tracing: (context) => const TracingScreen(),
-        AppRoutes.offlineChat: (context) => const OfflineChatScreen(),
+        AppRoutes.home: _dashboardScreen,
+        AppRoutes.projects: _dashboardScreen,
+        AppRoutes.projectNew: _dashboardScreen,
+        AppRoutes.metrics: _dashboardScreen,
+        AppRoutes.settings: _dashboardScreen,
+        AppRoutes.learning: _dashboardScreen,
+        AppRoutes.teaching: _dashboardScreen,
+        AppRoutes.aiProviders: _dashboardScreen,
+        AppRoutes.selfExtension: _dashboardScreen,
+        AppRoutes.alertsLogs: _dashboardScreen,
+        AppRoutes.adminControl: _dashboardScreen,
+        AppRoutes.consensus: _dashboardScreen,
+        AppRoutes.gitOps: _dashboardScreen,
+        AppRoutes.headlessBrowser: _dashboardScreen,
+        AppRoutes.chatHistory: _dashboardScreen,
+        AppRoutes.systemLearning: _dashboardScreen,
+        AppRoutes.quota: _dashboardScreen,
+        AppRoutes.vpn: _dashboardScreen,
+        AppRoutes.resilience: _dashboardScreen,
+        AppRoutes.mlIntelligence: _dashboardScreen,
+        AppRoutes.notifications: _dashboardScreen,
+        AppRoutes.analytics: _dashboardScreen,
+        AppRoutes.decisionHistory: _dashboardScreen,
+        AppRoutes.phases: _dashboardScreen,
+        AppRoutes.tracing: _dashboardScreen,
+        AppRoutes.offlineChat: _dashboardScreen,
       },
       onGenerateRoute: _onGenerateRoute,
       onUnknownRoute: _onUnknownRoute,
@@ -209,13 +184,21 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (!mounted) return;
 
-    Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+    final isLoggedIn = await context.read<AuthProvider>().checkLoginStatus();
+
+    if (!mounted) {
+      return;
+    }
+
+    Navigator.of(context).pushReplacementNamed(
+      isLoggedIn ? AppRoutes.home : AppRoutes.login,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(AppConstants.primaryColor),
+      backgroundColor: const Color(AppConstants.primaryColor),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

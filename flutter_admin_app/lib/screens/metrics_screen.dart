@@ -29,7 +29,8 @@ class _MetricsScreenState extends State<MetricsScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              Provider.of<MetricsProvider>(context, listen: false).fetchMetrics();
+              Provider.of<MetricsProvider>(context, listen: false)
+                  .fetchMetrics();
             },
             icon: const Icon(Icons.refresh),
             tooltip: 'ডেটা আবার লোড করুন',
@@ -74,25 +75,29 @@ class _MetricsScreenState extends State<MetricsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // System Health
-                  _buildSectionTitle('সিস্টেম স্বাস্থ্য', 'সার্ভারের মেমরি, CPU, অনুরোধ ও ত্রুটির অবস্থা'),
+                  _buildSectionTitle('সিস্টেম স্বাস্থ্য',
+                      'সার্ভারের মেমরি, CPU, অনুরোধ ও ত্রুটির অবস্থা'),
                   const SizedBox(height: AppConstants.paddingMedium),
                   _buildHealthCards(provider),
                   const SizedBox(height: AppConstants.paddingXLarge),
 
                   // Memory Usage Chart
-                  _buildSectionTitle('মেমরি ব্যবহার (শেষ ২৪ ঘন্টা)', 'সার্ভার কতটুকু মেমরি ব্যবহার করছে'),
+                  _buildSectionTitle('মেমরি ব্যবহার (শেষ ২৪ ঘন্টা)',
+                      'সার্ভার কতটুকু মেমরি ব্যবহার করছে'),
                   const SizedBox(height: AppConstants.paddingMedium),
                   _buildMemoryChart(provider),
                   const SizedBox(height: AppConstants.paddingXLarge),
 
                   // Request Rate Chart
-                  _buildSectionTitle('অনুরোধের হার (শেষ ২৪ ঘন্টা)', 'প্রতি ঘন্টায় কতটি অনুরোধ আসছে'),
+                  _buildSectionTitle('অনুরোধের হার (শেষ ২৪ ঘন্টা)',
+                      'প্রতি ঘন্টায় কতটি অনুরোধ আসছে'),
                   const SizedBox(height: AppConstants.paddingMedium),
                   _buildRequestChart(provider),
                   const SizedBox(height: AppConstants.paddingXLarge),
 
                   // Error Distribution
-                  _buildSectionTitle('ত্রুটির বিন্যাস', 'কোন ধরনের ত্রুটি কতবার হচ্ছে'),
+                  _buildSectionTitle(
+                      'ত্রুটির বিন্যাস', 'কোন ধরনের ত্রুটি কতবার হচ্ছে'),
                   const SizedBox(height: AppConstants.paddingMedium),
                   _buildErrorDistribution(provider),
                 ],
@@ -236,7 +241,7 @@ class _MetricsScreenState extends State<MetricsScreen> {
           height: 200,
           child: LineChart(
             LineChartData(
-              gridData: FlGridData(show: false),
+              gridData: const FlGridData(show: false),
               titlesData: FlTitlesData(
                 bottomTitles: AxisTitles(
                   sideTitles: SideTitles(
@@ -259,9 +264,9 @@ class _MetricsScreenState extends State<MetricsScreen> {
                 LineChartBarData(
                   spots: provider.getMemorySpots(),
                   isCurved: true,
-                  color: Color(AppConstants.primaryColor),
+                  color: const Color(AppConstants.primaryColor),
                   barWidth: 2,
-                  dotData: FlDotData(show: false),
+                  dotData: const FlDotData(show: false),
                 ),
               ],
             ),
@@ -279,7 +284,7 @@ class _MetricsScreenState extends State<MetricsScreen> {
           height: 200,
           child: BarChart(
             BarChartData(
-              gridData: FlGridData(show: false),
+              gridData: const FlGridData(show: false),
               titlesData: FlTitlesData(
                 bottomTitles: AxisTitles(
                   sideTitles: SideTitles(

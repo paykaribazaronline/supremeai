@@ -33,7 +33,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _handleRegister(BuildContext context) async {
     if (_formKey.currentState?.validate() ?? false) {
       final authProvider = context.read<AuthProvider>();
-      
+
       final success = await authProvider.register(
         _emailController.text.trim(),
         _passwordController.text,
@@ -48,7 +48,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(authProvider.error ?? 'Registration failed'),
-            backgroundColor: Color(AppConstants.errorColor),
+            backgroundColor: const Color(AppConstants.errorColor),
           ),
         );
       }
@@ -58,7 +58,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(AppConstants.backgroundColor),
+      backgroundColor: const Color(AppConstants.backgroundColor),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -78,7 +78,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: Color(AppConstants.primaryColor),
+                  color: const Color(AppConstants.primaryColor),
                   borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
                 ),
                 child: const Icon(
@@ -206,7 +206,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Container(
                       padding: const EdgeInsets.all(AppConstants.paddingSmall),
                       decoration: BoxDecoration(
-                        color: Color(AppConstants.infoColor).withOpacity(0.1),
+                        color: const Color(AppConstants.infoColor)
+                            .withOpacity(0.1),
                         borderRadius:
                             BorderRadius.circular(AppConstants.radiusMedium),
                       ),
@@ -232,25 +233,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 AppConstants.paddingMedium,
                               ),
                               decoration: BoxDecoration(
-                                color: Color(AppConstants.errorColor)
+                                color: const Color(AppConstants.errorColor)
                                     .withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(
                                   AppConstants.radiusMedium,
                                 ),
                                 border: Border.all(
-                                  color: Color(AppConstants.errorColor),
+                                  color: const Color(AppConstants.errorColor),
                                 ),
                               ),
                               child: Text(
                                 authProvider.error ?? '',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Color(AppConstants.errorColor),
                                 ),
                               ),
                             ),
                           );
                         }
-                        return SizedBox.shrink();
+                        return const SizedBox.shrink();
                       },
                     ),
                     // Register Button
@@ -269,8 +270,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     height: 20,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor:
-                                          AlwaysStoppedAnimation<Color>(
+                                      valueColor: AlwaysStoppedAnimation<Color>(
                                         Colors.white,
                                       ),
                                     ),

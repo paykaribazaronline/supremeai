@@ -10,7 +10,8 @@ class ResilienceScreen extends StatefulWidget {
   State<ResilienceScreen> createState() => _ResilienceScreenState();
 }
 
-class _ResilienceScreenState extends State<ResilienceScreen> with SingleTickerProviderStateMixin {
+class _ResilienceScreenState extends State<ResilienceScreen>
+    with SingleTickerProviderStateMixin {
   final ApiService _apiService = ApiService();
   late TabController _tabController;
 
@@ -35,21 +36,30 @@ class _ResilienceScreenState extends State<ResilienceScreen> with SingleTickerPr
   }
 
   Future<void> _loadAll() async {
-    setState(() { _isLoading = true; _error = null; });
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
     final results = await Future.wait([
       _apiService.get<Map<String, dynamic>>(Environment.resilienceHealth),
       _apiService.get<List<dynamic>>(Environment.resilienceCircuitBreakers),
-      _apiService.get<Map<String, dynamic>>(Environment.resilienceFailoverStats),
+      _apiService
+          .get<Map<String, dynamic>>(Environment.resilienceFailoverStats),
       _apiService.get<Map<String, dynamic>>(Environment.selfHealingHealth),
     ]);
     if (!mounted) return;
     setState(() {
       _isLoading = false;
-      if (results[0].success) _health = results[0].data as Map<String, dynamic>?;
-      if (results[1].success) _circuitBreakers = (results[1].data as List<dynamic>?) ?? [];
-      if (results[2].success) _failoverStats = results[2].data as Map<String, dynamic>?;
-      if (results[3].success) _selfHealing = results[3].data as Map<String, dynamic>?;
-      if (!results[0].success) _error = results[0].error ?? 'রেজিলিয়েন্স তথ্য লোড করা যায়নি';
+      if (results[0].success)
+        _health = results[0].data as Map<String, dynamic>?;
+      if (results[1].success)
+        _circuitBreakers = (results[1].data as List<dynamic>?) ?? [];
+      if (results[2].success)
+        _failoverStats = results[2].data as Map<String, dynamic>?;
+      if (results[3].success)
+        _selfHealing = results[3].data as Map<String, dynamic>?;
+      if (!results[0].success)
+        _error = results[0].error ?? 'রেজিলিয়েন্স তথ্য লোড করা যায়নি';
     });
   }
 
@@ -59,8 +69,11 @@ class _ResilienceScreenState extends State<ResilienceScreen> with SingleTickerPr
     );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(response.success ? 'সার্কিট ব্রেকার রিসেট হয়েছে' : 'ত্রুটি'),
-      backgroundColor: Color(response.success ? AppConstants.successColor : AppConstants.errorColor),
+      content:
+          Text(response.success ? 'সার্কিট ব্রেকার রিসেট হয়েছে' : 'ত্রুটি'),
+      backgroundColor: Color(response.success
+          ? AppConstants.successColor
+          : AppConstants.errorColor),
     ));
     if (response.success) _loadAll();
   }
@@ -78,19 +91,34 @@ class _ResilienceScreenState extends State<ResilienceScreen> with SingleTickerPr
             Tab(icon: Icon(Icons.healing), text: 'আত্মমেরামত'),
           ],
         ),
-        actions: [IconButton(icon: const Icon(Icons.refresh), tooltip: 'রিফ্রেশ', onPressed: _loadAll)],
+        actions: [
+          IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'রিফ্রেশ',
+              onPressed: _loadAll)
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.grey),
-                  Text(_error!),
-                  ElevatedButton(onPressed: _loadAll, child: const Text('আবার চেষ্টা করুন')),
-                ]))
+              ? Center(
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                      const Icon(Icons.error_outline,
+                          size: 48, color: Colors.grey),
+                      Text(_error!),
+                      ElevatedButton(
+                          onPressed: _loadAll,
+                          child: const Text('আবার চেষ্টা করুন')),
+                    ]))
               : TabBarView(
                   controller: _tabController,
-                  children: [_buildHealthTab(), _buildCircuitBreakersTab(), _buildSelfHealingTab()],
+                  children: [
+                    _buildHealthTab(),
+                    _buildCircuitBreakersTab(),
+                    _buildSelfHealingTab()
+                  ],
                 ),
     );
   }
@@ -116,15 +144,27 @@ class _ResilienceScreenState extends State<ResilienceScreen> with SingleTickerPr
                   children: [
                     Row(children: [
                       Icon(isHealthy ? Icons.check_circle : Icons.warning,
-                          color: isHealthy ? Colors.green : Colors.orange, size: 32),
+                          color: isHealthy ? Colors.green : Colors.orange,
+                          size: 32),
                       const SizedBox(width: 12),
-                      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        const Text('সিস্টেম রেজিলিয়েন্স', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        Text(isHealthy ? 'সব ঠিক আছে' : 'সমস্যা সনাক্ত হয়েছে',
-                            style: TextStyle(color: isHealthy ? Colors.green : Colors.orange)),
-                      ]),
+                      Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('সিস্টেম রেজিলিয়েন্স',
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold)),
+                            Text(
+                                isHealthy
+                                    ? 'সব ঠিক আছে'
+                                    : 'সমস্যা সনাক্ত হয়েছে',
+                                style: TextStyle(
+                                    color: isHealthy
+                                        ? Colors.green
+                                        : Colors.orange)),
+                          ]),
                     ]),
-                    const Text('(সিস্টেম কোনো সমস্যায় পড়লে নিজে নিজে সামলানোর ক্ষমতা)',
+                    const Text(
+                        '(সিস্টেম কোনো সমস্যায় পড়লে নিজে নিজে সামলানোর ক্ষমতা)',
                         style: TextStyle(fontSize: 12, color: Colors.grey)),
                   ],
                 ),
@@ -138,10 +178,22 @@ class _ResilienceScreenState extends State<ResilienceScreen> with SingleTickerPr
               mainAxisSpacing: 8,
               crossAxisSpacing: 8,
               children: [
-                _buildStatCard('সক্রিয় ব্রেকার', '${_circuitBreakers.length}', Icons.electric_bolt, AppConstants.warningColor),
-                _buildStatCard('ফেইলওভার', '${fs['totalFailovers'] ?? 0}', Icons.swap_horiz, AppConstants.infoColor),
-                _buildStatCard('সফল পুনরুদ্ধার', '${fs['successfulRecoveries'] ?? 0}', Icons.restore, AppConstants.successColor),
-                _buildStatCard('স্ট্যাটাস', status, Icons.monitor_heart, isHealthy ? AppConstants.successColor : AppConstants.errorColor),
+                _buildStatCard('সক্রিয় ব্রেকার', '${_circuitBreakers.length}',
+                    Icons.electric_bolt, AppConstants.warningColor),
+                _buildStatCard('ফেইলওভার', '${fs['totalFailovers'] ?? 0}',
+                    Icons.swap_horiz, AppConstants.infoColor),
+                _buildStatCard(
+                    'সফল পুনরুদ্ধার',
+                    '${fs['successfulRecoveries'] ?? 0}',
+                    Icons.restore,
+                    AppConstants.successColor),
+                _buildStatCard(
+                    'স্ট্যাটাস',
+                    status,
+                    Icons.monitor_heart,
+                    isHealthy
+                        ? AppConstants.successColor
+                        : AppConstants.errorColor),
               ],
             ),
           ],
@@ -154,12 +206,16 @@ class _ResilienceScreenState extends State<ResilienceScreen> with SingleTickerPr
     return RefreshIndicator(
       onRefresh: _loadAll,
       child: _circuitBreakers.isEmpty
-          ? const Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(Icons.electric_bolt, size: 64, color: Colors.grey),
-              SizedBox(height: 16),
-              Text('কোনো সার্কিট ব্রেকার নেই'),
-              Text('(সার্কিট ব্রেকার সিস্টেমকে ওভারলোড থেকে রক্ষা করে)', style: TextStyle(fontSize: 12, color: Colors.grey)),
-            ]))
+          ? const Center(
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                  Icon(Icons.electric_bolt, size: 64, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text('কোনো সার্কিট ব্রেকার নেই'),
+                  Text('(সার্কিট ব্রেকার সিস্টেমকে ওভারলোড থেকে রক্ষা করে)',
+                      style: TextStyle(fontSize: 12, color: Colors.grey)),
+                ]))
           : ListView.builder(
               padding: const EdgeInsets.all(AppConstants.paddingMedium),
               itemCount: _circuitBreakers.length,
@@ -199,11 +255,14 @@ class _ResilienceScreenState extends State<ResilienceScreen> with SingleTickerPr
                       child: Icon(stateIcon, color: stateColor),
                     ),
                     title: Text(name),
-                    subtitle: Text('অবস্থা: $stateText\nব্যর্থতা: $failureCount', style: const TextStyle(fontSize: 12)),
+                    subtitle: Text(
+                        'অবস্থা: $stateText\nব্যর্থতা: $failureCount',
+                        style: const TextStyle(fontSize: 12)),
                     isThreeLine: true,
                     trailing: state != 'CLOSED'
                         ? IconButton(
-                            icon: const Icon(Icons.restart_alt, color: Colors.blue),
+                            icon: const Icon(Icons.restart_alt,
+                                color: Colors.blue),
                             tooltip: 'রিসেট করুন',
                             onPressed: () => _resetCircuitBreaker(name),
                           )
@@ -234,16 +293,23 @@ class _ResilienceScreenState extends State<ResilienceScreen> with SingleTickerPr
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(children: [
-                      Icon(Icons.healing, color: Color(AppConstants.primaryColor)),
-                      const SizedBox(width: 8),
-                      const Text('আত্মমেরামত ব্যবস্থা', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Row(children: [
+                      Icon(Icons.healing,
+                          color: Color(AppConstants.primaryColor)),
+                      SizedBox(width: 8),
+                      Text('আত্মমেরামত ব্যবস্থা',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
                     ]),
-                    const Text('(সিস্টেম নিজে নিজে সমস্যা ঠিক করার চেষ্টা করে)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    const Text('(সিস্টেম নিজে নিজে সমস্যা ঠিক করার চেষ্টা করে)',
+                        style: TextStyle(fontSize: 12, color: Colors.grey)),
                     const SizedBox(height: 12),
                     Chip(
                       label: Text('অবস্থা: $status'),
-                      backgroundColor: (status == 'ACTIVE' || status == 'UP' ? Colors.green : Colors.orange).withOpacity(0.1),
+                      backgroundColor: (status == 'ACTIVE' || status == 'UP'
+                              ? Colors.green
+                              : Colors.orange)
+                          .withOpacity(0.1),
                     ),
                   ],
                 ),
@@ -251,8 +317,10 @@ class _ResilienceScreenState extends State<ResilienceScreen> with SingleTickerPr
             ),
             const SizedBox(height: 16),
             if (services.isNotEmpty) ...[
-              const Text('সার্ভিস অবস্থা:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              const Text('(প্রতিটি সার্ভিস ঠিক আছে কিনা)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+              const Text('সার্ভিস অবস্থা:',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const Text('(প্রতিটি সার্ভিস ঠিক আছে কিনা)',
+                  style: TextStyle(fontSize: 12, color: Colors.grey)),
               const SizedBox(height: 8),
               ...services.map((s) {
                 final svc = s is Map<String, dynamic> ? s : <String, dynamic>{};
@@ -260,9 +328,12 @@ class _ResilienceScreenState extends State<ResilienceScreen> with SingleTickerPr
                 final sStatus = '${svc['status'] ?? ''}'.toUpperCase();
                 final isUp = sStatus == 'UP' || sStatus == 'HEALTHY';
                 return ListTile(
-                  leading: Icon(isUp ? Icons.check_circle : Icons.error, color: isUp ? Colors.green : Colors.red),
+                  leading: Icon(isUp ? Icons.check_circle : Icons.error,
+                      color: isUp ? Colors.green : Colors.red),
                   title: Text(sName),
-                  trailing: Chip(label: Text(isUp ? 'চালু' : 'সমস্যা', style: const TextStyle(fontSize: 11))),
+                  trailing: Chip(
+                      label: Text(isUp ? 'চালু' : 'সমস্যা',
+                          style: const TextStyle(fontSize: 11))),
                 );
               }),
             ],
@@ -276,7 +347,10 @@ class _ResilienceScreenState extends State<ResilienceScreen> with SingleTickerPr
     return Card(
       child: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [Color(color).withOpacity(0.1), Color(color).withOpacity(0.05)]),
+          gradient: LinearGradient(colors: [
+            Color(color).withOpacity(0.1),
+            Color(color).withOpacity(0.05)
+          ]),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Padding(
@@ -287,8 +361,11 @@ class _ResilienceScreenState extends State<ResilienceScreen> with SingleTickerPr
             children: [
               Icon(icon, color: Color(color), size: 22),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                Text(title, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                Text(value,
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(title,
+                    style: const TextStyle(fontSize: 11, color: Colors.grey)),
               ]),
             ],
           ),

@@ -17,27 +17,8 @@ class AuthProvider extends ChangeNotifier {
 
   // Check login status
   Future<bool> checkLoginStatus() async {
-    _isLoggedIn = false;
-    _currentUser = null;
-
-    final hasStoredSession = await _authService.isLoggedIn();
-    if (hasStoredSession) {
-      var isTokenValid = await _authService.isTokenValid();
-
-      if (!isTokenValid) {
-        final refreshed = await _authService.refreshToken();
-        if (refreshed) {
-          isTokenValid = await _authService.isTokenValid();
-        }
-      }
-
-      if (isTokenValid) {
-        _isLoggedIn = true;
-        _currentUser = await _authService.getCurrentUser();
-      } else {
-        await _authService.logout();
-      }
-    }
+    _isLoggedIn = await _authService.isLoggedIn();
+    _currentUser = _isLoggedIn ? await _authService.getCurrentUser() : null;
     
     notifyListeners();
     return _isLoggedIn;
