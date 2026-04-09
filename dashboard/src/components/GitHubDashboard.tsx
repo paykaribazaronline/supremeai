@@ -1,5 +1,5 @@
-// GitHubDashboard.tsx - GitHub Integration & Monitoring Tab
 import React, { useState, useEffect } from 'react';
+import { authUtils } from '../lib/authUtils';
 import {
     Card,
     Row,
@@ -76,7 +76,7 @@ const GitHubDashboard: React.FC = () => {
         return () => clearInterval(interval);
     }, []);
 
-    const getToken = () => localStorage.getItem('supremeai_token') || localStorage.getItem('authToken');
+    const getToken = () => authUtils.getToken();
 
     const fetchGitHubData = async () => {
         setLoading(true);

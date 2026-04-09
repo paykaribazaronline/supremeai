@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Form, Input, Button, Alert, Card, Typography } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { firebaseSignIn } from '../lib/firebase';
+import { authUtils } from '../lib/authUtils';
 
 const { Title, Text } = Typography;
 
@@ -22,12 +23,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     try {
       const result = await firebaseSignIn(email, password);
       const token = result.token;
-      const refreshToken = result.refreshToken;
       const userData = result.user;
 
-      localStorage.setItem('supremeai_token', token);
-      localStorage.setItem('supremeai_refresh_token', refreshToken);
-      localStorage.setItem('supremeai_user', JSON.stringify(userData));
+      // Store using unified key 'authToken' for consistency across all screens
+      authUtils.setToken(token);
+      authUtils.setCurrentUser(userData);
+      
       onLoginSuccess();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Login failed';

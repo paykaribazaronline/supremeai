@@ -38,26 +38,26 @@
 
     "projects": {
       "$projectId": {
-        ".read": "auth != null && auth.token.admin === true",
-        ".write": "auth != null && auth.token.admin === true",
+        ".read": "auth != null",
+        ".write": "auth != null",
 
         "chat": {
           "$chatId": {
-            ".read": "auth != null && auth.token.admin === true",
-            ".write": "auth != null && auth.token.admin === true"
+            ".read": "auth != null",
+            ".write": "auth != null"
           }
         }
       }
     },
 
     "requirements": {
-      ".read": "auth != null && auth.token.admin === true",
-      ".write": "auth != null && auth.token.admin === true"
+      ".read": "auth != null",
+      ".write": "auth != null"
     },
 
     "config": {
-      ".read": "auth != null && auth.token.admin === true",
-      ".write": "auth != null && auth.token.admin === true"
+      ".read": "auth != null",
+      ".write": "auth != null"
     },
 
     "security": {

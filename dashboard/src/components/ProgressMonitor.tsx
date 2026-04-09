@@ -31,8 +31,7 @@ const ProgressMonitor: React.FC = () => {
     const fetchProgress = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('authToken');
-            const headers = { 'Authorization': `Bearer ${token}` };
+            const headers = authUtils.getAuthHeaders();
             const [metricsRes, statusRes, healthRes] = await Promise.all([
                 fetch('/api/system/metrics', { headers }),
                 fetch('/api/status/summary', { headers }),

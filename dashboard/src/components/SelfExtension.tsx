@@ -25,7 +25,7 @@ const SelfExtension: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'single' | 'batch' | 'status'>('status');
 
     const getHeaders = () => {
-        const token = localStorage.getItem('supremeai_token') || localStorage.getItem('authToken');
+        const token = authUtils.getToken();
         return {
             'Content-Type': 'application/json',
             ...(token ? { Authorization: `Bearer ${token}` } : {}),

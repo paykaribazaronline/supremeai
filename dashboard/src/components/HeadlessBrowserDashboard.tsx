@@ -1,5 +1,5 @@
-// HeadlessBrowserDashboard.tsx - Puppeteer Web Scraping & Automation
 import React, { useState, useEffect } from 'react';
+import { authUtils } from '../lib/authUtils';
 import {
     Card,
     Row,
@@ -91,7 +91,7 @@ const HeadlessBrowserDashboard: React.FC = () => {
         return () => clearInterval(interval);
     }, []);
 
-    const getToken = () => localStorage.getItem('supremeai_token') || localStorage.getItem('authToken');
+    const getToken = () => authUtils.getToken();
 
     const fetchBrowserData = async () => {
         setLoading(true);

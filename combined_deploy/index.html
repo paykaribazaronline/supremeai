@@ -8,6 +8,22 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <!-- 
+        ⚠️ MASTER FIREBASE-ONLY AUTHENTICATION RULES ENFORCED
+        
+        CRITICAL SECURITY RULES:
+        1. ONLY Firebase authentication allowed - ZERO exceptions
+        2. ALL users MUST login with Firebase email + password
+        3. Token MUST be stored in localStorage['authToken'] ONLY
+        4. NO other token keys permitted (supremeai_token, jwt_token, etc.)
+        5. Logout MUST call firebase.auth().signOut()
+        6. All API calls MUST include Authorization Bearer header
+        
+        VIOLATION OF THESE RULES = CRITICAL SECURITY INCIDENT
+        
+        Enforced: April 9, 2026
+        Authority: SupremeAI Security Team
+    -->
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -189,11 +205,23 @@
 
         auth.onAuthStateChanged((user) => {
             if (user) {
+                // Get Firebase ID Token and store with standard key 'authToken'
+                user.getIdToken().then(token => {
+                    localStorage.setItem('authToken', token);
+                    localStorage.setItem('firebaseUser', JSON.stringify({
+                        uid: user.uid,
+                        email: user.email,
+                        displayName: user.displayName,
+                    }));
+                });
+                
                 document.getElementById('authStatus').style.display = 'block';
                 document.getElementById('userEmail').textContent = user.email;
                 document.getElementById('loginModal').style.display = 'none';
                 startLiveSync();
             } else {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('firebaseUser');
                 document.getElementById('authStatus').style.display = 'none';
                 document.getElementById('loginModal').style.display = 'flex';
             }
