@@ -22,12 +22,14 @@ COPY --from=build /workspace/build/libs/app.jar /app/app.jar
 RUN chown -R supremeai:supremeai /app
 
 ENV PORT=8080
-ENV JAVA_OPTS="-Xms256m -Xmx1024m -XX:+UseG1GC -XX:+UseStringDeduplication"
+ENV JAVA_OPTS="-Xms128m -Xmx512m -XX:+UseG1GC -XX:+UseStringDeduplication -XX:InitiatingHeapOccupancyPercent=35"
 
 EXPOSE 8080
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
-  CMD curl -fsS http://localhost:8080/actuator/health || exit 1
+# Health check for Cloud Run - checks both liveness and readiness probes
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  CMD curl -fsS http://localhost:8080/actuator/health/liveness || exit 1
 
 USER supremeai
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar"]
+

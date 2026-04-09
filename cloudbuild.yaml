@@ -35,10 +35,11 @@ steps:
       - '--port=8080'
       - '--memory=1Gi'
       - '--cpu=1'
-      - '--timeout=3600'
+      - '--timeout=300s'
       - '--max-instances=10'
       - '--allow-unauthenticated'
-      - '--set-env-vars=FIREBASE_CONFIG_PATH=/secrets/firebase-service-account.json'
+      - '--set-env-vars=SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a,PORT=8080,JAVA_OPTS=-Xms128m -Xmx512m -XX:+UseG1GC'
+      - '--service-account=supremeai-cloud-run@supremeai-565236080752.iam.gserviceaccount.com'
     env:
       - 'CLOUDSDK_RUN_REGION=us-central1'
     waitFor: ['push_supremeai']

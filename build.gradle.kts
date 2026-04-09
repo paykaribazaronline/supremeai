@@ -70,6 +70,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-websocket")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     
     // Spring Cloud GCP - Firestore
     implementation("com.google.cloud:spring-cloud-gcp-starter:3.8.3")
