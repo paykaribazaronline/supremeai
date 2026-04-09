@@ -421,16 +421,14 @@ public class ChatController {
                 return routerResponse.content;
             }
 
-            // Graceful degradation: tell the user no provider is available
-            String errDetail = (routerResponse != null && routerResponse.error != null)
-                ? routerResponse.error : "no provider configured";
-            return "⚠️ No AI provider is currently available (" + errDetail + "). "
-                 + "Please add an API key in the Provider Coverage section and try again.";
+            // Solo mode fallback: generate a real response using built-in knowledge
+            logger.info("🧠 Solo mode: generating rule-based response for chat");
+            return generateSoloChatResponse(userMessage, taskType);
 
         } catch (Exception e) {
             logger.warn("AI call failed (provider={}): {}", provider, e.getMessage());
-            return "⚠️ AI call failed: " + e.getMessage()
-                 + " — please check your provider configuration.";
+            // Still produce a useful response even on error
+            return generateSoloChatResponse(userMessage, taskType);
         }
     }
 
@@ -444,6 +442,113 @@ public class ChatController {
             case "fast":                                   return "GROQ";
             default:                                       return "GPT4";
         }
+    }
+
+    /**
+     * Solo mode chat: produce a real, useful response using built-in knowledge.
+     * When external AI is unavailable, the system still answers — AI only enhances quality.
+     */
+    private String generateSoloChatResponse(String userMessage, String taskType) {
+        String msg = userMessage.toLowerCase();
+        StringBuilder sb = new StringBuilder();
+        sb.append("🧠 **SupremeAI Solo Mode Response**\n\n");
+
+        // Detect intent and provide relevant built-in knowledge
+        if (msg.contains("hello") || msg.contains("hi ") || msg.contains("hey") || msg.startsWith("hi")) {
+            sb.append("Hello! I'm SupremeAI running in solo mode. ");
+            sb.append("I can help with code generation, project analysis, app creation, and system management. ");
+            sb.append("What would you like to work on?");
+        } else if (msg.contains("create") && (msg.contains("app") || msg.contains("project"))) {
+            sb.append("## App Creation Guide\n");
+            sb.append("To create an app, use the **App Creation** feature from the dashboard.\n\n");
+            sb.append("**Steps:**\n");
+            sb.append("1. Describe your requirement in natural language\n");
+            sb.append("2. System will analyze and determine type (Controller/Service/Model)\n");
+            sb.append("3. Code is generated with proper structure, validation, and error handling\n");
+            sb.append("4. Dependencies and method signatures are auto-detected\n\n");
+            sb.append("**Supported types:** REST API, CRUD service, data model, controller\n");
+            sb.append("**Built-in enhancements:** Input validation, SQL injection prevention, error handling, logging");
+        } else if (msg.contains("improve") || msg.contains("optimize") || msg.contains("refactor")) {
+            sb.append("## Code Improvement Best Practices\n\n");
+            sb.append("**Performance:**\n");
+            sb.append("- Use caching for repeated operations\n");
+            sb.append("- Optimize database queries (avoid N+1)\n");
+            sb.append("- Use async processing for long tasks\n\n");
+            sb.append("**Security:**\n");
+            sb.append("- Validate all inputs at entry points\n");
+            sb.append("- Use parameterized queries (prevent SQL injection)\n");
+            sb.append("- Add CORS configuration for APIs\n");
+            sb.append("- Implement proper auth checks\n\n");
+            sb.append("**Code Quality:**\n");
+            sb.append("- Add unit tests for core logic\n");
+            sb.append("- Use try-catch with detailed logging\n");
+            sb.append("- Follow single responsibility principle\n");
+            sb.append("- Add API documentation");
+        } else if (msg.contains("error") || msg.contains("fix") || msg.contains("bug") || msg.contains("debug")) {
+            sb.append("## Debugging Guide\n\n");
+            sb.append("**Common fixes:**\n");
+            sb.append("1. **NullPointerException** → Add null checks, use Optional\n");
+            sb.append("2. **401/403 errors** → Check authentication token and permissions\n");
+            sb.append("3. **Build failures** → Check dependency versions, clean and rebuild\n");
+            sb.append("4. **Connection refused** → Verify service URL and port, check firewall\n");
+            sb.append("5. **JSON parse error** → Validate response status before parsing\n\n");
+            sb.append("**Steps:**\n");
+            sb.append("1. Check the error logs for stack trace\n");
+            sb.append("2. Identify the root cause (not just the symptom)\n");
+            sb.append("3. Fix at the source, add proper error handling\n");
+            sb.append("4. Add a test to prevent regression");
+        } else if (msg.contains("deploy") || msg.contains("cloud") || msg.contains("ci") || msg.contains("cd")) {
+            sb.append("## Deployment Guide\n\n");
+            sb.append("**SupremeAI uses:**\n");
+            sb.append("- Google Cloud Run for backend\n");
+            sb.append("- GitHub Actions for CI/CD\n");
+            sb.append("- Firebase for data storage\n\n");
+            sb.append("**Pipeline:** Push → GitHub Actions → Build → Test → Deploy to Cloud Run\n");
+            sb.append("**Commands:** `gradlew build` → `docker build` → `gcloud run deploy`");
+        } else if (msg.contains("test") || msg.contains("testing")) {
+            sb.append("## Testing Best Practices\n\n");
+            sb.append("- Write unit tests for every service method\n");
+            sb.append("- Use integration tests for API endpoints\n");
+            sb.append("- Mock external dependencies\n");
+            sb.append("- Aim for >80% code coverage\n");
+            sb.append("- Test edge cases: null input, empty strings, boundary values\n");
+            sb.append("- Use `@SpringBootTest` for full context tests");
+        } else if (msg.contains("api") || msg.contains("rest") || msg.contains("endpoint")) {
+            sb.append("## REST API Design Guide\n\n");
+            sb.append("- Use proper HTTP methods: GET (read), POST (create), PUT (update), DELETE (remove)\n");
+            sb.append("- Return appropriate status codes: 200, 201, 400, 401, 404, 500\n");
+            sb.append("- Validate request body at controller level\n");
+            sb.append("- Use DTOs for request/response (not entities)\n");
+            sb.append("- Add pagination for list endpoints\n");
+            sb.append("- Document with Swagger/OpenAPI");
+        } else if (msg.contains("security") || msg.contains("auth") || msg.contains("password")) {
+            sb.append("## Security Best Practices\n\n");
+            sb.append("- Never store passwords in plain text (use BCrypt)\n");
+            sb.append("- Validate and sanitize all user inputs\n");
+            sb.append("- Use HTTPS everywhere\n");
+            sb.append("- Implement rate limiting\n");
+            sb.append("- Use JWT tokens for stateless auth\n");
+            sb.append("- Follow OWASP Top 10 guidelines\n");
+            sb.append("- Set proper CORS policies");
+        } else {
+            // General knowledge response based on task type
+            sb.append("## Response\n\n");
+            sb.append("I'm processing your request in solo mode using built-in knowledge.\n\n");
+            if ("code".equals(taskType) || "codegen".equals(taskType)) {
+                sb.append("**For code tasks:** I can generate controllers, services, and models ");
+                sb.append("with proper validation, error handling, and security patterns.\n\n");
+            }
+            sb.append("**Your question:** ").append(userMessage).append("\n\n");
+            sb.append("**Suggestion:** For the best response, try including keywords like: ");
+            sb.append("create, improve, deploy, test, security, error, api — ");
+            sb.append("or describe your specific coding task.\n\n");
+            sb.append("**Available features:** App Creation, Improve Existing App, Code Generation, ");
+            sb.append("Deployment Management, Error Solving");
+        }
+
+        sb.append("\n\n---\n*Solo mode: Running with built-in knowledge. ");
+        sb.append("Connect an AI provider for enhanced responses.*");
+        return sb.toString();
     }
     
     private void trackTaskExecution(String taskType, String agentId, int executionTime, Map<String, Object> message) {
