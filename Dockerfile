@@ -11,7 +11,7 @@ RUN set -eux; \
 FROM eclipse-temurin:17-jdk-jammy
 
 # Install git (required for GitIntegrationService)
-RUN apt-get update && apt-get install -y git curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y git curl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
@@ -22,13 +22,15 @@ COPY --from=build /home/gradle/src/build/libs/app.jar app.jar
 # Set PORT environment variable (Cloud Run requirement)
 # This overrides the default 8080 if PORT env var is set
 ENV PORT=8080
+ENV JAVA_OPTS="-Xms128m -Xmx512m -XX:+UseG1GC -XX:+UseStringDeduplication -XX:InitiatingHeapOccupancyPercent=35"
 
 # Expose the port Spring Boot runs on
 EXPOSE 8080
 
 # Add health check for Cloud Run
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8080/actuator/health || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/actuator/health/liveness || exit 1
 
 # Start the application with proper JVM settings for containers
-ENTRYPOINT ["java", "-Xmx512m", "-Xms256m", "-XX:+UseG1GC", "-jar", "app.jar"]
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar app.jar"]
+

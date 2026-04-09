@@ -4,6 +4,7 @@ import org.example.model.SystemConfig;
 import org.example.service.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.HashMap;
@@ -21,8 +22,11 @@ import java.util.Map;
  * - DataCollectorService (Phase 4)
  * - WebhookListener (Phase 4)
  * - AdminMessagePusher (Phase 4)
+ * 
+ * NOTE: Disabled for 'test' profile - uses TestBeansConfiguration instead
  */
 @Configuration
+@Profile("!test")
 public class ServiceConfiguration {
     private static final Logger logger = LoggerFactory.getLogger(ServiceConfiguration.class);
     

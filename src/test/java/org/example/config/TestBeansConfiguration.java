@@ -1,22 +1,31 @@
 package org.example.config;
 
-import org.example.service.AIAPIService;
+import org.example.model.SystemConfig;
+import org.example.service.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.Mockito.mock;
+
 /**
  * Spring Bean Configuration for Test/Development
- * Provides stubs for dependencies needed for testing
+ * Provides TEST implementations of all dependencies needed for testing
  * 
  * ONLY LOADS IN 'test' PROFILE - not in 'local' or 'prod'
+ * Overrides ServiceConfiguration which is disabled for test profile
  */
 @Configuration
 @Profile("test")
 public class TestBeansConfiguration {
+
+    private static final Logger logger = LoggerFactory.getLogger(TestBeansConfiguration.class);
 
     @Value("${ai.timeout.ms:7000}")
     private int aiTimeoutMs;
@@ -52,9 +61,119 @@ public class TestBeansConfiguration {
     private int aiCacheMaxSize;
     
     /**
+     * Mock Firebase Service to prevent actual Firebase calls in tests
+     */
+    @Bean
+    @Primary
+    public FirebaseService firebaseService() {
+        logger.info("🧪 Loading mock FirebaseService for tests");
+        return mock(FirebaseService.class);
+    }
+    
+    /**
+     * Mock SystemConfig for tests
+     */
+    @Bean
+    @Primary
+    public SystemConfig systemConfig() {
+        logger.info("🧪 Loading mock SystemConfig for tests");
+        SystemConfig config = new SystemConfig();
+        config.setAgentCount(2);
+        config.setConsensusThreshold(0.5);
+        config.setRotationEnabled(false);
+        config.setVpnEnabled(false);
+        return config;
+    }
+    
+    /**
+     * Mock API Keys for tests
+     */
+    @Bean
+    @Primary
+    public Map<String, String> apiKeys() {
+        logger.info("🧪 Loading empty API keys for tests");
+        return new HashMap<>();
+    }
+    
+    /**
+     * Mock Quota Tracker
+     */
+    @Bean
+    @Primary
+    public QuotaTracker quotaTracker(FirebaseService firebase, LocalJsonStoreService jsonStore) {
+        logger.info("🧪 Loading mock QuotaTracker for tests");
+        return mock(QuotaTracker.class);
+    }
+    
+    /**
+     * Mock API Data Collector
+     */
+    @Bean
+    @Primary
+    public APIDataCollector apiDataCollector(QuotaTracker quota, FirebaseService firebase) {
+        logger.info("🧪 Loading mock APIDataCollector for tests");
+        return mock(APIDataCollector.class);
+    }
+    
+    /**
+     * Mock Browser Data Collector
+     */
+    @Bean
+    @Primary
+    public BrowserDataCollector browserDataCollector(QuotaTracker quota, FirebaseService firebase) {
+        logger.info("🧪 Loading mock BrowserDataCollector for tests");
+        return mock(BrowserDataCollector.class);
+    }
+    
+    /**
+     * Mock Hybrid Data Collector
+     */
+    @Bean
+    @Primary
+    public HybridDataCollector hybridDataCollector(
+            APIDataCollector apiCollector,
+            BrowserDataCollector browserCollector,
+            QuotaTracker quota,
+            FirebaseService firebase) {
+        logger.info("🧪 Loading mock HybridDataCollector for tests");
+        return mock(HybridDataCollector.class);
+    }
+    
+    /**
+     * Mock Data Collector Service
+     */
+    @Bean
+    @Primary
+    public DataCollectorService dataCollectorService(HybridDataCollector hybridCollector) {
+        logger.info("🧪 Loading mock DataCollectorService for tests");
+        return mock(DataCollectorService.class);
+    }
+    
+    /**
+     * Mock Webhook Listener
+     */
+    @Bean
+    @Primary
+    public WebhookListener webhookListener(DataCollectorService collectorService) {
+        logger.info("🧪 Loading mock WebhookListener for tests");
+        return mock(WebhookListener.class);
+    }
+    
+    /**
+     * Mock Admin Message Pusher
+     */
+    @Bean
+    @Primary
+    public AdminMessagePusher adminMessagePusher() {
+        logger.info("🧪 Loading mock AdminMessagePusher for tests");
+        return mock(AdminMessagePusher.class);
+    }
+    
+    /**
      * Provide AIAPIService bean for dependency injection
      */
     @Bean
+    @Primary
     public AIAPIService aiAPIService(org.example.service.ProviderRegistryService providerRegistryService,
                                     org.example.service.FallbackConfigService fallbackConfigService) {
         Map<String, String> keys = new HashMap<>();
