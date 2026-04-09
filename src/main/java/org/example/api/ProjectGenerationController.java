@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 public class ProjectGenerationController {
     
     private static final Logger logger = LoggerFactory.getLogger(ProjectGenerationController.class);
+    private static final String SUPREMEAI_BOT_INSTALL_URL = "https://github.com/apps/supremeai-bot";
 
     private final FileOrchestrator fileOrchestrator;
     private final TemplateManager templateManager;
@@ -161,6 +162,8 @@ public class ProjectGenerationController {
             return Map.of(
                 "status", "error",
                 "message", "repoUrl is required. Please create a dedicated GitHub repo for this project and provide its HTTPS URL. Generated code must not be placed in the main SupremeAI repository.",
+                "installSupremeAIBot", SUPREMEAI_BOT_INSTALL_URL,
+                "instruction", "Install supremeai-bot on the target repo/org to grant full control.",
                 "timestamp", LocalDateTime.now().format(formatter)
             );
         }
@@ -168,6 +171,8 @@ public class ProjectGenerationController {
             return Map.of(
                 "status", "error",
                 "message", "Invalid repoUrl format. Use: https://github.com/your-org/your-repo",
+                "installSupremeAIBot", SUPREMEAI_BOT_INSTALL_URL,
+                "instruction", "Install supremeai-bot in the repository owner's account for full access.",
                 "timestamp", LocalDateTime.now().format(formatter)
             );
         }
@@ -256,6 +261,8 @@ public class ProjectGenerationController {
         response.put("status", generationSucceeded ? "success" : "error");
         response.put("project", projectStatus);
         response.put("message", generationSucceeded ? "Project generation initiated" : "Project generation failed");
+        response.put("installSupremeAIBot", SUPREMEAI_BOT_INSTALL_URL);
+        response.put("instruction", "One rule for all repos: install supremeai-bot so SupremeAI has full access and can run CI/CD checks after push.");
 
         return response;
     }
