@@ -30,14 +30,14 @@ public class SystemAlertsService {
         List<APIProvider> all = providerRegistryService.getAllProviders();
         List<APIProvider> active = providerRegistryService.getActiveProviders();
 
-        // Alert: No providers configured at all
+        // Info: No providers configured — system runs solo, AI is optional boost
         if (all.isEmpty()) {
             alerts.add(alert(
                 "no-providers",
-                "critical",
-                "কোনো AI মডেল যোগ করা হয়নি",
-                "No AI provider has been configured. The system cannot call any AI model.",
-                "👉 কীভাবে ঠিক করবেন:\n" +
+                "info",
+                "সিস্টেম Solo Mode-এ চলছে",
+                "No external AI provider configured. System is running in solo mode. Add providers for enhanced AI capabilities.",
+                "💡 AI Provider যোগ করতে চাইলে:\n" +
                 "১. বাম দিকের মেনু থেকে 'API Key Manager' এ যান।\n" +
                 "২. '➕ Add New API Key' বাটনে ক্লিক করুন।\n" +
                 "৩. যেকোনো একটি AI Provider বেছে নিন (যেমন Groq - বিনামূল্যে পাওয়া যায়)।\n" +
@@ -45,7 +45,7 @@ public class SystemAlertsService {
                 "৫. Groq-এর জন্য বিনামূল্যে key পেতে যান: https://console.groq.com",
                 "go_to_api_keys"
             ));
-            return alerts; // Further checks meaningless without any provider
+            return alerts; // No further provider checks needed
         }
 
         // Alert: No ACTIVE providers (all inactive/error)
