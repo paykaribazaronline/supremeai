@@ -46,6 +46,7 @@ public class WorkReplicationController {
     public ResponseEntity<?> recordAction(@RequestBody Map<String, Object> payload) {
         try {
             String actionType = (String) payload.get("actionType");
+            @SuppressWarnings("unchecked")
             Map<String, Object> context = (Map<String, Object>) payload.getOrDefault("context", new HashMap<>());
             String result = (String) payload.getOrDefault("result", "unknown");
             
@@ -93,6 +94,7 @@ public class WorkReplicationController {
     public ResponseEntity<?> executePattern(@RequestBody Map<String, Object> payload) {
         try {
             String patternName = (String) payload.get("pattern");
+            @SuppressWarnings("unchecked")
             Map<String, Object> inputs = (Map<String, Object>) payload.getOrDefault("inputs", new HashMap<>());
             
             if (patternName == null) {
@@ -240,6 +242,7 @@ public class WorkReplicationController {
     @PostMapping("/batch")
     public ResponseEntity<?> batchRecordActions(@RequestBody Map<String, Object> payload) {
         try {
+            @SuppressWarnings("unchecked")
             List<Map<String, Object>> actions = (List<Map<String, Object>>) payload.get("actions");
             
             if (actions == null || actions.isEmpty()) {
@@ -251,6 +254,7 @@ public class WorkReplicationController {
             int recorded = 0;
             for (Map<String, Object> action : actions) {
                 String actionType = (String) action.get("actionType");
+                @SuppressWarnings("unchecked")
                 Map<String, Object> context = (Map<String, Object>) action.getOrDefault("context", new HashMap<>());
                 String result = (String) action.getOrDefault("result", "unknown");
                 
