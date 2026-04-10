@@ -1970,6 +1970,49 @@
                         <input type="text" value="Super Admin" disabled>
                     </div>
 
+                    <!-- ═══════════════════════════════════════════════════════════
+                         SYSTEM MODE CONTROL (3-Mode System)
+                         ═══════════════════════════════════════════════════════════ -->
+                    <h2 style="margin-top: 30px;color:#48bb78;">🤖 System Operating Mode (3-Mode Control)</h2>
+                    <p style="color:#a0aec0;margin-bottom:12px;">Control how SupremeAI makes decisions: fully autonomous, rule-based, or manual approval required.</p>
+                    
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:20px;">
+                        <!-- Mode 1: FULLY_AUTOMATIC -->
+                        <div style="background:#1a202c;border:2px solid #4a5568;border-radius:10px;padding:16px;cursor:pointer;" onclick="switchMode('FULLY_AUTOMATIC')" id="modeCard-FULLY_AUTOMATIC">
+                            <div style="font-size:24px;margin-bottom:8px;">⚡ FULL AUTONOMY</div>
+                            <div style="font-weight:bold;color:#68d391;margin-bottom:4px;">Fully Automatic</div>
+                            <div style="font-size:13px;color:#a0aec0;margin-bottom:12px;">System acts as developer: decides what to change, what to learn, which APIs to add</div>
+                            <button class="btn" style="width:100%;background:#48bb78;border:#48bb78;" onclick="event.stopPropagation();selectMode('FULLY_AUTOMATIC')">Select</button>
+                        </div>
+
+                        <!-- Mode 2: PRESET_RULES -->
+                        <div style="background:#1a202c;border:2px solid #4a5568;border-radius:10px;padding:16px;cursor:pointer;" onclick="switchMode('PRESET_RULES')" id="modeCard-PRESET_RULES">
+                            <div style="font-size:24px;margin-bottom:8px;">🎯 RULE-BOUND</div>
+                            <div style="font-weight:bold;color:#63b3ed;margin-bottom:4px;">Preset Rules (Recommended)</div>
+                            <div style="font-size:13px;color:#a0aec0;margin-bottom:12px;">System follows admin-defined rules only (obedient mode)</div>
+                            <button class="btn" style="width:100%;background:#4299e1;border:#4299e1;" onclick="event.stopPropagation();selectMode('PRESET_RULES')">Select</button>
+                        </div>
+
+                        <!-- Mode 3: MANUAL_ONLY -->
+                        <div style="background:#1a202c;border:2px solid #4a5568;border-radius:10px;padding:16px;cursor:pointer;" onclick="switchMode('MANUAL_ONLY')" id="modeCard-MANUAL_ONLY">
+                            <div style="font-size:24px;margin-bottom:8px;">🛑 MANUAL CONTROL</div>
+                            <div style="font-weight:bold;color:#fc8181;margin-bottom:4px;">Manual Only (Lazy Mode)</div>
+                            <div style="font-size:13px;color:#a0aec0;margin-bottom:12px;">System only works when admin explicitly commands (lazy person mode)</div>
+                            <button class="btn" style="width:100%;background:#f56565;border:#f56565;" onclick="event.stopPropagation();selectMode('MANUAL_ONLY')">Select</button>
+                        </div>
+                    </div>
+
+                    <!-- Current Mode Status -->
+                    <div style="background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:16px;margin-bottom:20px;">
+                        <div style="color:#68d391;font-weight:bold;margin-bottom:8px;">📊 Current Mode Status</div>
+                        <div id="currentModeStatus" style="color:#a0aec0;font-size:14px;line-height:1.6;">Loading mode status...</div>
+                    </div>
+
+                    <!-- Mode-Specific Settings -->
+                    <div id="modeSpecificSettings" style="background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:16px;margin-bottom:20px;">
+                        <!-- Will be populated by JavaScript based on selected mode -->
+                    </div>
+
                     <h2 style="margin-top: 30px;">System Settings</h2>
                     <div class="form-group">
                         <label>
@@ -6589,6 +6632,340 @@
                 if (btn) { btn.disabled = false; btn.textContent = '⚡ উন্নতি চালু করুন'; }
             }, 90000);
         }
+
+        // ═══════════════════════════════════════════════════════════
+        // SYSTEM MODE FUNCTIONS (3-Mode Control)
+        // ═══════════════════════════════════════════════════════════
+
+        async function loadSystemMode() {
+            try {
+                const response = await fetch('/api/system-mode', {
+                    headers: getAuthHeaders()
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to load system mode: ${response.statusText}`);
+                }
+
+                const modeData = await response.json();
+                updateModeUI(modeData.mode);
+                displayModeStatus(modeData);
+            } catch (error) {
+                console.error('Error loading system mode:', error);
+                document.getElementById('currentModeStatus').innerHTML = `<span style="color:#f56565;">Error loading mode: ${error.message}</span>`;
+            }
+        }
+
+        function updateModeUI(currentMode) {
+            // Reset all cards
+            ['FULLY_AUTOMATIC', 'PRESET_RULES', 'MANUAL_ONLY'].forEach(mode => {
+                const card = document.getElementById(`modeCard-${mode}`);
+                if (card) {
+                    card.style.borderColor = mode === currentMode ? '#48bb78' : '#4a5568';
+                    card.style.background = mode === currentMode ? '#0f2818' : '#1a202c';
+                }
+            });
+        }
+
+        function displayModeStatus(modeData) {
+            const statusDiv = document.getElementById('currentModeStatus');
+            const mode = modeData.mode;
+            let statusHtml = '';
+
+            switch (mode) {
+                case 'FULLY_AUTOMATIC':
+                    statusHtml = `
+                        <div style="color:#68d391;">🤖 <strong>Fully Automatic Mode (ACTIVE)</strong></div>
+                        <div style="margin-top:8px;color:#a0aec0;font-size:13px;">
+                            <div>✅ Auto-learning enabled: <strong>${modeData.autoLearnEnabled ? 'YES' : 'NO'}</strong></div>
+                            <div>✅ Auto-generate APIs: <strong>${modeData.autoGenerateAPIs ? 'YES' : 'NO'}</strong></div>
+                            <div>✅ Auto-improve code: <strong>${modeData.autoImproveCode ? 'YES' : 'NO'}</strong></div>
+                            <div>✅ Autonomy level: <strong>${modeData.autonomyLevel || 100}%</strong></div>
+                        </div>
+                    `;
+                    break;
+
+                case 'PRESET_RULES':
+                    statusHtml = `
+                        <div style="color:#63b3ed;">🎯 <strong>Preset Rules Mode (ACTIVE)</strong></div>
+                        <div style="margin-top:8px;color:#a0aec0;font-size:13px;">
+                            <div>✅ Allowed operations: <strong>${Array.isArray(modeData.allowedOperations) ? modeData.allowedOperations.length : 0}</strong> defined</div>
+                            <div>✅ Blocked operations: <strong>${Array.isArray(modeData.blockedOperations) ? modeData.blockedOperations.length : 0}</strong> defined</div>
+                            <div>✅ Max actions/day: <strong>${modeData.maxAutoActionsPerDay || '--'}</strong></div>
+                            <div>✅ Max actions/hour: <strong>${modeData.maxAutoActionsPerHour || '--'}</strong></div>
+                            <div>✅ Actions today: <strong>${modeData.actionsUsedToday || 0}/${modeData.maxAutoActionsPerDay || 'unlimited'}</strong></div>
+                        </div>
+                    `;
+                    break;
+
+                case 'MANUAL_ONLY':
+                    statusHtml = `
+                        <div style="color:#fc8181;">🛑 <strong>Manual Only Mode (ACTIVE)</strong></div>
+                        <div style="margin-top:8px;color:#a0aec0;font-size:13px;">
+                            <div>✅ Approval required: <strong>ALL changes</strong></div>
+                            <div>✅ Pending approvals: <strong>${modeData.pendingApprovals ? modeData.pendingApprovals.length : 0}</strong> waiting</div>
+                            <div style="margin-top:8px;color:#cbd5e1;">System will NOT act until you explicitly approve each operation.</div>
+                        </div>
+                    `;
+                    break;
+
+                default:
+                    statusHtml = '<span style="color:#a0aec0;">Loading mode information...</span>';
+            }
+
+            statusDiv.innerHTML = statusHtml;
+        }
+
+        async function selectMode(mode) {
+            if (!confirm(`Switch to ${mode} mode? This will change how SupremeAI makes decisions.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/system-mode/set', {
+                    method: 'POST',
+                    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mode: mode,
+                        changedBy: getCurrentAdminEmail()
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to switch mode: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                window.location.reload(); // Reload to show new mode UI
+            } catch (error) {
+                alert(`Error switching mode: ${error.message}`);
+            }
+        }
+
+        function switchMode(mode) {
+            // Just highlight the card, actual switch happens with selectMode button
+            updateModeUI(mode);
+            
+            // Show mode-specific settings
+            showModeSettings(mode);
+        }
+
+        function showModeSettings(mode) {
+            const settingsDiv = document.getElementById('modeSpecificSettings');
+            let settingsHtml = '';
+
+            switch (mode) {
+                case 'FULLY_AUTOMATIC':
+                    settingsHtml = `
+                        <div style="color:#68d391;font-weight:bold;margin-bottom:12px;">⚙️ Fully Automatic Configuration</div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="autoLearnToggle" checked onchange="updateFullyAutomaticSettings()">
+                                Enable Auto-Learning (system learns from errors & improvements)
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="autoGenerateToggle" checked onchange="updateFullyAutomaticSettings()">
+                                Auto-Generate APIs (system creates new endpoints as needed)
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="autoImproveToggle" checked onchange="updateFullyAutomaticSettings()">
+                                Auto-Improve Code (system refactors & optimizes code)
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>Autonomy Level: <strong id="autonomyValue">100</strong>%</label>
+                            <input type="range" id="autonomySlider" min="0" max="100" value="100" 
+                                   onchange="document.getElementById('autonomyValue').textContent = this.value; updateFullyAutomaticSettings()"
+                                   style="width:100%;margin-top:8px;">
+                            <div style="font-size:12px;color:#a0aec0;margin-top:6px;">0% = passive (needs prompts), 100% = fully autonomous (acts without asking)</div>
+                        </div>
+                    `;
+                    break;
+
+                case 'PRESET_RULES':
+                    settingsHtml = `
+                        <div style="color:#63b3ed;font-weight:bold;margin-bottom:12px;">🎯 Preset Rules Configuration</div>
+                        <div class="form-group">
+                            <label>✅ Allowed Operations (comma-separated)</label>
+                            <textarea id="allowedOpsInput" placeholder="e.g., createAPI, improveCode, learnError, deployChanges" 
+                                      style="width:100%;height:80px;padding:8px;border:1px solid #2d3748;border-radius:4px;color:#e2e8f0;background:#0f1419;"
+                                      onfocus="this.style.borderColor='#4299e1'"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>❌ Blocked Operations (comma-separated)</label>
+                            <textarea id="blockedOpsInput" placeholder="e.g., deleteDatabase, dropTables, removeUser" 
+                                      style="width:100%;height:80px;padding:8px;border:1px solid #2d3748;border-radius:4px;color:#e2e8f0;background:#0f1419;"
+                                      onfocus="this.style.borderColor='#4299e1'"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Max Auto Actions Per Day</label>
+                            <input type="number" id="maxActionsPerDay" placeholder="e.g., 50" value="50" 
+                                   style="width:100%;padding:8px;border:1px solid #2d3748;border-radius:4px;">
+                        </div>
+                        <div class="form-group">
+                            <label>Max Auto Actions Per Hour</label>
+                            <input type="number" id="maxActionsPerHour" placeholder="e.g., 10" value="10" 
+                                   style="width:100%;padding:8px;border:1px solid #2d3748;border-radius:4px;">
+                        </div>
+                        <button class="btn" style="background:#4299e1;border:#4299e1;width:100%;margin-top:12px;" 
+                                onclick="savePresetRules()">💾 Save Rules</button>
+                    `;
+                    break;
+
+                case 'MANUAL_ONLY':
+                    settingsHtml = `
+                        <div style="color:#fc8181;font-weight:bold;margin-bottom:12px;">🛑 Manual Only Configuration</div>
+                        <div style="background:#2d1b69;border-radius:8px;padding:12px;margin-bottom:12px;color:#cbd5e1;font-size:13px;">
+                            ⚠️ <strong>All auto actions disabled.</strong> System will create a pending approval request for each operation.
+                            <div style="margin-top:8px;">You must explicitly approve each request before it executes.</div>
+                        </div>
+                        <div id="pendingApprovalsContainer">
+                            <div style="color:#a0aec0;font-size:13px;">Loading pending approvals...</div>
+                        </div>
+                    `;
+                    // Load pending approvals
+                    loadPendingApprovals();
+                    break;
+            }
+
+            settingsDiv.innerHTML = settingsHtml;
+        }
+
+        async function loadPendingApprovals() {
+            try {
+                const response = await fetch('/api/system-mode/pending-approvals', {
+                    headers: getAuthHeaders()
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load pending approvals');
+                }
+
+                const approvals = await response.json();
+                const container = document.getElementById('pendingApprovalsContainer');
+
+                if (!approvals || approvals.length === 0) {
+                    container.innerHTML = '<div style="color:#a0aec0;font-size:13px;padding:12px;text-align:center;">✅ No pending approvals. System is idle.</div>';
+                    return;
+                }
+
+                let html = '<div style="color:#68d391;font-weight:bold;margin-bottom:12px;">⏳ Pending Approvals</div>';
+                approvals.forEach((approval, idx) => {
+                    html += `
+                        <div style="background:#2d1b69;border-radius:6px;padding:12px;margin-bottom:10px;border-left:3px solid #4299e1;">
+                            <div style="color:#63b3ed;font-weight:bold;margin-bottom:4px;">${approval.operationType || 'Unknown Operation'}</div>
+                            <div style="color:#cbd5e1;font-size:12px;margin-bottom:8px;">${approval.description || 'No description provided'}</div>
+                            <div style="display:flex;gap:8px;">
+                                <button class="btn" style="background:#48bb78;border:#48bb78;padding:6px 12px;font-size:12px;" 
+                                        onclick="approveOperation('${approval.id}')">✅ Approve</button>
+                                <button class="btn btn-danger" style="padding:6px 12px;font-size:12px;" 
+                                        onclick="rejectOperation('${approval.id}')">❌ Reject</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } catch (error) {
+                document.getElementById('pendingApprovalsContainer').innerHTML = `<div style="color:#f56565;font-size:12px;">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function approveOperation(approvalId) {
+            try {
+                const response = await fetch('/api/system-mode/approve', {
+                    method: 'POST',
+                    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        approvalId: approvalId,
+                        approved: true,
+                        approvedBy: getCurrentAdminEmail()
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to approve operation');
+                }
+
+                alert('✅ Operation approved and will execute shortly.');
+                loadPendingApprovals();
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        async function rejectOperation(approvalId) {
+            if (!confirm('Reject this pending operation?')) return;
+
+            try {
+                const response = await fetch('/api/system-mode/approve', {
+                    method: 'POST',
+                    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        approvalId: approvalId,
+                        approved: false,
+                        approvedBy: getCurrentAdminEmail()
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to reject operation');
+                }
+
+                alert('✅ Operation rejected.');
+                loadPendingApprovals();
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        function updateFullyAutomaticSettings() {
+            // Placeholder for updating fully automatic settings
+            console.log('Fully automatic settings updated');
+        }
+
+        async function savePresetRules() {
+            const allowedOps = document.getElementById('allowedOpsInput').value
+                .split(',').map(op => op.trim()).filter(op => op);
+            const blockedOps = document.getElementById('blockedOpsInput').value
+                .split(',').map(op => op.trim()).filter(op => op);
+            const maxDay = parseInt(document.getElementById('maxActionsPerDay').value) || 50;
+            const maxHour = parseInt(document.getElementById('maxActionsPerHour').value) || 10;
+
+            try {
+                const response = await fetch('/api/system-mode/allowed-operations', {
+                    method: 'POST',
+                    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        allowedOperations: allowedOps,
+                        blockedOperations: blockedOps,
+                        maxAutoActionsPerDay: maxDay,
+                        maxAutoActionsPerHour: maxHour,
+                        setBy: getCurrentAdminEmail()
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to save rules');
+                }
+
+                alert('✅ Preset rules saved successfully!');
+                loadSystemMode();
+            } catch (error) {
+                alert(`Error saving rules: ${error.message}`);
+            }
+        }
+
+        // Initialize system mode on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const settingsSection = document.getElementById('settings');
+            if (settingsSection) {
+                loadSystemMode();
+            }
+        });
     </script>
 </body>
 </html>
