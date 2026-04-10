@@ -1,14 +1,15 @@
 package org.example.controller;
 
 import org.example.selfhealing.*;
+import org.example.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.*;
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Self-Healing REST Controller
@@ -231,4 +232,144 @@ public class SelfHealingController {
         response.put("timestamp", System.currentTimeMillis());
         return ResponseEntity.internalServerError().body(response);
     }
-}
+    // ============= AUTO-FIXING ENDPOINTS (NEW) =============
+
+    @Autowired(required = false)
+    private AutoFixingService autoFixingService;
+
+    @Autowired(required = false)
+    private SystemLearningService learningService;
+
+    /**
+     * Auto-fix a failed test
+     * POST /api/v1/self-healing/auto-fix
+     */
+    @PostMapping("/auto-fix")
+    public ResponseEntity<?> autoFixTest(@RequestBody Map<String, String> request) {
+        String testName = request.get("testName");
+        String errorMessage = request.get("errorMessage");
+
+        if (testName == null || testName.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", "error",
+                "message", "testName is required"
+            ));
+        }
+
+        if (autoFixingService == null) {
+            return ResponseEntity.status(503).body(Map.of(
+                "status", "unavailable",
+                "message", "AutoFixingService not initialized"
+            ));
+        }
+
+        logger.info("\n🔧 AUTO-FIX REQUEST: {}", testName);
+
+        try {
+            Map<String, Object> result = autoFixingService.solveMLTestFailure(
+                testName,
+                errorMessage != null ? errorMessage : "Test assertion failed"
+            );
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            logger.error("❌ Auto-fix failed: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "status", "error",
+                "message", e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Fix all recent failures at once
+     * POST /api/v1/self-healing/auto-fix-all
+     */
+    @PostMapping("/auto-fix-all")
+    public ResponseEntity<?> fixAllFailures() {
+        if (autoFixingService == null) {
+            return ResponseEntity.status(503).body(Map.of(
+                "status", "unavailable",
+                "message", "AutoFixingService not initialized"
+            ));
+        }
+
+        logger.info("\n🔧 AUTO-FIX ALL FAILURES TRIGGERED");
+
+        try {
+            List<String> failures = Arrays.asList(
+                "testIsolationForestAnomalyDetection",
+                "testRandomForestFailurePrediction",
+                "testVectorDatabaseSemanticLearning"
+            );
+
+            List<Map<String, Object>> results = new ArrayList<>();
+
+            for (String testName : failures) {
+                Map<String, Object> fixResult = autoFixingService.solveMLTestFailure(
+                    testName,
+                    "Batch auto-fix triggered"
+                );
+                results.add(fixResult);
+            }
+
+            long successCount = results.stream()
+                .filter(r -> "success".equals(r.get("status")))
+                .count();
+
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("status", "success");
+            response.put("totalAttempts", results.size());
+            response.put("successCount", successCount);
+            response.put("failureCount", results.size() - successCount);
+            response.put("results", results);
+            response.put("timestamp", System.currentTimeMillis());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            logger.error("❌ Batch auto-fix failed: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "status", "error",
+                "message", e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Get auto-fix status and learning history
+     * GET /api/v1/self-healing/auto-fix-status
+     */
+    @GetMapping("/auto-fix-status")
+    public ResponseEntity<?> getAutoFixStatus() {
+        if (learningService == null) {
+            return ResponseEntity.status(503).body(Map.of(
+                "status", "unavailable",
+                "message", "LearningService not initialized"
+            ));
+        }
+
+        try {
+            Map<String, Object> stats = learningService.getLearningStats();
+
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("status", "success");
+            response.put("autoFixEnabled", true);
+            response.put("learningStats", stats);
+            response.put("features", Arrays.asList(
+                "auto-detect test failures",
+                "generate AI-powered fixes",
+                "apply code changes",
+                "commit to GitHub",
+                "learn for future prevention"
+            ));
+            response.put("timestamp", System.currentTimeMillis());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("❌ Error getting auto-fix status: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "status", "error",
+                "message", e.getMessage()
+            ));
+        }
+    }}
