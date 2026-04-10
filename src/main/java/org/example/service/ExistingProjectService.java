@@ -54,6 +54,9 @@ public class ExistingProjectService {
     @Autowired
     private ProjectGovernanceService projectGovernanceService;
 
+    @Autowired
+    private SystemModeService systemModeService;
+
     private static final String PROJECTS_STORE_PATH = "existing-projects/registry.json";
 
     /** In-memory store: projectId → ExistingProject */
@@ -260,6 +263,13 @@ public class ExistingProjectService {
 
     @Scheduled(fixedDelay = 5 * 60 * 1000, initialDelay = 3 * 60 * 1000)
     public void runScheduledImprovements() {
+        SystemModeService.OperationDecision decision =
+            systemModeService.canExecuteOperation("OPTIMIZE_CODE", 90);
+        if (!decision.isAllowed()) {
+            logger.info("⏸️ Scheduled project improvements skipped by system mode: {}", decision.getReason());
+            return;
+        }
+
         for (ExistingProject project : projects.values()) {
             if (!project.isContinuousImprovement()) continue;
             if ("IMPROVING".equals(project.getStatus()) || "ANALYSING".equals(project.getStatus())) continue;

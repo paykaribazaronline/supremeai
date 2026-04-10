@@ -135,6 +135,9 @@ public class ActiveLearningHarvesterService {
     @Autowired
     private SystemLearningService systemLearningService;
 
+    @Autowired
+    private SystemModeService systemModeService;
+
     /** Tavily API key — resolved from the environment via Spring properties */
     @Value("${tavily.api.key:}")
     private String tavilyApiKey;
@@ -163,6 +166,12 @@ public class ActiveLearningHarvesterService {
      */
     @Scheduled(fixedRate = HARVEST_INTERVAL_MS, initialDelay = 60_000)
     public void scheduledHarvest() {
+        SystemModeService.OperationDecision decision =
+            systemModeService.canExecuteOperation("LEARN_FROM_ERRORS", 90);
+        if (!decision.isAllowed()) {
+            logger.info("⏸️ Scheduled harvest skipped by system mode: {}", decision.getReason());
+            return;
+        }
         runHarvest("scheduled");
     }
 

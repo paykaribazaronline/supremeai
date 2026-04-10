@@ -6922,9 +6922,33 @@
             }
         }
 
-        function updateFullyAutomaticSettings() {
-            // Placeholder for updating fully automatic settings
-            console.log('Fully automatic settings updated');
+        async function updateFullyAutomaticSettings() {
+            const autoLearnEnabled = document.getElementById('autoLearnToggle')?.checked ?? true;
+            const autoGenerateAPIs = document.getElementById('autoGenerateToggle')?.checked ?? true;
+            const autoImproveCode = document.getElementById('autoImproveToggle')?.checked ?? true;
+            const autonomyLevel = parseInt(document.getElementById('autonomySlider')?.value || '80', 10);
+
+            try {
+                const response = await fetch('/api/system-mode/automatic-settings', {
+                    method: 'POST',
+                    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        autoLearnEnabled,
+                        autoGenerateAPIs,
+                        autoImproveCode,
+                        autonomyLevel,
+                        setBy: getCurrentAdminEmail()
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update FULLY_AUTOMATIC settings');
+                }
+
+                loadSystemMode();
+            } catch (error) {
+                alert(`Error updating automatic settings: ${error.message}`);
+            }
         }
 
         async function savePresetRules() {

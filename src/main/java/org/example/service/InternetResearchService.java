@@ -37,6 +37,9 @@ public class InternetResearchService {
     @Autowired(required = false)
     private SystemLearningService learningService;
 
+    @Autowired
+    private SystemModeService systemModeService;
+
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(15))
             .followRedirects(HttpClient.Redirect.NORMAL)
@@ -66,6 +69,13 @@ public class InternetResearchService {
     // ─── Scheduled: Every 2 hours ──────────────────────────────────────────
     @Scheduled(fixedDelay = 7200000, initialDelay = 120000) // 2hr, start after 2min
     public void runResearchCycle() {
+        SystemModeService.OperationDecision decision =
+                systemModeService.canExecuteOperation("UPDATE_TECHNICAL_KNOWLEDGE", 90);
+        if (!decision.isAllowed()) {
+            logger.info("⏸️ Research cycle skipped by system mode: {}", decision.getReason());
+            return;
+        }
+
         int cycle = cycleCount.incrementAndGet();
         logger.info("🔬 Internet Research Cycle #{} starting...", cycle);
         int learned = 0;

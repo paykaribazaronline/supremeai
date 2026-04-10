@@ -212,6 +212,21 @@ public class SystemModeService {
     }
 
     /**
+     * Update FULLY_AUTOMATIC feature toggles and autonomy level
+     */
+    public void setAutomaticSettings(boolean autoLearn, boolean autoGenerateApis,
+                                     boolean autoImproveCode, int autonomyLevel,
+                                     String adminName) {
+        config.setAutoLearnEnabled(autoLearn);
+        config.setAutoGenerateAPIs(autoGenerateApis);
+        config.setAutoImproveCode(autoImproveCode);
+        config.setAutonomyLevel(autonomyLevel);
+        config.setLastUpdatedBy(adminName);
+        config.setLastUpdatedAt(LocalDateTime.now());
+        System.out.println("⚙️ FULLY_AUTOMATIC settings updated by " + adminName);
+    }
+
+    /**
      * Get mode status for admin dashboard
      */
     public Map<String, Object> getModeStatus() {
