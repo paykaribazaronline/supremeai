@@ -333,7 +333,22 @@ public class AIAPIService {
     }
     
     private String executeAPICall(String aiModel, String prompt) throws IOException {
-        return executeAPICall(aiModel, prompt, apiKeys.get(aiModel), null);
+        // Check built-in keys first, then fall back to DB-configured provider keys/endpoints
+        String apiKey = apiKeys.get(aiModel);
+        String endpointOverride = null;
+        if ((apiKey == null || apiKey.isBlank()) && providerRegistryService != null) {
+            // Look up any DB provider whose canonical model matches this aiModel
+            for (var provider : providerRegistryService.getActiveProviders()) {
+                String provId = firstNonBlank(provider.getId(), provider.getAlias(), provider.getBaseModel());
+                String normalized = normalizeModelName(provId);
+                if (aiModel.equals(normalized) && provider.getApiKey() != null && !provider.getApiKey().isBlank()) {
+                    apiKey = provider.getApiKey();
+                    endpointOverride = provider.getEndpoint();
+                    break;
+                }
+            }
+        }
+        return executeAPICall(aiModel, prompt, apiKey, endpointOverride);
     }
 
     private String executeWithRetry(String aiModel, String prompt) throws IOException {
