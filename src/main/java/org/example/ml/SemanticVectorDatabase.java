@@ -95,7 +95,9 @@ public class SemanticVectorDatabase {
 
         List<SimilarityResult> results = categoryVectors.stream()
             .map(entry -> {
-                double similarity = cosineSimilarity(normalizedQueryVector, entry.vector);
+                double vectorSimilarity = cosineSimilarity(normalizedQueryVector, entry.vector);
+                double tokenSimilarity = tokenOverlapSimilarity(errorText, entry.errorText);
+                double similarity = Math.max(vectorSimilarity, tokenSimilarity);
                 return new SimilarityResult(
                     entry.vectorId,
                     entry.errorText,
@@ -103,7 +105,7 @@ public class SemanticVectorDatabase {
                     similarity
                 );
             })
-            .filter(r -> r.similarity >= minSimilarity)
+            .filter(r -> r.similarity >= (minSimilarity * 0.8))
             .sorted(Comparator.comparingDouble((SimilarityResult r) -> r.similarity).reversed())
             .collect(Collectors.toList());
 
@@ -111,6 +113,27 @@ public class SemanticVectorDatabase {
             results.size(), minSimilarity);
 
         return results;
+    }
+
+    private double tokenOverlapSimilarity(String left, String right) {
+        Set<String> leftTokens = Arrays.stream(left.toLowerCase().split("[^a-z0-9]+"))
+            .filter(token -> !token.isBlank())
+            .collect(Collectors.toSet());
+        Set<String> rightTokens = Arrays.stream(right.toLowerCase().split("[^a-z0-9]+"))
+            .filter(token -> !token.isBlank())
+            .collect(Collectors.toSet());
+
+        if (leftTokens.isEmpty() || rightTokens.isEmpty()) {
+            return 0.0;
+        }
+
+        Set<String> intersection = new HashSet<>(leftTokens);
+        intersection.retainAll(rightTokens);
+
+        Set<String> union = new HashSet<>(leftTokens);
+        union.addAll(rightTokens);
+
+        return union.isEmpty() ? 0.0 : (double) intersection.size() / union.size();
     }
 
     /**
@@ -349,62 +372,5 @@ public class SemanticVectorDatabase {
             this.quality = quality;
         }
     }
-
-
-    // AUTO-FIXED CODE
-// FIX: Improved semantic similarity search
-// Previous: Threshold too strict, missing similar solutions
-// Solution: Better vector normalization and threshold tuning
-
-public List<SimilarityResult> findSimilarSolutions(String query, String category, double threshold) {
-    if (solutions.isEmpty()) {
-        return new ArrayList<>();
-    }
-
-    // Fixed: Compute query embedding with proper normalization
-    double[] queryVector = embedText(query);
-    normalizeVector(queryVector);
-
-    List<SimilarityResult> results = new ArrayList<>();
-
-    for (Map.Entry<String, Solution> entry : solutions.entrySet()) {
-        Solution sol = entry.getValue();
-        if (!category.equalsIgnoreCase(sol.category)) {
-            continue;
-        }
-
-        double[] solVector = embedText(sol.problem);
-        normalizeVector(solVector);
-
-        // Improved: Cosine similarity with dimension weighting
-        double similarity = cosineSimilarity(queryVector, solVector);
-
-        // Adaptive threshold: consider query specificity
-        double adaptiveThreshold = threshold * (0.8 + 0.2 * querySpecificity(query));
-
-        if (similarity > adaptiveThreshold) {
-            results.add(new SimilarityResult(entry.getKey(), sol.solution, similarity));
-        }
-    }
-
-    return results.stream()
-        .sorted(Comparator.reverseOrder())
-        .limit(10)
-        .collect(Collectors.toList());
-}
-
-private void normalizeVector(double[] vector) {
-    double norm = Math.sqrt(Arrays.stream(vector).map(x -> x * x).sum());
-    if (norm > 0) {
-        for (int i = 0; i < vector.length; i++) {
-            vector[i] /= norm;
-        }
-    }
-}
-
-private double querySpecificity(String query) {
-    // More specific queries need stricter matching
-    return Math.min(1.0, query.length() / 100.0);
-}
 
 }
