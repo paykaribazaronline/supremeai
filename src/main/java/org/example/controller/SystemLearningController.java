@@ -7,6 +7,7 @@ import org.example.service.ProviderCoverageService;
 import org.example.service.IncidentLearningIngestionService;
 import org.example.service.InternetResearchService;
 import org.example.service.AuthenticationService;
+import org.example.service.SystemModeService;
 import org.example.model.User;
 import org.example.service.ActiveLearningHarvesterService;
 import org.slf4j.Logger;
@@ -47,6 +48,9 @@ public class SystemLearningController {
 
     @Autowired(required = false)
     private InternetResearchService internetResearchService;
+
+    @Autowired
+    private SystemModeService systemModeService;
     
     /**
      * GET /api/learning/stats
@@ -268,6 +272,22 @@ public class SystemLearningController {
             @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestHeader(value = "X-Setup-Token", required = false) String setupToken) {
         try {
+            SystemModeService.OperationDecision decision =
+                systemModeService.canExecuteOperation("UPDATE_TECHNICAL_KNOWLEDGE", 95);
+            if (!decision.isAllowed()) {
+                if (decision.isRequiresApproval()) {
+                    String opId = "reseed-" + System.currentTimeMillis();
+                    systemModeService.requestApproval(opId, "Knowledge reseed requested from dashboard/workflow");
+                    return ResponseEntity.accepted().body(Map.of(
+                        "status", "pending_approval",
+                        "operationId", opId,
+                        "message", decision.getReason()
+                    ));
+                }
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("status", "blocked", "message", decision.getReason()));
+            }
+
             User user = authenticate(authHeader);
             boolean setupTokenAuthorized = isSetupTokenAuthorized(setupToken);
 
@@ -295,6 +315,22 @@ public class SystemLearningController {
             @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestHeader(value = "X-Setup-Token", required = false) String setupToken) {
         try {
+            SystemModeService.OperationDecision decision =
+                systemModeService.canExecuteOperation("LEARN_FROM_ERRORS", 95);
+            if (!decision.isAllowed()) {
+                if (decision.isRequiresApproval()) {
+                    String opId = "harvest-" + System.currentTimeMillis();
+                    systemModeService.requestApproval(opId, "Active learning harvest requested from API");
+                    return ResponseEntity.accepted().body(Map.of(
+                        "status", "pending_approval",
+                        "operationId", opId,
+                        "message", decision.getReason()
+                    ));
+                }
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("status", "blocked", "message", decision.getReason()));
+            }
+
             User user = authenticate(authHeader);
             boolean setupTokenAuthorized = isSetupTokenAuthorized(setupToken);
 
@@ -422,6 +458,22 @@ public class SystemLearningController {
     public ResponseEntity<?> triggerResearchNow(
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
+            SystemModeService.OperationDecision decision =
+                systemModeService.canExecuteOperation("UPDATE_TECHNICAL_KNOWLEDGE", 92);
+            if (!decision.isAllowed()) {
+                if (decision.isRequiresApproval()) {
+                    String opId = "research-" + System.currentTimeMillis();
+                    systemModeService.requestApproval(opId, "Internet research cycle requested");
+                    return ResponseEntity.accepted().body(Map.of(
+                        "status", "pending_approval",
+                        "operationId", opId,
+                        "message", decision.getReason()
+                    ));
+                }
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("status", "blocked", "message", decision.getReason()));
+            }
+
             User user = authenticate(authHeader);
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

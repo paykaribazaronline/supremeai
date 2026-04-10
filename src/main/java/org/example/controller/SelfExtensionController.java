@@ -5,6 +5,7 @@ import org.example.service.AuthenticationService;
 import org.example.service.RequestQueueService;
 import org.example.service.UserQuotaService;
 import org.example.service.QuotaService;
+import org.example.service.SystemModeService;
 import org.example.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,9 @@ public class SelfExtensionController {
     
     @Autowired
     private QuotaService quotaService; // NEW: Check provider quotas
+
+    @Autowired
+    private SystemModeService systemModeService;
     
     /**
      * POST /api/extend/requirement
@@ -47,6 +51,22 @@ public class SelfExtensionController {
             @RequestBody Map<String, String> request,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
+            SystemModeService.OperationDecision decision =
+                systemModeService.canExecuteOperation("GENERATE_API", 95);
+            if (!decision.isAllowed()) {
+                if (decision.isRequiresApproval()) {
+                    String opId = "extend-" + System.currentTimeMillis();
+                    systemModeService.requestApproval(opId, "Self-extension requirement submission");
+                    return ResponseEntity.accepted().body(Map.of(
+                        "status", "pending_approval",
+                        "operationId", opId,
+                        "message", decision.getReason()
+                    ));
+                }
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("status", "blocked", "message", decision.getReason()));
+            }
+
             User user = extractUser(authHeader);
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -149,6 +169,22 @@ public class SelfExtensionController {
             @RequestBody Map<String, Object> request,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
+            SystemModeService.OperationDecision decision =
+                systemModeService.canExecuteOperation("GENERATE_API", 95);
+            if (!decision.isAllowed()) {
+                if (decision.isRequiresApproval()) {
+                    String opId = "extend-batch-" + System.currentTimeMillis();
+                    systemModeService.requestApproval(opId, "Batch self-extension request");
+                    return ResponseEntity.accepted().body(Map.of(
+                        "status", "pending_approval",
+                        "operationId", opId,
+                        "message", decision.getReason()
+                    ));
+                }
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("status", "blocked", "message", decision.getReason()));
+            }
+
             User user = extractUser(authHeader);
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

@@ -118,10 +118,26 @@ public class SystemModeService {
      * Approve a manual operation
      */
     public void approveOperation(String operationId, String adminName) {
-        config.getPendingApprovals().remove(operationId);
+        String pendingEntry = findPendingEntry(operationId);
+        if (pendingEntry != null) {
+            config.getPendingApprovals().remove(pendingEntry);
+        }
         config.setLastUpdatedBy(adminName);
         config.setLastUpdatedAt(LocalDateTime.now());
         System.out.println("✅ Operation approved by " + adminName + ": " + operationId);
+    }
+
+    /**
+     * Reject a manual operation
+     */
+    public void rejectOperation(String operationId, String adminName) {
+        String pendingEntry = findPendingEntry(operationId);
+        if (pendingEntry != null) {
+            config.getPendingApprovals().remove(pendingEntry);
+        }
+        config.setLastUpdatedBy(adminName);
+        config.setLastUpdatedAt(LocalDateTime.now());
+        System.out.println("❌ Operation rejected by " + adminName + ": " + operationId);
     }
 
     /**
@@ -139,6 +155,27 @@ public class SystemModeService {
         config.setLastUpdatedBy(adminName);
         config.setLastUpdatedAt(LocalDateTime.now());
         System.out.println("📝 Allowed operations updated: " + operations.size() + " operations");
+    }
+
+    /**
+     * Configure blocked operations list for PRESET_RULES mode
+     */
+    public void setBlockedOperations(List<String> operations, String adminName) {
+        config.setBlockedOperations(operations);
+        config.setLastUpdatedBy(adminName);
+        config.setLastUpdatedAt(LocalDateTime.now());
+        System.out.println("🚫 Blocked operations updated: " + operations.size() + " operations");
+    }
+
+    /**
+     * Configure daily/hourly action limits for PRESET_RULES mode
+     */
+    public void setActionLimits(int maxPerDay, int maxPerHour, String adminName) {
+        config.setMaxAutoActionsPerDay(Math.max(1, maxPerDay));
+        config.setMaxAutoActionsPerHour(Math.max(1, maxPerHour));
+        config.setLastUpdatedBy(adminName);
+        config.setLastUpdatedAt(LocalDateTime.now());
+        System.out.println("📊 Action limits updated: " + maxPerDay + "/day, " + maxPerHour + "/hour");
     }
 
     /**
@@ -218,6 +255,18 @@ public class SystemModeService {
             System.out.println("[AUDIT] Mode change: " + oldMode.name() + " -> " + newMode.name() + 
                               " by " + adminName);
         }
+    }
+
+    private String findPendingEntry(String operationId) {
+        if (operationId == null || operationId.isBlank()) {
+            return null;
+        }
+        for (String pending : config.getPendingApprovals()) {
+            if (pending.equals(operationId) || pending.startsWith(operationId + ":")) {
+                return pending;
+            }
+        }
+        return null;
     }
 
     /**

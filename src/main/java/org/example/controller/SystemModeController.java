@@ -1,6 +1,7 @@
 package org.example.controller;
 
 import org.example.model.SystemMode;
+import org.example.model.SystemConfiguration;
 import org.example.service.SystemModeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,12 +28,23 @@ public class SystemModeController {
     public ResponseEntity<?> getCurrentMode() {
         try {
             SystemMode currentMode = systemModeService.getCurrentMode();
-            return ResponseEntity.ok(Map.of(
-                "mode", currentMode.name(),
-                "displayName", currentMode.getDisplayName(),
-                "icon", currentMode.getIcon(),
-                "description", currentMode.getDescription()
-            ));
+            SystemConfiguration config = systemModeService.getConfiguration();
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("mode", currentMode.name());
+            payload.put("displayName", currentMode.getDisplayName());
+            payload.put("icon", currentMode.getIcon());
+            payload.put("description", currentMode.getDescription());
+            payload.put("autoLearnEnabled", config.isAutoLearnEnabled());
+            payload.put("autoGenerateAPIs", config.isAutoGenerateAPIs());
+            payload.put("autoImproveCode", config.isAutoImproveCode());
+            payload.put("autonomyLevel", config.getAutonomyLevel());
+            payload.put("allowedOperations", config.getAllowedOperations());
+            payload.put("blockedOperations", config.getBlockedOperations());
+            payload.put("maxAutoActionsPerDay", config.getMaxAutoActionsPerDay());
+            payload.put("maxAutoActionsPerHour", config.getMaxAutoActionsPerHour());
+            payload.put("actionsUsedToday", config.getDailyActionsUsed());
+            payload.put("pendingApprovals", config.getPendingApprovals());
+            return ResponseEntity.ok(payload);
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
@@ -82,7 +94,7 @@ public class SystemModeController {
     public ResponseEntity<?> setMode(@RequestBody Map<String, String> request) {
         try {
             String modeStr = request.get("mode");
-            String adminName = request.get("adminName");
+            String adminName = request.getOrDefault("adminName", request.getOrDefault("changedBy", "admin"));
 
             if (modeStr == null || adminName == null) {
                 return ResponseEntity.badRequest().body(Map.of(
@@ -143,15 +155,24 @@ public class SystemModeController {
     public ResponseEntity<?> setAllowedOperations(@RequestBody Map<String, Object> request) {
         try {
             @SuppressWarnings("unchecked")
-            List<String> operations = (List<String>) request.get("operations");
-            String adminName = (String) request.get("adminName");
+            List<String> operations = (List<String>) request.getOrDefault("operations", request.getOrDefault("allowedOperations", List.of()));
+            @SuppressWarnings("unchecked")
+            List<String> blockedOperations = (List<String>) request.getOrDefault("blockedOperations", List.of());
+            String adminName = String.valueOf(request.getOrDefault("adminName", request.getOrDefault("setBy", "admin")));
+            int maxAutoActionsPerDay = ((Number) request.getOrDefault("maxAutoActionsPerDay", 50)).intValue();
+            int maxAutoActionsPerHour = ((Number) request.getOrDefault("maxAutoActionsPerHour", 10)).intValue();
 
             systemModeService.setAllowedOperations(operations, adminName);
+            systemModeService.setBlockedOperations(blockedOperations, adminName);
+            systemModeService.setActionLimits(maxAutoActionsPerDay, maxAutoActionsPerHour, adminName);
 
             return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "Allowed operations updated",
-                "count", operations.size()
+                "allowedCount", operations.size(),
+                "blockedCount", blockedOperations.size(),
+                "maxAutoActionsPerDay", maxAutoActionsPerDay,
+                "maxAutoActionsPerHour", maxAutoActionsPerHour
             ));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
@@ -167,7 +188,7 @@ public class SystemModeController {
     public ResponseEntity<?> setAutonomy(@RequestBody Map<String, Object> request) {
         try {
             int level = ((Number) request.get("level")).intValue();
-            String adminName = (String) request.get("adminName");
+            String adminName = String.valueOf(request.getOrDefault("adminName", request.getOrDefault("setBy", "admin")));
 
             systemModeService.setAutonomyLevel(level, adminName);
 
@@ -188,10 +209,22 @@ public class SystemModeController {
     @GetMapping("/pending-approvals")
     public ResponseEntity<?> getPendingApprovals() {
         try {
-            return ResponseEntity.ok(Map.of(
-                "pending", systemModeService.getPendingApprovals(),
-                "count", systemModeService.getPendingApprovals().size()
-            ));
+            List<Map<String, Object>> pending = new ArrayList<>();
+            for (String entry : systemModeService.getPendingApprovals()) {
+                String id = entry;
+                String description = entry;
+                int sep = entry.indexOf(':');
+                if (sep > 0) {
+                    id = entry.substring(0, sep).trim();
+                    description = entry.substring(sep + 1).trim();
+                }
+                pending.add(Map.of(
+                    "id", id,
+                    "operationType", "MANUAL_APPROVAL",
+                    "description", description
+                ));
+            }
+            return ResponseEntity.ok(pending);
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
@@ -205,14 +238,20 @@ public class SystemModeController {
     @PostMapping("/approve")
     public ResponseEntity<?> approveOperation(@RequestBody Map<String, String> request) {
         try {
-            String operationId = request.get("operationId");
-            String adminName = request.get("adminName");
+            String operationId = request.getOrDefault("operationId", request.get("approvalId"));
+            String adminName = request.getOrDefault("adminName", request.getOrDefault("approvedBy", "admin"));
+            boolean approved = !"false".equalsIgnoreCase(request.getOrDefault("approved", "true"));
 
-            systemModeService.approveOperation(operationId, adminName);
+            if (approved) {
+                systemModeService.approveOperation(operationId, adminName);
+            } else {
+                systemModeService.rejectOperation(operationId, adminName);
+            }
 
             return ResponseEntity.ok(Map.of(
                 "success", true,
-                "message", "Operation approved: " + operationId
+                "approved", approved,
+                "message", (approved ? "Operation approved: " : "Operation rejected: ") + operationId
             ));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
