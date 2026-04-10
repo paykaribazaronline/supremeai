@@ -50,6 +50,7 @@ public class SystemConfiguration {
         allowedOperations.addAll(Arrays.asList(
             "LEARN_FROM_ERRORS",
             "UPDATE_TECHNICAL_KNOWLEDGE",
+            "GENERATE_API",
             "OPTIMIZE_CODE",
             "FIX_BUGS",
             "GENERATE_DOCUMENTATION",

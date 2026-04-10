@@ -203,6 +203,40 @@ public class SystemModeController {
     }
 
     /**
+     * Update FULLY_AUTOMATIC settings
+     * POST /api/system-mode/automatic-settings
+     */
+    @PostMapping("/automatic-settings")
+    public ResponseEntity<?> setAutomaticSettings(@RequestBody Map<String, Object> request) {
+        try {
+            boolean autoLearnEnabled = (Boolean) request.getOrDefault("autoLearnEnabled", true);
+            boolean autoGenerateAPIs = (Boolean) request.getOrDefault("autoGenerateAPIs", true);
+            boolean autoImproveCode = (Boolean) request.getOrDefault("autoImproveCode", true);
+            int autonomyLevel = ((Number) request.getOrDefault("autonomyLevel", 80)).intValue();
+            String adminName = String.valueOf(request.getOrDefault("adminName", request.getOrDefault("setBy", "admin")));
+
+            systemModeService.setAutomaticSettings(
+                autoLearnEnabled,
+                autoGenerateAPIs,
+                autoImproveCode,
+                autonomyLevel,
+                adminName
+            );
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "FULLY_AUTOMATIC settings updated",
+                "autoLearnEnabled", autoLearnEnabled,
+                "autoGenerateAPIs", autoGenerateAPIs,
+                "autoImproveCode", autoImproveCode,
+                "autonomyLevel", autonomyLevel
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
      * Get pending approvals (MANUAL_ONLY mode)
      * GET /api/system-mode/pending-approvals
      */
