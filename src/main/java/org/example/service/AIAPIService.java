@@ -339,9 +339,21 @@ public class AIAPIService {
         if ((apiKey == null || apiKey.isBlank()) && providerRegistryService != null) {
             // Look up any DB provider whose canonical model matches this aiModel
             for (var provider : providerRegistryService.getActiveProviders()) {
-                String provId = firstNonBlank(provider.getId(), provider.getAlias(), provider.getBaseModel());
-                String normalized = normalizeModelName(provId);
-                if (aiModel.equals(normalized) && provider.getApiKey() != null && !provider.getApiKey().isBlank()) {
+                // Try multiple fields: id, alias, baseModel, name
+                String[] fields = {provider.getId(), provider.getAlias(), provider.getBaseModel(), provider.getName()};
+                boolean match = false;
+                for (String field : fields) {
+                    if (field == null || field.isBlank()) continue;
+                    String normalized = normalizeModelName(field);
+                    if (aiModel.equals(normalized)) { match = true; break; }
+                    // Also try canonical provider ID mapping (e.g. "groq-direct" → contains "groq" → "GROQ")
+                    String canonical = getCanonicalProviderId(field);
+                    if (canonical != null) {
+                        String canonNorm = normalizeModelName(canonical);
+                        if (aiModel.equals(canonNorm)) { match = true; break; }
+                    }
+                }
+                if (match && provider.getApiKey() != null && !provider.getApiKey().isBlank()) {
                     apiKey = provider.getApiKey();
                     endpointOverride = provider.getEndpoint();
                     break;
