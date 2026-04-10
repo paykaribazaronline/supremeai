@@ -32,6 +32,9 @@ public class AICapabilityRouter {
     
     @Autowired
     private QuotaService quotaService;
+
+    @Autowired
+    private SystemModeService systemModeService;
     
     // AI capabilities mapping
     private final Map<TaskType, List<String>> capabilityMap = new HashMap<>();
@@ -267,6 +270,20 @@ public class AICapabilityRouter {
         );
         
         if (hasIssues) {
+            SystemModeService.OperationDecision autoFixDecision =
+                systemModeService.canExecuteOperation("FIX_BUGS", 90);
+            if (!autoFixDecision.isAllowed()) {
+                logger.info("⏸️ Auto-fix skipped by system mode: {}", autoFixDecision.getReason());
+                return new SequentialResult(
+                    draft,
+                    review,
+                    true,
+                    "Issues found; auto-fix skipped by mode: " + autoFixDecision.getReason(),
+                    draft,
+                    primaryDecision.getProvider()
+                );
+            }
+
             logger.info("🔧 Issues found in review, attempting auto-fix");
             
             // Auto-fix

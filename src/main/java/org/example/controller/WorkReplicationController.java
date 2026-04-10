@@ -2,6 +2,7 @@ package org.example.controller;
 
 import org.example.service.WorkReplicationService;
 import org.example.service.WorkReplicationService.*;
+import org.example.service.SystemModeService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
@@ -21,9 +22,12 @@ import java.util.*;
 public class WorkReplicationController {
     
     private final WorkReplicationService workReplication;
+    private final SystemModeService systemModeService;
     
-    public WorkReplicationController(WorkReplicationService workReplication) {
+    public WorkReplicationController(WorkReplicationService workReplication,
+                                     SystemModeService systemModeService) {
         this.workReplication = workReplication;
+        this.systemModeService = systemModeService;
     }
     
     /**
@@ -93,6 +97,24 @@ public class WorkReplicationController {
     @PostMapping("/execute")
     public ResponseEntity<?> executePattern(@RequestBody Map<String, Object> payload) {
         try {
+            SystemModeService.OperationDecision decision =
+                systemModeService.canExecuteOperation("OPTIMIZE_CODE", 90);
+            if (!decision.isAllowed()) {
+                if (decision.isRequiresApproval()) {
+                    String opId = "teach-exec-" + System.currentTimeMillis();
+                    systemModeService.requestApproval(opId, "Work pattern execution request");
+                    return ResponseEntity.status(HttpStatus.ACCEPTED).body(Map.of(
+                        "status", "pending_approval",
+                        "operationId", opId,
+                        "message", decision.getReason()
+                    ));
+                }
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                    "status", "blocked",
+                    "message", decision.getReason()
+                ));
+            }
+
             String patternName = (String) payload.get("pattern");
             @SuppressWarnings("unchecked")
             Map<String, Object> inputs = (Map<String, Object>) payload.getOrDefault("inputs", new HashMap<>());

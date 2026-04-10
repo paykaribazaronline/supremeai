@@ -29,6 +29,8 @@ public class SelfEvolutionOrchestrator {
     private KappaEvolutionAgent kappaAgent;
     @Autowired
     private FirebaseService firebaseService;
+    @Autowired
+    private SystemModeService systemModeService;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
         Thread t = new Thread(r, "evolution-worker");
@@ -47,6 +49,13 @@ public class SelfEvolutionOrchestrator {
      */
     @Scheduled(fixedRate = 86400000)
     public void runDailyEvolution() {
+        SystemModeService.OperationDecision decision =
+            systemModeService.canExecuteOperation("ANALYZE_PERFORMANCE", 90);
+        if (!decision.isAllowed()) {
+            logger.info("⏸️ Daily self-evolution skipped by system mode: {}", decision.getReason());
+            return;
+        }
+
         logger.info("🌌 Starting Daily Self-Evolution Cycle...");
 
         try {
@@ -106,6 +115,16 @@ public class SelfEvolutionOrchestrator {
     }
 
     public Map<String, Object> getSystemEvolutionState() {
+        SystemModeService.OperationDecision decision =
+            systemModeService.canExecuteOperation("ANALYZE_PERFORMANCE", 90);
+        if (!decision.isAllowed()) {
+            return Map.of(
+                "evolution_cycle", "BLOCKED_BY_MODE",
+                "reason", decision.getReason(),
+                "requiresApproval", decision.isRequiresApproval()
+            );
+        }
+
         Map<String, Object> state = new LinkedHashMap<>();
         state.put("evolution_cycle", "ACTIVE");
         state.put("eta_meta", etaAgent.evolveAgents());
