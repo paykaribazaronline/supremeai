@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Assignment Service - Handles persistent storage of task assignments in Firebase
- * NEVER uses in-memory storage - ALL assignments are persisted
+ * FALLBACK to in-memory storage if Firebase is unavailable
  */
 @Service
 public class AssignmentService {
@@ -18,6 +18,8 @@ public class AssignmentService {
     private FirebaseService firebaseService;
 
     private static final String ASSIGNMENTS_PATH = "assignments";
+    // Fallback in-memory storage when Firebase is unavailable
+    private static final Map<String, TaskAssignment> assignmentsCache = new synchronized LinkedHashMap<>();
 
     /**
      * Get all task assignments from Firebase
