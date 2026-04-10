@@ -1975,6 +1975,17 @@
                          ═══════════════════════════════════════════════════════════ -->
                     <h2 style="margin-top: 30px;color:#48bb78;">🤖 System Operating Mode (3-Mode Control)</h2>
                     <p style="color:#a0aec0;margin-bottom:12px;">Control how SupremeAI makes decisions: fully autonomous, rule-based, or manual approval required.</p>
+
+                    <div style="background:#1a202c;border:1px solid #2d3748;border-radius:8px;padding:16px;margin-bottom:18px;">
+                        <div style="color:#68d391;font-weight:bold;margin-bottom:8px;">⚙️ System Mode Setup (Quick Presets)</div>
+                        <div style="font-size:13px;color:#a0aec0;margin-bottom:12px;">Use one-click setup to safely initialize mode behavior.</div>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                            <button class="btn" style="background:#48bb78;border:#48bb78;" onclick="applySystemModeSetupPreset('FULL_AUTO_AGGRESSIVE')">⚡ Full Auto Setup</button>
+                            <button class="btn" style="background:#4299e1;border:#4299e1;" onclick="applySystemModeSetupPreset('SAFE_RULES')">🎯 Safe Rules Setup</button>
+                            <button class="btn btn-danger" onclick="applySystemModeSetupPreset('MANUAL_LOCKDOWN')">🛑 Manual Lockdown</button>
+                        </div>
+                        <div id="systemModeSetupMsg" style="margin-top:10px;font-size:12px;color:#a0aec0;"></div>
+                    </div>
                     
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:20px;">
                         <!-- Mode 1: FULLY_AUTOMATIC -->
@@ -6637,6 +6648,8 @@
         // SYSTEM MODE FUNCTIONS (3-Mode Control)
         // ═══════════════════════════════════════════════════════════
 
+        let systemModeSnapshot = null;
+
         async function loadSystemMode() {
             try {
                 const response = await fetch('/api/system-mode', {
@@ -6648,8 +6661,10 @@
                 }
 
                 const modeData = await response.json();
+                systemModeSnapshot = modeData;
                 updateModeUI(modeData.mode);
                 displayModeStatus(modeData);
+                showModeSettings(modeData.mode, modeData);
             } catch (error) {
                 console.error('Error loading system mode:', error);
                 document.getElementById('currentModeStatus').innerHTML = `<span style="color:#f56565;">Error loading mode: ${error.message}</span>`;
@@ -6747,12 +6762,21 @@
             updateModeUI(mode);
             
             // Show mode-specific settings
-            showModeSettings(mode);
+            showModeSettings(mode, systemModeSnapshot || {});
         }
 
-        function showModeSettings(mode) {
+        function showModeSettings(mode, modeData = {}) {
             const settingsDiv = document.getElementById('modeSpecificSettings');
             let settingsHtml = '';
+
+            const autoLearnEnabled = modeData.autoLearnEnabled !== false;
+            const autoGenerateAPIs = modeData.autoGenerateAPIs !== false;
+            const autoImproveCode = modeData.autoImproveCode !== false;
+            const autonomyLevel = Number.isFinite(Number(modeData.autonomyLevel)) ? Number(modeData.autonomyLevel) : 80;
+            const allowedOperations = Array.isArray(modeData.allowedOperations) ? modeData.allowedOperations.join(', ') : '';
+            const blockedOperations = Array.isArray(modeData.blockedOperations) ? modeData.blockedOperations.join(', ') : '';
+            const maxPerDay = Number.isFinite(Number(modeData.maxAutoActionsPerDay)) ? Number(modeData.maxAutoActionsPerDay) : 50;
+            const maxPerHour = Number.isFinite(Number(modeData.maxAutoActionsPerHour)) ? Number(modeData.maxAutoActionsPerHour) : 10;
 
             switch (mode) {
                 case 'FULLY_AUTOMATIC':
@@ -6760,25 +6784,25 @@
                         <div style="color:#68d391;font-weight:bold;margin-bottom:12px;">⚙️ Fully Automatic Configuration</div>
                         <div class="form-group">
                             <label>
-                                <input type="checkbox" id="autoLearnToggle" checked onchange="updateFullyAutomaticSettings()">
+                                <input type="checkbox" id="autoLearnToggle" ${autoLearnEnabled ? 'checked' : ''} onchange="updateFullyAutomaticSettings()">
                                 Enable Auto-Learning (system learns from errors & improvements)
                             </label>
                         </div>
                         <div class="form-group">
                             <label>
-                                <input type="checkbox" id="autoGenerateToggle" checked onchange="updateFullyAutomaticSettings()">
+                                <input type="checkbox" id="autoGenerateToggle" ${autoGenerateAPIs ? 'checked' : ''} onchange="updateFullyAutomaticSettings()">
                                 Auto-Generate APIs (system creates new endpoints as needed)
                             </label>
                         </div>
                         <div class="form-group">
                             <label>
-                                <input type="checkbox" id="autoImproveToggle" checked onchange="updateFullyAutomaticSettings()">
+                                <input type="checkbox" id="autoImproveToggle" ${autoImproveCode ? 'checked' : ''} onchange="updateFullyAutomaticSettings()">
                                 Auto-Improve Code (system refactors & optimizes code)
                             </label>
                         </div>
                         <div class="form-group">
-                            <label>Autonomy Level: <strong id="autonomyValue">100</strong>%</label>
-                            <input type="range" id="autonomySlider" min="0" max="100" value="100" 
+                            <label>Autonomy Level: <strong id="autonomyValue">${autonomyLevel}</strong>%</label>
+                            <input type="range" id="autonomySlider" min="0" max="100" value="${autonomyLevel}" 
                                    onchange="document.getElementById('autonomyValue').textContent = this.value; updateFullyAutomaticSettings()"
                                    style="width:100%;margin-top:8px;">
                             <div style="font-size:12px;color:#a0aec0;margin-top:6px;">0% = passive (needs prompts), 100% = fully autonomous (acts without asking)</div>
@@ -6793,22 +6817,22 @@
                             <label>✅ Allowed Operations (comma-separated)</label>
                             <textarea id="allowedOpsInput" placeholder="e.g., createAPI, improveCode, learnError, deployChanges" 
                                       style="width:100%;height:80px;padding:8px;border:1px solid #2d3748;border-radius:4px;color:#e2e8f0;background:#0f1419;"
-                                      onfocus="this.style.borderColor='#4299e1'"></textarea>
+                                      onfocus="this.style.borderColor='#4299e1'">${allowedOperations}</textarea>
                         </div>
                         <div class="form-group">
                             <label>❌ Blocked Operations (comma-separated)</label>
                             <textarea id="blockedOpsInput" placeholder="e.g., deleteDatabase, dropTables, removeUser" 
                                       style="width:100%;height:80px;padding:8px;border:1px solid #2d3748;border-radius:4px;color:#e2e8f0;background:#0f1419;"
-                                      onfocus="this.style.borderColor='#4299e1'"></textarea>
+                                      onfocus="this.style.borderColor='#4299e1'">${blockedOperations}</textarea>
                         </div>
                         <div class="form-group">
                             <label>Max Auto Actions Per Day</label>
-                            <input type="number" id="maxActionsPerDay" placeholder="e.g., 50" value="50" 
+                            <input type="number" id="maxActionsPerDay" placeholder="e.g., 50" value="${maxPerDay}" 
                                    style="width:100%;padding:8px;border:1px solid #2d3748;border-radius:4px;">
                         </div>
                         <div class="form-group">
                             <label>Max Auto Actions Per Hour</label>
-                            <input type="number" id="maxActionsPerHour" placeholder="e.g., 10" value="10" 
+                            <input type="number" id="maxActionsPerHour" placeholder="e.g., 10" value="${maxPerHour}" 
                                    style="width:100%;padding:8px;border:1px solid #2d3748;border-radius:4px;">
                         </div>
                         <button class="btn" style="background:#4299e1;border:#4299e1;width:100%;margin-top:12px;" 
@@ -6833,6 +6857,75 @@
             }
 
             settingsDiv.innerHTML = settingsHtml;
+        }
+
+        async function applySystemModeSetupPreset(preset) {
+            const msg = document.getElementById('systemModeSetupMsg');
+            try {
+                msg.style.color = '#63b3ed';
+                msg.textContent = 'Applying setup preset...';
+
+                if (preset === 'FULL_AUTO_AGGRESSIVE') {
+                    await fetch('/api/system-mode/set', {
+                        method: 'POST',
+                        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ mode: 'FULLY_AUTOMATIC', changedBy: getCurrentAdminEmail() })
+                    });
+                    await fetch('/api/system-mode/automatic-settings', {
+                        method: 'POST',
+                        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            autoLearnEnabled: true,
+                            autoGenerateAPIs: true,
+                            autoImproveCode: true,
+                            autonomyLevel: 95,
+                            setBy: getCurrentAdminEmail()
+                        })
+                    });
+                    msg.style.color = '#68d391';
+                    msg.textContent = 'Full Auto setup applied (95% autonomy).';
+                } else if (preset === 'SAFE_RULES') {
+                    await fetch('/api/system-mode/set', {
+                        method: 'POST',
+                        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ mode: 'PRESET_RULES', changedBy: getCurrentAdminEmail() })
+                    });
+                    await fetch('/api/system-mode/allowed-operations', {
+                        method: 'POST',
+                        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            allowedOperations: [
+                                'LEARN_FROM_ERRORS',
+                                'UPDATE_TECHNICAL_KNOWLEDGE',
+                                'GENERATE_API',
+                                'OPTIMIZE_CODE',
+                                'FIX_BUGS',
+                                'GENERATE_DOCUMENTATION',
+                                'ANALYZE_PERFORMANCE'
+                            ],
+                            blockedOperations: ['DELETE_DATABASE', 'DROP_TABLES', 'REMOVE_USER'],
+                            maxAutoActionsPerDay: 50,
+                            maxAutoActionsPerHour: 10,
+                            setBy: getCurrentAdminEmail()
+                        })
+                    });
+                    msg.style.color = '#68d391';
+                    msg.textContent = 'Safe Rules setup applied (recommended).';
+                } else if (preset === 'MANUAL_LOCKDOWN') {
+                    await fetch('/api/system-mode/set', {
+                        method: 'POST',
+                        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ mode: 'MANUAL_ONLY', changedBy: getCurrentAdminEmail() })
+                    });
+                    msg.style.color = '#68d391';
+                    msg.textContent = 'Manual Lockdown setup applied.';
+                }
+
+                await loadSystemMode();
+            } catch (error) {
+                msg.style.color = '#f56565';
+                msg.textContent = `Setup failed: ${error.message}`;
+            }
         }
 
         async function loadPendingApprovals() {
