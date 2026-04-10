@@ -842,6 +842,7 @@ public class AIAPIService {
             "cohere",
             "perplexity",
             "meta-llama",
+            "groq",
             "airllm-local",
             "huggingface",
             "xai-grok",
@@ -888,6 +889,9 @@ public class AIAPIService {
         }
         if (normalized.contains("deepseek")) {
             return "deepseek";
+        }
+        if (normalized.contains("groq")) {
+            return "groq";
         }
         if (normalized.contains("mistral")) {
             return "mistral";
