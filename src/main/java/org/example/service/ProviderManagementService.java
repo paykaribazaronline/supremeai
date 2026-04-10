@@ -58,11 +58,34 @@ public class ProviderManagementService {
         return providers;
     }
 
-    public Map<String, Object> saveProvider(APIProvider provider) {
+    public Map<String, Object> saveProvider(APIProvider provider) throws IOException {
         APIProvider existing = provider != null && provider.getId() != null
             ? providerRegistryService.getProvider(provider.getId())
             : null;
-        APIProvider saved = providerRegistryService.addOrUpdateProvider(mergeWithExisting(provider, existing));
+        APIProvider merged = mergeWithExisting(provider, existing);
+
+        // Validate API key before saving — reject invalid keys
+        if (isProviderReady(merged)) {
+            String targetProvider = firstNonBlank(merged.getId(), merged.getBaseModel(), merged.getAlias(), merged.getName());
+            String probeEndpoint = firstNonBlank(merged.getHealthCheckUrl(), merged.getEndpoint());
+            try {
+                aiApiService.probeProviderConnection(
+                    targetProvider,
+                    hasStoredCredentials(merged) ? merged.getApiKey() : null,
+                    probeEndpoint
+                );
+                merged.setStatus("active");
+                merged.setLastTested(LocalDateTime.now());
+                merged.setLastError(null);
+            } catch (IOException ex) {
+                merged.setStatus("error");
+                merged.setLastTested(LocalDateTime.now());
+                merged.setLastError(ex.getMessage());
+                throw new IOException("Invalid API key — validation failed: " + ex.getMessage());
+            }
+        }
+
+        APIProvider saved = providerRegistryService.addOrUpdateProvider(merged);
         quotaService.syncConfiguredProviders();
         providerAuditService.log(
             existing == null ? "CREATE_PROVIDER" : "UPDATE_PROVIDER",
@@ -74,7 +97,7 @@ public class ProviderManagementService {
         return toResponse(saved);
     }
 
-    public Map<String, Object> updateProvider(String id, APIProvider provider) {
+    public Map<String, Object> updateProvider(String id, APIProvider provider) throws IOException {
         APIProvider incoming = provider == null ? new APIProvider() : provider;
         incoming.setId(id);
         return saveProvider(incoming);

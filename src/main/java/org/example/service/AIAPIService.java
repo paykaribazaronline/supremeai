@@ -188,26 +188,39 @@ public class AIAPIService {
         for (String aiModel : resolvedChain) {
             try {
                 String canonicalModel = normalizeModelName(aiModel);
-                if (canonicalModel == null) {
+
+                // Known provider — use native connector
+                if (canonicalModel != null) {
+                    if (isCircuitOpen(canonicalModel)) {
+                        circuitOpenSkips.incrementAndGet();
+                        continue;
+                    }
+                    if (!allowProviderRequest(canonicalModel)) {
+                        rateLimitErrors.incrementAndGet();
+                        continue;
+                    }
+                    String response = executeWithRetry(canonicalModel, boundedPrompt);
+                    if (response != null) {
+                        String boundedResponse = applyOutputTokenCap(response);
+                        successfulResponses.incrementAndGet();
+                        responseCache.put(cacheKey, boundedResponse);
+                        return boundedResponse;
+                    }
                     continue;
                 }
 
-                if (isCircuitOpen(canonicalModel)) {
-                    circuitOpenSkips.incrementAndGet();
-                    continue;
-                }
-
-                if (!allowProviderRequest(canonicalModel)) {
-                    rateLimitErrors.incrementAndGet();
-                    continue;
-                }
-
-                String response = executeWithRetry(canonicalModel, boundedPrompt);
-                if (response != null) {
-                    String boundedResponse = applyOutputTokenCap(response);
-                    successfulResponses.incrementAndGet();
-                    responseCache.put(cacheKey, boundedResponse);
-                    return boundedResponse;
+                // Dynamic DB provider — try its configured endpoint + key
+                APIProvider dbProvider = providerRegistryService != null
+                    ? providerRegistryService.getProvider(aiModel)
+                    : null;
+                if (dbProvider != null && dbProvider.getEndpoint() != null && dbProvider.getApiKey() != null) {
+                    String response = executeConfiguredProvider(dbProvider, boundedPrompt);
+                    if (response != null && !response.isBlank()) {
+                        String boundedResponse = applyOutputTokenCap(response);
+                        successfulResponses.incrementAndGet();
+                        responseCache.put(cacheKey, boundedResponse);
+                        return boundedResponse;
+                    }
                 }
             } catch (Exception e) {
                 failedResponses.incrementAndGet();
@@ -697,23 +710,45 @@ public class AIAPIService {
     public String probeProviderConnection(String providerName, String apiKey, String endpointOverride) throws IOException {
         String providerId = getCanonicalProviderId(providerName);
         String model = normalizeModelName(providerId);
-        if (model == null) {
-            throw new IOException("Unsupported provider: " + providerName);
-        }
-        if (requiresApiKey(providerId) && (apiKey == null || apiKey.isBlank())) {
-            throw new IOException("Missing API key");
+
+        // For known providers, use the native connector
+        if (model != null) {
+            if (requiresApiKey(providerId) && (apiKey == null || apiKey.isBlank())) {
+                throw new IOException("Missing API key");
+            }
+            String response = executeAPICall(
+                model,
+                "Reply with a short one-line health check confirmation.",
+                apiKey,
+                endpointOverride
+            );
+            if (response == null || response.isBlank()) {
+                throw new IOException("Provider returned an empty response");
+            }
+            return response;
         }
 
-        String response = executeAPICall(
-            model,
-            "Reply with a short one-line health check confirmation.",
-            apiKey,
-            endpointOverride
-        );
-        if (response == null || response.isBlank()) {
-            throw new IOException("Provider returned an empty response");
+        // For dynamic/unknown providers, use generic OpenAI-compatible call if endpoint is available
+        if (endpointOverride != null && !endpointOverride.isBlank()) {
+            if (apiKey == null || apiKey.isBlank()) {
+                throw new IOException("Missing API key for provider: " + providerName);
+            }
+            // Try to extract a model hint from the provider name (e.g. "groq-direct" → models endpoint)
+            String modelHint = guessModelForProvider(providerName);
+            String response = callOpenAICompatible(
+                endpointOverride,
+                apiKey,
+                modelHint,
+                "Reply with a short one-line health check confirmation.",
+                Collections.emptyMap()
+            );
+            if (response == null || response.isBlank()) {
+                throw new IOException("Provider returned an empty response");
+            }
+            return response;
         }
-        return response;
+
+        throw new IOException("Unsupported provider (no endpoint configured): " + providerName);
     }
 
     public Map<String, Object> getProviderConnectorStatus(String providerName) {
@@ -928,6 +963,25 @@ public class AIAPIService {
         return model != null && !OPTIONAL_AUTH_MODELS.contains(model);
     }
 
+    /**
+     * Best-effort model guess for dynamic providers that aren't in the hardcoded alias map.
+     * Most OpenAI-compatible APIs accept a model parameter; we pick a safe default
+     * based on keywords in the provider name or endpoint.
+     */
+    private String guessModelForProvider(String providerName) {
+        if (providerName == null) return "auto";
+        String lower = providerName.toLowerCase(Locale.ROOT);
+        if (lower.contains("groq"))    return "llama-3.3-70b-versatile";
+        if (lower.contains("openai"))  return "gpt-3.5-turbo";
+        if (lower.contains("claude") || lower.contains("anthropic")) return "claude-3-haiku-20240307";
+        if (lower.contains("gemini") || lower.contains("google"))    return "gemini-pro";
+        if (lower.contains("deepseek")) return "deepseek-coder";
+        if (lower.contains("mistral"))  return "mistral-small-latest";
+        if (lower.contains("cohere"))   return "command";
+        if (lower.contains("llama"))    return "meta-llama/llama-3-8b-instruct";
+        return "auto";
+    }
+
     private APIProvider resolveConfiguredProvider(String providerName) {
         if (providerRegistryService == null) {
             return null;
@@ -947,13 +1001,23 @@ public class AIAPIService {
             provider.getName()
         );
         String model = normalizeModelName(providerId);
-        if (model == null) {
-            throw new IOException("Unsupported provider: " + providerId);
+
+        // Known provider — use native connector
+        if (model != null) {
+            String endpoint = firstNonBlank(provider.getEndpoint(), getDefaultEndpoint(providerId));
+            String apiKey = firstNonBlank(provider.getApiKey(), apiKeys.get(model));
+            return executeAPICall(model, prompt, apiKey, endpoint);
         }
 
-        String endpoint = firstNonBlank(provider.getEndpoint(), getDefaultEndpoint(providerId));
-        String apiKey = firstNonBlank(provider.getApiKey(), apiKeys.get(model));
-        return executeAPICall(model, prompt, apiKey, endpoint);
+        // Dynamic provider — use generic OpenAI-compatible call if endpoint + key exist
+        String endpoint = provider.getEndpoint();
+        String apiKey = provider.getApiKey();
+        if (endpoint != null && !endpoint.isBlank() && apiKey != null && !apiKey.isBlank()) {
+            String modelHint = guessModelForProvider(providerId);
+            return callOpenAICompatible(endpoint, apiKey, modelHint, prompt, Collections.emptyMap());
+        }
+
+        throw new IOException("Provider not configured (no endpoint/key): " + providerId);
     }
 
     private String firstNonBlank(String... values) {
