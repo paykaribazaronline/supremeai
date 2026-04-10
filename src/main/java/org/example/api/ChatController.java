@@ -1,6 +1,7 @@
 package org.example.api;
 
 import org.example.service.AdminChatService;
+import org.example.service.AIAPIService;
 import org.example.service.MemoryManager;
 import org.example.service.AgentOrchestrator;
 import org.example.service.PublicAIRouter;
@@ -46,6 +47,9 @@ public class ChatController {
 
     @Autowired(required = false)
     private AdminChatService adminChatService;
+
+    @Autowired(required = false)
+    private AIAPIService aiApiService;
     
     // In-memory chat storage
     private final List<Map<String, Object>> chatHistory = new ArrayList<>();
@@ -419,6 +423,19 @@ public class ChatController {
                     && routerResponse.content != null
                     && !routerResponse.content.isBlank()) {
                 return routerResponse.content;
+            }
+
+            // Try direct AI call via configured DB providers (Groq, etc.)
+            if (aiApiService != null) {
+                try {
+                    String directResponse = aiApiService.callAI(provider, promptWithRules, null);
+                    if (directResponse != null && !directResponse.isBlank()) {
+                        logger.info("\u2705 AI response via configured provider for task={}", taskType);
+                        return directResponse;
+                    }
+                } catch (Exception directEx) {
+                    logger.warn("Direct AI call also failed: {}", directEx.getMessage());
+                }
             }
 
             // Solo mode fallback: generate a real response using built-in knowledge
