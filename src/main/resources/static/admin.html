@@ -639,7 +639,7 @@
                         </div>
                         <div class="stat-card">
                             <div class="stat-label">System Status</div>
-                            <div class="stat-value" style="color: #48bb78;">✅ HEALTHY</div>
+                            <div class="stat-value" id="systemStatusValue" style="color: #a0aec0;">--</div>
                         </div>
                     </div>
 
@@ -5651,10 +5651,32 @@
                 const d = contract.stats || {};
                 const agentsEl = document.getElementById('activeAgentsCount');
                 const loadEl = document.getElementById('systemLoadValue');
+                const activeProjectsEl = document.getElementById('activeProjectsCount');
+                const completedProjectsEl = document.getElementById('completedProjectsCount');
                 if (agentsEl) agentsEl.textContent = d.activeAIAgents ?? '--';
                 if (loadEl) loadEl.textContent = d.systemHealthScore != null ? d.systemHealthScore.toFixed(1) + '%' : '--';
+                if (activeProjectsEl) activeProjectsEl.textContent = d.runningProjects ?? activeProjectsEl.textContent;
+                if (completedProjectsEl) completedProjectsEl.textContent = d.completedProjects ?? completedProjectsEl.textContent;
                 const successEl = document.getElementById('successRateValue');
                 if (successEl) successEl.textContent = d.successRate != null ? d.successRate + '%' : '--';
+
+                const statusEl = document.getElementById('systemStatusValue');
+                if (statusEl) {
+                    const status = String(d.systemHealthStatus || '').toUpperCase();
+                    if (status === 'HEALTHY') {
+                        statusEl.style.color = '#48bb78';
+                        statusEl.textContent = '✅ HEALTHY';
+                    } else if (status === 'WARNING') {
+                        statusEl.style.color = '#ecc94b';
+                        statusEl.textContent = '⚠️ WARNING';
+                    } else if (status === 'CRITICAL') {
+                        statusEl.style.color = '#f56565';
+                        statusEl.textContent = '❌ CRITICAL';
+                    } else {
+                        statusEl.style.color = '#a0aec0';
+                        statusEl.textContent = '--';
+                    }
+                }
             } catch(e) { /* silent - dashboard stats are non-critical */ }
         }
 
@@ -6241,6 +6263,7 @@
             loadProviderCoveragePreview();
             loadAuditLogs();
             loadDashboardStats();
+            loadProjects();
             toggleBrowserAuthFields();
         });
 

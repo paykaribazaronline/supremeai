@@ -1,9 +1,14 @@
 package org.example.controller;
 
+import org.example.model.TaskAssignment;
+import org.example.service.AssignmentService;
+import org.example.service.GeneratedProjectRegistryService;
+import org.example.service.ProviderRegistryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.lang.management.ManagementFactory;
 import java.util.*;
 
 /**
@@ -18,6 +23,15 @@ import java.util.*;
 @RequestMapping("/api/admin/dashboard")
 @CrossOrigin(origins = "*")
 public class AdminDashboardController {
+
+    @Autowired(required = false)
+    private AssignmentService assignmentService;
+
+    @Autowired(required = false)
+    private GeneratedProjectRegistryService generatedProjectRegistryService;
+
+    @Autowired(required = false)
+    private ProviderRegistryService providerRegistryService;
 
     @GetMapping("/contract")
     public ResponseEntity<?> getDashboardContract() {
@@ -55,16 +69,81 @@ public class AdminDashboardController {
     private Map<String, Object> buildDashboardStats() {
         Map<String, Object> stats = new LinkedHashMap<>();
         long lastSync = System.currentTimeMillis();
-        double systemHealthScore = 98.5;
-        
-        stats.put("activeAIAgents", 5);
-        stats.put("runningTasks", 12);
-        stats.put("completedTasks", 156);
-        stats.put("successRate", 94.2);
+        int runningTasks = 0;
+        int completedTasks = 0;
+        int activeAIAgents = 0;
+        int runningProjects = 0;
+        int completedProjects = 0;
+
+        if (assignmentService != null) {
+            try {
+                List<TaskAssignment> assignments = assignmentService.getAllAssignments();
+                Set<String> activeAgentIds = new HashSet<>();
+                for (TaskAssignment assignment : assignments) {
+                    String status = String.valueOf(assignment.getStatus()).toLowerCase(Locale.ROOT);
+                    boolean isCompleted = status.equals("completed") || status.equals("done");
+                    boolean isRunning = status.equals("in-progress") || status.equals("running") || status.equals("pending");
+
+                    if (isCompleted) {
+                        completedTasks++;
+                    }
+                    if (isRunning) {
+                        runningTasks++;
+                    }
+
+                    String agentId = assignment.getAgentId();
+                    if (agentId != null && !agentId.isBlank() && !isCompleted) {
+                        activeAgentIds.add(agentId);
+                    }
+                }
+                activeAIAgents = activeAgentIds.size();
+            } catch (Exception ignored) {
+            }
+        }
+
+        if (generatedProjectRegistryService != null) {
+            try {
+                for (Map<String, Object> project : generatedProjectRegistryService.listProjects()) {
+                    String status = String.valueOf(project.getOrDefault("status", "")).toUpperCase(Locale.ROOT);
+                    if (status.equals("GENERATING") || status.equals("TEMPLATE_INITIALIZED") || status.equals("RUNNING")) {
+                        runningProjects++;
+                    }
+                    if (status.equals("COMPLETED") || status.equals("PUSHED_TO_REPO") || status.equals("PUSH_FAILED") || status.equals("FAILED")) {
+                        completedProjects++;
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
+        if (activeAIAgents == 0 && providerRegistryService != null) {
+            try {
+                activeAIAgents = providerRegistryService.getActiveProviderCount();
+            } catch (Exception ignored) {
+            }
+        }
+
+        int totalTasks = runningTasks + completedTasks;
+        double successRate = totalTasks > 0 ? (completedTasks * 100.0 / totalTasks) : 0.0;
+
+        double systemHealthScore = 70.0;
+        systemHealthScore += Math.min(15.0, activeAIAgents * 3.0);
+        systemHealthScore += Math.min(10.0, runningProjects * 2.0);
+        systemHealthScore += Math.min(5.0, successRate / 20.0);
+        systemHealthScore = Math.min(99.9, Math.max(35.0, systemHealthScore));
+
+        long uptimeMs = ManagementFactory.getRuntimeMXBean().getUptime();
+
+        stats.put("activeAIAgents", activeAIAgents);
+        stats.put("runningTasks", runningTasks);
+        stats.put("completedTasks", completedTasks);
+        stats.put("runningProjects", runningProjects);
+        stats.put("completedProjects", completedProjects);
+        stats.put("successRate", Math.round(successRate * 10.0) / 10.0);
         stats.put("systemHealth", systemHealthScore);
         stats.put("systemHealthScore", systemHealthScore);
         stats.put("systemHealthStatus", resolveHealthStatus(systemHealthScore));
-        stats.put("uptime", "45d 14h 23m");
+        stats.put("uptime", formatUptime(uptimeMs));
         stats.put("lastSync", lastSync);
         stats.put("lastSyncTime", new Date(lastSync).toString());
         
@@ -520,6 +599,14 @@ public class AdminDashboardController {
             return "warning";
         }
         return "critical";
+    }
+
+    private String formatUptime(long uptimeMs) {
+        long totalSeconds = Math.max(0, uptimeMs / 1000);
+        long days = totalSeconds / 86400;
+        long hours = (totalSeconds % 86400) / 3600;
+        long minutes = (totalSeconds % 3600) / 60;
+        return days + "d " + hours + "h " + minutes + "m";
     }
 
     @GetMapping("/stats")
