@@ -89,12 +89,12 @@ public class AIAPIService {
     private final Map<String, String> defaultModels = Map.ofEntries(
         Map.entry("GPT4", "gpt-4"),
         Map.entry("CLAUDE", "claude-3-sonnet-20240229"),
-        Map.entry("GROQ", "mixtral-8x7b-32768"),
+        Map.entry("GROQ", "llama-3.3-70b-versatile"),
         Map.entry("DEEPSEEK", "deepseek-coder"),
         Map.entry("GEMINI", "gemini-1.5-flash"),
         Map.entry("COHERE", "command-r-plus"),
         Map.entry("PERPLEXITY", "sonar-pro"),
-        Map.entry("LLAMA", "Llama-4-Scout-17B-16E-Instruct"),
+        Map.entry("LLAMA", "llama-3.3-70b-versatile"),
         Map.entry("HUGGINGFACE", "meta-llama/Llama-3.3-70B-Instruct"),
         Map.entry("XAI", "grok-2-latest"),
         Map.entry("AIRLLM", "mistralai/Mistral-7B-Instruct-v0.3")
@@ -429,7 +429,7 @@ public class AIAPIService {
     
     private String callGroq(String endpoint, String apiKey, String prompt) throws IOException {
         var root = mapper.createObjectNode();
-        root.put("model", "mixtral-8x7b-32768");
+        root.put("model", "llama-3.3-70b-versatile");
         var messages = root.putArray("messages");
         var msg = mapper.createObjectNode();
         msg.put("role", "user");
