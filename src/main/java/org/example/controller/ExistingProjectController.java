@@ -3,6 +3,7 @@ package org.example.controller;
 import org.example.model.ExistingProject;
 import org.example.service.ExistingProjectService;
 import org.example.service.ProjectGovernanceService;
+import org.example.service.SystemModeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,9 @@ public class ExistingProjectController {
 
     @Autowired
     private ProjectGovernanceService projectGovernanceService;
+
+    @Autowired
+    private SystemModeService systemModeService;
 
     /**
      * POST /api/existing-projects
@@ -170,6 +174,24 @@ public class ExistingProjectController {
     @PostMapping("/{id}/improve")
     public ResponseEntity<?> triggerImprovement(@PathVariable String id) {
         try {
+            SystemModeService.OperationDecision decision =
+                systemModeService.canExecuteOperation("OPTIMIZE_CODE", 93);
+            if (!decision.isAllowed()) {
+                if (decision.isRequiresApproval()) {
+                    String opId = "project-improve-" + id + "-" + System.currentTimeMillis();
+                    systemModeService.requestApproval(opId, "Project improvement cycle for project " + id);
+                    return ResponseEntity.accepted().body(Map.of(
+                        "status", "pending_approval",
+                        "operationId", opId,
+                        "message", decision.getReason()
+                    ));
+                }
+                return ResponseEntity.status(403).body(Map.of(
+                    "status", "blocked",
+                    "message", decision.getReason()
+                ));
+            }
+
             // Validate project exists before queuing
             if (projectService.getProject(id) == null) {
                 return ResponseEntity.status(404).body(Map.of("error", "Project not found: " + id));
