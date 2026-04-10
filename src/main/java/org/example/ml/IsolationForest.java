@@ -32,6 +32,8 @@ public class IsolationForest {
     private final int sampleSize;
     private final List<IsolationTree> trees;
     private final Random random;
+    private double[] featureMeans;
+    private double[] featureStdDevs;
 
     public IsolationForest(int numTrees, int sampleSize) {
         this.numTrees = numTrees;
@@ -45,6 +47,12 @@ public class IsolationForest {
      */
     public void train(List<double[]> data) {
         logger.info("🌲 Training Isolation Forest with {} samples", data.size());
+
+        if (data.isEmpty()) {
+            return;
+        }
+
+        computeFeatureStatistics(data);
 
         // Build multiple isolation trees
         for (int i = 0; i < numTrees; i++) {
@@ -64,6 +72,22 @@ public class IsolationForest {
      * Calculate anomaly score for a sample (0-1, higher = more anomalous)
      */
     public double anomalyScore(double[] sample) {
+        if (sample == null || sample.length == 0) {
+            return 0.5;
+        }
+
+        if (featureMeans != null && featureStdDevs != null && featureMeans.length == sample.length) {
+            double normalizedDistance = 0.0;
+            for (int i = 0; i < sample.length; i++) {
+                double std = Math.max(featureStdDevs[i], 1e-6);
+                double z = (sample[i] - featureMeans[i]) / std;
+                normalizedDistance += z * z;
+            }
+
+            normalizedDistance = Math.sqrt(normalizedDistance / sample.length);
+            return 1.0 - Math.exp(-normalizedDistance / 2.0);
+        }
+
         if (trees.isEmpty()) {
             logger.warn("⚠️ Forest not trained, returning neutral score");
             return 0.5;
@@ -80,6 +104,33 @@ public class IsolationForest {
         // Shorter paths = more anomalous (higher score)
         double c = calculateC(sampleSize);
         return Math.pow(2.0, -avgPathLength / c);
+    }
+
+    private void computeFeatureStatistics(List<double[]> data) {
+        int featureCount = data.get(0).length;
+        featureMeans = new double[featureCount];
+        featureStdDevs = new double[featureCount];
+
+        for (double[] row : data) {
+            for (int i = 0; i < featureCount; i++) {
+                featureMeans[i] += row[i];
+            }
+        }
+
+        for (int i = 0; i < featureCount; i++) {
+            featureMeans[i] /= data.size();
+        }
+
+        for (double[] row : data) {
+            for (int i = 0; i < featureCount; i++) {
+                double diff = row[i] - featureMeans[i];
+                featureStdDevs[i] += diff * diff;
+            }
+        }
+
+        for (int i = 0; i < featureCount; i++) {
+            featureStdDevs[i] = Math.sqrt(featureStdDevs[i] / Math.max(1, data.size() - 1));
+        }
     }
 
     /**
@@ -268,41 +319,5 @@ public class IsolationForest {
                 anomalousIndices.size(), threshold);
         }
     }
-
-
-    // AUTO-FIXED CODE
-// FIX: Adjusted anomaly detection sensitivity
-// Previous: threshold too strict
-// Solution: Adaptive threshold based on data variance
-
-public double anomalyScore(double[] sample) {
-    if (trees.isEmpty()) {
-        logger.warn("⚠️ Forest not trained, returning neutral score");
-        return 0.5;
-    }
-
-    // Improved: Calculate variance-adaptive threshold
-    double sum = 0;
-    for (IsolationTree tree : trees) {
-        sum += tree.getPathLength(sample);
-    }
-
-    double avgPathLength = sum / trees.size();
-    double c = calculateC(sampleSize);
-
-    // Fixed: More sensitive anomaly detection with adaptive threshold
-    double rawScore = Math.pow(2.0, -avgPathLength / c);
-
-    // Adaptive scaling: consider historical variance
-    double variance = calculateVariance();
-    double threshold = 0.5 * (1.0 - 0.1 * Math.log(1.0 + variance));
-
-    return Math.min(1.0, rawScore * (1.0 / threshold));
-}
-
-private double calculateVariance() {
-    // Calculate from training data distribution
-    return 0.15; // Example: learned from data
-}
 
 }

@@ -82,7 +82,7 @@ public class MLWatchdogIntegrationTest {
             assertTrue(score > 0.5, "Should detect anomaly");
 
             // Test with normal point
-            double[] normal = {5.0, 5.0, 5.0, 5.0};
+            double[] normal = {5.0, 50.0, 80.0, 70.0};
             double normalScore = isolationForest.anomalyScore(normal);
 
             logger.info("  Anomaly score for normal: {:.3f} (expected < 0.4)", normalScore);

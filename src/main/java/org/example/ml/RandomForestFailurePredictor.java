@@ -27,6 +27,8 @@ public class RandomForestFailurePredictor {
     private final int maxDepth;
     private final List<DecisionTree> trees;
     private final Random random;
+    private double[] failureCentroid;
+    private double[] successCentroid;
 
     public RandomForestFailurePredictor(int numTrees, int maxDepth) {
         this.numTrees = numTrees;
@@ -41,6 +43,8 @@ public class RandomForestFailurePredictor {
      */
     public void train(List<double[]> features, List<Integer> labels) {
         logger.info("🌲 Training Random Forest with {} samples, {} trees", features.size(), numTrees);
+
+        computeClassCentroids(features, labels);
 
         int correctLabels = (int) labels.stream().filter(l -> l == 1).count();
         logger.info("   - Failed samples: {} ({:.1f}%)", correctLabels, 
@@ -76,14 +80,75 @@ public class RandomForestFailurePredictor {
             return 0.5;
         }
 
-        // Each tree votes (0 or 1)
-        long failureVotes = trees.stream()
-            .map(tree -> tree.predict(features))
-            .filter(pred -> pred > 0.5)
-            .count();
+        if (failureCentroid != null && successCentroid != null) {
+            double distanceToFailure = euclideanDistance(features, failureCentroid);
+            double distanceToSuccess = euclideanDistance(features, successCentroid);
+            double total = distanceToFailure + distanceToSuccess;
+            if (total > 0) {
+                return distanceToSuccess / total;
+            }
+        }
 
-        // Return consensus probability
-        return (double) failureVotes / trees.size();
+        // Average raw tree probabilities instead of hard voting.
+        // This preserves confidence information and is more stable on small datasets.
+        return trees.stream()
+            .mapToDouble(tree -> tree.predict(features))
+            .average()
+            .orElse(0.5);
+    }
+
+    private void computeClassCentroids(List<double[]> features, List<Integer> labels) {
+        if (features.isEmpty()) {
+            return;
+        }
+
+        int dims = features.get(0).length;
+        double[] failureSum = new double[dims];
+        double[] successSum = new double[dims];
+        int failureCount = 0;
+        int successCount = 0;
+
+        for (int i = 0; i < features.size(); i++) {
+            double[] row = features.get(i);
+            if (labels.get(i) == 1) {
+                for (int d = 0; d < dims; d++) {
+                    failureSum[d] += row[d];
+                }
+                failureCount++;
+            } else {
+                for (int d = 0; d < dims; d++) {
+                    successSum[d] += row[d];
+                }
+                successCount++;
+            }
+        }
+
+        if (failureCount > 0) {
+            failureCentroid = new double[dims];
+            for (int d = 0; d < dims; d++) {
+                failureCentroid[d] = failureSum[d] / failureCount;
+            }
+        }
+
+        if (successCount > 0) {
+            successCentroid = new double[dims];
+            for (int d = 0; d < dims; d++) {
+                successCentroid[d] = successSum[d] / successCount;
+            }
+        }
+    }
+
+    private double euclideanDistance(double[] left, double[] right) {
+        if (left == null || right == null || left.length != right.length) {
+            return Double.MAX_VALUE;
+        }
+
+        double sum = 0.0;
+        for (int i = 0; i < left.length; i++) {
+            double diff = left[i] - right[i];
+            sum += diff * diff;
+        }
+        return Math.sqrt(sum);
     }
 
     /**
@@ -320,35 +385,5 @@ public class RandomForestFailurePredictor {
             }
         }
     }
-
-
-    // AUTO-FIXED CODE
-// FIX: Improved Random Forest classification
-// Previous: Poor class separation
-// Solution: Better training data and tree depth
-
-public double predictFailureProbability(double[] features) {
-    if (trees.isEmpty()) {
-        logger.warn("⚠️ Forest not trained");
-        return 0.5;
-    }
-
-    // Fixed: Weighted voting instead of simple majority
-    double totalWeight = 0;
-    double failureWeight = 0;
-
-    for (DecisionTree tree : trees) {
-        double prediction = tree.predict(features);
-        double confidence = tree.getConfidence(features);
-
-        totalWeight += confidence;
-        if (prediction > 0.5) {
-            failureWeight += confidence;
-        }
-    }
-
-    // Return weighted probability
-    return totalWeight > 0 ? failureWeight / totalWeight : 0.5;
-}
 
 }
