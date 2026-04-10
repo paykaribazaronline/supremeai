@@ -3127,7 +3127,7 @@
             const baseModel   = customBaseModel   || providerId;
             const endpoint    = customProviderEndpoint || null;
 
-            addKeyMsg.innerHTML = '<span style="color:#63b3ed;">⏳ Saving…</span>';
+            addKeyMsg.innerHTML = '<span style="color:#63b3ed;">⏳ Validating API key & saving…</span>';
             try {
                 await saveProviderConfig({
                     id: providerId,
