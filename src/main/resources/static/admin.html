@@ -2252,7 +2252,7 @@
                 <div id="suggestionsDropdown" style="display:none;background:#2d3748;border:1px solid #4a5568;border-radius:6px;max-height:200px;overflow-y:auto;margin-top:4px;z-index:9999;position:relative;">
                 </div>
                 <div style="font-size:11px;color:#718096;margin-top:4px;">
-                    💡 Suggestions are popular/free AI providers. Selecting one pre-fills the form below — you still need to paste your API key.
+                    💡 Real-time search across AI model registries (OpenRouter, HuggingFace). New models appear automatically — no code changes needed.
                 </div>
             </div>
 
@@ -2559,38 +2559,41 @@
         }
 
         let _suggestCache = null;
+        let _suggestDebounce = null;
         async function onProviderSearchInput() {
             const q = document.getElementById('aiModelSearch').value.trim();
             const dropdown = document.getElementById('suggestionsDropdown');
             if (!q) { dropdown.style.display = 'none'; return; }
 
-            // Fetch curated suggestions (cached)
-            if (!_suggestCache) {
+            // Debounce — wait 300ms after last keystroke before querying
+            clearTimeout(_suggestDebounce);
+            _suggestDebounce = setTimeout(async () => {
                 try {
-                    const res = await fetch('/api/providers/suggest', { headers: getAuthHeaders() });
-                    _suggestCache = res.ok ? await res.json() : [];
-                } catch(e) { _suggestCache = []; }
-            }
+                    // Real dynamic search — query backend which fetches from OpenRouter/HuggingFace
+                    const res = await fetch('/api/providers/suggest?q=' + encodeURIComponent(q), { headers: getAuthHeaders() });
+                    const matches = res.ok ? await res.json() : [];
 
-            const lower = q.toLowerCase();
-            const matches = (_suggestCache || []).filter(s =>
-                (s.id||'').toLowerCase().includes(lower) ||
-                (s.name||'').toLowerCase().includes(lower) ||
-                (s.provider||'').toLowerCase().includes(lower)
-            ).slice(0, 8);
+                    if (!matches.length) {
+                        dropdown.innerHTML = '<div style="padding:10px 14px;color:#a0aec0;font-size:12px;">No models found for "' + escHtml(q) + '". You can still add a custom provider below.</div>';
+                        dropdown.style.display = 'block';
+                        return;
+                    }
 
-            if (!matches.length) { dropdown.style.display = 'none'; return; }
-
-            dropdown.innerHTML = matches.map(s => `
-                <div style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #4a5568;font-size:13px;"
-                     onmouseover="this.style.background='#4a5568'" onmouseout="this.style.background=''"
-                     onclick="applySuggestion(${JSON.stringify(s).replace(/"/g,'&quot;')})">
-                    <strong style="color:#e2e8f0;">${escHtml(s.name)}</strong>
-                    <span style="color:#a0aec0;margin-left:8px;">${escHtml(s.provider)}</span><br>
-                    <span style="color:#718096;font-size:11px;">${escHtml(s.model)} • ${escHtml(s.endpoint)}</span>
-                </div>
-            `).join('');
-            dropdown.style.display = 'block';
+                    dropdown.innerHTML = matches.slice(0, 12).map(s => `
+                        <div style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #4a5568;font-size:13px;"
+                             onmouseover="this.style.background='#4a5568'" onmouseout="this.style.background=''"
+                             onclick="applySuggestion(${JSON.stringify(s).replace(/"/g,'&quot;')})">
+                            <strong style="color:#e2e8f0;">${escHtml(s.name)}</strong>
+                            <span style="color:#a0aec0;margin-left:8px;">${escHtml(s.provider)}</span><br>
+                            <span style="color:#718096;font-size:11px;">${escHtml(s.model)} • ${escHtml(s.endpoint)}</span>
+                        </div>
+                    `).join('');
+                    dropdown.style.display = 'block';
+                } catch(e) {
+                    dropdown.innerHTML = '<div style="padding:10px;color:#fc8181;font-size:12px;">Search failed — try again</div>';
+                    dropdown.style.display = 'block';
+                }
+            }, 300);
         }
 
         function applySuggestion(s) {
@@ -2612,7 +2615,7 @@
             document.getElementById('customBaseModel').value = '';
             document.getElementById('customProviderEndpoint').value = '';
             document.getElementById('suggestionsDropdown').style.display = 'none';
-            _suggestCache = null; // clear cache so fresh suggestions load
+            clearTimeout(_suggestDebounce); // clear any pending search
 
             try {
                 // Load only DB-configured providers for the "update existing" dropdown

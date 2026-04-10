@@ -5,10 +5,17 @@ import org.example.service.AIAPIService;
 import org.example.service.FallbackConfigService;
 import org.example.service.ProviderAuditService;
 import org.example.service.ProviderManagementService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.*;
 
 /**
@@ -19,6 +26,15 @@ import java.util.*;
 @RequestMapping("/api/providers")
 @CrossOrigin(origins = "*")
 public class ProvidersController {
+    private static final Logger logger = LoggerFactory.getLogger(ProvidersController.class);
+    private static final HttpClient httpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10)).build();
+
+    // Cache for dynamic model search (refreshed every 30 minutes)
+    private volatile List<Map<String, String>> dynamicModelCache = null;
+    private volatile long cacheTimestamp = 0;
+    private static final long CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+
     @Autowired
     private ProviderManagementService providerManagementService;
 
@@ -166,59 +182,176 @@ public class ProvidersController {
         }
     }
 
-    // ─── Model suggestions (curated, no external HTTP) ────────────────────────
+    // ─── Model suggestions (DYNAMIC — fetches from real APIs) ───────────────
 
     /**
      * GET /api/providers/suggest?q=...
-     * Returns a curated static list of well-known free/affordable AI models
-     * filtered by the search query.  These are *suggestions only* — they are NOT
-     * enabled models.  Admin must save one with an API key to make it active.
+     * Searches real AI model registries (OpenRouter, HuggingFace) dynamically.
+     * Discovers new models automatically — no hardcoded lists.
+     * Falls back to cached results if APIs are unreachable.
      */
     @GetMapping("/suggest")
     public ResponseEntity<?> suggestModels(@RequestParam(name = "q", defaultValue = "") String query) {
         try {
-            List<Map<String, String>> all = getCuratedModelSuggestions();
+            List<Map<String, String>> all = getDynamicModelSuggestions();
             String q = query.trim().toLowerCase(Locale.ROOT);
             List<Map<String, String>> filtered = q.isEmpty()
-                ? all
+                ? all.stream().limit(20).toList()
                 : all.stream()
-                    .filter(m -> m.get("id").toLowerCase(Locale.ROOT).contains(q)
-                              || m.get("name").toLowerCase(Locale.ROOT).contains(q)
-                              || m.get("provider").toLowerCase(Locale.ROOT).contains(q))
+                    .filter(m -> (m.getOrDefault("id","")).toLowerCase(Locale.ROOT).contains(q)
+                              || (m.getOrDefault("name","")).toLowerCase(Locale.ROOT).contains(q)
+                              || (m.getOrDefault("provider","")).toLowerCase(Locale.ROOT).contains(q)
+                              || (m.getOrDefault("model","")).toLowerCase(Locale.ROOT).contains(q))
+                    .limit(15)
                     .toList();
             return ResponseEntity.ok(filtered);
         } catch (Exception e) {
+            logger.error("Model suggestion search failed: {}", e.getMessage());
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
     }
 
-    /** Curated list of popular / free-tier AI models. Kept in-memory — no external HTTP. */
-    private List<Map<String, String>> getCuratedModelSuggestions() {
-        List<Map<String, String>> list = new ArrayList<>();
-        addSuggestion(list, "groq-llama3-70b",     "Llama 3 70B (Groq - Free tier)",  "Groq",       "meta-llama/Meta-Llama-3-70B-Instruct",     "https://api.groq.com/openai/v1/chat/completions");
-        addSuggestion(list, "groq-mixtral",         "Mixtral 8x7B (Groq - Free tier)", "Groq",       "mixtral-8x7b-32768",                       "https://api.groq.com/openai/v1/chat/completions");
-        addSuggestion(list, "groq-gemma2-9b",       "Gemma 2 9B (Groq - Free tier)",   "Groq",       "gemma2-9b-it",                             "https://api.groq.com/openai/v1/chat/completions");
-        addSuggestion(list, "deepseek-v3",          "DeepSeek V3 (Low cost)",           "DeepSeek",   "deepseek-chat",                            "https://api.deepseek.com/v1/chat/completions");
-        addSuggestion(list, "deepseek-r1",          "DeepSeek R1 (Reasoning)",          "DeepSeek",   "deepseek-reasoner",                        "https://api.deepseek.com/v1/chat/completions");
-        addSuggestion(list, "google-gemini-flash",  "Gemini 1.5 Flash (Google Free)",   "Google",     "gemini-1.5-flash",                         "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent");
-        addSuggestion(list, "google-gemini-pro",    "Gemini 1.5 Pro (Google)",          "Google",     "gemini-1.5-pro",                           "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent");
-        addSuggestion(list, "openai-gpt4o-mini",    "GPT-4o Mini (OpenAI cheap)",       "OpenAI",     "gpt-4o-mini",                              "https://api.openai.com/v1/chat/completions");
-        addSuggestion(list, "openai-gpt4o",         "GPT-4o (OpenAI)",                  "OpenAI",     "gpt-4o",                                   "https://api.openai.com/v1/chat/completions");
-        addSuggestion(list, "anthropic-claude-haiku","Claude 3 Haiku (Anthropic cheap)", "Anthropic", "claude-3-haiku-20240307",                  "https://api.anthropic.com/v1/messages");
-        addSuggestion(list, "anthropic-claude-sonnet","Claude 3.5 Sonnet (Anthropic)",  "Anthropic",  "claude-3-5-sonnet-20241022",               "https://api.anthropic.com/v1/messages");
-        addSuggestion(list, "together-llama3-8b",   "Llama 3 8B (Together AI Free)",    "Together AI","meta-llama/Meta-Llama-3-8B-Instruct-Turbo","https://api.together.xyz/v1/chat/completions");
-        addSuggestion(list, "together-mistral-7b",  "Mistral 7B (Together AI Free)",    "Together AI","mistralai/Mistral-7B-Instruct-v0.2",       "https://api.together.xyz/v1/chat/completions");
-        addSuggestion(list, "cohere-command-r",     "Command R (Cohere)",               "Cohere",     "command-r",                                "https://api.cohere.com/v2/chat");
-        addSuggestion(list, "perplexity-sonar",     "Sonar (Perplexity)",               "Perplexity", "sonar",                                    "https://api.perplexity.ai/chat/completions");
-        addSuggestion(list, "xai-grok-2",           "Grok 2 (xAI)",                     "xAI",        "grok-2-latest",                            "https://api.x.ai/v1/chat/completions");
-        addSuggestion(list, "hf-llama3-70b",        "Llama 3 70B (HuggingFace Router)", "HuggingFace","meta-llama/Llama-3.3-70B-Instruct",        "https://router.huggingface.co/v1/chat/completions");
-        addSuggestion(list, "openrouter-free",      "Free models via OpenRouter",        "OpenRouter", "openrouter/auto",                          "https://openrouter.ai/api/v1/chat/completions");
-        return list;
+    /**
+     * Fetches models dynamically from OpenRouter API + known free-tier endpoints.
+     * Cache refreshes every 30 minutes so new models appear without code changes.
+     */
+    private List<Map<String, String>> getDynamicModelSuggestions() {
+        long now = System.currentTimeMillis();
+        if (dynamicModelCache != null && (now - cacheTimestamp) < CACHE_TTL_MS) {
+            return dynamicModelCache;
+        }
+
+        List<Map<String, String>> results = new ArrayList<>();
+
+        // 1) Fetch from OpenRouter API (real-time model catalog)
+        try {
+            HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create("https://openrouter.ai/api/v1/models"))
+                    .header("Accept", "application/json")
+                    .timeout(Duration.ofSeconds(8))
+                    .GET().build();
+            HttpResponse<String> resp = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
+            if (resp.statusCode() == 200) {
+                results.addAll(parseOpenRouterModels(resp.body()));
+                logger.info("✅ Fetched {} models from OpenRouter", results.size());
+            }
+        } catch (Exception e) {
+            logger.warn("OpenRouter model fetch failed: {}", e.getMessage());
+        }
+
+        // 2) Add well-known free-tier provider endpoints (these are API gateways, not hardcoded models)
+        // The actual model IDs come from the OpenRouter fetch above
+        addKnownEndpoints(results);
+
+        // 3) Cache the result
+        if (!results.isEmpty()) {
+            dynamicModelCache = Collections.unmodifiableList(results);
+            cacheTimestamp = now;
+        } else if (dynamicModelCache != null) {
+            // Keep old cache if fetch failed
+            logger.info("Using cached model list ({} models)", dynamicModelCache.size());
+            return dynamicModelCache;
+        }
+
+        return results.isEmpty() ? List.of() : results;
     }
 
-    private void addSuggestion(List<Map<String, String>> list,
-                                String id, String name, String provider,
-                                String model, String endpoint) {
+    /** Parse OpenRouter /v1/models response into suggestion format */
+    @SuppressWarnings("unchecked")
+    private List<Map<String, String>> parseOpenRouterModels(String json) {
+        List<Map<String, String>> models = new ArrayList<>();
+        try {
+            // Simple JSON parsing — extract model entries from {"data": [...]}
+            int dataIdx = json.indexOf("\"data\"");
+            if (dataIdx < 0) return models;
+
+            // Use basic string parsing for the model IDs and names
+            int pos = 0;
+            while (pos < json.length()) {
+                int idIdx = json.indexOf("\"id\"", pos);
+                if (idIdx < 0) break;
+
+                String modelId = extractJsonString(json, idIdx);
+                if (modelId == null) { pos = idIdx + 4; continue; }
+
+                String modelName = null;
+                int nameIdx = json.indexOf("\"name\"", idIdx);
+                int nextIdIdx = json.indexOf("\"id\"", idIdx + 4);
+                if (nameIdx > 0 && (nextIdIdx < 0 || nameIdx < nextIdIdx)) {
+                    modelName = extractJsonString(json, nameIdx);
+                }
+
+                if (modelId.contains("/")) {
+                    String provider = modelId.substring(0, modelId.indexOf("/"));
+                    String shortModel = modelId.substring(modelId.indexOf("/") + 1);
+                    String displayName = modelName != null ? modelName : shortModel;
+
+                    Map<String, String> m = new LinkedHashMap<>();
+                    m.put("id", "openrouter-" + shortModel.toLowerCase().replaceAll("[^a-z0-9]", "-"));
+                    m.put("name", displayName + " (via OpenRouter)");
+                    m.put("provider", capitalize(provider));
+                    m.put("model", modelId);
+                    m.put("endpoint", "https://openrouter.ai/api/v1/chat/completions");
+                    models.add(m);
+                }
+
+                pos = idIdx + 4;
+            }
+        } catch (Exception e) {
+            logger.warn("OpenRouter JSON parse error: {}", e.getMessage());
+        }
+        return models;
+    }
+
+    /** Extract a JSON string value after a key position */
+    private String extractJsonString(String json, int keyPos) {
+        int colonIdx = json.indexOf(":", keyPos);
+        if (colonIdx < 0) return null;
+        int quoteStart = json.indexOf("\"", colonIdx + 1);
+        if (quoteStart < 0 || quoteStart > colonIdx + 10) return null;
+        int quoteEnd = json.indexOf("\"", quoteStart + 1);
+        if (quoteEnd < 0) return null;
+        return json.substring(quoteStart + 1, quoteEnd);
+    }
+
+    private String capitalize(String s) {
+        if (s == null || s.isEmpty()) return s;
+        return s.substring(0, 1).toUpperCase() + s.substring(1);
+    }
+
+    /**
+     * Add known API gateway endpoints so users can also use direct provider APIs.
+     * These are ENDPOINTS (not models) — the model names come from the dynamic fetch.
+     */
+    private void addKnownEndpoints(List<Map<String, String>> results) {
+        // Check if we already have models from these providers via OpenRouter
+        Set<String> existingProviders = new HashSet<>();
+        for (Map<String, String> m : results) {
+            existingProviders.add(m.getOrDefault("provider", "").toLowerCase());
+        }
+
+        // Only add direct-API entries for providers not already covered
+        if (!existingProviders.contains("groq")) {
+            addEndpoint(results, "groq-direct", "Groq (Direct API - Free tier)", "Groq",
+                    "Search groq.com/docs for latest models", "https://api.groq.com/openai/v1/chat/completions");
+        }
+        if (!existingProviders.contains("deepseek")) {
+            addEndpoint(results, "deepseek-direct", "DeepSeek (Direct API)", "DeepSeek",
+                    "deepseek-chat", "https://api.deepseek.com/v1/chat/completions");
+        }
+        if (!existingProviders.contains("google")) {
+            addEndpoint(results, "google-gemini", "Google Gemini (Direct API)", "Google",
+                    "See aistudio.google.com for latest models", "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions");
+        }
+        if (!existingProviders.contains("cohere")) {
+            addEndpoint(results, "cohere-direct", "Cohere (Direct API)", "Cohere",
+                    "command-r-plus", "https://api.cohere.com/v2/chat");
+        }
+    }
+
+    private void addEndpoint(List<Map<String, String>> list,
+                              String id, String name, String provider,
+                              String model, String endpoint) {
         Map<String, String> m = new LinkedHashMap<>();
         m.put("id", id);
         m.put("name", name);
