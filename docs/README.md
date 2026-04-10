@@ -29,6 +29,15 @@ This is the **single source of truth** covering:
 - New docs must be added under the best matching `docs/<category>/` folder.
 - If a topic already exists, update the canonical file instead of creating a parallel file.
 
+## New Master Documentation (April 2026)
+
+- [Complete System Documentation](./COMPLETE_SYSTEM_DOCUMENTATION.md) - End-to-end master reference
+- [Quick Reference](./QUICK_REFERENCE.md) - Commands, endpoints, and config cheat sheet
+- [Dynamic Consensus Integration Guide](./DYNAMIC_CONSENSUS_INTEGRATION_GUIDE.md) - Integration steps for chat and voting
+- [Consensus Voting Architecture](./CONSENSUS_VOTING_ARCHITECTURE.md) - Strategy and system design
+- [Phase 1 Optimization Complete](./PHASE1_OPTIMIZATION_COMPLETE.md) - Performance and cost optimizations
+- [Cleanup Duplicate Files Complete](./CLEANUP_DUPLICATE_FILES_COMPLETE.md) - Repository cleanup report
+
 ## ðŸš€ Quick Start
 
 - **[Start Here (Next 5 Minutes)](./00-START-HERE/)** - Getting started quickly
