@@ -2,7 +2,6 @@ package org.example.audit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -44,8 +43,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ImmutableKingModeAuditLog {
     private static final Logger logger = LoggerFactory.getLogger(ImmutableKingModeAuditLog.class);
 
-    @Autowired(required = false)
-    private Object firestore;  // Use Object to avoid Firestore import if not available
+    // Firestore not wired — using in-memory fallback until Firestore SDK is added
+    private final Object firestore = null;
 
     private static final String AUDIT_COLLECTION = "king_mode_audit_log";
     private static final String PENDING_APPROVALS_COLLECTION = "pending_king_mode_approvals";
