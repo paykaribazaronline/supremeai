@@ -7,6 +7,7 @@ import org.example.service.GeneratedProjectRegistryService;
 import org.example.service.IdleResearchService;
 import org.example.service.ExistingProjectService;
 import org.example.service.ProjectGovernanceService;
+import org.example.service.SystemModeService;
 import org.example.service.PublicAIRouter;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -73,6 +74,9 @@ public class ProjectGenerationController {
 
     @Autowired
     private ProjectGovernanceService projectGovernanceService;
+
+    @Autowired
+    private SystemModeService systemModeService;
     
     public ProjectGenerationController(FileOrchestrator fileOrchestrator,
                                       TemplateManager templateManager,
@@ -238,6 +242,39 @@ public class ProjectGenerationController {
         String state = String.valueOf(repoState.getOrDefault("state", "UNKNOWN"));
         if ("EXISTING_CODEBASE".equals(state) && existingProjectService != null) {
             try {
+                SystemModeService.OperationDecision decision =
+                        systemModeService.canExecuteOperation("OPTIMIZE_CODE", 93);
+                if (!decision.isAllowed()) {
+                    if (decision.isRequiresApproval()) {
+                        String opId = "project-route-improve-" + System.currentTimeMillis();
+                        systemModeService.requestApproval(opId,
+                                "Auto-route generated project to existing-codebase improvement flow");
+                        projectStatus.put("status", "PENDING_APPROVAL");
+                        projectStatus.put("operationId", opId);
+                        projectStatus.put("message", decision.getReason());
+                        projectRegistryService.saveProject(projectStatus);
+
+                        Map<String, Object> response = new HashMap<>();
+                        response.put("status", "pending_approval");
+                        response.put("project", projectStatus);
+                        response.put("operationId", opId);
+                        response.put("message", decision.getReason());
+                        projectGovernanceService.applyUniversalRuleMetadata(response);
+                        return response;
+                    }
+
+                    projectStatus.put("status", "BLOCKED_BY_MODE");
+                    projectStatus.put("message", decision.getReason());
+                    projectRegistryService.saveProject(projectStatus);
+
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("status", "blocked");
+                    response.put("project", projectStatus);
+                    response.put("message", decision.getReason());
+                    projectGovernanceService.applyUniversalRuleMetadata(response);
+                    return response;
+                }
+
                 String trackedId = findTrackedExistingProjectId(repoUrl, repoBranch);
                 if (trackedId == null) {
                     String goal = description == null || description.isBlank()

@@ -67,9 +67,20 @@ public class SystemModeService {
 
         switch (mode) {
             case FULLY_AUTOMATIC:
-                // Everything allowed with high confidence
-                decision.setAllowed(true);
-                decision.setReason("FULLY_AUTOMATIC mode: autonomous execution enabled");
+                // FULLY_AUTOMATIC still respects feature toggles by operation family.
+                if (isLearningOperation(operationName) && !config.isAutoLearnEnabled()) {
+                    decision.setAllowed(false);
+                    decision.setReason("FULLY_AUTOMATIC: auto-learning disabled");
+                } else if (isGenerationOperation(operationName) && !config.isAutoGenerateAPIs()) {
+                    decision.setAllowed(false);
+                    decision.setReason("FULLY_AUTOMATIC: auto-generation disabled");
+                } else if (isImprovementOperation(operationName) && !config.isAutoImproveCode()) {
+                    decision.setAllowed(false);
+                    decision.setReason("FULLY_AUTOMATIC: auto-improvement disabled");
+                } else {
+                    decision.setAllowed(true);
+                    decision.setReason("FULLY_AUTOMATIC mode: autonomous execution enabled");
+                }
                 break;
 
             case PRESET_RULES:
@@ -270,6 +281,21 @@ public class SystemModeService {
             System.out.println("[AUDIT] Mode change: " + oldMode.name() + " -> " + newMode.name() + 
                               " by " + adminName);
         }
+    }
+
+    private boolean isLearningOperation(String operationName) {
+        String op = operationName == null ? "" : operationName.toUpperCase(Locale.ROOT);
+        return op.contains("LEARN") || op.contains("KNOWLEDGE") || op.contains("RESEARCH");
+    }
+
+    private boolean isGenerationOperation(String operationName) {
+        String op = operationName == null ? "" : operationName.toUpperCase(Locale.ROOT);
+        return op.contains("GENERATE") || op.contains("CREATE_API") || op.contains("EXTEND");
+    }
+
+    private boolean isImprovementOperation(String operationName) {
+        String op = operationName == null ? "" : operationName.toUpperCase(Locale.ROOT);
+        return op.contains("OPTIMIZE") || op.contains("FIX") || op.contains("IMPROVE");
     }
 
     private String findPendingEntry(String operationId) {
