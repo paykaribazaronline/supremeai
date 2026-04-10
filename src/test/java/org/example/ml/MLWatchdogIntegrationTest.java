@@ -2,8 +2,17 @@ package org.example.ml;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.example.test.AutoLearningTestExtension;
+import org.example.service.SystemLearningService;
+import org.example.service.AIErrorSolvingService;
+import org.example.service.AutoFixingService;
+import org.example.service.GitHubActionsErrorParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.*;
 
@@ -18,10 +27,26 @@ import static org.junit.jupiter.api.Assertions.*;
  * ✅ #8 Severity - Objective metric calculation
  * ✅ #9 Key Rotation - Monthly auto-rotation
  * ✅ #10 Vector DB - Phase 5 semantic learning
+ * 
+ * 🧠 AUTO-LEARNING: All test failures are automatically:
+ * 1. Recorded in SystemLearningService
+ * 2. Analyzed by AIErrorSolvingService
+ * 3. Learned for future prevention
  */
+@SpringBootTest
+@ExtendWith({SpringExtension.class, AutoLearningTestExtension.class})
 public class MLWatchdogIntegrationTest {
 
     private static final Logger logger = LoggerFactory.getLogger(MLWatchdogIntegrationTest.class);
+
+    @Autowired(required = false)
+    private SystemLearningService learningService;
+
+    @Autowired(required = false)
+    private AIErrorSolvingService errorSolvingService;
+
+    @Autowired(required = false)
+    private AutoFixingService autoFixingService;
 
     private IsolationForest isolationForest;
     private RandomForestFailurePredictor randomForest;
@@ -42,27 +67,33 @@ public class MLWatchdogIntegrationTest {
     public void testIsolationForestAnomalyDetection() {
         logger.info("\n🔬 TEST #7: Isolation Forest Anomaly Detection");
 
-        // Generate normal data
-        List<double[]> normalData = generateNormalData(100);
+        try {
+            // Generate normal data
+            List<double[]> normalData = generateNormalData(100);
 
-        // Train forest on normal data
-        isolationForest.train(normalData);
+            // Train forest on normal data
+            isolationForest.train(normalData);
 
-        // Test with anomalous point
-        double[] anomaly = {100.0, 100.0, 100.0, 100.0}; // Far from normal
-        double score = isolationForest.anomalyScore(anomaly);
+            // Test with anomalous point
+            double[] anomaly = {100.0, 100.0, 100.0, 100.0}; // Far from normal
+            double score = isolationForest.anomalyScore(anomaly);
 
-        logger.info("  Anomaly score for outlier: {:.3f} (expected > 0.5)", score);
-        assertTrue(score > 0.5, "Should detect anomaly");
+            logger.info("  Anomaly score for outlier: {:.3f} (expected > 0.5)", score);
+            assertTrue(score > 0.5, "Should detect anomaly");
 
-        // Test with normal point
-        double[] normal = {5.0, 5.0, 5.0, 5.0};
-        double normalScore = isolationForest.anomalyScore(normal);
+            // Test with normal point
+            double[] normal = {5.0, 5.0, 5.0, 5.0};
+            double normalScore = isolationForest.anomalyScore(normal);
 
-        logger.info("  Anomaly score for normal: {:.3f} (expected < 0.4)", normalScore);
-        assertTrue(normalScore < 0.4, "Should recognize normal data");
+            logger.info("  Anomaly score for normal: {:.3f} (expected < 0.4)", normalScore);
+            assertTrue(normalScore < 0.4, "Should recognize normal data");
 
-        logger.info("✅ FIX #7 VERIFIED: Isolation Forest working correctly");
+            logger.info("✅ FIX #7 VERIFIED: Isolation Forest working correctly");
+        } catch (AssertionError e) {
+            // Auto-learn from failure
+            logAndLearnFromFailure("testIsolationForestAnomalyDetection", e);
+            throw e;
+        }
     }
 
     /**
@@ -72,40 +103,46 @@ public class MLWatchdogIntegrationTest {
     public void testRandomForestFailurePrediction() {
         logger.info("\n🔬 TEST #7: Random Forest Failure Prediction");
 
-        // Create training data with clear failure patterns
-        List<double[]> features = new ArrayList<>();
-        List<Integer> labels = new ArrayList<>();
+        try {
+            // Create training data with clear failure patterns
+            List<double[]> features = new ArrayList<>();
+            List<Integer> labels = new ArrayList<>();
 
-        // Failure pattern: high error rate + high latency
-        for (int i = 0; i < 30; i++) {
-            features.add(new double[]{0.9, 500.0}); // High error, high latency = FAIL
-            labels.add(1);
+            // Failure pattern: high error rate + high latency
+            for (int i = 0; i < 30; i++) {
+                features.add(new double[]{0.9, 500.0}); // High error, high latency = FAIL
+                labels.add(1);
+            }
+
+            // Normal pattern: low error rate + low latency
+            for (int i = 0; i < 30; i++) {
+                features.add(new double[]{0.01, 50.0}); // Low error, low latency = OK
+                labels.add(0);
+            }
+
+            // Train
+            randomForest.train(features, labels);
+
+            // Test failure case
+            double[] failureMetrics = {0.85, 450.0};
+            double failureProb = randomForest.predictFailureProbability(failureMetrics);
+            logger.info("  Failure probability for {}: {:.1f}% (expected > 70%)",
+                Arrays.toString(failureMetrics), failureProb * 100);
+            assertTrue(failureProb > 0.5, "Should predict failure");
+
+            // Test success case
+            double[] successMetrics = {0.02, 45.0};
+            double successProb = randomForest.predictFailureProbability(successMetrics);
+            logger.info("  Failure probability for {}: {:.1f}% (expected < 30%)",
+                Arrays.toString(successMetrics), successProb * 100);
+            assertTrue(successProb < 0.5, "Should predict success");
+
+            logger.info("✅ FIX #7 VERIFIED: Random Forest prediction working");
+        } catch (AssertionError e) {
+            // Auto-learn from failure
+            logAndLearnFromFailure("testRandomForestFailurePrediction", e);
+            throw e;
         }
-
-        // Normal pattern: low error rate + low latency
-        for (int i = 0; i < 30; i++) {
-            features.add(new double[]{0.01, 50.0}); // Low error, low latency = OK
-            labels.add(0);
-        }
-
-        // Train
-        randomForest.train(features, labels);
-
-        // Test failure case
-        double[] failureMetrics = {0.85, 450.0};
-        double failureProb = randomForest.predictFailureProbability(failureMetrics);
-        logger.info("  Failure probability for {}: {:.1f}% (expected > 70%)",
-            Arrays.toString(failureMetrics), failureProb * 100);
-        assertTrue(failureProb > 0.5, "Should predict failure");
-
-        // Test success case
-        double[] successMetrics = {0.02, 45.0};
-        double successProb = randomForest.predictFailureProbability(successMetrics);
-        logger.info("  Failure probability for {}: {:.1f}% (expected < 30%)",
-            Arrays.toString(successMetrics), successProb * 100);
-        assertTrue(successProb < 0.5, "Should predict success");
-
-        logger.info("✅ FIX #7 VERIFIED: Random Forest prediction working");
     }
 
     /**
@@ -115,48 +152,54 @@ public class MLWatchdogIntegrationTest {
     public void testVectorDatabaseSemanticLearning() {
         logger.info("\n🔬 TEST #10: Vector Database Semantic Learning");
 
-        // Insert error/solution pairs
-        String id1 = vectorDb.insertSolution(
-            "database",
-            "Connection timeout after 30 seconds",
-            "Increase connection pool size from 10 to 25"
-        );
-        logger.info("  Inserted solution 1: {}", id1);
+        try {
+            // Insert error/solution pairs
+            String id1 = vectorDb.insertSolution(
+                "database",
+                "Connection timeout after 30 seconds",
+                "Increase connection pool size from 10 to 25"
+            );
+            logger.info("  Inserted solution 1: {}", id1);
 
-        String id2 = vectorDb.insertSolution(
-            "database",
-            "Database connection failed with timeout",
-            "Check database server availability and network connectivity"
-        );
-        logger.info("  Inserted solution 2: {}", id2);
+            String id2 = vectorDb.insertSolution(
+                "database",
+                "Database connection failed with timeout",
+                "Check database server availability and network connectivity"
+            );
+            logger.info("  Inserted solution 2: {}", id2);
 
-        // Search for similar error
-        List<SemanticVectorDatabase.SimilarityResult> results = vectorDb.findSimilarSolutions(
-            "Database connection timed out",
-            "database",
-            0.5
-        );
+            // Search for similar error
+            List<SemanticVectorDatabase.SimilarityResult> results = vectorDb.findSimilarSolutions(
+                "Database connection timed out",
+                "database",
+                0.5
+            );
 
-        logger.info("  Found {} similar solutions", results.size());
-        assertTrue(results.size() >= 1, "Should find similar solutions");
+            logger.info("  Found {} similar solutions", results.size());
+            assertTrue(results.size() >= 1, "Should find similar solutions");
 
-        // Verify similarity scores
-        for (SemanticVectorDatabase.SimilarityResult r : results) {
-            logger.info("    - Similarity: {:.2f}, Solution: {}",
-                r.similarity, r.solutionText.substring(0, Math.min(50, r.solutionText.length())));
+            // Verify similarity scores
+            for (SemanticVectorDatabase.SimilarityResult r : results) {
+                logger.info("    - Similarity: {:.2f}, Solution: {}",
+                    r.similarity, r.solutionText.substring(0, Math.min(50, r.solutionText.length())));
+            }
+
+            // Mark as effective
+            if (!results.isEmpty()) {
+                vectorDb.markSolutionEffective(results.get(0).vectorId);
+                logger.info("  Marked solution as effective for learning");
+            }
+
+            // Get stats
+            Map<String, Object> stats = vectorDb.getStats();
+            logger.info("  Vector DB stats: {}", stats);
+
+            logger.info("✅ FIX #10 VERIFIED: Vector DB semantic learning working");
+        } catch (AssertionError e) {
+            // Auto-learn from failure
+            logAndLearnFromFailure("testVectorDatabaseSemanticLearning", e);
+            throw e;
         }
-
-        // Mark as effective
-        if (!results.isEmpty()) {
-            vectorDb.markSolutionEffective(results.get(0).vectorId);
-            logger.info("  Marked solution as effective for learning");
-        }
-
-        // Get stats
-        Map<String, Object> stats = vectorDb.getStats();
-        logger.info("  Vector DB stats: {}", stats);
-
-        logger.info("✅ FIX #10 VERIFIED: Vector DB semantic learning working");
     }
 
     /**
@@ -226,5 +269,107 @@ public class MLWatchdogIntegrationTest {
             95.0,   // Very high CPU
             88.0    // Very high memory
         };
+    }
+
+    /**
+     * Auto-learn from test failure:
+     * 1. Record in SystemLearningService
+     * 2. Generate fix via AIErrorSolvingService
+     * 3. AUTO-FIX: Apply fix and commit to GitHub
+     * 4. Log for future prevention
+     */
+    private void logAndLearnFromFailure(String testName, AssertionError error) {
+        if (learningService == null) {
+            logger.warn("⚠️  SystemLearningService not available - skipping auto-learning");
+            return;
+        }
+
+        logger.error("\n🧠 AUTO-LEARNING FROM TEST FAILURE");
+        logger.error("   Test: {}", testName);
+        logger.error("   Error: {}", error.getMessage());
+
+        try {
+            // Step 1: Record in SystemLearning
+            learningService.recordError(
+                "ML_TEST_FAILURE",
+                error.getMessage(),
+                new Exception(error),
+                null
+            );
+            logger.info("   ✅ Failure recorded in learning memory");
+
+            // Step 2: Learn from the incident
+            String rootCause = "ML model assertion failed during testing";
+            if (error.getMessage() != null && error.getMessage().contains("expected")) {
+                rootCause = "Model output did not meet expected threshold - assertion failed with: " + error.getMessage();
+            }
+
+            Map<String, Object> incident = learningService.learnFromIncident(
+                "ML_TEST_FAILURE",
+                testName,
+                rootCause,
+                "Verify model training data quality, threshold calibration, and feature engineering",
+                Arrays.asList(
+                    "1. Check training dataset distribution and size",
+                    "2. Verify model parameters and hypertuning",
+                    "3. Validate test data matches expected patterns",
+                    "4. Review threshold values for anomaly detection",
+                    "5. Compare against baseline model performance",
+                    "6. Check for data drift or distribution changes",
+                    "7. Retrain model with current data"
+                ),
+                0.75,  // Medium confidence - needs investigation
+                Map.of(
+                    "component", "ML",
+                    "testName", testName,
+                    "requiresManualFix", false,
+                    "severity", "HIGH",
+                    "autoFixable", true
+                )
+            );
+            
+            logger.info("   ✅ Learning incident recorded: {}", incident.get("status"));
+
+            // Step 3: GET AI SOLUTION
+            if (errorSolvingService != null) {
+                Map<String, Object> solution = errorSolvingService.solveError(
+                    "system-ml-testing",
+                    error.getMessage() != null ? error.getMessage() : "ML test assertion failed",
+                    String.format("Test %s failed. Likely cause: model training/prediction issue", testName)
+                );
+                
+                if ("success".equals(solution.get("status"))) {
+                    logger.info("   ✅ AI generated solution available");
+                    logger.info("      Confidence: {:.1f}%", 
+                        ((Number) solution.getOrDefault("confidenceScore", 0.0)).doubleValue() * 100);
+                }
+            }
+
+            // ⭐ STEP 4: AUTO-FIX - Apply fix automatically
+            if (autoFixingService != null) {
+                logger.info("\n   🔧 TRIGGERING AUTO-FIX...");
+                Map<String, Object> fixResult = autoFixingService.solveMLTestFailure(
+                    testName,
+                    error.getMessage() != null ? error.getMessage() : "Test failed"
+                );
+                
+                if ("success".equals(fixResult.get("status"))) {
+                    logger.error("\n   ✅✅✅ AUTO-FIX SUCCESSFUL ✅✅✅");
+                    logger.error("   File Fixed: {}", fixResult.get("fileFixed"));
+                    logger.error("   Commit: {}", fixResult.get("commitHash"));
+                    logger.error("   Status: {}", fixResult.get("message"));
+                    logger.error("   \n   🚀 Fix has been automatically pushed to GitHub!\n");
+                } else {
+                    logger.error("   ⚠️  Auto-fix incomplete: {}", fixResult.get("message"));
+                }
+            } else {
+                logger.warn("   ⚠️  AutoFixingService not available - fix not applied");
+            }
+
+            logger.info("✅ AUTO-LEARNING COMPLETE - System improved itself\n");
+
+        } catch (Exception e) {
+            logger.error("❌ Failed during auto-learning: {}", e.getMessage(), e);
+        }
     }
 }
