@@ -22,8 +22,8 @@ public class SystemConfiguration {
     // PRESET_RULES mode settings
     private List<String> allowedOperations = new ArrayList<>(); // What system can do
     private List<String> blockedOperations = new ArrayList<>();  // What system cannot do
-    private int maxAutoActionsPerDay = 50;
-    private int maxAutoActionsPerHour = 10;
+    private int maxAutoActionsPerDay = -1;  // -1 = unlimited (MASTER RULE: no hardcoded caps)
+    private int maxAutoActionsPerHour = -1;  // -1 = unlimited (MASTER RULE: no hardcoded caps)
     private int dailyActionsUsed = 0;
     private int hourlyActionsUsed = 0;
     
@@ -148,15 +148,19 @@ public class SystemConfiguration {
 
     /**
      * Check if daily action limit exceeded
+     * Returns false if maxAutoActionsPerDay is -1 (unlimited)
      */
     public boolean isDailyLimitExceeded() {
+        if (maxAutoActionsPerDay == -1) return false;  // Unlimited
         return dailyActionsUsed >= maxAutoActionsPerDay;
     }
 
     /**
      * Check if hourly limit exceeded
+     * Returns false if maxAutoActionsPerHour is -1 (unlimited)
      */
     public boolean isHourlyLimitExceeded() {
+        if (maxAutoActionsPerHour == -1) return false;  // Unlimited
         return hourlyActionsUsed >= maxAutoActionsPerHour;
     }
 
