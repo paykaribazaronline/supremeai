@@ -43,16 +43,17 @@ public class UserQuotaService {
     
     /**
      * Get or create user quota allocation
-     * SECURITY: No default tier assignments. All users start as FREE.
+     * SECURITY (Phase 11): No default tier assignments. All users start as FREE.
      * Admins must explicitly promote users via /api/tier endpoints.
+     * ⚠️ CRITICAL: No special handling for "admin" or "supremeai" usernames!
      */
     public UserQuotaAllocation getUserQuota(String userId) {
         return userQuotas.computeIfAbsent(userId, key -> {
-            // Default: FREE tier for ALL users (no exceptions)
+            // Default: FREE tier for ALL users (no exceptions, no special cases)
             UserTier tier = UserTier.FREE;
-            logger.info("📊 User {} quota initialized with {} tier", userId, tier.name);
+            logger.info("📊 User {} quota initialized with {} tier", key, tier.name);
             
-            return new UserQuotaAllocation(userId, tier);
+            return new UserQuotaAllocation(key, tier);
         });
     }
     
