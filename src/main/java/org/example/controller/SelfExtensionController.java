@@ -74,19 +74,16 @@ public class SelfExtensionController {
             }
             
             // ✅ CHECK: Is user ADMIN? (case-insensitive — role is stored as "admin")
-            if (!"ADMIN".equalsIgnoreCase(user.getRole())) {
+            boolean isAdmin = "ADMIN".equalsIgnoreCase(user.getRole());
+            if (!isAdmin) {
                 logger.warn("❌ Non-admin user {} tried to extend system", user.getUsername());
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("status", "error", "message", "Admin access required"));
             }
             
-            // ✅ NEW: Check user quota tier
-            if (!userQuotaService.canCreateApp(user.getUsername())) {
-                Map<String, Object> quota = userQuotaService.getQuotaStatus(user.getUsername());
-                logger.warn("❌ User {} hit app creation limit for today", user.getUsername());
-                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body(Map.of("status", "error", "message", "App creation limit exceeded for today", "quotaDetails", quota));
-            }
+            // ✅ ADMINS HAVE UNLIMITED ACCESS: Skip quota checks for admins (role=ADMIN = SUPERADMIN tier)
+            // Only non-admin users are subject to quota limits
+            logger.info("👑 Admin {} has unlimited access (quota checks skipped)", user.getUsername());
             
             // ✅ Check provider quotas — only block when providers ARE configured but ALL are out of quota.
             // When no external providers are configured the system runs without external AI (that is fine).
