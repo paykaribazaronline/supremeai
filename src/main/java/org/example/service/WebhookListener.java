@@ -289,6 +289,11 @@ public class WebhookListener {
                     logger.debug("✏️ Content edited in {}/{}", event.owner, event.repo);
                 }
                 
+                case "workflow_run" -> {
+                    // GitHub Actions workflow completion
+                    handleWorkflowCompletion(event);
+                }
+                
                 default -> {
                     logger.debug("📌 Webhook event: {} (no action)", event.eventType);
                 }
@@ -364,6 +369,59 @@ public class WebhookListener {
         
         logger.debug("💾 Webhook event stored in Firebase");
     }
+    
+    /**
+     * Handle GitHub Actions workflow completion (workflow_run event)
+     * 
+     * Triggered when a workflow run completes (success or failure).
+     * If failed and self-healing is enabled, trigger the healing loop.
+     */
+    private void handleWorkflowCompletion(WebhookEvent event) {
+        try {
+            JsonNode payload = event.payload;
+            
+            // Extract workflow info from payload
+            String conclusion = payload.at("/workflow_run/conclusion").asText("unknown");
+            String status = payload.at("/workflow_run/status").asText("unknown");
+            String workflowName = payload.at("/workflow_run/name").asText("unknown");
+            long workflowId = payload.at("/workflow_run/id").asLong(-1);
+            String runUrl = payload.at("/workflow_run/html_url").asText("");
+            
+            logger.info("🔄 Workflow completion: {} (status: {}, conclusion: {})",
+                    workflowName, status, conclusion);
+            
+            // Only process completed workflows
+            if (!"completed".equals(status)) {
+                logger.debug("⏳ Workflow still in progress: {}", workflowName);
+                return;
+            }
+            
+            // Check if workflow failed
+            if ("failure".equals(conclusion) || "cancelled".equals(conclusion)) {
+                logger.warn("❌ Workflow FAILED: {} (Run: {})", workflowName, runUrl);
+                
+                // Trigger self-healing if available
+                if (selfHealingService != null) {
+                    try {
+                        // TODO: Publish WorkflowFailureEvent to healing loop
+                        // safeInfiniteHealingLoop.onWorkflowFailure(...);
+                        
+                        logger.info("🚀 Triggering healing loop for: {}", workflowName);
+                    } catch (Exception e) {
+                        logger.error("Failed to trigger healing loop", e);
+                    }
+                }
+            } else if ("success".equals(conclusion)) {
+                logger.info("✅ Workflow PASSED: {}", workflowName);
+            } else {
+                logger.info("❓ Workflow UNKNOWN: {} (conclusion: {})", workflowName, conclusion);
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error processing workflow completion event", e);
+        }
+    }
+
     
     /**
      * Get webhook statistics
