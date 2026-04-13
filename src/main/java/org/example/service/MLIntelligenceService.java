@@ -14,11 +14,7 @@ import java.util.stream.Collectors;
 @Service
 public class MLIntelligenceService {
 
-    @Autowired(required = false)
-    private MetricsService metricsService;
 
-    @Autowired(required = false)
-    private PerformanceAnalyzer performanceAnalyzer;
 
     private static class AnomalyPoint {
         public long timestamp;

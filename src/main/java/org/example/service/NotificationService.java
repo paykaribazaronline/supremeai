@@ -23,9 +23,6 @@ public class NotificationService {
     
     private LocalDate smsCostTrackingDate = LocalDate.now();
     private double smsCostToday = 0.0;
-    
-    @Autowired(required = false)
-    private FirebaseService firebaseService;
 
     private static class NotificationConfig {
         public String type; // EMAIL, SLACK, DISCORD, SMS

@@ -6,12 +6,12 @@ import org.springframework.stereotype.Service;
 
 
 /**
- * EnterpriseResilienceOrchestratorServiceService
+ * EnterpriseResilienceOrchestratorService
  * Generated: 2026-04-08T02:23:46.290711177
  */
 @Service
-public class EnterpriseResilienceOrchestratorServiceService {
-    private static final Logger logger = LoggerFactory.getLogger(EnterpriseResilienceOrchestratorServiceService.class);
+public class EnterpriseResilienceOrchestratorService {
+    private static final Logger logger = LoggerFactory.getLogger(EnterpriseResilienceOrchestratorService.class);
 
     /**
      * dynamicFailoverRouting

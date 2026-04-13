@@ -21,9 +21,9 @@ import java.util.*;
  * - Coverage thresholds
  * - Success criteria
  *
- * @deprecated Use {@link CICDPipelineService} as the canonical CI/CD orchestration service.
+ * NOTE: CICDPipelineService is high-level orchestration; this provides low-level
+ * local project build/test execution. Both are used in different contexts.
  */
-@Deprecated(since = "6.0", forRemoval = false)
 public class CICDService {
     
     private final String workspaceRoot;
