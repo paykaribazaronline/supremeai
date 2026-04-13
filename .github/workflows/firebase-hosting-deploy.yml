@@ -103,6 +103,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     needs: verify
+    env:
+      GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=512m"
 
     steps:
       - name: ⬇️ Checkout code
@@ -135,7 +137,22 @@ jobs:
           echo "org.gradle.parallel=true" >> gradle.properties
 
       - name: 🔨 Build Backend JAR
-        run: ./gradlew bootJar --no-daemon -x test --stacktrace
+        run: |
+          set +e
+          for attempt in 1 2; do
+            echo "Build attempt $attempt..."
+            ./gradlew bootJar --no-daemon -x test --stacktrace
+            if [ $? -eq 0 ]; then
+              echo "✅ Build successful"
+              exit 0
+            fi
+            if [ $attempt -lt 2 ]; then
+              echo "⚠️  Build failed, retrying..."
+              sleep 10
+            fi
+          done
+          echo "❌ Build failed after 2 attempts"
+          exit 1
         env:
           SUPREMEAI_SELFHEALING_PHOENIX_ENABLED: 'true'
 
@@ -148,7 +165,7 @@ jobs:
           fi
           
           JAR_SIZE=$(du -h "$JAR_FILE" | cut -f1)
-          echo "✅ Backend build successful: $JAR_size"
+          echo "✅ Backend build successful: $JAR_SIZE"
 
       - name: 📤 Upload Backend Build Artifact
         uses: actions/upload-artifact@v4
