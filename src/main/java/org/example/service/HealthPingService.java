@@ -5,12 +5,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
- * HealthPingServiceService
+ * HealthPingService
  * Generated: 2026-04-07T12:23:11.841107747
  */
 @Service
-public class HealthPingServiceService {
-    private static final Logger logger = LoggerFactory.getLogger(HealthPingServiceService.class);
+public class HealthPingService {
+    private static final Logger logger = LoggerFactory.getLogger(HealthPingService.class);
 
     /**
      * getPingHistory

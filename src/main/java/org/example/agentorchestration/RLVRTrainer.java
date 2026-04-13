@@ -1,6 +1,5 @@
 package org.example.agentorchestration;
 
-import org.example.service.AgentDecisionLogger;
 import org.example.service.SystemLearningService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,9 +50,6 @@ public class RLVRTrainer {
 
     @Autowired
     private ExpertAgentRouter moeRouter;
-
-    @Autowired
-    private AgentDecisionLogger decisionLogger;
 
     @Autowired
     private SystemLearningService learningService;

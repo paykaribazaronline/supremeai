@@ -20,9 +20,6 @@ public class PersistentAnalyticsService {
     @Autowired(required = false)
     private com.google.cloud.firestore.Firestore firestore;
 
-    @Autowired(required = false)
-    private MetricsService metricsService;
-
     private static class MetricsSnapshot {
         public LocalDateTime timestamp;
         public double memoryUsage;

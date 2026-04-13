@@ -2,24 +2,24 @@ package org.example.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.example.service.EnterpriseResilienceOrchestratorServiceService;
+import org.example.service.EnterpriseResilienceOrchestratorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 @RestController
-@RequestMapping("/api/enterpriseResilienceOrchestratorServiceService")
+@RequestMapping("/api/enterpriseResilienceOrchestratorService")
 public class EnterpriseResilienceOrchestratorServiceController {
     private static final Logger logger = LoggerFactory.getLogger(EnterpriseResilienceOrchestratorServiceController.class);
 
     @Autowired
-    private EnterpriseResilienceOrchestratorServiceService enterpriseResilienceOrchestratorServiceService;
+    private EnterpriseResilienceOrchestratorService enterpriseResilienceOrchestratorService;
 
     @PostMapping("dynamic-failover-routing")
     public ResponseEntity<?> dynamicFailoverRouting() {
         try {
-            enterpriseResilienceOrchestratorServiceService.dynamicFailoverRouting();
+            enterpriseResilienceOrchestratorService.dynamicFailoverRouting();
             return ResponseEntity.ok(Map.of("status", "success"));
         } catch (Exception e) {
             logger.error("❌ Error: {}", e.getMessage());
@@ -31,7 +31,7 @@ public class EnterpriseResilienceOrchestratorServiceController {
     @PostMapping("quota-prediction")
     public ResponseEntity<?> quotaPrediction() {
         try {
-            enterpriseResilienceOrchestratorServiceService.quotaPrediction();
+            enterpriseResilienceOrchestratorService.quotaPrediction();
             return ResponseEntity.ok(Map.of("status", "success"));
         } catch (Exception e) {
             logger.error("❌ Error: {}", e.getMessage());
@@ -43,7 +43,7 @@ public class EnterpriseResilienceOrchestratorServiceController {
     @PostMapping("compile-incident-report")
     public ResponseEntity<?> compileIncidentReport() {
         try {
-            enterpriseResilienceOrchestratorServiceService.compileIncidentReport();
+            enterpriseResilienceOrchestratorService.compileIncidentReport();
             return ResponseEntity.ok(Map.of("status", "success"));
         } catch (Exception e) {
             logger.error("❌ Error: {}", e.getMessage());
@@ -55,7 +55,7 @@ public class EnterpriseResilienceOrchestratorServiceController {
     @PostMapping("evaluate-provider-health")
     public ResponseEntity<?> evaluateProviderHealth() {
         try {
-            enterpriseResilienceOrchestratorServiceService.evaluateProviderHealth();
+            enterpriseResilienceOrchestratorService.evaluateProviderHealth();
             return ResponseEntity.ok(Map.of("status", "success"));
         } catch (Exception e) {
             logger.error("❌ Error: {}", e.getMessage());
@@ -67,7 +67,7 @@ public class EnterpriseResilienceOrchestratorServiceController {
     @PostMapping("cost-aware-model-selection")
     public ResponseEntity<?> costAwareModelSelection() {
         try {
-            enterpriseResilienceOrchestratorServiceService.costAwareModelSelection();
+            enterpriseResilienceOrchestratorService.costAwareModelSelection();
             return ResponseEntity.ok(Map.of("status", "success"));
         } catch (Exception e) {
             logger.error("❌ Error: {}", e.getMessage());
@@ -79,7 +79,7 @@ public class EnterpriseResilienceOrchestratorServiceController {
     @PostMapping("expose-resilience-endpoints")
     public ResponseEntity<?> exposeResilienceEndpoints() {
         try {
-            enterpriseResilienceOrchestratorServiceService.exposeResilienceEndpoints();
+            enterpriseResilienceOrchestratorService.exposeResilienceEndpoints();
             return ResponseEntity.ok(Map.of("status", "success"));
         } catch (Exception e) {
             logger.error("❌ Error: {}", e.getMessage());
@@ -91,7 +91,7 @@ public class EnterpriseResilienceOrchestratorServiceController {
     @PostMapping("emergency-rate-limit-shield")
     public ResponseEntity<?> emergencyRateLimitShield() {
         try {
-            enterpriseResilienceOrchestratorServiceService.emergencyRateLimitShield();
+            enterpriseResilienceOrchestratorService.emergencyRateLimitShield();
             return ResponseEntity.ok(Map.of("status", "success"));
         } catch (Exception e) {
             logger.error("❌ Error: {}", e.getMessage());

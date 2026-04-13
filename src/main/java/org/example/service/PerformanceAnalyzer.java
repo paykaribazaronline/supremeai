@@ -14,12 +14,6 @@ import java.util.concurrent.atomic.AtomicLong;
 @Service
 public class PerformanceAnalyzer {
 
-    @Autowired(required = false)
-    private MetricsService metricsService;
-
-    @Autowired(required = false)
-    private AIRankingService aiRankingService;
-
     private static class ExecutionPattern {
         public String frameWorkName;
         public int totalExecutions = 0;
