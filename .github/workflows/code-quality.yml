@@ -40,6 +40,7 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.language == 'java' && 'manual' || 'none' }}
           queries: security-and-quality
 
       - name: ☕ Set up JDK 17
@@ -60,13 +61,36 @@ jobs:
         if: matrix.language == 'java'
         run: chmod +x gradlew
 
+      - name: ⚙️ Configure Gradle Properties for CodeQL
+        if: matrix.language == 'java'
+        run: |
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m" >> gradle.properties
+          echo "org.gradle.daemon=false" >> gradle.properties
+          echo "org.gradle.parallel=true" >> gradle.properties
+          echo "org.gradle.workers.max=2" >> gradle.properties
+
       - name: 🧹 Reset Gradle state for CodeQL
         if: matrix.language == 'java'
         run: ./gradlew --stop
 
       - name: 🔨 Build Java code (for CodeQL)
         if: matrix.language == 'java'
-        run: ./gradlew clean compileJava processResources classes -x test --stacktrace --info --no-daemon --no-build-cache --rerun-tasks
+        run: |
+          set +e
+          for attempt in 1 2; do
+            echo "CodeQL Java build attempt $attempt..."
+            ./gradlew clean compileJava processResources classes -x test --stacktrace --info --no-daemon --no-build-cache --rerun-tasks
+            if [ $? -eq 0 ]; then
+              echo "✅ CodeQL Java build successful"
+              exit 0
+            fi
+            if [ $attempt -lt 2 ]; then
+              echo "⚠️ CodeQL Java build failed, retrying in 10s..."
+              sleep 10
+            fi
+          done
+          echo "❌ CodeQL Java build failed after 2 attempts"
+          exit 1
 
       - name: 🔎 Verify Java classes were generated
         if: matrix.language == 'java'
@@ -206,9 +230,40 @@ jobs:
       - name: 🔐 Grant execute permission
         run: chmod +x gradlew
 
+      - name: ⚙️ Configure Gradle Properties for Coverage
+        run: |
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m" >> gradle.properties
+          echo "org.gradle.daemon=false" >> gradle.properties
+          echo "org.gradle.parallel=true" >> gradle.properties
+          echo "org.gradle.workers.max=2" >> gradle.properties
+
       - name: 📊 Run tests with coverage
-        run: ./gradlew test jacocoTestReport --stacktrace --no-daemon
+        run: |
+          set +e
+          for attempt in 1 2; do
+            echo "Coverage attempt $attempt..."
+            ./gradlew test jacocoTestReport --stacktrace --no-daemon --max-workers=2
+            if [ $? -eq 0 ]; then
+              echo "✅ Coverage report generated"
+              exit 0
+            fi
+            if [ $attempt -lt 2 ]; then
+              echo "⚠️ Coverage generation failed, retrying in 10s..."
+              sleep 10
+            fi
+          done
+          echo "❌ Coverage generation failed after 2 attempts"
+          exit 1
         continue-on-error: true
+
+      - name: ✅ Verify coverage artifact exists
+        if: always()
+        run: |
+          if [ ! -f build/reports/jacoco/test/jacocoTestReport.xml ]; then
+            echo "❌ Coverage XML report not found"
+            exit 1
+          fi
+          echo "✅ Coverage XML report found"
 
       - name: 📤 Upload coverage to Codecov
         uses: codecov/codecov-action@v5
