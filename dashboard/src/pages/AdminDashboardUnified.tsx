@@ -29,7 +29,9 @@ interface DashboardStats {
     activeAIAgents: number;
     runningTasks: number;
     completedTasks: number;
+    systemHealthStatus?: 'healthy' | 'warning' | 'critical';
     systemHealthScore: number;
+    systemHealthReason?: string;
     successRate: number;
 }
 
@@ -154,10 +156,27 @@ const AdminDashboardUnified: React.FC = () => {
                 <Header style={{ background: '#fff', padding: '0 24px', borderBottom: '1px solid #f0f0f0' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h1 style={{ margin: 0 }}>{contract.title}</h1>
-                        <Badge
-                            count={`v${contract.contractVersion}`}
-                            style={{ backgroundColor: '#52c41a', marginLeft: '20px' }}
-                        />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                                {contract.stats.systemHealthStatus && (
+                                    <>
+                                        <Badge
+                                            status={contract.stats.systemHealthStatus === 'healthy' ? 'success' : contract.stats.systemHealthStatus === 'warning' ? 'warning' : 'error'}
+                                            text={`System: ${contract.stats.systemHealthStatus}`}
+                                        />
+                                        {contract.stats.systemHealthReason && (
+                                            <span style={{ fontSize: '12px', color: '#666', maxWidth: '300px', textAlign: 'right' }}>
+                                                {contract.stats.systemHealthReason}
+                                            </span>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                            <Badge
+                                count={`v${contract.contractVersion}`}
+                                style={{ backgroundColor: '#52c41a' }}
+                            />
+                        </div>
                     </div>
                 </Header>
 
