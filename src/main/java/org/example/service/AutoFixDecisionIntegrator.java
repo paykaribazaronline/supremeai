@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * AutoFixDecisionIntegrator - Bridges AutoFixLoopService with Decision Logging
@@ -36,9 +35,6 @@ public class AutoFixDecisionIntegrator {
     
     @Autowired
     private AgentDecisionLogger decisionLogger;
-    
-    @Autowired
-    private ConsensusEngine consensusEngine;
     
     /**
      * Integrated decision result combining fix and decision tracking
@@ -156,7 +152,7 @@ public class AutoFixDecisionIntegrator {
                 architecture_confidence,
                 "Generated " + candidates.size() + " fix candidates, max confidence: " + 
                     (candidates.isEmpty() ? 0 : 
-                     candidates.stream().map(c -> c.confidence).max(Float::compare).orElse(0f))
+                     candidates.stream().map(c -> c.confidence).max(Float::compareTo).orElse(0f))
             );
             votes.add(architectVote);
             

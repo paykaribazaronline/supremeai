@@ -41,12 +41,6 @@ public class ValidationPipeline {
     @Autowired
     private CodeValidationService codeValidationService;
     
-    @Autowired
-    private SecurityAuditService securityAudit;
-    
-    @Autowired
-    private PerformanceAnalyzer performanceAnalyzer;
-    
     // Security patterns to check
     private final List<SecurityPattern> securityPatterns = Arrays.asList(
         new SecurityPattern("SQL_INJECTION", 

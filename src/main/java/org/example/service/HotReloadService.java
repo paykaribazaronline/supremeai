@@ -25,7 +25,7 @@ public class HotReloadService {
                 Thread.currentThread().getContextClassLoader()
             );
             
-            Class<?> clazz = loader.loadClass(className);
+            loader.loadClass(className);
             this.customClassLoader = loader;
             
             logger.info("✅ Hot-loaded class: {}", className);

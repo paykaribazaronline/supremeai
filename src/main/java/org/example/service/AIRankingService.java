@@ -1,6 +1,5 @@
 package org.example.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,7 +18,6 @@ import java.util.stream.Collectors;
 public class AIRankingService {
     private final MemoryManager memoryManager;
     private final FirebaseService firebaseService;
-    private final ObjectMapper mapper = new ObjectMapper();
     
     // Cost ranking order (cheapest to most expensive)
     private static final List<String> COST_ORDER = List.of(
@@ -115,7 +113,9 @@ public class AIRankingService {
         
         // Sort by average time (lowest first = fastest)
         agents.sort((a, b) -> {
+            @SuppressWarnings("unchecked")
             Map<String, Object> aScore = (Map<String, Object>) scoreboard.get(a);
+            @SuppressWarnings("unchecked")
             Map<String, Object> bScore = (Map<String, Object>) scoreboard.get(b);
             
             int aTime = ((Number) aScore.get("avg_time")).intValue();

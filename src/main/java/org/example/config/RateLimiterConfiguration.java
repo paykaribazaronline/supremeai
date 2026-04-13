@@ -3,10 +3,10 @@ package org.example.config;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Refill;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,8 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Configuration
 public class RateLimiterConfiguration {
-    private static final Logger logger = LoggerFactory.getLogger(RateLimiterConfiguration.class);
-    
     private final ConcurrentHashMap<String, Bucket> buckets = new ConcurrentHashMap<>();
     
     // Global rate limits

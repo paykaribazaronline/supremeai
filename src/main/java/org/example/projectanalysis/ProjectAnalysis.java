@@ -94,7 +94,7 @@ public class ProjectAnalysis {
     
     // Helper Methods
     public void addLanguage(String lang, int lines) {
-        languageStats.merge(lang, lines, Integer::sum);
+        languageStats.merge(lang, lines, (existing, newLines) -> existing + newLines);
     }
     
     public void addIssue(Issue issue) {

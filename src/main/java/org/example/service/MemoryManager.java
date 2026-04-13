@@ -65,6 +65,7 @@ public class MemoryManager {
     private void saveToFirebase() {
         if (firebaseService != null) {
             try {
+                @SuppressWarnings("unchecked")
                 Map<String, Object> memoryMap = mapper.convertValue(memory, Map.class);
                 firebaseService.saveSystemConfig("ai_memory", memoryMap);
             } catch (Exception e) {

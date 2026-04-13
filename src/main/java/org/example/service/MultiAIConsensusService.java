@@ -2,15 +2,12 @@ package org.example.service;
 
 import org.example.model.ConsensusVote;
 import org.example.model.ConsensusFeedback;
-import org.example.service.AgentDecisionLogger;
-import org.example.service.AgentDecisionLogger.AgentDecision;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 /**
  * Multi-AI Consensus Service
@@ -44,8 +41,6 @@ public class MultiAIConsensusService {
     @Autowired(required = false)
     private SemanticConsensusVotingService semanticVotingService; // NEW: Fix 70% consensus math
     
-    private static final int CONSENSUS_THRESHOLD = 70; // Target 70% agreement (now truly achievable)
-    private static final int AI_REQUEST_TIMEOUT_SEC = 5;
     private Map<String, ConsensusFeedback> feedbackHistory = new ConcurrentHashMap<>();
     
     private Map<String, ConsensusVote> voteHistory = new ConcurrentHashMap<>();

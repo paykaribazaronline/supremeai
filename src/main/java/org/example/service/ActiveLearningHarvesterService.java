@@ -395,8 +395,8 @@ public class ActiveLearningHarvesterService {
                     JsonNode searchResults = root.path("query").path("search");
 
                     for (JsonNode item : searchResults) {
-                        String title   = item.path("title").asText("").trim();
-                        String snippet = stripHtml(item.path("snippet").asText("")).trim();
+                        String title   = item.path("title").asText().isEmpty() ? "" : item.path("title").asText();
+                        String snippet = stripHtml(item.path("snippet").asText().isEmpty() ? "" : item.path("snippet").asText());
                         if (title.isEmpty() || snippet.isEmpty()) continue;
 
                         String category = detectCategory(title + " " + snippet);
@@ -456,10 +456,10 @@ public class ActiveLearningHarvesterService {
                         if (!itemResp.isSuccessful() || itemResp.body() == null) continue;
 
                         JsonNode item = objectMapper.readTree(itemResp.body().string());
-                        String type  = item.path("type").asText("");
+                        String type  = item.path("type").asText();
                         int    score = item.path("score").asInt(0);
-                        String title = item.path("title").asText("").trim();
-                        String storyUrl = item.path("url").asText("").trim();
+                        String title = item.path("title").asText().trim();
+                        String storyUrl = item.path("url").asText().trim();
 
                         if (!"story".equals(type) || score < HN_MIN_SCORE || title.isEmpty()) continue;
 
@@ -510,9 +510,9 @@ public class ActiveLearningHarvesterService {
 
                     JsonNode articles = objectMapper.readTree(response.body().string());
                     for (JsonNode article : articles) {
-                        String title       = article.path("title").asText("").trim();
-                        String description = article.path("description").asText("").trim();
-                        String articleUrl  = article.path("url").asText("").trim();
+                        String title       = article.path("title").asText().isEmpty() ? "" : article.path("title").asText();
+                        String description = article.path("description").asText().isEmpty() ? "" : article.path("description").asText();
+                        String articleUrl  = article.path("url").asText().isEmpty() ? "" : article.path("url").asText();
                         if (title.isEmpty()) continue;
 
                         String snippet  = description.isEmpty() ? title : description;
@@ -563,9 +563,9 @@ public class ActiveLearningHarvesterService {
                     JsonNode items = root.path("items");
 
                     for (JsonNode q : items) {
-                        String title    = q.path("title").asText("").trim();
+                        String title    = q.path("title").asText().trim();
                         int    score    = q.path("score").asInt(0);
-                        String link     = q.path("link").asText("").trim();
+                        String link     = q.path("link").asText().trim();
                         if (title.isEmpty()) continue;
 
                         String category = detectCategory(title + " " + tagGroup.replace(';', ' '));

@@ -149,7 +149,6 @@ public class ChatController {
         // Accept both "userMessage" (dashboard) and "message" (API clients) keys
         String userMessage = (String) request.getOrDefault("userMessage",
                 request.getOrDefault("message", ""));
-        Map<String, Object> metadata = (Map<String, Object>) request.getOrDefault("metadata", new HashMap<>());
         
         // Step 1: Get optimal agent for this task type
         String optimalAgentId = agentOrchestrator.getOptimalAgent(taskType);

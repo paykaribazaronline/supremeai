@@ -135,7 +135,7 @@ public class ReasoningChainCopier {
             }
         }
 
-        if (bestScore >= SIMILARITY_THRESHOLD) {
+        if (bestScore >= SIMILARITY_THRESHOLD && best != null) {
             logger.info("🔗 Level 3: Chain match found for agent={} task={} similarity={:.2f}",
                 agentName, taskType, bestScore);
             best.setRetrievalScore(bestScore);
