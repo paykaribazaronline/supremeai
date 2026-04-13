@@ -1,4 +1,4 @@
-﻿package org.example.service;
+package org.example.service;
 
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;

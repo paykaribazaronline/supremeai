@@ -45,6 +45,27 @@ jobs:
       - name: 🔐 Grant execute permission
         run: chmod +x gradlew
 
+      - name: ⚙️ Configure Gradle Properties
+        run: |
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m" >> gradle.properties
+          echo "org.gradle.daemon=false" >> gradle.properties
+          echo "org.gradle.parallel=true" >> gradle.properties
+          echo "org.gradle.workers.max=$(nproc)" >> gradle.properties
+
+      - name: 🔐 Validate Required Secrets
+        run: |
+          required_secrets=("GEMINI_API_KEY" "JWT_SECRET")
+          for secret in "${required_secrets[@]}"; do
+            if [ -z "${!secret}" ]; then
+              echo "⚠️ Optional secret not set: $secret"
+            else
+              echo "✅ $secret is configured"
+            fi
+          done
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
       - name: 🔨 Build with Gradle
         run: ./gradlew clean build -x test --info --stacktrace --no-daemon
         env:
@@ -52,8 +73,11 @@ jobs:
           SUPREMEAI_SELFHEALING_PHOENIX_ENABLED: 'true'
 
       - name: ✅ Run tests
-        run: ./gradlew test --info --stacktrace --no-daemon
+        run: ./gradlew test --info --stacktrace --no-daemon --max-workers=2
         continue-on-error: true
+        timeout-minutes: 20
+        env:
+          FIREBASE_EMULATOR_HOST: localhost:9199
         # All 246 tests pass as of fix commit 4a71aca
         # Tests can fail due to Spring context initialization issues
         # continue-on-error allows the workflow to process reports even if tests fail
@@ -104,8 +128,9 @@ jobs:
         run: chmod +x gradlew
 
       - name: 📊 Generate coverage report
-        run: ./gradlew jacocoTestReport jacocoTestCoverageVerification --no-daemon
+        run: ./gradlew jacocoTestReport jacocoTestCoverageVerification --no-daemon --max-workers=2
         continue-on-error: true
+        timeout-minutes: 15
 
       - name: 📤 Upload coverage to Codecov
         uses: codecov/codecov-action@v5
