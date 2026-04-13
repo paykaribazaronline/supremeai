@@ -25,6 +25,7 @@ public class FirebaseServiceFixed {
     private static final Logger logger = LoggerFactory.getLogger(FirebaseServiceFixed.class);
     
     private FirebaseDatabase db;
+    private FirebaseAuth auth;
     private boolean isInitialized = false;
     private static final String DATABASE_URL = "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/";
     private static final String DEFAULT_PROJECT_ID = "supremeai-a";

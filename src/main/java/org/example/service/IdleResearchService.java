@@ -3,7 +3,6 @@ package org.example.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.example.model.ConsensusVote;
 import org.example.model.ResearchTopic;
-import org.example.model.SystemLearning;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,13 +40,8 @@ public class IdleResearchService {
     @Autowired
     private MultiAIConsensusService consensusService;
 
-    @Autowired
-    private RequestQueueService queueService;
-
     @Autowired(required = false)
     private FirebaseService firebaseService;
-
-    @Autowired
     private AdminControlService adminControlService;
 
     /**

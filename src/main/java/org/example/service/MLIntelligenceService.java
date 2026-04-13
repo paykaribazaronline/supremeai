@@ -19,16 +19,12 @@ public class MLIntelligenceService {
     private static class AnomalyPoint {
         public long timestamp;
         public double value;
-        public double mean;
-        public double stdDev;
         public double zScore;
         public boolean isAnomaly;
         public String anomalyType;
 
         AnomalyPoint(double value, double mean, double stdDev) {
             this.value = value;
-            this.mean = mean;
-            this.stdDev = stdDev;
             this.timestamp = System.currentTimeMillis();
             this.zScore = stdDev > 0 ? (value - mean) / stdDev : 0;
             this.isAnomaly = Math.abs(zScore) > 2.5; // 3-sigma rule
@@ -42,7 +38,6 @@ public class MLIntelligenceService {
         }
     }
 
-    private final Map<String, List<Double>> metricHistory = new ConcurrentHashMap<>();
     private final List<AnomalyPoint> anomalies = Collections.synchronizedList(new ArrayList<>());
 
     /**

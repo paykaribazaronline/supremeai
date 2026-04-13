@@ -1,6 +1,5 @@
 package org.example.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -26,9 +25,7 @@ public class PerformanceAnalyzer {
     }
 
     private static class PerformanceTrend {
-        public String metricName;
         public List<Double> values = new ArrayList<>();
-        public long startTime = System.currentTimeMillis();
         public String trend = "STABLE";
         public double trendValue = 0;
     }

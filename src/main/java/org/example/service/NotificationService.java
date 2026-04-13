@@ -1,7 +1,6 @@
 package org.example.service;
 
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,14 +24,12 @@ public class NotificationService {
     private double smsCostToday = 0.0;
 
     private static class NotificationConfig {
-        public String type; // EMAIL, SLACK, DISCORD, SMS
         public String endpoint;
         public String apiKey;
         public boolean enabled;
         public List<String> recipients = new ArrayList<>();
 
         NotificationConfig(String type) {
-            this.type = type;
         }
     }
 

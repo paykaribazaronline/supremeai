@@ -27,7 +27,6 @@ import java.util.*;
 public class CICDService {
     
     private final String workspaceRoot;
-    private final FirebaseService firebase;
     
     public static class BuildResult {
         public boolean success;
@@ -44,9 +43,8 @@ public class CICDService {
         }
     }
     
-    public CICDService(String workspaceRoot, FirebaseService firebase) {
+    public CICDService(String workspaceRoot) {
         this.workspaceRoot = workspaceRoot;
-        this.firebase = firebase;
     }
     
     /**
