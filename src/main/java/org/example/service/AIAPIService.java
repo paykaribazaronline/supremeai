@@ -31,7 +31,7 @@ public class AIAPIService {
     private static final Map<String, List<String>> PROVIDER_FALLBACKS = buildProviderFallbacks();
     private static final Set<String> OPTIONAL_AUTH_MODELS = Set.of("AIRLLM");
     private static final Set<String> NATIVE_MODELS = Set.of(
-        "GPT4", "CLAUDE", "GROQ", "DEEPSEEK", "GEMINI", "COHERE", "PERPLEXITY", "LLAMA", "HUGGINGFACE", "XAI", "AIRLLM"
+        "GPT4", "CLAUDE", "GROQ", "DEEPSEEK", "GEMINI", "COHERE", "PERPLEXITY", "LLAMA", "HUGGINGFACE", "XAI", "AIRLLM", "OLLAMA"
     );
 
     private final OkHttpClient client;
@@ -83,7 +83,8 @@ public class AIAPIService {
         Map.entry("LLAMA", "https://api.llama.com/compat/v1/chat/completions"),
         Map.entry("HUGGINGFACE", "https://router.huggingface.co/v1/chat/completions"),
         Map.entry("XAI", "https://api.x.ai/v1/chat/completions"),
-        Map.entry("AIRLLM", "https://unsymmetrical-unrepugnant-lilah.ngrok-free.dev/v1/chat/completions")
+        Map.entry("AIRLLM", "https://unsymmetrical-unrepugnant-lilah.ngrok-free.dev/v1/chat/completions"),
+        Map.entry("OLLAMA", "http://localhost:11434/api/chat")
     );
 
     private final Map<String, String> defaultModels = Map.ofEntries(
@@ -97,7 +98,8 @@ public class AIAPIService {
         Map.entry("LLAMA", "llama-3.3-70b-versatile"),
         Map.entry("HUGGINGFACE", "meta-llama/Llama-3.3-70B-Instruct"),
         Map.entry("XAI", "grok-2-latest"),
-        Map.entry("AIRLLM", "mistralai/Mistral-7B-Instruct-v0.3")
+        Map.entry("AIRLLM", "mistralai/Mistral-7B-Instruct-v0.3"),
+        Map.entry("OLLAMA", "llama3.2:70b")
     );
     
     private final Map<String, String> apiKeys = new HashMap<>();
@@ -498,6 +500,29 @@ public class AIAPIService {
         return callOpenAICompatible(endpoint, apiKey, defaultModels.get("GPT4"), prompt, Collections.emptyMap());
     }
 
+    
+    private String callOllama(String endpoint, String model, String prompt) throws IOException {
+        var root = mapper.createObjectNode();
+        root.put("model", model);
+        var messages = root.putArray("messages");
+        var msg = mapper.createObjectNode();
+        msg.put("role", "user");
+        msg.put("content", prompt);
+        messages.add(msg);
+        root.put("stream", false);
+        
+        Request request = new Request.Builder()
+            .url(endpoint)
+            .post(RequestBody.create(mapper.writeValueAsString(root), MediaType.parse("application/json")))
+            .build();
+            
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+            JsonNode jsonResponse = mapper.readTree(response.body().string());
+            return jsonResponse.at("/message/content").asText();
+        }
+    }
+
     private String callGemini(String endpoint, String apiKey, String prompt) throws IOException {
         var root = mapper.createObjectNode();
         var contents = root.putArray("contents");
@@ -881,6 +906,9 @@ public class AIAPIService {
         if (normalized.contains("airllm")) {
             return "airllm-local";
         }
+        if (normalized.contains("ollama")) {
+            return "ollama-local";
+        }
         if (normalized.contains("huggingface") || normalized.equals("hf")) {
             return "huggingface";
         }
@@ -919,6 +947,8 @@ public class AIAPIService {
                 return "Meta / Llama";
             case "airllm-local":
                 return "AirLLM Local";
+            case "ollama-local":
+                return "Ollama Local";
             case "huggingface":
                 return "HuggingFace";
             case "xai-grok":
@@ -967,6 +997,9 @@ public class AIAPIService {
         aliases.put("airllm", "AIRLLM");
         aliases.put("airllm-local", "AIRLLM");
         aliases.put("local-airllm", "AIRLLM");
+        aliases.put("ollama", "OLLAMA");
+        aliases.put("ollama-local", "OLLAMA");
+        aliases.put("local-ollama", "OLLAMA");
         aliases.put("huggingface", "HUGGINGFACE");
         aliases.put("xai-grok", "XAI");
         aliases.put("xai", "XAI");
@@ -981,6 +1014,7 @@ public class AIAPIService {
         fallbacks.put("google-gemini", buildChain("GEMINI", Arrays.asList("DEEPSEEK", "GROQ", "CLAUDE", "GPT4")));
         fallbacks.put("meta-llama", buildChain("LLAMA", Arrays.asList("GROQ", "DEEPSEEK", "CLAUDE", "GPT4")));
         fallbacks.put("airllm-local", buildChain("AIRLLM", Arrays.asList("DEEPSEEK", "GROQ", "CLAUDE", "GPT4")));
+        fallbacks.put("ollama-local", buildChain("OLLAMA", Arrays.asList("DEEPSEEK", "GROQ", "CLAUDE", "GPT4")));
         fallbacks.put("mistral", buildChain("GROQ", Arrays.asList("DEEPSEEK", "CLAUDE", "GPT4")));
         fallbacks.put("cohere", buildChain("COHERE", Arrays.asList("DEEPSEEK", "GROQ", "CLAUDE", "GPT4")));
         fallbacks.put("huggingface", buildChain("HUGGINGFACE", Arrays.asList("LLAMA", "GROQ", "DEEPSEEK", "CLAUDE", "GPT4")));
@@ -1008,6 +1042,7 @@ public class AIAPIService {
         if (lower.contains("gemini") || lower.contains("google"))    return "gemini-pro";
         if (lower.contains("deepseek")) return "deepseek-coder";
         if (lower.contains("mistral"))  return "mistral-small-latest";
+        if (lower.contains("ollama"))   return "llama3.2:70b";
         if (lower.contains("cohere"))   return "command";
         if (lower.contains("llama"))    return "meta-llama/llama-3-8b-instruct";
         return "auto";

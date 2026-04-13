@@ -67,6 +67,12 @@ public class SafeInfiniteHealingLoop {
     @Autowired(required = false)
     private AutoCodeRepairAgent repairAgent;
     
+    @Autowired(required = false)
+    private AdminEscalationService escalationService;
+    
+    @Autowired(required = false)
+    private SupremeAIHealingWatchdog watchdog;
+    
     private final ScheduledExecutorService scheduler = 
             Executors.newScheduledThreadPool(4, r -> {
                 Thread t = new Thread(r, "healing-loop-scheduler");
@@ -86,11 +92,27 @@ public class SafeInfiniteHealingLoop {
             return; // Only process failures
         }
         
+        if (watchdog != null && !watchdog.isAutoHealingEnabled()) {
+            logger.warn("🛑 Auto-healing disabled, ignoring workflow failure for {}", event.getWorkflowName());
+            return;
+        }
+        
         logger.info("🚨 Workflow failure detected: {} (ID: {})", 
                 event.getWorkflowName(), event.getWorkflowId());
         
         // Start healing chain
         attemptHeal(event.getWorkflowId(), event.getWorkflowName(), 0);
+    }
+
+    public void triggerHealingForWorkflow(String workflowId, String workflowName, String conclusion) {
+        if (!"failure".equals(conclusion) && !"cancelled".equals(conclusion)) {
+            return;
+        }
+        if (watchdog != null && !watchdog.isAutoHealingEnabled()) {
+            logger.warn("🛑 Auto-healing disabled, skipping trigger for {}", workflowName);
+            return;
+        }
+        attemptHeal(workflowId, workflowName, 0);
     }
     
     /**
@@ -217,22 +239,29 @@ public class SafeInfiniteHealingLoop {
             // ========== STAGE 6: Apply Fix ==========
             logger.info("💾 Committing fix to repository...");
             
-            String commitHash = "";
+            final String[] commitHash = {""};
             try {
                 rateLimiter.executeBlocking("commit_fix", () -> {
                     try {
-                        // TODO: Integrate with actual Git service
-                        // commitHash = gitService.commitChanges(fixCode, "Healing fix for: " + errorType);
+                        String result = commitFixToRepo(fixCode, attempt);
+                        if (result != null && !result.isEmpty()) {
+                            commitHash[0] = result;
+                        }
                     } catch (Exception e) {
                         logger.error("Commit failed", e);
                     }
                 });
                 
-                if (!commitHash.isEmpty()) {
-                    attempt.addCommitHash(commitHash);
-                    logger.info("✅ Fix committed: {}", commitHash);
+                if (!commitHash[0].isEmpty()) {
+                    attempt.addCommitHash(commitHash[0]);
+                    logger.info("✅ Fix committed: {}", commitHash[0]);
+                } else {
+                    logger.warn("⚠️ Failed to persist healing fix in repository.");
+                    attempt.setStatus(HealingAttempt.HealingStatus.FAILED);
+                    stateManager.recordAttempt(attempt);
+                    escalateToHuman(workflowId, "Unable to persist healing fix");
+                    return;
                 }
-                
             } catch (InterruptedException e) {
                 logger.error("❌ Commit interrupted", e);
                 attempt.setStatus(HealingAttempt.HealingStatus.FAILED);
@@ -334,13 +363,33 @@ public class SafeInfiniteHealingLoop {
     private void escalateToHuman(String workflowId, String reason) {
         logger.error("👤 ESCALATING to human: {}", reason);
         
-        // TODO: Implement escalation:
-        // - Send Slack notification
-        // - PagerDuty alert
-        // - Mark in Firestore for admin dashboard
-        // - Create GitHub issue
+        if (escalationService != null) {
+            escalationService.escalate(workflowId, reason, AdminEscalationService.EscalationLevel.CRITICAL);
+        }
+        
+        HealingAttempt escalationAttempt = new HealingAttempt(workflowId, "unknown", "ESCALATION", "", reason);
+        escalationAttempt.setStatus(HealingAttempt.HealingStatus.ESCALATED);
+        escalationAttempt.setNotes(reason);
+        stateManager.recordAttempt(escalationAttempt);
     }
     
+    /**
+     * Persist the generated fix into the repository as an audit file.
+     */
+    private String commitFixToRepo(String fixCode, HealingAttempt attempt) {
+        String filePath = ".github/healing-fixes/" + attempt.getAttemptId() + ".md";
+        String content = "# Healing Fix Attempt " + attempt.getAttemptId() + "\n" +
+                "Workflow: " + attempt.getWorkflowName() + "\n" +
+                "Error Type: " + attempt.getErrorType() + "\n" +
+                "Error Summary: " + attempt.getErrorSummary() + "\n\n" +
+                "## Generated Fix\n\n" +
+                "```java\n" + fixCode + "\n```\n";
+        String commitMessage = "Record healing fix attempt " + attempt.getAttemptId();
+
+        boolean success = githubAPI.createOrUpdateFileInRepo(filePath, content, commitMessage);
+        return success ? attempt.getAttemptId() : null;
+    }
+
     /**
      * Compute fingerprint of error for comparison
      */

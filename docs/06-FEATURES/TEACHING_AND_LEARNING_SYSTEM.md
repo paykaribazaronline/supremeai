@@ -193,50 +193,22 @@ Collection: "cost_optimization"
 
 ## 💾 How Learning Is Stored
 
-### Three-Layer Storage Architecture
+### One-Layer Storage Architecture
 
-```
-┌─────────────────────────────────────────────────────────┐
-│         SHORT-TERM (Current Session)                     │
-│         In-Memory Cache (RAM)                            │
-├─────────────────────────────────────────────────────────┤
-│ Session-specific data:                                  │
-│ • Current error counts                                  │
-│ • Provider quota usage                                  │
-│ • Active consensus votes                                │
-│ Speed: <5ms access | Duration: While app running       │
-└─────────────────────────────────────────────────────────┘
-                        ↓
-              Auto-sync every 60s
-                        ↓
-┌─────────────────────────────────────────────────────────┐
-│        MEDIUM-TERM (Monthly)                             │
-│        Firebase Firestore Database                       │
-├─────────────────────────────────────────────────────────┤
-│ Monthly snapshots:                                      │
-│ • Error patterns (this month)                           │
-│ • AI performance (this month)                           │
-│ • Cost tracking (this month)                            │
-│ • Decision volume                                       │
-│ Speed: 50-200ms | Duration: 30 days                     │
-│ Query: /api/learning/stats?month=2026-04                │
-└─────────────────────────────────────────────────────────┘
-                        ↓
-              Monthly Archival
-                        ↓
-┌─────────────────────────────────────────────────────────┐
-│         LONG-TERM (Permanent)                            │
-│         Firebase Archive Storage                         │
-├─────────────────────────────────────────────────────────┤
-│ Historical records:                                     │
-│ • All past errors (searchable by pattern)               │
-│ • AI performance trends (12-month history)              │
-│ • Decision audit trail (complete history)               │
-│ • Cost trends and ROI analysis                          │
-│ Speed: 500-1000ms (historical query) | Duration: Forever │
-│ Query: /api/learning/history?year=2026                  │
-└─────────────────────────────────────────────────────────┘
-```
+` ext
+O=======================================================
+|         PERMANENT STORAGE                             |
+|         Firebase Firestore Database                   |
++=======================================================+
+| All records saved instantly:                          |
+| * All error patterns and solutions                    |
+| * AI performance metrics                              |
+| * Decision audit trail                                |
+| * Cost tracking                                       |
+| Speed: Instant save/retrieve | Duration: Forever      |
+| Query: /api/learning/stats                            |
+========================================================+
+`
 
 ### Storage Locations (No Physical Device Needed)
 
