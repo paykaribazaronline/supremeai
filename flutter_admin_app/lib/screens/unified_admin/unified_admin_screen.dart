@@ -327,8 +327,154 @@ class _UnifiedAdminScreenState extends State<UnifiedAdminScreen> {
               ),
             ],
           ],
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: () => _showSuggestionDialog(
+              context,
+              selected['key'] as String? ?? _selectedComponentKey,
+              label,
+            ),
+            icon: const Icon(Icons.lightbulb_outline),
+            label: const Text('Suggest Changes'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF722ED1),
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 44),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSuggestionDialog(BuildContext context, String tabKey, String tabLabel) {
+    final controller = TextEditingController();
+    bool isLoading = false;
+
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.lightbulb_outline, color: Color(0xFF722ED1)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Suggest Changes — $tabLabel',
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+          content: SizedBox(
+            width: 480,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Describe the change you want on the $tabLabel tab. '
+                  'Tap Save to store it, or Do Now to apply immediately.',
+                  style: const TextStyle(fontSize: 13, color: Colors.grey),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: controller,
+                  maxLines: 5,
+                  maxLength: 2000,
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    hintText: 'e.g. Add a toggle to disable new user registrations...',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: isLoading ? null : () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: isLoading
+                  ? null
+                  : () async {
+                      setDialogState(() => isLoading = true);
+                      await _submitSuggestion(
+                        ctx, tabKey, tabLabel, controller.text.trim(), false,
+                      );
+                      setDialogState(() => isLoading = false);
+                      if (ctx.mounted) Navigator.of(ctx).pop();
+                    },
+              child: const Text('💾 Save'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF722ED1),
+                foregroundColor: Colors.white,
+              ),
+              onPressed: isLoading
+                  ? null
+                  : () async {
+                      setDialogState(() => isLoading = true);
+                      await _submitSuggestion(
+                        ctx, tabKey, tabLabel, controller.text.trim(), true,
+                      );
+                      setDialogState(() => isLoading = false);
+                      if (ctx.mounted) Navigator.of(ctx).pop();
+                    },
+              child: const Text('🤖 Do Now'),
+            ),
+          ],
         ),
       ),
     );
   }
-}
+
+  Future<void> _submitSuggestion(
+    BuildContext context,
+    String tabKey,
+    String tabLabel,
+    String suggestionText,
+    bool applyNow,
+  ) async {
+    if (suggestionText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a suggestion first.')),
+      );
+      return;
+    }
+    try {
+      final response = await _apiService.post<Map<String, dynamic>>(
+        '${Environment.apiBaseUrl}/api/admin/suggestions',
+        data: {
+          'tabKey': tabKey,
+          'tabLabel': tabLabel,
+          'suggestion': suggestionText,
+          'applyNow': applyNow,
+        },
+      );
+      if (context.mounted) {
+        final msg = applyNow
+            ? '🤖 Applying your suggestion — the AI is processing it.'
+            : '💾 Suggestion saved successfully.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response.success ? msg : 'Failed to submit suggestion.'),
+            backgroundColor: response.success ? Colors.green : Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }

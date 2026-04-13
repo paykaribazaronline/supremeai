@@ -163,6 +163,7 @@ public class AdminDashboardController {
             menuItem("api-keys", "🔑 API Keys", "api-keys", true, "API Key Management"),
             menuItem("ai-agents", "🤖 AI Agents", "ai-agents", true, "AI Assignment & Control"),
             menuItem("projects", "📁 Projects", "projects", true, "Project Management"),
+            menuItem("phases", "🔢 Phases", "phases", true, "All Agent Phases (1,6,7,8,9,10)"),
             menuItem("logs", "📋 Audit Logs", "logs", true, "System Audit Trail"),
             menuItem("timeline", "⏱️ Timeline", "timeline", true, "Decision Timeline"),
             menuItem("system-control", "⚙️ System Control", "system", true, "System Mode & Status"),
@@ -529,6 +530,29 @@ public class AdminDashboardController {
                 "types", new String[]{"anomalies", "predictions", "patterns", "alerts"}
             )
         ));
+
+        components.add(component(
+            "phases",
+            "All Phases",
+            "🔢",
+            "system",
+            true,
+            Map.of(
+                "title", "Agent Phase Overview",
+                "description", "Status of all operational phases: 1 (Optimization), 6 (Integration), 7 (Platform), 8 (Security), 9 (Cost), 10 (Evolution)",
+                "endpoint", "/api/v1/agents/all-phases",
+                "requireAuth", true,
+                "phaseEndpoints", Map.of(
+                    "allPhases",   "/api/v1/agents/all-phases",
+                    "phase1",      "/api/v1/optimization/health",
+                    "phase6",      "/api/v1/phase6/health",
+                    "phase7",      "/api/phase7/agents/summary",
+                    "phase8",      "/api/v1/agents/phase8/summary",
+                    "phase9",      "/api/v1/agents/phase9/summary",
+                    "phase10",     "/api/v1/agents/phase10/summary"
+                )
+            )
+        ));
         
         return components;
     }
@@ -563,6 +587,19 @@ public class AdminDashboardController {
             "voting", "/api/consensus",
             "progress", "/api/admin/progress",
             "learning", "/api/learning"
+        ));
+
+        endpoints.put("phases", Map.of(
+            "allPhases",   "/api/v1/agents/all-phases",
+            "phase1",      "/api/v1/optimization/health",
+            "phase1Metrics", "/api/v1/optimization/metrics",
+            "phase6",      "/api/v1/phase6/health",
+            "phase6Features", "/api/v1/phase6/features",
+            "phase7",      "/api/phase7/agents/summary",
+            "phase7Capabilities", "/api/phase7/agents/capabilities",
+            "phase8",      "/api/v1/agents/phase8/summary",
+            "phase9",      "/api/v1/agents/phase9/summary",
+            "phase10",     "/api/v1/agents/phase10/summary"
         ));
         
         return endpoints;
