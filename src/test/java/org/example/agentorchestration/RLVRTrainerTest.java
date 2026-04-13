@@ -1,6 +1,5 @@
 package org.example.agentorchestration;
 
-import org.example.service.AgentDecisionLogger;
 import org.example.service.SystemLearningService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,14 +33,12 @@ class RLVRTrainerTest {
     void setUp() {
         router = new ExpertAgentRouter();
         MuonClipOptimizer muon = new MuonClipOptimizer();
-        AgentDecisionLogger logger = new AgentDecisionLogger();
         SystemLearningService learning = new SystemLearningService();
 
         trainer = new RLVRTrainer();
         // Manual wiring (no Spring context)
         setField(trainer, "moeRouter",      router);
         setField(trainer, "muonClip",       muon);
-        setField(trainer, "decisionLogger", logger);
         setField(trainer, "learningService", learning);
     }
 

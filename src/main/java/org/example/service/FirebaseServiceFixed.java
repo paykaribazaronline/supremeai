@@ -19,12 +19,12 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
-@Service
+// Not annotated with @Service — FirebaseService (the primary bean) is used by all injection points.
+// FirebaseServiceFixed is kept as a reference/legacy class only.
 public class FirebaseServiceFixed {
     private static final Logger logger = LoggerFactory.getLogger(FirebaseServiceFixed.class);
     
     private FirebaseDatabase db;
-    private FirebaseAuth auth;
     private boolean isInitialized = false;
     private static final String DATABASE_URL = "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/";
     private static final String DEFAULT_PROJECT_ID = "supremeai-a";

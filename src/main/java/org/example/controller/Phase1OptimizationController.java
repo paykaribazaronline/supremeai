@@ -18,7 +18,6 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/v1/optimization")
 public class Phase1OptimizationController {
-    private static final Logger logger = LoggerFactory.getLogger(Phase1OptimizationController.class);
     
     @Autowired(required = false)
     private LRUCacheService cacheService;
