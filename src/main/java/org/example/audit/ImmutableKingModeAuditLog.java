@@ -46,9 +46,6 @@ public class ImmutableKingModeAuditLog {
     // Firestore not wired — using in-memory fallback until Firestore SDK is added
     private final Object firestore = null;
 
-    private static final String AUDIT_COLLECTION = "king_mode_audit_log";
-    private static final String PENDING_APPROVALS_COLLECTION = "pending_king_mode_approvals";
-
     // In-memory fallback (in production, use Firestore)
     private final Map<String, Map<String, Object>> auditRecords = new ConcurrentHashMap<>();
     private final Map<String, Map<String, Object>> pendingApprovals = new ConcurrentHashMap<>();
@@ -151,6 +148,7 @@ public class ImmutableKingModeAuditLog {
             // Execute the operation
             String action = (String) pending.get("action");
             String resource = (String) pending.get("resource");
+            @SuppressWarnings("unchecked")
             Map<String, Object> details = (Map<String, Object>) pending.get("details");
 
             executeAndLog(operationId, requestingAdmin, action, resource, details, approvingAdminId);

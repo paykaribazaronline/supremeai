@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class BuiltInAnalysisService {
-    private static final Logger logger = LoggerFactory.getLogger(BuiltInAnalysisService.class);
+
     
     public String analyze(String query) {
         // Pattern 1: Database questions

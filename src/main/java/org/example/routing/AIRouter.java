@@ -85,6 +85,7 @@ public class AIRouter {
         }
     }
     
+    @SuppressWarnings("rawtypes")
     private AIResponse callKimi(String prompt, String taskType) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + kimiKey);
@@ -100,16 +101,18 @@ public class AIRouter {
         
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
         
-        ResponseEntity<Map> response = restTemplate.postForEntity(
+        @SuppressWarnings("rawtypes")
+        ResponseEntity response = restTemplate.postForEntity(
             "https://api.moonshot.cn/v1/chat/completions",
             request,
             Map.class
         );
         
-        String code = extractCode(response.getBody());
+        String code = extractCode((Map<String, Object>) response.getBody());
         return new AIResponse(code, true);
     }
     
+    @SuppressWarnings("rawtypes")
     private AIResponse callDeepSeek(String prompt, String taskType) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + deepseekKey);
@@ -124,16 +127,18 @@ public class AIRouter {
         
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
         
-        ResponseEntity<Map> response = restTemplate.postForEntity(
+        @SuppressWarnings("rawtypes")
+        ResponseEntity response = restTemplate.postForEntity(
             "https://api.deepseek.com/v1/chat/completions",
             request,
             Map.class
         );
         
-        String code = extractCode(response.getBody());
+        String code = extractCode((Map<String, Object>) response.getBody());
         return new AIResponse(code, true);
     }
     
+    @SuppressWarnings("rawtypes")
     private AIResponse callGemini(String prompt, String taskType) {
         // Gemini implementation
         String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + geminiKey;
@@ -149,15 +154,17 @@ public class AIRouter {
         
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(content, headers);
         
-        ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
+        @SuppressWarnings("rawtypes")
+        ResponseEntity response = restTemplate.postForEntity(url, request, Map.class);
         
-        String code = extractGeminiCode(response.getBody());
+        String code = extractGeminiCode((Map<String, Object>) response.getBody());
         return new AIResponse(code, true);
     }
     
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private String extractCode(Map response) {
         // Parse OpenAI-compatible response
-        List choices = (List) response.get("choices");
+        List<Object> choices = (List<Object>) response.get("choices");
         Map choice = (Map) choices.get(0);
         Map message = (Map) choice.get("message");
         String content = (String) message.get("content");
@@ -174,11 +181,12 @@ public class AIRouter {
         return content;
     }
     
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private String extractGeminiCode(Map response) {
-        List candidates = (List) response.get("candidates");
+        List<Object> candidates = (List<Object>) response.get("candidates");
         Map candidate = (Map) candidates.get(0);
         Map content = (Map) candidate.get("content");
-        List parts = (List) content.get("parts");
+        List<Object> parts = (List<Object>) content.get("parts");
         Map part = (Map) parts.get(0);
         return (String) part.get("text");
     }

@@ -1,7 +1,7 @@
 package org.example.agentorchestration.learning;
 import org.example.service.AgentDecisionLogger;
 import org.example.service.AgentDecisionLogger.AgentDecision;
-import org.example.service.SystemLearningService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,12 +43,6 @@ public class ReasoningChainCopier {
 
     @Autowired
     private AgentDecisionLogger decisionLogger;
-
-    @Autowired
-    private AgentPatternProfiler profiler;
-
-    @Autowired
-    private SystemLearningService learningService;
 
     @Autowired
     private LearningFirebaseRepository firebaseRepo;

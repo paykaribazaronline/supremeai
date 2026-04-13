@@ -20,17 +20,7 @@ public class VisualizationService {
     
     private final Set<WebSocketSession> visualizationSessions = ConcurrentHashMap.newKeySet();
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
     
-    @Autowired
-    private MetricsService metricsService;
-    
-    @Autowired
-    private ConsensusEngine consensusEngine;
-    
-    @Autowired
-    private AgentOrchestrator agentOrchestrator;
-
     @Autowired
     private DeltaCostAgent deltaCostAgent;
 
@@ -180,10 +170,12 @@ public class VisualizationService {
                            0, 0, 0, 0xffcc00, 10.0f, "STAR"));
 
         // Cloud Planets: GCP, AWS, Azure
+        @SuppressWarnings("unchecked")
         Map<String, Object> breakdown = (Map<String, Object>) costData.get("cloud_breakdown");
         if (breakdown != null) {
             int index = 0;
             for (String cloud : breakdown.keySet()) {
+                @SuppressWarnings("unchecked")
                 Map<String, Object> metrics = (Map<String, Object>) breakdown.get(cloud);
                 double total = (double) metrics.get("total");
                 double health = (double) metrics.get("health_score");
