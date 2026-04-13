@@ -4,7 +4,7 @@ import {
   Form, Input, Select, Modal, Spin, message, Badge, Progress, Drawer
 } from 'antd';
 import {
-  BrainOutlined, PlayCircleOutlined, HistoryOutlined, 
+  RobotOutlined as BrainOutlined, PlayCircleOutlined, HistoryOutlined,
   RocketOutlined, CheckCircleOutlined, LoadingOutlined
 } from '@ant-design/icons';
 

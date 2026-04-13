@@ -186,19 +186,19 @@ jobs:
 
       - name: ✅ Verify React Build Output
         run: |
-          if [ ! -d "dashboard/build" ]; then
+          if [ ! -d "dashboard/dist" ]; then
             echo "❌ React build output not found"
             exit 1
           fi
           
-          FILE_COUNT=$(find dashboard/build -type f | wc -l)
+          FILE_COUNT=$(find dashboard/dist -type f | wc -l)
           echo "✅ React build successful: $FILE_COUNT files generated"
 
       - name: 📤 Upload React Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: react-dashboard-build
-          path: dashboard/build/
+          path: dashboard/dist/
           retention-days: 1
 
   combine-and-deploy:

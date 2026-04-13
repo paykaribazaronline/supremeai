@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Statistic, Progress, Alert, Space } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined, ThunderboltOutlined, HddOutlined } from '@ant-design/icons';
+import { authUtils } from '../lib/authUtils';
 
 interface SystemMetrics {
     cpuUsage: number;

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Statistic, Progress, Table, Tag, Badge, Button, Space, Empty } from 'antd';
 import { ReloadOutlined, RocketOutlined, CheckCircleOutlined, ClockCircleOutlined, SyncOutlined } from '@ant-design/icons';
+import { authUtils } from '../lib/authUtils';
 
 interface TaskProgress {
     id: string;

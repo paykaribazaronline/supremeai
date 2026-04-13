@@ -18,7 +18,7 @@ import {
 } from 'antd';
 import {
     QuestionCircleOutlined,
-    LightbulbOutlined,
+    BulbOutlined as LightbulbOutlined,
     BookOutlined,
     PlayCircleOutlined,
     CheckCircleOutlined,
