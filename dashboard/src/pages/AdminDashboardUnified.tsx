@@ -22,7 +22,9 @@ import {
     CheckCircleOutlined,
     WarningOutlined,
     BugOutlined,
+    NodeIndexOutlined,
 } from '@ant-design/icons';
+import PhasesOverview from '../components/PhasesOverview';
 
 const { TextArea } = Input;
 
@@ -297,33 +299,40 @@ const AdminDashboardUnified: React.FC = () => {
                     >
                         {selectedComponent ? (
                             <div>
-                                <p>
-                                    <strong>Category:</strong> {selectedComponent.category}
-                                </p>
-                                <p>
-                                    <strong>Configuration:</strong>
-                                </p>
-                                <pre style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
-                                    {JSON.stringify(selectedComponent.config, null, 2)}
-                                </pre>
+                                {/* Render real component for known keys */}
+                                {selectedKey === 'phases' ? (
+                                    <PhasesOverview />
+                                ) : (
+                                    <>
+                                        <p>
+                                            <strong>Category:</strong> {selectedComponent.category}
+                                        </p>
+                                        <p>
+                                            <strong>Configuration:</strong>
+                                        </p>
+                                        <pre style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
+                                            {JSON.stringify(selectedComponent.config, null, 2)}
+                                        </pre>
 
-                                {/* Placeholder for actual component render */}
-                                <div
-                                    style={{
-                                        marginTop: '20px',
-                                        padding: '20px',
-                                        background: '#fafafa',
-                                        textAlign: 'center',
-                                        borderRadius: '4px',
-                                    }}
-                                >
-                                    <p style={{ color: '#999' }}>
-                                        {selectedComponent.label} component placeholder
-                                    </p>
-                                    <p style={{ fontSize: '12px', color: '#ccc' }}>
-                                        Endpoint: {selectedComponent.config?.endpoint || 'N/A'}
-                                    </p>
-                                </div>
+                                        {/* Placeholder for actual component render */}
+                                        <div
+                                            style={{
+                                                marginTop: '20px',
+                                                padding: '20px',
+                                                background: '#fafafa',
+                                                textAlign: 'center',
+                                                borderRadius: '4px',
+                                            }}
+                                        >
+                                            <p style={{ color: '#999' }}>
+                                                {selectedComponent.label} component placeholder
+                                            </p>
+                                            <p style={{ fontSize: '12px', color: '#ccc' }}>
+                                                Endpoint: {selectedComponent.config?.endpoint || 'N/A'}
+                                            </p>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         ) : (
                             <Empty description="No component selected" />

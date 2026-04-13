@@ -209,4 +209,125 @@ public class AgentPhasesController {
         health.put("timestamp", System.currentTimeMillis());
         return ResponseEntity.ok(health);
     }
+
+    // ==================== Per-Phase Summary Endpoints ====================
+
+    /** GET /api/v1/agents/phase8/summary */
+    @GetMapping("/phase8/summary")
+    public ResponseEntity<Map<String, Object>> phase8Summary() {
+        Map<String, Object> s = new HashMap<>();
+        s.put("phase", "Phase 8 — Security & Compliance");
+        s.put("agents", new String[]{"Alpha (Vulnerability Scan)", "Beta (Compliance)", "Gamma (Privacy)"});
+        s.put("agentCount", 3);
+        s.put("alphaAvailable", alphaAgent != null);
+        s.put("betaAvailable", betaAgent != null);
+        s.put("gammaAvailable", gammaAgent != null);
+        s.put("status", (alphaAgent != null && betaAgent != null && gammaAgent != null) ? "operational" : "partial");
+        s.put("capabilities", new String[]{
+            "OWASP Top 10 vulnerability scanning",
+            "GDPR / CCPA compliance validation",
+            "Privacy data flow analysis",
+            "Static code security analysis"
+        });
+        s.put("timestamp", System.currentTimeMillis());
+        return ResponseEntity.ok(s);
+    }
+
+    /** GET /api/v1/agents/phase9/summary */
+    @GetMapping("/phase9/summary")
+    public ResponseEntity<Map<String, Object>> phase9Summary() {
+        Map<String, Object> s = new HashMap<>();
+        s.put("phase", "Phase 9 — Cost Intelligence");
+        s.put("agents", new String[]{"Delta (Cost Tracker)", "Epsilon (Optimizer)", "Zeta (Finance)"});
+        s.put("agentCount", 3);
+        s.put("deltaAvailable", deltaAgent != null);
+        s.put("epsilonAvailable", epsilonAgent != null);
+        s.put("zetaAvailable", zetaAgent != null);
+        s.put("status", (deltaAgent != null && epsilonAgent != null && zetaAgent != null) ? "operational" : "partial");
+        s.put("capabilities", new String[]{
+            "Real-time cost tracking across cloud providers",
+            "AI usage and token cost analysis",
+            "Resource utilization optimization",
+            "Budget forecasting and scenario planning"
+        });
+        s.put("timestamp", System.currentTimeMillis());
+        return ResponseEntity.ok(s);
+    }
+
+    /** GET /api/v1/agents/phase10/summary */
+    @GetMapping("/phase10/summary")
+    public ResponseEntity<Map<String, Object>> phase10Summary() {
+        Map<String, Object> s = new HashMap<>();
+        s.put("phase", "Phase 10 — Self-Improvement & Evolution");
+        s.put("agents", new String[]{"Eta (Meta-Agent)", "Theta (Learning)", "Iota (Knowledge)", "Kappa (Evolution)"});
+        s.put("agentCount", 4);
+        s.put("etaAvailable", etaAgent != null);
+        s.put("thetaAvailable", thetaAgent != null);
+        s.put("iotaAvailable", iotaAgent != null);
+        s.put("kappaAvailable", kappaAgent != null);
+        s.put("status", (etaAgent != null && thetaAgent != null && iotaAgent != null && kappaAgent != null) ? "operational" : "partial");
+        s.put("capabilities", new String[]{
+            "Agent performance evolution and self-tuning",
+            "Pattern learning from historical decisions",
+            "Knowledge base management and consolidation",
+            "Consensus mechanism evolution via A/B testing"
+        });
+        s.put("timestamp", System.currentTimeMillis());
+        return ResponseEntity.ok(s);
+    }
+
+    /** GET /api/v1/agents/all-phases — Overview of all agent phases */
+    @GetMapping("/all-phases")
+    public ResponseEntity<Map<String, Object>> allPhasesSummary() {
+        Map<String, Object> r = new HashMap<>();
+        r.put("totalPhases", 6);
+        r.put("timestamp", System.currentTimeMillis());
+
+        List<Map<String, Object>> phases = new ArrayList<>();
+
+        Map<String, Object> p1 = new HashMap<>();
+        p1.put("phase", 1); p1.put("name", "Optimization");
+        p1.put("description", "LRU Cache, Smart Provider Weighting, Firebase Sync, Error DLQ");
+        p1.put("statusUrl", "/api/v1/optimization/health"); p1.put("status", "operational");
+        phases.add(p1);
+
+        Map<String, Object> p6 = new HashMap<>();
+        p6.put("phase", 6); p6.put("name", "Integration");
+        p6.put("description", "Decision Logging, Auto-Fix Loop, A/B Testing, Timeline");
+        p6.put("statusUrl", "/api/v1/phase6/health"); p6.put("status", "operational");
+        phases.add(p6);
+
+        Map<String, Object> p7 = new HashMap<>();
+        p7.put("phase", 7); p7.put("name", "Multi-Platform Generation");
+        p7.put("description", "iOS, Web, Desktop app generation + Store publishing");
+        p7.put("statusUrl", "/api/phase7/agents/summary"); p7.put("status", "operational");
+        phases.add(p7);
+
+        Map<String, Object> p8 = new HashMap<>();
+        p8.put("phase", 8); p8.put("name", "Security & Compliance");
+        p8.put("description", "OWASP scanning, GDPR compliance, Privacy analysis");
+        p8.put("statusUrl", "/api/v1/agents/phase8/summary");
+        p8.put("status", (alphaAgent != null && betaAgent != null && gammaAgent != null) ? "operational" : "partial");
+        phases.add(p8);
+
+        Map<String, Object> p9 = new HashMap<>();
+        p9.put("phase", 9); p9.put("name", "Cost Intelligence");
+        p9.put("description", "Cost tracking, resource optimization, budget forecasting");
+        p9.put("statusUrl", "/api/v1/agents/phase9/summary");
+        p9.put("status", (deltaAgent != null && epsilonAgent != null && zetaAgent != null) ? "operational" : "partial");
+        phases.add(p9);
+
+        Map<String, Object> p10 = new HashMap<>();
+        p10.put("phase", 10); p10.put("name", "Self-Improvement");
+        p10.put("description", "Agent evolution, pattern learning, knowledge management");
+        p10.put("statusUrl", "/api/v1/agents/phase10/summary");
+        p10.put("status", (etaAgent != null && thetaAgent != null && iotaAgent != null && kappaAgent != null) ? "operational" : "partial");
+        phases.add(p10);
+
+        r.put("phases", phases);
+        long operational = phases.stream().filter(p -> "operational".equals(p.get("status"))).count();
+        r.put("operationalCount", operational);
+        r.put("systemStatus", operational == phases.size() ? "fully_operational" : "partially_operational");
+        return ResponseEntity.ok(r);
+    }
 }

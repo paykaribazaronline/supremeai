@@ -136,6 +136,22 @@ class Environment {
   static const String phase6Metrics = '/api/v1/phase6/metrics';
   static const String phase7Summary = '/api/phase7/agents/summary';
   static const String phase7Capabilities = '/api/phase7/agents/capabilities';
+
+  // Phase 1 (Optimization)
+  static const String phase1Health = '/api/v1/optimization/health';
+  static const String phase1Metrics = '/api/v1/optimization/metrics';
+
+  // Phase 8 (Security & Compliance)
+  static const String phase8Summary = '/api/v1/agents/phase8/summary';
+
+  // Phase 9 (Cost Intelligence)
+  static const String phase9Summary = '/api/v1/agents/phase9/summary';
+
+  // Phase 10 (Self-Improvement)
+  static const String phase10Summary = '/api/v1/agents/phase10/summary';
+
+  // All Phases Overview
+  static const String allPhases = '/api/v1/agents/all-phases';
   
   // Tracing
   static const String tracingRecent = '/api/tracing/traces/recent';
