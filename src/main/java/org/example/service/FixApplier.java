@@ -15,7 +15,6 @@ import java.util.*;
 public class FixApplier {
     
     private final AgentDecisionLogger decisionLogger;
-    private final ConsensusEngine consensusEngine;
     
     public static class AppliedFix {
         public String fixId;
@@ -34,9 +33,8 @@ public class FixApplier {
         }
     }
     
-    public FixApplier(AgentDecisionLogger decisionLogger, ConsensusEngine consensusEngine) {
+    public FixApplier(AgentDecisionLogger decisionLogger) {
         this.decisionLogger = decisionLogger;
-        this.consensusEngine = consensusEngine;
     }
     
     /**

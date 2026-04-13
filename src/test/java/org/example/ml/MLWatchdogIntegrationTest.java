@@ -7,12 +7,13 @@ import org.example.test.AutoLearningTestExtension;
 import org.example.service.SystemLearningService;
 import org.example.service.AIErrorSolvingService;
 import org.example.service.AutoFixingService;
-import org.example.service.GitHubActionsErrorParser;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.*;
 
@@ -34,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * 3. Learned for future prevention
  */
 @SpringBootTest
+@ActiveProfiles("test")
 @ExtendWith({SpringExtension.class, AutoLearningTestExtension.class})
 public class MLWatchdogIntegrationTest {
 

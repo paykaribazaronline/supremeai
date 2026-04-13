@@ -3,8 +3,7 @@ package org.example.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.selfhealing.SelfHealingService;
-import org.example.service.ActiveLearningHarvesterService;
-import org.example.service.SystemLearningService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -381,11 +380,15 @@ public class WebhookListener {
             JsonNode payload = event.payload;
             
             // Extract workflow info from payload
-            String conclusion = payload.at("/workflow_run/conclusion").asText("unknown");
-            String status = payload.at("/workflow_run/status").asText("unknown");
-            String workflowName = payload.at("/workflow_run/name").asText("unknown");
-            long workflowId = payload.at("/workflow_run/id").asLong(-1);
-            String runUrl = payload.at("/workflow_run/html_url").asText("");
+            String conclusion = payload.at("/workflow_run/conclusion").asText();
+            if (conclusion.isEmpty()) conclusion = "unknown";
+            String status = payload.at("/workflow_run/status").asText();
+            if (status.isEmpty()) status = "unknown";
+            String workflowName = payload.at("/workflow_run/name").asText();
+            if (workflowName.isEmpty()) workflowName = "unknown";
+            // workflowId available if needed: long workflowId = payload.at(\"/workflow_run/id\").asLong(-1);
+            String runUrl = payload.at("/workflow_run/html_url").asText();
+            if (runUrl.isEmpty()) runUrl = "";
             
             logger.info("🔄 Workflow completion: {} (status: {}, conclusion: {})",
                     workflowName, status, conclusion);
@@ -503,7 +506,7 @@ public class WebhookListener {
             JsonNode commits = payload.get("commits");
             if (commits == null || !commits.isArray()) return;
             for (JsonNode commit : commits) {
-                String message = commit.has("message") ? commit.get("message").asText("") : "";
+                String message = commit.has("message") ? (commit.get("message").asText().isEmpty() ? "" : commit.get("message").asText()) : "";
                 if (message.isBlank()) continue;
                 // First line is the subject
                 String subject = message.split("\n")[0].trim();
@@ -528,8 +531,8 @@ public class WebhookListener {
             JsonNode item = pr != null ? pr : issue;
             if (item == null) return;
 
-            String title  = item.has("title") ? item.get("title").asText("") : "";
-            String body   = item.has("body")  ? item.get("body").asText("") : "";
+            String title  = item.has("title") ? (item.get("title").asText().isEmpty() ? "" : item.get("title").asText()) : "";
+            String body   = item.has("body")  ? (item.get("body").asText().isEmpty() ? "" : item.get("body").asText()) : "";
             boolean merged = pr != null && item.has("merged") && item.get("merged").asBoolean(false);
             if (title.isBlank()) return;
 

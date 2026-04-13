@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.time.LocalDateTime;
+
 
 /**
  * CodeGenerationOrchestrator: AI-powered code generation engine
@@ -44,7 +44,6 @@ public class CodeGenerationOrchestrator {
     @Autowired(required = false)
     private XBuilderFailurePatternService failurePatternService;
 
-    private static final ObjectMapper mapper = new ObjectMapper();
     private final Map<String, GenerationMetrics> generationHistory = new HashMap<>();
 
     /**
@@ -287,7 +286,6 @@ public class CodeGenerationOrchestrator {
 
         try {
             String modelPrompt = buildModelPrompt(modelName, framework, fields, relations);
-            String language = getLanguageForFramework(framework);
             String modelCode = aiApiService.callAI("BUILDER", modelPrompt, 
                 Arrays.asList("GROQ", "DEEPSEEK", "CLAUDE", "GPT4"));
 
@@ -380,7 +378,6 @@ public class CodeGenerationOrchestrator {
 
         try {
             String prompt = buildUtilityPrompt(utilityName, framework, purpose);
-            String language = getLanguageForFramework(framework);
             String utilityCode = aiApiService.callAI("BUILDER", prompt, 
                 Arrays.asList("GROQ", "DEEPSEEK", "CLAUDE", "GPT4"));
 
@@ -530,7 +527,6 @@ public class CodeGenerationOrchestrator {
         }
         
         try {
-            String taskDescription = "Generate " + taskType + " for " + framework;
             // In a real implementation, this would use AgentOrchestrator's ranking
             return "GROQ"; // Default - would be replaced by actual orchestrator call
         } catch (Exception e) {
