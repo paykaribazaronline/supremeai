@@ -1,7 +1,6 @@
 package org.example.controller;
 
 import org.example.model.UserTier;
-import org.example.model.UserQuotaAllocation;
 import org.example.model.User;
 import org.example.service.AuthenticationService;
 import org.example.service.UserQuotaService;

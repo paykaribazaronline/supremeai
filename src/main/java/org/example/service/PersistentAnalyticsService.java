@@ -27,7 +27,6 @@ public class PersistentAnalyticsService {
         public int activeRequests;
         public double successRate;
         public double avgLatency;
-        public String frameworkName;
         public int generationCount;
         public int errorCount;
 
@@ -37,20 +36,16 @@ public class PersistentAnalyticsService {
     }
 
     private static class TimeSeriesData {
-        public String metric;
         public List<Double> values;
         public List<LocalDateTime> timestamps;
-        public LocalDateTime startTime;
-        public LocalDateTime endTime;
 
         TimeSeriesData(String metric) {
-            this.metric = metric;
             this.values = Collections.synchronizedList(new ArrayList<>());
             this.timestamps = Collections.synchronizedList(new ArrayList<>());
         }
     }
 
-    private final Map<String, TimeSeriesData> timeSeries = new ConcurrentHashMap<>();
+    private final Map<String, Object> persistedMetrics = new ConcurrentHashMap<>();
     private final List<MetricsSnapshot> snapshots = Collections.synchronizedList(new ArrayList<>());
     private final ObjectMapper mapper = new ObjectMapper();
 

@@ -27,7 +27,6 @@ public class LRUCacheService {
     // Configuration
     private static final long MAX_CACHE_SIZE_BYTES = 1_500_000_000L; // 1.5 GB
     private static final int MAX_ENTRIES = 50_000;
-    private static final int EVICTION_BATCH_SIZE = 100; // Remove 100 entries at a time
     
     // Cache structure: LinkedHashMap with LRU eviction
     private LinkedHashMap<String, CacheEntry> cache;
