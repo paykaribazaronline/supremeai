@@ -90,7 +90,7 @@ public class AgentOrchestrator {
         
         // Initialize Phase 4 (Git + CI/CD + Deployment)
         this.gitService = new GitIntegrationService("projects", firebase);
-        this.cicdService = new CICDService("projects", firebase);
+        this.cicdService = new CICDService("projects");
         this.deploymentService = new CloudDeploymentService(firebase);
         this.projectTypeManager = new ProjectTypeManager(gitService, cicdService, deploymentService, fileOrchestrator, firebase);
         
