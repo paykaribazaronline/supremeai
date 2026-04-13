@@ -2,7 +2,11 @@
 FROM gradle:8.7-jdk17 AS build
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
-RUN chmod +x gradlew && ./gradlew build --no-daemon -x test --parallel --max-workers=2 --stacktrace
+# Write gradle.properties (file is not in repo) so the compiler JVM gets enough heap
+# inside the gradle:8.7-jdk17 container which defaults to ~256m
+RUN printf 'org.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=512m\norg.gradle.daemon=false\norg.gradle.parallel=true\norg.gradle.workers.max=2\n' > gradle.properties \
+    && chmod +x gradlew \
+    && ./gradlew build --no-daemon -x test --parallel --max-workers=2 --stacktrace
 RUN set -eux; \
     JAR_FILE=$(ls /home/gradle/src/build/libs/*.jar | grep -v -- '-plain\.jar$' | head -n 1); \
     cp "$JAR_FILE" /home/gradle/src/build/libs/app.jar

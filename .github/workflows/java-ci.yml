@@ -67,7 +67,22 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
       - name: 🔨 Build with Gradle
-        run: ./gradlew clean build -x test --info --stacktrace --no-daemon
+        run: |
+          set +e
+          for attempt in 1 2; do
+            echo "Build attempt $attempt..."
+            ./gradlew clean build -x test --info --stacktrace --no-daemon
+            if [ $? -eq 0 ]; then
+              echo "✅ Build successful"
+              exit 0
+            fi
+            if [ $attempt -lt 2 ]; then
+              echo "⚠️  Build failed, retrying in 10s..."
+              sleep 10
+            fi
+          done
+          echo "❌ Build failed after 2 attempts"
+          exit 1
         env:
           GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
           SUPREMEAI_SELFHEALING_PHOENIX_ENABLED: 'true'
@@ -126,6 +141,12 @@ jobs:
 
       - name: 🔐 Grant execute permission
         run: chmod +x gradlew
+
+      - name: ⚙️ Configure Gradle Properties
+        run: |
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m" >> gradle.properties
+          echo "org.gradle.daemon=false" >> gradle.properties
+          echo "org.gradle.parallel=true" >> gradle.properties
 
       - name: 📊 Generate coverage report
         run: ./gradlew jacocoTestReport jacocoTestCoverageVerification --no-daemon --max-workers=2
