@@ -36,9 +36,6 @@ public class GitController {
     private GitService gitService;
     
     @Autowired
-    private GitHubAPIService gitHubService;
-    
-    @Autowired
     private AdminControlService adminControlService;
     
     @Autowired

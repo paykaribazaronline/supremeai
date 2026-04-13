@@ -3,8 +3,7 @@ package org.example.agentorchestration;
 import org.example.agentorchestration.learning.AgentPatternProfiler;
 import org.example.agentorchestration.learning.ReasoningChainCopier;
 import org.example.agentorchestration.learning.ReasoningGenerator;
-import org.example.service.AgentDecisionLogger;
-import org.example.service.SystemLearningService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,12 +51,6 @@ public class AdaptiveAgentOrchestrator {
 
     @Autowired
     private AgenticToolLoop toolLoop;
-
-    @Autowired
-    private AgentDecisionLogger decisionLogger;
-
-    @Autowired
-    private SystemLearningService learningService;
 
     // ── Level 2/3/4 deep learning ──────────────────────────────────────────────
     @Autowired
@@ -335,8 +328,8 @@ public class AdaptiveAgentOrchestrator {
     public static class TaskExecution {
         private final String taskId;
         private final TaskRequest request;
-        private List<ExpertAgentRouter.RoutingDecision> routingDecisions;
         private List<String> selectedAgents;
+        private List<ExpertAgentRouter.RoutingDecision> routingDecisions;
         private List<AgenticToolLoop.PlannedStep> plan;
         private AgenticToolLoop.LoopSession loopSession;
         private RLVRTrainer.TrainingResult trainingResult;

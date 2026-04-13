@@ -2,26 +2,15 @@ package org.example.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Disabled;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.example.config.TestConfig;
-import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Import(TestConfig.class)
 @Disabled("Test calls methods with parameter mismatches - DeltaCostAgent.trackCosts() requires projectId")
 public class CostIntelligenceTest {
-
-    @Autowired(required = false)
-    private DeltaCostAgent deltaAgent;
-
-    @Autowired(required = false)
-    private EpsilonOptimizerAgent epsilonAgent;
-
-    @Autowired(required = false)
-    private ZetaFinanceAgent zetaAgent;
 
     @Test
     @Disabled("Method signature mismatch - trackCosts() requires projectId parameter")

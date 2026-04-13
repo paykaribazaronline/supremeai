@@ -135,15 +135,6 @@ public class KappaEvolutionAgent {
     private List<Map<String, Object>> conductVoting(List<Map<String, Object>> proposals) {
         List<Map<String, Object>> results = new ArrayList<>();
         
-        String[] agents = {
-            "Architect", "Builder", "Reviewer",  // Phase 1
-            "Visual", "Fixer", "Tester",  // Phase 6
-            "iOS", "Web", "Desktop", "Publish",  // Phase 7
-            "AlphaSecurity", "BetaCompliance", "GammaPrivacy",  // Phase 8
-            "DeltaCost", "EpsilonOptimizer", "ZetaFinance",  // Phase 9
-            "EtaMeta", "ThetaLearning", "IotaKnowledge", "KappaEvolution"  // Phase 10
-        };
-        
         for (Map<String, Object> proposal : proposals) {
             Map<String, Object> voteResult = new LinkedHashMap<>();
             voteResult.put("proposal_id", proposal.get("proposal_id"));
@@ -151,20 +142,17 @@ public class KappaEvolutionAgent {
             
             // Simulate voting with weighted schema
             int votesFor = 0;
-            int votesForSpecialized = 0;  // Agents with expertise in this area
             int totalVotes = TOTAL_AGENTS;
             
             String source = (String) proposal.get("source_agent");
             
             // Source agent always votes for (1 vote)
             votesFor++;
-            votesForSpecialized++;
             
             // Specialized voters (2-4 related agents) usually vote for
             for (int i = 0; i < 3; i++) {
                 if (Math.random() > 0.15) {  // 85% agreement from specialists
                     votesFor++;
-                    votesForSpecialized++;
                 }
             }
             

@@ -18,8 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class AdminControlService {
     private static final Logger logger = LoggerFactory.getLogger(AdminControlService.class);
-    private static final String FIREBASE_ADMIN_CONTROL_PATH = "admin/control";
-    private static final String FIREBASE_PENDING_ACTIONS_PATH = "admin/pending-actions";
     
     // In-memory cache
     private final Map<String, AdminControl> adminControls = new ConcurrentHashMap<>();

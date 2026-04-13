@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
 import java.io.InputStream;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -37,7 +36,6 @@ public class FeatureRegistryService {
         loadRegistry();
     }
 
-    @SuppressWarnings("unchecked")
     private void loadRegistry() {
         try {
             // Try classpath first (inside JAR)

@@ -119,6 +119,7 @@ public class ABTestController {
         }
 
         try {
+            @SuppressWarnings("unchecked")
             FixVariant variant1 = parseVariant((Map<String, Object>) request.get("variant1"));
             FixVariant variant2 = parseVariant((Map<String, Object>) request.get("variant2"));
 

@@ -339,6 +339,7 @@ public class MultiAIConsensusService {
 
                 // Store details for audit
                 Integer totalProviders = (Integer) consensusResult.get("total_providers");
+                @SuppressWarnings("unchecked")
                 List<String> votingProviders = (List<String>) consensusResult.get("voting_providers");
                 String agreementLevel = (String) consensusResult.get("agreement_level");
 

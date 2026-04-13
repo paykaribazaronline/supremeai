@@ -1,6 +1,6 @@
 package org.example.selfhealing.healing;
 
-import org.example.selfhealing.domain.HealingAttempt;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,6 @@ public class HealingCircuitBreaker {
     private static final Logger logger = LoggerFactory.getLogger(HealingCircuitBreaker.class);
     
     private final int MAX_CONSECUTIVE_FAILURES = 3;
-    private final Duration COOLDOWN_PERIOD = Duration.ofMinutes(30);
     
     // Track failures per workflow
     private final Map<String, FailureTracker> failureTrackers = new ConcurrentHashMap<>();
@@ -128,13 +127,12 @@ public class HealingCircuitBreaker {
      * Internal failure tracker for a single workflow
      */
     private static class FailureTracker {
-        String workflowId;
         int consecutiveFailures = 0;
         String lastErrorFingerprint = null;
         Instant cooldownUntil = null;
         
         FailureTracker(String workflowId) {
-            this.workflowId = workflowId;
+            // workflowId parameter kept for backward compatibility
         }
         
         void openCircuit() {

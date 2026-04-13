@@ -224,7 +224,6 @@ public class TwoPhasePerformanceCheckingService {
             pb.directory(new File(projectPath));
 
             Process process = pb.start();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
             // Monitor for timeout (30 minutes)
             boolean completed = process.waitFor(30, java.util.concurrent.TimeUnit.MINUTES);
@@ -388,7 +387,6 @@ public class TwoPhasePerformanceCheckingService {
     // Inner classes
 
     private static class MonitoringThread extends Thread {
-        private Process process;
         private long memoryPeak = 0;
         private double cpuUsage = 0;
         private int testCount = 0;
@@ -396,7 +394,7 @@ public class TwoPhasePerformanceCheckingService {
         private int testsFailed = 0;
 
         MonitoringThread(Process process) {
-            this.process = process;
+            // process parameter kept for backward compatibility but not used
         }
 
         public long getMemoryPeak() { return memoryPeak; }

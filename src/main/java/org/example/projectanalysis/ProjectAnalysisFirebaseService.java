@@ -57,7 +57,9 @@ public class ProjectAnalysisFirebaseService {
         List<Map<String, Object>> analyses = new ArrayList<>();
         
         for (DataSnapshot child : snapshot.getChildren()) {
-            analyses.add((Map<String, Object>) child.getValue());
+            @SuppressWarnings("unchecked")
+            Map<String, Object> analysis = (Map<String, Object>) child.getValue();
+            analyses.add(analysis);
         }
         return analyses;
     }

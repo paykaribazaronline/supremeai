@@ -13,9 +13,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Service
-@SuppressWarnings("deprecation")
 public class ServerMetricsService {
-    
     private static final Logger logger = LoggerFactory.getLogger(ServerMetricsService.class);
     private static final long STARTUP_TIME = System.currentTimeMillis();
     
@@ -78,7 +76,7 @@ public class ServerMetricsService {
         // JVM Metrics
         metrics.putAll(getJvmMetrics());
         
-        logger.info("✓ Server metrics collected successfully");
+        logger.info("Server metrics collected successfully");
         return metrics;
     }
     
