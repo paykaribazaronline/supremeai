@@ -422,11 +422,6 @@ public class KeyRotationService {
         return "gcp-vertex-" + UUID.randomUUID().toString().replace("-", "").substring(0, 24);
     }
     
-    private void revokeKey(String provider, String key) {
-        logger.info("🔒 Revoking key for {}", provider);
-        // In production, call provider's revoke API
-    }
-    
     // ============== Public API ==============
     
     /**

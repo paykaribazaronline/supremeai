@@ -141,10 +141,9 @@ public class QuotaRotationService {
      */
     public void recordFailure(String provider) {
         syncQuotaTrackers();
-        failureCount.merge(provider, 1, Integer::sum);
-        int failures = failureCount.get(provider);
-        
-        if (failures >= 3) {
+        failureCount.merge(provider, 1, (existing, increment) -> existing + increment);
+        Integer failures = failureCount.get(provider);
+        if (failures != null && failures >= 3) {
             logger.warn("❌ {} has {} consecutive failures - will skip in rotation", provider, failures);
         }
     }

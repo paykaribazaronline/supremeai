@@ -44,12 +44,7 @@ public class CodeGenerationOrchestratorTest {
     @Test
     @DisplayName("Generate React Component Successfully")
     public void testGenerateReactComponentSuccess() {
-        String projectId = "test-project";
-        String componentName = "TestButton";
-        String description = "A reusable button component";
-        List<String> features = Arrays.asList("responsive", "accessible");
-
-        // Mocking and validation - placeholder for future implementation
+        // Placeholder for future implementation
         // when(aiApiService.callAI(anyString(), anyString(), anyList()))
         //     .thenReturn("import React from 'react';\nexport default function TestButton() { return <button>Click me</button>; }");
         // when(validationService.validateProject(projectId, "REACT"))
@@ -121,35 +116,5 @@ public class CodeGenerationOrchestratorTest {
         assertNotNull(stats.get("successCount"));
         assertNotNull(stats.get("failureCount"));
         assertNotNull(stats.get("byFramework"));
-    }
-
-    // Helper methods
-    private Map<String, Object> createValidValidationResult() {
-        Map<String, Object> result = new HashMap<>();
-        result.put("isValid", true);
-        result.put("validationScore", 95.0);
-        result.put("issues", new ArrayList<>());
-        return result;
-    }
-
-    private Map<String, Object> createInvalidValidationResult() {
-        Map<String, Object> result = new HashMap<>();
-        result.put("isValid", false);
-        result.put("validationScore", 60.0);
-        List<Map<String, Object>> issues = new ArrayList<>();
-        Map<String, Object> issue = new HashMap<>();
-        issue.put("severity", "ERROR");
-        issue.put("message", "Missing import");
-        issues.add(issue);
-        result.put("issues", issues);
-        return result;
-    }
-
-    private Map<String, Object> createFixResult() {
-        Map<String, Object> result = new HashMap<>();
-        result.put("appliedCount", 2);
-        result.put("failedCount", 0);
-        result.put("successRate", 100);
-        return result;
     }
 }

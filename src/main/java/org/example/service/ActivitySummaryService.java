@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 public class ActivitySummaryService {
 
     private static final long WINDOW_MS = 24L * 60 * 60 * 1000;
-    private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     @Autowired
     private SystemLearningService systemLearningService;

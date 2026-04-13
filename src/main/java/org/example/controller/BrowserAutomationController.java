@@ -2,7 +2,6 @@ package org.example.controller;
 
 import org.example.service.BrowserDataCollector;
 import org.example.service.DataCollectorService;
-import org.example.service.HybridDataCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,9 +32,6 @@ public class BrowserAutomationController {
 
     @Autowired
     private DataCollectorService dataCollectorService;
-
-    @Autowired
-    private HybridDataCollector hybridDataCollector;
 
     // ========== BROWSER SCRAPING ==========
 
