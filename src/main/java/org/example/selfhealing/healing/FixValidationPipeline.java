@@ -2,6 +2,7 @@ package org.example.selfhealing.healing;
 
 import org.example.selfhealing.domain.ValidationResult;
 import org.example.selfhealing.domain.ValidationStage;
+import org.example.service.GitHubAPIService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
