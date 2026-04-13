@@ -9,7 +9,6 @@ import org.example.model.Requirement;
 import org.example.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -21,13 +20,18 @@ import java.util.function.BiConsumer;
 
 // Not annotated with @Service — FirebaseService (the primary bean) is used by all injection points.
 // FirebaseServiceFixed is kept as a reference/legacy class only.
+/**
+ * @deprecated Use {@link FirebaseService} instead.
+ * This class is kept as a legacy reference and should not be injected as a Spring bean.
+ */
+@Deprecated(since = "3.1", forRemoval = false)
 public class FirebaseServiceFixed {
     private static final Logger logger = LoggerFactory.getLogger(FirebaseServiceFixed.class);
+    private static final String DEFAULT_DATABASE_URL = "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/";
     
     private FirebaseDatabase db;
     private FirebaseAuth auth;
     private boolean isInitialized = false;
-    private static final String DATABASE_URL = "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/";
     private static final String DEFAULT_PROJECT_ID = "supremeai-a";
     
     public FirebaseServiceFixed() {
@@ -70,6 +74,10 @@ public class FirebaseServiceFixed {
             if (projectId == null || projectId.isBlank()) {
                 projectId = DEFAULT_PROJECT_ID;
             }
+            String databaseUrl = System.getenv("FIREBASE_DATABASE_URL");
+            if (databaseUrl == null || databaseUrl.isBlank()) {
+                databaseUrl = DEFAULT_DATABASE_URL;
+            }
             
             if (envConfig != null && !envConfig.isEmpty()) {
                 serviceAccount = new ByteArrayInputStream(envConfig.getBytes(StandardCharsets.UTF_8));
@@ -78,7 +86,7 @@ public class FirebaseServiceFixed {
             }
 
             FirebaseOptions.Builder builder = FirebaseOptions.builder()
-                    .setDatabaseUrl(DATABASE_URL)
+                    .setDatabaseUrl(databaseUrl)
                     .setProjectId(projectId);
 
             if (serviceAccount != null) {
