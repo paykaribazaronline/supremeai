@@ -123,8 +123,8 @@ public class ProviderCoverageService {
         row.put("profileDecisions", profile == null ? 0 : profile.totalDecisions);
         row.put("chainCount", chainCount);
         row.put("memoryCount", modelMemories.size());
-        row.put("bestTasks", providerKnowledge.getOrDefault("best_tasks", List.of()));
-        row.put("strengths", providerKnowledge.getOrDefault("strengths", List.of()));
+        row.put("bestTasks", (providerKnowledge != null) ? providerKnowledge.getOrDefault("best_tasks", List.of()) : List.of());
+        row.put("strengths", (providerKnowledge != null) ? providerKnowledge.getOrDefault("strengths", List.of()) : List.of());
         row.put("coverageScore", calculateCoverageScore(level1Ready, level2Ready, level3Ready, level4Ready));
         return row;
     }

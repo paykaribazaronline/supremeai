@@ -42,9 +42,6 @@ public class AgentPatternProfiler {
     private AgentDecisionLogger decisionLogger;
 
     @Autowired
-    private ThetaLearningAgent thetaAgent;
-
-    @Autowired
     private SystemLearningService learningService;
 
     @Autowired

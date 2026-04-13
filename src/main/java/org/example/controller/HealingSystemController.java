@@ -31,9 +31,6 @@ public class HealingSystemController {
     private static final Logger logger = LoggerFactory.getLogger(HealingSystemController.class);
     
     @Autowired(required = false)
-    private SafeInfiniteHealingLoop healingLoop;
-    
-    @Autowired(required = false)
     private HealingCircuitBreaker circuitBreaker;
     
     @Autowired(required = false)

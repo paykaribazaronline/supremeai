@@ -71,24 +71,27 @@ public class DistributedTracingService {
      */
     public void addSpanEvent(String eventName, Map<String, String> attributes) {
         Span span = TracingContext.getCurrentSpan();
-        if (span != null) {
+        if (span != null && eventName != null && attributes != null) {
             var attributesBuilder = io.opentelemetry.api.common.Attributes.builder();
             attributes.forEach(attributesBuilder::put);
             span.addEvent(eventName, attributesBuilder.build());
             logger.debug("📊 Span event: {} | Attributes: {}", eventName, attributes);
         }
     }
-    
+
     /**
      * Record error in trace
      */
     public void recordError(String errorMessage, Throwable exception) {
         Span span = TracingContext.getCurrentSpan();
         if (span != null) {
-            span.recordException(exception);
-            span.setStatus(io.opentelemetry.api.trace.StatusCode.ERROR, errorMessage);
+            if (exception != null) {
+                span.recordException(exception);
+            }
+            if (errorMessage != null) {
+                span.setStatus(io.opentelemetry.api.trace.StatusCode.ERROR, errorMessage);
+            }
         }
-        
         String traceId = TracingContext.getTraceId();
         if (traceId != null && traces.containsKey(traceId)) {
             traces.get(traceId).addError(errorMessage);
