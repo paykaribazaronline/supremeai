@@ -28,6 +28,7 @@ interface DashboardStats {
     completedTasks: number;
     systemHealthStatus: 'healthy' | 'warning' | 'critical';
     systemHealthScore: number;
+    systemHealthReason?: string;
     successRate: number;
     lastSyncTime: string;
 }
@@ -368,10 +369,17 @@ const AdminDashboard: React.FC = () => {
                 >
                     <h1 style={{ margin: 0 }}>{dashboardContract?.title || 'SupremeAI Admin Control Panel'}</h1>
                     <Space>
-                        <Badge
-                            status={stats.systemHealthStatus === 'healthy' ? 'success' : stats.systemHealthStatus === 'warning' ? 'warning' : 'error'}
-                            text={`System: ${stats.systemHealthStatus}`}
-                        />
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                            <Badge
+                                status={stats.systemHealthStatus === 'healthy' ? 'success' : stats.systemHealthStatus === 'warning' ? 'warning' : 'error'}
+                                text={`System: ${stats.systemHealthStatus}`}
+                            />
+                            {stats.systemHealthReason && (
+                                <span style={{ fontSize: '12px', color: '#666', maxWidth: '400px', textAlign: 'right' }}>
+                                    {stats.systemHealthReason}
+                                </span>
+                            )}
+                        </div>
                         <span className="text-muted">Last sync: {stats.lastSyncTime}</span>
                     </Space>
                 </Header>

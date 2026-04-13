@@ -143,6 +143,7 @@ public class AdminDashboardController {
         stats.put("systemHealth", systemHealthScore);
         stats.put("systemHealthScore", systemHealthScore);
         stats.put("systemHealthStatus", resolveHealthStatus(systemHealthScore));
+        stats.put("systemHealthReason", buildHealthStatusReason(systemHealthScore, activeAIAgents, runningTasks, completedTasks, successRate));
         stats.put("uptime", formatUptime(uptimeMs));
         stats.put("lastSync", lastSync);
         stats.put("lastSyncTime", new Date(lastSync).toString());
@@ -599,6 +600,52 @@ public class AdminDashboardController {
             return "warning";
         }
         return "critical";
+    }
+
+    private String buildHealthStatusReason(double systemHealthScore, int activeAIAgents, int runningTasks, int completedTasks, double successRate) {
+        StringBuilder reason = new StringBuilder();
+        
+        if (systemHealthScore >= 90) {
+            reason.append("All systems operating normally");
+        } else if (systemHealthScore >= 70) {
+            reason.append("⚠️ System running below optimal performance: ");
+            List<String> issues = new ArrayList<>();
+            
+            if (activeAIAgents < 3) {
+                issues.add("only " + activeAIAgents + " AI agent(s) active");
+            }
+            if (runningTasks == 0 && completedTasks > 0) {
+                issues.add("no active tasks");
+            }
+            if (successRate < 80) {
+                issues.add("success rate at " + Math.round(successRate) + "%");
+            }
+            if (systemHealthScore < 75) {
+                issues.add("health score degrading");
+            }
+            
+            reason.append(String.join(", ", issues));
+        } else {
+            reason.append("🔴 CRITICAL: System health critical: ");
+            List<String> issues = new ArrayList<>();
+            
+            if (activeAIAgents == 0) {
+                issues.add("no AI agents available");
+            }
+            if (runningTasks == 0 && completedTasks == 0) {
+                issues.add("no tasks executing");
+            }
+            if (successRate < 50) {
+                issues.add("low success rate (" + Math.round(successRate) + "%)");
+            }
+            if (systemHealthScore < 50) {
+                issues.add("severe health degradation");
+            }
+            
+            reason.append(String.join(", ", issues));
+        }
+        
+        return reason.toString();
     }
 
     private String formatUptime(long uptimeMs) {
