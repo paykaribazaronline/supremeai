@@ -11,6 +11,7 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional, Any
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 
 class CommandCLI:
@@ -39,6 +40,11 @@ class CommandCLI:
         with open(self.config_file, "w") as f:
             json.dump({"token": token}, f)
     
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+    def _post_command(self, url: str, payload: dict, headers: dict):
+        import requests
+        return requests.post(url, json=payload, headers=headers, timeout=30)
+
     def execute_command(self, name: str, params: Dict[str, Any]) -> bool:
         """Execute a command via API"""
         try:
@@ -48,11 +54,10 @@ class CommandCLI:
             if self.auth_token:
                 headers["Authorization"] = f"Bearer {self.auth_token}"
             
-            response = requests.post(
+            response = self._post_command(
                 f"{self.api_url}/execute",
-                json={"name": name, "parameters": params},
-                headers=headers,
-                timeout=30
+                payload={"name": name, "parameters": params},
+                headers=headers
             )
             
             if response.status_code == 200:
@@ -309,3 +314,4 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+

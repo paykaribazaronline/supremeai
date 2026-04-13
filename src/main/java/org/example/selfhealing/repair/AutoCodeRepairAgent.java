@@ -7,6 +7,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Auto Code Repair Agent
  * 
@@ -236,8 +239,28 @@ public class AutoCodeRepairAgent {
      * Extract code from AI response
      */
     private String extractCodeFromResponse(String response) {
-        // TODO: Implement code extraction from AI response
-        // Handle: code blocks, markdown, plain text, etc.
-        return response;
+        if (response == null || response.isEmpty()) {
+            return response;
+        }
+
+        Pattern codeBlockPattern = Pattern.compile("```(?:[\\w\\+\\-]*)\\s*([\\s\\S]*?)```", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = codeBlockPattern.matcher(response);
+
+        StringBuilder extracted = new StringBuilder();
+        while (matcher.find()) {
+            String code = matcher.group(1).trim();
+            if (!code.isEmpty()) {
+                if (extracted.length() > 0) {
+                    extracted.append("\n\n");
+                }
+                extracted.append(code);
+            }
+        }
+
+        if (extracted.length() > 0) {
+            return extracted.toString();
+        }
+
+        return response.trim();
     }
 }

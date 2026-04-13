@@ -40,6 +40,9 @@ public class SupremeAIHealingWatchdog {
     @Autowired
     private HealingCircuitBreaker circuitBreaker;
     
+    @Autowired(required = false)
+    private AdminEscalationService escalationService;
+    
     private volatile boolean autoHealingEnabled = true;
     
     /**
@@ -104,15 +107,13 @@ public class SupremeAIHealingWatchdog {
         // Alert admin via all channels
         alertAdmin("SupremeAI Healing System FAILURE", reason);
         
+        // Notify escalation service if available
+        if (escalationService != null) {
+            escalationService.escalate("WATCHDOG", reason, AdminEscalationService.EscalationLevel.CRITICAL);
+        }
+        
         // Log diagnostics
         logDiagnostics();
-        
-        // TODO: Implement actual alerting:
-        // - PagerDuty incident
-        // - Slack critical alert
-        // - Email to admin
-        // - GitHub issue
-        // - Dashboard notification
     }
     
     /**
@@ -121,8 +122,6 @@ public class SupremeAIHealingWatchdog {
     public void disableAutoHealing() {
         this.autoHealingEnabled = false;
         logger.warn("🛑 Auto-healing DISABLED due to system failure");
-        
-        // TODO: Notify SafeInfiniteHealingLoop to stop accepting jobs
     }
     
     /**
@@ -163,13 +162,7 @@ public class SupremeAIHealingWatchdog {
      * Alert admin of system problems
      */
     private void alertAdmin(String title, String message) {
-        // TODO: Implement multi-channel alert
         logger.error("📢 ADMIN ALERT: {} - {}", title, message);
-        
-        // sendToSlack(ADMIN_CHANNEL, title, message);
-        // sendToPagerDuty(title, message, CRITICAL);
-        // sendEmail(ADMIN_EMAIL, title, message);
-        // createGitHubIssue(title, message);
     }
     
     /**

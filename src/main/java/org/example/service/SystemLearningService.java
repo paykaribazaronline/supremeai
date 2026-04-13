@@ -24,6 +24,7 @@ public class SystemLearningService {
     
     private static final String LEARNINGS_PATH = "system/learnings";
     private static final String PATTERNS_PATH = "system/patterns";
+    // Cache used as local fallback when fetching from Firebase. Now primarily stores directly to Firebase.
     private Map<String, SystemLearning> learningsCache = new ConcurrentHashMap<>();
     
     /**

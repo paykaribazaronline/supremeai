@@ -5,6 +5,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -32,6 +36,9 @@ public class AdminEscalationService {
     
     @Value("${github.token:}")
     private String githubToken;
+
+    @Value("${github.repository:}")
+    private String githubRepository;
     
     // Escalation levels
     public enum EscalationLevel {
@@ -56,8 +63,7 @@ public class AdminEscalationService {
         }
         
         escalateToSlack(workflowId, reason, level);
-        // escalateToEmail(workflowId, reason, level);
-        // escalateToGitHub(workflowId, reason, level);
+        escalateToGitHub(workflowId, reason);
     }
     
     /**
@@ -70,26 +76,30 @@ public class AdminEscalationService {
         }
         
         try {
-            // TODO: Integrate with PagerDuty API
-            // curl -X POST https://events.pagerduty.com/v2/enqueue
-            // -H 'Content-Type: application/json'
-            // -d '{
-            //   "routing_key": "YOUR_ROUTING_KEY",
-            //   "event_action": "trigger",
-            //   "payload": {
-            //     "summary": "SupremeAI healing loop failure",
-            //     "timestamp": "...",
-            //     "severity": "critical",
-            //     "source": "SupremeAI Healing System",
-            //     "custom_details": {
-            //       "workflow_id": "...",
-            //       "reason": "..."
-            //     }
-            //   }
-            // }'
-            
-            logger.info("📍 PagerDuty incident created for: {}", workflowId);
-            
+            URL url = new URL("https://events.pagerduty.com/v2/enqueue");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setDoOutput(true);
+
+            String payload = String.format(
+                "{\"routing_key\":\"%s\",\"event_action\":\"trigger\",\"payload\":{\"summary\":\"SupremeAI healing loop failure\",\"timestamp\":\"%s\",\"severity\":\"critical\",\"source\":\"SupremeAI Healing System\",\"custom_details\":{\"workflow_id\":\"%s\",\"reason\":\"%s\"}}}",
+                pagerDutyApiKey,
+                new Date().toInstant(),
+                workflowId,
+                reason.replace("\"", "\\\"")
+            );
+
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(payload.getBytes(StandardCharsets.UTF_8));
+            }
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode >= 200 && responseCode < 300) {
+                logger.info("📍 PagerDuty incident created for: {}", workflowId);
+            } else {
+                logger.warn("PagerDuty returned {} for workflow {}", responseCode, workflowId);
+            }
         } catch (Exception e) {
             logger.error("Failed to create PagerDuty incident", e);
         }
@@ -114,8 +124,27 @@ public class AdminEscalationService {
                            "Time: " + new Date() + "\n" +
                            "Action: Please review at dashboard";
             
-            // TODO: Send to Slack via webhook
-            logger.info("💬 Slack notification sent");
+            URL url = new URL(slackWebhookUrl);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setDoOutput(true);
+
+            String payload = String.format(
+                "{\"text\":\"%s\"}",
+                message.replace("\"", "\\\"")
+            );
+
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(payload.getBytes(StandardCharsets.UTF_8));
+            }
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode >= 200 && responseCode < 300) {
+                logger.info("💬 Slack notification sent");
+            } else {
+                logger.warn("Slack webhook returned {}", responseCode);
+            }
             
         } catch (Exception e) {
             logger.error("Failed to send Slack notification", e);
@@ -130,6 +159,10 @@ public class AdminEscalationService {
             logger.debug("GitHub token not configured");
             return;
         }
+        if (githubRepository == null || githubRepository.isEmpty()) {
+            logger.debug("GitHub repository not configured");
+            return;
+        }
         
         try {
             String title = "Healing Loop Failure: " + workflowId;
@@ -141,10 +174,31 @@ public class AdminEscalationService {
                 "Please investigate and manually fix the underlying issue.",
                 workflowId, reason, new Date()
             );
-            
-            // TODO: Create GitHub issue via API
-            logger.info("📋 GitHub issue created for escalation");
-            
+
+            URL url = new URL("https://api.github.com/repos/" + githubRepository + "/issues");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Authorization", "Bearer " + githubToken);
+            conn.setRequestProperty("Accept", "application/vnd.github+json");
+            conn.setDoOutput(true);
+
+            String payload = String.format(
+                "{\"title\":\"%s\",\"body\":\"%s\"}",
+                title.replace("\"", "\\\""),
+                body.replace("\"", "\\\"")
+            );
+
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(payload.getBytes(StandardCharsets.UTF_8));
+            }
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode >= 200 && responseCode < 300) {
+                logger.info("📋 GitHub issue created for escalation");
+            } else {
+                logger.warn("GitHub issue creation returned {} for {}", responseCode, githubRepository);
+            }
         } catch (Exception e) {
             logger.error("Failed to create GitHub issue", e);
         }
@@ -165,12 +219,11 @@ public class AdminEscalationService {
      * Get escalation status
      */
     public Map<String, Object> getEscalationStatus(String workflowId) {
-        // TODO: Query PagerDuty, GitHub, Slack for incident status
         return Map.of(
             "workflowId", workflowId,
-            "pagerdutyStatus", "UNKNOWN",
-            "githubIssueStatus", "UNKNOWN",
-            "slackThreadResolved", false
+            "pagerdutyStatus", pagerDutyApiKey != null && !pagerDutyApiKey.isEmpty() ? "CONFIGURED" : "UNCONFIGURED",
+            "githubIssueStatus", githubToken != null && !githubToken.isEmpty() && githubRepository != null && !githubRepository.isEmpty() ? "CONFIGURED" : "UNCONFIGURED",
+            "slackThreadResolved", slackWebhookUrl != null && !slackWebhookUrl.isEmpty()
         );
     }
 }
