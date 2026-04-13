@@ -24,7 +24,7 @@ public class StrategicKnowledgeLearningInitializer {
 
     @EventListener(ApplicationReadyEvent.class)
     public void seedStrategicKnowledge() {
-        logger.info("🧠 StrategicKnowledgeLearningInitializer: seeding strategic system knowledge...");
+        logger.info("ðŸ§  StrategicKnowledgeLearningInitializer: seeding strategic system knowledge...");
 
         seedAdminControlKnowledge();
         seedSecurityAndGitRules();
@@ -32,7 +32,7 @@ public class StrategicKnowledgeLearningInitializer {
         seedArchitectureKnowledge();
         seedDeploymentScopeKnowledge();
 
-        logger.info("✅ StrategicKnowledgeLearningInitializer: strategic knowledge seeded.");
+        logger.info("âœ… StrategicKnowledgeLearningInitializer: strategic knowledge seeded.");
     }
 
     private void seedAdminControlKnowledge() {
@@ -174,3 +174,4 @@ public class StrategicKnowledgeLearningInitializer {
         );
     }
 }
+
