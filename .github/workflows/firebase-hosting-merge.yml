@@ -72,6 +72,8 @@ jobs:
   build-java-backend:
     name: Build Java Backend & Dashboard
     runs-on: ubuntu-latest
+    env:
+      GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.jvmargs="-Xmx4g"
 
     permissions:
       contents: read
@@ -134,8 +136,7 @@ jobs:
             fi
           done
           echo "❌ Tests failed after 2 attempts"
-          exit 0
-        continue-on-error: true
+          exit 1
 
       - name: ?? Upload Build Reports
         if: always()
@@ -203,12 +204,23 @@ jobs:
           name: flutter-admin-build
           path: flutter-admin-build/
 
-      - name: ?? Download Dashboard Build (if exists)
-        continue-on-error: true
+      - name: ?? Download Dashboard Build
         uses: actions/download-artifact@v4
         with:
           name: dashboard-build
           path: dashboard-build/
+
+      - name: ✅ Verify Artifacts Before Deployment
+        run: |
+          if [ ! -d "flutter-admin-build" ] || [ -z "$(ls -A flutter-admin-build)" ]; then
+            echo "❌ Flutter artifact missing"
+            exit 1
+          fi
+          if [ ! -d "dashboard-build" ] || [ -z "$(ls -A dashboard-build)" ]; then
+            echo "❌ Dashboard artifact missing"
+            exit 1
+          fi
+          echo "✅ All artifacts present"
 
       - name: ✅ Create combined_deploy Directory Structure
         run: |
@@ -267,6 +279,16 @@ jobs:
         env:
           FIREBASE_CLI_EXPERIMENTS: webframeworks
 
+      - name: 🔍 Verify Deployment Health
+        run: |
+          sleep 10
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://supremeai-a.web.app/)
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "❌ Deployment health check failed: HTTP $HTTP_STATUS"
+            exit 1
+          fi
+          echo "✅ Deployment is healthy"
+
       - name: ?? Verify Firebase Deployment
         run: |
           echo "=================================================="
@@ -286,7 +308,6 @@ jobs:
     needs: [build-flutter-admin, build-java-backend, deploy-firebase-unified]
     runs-on: ubuntu-latest
     if: always()
-    continue-on-error: true
 
     permissions:
       contents: read
@@ -318,7 +339,6 @@ jobs:
           fi
 
       - name: ?? Log Deployment Summary
-        continue-on-error: true
         run: |
           echo "=================================================="
           echo "Deployment Pipeline Summary"
