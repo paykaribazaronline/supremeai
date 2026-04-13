@@ -88,7 +88,7 @@ public class AdminControlService {
     }
     
     /**
-     * Save admin control to Firebase
+     * Save admin control to Firebase with error verification
      */
     private void saveToFirebase(AdminControl control) {
         try {
@@ -105,10 +105,11 @@ public class AdminControlService {
             data.put("updatedBy", control.getUpdatedBy());
             data.put("lastUpdatedAt", System.currentTimeMillis());
             
+            // Call saveSystemConfig which now has callbacks built-in
             firebaseService.saveSystemConfig("admin/control", data);
-            logger.debug("✅ AdminControl saved to Firebase");
+            logger.info("✅ AdminControl persistence initiated for mode: {}", control.getPermissionMode());
         } catch (Exception e) {
-            logger.warn("⚠️ Failed to save AdminControl to Firebase: {}", e.getMessage());
+            logger.error("❌ Failed to save AdminControl to Firebase: {}", e.getMessage(), e);
         }
     }
     
@@ -195,7 +196,7 @@ public class AdminControlService {
     }
     
     /**
-     * Save pending action to Firebase
+     * Save pending action to Firebase with error verification
      */
     private void savePendingActionToFirebase(PendingAction action) {
         try {
@@ -214,10 +215,11 @@ public class AdminControlService {
             data.put("approvedBy", action.getApprovedBy());
             data.put("reason", action.getReason());
             
+            // Call saveSystemConfig which now has callbacks built-in
             firebaseService.saveSystemConfig("admin/pending-actions/" + action.getId(), data);
-            logger.debug("✅ Pending action saved to Firebase: {}", action.getId());
+            logger.info("✅ Pending action persistence initiated: {}", action.getId());
         } catch (Exception e) {
-            logger.warn("⚠️ Failed to save pending action to Firebase: {}", e.getMessage());
+            logger.error("❌ Failed to save pending action to Firebase: {}", e.getMessage(), e);
         }
     }
     

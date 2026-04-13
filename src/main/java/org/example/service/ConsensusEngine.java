@@ -1,4 +1,4 @@
-﻿package org.example.service;
+package org.example.service;
 
 import org.example.model.Vote;
 import org.springframework.context.ApplicationEventPublisher;

@@ -22,7 +22,7 @@ COPY --from=build /home/gradle/src/build/libs/app.jar app.jar
 # Set PORT environment variable (Cloud Run requirement)
 # This overrides the default 8080 if PORT env var is set
 ENV PORT=8080
-ENV JAVA_OPTS="-Xms128m -Xmx512m -XX:+UseG1GC -XX:+UseStringDeduplication -XX:InitiatingHeapOccupancyPercent=35"
+ENV JAVA_OPTS="-Xms256m -Xmx1024m -XX:+UseG1GC -XX:+UseStringDeduplication -XX:InitiatingHeapOccupancyPercent=35 -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 
 # Expose the port Spring Boot runs on
 EXPOSE 8080

@@ -1,4 +1,4 @@
-﻿package org.example.service;
+package org.example.service;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;

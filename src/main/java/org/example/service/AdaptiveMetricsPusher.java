@@ -1,4 +1,4 @@
-﻿package org.example.service;
+package org.example.service;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -8,7 +8,7 @@ public class AdaptiveMetricsPusher {
     
     private int intervalMs = 2000; // Start with 2s
     
-    @Scheduled(fixedDelayString = "\")
+    @Scheduled(fixedDelayString = "${ai.metrics.push.interval:2000}")
     public void pushMetrics() {
         long latency = measureLatency();
         if (latency > 1000) {

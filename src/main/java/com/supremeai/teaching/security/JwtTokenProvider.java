@@ -12,7 +12,7 @@ import javax.crypto.SecretKey;
 @Component
 public class JwtTokenProvider {
     
-    @Value("${app.jwtSecret:supremeai-secret-key-for-jwt-token-generation-2026}")
+    @Value("${app.jwtSecret}")
     private String jwtSecret;
     
     @Value("${app.jwtExpiration:86400000}")

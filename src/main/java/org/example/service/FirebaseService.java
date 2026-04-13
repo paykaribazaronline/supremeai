@@ -97,12 +97,23 @@ public class FirebaseService {
      * 🚀 Multi-API Key Support
      */
     public void updateAPIKey(String modelName, String apiKey) {
-        db.getReference("config").child("api_keys").child(modelName).setValueAsync(apiKey);
-        System.out.println("✅ API Key updated in Firebase for: " + modelName);
+        db.getReference("config").child("api_keys").child(modelName).setValue(apiKey, (error, ref) -> {
+            if (error != null) {
+                System.err.println("❌ Failed to save API Key for " + modelName + ": " + error.getMessage());
+            } else {
+                System.out.println("✅ API Key updated in Firebase for: " + modelName);
+            }
+        });
     }
 
     public void saveSystemConfig(String configId, Map<String, Object> config) {
-        db.getReference("config").child(configId).updateChildrenAsync(config);
+        db.getReference("config").child(configId).updateChildren(config, (error, ref) -> {
+            if (error != null) {
+                System.err.println("❌ Failed to save system config " + configId + ": " + error.getMessage());
+            } else {
+                System.out.println("✅ System config " + configId + " saved to Firebase");
+            }
+        });
     }
 
     public String createProject(String name, String description, String summary) {
@@ -114,7 +125,13 @@ public class FirebaseService {
         projectData.put("summary", summary);
         projectData.put("status", "planning");
         projectData.put("createdAt", System.currentTimeMillis());
-        projectsRef.setValueAsync(projectData);
+        projectsRef.setValue(projectData, (error, ref) -> {
+            if (error != null) {
+                System.err.println("❌ Failed to create project " + name + ": " + error.getMessage());
+            } else {
+                System.out.println("✅ Project " + name + " created in Firebase");
+            }
+        });
         return projectId;
     }
 
@@ -150,7 +167,13 @@ public class FirebaseService {
     }
 
     public void updateRequirementStatus(String id, Requirement.Status status) {
-        db.getReference("requirements").child(id).child("status").setValueAsync(status);
+        db.getReference("requirements").child(id).child("status").setValue(status, (error, ref) -> {
+            if (error != null) {
+                System.err.println("❌ Failed to update requirement status " + id + ": " + error.getMessage());
+            } else {
+                System.out.println("✅ Requirement " + id + " status updated to " + status);
+            }
+        });
     }
 
     public void saveChatMessage(String projectId, String sender, String message, String type) {
@@ -160,14 +183,26 @@ public class FirebaseService {
         chatData.put("message", message);
         chatData.put("type", type);
         chatData.put("timestamp", System.currentTimeMillis());
-        db.getReference("projects").child(projectId).child("chat").push().setValueAsync(chatData);
+        db.getReference("projects").child(projectId).child("chat").push().setValue(chatData, (error, ref) -> {
+            if (error != null) {
+                System.err.println("❌ Failed to save chat message for " + projectId + ": " + error.getMessage());
+            } else {
+                System.out.println("✅ Chat message saved for project " + projectId);
+            }
+        });
     }
 
     public void saveUser(User user) {
         if (user != null) {
             String userKey = resolveUserKey(user);
             if (userKey != null) {
-                db.getReference("users").child(userKey).setValueAsync(user);
+                db.getReference("users").child(userKey).setValue(user, (error, ref) -> {
+                    if (error != null) {
+                        System.err.println("❌ Failed to save user " + userKey + ": " + error.getMessage());
+                    } else {
+                        System.out.println("✅ User " + userKey + " saved to Firebase");
+                    }
+                });
             }
         }
     }
@@ -247,7 +282,13 @@ public class FirebaseService {
         notification.put("type", type);
         notification.put("timestamp", System.currentTimeMillis());
         notification.put("read", false);
-        db.getReference("notifications").push().setValueAsync(notification);
+        db.getReference("notifications").push().setValue(notification, (error, ref) -> {
+            if (error != null) {
+                System.err.println("❌ Failed to send notification to " + recipient + ": " + error.getMessage());
+            } else {
+                System.out.println("✅ Notification sent to " + recipient);
+            }
+        });
     }
 
     /**
@@ -257,7 +298,13 @@ public class FirebaseService {
         if (user != null) {
             String userKey = resolveUserKey(user);
             if (userKey != null) {
-                db.getReference("users").child(userKey).setValueAsync(user);
+                db.getReference("users").child(userKey).setValue(user, (error, ref) -> {
+                    if (error != null) {
+                        System.err.println("❌ Failed to update user " + userKey + ": " + error.getMessage());
+                    } else {
+                        System.out.println("✅ User " + userKey + " updated in Firebase");
+                    }
+                });
             }
         }
     }
@@ -316,7 +363,13 @@ public class FirebaseService {
      * Save security audit report to Firebase
      */
     public void saveSecurityAudit(Map<String, Object> report) {
-        db.getReference("security").child("audits").push().setValueAsync(report);
+        db.getReference("security").child("audits").push().setValue(report, (error, ref) -> {
+            if (error != null) {
+                System.err.println("❌ Failed to save security audit: " + error.getMessage());
+            } else {
+                System.out.println("✅ Security audit saved to Firebase");
+            }
+        });
     }
 
     // ==================== PHASE 9: COST INTELLIGENCE PERSISTENCE ====================
@@ -325,21 +378,39 @@ public class FirebaseService {
      * Save cost report to Firebase
      */
     public void saveCostReport(Map<String, Object> report) {
-        db.getReference("intelligence").child("costs").push().setValueAsync(report);
+        db.getReference("intelligence").child("costs").push().setValue(report, (error, ref) -> {
+            if (error != null) {
+                System.err.println("❌ Failed to save cost report: " + error.getMessage());
+            } else {
+                System.out.println("✅ Cost report saved to Firebase");
+            }
+        });
     }
 
     /**
      * Save optimization recommendations to Firebase
      */
     public void saveOptimizationRecommendations(Map<String, Object> recommendations) {
-        db.getReference("intelligence").child("optimizations").push().setValueAsync(recommendations);
+        db.getReference("intelligence").child("optimizations").push().setValue(recommendations, (error, ref) -> {
+            if (error != null) {
+                System.err.println("❌ Failed to save optimization recommendations: " + error.getMessage());
+            } else {
+                System.out.println("✅ Optimization recommendations saved to Firebase");
+            }
+        });
     }
 
     /**
      * Save budget plan to Firebase
      */
     public void saveBudgetPlan(Map<String, Object> budgetPlan) {
-        db.getReference("intelligence").child("budgets").child("active_plan").setValueAsync(budgetPlan);
+        db.getReference("intelligence").child("budgets").child("active_plan").setValue(budgetPlan, (error, ref) -> {
+            if (error != null) {
+                System.err.println("❌ Failed to save budget plan: " + error.getMessage());
+            } else {
+                System.out.println("✅ Budget plan saved to Firebase");
+            }
+        });
     }
 
     /**
@@ -373,22 +444,44 @@ public class FirebaseService {
      * Save evolution generation report
      */
     public void saveEvolutionReport(Map<String, Object> report) {
-        db.getReference("evolution").child("generations").push().setValueAsync(report);
+        db.getReference("evolution").child("generations").push().setValue(report, (error, ref) -> {
+            if (error != null) {
+                System.err.println("❌ Failed to save evolution report: " + error.getMessage());
+            } else {
+                System.out.println("✅ Evolution report saved to Firebase");
+            }
+        });
     }
 
     /**
      * Save learned patterns (Knowledge Base)
      */
     public void saveLearnedPattern(Map<String, Object> pattern) {
-        db.getReference("evolution").child("patterns").push().setValueAsync(pattern);
+        db.getReference("evolution").child("patterns").push().setValue(pattern, (error, ref) -> {
+            if (error != null) {
+                System.err.println("❌ Failed to save learned pattern: " + error.getMessage());
+            } else {
+                System.out.println("✅ Learned pattern saved to Firebase");
+            }
+        });
     }
 
     /**
      * Update active system configuration based on consensus
      */
     public void updateActiveSystemConfig(Map<String, Object> newConfig) {
-        db.getReference("config").child("main_config").updateChildrenAsync(newConfig);
-        db.getReference("evolution").child("logs").push().setValueAsync(Collections.singletonMap("event", "SYSTEM_CONFIG_UPDATED_BY_CONSENSUS"));
+        db.getReference("config").child("main_config").updateChildren(newConfig, (error, ref) -> {
+            if (error != null) {
+                System.err.println("❌ Failed to update active system config: " + error.getMessage());
+            } else {
+                System.out.println("✅ System config updated by consensus");
+                db.getReference("evolution").child("logs").push().setValue(Collections.singletonMap("event", "SYSTEM_CONFIG_UPDATED_BY_CONSENSUS"), (logError, logRef) -> {
+                    if (logError != null) {
+                        System.err.println("❌ Failed to log config update: " + logError.getMessage());
+                    }
+                });
+            }
+        });
     }
 
     /**
@@ -398,6 +491,12 @@ public class FirebaseService {
         if (!isInitialized) {
             return;
         }
-        db.getReference("ai_dead_letter_queue").push().setValueAsync(item);
+        db.getReference("ai_dead_letter_queue").push().setValue(item, (error, ref) -> {
+            if (error != null) {
+                System.err.println("❌ Failed to save dead-letter item: " + error.getMessage());
+            } else {
+                System.out.println("✅ Dead-letter item archived");
+            }
+        });
     }
 }

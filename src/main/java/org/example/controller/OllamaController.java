@@ -1,4 +1,4 @@
-﻿package org.example.controller;
+package org.example.controller;
 
 import org.example.model.OllamaProvider;
 import org.springframework.beans.factory.annotation.Autowired;

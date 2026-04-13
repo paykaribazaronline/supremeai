@@ -195,10 +195,12 @@ jobs:
             --region="${{ env.GCP_REGION }}" \
             --platform=managed \
             --port=8080 \
-            --memory=1Gi \
-            --cpu=1 \
+            --memory=2Gi \
+            --cpu=2 \
+            --concurrency=80 \
             --max-instances=10 \
-            --timeout=3600 \
+            --min-instances=1 \
+            --timeout=300 \
             --allow-unauthenticated \
             --update-env-vars="$FINAL_ENV" \
             $SECRET_FLAG \
