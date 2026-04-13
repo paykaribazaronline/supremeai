@@ -36,11 +36,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: 🔧 Initialize CodeQL
+      - name: 🔧 Initialize CodeQL (Java)
+        if: matrix.language == 'java'
         uses: github/codeql-action/init@v3
         with:
-          languages: ${{ matrix.language }}
-          build-mode: ${{ matrix.language == 'java' && 'manual' || 'none' }}
+          languages: java
+          build-mode: manual
+          queries: security-and-quality
+
+      - name: 🔧 Initialize CodeQL (JavaScript)
+        if: matrix.language == 'javascript'
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+          build-mode: none
           queries: security-and-quality
 
       - name: ☕ Set up JDK 17
