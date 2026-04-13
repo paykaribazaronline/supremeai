@@ -1,5 +1,7 @@
 package org.example.selfhealing.repair;
 
+import org.example.service.MultiAIConsensusService;
+import org.example.service.XBuilderFailurePatternService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +30,7 @@ public class AutoCodeRepairAgent {
     private MultiAIConsensusService consensusService;
     
     @Autowired(required = false)
-    private FailurePatternService failurePatterns;
+    private XBuilderFailurePatternService failurePatterns;
     
     /**
      * Generate a code fix for the identified error

@@ -2,8 +2,10 @@ package org.example.selfhealing.healing;
 
 import org.example.selfhealing.domain.HealingAttempt;
 import org.example.selfhealing.domain.ValidationResult;
+import org.example.selfhealing.repair.AutoCodeRepairAgent;
 import org.example.service.GitHubActionsErrorParser;
 import org.example.service.GitHubAPIService;
+import org.example.service.GitHubAppAuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,7 +118,7 @@ public class SafeInfiniteHealingLoop {
             String errorFingerprint = "";
             try {
                 // Fetch logs to compute error fingerprint
-                String logs = rateLimiter.taskQueue.isEmpty() ? 
+                String logs = rateLimiter.getQueueSize() == 0 ? 
                         githubAPI.getWorkflowLogs(workflowId) : "";
                 errorFingerprint = computeErrorFingerprint(logs);
             } catch (Exception e) {
@@ -131,12 +133,12 @@ public class SafeInfiniteHealingLoop {
             
             // ========== STAGE 2: Analyze Logs ==========
             logger.info("📊 Analyzing workflow logs...");
-            String logs = rateLimiter.taskQueue.isEmpty() ? 
+            String logs = rateLimiter.getQueueSize() == 0 ? 
                     githubAPI.getWorkflowLogs(workflowId) : "";
             
-            Map<String, String> analysis = errorParser.parseErrors(logs);
-            String errorType = analysis.get("errorType");
-            String errorMessage = analysis.getOrDefault("errorSummary", "Unknown");
+            Map<String, Object> analysis = errorParser.parseJobOutput(logs);
+            String errorType = (String) analysis.get("errorType");
+            String errorMessage = (String) analysis.getOrDefault("errorSummary", "Unknown");
             
             attempt.setErrorType(errorType);
             attempt.setErrorSummary(errorMessage);

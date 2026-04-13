@@ -222,6 +222,13 @@ public class GitHubRateLimiter {
     }
     
     /**
+     * Get current queue size for monitoring
+     */
+    public int getQueueSize() {
+        return taskQueue.size();
+    }
+    
+    /**
      * Internal task wrapper
      */
     private static class RateLimitedTask {
