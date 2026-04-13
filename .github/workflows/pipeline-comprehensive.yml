@@ -324,7 +324,7 @@ jobs:
             --max-instances=10 \
             --min-instances=1 \
             --timeout=300 \
-            --startup-cpu-boost \
+            --cpu-boost \
             --allow-unauthenticated \
             --project="${{ steps.project.outputs.project_id }}" \
             --quiet
