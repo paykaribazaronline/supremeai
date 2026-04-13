@@ -18,10 +18,10 @@ import java.util.concurrent.CompletableFuture;
 
 @Service
 public class FirebaseService {
+    private static final String DEFAULT_DATABASE_URL = "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/";
     private FirebaseDatabase db;
     private FirebaseAuth auth;
     private boolean isInitialized = false;
-    private static final String DATABASE_URL = "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/";
     private static final String DEFAULT_PROJECT_ID = "supremeai-a";
     
     public FirebaseService() {
@@ -64,6 +64,10 @@ public class FirebaseService {
             if (projectId == null || projectId.isBlank()) {
                 projectId = DEFAULT_PROJECT_ID;
             }
+            String databaseUrl = System.getenv("FIREBASE_DATABASE_URL");
+            if (databaseUrl == null || databaseUrl.isBlank()) {
+                databaseUrl = DEFAULT_DATABASE_URL;
+            }
             
             if (envConfig != null && !envConfig.isEmpty()) {
                 serviceAccount = new ByteArrayInputStream(envConfig.getBytes(StandardCharsets.UTF_8));
@@ -72,7 +76,7 @@ public class FirebaseService {
             }
 
             FirebaseOptions.Builder builder = FirebaseOptions.builder()
-                    .setDatabaseUrl(DATABASE_URL)
+                    .setDatabaseUrl(databaseUrl)
                     .setProjectId(projectId);
 
             if (serviceAccount != null) {
