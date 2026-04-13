@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { authUtils } from '../lib/authUtils';
 
 interface ExtensionStatus {
     ready: boolean;

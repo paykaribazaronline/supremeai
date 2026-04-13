@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { authUtils } from '../lib/authUtils';
 
 interface TabContent {
     label: string;

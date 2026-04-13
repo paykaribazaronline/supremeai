@@ -13,7 +13,7 @@ import {
 } from 'antd';
 import {
     QuestionCircleOutlined,
-    LightbulbOutlined,
+    BulbOutlined as LightbulbOutlined,
     PlayCircleOutlined,
     BookOutlined,
 } from '@ant-design/icons';

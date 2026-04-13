@@ -1,6 +1,7 @@
 // ChatHistoryDashboard.tsx - Real-time Chat & Work Process History
 import React, { useState, useEffect, useRef } from 'react';
 import {
+    Alert,
     Card,
     Row,
     Col,
@@ -20,7 +21,7 @@ import {
     Select,
 } from 'antd';
 import {
-    ChatOutlined,
+    WechatOutlined as ChatOutlined,
     BugOutlined,
     CheckCircleOutlined,
     ClockCircleOutlined,

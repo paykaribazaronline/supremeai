@@ -153,14 +153,26 @@ jobs:
             build/test-results/
             build/reports/tests/
 
-      - name: ?? Upload Dashboard (if exists)
-        if: hashFiles('public/**', 'dist/**') != ''
+      - name: ?? Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+
+      - name: ?? Install Dashboard Dependencies
+        working-directory: dashboard
+        run: npm ci
+
+      - name: ?? Build React Dashboard
+        working-directory: dashboard
+        run: npm run build
+
+      - name: ?? Upload Dashboard Build
         uses: actions/upload-artifact@v4
         with:
           name: dashboard-build
-          path: |
-            public/
-            dist/
+          path: dashboard/dist/
           retention-days: 1
 
   # ==========================================
@@ -204,11 +216,14 @@ jobs:
           mkdir -p combined_deploy/admin
           
           # Copy dashboard files to root
-          if [ -d "public" ]; then
-            echo "✓ Copying from public/ to combined_deploy root..."
-            cp -r public/* combined_deploy/ 2>/dev/null || true
+          if [ -d "dashboard-build" ] && [ "$(ls -A dashboard-build)" ]; then
+            echo "✓ Copying dashboard build to combined_deploy root..."
+            cp -r dashboard-build/* combined_deploy/ 2>/dev/null || true
             rm -f combined_deploy/admin 2>/dev/null || true
             mkdir -p combined_deploy/admin
+          else
+            echo "✗ Dashboard build is missing!"
+            exit 1
           fi
           
           # Copy Flutter build to admin subfolder
