@@ -148,24 +148,24 @@ public class MultiAIConsensusController {
     // ========== PRIVATE HELPERS ==========
     
     /**
-     * Extract user from Bearer token, or return default admin when no token.
-     * Auth is handled by Spring Security (permitAll) + Firebase client-side.
-     * Controller-level checks are for logging only.
+     * Extract user from Bearer token. Requires valid authentication.
+     * Auth is handled by Spring Security + Firebase + JWT validation.
      */
     private User extractUser(String authHeader) {
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            try {
-                String token = authHeader.substring(7);
-                User user = authService.validateToken(token);
-                if (user != null) return user;
-            } catch (Exception e) {
-                logger.debug("Token validation failed, using default admin: {}", e.getMessage());
-            }
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Missing or invalid Authorization header");
         }
-        // Default: admin session (Firebase auth is client-side, Spring Security permitAll)
-        User admin = new User();
-        admin.setUsername("admin");
-        admin.setRole("ADMIN");
-        return admin;
+        try {
+            String token = authHeader.substring(7);
+            if (token.isEmpty()) {
+                throw new IllegalArgumentException("Bearer token is empty");
+            }
+            User user = authService.validateToken(token);
+            if (user != null) return user;
+            throw new IllegalArgumentException("Token validation returned null");
+        } catch (Exception e) {
+            logger.warn("Authentication failed: {}", e.getMessage());
+            throw new IllegalArgumentException("Invalid or expired token: " + e.getMessage());
+        }
     }
 }

@@ -43,20 +43,14 @@ public class UserQuotaService {
     
     /**
      * Get or create user quota allocation
-     * SPECIAL CASE: "admin" user (system administrator) gets SUPERADMIN tier automatically
-     * Other users default to FREE tier and must be explicitly promoted via /api/tier endpoints
+     * All users default to FREE tier and must be explicitly promoted via /api/tier endpoints
+     * ✅ FIXED: Removed hidden privilege escalation based on username
      */
     public UserQuotaAllocation getUserQuota(String userId) {
         return userQuotas.computeIfAbsent(userId, key -> {
-            // SPECIAL: If user is "admin" (system admin), grant SUPERADMIN tier (unlimited)
-            if ("admin".equalsIgnoreCase(key)) {
-                logger.info("👑 System admin '{}' assigned SUPERADMIN tier (unlimited access)", key);
-                return new UserQuotaAllocation(key, UserTier.SUPERADMIN);
-            }
-            
-            // Default: FREE tier for all other users
+            // Default: FREE tier for all users (explicit promotion required)
             UserTier tier = UserTier.FREE;
-            logger.info("📊 User {} quota initialized with {} tier", key, tier.name);
+            logger.info("📊 User {} quota initialized with {} tier (explicit admin promotion required)", key, tier.name);
             
             return new UserQuotaAllocation(key, tier);
         });

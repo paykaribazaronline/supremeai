@@ -496,20 +496,21 @@ public class SystemLearningController {
     }
 
     private User authenticate(String authHeader) {
-        if (authHeader != null && authHeader.startsWith(BEARER_PREFIX) && authHeader.length() > BEARER_PREFIX.length()) {
-            try {
-                String token = authHeader.substring(BEARER_PREFIX.length());
-                User user = authService.validateToken(token);
-                if (user != null) return user;
-            } catch (Exception e) {
-                logger.debug("Token validation failed, using default admin: {}", e.getMessage());
-            }
+        if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
+            throw new IllegalArgumentException("Missing or invalid Authorization header");
         }
-        // Default: admin session (Firebase auth is client-side, Spring Security permitAll)
-        User admin = new User();
-        admin.setUsername("admin");
-        admin.setRole("ADMIN");
-        return admin;
+        if (authHeader.length() <= BEARER_PREFIX.length()) {
+            throw new IllegalArgumentException("Bearer token is empty");
+        }
+        try {
+            String token = authHeader.substring(BEARER_PREFIX.length());
+            User user = authService.validateToken(token);
+            if (user != null) return user;
+            throw new IllegalArgumentException("Token validation returned null");
+        } catch (Exception e) {
+            logger.warn("Authentication failed: {}", e.getMessage());
+            throw new IllegalArgumentException("Invalid or expired token: " + e.getMessage());
+        }
     }
 
     private boolean isSetupTokenAuthorized(String setupToken) {

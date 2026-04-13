@@ -40,24 +40,22 @@ public class GitController {
     
     @Autowired
     private AuthenticationService authService;
-    
+
     // ============ PRIVATE HELPER METHODS ============
-    
+
     private User extractUserFromToken(String authHeader) throws Exception {
-        if (authHeader != null && authHeader.startsWith("Bearer ") && authHeader.length() > 7) {
-            try {
-                String token = authHeader.substring(7);
-                User user = authService.validateToken(token);
-                if (user != null) return user;
-            } catch (Exception e) {
-                // Token validation failed, fall through to default admin
-            }
+        if (authHeader == null || !authHeader.startsWith("Bearer ") || authHeader.length() <= 7) {
+            throw new IllegalArgumentException("Missing or invalid Authorization header");
         }
-        // Default: admin session (Firebase auth is client-side, Spring Security permitAll)
-        User admin = new User();
-        admin.setUsername("admin");
-        admin.setRole("ADMIN");
-        return admin;
+        try {
+            String token = authHeader.substring(7);
+            User user = authService.validateToken(token);
+            if (user != null) return user;
+            throw new IllegalArgumentException("Token validation returned null");
+        } catch (Exception e) {
+            logger.warn("Authentication failed: {}", e.getMessage());
+            throw new IllegalArgumentException("Invalid or expired token: " + e.getMessage());
+        }
     }
     
     /**
@@ -257,24 +255,22 @@ class GitHubController {
     
     @Autowired
     private AuthenticationService authService;
-    
+
     // ============ PRIVATE HELPER METHODS ============
-    
+
     private User extractUserFromToken(String authHeader) throws Exception {
-        if (authHeader != null && authHeader.startsWith("Bearer ") && authHeader.length() > 7) {
-            try {
-                String token = authHeader.substring(7);
-                User user = authService.validateToken(token);
-                if (user != null) return user;
-            } catch (Exception e) {
-                // Token validation failed, fall through to default admin
-            }
+        if (authHeader == null || !authHeader.startsWith("Bearer ") || authHeader.length() <= 7) {
+            throw new IllegalArgumentException("Missing or invalid Authorization header");
         }
-        // Default: admin session (Firebase auth is client-side, Spring Security permitAll)
-        User admin = new User();
-        admin.setUsername("admin");
-        admin.setRole("ADMIN");
-        return admin;
+        try {
+            String token = authHeader.substring(7);
+            User user = authService.validateToken(token);
+            if (user != null) return user;
+            throw new IllegalArgumentException("Token validation returned null");
+        } catch (Exception e) {
+            logger.warn("Authentication failed: {}", e.getMessage());
+            throw new IllegalArgumentException("Invalid or expired token: " + e.getMessage());
+        }
     }
     
     /**

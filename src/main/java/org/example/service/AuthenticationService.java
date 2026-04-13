@@ -141,14 +141,13 @@ public class AuthenticationService {
         user.setEmail(email);
         user.setPasswordHash("FIREBASE_AUTH_ONLY");  // Marker: no local password
         user.setActive(true);
-        user.setRole("admin");  // Default role
+        user.setRole("FREE");  // ✅ FIXED: Default to FREE tier, NOT admin
         user.setCreatedAt(System.currentTimeMillis());
         user.setLastLogin(System.currentTimeMillis());
         user.setPermissions(new ArrayList<>());
-
-        // Save to Firebase
-        firebaseService.saveUser(user);
-        logger.info("New user provisioned from Firebase: {}", email);
+        
+        // Log audit trail
+        logger.info("✅ New user provisioned from Firebase: {} (tier: FREE, requires admin promotion)", email);
         
         return user;
     }

@@ -41,7 +41,7 @@ git checkout main
 
 # Access admin dashboard
 # Browser: http://localhost:8080/admin.html
-# Default: supremeai / Admin@123456!
+# ⚠️ SECURITY: First admin created via /api/auth/setup with SUPREMEAI_SETUP_TOKEN (see DEPLOYMENT_CHECKLIST.md)
 ```
 
 ### Cloud Deployment
@@ -364,8 +364,7 @@ cd supremeai
 
 # 4. Access dashboard
 # http://localhost:8080/admin.html
-# Username: supremeai
-# Password: Admin@123456!
+# ⚠️ SECURITY: First admin created via /api/auth/setup with SUPREMEAI_SETUP_TOKEN
 
 # 5. Test an endpoint
 curl http://localhost:8080/api/v1/optimization/health
