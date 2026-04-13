@@ -326,23 +326,23 @@ class _UnifiedAdminScreenState extends State<UnifiedAdminScreen> {
                 ),
               ),
             ],
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () => _showSuggestionDialog(
+                context,
+                selected['key'] as String? ?? _selectedComponentKey,
+                label,
+              ),
+              icon: const Icon(Icons.lightbulb_outline),
+              label: const Text('Suggest Changes'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF722ED1),
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 44),
+              ),
+            ),
           ],
-          const SizedBox(height: 20),
-          ElevatedButton.icon(
-            onPressed: () => _showSuggestionDialog(
-              context,
-              selected['key'] as String? ?? _selectedComponentKey,
-              label,
-            ),
-            icon: const Icon(Icons.lightbulb_outline),
-            label: const Text('Suggest Changes'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF722ED1),
-              foregroundColor: Colors.white,
-              minimumSize: const Size(double.infinity, 44),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
