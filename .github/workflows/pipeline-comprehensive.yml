@@ -290,6 +290,8 @@ jobs:
     steps:
       - name: ⬇️ Checkout code
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: 🔐 Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -322,6 +324,7 @@ jobs:
             --max-instances=10 \
             --min-instances=1 \
             --timeout=300 \
+            --startup-cpu-boost \
             --allow-unauthenticated \
             --project="${{ steps.project.outputs.project_id }}" \
             --quiet
@@ -349,13 +352,11 @@ jobs:
 
       - name: 🔄 Rollback on Failure
         if: failure()
+        continue-on-error: true
         run: |
           echo "🔄 Rolling back to previous stable version..."
-          # Get the previous image SHA
-          PREVIOUS_SHA=$(git rev-parse HEAD^)
-          PREVIOUS_SHORT=$(echo $PREVIOUS_SHA | cut -c1-7)
-          
-          # Try to rollback if previous image exists
+          # Use latest tag as fallback since HEAD^ may not exist in shallow clones
+          PREVIOUS_SHORT=$(git rev-parse --short HEAD^ 2>/dev/null || echo "latest")
           gcloud run deploy "${{ env.SERVICE_NAME }}" \
             --image="gcr.io/${{ steps.project.outputs.project_id }}/${{ env.SERVICE_NAME }}:$PREVIOUS_SHORT" \
             --region="${{ env.GCP_REGION }}" \

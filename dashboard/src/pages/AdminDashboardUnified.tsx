@@ -9,7 +9,8 @@
 // ONE CHANGE IN BACKEND = EVERYWHERE UPDATES
 
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Card, Statistic, Row, Col, Alert, Badge, Space, Tabs, Empty } from 'antd';
+import { Layout, Menu, Card, Statistic, Row, Col, Alert, Badge, Space, Tabs, Empty, Button, Modal, Input, message } from 'antd';
+import { BulbOutlined } from '@ant-design/icons';
 import { authUtils } from '../lib/authUtils';
 import {
     DashboardOutlined,
@@ -22,6 +23,8 @@ import {
     WarningOutlined,
     BugOutlined,
 } from '@ant-design/icons';
+
+const { TextArea } = Input;
 
 const { Header, Content, Sider } = Layout;
 
@@ -71,6 +74,11 @@ const AdminDashboardUnified: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // Suggestion modal state
+    const [suggestionOpen, setSuggestionOpen] = useState(false);
+    const [suggestionText, setSuggestionText] = useState('');
+    const [suggestionLoading, setSuggestionLoading] = useState(false);
+
     useEffect(() => {
         fetchContract();
         // Refresh every 30 seconds
@@ -94,6 +102,44 @@ const AdminDashboardUnified: React.FC = () => {
             setError(err instanceof Error ? err.message : 'Failed to load dashboard');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const submitSuggestion = async (applyNow: boolean) => {
+        if (!suggestionText.trim()) {
+            message.warning('Please enter a suggestion before submitting.');
+            return;
+        }
+        setSuggestionLoading(true);
+        try {
+            const token = authUtils.getToken();
+            const selectedNav = contract?.navigation.find(n => n.key === selectedKey);
+            const payload = {
+                tabKey: selectedKey,
+                tabLabel: selectedNav?.label || selectedKey,
+                suggestion: suggestionText.trim(),
+                applyNow,
+            };
+            const res = await fetch('/api/admin/suggestions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify(payload),
+            });
+            if (!res.ok) throw new Error('Failed to submit suggestion');
+            message.success(
+                applyNow
+                    ? '🤖 Applying your suggestion now — the system will process it shortly.'
+                    : '💾 Suggestion saved. The system will review it.'
+            );
+            setSuggestionText('');
+            setSuggestionOpen(false);
+        } catch (err) {
+            message.error('Failed to submit suggestion. Please try again.');
+        } finally {
+            setSuggestionLoading(false);
         }
     };
 
@@ -231,12 +277,22 @@ const AdminDashboardUnified: React.FC = () => {
                                 : 'Select a component'
                         }
                         extra={
-                            selectedComponent ? (
-                                <Badge
-                                    status={selectedComponent.enabled ? 'success' : 'error'}
-                                    text={selectedComponent.enabled ? 'Enabled' : 'Disabled'}
-                                />
-                            ) : null
+                            <Space>
+                                {selectedComponent && (
+                                    <Badge
+                                        status={selectedComponent.enabled ? 'success' : 'error'}
+                                        text={selectedComponent.enabled ? 'Enabled' : 'Disabled'}
+                                    />
+                                )}
+                                <Button
+                                    type="primary"
+                                    icon={<BulbOutlined />}
+                                    onClick={() => setSuggestionOpen(true)}
+                                    style={{ background: '#722ed1', borderColor: '#722ed1' }}
+                                >
+                                    Suggest Changes
+                                </Button>
+                            </Space>
                         }
                     >
                         {selectedComponent ? (
@@ -290,6 +346,57 @@ const AdminDashboardUnified: React.FC = () => {
                     </Card>
                 </Content>
             </Layout>
+
+            {/* Suggestion Modal */}
+            <Modal
+                title={
+                    <Space>
+                        <BulbOutlined style={{ color: '#722ed1' }} />
+                        <span>
+                            Suggest Changes
+                            {selectedComponent ? ` — ${selectedComponent.label}` : ''}
+                        </span>
+                    </Space>
+                }
+                open={suggestionOpen}
+                onCancel={() => { setSuggestionOpen(false); setSuggestionText(''); }}
+                footer={[
+                    <Button key="cancel" onClick={() => { setSuggestionOpen(false); setSuggestionText(''); }}>
+                        Cancel
+                    </Button>,
+                    <Button
+                        key="save"
+                        loading={suggestionLoading}
+                        onClick={() => submitSuggestion(false)}
+                    >
+                        💾 Save
+                    </Button>,
+                    <Button
+                        key="apply"
+                        type="primary"
+                        loading={suggestionLoading}
+                        onClick={() => submitSuggestion(true)}
+                        style={{ background: '#722ed1', borderColor: '#722ed1' }}
+                    >
+                        🤖 Do Now
+                    </Button>,
+                ]}
+                width={600}
+            >
+                <p style={{ color: '#666', marginBottom: '12px' }}>
+                    Describe the change you want on the <strong>{selectedComponent?.label || selectedKey}</strong> tab.
+                    Click <strong>Save</strong> to store it for later, or <strong>Do Now</strong> to let the AI apply it immediately.
+                </p>
+                <TextArea
+                    rows={6}
+                    placeholder="e.g. Add a toggle to disable new user registrations from this tab..."
+                    value={suggestionText}
+                    onChange={e => setSuggestionText(e.target.value)}
+                    maxLength={2000}
+                    showCount
+                    autoFocus
+                />
+            </Modal>
         </Layout>
     );
 };
