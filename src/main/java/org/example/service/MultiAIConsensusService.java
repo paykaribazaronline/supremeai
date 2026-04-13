@@ -52,7 +52,6 @@ public class MultiAIConsensusService {
     public ConsensusVote askAllAI(String userId, String question) {
         // Check user quota FIRST
         if (!userQuotaService.canMakeRequest(userId)) {
-            Map<String, Object> quota = userQuotaService.getQuotaStatus(userId);
             logger.warn("❌ User {} quota exceeded for consensus voting", userId);
             
             // Return error vote
@@ -430,7 +429,7 @@ public class MultiAIConsensusService {
                         float confidence = isWinner
                             ? Math.max(0.8f, consensusConfidence)
                             : Math.max(0.72f, consensusConfidence * 0.8f);
-                        AgentDecision d = decisionLogger.logDecision(
+                        AgentDecisionLogger.AgentDecision d = decisionLogger.logDecision(
                             provider,           // agent name = provider (e.g. "openai-gpt4")
                             "LEARNING",         // task type
                             vote.getId(),       // project id = vote id
