@@ -57,8 +57,9 @@ class _NotificationsScreenState extends State<NotificationsScreen>
       _isLoading = false;
       if (results[0].success) _channels = results[0].data ?? [];
       if (results[1].success) _history = results[1].data ?? [];
-      if (!results[0].success && !results[1].success)
+      if (!results[0].success && !results[1].success) {
         _error = 'নোটিফিকেশন তথ্য লোড করা যায়নি';
+      }
     });
   }
 
@@ -158,7 +159,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                   style: TextStyle(fontSize: 12, color: Colors.grey)),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _selectedChannel,
+                initialValue: _selectedChannel,
                 decoration: const InputDecoration(
                   labelText: 'চ্যানেল বেছে নিন',
                   helperText: '(কোন মাধ্যমে পাঠাবেন)',

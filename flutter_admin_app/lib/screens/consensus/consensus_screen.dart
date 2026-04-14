@@ -50,10 +50,12 @@ class _ConsensusScreenState extends State<ConsensusScreen>
     setState(() {
       _isLoading = false;
       if (results[0].success) _stats = results[0].data as Map<String, dynamic>?;
-      if (results[1].success)
+      if (results[1].success) {
         _history = (results[1].data as List<dynamic>?) ?? [];
-      if (!results[0].success && !results[1].success)
+      }
+      if (!results[0].success && !results[1].success) {
         _error = 'তথ্য লোড করা যায়নি';
+      }
     });
   }
 

@@ -1,11 +1,10 @@
 // flutter_admin_app/lib/screens/admin/admin_unified_screen.dart
 // UNIFIED ADMIN DASHBOARD - Consumes /api/admin/dashboard/contract
-// 
+//
 // Same contract as React Web → Identical UI everywhere
 // Change backend contract = changes in React + Flutter Mobile + Flutter Web
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../config/app_constants.dart';
 import '../../config/environment.dart';
 import '../../services/api_service.dart';
@@ -19,7 +18,7 @@ class AdminUnifiedScreen extends StatefulWidget {
 
 class _AdminUnifiedScreenState extends State<AdminUnifiedScreen> {
   final ApiService _apiService = ApiService();
-  
+
   Map<String, dynamic>? _contract;
   bool _isLoading = true;
   String? _error;
@@ -38,7 +37,7 @@ class _AdminUnifiedScreenState extends State<AdminUnifiedScreen> {
     });
 
     final response = await _apiService.get<Map<String, dynamic>>(
-      Environment.apiBaseUrl + '/api/admin/dashboard/contract',
+      '${Environment.apiBaseUrl}/api/admin/dashboard/contract',
     );
 
     if (!mounted) return;
@@ -82,7 +81,8 @@ class _AdminUnifiedScreenState extends State<AdminUnifiedScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+                      const Icon(Icons.error_outline,
+                          size: 48, color: Colors.grey),
                       const SizedBox(height: 16),
                       Text(_error!),
                       const SizedBox(height: 16),
@@ -107,7 +107,7 @@ class _AdminUnifiedScreenState extends State<AdminUnifiedScreen> {
       _contract?['components'] ?? [],
     );
     final stats = _contract?['stats'] as Map<String, dynamic>? ?? {};
-    
+
     final selectedComponent = components.firstWhere(
       (c) => c['key'] == _selectedComponentKey,
       orElse: () => components.isNotEmpty ? components.first : {},
@@ -189,7 +189,8 @@ class _AdminUnifiedScreenState extends State<AdminUnifiedScreen> {
                           ? null
                           : (selected) {
                               if (selected) {
-                                setState(() => _selectedComponentKey = item['key']);
+                                setState(
+                                    () => _selectedComponentKey = item['key']);
                               }
                             },
                     );

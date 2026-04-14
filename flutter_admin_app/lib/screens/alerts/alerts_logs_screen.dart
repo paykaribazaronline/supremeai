@@ -50,11 +50,13 @@ class _AlertsLogsScreenState extends State<AlertsLogsScreen>
 
     setState(() {
       _isLoading = false;
-      if (results[0].success)
+      if (results[0].success) {
         _alerts = (results[0].data as List<dynamic>?) ?? [];
+      }
       if (results[1].success) _logs = (results[1].data as List<dynamic>?) ?? [];
-      if (results[2].success)
+      if (results[2].success) {
         _alertStats = results[2].data as Map<String, dynamic>?;
+      }
       if (!results[0].success && !results[1].success && !results[2].success) {
         _error = results[0].error ?? 'ডেটা লোড করা যায়নি';
       }

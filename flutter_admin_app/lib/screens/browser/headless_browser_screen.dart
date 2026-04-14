@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../config/app_constants.dart';
-import '../../config/environment.dart';
 import '../../services/api_service.dart';
 
 class HeadlessBrowserScreen extends StatefulWidget {

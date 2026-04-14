@@ -41,12 +41,15 @@ class _LearningScreenState extends State<LearningScreen> {
 
     setState(() {
       _isLoading = false;
-      if (results[0].success)
+      if (results[0].success) {
         _learningStats = results[0].data as Map<String, dynamic>?;
-      if (results[1].success)
+      }
+      if (results[1].success) {
         _researchStats = results[1].data as Map<String, dynamic>?;
-      if (results[2].success)
+      }
+      if (results[2].success) {
         _criticalItems = results[2].data as List<dynamic>?;
+      }
       if (!results[0].success && !results[1].success) {
         _error = results[0].error ?? 'Failed to load learning data';
       }

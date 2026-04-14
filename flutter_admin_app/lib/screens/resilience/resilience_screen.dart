@@ -50,16 +50,21 @@ class _ResilienceScreenState extends State<ResilienceScreen>
     if (!mounted) return;
     setState(() {
       _isLoading = false;
-      if (results[0].success)
+      if (results[0].success) {
         _health = results[0].data as Map<String, dynamic>?;
-      if (results[1].success)
+      }
+      if (results[1].success) {
         _circuitBreakers = (results[1].data as List<dynamic>?) ?? [];
-      if (results[2].success)
+      }
+      if (results[2].success) {
         _failoverStats = results[2].data as Map<String, dynamic>?;
-      if (results[3].success)
+      }
+      if (results[3].success) {
         _selfHealing = results[3].data as Map<String, dynamic>?;
-      if (!results[0].success)
+      }
+      if (!results[0].success) {
         _error = results[0].error ?? 'রেজিলিয়েন্স তথ্য লোড করা যায়নি';
+      }
     });
   }
 
