@@ -1,0 +1,36 @@
+<idea-plugin>
+    <id>com.supremeai.ide.plugin</id>
+    <name>SupremeAI Assistant</name>
+    <vendor email="support@supremeai.com" url="https://supremeai.com">SupremeAI</vendor>
+
+    <description><![CDATA[
+    SupremeAI Assistant for Android Studio.
+    <ul>
+      <li>Generate Android Apps from prompts</li>
+      <li>Real-time code learning and suggestions</li>
+      <li>Agent collaboration status</li>
+    </ul>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>org.jetbrains.kotlin</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="SupremeAI"
+                    secondary="false"
+                    icon="AllIcons.General.Information"
+                    anchor="right"
+                    factoryClass="com.supremeai.ide.SupremeAIToolWindowFactory"/>
+    </extensions>
+
+    <actions>
+        <group id="SupremeAI.Menu" text="SupremeAI" description="SupremeAI commands">
+            <add-to-group group-id="MainMenu" anchor="last"/>
+            <action id="com.supremeai.ide.GenerateAppAction"
+                    class="com.supremeai.ide.GenerateAppAction"
+                    text="New SupremeAI App"
+                    description="Generate a new Android app using SupremeAI">
+            </action>
+        </group>
+    </actions>
+</idea-plugin>
