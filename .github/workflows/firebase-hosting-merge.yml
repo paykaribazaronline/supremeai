@@ -26,7 +26,6 @@ on:
 
 env:
   NODE_VERSION: '20'
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true  
 # ==========================================
 # STAGE 1: Build Flutter Admin App
 # ==========================================
@@ -82,12 +81,15 @@ jobs:
       - name: ?? Checkout Code
         uses: actions/checkout@v4
 
-      - name: ?? Set up JDK 17
+      - name: ⚙️ Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
+
+      - name: ✅ Verify Java Version
+        run: java -version
 
       - name: ?? Cache Gradle Dependencies
         uses: actions/cache@v4
@@ -120,8 +122,7 @@ jobs:
           echo "❌ Build failed after 2 attempts"
           exit 1
 
-      - name: ?? Run Tests (with retry)
-        continue-on-error: true
+      - name: ⚙️ Run Tests (with retry)
         run: |
           set +e
           for attempt in 1 2; do
@@ -136,8 +137,8 @@ jobs:
               sleep 5
             fi
           done
-          echo "⚠️ Tests failed after 2 attempts (non-blocking)"
-          exit 0
+          echo "❌ Tests failed after 2 attempts"
+          exit 1
 
       - name: ?? Upload Build Reports
         if: always()
@@ -157,7 +158,14 @@ jobs:
             build/reports/tests/
           if-no-files-found: warn
 
-      - name: ?? Set up Node.js 24
+      - name: 📈 Upload Coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./build/reports/jacoco/test/jacocoTestReport.xml
+          fail_ci_if_error: false
+
+      - name: ⚙️ Set up Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -283,12 +291,12 @@ jobs:
           FIREBASE_CLI_EXPERIMENTS: webframeworks
 
       - name: 🔍 Verify Deployment Health
-        continue-on-error: true
         run: |
           sleep 10
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://supremeai-a.web.app/)
           if [ "$HTTP_STATUS" != "200" ]; then
-            echo "⚠️ Deployment health check returned HTTP $HTTP_STATUS (non-blocking)"
+            echo "❌ Deployment health check returned HTTP $HTTP_STATUS"
+            exit 1
           else
             echo "✅ Deployment is healthy"
           fi

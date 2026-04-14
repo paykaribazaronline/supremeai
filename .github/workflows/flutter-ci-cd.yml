@@ -23,7 +23,6 @@ on:
 env:
   FLUTTER_VERSION: '3.27.0'
   FIREBASE_PROJECT: 'supremeai-a'
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true
 
 jobs:
   flutter-build:
@@ -48,14 +47,6 @@ jobs:
 
       - name: Check Flutter version
         run: flutter --version
-
-      - name: Clean pub cache and lockfile
-        working-directory: flutter_admin_app
-        run: |
-          echo "Clearing pub cache..."
-          flutter pub cache clean --force || true
-          rm -f pubspec.lock || true
-          echo "Cache cleaned"
 
       - name: Install dependencies
         working-directory: flutter_admin_app
@@ -168,7 +159,9 @@ jobs:
           keyPassword=$ANDROID_KEY_PASSWORD
           EOF
 
-          echo "Android release signing files prepared"
+          keytool -list -v -keystore flutter_admin_app/android/keystore/release-keystore.jks -storepass "$ANDROID_STORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" > /dev/null || { echo "❌ Invalid keystore/password/alias"; exit 1; }
+
+          echo "Android release signing files prepared and validated"
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
@@ -262,21 +255,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-
-      - name: Install dependencies
-        working-directory: flutter_admin_app
-        run: flutter pub get
-
-      - name: Analyze code
-        working-directory: flutter_admin_app
-        run: flutter analyze --no-pub
-
       - name: Generate summary report
         run: |
           WEB_STATUS="${{ needs.flutter-build.result }}"
@@ -318,4 +296,3 @@ jobs:
               repo: context.repo.repo,
               body: 'Flutter build successful.\n\nArtifacts generated:\n- Web app build\n- Android APK and AAB files\n\nPreview: https://supremeai-a.web.app/admin/'
             })
-        continue-on-error: true
