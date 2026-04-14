@@ -8,6 +8,11 @@ on:
   schedule:
     - cron: '0 0 * * 0' # Every Sunday at midnight
 
+# Cancel previous scans if a new push is made
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   codeql:
     name: CodeQL Analysis
