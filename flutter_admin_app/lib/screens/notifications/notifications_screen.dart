@@ -159,7 +159,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                   style: TextStyle(fontSize: 12, color: Colors.grey)),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                initialValue: _selectedChannel,
+                value: _selectedChannel,
                 decoration: const InputDecoration(
                   labelText: 'চ্যানেল বেছে নিন',
                   helperText: '(কোন মাধ্যমে পাঠাবেন)',
