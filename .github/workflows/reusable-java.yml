@@ -15,15 +15,26 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
     - uses: actions/checkout@v4
+    
+    - name: Check Gradle Wrapper
+      run: |
+        if [ ! -f "gradlew" ]; then
+          echo "❌ gradlew not found!"
+          exit 1
+        fi
+
     - uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
         cache: gradle
+
     - run: chmod +x gradlew
-    - run: ./gradlew clean build -x test --no-daemon
+    - name: Build and Test
+      run: ./gradlew clean build --no-daemon
 
     - name: Authenticate to Google Cloud
       if: inputs.deploy == true
@@ -39,19 +50,30 @@ jobs:
       if: inputs.deploy == true
       run: gcloud auth configure-docker --quiet
 
+    - name: Set up Docker Buildx
+      if: inputs.deploy == true
+      uses: docker/setup-buildx-action@v3
+
     - name: Build and Push Docker Image
       if: inputs.deploy == true
+      env:
+        GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       run: |
-        docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/supremeai-backend .
-        docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/supremeai-backend
+        docker buildx build \
+          --cache-from=type=registry,ref=gcr.io/$GCP_PROJECT_ID/supremeai-backend:cache \
+          --cache-to=type=registry,ref=gcr.io/$GCP_PROJECT_ID/supremeai-backend:cache,mode=max \
+          -t gcr.io/$GCP_PROJECT_ID/supremeai-backend \
+          --push .
 
     - name: Deploy to Cloud Run
       if: inputs.deploy == true
+      env:
+        GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       run: |
         gcloud run deploy supremeai-backend \
-          --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/supremeai-backend \
+          --image gcr.io/$GCP_PROJECT_ID/supremeai-backend \
           --platform managed \
           --region us-central1 \
           --allow-unauthenticated \
-          --project ${{ secrets.GCP_PROJECT_ID }} \
+          --project $GCP_PROJECT_ID \
           --quiet
