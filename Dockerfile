@@ -1,40 +1,37 @@
-# Step 1: Use prebuilt JAR if available, otherwise build
+# Step 1: Use Gradle for building the JAR
 FROM gradle:8.7-jdk17 AS build
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
-# Write gradle.properties (file is not in repo) so the compiler JVM gets enough heap
-# inside the gradle:8.7-jdk17 container which defaults to ~256m
-RUN printf 'org.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=512m\norg.gradle.daemon=false\norg.gradle.parallel=true\norg.gradle.workers.max=2\n' > gradle.properties \
+
+# Set build memory limits and build the app
+RUN printf 'org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=512m\norg.gradle.daemon=false\n' > gradle.properties \
     && chmod +x gradlew \
-    && ./gradlew build --no-daemon -x test --parallel --max-workers=2 --stacktrace
+    && ./gradlew clean build --no-daemon -x test --parallel
+
+# Find the built JAR and rename it to app.jar
 RUN set -eux; \
     JAR_FILE=$(ls /home/gradle/src/build/libs/*.jar | grep -v -- '-plain\.jar$' | head -n 1); \
     cp "$JAR_FILE" /home/gradle/src/build/libs/app.jar
 
-# Step 2: Create the runtime image using Eclipse Temurin (More stable)
+# Step 2: Create the runtime image using Eclipse Temurin
 FROM eclipse-temurin:17-jdk-jammy
 
-# Install git (required for GitIntegrationService)
+# Install git and curl for runtime needs
 RUN apt-get update && apt-get install -y git curl ca-certificates && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
 WORKDIR /app
 
-# Copy the single runtime jar from the build stage.
+# Copy the JAR from the build stage
 COPY --from=build /home/gradle/src/build/libs/app.jar app.jar
 
-# Set PORT environment variable (Cloud Run requirement)
-# This overrides the default 8080 if PORT env var is set
+# Cloud Run injects the PORT environment variable.
+# Spring Boot automatically picks up the PORT env var if server.port is configured correctly.
 ENV PORT=8080
-ENV JAVA_OPTS="-Xms256m -Xmx1024m -XX:+UseG1GC -XX:+UseStringDeduplication -XX:InitiatingHeapOccupancyPercent=35 -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+ENV JAVA_OPTS="-Xms256m -Xmx1024m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 
-# Expose the port Spring Boot runs on
+# Expose port (Documentation only)
 EXPOSE 8080
 
-# Add health check for Cloud Run
-HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8080/actuator/health/liveness || exit 1
-
-# Start the application with proper JVM settings for containers
-ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar app.jar"]
-
+# Start the application.
+# We use $PORT to ensure it listens on the correct port assigned by Cloud Run.
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -Dserver.port=${PORT} -jar app.jar"]
