@@ -39,14 +39,11 @@ jobs:
     - name: Build and Deploy to Cloud Run
       if: inputs.deploy == true
       run: |
-        # Enable APIs if they are not enabled (this might also fail if no permissions, but good to have)
-        gcloud services enable cloudbuild.googleapis.com run.googleapis.com
-        
-        # Build and Deploy
-        gcloud builds submit --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/supremeai-backend --quiet
+        # Modern direct source-to-deploy method
         gcloud run deploy supremeai-backend \
-          --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/supremeai-backend \
+          --source . \
           --platform managed \
           --region us-central1 \
           --allow-unauthenticated \
-          --project ${{ secrets.GCP_PROJECT_ID }} --quiet
+          --project ${{ secrets.GCP_PROJECT_ID }} \
+          --quiet
