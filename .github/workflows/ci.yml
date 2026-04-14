@@ -45,7 +45,8 @@ jobs:
     uses: ./.github/workflows/reusable-deploy.yml
     with:
       environment: staging
-    secrets: inherit
+    secrets:
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
   # Deploy to production (only on main)
   deploy-production:
@@ -54,4 +55,5 @@ jobs:
     uses: ./.github/workflows/reusable-deploy.yml
     with:
       environment: production
-    secrets: inherit
+    secrets:
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
