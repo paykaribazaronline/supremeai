@@ -346,7 +346,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: AppConstants.paddingSmall),
           DropdownButtonFormField<String>(
-            initialValue: value,
+            value: value,
             items: options.entries
                 .map((e) => DropdownMenuItem(
                       value: e.key,
