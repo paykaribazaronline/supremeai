@@ -27,9 +27,11 @@ jobs:
         distribution: 'temurin'
 
     - name: Build with Gradle
+      env:
+        GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=false
       run: |
         chmod +x gradlew
-        ./gradlew clean compileJava assemble -x test --no-daemon --no-build-cache -Dorg.gradle.java.home=$JAVA_HOME
+        ./gradlew clean compileJava --no-build-cache
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
