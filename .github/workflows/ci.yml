@@ -1,4 +1,4 @@
-name: SupremeAI CI/CD
+name: SupremeAI CI
 
 on:
   push:
@@ -6,7 +6,6 @@ on:
   pull_request:
     branches: [ main, develop ]
 
-# Cancel previous runs if a new push is made to the same branch
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -23,55 +22,22 @@ jobs:
         id: filter
         with:
           filters: |
-            java:
-              - 'src/**'
-              - 'build.gradle.kts'
-              - 'settings.gradle.kts'
-              - 'Dockerfile'
-            flutter:
-              - 'flutter_admin_app/**'
+            java: ['src/**', 'build.gradle*', 'Dockerfile', '.github/workflows/reusable-java.yml']
+            flutter: ['flutter_admin_app/**', '.github/workflows/reusable-flutter.yml']
 
-  # Run Java CI
-  java:
+  java-build:
     needs: changes
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || needs.changes.outputs.java == 'true'
+    if: needs.changes.outputs.java == 'true' || github.event_name == 'push'
     uses: ./.github/workflows/reusable-java.yml
     with:
-      deploy: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+      deploy: false # Build & Test only
     secrets:
       GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SA_KEY }}
       GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
 
-  # Run Flutter CI
-  flutter:
+  flutter-build:
     needs: changes
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || needs.changes.outputs.flutter == 'true'
+    if: needs.changes.outputs.flutter == 'true' || github.event_name == 'push'
     uses: ./.github/workflows/reusable-flutter.yml
     with:
-      deploy: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
-
-  # Deploy Staging (develop branch)
-  deploy-staging:
-    needs: [flutter]
-    if: |
-      always() && 
-      github.ref == 'refs/heads/develop' && 
-      needs.flutter.result == 'success'
-    uses: ./.github/workflows/reusable-deploy.yml
-    with:
-      firebase_project: 'supremeai-a'
-    secrets:
-      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}
-
-  # Deploy Production (main branch)
-  deploy-production:
-    needs: [flutter]
-    if: |
-      always() && 
-      github.ref == 'refs/heads/main' && 
-      needs.flutter.result == 'success'
-    uses: ./.github/workflows/reusable-deploy.yml
-    with:
-      firebase_project: 'supremeai-a'
-    secrets:
-      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}
+      deploy: false # Build only
