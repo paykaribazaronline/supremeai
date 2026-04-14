@@ -43,8 +43,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (!mounted) return;
 
       if (success) {
+        if (!context.mounted) return;
         Navigator.of(context).pushReplacementNamed(AppRoutes.home);
       } else {
+        if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(authProvider.error ?? 'Registration failed'),
@@ -207,7 +209,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       padding: const EdgeInsets.all(AppConstants.paddingSmall),
                       decoration: BoxDecoration(
                         color: const Color(AppConstants.infoColor)
-                            .withOpacity(0.1),
+                            .withValues(alpha: 0.1),
                         borderRadius:
                             BorderRadius.circular(AppConstants.radiusMedium),
                       ),
@@ -234,7 +236,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                               decoration: BoxDecoration(
                                 color: const Color(AppConstants.errorColor)
-                                    .withOpacity(0.1),
+                                    .withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(
                                   AppConstants.radiusMedium,
                                 ),

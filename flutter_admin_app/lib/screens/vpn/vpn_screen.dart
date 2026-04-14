@@ -101,6 +101,7 @@ class _VpnScreenState extends State<VpnScreen> {
         ],
       ),
     );
+    if (!mounted) return;
     if (result == true && nameController.text.isNotEmpty) {
       final response = await _apiService.post<Map<String, dynamic>>(
         Environment.vpnAdd,
@@ -179,7 +180,7 @@ class _VpnScreenState extends State<VpnScreen> {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor:
-              (connected ? Colors.green : Colors.grey).withOpacity(0.1),
+              (connected ? Colors.green : Colors.grey).withValues(alpha: 0.1),
           child: Icon(connected ? Icons.vpn_lock : Icons.vpn_key_off,
               color: connected ? Colors.green : Colors.grey),
         ),

@@ -160,7 +160,7 @@ class _LearningScreenState extends State<LearningScreen> {
         gradient: LinearGradient(
           colors: [
             const Color(AppConstants.primaryColor),
-            const Color(AppConstants.primaryColor).withOpacity(0.7)
+            const Color(AppConstants.primaryColor).withValues(alpha: 0.7)
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -391,8 +391,8 @@ class _LearningScreenState extends State<LearningScreen> {
           borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
           gradient: LinearGradient(
             colors: [
-              Color(color).withOpacity(0.1),
-              Color(color).withOpacity(0.05)
+              Color(color).withValues(alpha: 0.1),
+              Color(color).withValues(alpha: 0.05)
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,

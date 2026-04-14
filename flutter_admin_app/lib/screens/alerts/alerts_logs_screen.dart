@@ -183,7 +183,7 @@ class _AlertsLogsScreenState extends State<AlertsLogsScreen>
         leading: Tooltip(
           message: severityHint,
           child: CircleAvatar(
-            backgroundColor: severityColor.withOpacity(0.1),
+            backgroundColor: severityColor.withValues(alpha: 0.1),
             child: Icon(severityIcon, color: severityColor),
           ),
         ),
@@ -209,7 +209,7 @@ class _AlertsLogsScreenState extends State<AlertsLogsScreen>
                   color: severityColor,
                   fontSize: 10,
                   fontWeight: FontWeight.bold)),
-          backgroundColor: severityColor.withOpacity(0.1),
+          backgroundColor: severityColor.withValues(alpha: 0.1),
           side: BorderSide.none,
         ),
       ),
@@ -289,7 +289,7 @@ class _AlertsLogsScreenState extends State<AlertsLogsScreen>
           backgroundColor: (isSuccess
                   ? const Color(AppConstants.successColor)
                   : const Color(AppConstants.errorColor))
-              .withOpacity(0.1),
+              .withValues(alpha: 0.1),
           side: BorderSide.none,
         ),
         children: [
@@ -392,7 +392,7 @@ class _AlertsLogsScreenState extends State<AlertsLogsScreen>
         gradient: LinearGradient(
           colors: [
             const Color(AppConstants.warningColor),
-            const Color(AppConstants.warningColor).withOpacity(0.7)
+            const Color(AppConstants.warningColor).withValues(alpha: 0.7)
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -431,8 +431,8 @@ class _AlertsLogsScreenState extends State<AlertsLogsScreen>
           borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
           gradient: LinearGradient(
             colors: [
-              Color(color).withOpacity(0.1),
-              Color(color).withOpacity(0.05)
+              Color(color).withValues(alpha: 0.1),
+              Color(color).withValues(alpha: 0.05)
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,

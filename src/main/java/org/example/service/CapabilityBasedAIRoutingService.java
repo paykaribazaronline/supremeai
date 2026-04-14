@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
+ * @deprecated Use {@link UnifiedAIRoutingService} instead.
  * Capability-Based AI Routing Service
  *
  * Problem: Multi-AI Consensus Voting

@@ -3,6 +3,7 @@ package org.example.service;
 
 
 
+import org.example.model.APIProvider;
 import java.util.*;
 
 /**
@@ -24,13 +25,13 @@ public class AIProviderDiscoveryService {
     /**
      * Get all configured providers from Firestore (admin-managed)
      */
-    public List<AIProvider> getConfiguredProviders() {
-        List<AIProvider> providers = new ArrayList<>();
+    public List<APIProvider> getConfiguredProviders() {
+        List<APIProvider> providers = new ArrayList<>();
         
         Map<String, Object> firebaseProviders = firebase.getSystemConfig("api_providers");
         if (firebaseProviders != null) {
             for (Map.Entry<String, Object> entry : firebaseProviders.entrySet()) {
-                AIProvider provider = parseProvider(entry.getKey(), entry.getValue());
+                APIProvider provider = parseProvider(entry.getKey(), entry.getValue());
                 if (provider != null) {
                     providers.add(provider);
                 }
@@ -44,7 +45,7 @@ public class AIProviderDiscoveryService {
      * Discover available AI providers from internet
      * (Top 10 most popular/latest)
      */
-    public List<AIProvider> discoverAvailableProviders() {
+    public List<APIProvider> discoverAvailableProviders() {
         // This list is FETCHED from internet, not hardcoded
         // Admin can see what's available and choose to add
         return fetchLatestProviders();
@@ -106,8 +107,8 @@ public class AIProviderDiscoveryService {
     /**
      * Fetch latest available providers from internet
      */
-    private List<AIProvider> fetchLatestProviders() {
-        List<AIProvider> providers = new ArrayList<>();
+    private List<APIProvider> fetchLatestProviders() {
+        List<APIProvider> providers = new ArrayList<>();
         
         // These are example popular providers - in production, fetch from:
         // - Industry aggregator APIs
@@ -130,11 +131,11 @@ public class AIProviderDiscoveryService {
         };
         
         for (int i = 0; i < knownProviders.length; i++) {
-            AIProvider p = new AIProvider();
-            p.name = knownProviders[i];
-            p.rank = i + 1;
-            p.status = "available";
-            p.url = generateProviderUrl(knownProviders[i]);
+            APIProvider p = new APIProvider();
+            p.setName(knownProviders[i]);
+            // p.rank is not in APIProvider, we skip it
+            p.setStatus("available");
+            p.setEndpoint(generateProviderUrl(knownProviders[i]));
             providers.add(p);
         }
         
@@ -145,16 +146,16 @@ public class AIProviderDiscoveryService {
     /**
      * Parse provider from Firebase config
      */
-    private AIProvider parseProvider(String name, Object config) {
-        AIProvider provider = new AIProvider();
-        provider.name = name;
-        provider.status = "configured";
+    private APIProvider parseProvider(String name, Object config) {
+        APIProvider provider = new APIProvider();
+        provider.setName(name);
+        provider.setStatus("configured");
         
         if (config instanceof Map) {
             @SuppressWarnings("unchecked")
             Map<String, Object> cfg = (Map<String, Object>) config;
-            provider.url = (String) cfg.get("url");
-            provider.status = (String) cfg.getOrDefault("status", "active");
+            provider.setEndpoint((String) cfg.get("url"));
+            provider.setStatus((String) cfg.getOrDefault("status", "active"));
         }
         
         return provider;
@@ -179,20 +180,5 @@ public class AIProviderDiscoveryService {
         
         return urls.getOrDefault(providerName, "https://ai-providers.com");
     }
-    
-    /**
-     * Provider data class
-     */
-    public static class AIProvider {
-        public String name;
-        public String url;
-        public String status; // "available", "configured", "active", "disabled"
-        public int rank; // For sorting by popularity
-        public String getKey; // Set by admin
-        
-        @Override
-        public String toString() {
-            return name + " (" + status + ")";
-        }
-    }
 }
+

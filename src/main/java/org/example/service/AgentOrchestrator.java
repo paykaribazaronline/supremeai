@@ -38,6 +38,7 @@ public class AgentOrchestrator {
     // Phase 5 Services (Multi-Account Support)
     private final AIAccountManager accountManager;
     private final BudgetManager budgetManager;
+    private final UnifiedAIRoutingService unifiedRoutingService;
     private final PublicAIRouter publicRouter;
     
     // Phase 6 Services (Hybrid Data Collection)
@@ -97,7 +98,8 @@ public class AgentOrchestrator {
         // Initialize Phase 5 (Multi-Account Support)
         this.accountManager = new AIAccountManager(firebase);
         this.budgetManager = new BudgetManager(accountManager, firebase);
-        this.publicRouter = new PublicAIRouter(accountManager, budgetManager, aiService, firebase);
+        this.unifiedRoutingService = new UnifiedAIRoutingService();
+        this.publicRouter = new PublicAIRouter(accountManager, budgetManager, aiService, firebase, unifiedRoutingService);
         
         // Initialize Phase 6 (Hybrid Data Collection)
         this.quotaTracker = new QuotaTracker(firebase, null);

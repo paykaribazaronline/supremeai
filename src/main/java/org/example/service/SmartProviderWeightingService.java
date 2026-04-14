@@ -6,8 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.random.RandomGenerator;
-import java.util.random.RandomGeneratorFactory;
 
 /**
  * Smart Provider Weighting Service - Phase 1 Optimization (#4)
@@ -27,7 +25,7 @@ public class SmartProviderWeightingService {
     private static final Logger logger = LoggerFactory.getLogger(SmartProviderWeightingService.class);
     
     @Autowired(required = false)
-    private QuotaRotationService quotaService;
+    private QuotaService quotaService;
     
     public static class ProviderWeight {
         public String provider;
@@ -54,7 +52,7 @@ public class SmartProviderWeightingService {
     
     private final Map<String, ProviderWeight> providerWeights = new ConcurrentHashMap<>();
     private final Map<String, Deque<Boolean>> recentResults = new ConcurrentHashMap<>();
-    private final RandomGenerator random = RandomGeneratorFactory.getDefault().create();
+    private final Random random = new Random();
     
     private static final int RECENT_HISTORY_SIZE = 100;
     private static final double SUCCESS_WEIGHT = 0.70;
@@ -163,9 +161,7 @@ public class SmartProviderWeightingService {
             // Available quota percentage (from QuotaService if available)
             if (quotaService != null) {
                 try {
-                    // Try to get quota info
-                    // This is a fallback - if quota service not available, assume full quota
-                    pw.availableQuotaPercent = 0.9; // Conservative estimate
+                    pw.availableQuotaPercent = quotaService.getRemainingQuotaPercent(pw.provider) / 100.0;
                 } catch (Exception e) {
                     pw.availableQuotaPercent = 0.9;
                 }

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -18,8 +19,6 @@ class _SystemLearningScreenState extends State<SystemLearningScreen> {
   bool loading = true;
   int selectedPatternIndex = -1;
   final TextEditingController requirementController = TextEditingController();
-  final TextEditingController frameworkController = TextEditingController();
-  final TextEditingController branchController = TextEditingController();
 
   @override
   void initState() {
@@ -47,7 +46,9 @@ class _SystemLearningScreenState extends State<SystemLearningScreen> {
         });
       }
     } catch (e) {
-      print('Failed to load patterns: $e');
+      if (kDebugMode) {
+        debugPrint('Failed to load patterns: $e');
+      }
       setState(() => loading = false);
     }
   }
@@ -68,7 +69,9 @@ class _SystemLearningScreenState extends State<SystemLearningScreen> {
         });
       }
     } catch (e) {
-      print('Failed to load stats: $e');
+      if (kDebugMode) {
+        debugPrint('Failed to load stats: $e');
+      }
     }
   }
 
@@ -108,24 +111,6 @@ class _SystemLearningScreenState extends State<SystemLearningScreen> {
                 ),
                 maxLines: 2,
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: frameworkController,
-                decoration: const InputDecoration(
-                  labelText: 'Framework',
-                  hintText: 'React, Flutter, Spring Boot',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: branchController,
-                decoration: const InputDecoration(
-                  labelText: 'Target Branch',
-                  hintText: 'main',
-                  border: OutlineInputBorder(),
-                ),
-              ),
             ],
           ),
         ),
@@ -161,15 +146,12 @@ class _SystemLearningScreenState extends State<SystemLearningScreen> {
               'pattern': pattern['name'],
               'inputs': {
                 'requirement': requirementController.text,
-                'framework': frameworkController.text,
-                'targetBranch': branchController.text,
               }
             }),
           )
           .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -178,8 +160,6 @@ class _SystemLearningScreenState extends State<SystemLearningScreen> {
             ),
           );
           requirementController.clear();
-          frameworkController.clear();
-          branchController.clear();
           _refreshData();
         }
       } else {
@@ -443,8 +423,6 @@ class _SystemLearningScreenState extends State<SystemLearningScreen> {
   @override
   void dispose() {
     requirementController.dispose();
-    frameworkController.dispose();
-    branchController.dispose();
     super.dispose();
   }
 }

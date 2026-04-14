@@ -255,7 +255,7 @@ class _AIProvidersScreenState extends State<AIProvidersScreen> {
         gradient: LinearGradient(
           colors: [
             const Color(AppConstants.secondaryColor),
-            const Color(AppConstants.secondaryColor).withOpacity(0.7)
+            const Color(AppConstants.secondaryColor).withValues(alpha: 0.7)
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -287,7 +287,7 @@ class _AIProvidersScreenState extends State<AIProvidersScreen> {
                 horizontal: AppConstants.paddingMedium,
                 vertical: AppConstants.paddingSmall),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
             ),
             child: Text(
@@ -343,7 +343,7 @@ class _AIProvidersScreenState extends State<AIProvidersScreen> {
               child: ListTile(
                 leading: CircleAvatar(
                   backgroundColor:
-                      const Color(AppConstants.successColor).withOpacity(0.1),
+                      const Color(AppConstants.successColor).withValues(alpha: 0.1),
                   child: const Icon(Icons.check_circle,
                       color: Color(AppConstants.successColor)),
                 ),
@@ -413,7 +413,7 @@ class _AIProvidersScreenState extends State<AIProvidersScreen> {
               child: ListTile(
                 leading: CircleAvatar(
                   backgroundColor:
-                      const Color(AppConstants.warningColor).withOpacity(0.1),
+                      const Color(AppConstants.warningColor).withValues(alpha: 0.1),
                   child: const Icon(Icons.add_circle_outline,
                       color: Color(AppConstants.warningColor)),
                 ),

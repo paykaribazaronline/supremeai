@@ -21,7 +21,6 @@ class _ConsensusScreenState extends State<ConsensusScreen>
   Map<String, dynamic>? _lastResult;
   bool _isLoading = true;
   bool _isAsking = false;
-  String? _error;
 
   @override
   void initState() {
@@ -40,7 +39,6 @@ class _ConsensusScreenState extends State<ConsensusScreen>
   Future<void> _loadAll() async {
     setState(() {
       _isLoading = true;
-      _error = null;
     });
     final results = await Future.wait([
       _apiService.get<Map<String, dynamic>>(Environment.consensusStats),
@@ -52,9 +50,6 @@ class _ConsensusScreenState extends State<ConsensusScreen>
       if (results[0].success) _stats = results[0].data as Map<String, dynamic>?;
       if (results[1].success) {
         _history = (results[1].data as List<dynamic>?) ?? [];
-      }
-      if (!results[0].success && !results[1].success) {
-        _error = 'তথ্য লোড করা যায়নি';
       }
     });
   }
@@ -228,7 +223,7 @@ class _ConsensusScreenState extends State<ConsensusScreen>
             child: ExpansionTile(
               leading: CircleAvatar(
                 backgroundColor:
-                    const Color(AppConstants.primaryColor).withOpacity(0.1),
+                    const Color(AppConstants.primaryColor).withValues(alpha: 0.1),
                 child: const Icon(Icons.how_to_vote,
                     color: Color(AppConstants.primaryColor)),
               ),
@@ -316,8 +311,8 @@ class _ConsensusScreenState extends State<ConsensusScreen>
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(colors: [
-            Color(color).withOpacity(0.1),
-            Color(color).withOpacity(0.05)
+            Color(color).withValues(alpha: 0.1),
+            Color(color).withValues(alpha: 0.05)
           ]),
           borderRadius: BorderRadius.circular(12),
         ),

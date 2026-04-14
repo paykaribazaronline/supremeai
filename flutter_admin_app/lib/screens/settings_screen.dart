@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_routes.dart';
 import '../config/constants.dart';
+import '../config/environment.dart';
 import '../providers/auth_provider.dart';
+import '../providers/theme_provider.dart';
 import '../services/api_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -104,7 +106,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
-                                  strokeWidth: 2, color: Colors.white),
+                                  strokeWidth: 2, color: Colors.blue),
                             )
                           : const Text('প্রোফাইল আপডেট করুন'),
                     ),
@@ -133,8 +135,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: _darkModeEnabled,
                   onChanged: (value) {
                     setState(() => _darkModeEnabled = value);
-                    _savePreference('dark_mode_enabled', value);
-                    // TODO: Trigger theme change in main app
+                    Provider.of<ThemeProvider>(context, listen: false)
+                        .toggleTheme(value);
                   },
                 ),
                 _buildDropdownTile(
@@ -290,7 +292,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         horizontal: AppConstants.paddingLarge,
         vertical: AppConstants.paddingSmall,
       ),
-      child: TextField(
+      child: TextFormField(
         controller: controller,
         readOnly: readOnly,
         decoration: InputDecoration(
@@ -344,7 +346,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: AppConstants.paddingSmall),
           DropdownButtonFormField<String>(
-            value: value,
+            initialValue: value,
             items: options.entries
                 .map((e) => DropdownMenuItem(
                       value: e.key,
@@ -376,6 +378,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _updateProfile() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('নাম খালি রাখা যাবে না'),
@@ -388,7 +391,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     try {
       final response = await _apiService.put<Map<String, dynamic>>(
-        '/api/auth/profile',
+        Environment.authProfile,
         data: {'name': name},
       );
 
@@ -494,7 +497,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       if (oldPass.isEmpty ||
                           newPass.isEmpty ||
                           confirmPass.isEmpty) {
-                        ScaffoldMessenger.of(this.context).showSnackBar(
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('সব ফিল্ড পূরণ করুন'),
                             backgroundColor: Color(AppConstants.errorColor),
@@ -504,7 +508,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       }
 
                       if (newPass != confirmPass) {
-                        ScaffoldMessenger.of(this.context).showSnackBar(
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('নতুন পাসওয়ার্ড মিলছে না'),
                             backgroundColor: Color(AppConstants.errorColor),
@@ -514,7 +519,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       }
 
                       if (newPass.length < 6) {
-                        ScaffoldMessenger.of(this.context).showSnackBar(
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content:
                                 Text('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে'),
@@ -530,25 +536,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       try {
                         final response =
                             await _apiService.post<Map<String, dynamic>>(
-                          '/api/auth/change-password',
+                          Environment.authChangePassword,
                           data: {
                             'oldPassword': oldPass,
                             'newPassword': newPass,
                           },
                         );
 
+                        if (!context.mounted) return;
                         setState(() => _isChangingPassword = false);
 
                         oldPasswordController.dispose();
                         newPasswordController.dispose();
                         confirmPasswordController.dispose();
 
-                        if (!mounted) return;
-
                         Navigator.pop(dialogContext);
 
                         if (response.success) {
-                          ScaffoldMessenger.of(this.context).showSnackBar(
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content:
                                   Text('পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে ✅'),
@@ -556,7 +562,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                           );
                         } else {
-                          ScaffoldMessenger.of(this.context).showSnackBar(
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
                                   'ব্যর্থ: ${response.error ?? "অজানা সমস্যা"}'),
@@ -566,10 +573,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           );
                         }
                       } catch (e) {
+                        if (!context.mounted) return;
                         setState(() => _isChangingPassword = false);
-                        if (!mounted) return;
                         Navigator.pop(dialogContext);
-                        ScaffoldMessenger.of(this.context).showSnackBar(
+                        ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('ত্রুটি: $e'),
                             backgroundColor:

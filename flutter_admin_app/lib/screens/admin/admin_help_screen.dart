@@ -22,7 +22,6 @@ class AdminHelpPanel extends StatefulWidget {
 }
 
 class _AdminHelpPanelState extends State<AdminHelpPanel> {
-  bool _expanded = false;
 
   Color _getDifficultyColor() {
     switch (widget.difficulty) {
@@ -81,7 +80,7 @@ class _AdminHelpPanelState extends State<AdminHelpPanel> {
           ],
         ),
         onExpansionChanged: (expanded) {
-          setState(() => _expanded = expanded);
+          // Track expansion state if needed
         },
         children: [
           Padding(

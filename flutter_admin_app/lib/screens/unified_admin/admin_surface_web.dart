@@ -1,4 +1,4 @@
-import 'dart:html' as html;
+import 'package:web/web.dart' as web;
 
 import 'package:flutter/material.dart';
 
@@ -8,8 +8,8 @@ Widget buildAdminSurface({
 }) {
   if (!isTestMode) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (html.window.location.href != dashboardUrl) {
-        html.window.location.replace(dashboardUrl);
+      if (web.window.location.href != dashboardUrl) {
+        web.window.location.replace(dashboardUrl);
       }
     });
   }
