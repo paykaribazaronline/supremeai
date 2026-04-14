@@ -30,7 +30,7 @@ jobs:
     - name: Build with Gradle
       run: |
         chmod +x gradlew
-        ./gradlew build -x test
+        ./gradlew clean build -x test
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
