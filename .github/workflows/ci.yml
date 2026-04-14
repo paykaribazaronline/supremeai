@@ -31,6 +31,10 @@ jobs:
     needs: changes
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || needs.changes.outputs.java == 'true'
     uses: ./.github/workflows/reusable-java.yml
+    with:
+      deploy: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
+    secrets:
+      GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
 
   # Run Flutter CI  
   flutter:

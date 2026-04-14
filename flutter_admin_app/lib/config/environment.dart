@@ -17,8 +17,11 @@ class Environment {
       return _apiBaseUrlOverride.trim();
     }
 
+    // On web, always use the cloud backend URL unless we are in local development
     if (kIsWeb) {
-      return Uri.base.origin;
+      if (Uri.base.host == 'localhost' || Uri.base.host == '127.0.0.1') {
+        return Uri.base.origin;
+      }
     }
 
     return cloudBaseUrl;
