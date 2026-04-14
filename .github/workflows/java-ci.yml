@@ -1,4 +1,4 @@
-name: Java CI Build & Test
+name: Java CI Build and Test
 
 on:
   push:
@@ -15,24 +15,24 @@ env:
 
 jobs:
   build:
-    name: Build & Test
+    name: Build and Test
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    
+
     steps:
-      - name: ⬇️ Checkout code
+      - name: Checkout code
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0  # Full history for better analysis
+          fetch-depth: 0
 
-      - name: ☕ Set up JDK 17
+      - name: Set up JDK 17
         uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
 
-      - name: 📦 Cache Gradle dependencies
+      - name: Cache Gradle dependencies
         uses: actions/cache@v5
         with:
           path: |
@@ -42,74 +42,67 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: 🔐 Grant execute permission
+      - name: Grant execute permission
         run: chmod +x gradlew
 
-      - name: ⚙️ Configure Gradle Properties
+      - name: Configure Gradle properties
         run: |
           echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m" >> gradle.properties
           echo "org.gradle.daemon=false" >> gradle.properties
           echo "org.gradle.parallel=true" >> gradle.properties
           echo "org.gradle.workers.max=$(nproc)" >> gradle.properties
 
-      - name: 🔐 Validate Required Secrets
+      - name: Validate optional secrets
         run: |
           required_secrets=("GEMINI_API_KEY" "JWT_SECRET")
           for secret in "${required_secrets[@]}"; do
             if [ -z "${!secret}" ]; then
-              echo "⚠️ Optional secret not set: $secret"
+              echo "Optional secret not set: $secret"
             else
-              echo "✅ $secret is configured"
+              echo "$secret is configured"
             fi
           done
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
-      - name: 🔨 Build with Gradle
+      - name: Build with Gradle
         run: |
           set +e
           for attempt in 1 2; do
             echo "Build attempt $attempt..."
             ./gradlew clean build -x test --info --stacktrace --no-daemon
             if [ $? -eq 0 ]; then
-              echo "✅ Build successful"
+              echo "Build successful"
               exit 0
             fi
             if [ $attempt -lt 2 ]; then
-              echo "⚠️  Build failed, retrying in 10s..."
+              echo "Build failed, retrying in 10s..."
               sleep 10
             fi
           done
-          echo "❌ Build failed after 2 attempts"
+          echo "Build failed after 2 attempts"
           exit 1
         env:
           GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
           SUPREMEAI_SELFHEALING_PHOENIX_ENABLED: 'true'
 
-      - name: ✅ Run tests
+      - name: Run tests
         run: ./gradlew test --info --stacktrace --no-daemon --max-workers=2
         continue-on-error: true
         timeout-minutes: 20
         env:
           FIREBASE_EMULATOR_HOST: localhost:9199
-        # All 246 tests pass as of fix commit 4a71aca
-        # Tests can fail due to Spring context initialization issues
-        # continue-on-error allows the workflow to process reports even if tests fail
 
-      - name: 📊 Generate test report
+      - name: Generate test report
         if: always()
         run: |
-          # Test reports are generated automatically by ./gradlew test into build/reports/tests/
-          # Just list the reports directory to confirm output
           ls -la build/reports/tests/ 2>/dev/null || echo "No test reports generated yet"
-          # Check for accidentally committed credential files (not just string references in code)
           if find . -name "service-account.json" -not -path "./.git/*" -not -path "./node_modules/*" | grep -q .; then
-            echo "❌ ERROR: service-account.json file found in repository!"
+            echo "ERROR: service-account.json file found in repository"
             find . -name "service-account.json" -not -path "./.git/*"
             exit 1
           fi
-          # Check for hardcoded API key values while allowing env placeholders like ${GEMINI_API_KEY:}
           hardcoded_keys=$( \
             grep -rEn "^[[:space:]]*(firebase\.api\.key|gemini\.api\.key|FIREBASE_API_KEY|GEMINI_API_KEY)[[:space:]]*[:=][[:space:]]*.+$" \
               src/ --include="*.properties" --include="*.yml" --include="*.yaml" --include="*.json" --exclude-dir=.git \
@@ -117,43 +110,43 @@ jobs:
             || true
           )
           if [ -n "$hardcoded_keys" ]; then
-            echo "❌ ERROR: Hardcoded API keys found in configuration files!"
+            echo "ERROR: Hardcoded API keys found in configuration files"
             echo "$hardcoded_keys"
             exit 1
           fi
-          echo "✅ No hardcoded credentials detected"
+          echo "No hardcoded credentials detected"
 
   code-coverage:
     name: Code Coverage
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    
+
     steps:
-      - name: ⬇️ Checkout code
+      - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: ☕ Set up JDK 17
+      - name: Set up JDK 17
         uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
 
-      - name: 🔐 Grant execute permission
+      - name: Grant execute permission
         run: chmod +x gradlew
 
-      - name: ⚙️ Configure Gradle Properties
+      - name: Configure Gradle properties
         run: |
           echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m" >> gradle.properties
           echo "org.gradle.daemon=false" >> gradle.properties
           echo "org.gradle.parallel=true" >> gradle.properties
 
-      - name: 📊 Generate coverage report
+      - name: Generate coverage report
         run: ./gradlew jacocoTestReport jacocoTestCoverageVerification --no-daemon --max-workers=2
         continue-on-error: true
         timeout-minutes: 15
 
-      - name: 📤 Upload coverage to Codecov
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
           files: ./build/reports/jacoco/test/jacocoTestReport.xml
@@ -165,15 +158,15 @@ jobs:
     name: Docker Build Test
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    
+
     steps:
-      - name: ⬇️ Checkout code
+      - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: 🐳 Set up Docker
+      - name: Set up Docker
         uses: docker/setup-buildx-action@v4
 
-      - name: 🔨 Build Docker image
+      - name: Build Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -183,48 +176,55 @@ jobs:
           cache-to: type=gha,mode=max
 
   lint-docs:
-    name: Documentation & Linting
+    name: Documentation and Linting
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     steps:
-      - name: ⬇️ Checkout code
+      - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: 📝 Validate Markdown
+      - name: Validate Markdown
         uses: nosborn/github-action-markdown-cli@v3.3.0
         with:
           files: .
           config_file: .markdownlint.json
         continue-on-error: true
 
-      - name: ✅ Validate commit messages
+      - name: Validate commit messages
         if: github.event_name == 'pull_request'
         run: |
-          # Check conventional commits format
           echo "Checking PR commit messages..."
-          # This would integrate with commitlint or similar
 
   build-result:
     name: Build Result
     runs-on: ubuntu-latest
     needs: [ build, code-coverage, docker-build, lint-docs ]
     if: always()
-    
+
     steps:
-      - name: 🎯 Check build status
+      - name: Check build status
         run: |
-          if [ "${{ needs.build.result }}" != "success" ]; then
-            echo "❌ Build failed!"
+          BUILD_STATUS="${{ needs.build.result }}"
+          COVERAGE_STATUS="${{ needs.code-coverage.result }}"
+          DOCKER_STATUS="${{ needs.docker-build.result }}"
+          DOCS_STATUS="${{ needs.lint-docs.result }}"
+
+          if [ "$BUILD_STATUS" != "success" ] || [ "$COVERAGE_STATUS" != "success" ] || [ "$DOCKER_STATUS" != "success" ] || [ "$DOCS_STATUS" != "success" ]; then
+            echo "One or more Java CI jobs failed or were skipped"
+            echo "Build: $BUILD_STATUS"
+            echo "Coverage: $COVERAGE_STATUS"
+            echo "Docker: $DOCKER_STATUS"
+            echo "Docs: $DOCS_STATUS"
             exit 1
           fi
-          echo "✅ All checks passed!"
 
-      - name: 📊 Build summary
+          echo "All checks passed"
+
+      - name: Build summary
         run: |
           echo "## Build Summary"
           echo "- Build: ${{ needs.build.result }}"
           echo "- Coverage: ${{ needs.code-coverage.result }}"
           echo "- Docker: ${{ needs.docker-build.result }}"
           echo "- Docs: ${{ needs.lint-docs.result }}"
-
