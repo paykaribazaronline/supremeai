@@ -46,11 +46,10 @@ jobs:
     with:
       environment: staging
 
-  # Deploy to production (only on main + approval)
+  # Deploy to production (only on main)
   deploy-production:
     needs: [java, flutter]
     if: always() && github.ref == 'refs/heads/main'
-    environment: production  # ← Manual approval required
     uses: ./.github/workflows/reusable-deploy.yml
     with:
       environment: production
