@@ -251,117 +251,116 @@ class _UnifiedAdminScreenState extends State<UnifiedAdminScreen> {
   }
 
   Widget _buildComponentDetails(List<Map<String, dynamic>> components) {
-    // Route to actual feature screens if they exist
-    if (_selectedComponentKey == 'learning') {
-      return const SizedBox(
-        height: 600, // Fixed height or layout as needed
-        child: SystemLearningScreen(),
-      );
-    }
-    
-    if (_selectedComponentKey == 'settings') {
-      return const SizedBox(
-        height: 600,
-        child: SettingsScreen(),
-      );
-    }
-
     final selected = components.firstWhere(
       (c) => c['key'] == _selectedComponentKey,
       orElse: () => components.isNotEmpty ? components[0] : {},
     );
 
-    if (selected.isEmpty) {
-      return const Text('No component selected');
-    }
+    final label = selected.isNotEmpty ? (selected['label'] as String? ?? 'Component') : 'Component';
+    final icon = selected.isNotEmpty ? (selected['icon'] as String? ?? '📦') : '📦';
+    final description = selected.isNotEmpty ? (selected['description'] as String? ?? '') : '';
+    final category = selected.isNotEmpty ? (selected['category'] as String? ?? '') : '';
+    final config = selected.isNotEmpty ? (selected['config'] as Map<String, dynamic>? ?? {}) : {};
 
-    final label = selected['label'] as String? ?? 'Component';
-    final icon = selected['icon'] as String? ?? '📦';
-    final description = selected['description'] as String? ?? '';
-    final category = selected['category'] as String? ?? '';
-    final config = selected['config'] as Map<String, dynamic>? ?? {};
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Actual Feature Content
+        if (_selectedComponentKey == 'learning')
+          const Padding(
+            padding: EdgeInsets.only(bottom: 20),
+            child: SystemLearningScreen(),
+          )
+        else if (_selectedComponentKey == 'settings')
+          const Padding(
+            padding: EdgeInsets.only(bottom: 20),
+            child: SettingsScreen(),
+          ),
 
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+        // Component Info Card (with Suggestion Button)
+        Card(
+          elevation: 4,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(icon, style: const TextStyle(fontSize: 28)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        label,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      if (description.isNotEmpty)
-                        Text(
-                          description,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
+                Row(
+                  children: [
+                    Text(icon, style: const TextStyle(fontSize: 28)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            label,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                    ],
+                          if (description.isNotEmpty)
+                            Text(
+                              description,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                if (category.isNotEmpty || config.isNotEmpty) const SizedBox(height: 12),
+                if (category.isNotEmpty)
+                  Chip(
+                    label: Text(category),
+                    backgroundColor: Colors.blue.withValues(alpha: 0.2),
+                  ),
+                if (config.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Configuration',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Text(
+                        config.toString(),
+                        style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
+                      ),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 20),
+                ElevatedButton.icon(
+                  onPressed: () => _showSuggestionDialog(
+                    context,
+                    _selectedComponentKey,
+                    label,
+                  ),
+                  icon: const Icon(Icons.lightbulb_outline),
+                  label: const Text('Suggest Changes'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF722ED1),
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 44),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            if (category.isNotEmpty)
-              Chip(
-                label: Text(category),
-                backgroundColor: Colors.blue.withValues(alpha: 0.2),
-              ),
-            const SizedBox(height: 12),
-            if (config.isNotEmpty) ...[
-              const Text(
-                'Configuration',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Text(
-                    config.toString(),
-                    style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
-                  ),
-                ),
-              ),
-            ],
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () => _showSuggestionDialog(
-                context,
-                selected['key'] as String? ?? _selectedComponentKey,
-                label,
-              ),
-              icon: const Icon(Icons.lightbulb_outline),
-              label: const Text('Suggest Changes'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF722ED1),
-                foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 44),
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
