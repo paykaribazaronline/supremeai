@@ -190,7 +190,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             style: TextStyle(fontSize: 11, color: Colors.grey)),
         const SizedBox(height: AppConstants.paddingSmall),
         DropdownButtonFormField<String>(
-          initialValue: _selectedTemplate,
+          value: _selectedTemplate,
           items: ['REACT', 'SPRING_BOOT', 'FLUTTER', 'FULL_STACK', 'REST_API']
               .map((template) => DropdownMenuItem(
                     value: template,
