@@ -19,13 +19,15 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - run: ./gradlew build
+      - run: |
+          ./gradlew build
+          mkdir -p combined_deploy/admin
 
       - name: ⬇️ Download artifact
         uses: actions/download-artifact@v4
         with:
           name: flutter-web-build
-          path: flutter_admin_app/build/web
+          path: combined_deploy/admin
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
