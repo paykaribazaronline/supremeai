@@ -1,0 +1,56 @@
+name: SupremeAI CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Detect what changed
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      java: ${{ steps.filter.outputs.java }}
+      flutter: ${{ steps.filter.outputs.flutter }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dorny/paths-filter@v3
+      id: filter
+      with:
+        filters: |
+          java: ['src/**', 'build.gradle', 'settings.gradle']
+          flutter: ['flutter_admin_app/**']
+
+  # Run Java CI
+  java:
+    needs: changes
+    if: ${{ needs.changes.outputs.java == 'true' }}
+    uses: ./.github/workflows/reusable-java.yml
+
+  # Run Flutter CI  
+  flutter:
+    needs: changes
+    if: ${{ needs.changes.outputs.flutter == 'true' }}
+    uses: ./.github/workflows/reusable-flutter.yml
+
+  # Deploy to staging (only on develop)
+  deploy-staging:
+    needs: [java, flutter]
+    if: github.ref == 'refs/heads/develop'
+    uses: ./.github/workflows/reusable-deploy.yml
+    with:
+      environment: staging
+
+  # Deploy to production (only on main + approval)
+  deploy-production:
+    needs: [java, flutter]
+    if: github.ref == 'refs/heads/main'
+    environment: production  # ← Manual approval required
+    uses: ./.github/workflows/reusable-deploy.yml
+    with:
+      environment: production
