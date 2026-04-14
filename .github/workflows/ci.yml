@@ -29,13 +29,13 @@ jobs:
   # Run Java CI
   java:
     needs: changes
-    if: ${{ needs.changes.outputs.java == 'true' }}
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || needs.changes.outputs.java == 'true'
     uses: ./.github/workflows/reusable-java.yml
 
   # Run Flutter CI  
   flutter:
     needs: changes
-    if: ${{ needs.changes.outputs.flutter == 'true' }}
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || needs.changes.outputs.flutter == 'true'
     uses: ./.github/workflows/reusable-flutter.yml
 
   # Deploy to staging (only on develop)
