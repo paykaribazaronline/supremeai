@@ -25,12 +25,11 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: 'gradle'
 
     - name: Build with Gradle
       run: |
         chmod +x gradlew
-        ./gradlew clean assemble -x test --no-daemon -Dorg.gradle.java.home=$JAVA_HOME
+        ./gradlew clean compileJava assemble -x test --no-daemon --no-build-cache -Dorg.gradle.java.home=$JAVA_HOME
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
