@@ -2,18 +2,32 @@ name: Reusable Flutter CI
 
 on:
   workflow_call:
+    inputs:
+      deploy:
+        type: boolean
+        default: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: flutter-build-${{ github.ref }}
+      cancel-in-progress: true
     steps:
     - uses: actions/checkout@v4
-    - uses: subosito/flutter-action@v2
+
+    - name: 🐦 Setup Flutter
+      uses: subosito/flutter-action@v2
       with:
         flutter-version: '3.27.0'
+        channel: 'stable'
         cache: true
-    - working-directory: flutter_admin_app
+
+    - name: 📦 Build Flutter Web
+      working-directory: flutter_admin_app
       run: |
+        set -e
         flutter pub get
         flutter analyze
         flutter test
@@ -23,4 +37,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: flutter-web-build
-        path: flutter_admin_app/build/web
+        path: flutter_admin_app/build/web/
+        retention-days: 1
