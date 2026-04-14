@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_routes.dart';
 import '../config/constants.dart';
 import '../providers/auth_provider.dart';
@@ -30,6 +31,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
         TextEditingController(text: authProvider.currentUser?['name'] ?? '');
     _emailController =
         TextEditingController(text: authProvider.currentUser?['email'] ?? '');
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
+        _darkModeEnabled = prefs.getBool('dark_mode_enabled') ?? false;
+        _autoRefreshInterval = prefs.getString('auto_refresh_interval') ?? '5min';
+      });
+    }
+  }
+
+  Future<void> _savePreference(String key, dynamic value) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (value is bool) {
+      await prefs.setBool(key, value);
+    } else if (value is String) {
+      await prefs.setString(key, value);
+    }
   }
 
   @override
@@ -72,16 +94,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     horizontal: AppConstants.paddingLarge,
                     vertical: AppConstants.paddingMedium,
                   ),
-                  child: ElevatedButton(
-                    onPressed: _isUpdatingProfile ? null : _updateProfile,
-                    child: _isUpdatingProfile
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white),
-                          )
-                        : const Text('প্রোফাইল আপডেট করুন'),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _isUpdatingProfile ? null : _updateProfile,
+                      icon: const Icon(Icons.save),
+                      label: _isUpdatingProfile
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.white),
+                            )
+                          : const Text('প্রোফাইল আপডেট করুন'),
+                    ),
                   ),
                 ),
               ],
@@ -98,6 +124,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: _notificationsEnabled,
                   onChanged: (value) {
                     setState(() => _notificationsEnabled = value);
+                    _savePreference('notifications_enabled', value);
                   },
                 ),
                 _buildToggleTile(
@@ -106,6 +133,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: _darkModeEnabled,
                   onChanged: (value) {
                     setState(() => _darkModeEnabled = value);
+                    _savePreference('dark_mode_enabled', value);
+                    // TODO: Trigger theme change in main app
                   },
                 ),
                 _buildDropdownTile(
@@ -121,6 +150,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   },
                   onChanged: (value) {
                     setState(() => _autoRefreshInterval = value);
+                    _savePreference('auto_refresh_interval', value);
                   },
                 ),
               ],

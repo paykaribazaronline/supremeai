@@ -80,8 +80,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/alerts/**").permitAll()
                 .requestMatchers("/api/system/**").permitAll()
                 .requestMatchers("/api/safezone/**").permitAll()
-                // JWT enforcement disabled — Firebase handles auth on the client side
-                .anyRequest().permitAll()
+                // Require authentication for all other requests
+                .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         

@@ -1,4 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'api_service.dart';
+import 'storage_service.dart';
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
@@ -15,11 +17,32 @@ class AuthService {
   Future<bool> login(String email, String password) async {
     _lastError = null;
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      final UserCredential credential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      return true;
+
+      // 1. Get Firebase ID Token
+      final String? idToken = await credential.user?.getIdToken();
+      if (idToken == null) throw Exception('Failed to get Firebase ID token');
+
+      // 2. Exchange for Backend JWT
+      final response = await ApiService().post<Map<String, dynamic>>(
+        '/api/auth/firebase-login',
+        data: {'idToken': idToken},
+      );
+
+      if (response.success && response.data != null) {
+        final String backendToken = response.data!['token'];
+        // Store backend token for ApiService
+        await StorageService().saveToken(backendToken);
+        return true;
+      } else {
+        _lastError = response.error ?? 'Backend authentication failed';
+        await FirebaseAuth.instance.signOut();
+        return false;
+      }
     } on FirebaseAuthException catch (e) {
       _lastError = e.message ?? 'Firebase login failed';
       return false;
@@ -40,6 +63,20 @@ class AuthService {
 
       await credential.user?.updateDisplayName(name.trim());
       await credential.user?.reload();
+
+      // After registration, the user is signed in to Firebase.
+      // We should also get a backend token for them.
+      final String? idToken = await credential.user?.getIdToken();
+      if (idToken != null) {
+        final response = await ApiService().post<Map<String, dynamic>>(
+          '/api/auth/firebase-login',
+          data: {'idToken': idToken},
+        );
+        if (response.success && response.data != null) {
+          await StorageService().saveToken(response.data!['token']);
+        }
+      }
+
       return true;
     } on FirebaseAuthException catch (e) {
       _lastError = e.message ?? 'Registration failed';
@@ -53,6 +90,7 @@ class AuthService {
   Future<void> logout() async {
     try {
       await FirebaseAuth.instance.signOut();
+      await StorageService().deleteToken();
     } catch (_) {
       // Ignore sign-out cleanup failures.
     }
@@ -102,7 +140,7 @@ class AuthService {
   }
 
   Future<String?> getToken() async {
-    return FirebaseAuth.instance.currentUser?.getIdToken();
+    return await StorageService().getToken();
   }
 
   Future<bool> isLoggedIn() async {

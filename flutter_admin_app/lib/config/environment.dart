@@ -118,6 +118,9 @@ class Environment {
   static const String notificationHistory = '/api/notifications/history';
   static const String notificationEmail = '/api/notifications/email';
   static const String notificationSlack = '/api/notifications/slack';
+  static const String notificationDiscord = '/api/notifications/discord';
+  static const String notificationSms = '/api/notifications/sms';
+  static const String notificationEscalate = '/api/notifications/escalate';
   
   // Analytics
   static const String analyticsHistorical = '/api/analytics/historical';
