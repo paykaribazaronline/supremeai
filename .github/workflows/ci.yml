@@ -33,9 +33,9 @@ jobs:
     uses: ./.github/workflows/reusable-java.yml
     with:
       deploy: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
-      gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
     secrets:
       GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SA_KEY }}
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
 
   # Run Flutter CI  
   flutter:

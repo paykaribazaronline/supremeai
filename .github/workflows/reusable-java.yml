@@ -6,9 +6,11 @@ on:
       deploy:
         type: boolean
         default: false
-      gcp_project_id:
-        type: string
-        required: false
+    secrets:
+      GCP_SERVICE_ACCOUNT_KEY:
+        required: true
+      GCP_PROJECT_ID:
+        required: true
 
 jobs:
   build:
@@ -37,10 +39,10 @@ jobs:
     - name: Build and Deploy to Cloud Run
       if: inputs.deploy == true
       run: |
-        gcloud builds submit --tag gcr.io/${{ inputs.gcp_project_id }}/supremeai-backend
+        gcloud builds submit --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/supremeai-backend
         gcloud run deploy supremeai-backend \
-          --image gcr.io/${{ inputs.gcp_project_id }}/supremeai-backend \
+          --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/supremeai-backend \
           --platform managed \
           --region us-central1 \
           --allow-unauthenticated \
-          --project ${{ inputs.gcp_project_id }}
+          --project ${{ secrets.GCP_PROJECT_ID }}
