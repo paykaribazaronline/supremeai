@@ -1,4 +1,4 @@
-name: Flutter Admin App - Build & Deploy
+name: Flutter Admin App - Build and Deploy
 
 on:
   push:
@@ -26,73 +26,71 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  # ==========================================
-  # STAGE 1: Build & Test Flutter App
-  # ==========================================
   flutter-build:
-    name: Flutter Build & Test
+    name: Flutter Build and Test
     runs-on: ubuntu-latest
     timeout-minutes: 30
     outputs:
       build-status: ${{ job.status }}
-    
+
     steps:
-      - name: ⬇️ Checkout code
+      - name: Checkout code
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - name: 🐦 Set up Flutter
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
-      - name: 🔧 Flutter version check
+      - name: Check Flutter version
         run: flutter --version
 
-      - name: 🧹 Clean pub cache & clear build
+      - name: Clean pub cache and lockfile
         working-directory: flutter_admin_app
         run: |
-          echo "🧹 Clearing pub cache..."
+          echo "Clearing pub cache..."
           flutter pub cache clean --force || true
           rm -f pubspec.lock || true
-          echo "✅ Cache cleaned"
+          echo "Cache cleaned"
 
-      - name: 📦 Install dependencies
+      - name: Install dependencies
         working-directory: flutter_admin_app
         run: |
-          echo "📥 Getting dependencies..."
+          echo "Getting dependencies..."
           flutter pub get
-          echo "✅ Dependencies installed"
+          echo "Dependencies installed"
 
-      - name: 🔍 Analyze code
+      - name: Analyze code
         working-directory: flutter_admin_app
         run: flutter analyze --no-pub
 
-      - name: 🧪 Run unit tests
+      - name: Run unit tests
         working-directory: flutter_admin_app
         run: flutter test --no-pub
 
-      - name: 🏗️ Build Web App for Release
+      - name: Build web app for release
         working-directory: flutter_admin_app
         run: |
-          echo "🏗️ Building web app..."
-          flutter build web --release --no-pub --base-href /
-          echo "✅ Web build completed"
+          echo "Building web app..."
+          # Build with --base-href /admin/ to match unified hosting structure
+          flutter build web --release --no-pub --base-href /admin/
+          echo "Web build completed"
           du -sh build/web/
           find build/web/ -type f | wc -l
           echo "Files built:"
           ls -la build/web/
 
-      - name: 📦 Create web artifact
+      - name: Create web artifact
         run: |
           mkdir -p web-build
           cp -r flutter_admin_app/build/web/* web-build/
           ls -la web-build/
 
-      - name: 📤 Upload web artifact
+      - name: Upload web artifact
         uses: actions/upload-artifact@v4
         with:
           name: flutter-web-build
@@ -100,164 +98,56 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
-      - name: 📝 Build Summary
+      - name: Build summary
         if: success()
         run: |
-          echo "✅ Flutter Web Build Completed Successfully"
+          echo "Flutter web build completed successfully"
           echo ""
-          echo "Build Artifacts:"
+          echo "Build artifacts:"
           ls -lh flutter_admin_app/build/web/ | head -20
 
-  # ==========================================
-  # STAGE 2: Deploy to Firebase Hosting
-  # ==========================================
-  deploy-firebase:
-    name: Deploy to Firebase Hosting
-    needs: flutter-build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.flutter-build.outputs.build-status == 'success'
-    env:
-      FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-      FIREBASE_PROJECT: supremeai-a
-    
-    steps:
-      - name: ⬇️ Checkout code
-        uses: actions/checkout@v5
-
-      - name: 🐦 Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-
-      - name: 📦 Install Flutter dependencies
-        working-directory: flutter_admin_app
-        run: flutter pub get
-
-      - name: 🏗️ Build Web App
-        working-directory: flutter_admin_app
-        run: |
-          flutter build web --release --no-pub --base-href /
-          echo "Web build size: $(du -sh build/web | cut -f1)"
-
-      - name: 📥 Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: flutter-web-build
-          path: flutter_admin_app/build/web
-
-      - name: 🔥 Install Firebase CLI
-        run: |
-          npm install -g firebase-tools
-          firebase --version
-
-      - name: 📝 Setup Firebase config
-        run: |
-          echo "🔧 Firebase Configuration:"
-          cat firebase.json | head -30
-          echo ""
-          cat .firebaserc
-
-      - name: 🚀 Deploy to Firebase
-        run: |
-          if [ -z "$FIREBASE_TOKEN" ]; then
-            echo "⚠️ FIREBASE_TOKEN secret is not configured"
-            echo ""
-            echo "To enable Firebase Hosting deployment:"
-            echo "1. Generate a Firebase token: firebase login:ci"
-            echo "2. Go to: Settings → Secrets and variables → Actions → New repository secret"
-            echo "3. Create secret 'FIREBASE_TOKEN' with the generated token"
-            echo ""
-            echo "Skipping Firebase deployment..."
-            exit 0
-          fi
-
-          if ! grep -q '"flutter-admin"' .firebaserc; then
-            echo "ℹ️ No 'flutter-admin' hosting target is configured in .firebaserc"
-            echo "ℹ️ Skipping direct deploy from flutter-ci-cd.yml"
-            echo "ℹ️ Live hosting deployment is handled by firebase-hosting-merge.yml using combined_deploy/admin"
-            exit 0
-          fi
-          
-          echo "🚀 Deploying Flutter Admin App to Firebase Hosting..."
-          firebase deploy \
-            --project=supremeai-a \
-            --only=hosting:flutter-admin \
-            --non-interactive
-          echo "✅ Firebase deployment completed"
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-          FIREBASE_PROJECT: ${{ env.FIREBASE_PROJECT }}
-
-
-
-      - name: 📢 Deployment Success
-        if: success()
-        run: |
-          echo "✅ **Deployment Successful!**"
-          echo ""
-          echo "🌐 Live URL: https://supremeai-a.web.app/admin/"
-          echo "📊 Firebase Project: ${{ env.FIREBASE_PROJECT }}"
-          echo "⏰ Deployment Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-
-      - name: ❌ Deployment Failed
-        if: failure()
-        run: |
-          echo "❌ **Deployment Failed!**"
-          echo ""
-          echo "❓ Troubleshooting:"
-          echo "1. Check FIREBASE_TOKEN secret is set"
-          echo "2. Verify firebase.json and .firebaserc are correct"
-          echo "3. Check Firebase project has hosting enabled"
-          echo "4. Review build/web directory exists and is not empty"
-          exit 1
-
-  # ==========================================
-  # STAGE 3: Deploy Android Release
-  # ==========================================
   deploy-android:
-    name: Build & Release Android APK
+    name: Build and Release Android APK
     needs: flutter-build
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
     outputs:
       has-signing-secrets: ${{ steps.signing-mode.outputs.has_signing_secrets }}
-    
+
     steps:
-      - name: ⬇️ Checkout code
+      - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: 🐦 Set up Flutter
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
-      - name: ☕ Set up Java
+      - name: Set up Java
         uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: 🔐 Detect Android signing mode
+      - name: Detect Android signing mode
         id: signing-mode
         run: |
           missing=0
           for key in ANDROID_KEYSTORE_BASE64 ANDROID_STORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
             if [ -z "${!key}" ]; then
-              echo "⚠️ Missing signing secret: $key"
+              echo "Missing signing secret: $key"
               missing=1
             fi
           done
 
           if [ "$missing" -eq 0 ]; then
             echo "has_signing_secrets=true" >> "$GITHUB_OUTPUT"
-            echo "✅ Release signing secrets found; signed APK + AAB build enabled"
+            echo "Release signing secrets found; signed APK and AAB build enabled"
           else
             echo "has_signing_secrets=false" >> "$GITHUB_OUTPUT"
-            echo "⚠️ Release signing secrets not configured; building trial APK with debug signing only"
+            echo "Release signing secrets not configured; building trial APK with debug signing only"
           fi
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -265,7 +155,7 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
-      - name: 🔐 Create Android keystore + properties
+      - name: Create Android keystore and properties
         if: steps.signing-mode.outputs.has_signing_secrets == 'true'
         run: |
           mkdir -p flutter_admin_app/android/keystore
@@ -278,54 +168,54 @@ jobs:
           keyPassword=$ANDROID_KEY_PASSWORD
           EOF
 
-          echo "✅ Android release signing files prepared"
+          echo "Android release signing files prepared"
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
-      - name: ✅ Validate Android minSdk policy
+      - name: Validate Android minSdk policy
         run: |
           min_sdk=$(grep -Eo 'minSdk\s*=\s*[0-9]+' flutter_admin_app/android/app/build.gradle.kts | head -1 | grep -Eo '[0-9]+')
           if [ -z "$min_sdk" ]; then
-            echo "❌ Could not detect minSdk from build.gradle.kts"
+            echo "Could not detect minSdk from build.gradle.kts"
             exit 1
           fi
 
           if [ "$min_sdk" -lt 24 ]; then
-            echo "❌ minSdk policy violation: found $min_sdk, required >= 24"
+            echo "minSdk policy violation: found $min_sdk, required >= 24"
             exit 1
           fi
 
-          echo "✅ minSdk validation passed: $min_sdk"
+          echo "minSdk validation passed: $min_sdk"
 
-      - name: 📦 Install Flutter dependencies
+      - name: Install Flutter dependencies
         working-directory: flutter_admin_app
         run: flutter pub get
 
-      - name: 🏗️ Build Android APK
+      - name: Build Android APK
         working-directory: flutter_admin_app
         run: |
           echo "Building Android APK (split per ABI)..."
           flutter build apk --release --no-pub --split-per-abi
-          echo "✅ APK build completed"
+          echo "APK build completed"
           ls -lh build/app/outputs/flutter-apk/
         env:
           REQUIRE_RELEASE_SIGNING: ${{ steps.signing-mode.outputs.has_signing_secrets == 'true' && 'true' || 'false' }}
 
-      - name: 📦 Build App Bundle (AAB)
+      - name: Build app bundle
         if: steps.signing-mode.outputs.has_signing_secrets == 'true'
         working-directory: flutter_admin_app
         run: |
           echo "Building App Bundle for Google Play..."
           flutter build appbundle --release --no-pub
-          echo "✅ AAB build completed"
+          echo "AAB build completed"
           ls -lh build/app/outputs/bundle/release/
         env:
           REQUIRE_RELEASE_SIGNING: 'true'
 
-      - name: 📤 Upload Android artifacts
+      - name: Upload Android artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.signing-mode.outputs.has_signing_secrets == 'true' && 'flutter-android-release' || 'flutter-android-trial-apk' }}
@@ -334,15 +224,15 @@ jobs:
             flutter_admin_app/build/app/outputs/bundle/release/
           retention-days: 30
 
-      - name: 📝 Summarize Android build mode
+      - name: Summarize Android build mode
         run: |
           if [ "${{ steps.signing-mode.outputs.has_signing_secrets }}" = "true" ]; then
-            echo "✅ Signed Android release build completed (APK + AAB)" >> "$GITHUB_STEP_SUMMARY"
+            echo "Signed Android release build completed (APK and AAB)" >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "⚠️ Trial Android build completed with debug signing only (APK only, not Play Store ready)" >> "$GITHUB_STEP_SUMMARY"
+            echo "Trial Android build completed with debug signing only (APK only, not Play Store ready)" >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: 🔖 Create Release (on Tags)
+      - name: Create release on tags
         if: startsWith(github.ref, 'refs/tags/') && steps.signing-mode.outputs.has_signing_secrets == 'true'
         uses: softprops/action-gh-release@v2
         with:
@@ -351,75 +241,71 @@ jobs:
             flutter_admin_app/build/app/outputs/bundle/release/app.aab
           body: |
             ## SupremeAI Admin App - Release Build
-            
+
             ### Artifacts:
             - Android APK (arm64-v8a, armeabi-v7a, x86, x86_64)
             - App Bundle (AAB) for Google Play Store
-            
-            **Built:** ${{ github.event.head_commit.timestamp }}
+
+            **Ref:** ${{ github.ref_name }}
             **Commit:** ${{ github.sha }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # ==========================================
-  # STAGE 4: Quality Checks
-  # ==========================================
   quality-checks:
-    name: Code Quality & Notifications
-    needs: [flutter-build, deploy-firebase, deploy-android]
+    name: Code Quality and Notifications
+    needs: [flutter-build, deploy-android]
     runs-on: ubuntu-latest
     if: always()
-    
+
     steps:
-      - name: ⬇️ Checkout code
+      - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: 🐦 Set up Flutter
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
-      - name: 📦 Install dependencies
+      - name: Install dependencies
         working-directory: flutter_admin_app
         run: flutter pub get
 
-      - name: 🔍 Analyze code
+      - name: Analyze code
         working-directory: flutter_admin_app
         run: flutter analyze --no-pub
 
-      - name: 📝 Generate Summary Report
+      - name: Generate summary report
         run: |
           WEB_STATUS="${{ needs.flutter-build.result }}"
-          FIREBASE_STATUS="${{ needs.deploy-firebase.result }}"
           ANDROID_STATUS="${{ needs.deploy-android.result }}"
 
-          echo "## 🚀 Flutter CI/CD Pipeline Report" >> $GITHUB_STEP_SUMMARY
+          echo "## Flutter CI/CD Pipeline Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Workflow:** Flutter Admin App CI/CD" >> $GITHUB_STEP_SUMMARY
           echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Branch:** ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### ✅ Build Status" >> $GITHUB_STEP_SUMMARY
+          echo "### Build Status" >> $GITHUB_STEP_SUMMARY
           echo "- Flutter SDK: ${{ env.FLUTTER_VERSION }}" >> $GITHUB_STEP_SUMMARY
           echo "- Web Build Job: $WEB_STATUS" >> $GITHUB_STEP_SUMMARY
-          echo "- Firebase Deploy Job: $FIREBASE_STATUS" >> $GITHUB_STEP_SUMMARY
           echo "- Android Build Job: $ANDROID_STATUS" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🔗 Deployment URLs" >> $GITHUB_STEP_SUMMARY
-          echo "- **Live Web App:** https://supremeai-a.web.app/admin/" >> $GITHUB_STEP_SUMMARY
-          echo "- **Firebase Project:** ${{ env.FIREBASE_PROJECT }}" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "- Live Web App: https://supremeai-a.web.app/admin/" >> $GITHUB_STEP_SUMMARY
+          echo "- Web deployment is handled by 'Supreme AI - Firebase Unified Hosting Deploy' workflow" >> $GITHUB_STEP_SUMMARY
+          echo "- Firebase Project: ${{ env.FIREBASE_PROJECT }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📦 Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
           echo "- flutter-web-build (web app)" >> $GITHUB_STEP_SUMMARY
           echo "- flutter-android-release (APK + AAB)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📚 Documentation" >> $GITHUB_STEP_SUMMARY
+          echo "### Documentation" >> $GITHUB_STEP_SUMMARY
           echo "See [CI_CD_AUTOMATION.md](flutter_admin_app/CI_CD_AUTOMATION.md) for detailed setup" >> $GITHUB_STEP_SUMMARY
 
-      - name: 📢 Comment on PR
+      - name: Comment on PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
@@ -429,8 +315,6 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '✅ **Flutter Build Successful!**\n\n📦 **Artifacts Generated:**\n- Web app build (ready for Firebase)\n- Android APK & AAB files\n\n🌐 **Preview:** https://supremeai-a.web.app/admin/'
+              body: 'Flutter build successful.\n\nArtifacts generated:\n- Web app build\n- Android APK and AAB files\n\nPreview: https://supremeai-a.web.app/admin/'
             })
         continue-on-error: true
-
-

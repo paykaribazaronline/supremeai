@@ -1,4 +1,4 @@
-name: 🚀 Comprehensive CI/CD Pipeline
+name: Comprehensive CI/CD Pipeline
 
 on:
   push:
@@ -21,58 +21,52 @@ env:
   SERVICE_NAME: supremeai
 
 jobs:
-  # ==================================================
-  # STAGE 1: Quality Gates & Analysis
-  # ==================================================
   quality-analysis:
-    name: 🔍 Code Quality Analysis
+    name: Code Quality Analysis
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
     steps:
-      - name: ⬇️ Checkout code
+      - name: Checkout code
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - name: ☕ Set up JDK 17
+      - name: Set up JDK 17
         uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
 
-      - name: 🔐 Grant execute permission
+      - name: Grant execute permission
         run: chmod +x gradlew
 
-      - name: ⚙️ Configure Gradle Properties
+      - name: Configure Gradle properties
         run: |
           echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m" >> gradle.properties
           echo "org.gradle.daemon=false" >> gradle.properties
           echo "org.gradle.parallel=true" >> gradle.properties
 
-      - name: 📊 Run SonarQube Scanner
+      - name: Run SonarQube scanner
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
           if [ -z "$SONAR_TOKEN" ] || [ -z "$SONAR_HOST_URL" ]; then
-            echo "⚠️ SonarQube not configured, skipping..."
+            echo "SonarQube not configured, skipping..."
           else
             ./gradlew sonarqube --no-daemon
           fi
         continue-on-error: true
 
-      - name: 🔓 Check security vulnerabilities
+      - name: Check security vulnerabilities
         run: |
           ./gradlew dependencyCheckAnalyze --no-daemon 2>&1 || true
         continue-on-error: true
 
-  # ==================================================
-  # STAGE 2: Build & Test Matrix
-  # ==================================================
   build-matrix:
-    name: 🔨 Build (Java ${{ matrix.java }})
+    name: Build (Java ${{ matrix.java }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -81,19 +75,19 @@ jobs:
       fail-fast: false
 
     steps:
-      - name: ⬇️ Checkout code
+      - name: Checkout code
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - name: ☕ Set up JDK ${{ matrix.java }}
+      - name: Set up JDK ${{ matrix.java }}
         uses: actions/setup-java@v5
         with:
           java-version: ${{ matrix.java }}
           distribution: 'temurin'
           cache: gradle
 
-      - name: 📦 Cache Gradle dependencies
+      - name: Cache Gradle dependencies
         uses: actions/cache@v5
         with:
           path: |
@@ -103,38 +97,35 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-${{ matrix.java }}-
 
-      - name: 🔐 Grant execute permission
+      - name: Grant execute permission
         run: chmod +x gradlew
 
-      - name: ⚙️ Configure Gradle Properties
+      - name: Configure Gradle properties
         run: |
           echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m" >> gradle.properties
           echo "org.gradle.daemon=false" >> gradle.properties
           echo "org.gradle.parallel=true" >> gradle.properties
           echo "org.gradle.workers.max=$(nproc)" >> gradle.properties
 
-      - name: 🔨 Build with Gradle
+      - name: Build with Gradle
         run: ./gradlew clean build -x test --info --stacktrace --no-daemon --max-workers=2
         env:
           SUPREMEAI_SELFHEALING_PHOENIX_ENABLED: 'true'
 
-      - name: ✅ Run Tests (Unit)
+      - name: Run unit tests
         if: github.event.inputs.skipTests != 'true'
         run: ./gradlew test --info --stacktrace --no-daemon --max-workers=2 --tests "*UnitTest"
         continue-on-error: true
         timeout-minutes: 20
 
-      - name: ✅ Run Integration Tests
+      - name: Run integration tests
         if: github.event.inputs.skipTests != 'true'
         run: ./gradlew test --info --stacktrace --no-daemon --max-workers=2 --tests "*IntegrationTest"
         continue-on-error: true
         timeout-minutes: 20
 
-  # ==================================================
-  # STAGE 3: Docker & Deployment Prep
-  # ==================================================
   docker-build:
-    name: 🐳 Docker Build & Registry Push
+    name: Docker Build and Registry Push
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: [quality-analysis, build-matrix]
@@ -145,25 +136,25 @@ jobs:
       id-token: write
 
     steps:
-      - name: ⬇️ Checkout code
+      - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: 🔐 Authenticate to Google Cloud
+      - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: ☁️ Set up Cloud SDK
+      - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: 🐳 Configure Docker
+      - name: Configure Docker
         run: gcloud auth configure-docker gcr.io --quiet
 
-      - name: 🔖 Set short SHA
+      - name: Set short SHA
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-      - name: 📍 Resolve GCP Project
+      - name: Resolve GCP project
         id: project
         run: |
           PROJECT="${{ secrets.GCP_PROJECT_ID }}"
@@ -171,12 +162,12 @@ jobs:
             PROJECT=$(gcloud config get-value project 2>/dev/null)
           fi
           if [ -z "$PROJECT" ]; then
-            echo "❌ GCP_PROJECT_ID not set"
+            echo "GCP_PROJECT_ID not set"
             exit 1
           fi
           echo "project_id=$PROJECT" >> $GITHUB_OUTPUT
 
-      - name: 🔨 Build Docker image
+      - name: Build Docker image
         run: |
           docker build \
             -t "gcr.io/${{ steps.project.outputs.project_id }}/${{ env.SERVICE_NAME }}:${{ steps.vars.outputs.sha_short }}" \
@@ -184,26 +175,22 @@ jobs:
             --build-arg BUILDKIT_INLINE_CACHE=1 \
             .
 
-      - name: 🔐 Security scan with Trivy
+      - name: Run Trivy security scan
         run: |
-          # Install Trivy if not available
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
           trivy image --severity HIGH,CRITICAL \
             "gcr.io/${{ steps.project.outputs.project_id }}/${{ env.SERVICE_NAME }}:${{ steps.vars.outputs.sha_short }}" \
-            && echo "✅ Security scan passed"
+            && echo "Security scan passed"
         continue-on-error: true
 
-      - name: 📤 Push to Google Container Registry
+      - name: Push to Google Container Registry
         run: |
           docker push "gcr.io/${{ steps.project.outputs.project_id }}/${{ env.SERVICE_NAME }}:${{ steps.vars.outputs.sha_short }}"
           docker push "gcr.io/${{ steps.project.outputs.project_id }}/${{ env.SERVICE_NAME }}:latest"
-          echo "✅ Images pushed successfully"
+          echo "Images pushed successfully"
 
-  # ==================================================
-  # STAGE 4: Deploy to Staging (develop branch)
-  # ==================================================
   deploy-staging:
-    name: 🌱 Deploy to Staging
+    name: Deploy to Staging
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: [docker-build]
@@ -218,28 +205,28 @@ jobs:
       url: https://staging-supremeai.run.app
 
     steps:
-      - name: ⬇️ Checkout code
+      - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: 🔐 Authenticate to Google Cloud
+      - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: ☁️ Set up Cloud SDK
+      - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: 🔖 Set short SHA
+      - name: Set short SHA
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-      - name: 📍 Resolve GCP Project
+      - name: Resolve GCP project
         id: project
         run: |
           PROJECT="${{ secrets.GCP_PROJECT_ID }}"
           echo "project_id=$PROJECT" >> $GITHUB_OUTPUT
 
-      - name: 🚀 Deploy to Cloud Run (Staging)
+      - name: Deploy to Cloud Run (staging)
         run: |
           gcloud run deploy "${{ env.SERVICE_NAME }}-staging" \
             --image="gcr.io/${{ steps.project.outputs.project_id }}/${{ env.SERVICE_NAME }}:${{ steps.vars.outputs.sha_short }}" \
@@ -254,7 +241,7 @@ jobs:
             --project="${{ steps.project.outputs.project_id }}" \
             --quiet
 
-      - name: 🏥 Health Check (Staging)
+      - name: Run staging health check
         continue-on-error: true
         run: |
           sleep 15
@@ -264,16 +251,13 @@ jobs:
             --format='value(status.url)')
           HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" "$URL/actuator/health" || echo "000")
           if [ "$HTTP_CODE" = "200" ]; then
-            echo "✅ Staging deployment healthy"
+            echo "Staging deployment healthy"
           else
-            echo "⚠️ Staging health check: $HTTP_CODE"
+            echo "Staging health check: $HTTP_CODE"
           fi
 
-  # ==================================================
-  # STAGE 5: Deploy to Production (main branch)
-  # ==================================================
   deploy-production:
-    name: 🚀 Deploy to Production
+    name: Deploy to Production
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: [docker-build]
@@ -288,30 +272,30 @@ jobs:
       url: https://supremeai-565236080752.us-central1.run.app
 
     steps:
-      - name: ⬇️ Checkout code
+      - name: Checkout code
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - name: 🔐 Authenticate to Google Cloud
+      - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: ☁️ Set up Cloud SDK
+      - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: 🔖 Set short SHA
+      - name: Set short SHA
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-      - name: 📍 Resolve GCP Project
+      - name: Resolve GCP project
         id: project
         run: |
           PROJECT="${{ secrets.GCP_PROJECT_ID }}"
           echo "project_id=$PROJECT" >> $GITHUB_OUTPUT
 
-      - name: 🚀 Deploy to Cloud Run (Production)
+      - name: Deploy to Cloud Run (production)
         run: |
           gcloud run deploy "${{ env.SERVICE_NAME }}" \
             --image="gcr.io/${{ steps.project.outputs.project_id }}/${{ env.SERVICE_NAME }}:${{ steps.vars.outputs.sha_short }}" \
@@ -329,7 +313,7 @@ jobs:
             --project="${{ steps.project.outputs.project_id }}" \
             --quiet
 
-      - name: 🏥 Health Check (Production)
+      - name: Run production health check
         timeout-minutes: 5
         continue-on-error: false
         run: |
@@ -341,29 +325,28 @@ jobs:
           for i in {1..5}; do
             HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" "$URL/actuator/health" || echo "000")
             if [ "$HTTP_CODE" = "200" ]; then
-              echo "✅ Production deployment healthy (attempt $i)"
+              echo "Production deployment healthy (attempt $i)"
               exit 0
             fi
-            echo "⚠️ Health check failed ($HTTP_CODE), attempt $i/5"
+            echo "Health check failed ($HTTP_CODE), attempt $i/5"
             if [ $i -lt 5 ]; then sleep 10; fi
           done
-          echo "❌ Health check failed after 5 attempts, rolling back..."
+          echo "Health check failed after 5 attempts, rolling back..."
           exit 1
 
-      - name: 🔄 Rollback on Failure
+      - name: Roll back on failure
         if: failure()
         continue-on-error: true
         run: |
-          echo "🔄 Rolling back to previous stable version..."
-          # Use latest tag as fallback since HEAD^ may not exist in shallow clones
+          echo "Rolling back to previous stable version..."
           PREVIOUS_SHORT=$(git rev-parse --short HEAD^ 2>/dev/null || echo "latest")
           gcloud run deploy "${{ env.SERVICE_NAME }}" \
             --image="gcr.io/${{ steps.project.outputs.project_id }}/${{ env.SERVICE_NAME }}:$PREVIOUS_SHORT" \
             --region="${{ env.GCP_REGION }}" \
             --project="${{ steps.project.outputs.project_id }}" \
-            --quiet || echo "⚠️ Rollback failed, manual intervention needed"
+            --quiet || echo "Rollback failed, manual intervention needed"
 
-      - name: 🌐 Get Service URL
+      - name: Get service URL
         id: get-url
         run: |
           URL=$(gcloud run services describe "${{ env.SERVICE_NAME }}" \
@@ -372,39 +355,36 @@ jobs:
             --format='value(status.url)')
           echo "url=$URL" >> $GITHUB_OUTPUT
 
-      - name: 📊 Deployment Summary
+      - name: Write deployment summary
         if: always()
         run: |
-          echo "## 🚀 Production Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "## Production Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| 🏷️ Image | \`gcr.io/${{ steps.project.outputs.project_id }}/${{ env.SERVICE_NAME }}:${{ steps.vars.outputs.sha_short }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🌐 URL | ${{ steps.get-url.outputs.url }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🔢 Commit | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Image | \`gcr.io/${{ steps.project.outputs.project_id }}/${{ env.SERVICE_NAME }}:${{ steps.vars.outputs.sha_short }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| URL | ${{ steps.get-url.outputs.url }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
 
-  # ==================================================
-  # STAGE 6: Notification & Cleanup
-  # ==================================================
   notify:
-    name: 📢 Notifications
+    name: Notifications
     runs-on: ubuntu-latest
     needs: [deploy-staging, deploy-production]
     if: always()
 
     steps:
-      - name: 📊 Build Status
+      - name: Build status
         run: |
           echo "## Pipeline Summary"
           echo "- Staging: ${{ needs.deploy-staging.result }}"
           echo "- Production: ${{ needs.deploy-production.result }}"
 
-      - name: 🔔 Slack Notification
+      - name: Send Slack notification
         if: failure()
         uses: slackapi/slack-github-action@v1
         with:
           payload: |
             {
-              "text": "❌ SupremeAI Pipeline Failed",
+              "text": "SupremeAI pipeline failed",
               "blocks": [
                 {
                   "type": "section",
