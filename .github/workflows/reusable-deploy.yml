@@ -6,6 +6,9 @@ on:
       firebase_project:
         type: string
         required: true
+      run_id:
+        type: string
+        required: false
     secrets:
       FIREBASE_SERVICE_ACCOUNT:
         required: true
@@ -25,6 +28,8 @@ jobs:
       with:
         name: flutter-web-build
         path: combined_deploy/admin
+        run-id: ${{ inputs.run_id || github.run_id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: ✅ Verify artifact
       run: |

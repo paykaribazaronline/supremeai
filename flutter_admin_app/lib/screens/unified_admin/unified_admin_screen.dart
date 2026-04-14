@@ -132,7 +132,7 @@ class _UnifiedAdminScreenState extends State<UnifiedAdminScreen> {
                                   }
                                 }
                               : null,
-                          selectedColor: const Color(0xFF722ED1).withOpacity(0.2),
+                          selectedColor: const Color(0xFF722ED1).withValues(alpha: 0.2),
                           checkmarkColor: const Color(0xFF722ED1),
                         ))
                     .toList(),
@@ -188,7 +188,7 @@ class _UnifiedAdminScreenState extends State<UnifiedAdminScreen> {
         featureWidget = const ConsensusScreen();
         break;
       case 'vpn':
-        featureWidget = const VPNScreen();
+        featureWidget = const VpnScreen();
         break;
       case 'teaching':
         featureWidget = const TeachingScreen();
