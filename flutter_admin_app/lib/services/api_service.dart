@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 import '../config/environment.dart';
+import 'storage_service.dart';
 
 class ApiResponse<T> {
   final bool success;
@@ -45,8 +46,14 @@ class ApiService {
     // Add interceptors
     _dio.interceptors.add(
       InterceptorsWrapper(
-        onRequest: (options, handler) {
+        onRequest: (options, handler) async {
           _logger.i('🔵 REQUEST: ${options.method} ${options.path}');
+          
+          final String? token = await StorageService().getToken();
+          if (token != null) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+
           return handler.next(options);
         },
         onResponse: (response, handler) {

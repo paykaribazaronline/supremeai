@@ -191,7 +191,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         const SizedBox(height: AppConstants.paddingSmall),
         DropdownButtonFormField<String>(
           value: _selectedTemplate,
-          items: ['REACT', 'SPRING_BOOT', 'FLUTTER', 'FULL_STACK', 'REST_API']
+          items: ['REACT', 'SPRING_BOOT', 'FLUTTER', 'FULL_STACK', 'REST_API', 'PYTHON_FASTAPI', 'NODE_EXPRESS', 'ANDROID_KOTLIN', 'NEXT_JS']
               .map((template) => DropdownMenuItem(
                     value: template,
                     child: Text(template),
@@ -215,44 +215,159 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   }
 
   Widget _buildProjectInfo() {
-    return Container(
-      padding: const EdgeInsets.all(AppConstants.paddingMedium),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    final features = widget.project!.features;
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(AppConstants.paddingMedium),
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.info_outline, size: 18, color: Colors.blue),
+                  SizedBox(width: 8),
+                  Text(
+                    'প্রজেক্টের তথ্য',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+              const Text('(সিস্টেম থেকে স্বয়ংক্রিয় তথ্য)',
+                  style: TextStyle(fontSize: 11, color: Colors.grey)),
+              const Divider(height: 24),
+              _buildInfoRow('Project ID', widget.project!.id),
+              _buildInfoRow('Template', widget.project!.templateType),
+              _buildStatusRow('Status', widget.project!.status),
+              _buildInfoRow('Repo',
+                  widget.project!.repoUrl.isEmpty ? '-' : widget.project!.repoUrl),
+              _buildInfoRow('Branch', widget.project!.repoBranch),
+              _buildProgressRow('Progress', widget.project!.progress),
+              _buildInfoRow('Files', widget.project!.fileCount.toString()),
+              _buildInfoRow('Tracked For Improvement',
+                  widget.project!.trackedForImprovement ? 'Yes' : 'No'),
+              _buildInfoRow(
+                'Created',
+                widget.project!.createdAt.toString().split('.')[0],
+              ),
+              if (widget.project!.completedAt != null)
+                _buildInfoRow(
+                  'Completed',
+                  widget.project!.completedAt.toString().split('.')[0],
+                ),
+            ],
+          ),
+        ),
+        if (features.isNotEmpty) ...[
+          const SizedBox(height: AppConstants.paddingLarge),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppConstants.paddingMedium),
+            decoration: BoxDecoration(
+              color: Colors.blue.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+              border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.list, size: 18, color: Colors.blue),
+                    SizedBox(width: 8),
+                    Text(
+                      'নির্ধারিত ফিচারসমূহ',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                ...features.map((f) => Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.check_circle, size: 14, color: Colors.green),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text(f, style: const TextStyle(fontSize: 13))),
+                        ],
+                      ),
+                    )),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildStatusRow(String label, String status) {
+    Color statusColor = Colors.grey;
+    if (status == 'COMPLETED') statusColor = Colors.green;
+    if (status == 'GENERATING' || status == 'IN_PROGRESS') statusColor = Colors.blue;
+    if (status == 'FAILED') statusColor = Colors.red;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppConstants.paddingSmall),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            'প্রজেক্টের তথ্য',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.grey)),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: statusColor.withValues(alpha: 0.5)),
+            ),
+            child: Text(
+              status,
+              style: TextStyle(fontWeight: FontWeight.bold, color: statusColor, fontSize: 12),
             ),
           ),
-          const Text('(সিস্টেম থেকে স্বয়ংক্রিয় তথ্য)',
-              style: TextStyle(fontSize: 11, color: Colors.grey)),
-          const SizedBox(height: AppConstants.paddingMedium),
-          _buildInfoRow('Project ID', widget.project!.id),
-          _buildInfoRow('Template', widget.project!.templateType),
-          _buildInfoRow('Status', widget.project!.status),
-          _buildInfoRow('Repo',
-              widget.project!.repoUrl.isEmpty ? '-' : widget.project!.repoUrl),
-          _buildInfoRow('Branch', widget.project!.repoBranch),
-          _buildInfoRow('Progress', '${widget.project!.progress}%'),
-          _buildInfoRow('Files', widget.project!.fileCount.toString()),
-          _buildInfoRow('Tracked For Improvement',
-              widget.project!.trackedForImprovement ? 'Yes' : 'No'),
-          _buildInfoRow(
-            'Created',
-            widget.project!.createdAt.toString().split('.')[0],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressRow(String label, int progress) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppConstants.paddingSmall),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.grey)),
+          Row(
+            children: [
+              SizedBox(
+                width: 60,
+                child: LinearProgressIndicator(
+                  value: progress / 100,
+                  backgroundColor: Colors.grey[300],
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    progress == 100 ? Colors.green : Colors.blue,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '$progress%',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
           ),
-          if (widget.project!.completedAt != null)
-            _buildInfoRow(
-              'Completed',
-              widget.project!.completedAt.toString().split('.')[0],
-            ),
         ],
       ),
     );

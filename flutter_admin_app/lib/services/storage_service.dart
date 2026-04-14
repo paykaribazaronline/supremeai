@@ -58,4 +58,19 @@ class StorageService {
     await init();
     await _prefs.clear();
   }
+
+  // Token Methods
+  static const String _tokenKey = 'auth_token';
+
+  Future<void> saveToken(String token) async {
+    await setString(_tokenKey, token);
+  }
+
+  Future<String?> getToken() async {
+    return await getString(_tokenKey);
+  }
+
+  Future<void> deleteToken() async {
+    await remove(_tokenKey);
+  }
 }

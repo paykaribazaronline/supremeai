@@ -92,8 +92,41 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, 
                                    HttpServletResponse response,
                                    FilterChain filterChain) throws ServletException, IOException {
-        // JWT enforcement disabled — Firebase handles authentication on the client side.
-        // All requests pass through without token validation.
+        String path = request.getRequestURI();
+        
+        // Skip for public endpoints
+        if (isPublicPath(path)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String token = extractToken(request);
+        if (token == null || token.isBlank()) {
+            logger.debug("❌ No token provided for protected path: {}", path);
+            writeUnauthorizedResponse(request, response, path);
+            return;
+        }
+
+        org.example.model.User user = authenticateToken(token);
+        if (user == null) {
+            logger.debug("❌ Invalid token for protected path: {}", path);
+            writeUnauthorizedResponse(request, response, path);
+            return;
+        }
+
+        // Check for admin access if required
+        if (isAdminProtectedPath(path)) {
+            if (!isAdminUser(user)) {
+                logger.warn("⚠️ Forbidden access attempt by user {} to path {}", user.getUsername(), path);
+                writeForbiddenResponse(request, response, path);
+                return;
+            }
+            logger.debug("✅ Admin access granted to path: {}", path);
+        } else {
+            logger.debug("✅ User access granted to path: {}", path);
+        }
+
+        // Continue filter chain
         filterChain.doFilter(request, response);
     }
     

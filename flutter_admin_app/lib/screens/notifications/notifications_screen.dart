@@ -79,6 +79,12 @@ class _NotificationsScreenState extends State<NotificationsScreen>
       case 'slack':
         endpoint = Environment.notificationSlack;
         break;
+      case 'discord':
+        endpoint = Environment.notificationDiscord;
+        break;
+      case 'sms':
+        endpoint = Environment.notificationSms;
+        break;
       case 'email':
       default:
         endpoint = Environment.notificationEmail;
@@ -106,6 +112,44 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     if (response.success) {
       _recipientController.clear();
       _subjectController.clear();
+      _messageController.clear();
+      _loadAll();
+    }
+  }
+
+  Future<void> _escalateNotification() async {
+    if (_messageController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('এসক্যালেশনের জন্য মেসেজ লিখুন'),
+            backgroundColor: Colors.orange),
+      );
+      return;
+    }
+
+    setState(() => _isSending = true);
+
+    final response = await _apiService.post<Map<String, dynamic>>(
+      Environment.notificationEscalate,
+      data: {
+        'message': _messageController.text.trim(),
+        'level': 'CRITICAL',
+      },
+    );
+
+    if (!mounted) return;
+    setState(() => _isSending = false);
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(response.success
+          ? 'ক্রিটিক্যাল অ্যালার্ট এসক্যালেট করা হয়েছে!'
+          : 'ত্রুটি: ${response.error}'),
+      backgroundColor: Color(response.success
+          ? AppConstants.successColor
+          : AppConstants.errorColor),
+    ));
+
+    if (response.success) {
       _messageController.clear();
       _loadAll();
     }
@@ -168,53 +212,69 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                 items: const [
                   DropdownMenuItem(value: 'email', child: Text('ইমেইল')),
                   DropdownMenuItem(value: 'slack', child: Text('স্ল্যাক')),
+                  DropdownMenuItem(value: 'discord', child: Text('ডিসকর্ড')),
+                  DropdownMenuItem(value: 'sms', child: Text('এসএমএস (SMS)')),
+                  DropdownMenuItem(value: 'escalate', child: Text('🚨 এসক্যালেট (Critical)')),
                 ],
                 onChanged: (v) =>
                     setState(() => _selectedChannel = v ?? 'email'),
               ),
               const SizedBox(height: 12),
-              TextField(
-                controller: _recipientController,
-                decoration: const InputDecoration(
-                  labelText: 'প্রাপক',
-                  helperText: '(যাকে পাঠাবেন তার ইমেইল বা আইডি)',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.person),
+              if (_selectedChannel != 'escalate')
+                TextField(
+                  controller: _recipientController,
+                  decoration: const InputDecoration(
+                    labelText: 'প্রাপক',
+                    hintText: 'email@example.com / #channel-id',
+                    helperText: '(যাকে পাঠাবেন তার ইমেইল বা আইডি)',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.person),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _subjectController,
-                decoration: const InputDecoration(
-                  labelText: 'বিষয়',
-                  helperText: '(মেসেজের শিরোনাম)',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.subject),
+              if (_selectedChannel != 'escalate' && _selectedChannel != 'sms') ...[
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _subjectController,
+                  decoration: const InputDecoration(
+                    labelText: 'বিষয়',
+                    helperText: '(মেসেজের শিরোনাম)',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.subject),
+                  ),
                 ),
-              ),
+              ],
               const SizedBox(height: 12),
               TextField(
                 controller: _messageController,
                 maxLines: 4,
-                decoration: const InputDecoration(
-                  labelText: 'মেসেজ',
-                  helperText: '(যা পাঠাতে চান তা লিখুন)',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.message),
+                decoration: InputDecoration(
+                  labelText: _selectedChannel == 'escalate' ? 'অ্যালার্ট মেসেজ' : 'মেসেজ',
+                  helperText: _selectedChannel == 'escalate' 
+                      ? '(সব চ্যানেলে জরুরি এলার্ট যাবে)' 
+                      : '(যা পাঠাতে চান তা লিখুন)',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.message),
                 ),
               ),
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: _isSending ? null : _sendNotification,
+                  onPressed: _isSending 
+                      ? null 
+                      : (_selectedChannel == 'escalate' ? _escalateNotification : _sendNotification),
                   icon: _isSending
                       ? const SizedBox(
                           width: 18,
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Icons.send),
-                  label: Text(_isSending ? 'পাঠানো হচ্ছে...' : 'পাঠান'),
+                      : Icon(_selectedChannel == 'escalate' ? Icons.warning : Icons.send),
+                  style: _selectedChannel == 'escalate' 
+                      ? ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white)
+                      : null,
+                  label: Text(_isSending 
+                      ? 'পাঠানো হচ্ছে...' 
+                      : (_selectedChannel == 'escalate' ? 'জরুরি এসক্যালেট করুন' : 'পাঠান')),
                 ),
               ),
             ],
@@ -279,7 +339,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                           (status == 'SENT' || status == 'DELIVERED'
                                   ? Colors.green
                                   : Colors.red)
-                              .withOpacity(0.1),
+                              .withValues(alpha: 0.1),
                       padding: EdgeInsets.zero,
                       visualDensity: VisualDensity.compact,
                     ),
