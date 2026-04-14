@@ -45,6 +45,7 @@ jobs:
     uses: ./.github/workflows/reusable-deploy.yml
     with:
       environment: staging
+    secrets: inherit
 
   # Deploy to production (only on main)
   deploy-production:
@@ -53,3 +54,4 @@ jobs:
     uses: ./.github/workflows/reusable-deploy.yml
     with:
       environment: production
+    secrets: inherit
