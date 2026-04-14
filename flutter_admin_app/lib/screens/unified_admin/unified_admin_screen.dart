@@ -121,11 +121,12 @@ class _UnifiedAdminScreenState extends State<UnifiedAdminScreen> {
       ),
       body: CustomScrollView(
         slivers: [
-          // Stats Cards
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: GridView.count(
+          // Stats Cards - Only shown on overview/dashboard tab
+          if (_selectedComponentKey == 'overview')
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -248,6 +249,21 @@ class _UnifiedAdminScreenState extends State<UnifiedAdminScreen> {
   }
 
   Widget _buildComponentDetails(List<Map<String, dynamic>> components) {
+    // Route to actual feature screens if they exist
+    if (_selectedComponentKey == 'learning') {
+      return const SizedBox(
+        height: 600, // Fixed height or layout as needed
+        child: SystemLearningScreen(),
+      );
+    }
+    
+    if (_selectedComponentKey == 'settings') {
+      return const SizedBox(
+        height: 600,
+        child: SettingsScreen(),
+      );
+    }
+
     final selected = components.firstWhere(
       (c) => c['key'] == _selectedComponentKey,
       orElse: () => components.isNotEmpty ? components[0] : {},
