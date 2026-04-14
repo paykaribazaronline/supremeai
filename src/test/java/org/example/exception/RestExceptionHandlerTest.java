@@ -166,7 +166,8 @@ public class RestExceptionHandlerTest {
     void testTimestampFormatInErrors() throws Exception {
         // JWT enforcement disabled — verify timestamp on a genuine 404 instead.
         mockMvc.perform(get("/api/v1/nonexistent")
-                .contentType(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer test-token"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.timestamp", matchesRegex("\\d+")));
     }

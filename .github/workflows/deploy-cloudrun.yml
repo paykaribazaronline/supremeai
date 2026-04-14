@@ -34,8 +34,8 @@ on:
           - staging
 
 env:
-  NODE_VERSION: '24'
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  NODE_VERSION: '20'
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true
   GCP_REGION: us-central1
   SERVICE_NAME: supremeai
 
@@ -50,7 +50,7 @@ jobs:
 
     steps:
       - name: ⬇️ Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: 🔐 Authenticate to Google Cloud
         uses: google-github-actions/auth@v2

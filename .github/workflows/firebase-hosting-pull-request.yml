@@ -6,8 +6,8 @@
 
 name: Deploy to Firebase Hosting on PR
 env:
-  NODE_VERSION: '24'
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  NODE_VERSION: '20'
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true
 on: pull_request
 permissions:
   checks: write
@@ -18,7 +18,7 @@ jobs:
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
       - name: 🔐 Validate Firebase credentials
         run: |
