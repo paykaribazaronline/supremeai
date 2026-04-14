@@ -15,12 +15,14 @@ import 'package:supremeai_admin/models/models.dart';
 import 'package:supremeai_admin/providers/auth_provider.dart';
 import 'package:supremeai_admin/providers/projects_provider.dart';
 import 'package:supremeai_admin/providers/metrics_provider.dart';
+import 'package:supremeai_admin/providers/theme_provider.dart';
 
 void main() {
   Widget buildApp() {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => ProjectsProvider()),
         ChangeNotifierProvider(create: (_) => MetricsProvider()),
       ],

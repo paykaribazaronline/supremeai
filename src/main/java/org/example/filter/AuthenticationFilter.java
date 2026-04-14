@@ -35,6 +35,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     private static final Set<String> PUBLIC_PATHS = Set.of(
         "/webhook",
         "/api/v1/data/health",
+        "/api/v1/data/stats",
         "/actuator/health",
         "/api/auth/firebase-login",  // ONLY Firebase auth endpoint
         "/index.html",

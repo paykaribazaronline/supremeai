@@ -127,7 +127,7 @@ public class AuthenticationFilterTest {
     @Test
     void testProtectedPathRequiresValidToken() throws ServletException, IOException {
         // Given
-        when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
+        when(request.getRequestURI()).thenReturn("/api/v1/data/protected");
         when(request.getHeader("Authorization")).thenReturn("Bearer " + VALID_TOKEN);
 
         // When
@@ -140,7 +140,7 @@ public class AuthenticationFilterTest {
     @Test
     void testProtectedPathRejectsMissingToken() throws ServletException, IOException {
         // Given
-        when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
+        when(request.getRequestURI()).thenReturn("/api/v1/data/protected");
         when(request.getHeader("Authorization")).thenReturn(null);
 
         // When
@@ -154,7 +154,7 @@ public class AuthenticationFilterTest {
     @Test
     void testProtectedPathRejectsInvalidToken() throws ServletException, IOException {
         // Given
-        when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
+        when(request.getRequestURI()).thenReturn("/api/v1/data/protected");
         when(request.getHeader("Authorization")).thenReturn("Bearer invalid-token");
 
         // When
@@ -168,7 +168,7 @@ public class AuthenticationFilterTest {
     @Test
     void testInvalidAuthorizationHeaderFormat() throws ServletException, IOException {
         // Given
-        when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
+        when(request.getRequestURI()).thenReturn("/api/v1/data/protected");
         when(request.getHeader("Authorization")).thenReturn("InvalidFormat");
 
         // When
@@ -181,7 +181,7 @@ public class AuthenticationFilterTest {
     @Test
     void testBasicAuthNotSupported() throws ServletException, IOException {
         // Given
-        when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
+        when(request.getRequestURI()).thenReturn("/api/v1/data/protected");
         when(request.getHeader("Authorization")).thenReturn("Basic dXNlcjpwYXNz");
 
         // When
@@ -231,7 +231,7 @@ public class AuthenticationFilterTest {
 
     @Test
     void testMultipleProtectedPathsWithValidToken_stats() throws ServletException, IOException {
-        when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
+        when(request.getRequestURI()).thenReturn("/api/v1/data/protected");
         when(request.getHeader("Authorization")).thenReturn("Bearer " + VALID_TOKEN);
         authenticationFilter.doFilter(request, response, filterChain);
         verify(filterChain).doFilter(request, response);
@@ -240,7 +240,7 @@ public class AuthenticationFilterTest {
     @Test
     void testTokenWithExtraWhitespace() throws ServletException, IOException {
         // Given
-        when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
+        when(request.getRequestURI()).thenReturn("/api/v1/data/protected");
         when(request.getHeader("Authorization")).thenReturn("Bearer  valid-token  ");
 
         // When
@@ -253,7 +253,7 @@ public class AuthenticationFilterTest {
     @Test
     void testEmptyBearerToken() throws ServletException, IOException {
         // Given
-        when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
+        when(request.getRequestURI()).thenReturn("/api/v1/data/protected");
         when(request.getHeader("Authorization")).thenReturn("Bearer ");
 
         // When
@@ -266,7 +266,7 @@ public class AuthenticationFilterTest {
     @Test
     void testCaseInsensitiveBearer() throws ServletException, IOException {
         // Given
-        when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
+        when(request.getRequestURI()).thenReturn("/api/v1/data/protected");
         when(request.getHeader("Authorization")).thenReturn("bearer " + VALID_TOKEN);
 
         // When
