@@ -15,7 +15,6 @@ on:
 
 env:
   NODE_VERSION: '20'
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true
   BATCH_SIZE: '50'  # Files per batch (tuned to avoid "argument list too long")
 
 jobs:
