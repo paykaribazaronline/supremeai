@@ -76,4 +76,8 @@ jobs:
           --region us-central1 \
           --allow-unauthenticated \
           --project $GCP_PROJECT_ID \
+          --memory 2Gi \
+          --cpu 2 \
+          --timeout 300 \
+          --set-env-vars "SPRING_PROFILES_ACTIVE=cloud" \
           --quiet
