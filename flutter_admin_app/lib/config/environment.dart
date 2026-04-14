@@ -121,6 +121,14 @@ class Environment {
   static const String notificationDiscord = '/api/notifications/discord';
   static const String notificationSms = '/api/notifications/sms';
   static const String notificationEscalate = '/api/notifications/escalate';
+  static const String notificationSmsBudget = '/api/notifications/sms/budget';
+  static const String notificationSmsBudgetSet = '/api/notifications/sms/budget/set';
+  static const String notificationSmsBudgetReset = '/api/notifications/sms/budget/reset';
+  static const String notificationSmsStats = '/api/notifications/sms/stats';
+
+  // Auth
+  static const String authProfile = '/api/auth/profile';
+  static const String authChangePassword = '/api/auth/change-password';
   
   // Analytics
   static const String analyticsHistorical = '/api/analytics/historical';

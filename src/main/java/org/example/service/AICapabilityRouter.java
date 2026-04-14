@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * @deprecated Use {@link UnifiedAIRoutingService} instead.
  * FIXED: AI Capability-Based Router
  * 
  * Problem: Multi-AI consensus was technically impossible with 3 agents and 70% threshold

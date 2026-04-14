@@ -221,7 +221,7 @@ class _TracingScreenState extends State<TracingScreen>
       child: ExpansionTile(
         leading: CircleAvatar(
           backgroundColor: (isError || !isSuccess ? Colors.red : Colors.green)
-              .withOpacity(0.1),
+              .withValues(alpha: 0.1),
           child: Icon(isError || !isSuccess ? Icons.error : Icons.check,
               color: isError || !isSuccess ? Colors.red : Colors.green,
               size: 18),
@@ -230,7 +230,7 @@ class _TracingScreenState extends State<TracingScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
+              color: Colors.blue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(method,
@@ -296,8 +296,8 @@ class _TracingScreenState extends State<TracingScreen>
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(colors: [
-            Color(color).withOpacity(0.1),
-            Color(color).withOpacity(0.05)
+            Color(color).withValues(alpha: 0.1),
+            Color(color).withValues(alpha: 0.05)
           ]),
           borderRadius: BorderRadius.circular(12),
         ),

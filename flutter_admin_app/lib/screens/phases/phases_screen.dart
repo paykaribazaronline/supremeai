@@ -17,9 +17,6 @@ class _PhasesScreenState extends State<PhasesScreen>
   final ApiService _apiService = ApiService();
   late TabController _tabController;
 
-  // All-phases overview
-  Map<String, dynamic>? _allPhases;
-
   // Phase 1 — Optimization
   Map<String, dynamic>? _phase1Health;
   Map<String, dynamic>? _phase1Metrics;
@@ -73,33 +70,31 @@ class _PhasesScreenState extends State<PhasesScreen>
       _error = null;
     });
     final results = await Future.wait([
-      _apiService.get<Map<String, dynamic>>(Environment.allPhases),        // 0
-      _apiService.get<Map<String, dynamic>>(Environment.phase1Health),     // 1
-      _apiService.get<Map<String, dynamic>>(Environment.phase1Metrics),    // 2
-      _apiService.get<Map<String, dynamic>>(Environment.phase6Health),     // 3
-      _apiService.get<List<dynamic>>(Environment.phase6Features),          // 4
-      _apiService.get<Map<String, dynamic>>(Environment.phase6Metrics),    // 5
-      _apiService.get<Map<String, dynamic>>(Environment.phase7Summary),    // 6
-      _apiService.get<Map<String, dynamic>>(Environment.phase7Capabilities), // 7
-      _apiService.get<Map<String, dynamic>>(Environment.phase8Summary),    // 8
-      _apiService.get<Map<String, dynamic>>(Environment.phase9Summary),    // 9
-      _apiService.get<Map<String, dynamic>>(Environment.phase10Summary),   // 10
+      _apiService.get<Map<String, dynamic>>(Environment.phase1Health),     // 0
+      _apiService.get<Map<String, dynamic>>(Environment.phase1Metrics),    // 1
+      _apiService.get<Map<String, dynamic>>(Environment.phase6Health),     // 2
+      _apiService.get<List<dynamic>>(Environment.phase6Features),          // 3
+      _apiService.get<Map<String, dynamic>>(Environment.phase6Metrics),    // 4
+      _apiService.get<Map<String, dynamic>>(Environment.phase7Summary),    // 5
+      _apiService.get<Map<String, dynamic>>(Environment.phase7Capabilities), // 6
+      _apiService.get<Map<String, dynamic>>(Environment.phase8Summary),    // 7
+      _apiService.get<Map<String, dynamic>>(Environment.phase9Summary),    // 8
+      _apiService.get<Map<String, dynamic>>(Environment.phase10Summary),   // 9
     ]);
     if (!mounted) return;
     setState(() {
       _isLoading = false;
-      if (results[0].success) _allPhases = results[0].data as Map<String, dynamic>?;
-      if (results[1].success) _phase1Health = results[1].data as Map<String, dynamic>?;
-      if (results[2].success) _phase1Metrics = results[2].data as Map<String, dynamic>?;
-      if (results[3].success) _phase6Health = results[3].data as Map<String, dynamic>?;
-      if (results[4].success) _phase6Features = (results[4].data as List<dynamic>?) ?? [];
-      if (results[5].success) _phase6Metrics = results[5].data as Map<String, dynamic>?;
-      if (results[6].success) _phase7Summary = results[6].data as Map<String, dynamic>?;
-      if (results[7].success) _phase7Capabilities = results[7].data as Map<String, dynamic>?;
-      if (results[8].success) _phase8Summary = results[8].data as Map<String, dynamic>?;
-      if (results[9].success) _phase9Summary = results[9].data as Map<String, dynamic>?;
-      if (results[10].success) _phase10Summary = results[10].data as Map<String, dynamic>?;
-      if (!results[1].success && !results[3].success && !results[6].success) {
+      if (results[0].success) _phase1Health = results[0].data as Map<String, dynamic>?;
+      if (results[1].success) _phase1Metrics = results[1].data as Map<String, dynamic>?;
+      if (results[2].success) _phase6Health = results[2].data as Map<String, dynamic>?;
+      if (results[3].success) _phase6Features = (results[3].data as List<dynamic>?) ?? [];
+      if (results[4].success) _phase6Metrics = results[4].data as Map<String, dynamic>?;
+      if (results[5].success) _phase7Summary = results[5].data as Map<String, dynamic>?;
+      if (results[6].success) _phase7Capabilities = results[6].data as Map<String, dynamic>?;
+      if (results[7].success) _phase8Summary = results[7].data as Map<String, dynamic>?;
+      if (results[8].success) _phase9Summary = results[8].data as Map<String, dynamic>?;
+      if (results[9].success) _phase10Summary = results[9].data as Map<String, dynamic>?;
+      if (!results[0].success && !results[2].success && !results[5].success) {
         _error = 'Phase data could not be loaded';
       }
     });
@@ -306,9 +301,9 @@ class _PhasesScreenState extends State<PhasesScreen>
       ),
       statsWidgets: [
         _buildStatCard('Total Agents', '${s['agentCount'] ?? 3}', Icons.smart_toy, AppConstants.primaryColor),
-        _buildStatCard('Alpha', _boolStatus(s['alphaAvailable']), Icons.shield, Colors.red.value),
-        _buildStatCard('Beta', _boolStatus(s['betaAvailable']), Icons.rule, Colors.orange.value),
-        _buildStatCard('Gamma', _boolStatus(s['gammaAvailable']), Icons.privacy_tip, Colors.deepOrange.value),
+        _buildStatCard('Alpha', _boolStatus(s['alphaAvailable']), Icons.shield, Colors.red.toARGB32()),
+        _buildStatCard('Beta', _boolStatus(s['betaAvailable']), Icons.rule, Colors.orange.toARGB32()),
+        _buildStatCard('Gamma', _boolStatus(s['gammaAvailable']), Icons.privacy_tip, Colors.deepOrange.toARGB32()),
       ],
       features: (s['capabilities'] as List<dynamic>?)?.cast<String>() ?? [
         'OWASP Top 10 vulnerability scanning',
@@ -339,9 +334,9 @@ class _PhasesScreenState extends State<PhasesScreen>
       ),
       statsWidgets: [
         _buildStatCard('Total Agents', '${s['agentCount'] ?? 3}', Icons.smart_toy, AppConstants.primaryColor),
-        _buildStatCard('Delta', _boolStatus(s['deltaAvailable']), Icons.bar_chart, Colors.green.value),
-        _buildStatCard('Epsilon', _boolStatus(s['epsilonAvailable']), Icons.speed, Colors.teal.value),
-        _buildStatCard('Zeta', _boolStatus(s['zetaAvailable']), Icons.account_balance, Colors.cyan.value),
+        _buildStatCard('Delta', _boolStatus(s['deltaAvailable']), Icons.bar_chart, Colors.green.toARGB32()),
+        _buildStatCard('Epsilon', _boolStatus(s['epsilonAvailable']), Icons.speed, Colors.teal.toARGB32()),
+        _buildStatCard('Zeta', _boolStatus(s['zetaAvailable']), Icons.account_balance, Colors.cyan.toARGB32()),
       ],
       features: (s['capabilities'] as List<dynamic>?)?.cast<String>() ?? [
         'Real-time cost tracking across cloud providers',
@@ -372,9 +367,9 @@ class _PhasesScreenState extends State<PhasesScreen>
       ),
       statsWidgets: [
         _buildStatCard('Total Agents', '${s['agentCount'] ?? 4}', Icons.smart_toy, AppConstants.primaryColor),
-        _buildStatCard('Eta', _boolStatus(s['etaAvailable']), Icons.psychology, Colors.purple.value),
-        _buildStatCard('Theta', _boolStatus(s['thetaAvailable']), Icons.school, Colors.deepPurple.value),
-        _buildStatCard('Iota+Kappa', _boolStatus(s['iotaAvailable'] == true && s['kappaAvailable'] == true), Icons.hub, Colors.indigo.value),
+        _buildStatCard('Eta', _boolStatus(s['etaAvailable']), Icons.psychology, Colors.purple.toARGB32()),
+        _buildStatCard('Theta', _boolStatus(s['thetaAvailable']), Icons.school, Colors.deepPurple.toARGB32()),
+        _buildStatCard('Iota+Kappa', _boolStatus(s['iotaAvailable'] == true && s['kappaAvailable'] == true), Icons.hub, Colors.indigo.toARGB32()),
       ],
       features: (s['capabilities'] as List<dynamic>?)?.cast<String>() ?? [
         'Agent performance evolution and self-tuning',
@@ -447,7 +442,7 @@ class _PhasesScreenState extends State<PhasesScreen>
   Widget _buildStatCard(String title, String value, IconData icon, int color) {
     return Card(
       elevation: 0,
-      color: Color(color).withOpacity(0.08),
+      color: Color(color).withValues(alpha: 0.08),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -555,7 +550,7 @@ class _PhaseHeader extends StatelessWidget {
             const SizedBox(height: 10),
             Chip(
               label: Text(statusLabel),
-              backgroundColor: (isHealthy ? Colors.green : Colors.orange).withOpacity(0.12),
+              backgroundColor: (isHealthy ? Colors.green : Colors.orange).withValues(alpha: 0.12),
               labelStyle: TextStyle(color: isHealthy ? Colors.green : Colors.orange),
             ),
           ],

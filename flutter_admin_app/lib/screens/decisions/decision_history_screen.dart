@@ -206,7 +206,7 @@ class _DecisionHistoryScreenState extends State<DecisionHistoryScreen> {
                                       style: TextStyle(
                                           fontSize: 10, color: outcomeColor)),
                                   backgroundColor:
-                                      outcomeColor.withOpacity(0.1),
+                                      outcomeColor.withValues(alpha: 0.1),
                                   padding: EdgeInsets.zero,
                                   visualDensity: VisualDensity.compact,
                                 ),
@@ -238,7 +238,7 @@ class _DecisionHistoryScreenState extends State<DecisionHistoryScreen> {
   Widget _buildStatCard(String title, String value, IconData icon, int color) {
     return Card(
       elevation: 0,
-      color: Color(color).withOpacity(0.08),
+      color: Color(color).withValues(alpha: 0.08),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(

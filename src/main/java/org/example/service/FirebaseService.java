@@ -7,6 +7,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.*;
 import org.example.model.Requirement;
 import org.example.model.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
@@ -15,9 +17,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 
 @Service
 public class FirebaseService {
+    private static final Logger _logger = LoggerFactory.getLogger(FirebaseService.class);
     private static final String DEFAULT_DATABASE_URL = "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/";
     private FirebaseDatabase db;
     private FirebaseAuth auth;
@@ -35,9 +39,10 @@ public class FirebaseService {
             System.setProperty("com.google.cloud.compute.metadata.timeout", "3000");
             initializeFirebase(null);
             this.isInitialized = true;
+            _logger.info("✅ Firebase initialized successfully");
         } catch (Exception e) {
-            System.err.println("⚠️ Firebase initialization failed: " + e.getMessage());
-            System.err.println("☁️ Cloud Firebase unavailable in this runtime - local cache remains active until cloud credentials are restored");
+            _logger.error("⚠️ Firebase initialization failed: {}", e.getMessage());
+            _logger.error("☁️ Cloud Firebase unavailable in this runtime - local cache remains active until cloud credentials are restored");
             this.isInitialized = false;
         }
     }
@@ -101,26 +106,64 @@ public class FirebaseService {
      * 🚀 Multi-API Key Support
      */
     public void updateAPIKey(String modelName, String apiKey) {
+        updateAPIKey(modelName, apiKey, (success, message) -> {});
+    }
+
+    public void updateAPIKey(String modelName, String apiKey, BiConsumer<Boolean, String> callback) {
+        if (!isInitialized) {
+            callback.accept(false, "Firebase not initialized");
+            return;
+        }
         db.getReference("config").child("api_keys").child(modelName).setValue(apiKey, (error, ref) -> {
             if (error != null) {
-                System.err.println("❌ Failed to save API Key for " + modelName + ": " + error.getMessage());
+                _logger.error("❌ Failed to save API Key for {}: {}", modelName, error.getMessage());
+                callback.accept(false, "API key update failed: " + error.getMessage());
             } else {
-                System.out.println("✅ API Key updated in Firebase for: " + modelName);
+                _logger.info("✅ API Key updated in Firebase for: {}", modelName);
+                callback.accept(true, "API key updated for: " + modelName);
             }
         });
     }
 
     public void saveSystemConfig(String configId, Map<String, Object> config) {
+        saveSystemConfig(configId, config, (success, message) -> {});
+    }
+
+    public void saveSystemConfig(String configId, Map<String, Object> config, BiConsumer<Boolean, String> callback) {
+        if (!isInitialized) {
+            callback.accept(false, "Firebase not initialized");
+            return;
+        }
         db.getReference("config").child(configId).updateChildren(config, (error, ref) -> {
             if (error != null) {
-                System.err.println("❌ Failed to save system config " + configId + ": " + error.getMessage());
+                _logger.error("❌ Failed to save system config {}: {}", configId, error.getMessage());
+                callback.accept(false, "Config save failed: " + error.getMessage());
             } else {
-                System.out.println("✅ System config " + configId + " saved to Firebase");
+                _logger.info("✅ System config {} saved to Firebase", configId);
+                callback.accept(true, "Config saved: " + configId);
             }
         });
     }
 
     public String createProject(String name, String description, String summary) {
+        CompletableFuture<String> future = new CompletableFuture<>();
+        createProject(name, description, summary, (projectId, error) -> {
+            if (error != null) future.completeExceptionally(new RuntimeException(error));
+            else future.complete(projectId);
+        });
+        try {
+            return future.get();
+        } catch (Exception e) {
+            _logger.error("Failed to create project sync: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    public void createProject(String name, String description, String summary, BiConsumer<String, String> callback) {
+        if (!isInitialized) {
+            callback.accept(null, "Firebase not initialized");
+            return;
+        }
         DatabaseReference projectsRef = db.getReference("projects").push();
         String projectId = projectsRef.getKey();
         Map<String, Object> projectData = new HashMap<>();
@@ -131,12 +174,13 @@ public class FirebaseService {
         projectData.put("createdAt", System.currentTimeMillis());
         projectsRef.setValue(projectData, (error, ref) -> {
             if (error != null) {
-                System.err.println("❌ Failed to create project " + name + ": " + error.getMessage());
+                _logger.error("❌ Failed to create project {}: {}", name, error.getMessage());
+                callback.accept(null, "Project creation failed: " + error.getMessage());
             } else {
-                System.out.println("✅ Project " + name + " created in Firebase");
+                _logger.info("✅ Project {} created in Firebase", name);
+                callback.accept(projectId, null);
             }
         });
-        return projectId;
     }
 
     public Map<String, Object> getSystemConfig(String configId) {
@@ -148,7 +192,10 @@ public class FirebaseService {
             });
             DataSnapshot snapshot = future.get();
             return snapshot.exists() ? (Map<String, Object>) snapshot.getValue() : new HashMap<>();
-        } catch (Exception e) { return new HashMap<>(); }
+        } catch (Exception e) {
+            _logger.error("Error getting system config {}: {}", configId, e.getMessage());
+            return new HashMap<>();
+        }
     }
 
     public List<Requirement> getAllRequirements() throws Exception {
@@ -171,43 +218,79 @@ public class FirebaseService {
     }
 
     public void updateRequirementStatus(String id, Requirement.Status status) {
+        updateRequirementStatus(id, status, (success, message) -> {});
+    }
+
+    public void updateRequirementStatus(String id, Requirement.Status status, BiConsumer<Boolean, String> callback) {
+        if (!isInitialized) {
+            callback.accept(false, "Firebase not initialized");
+            return;
+        }
         db.getReference("requirements").child(id).child("status").setValue(status, (error, ref) -> {
             if (error != null) {
-                System.err.println("❌ Failed to update requirement status " + id + ": " + error.getMessage());
+                _logger.error("❌ Failed to update requirement status {}: {}", id, error.getMessage());
+                callback.accept(false, "Status update failed: " + error.getMessage());
             } else {
-                System.out.println("✅ Requirement " + id + " status updated to " + status);
+                _logger.info("✅ Requirement {} status updated to {}", id, status);
+                callback.accept(true, "Status updated: " + id);
             }
         });
     }
 
     public void saveChatMessage(String projectId, String sender, String message, String type) {
+        saveChatMessage(projectId, sender, message, type, (chatId, error) -> {});
+    }
+
+    public void saveChatMessage(String projectId, String sender, String message, String type, BiConsumer<String, String> callback) {
+        if (!isInitialized) {
+            callback.accept(null, "Firebase not initialized");
+            return;
+        }
         Map<String, Object> chatData = new HashMap<>();
         chatData.put("projectId", projectId);
         chatData.put("sender", sender);
         chatData.put("message", message);
         chatData.put("type", type);
         chatData.put("timestamp", System.currentTimeMillis());
-        db.getReference("projects").child(projectId).child("chat").push().setValue(chatData, (error, ref) -> {
+        DatabaseReference chatRef = db.getReference("projects").child(projectId).child("chat").push();
+        String chatId = chatRef.getKey();
+        chatRef.setValue(chatData, (error, ref) -> {
             if (error != null) {
-                System.err.println("❌ Failed to save chat message for " + projectId + ": " + error.getMessage());
+                _logger.error("❌ Failed to save chat message for {}: {}", projectId, error.getMessage());
+                callback.accept(null, "Chat save failed: " + error.getMessage());
             } else {
-                System.out.println("✅ Chat message saved for project " + projectId);
+                _logger.info("✅ Chat message saved for project {}", projectId);
+                callback.accept(chatId, null);
             }
         });
     }
 
     public void saveUser(User user) {
-        if (user != null) {
-            String userKey = resolveUserKey(user);
-            if (userKey != null) {
-                db.getReference("users").child(userKey).setValue(user, (error, ref) -> {
-                    if (error != null) {
-                        System.err.println("❌ Failed to save user " + userKey + ": " + error.getMessage());
-                    } else {
-                        System.out.println("✅ User " + userKey + " saved to Firebase");
-                    }
-                });
-            }
+        saveUser(user, (success, message) -> {});
+    }
+
+    public void saveUser(User user, BiConsumer<Boolean, String> callback) {
+        if (user == null) {
+            callback.accept(false, "User is null");
+            return;
+        }
+        if (!isInitialized) {
+            callback.accept(false, "Firebase not initialized");
+            return;
+        }
+        String userKey = resolveUserKey(user);
+        if (userKey != null) {
+            db.getReference("users").child(userKey).setValue(user, (error, ref) -> {
+                if (error != null) {
+                    _logger.error("❌ Failed to save user {}: {}", userKey, error.getMessage());
+                    callback.accept(false, "User save failed: " + error.getMessage());
+                } else {
+                    _logger.info("✅ User {} saved to Firebase", userKey);
+                    callback.accept(true, "User saved: " + userKey);
+                }
+            });
+        } else {
+            callback.accept(false, "Could not resolve user key");
         }
     }
 
@@ -231,7 +314,10 @@ public class FirebaseService {
                     public void onCancelled(DatabaseError error) { future.completeExceptionally(error.toException()); }
                 });
             return future.get();
-        } catch (Exception e) { return null; }
+        } catch (Exception e) {
+            _logger.error("Error getting user by username {}: {}", username, e.getMessage());
+            return null;
+        }
     }
 
     public User getUserByEmail(String email) {
@@ -254,7 +340,10 @@ public class FirebaseService {
                     public void onCancelled(DatabaseError error) { future.completeExceptionally(error.toException()); }
                 });
             return future.get();
-        } catch (Exception e) { return null; }
+        } catch (Exception e) {
+            _logger.error("Error getting user by email {}: {}", email, e.getMessage());
+            return null;
+        }
     }
 
     public List<User> getAllUsers() {
@@ -275,10 +364,21 @@ public class FirebaseService {
                 @Override public void onCancelled(DatabaseError error) { future.completeExceptionally(error.toException()); }
             });
             return future.get();
-        } catch (Exception e) { return new ArrayList<>(); }
+        } catch (Exception e) {
+            _logger.error("Error getting all users: {}", e.getMessage());
+            return new ArrayList<>();
+        }
     }
 
     public void sendNotification(String recipient, String title, String message, String type) {
+        sendNotification(recipient, title, message, type, (success, msg) -> {});
+    }
+
+    public void sendNotification(String recipient, String title, String message, String type, BiConsumer<Boolean, String> callback) {
+        if (!isInitialized) {
+            callback.accept(false, "Firebase not initialized");
+            return;
+        }
         Map<String, Object> notification = new HashMap<>();
         notification.put("recipient", recipient);
         notification.put("title", title);
@@ -288,9 +388,11 @@ public class FirebaseService {
         notification.put("read", false);
         db.getReference("notifications").push().setValue(notification, (error, ref) -> {
             if (error != null) {
-                System.err.println("❌ Failed to send notification to " + recipient + ": " + error.getMessage());
+                _logger.error("❌ Failed to send notification to {}: {}", recipient, error.getMessage());
+                callback.accept(false, "Notification send failed: " + error.getMessage());
             } else {
-                System.out.println("✅ Notification sent to " + recipient);
+                _logger.info("✅ Notification sent to {}", recipient);
+                callback.accept(true, "Notification sent");
             }
         });
     }
@@ -299,17 +401,31 @@ public class FirebaseService {
      * Update user in Firebase
      */
     public void updateUser(User user) {
-        if (user != null) {
-            String userKey = resolveUserKey(user);
-            if (userKey != null) {
-                db.getReference("users").child(userKey).setValue(user, (error, ref) -> {
-                    if (error != null) {
-                        System.err.println("❌ Failed to update user " + userKey + ": " + error.getMessage());
-                    } else {
-                        System.out.println("✅ User " + userKey + " updated in Firebase");
-                    }
-                });
-            }
+        updateUser(user, (success, message) -> {});
+    }
+
+    public void updateUser(User user, BiConsumer<Boolean, String> callback) {
+        if (user == null) {
+            callback.accept(false, "User is null");
+            return;
+        }
+        if (!isInitialized) {
+            callback.accept(false, "Firebase not initialized");
+            return;
+        }
+        String userKey = resolveUserKey(user);
+        if (userKey != null) {
+            db.getReference("users").child(userKey).setValue(user, (error, ref) -> {
+                if (error != null) {
+                    _logger.error("❌ Failed to update user {}: {}", userKey, error.getMessage());
+                    callback.accept(false, "User update failed: " + error.getMessage());
+                } else {
+                    _logger.info("✅ User {} updated in Firebase", userKey);
+                    callback.accept(true, "User updated: " + userKey);
+                }
+            });
+        } else {
+            callback.accept(false, "Could not resolve user key");
         }
     }
 
@@ -357,6 +473,7 @@ public class FirebaseService {
             });
             return future.get();
         } catch (Exception e) {
+            _logger.error("Error getting user by ID {}: {}", userId, e.getMessage());
             return null;
         }
     }
@@ -367,11 +484,21 @@ public class FirebaseService {
      * Save security audit report to Firebase
      */
     public void saveSecurityAudit(Map<String, Object> report) {
+        saveSecurityAuditReport(report, (success, message) -> {});
+    }
+
+    public void saveSecurityAuditReport(Map<String, Object> report, BiConsumer<Boolean, String> callback) {
+        if (!isInitialized) {
+            callback.accept(false, "Firebase not initialized");
+            return;
+        }
         db.getReference("security").child("audits").push().setValue(report, (error, ref) -> {
             if (error != null) {
-                System.err.println("❌ Failed to save security audit: " + error.getMessage());
+                _logger.error("❌ Failed to save security audit: {}", error.getMessage());
+                callback.accept(false, "Audit save failed");
             } else {
-                System.out.println("✅ Security audit saved to Firebase");
+                _logger.info("✅ Security audit saved to Firebase");
+                callback.accept(true, "Audit saved");
             }
         });
     }
@@ -384,9 +511,9 @@ public class FirebaseService {
     public void saveCostReport(Map<String, Object> report) {
         db.getReference("intelligence").child("costs").push().setValue(report, (error, ref) -> {
             if (error != null) {
-                System.err.println("❌ Failed to save cost report: " + error.getMessage());
+                _logger.error("❌ Failed to save cost report: {}", error.getMessage());
             } else {
-                System.out.println("✅ Cost report saved to Firebase");
+                _logger.info("✅ Cost report saved to Firebase");
             }
         });
     }
@@ -397,9 +524,9 @@ public class FirebaseService {
     public void saveOptimizationRecommendations(Map<String, Object> recommendations) {
         db.getReference("intelligence").child("optimizations").push().setValue(recommendations, (error, ref) -> {
             if (error != null) {
-                System.err.println("❌ Failed to save optimization recommendations: " + error.getMessage());
+                _logger.error("❌ Failed to save optimization recommendations: {}", error.getMessage());
             } else {
-                System.out.println("✅ Optimization recommendations saved to Firebase");
+                _logger.info("✅ Optimization recommendations saved to Firebase");
             }
         });
     }
@@ -410,9 +537,9 @@ public class FirebaseService {
     public void saveBudgetPlan(Map<String, Object> budgetPlan) {
         db.getReference("intelligence").child("budgets").child("active_plan").setValue(budgetPlan, (error, ref) -> {
             if (error != null) {
-                System.err.println("❌ Failed to save budget plan: " + error.getMessage());
+                _logger.error("❌ Failed to save budget plan: {}", error.getMessage());
             } else {
-                System.out.println("✅ Budget plan saved to Firebase");
+                _logger.info("✅ Budget plan saved to Firebase");
             }
         });
     }
@@ -450,9 +577,9 @@ public class FirebaseService {
     public void saveEvolutionReport(Map<String, Object> report) {
         db.getReference("evolution").child("generations").push().setValue(report, (error, ref) -> {
             if (error != null) {
-                System.err.println("❌ Failed to save evolution report: " + error.getMessage());
+                _logger.error("❌ Failed to save evolution report: {}", error.getMessage());
             } else {
-                System.out.println("✅ Evolution report saved to Firebase");
+                _logger.info("✅ Evolution report saved to Firebase");
             }
         });
     }
@@ -463,9 +590,9 @@ public class FirebaseService {
     public void saveLearnedPattern(Map<String, Object> pattern) {
         db.getReference("evolution").child("patterns").push().setValue(pattern, (error, ref) -> {
             if (error != null) {
-                System.err.println("❌ Failed to save learned pattern: " + error.getMessage());
+                _logger.error("❌ Failed to save learned pattern: {}", error.getMessage());
             } else {
-                System.out.println("✅ Learned pattern saved to Firebase");
+                _logger.info("✅ Learned pattern saved to Firebase");
             }
         });
     }
@@ -474,16 +601,29 @@ public class FirebaseService {
      * Update active system configuration based on consensus
      */
     public void updateActiveSystemConfig(Map<String, Object> newConfig) {
-        db.getReference("config").child("main_config").updateChildren(newConfig, (error, ref) -> {
-            if (error != null) {
-                System.err.println("❌ Failed to update active system config: " + error.getMessage());
-            } else {
-                System.out.println("✅ System config updated by consensus");
-                db.getReference("evolution").child("logs").push().setValue(Collections.singletonMap("event", "SYSTEM_CONFIG_UPDATED_BY_CONSENSUS"), (logError, logRef) -> {
+        updateMainConfig(newConfig, (success, message) -> {
+             if (success) {
+                 db.getReference("evolution").child("logs").push().setValue(Collections.singletonMap("event", "SYSTEM_CONFIG_UPDATED_BY_CONSENSUS"), (logError, logRef) -> {
                     if (logError != null) {
-                        System.err.println("❌ Failed to log config update: " + logError.getMessage());
+                        _logger.error("❌ Failed to log config update: {}", logError.getMessage());
                     }
                 });
+             }
+        });
+    }
+
+    public void updateMainConfig(Map<String, Object> newConfig, BiConsumer<Boolean, String> callback) {
+        if (!isInitialized) {
+            callback.accept(false, "Firebase not initialized");
+            return;
+        }
+        db.getReference("config").child("main_config").updateChildren(newConfig, (error, ref) -> {
+            if (error != null) {
+                _logger.error("❌ Failed to update active system config: {}", error.getMessage());
+                callback.accept(false, "Config update failed");
+            } else {
+                _logger.info("✅ System config updated by consensus");
+                callback.accept(true, "Config updated");
             }
         });
     }
@@ -497,9 +637,9 @@ public class FirebaseService {
         }
         db.getReference("ai_dead_letter_queue").push().setValue(item, (error, ref) -> {
             if (error != null) {
-                System.err.println("❌ Failed to save dead-letter item: " + error.getMessage());
+                _logger.error("❌ Failed to save dead-letter item: {}", error.getMessage());
             } else {
-                System.out.println("✅ Dead-letter item archived");
+                _logger.info("✅ Dead-letter item archived");
             }
         });
     }

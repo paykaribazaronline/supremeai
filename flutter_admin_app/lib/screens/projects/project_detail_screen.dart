@@ -157,7 +157,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           Text(helperText,
               style: const TextStyle(fontSize: 11, color: Colors.grey)),
         const SizedBox(height: AppConstants.paddingSmall),
-        TextField(
+        TextFormField(
           controller: controller,
           maxLines: maxLines,
           decoration: InputDecoration(
@@ -190,7 +190,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             style: TextStyle(fontSize: 11, color: Colors.grey)),
         const SizedBox(height: AppConstants.paddingSmall),
         DropdownButtonFormField<String>(
-          value: _selectedTemplate,
+          initialValue: _selectedTemplate,
           items: ['REACT', 'SPRING_BOOT', 'FLUTTER', 'FULL_STACK', 'REST_API', 'PYTHON_FASTAPI', 'NODE_EXPRESS', 'ANDROID_KOTLIN', 'NEXT_JS']
               .map((template) => DropdownMenuItem(
                     value: template,
@@ -430,6 +430,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     if (_projectIdController.text.isEmpty ||
         _descriptionController.text.isEmpty ||
         _repoUrlController.text.isEmpty) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('সব ফিল্ড পূরণ করুন')),
       );

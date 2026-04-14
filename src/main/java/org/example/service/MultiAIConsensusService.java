@@ -33,7 +33,7 @@ public class MultiAIConsensusService {
     private ProviderRegistryService providerRegistryService;
 
     @Autowired(required = false)
-    private AICapabilityRouter capabilityRouter;
+    private UnifiedAIRoutingService routingService;
 
     @Autowired(required = false)
     private AgentDecisionLogger decisionLogger; // L2/L3/L4: log each provider as an agent
@@ -502,12 +502,12 @@ public class MultiAIConsensusService {
         if (providers == null || providers.isEmpty()) {
             return providers;
         }
-        if (capabilityRouter == null) {
+        if (routingService == null) {
             return providers;
         }
 
-        AICapabilityRouter.TaskType taskType = capabilityRouter.inferTaskType(question);
-        List<String> prioritized = capabilityRouter.prioritizeAvailableProviders(taskType, providers);
+        UnifiedAIRoutingService.TaskType taskType = routingService.inferTaskType(question);
+        List<String> prioritized = routingService.prioritizeProviders(taskType, providers);
         if (prioritized.isEmpty()) {
             return providers;
         }

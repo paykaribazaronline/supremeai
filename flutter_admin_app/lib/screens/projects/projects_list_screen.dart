@@ -17,7 +17,9 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      Provider.of<ProjectsProvider>(context, listen: false).fetchProjects();
+      if (mounted) {
+        Provider.of<ProjectsProvider>(context, listen: false).fetchProjects();
+      }
     });
   }
 
@@ -179,7 +181,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.12),
+            color: color.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(999),
           ),
           child: Text(
@@ -195,7 +197,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
@@ -215,7 +217,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
         leading: Container(
           padding: const EdgeInsets.all(AppConstants.paddingSmall),
           decoration: BoxDecoration(
-            color: statusColor.withOpacity(0.1),
+            color: statusColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
           ),
           child: Icon(
@@ -266,7 +268,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                 vertical: 2,
               ),
               decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.1),
+                color: statusColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
               ),
               child: Text(
@@ -328,7 +330,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
       ),
       child: Text(
@@ -378,13 +380,16 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
             child: const Text('না, রাখুন'),
           ),
           TextButton(
-            onPressed: () {
-              Provider.of<ProjectsProvider>(context, listen: false)
-                  .deleteProject(project.id);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('"${project.name}" মুছে ফেলা হয়েছে')),
-              );
+            onPressed: () async {
+              final projectsProvider =
+                  Provider.of<ProjectsProvider>(context, listen: false);
+              await projectsProvider.deleteProject(project.id);
+              if (context.mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('"${project.name}" মুছে ফেলা হয়েছে')),
+                );
+              }
             },
             child:
                 const Text('হ্যাঁ, মুছুন', style: TextStyle(color: Colors.red)),

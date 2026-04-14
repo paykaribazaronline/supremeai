@@ -216,7 +216,7 @@ class _UnifiedAdminScreenState extends State<UnifiedAdminScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [color.withOpacity(0.8), color.withOpacity(0.4)],
+            colors: [color.withValues(alpha: 0.8), color.withValues(alpha: 0.4)],
           ),
           borderRadius: BorderRadius.circular(12),
         ),
@@ -302,7 +302,7 @@ class _UnifiedAdminScreenState extends State<UnifiedAdminScreen> {
             if (category.isNotEmpty)
               Chip(
                 label: Text(category),
-                backgroundColor: Colors.blue.withOpacity(0.2),
+                backgroundColor: Colors.blue.withValues(alpha: 0.2),
               ),
             const SizedBox(height: 12),
             if (config.isNotEmpty) ...[
@@ -314,7 +314,7 @@ class _UnifiedAdminScreenState extends State<UnifiedAdminScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.1),
+                  color: Colors.grey.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: SingleChildScrollView(

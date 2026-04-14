@@ -23,7 +23,6 @@ class _GitOpsScreenState extends State<GitOpsScreen>
   bool _isLoading = true;
   bool _isCommitting = false;
   bool _isPushing = false;
-  String? _error;
 
   @override
   void initState() {
@@ -43,7 +42,6 @@ class _GitOpsScreenState extends State<GitOpsScreen>
   Future<void> _loadAll() async {
     setState(() {
       _isLoading = true;
-      _error = null;
     });
     final results = await Future.wait([
       _apiService.get<Map<String, dynamic>>(Environment.gitStatus),
@@ -57,9 +55,6 @@ class _GitOpsScreenState extends State<GitOpsScreen>
       }
       if (results[1].success) {
         _gitLogs = (results[1].data as List<dynamic>?) ?? [];
-      }
-      if (!results[0].success) {
-        _error = results[0].error ?? 'Git তথ্য লোড করা যায়নি';
       }
     });
   }
@@ -313,7 +308,7 @@ class _GitOpsScreenState extends State<GitOpsScreen>
                   child: ListTile(
                     leading: CircleAvatar(
                       backgroundColor: const Color(AppConstants.primaryColor)
-                          .withOpacity(0.1),
+                          .withValues(alpha: 0.1),
                       child: const Icon(Icons.commit, size: 18),
                     ),
                     title: Text('${log['message'] ?? 'No message'}',

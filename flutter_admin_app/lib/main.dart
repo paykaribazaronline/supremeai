@@ -8,6 +8,7 @@ import 'models/models.dart';
 import 'providers/auth_provider.dart';
 import 'providers/projects_provider.dart';
 import 'providers/metrics_provider.dart';
+import 'providers/theme_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/projects/project_detail_screen.dart';
@@ -32,6 +33,9 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (context) => MetricsProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => ThemeProvider(),
         ),
       ],
       child: const SupremeAIAdminApp(),
@@ -68,98 +72,102 @@ class SupremeAIAdminApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: AppConstants.appName,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(AppConstants.primaryColor),
-          brightness: Brightness.light,
-        ),
-        appBarTheme: const AppBarTheme(
-          elevation: 0,
-          centerTitle: true,
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: const Color(AppConstants.backgroundColor),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-            borderSide: const BorderSide(color: Colors.transparent),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-            borderSide: const BorderSide(color: Colors.transparent),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-            borderSide: const BorderSide(
-              color: Color(AppConstants.primaryColor),
-              width: 2,
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          title: AppConstants.appName,
+          theme: ThemeData(
+            useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(AppConstants.primaryColor),
+              brightness: Brightness.light,
+            ),
+            appBarTheme: const AppBarTheme(
+              elevation: 0,
+              centerTitle: true,
+            ),
+            inputDecorationTheme: InputDecorationTheme(
+              filled: true,
+              fillColor: const Color(AppConstants.backgroundColor),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                borderSide: const BorderSide(color: Colors.transparent),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                borderSide: const BorderSide(color: Colors.transparent),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                borderSide: const BorderSide(
+                  color: Color(AppConstants.primaryColor),
+                  width: 2,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppConstants.paddingMedium,
+                vertical: AppConstants.paddingMedium,
+              ),
+            ),
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(AppConstants.primaryColor),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppConstants.paddingLarge,
+                  vertical: AppConstants.paddingMedium,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                ),
+              ),
             ),
           ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppConstants.paddingMedium,
-            vertical: AppConstants.paddingMedium,
-          ),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(AppConstants.primaryColor),
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppConstants.paddingLarge,
-              vertical: AppConstants.paddingMedium,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+          darkTheme: ThemeData(
+            useMaterial3: true,
+            brightness: Brightness.dark,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(AppConstants.primaryColor),
+              brightness: Brightness.dark,
             ),
           ),
-        ),
-      ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(AppConstants.primaryColor),
-          brightness: Brightness.dark,
-        ),
-      ),
-      themeMode: ThemeMode.light,
-      home: const SplashScreen(),
-      routes: {
-        AppRoutes.login: (context) => const LoginScreen(),
-        AppRoutes.register: (context) => const RegisterScreen(),
-        AppRoutes.home: _dashboardScreen,
-        AppRoutes.projects: _dashboardScreen,
-        AppRoutes.projectNew: _dashboardScreen,
-        AppRoutes.metrics: _dashboardScreen,
-        AppRoutes.settings: _dashboardScreen,
-        AppRoutes.learning: _dashboardScreen,
-        AppRoutes.teaching: _dashboardScreen,
-        AppRoutes.aiProviders: _dashboardScreen,
-        AppRoutes.selfExtension: _dashboardScreen,
-        AppRoutes.alertsLogs: _dashboardScreen,
-        AppRoutes.adminControl: _dashboardScreen,
-        AppRoutes.consensus: _dashboardScreen,
-        AppRoutes.gitOps: _dashboardScreen,
-        AppRoutes.headlessBrowser: _dashboardScreen,
-        AppRoutes.chatHistory: _dashboardScreen,
-        AppRoutes.systemLearning: _dashboardScreen,
-        AppRoutes.quota: _dashboardScreen,
-        AppRoutes.vpn: _dashboardScreen,
-        AppRoutes.resilience: _dashboardScreen,
-        AppRoutes.mlIntelligence: _dashboardScreen,
-        AppRoutes.notifications: _dashboardScreen,
-        AppRoutes.analytics: _dashboardScreen,
-        AppRoutes.decisionHistory: _dashboardScreen,
-        AppRoutes.phases: _dashboardScreen,
-        AppRoutes.tracing: _dashboardScreen,
-        AppRoutes.offlineChat: _dashboardScreen,
+          themeMode: themeProvider.themeMode,
+          home: const SplashScreen(),
+          routes: {
+            AppRoutes.login: (context) => const LoginScreen(),
+            AppRoutes.register: (context) => const RegisterScreen(),
+            AppRoutes.home: _dashboardScreen,
+            AppRoutes.projects: _dashboardScreen,
+            AppRoutes.projectNew: _dashboardScreen,
+            AppRoutes.metrics: _dashboardScreen,
+            AppRoutes.settings: _dashboardScreen,
+            AppRoutes.learning: _dashboardScreen,
+            AppRoutes.teaching: _dashboardScreen,
+            AppRoutes.aiProviders: _dashboardScreen,
+            AppRoutes.selfExtension: _dashboardScreen,
+            AppRoutes.alertsLogs: _dashboardScreen,
+            AppRoutes.adminControl: _dashboardScreen,
+            AppRoutes.consensus: _dashboardScreen,
+            AppRoutes.gitOps: _dashboardScreen,
+            AppRoutes.headlessBrowser: _dashboardScreen,
+            AppRoutes.chatHistory: _dashboardScreen,
+            AppRoutes.systemLearning: _dashboardScreen,
+            AppRoutes.quota: _dashboardScreen,
+            AppRoutes.vpn: _dashboardScreen,
+            AppRoutes.resilience: _dashboardScreen,
+            AppRoutes.mlIntelligence: _dashboardScreen,
+            AppRoutes.notifications: _dashboardScreen,
+            AppRoutes.analytics: _dashboardScreen,
+            AppRoutes.decisionHistory: _dashboardScreen,
+            AppRoutes.phases: _dashboardScreen,
+            AppRoutes.tracing: _dashboardScreen,
+            AppRoutes.offlineChat: _dashboardScreen,
+          },
+          onGenerateRoute: _onGenerateRoute,
+          onUnknownRoute: _onUnknownRoute,
+          debugShowCheckedModeBanner: false,
+        );
       },
-      onGenerateRoute: _onGenerateRoute,
-      onUnknownRoute: _onUnknownRoute,
-      debugShowCheckedModeBanner: false,
     );
   }
 }

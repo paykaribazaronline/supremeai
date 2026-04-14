@@ -270,6 +270,37 @@ public class QuotaService {
     }
     
     /**
+     * Get detailed status for each provider
+     */
+    public Map<String, Map<String, Object>> getQuotaStatus() {
+        syncConfiguredProviders();
+        Map<String, Map<String, Object>> status = new LinkedHashMap<>();
+        for (Map.Entry<String, Quota> entry : quotas.entrySet()) {
+            Quota q = entry.getValue();
+            Map<String, Object> details = new LinkedHashMap<>();
+            details.put("status", q.getStatus());
+            details.put("usage_percentage", q.getUsagePercentage());
+            details.put("remaining_percentage", q.getRemainingPercentage());
+            details.put("requests_today", q.getRequestsUsedToday());
+            details.put("daily_limit", q.getDailyLimit());
+            details.put("requests_month", q.getRequestsUsedThisMonth());
+            details.put("monthly_limit", q.getMonthlyLimit());
+            status.put(entry.getKey(), details);
+        }
+        return status;
+    }
+
+    /**
+     * Get total remaining quota across all providers
+     */
+    public int getTotalRemainingQuota() {
+        syncConfiguredProviders();
+        return (int) quotas.values().stream()
+                .mapToLong(Quota::getRemainingRequests)
+                .sum();
+    }
+
+    /**
      * Get summary statistics
      */
     public Map<String, Object> getQuotaSummary() {

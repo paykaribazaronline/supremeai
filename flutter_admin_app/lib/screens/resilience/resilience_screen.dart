@@ -256,7 +256,7 @@ class _ResilienceScreenState extends State<ResilienceScreen>
                   margin: const EdgeInsets.only(bottom: 12),
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: stateColor.withOpacity(0.1),
+                      backgroundColor: stateColor.withValues(alpha: 0.1),
                       child: Icon(stateIcon, color: stateColor),
                     ),
                     title: Text(name),
@@ -314,7 +314,7 @@ class _ResilienceScreenState extends State<ResilienceScreen>
                       backgroundColor: (status == 'ACTIVE' || status == 'UP'
                               ? Colors.green
                               : Colors.orange)
-                          .withOpacity(0.1),
+                          .withValues(alpha: 0.1),
                     ),
                   ],
                 ),
@@ -353,8 +353,8 @@ class _ResilienceScreenState extends State<ResilienceScreen>
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(colors: [
-            Color(color).withOpacity(0.1),
-            Color(color).withOpacity(0.05)
+            Color(color).withValues(alpha: 0.1),
+            Color(color).withValues(alpha: 0.05)
           ]),
           borderRadius: BorderRadius.circular(12),
         ),

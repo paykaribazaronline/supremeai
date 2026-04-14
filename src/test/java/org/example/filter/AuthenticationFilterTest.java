@@ -18,6 +18,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -45,6 +47,7 @@ public class AuthenticationFilterTest {
     private AuthenticationService authenticationService;
 
     private AuthenticationFilter authenticationFilter;
+    private StringWriter responseContent;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -53,6 +56,12 @@ public class AuthenticationFilterTest {
         lenient().when(request.getDispatcherType()).thenReturn(DispatcherType.REQUEST);
         // Ensure the "already filtered" attribute returns null so filter is not skipped
         lenient().when(request.getAttribute(any(String.class))).thenReturn(null);
+        
+        // Mock getWriter() to avoid NPE during failure responses
+        responseContent = new StringWriter();
+        PrintWriter writer = new PrintWriter(responseContent);
+        lenient().when(response.getWriter()).thenReturn(writer);
+
         // Inject mock auth service so dev-mode bypass is disabled.
         // "valid-token" is accepted; everything else throws (rejected).
         User validUser = new User();
@@ -130,48 +139,56 @@ public class AuthenticationFilterTest {
 
     @Test
     void testProtectedPathRejectsMissingToken() throws ServletException, IOException {
-        // JWT enforcement disabled — all requests pass through regardless of token.
+        // Given
         when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
         when(request.getHeader("Authorization")).thenReturn(null);
 
+        // When
         authenticationFilter.doFilter(request, response, filterChain);
 
-        verify(filterChain).doFilter(request, response);
-        verify(response, never()).setStatus(anyInt());
+        // Then
+        verify(response).setStatus(401);
+        verify(filterChain, never()).doFilter(any(), any());
     }
 
     @Test
     void testProtectedPathRejectsInvalidToken() throws ServletException, IOException {
-        // JWT enforcement disabled — all requests pass through regardless of token.
+        // Given
         when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
         when(request.getHeader("Authorization")).thenReturn("Bearer invalid-token");
 
+        // When
         authenticationFilter.doFilter(request, response, filterChain);
 
-        verify(filterChain).doFilter(request, response);
-        verify(response, never()).setStatus(anyInt());
+        // Then
+        verify(response).setStatus(401);
+        verify(filterChain, never()).doFilter(any(), any());
     }
 
     @Test
     void testInvalidAuthorizationHeaderFormat() throws ServletException, IOException {
-        // JWT enforcement disabled — all requests pass through regardless of token.
+        // Given
         when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
         when(request.getHeader("Authorization")).thenReturn("InvalidFormat");
 
+        // When
         authenticationFilter.doFilter(request, response, filterChain);
 
-        verify(filterChain).doFilter(request, response);
+        // Then
+        verify(response).setStatus(401);
     }
 
     @Test
     void testBasicAuthNotSupported() throws ServletException, IOException {
-        // JWT enforcement disabled — all requests pass through regardless of token.
+        // Given
         when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
         when(request.getHeader("Authorization")).thenReturn("Basic dXNlcjpwYXNz");
 
+        // When
         authenticationFilter.doFilter(request, response, filterChain);
 
-        verify(filterChain).doFilter(request, response);
+        // Then
+        verify(response).setStatus(401);
     }
 
     @Test
@@ -222,25 +239,28 @@ public class AuthenticationFilterTest {
 
     @Test
     void testTokenWithExtraWhitespace() throws ServletException, IOException {
-        // JWT enforcement disabled — all requests pass through regardless of token.
+        // Given
         when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
         when(request.getHeader("Authorization")).thenReturn("Bearer  valid-token  ");
 
+        // When
         authenticationFilter.doFilter(request, response, filterChain);
 
-        verify(filterChain).doFilter(request, response);
+        // Then
+        verify(response).setStatus(401);
     }
 
     @Test
     void testEmptyBearerToken() throws ServletException, IOException {
-        // JWT enforcement disabled — all requests pass through regardless of token.
+        // Given
         when(request.getRequestURI()).thenReturn("/api/v1/data/stats");
         when(request.getHeader("Authorization")).thenReturn("Bearer ");
 
+        // When
         authenticationFilter.doFilter(request, response, filterChain);
 
-        verify(filterChain).doFilter(request, response);
-        verify(response, never()).setStatus(anyInt());
+        // Then
+        verify(response).setStatus(401);
     }
 
     @Test
@@ -258,27 +278,29 @@ public class AuthenticationFilterTest {
 
     @Test
     void testAdminHtmlRedirectsToLoginWhenMissingToken() throws ServletException, IOException {
-        // JWT enforcement disabled — admin.html passes through without redirecting.
+        // Given
         when(request.getRequestURI()).thenReturn("/admin.html");
         when(request.getHeader("Authorization")).thenReturn(null);
         when(request.getHeader("Accept")).thenReturn("text/html");
 
+        // When
         authenticationFilter.doFilter(request, response, filterChain);
 
-        verify(filterChain).doFilter(request, response);
-        verify(response, never()).sendRedirect(any());
+        // Then
+        verify(response).sendRedirect(argThat(s -> s.contains("/login.html")));
     }
 
     @Test
     void testAdminApiRejectsNonAdminUser() throws ServletException, IOException {
-        // JWT enforcement disabled — admin API paths pass through without role checks.
+        // Given
         when(request.getRequestURI()).thenReturn("/api/admin/control/mode");
         when(request.getHeader("Authorization")).thenReturn("Bearer " + USER_TOKEN);
 
+        // When
         authenticationFilter.doFilter(request, response, filterChain);
 
-        verify(filterChain).doFilter(request, response);
-        verify(response, never()).setStatus(anyInt());
+        // Then
+        verify(response).setStatus(403);
     }
 
     @Test

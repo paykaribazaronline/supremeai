@@ -15,8 +15,10 @@ class _MetricsScreenState extends State<MetricsScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      Provider.of<MetricsProvider>(context, listen: false).fetchMetrics();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Provider.of<MetricsProvider>(context, listen: false).fetchMetrics();
+      }
     });
   }
 

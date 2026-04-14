@@ -465,7 +465,7 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
         color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -531,10 +531,10 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
           Container(
             padding: const EdgeInsets.all(AppConstants.paddingMedium),
             decoration: BoxDecoration(
-              color: const Color(AppConstants.infoColor).withOpacity(0.1),
+              color: const Color(AppConstants.infoColor).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
               border: Border.all(
-                  color: const Color(AppConstants.infoColor).withOpacity(0.3)),
+                  color: const Color(AppConstants.infoColor).withValues(alpha: 0.3)),
             ),
             child: const Row(
               children: [
@@ -664,7 +664,7 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: const Color(AppConstants.primaryColor)
-                                .withOpacity(0.1),
+                                .withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(
                                 AppConstants.radiusMedium),
                           ),
@@ -810,9 +810,9 @@ class _OfflineChatScreenState extends State<OfflineChatScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(text,
           style: TextStyle(

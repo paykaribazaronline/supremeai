@@ -1,5 +1,6 @@
 package org.example.api;
 
+import org.example.model.APIProvider;
 import org.example.service.AIProviderDiscoveryService;
 import org.example.service.FirebaseService;
 import com.sun.net.httpserver.HttpExchange;
@@ -52,12 +53,12 @@ public class ProviderManagementHandler implements HttpHandler {
     private void handleGet(String path, HttpExchange exchange) throws IOException {
         if (path.equals("/api/providers/available")) {
             // List all available AI providers from internet
-            List<AIProviderDiscoveryService.AIProvider> providers = discoveryService.discoverAvailableProviders();
+            List<APIProvider> providers = discoveryService.discoverAvailableProviders();
             sendJson(exchange, 200, providers);
         } 
         else if (path.equals("/api/providers/configured")) {
             // List currently configured providers
-            List<AIProviderDiscoveryService.AIProvider> providers = discoveryService.getConfiguredProviders();
+            List<APIProvider> providers = discoveryService.getConfiguredProviders();
             sendJson(exchange, 200, providers);
         } 
         else {

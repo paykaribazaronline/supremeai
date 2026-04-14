@@ -300,7 +300,7 @@ class _TeachingScreenState extends State<TeachingScreen>
     return Container(
       padding: const EdgeInsets.all(AppConstants.paddingLarge),
       decoration: BoxDecoration(
-        color: const Color(AppConstants.primaryColor).withOpacity(0.08),
+        color: const Color(AppConstants.primaryColor).withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
       ),
       child: Row(

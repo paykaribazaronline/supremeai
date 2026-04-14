@@ -63,6 +63,7 @@ class AdminControlScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // Auto-redirect to new unified admin screen
     Future.microtask(() {
+      if (!context.mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => const UnifiedAdminScreen(),

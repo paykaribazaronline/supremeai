@@ -192,7 +192,7 @@ class _SelfExtensionScreenState extends State<SelfExtensionScreen> {
       padding: const EdgeInsets.all(AppConstants.paddingLarge),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.deepPurple, Colors.deepPurple.withOpacity(0.7)],
+          colors: [Colors.deepPurple, Colors.deepPurple.withValues(alpha: 0.7)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -440,7 +440,7 @@ class _SelfExtensionScreenState extends State<SelfExtensionScreen> {
         ),
         const SizedBox(height: AppConstants.paddingMedium),
         Card(
-          color: const Color(AppConstants.successColor).withOpacity(0.05),
+          color: const Color(AppConstants.successColor).withValues(alpha: 0.05),
           child: Padding(
             padding: const EdgeInsets.all(AppConstants.paddingLarge),
             child: Column(

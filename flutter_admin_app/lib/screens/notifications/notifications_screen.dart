@@ -19,7 +19,10 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   List<dynamic> _history = [];
   bool _isLoading = true;
   bool _isSending = false;
-  String? _error;
+  bool _isBudgetLoading = false;
+
+  Map<String, dynamic> _smsBudget = {};
+  Map<String, dynamic> _smsStats = {};
 
   // Send notification form
   final _recipientController = TextEditingController();
@@ -30,7 +33,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _loadAll();
   }
 
@@ -46,25 +49,39 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   Future<void> _loadAll() async {
     setState(() {
       _isLoading = true;
-      _error = null;
     });
     final results = await Future.wait([
       _apiService.get<List<dynamic>>(Environment.notificationChannels),
       _apiService.get<List<dynamic>>(Environment.notificationHistory),
+      _apiService.get<Map<String, dynamic>>(Environment.notificationSmsBudget),
+      _apiService.get<Map<String, dynamic>>(Environment.notificationSmsStats),
     ]);
     if (!mounted) return;
     setState(() {
       _isLoading = false;
-      if (results[0].success) _channels = results[0].data ?? [];
-      if (results[1].success) _history = results[1].data ?? [];
+      if (results[0].success) {
+        _channels = (results[0].data as List<dynamic>?) ?? [];
+      }
+      if (results[1].success) {
+        _history = (results[1].data as List<dynamic>?) ?? [];
+      }
+      if (results[2].success) {
+        _smsBudget = (results[2].data as Map<String, dynamic>?) ?? {};
+      }
+      if (results[3].success) {
+        _smsStats = (results[3].data as Map<String, dynamic>?) ?? {};
+      }
       if (!results[0].success && !results[1].success) {
-        _error = 'নোটিফিকেশন তথ্য লোড করা যায়নি';
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('নোটিফিকেশন তথ্য লোড করা যায়নি'), backgroundColor: Colors.red),
+        );
       }
     });
   }
 
   Future<void> _sendNotification() async {
     if (_messageController.text.trim().isEmpty) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('মেসেজ লিখুন'), backgroundColor: Colors.orange),
@@ -119,6 +136,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
 
   Future<void> _escalateNotification() async {
     if (_messageController.text.trim().isEmpty) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('এসক্যালেশনের জন্য মেসেজ লিখুন'),
@@ -162,10 +180,12 @@ class _NotificationsScreenState extends State<NotificationsScreen>
         title: const Text('নোটিফিকেশন'),
         bottom: TabBar(
           controller: _tabController,
+          isScrollable: true,
           tabs: const [
             Tab(icon: Icon(Icons.send), text: 'পাঠান'),
             Tab(icon: Icon(Icons.history), text: 'ইতিহাস'),
             Tab(icon: Icon(Icons.settings_input_component), text: 'চ্যানেল'),
+            Tab(icon: Icon(Icons.account_balance_wallet), text: 'বাজেট (SMS)'),
           ],
         ),
         actions: [
@@ -182,7 +202,8 @@ class _NotificationsScreenState extends State<NotificationsScreen>
               children: [
                 _buildSendTab(),
                 _buildHistoryTab(),
-                _buildChannelsTab()
+                _buildChannelsTab(),
+                _buildSmsBudgetTab(),
               ],
             ),
     );
@@ -203,7 +224,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                   style: TextStyle(fontSize: 12, color: Colors.grey)),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _selectedChannel,
+                initialValue: _selectedChannel,
                 decoration: const InputDecoration(
                   labelText: 'চ্যানেল বেছে নিন',
                   helperText: '(কোন মাধ্যমে পাঠাবেন)',
@@ -221,7 +242,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
               ),
               const SizedBox(height: 12),
               if (_selectedChannel != 'escalate')
-                TextField(
+                TextFormField(
                   controller: _recipientController,
                   decoration: const InputDecoration(
                     labelText: 'প্রাপক',
@@ -233,7 +254,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                 ),
               if (_selectedChannel != 'escalate' && _selectedChannel != 'sms') ...[
                 const SizedBox(height: 12),
-                TextField(
+                TextFormField(
                   controller: _subjectController,
                   decoration: const InputDecoration(
                     labelText: 'বিষয়',
@@ -244,7 +265,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                 ),
               ],
               const SizedBox(height: 12),
-              TextField(
+              TextFormField(
                 controller: _messageController,
                 maxLines: 4,
                 decoration: InputDecoration(
@@ -347,6 +368,183 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                 );
               },
             ),
+    );
+  }
+
+  Widget _buildSmsBudgetTab() {
+    final dailyBudget = _smsBudget['dailyBudget'] ?? 0.0;
+    final spentToday = _smsStats['spentToday'] ?? 0.0;
+    final remaining = _smsStats['remainingBudget'] ?? 0.0;
+    final percentUsed = _smsStats['percentUsed'] ?? 0.0;
+    final messagesRemaining = _smsStats['messagesRemaining'] ?? 0;
+
+    return RefreshIndicator(
+      onRefresh: _loadAll,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppConstants.paddingLarge),
+        child: Column(
+          children: [
+            _buildSmsStatsCard(spentToday, dailyBudget, percentUsed,
+                remaining, messagesRemaining),
+            const SizedBox(height: 16),
+            _buildSmsBudgetForm(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSmsStatsCard(double spent, double budget, double percent,
+      double remaining, int msgLeft) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppConstants.paddingLarge),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('SMS বাজেট স্ট্যাটাস',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('আজকের খরচ:'),
+                Text('\$${spent.toStringAsFixed(2)}',
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('দৈনিক বাজেট:'),
+                Text('\$${budget.toStringAsFixed(2)}',
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            LinearProgressIndicator(
+              value: (percent / 100).clamp(0.0, 1.0),
+              backgroundColor: Colors.grey[200],
+              valueColor: AlwaysStoppedAnimation<Color>(
+                  percent > 90 ? Colors.red : Colors.blue),
+              minHeight: 10,
+            ),
+            const SizedBox(height: 8),
+            Text('${percent.toStringAsFixed(1)}% ব্যবহৃত হয়েছে',
+                style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            const Divider(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('অবশিষ্ট বাজেট:'),
+                Text('\$${remaining.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.green)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('অবশিষ্ট মেসেজ (প্রায়):'),
+                Text('$msgLeft টি',
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSmsBudgetForm() {
+    final budgetController = TextEditingController(
+        text: _smsBudget['dailyBudget']?.toString() ?? '50.00');
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppConstants.paddingLarge),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('বাজেট পরিবর্তন করুন',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text('(অ্যাডমিন কেবল)',
+                style: TextStyle(fontSize: 11, color: Colors.grey)),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: budgetController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'নতুন দৈনিক বাজেট (\$)',
+                hintText: '50.00',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.attach_money),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _isBudgetLoading
+                        ? null
+                        : () async {
+                            final newBudget =
+                                double.tryParse(budgetController.text);
+                            if (newBudget == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('সঠিক সংখ্যা লিখুন')));
+                              return;
+                            }
+                            setState(() => _isBudgetLoading = true);
+                            final resp = await _apiService.post(
+                                Environment.notificationSmsBudgetSet,
+                                data: {'dailyBudget': newBudget});
+                            if (!mounted) return;
+                            setState(() => _isBudgetLoading = false);
+                            if (resp.success) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('বাজেট আপডেট হয়েছে')));
+                              _loadAll();
+                            }
+                          },
+                    child: const Text('বাজেট সেট করুন'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.refresh, color: Colors.orange),
+                  tooltip: 'খরচ রিসেট করুন',
+                  onPressed: () async {
+                    final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                              title: const Text('রিসেট করবেন?'),
+                              content: const Text(
+                                  'আজকের SMS খরচ কি ০ করতে চান? এটি বাজেট ট্র্যাকার রিসেট করবে।'),
+                              actions: [
+                                TextButton(
+                                    onPressed: () => Navigator.pop(ctx, false),
+                                    child: const Text('না')),
+                                TextButton(
+                                    onPressed: () => Navigator.pop(ctx, true),
+                                    child: const Text('হ্যাঁ')),
+                              ],
+                            ));
+                    if (confirm == true) {
+                      await _apiService
+                          .post(Environment.notificationSmsBudgetReset);
+                      _loadAll();
+                    }
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 

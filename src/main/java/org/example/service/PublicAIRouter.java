@@ -26,16 +26,19 @@ public class PublicAIRouter {
     private final BudgetManager budgetManager;
     private final AIAPIService apiService;
     private final FirebaseService firebaseService;
-    
+    private final UnifiedAIRoutingService routingService;
+
     // Metrics tracking
     private final Map<String, RouterMetrics> metrics;
-    
+
     public PublicAIRouter(AIAccountManager accountManager, BudgetManager budgetManager,
-                          AIAPIService apiService, FirebaseService firebase) {
+                          AIAPIService apiService, FirebaseService firebase,
+                          UnifiedAIRoutingService routingService) {
         this.accountManager = accountManager;
         this.budgetManager = budgetManager;
         this.apiService = apiService;
         this.firebaseService = firebase;
+        this.routingService = routingService;
         this.metrics = new ConcurrentHashMap<>();
     }
     
@@ -195,27 +198,35 @@ public class PublicAIRouter {
     private APIResponse sendToAPI(AIAccount account, String prompt, Map<String, String> metadata) {
         APIResponse response = new APIResponse();
         
-        // TODO: Implement actual API call via apiService
-        // This would call the AIAPIService with account.getApiKey()
-        
-        // For now: Mock response
-        response.success = true;
-        response.content = "Mock response from " + account.getProvider();
-        response.tokensUsed = 150;
-        response.costEstimate = 0.0015;  // Rough estimate
-        
-        // In production:
-        // try {
-        //     response = apiService.callAPI(
-        //         account.getApiKey(),
-        //         account.getProvider(),
-        //         prompt,
-        //         metadata
-        //     );
-        // } catch (Exception e) {
-        //     response.success = false;
-        //     response.error = e.getMessage();
-        // }
+        try {
+            long start = System.currentTimeMillis();
+            String content = apiService.callProvider(account.getProvider(), prompt);
+            long duration = System.currentTimeMillis() - start;
+            
+            if (content != null && !content.startsWith("[ERROR]")) {
+                response.success = true;
+                response.content = content;
+                response.tokensUsed = 150; // Mock or actual tokens
+                response.costEstimate = 0.0015; // Mock or actual cost
+                
+                // Record to unified routing service for learning
+                if (routingService != null) {
+                    UnifiedAIRoutingService.TaskType task = routingService.inferTaskType(prompt);
+                    routingService.recordPerformance(account.getProvider(), task, true, duration, 0.9);
+                }
+            } else {
+                response.success = false;
+                response.error = content != null ? content : "Unknown error from " + account.getProvider();
+                
+                if (routingService != null) {
+                    UnifiedAIRoutingService.TaskType task = routingService.inferTaskType(prompt);
+                    routingService.recordPerformance(account.getProvider(), task, false, duration, 0.0);
+                }
+            }
+        } catch (Exception e) {
+            response.success = false;
+            response.error = e.getMessage();
+        }
         
         // Track rate limiting
         account.recordRequest();

@@ -53,6 +53,9 @@ dependencies:
   # Unified admin dashboard rendering for mobile builds
   webview_flutter: ^4.10.0
 
+  # Web support
+  web: ^1.0.0
+
   # Additional useful packages
   cupertino_icons: ^1.0.5
 

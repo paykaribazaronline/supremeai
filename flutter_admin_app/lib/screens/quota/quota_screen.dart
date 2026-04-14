@@ -202,7 +202,7 @@ class _QuotaScreenState extends State<QuotaScreen> {
                   color: isHealthy ? Colors.green : Colors.red, size: 18),
               label: Text(isHealthy ? 'স্বাভাবিক' : 'সমস্যা আছে'),
               backgroundColor:
-                  (isHealthy ? Colors.green : Colors.red).withOpacity(0.1),
+                  (isHealthy ? Colors.green : Colors.red).withValues(alpha: 0.1),
             ),
           ],
         ),
@@ -273,7 +273,7 @@ class _QuotaScreenState extends State<QuotaScreen> {
   Widget _buildStatCard(String title, String value, IconData icon, int color) {
     return Card(
       elevation: 0,
-      color: Color(color).withOpacity(0.08),
+      color: Color(color).withValues(alpha: 0.08),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(

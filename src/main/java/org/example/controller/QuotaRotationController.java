@@ -1,6 +1,6 @@
 package org.example.controller;
 
-import org.example.service.QuotaRotationService;
+import org.example.service.QuotaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ public class QuotaRotationController {
     private static final Logger logger = LoggerFactory.getLogger(QuotaRotationController.class);
     
     @Autowired
-    private QuotaRotationService quotaService;
+    private QuotaService quotaService;
     
     /**
      * GET /api/quotas/summary
@@ -68,22 +68,23 @@ public class QuotaRotationController {
     @GetMapping("/next-provider")
     public ResponseEntity<Map<String, Object>> getNextProvider() {
         try {
-            String providerId = quotaService.getNextProvider();
-            if (providerId == null) {
+            List<String> available = quotaService.getAvailableProviders();
+            if (available.isEmpty()) {
                 return ResponseEntity.ok(Map.of(
                     "status", "⚠️ No Providers",
-                    "message", "No AI providers are currently configured"
+                    "message", "No AI providers are currently configured or available"
                 ));
             }
+            
+            String providerId = available.get(0); // Simplification for replacement
             
             Map<String, Object> response = new LinkedHashMap<>();
             response.put("status", "✅ Selected");
             response.put("provider", providerId);
-            response.put("display_name", quotaService.getProviderDisplayName(providerId));
-            response.put("quota_remaining", "check status endpoint");
-            response.put("quota_status", "check status endpoint");
+            response.put("display_name", providerId);
+            response.put("quota_remaining", quotaService.getRemainingQuotaPercent(providerId) + "%");
             
-            logger.info("🔄 Next provider selected: {}", quotaService.getProviderDisplayName(providerId));
+            logger.info("🔄 Next provider selected: {}", providerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.error("❌ Error selecting next provider: ", e);
@@ -99,21 +100,25 @@ public class QuotaRotationController {
     @GetMapping("/optimal-provider")
     public ResponseEntity<Map<String, Object>> getOptimalProvider() {
         try {
-            String providerId = quotaService.getOptimalProvider();
-            if (providerId == null) {
+            List<String> available = quotaService.getAvailableProviders();
+            if (available.isEmpty()) {
                 return ResponseEntity.ok(Map.of(
                     "status", "⚠️ No Providers",
                     "message", "No AI providers are currently configured"
                 ));
             }
             
+            String providerId = available.stream()
+                .max(Comparator.comparingDouble(p -> quotaService.getRemainingQuotaPercent(p)))
+                .orElse(available.get(0));
+            
             Map<String, Object> response = new LinkedHashMap<>();
             response.put("status", "✅ Recommended");
             response.put("provider", providerId);
-            response.put("display_name", quotaService.getProviderDisplayName(providerId));
-            response.put("strategy", "Highest remaining quota + lowest failure rate");
+            response.put("display_name", providerId);
+            response.put("strategy", "Highest remaining quota");
             
-            logger.info("✨ Optimal provider recommended: {}", quotaService.getProviderDisplayName(providerId));
+            logger.info("✨ Optimal provider recommended: {}", providerId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.error("❌ Error getting optimal provider: ", e);
@@ -124,15 +129,14 @@ public class QuotaRotationController {
     
     /**
      * POST /api/quotas/record-success
-     * Record successful API call (consumes 1 quota unit)
+     * Record successful API call (consumes tokens)
      */
     @PostMapping("/record-success")
     public ResponseEntity<Map<String, Object>> recordSuccess(
             @RequestParam String provider,
-            @RequestParam(defaultValue = "1") int tokensUsed) {
+            @RequestParam(defaultValue = "1000") int tokensUsed) {
         try {
-            quotaService.recordSuccess(provider, tokensUsed);
-            quotaService.resetFailureCount(provider);
+            quotaService.recordUsage(provider, tokensUsed);
             
             Map<String, Object> response = new LinkedHashMap<>();
             response.put("status", "✅ Recorded");
@@ -151,20 +155,18 @@ public class QuotaRotationController {
     
     /**
      * POST /api/quotas/record-failure
-     * Record failed API call (doesn't consume quota)
+     * Record failed API call
      */
     @PostMapping("/record-failure")
     public ResponseEntity<Map<String, Object>> recordFailure(@RequestParam String provider) {
         try {
-            quotaService.recordFailure(provider);
+            // QuotaService doesn't have a separate failure record, just logs it
+            logger.warn("⚠️ Failure reported for {}", provider);
             
             Map<String, Object> response = new LinkedHashMap<>();
-            response.put("status", "⚠️ Failure Recorded");
+            response.put("status", "⚠️ Failure Recorded (Log Only)");
             response.put("provider", provider);
-            response.put("action", "Failure tracked, no quota consumed");
-            response.put("note", "After 3 failures, provider will be skipped in rotation");
             
-            logger.warn("⚠️ Failure recorded for {}", provider);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.error("❌ Error recording failure: ", e);
@@ -175,22 +177,13 @@ public class QuotaRotationController {
     
     /**
      * GET /api/quotas/remaining
-     * Get total remaining quota across all providers
+     * Get total remaining quota status
      */
     @GetMapping("/remaining")
     public ResponseEntity<Map<String, Object>> getTotalRemaining() {
         try {
-            int remaining = quotaService.getTotalRemainingQuota();
-            double cost = quotaService.getProjectedMonthlyCost();
-            
-            Map<String, Object> response = new LinkedHashMap<>();
-            response.put("status", "✅ OK");
-            response.put("total_remaining_quota", remaining);
-            response.put("projected_monthly_cost", String.format("$%.2f", cost));
-            response.put("cost_optimization", cost == 0.0 ? "✅ Using FREE tiers only" : "⚠️ Paid APIs active");
-            
-            logger.info("✅ Total remaining quota: {} across all providers", remaining);
-            return ResponseEntity.ok(response);
+            Map<String, Object> summary = quotaService.getQuotaSummary();
+            return ResponseEntity.ok(summary);
         } catch (Exception e) {
             logger.error("❌ Error getting remaining quota: ", e);
             return ResponseEntity.status(500)
@@ -200,12 +193,12 @@ public class QuotaRotationController {
     
     /**
      * POST /api/quotas/reset-monthly
-     * Manually reset monthly quotas (usually auto-triggered on month boundary)
+     * Manually reset monthly quotas
      */
     @PostMapping("/reset-monthly")
     public ResponseEntity<Map<String, Object>> resetMonthlyQuotas() {
         try {
-            quotaService.checkAndResetMonthlyQuotas();
+            quotaService.resetMonthlyQuotas();
             
             Map<String, Object> response = new LinkedHashMap<>();
             response.put("status", "✅ Reset");
@@ -228,12 +221,12 @@ public class QuotaRotationController {
     @GetMapping("/providers")
     public ResponseEntity<Map<String, Object>> getProvidersList() {
         try {
-            List<Map<String, Object>> providers = quotaService.getRegisteredProviders();
+            Map<String, org.example.model.Quota> quotas = quotaService.getAllQuotas();
             
             Map<String, Object> response = new LinkedHashMap<>();
             response.put("status", "✅ OK");
-            response.put("total_providers", providers.size());
-            response.put("providers", providers);
+            response.put("total_providers", quotas.size());
+            response.put("providers", quotas);
             
             logger.info("✅ Provider list retrieved");
             return ResponseEntity.ok(response);

@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * @deprecated Use {@link UnifiedAIRoutingService} instead.
  * AI Provider Routing Service
  * Intelligently routes requests to best available AI provider based on:
  * - Available quota
@@ -20,7 +21,7 @@ public class AIProviderRoutingService {
     private static final Logger logger = LoggerFactory.getLogger(AIProviderRoutingService.class);
     
     @Autowired
-    private QuotaRotationService quotaService;
+    private QuotaService quotaService;
     
     /**
      * Performance metrics per provider per category
@@ -73,7 +74,13 @@ public class AIProviderRoutingService {
         }
         
         // Second priority: Optimal provider (highest quota + success rate)
-        String optimal = quotaService.getOptimalProvider();
+        List<String> available = quotaService.getAvailableProviders();
+        if (available.isEmpty()) return null;
+        
+        String optimal = available.stream()
+            .max(Comparator.comparingDouble(p -> quotaService.getRemainingQuotaPercent(p)))
+            .orElse(available.get(0));
+            
         logger.info("🎯 Routing {} request to optimal: {}", requestType, optimal);
         return optimal;
     }
@@ -110,12 +117,13 @@ public class AIProviderRoutingService {
         
         if (success) {
             metrics.recordSuccess(responseTimeMs, qualityScore);
-            quotaService.recordSuccess(provider, 1);
+            quotaService.recordUsage(provider, 200);
             logger.info("✅ {} performance: {}ms, quality: {}, success_rate: {:.1f}%",
                 provider, responseTimeMs, qualityScore, metrics.getSuccessRate() * 100);
         } else {
             metrics.recordFailure();
-            quotaService.recordFailure(provider);
+            // QuotaService doesn't record failures in the same way, 
+            // but we could record a 0-token usage if needed to trigger sync/checks
             logger.warn("❌ {} failed for category: {}", provider, category);
         }
     }

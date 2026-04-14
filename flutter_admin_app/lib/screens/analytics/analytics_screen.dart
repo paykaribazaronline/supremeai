@@ -247,7 +247,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor:
-              const Color(AppConstants.primaryColor).withOpacity(0.1),
+              const Color(AppConstants.primaryColor).withValues(alpha: 0.1),
           child: const Icon(Icons.calendar_today,
               color: Color(AppConstants.primaryColor), size: 18),
         ),
@@ -273,8 +273,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(colors: [
-            Color(color).withOpacity(0.1),
-            Color(color).withOpacity(0.05)
+            Color(color).withValues(alpha: 0.1),
+            Color(color).withValues(alpha: 0.05)
           ]),
           borderRadius: BorderRadius.circular(12),
         ),

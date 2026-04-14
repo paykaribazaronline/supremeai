@@ -185,14 +185,14 @@ class _AdminUnifiedScreenState extends State<AdminUnifiedScreen> {
                     return FilterChip(
                       label: Text(item['label'] ?? 'Unknown'),
                       selected: isSelected,
-                      onSelected: !item['enabled'] ?? true
-                          ? null
-                          : (selected) {
+                      onSelected: (item['enabled'] ?? true)
+                          ? (selected) {
                               if (selected) {
                                 setState(
                                     () => _selectedComponentKey = item['key']);
                               }
-                            },
+                            }
+                          : null,
                     );
                   }).toList(),
                 ),
@@ -306,7 +306,7 @@ class _AdminUnifiedScreenState extends State<AdminUnifiedScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
+            colors: [color.withValues(alpha: 0.1), color.withValues(alpha: 0.05)],
           ),
         ),
         padding: const EdgeInsets.all(12),
