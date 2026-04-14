@@ -48,7 +48,7 @@
 /// - unified_admin_screen.dart (Flutter new implementation)
 
 import 'package:flutter/material.dart';
-import 'unified_admin_screen.dart';
+import '../unified_admin/unified_admin_screen.dart';
 
 /// DEPRECATED WIDGET - DO NOT USE
 /// 

@@ -257,7 +257,7 @@ class _PhasesScreenState extends State<PhasesScreen>
     final caps = _phase7Capabilities ?? {};
 
     return _buildPhaseScrollView(
-      header: _PhaseHeader(
+      header: const _PhaseHeader(
         phaseNumber: 7,
         title: 'Multi-Platform Generation',
         subtitle: 'iOS · Web · Desktop · Play Store · App Store',

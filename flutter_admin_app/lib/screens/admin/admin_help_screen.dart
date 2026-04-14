@@ -261,7 +261,7 @@ class AdminHelpScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          AdminHelpPanel(
+          const AdminHelpPanel(
             title: 'AUTO মোড - দ্রুত সম্পাদন',
             difficulty: 'hard',
             tips: [
@@ -280,7 +280,7 @@ class AdminHelpScreen extends StatelessWidget {
             ],
           ),
 
-          AdminHelpPanel(
+          const AdminHelpPanel(
             title: 'WAIT মোড - নিরাপদ অনুমোদন',
             difficulty: 'easy',
             tips: [
@@ -296,7 +296,7 @@ class AdminHelpScreen extends StatelessWidget {
             ],
           ),
 
-          AdminHelpPanel(
+          const AdminHelpPanel(
             title: 'STOP মোড - জরুরি বিরতি',
             difficulty: 'easy',
             tips: [
@@ -317,7 +317,7 @@ class AdminHelpScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          AdminHelpPanel(
+          const AdminHelpPanel(
             title: 'API কী পরিচালনা করুন',
             difficulty: 'medium',
             tips: [
@@ -333,7 +333,7 @@ class AdminHelpScreen extends StatelessWidget {
             ],
           ),
 
-          AdminHelpPanel(
+          const AdminHelpPanel(
             title: 'সিস্টেম স্বাস্থ্য পরীক্ষা করুন',
             difficulty: 'easy',
             tips: [
@@ -348,7 +348,7 @@ class AdminHelpScreen extends StatelessWidget {
             ],
           ),
 
-          AdminHelpPanel(
+          const AdminHelpPanel(
             title: 'অডিট লগ পড়ুন',
             difficulty: 'medium',
             tips: [
@@ -370,7 +370,7 @@ class AdminHelpScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          AdminHelpPanel(
+          const AdminHelpPanel(
             title: 'কিছু ভুল দেখলে কি করবেন',
             difficulty: 'easy',
             tips: [
@@ -393,12 +393,12 @@ class AdminHelpScreen extends StatelessWidget {
           const SizedBox(height: 24),
           Card(
             color: Colors.green.shade50,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
+            child: const Padding(
+              padding: EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
                       Icon(Icons.check_circle, color: Colors.green),
                       SizedBox(width: 8),
@@ -408,8 +408,8 @@ class AdminHelpScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
+                  SizedBox(height: 8),
+                  Text(
                     'এক সপ্তাহ WAIT মোডে অভিজ্ঞতা নিয়ে আত্মবিশ্বাসী হয়ে উঠুন। প্রতিটি ধাপে আপনি শিখছেন এবং শক্তিশালী হচ্ছেন।',
                   ),
                 ],

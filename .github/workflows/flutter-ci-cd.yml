@@ -5,6 +5,8 @@ on:
     branches:
       - main
       - develop
+    tags:
+      - 'v*'
     paths:
       - 'flutter_admin_app/**'
       - '.github/workflows/flutter-ci-cd.yml'
@@ -218,7 +220,7 @@ jobs:
     name: Build & Release Android APK
     needs: flutter-build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
     outputs:
       has-signing-secrets: ${{ steps.signing-mode.outputs.has_signing_secrets }}
     

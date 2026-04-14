@@ -49,12 +49,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
     setState(() {
       _isLoading = false;
       if (results[0].success) _trend = results[0].data as Map<String, dynamic>?;
-      if (results[1].success)
+      if (results[1].success) {
         _daily = (results[1].data as List<dynamic>?) ?? [];
-      if (results[2].success)
+      }
+      if (results[2].success) {
         _monthly = (results[2].data as List<dynamic>?) ?? [];
-      if (!results[0].success)
+      }
+      if (!results[0].success) {
         _error = results[0].error ?? 'অ্যানালিটিক্স লোড করা যায়নি';
+      }
     });
   }
 

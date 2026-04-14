@@ -35,11 +35,13 @@ class _DecisionHistoryScreenState extends State<DecisionHistoryScreen> {
     if (!mounted) return;
     setState(() {
       _isLoading = false;
-      if (results[0].success)
+      if (results[0].success) {
         _timeline = (results[0].data as List<dynamic>?) ?? [];
+      }
       if (results[1].success) _stats = results[1].data as Map<String, dynamic>?;
-      if (!results[0].success)
+      if (!results[0].success) {
         _error = results[0].error ?? 'টাইমলাইন লোড করা যায়নি';
+      }
     });
   }
 

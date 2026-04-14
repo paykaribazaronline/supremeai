@@ -37,14 +37,18 @@ class _QuotaScreenState extends State<QuotaScreen> {
     if (!mounted) return;
     setState(() {
       _isLoading = false;
-      if (results[0].success)
+      if (results[0].success) {
         _summary = results[0].data as Map<String, dynamic>?;
-      if (results[1].success)
+      }
+      if (results[1].success) {
         _health = results[1].data as Map<String, dynamic>?;
-      if (results[2].success)
+      }
+      if (results[2].success) {
         _providers = (results[2].data as List<dynamic>?) ?? [];
-      if (!results[0].success)
+      }
+      if (!results[0].success) {
         _error = results[0].error ?? 'কোটা তথ্য লোড করা যায়নি';
+      }
     });
   }
 

@@ -52,12 +52,15 @@ class _GitOpsScreenState extends State<GitOpsScreen>
     if (!mounted) return;
     setState(() {
       _isLoading = false;
-      if (results[0].success)
+      if (results[0].success) {
         _gitStatus = results[0].data as Map<String, dynamic>?;
-      if (results[1].success)
+      }
+      if (results[1].success) {
         _gitLogs = (results[1].data as List<dynamic>?) ?? [];
-      if (!results[0].success)
+      }
+      if (!results[0].success) {
         _error = results[0].error ?? 'Git তথ্য লোড করা যায়নি';
+      }
     });
   }
 
