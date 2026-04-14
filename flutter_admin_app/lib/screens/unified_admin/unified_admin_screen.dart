@@ -4,23 +4,17 @@ import '../../config/environment.dart';
 import '../../services/api_service.dart';
 import '../system_learning_screen.dart';
 import '../settings_screen.dart';
+import '../chat/offline_chat_screen.dart';
+import '../metrics_screen.dart';
+import '../projects/projects_list_screen.dart';
+import '../phases/phases_screen.dart';
+import '../providers/ai_providers_screen.dart';
+import '../analytics/analytics_screen.dart';
+import '../consensus/consensus_screen.dart';
+import '../vpn/vpn_screen.dart';
+import '../teaching/teaching_screen.dart';
 
-/// UNIFIED ADMIN SCREEN - Consumes Backend Contract
-/// ================================================
-/// This screen fetches the admin dashboard contract from the backend
-/// and renders it natively using Flutter widgets (NOT WebView).
-/// 
-/// Benefits:
-/// ✅ True native Flutter implementation (not WebView)
-/// ✅ Consumes same /api/admin/dashboard/contract as React
-/// ✅ Feature parity guaranteed (same backend = same UI)
-/// ✅ Faster performance (native Flutter rendering)
-/// ✅ Offline support (can cache contract)
-/// ✅ Mobile-optimized (Material Design)
-/// 
-/// Backend: /api/admin/dashboard/contract
-/// Returns: 23 components (admin controls + platform-specific screens)
-
+/// UNIFIED ADMIN SCREEN - Fully Functional Feature Integration
 class UnifiedAdminScreen extends StatefulWidget {
   const UnifiedAdminScreen({Key? key}) : super(key: key);
 
@@ -104,102 +98,54 @@ class _UnifiedAdminScreenState extends State<UnifiedAdminScreen> {
       );
     }
 
-    if (_contract == null) {
-      return const Scaffold(
-        body: Center(child: Text('No contract data')),
-      );
-    }
-
-    final title = _contract!['title'] as String? ?? 'Admin Dashboard';
-    final stats = _contract!['stats'] as Map<String, dynamic>? ?? {};
-    final navigation = (_contract!['navigation'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-    final components =
-        (_contract!['components'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final title = _contract?['title'] as String? ?? 'SupremeAI Control Panel';
+    final navigation = (_contract?['navigation'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final components = (_contract?['components'] as List?)?.cast<Map<String, dynamic>>() ?? [];
 
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
         elevation: 0,
+        backgroundColor: const Color(0xFF722ED1),
+        foregroundColor: Colors.white,
       ),
       body: CustomScrollView(
         slivers: [
-          // Stats Cards - Only shown on overview/dashboard tab
-          if (_selectedComponentKey == 'overview')
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                children: [
-                  _buildStatCard(
-                    'সক্রিয় AI',
-                    '${stats['activeAIAgents'] ?? 0}',
-                    '🤖',
-                    Colors.blue,
-                  ),
-                  _buildStatCard(
-                    'চলমান কাজ',
-                    '${stats['runningTasks'] ?? 0}',
-                    '⚙️',
-                    Colors.orange,
-                  ),
-                  _buildStatCard(
-                    'সম্পন্ন',
-                    '${stats['completedTasks'] ?? 0}',
-                    '✅',
-                    Colors.green,
-                  ),
-                  _buildStatCard(
-                    'সাফল্য',
-                    '${stats['successRate'] ?? 0}%',
-                    '📊',
-                    Colors.purple,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          
-          // Navigation
+          // Navigation - Dynamic Filter Chips
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Wrap(
                 spacing: 8,
                 children: navigation
                     .map((item) => FilterChip(
-                          label: Text(
-                            item['label'] as String? ?? '',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          selected:
-                              _selectedComponentKey == (item['key'] ?? ''),
+                          avatar: Text(item['icon'] ?? '📦'),
+                          label: Text(item['label'] as String? ?? ''),
+                          selected: _selectedComponentKey == (item['key'] ?? ''),
                           onSelected: (item['enabled'] as bool? ?? true)
                               ? (selected) {
                                   if (selected) {
                                     setState(() {
-                                      _selectedComponentKey =
-                                          item['key'] as String? ?? '';
+                                      _selectedComponentKey = item['key'] as String? ?? '';
                                     });
                                   }
                                 }
                               : null,
+                          selectedColor: const Color(0xFF722ED1).withOpacity(0.2),
+                          checkmarkColor: const Color(0xFF722ED1),
                         ))
                     .toList(),
               ),
             ),
           ),
           
-          // Component Details
-          SliverToBoxAdapter(
+          // Component Details & Real Features
+          SliverFillRemaining(
+            hasScrollBody: true,
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: _buildComponentDetails(components),
+              child: _buildComponentContent(components),
             ),
           ),
         ],
@@ -207,160 +153,98 @@ class _UnifiedAdminScreenState extends State<UnifiedAdminScreen> {
     );
   }
 
-  Widget _buildStatCard(
-    String label,
-    String value,
-    String emoji,
-    Color color,
-  ) {
+  Widget _buildComponentContent(List<Map<String, dynamic>> components) {
+    // 1. Map Keys to Real Feature Widgets
+    Widget featureWidget;
+    bool showSuggestion = true;
+
+    switch (_selectedComponentKey) {
+      case 'overview':
+      case 'metrics':
+        featureWidget = const MetricsScreen();
+        break;
+      case 'chat':
+        featureWidget = const OfflineChatScreen();
+        break;
+      case 'learning':
+        featureWidget = const SystemLearningScreen();
+        break;
+      case 'settings':
+        featureWidget = const SettingsScreen();
+        break;
+      case 'projects':
+        featureWidget = const ProjectsListScreen();
+        break;
+      case 'phases':
+        featureWidget = const PhasesScreen();
+        break;
+      case 'providers':
+        featureWidget = const AIProvidersScreen();
+        break;
+      case 'analytics':
+        featureWidget = const AnalyticsScreen();
+        break;
+      case 'consensus':
+        featureWidget = const ConsensusScreen();
+        break;
+      case 'vpn':
+        featureWidget = const VPNScreen();
+        break;
+      case 'teaching':
+        featureWidget = const TeachingScreen();
+        break;
+      default:
+        // Generic View for unmapped components
+        final selected = components.firstWhere(
+          (c) => c['key'] == _selectedComponentKey,
+          orElse: () => {},
+        );
+        featureWidget = _buildGenericInfoCard(selected);
+        showSuggestion = selected.isNotEmpty;
+    }
+
+    return Column(
+      children: [
+        Expanded(child: featureWidget),
+        if (showSuggestion) ...[
+          const SizedBox(height: 16),
+          _buildSuggestionButton(),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildGenericInfoCard(Map<String, dynamic> selected) {
+    if (selected.isEmpty) return const Center(child: Text('Feature coming soon...'));
+    
     return Card(
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [color.withValues(alpha: 0.8), color.withValues(alpha: 0.4)],
-          ),
-          borderRadius: BorderRadius.circular(12),
-        ),
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 32)),
+            Text(selected['icon'] ?? '📦', style: const TextStyle(fontSize: 48)),
+            const SizedBox(height: 12),
+            Text(selected['label'] ?? '', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.white70,
-              ),
-            ),
+            Text(selected['description'] ?? '', textAlign: TextAlign.center),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildComponentDetails(List<Map<String, dynamic>> components) {
-    final selected = components.firstWhere(
-      (c) => c['key'] == _selectedComponentKey,
-      orElse: () => components.isNotEmpty ? components[0] : {},
-    );
-
-    final label = selected.isNotEmpty ? (selected['label'] as String? ?? 'Component') : 'Component';
-    final icon = selected.isNotEmpty ? (selected['icon'] as String? ?? '📦') : '📦';
-    final description = selected.isNotEmpty ? (selected['description'] as String? ?? '') : '';
-    final category = selected.isNotEmpty ? (selected['category'] as String? ?? '') : '';
-    final config = selected.isNotEmpty ? (selected['config'] as Map<String, dynamic>? ?? {}) : {};
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Actual Feature Content
-        if (_selectedComponentKey == 'learning')
-          const Padding(
-            padding: EdgeInsets.only(bottom: 20),
-            child: SystemLearningScreen(),
-          )
-        else if (_selectedComponentKey == 'settings')
-          const Padding(
-            padding: EdgeInsets.only(bottom: 20),
-            child: SettingsScreen(),
-          ),
-
-        // Component Info Card (with Suggestion Button)
-        Card(
-          elevation: 4,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(icon, style: const TextStyle(fontSize: 28)),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            label,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          if (description.isNotEmpty)
-                            Text(
-                              description,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                if (category.isNotEmpty || config.isNotEmpty) const SizedBox(height: 12),
-                if (category.isNotEmpty)
-                  Chip(
-                    label: Text(category),
-                    backgroundColor: Colors.blue.withValues(alpha: 0.2),
-                  ),
-                if (config.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Configuration',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Text(
-                        config.toString(),
-                        style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
-                      ),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: () => _showSuggestionDialog(
-                    context,
-                    _selectedComponentKey,
-                    label,
-                  ),
-                  icon: const Icon(Icons.lightbulb_outline),
-                  label: const Text('Suggest Changes'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF722ED1),
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 44),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
+  Widget _buildSuggestionButton() {
+    return ElevatedButton.icon(
+      onPressed: () => _showSuggestionDialog(context, _selectedComponentKey, _selectedComponentKey.toUpperCase()),
+      icon: const Icon(Icons.lightbulb_outline),
+      label: const Text('Suggest Changes'),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF722ED1),
+        foregroundColor: Colors.white,
+        minimumSize: const Size(double.infinity, 50),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
     );
   }
 
@@ -372,77 +256,21 @@ class _UnifiedAdminScreenState extends State<UnifiedAdminScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: Row(
-            children: [
-              const Icon(Icons.lightbulb_outline, color: Color(0xFF722ED1)),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Suggest Changes — $tabLabel',
-                  style: const TextStyle(fontSize: 16),
-                ),
-              ),
-            ],
-          ),
-          content: SizedBox(
-            width: 480,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Describe the change you want on the $tabLabel tab. '
-                  'Tap Save to store it, or Do Now to apply immediately.',
-                  style: const TextStyle(fontSize: 13, color: Colors.grey),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: controller,
-                  maxLines: 5,
-                  maxLength: 2000,
-                  autofocus: true,
-                  decoration: const InputDecoration(
-                    hintText: 'e.g. Add a toggle to disable new user registrations...',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ],
-            ),
+          title: Text('Suggest Changes for $tabLabel'),
+          content: TextField(
+            controller: controller,
+            maxLines: 5,
+            decoration: const InputDecoration(hintText: 'Describe your suggestion...'),
           ),
           actions: [
-            TextButton(
-              onPressed: isLoading ? null : () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel'),
-            ),
+            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
             ElevatedButton(
-              onPressed: isLoading
-                  ? null
-                  : () async {
-                      setDialogState(() => isLoading = true);
-                      await _submitSuggestion(
-                        ctx, tabKey, tabLabel, controller.text.trim(), false,
-                      );
-                      setDialogState(() => isLoading = false);
-                      if (ctx.mounted) Navigator.of(ctx).pop();
-                    },
-              child: const Text('💾 Save'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF722ED1),
-                foregroundColor: Colors.white,
-              ),
-              onPressed: isLoading
-                  ? null
-                  : () async {
-                      setDialogState(() => isLoading = true);
-                      await _submitSuggestion(
-                        ctx, tabKey, tabLabel, controller.text.trim(), true,
-                      );
-                      setDialogState(() => isLoading = false);
-                      if (ctx.mounted) Navigator.of(ctx).pop();
-                    },
-              child: const Text('🤖 Do Now'),
+              onPressed: isLoading ? null : () async {
+                setDialogState(() => isLoading = true);
+                await _submitSuggestion(ctx, tabKey, tabLabel, controller.text, false);
+                if (ctx.mounted) Navigator.of(ctx).pop();
+              },
+              child: const Text('Save'),
             ),
           ],
         ),
@@ -450,48 +278,17 @@ class _UnifiedAdminScreenState extends State<UnifiedAdminScreen> {
     );
   }
 
-  Future<void> _submitSuggestion(
-    BuildContext context,
-    String tabKey,
-    String tabLabel,
-    String suggestionText,
-    bool applyNow,
-  ) async {
-    if (suggestionText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a suggestion first.')),
-      );
-      return;
-    }
+  Future<void> _submitSuggestion(BuildContext context, String tabKey, String tabLabel, String suggestion, bool applyNow) async {
     try {
-      final response = await _apiService.post<Map<String, dynamic>>(
-        '${Environment.apiBaseUrl}/api/admin/suggestions',
-        data: {
-          'tabKey': tabKey,
-          'tabLabel': tabLabel,
-          'suggestion': suggestionText,
-          'applyNow': applyNow,
-        },
-      );
+      await _apiService.post('${Environment.apiBaseUrl}/api/admin/suggestions', data: {
+        'tabKey': tabKey, 'tabLabel': tabLabel, 'suggestion': suggestion, 'applyNow': applyNow,
+      });
       if (context.mounted) {
-        final msg = applyNow
-            ? '🤖 Applying your suggestion — the AI is processing it.'
-            : '💾 Suggestion saved successfully.';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response.success ? msg : 'Failed to submit suggestion.'),
-            backgroundColor: response.success ? Colors.green : Colors.red,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Suggestion submitted!')));
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
