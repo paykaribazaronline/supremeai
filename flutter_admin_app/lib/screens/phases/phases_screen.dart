@@ -301,9 +301,9 @@ class _PhasesScreenState extends State<PhasesScreen>
       ),
       statsWidgets: [
         _buildStatCard('Total Agents', '${s['agentCount'] ?? 3}', Icons.smart_toy, AppConstants.primaryColor),
-        _buildStatCard('Alpha', _boolStatus(s['alphaAvailable']), Icons.shield, Colors.red.value),
-        _buildStatCard('Beta', _boolStatus(s['betaAvailable']), Icons.rule, Colors.orange.value),
-        _buildStatCard('Gamma', _boolStatus(s['gammaAvailable']), Icons.privacy_tip, Colors.deepOrange.value),
+        _buildStatCard('Alpha', _boolStatus(s['alphaAvailable']), Icons.shield, Colors.red),
+        _buildStatCard('Beta', _boolStatus(s['betaAvailable']), Icons.rule, Colors.orange),
+        _buildStatCard('Gamma', _boolStatus(s['gammaAvailable']), Icons.privacy_tip, Colors.deepOrange),
       ],
       features: (s['capabilities'] as List<dynamic>?)?.cast<String>() ?? [
         'OWASP Top 10 vulnerability scanning',
@@ -334,9 +334,9 @@ class _PhasesScreenState extends State<PhasesScreen>
       ),
       statsWidgets: [
         _buildStatCard('Total Agents', '${s['agentCount'] ?? 3}', Icons.smart_toy, AppConstants.primaryColor),
-        _buildStatCard('Delta', _boolStatus(s['deltaAvailable']), Icons.bar_chart, Colors.green.value),
-        _buildStatCard('Epsilon', _boolStatus(s['epsilonAvailable']), Icons.speed, Colors.teal.value),
-        _buildStatCard('Zeta', _boolStatus(s['zetaAvailable']), Icons.account_balance, Colors.cyan.value),
+        _buildStatCard('Delta', _boolStatus(s['deltaAvailable']), Icons.bar_chart, Colors.green),
+        _buildStatCard('Epsilon', _boolStatus(s['epsilonAvailable']), Icons.speed, Colors.teal),
+        _buildStatCard('Zeta', _boolStatus(s['zetaAvailable']), Icons.account_balance, Colors.cyan),
       ],
       features: (s['capabilities'] as List<dynamic>?)?.cast<String>() ?? [
         'Real-time cost tracking across cloud providers',
@@ -367,9 +367,9 @@ class _PhasesScreenState extends State<PhasesScreen>
       ),
       statsWidgets: [
         _buildStatCard('Total Agents', '${s['agentCount'] ?? 4}', Icons.smart_toy, AppConstants.primaryColor),
-        _buildStatCard('Eta', _boolStatus(s['etaAvailable']), Icons.psychology, Colors.purple.value),
-        _buildStatCard('Theta', _boolStatus(s['thetaAvailable']), Icons.school, Colors.deepPurple.value),
-        _buildStatCard('Iota+Kappa', _boolStatus(s['iotaAvailable'] == true && s['kappaAvailable'] == true), Icons.hub, Colors.indigo.value),
+        _buildStatCard('Eta', _boolStatus(s['etaAvailable']), Icons.psychology, Colors.purple),
+        _buildStatCard('Theta', _boolStatus(s['thetaAvailable']), Icons.school, Colors.deepPurple),
+        _buildStatCard('Iota+Kappa', _boolStatus(s['iotaAvailable'] == true && s['kappaAvailable'] == true), Icons.hub, Colors.indigo),
       ],
       features: (s['capabilities'] as List<dynamic>?)?.cast<String>() ?? [
         'Agent performance evolution and self-tuning',
@@ -439,16 +439,17 @@ class _PhasesScreenState extends State<PhasesScreen>
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, int color) {
+  Widget _buildStatCard(String title, String value, IconData icon, dynamic colorInput) {
+    final Color color = colorInput is int ? Color(colorInput) : (colorInput as Color);
     return Card(
       elevation: 0,
-      color: Color(color).withValues(alpha: 0.08),
+      color: color.withValues(alpha: 0.08),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Color(color), size: 20),
+            Icon(icon, color: color, size: 20),
             const SizedBox(height: 4),
             Text(
               value,
