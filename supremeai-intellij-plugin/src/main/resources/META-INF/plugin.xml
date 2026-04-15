@@ -9,13 +9,18 @@
       <li>Generate Android Apps from prompts</li>
       <li>Real-time code learning and suggestions</li>
       <li>Agent collaboration status</li>
+      <li>Fully Compatible with K2 Mode</li>
     </ul>
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+    <depends>com.intellij.modules.kotlin</depends>
     <depends>org.jetbrains.kotlin</depends>
 
     <extensions defaultExtensionNs="com.intellij">
+        <kotlin.supportsK2/>
+
         <toolWindow id="SupremeAI"
                     secondary="false"
                     icon="AllIcons.General.Information"

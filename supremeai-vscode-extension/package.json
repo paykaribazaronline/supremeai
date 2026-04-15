@@ -9,6 +9,10 @@
   "categories": [
     "Other"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/paykaribazaronline/supremeai.git"
+  },
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
@@ -41,6 +45,11 @@
     },
     "views": {
       "supremeai-explorer": [
+        {
+          "id": "supremeai-chat",
+          "name": "SupremeAI Chat",
+          "type": "webview"
+        },
         {
           "id": "supremeai-agents",
           "name": "Agents"
