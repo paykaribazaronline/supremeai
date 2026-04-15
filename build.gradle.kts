@@ -6,8 +6,8 @@ plugins {
     id("io.spring.dependency-management") version "1.1.4"
 }
 
-group = "org.example"
-version = "6.0-Phase6-Week1-2"
+group = "com.supremeai"
+version = "6.0.0"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -187,5 +187,5 @@ tasks.jacocoTestCoverageVerification {
 }
 
 application {
-    mainClass.set("org.example.Application")
+    mainClass.set("com.supremeai.Application")
 }
