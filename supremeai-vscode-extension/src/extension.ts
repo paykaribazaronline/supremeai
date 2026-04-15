@@ -1,15 +1,25 @@
 import * as vscode from 'vscode';
 import { SupremeAIApi } from './services/SupremeAIApi';
 import { AgentsProvider } from './providers/AgentsProvider';
+import { ChatProvider } from './providers/ChatProvider';
+import { ProjectsProvider } from './providers/ProjectsProvider';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('SupremeAI Extension is now active!');
 
     const api = new SupremeAIApi('https://supremeai-565236080752.us-central1.run.app');
 
+    // Register Chat Provider
+    const chatProvider = new ChatProvider(context.extensionUri);
+    vscode.window.registerWebviewViewProvider('supremeai-chat', chatProvider);
+
     // Register Agents Provider
     const agentsProvider = new AgentsProvider();
     vscode.window.registerTreeDataProvider('supremeai-agents', agentsProvider);
+
+    // Register Projects Provider
+    const projectsProvider = new ProjectsProvider();
+    vscode.window.registerTreeDataProvider('supremeai-projects', projectsProvider);
 
     // Command: Generate App
     let generateAppCommand = vscode.commands.registerCommand('supremeai.generateApp', async () => {
@@ -24,7 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
             location: vscode.ProgressLocation.Notification,
             title: "SupremeAI: Generating Android App...",
             cancellable: false
-        }, async (progress) => {
+        }, async (_progress) => {
             const result = await api.generateApp({
                 name: appName,
                 type: 'android',

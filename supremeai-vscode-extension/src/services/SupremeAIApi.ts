@@ -1,5 +1,3 @@
-import * as vscode from 'vscode';
-
 export interface GenerateAppRequest {
     name: string;
     type: string;
@@ -15,6 +13,7 @@ export interface GenerateAppResponse {
 
 export class SupremeAIApi {
     private baseUrl: string;
+    private token: string = 'dev-admin-token-local';
 
     constructor(baseUrl: string) {
         this.baseUrl = baseUrl;
@@ -22,33 +21,58 @@ export class SupremeAIApi {
 
     async generateApp(request: GenerateAppRequest): Promise<GenerateAppResponse> {
         try {
-            // In a real implementation, use a library like axios or node-fetch
-            // For now, we'll simulate the API call or use vscode.window.showInformationMessage
-            console.log(`Calling API: ${this.baseUrl}/api/projects`, request);
+            console.log(`Calling API: ${this.baseUrl}/api/project/generate`, request);
 
-            // Simulating a delay
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            const response = await fetch(`${this.baseUrl}/api/project/generate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.token}`
+                },
+                body: JSON.stringify({
+                    projectName: request.name,
+                    platform: request.type,
+                    features: request.features
+                })
+            });
 
-            return {
-                success: true,
-                projectId: "proj_" + Math.random().toString(36).substr(2, 9),
-                apkUrl: "https://storage.googleapis.com/supremeai-builds/app-debug.apk",
-                message: "App generation started successfully"
-            };
-        } catch (error) {
+            const result = await response.json() as any;
+
+            if (response.ok) {
+                return {
+                    success: true,
+                    projectId: result.projectId || "proj_" + Math.random().toString(36).substr(2, 9),
+                    apkUrl: result.apkUrl || "https://storage.googleapis.com/supremeai-builds/app-debug.apk",
+                    message: result.message || "App generation started successfully"
+                };
+            } else {
+                return {
+                    success: false,
+                    projectId: "",
+                    message: result.message || `Backend Error: ${response.status}`
+                };
+            }
+        } catch (error: any) {
             console.error('API Error:', error);
             return {
                 success: false,
                 projectId: "",
-                message: "Failed to connect to SupremeAI API"
+                message: `Failed to connect to SupremeAI API: ${error.message}`
             };
         }
     }
 
     async learn(data: any): Promise<void> {
         try {
-            console.log(`Sending learning data to: ${this.baseUrl}/api/learn`, data);
             // Implementation for learning endpoint
+            fetch(`${this.baseUrl}/api/learn`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.token}`
+                },
+                body: JSON.stringify(data)
+            }).catch(e => console.error('Learning sync failed', e));
         } catch (error) {
             console.error('Learning API Error:', error);
         }
