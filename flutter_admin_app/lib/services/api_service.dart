@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 import '../config/environment.dart';
+import '../models/models.dart';
 import 'storage_service.dart';
 
 class ApiResponse<T> {
@@ -25,6 +26,8 @@ class ApiService {
   factory ApiService() {
     return _instance;
   }
+
+  static ApiService get instance => _instance;
 
   ApiService._internal() {
     _initializeDio();
@@ -252,7 +255,27 @@ class ApiService {
   }
 
   void _handleUnauthorized() {
-    _logger.w('Unauthorized access from API request');
+    // TODO: Implement unauthorized handler
+  }
+
+  Future<ApiResponse> createKnowledgeSeed(ExternalKnowledgeSeed seed) async {
+    try {
+      final response = await _dio.post(
+        '/admin/knowledge-seeds',
+        data: seed.toJson(),
+      );
+      return ApiResponse(
+        success: true,
+        data: response.data,
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      return ApiResponse(
+        success: false,
+        error: e.message,
+        statusCode: e.response?.statusCode,
+      );
+    }
   }
 
   // Update base URL if needed

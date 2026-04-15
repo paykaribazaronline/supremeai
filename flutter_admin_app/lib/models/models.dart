@@ -334,6 +334,77 @@ class Alert {
   }
 }
 
+// External AI Knowledge Seed Model
+class ExternalKnowledgeSeed {
+  final String id;
+  final String sourceAiModelName;
+  final String prompt;
+  final String aiResponse;
+  final String category;
+  final String seedStatus;
+  final double confidence;
+  final String? adminNotes;
+  final String seededByUserId;
+  final Map<String, dynamic>? metadata;
+  final DateTime createdAt;
+  final DateTime? processedAt;
+
+  ExternalKnowledgeSeed({
+    required this.id,
+    required this.sourceAiModelName,
+    required this.prompt,
+    required this.aiResponse,
+    required this.category,
+    this.seedStatus = 'pending',
+    this.confidence = 0.0,
+    this.adminNotes,
+    required this.seededByUserId,
+    this.metadata,
+    required this.createdAt,
+    this.processedAt,
+  });
+
+  factory ExternalKnowledgeSeed.fromJson(Map<String, dynamic> json) {
+    return ExternalKnowledgeSeed(
+      id: json['id'] ?? '',
+      sourceAiModelName: json['sourceAiModelName'] ?? '',
+      prompt: json['prompt'] ?? '',
+      aiResponse: json['aiResponse'] ?? '',
+      category: json['category'] ?? 'uncategorized',
+      seedStatus: json['seedStatus'] ?? 'pending',
+      confidence: (json['confidence'] ?? 0.0).toDouble(),
+      adminNotes: json['adminNotes'],
+      seededByUserId: json['seededByUserId'] ?? '',
+      metadata: json['metadata'] is Map<String, dynamic>
+          ? json['metadata'] as Map<String, dynamic>
+          : null,
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : DateTime.now(),
+      processedAt: json['processedAt'] != null
+          ? DateTime.parse(json['processedAt'])
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'sourceAiModelName': sourceAiModelName,
+      'prompt': prompt,
+      'aiResponse': aiResponse,
+      'category': category,
+      'seedStatus': seedStatus,
+      'confidence': confidence,
+      'adminNotes': adminNotes,
+      'seededByUserId': seededByUserId,
+      'metadata': metadata,
+      'createdAt': createdAt.toIso8601String(),
+      'processedAt': processedAt?.toIso8601String(),
+    };
+  }
+}
+
 // Login response model
 class LoginResponse {
   final String token;
