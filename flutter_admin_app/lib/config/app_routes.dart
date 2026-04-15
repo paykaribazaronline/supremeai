@@ -28,4 +28,6 @@ class AppRoutes {
   static const String phases = '/phases';
   static const String tracing = '/tracing';
   static const String offlineChat = '/offline-chat';
+  static const String knowledgeSeed = '/knowledge-seed';
+  static const String knowledgeSeedList = '/knowledge-seed/list';
 }
