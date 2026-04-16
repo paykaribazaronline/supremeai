@@ -13,9 +13,17 @@
     "type": "git",
     "url": "https://github.com/paykaribazaronline/supremeai.git"
   },
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./out/extension.js",
   "contributes": {
+    "viewsWelcome": [
+      {
+        "view": "supremeai-chat",
+        "contents": "Welcome to SupremeAI! \n[Learn More](https://supremeai.com)"
+      }
+    ],
     "commands": [
       {
         "command": "supremeai.generateApp",
@@ -70,11 +78,11 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
-    "@types/vscode": "^1.85.0",
     "@types/node": "18.x",
-    "typescript": "^5.3.3",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^8.58.2",
+    "@typescript-eslint/parser": "^8.58.2",
     "eslint": "^8.56.0",
-    "@typescript-eslint/eslint-plugin": "^6.19.1",
-    "@typescript-eslint/parser": "^6.19.1"
+    "typescript": "^5.3.3"
   }
 }
