@@ -1,0 +1,52 @@
+# Ignore WinRAR garbage files (root level clutter)
+*.exe
+*.dll
+*.pdf
+*.htm
+*.gif
+*.txt
+*.dat
+*.chm
+*.lst
+System Volume Information/
+DU Meter/
+Kontho/
+New folder/
+New folder (2)/
+
+# Standard ignores
+node_modules/
+build/
+dist/
+.out/
+.cache/
+.git/
+.idea/
+.vscode/
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Large compiled assets
+combined_deploy/
+flutter_admin_app/build/
+supremeai/build/
+
+# Ignore large binary files
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+*.iso
+*.pkg
+*.dmg
+
+# Ignore media files
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.ico
+*.webp
