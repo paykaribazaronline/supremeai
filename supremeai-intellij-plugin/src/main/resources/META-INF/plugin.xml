@@ -21,7 +21,7 @@
     <depends>org.jetbrains.android</depends>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
-        <supportsKotlinK2Mode/>
+        <supportsKotlinPluginMode supportsK2="true"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
