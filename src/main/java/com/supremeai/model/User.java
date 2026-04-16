@@ -1,0 +1,79 @@
+package com.supremeai.model;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "users")
+public class User {
+
+    @Id
+    private String firebaseUid;
+
+    @Column(nullable = false)
+    private String email;
+
+    @Column
+    private String displayName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserTier tier = UserTier.FREE;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
+    @Column
+    private LocalDateTime lastLoginAt;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
+
+    // Constructors
+    public User() {}
+
+    public User(String firebaseUid, String email, String displayName) {
+        this.firebaseUid = firebaseUid;
+        this.email = email;
+        this.displayName = displayName;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // Getters and Setters
+    public String getFirebaseUid() { return firebaseUid; }
+    public void setFirebaseUid(String firebaseUid) { this.firebaseUid = firebaseUid; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getDisplayName() { return displayName; }
+    public void setDisplayName(String displayName) { this.displayName = displayName; }
+
+    public UserTier getTier() { return tier; }
+    public void setTier(UserTier tier) { this.tier = tier; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public LocalDateTime getLastLoginAt() { return lastLoginAt; }
+    public void setLastLoginAt(LocalDateTime lastLoginAt) { this.lastLoginAt = lastLoginAt; }
+
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+
+    // Helper methods
+    public boolean isAdmin() {
+        return this.tier == UserTier.ADMIN;
+    }
+
+    public Long getMonthlyQuota() {
+        return this.tier.getDefaultMonthlyQuota();
+    }
+}

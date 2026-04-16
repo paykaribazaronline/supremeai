@@ -1,23 +1,30 @@
 package com.supremeai.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.supremeai.model.User;
+import com.supremeai.model.UserTier;
+import com.supremeai.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/admin/dashboard")
+@RequestMapping("/api/admin")
 public class AdminDashboardController {
 
-    @GetMapping("/contract")
+    @Autowired
+    private UserRepository userRepository;
+
+    @GetMapping("/dashboard/contract")
     public Map<String, Object> getContract() {
         Map<String, Object> contract = new HashMap<>();
         contract.put("contractVersion", "2026-04-09-unified");
         contract.put("title", "SupremeAI Admin Dashboard");
-        
+
         Map<String, Object> stats = new HashMap<>();
         stats.put("activeAIAgents", 12);
         stats.put("systemHealthScore", 98.5);
@@ -51,9 +58,92 @@ public class AdminDashboardController {
         navigation.add(createNavItem("self-healing", "Self Healing", "💊", true));
         navigation.add(createNavItem("ai-agents", "AI Agents", "🤖", true));
         navigation.add(createNavItem("exploitation-techniques", "Exploitation Techniques", "🧨", true));
+        navigation.add(createNavItem("user-management", "User Management", "👥", true));
         contract.put("navigation", navigation);
 
         return contract;
+    }
+
+    @GetMapping("/users")
+    public ResponseEntity<?> getUsers() {
+        try {
+            List<User> users = userRepository.findAll();
+            List<Map<String, Object>> userList = users.stream().map(user -> {
+                Map<String, Object> userMap = new HashMap<>();
+                userMap.put("id", user.getFirebaseUid());
+                userMap.put("email", user.getEmail());
+                userMap.put("displayName", user.getDisplayName());
+                userMap.put("tier", user.getTier().toString());
+                userMap.put("monthlyQuota", user.getMonthlyQuota());
+                userMap.put("createdAt", user.getCreatedAt());
+                userMap.put("lastLoginAt", user.getLastLoginAt());
+                userMap.put("isActive", user.getIsActive());
+                return userMap;
+            }).toList();
+
+            return ResponseEntity.ok(Map.of("users", userList));
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                .body(Map.of("error", "Failed to fetch users: " + e.getMessage()));
+        }
+    }
+
+    @PutMapping("/users/{userId}/tier")
+    public ResponseEntity<?> updateUserTier(@PathVariable String userId,
+                                           @RequestBody Map<String, String> request) {
+        try {
+            String newTierStr = request.get("tier");
+            if (newTierStr == null) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Tier is required"));
+            }
+
+            UserTier newTier;
+            try {
+                newTier = UserTier.valueOf(newTierStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Invalid tier: " + newTierStr));
+            }
+
+            Optional<User> userOpt = userRepository.findById(userId);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(404)
+                    .body(Map.of("error", "User not found"));
+            }
+
+            User user = userOpt.get();
+            user.setTier(newTier);
+            user.setUpdatedAt(java.time.LocalDateTime.now());
+            userRepository.save(user);
+
+            return ResponseEntity.ok(Map.of(
+                "message", "User tier updated successfully",
+                "user", Map.of(
+                    "id", user.getFirebaseUid(),
+                    "tier", user.getTier().toString(),
+                    "monthlyQuota", user.getMonthlyQuota()
+                )
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                .body(Map.of("error", "Failed to update user tier: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/tiers")
+    public ResponseEntity<?> getAvailableTiers() {
+        List<Map<String, Object>> tiers = new ArrayList<>();
+        for (UserTier tier : UserTier.values()) {
+            Map<String, Object> tierMap = new HashMap<>();
+            tierMap.put("name", tier.name());
+            tierMap.put("displayName", tier.name().charAt(0) + tier.name().substring(1).toLowerCase());
+            tierMap.put("monthlyQuota", tier.getDefaultMonthlyQuota());
+            tierMap.put("description", tier.getDescription());
+            tierMap.put("hasUnlimitedQuota", tier.hasUnlimitedQuota());
+            tiers.add(tierMap);
+        }
+        return ResponseEntity.ok(Map.of("tiers", tiers));
     }
 
     private Map<String, Object> createNavItem(String key, String label, String icon, boolean enabled) {
