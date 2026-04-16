@@ -53,7 +53,9 @@ public class AuthenticationControllerTest {
     @Test
     public void testFirebaseLoginInvalidToken() throws Exception {
         FirebaseAuth mockAuth = mock(FirebaseAuth.class);
-        when(mockAuth.verifyIdToken("invalid-token")).thenThrow(new FirebaseAuthException("invalid", "Invalid token"));
+        FirebaseAuthException mockException = mock(FirebaseAuthException.class);
+        when(mockException.getMessage()).thenReturn("Invalid token");
+        when(mockAuth.verifyIdToken("invalid-token")).thenThrow(mockException);
 
         try (MockedStatic<FirebaseAuth> mockedStatic = mockStatic(FirebaseAuth.class)) {
             mockedStatic.when(FirebaseAuth::getInstance).thenReturn(mockAuth);

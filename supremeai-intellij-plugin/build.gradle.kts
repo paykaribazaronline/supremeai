@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.supremeai"
-version = "1.1.0"
+version = "1.2.0"
 
 repositories {
     mavenCentral()
@@ -42,8 +42,8 @@ intellijPlatform {
         name.set("SupremeAI Assistant")
         description.set("Fully Compatible with K2 Mode")
         ideaVersion {
-            sinceBuild.set("243")
-            untilBuild.set("261.*")
+            sinceBuild.set("241")
+            untilBuild.set("253.*")
         }
         
         vendor {

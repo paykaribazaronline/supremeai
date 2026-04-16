@@ -1,6 +1,7 @@
 <idea-plugin>
     <id>com.supremeai.ide.plugin</id>
     <name>SupremeAI Assistant</name>
+    <version>1.2.0</version>
     <vendor email="support@supremeai.com" url="https://supremeai.com">SupremeAI</vendor>
 
     <description><![CDATA[
