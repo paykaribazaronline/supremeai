@@ -71,7 +71,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-websocket")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+
     // Spring Cloud GCP - Firestore
     implementation("com.google.cloud:spring-cloud-gcp-starter:3.8.3")
     implementation("com.google.cloud:spring-cloud-gcp-starter-firestore:3.8.3")
@@ -79,6 +80,9 @@ dependencies {
     // Spring Data
     implementation("org.springframework.data:spring-data-commons:3.2.2")
     implementation("org.springframework.data:spring-data-jpa:3.2.2")
+
+    // Database
+    runtimeOnly("com.h2database:h2")
 
     // Resilience & Error Handling
     implementation("io.github.resilience4j:resilience4j-core:2.1.0")
