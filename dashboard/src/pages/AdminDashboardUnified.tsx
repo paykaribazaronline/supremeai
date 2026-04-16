@@ -25,6 +25,8 @@ import {
     NodeIndexOutlined,
 } from '@ant-design/icons';
 import PhasesOverview from '../components/PhasesOverview';
+import AIAgentsDashboard from '../components/AIAgentsDashboard';
+import ExploitationDashboard from '../components/ExploitationDashboard';
 
 const { TextArea } = Input;
 
@@ -302,6 +304,10 @@ const AdminDashboardUnified: React.FC = () => {
                                 {/* Render real component for known keys */}
                                 {selectedKey === 'phases' ? (
                                     <PhasesOverview />
+                                ) : selectedKey === 'ai-agents' ? (
+                                    <AIAgentsDashboard />
+                                ) : selectedKey === 'exploitation-techniques' ? (
+                                    <ExploitationDashboard />
                                 ) : (
                                     <>
                                         <p>

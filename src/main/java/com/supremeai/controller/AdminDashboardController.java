@@ -49,6 +49,8 @@ public class AdminDashboardController {
         navigation.add(createNavItem("autofix", "Auto Fix", "🔧", true));
         navigation.add(createNavItem("deployment", "Deployment", "🚀", true));
         navigation.add(createNavItem("self-healing", "Self Healing", "💊", true));
+        navigation.add(createNavItem("ai-agents", "AI Agents", "🤖", true));
+        navigation.add(createNavItem("exploitation-techniques", "Exploitation Techniques", "🧨", true));
         contract.put("navigation", navigation);
 
         return contract;

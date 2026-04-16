@@ -16,9 +16,10 @@ repositories {
 
 dependencies {
     intellijPlatform {
-        intellijIdeaCommunity("2025.1")
+        androidStudio("2024.3.2.15")
         bundledPlugin("com.intellij.java")
         bundledPlugin("org.jetbrains.kotlin")
+        bundledPlugin("org.jetbrains.android")
     }
 }
 
@@ -63,22 +64,4 @@ tasks.withType<JavaCompile> {
 
 
 
-// Final fix for "Plugin is incompatible with the Kotlin plugin in K2 mode" error
-tasks.withType<org.jetbrains.intellij.platform.gradle.tasks.BuildPluginTask> {
-    doFirst {
-        val pluginXml = destinationDirectory.file("META-INF/plugin.xml").get().asFile
-        if (pluginXml.exists()) {
-            var content = pluginXml.readText()
-            if (!content.contains("k2-support.xml")) {
-                content = content.replace(
-                    "</idea-plugin>",
-                    """
-  <depends config-file="k2-support.xml">org.jetbrains.kotlin</depends>
-</idea-plugin>
-""".trimIndent()
-                )
-                pluginXml.writeText(content)
-            }
-        }
-    }
-}
+
