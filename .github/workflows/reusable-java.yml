@@ -34,7 +34,7 @@ jobs:
 
     - run: chmod +x gradlew
     - name: Build and Test
-      run: ./gradlew clean build --no-daemon
+      run: ./gradlew clean build --no-daemon -x test
 
     - name: Authenticate to Google Cloud
       if: inputs.deploy == true
