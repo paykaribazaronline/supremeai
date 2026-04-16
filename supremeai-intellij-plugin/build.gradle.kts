@@ -1,37 +1,53 @@
 plugins {
     id("java")
-    // Use the latest 1.x version for better Ladybug support
-    id("org.jetbrains.intellij") version "1.17.4"
-    id("org.jetbrains.kotlin.jvm") version "1.9.22"
+    id("org.jetbrains.kotlin.jvm") version "1.9.25"
+    id("org.jetbrains.intellij.platform") version "2.0.1"
 }
 
 group = "com.supremeai"
-version = "1.0-SNAPSHOT"
+version = "1.1.0"
 
 repositories {
     mavenCentral()
+    intellijPlatform {
+        defaultRepositories()
+    }
 }
 
-intellij {
-    // AS Ladybug (253) is stable with 2024.1.6 as build base
-    version.set("2024.1.6") 
-    type.set("IC") 
-    // This is the correct list for AS Ladybug
-    plugins.set(listOf("java", "org.jetbrains.kotlin"))
+dependencies {
+    intellijPlatform {
+        intellijIdeaCommunity("2024.3.3")
+        bundledPlugin("com.intellij.java")
+        bundledPlugin("org.jetbrains.kotlin")
+    }
 }
 
-tasks {
-    patchPluginXml {
-        sinceBuild.set("241")
-        untilBuild.set("261")
-        changeNotes.set("""
-          - Resolved 'kotlin.plugin.k1.xml' xi:include resolution error
-          - Full Support for Android Studio Ladybug (Build 253+)
-          - Seamless K2 Mode integration
-        """.trimIndent())
+kotlin {
+    jvmToolchain(17)
+    compilerOptions {
+        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+        freeCompilerArgs.addAll(
+            "-Xsuppress-version-warnings",
+            "-Xuse-k2"
+        )
     }
+}
 
-    runIde {
-        jvmArgs("-Didea.kotlin.plugin.use.k2=true")
+intellijPlatform {
+    pluginConfiguration {
+        name.set("SupremeAI Assistant")
+        ideaVersion {
+            sinceBuild.set("243")
+            untilBuild.set("243.*")
+        }
     }
+    
+    buildSearchableOptions = false
+    instrumentCode = true
+}
+
+tasks.withType<JavaCompile> {
+    sourceCompatibility = "17"
+    targetCompatibility = "17"
 }

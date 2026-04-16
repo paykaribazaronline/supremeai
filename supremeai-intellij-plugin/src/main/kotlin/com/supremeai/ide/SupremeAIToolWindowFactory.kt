@@ -108,10 +108,16 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                     val url = URL("https://supremeai-565236080752.us-central1.run.app/api/status/check")
                     val conn = url.openConnection() as HttpURLConnection
                     conn.requestMethod = "GET"
-                    if (conn.responseCode == 200) {
+                    val responseCode = conn.responseCode
+                    if (responseCode == 200 || responseCode == 401) {
                         SwingUtilities.invokeLater {
                             statusLabel.text = "● Backend: Online"
                             statusLabel.foreground = java.awt.Color.GREEN
+                        }
+                    } else {
+                        SwingUtilities.invokeLater {
+                            statusLabel.text = "● Backend: Error ($responseCode)"
+                            statusLabel.foreground = java.awt.Color.ORANGE
                         }
                     }
                 } catch (e: Exception) {
