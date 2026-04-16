@@ -16,23 +16,37 @@ public class AuthenticationController {
     public Map<String, Object> firebaseLogin(@RequestBody Map<String, String> request) {
         String idToken = request.get("idToken");
         
-        // In a real scenario, you'd verify the token with FirebaseAuth.getInstance().verifyIdToken(idToken)
-        // For now, we simulate a successful token exchange to unblock the UI.
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", "success");
-        response.put("token", "simulated_jwt_" + UUID.randomUUID().toString());
-        response.put("refreshToken", "simulated_refresh_" + UUID.randomUUID().toString());
-        response.put("type", "Bearer");
-        response.put("expiresIn", 86400);
-        
-        Map<String, Object> user = new HashMap<>();
-        user.put("id", "firebase_user_" + System.currentTimeMillis());
-        user.put("username", "admin");
-        user.put("email", "admin@supremeai.com");
-        user.put("role", "admin");
-        response.put("user", user);
-        
-        return response;
+        try {
+            // Verify the token with Firebase Admin SDK
+            com.google.firebase.auth.FirebaseToken decodedToken = 
+                com.google.firebase.auth.FirebaseAuth.getInstance().verifyIdToken(idToken);
+            
+            String uid = decodedToken.getUid();
+            String email = decodedToken.getEmail();
+            String name = (String) decodedToken.getClaims().get("name");
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            // We still provide a token for the app's internal session management if needed, 
+            // but it's now tied to a verified Firebase identity.
+            response.put("token", "fb_verified_" + UUID.randomUUID().toString());
+            response.put("refreshToken", "fb_refresh_" + UUID.randomUUID().toString());
+            response.put("type", "Bearer");
+            response.put("expiresIn", 86400);
+            
+            Map<String, Object> user = new HashMap<>();
+            user.put("id", uid);
+            user.put("username", name != null ? name : email.split("@")[0]);
+            user.put("email", email);
+            user.put("role", "admin"); // Default to admin for now as requested for the dashboard
+            response.put("user", user);
+            
+            return response;
+        } catch (com.google.firebase.auth.FirebaseAuthException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "Invalid Firebase token: " + e.getMessage());
+            return errorResponse;
+        }
     }
 }

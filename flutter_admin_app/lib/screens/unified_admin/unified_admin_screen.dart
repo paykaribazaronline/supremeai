@@ -164,9 +164,11 @@ class _UnifiedAdminScreenState extends State<UnifiedAdminScreen> {
         featureWidget = const MetricsScreen();
         break;
       case 'chat':
+      case 'chat-history':
         featureWidget = const OfflineChatScreen();
         break;
       case 'learning':
+      case 'system-learning':
         featureWidget = const SystemLearningScreen();
         break;
       case 'settings':
@@ -192,6 +194,27 @@ class _UnifiedAdminScreenState extends State<UnifiedAdminScreen> {
         break;
       case 'teaching':
         featureWidget = const TeachingScreen();
+        break;
+      case 'notifications':
+      case 'alerts':
+        featureWidget = const OfflineChatScreen(); // Placeholder, need NotificationsScreen
+        break;
+      case 'quota':
+      case 'ml-intelligence':
+      case 'resilience':
+      case 'git-ops':
+      case 'headless-browser':
+      case 'autofix':
+      case 'deployment':
+      case 'self-healing':
+      case 'api-keys':
+        // Generic View for unmapped components
+        final selected = components.firstWhere(
+          (c) => c['key'] == _selectedComponentKey,
+          orElse: () => {},
+        );
+        featureWidget = _buildGenericInfoCard(selected);
+        showSuggestion = selected.isNotEmpty;
         break;
       default:
         // Generic View for unmapped components

@@ -33,6 +33,22 @@ public class AdminDashboardController {
         navigation.add(createNavItem("providers", "AI Providers", "🤖", true));
         navigation.add(createNavItem("metrics", "Metrics", "📈", true));
         navigation.add(createNavItem("settings", "Settings", "⚙️", true));
+        navigation.add(createNavItem("api-keys", "API Keys", "🔑", true));
+        navigation.add(createNavItem("learning", "Learning", "🧠", true));
+        navigation.add(createNavItem("vpn", "VPN", "🔒", true));
+        navigation.add(createNavItem("quota", "Quota", "📊", true));
+        navigation.add(createNavItem("resilience", "Resilience", "🛡️", true));
+        navigation.add(createNavItem("ml-intelligence", "ML Intelligence", "🤖", true));
+        navigation.add(createNavItem("notifications", "Notifications", "🔔", true));
+        navigation.add(createNavItem("analytics", "Analytics", "📊", true));
+        navigation.add(createNavItem("consensus", "Consensus", "🤝", true));
+        navigation.add(createNavItem("git-ops", "Git Ops", "🔀", true));
+        navigation.add(createNavItem("headless-browser", "Headless Browser", "🌐", true));
+        navigation.add(createNavItem("chat-history", "Chat History", "💬", true));
+        navigation.add(createNavItem("system-learning", "System Learning", "📚", true));
+        navigation.add(createNavItem("autofix", "Auto Fix", "🔧", true));
+        navigation.add(createNavItem("deployment", "Deployment", "🚀", true));
+        navigation.add(createNavItem("self-healing", "Self Healing", "💊", true));
         contract.put("navigation", navigation);
 
         return contract;
