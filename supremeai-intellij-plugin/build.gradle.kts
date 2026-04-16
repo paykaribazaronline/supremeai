@@ -33,7 +33,6 @@ kotlin {
         languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
         freeCompilerArgs.addAll(
             "-Xsuppress-version-warnings",
-            "-Xuse-k2",
             "-Xallow-kotlin-package",
             "-Xcontext-receivers",
             "-opt-in=org.jetbrains.kotlin.analysis.api.KaExperimentalApi"
