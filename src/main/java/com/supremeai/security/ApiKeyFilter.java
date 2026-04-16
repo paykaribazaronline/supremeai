@@ -43,13 +43,13 @@ public class ApiKeyFilter extends OncePerRequestFilter {
 
         // Validate API key and check quota
         if (!quotaService.hasQuotaRemaining(apiKey)) {
-            sendErrorResponse(response, "API quota exceeded", HttpServletResponse.SC_TOO_MANY_REQUESTS);
+            sendErrorResponse(response, "API quota exceeded", 429);
             return;
         }
 
         // Increment usage
         if (!quotaService.incrementUsage(apiKey)) {
-            sendErrorResponse(response, "API quota exceeded", HttpServletResponse.SC_TOO_MANY_REQUESTS);
+            sendErrorResponse(response, "API quota exceeded", 429);
             return;
         }
 

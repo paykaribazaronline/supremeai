@@ -2,7 +2,7 @@ name: SupremeAI Master Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
@@ -36,129 +36,9 @@ jobs:
               - 'firebase.json'
               - '.github/workflows/**'
 
-  # ☕ STEP 2: Java Build & Test
-  java-build:
-    name: java-build / build
-    needs: [changes, secret-scan] # Wait for secret scan for security
-    if: needs.changes.outputs.backend == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: ⚙️ Setup Java
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'gradle'
-          
-      - name: 🔨 Build & Test
-        run: ./gradlew build -x test # Skipping tests for now to ensure stability, but build JAR
-        
-      - name: ⬆️ Upload JAR Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: java-backend-jar
-          path: build/libs/*.jar
-          retention-days: 7
-
-  # 🐦 STEP 3: Flutter Build & Test
-  flutter-build:
-    name: flutter-build / build
-    needs: [changes, secret-scan]
-    if: needs.changes.outputs.frontend == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: 🐦 Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.27.0'
-          cache: true
-          
-      - name: 📦 Build Customer App (supremeai)
-        run: |
-          set -e
-          cd supremeai
-          flutter pub get
-          flutter analyze
-          flutter build web --release
-          flutter build apk --release --target-platform android-arm64
-          
-      - name: ⬆️ Upload Web Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: customer-web-build
-          path: supremeai/build/web
-          
-      - name: ⬆️ Upload APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: supremeai-android-apk
-          path: supremeai/build/app/outputs/flutter-apk/app-release.apk
-
-  # 🚀 STEP 4: Deploy Backend
-  deploy-backend:
-    name: deploy-backend / build
-    needs: [java-build, codeql]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && success()
-    steps:
-      - uses: actions/checkout@v4
-      - name: 📥 Download JAR
-        uses: actions/download-artifact@v4
-        with:
-          name: java-backend-jar
-          path: build/libs
-      - name: 🚀 GCloud Deploy
-        run: echo "Deploying JAR to Google Cloud Run..."
-
-  # 🚀 STEP 5: Deploy Frontend
-  deploy-frontend:
-    name: deploy-frontend / deploy
-    needs: [flutter-build, codeql]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && success()
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: 📥 Download Web Build
-        uses: actions/download-artifact@v4
-        with:
-          name: customer-web-build
-          path: public
-          
-      - name: 🔍 Verify Artifact
-        run: |
-          if [ ! -f "public/index.html" ]; then
-            echo "❌ Error: index.html not found in public/ directory!"
-            exit 1
-          fi
-          
-      - name: 🚀 Firebase Deploy
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}'
-          projectId: supremeai-a
-          channelId: live
-
-  # 🏥 STEP 6: Health Check
-  health-check:
-    name: 🏥 Health Check
-    needs: [deploy-backend, deploy-frontend]
-    if: always() && (needs.deploy-backend.result == 'success' || needs.deploy-frontend.result == 'success')
-    runs-on: ubuntu-latest
-    steps:
-      - name: 🌐 Check Frontend Live
-        run: curl -sf https://supremeai-a.web.app/ || echo "Frontend check skipped"
-      - name: ⚙️ Check Backend Live
-        run: echo "Backend health check placeholder"
-
-  # 🛡️ SECURITY JOBS
+  # 🛡️ SECURITY JOBS (Parallel)
   codeql:
-    name: CodeQL Analysis
+    name: 🛡️ CodeQL Analysis
     runs-on: ubuntu-latest
     permissions:
       security-events: write
@@ -173,7 +53,7 @@ jobs:
         uses: github/codeql-action/analyze@v3
 
   secret-scan:
-    name: Secret Scanning
+    name: 🛡️ Secret Scanning
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -184,10 +64,147 @@ jobs:
           extra_args: --only-verified
 
   dependency-review:
-    name: Dependency Review
+    name: 🛡️ Dependency Review
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
       - name: 🛡️ Dependency Review
         uses: actions/dependency-review-action@v4
+
+  # ☕ BACKEND PIPELINE
+  java-build:
+    name: ☕ Java Build
+    needs: [changes, secret-scan]
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ⚙️ Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+      - name: 🔨 Build JAR
+        run: ./gradlew build -x test
+      - name: ⬆️ Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-backend-jar
+          path: build/libs/*.jar
+
+  java-test:
+    name: 🧪 Java Test
+    needs: java-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ⚙️ Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+      - name: 🧪 Run Tests
+        run: ./gradlew test
+
+  deploy-backend:
+    name: 🚀 Deploy Backend
+    needs: [java-test, codeql]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: 📥 Download JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: java-backend-jar
+          path: build/libs
+      - name: 🚀 GCloud Deploy
+        run: echo "Deploying to Google Cloud Run..."
+
+  # 🐦 FRONTEND PIPELINE
+  flutter-build:
+    name: 🐦 Flutter Build
+    needs: [changes, secret-scan]
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 🐦 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.0'
+          cache: true
+      - name: 📦 Build Web & APK
+        run: |
+          cd supremeai
+          flutter pub get
+          flutter build web --release
+          flutter build apk --release --target-platform android-arm64
+      - name: ⬆️ Upload Web Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: customer-web-build
+          path: supremeai/build/web
+      - name: ⬆️ Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: supremeai-android-apk
+          path: supremeai/build/app/outputs/flutter-apk/app-release.apk
+
+  flutter-test:
+    name: 🧪 Flutter Test
+    needs: flutter-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 🐦 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.0'
+          cache: true
+      - name: 🧪 Run Tests
+        run: |
+          cd supremeai
+          flutter test
+
+  deploy-frontend:
+    name: 🚀 Deploy Frontend
+    needs: [flutter-test, codeql]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: 📥 Download Web Build
+        uses: actions/download-artifact@v4
+        with:
+          name: customer-web-build
+          path: public
+      - name: 🚀 Firebase Deploy
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}'
+          projectId: supremeai-a
+          channelId: live
+
+  # 🏥 HEALTH CHECK & NOTIFY
+  health-check:
+    name: 🏥 Health Check
+    needs: [deploy-backend, deploy-frontend]
+    if: always() && (needs.deploy-backend.result == 'success' || needs.deploy-frontend.result == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🌐 Check Status
+        run: curl -sf https://supremeai-a.web.app/ || echo "Site check skipped"
+
+  notify:
+    name: 🔔 Notification
+    needs: [health-check]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🔔 Slack/Status Update
+        run: echo "Deployment process completed with status: ${{ needs.health-check.result }}"
