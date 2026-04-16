@@ -34,6 +34,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _emailController =
         TextEditingController(text: authProvider.currentUser?['email'] ?? '');
     _loadSettings();
+    _loadGuestQuota();
+  }
+
+  Future<void> _loadGuestQuota() async {
+    try {
+      final response = await _apiService.get<Map<String, dynamic>>(Environment.settingsGetGuestQuota);
+      if (response.success && response.data != null) {
+        setState(() {
+          _guestQuotaController.text = response.data!['quota']?.toString() ?? '5';
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading guest quota: $e');
+    }
   }
 
   Future<void> _loadSettings() async {
@@ -58,31 +72,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   bool _isUpdatingGuestQuota = false;
   final TextEditingController _guestQuotaController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    _nameController =
-        TextEditingController(text: authProvider.currentUser?['name'] ?? '');
-    _emailController =
-        TextEditingController(text: authProvider.currentUser?['email'] ?? '');
-    _loadSettings();
-    _loadGuestQuota();
-  }
-
-  Future<void> _loadGuestQuota() async {
-    try {
-      final response = await _apiService.get<Map<String, dynamic>>(Environment.settingsGetGuestQuota);
-      if (response.success && response.data != null) {
-        setState(() {
-          _guestQuotaController.text = response.data!['quota']?.toString() ?? '5';
-        });
-      }
-    } catch (e) {
-      _logger.e('Error loading guest quota: $e');
-    }
-  }
 
   Future<void> _updateGuestQuota() async {
     final quota = int.tryParse(_guestQuotaController.text) ?? 0;

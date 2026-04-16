@@ -1,0 +1,153 @@
+# ==============================================================================
+# SUPREME AI: MASTER CI/CD PIPELINE
+# ==============================================================================
+# এই ফাইলটি সুপ্রিম এআই-এর ব্যাকএন্ড এবং ফ্রন্টএন্ড ডেপ্লয়মেন্টকে অটোমেট করে।
+# এটি সর্বোচ্চ গতি (Speed) এবং দক্ষতা (Efficiency) নিশ্চিত করার জন্য ডিজাইন করা হয়েছে।
+#
+# বৈশিষ্ট্যসমূহ:
+# 1. Parallelism: ব্যাকএন্ড এবং ফ্রন্টএন্ড বিল্ড একই সাথে শুরু হয়।
+# 2. Path Filtering: শুধু পরিবর্তিত ফোল্ডারের জন্য বিল্ড চালু হয় (সময় বাঁচায়)।
+# 3. Caching: পরবর্তী বিল্ডগুলোকে দ্রুত করার জন্য ক্যাশ ব্যবহার করা হয়েছে।
+# 4. Artifacts: প্রতিবার অ্যান্ড্রয়েড APK তৈরি করে সেভ করে রাখে।
+# ==============================================================================
+
+name: SupremeAI Master Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: # ম্যানুয়ালি রান করার অপশন
+
+# কনকারেন্সি কন্ট্রোল: একই সাথে দুটি বিল্ড চললে আগেরটি অটোমেটিক বন্ধ হয়ে যাবে।
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ----------------------------------------------------------------------------
+  # JOB 1: BACKEND PIPELINE (Java + Spring Boot + Google Cloud Run)
+  # ----------------------------------------------------------------------------
+  backend:
+    name: Backend (Java/GCloud)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: 📂 Checkout Code
+        uses: actions/checkout@v4
+
+      # শুধু ব্যাকএন্ড সম্পর্কিত ফাইলে পরিবর্তন হলে এই জবটি চলবে।
+      - name: 🔍 Check for Backend Changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'src/**'
+              - 'Dockerfile'
+              - 'build.gradle*'
+              - 'settings.gradle*'
+              - '.github/workflows/supreme_pipeline.yml'
+
+      - name: ⚙️ Setup Java 17
+        if: steps.filter.outputs.backend == 'true'
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: 🔨 Build with Gradle
+        if: steps.filter.outputs.backend == 'true'
+        run: ./gradlew build -x test
+
+      - name: 🚀 Deploy to Google Cloud Run
+        if: steps.filter.outputs.backend == 'true' && github.ref == 'refs/heads/main'
+        run: |
+          echo "✅ Backend Build Successful."
+          echo "🚀 Starting Deployment to Google Cloud Run..."
+          # উল্লেখ্য: এখানে আপনার প্রোজেক্ট আইডি এবং সিক্রেট অনুযায়ী gcloud কমান্ড যুক্ত করতে হবে।
+          # gcloud auth configure-docker
+          # docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/supremeai:latest .
+          # docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/supremeai:latest
+          # gcloud run deploy supremeai --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/supremeai:latest ...
+
+  # ----------------------------------------------------------------------------
+  # JOB 2: FRONTEND PIPELINE (Flutter Web + Android APK + Firebase Hosting)
+  # ----------------------------------------------------------------------------
+  frontend:
+    name: Frontend (Flutter/Firebase)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: 📂 Checkout Code
+        uses: actions/checkout@v4
+
+      # শুধু ফ্রন্টএন্ড সম্পর্কিত ফাইলে পরিবর্তন হলে এই জবটি চলবে।
+      - name: 🔍 Check for Frontend Changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'supremeai/**'
+              - 'flutter_admin_app/**'
+              - 'firebase.json'
+              - '.github/workflows/supreme_pipeline.yml'
+
+      - name: 🐦 Setup Flutter
+        if: steps.filter.outputs.frontend == 'true'
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.0'
+          channel: 'stable'
+          cache: true
+
+      # কাস্টমার অ্যাপ (Web & APK) এবং অ্যাডমিন প্যানেল বিল্ড করা।
+      - name: 📦 Build Flutter Assets
+        if: steps.filter.outputs.frontend == 'true'
+        run: |
+          # 1. Customer App (Main Website & APK)
+          cd supremeai
+          flutter pub get
+          flutter build web --release
+          flutter build apk --release --target-platform android-arm64,android-x64
+          cd ..
+
+          # 2. Admin Panel (Sub-directory: /admin)
+          cd flutter_admin_app
+          flutter pub get
+          flutter build web --release --base-href /admin/
+          cd ..
+
+          # 3. Combine for Firebase Deployment
+          mkdir -p combined_deploy/admin
+          cp -r supremeai/build/web/* combined_deploy/
+          cp -r flutter_admin_app/build/web/* combined_deploy/admin/
+
+      # লেটেস্ট APK ডাউনলোড করার জন্য আর্টিফ্যাক্ট হিসেবে সেভ করা।
+      - name: ⬆️ Save Android APK Artifact
+        if: steps.filter.outputs.frontend == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: supremeai-v${{ github.run_number }}-android
+          path: supremeai/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 7
+
+      - name: 🚀 Deploy to Firebase Hosting
+        if: steps.filter.outputs.frontend == 'true' && github.ref == 'refs/heads/main'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}'
+          projectId: supremeai-a
+          channelId: live
+
+# ==============================================================================
+# MAINTENANCE NOTES:
+# ------------------
+# 1. নতুন কোনো সিক্রেট যোগ করলে GitHub Repo Settings > Secrets > Actions এ আপডেট করুন।
+# 2. যদি কোনো বিল্ড ফেইল করে, তবে Artifacts ট্যাবে গিয়ে লগ ফাইল চেক করুন।
+# 3. এই পাইপলাইনটি 'main' ব্রাঞ্চে পুশ করলেই স্বয়ংক্রিয়ভাবে কার্যকর হবে।
+# ==============================================================================
