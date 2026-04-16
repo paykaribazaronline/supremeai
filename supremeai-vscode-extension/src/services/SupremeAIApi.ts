@@ -14,21 +14,35 @@ export interface GenerateAppResponse {
 export class SupremeAIApi {
     private baseUrl: string;
     private token: string = 'dev-admin-token-local';
+    private apiKey?: string;
 
-    constructor(baseUrl: string) {
+    constructor(baseUrl: string, apiKey?: string) {
         this.baseUrl = baseUrl;
+        this.apiKey = apiKey;
+    }
+
+    setApiKey(apiKey: string) {
+        this.apiKey = apiKey;
     }
 
     async generateApp(request: GenerateAppRequest): Promise<GenerateAppResponse> {
         try {
             console.log(`Calling API: ${this.baseUrl}/api/project/generate`, request);
 
+            const headers: any = {
+                'Content-Type': 'application/json'
+            };
+
+            // Use API key if provided, otherwise use admin token
+            if (this.apiKey) {
+                headers['X-API-Key'] = this.apiKey;
+            } else {
+                headers['Authorization'] = `Bearer ${this.token}`;
+            }
+
             const response = await fetch(`${this.baseUrl}/api/project/generate`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.token}`
-                },
+                headers: headers,
                 body: JSON.stringify({
                     projectName: request.name,
                     platform: request.type,
@@ -64,13 +78,21 @@ export class SupremeAIApi {
 
     async learn(data: any): Promise<void> {
         try {
+            const headers: any = {
+                'Content-Type': 'application/json'
+            };
+
+            // Use API key if provided, otherwise use admin token
+            if (this.apiKey) {
+                headers['X-API-Key'] = this.apiKey;
+            } else {
+                headers['Authorization'] = `Bearer ${this.token}`;
+            }
+
             // Implementation for learning endpoint
             fetch(`${this.baseUrl}/api/learn`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.token}`
-                },
+                headers: headers,
                 body: JSON.stringify(data)
             }).catch(e => console.error('Learning sync failed', e));
         } catch (error) {
