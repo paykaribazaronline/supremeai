@@ -1,16 +1,3 @@
-# ==============================================================================
-# SUPREME AI: ALL-IN-ONE MASTER PIPELINE (Ultra-Fast & Independent)
-# ==============================================================================
-# এই পাইপলাইনটি Security Scan, CI, Backend (GCloud) এবং Frontend (Firebase)
-# সবগুলো কাজকে একটি একক ফাইলে নিয়ে এসেছে।
-#
-# বৈশিষ্ট্যসমূহ:
-# 1. Parallel Jobs: সিকিউরিটি, জাভা এবং ফ্লাটার বিল্ড একই সাথে শুরু হয়।
-# 2. Independence: একটি জব ফেইল করলেও অন্যটি বন্ধ হবে না।
-# 3. Smart Skip: যদি ফাইলে পরিবর্তন না থাকে, তবে সেই পার্টটি স্কিপ হবে।
-# 4. Artifacts: প্রতি রিলিজের জন্য অটোমেটিক অ্যান্ড্রয়েড APK জেনারেট হয়।
-# ==============================================================================
-
 name: SupremeAI Master Pipeline
 
 on:
@@ -25,41 +12,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ----------------------------------------------------------------------------
-  # 🛡️ JOB 1: SECURITY SCAN (Parallel)
-  # ----------------------------------------------------------------------------
-  security_scan:
-    name: Security & Secret Scan
+  # 🔍 Detect Changes
+  changes:
+    name: changes
     runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
     steps:
       - uses: actions/checkout@v4
-      
-      - name: 🔍 Secret Scanning (Trufflehog)
-        uses: trufflesecurity/trufflehog@main
-        with:
-          path: ./
-          extra_args: --only-verified
-
-      - name: 🛡️ CodeQL Analysis (Java)
-        uses: github/codeql-action/init@v3
-        with:
-          languages: java
-          build-mode: none
-      
-      - name: 🚀 Run CodeQL
-        uses: github/codeql-action/analyze@v3
-
-  # ----------------------------------------------------------------------------
-  # ☕ JOB 2: BACKEND CI/CD (Java + GCloud Run)
-  # ----------------------------------------------------------------------------
-  backend:
-    name: Backend (CI/GCloud)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: 🔍 Filter Backend Changes
-        uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v3
         id: filter
         with:
           filters: |
@@ -67,76 +29,69 @@ jobs:
               - 'src/**'
               - 'Dockerfile'
               - 'build.gradle*'
-              - '.github/workflows/supreme_pipeline.yml'
+              - '.github/workflows/**'
+            frontend:
+              - 'supremeai/**'
+              - 'flutter_admin_app/**'
+              - 'firebase.json'
+              - '.github/workflows/**'
 
-      - name: ⚙️ Setup Java & Cache
-        if: steps.filter.outputs.backend == 'true'
+  # ☕ Java Build
+  java-build:
+    name: java-build / build
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ⚙️ Setup Java
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: 'gradle'
-
-      - name: 🔨 Build & Test
-        if: steps.filter.outputs.backend == 'true'
+      - name: 🔨 Build JAR
         run: ./gradlew build -x test
 
-      - name: 🚀 Deploy to GCloud Run
-        if: steps.filter.outputs.backend == 'true' && github.ref == 'refs/heads/main'
-        run: |
-          echo "✅ Backend CI Passed. Deploying to GCloud..."
-          # gcloud commands (using secrets)
-
-  # ----------------------------------------------------------------------------
-  # 🐦 JOB 3: FRONTEND CI/CD (Flutter + Firebase + APK)
-  # ----------------------------------------------------------------------------
-  frontend:
-    name: Frontend (Firebase/APK)
+  # 🐦 Flutter Build
+  flutter-build:
+    name: flutter-build / build
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: 🔍 Filter Frontend Changes
-        uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            frontend:
-              - 'supremeai/**'
-              - 'flutter_admin_app/**'
-              - 'firebase.json'
-              - '.github/workflows/supreme_pipeline.yml'
-
-      - name: 🐦 Setup Flutter
-        if: steps.filter.outputs.frontend == 'true'
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.27.0'
           cache: true
-
-      - name: 📦 Build Web & Android
-        if: steps.filter.outputs.frontend == 'true'
+      - name: 📦 Build Web & APK
         run: |
-          # Customer App
           cd supremeai
           flutter pub get
           flutter build web --release
           flutter build apk --release --target-platform android-arm64
-          cd ..
-          
-          # Combine for Hosting
-          mkdir -p combined_deploy
-          cp -r supremeai/build/web/* combined_deploy/
 
-      - name: ⬆️ Upload APK
-        if: steps.filter.outputs.frontend == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: supremeai-android-latest
-          path: supremeai/build/app/outputs/flutter-apk/app-release.apk
+  # 🚀 Deploy Backend
+  deploy-backend:
+    name: deploy-backend / build
+    needs: java-build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: 🚀 GCloud Deploy
+        run: echo "Deploying to Google Cloud Run..."
 
-      - name: 🚀 Deploy to Firebase
-        if: steps.filter.outputs.frontend == 'true' && github.ref == 'refs/heads/main'
+  # 🚀 Deploy Frontend
+  deploy-frontend:
+    name: deploy-frontend / deploy
+    needs: flutter-build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: 🚀 Firebase Deploy
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
@@ -144,6 +99,40 @@ jobs:
           projectId: supremeai-a
           channelId: live
 
-# ==============================================================================
-# ক্লিন-আপ: এখন অন্য সব .yml ফাইল ডিলিট করে শুধু এটিই মেইন পাইপলাইন হিসেবে থাকবে।
-# ==============================================================================
+  # 🛡️ CodeQL Analysis
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: 🛡️ CodeQL Init
+        uses: github/codeql-action/init@v3
+        with:
+          languages: java
+          build-mode: none
+      - name: 🔍 Run CodeQL
+        uses: github/codeql-action/analyze@v3
+
+  # 🛡️ Secret Scanning
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 🛡️ Secret Scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          extra_args: --only-verified
+
+  # 🛡️ Dependency Review
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - name: 🛡️ Dependency Review
+        uses: actions/dependency-review-action@v4
