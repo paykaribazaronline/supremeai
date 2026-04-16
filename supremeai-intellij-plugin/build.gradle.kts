@@ -43,7 +43,7 @@ intellijPlatform {
         description.set("Fully Compatible with K2 Mode")
         ideaVersion {
             sinceBuild.set("243")
-            untilBuild.set("251.*")
+            untilBuild.set("261.*")
         }
         
         vendor {
@@ -54,7 +54,7 @@ intellijPlatform {
     }
     
     buildSearchableOptions = false
-    instrumentCode = true
+    instrumentCode = false
 }
 
 tasks.withType<JavaCompile> {
