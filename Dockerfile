@@ -1,5 +1,5 @@
 # Step 1: Use Gradle for building the JAR
-FROM gradle:8.7-jdk17 AS build
+FROM gradle:8.7-jdk21 AS build
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
 
@@ -14,7 +14,7 @@ RUN set -eux; \
     cp "$JAR_FILE" /home/gradle/src/build/libs/app.jar
 
 # Step 2: Create the runtime image using Eclipse Temurin
-FROM eclipse-temurin:17-jdk-jammy
+FROM eclipse-temurin:21-jdk-jammy
 
 # Install git and curl for runtime needs
 RUN apt-get update && apt-get install -y git curl ca-certificates && rm -rf /var/lib/apt/lists/*

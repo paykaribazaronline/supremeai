@@ -20,9 +20,11 @@
     <depends>org.jetbrains.kotlin</depends>
     <depends>org.jetbrains.android</depends>
 
+    <extensions defaultExtensionNs="org.jetbrains.kotlin">
+        <supportsKotlinK2Mode/>
+    </extensions>
+
     <extensions defaultExtensionNs="com.intellij">
-        <!-- Enable K2 Mode Support -->
-        <kotlin.supportsK2/>
 
         <toolWindow id="SupremeAI"
                     secondary="false"

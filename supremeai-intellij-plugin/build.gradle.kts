@@ -9,6 +9,9 @@ version = "1.2.0"
 
 repositories {
     mavenCentral()
+    maven("https://www.jetbrains.com/intellij-repository/releases")
+    maven("https://cache-redirector.jetbrains.com/intellij-dependencies")
+    maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/bootstrap")
     intellijPlatform {
         defaultRepositories()
     }
@@ -32,7 +35,8 @@ kotlin {
             "-Xsuppress-version-warnings",
             "-Xuse-k2",
             "-Xallow-kotlin-package",
-            "-Xcontext-receivers"
+            "-Xcontext-receivers",
+            "-opt-in=org.jetbrains.kotlin.analysis.api.KaExperimentalApi"
         )
     }
 }
@@ -49,8 +53,6 @@ intellijPlatform {
         vendor {
             name.set("SupremeAI")
         }
-        
-
     }
     
     buildSearchableOptions = false
@@ -61,7 +63,3 @@ tasks.withType<JavaCompile> {
     sourceCompatibility = "21"
     targetCompatibility = "21"
 }
-
-
-
-
