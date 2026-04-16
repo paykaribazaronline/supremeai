@@ -82,7 +82,7 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                     val conn = url.openConnection() as HttpURLConnection
                     conn.requestMethod = "POST"
                     conn.setRequestProperty("Content-Type", "application/json")
-                    conn.setRequestProperty("Authorization", "Bearer dev-admin-token-local")
+                    // No token needed for direct access
                     conn.doOutput = true
                     
                     val jsonInputString = "{\"message\": \"$text\", \"provider\": \"meta-llama\"}"
@@ -92,11 +92,11 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
 
                     val response = conn.inputStream.bufferedReader().use { it.readText() }
                     SwingUtilities.invokeLater {
-                        chatArea.append("AI: Response received from Llama 3\n")
+                        chatArea.append("AI: Response received\n")
                     }
                 } catch (e: Exception) {
                     SwingUtilities.invokeLater {
-                        chatArea.append("AI: [Offline] Could not connect to backend.\n")
+                        chatArea.append("AI: [Offline] Could not connect to SupremeAI Cloud. Please check your internet connection.\n")
                     }
                 }
             }
@@ -107,22 +107,24 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                 try {
                     val url = URL("https://supremeai-565236080752.us-central1.run.app/api/status/check")
                     val conn = url.openConnection() as HttpURLConnection
+                    conn.connectTimeout = 5000
+                    conn.readTimeout = 5000
                     conn.requestMethod = "GET"
                     val responseCode = conn.responseCode
-                    if (responseCode == 200 || responseCode == 401) {
+                    if (responseCode == 200) {
                         SwingUtilities.invokeLater {
                             statusLabel.text = "● Backend: Online"
                             statusLabel.foreground = java.awt.Color.GREEN
                         }
                     } else {
                         SwingUtilities.invokeLater {
-                            statusLabel.text = "● Backend: Error ($responseCode)"
+                            statusLabel.text = "● Backend: Status Check Failed ($responseCode)"
                             statusLabel.foreground = java.awt.Color.ORANGE
                         }
                     }
                 } catch (e: Exception) {
                     SwingUtilities.invokeLater {
-                        statusLabel.text = "● Backend: Offline"
+                        statusLabel.text = "● Backend: Connection Lost"
                         statusLabel.foreground = java.awt.Color.RED
                     }
                 }
