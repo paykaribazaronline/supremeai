@@ -82,7 +82,7 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                     val conn = url.openConnection() as HttpURLConnection
                     conn.requestMethod = "POST"
                     conn.setRequestProperty("Content-Type", "application/json")
-                    // No token needed for direct access
+                    conn.setRequestProperty("Authorization", "Bearer dev-admin-token-local")
                     conn.doOutput = true
                     
                     val jsonInputString = "{\"message\": \"$text\", \"provider\": \"meta-llama\"}"
@@ -90,13 +90,21 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                         os.write(jsonInputString.toByteArray())
                     }
 
-                    val response = conn.inputStream.bufferedReader().use { it.readText() }
-                    SwingUtilities.invokeLater {
-                        chatArea.append("AI: Response received\n")
+                    val responseCode = conn.responseCode
+                    if (responseCode == 200) {
+                        val response = conn.inputStream.bufferedReader().use { it.readText() }
+                        SwingUtilities.invokeLater {
+                            chatArea.append("AI: Response received\n")
+                        }
+                    } else {
+                        val errorResponse = conn.errorStream?.bufferedReader()?.use { it.readText() } ?: "No error details"
+                        SwingUtilities.invokeLater {
+                            chatArea.append("AI: [Error $responseCode] $errorResponse\n")
+                        }
                     }
                 } catch (e: Exception) {
                     SwingUtilities.invokeLater {
-                        chatArea.append("AI: [Offline] Could not connect to SupremeAI Cloud. Please check your internet connection.\n")
+                        chatArea.append("AI: [Offline] Connection failed: ${e.message}\n")
                     }
                 }
             }
@@ -105,26 +113,27 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
         private fun checkBackendStatus() {
             thread {
                 try {
-                    val url = URL("https://supremeai-565236080752.us-central1.run.app/api/status/check")
+                    val url = URL("https://supremeai-565236080752.us-central1.run.app/api/status")
                     val conn = url.openConnection() as HttpURLConnection
                     conn.connectTimeout = 5000
                     conn.readTimeout = 5000
                     conn.requestMethod = "GET"
                     val responseCode = conn.responseCode
-                    if (responseCode == 200) {
+                    // 200 is success, 401 means server is up but needs auth (which is fine for a status check)
+                    if (responseCode == 200 || responseCode == 401) {
                         SwingUtilities.invokeLater {
                             statusLabel.text = "● Backend: Online"
                             statusLabel.foreground = java.awt.Color.GREEN
                         }
                     } else {
                         SwingUtilities.invokeLater {
-                            statusLabel.text = "● Backend: Status Check Failed ($responseCode)"
+                            statusLabel.text = "● Backend: Error ($responseCode)"
                             statusLabel.foreground = java.awt.Color.ORANGE
                         }
                     }
                 } catch (e: Exception) {
                     SwingUtilities.invokeLater {
-                        statusLabel.text = "● Backend: Connection Lost"
+                        statusLabel.text = "● Backend: Offline"
                         statusLabel.foreground = java.awt.Color.RED
                     }
                 }

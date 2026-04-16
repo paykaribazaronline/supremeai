@@ -194,19 +194,126 @@ class _AIProvidersScreenState extends State<AIProvidersScreen> {
     );
   }
 
+  Future<void> _addNewCustomProvider() async {
+    final nameController = TextEditingController();
+    final urlController = TextEditingController();
+    final modelController = TextEditingController();
+    final keyController = TextEditingController();
+    bool isVerifying = false;
+
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('নতুন AI প্রোভাইডার যোগ করুন'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'প্রোভাইডারের নাম (যেমন: Grok, Llama)'),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: urlController,
+                  decoration: const InputDecoration(labelText: 'Base URL (OpenAI compatible)', hintText: 'https://api.example.com/v1'),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: modelController,
+                  decoration: const InputDecoration(labelText: 'Model ID', hintText: 'grok-beta'),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: keyController,
+                  obscureText: true,
+                  decoration: const InputDecoration(labelText: 'API Key'),
+                ),
+                if (isVerifying) ...[
+                  const SizedBox(height: 16),
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 8),
+                  const Text('API Key যাচাই করা হচ্ছে...', style: TextStyle(fontSize: 12)),
+                ]
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: isVerifying ? null : () => Navigator.pop(ctx), child: const Text('বাতিল')),
+            ElevatedButton(
+              onPressed: isVerifying ? null : () async {
+                if (nameController.text.isEmpty || keyController.text.isEmpty) {
+                  _showSnackBar('নাম এবং API Key আবশ্যক', isError: true);
+                  return;
+                }
+
+                setDialogState(() => isVerifying = true);
+
+                // API Key Verification call to backend
+                final verifyResponse = await _apiService.post<Map<String, dynamic>>(
+                  '/api/providers/verify-key',
+                  data: {
+                    'baseUrl': urlController.text.trim(),
+                    'modelId': modelController.text.trim(),
+                    'apiKey': keyController.text.trim(),
+                  },
+                );
+
+                if (verifyResponse.success && verifyResponse.data?['valid'] == true) {
+                  if (ctx.mounted) {
+                    Navigator.pop(ctx, {
+                      'name': nameController.text.trim(),
+                      'baseUrl': urlController.text.trim(),
+                      'modelId': modelController.text.trim(),
+                      'apiKey': keyController.text.trim(),
+                    });
+                  }
+                } else {
+                  setDialogState(() => isVerifying = false);
+                  _showSnackBar('ভুল API Key! দয়া করে সঠিক কী প্রদান করুন।', isError: true);
+                }
+              },
+              child: const Text('যাচাই ও সংরক্ষণ'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result != null) {
+      final response = await _apiService.post<Map<String, dynamic>>(
+        Environment.providersAdd,
+        data: result,
+      );
+
+      if (response.success) {
+        _showSnackBar('প্রোভাইডার সফলভাবে যোগ করা হয়েছে।');
+        _loadProviders();
+      } else {
+        _showSnackBar('ত্রুটি: ${response.error}', isError: true);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AI Providers'),
+        title: const Text('AI Providers & Rotation'),
         elevation: 0,
         actions: [
           IconButton(
             onPressed: _isLoading ? null : _loadProviders,
             icon: const Icon(Icons.refresh),
-            tooltip: 'রিফ্রেশ করুন',
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _addNewCustomProvider,
+        icon: const Icon(Icons.add),
+        label: const Text('নতুন AI যোগ করুন'),
+        backgroundColor: const Color(AppConstants.primaryColor),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

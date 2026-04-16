@@ -30,4 +30,5 @@ class AppRoutes {
   static const String offlineChat = '/offline-chat';
   static const String knowledgeSeed = '/knowledge-seed';
   static const String knowledgeSeedList = '/knowledge-seed/list';
+  static const String userManagement = '/user-management';
 }

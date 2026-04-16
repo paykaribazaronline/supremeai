@@ -56,10 +56,107 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  bool _isUpdatingGuestQuota = false;
+  final TextEditingController _guestQuotaController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    _nameController =
+        TextEditingController(text: authProvider.currentUser?['name'] ?? '');
+    _emailController =
+        TextEditingController(text: authProvider.currentUser?['email'] ?? '');
+    _loadSettings();
+    _loadGuestQuota();
+  }
+
+  Future<void> _loadGuestQuota() async {
+    try {
+      final response = await _apiService.get<Map<String, dynamic>>(Environment.settingsGetGuestQuota);
+      if (response.success && response.data != null) {
+        setState(() {
+          _guestQuotaController.text = response.data!['quota']?.toString() ?? '5';
+        });
+      }
+    } catch (e) {
+      _logger.e('Error loading guest quota: $e');
+    }
+  }
+
+  Future<void> _updateGuestQuota() async {
+    final quota = int.tryParse(_guestQuotaController.text) ?? 0;
+    setState(() => _isUpdatingGuestQuota = true);
+
+    try {
+      final response = await _apiService.post<Map<String, dynamic>>(
+        Environment.settingsGuestQuota,
+        data: {'quota': quota},
+      );
+
+      if (!mounted) return;
+      setState(() => _isUpdatingGuestQuota = false);
+
+      if (response.success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('গেস্ট কোটা আপডেট করা হয়েছে ✅')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('ত্রুটি: ${response.error}')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isUpdatingGuestQuota = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  Widget _buildGuestQuotaSetting() {
+    return Padding(
+      padding: const EdgeInsets.all(AppConstants.paddingLarge),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'প্রতি ব্যবহারকারীর জন্য দৈনিক ফ্রি রিকোয়েস্ট সীমা',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _guestQuotaController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    hintText: 'উদা: ৫',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton(
+                onPressed: _isUpdatingGuestQuota ? null : _updateGuestQuota,
+                child: _isUpdatingGuestQuota
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Text('সেট করুন'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _guestQuotaController.dispose();
     super.dispose();
   }
 
@@ -112,6 +209,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                 ),
+              ],
+            ),
+
+            // Guest Mode Section
+            _buildSection(
+              'গেস্ট মোড (Guest Mode)',
+              '(লগইন ছাড়া অ্যাপ ব্যবহারের সীমা)',
+              [
+                _buildGuestQuotaSetting(),
               ],
             ),
 
