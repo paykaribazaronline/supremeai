@@ -13,6 +13,7 @@ import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/projects/project_detail_screen.dart';
 import 'screens/unified_admin/unified_admin_screen.dart';
+import 'screens/admin/user_management_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -162,6 +163,7 @@ class SupremeAIAdminApp extends StatelessWidget {
             AppRoutes.phases: _dashboardScreen,
             AppRoutes.tracing: _dashboardScreen,
             AppRoutes.offlineChat: _dashboardScreen,
+            AppRoutes.userManagement: (context) => const UserManagementScreen(),
           },
           onGenerateRoute: _onGenerateRoute,
           onUnknownRoute: _onUnknownRoute,

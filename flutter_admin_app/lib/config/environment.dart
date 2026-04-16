@@ -129,9 +129,15 @@ class Environment {
   static const String notificationSmsBudgetReset = '/api/notifications/sms/budget/reset';
   static const String notificationSmsStats = '/api/notifications/sms/stats';
 
-  // Auth
+  // Auth & User Management
   static const String authProfile = '/api/auth/profile';
   static const String authChangePassword = '/api/auth/change-password';
+  static const String usersList = '/api/admin/users';
+  static const String userUpdateQuota = '/api/admin/users/update-quota';
+  static const String userUpdateCost = '/api/admin/users/update-cost';
+  static const String settingsGuestQuota = '/api/admin/settings/guest-quota';
+  static const String settingsGetGuestQuota = '/api/admin/settings/get-guest-quota';
+  static const String userDetails = '/api/admin/users/details';
   
   // Analytics
   static const String analyticsHistorical = '/api/analytics/historical';

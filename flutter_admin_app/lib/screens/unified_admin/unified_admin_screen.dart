@@ -13,6 +13,7 @@ import '../analytics/analytics_screen.dart';
 import '../consensus/consensus_screen.dart';
 import '../vpn/vpn_screen.dart';
 import '../teaching/teaching_screen.dart';
+import '../admin/user_management_screen.dart';
 
 /// UNIFIED ADMIN SCREEN - Fully Functional Feature Integration
 class UnifiedAdminScreen extends StatefulWidget {
@@ -194,6 +195,10 @@ class _UnifiedAdminScreenState extends State<UnifiedAdminScreen> {
         break;
       case 'teaching':
         featureWidget = const TeachingScreen();
+        break;
+      case 'user-management':
+      case 'users':
+        featureWidget = const UserManagementScreen();
         break;
       case 'notifications':
       case 'alerts':
