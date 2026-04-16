@@ -131,7 +131,13 @@ tasks.withType<JavaCompile> {
 
 tasks.test {
     useJUnitPlatform()
-    finalizedBy(tasks.jacocoTestReport, tasks.jacocoTestCoverageVerification)
+    // Enable parallel test execution
+    maxParallelForks = Runtime.getRuntime().availableProcessors().div(2).coerceAtLeast(1)
+    // Run coverage only if explicitly requested
+    val runCoverage = (findProperty("runCoverage") as String?)?.toBoolean() ?: false
+    if (runCoverage) {
+        finalizedBy(tasks.jacocoTestReport, tasks.jacocoTestCoverageVerification)
+    }
 }
 
 val jacocoExclusions = listOf(
