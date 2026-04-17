@@ -100,6 +100,11 @@ jobs:
           cache: "gradle"
       - name: Build_Plugin
         run: "./gradlew :supremeai-intellij-plugin:buildPlugin"
+      - name: Upload_Plugin_Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: supremeai-intellij-plugin
+          path: supremeai-intellij-plugin/build/distributions/*.zip
       - name: Store_Plugin_Path
         id: set-path
         run: echo "path=supremeai-intellij-plugin/build/distributions/*.zip" >> $GITHUB_OUTPUT
@@ -215,6 +220,11 @@ jobs:
         with:
           name: customer-web-build
           path: supremeai/build/web
+      - name: Upload_APK_Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: supremeai-android-apk
+          path: supremeai/build/app/outputs/flutter-apk/app-release.apk
       - name: Store_Artifact_Paths
         id: set-paths
         run: |
