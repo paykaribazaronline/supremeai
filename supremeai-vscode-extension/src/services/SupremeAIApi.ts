@@ -29,7 +29,7 @@ export class SupremeAIApi {
         try {
             console.log(`Calling API: ${this.baseUrl}/api/project/generate`, request);
 
-            const headers: any = {
+            const headers: Record<string, string> = {
                 'Content-Type': 'application/json'
             };
 
@@ -50,35 +50,36 @@ export class SupremeAIApi {
                 })
             });
 
-            const result = await response.json() as any;
+            const result = await response.json() as Record<string, unknown>;
 
             if (response.ok) {
                 return {
                     success: true,
-                    projectId: result.projectId || "proj_" + Math.random().toString(36).substr(2, 9),
-                    apkUrl: result.apkUrl || "https://storage.googleapis.com/supremeai-builds/app-debug.apk",
-                    message: result.message || "App generation started successfully"
+                    projectId: (result.projectId as string) || "proj_" + Math.random().toString(36).substr(2, 9),
+                    apkUrl: (result.apkUrl as string) || "https://storage.googleapis.com/supremeai-builds/app-debug.apk",
+                    message: (result.message as string) || "App generation started successfully"
                 };
             } else {
                 return {
                     success: false,
                     projectId: "",
-                    message: result.message || `Backend Error: ${response.status}`
+                    message: (result.message as string) || `Backend Error: ${response.status}`
                 };
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('API Error:', error);
+            const errorMessage = error instanceof Error ? error.message : String(error);
             return {
                 success: false,
                 projectId: "",
-                message: `Failed to connect to SupremeAI API: ${error.message}`
+                message: `Failed to connect to SupremeAI API: ${errorMessage}`
             };
         }
     }
 
-    async learn(data: any): Promise<void> {
+    async learn(data: Record<string, unknown>): Promise<void> {
         try {
-            const headers: any = {
+            const headers: Record<string, string> = {
                 'Content-Type': 'application/json'
             };
 
