@@ -177,6 +177,7 @@ jobs:
             --platform managed \
             --region us-central1 \
             --allow-unauthenticated \
+            --memory 2Gi \
             --set-env-vars=SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a,"JAVA_OPTS=-Xms256m -Xmx1024m -XX:+UseG1GC"
       - name: Verify_Cloud_Run_Service
         run: |
