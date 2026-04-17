@@ -184,8 +184,8 @@ jobs:
           flutter-version: "3.27.0"
           cache: true
       - name: Test_And_Build
+        working-directory: ./supremeai
         run: |
-          cd supremeai
           flutter pub get
           flutter test
           flutter build web --release
@@ -194,7 +194,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: customer-web-build
-          path: "supremeai/build/web"
+          path: supremeai/build/web
       - name: Store_Artifact_Paths
         run: |
           echo "FRONTEND_URL=https://supremeai-a.web.app/" >> $GITHUB_ENV
