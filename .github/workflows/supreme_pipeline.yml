@@ -164,11 +164,12 @@ jobs:
             --set-env-vars=SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a,"JAVA_OPTS=-Xms256m -Xmx1024m -XX:+UseG1GC"
       - name: Get_Backend_URL
         run: echo "BACKEND_URL=$(gcloud run services describe supremeai --platform managed --region us-central1 --format='value(status.url)')" >> $GITHUB_ENV
-      - name: Show_Cloud_Run_Logs
-        if: always()
+      - name: Show_Cloud_Build_Logs
+        if: failure()
         run: |
-          echo "Fetching logs from Cloud Run to diagnose startup issues..."
-          gcloud logging read "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"supremeai\" AND severity>=DEFAULT" --project=supremeai-a --limit=150 --format='value(textPayload)'
+          echo "Fetching latest Cloud Build logs..."
+          BUILD_ID=$(gcloud builds list --project=supremeai-a --limit=1 --format='value(id)')
+          gcloud builds log $BUILD_ID --project=supremeai-a
 
   flutter-build-and-test:
     name: Flutter_Build_And_Test
@@ -210,7 +211,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: customer-web-build
-          path: "."
+          path: "supremeai"
       - name: Firebase_Deploy
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
