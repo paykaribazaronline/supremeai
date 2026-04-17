@@ -6,6 +6,8 @@
     <title>SupremeAI - Admin Dashboard</title>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -594,7 +596,8 @@
             <div class="menu-item" onclick="showSection('live-activity')">⚡ Live Activity</div>
             <div class="menu-item" onclick="showSection('kimi-k2')">🔮 AI Learning Orchestration</div>
             <div class="menu-item" onclick="showSection('chat')">💬 Chat with SupremeAI</div>
-            <div class="menu-item" onclick="showSection('settings')">⚙️ Settings</div>
+             <div class="menu-item" onclick="showSection('analytics')">📊 Analytics</div>
+             <div class="menu-item" onclick="showSection('settings')">⚙️ Settings</div>
         </div>
 
         <!-- Main Content -->
@@ -1807,6 +1810,51 @@
                 </div>
 
                 <!-- Chat Section -->
+                <!-- Analytics Section -->
+                <div id="analytics" class="content-section">
+                    <h1>📊 Usage Analytics & Trends</h1>
+                    <p>Real-time insights into API usage patterns, performance metrics, and system health trends.</p>
+
+                    <div class="dashboard-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Total API Calls (24h)</div>
+                            <div class="stat-value" id="totalApiCalls">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Active Users</div>
+                            <div class="stat-value" id="activeUsersCount">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Avg Response Time</div>
+                            <div class="stat-value" id="avgResponseTime">0ms</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Error Rate</div>
+                            <div class="stat-value" id="errorRateValue">0%</div>
+                        </div>
+                    </div>
+
+                    <h2>Usage Trends (Last 7 Days)</h2>
+                    <div style="background:#1a202c;border:1px solid #2d3748;border-radius:10px;padding:20px;margin-bottom:20px;">
+                        <canvas id="usageChart" width="800" height="300"></canvas>
+                    </div>
+
+                    <h2>Top API Endpoints</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Endpoint</th>
+                                <th>Requests</th>
+                                <th>Avg Response Time</th>
+                                <th>Error Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody id="apiEndpointsTableBody">
+                            <tr><td colspan="4" style="text-align: center; padding: 40px; color: #a0aec0;">Loading analytics data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
                 <div id="chat" class="content-section">
                     <h1>💬 Chat with SupremeAI</h1>
 
@@ -2483,6 +2531,7 @@
         let availableProviders = [];
         let firebaseConfig = null;
         let firebaseAuth = null;
+        let stompClient = null;
 
         async function initializeFirebase() {
             try {
@@ -2497,11 +2546,90 @@
                     firebase.initializeApp(firebaseConfig);
                 }
                 firebaseAuth = firebase.auth();
-                console.log('✅ Firebase initialized');
-            } catch (err) {
-                console.error('❌ Firebase init failed:', err.message);
-                showError('Failed to initialize authentication service. Please refresh the page.');
+            console.log('✅ Firebase initialized');
+            return true;
+        } catch (err) {
+            console.error('❌ Firebase init failed:', err.message);
+            return false;
+        }
+
+        function connectWebSocket() {
+            const socket = new SockJS('/ws');
+            stompClient = Stomp.over(socket);
+
+            stompClient.connect({}, function(frame) {
+                console.log('✅ Connected to WebSocket:', frame);
+
+                // Subscribe to dashboard updates
+                stompClient.subscribe('/topic/dashboard', function(message) {
+                    const data = JSON.parse(message.body);
+                    updateDashboardStats(data.stats);
+                });
+
+                // Subscribe to quota updates
+                stompClient.subscribe('/topic/quota', function(message) {
+                    const data = JSON.parse(message.body);
+                    updateQuotaDisplay(data.quota);
+                });
+
+                // Request initial data
+                stompClient.send('/app/dashboard/subscribe', {}, '');
+
+            }, function(error) {
+                console.error('❌ WebSocket connection error:', error);
+                setTimeout(connectWebSocket, 5000); // Retry connection after 5 seconds
+            });
+        }
+
+        function updateDashboardStats(stats) {
+            if (stats.activeAIAgents !== undefined) {
+                const element = document.getElementById('activeAgentsCount');
+                if (element) {
+                    element.textContent = stats.activeAIAgents;
+                    element.style.color = '#4299e1';
+                    setTimeout(() => element.style.color = '', 2000);
+                }
             }
+            if (stats.systemHealthScore !== undefined) {
+                const element = document.getElementById('systemLoadValue');
+                if (element) {
+                    element.textContent = stats.systemHealthScore + '%';
+                    element.style.color = stats.systemHealthScore >= 95 ? '#48bb78' : stats.systemHealthScore >= 90 ? '#ed8936' : '#f56565';
+                }
+            }
+            if (stats.runningProjects !== undefined) {
+                const element = document.getElementById('activeProjectsCount');
+                if (element) {
+                    element.textContent = stats.runningProjects;
+                    element.style.color = '#4299e1';
+                    setTimeout(() => element.style.color = '', 2000);
+                }
+            }
+            if (stats.completedProjects !== undefined) {
+                const element = document.getElementById('completedProjectsCount');
+                if (element) {
+                    element.textContent = stats.completedProjects;
+                }
+            }
+            if (stats.successRate !== undefined) {
+                const element = document.getElementById('successRateValue');
+                if (element) {
+                    element.textContent = stats.successRate + '%';
+                }
+            }
+            if (stats.systemHealthStatus) {
+                const element = document.getElementById('systemStatusValue');
+                if (element) {
+                    element.textContent = stats.systemHealthStatus;
+                    element.style.color = stats.systemHealthStatus === 'HEALTHY' ? '#48bb78' : '#f56565';
+                }
+            }
+        }
+
+        function updateQuotaDisplay(quotaData) {
+            // Update any quota display elements if they exist
+            console.log('📊 Quota update received:', quotaData);
+        }
         }
 
         function showError(message) {
@@ -2829,6 +2957,9 @@
                     return false;
                 }
             }
+
+            // Connect to WebSocket for real-time updates
+            connectWebSocket();
 
             return true;
         }
