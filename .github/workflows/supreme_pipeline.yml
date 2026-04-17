@@ -138,6 +138,11 @@ jobs:
       - name: Package_Extension
         working-directory: ./supremeai-vscode-extension
         run: npx vsce package --no-git-tag-version
+      - name: Upload_VSIX_Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: supremeai-vscode-extension
+          path: supremeai-vscode-extension/*.vsix
       - name: Store_VSIX_Path
         id: set-path
         run: echo "path=supremeai-vscode-extension/*.vsix" >> $GITHUB_OUTPUT
