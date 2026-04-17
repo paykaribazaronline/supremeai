@@ -124,7 +124,8 @@ public class AuthenticationController {
         return email != null && (
             email.endsWith("@supremeai.com") ||
             email.equals("admin@supremeai.com") ||
-            email.equals("nazifa@example.com") // Add specific admin emails
+            email.equals("niloyjoy7@gmail.com") || // Added from your screenshot
+            email.equals("nazifa@example.com")
         );
     }
 }
