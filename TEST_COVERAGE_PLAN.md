@@ -51,15 +51,33 @@
 - **Backend:**
   - `QuotaServiceTest.java` - ইউনিট টেস্ট যোগ করা হয়েছে (Quota Logic)।
   - `ExpertAgentRouterTest.java` - স্ট্রাকচার এবং বেসিক মক টেস্ট যোগ করা হয়েছে।
+  - `AuthenticationControllerTest.java` - Firebase Login এবং User Creation টেস্ট যোগ করা হয়েছে।
 - **Frontend (Flutter):**
   - `widget_test.dart` - বেসিক অ্যাপ স্টার্ট এবং স্ক্রিন ভেরিফিকেশন টেস্ট আপডেট করা হয়েছে।
+  - `auth_provider_test.dart` - AuthProvider এর স্টেট ম্যানেজমেন্ট এবং SharedPreferences টেস্ট যোগ করা হয়েছে।
 
 ### [ ] পরবর্তী লক্ষ্য
 
 - `com.supremeai.ml` প্যাকেজের কোর অ্যালগরিদমগুলোর জন্য টেস্ট লেখা।
 - `com.supremeai.controller` লেভেলের এন্ডপয়েন্ট টেস্ট শুরু করা।
 
-## ৬. কিভাবে শুরু করবেন?
+## ৬. বিস্তারিত TODO লিস্ট (Upcoming Tasks)
+
+### Backend (Java)
+
+- [ ] **ML Logic:** `IsolationForest.java` এবং `RandomForestFailurePredictor.java` এর জন্য ইউনিট টেস্ট।
+- [ ] **Security:** `JwtAuthenticationFilter` এর জন্য মক টেস্ট।
+- [ ] **Agent Orchestration:** `AdaptiveAgentOrchestrator.java` এবং `ExpertAgentRouter.java` এর পূর্ণাঙ্গ ইমপ্লিমেন্টেশন টেস্ট।
+- [ ] **API Endpoints:** `AgentOrchestrationController` এবং অন্যান্য কন্ট্রোলারের জন্য `MockMvc` টেস্ট।
+- [ ] **Services:** `QuotaService` এর রিমেইনিং মেথডগুলোর এজ-কেস টেস্ট।
+
+### Frontend (Flutter)
+
+- [ ] **Auth Flow:** `LoginScreen` এর জন্য ডিটেইলড উইজেট টেস্ট (Success/Failure scenarios)।
+- [ ] **State Management:** `AuthProvider` এর জন্য ইউনিট টেস্ট।
+- [ ] **Navigation:** এক স্ক্রিন থেকে অন্য স্ক্রিনে যাওয়ার লজিক চেক করা।
+
+## ৭. কিভাবে শুরু করবেন?
 
 ১. প্রতিটি নতুন ফিচারের সাথে অবশ্যই একটি ইউনিট টেস্ট ফাইল যোগ করুন।
 ২. পুরানো কোড রিফ্যাক্টর করার সময় টেস্ট যোগ করুন।

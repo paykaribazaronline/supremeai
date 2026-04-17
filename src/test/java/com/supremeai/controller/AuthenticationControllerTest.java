@@ -1,28 +1,33 @@
 package com.supremeai.controller;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.FirebaseToken;
-import com.supremeai.repository.UserApiRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.supremeai.model.User;
+import com.supremeai.model.UserTier;
 import com.supremeai.repository.UserRepository;
-import com.supremeai.security.ApiKeyFilter;
-import com.supremeai.service.QuotaService;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseToken;
+import com.google.firebase.ErrorCode;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(AuthenticationController.class)
+@SpringBootTest
+@AutoConfigureMockMvc(addFilters = false) // Disable security filters for this test
 public class AuthenticationControllerTest {
 
     @Autowired
@@ -32,56 +37,62 @@ public class AuthenticationControllerTest {
     private UserRepository userRepository;
 
     @MockBean
-    private UserApiRepository userApiRepository;
+    private FirebaseAuth firebaseAuth;
 
-    @MockBean
-    private ApiKeyFilter apiKeyFilter;
-
-    @MockBean
-    private QuotaService quotaService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    public void testFirebaseLoginSuccess() throws Exception {
-        // Mock FirebaseToken
-        FirebaseToken mockToken = mock(FirebaseToken.class);
-        when(mockToken.getUid()).thenReturn("test-uid");
-        when(mockToken.getEmail()).thenReturn("test@example.com");
-        when(mockToken.getClaims()).thenReturn(Map.of("name", "Test User"));
+    void testFirebaseLogin_InvalidToken() throws Exception {
+        // Mock static Firebase Auth to throw exception
+        try (MockedStatic<FirebaseAuth> mockedAuth = mockStatic(FirebaseAuth.class)) {
+            mockedAuth.when(FirebaseAuth::getInstance).thenReturn(firebaseAuth);
+            when(firebaseAuth.verifyIdToken(anyString())).thenThrow(new com.google.firebase.auth.FirebaseAuthException(
+                new com.google.firebase.FirebaseException(ErrorCode.INVALID_ARGUMENT, "Invalid token", new Exception())
+            ));
 
-        // Mock FirebaseAuth
-        FirebaseAuth mockAuth = mock(FirebaseAuth.class);
-        when(mockAuth.verifyIdToken("valid-token")).thenReturn(mockToken);
+            Map<String, String> request = new HashMap<>();
+            request.put("idToken", "invalid-token");
 
-        try (MockedStatic<FirebaseAuth> mockedStatic = mockStatic(FirebaseAuth.class)) {
-            mockedStatic.when(FirebaseAuth::getInstance).thenReturn(mockAuth);
+            mockMvc.perform(post("/api/auth/firebase-login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value("error"))
+                    .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("Invalid Firebase token")));
+        }
+    }
+
+    @Test
+    void testFirebaseLogin_ExistingUser() throws Exception {
+        // Mocking Firebase decoded token
+        FirebaseToken decodedToken = mock(FirebaseToken.class);
+        when(decodedToken.getUid()).thenReturn("test-uid");
+        when(decodedToken.getEmail()).thenReturn("test@example.com");
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("name", "Test User");
+        when(decodedToken.getClaims()).thenReturn(claims);
+
+        // Mocking User in database
+        User existingUser = new User("test-uid", "test@example.com", "Test User");
+        existingUser.setTier(UserTier.FREE);
+        when(userRepository.findByFirebaseUid("test-uid")).thenReturn(Optional.of(existingUser));
+
+        try (MockedStatic<FirebaseAuth> mockedAuth = mockStatic(FirebaseAuth.class)) {
+            mockedAuth.when(FirebaseAuth::getInstance).thenReturn(firebaseAuth);
+            when(firebaseAuth.verifyIdToken(anyString())).thenReturn(decodedToken);
 
             Map<String, String> request = new HashMap<>();
             request.put("idToken", "valid-token");
 
             mockMvc.perform(post("/api/auth/firebase-login")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"idToken\":\"valid-token\"}"))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status").value("success"))
-                    .andExpect(jsonPath("$.user.id").value("test-uid"));
-        }
-    }
+                    .andExpect(jsonPath("$.isNewUser").value(false))
+                    .andExpect(jsonPath("$.user.email").value("test@example.com"));
 
-    @Test
-    public void testFirebaseLoginInvalidToken() throws Exception {
-        FirebaseAuth mockAuth = mock(FirebaseAuth.class);
-        FirebaseAuthException mockException = mock(FirebaseAuthException.class);
-        when(mockException.getMessage()).thenReturn("Invalid token");
-        when(mockAuth.verifyIdToken("invalid-token")).thenThrow(mockException);
-
-        try (MockedStatic<FirebaseAuth> mockedStatic = mockStatic(FirebaseAuth.class)) {
-            mockedStatic.when(FirebaseAuth::getInstance).thenReturn(mockAuth);
-
-            mockMvc.perform(post("/api/auth/firebase-login")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"idToken\":\"invalid-token\"}"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status").value("error"));
+            verify(userRepository).save(any(User.class));
         }
     }
 }

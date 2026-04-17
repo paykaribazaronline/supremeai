@@ -2,80 +2,468 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SupremeAI - My APIs</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333; min-height: 100vh; padding: 20px;
+            color: #333; min-height: 100vh; margin: 0;
+            line-height: 1.6;
+        }
+        
+        :root {
+            --color-primary: #667eea;
+            --color-primary-dark: #5a6fd8;
+            --color-secondary: #6c757d;
+            --color-success: #28a745;
+            --color-danger: #dc3545;
+            --color-warning: #ff9800;
+            --color-light: #f8f9fa;
+            --color-dark: #343a40;
+            --color-muted: #6c757d;
+            --color-white: #ffffff;
+            --color-border: #dee2e6;
+            
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-pill: 20px;
+            
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            
+            --transition-fast: 150ms;
+            --transition-normal: 300ms;
+            --transition-slow: 500ms;
+            
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+            --shadow-xl: 0 20px 25px rgba(0,0,0,0.15);
+            
+            --max-width-container: 1200px;
+            --max-width-content: 800px;
+        }
+        
+        :root {
+            --color-primary: #667eea;
+            --color-primary-dark: #5a6fd8;
+            --color-secondary: #6c757d;
+            --color-success: #28a745;
+            --color-danger: #dc3545;
+            --color-warning: #ff9800;
+            --color-light: #f8f9fa;
+            --color-dark: #343a40;
+            --color-muted: #6c757d;
+            
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-pill: 20px;
+            
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            
+            --transition-fast: 150ms;
+            --transition-normal: 300ms;
+            --transition-slow: 500ms;
+            
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
         }
         .container { max-width: 1200px; margin: 0 auto; }
         header {
-            background: rgba(255, 255, 255, 0.95); padding: 20px;
-            border-radius: 10px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background: var(--color-white);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--spacing-xl);
+            box-shadow: var(--shadow-md);
             text-align: center;
+            border: 1px solid var(--color-border);
         }
-        .welcome-section { margin-bottom: 30px; }
+        
+        header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+        }
+        
+        header p {
+            color: var(--color-muted);
+            font-size: 1rem;
+            max-width: var(--max-width-content);
+            margin: 0 auto;
+        }
+        .welcome-section {
+            margin-bottom: var(--spacing-xl);
+        }
+        .welcome-section > div {
+            background: var(--color-white);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--color-border);
+        }
+        .welcome-section h2 {
+            margin-top: 0;
+            margin-bottom: var(--spacing-md);
+            color: var(--color-dark);
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .welcome-section p {
+            margin-bottom: var(--spacing-md);
+            color: var(--color-muted);
+        }
+        .welcome-section .btn-primary {
+            background: var(--color-primary);
+            border: none;
+        }
+        .welcome-section .btn-primary:hover {
+            background: var(--color-primary-dark);
+        }
+        
         .tier-badge {
-            display: inline-block; padding: 8px 16px; border-radius: 20px;
-            font-weight: bold; font-size: 14px; margin-left: 10px;
+            display: inline-block;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-pill);
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .tier-free { background: #6c757d; color: white; }
-        .tier-basic { background: #28a745; color: white; }
-        .tier-pro { background: #007bff; color: white; }
-        .tier-enterprise { background: #fd7e14; color: white; }
-        .tier-admin { background: #dc3545; color: white; }
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .tier-free { background: var(--color-secondary); color: var(--color-white); }
+        .tier-basic { background: var(--color-success); color: var(--color-white); }
+        .tier-pro { background: var(--color-primary); color: var(--color-white); }
+        .tier-enterprise { background: var(--color-warning); color: var(--color-dark); }
+        .tier-admin { background: var(--color-danger); color: var(--color-white); }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+        .card {
+            background: var(--color-white);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--color-border);
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
         .api-card { position: relative; }
         .api-card .api-key {
-            font-family: monospace; background: #f8f9fa; padding: 8px; border-radius: 4px;
-            margin: 8px 0; font-size: 14px; word-break: break-all;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            background: var(--color-light);
+            padding: var(--spacing-sm);
+            border-radius: var(--radius-md);
+            margin: var(--spacing-sm) 0;
+            font-size: 0.875rem;
+            word-break: break-all;
+            border: 1px solid var(--color-border);
         }
         .usage-bar {
-            width: 100%; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; margin: 8px 0;
+            width: 100%;
+            height: 8px;
+            background: var(--color-light);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            margin: var(--spacing-sm) 0;
         }
-        .usage-fill { height: 100%; background: #28a745; transition: width 0.3s; }
-        .usage-fill.warning { background: #ff9800; }
-        .usage-fill.danger { background: #dc3545; }
+        .usage-fill {
+            height: 100%;
+            background: var(--color-success);
+            transition: width var(--transition-normal);
+        }
+        .usage-fill.warning { background: var(--color-warning); }
+        .usage-fill.danger { background: var(--color-danger); }
+        .quota-info {
+            font-size: 0.75rem;
+            color: var(--color-muted);
+            margin-top: var(--spacing-xs);
+            display: flex;
+            justify-content: space-between;
+        }
         .btn {
-            padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;
-            font-weight: 600; text-decoration: none; display: inline-block; margin: 5px;
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            margin: var(--spacing-xs);
+            transition: background-color var(--transition-fast), transform var(--transition-fast);
+            font-size: 0.875rem;
         }
-        .btn-primary { background: #667eea; color: white; }
-        .btn-secondary { background: #6c757d; color: white; }
-        .btn-danger { background: #dc3545; color: white; }
-        .btn:hover { opacity: 0.9; }
+        .btn-primary {
+            background: var(--color-primary);
+            color: var(--color-white);
+        }
+        .btn-primary:hover {
+            background: var(--color-primary-dark);
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: var(--color-light);
+            color: var(--color-dark);
+            border: 1px solid var(--color-border);
+        }
+        .btn-secondary:hover {
+            background: var(--color-border);
+            color: var(--color-dark);
+            transform: translateY(-2px);
+        }
+        .btn-danger {
+            background: var(--color-danger);
+            color: var(--color-white);
+        }
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
         .modal {
-            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.8); z-index: 1000; align-items: center; justify-content: center;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-md);
         }
-        .modal-content { background: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 500px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
-        .form-group input, .form-group textarea {
-            width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;
+        .modal-content {
+            background: var(--color-white);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            width: 100%;
+            max-width: 500px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--color-border);
+            animation: modalFadeIn var(--transition-normal) ease-out;
         }
-        .form-group textarea { resize: vertical; min-height: 80px; }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal-content h2 {
+            margin-top: 0;
+            margin-bottom: var(--spacing-lg);
+            color: var(--color-dark);
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        .modal-content .error-message,
+        .modal-content .success-message {
+            padding: var(--spacing-sm);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-md);
+        }
+        .modal-content .error-message {
+            background: #fff5f5;
+            color: #c82333;
+            border: 1px solid #fed7d7;
+        }
+        .modal-content .success-message {
+            background: #f0fff4;
+            color: #228b22;
+            border: 1px solid #c3e6cb;
+        }
+        .modal-content .form-group {
+            margin-bottom: var(--spacing-md);
+        }
+        .modal-content .form-group label {
+            display: block;
+            margin-bottom: var(--spacing-xs);
+            font-weight: 600;
+            color: var(--color-dark);
+            font-size: 0.875rem;
+        }
+        .modal-content .form-group input,
+        .modal-content .form-group textarea {
+            width: 100%;
+            padding: var(--spacing-sm);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+        }
+        .modal-content .form-group input:focus,
+        .modal-content .form-group textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+        }
+        .modal-content .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .modal-content .btn {
+            width: 100%;
+            margin: var(--spacing-xs) 0;
+            padding: var(--spacing-sm);
+        }
+        .modal-content .api-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-lg);
+        }
+        .modal-content .api-actions .btn {
+            flex: 1;
+        }
         .auth-status {
-            position: fixed; top: 20px; right: 20px; background: white; padding: 10px 15px;
-            border-radius: 5px; display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: fixed;
+            top: var(--spacing-md);
+            right: var(--spacing-md);
+            background: var(--color-white);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-md);
+            display: none;
+            box-shadow: var(--shadow-md);
+            z-index: 1000;
+            border: 1px solid var(--color-border);
+        }
+        .auth-status #userEmail {
+            font-weight: 600;
+            color: var(--color-dark);
+            margin-right: var(--spacing-sm);
+        }
+        .auth-status button {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background: var(--color-danger);
+            color: var(--color-white);
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        .auth-status button:hover {
+            background: #c82333;
         }
         .login-modal {
-            display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.8); z-index: 1000; align-items: center; justify-content: center;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-md);
         }
-        .login-modal-content { background: white; padding: 40px; border-radius: 10px; width: 90%; max-width: 400px; }
-        .error-message { background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px; display: none; }
-        .success-message { background: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-bottom: 15px; display: none; }
-        .api-actions { margin-top: 15px; }
-        .quota-info { font-size: 12px; color: #666; margin-top: 5px; }
-        .loading { text-align: center; padding: 40px; color: #666; }
+        .login-modal-content {
+            background: var(--color-white);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            width: 100%;
+            max-width: 400px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--color-border);
+            animation: modalFadeIn var(--transition-normal) ease-out;
+        }
+        .login-modal-content h2 {
+            margin-top: 0;
+            margin-bottom: var(--spacing-lg);
+            color: var(--color-dark);
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        .login-modal-content .error-message {
+            padding: var(--spacing-sm);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-md);
+            background: #fff5f5;
+            color: #c82333;
+            border: 1px solid #fed7d7;
+        }
+        .login-modal-content .form-group {
+            margin-bottom: var(--spacing-md);
+        }
+        .login-modal-content .form-group label {
+            display: block;
+            margin-bottom: var(--spacing-xs);
+            font-weight: 600;
+            color: var(--color-dark);
+            font-size: 0.875rem;
+        }
+        .login-modal-content .form-group input {
+            width: 100%;
+            padding: var(--spacing-sm);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+        }
+        .login-modal-content .form-group input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+        }
+        .login-modal-content .btn {
+            width: 100%;
+            padding: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+        }
+        .login-modal-content p {
+            margin-top: var(--spacing-lg);
+            text-align: center;
+            font-size: 0.875rem;
+            color: var(--color-muted);
+        }
+        .loading {
+            text-align: center;
+            padding: var(--spacing-xl);
+            color: var(--color-muted);
+            font-size: 0.875rem;
+        }
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-left: var(--spacing-sm);
+            border: 2px solid var(--color-primary);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -222,10 +610,10 @@
             if (!currentUser) return;
 
             document.getElementById('welcomeSection').style.display = 'block';
-            document.getElementById('userName').textContent = currentUser.username;
-            document.getElementById('userTier').textContent = currentUser.tier;
-            document.getElementById('userTier').className = `tier-badge tier-${currentUser.tier.toLowerCase()}`;
-            document.getElementById('userQuota').textContent = currentUser.monthlyQuota.toLocaleString();
+            document.getElementById('userName').textContent = currentUser.username || 'User';
+            document.getElementById('userTier').textContent = currentUser.tier || 'FREE';
+            document.getElementById('userTier').className = `tier-badge tier-${(currentUser.tier || 'FREE').toLowerCase()}`;
+            document.getElementById('userQuota').textContent = (currentUser.monthlyQuota || 0).toLocaleString();
         }
 
         async function loadUserApis() {
