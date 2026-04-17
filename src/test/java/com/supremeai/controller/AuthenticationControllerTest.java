@@ -3,8 +3,12 @@ package com.supremeai.controller;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
+import com.supremeai.repository.UserRepository;
+import com.supremeai.security.ApiKeyFilter;
+import com.supremeai.service.QuotaService;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -22,6 +26,15 @@ public class AuthenticationControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockBean
+    private UserRepository userRepository;
+
+    @MockBean
+    private ApiKeyFilter apiKeyFilter;
+
+    @MockBean
+    private QuotaService quotaService;
 
     @Test
     public void testFirebaseLoginSuccess() throws Exception {
