@@ -181,7 +181,7 @@ jobs:
             --platform managed \
             --region us-central1 \
             --allow-unauthenticated \
-            --set-env-vars=SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a,PORT=8080,JAVA_OPTS=-Xms256m -Xmx1024m -XX:+UseG1GC
+            --set-env-vars=SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a,PORT=8080,"JAVA_OPTS=-Xms256m -Xmx1024m -XX:+UseG1GC"
       - name: Verify_Cloud_Run_Service
         run: |
           gcloud run services describe supremeai --platform managed --region us-central1
