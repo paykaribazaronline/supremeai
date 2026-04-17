@@ -211,7 +211,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: customer-web-build
-          path: supremeai/build/web
+          path: supremeai/build/web/web
       - name: Debug_File_Structure
         run: ls -R
       - name: Firebase_Deploy
