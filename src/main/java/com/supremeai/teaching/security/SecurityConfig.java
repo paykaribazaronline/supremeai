@@ -1,60 +1,40 @@
 package com.supremeai.teaching.security;
 
-import com.supremeai.security.ApiKeyFilter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private ApiKeyFilter apiKeyFilter;
-
     @Bean
-    @Order(1)
-    public SecurityFilterChain publicEndpointsFilterChain(HttpSecurity http) throws Exception {
-        http
-            .securityMatcher(
-                "/",
-                "/index.html",
-                "/admin.html",
-                "/customer.html",
-                "/login.html",
-                "/static/**",
-                "/css/**",
-                "/js/**",
-                "/images/**",
-                "/api/status/**",
-                "/actuator/health/**",
-                "/api/config/**",
-                "/api/auth/**"
-            )
-            .csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
-
-        return http.build();
-    }
-
-    @Bean
-    @Order(2)
-    public SecurityFilterChain applicationFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
+                // ১. অ্যাডমিন প্যানেল এবং অ্যাডমিন এপিআই সুরক্ষিত করা
+                .requestMatchers("/admin.html").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/user/**").authenticated()
+                
+                // ২. ফ্রন্টএন্ড এবং বাকি সবকিছু সবার জন্য খোলা রাখা
+                .requestMatchers("/", "/index.html", "/customer.html", "/login.html", "/static/**", "/css/**", "/js/**", "/images/**").permitAll()
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/config/**").permitAll()
+                .requestMatchers("/api/status/**").permitAll()
+                
+                // ৩. ডিফল্টভাবে বাকি সবকিছু অথেনটিকেটেড হতে হবে (অথবা আপনি চাইলে permitAll() দিতে পারেন যদি একদম সিম্পল চান)
                 .anyRequest().permitAll()
             )
-            .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class);
+            .logout(logout -> logout
+                .logoutUrl("/api/auth/logout")
+                .logoutSuccessUrl("/")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+            );
 
         return http.build();
     }
