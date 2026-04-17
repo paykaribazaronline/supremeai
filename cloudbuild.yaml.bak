@@ -1,0 +1,117 @@
+steps:
+  # BACKEND DEPLOYMENT STEPS
+  # Step 1: Build Docker image for main system
+  - name: 'gcr.io/cloud-builders/docker'
+    id: build_supremeai
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/supremeai:latest'
+      - '-f'
+      - 'Dockerfile'
+      - '.'
+
+  # Step 2: Push Docker image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: push_supremeai
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/supremeai:latest'
+    waitFor: ['build_supremeai']
+
+  # Step 3: Deploy to Cloud Run
+  - name: 'gcr.io/cloud-builders/run'
+    id: deploy_supremeai
+    args:
+      - 'deploy'
+      - 'supremeai'
+      - '--image=gcr.io/$PROJECT_ID/supremeai:latest'
+      - '--region=us-central1'
+      - '--platform=managed'
+      - '--port=8080'
+      - '--memory=1Gi'
+      - '--cpu=1'
+      - '--timeout=300s'
+      - '--max-instances=10'
+      - '--allow-unauthenticated'
+      - '--set-env-vars=SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a,PORT=8080,JAVA_OPTS=-Xms128m -Xmx512m -XX:+UseG1GC'
+      - '--service-account=supremeai-cloud-run@supremeai-565236080752.iam.gserviceaccount.com'
+    env:
+      - 'CLOUDSDK_RUN_REGION=us-central1'
+    waitFor: ['push_supremeai']
+
+  # FRONTEND DEPLOYMENT STEPS
+  # Step 4: Build Dashboard (React + Vite)
+  - name: 'node:18'
+    id: build_dashboard
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        cd dashboard
+        npm ci
+        npm run build
+        echo "✅ Dashboard built successfully"
+    waitFor: ['-']
+
+  # Step 5: Build Flutter Admin App
+  - name: 'ghcr.io/cirruslabs/flutter:latest'
+    id: build_flutter_admin
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        cd flutter_admin_app
+        flutter pub get
+        flutter build web --release
+        echo "✅ Flutter admin app built successfully"
+    waitFor: ['-']
+
+  # Step 6: Prepare Firebase deployment files
+  - name: 'gcr.io/cloud-builders/gke-deploy'
+    id: prepare_firebase
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        # Clean old deployment
+        rm -rf combined_deploy/admin combined_deploy/*.js combined_deploy/*.css
+        
+        # Copy dashboard build files
+        cp dashboard/dist/index.html combined_deploy/
+        if [ -f dashboard/dist/index.js ]; then cp dashboard/dist/*.js combined_deploy/ 2>/dev/null || true; fi
+        if [ -f dashboard/dist/index.css ]; then cp dashboard/dist/*.css combined_deploy/ 2>/dev/null || true; fi
+        
+        # Copy Flutter admin build files
+        mkdir -p combined_deploy/admin
+        cp -r flutter_admin_app/build/web/* combined_deploy/admin/
+        
+        # Verify deployment files
+        echo "Combined deploy contents:"
+        ls -la combined_deploy/
+        echo "Admin app contents:"
+        ls -la combined_deploy/admin/ | head -15
+        echo "✅ Firebase deployment files prepared"
+    waitFor: ['build_dashboard', 'build_flutter_admin']
+
+  # Step 7: Deploy to Firebase Hosting
+  - name: 'gcr.io/cloud-builders/firebase'
+    id: deploy_firebase
+    args:
+      - 'deploy'
+      - '--only=hosting'
+      - '--project=supremeai-a'
+    env:
+      - 'FIREBASE_TOKEN=${_FIREBASE_TOKEN}'
+    waitFor: ['prepare_firebase']
+
+images:
+  - 'gcr.io/$PROJECT_ID/supremeai:latest'
+
+timeout: '5400s'  # 90 minutes for all builds + deployments
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'N1_HIGHCPU_8'
+
+substitutions:
+  _FIREBASE_TOKEN: 'NOT_PROVIDED'
