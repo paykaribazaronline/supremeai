@@ -31,4 +31,5 @@ class AppRoutes {
   static const String knowledgeSeed = '/knowledge-seed';
   static const String knowledgeSeedList = '/knowledge-seed/list';
   static const String userManagement = '/user-management';
+  static const String apiTesting = '/api-testing';
 }

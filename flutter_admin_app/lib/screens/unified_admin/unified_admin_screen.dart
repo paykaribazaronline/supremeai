@@ -103,54 +103,143 @@ class _UnifiedAdminScreenState extends State<UnifiedAdminScreen> {
     final navigation = (_contract?['navigation'] as List?)?.cast<Map<String, dynamic>>() ?? [];
     final components = (_contract?['components'] as List?)?.cast<Map<String, dynamic>>() ?? [];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        elevation: 0,
-        backgroundColor: const Color(0xFF722ED1),
-        foregroundColor: Colors.white,
-      ),
-      body: CustomScrollView(
-        slivers: [
-          // Navigation - Dynamic Filter Chips
-          SliverToBoxAdapter(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Wrap(
-                spacing: 8,
-                children: navigation
-                    .map((item) => FilterChip(
-                          avatar: Text(item['icon'] ?? '📦'),
-                          label: Text(item['label'] as String? ?? ''),
-                          selected: _selectedComponentKey == (item['key'] ?? ''),
-                          onSelected: (item['enabled'] as bool? ?? true)
-                              ? (selected) {
-                                  if (selected) {
-                                    setState(() {
-                                      _selectedComponentKey = item['key'] as String? ?? '';
-                                    });
-                                  }
-                                }
-                              : null,
-                          selectedColor: const Color(0xFF722ED1).withValues(alpha: 0.2),
-                          checkmarkColor: const Color(0xFF722ED1),
-                        ))
-                    .toList(),
-              ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWideScreen = constraints.maxWidth > 600;
+
+        if (isWideScreen) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(title),
+              elevation: 0,
+              backgroundColor: const Color(0xFF722ED1),
+              foregroundColor: Colors.white,
             ),
-          ),
-          
-          // Component Details & Real Features
-          SliverFillRemaining(
-            hasScrollBody: true,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: _buildComponentContent(components),
+            body: Row(
+              children: [
+                // Sidebar Navigation
+                Container(
+                  width: 280,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    border: Border(
+                      right: BorderSide(color: Colors.grey.shade300),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF722ED1),
+                          ),
+                        ),
+                      ),
+                      const Divider(),
+                      Expanded(
+                        child: ListView(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          children: navigation.map((item) {
+                            final isSelected = _selectedComponentKey == (item['key'] ?? '');
+                            final label = item['label'] as String? ?? '';
+                            final icon = item['icon'] ?? '📦';
+                            return Semantics(
+                              label: '$icon $label navigation item',
+                              selected: isSelected,
+                              child: ListTile(
+                                leading: Text(icon),
+                                title: Text(label),
+                                selected: isSelected,
+                                selectedTileColor: const Color(0xFF722ED1).withValues(alpha: 0.1),
+                                onTap: (item['enabled'] as bool? ?? true)
+                                    ? () {
+                                        setState(() {
+                                          _selectedComponentKey = item['key'] as String? ?? '';
+                                        });
+                                      }
+                                    : null,
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Main Content
+                Expanded(
+                  child: CustomScrollView(
+                    slivers: [
+                      SliverFillRemaining(
+                        hasScrollBody: true,
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: _buildComponentContent(components),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
+          );
+        } else {
+          // Mobile layout
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(title),
+              elevation: 0,
+              backgroundColor: const Color(0xFF722ED1),
+              foregroundColor: Colors.white,
+            ),
+            body: CustomScrollView(
+              slivers: [
+                // Navigation - Dynamic Filter Chips
+                SliverToBoxAdapter(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Wrap(
+                      spacing: 8,
+                      children: navigation
+                          .map((item) => FilterChip(
+                                avatar: Text(item['icon'] ?? '📦'),
+                                label: Text(item['label'] as String? ?? ''),
+                                selected: _selectedComponentKey == (item['key'] ?? ''),
+                                onSelected: (item['enabled'] as bool? ?? true)
+                                    ? (selected) {
+                                        if (selected) {
+                                          setState(() {
+                                            _selectedComponentKey = item['key'] as String? ?? '';
+                                          });
+                                        }
+                                      }
+                                    : null,
+                                selectedColor: const Color(0xFF722ED1).withValues(alpha: 0.2),
+                                checkmarkColor: const Color(0xFF722ED1),
+                              ))
+                          .toList(),
+                    ),
+                  ),
+                ),
+
+                // Component Details & Real Features
+                SliverFillRemaining(
+                  hasScrollBody: true,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: _buildComponentContent(components),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+      },
     );
   }
 

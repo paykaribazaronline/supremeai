@@ -31,7 +31,7 @@ void main() {
     expect(find.byType(LoginScreen), findsOneWidget);
 
     // Click Guest Mode
-    await tester.tap(find.text('게স্ট হিসেবে ব্যবহার করুন (Guest Mode)'));
+    await tester.tap(find.text('গেস্ট হিসেবে ব্যবহার করুন (Guest Mode)'));
     await tester.pumpAndSettle();
 
     // Verify we are on Home Page
