@@ -14,6 +14,7 @@ import 'screens/auth/register_screen.dart';
 import 'screens/projects/project_detail_screen.dart';
 import 'screens/unified_admin/unified_admin_screen.dart';
 import 'screens/admin/user_management_screen.dart';
+import 'screens/api_testing_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -87,25 +88,25 @@ class SupremeAIAdminApp extends StatelessWidget {
               elevation: 0,
               centerTitle: true,
             ),
-            inputDecorationTheme: InputDecorationTheme(
+            inputDecorationTheme: const InputDecorationTheme(
               filled: true,
-              fillColor: const Color(AppConstants.backgroundColor),
+              fillColor: Color(AppConstants.backgroundColor),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-                borderSide: const BorderSide(color: Colors.transparent),
+                borderRadius: BorderRadius.all(Radius.circular(AppConstants.radiusMedium)),
+                borderSide: BorderSide(color: Colors.transparent),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-                borderSide: const BorderSide(color: Colors.transparent),
+                borderRadius: BorderRadius.all(Radius.circular(AppConstants.radiusMedium)),
+                borderSide: BorderSide(color: Colors.transparent),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
-                borderSide: const BorderSide(
+                borderRadius: BorderRadius.all(Radius.circular(AppConstants.radiusMedium)),
+                borderSide: BorderSide(
                   color: Color(AppConstants.primaryColor),
                   width: 2,
                 ),
               ),
-              contentPadding: const EdgeInsets.symmetric(
+              contentPadding: EdgeInsets.symmetric(
                 horizontal: AppConstants.paddingMedium,
                 vertical: AppConstants.paddingMedium,
               ),
@@ -164,6 +165,7 @@ class SupremeAIAdminApp extends StatelessWidget {
             AppRoutes.tracing: _dashboardScreen,
             AppRoutes.offlineChat: _dashboardScreen,
             AppRoutes.userManagement: (context) => const UserManagementScreen(),
+            AppRoutes.apiTesting: (context) => const ApiTestingScreen(),
           },
           onGenerateRoute: _onGenerateRoute,
           onUnknownRoute: _onUnknownRoute,

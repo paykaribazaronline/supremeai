@@ -117,7 +117,7 @@ class _KnowledgeSeedScreenState extends State<KnowledgeSeedScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _selectedCategory,
+                initialValue: _selectedCategory,
                 decoration: const InputDecoration(labelText: 'Knowledge Category', border: OutlineInputBorder()),
                 items: _categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
                 onChanged: _isSubmitting ? null : (val) => setState(() => _selectedCategory = val ?? 'uncategorized'),

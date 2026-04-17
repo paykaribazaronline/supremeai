@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../../config/app_constants.dart';
 import '../../config/environment.dart';
 import '../../services/api_service.dart';
@@ -233,34 +234,85 @@ class _QuotaScreenState extends State<QuotaScreen> {
                 final name = '${map['name'] ?? map['providerId'] ?? 'Unknown'}';
                 final used = map['used'] ?? map['requestCount'] ?? 0;
                 final limit = map['limit'] ?? map['monthlyLimit'] ?? 100;
+                final remaining = limit - used;
                 final pct = limit > 0 ? (used / limit).clamp(0.0, 1.0) : 0.0;
+                final color = pct > 0.9
+                    ? Colors.red
+                    : pct > 0.7
+                        ? Colors.orange
+                        : Colors.green;
 
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(name,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w600)),
-                            Text('$used / $limit',
-                                style: const TextStyle(
-                                    fontSize: 12, color: Colors.grey)),
-                          ]),
-                      const SizedBox(height: 4),
-                      LinearProgressIndicator(
-                        value: pct.toDouble(),
-                        backgroundColor: Colors.grey.shade200,
-                        valueColor: AlwaysStoppedAnimation(pct > 0.9
-                            ? Colors.red
-                            : pct > 0.7
-                                ? Colors.orange
-                                : Colors.green),
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Card(
+                    elevation: 1,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          // Gauge Chart
+                          SizedBox(
+                            width: 80,
+                            height: 80,
+                            child: PieChart(
+                              PieChartData(
+                                sections: [
+                                  PieChartSectionData(
+                                    value: used.toDouble(),
+                                    color: color,
+                                    radius: 20,
+                                    title: '${(pct * 100).round()}%',
+                                    titleStyle: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  PieChartSectionData(
+                                    value: remaining.toDouble(),
+                                    color: Colors.grey.shade300,
+                                    radius: 20,
+                                    title: '',
+                                  ),
+                                ],
+                                sectionsSpace: 2,
+                                centerSpaceRadius: 25,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          // Details
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Used: $used | Remaining: $remaining | Limit: $limit',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                LinearProgressIndicator(
+                                  value: pct.toDouble(),
+                                  backgroundColor: Colors.grey.shade200,
+                                  valueColor: AlwaysStoppedAnimation(color),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 );
               }),

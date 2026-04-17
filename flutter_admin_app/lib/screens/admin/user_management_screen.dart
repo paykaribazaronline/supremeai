@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../config/app_constants.dart';
 import '../../config/environment.dart';
 import '../../services/api_service.dart';
 
@@ -166,7 +165,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                     ),
                                     Chip(
                                       label: Text(user['role'] ?? 'user'),
-                                      backgroundColor: (user['role'] == 'admin' ? Colors.purple : Colors.blue).withOpacity(0.1),
+                                      backgroundColor: (user['role'] == 'admin' ? Colors.purple : Colors.blue).withValues(alpha: 0.1),
                                     ),
                                   ],
                                 ),

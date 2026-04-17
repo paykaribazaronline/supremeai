@@ -216,12 +216,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ? const SizedBox(
                                     width: 20,
                                     height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
-                                      ),
-                                    ),
+                                     child: CircularProgressIndicator(
+                                       strokeWidth: 2,
+                                       valueColor: AlwaysStoppedAnimation<Color>(
+                                         Colors.white,
+                                       ),
+                                     ),
                                   )
                                 : const Text(
                                     'লগইন',
