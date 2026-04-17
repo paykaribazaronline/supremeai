@@ -170,6 +170,8 @@ jobs:
           credentials_json: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}"
       - name: Setup_GCloud
         uses: google-github-actions/setup-gcloud@v2
+      - name: Grant_Cloud_Run_Admin_Role
+        run: gcloud projects add-iam-policy-binding supremeai-a --member="serviceAccount:firebase-adminsdk-fbsvc@supremeai-a.iam.gserviceaccount.com" --role="roles/run.admin" --condition=None
       - name: Deploy_Backend_To_Cloud_Run
         run: |
           gcloud run deploy supremeai \
