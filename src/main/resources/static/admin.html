@@ -6482,6 +6482,12 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
+            const firebaseReady = await initializeFirebase();
+            if (!firebaseReady) {
+                showError('Failed to initialize authentication service. Please refresh the page.');
+                return;
+            }
+
             const hasSession = await ensureAdminSession();
             if (!hasSession) {
                 return;
