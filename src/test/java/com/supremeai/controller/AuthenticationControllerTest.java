@@ -3,6 +3,7 @@ package com.supremeai.controller;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
+import com.supremeai.repository.UserApiRepository;
 import com.supremeai.repository.UserRepository;
 import com.supremeai.security.ApiKeyFilter;
 import com.supremeai.service.QuotaService;
@@ -29,6 +30,9 @@ public class AuthenticationControllerTest {
 
     @MockBean
     private UserRepository userRepository;
+
+    @MockBean
+    private UserApiRepository userApiRepository;
 
     @MockBean
     private ApiKeyFilter apiKeyFilter;

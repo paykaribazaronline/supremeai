@@ -1,5 +1,6 @@
 package com.supremeai.controller;
 
+import com.supremeai.repository.UserApiRepository;
 import com.supremeai.repository.UserRepository;
 import com.supremeai.security.ApiKeyFilter;
 import com.supremeai.service.QuotaService;
@@ -20,6 +21,9 @@ public class AdminDashboardControllerTest {
 
     @MockBean
     private UserRepository userRepository;
+
+    @MockBean
+    private UserApiRepository userApiRepository;
 
     @MockBean
     private ApiKeyFilter apiKeyFilter;
