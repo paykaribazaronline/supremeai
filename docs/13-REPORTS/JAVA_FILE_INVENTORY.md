@@ -8,9 +8,7 @@ Total Java files: 282
 |---|---------|------------|------|
 | 1 | com.supremeai.teaching.config | FirebaseConfig | src\main\java\com\supremeai\teaching\config\FirebaseConfig.java |
 | 2 | com.supremeai.teaching.controllers | AuthController | src\main\java\com\supremeai\teaching\controllers\AuthController.java |
-| 3 | com.supremeai.teaching.security | JwtAuthenticationFilter | src\main\java\com\supremeai\teaching\security\JwtAuthenticationFilter.java |
-| 4 | com.supremeai.teaching.security | JwtTokenProvider | src\main\java\com\supremeai\teaching\security\JwtTokenProvider.java |
-| 5 | com.supremeai.teaching.security | SecurityConfig | src\main\java\com\supremeai\teaching\security\SecurityConfig.java |
+| 3 | com.supremeai.teaching.security | SecurityConfig | src\main\java\com\supremeai\teaching\security\SecurityConfig.java |
 | 6 | org.example.agent | DiOSAgent | src\main\java\org\example\agent\DiOSAgent.java |
 | 7 | org.example.agent | EWebAgent | src\main\java\org\example\agent\EWebAgent.java |
 | 8 | org.example.agent | FDesktopAgent | src\main\java\org\example\agent\FDesktopAgent.java |
