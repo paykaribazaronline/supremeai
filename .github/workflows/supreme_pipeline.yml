@@ -31,10 +31,10 @@ jobs:
               - 'Dockerfile'
               - 'build.gradle*'
               - '.github/workflows/**'
-             frontend:
-               - 'supremeai/**'
-               - 'firebase.json'
-               - '.github/workflows/**'
+            frontend:
+              - 'supremeai/**'
+              - 'firebase.json'
+              - '.github/workflows/**'
             plugin:
               - 'supremeai-intellij-plugin/**'
               - '.github/workflows/**'
