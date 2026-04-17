@@ -128,18 +128,16 @@ jobs:
           cache: "npm"
           cache-dependency-path: "supremeai-vscode-extension/package-lock.json"
       - name: Install_Dependencies
-        run: |
-          cd supremeai-vscode-extension
-          npm ci
+        working-directory: ./supremeai-vscode-extension
+        run: npm ci
       - name: Lint_and_Compile
+        working-directory: ./supremeai-vscode-extension
         run: |
-          cd supremeai-vscode-extension
           npm run lint
           npm run compile
       - name: Package_Extension
-        run: |
-          cd supremeai-vscode-extension
-          npx vsce package --no-git-tag-version
+        working-directory: ./supremeai-vscode-extension
+        run: npx vsce package --no-git-tag-version
       - name: Store_VSIX_Path
         id: set-path
         run: echo "path=supremeai-vscode-extension/*.vsix" >> $GITHUB_OUTPUT
@@ -215,7 +213,7 @@ jobs:
           flutter test
           flutter build web --release
       - name: Build_APK
-        if: github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         working-directory: ./supremeai
         run: flutter build apk --release --target-platform android-arm64
       - name: Upload_Web
@@ -224,6 +222,7 @@ jobs:
           name: customer-web-build
           path: supremeai/build/web
       - name: Upload_APK_Artifact
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: supremeai-android-apk
@@ -232,10 +231,10 @@ jobs:
         id: set-paths
         run: |
           echo "frontend_url=https://supremeai-a.web.app/" >> $GITHUB_OUTPUT
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "apk_path=N/A" >> $GITHUB_OUTPUT
-          else
+          if [ "${{ github.ref }}" = "refs/heads/main" ] && [ "${{ github.event_name }}" != "pull_request" ]; then
             echo "apk_path=supremeai/build/app/outputs/flutter-apk/app-release.apk" >> $GITHUB_OUTPUT
+          else
+            echo "apk_path=N/A" >> $GITHUB_OUTPUT
           fi
 
   deploy-frontend:
