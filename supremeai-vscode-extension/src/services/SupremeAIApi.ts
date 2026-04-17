@@ -35,7 +35,7 @@ export class SupremeAIApi {
 
             // Use API key if provided, otherwise use admin token
             if (this.apiKey) {
-                headers['X-API-Key'] = this.apiKey;
+                headers['Authorization'] = `Bearer ${this.apiKey}`;
             } else {
                 headers['Authorization'] = `Bearer ${this.token}`;
             }
@@ -85,7 +85,7 @@ export class SupremeAIApi {
 
             // Use API key if provided, otherwise use admin token
             if (this.apiKey) {
-                headers['X-API-Key'] = this.apiKey;
+                headers['Authorization'] = `Bearer ${this.apiKey}`;
             } else {
                 headers['Authorization'] = `Bearer ${this.token}`;
             }

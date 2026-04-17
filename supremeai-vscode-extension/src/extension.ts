@@ -6,16 +6,21 @@ import { AgentsProvider } from './providers/AgentsProvider';
 export function activate(context: vscode.ExtensionContext) {
     console.log('SupremeAI extension is now active!');
 
+    // Get configuration
+    const config = vscode.workspace.getConfiguration('supremeai');
+    const apiKey = config.get<string>('apiKey', '');
+    const apiEndpoint = config.get<string>('apiEndpoint', 'https://supremeai-565236080752.us-central1.run.app');
+
     // Register chat provider
-    const chatProvider = new ChatProvider();
+    const chatProvider = new ChatProvider(apiEndpoint, apiKey);
     vscode.window.registerTreeDataProvider('supremeai-chat', chatProvider);
 
     // Register projects provider
-    const projectsProvider = new ProjectsProvider();
+    const projectsProvider = new ProjectsProvider(apiEndpoint, apiKey);
     vscode.window.registerTreeDataProvider('supremeai-projects', projectsProvider);
 
     // Register agents provider
-    const agentsProvider = new AgentsProvider();
+    const agentsProvider = new AgentsProvider(apiEndpoint, apiKey);
     vscode.window.registerTreeDataProvider('supremeai-agents', agentsProvider);
 
     // Register commands

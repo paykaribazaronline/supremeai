@@ -18,6 +18,21 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "SupremeAI",
+      "properties": {
+        "supremeai.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Your SupremeAI API key. Leave empty to use default authentication."
+        },
+        "supremeai.apiEndpoint": {
+          "type": "string",
+          "default": "https://supremeai-565236080752.us-central1.run.app",
+          "description": "SupremeAI API endpoint URL."
+        }
+      }
+    },
     "viewsWelcome": [
       {
         "view": "supremeai-chat",

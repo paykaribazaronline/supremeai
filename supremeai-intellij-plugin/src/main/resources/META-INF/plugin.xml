@@ -30,6 +30,12 @@
                     icon="AllIcons.General.Information"
                     anchor="right"
                     factoryClass="com.supremeai.ide.SupremeAIToolWindowFactory"/>
+
+        <applicationConfigurable
+            parentId="tools"
+            instance="com.supremeai.ide.SupremeAISettingsConfigurable"
+            id="supremeai.settings"
+            displayName="SupremeAI" />
     </extensions>
 
     <actions>

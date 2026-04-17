@@ -10,6 +10,7 @@ class AuthProvider with ChangeNotifier {
 
   AuthStatus get status => _status;
   Map<String, dynamic>? get user => _user;
+  String? get token => _token;
   bool get isGuest => _status == AuthStatus.guest;
 
   AuthProvider() {

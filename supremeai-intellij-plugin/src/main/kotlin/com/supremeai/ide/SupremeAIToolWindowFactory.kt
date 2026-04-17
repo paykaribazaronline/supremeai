@@ -78,11 +78,16 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
 
             thread {
                 try {
-                    val url = URL("https://supremeai-565236080752.us-central1.run.app/api/chat/send")
+                    val settings = SupremeAISettings.getInstance()
+                    val apiKey = settings.apiKey.takeIf { it.isNotBlank() } ?: "dev-admin-token-local"
+                    val endpoint = settings.apiEndpoint.takeIf { it.isNotBlank() }
+                        ?: "https://supremeai-565236080752.us-central1.run.app"
+
+                    val url = URL("$endpoint/api/chat/send")
                     val conn = url.openConnection() as HttpURLConnection
                     conn.requestMethod = "POST"
                     conn.setRequestProperty("Content-Type", "application/json")
-                    conn.setRequestProperty("Authorization", "Bearer dev-admin-token-local")
+                    conn.setRequestProperty("Authorization", "Bearer $apiKey")
                     conn.doOutput = true
                     
                     val jsonInputString = "{\"message\": \"$text\", \"provider\": \"meta-llama\"}"
@@ -113,7 +118,11 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
         private fun checkBackendStatus() {
             thread {
                 try {
-                    val url = URL("https://supremeai-565236080752.us-central1.run.app/api/status")
+                    val settings = SupremeAISettings.getInstance()
+                    val endpoint = settings.apiEndpoint.takeIf { it.isNotBlank() }
+                        ?: "https://supremeai-565236080752.us-central1.run.app"
+
+                    val url = URL("$endpoint/api/status")
                     val conn = url.openConnection() as HttpURLConnection
                     conn.connectTimeout = 5000
                     conn.readTimeout = 5000
