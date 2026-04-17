@@ -168,7 +168,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: customer-web-build
-          path: "public"
+          path: "combined_deploy"
       - name: Firebase_Deploy
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
