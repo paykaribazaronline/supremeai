@@ -45,7 +45,7 @@ intellijPlatform {
         name.set("SupremeAI Assistant")
         description.set("Fully Compatible with K2 Mode")
         ideaVersion {
-            sinceBuild.set("241")
+            sinceBuild.set("243")
             untilBuild.set("253.*")
         }
         

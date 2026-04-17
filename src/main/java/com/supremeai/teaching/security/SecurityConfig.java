@@ -24,19 +24,19 @@ public class SecurityConfig {
     public SecurityFilterChain publicEndpointsFilterChain(HttpSecurity http) throws Exception {
         http
             .securityMatcher(
-                new AntPathRequestMatcher("/"),
-                new AntPathRequestMatcher("/index.html"),
-                new AntPathRequestMatcher("/admin.html"),
-                new AntPathRequestMatcher("/customer.html"),
-                new AntPathRequestMatcher("/login.html"),
-                new AntPathRequestMatcher("/static/**"),
-                new AntPathRequestMatcher("/css/**"),
-                new AntPathRequestMatcher("/js/**"),
-                new AntPathRequestMatcher("/images/**"),
-                new AntPathRequestMatcher("/api/status/**"),
-                new AntPathRequestMatcher("/actuator/health/**"),
-                new AntPathRequestMatcher("/api/config/**"),
-                new AntPathRequestMatcher("/api/auth/**")
+                "/",
+                "/index.html",
+                "/admin.html",
+                "/customer.html",
+                "/login.html",
+                "/static/**",
+                "/css/**",
+                "/js/**",
+                "/images/**",
+                "/api/status/**",
+                "/actuator/health/**",
+                "/api/config/**",
+                "/api/auth/**"
             )
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
