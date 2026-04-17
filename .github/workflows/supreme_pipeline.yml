@@ -212,6 +212,8 @@ jobs:
         with:
           name: customer-web-build
           path: supremeai/build
+      - name: Debug_File_Structure
+        run: ls -R
       - name: Firebase_Deploy
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
