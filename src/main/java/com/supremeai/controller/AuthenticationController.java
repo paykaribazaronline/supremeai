@@ -11,17 +11,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -36,96 +29,87 @@ public class AuthenticationController {
         String idToken = request.get("idToken");
 
         try {
-            // Verify the token with Firebase Admin SDK
+            // ১. Firebase Admin SDK দিয়ে টোকেন ভেরিফাই করা
             com.google.firebase.auth.FirebaseToken decodedToken =
                 com.google.firebase.auth.FirebaseAuth.getInstance().verifyIdToken(idToken);
 
             String uid = decodedToken.getUid();
             String email = decodedToken.getEmail();
             String name = (String) decodedToken.getClaims().get("name");
+            
+            // ২. Firebase Custom Claims থেকে রোল (Role) চেক করা
+            // আপনি Firebase Admin SDK বা Console থেকে ইউজারের জন্য {"role": "ADMIN"} সেট করতে পারেন
+            Object roleClaim = decodedToken.getClaims().get("role");
+            Object adminClaim = decodedToken.getClaims().get("admin");
+            
+            UserTier tier = UserTier.FREE; // ডিফল্ট টায়ার
+            
+            if ("ADMIN".equals(roleClaim) || Boolean.TRUE.equals(adminClaim)) {
+                tier = UserTier.ADMIN;
+            }
 
-            // Get or create user in database
+            // ৩. ডাটাবেসে ইউজার সিঙ্ক করা
             Optional<User> existingUser = userRepository.findByFirebaseUid(uid);
             User user;
             boolean isNewUser = false;
 
             if (existingUser.isPresent()) {
                 user = existingUser.get();
+                user.setTier(tier); // Firebase থেকে আসা রোল অনুযায়ী আপডেট
                 user.setLastLoginAt(LocalDateTime.now());
                 user.setUpdatedAt(LocalDateTime.now());
             } else {
                 user = new User(uid, email, name != null ? name : email.split("@")[0]);
-                // Check if this is an admin email (you might want to configure this)
-                if (isAdminEmail(email)) {
-                    user.setTier(UserTier.ADMIN);
-                } else {
-                    user.setTier(UserTier.FREE);
-                }
+                user.setTier(tier);
                 isNewUser = true;
             }
 
             userRepository.save(user);
+            
+            // ৪. স্প্রিং সিকিউরিটি সেশন তৈরি করা
             establishSession(user, httpRequest);
 
+            // ৫. রেসপন্স পাঠানো
             Map<String, Object> response = new HashMap<>();
             response.put("status", "success");
             response.put("isNewUser", isNewUser);
-            // We still provide a token for the app's internal session management if needed,
-            // but it's now tied to a verified Firebase identity.
-            response.put("token", "fb_verified_" + UUID.randomUUID().toString());
-            response.put("refreshToken", "fb_refresh_" + UUID.randomUUID().toString());
-            response.put("type", "Bearer");
-            response.put("expiresIn", 86400);
-
-            Map<String, Object> userResponse = new HashMap<>();
-            userResponse.put("id", user.getFirebaseUid());
-            userResponse.put("username", user.getDisplayName());
-            userResponse.put("email", user.getEmail());
-            userResponse.put("tier", user.getTier().toString());
-            userResponse.put("monthlyQuota", user.getMonthlyQuota());
-            userResponse.put("role", user.getTier() == UserTier.ADMIN ? "admin" : "user");
-            response.put("user", userResponse);
+            response.put("user", Map.of(
+                "id", user.getFirebaseUid(),
+                "username", user.getDisplayName(),
+                "email", user.getEmail(),
+                "role", user.getTier() == UserTier.ADMIN ? "admin" : "user",
+                "tier", user.getTier().toString()
+            ));
 
             return response;
         } catch (com.google.firebase.auth.FirebaseAuthException e) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("status", "error");
-            errorResponse.put("message", "Invalid Firebase token: " + e.getMessage());
-            return errorResponse;
+            return Map.of("status", "error", "message", "Auth failed: " + e.getMessage());
         }
     }
 
     @PostMapping("/logout")
     public Map<String, Object> logout(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
+        if (session != null) session.invalidate();
         SecurityContextHolder.clearContext();
         return Map.of("status", "success");
     }
 
     private void establishSession(User user, HttpServletRequest request) {
-        List<SimpleGrantedAuthority> authorities = List.of(
-            new SimpleGrantedAuthority("ROLE_USER"),
-            new SimpleGrantedAuthority(user.getTier() == UserTier.ADMIN ? "ROLE_ADMIN" : "ROLE_" + user.getTier().name())
-        );
-        UsernamePasswordAuthenticationToken authentication =
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        if (user.getTier() == UserTier.ADMIN) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        }
+        
+        UsernamePasswordAuthenticationToken auth =
             new UsernamePasswordAuthenticationToken(user.getFirebaseUid(), null, authorities);
+        
         SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(authentication);
+        context.setAuthentication(auth);
         SecurityContextHolder.setContext(context);
+        
         HttpSession session = request.getSession(true);
         session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
-    }
-
-    private boolean isAdminEmail(String email) {
-        // Configure admin emails - you might want to make this configurable
-        return email != null && (
-            email.endsWith("@supremeai.com") ||
-            email.equals("admin@supremeai.com") ||
-            email.equals("niloyjoy7@gmail.com") || // Added from your screenshot
-            email.equals("nazifa@example.com")
-        );
     }
 }
