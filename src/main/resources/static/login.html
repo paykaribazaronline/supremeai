@@ -393,12 +393,32 @@
 
                 const credential = await firebaseAuth.signInWithEmailAndPassword(email, password);
                 const user = credential.user;
+                const idToken = await user.getIdToken();
+                const backendResponse = await fetch('/api/auth/firebase-login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ idToken })
+                });
+
+                if (!backendResponse.ok) {
+                    throw new Error('Backend authentication failed');
+                }
+
+                const backendAuth = await backendResponse.json();
+                if (backendAuth.status !== 'success') {
+                    throw new Error(backendAuth.message || 'Backend authentication failed');
+                }
+
                 localStorage.setItem(FIREBASE_AUTH_FLAG, 'true');
                 localStorage.setItem('supremeai_user', JSON.stringify({
-                    username: user.displayName || user.email,
-                    email: user.email,
-                    uid: user.uid
+                    username: backendAuth.user?.username || user.displayName || user.email,
+                    email: backendAuth.user?.email || user.email,
+                    uid: backendAuth.user?.id || user.uid,
+                    role: backendAuth.user?.role || 'user'
                 }));
+                localStorage.removeItem('supremeai_auth_token');
 
                 if (rememberMe.checked) {
                     const expiryTime = Date.now() + THIRTY_DAYS_MS;
