@@ -162,8 +162,8 @@ jobs:
             --cpu 2 \
             --timeout 300 \
             --set-env-vars=SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a,"JAVA_OPTS=-Xms256m -Xmx1024m -XX:+UseG1GC"
-      - name: Get_Backend_URL
-        run: echo "BACKEND_URL=$(gcloud run services describe supremeai --platform managed --region us-central1 --format='value(status.url)')" >> $GITHUB_ENV
+      - name: Store_Admin_URL
+        run: echo "ADMIN_URL=$(gcloud run services describe supremeai --platform managed --region us-central1 --format='value(status.url)')/admin.html" >> $GITHUB_ENV
       - name: Show_Cloud_Build_Logs
         if: failure()
         run: |
@@ -233,8 +233,8 @@ jobs:
         run: |
           echo "### Workflow Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Backend URL:** ${{ env.BACKEND_URL }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Frontend URL:** ${{ env.FRONTEND_URL }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Admin Dashboard URL:** ${{ env.ADMIN_URL }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Customer App URL:** ${{ env.FRONTEND_URL }}" >> $GITHUB_STEP_SUMMARY
           echo "**APK Path:** `${{ env.APK_PATH }}`" >> $GITHUB_STEP_SUMMARY
           echo "**Plugin Path:** `${{ env.PLUGIN_PATH }}`" >> $GITHUB_STEP_SUMMARY
           echo "**VS Code Extension Path:** `${{ env.VSIX_PATH }}`" >> $GITHUB_STEP_SUMMARY
