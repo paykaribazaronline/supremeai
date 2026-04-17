@@ -3,13 +3,21 @@ package com.supremeai.controller;
 import com.supremeai.model.User;
 import com.supremeai.model.UserTier;
 import com.supremeai.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -24,7 +32,7 @@ public class AuthenticationController {
     private UserRepository userRepository;
 
     @PostMapping("/firebase-login")
-    public Map<String, Object> firebaseLogin(@RequestBody Map<String, String> request) {
+    public Map<String, Object> firebaseLogin(@RequestBody Map<String, String> request, HttpServletRequest httpRequest) {
         String idToken = request.get("idToken");
 
         try {
@@ -57,6 +65,7 @@ public class AuthenticationController {
             }
 
             userRepository.save(user);
+            establishSession(user, httpRequest);
 
             Map<String, Object> response = new HashMap<>();
             response.put("status", "success");
@@ -84,6 +93,30 @@ public class AuthenticationController {
             errorResponse.put("message", "Invalid Firebase token: " + e.getMessage());
             return errorResponse;
         }
+    }
+
+    @PostMapping("/logout")
+    public Map<String, Object> logout(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        SecurityContextHolder.clearContext();
+        return Map.of("status", "success");
+    }
+
+    private void establishSession(User user, HttpServletRequest request) {
+        List<SimpleGrantedAuthority> authorities = List.of(
+            new SimpleGrantedAuthority("ROLE_USER"),
+            new SimpleGrantedAuthority(user.getTier() == UserTier.ADMIN ? "ROLE_ADMIN" : "ROLE_" + user.getTier().name())
+        );
+        UsernamePasswordAuthenticationToken authentication =
+            new UsernamePasswordAuthenticationToken(user.getFirebaseUid(), null, authorities);
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authentication);
+        SecurityContextHolder.setContext(context);
+        HttpSession session = request.getSession(true);
+        session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
     }
 
     private boolean isAdminEmail(String email) {

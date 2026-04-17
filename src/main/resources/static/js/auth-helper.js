@@ -27,10 +27,16 @@ const AuthHelper = {
     /**
      * Clear all authentication data
      */
-    logout() {
+    async logout() {
         localStorage.removeItem('supremeai_firebase_authenticated');
         localStorage.removeItem('supremeai_user');
         localStorage.removeItem('supremeai_remembered_username');
+        try {
+            await fetch('/api/auth/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (_) {}
         if (window.firebase && firebase.apps && firebase.apps.length && firebase.auth) {
             firebase.auth().signOut().catch(() => {}).finally(() => {
                 window.location.href = '/login.html';
@@ -138,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
         AuthHelper.applyPermissionVisibility();
         const logoutBtn = document.querySelector('[data-action="logout"]');
         if (logoutBtn) {
-            logoutBtn.onclick = () => AuthHelper.logout();
+            logoutBtn.onclick = () => { void AuthHelper.logout(); };
         }
     });
 });
