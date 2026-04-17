@@ -30,6 +30,11 @@ class LoginScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
+            const Text(
+              'Build Version: 1.0.1+fix',
+              style: TextStyle(fontSize: 10, color: Colors.grey),
+            ),
+            const SizedBox(height: 16),
             TextButton(
               onPressed: () {
                 context.read<AuthProvider>().continueAsGuest();

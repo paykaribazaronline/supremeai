@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 @EnableJpaRepositories(basePackages = "com.supremeai.repository")
 public class Application {
+    // SupremeAI Master Application Entry Point - v6.0.1
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
