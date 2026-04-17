@@ -16,10 +16,10 @@
 - `com.supremeai.ml.*`: এআই মডেলের ইনপুট/আউটপুট প্রসেসিং যাচাই করা।
 - `com.supremeai.agent.*`: এজেন্টদের কাজ সঠিকভাবে হচ্ছে কি না তা চেক করা।
 
-### ধাপ ২: সিকিউরিটি ও ফিল্টার (Security Layer)
+### ধাপ ২: সিকিউরিটি (Security Layer)
 
-- `JwtAuthenticationFilter` এবং `SecurityConfig` এর জন্য মক টেস্ট।
-- অথরাইজেশন লজিক চেক করা।
+- `SecurityConfig` এর জন্য মক টেস্ট।
+- Firebase Authentication এবং Role-based অথরাইজেশন লজিক চেক করা।
 
 ### ধাপ ৩: এপিআই এন্ডপয়েন্ট (Controller Layer)
 
