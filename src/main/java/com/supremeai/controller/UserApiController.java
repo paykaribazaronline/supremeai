@@ -146,6 +146,42 @@ public class UserApiController {
         }
     }
 
+    @PostMapping("/apis/verify")
+    public ResponseEntity<?> verifyApiKey(@RequestBody Map<String, String> request) {
+        try {
+            String apiKey = request.get("apiKey");
+
+            if (apiKey == null || apiKey.trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("valid", false, "error", "API key is required"));
+            }
+
+            Optional<UserApi> apiOpt = userApiRepository.findByApiKey(apiKey);
+            if (apiOpt.isEmpty()) {
+                return ResponseEntity.ok(Map.of("valid", false, "error", "Invalid API key"));
+            }
+
+            UserApi api = apiOpt.get();
+            if (!api.getIsActive()) {
+                return ResponseEntity.ok(Map.of("valid", false, "error", "API key is inactive"));
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("valid", true);
+            response.put("apiName", api.getApiName());
+            response.put("tier", api.getUserTier().toString());
+            response.put("monthlyQuota", api.getMonthlyQuota());
+            response.put("currentUsage", api.getCurrentUsage());
+            response.put("hasQuotaRemaining", api.hasQuotaRemaining());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("valid", false, "error", "Verification failed: " + e.getMessage()));
+        }
+    }
+
     @PostMapping("/apis/{apiId}/regenerate-key")
     public ResponseEntity<?> regenerateApiKey(@PathVariable Long apiId, Authentication authentication) {
         try {

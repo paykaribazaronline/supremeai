@@ -34,8 +34,20 @@ public class ApiKeyFilter extends OncePerRequestFilter {
             return;
         }
 
-        // Check for API key in header
-        String apiKey = request.getHeader("X-API-Key");
+        // Check for API key in header (either X-API-Key or Authorization Bearer)
+        String apiKey = null;
+
+        // Check X-API-Key header (legacy support)
+        apiKey = request.getHeader("X-API-Key");
+
+        // If not found, check Authorization header for Bearer token
+        if (apiKey == null || apiKey.trim().isEmpty()) {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                apiKey = authHeader.substring(7); // Remove "Bearer " prefix
+            }
+        }
+
         if (apiKey == null || apiKey.trim().isEmpty()) {
             sendErrorResponse(response, "API key required", HttpServletResponse.SC_UNAUTHORIZED);
             return;

@@ -19,11 +19,16 @@ class GenerateAppAction : AnAction() {
         if (!projectName.isNullOrBlank()) {
             thread {
                 try {
-                    val url = URL("https://supremeai-565236080752.us-central1.run.app/api/project/generate")
+                    val settings = SupremeAISettings.getInstance()
+                    val apiKey = settings.apiKey.takeIf { it.isNotBlank() } ?: "dev-admin-token-local"
+                    val endpoint = settings.apiEndpoint.takeIf { it.isNotBlank() }
+                        ?: "https://supremeai-565236080752.us-central1.run.app"
+
+                    val url = URL("$endpoint/api/project/generate")
                     val conn = url.openConnection() as HttpURLConnection
                     conn.requestMethod = "POST"
                     conn.setRequestProperty("Content-Type", "application/json")
-                    conn.setRequestProperty("Authorization", "Bearer dev-admin-token-local")
+                    conn.setRequestProperty("Authorization", "Bearer $apiKey")
                     conn.doOutput = true
 
                     val jsonInputString = "{\"projectName\": \"$projectName\", \"platform\": \"android\"}"

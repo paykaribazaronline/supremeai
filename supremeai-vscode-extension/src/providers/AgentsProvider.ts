@@ -1,6 +1,15 @@
 import * as vscode from 'vscode';
+import { SupremeAIApi } from '../services/SupremeAIApi';
 
 export class AgentsProvider implements vscode.TreeDataProvider<AgentItem> {
+    private api: SupremeAIApi;
+
+    constructor(apiEndpoint: string, apiKey?: string) {
+        this.api = new SupremeAIApi(apiEndpoint);
+        if (apiKey) {
+            this.api.setApiKey(apiKey);
+        }
+    }
     private _onDidChangeTreeData: vscode.EventEmitter<AgentItem | undefined | void> = new vscode.EventEmitter<AgentItem | undefined | void>();
     readonly onDidChangeTreeData: vscode.Event<AgentItem | undefined | void> = this._onDidChangeTreeData.event;
 

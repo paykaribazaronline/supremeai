@@ -1,6 +1,15 @@
 import * as vscode from 'vscode';
+import { SupremeAIApi } from '../services/SupremeAIApi';
 
 export class ChatProvider implements vscode.TreeDataProvider<ChatItem> {
+    private api: SupremeAIApi;
+
+    constructor(apiEndpoint: string, apiKey?: string) {
+        this.api = new SupremeAIApi(apiEndpoint);
+        if (apiKey) {
+            this.api.setApiKey(apiKey);
+        }
+    }
     getTreeItem(element: ChatItem): vscode.TreeItem {
         return element;
     }

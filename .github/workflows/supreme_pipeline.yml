@@ -75,6 +75,8 @@ jobs:
     needs: [changes, secret-scan]
     if: needs.changes.outputs.plugin == 'true'
     runs-on: ubuntu-latest
+    outputs:
+      plugin_path: ${{ steps.set-path.outputs.path }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup_Java
@@ -86,13 +88,16 @@ jobs:
       - name: Build_Plugin
         run: "./gradlew :supremeai-intellij-plugin:buildPlugin"
       - name: Store_Plugin_Path
-        run: echo "PLUGIN_PATH=supremeai-intellij-plugin/build/distributions/*.zip" >> $GITHUB_ENV
+        id: set-path
+        run: echo "path=supremeai-intellij-plugin/build/distributions/*.zip" >> $GITHUB_OUTPUT
 
   vscode-extension-build:
     name: VSCode_Extension_Build
     needs: [changes, secret-scan]
     if: needs.changes.outputs.vscode_extension == 'true'
     runs-on: ubuntu-latest
+    outputs:
+      vsix_path: ${{ steps.set-path.outputs.path }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup_Node
@@ -115,7 +120,8 @@ jobs:
           cd supremeai-vscode-extension
           npx vsce package --no-git-tag-version
       - name: Store_VSIX_Path
-        run: echo "VSIX_PATH=supremeai-vscode-extension/*.vsix" >> $GITHUB_ENV
+        id: set-path
+        run: echo "path=supremeai-vscode-extension/*.vsix" >> $GITHUB_OUTPUT
 
   java-build-and-test:
     name: Java_Build_And_Test
@@ -127,7 +133,7 @@ jobs:
       - name: Setup_Java
         uses: actions/setup-java@v4
         with:
-          java-version: "17"
+          java-version: "21"
           distribution: "temurin"
           cache: "gradle"
       - name: Build_And_Test
@@ -143,6 +149,8 @@ jobs:
     needs: [java-build-and-test, codeql]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    outputs:
+      admin_url: ${{ steps.set-url.outputs.url }}
     steps:
       - uses: actions/checkout@v4
       - name: Authenticate_GCP
@@ -163,7 +171,8 @@ jobs:
             --timeout 300 \
             --set-env-vars=SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a,"JAVA_OPTS=-Xms256m -Xmx1024m -XX:+UseG1GC"
       - name: Store_Admin_URL
-        run: echo "ADMIN_URL=$(gcloud run services describe supremeai --platform managed --region us-central1 --format='value(status.url)')/admin.html" >> $GITHUB_ENV
+        id: set-url
+        run: echo "url=$(gcloud run services describe supremeai --platform managed --region us-central1 --format='value(status.url)')/admin.html" >> $GITHUB_OUTPUT
       - name: Show_Cloud_Build_Logs
         if: failure()
         run: |
@@ -176,6 +185,9 @@ jobs:
     needs: [changes, secret-scan]
     if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
+    outputs:
+      frontend_url: ${{ steps.set-paths.outputs.frontend_url }}
+      apk_path: ${{ steps.set-paths.outputs.apk_path }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup_Flutter
@@ -196,9 +208,10 @@ jobs:
           name: customer-web-build
           path: supremeai/build/web
       - name: Store_Artifact_Paths
+        id: set-paths
         run: |
-          echo "FRONTEND_URL=https://supremeai-a.web.app/" >> $GITHUB_ENV
-          echo "APK_PATH=supremeai/build/app/outputs/flutter-apk/app-release.apk" >> $GITHUB_ENV
+          echo "frontend_url=https://supremeai-a.web.app/" >> $GITHUB_OUTPUT
+          echo "apk_path=supremeai/build/app/outputs/flutter-apk/app-release.apk" >> $GITHUB_OUTPUT
 
   deploy-frontend:
     name: Deploy_Frontend
@@ -225,7 +238,7 @@ jobs:
 
   workflow-summary:
     name: Workflow_Summary
-    needs: [deploy-backend, deploy-frontend, plugin-build, vscode-extension-build]
+    needs: [deploy-backend, deploy-frontend, plugin-build, vscode-extension-build, flutter-build-and-test]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -233,11 +246,11 @@ jobs:
         run: |
           echo "### Workflow Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Admin Dashboard URL:** ${{ env.ADMIN_URL }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Customer App URL:** ${{ env.FRONTEND_URL }}" >> $GITHUB_STEP_SUMMARY
-          echo "**APK Path:** `${{ env.APK_PATH }}`" >> $GITHUB_STEP_SUMMARY
-          echo "**Plugin Path:** `${{ env.PLUGIN_PATH }}`" >> $GITHUB_STEP_SUMMARY
-          echo "**VS Code Extension Path:** `${{ env.VSIX_PATH }}`" >> $GITHUB_STEP_SUMMARY
+          echo "**Admin Dashboard URL:** ${{ needs.deploy-backend.outputs.admin_url || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Customer App URL:** ${{ needs.flutter-build-and-test.outputs.frontend_url || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**APK Path:** `${{ needs.flutter-build-and-test.outputs.apk_path || 'N/A' }}`" >> $GITHUB_STEP_SUMMARY
+          echo "**Plugin Path:** `${{ needs.plugin-build.outputs.plugin_path || 'N/A' }}`" >> $GITHUB_STEP_SUMMARY
+          echo "**VS Code Extension Path:** `${{ needs.vscode-extension-build.outputs.vsix_path || 'N/A' }}`" >> $GITHUB_STEP_SUMMARY
 
   health-check:
     name: Health_Check
