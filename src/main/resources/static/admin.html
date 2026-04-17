@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SupremeAI - Admin Dashboard</title>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -2479,6 +2481,54 @@
 
     <script>
         let availableProviders = [];
+        let firebaseConfig = null;
+        let firebaseAuth = null;
+
+        async function initializeFirebase() {
+            try {
+                // Load Firebase config from backend API
+                const response = await fetch('/api/config/firebase');
+                if (!response.ok) throw new Error('Failed to load Firebase config');
+
+                firebaseConfig = await response.json();
+
+                // Initialize Firebase
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                firebaseAuth = firebase.auth();
+                console.log('✅ Firebase initialized');
+            } catch (err) {
+                console.error('❌ Firebase init failed:', err.message);
+                showError('Failed to initialize authentication service. Please refresh the page.');
+            }
+        }
+
+        function showError(message) {
+            // Create or update error display
+            let errorDiv = document.getElementById('authError');
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.id = 'authError';
+                errorDiv.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #d32f2f;
+                    color: white;
+                    padding: 15px;
+                    border-radius: 5px;
+                    z-index: 10000;
+                    max-width: 400px;
+                `;
+                document.body.appendChild(errorDiv);
+            }
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
 
         function getCurrentAdminEmail() {
             return 'admin@supremeai.com';
@@ -2737,9 +2787,17 @@
         // --- Commands Logic (wired in COMMANDS CONSOLE section above) ---
 
         function getAuthHeaders() {
-            return {
+            const headers = {
                 'Content-Type': 'application/json'
             };
+
+            // Add authorization token if available
+            const token = localStorage.getItem('supremeai_auth_token');
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            return headers;
         }
 
         function getFriendlyNetworkMessage(error) {
@@ -2754,11 +2812,62 @@
             const isAuth = localStorage.getItem('supremeai_firebase_authenticated') === 'true';
             if (!isAuth) {
                 localStorage.removeItem('supremeai_user');
+                localStorage.removeItem('supremeai_auth_token');
                 window.location.href = '/login.html';
                 return false;
             }
 
+            // Check if we have a backend auth token
+            const backendToken = localStorage.getItem('supremeai_auth_token');
+            if (!backendToken) {
+                // Need to authenticate with backend
+                try {
+                    await authenticateWithBackend();
+                } catch (error) {
+                    console.error('Backend authentication failed:', error);
+                    showError('Failed to initialize authentication service. Please refresh the page.');
+                    return false;
+                }
+            }
+
             return true;
+        }
+
+        async function authenticateWithBackend() {
+            try {
+                // Get Firebase ID token
+                const user = firebase.auth().currentUser;
+                if (!user) {
+                    throw new Error('No Firebase user found');
+                }
+
+                const idToken = await user.getIdToken();
+
+                // Call backend authentication
+                const response = await fetch('/api/auth/firebase-login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ idToken: idToken })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Backend authentication failed');
+                }
+
+                const authData = await response.json();
+                if (authData.status === 'success') {
+                    // Store the backend token
+                    localStorage.setItem('supremeai_auth_token', authData.token);
+                    console.log('✅ Backend authentication successful');
+                } else {
+                    throw new Error(authData.message || 'Authentication failed');
+                }
+            } catch (error) {
+                console.error('Backend auth error:', error);
+                throw error;
+            }
         }
 
         async function fetchTechniques(category = '') {
@@ -5631,6 +5740,7 @@
             if (!confirm('Are you sure you want to logout?')) return;
             localStorage.removeItem('supremeai_firebase_authenticated');
             localStorage.removeItem('supremeai_user');
+            localStorage.removeItem('supremeai_auth_token');
             if (window.firebase && firebase.apps && firebase.apps.length && firebase.auth) {
                 firebase.auth().signOut().catch(() => null).finally(() => {
                     window.location.href = '/login.html';
@@ -7100,7 +7210,10 @@
         }
 
         // Initialize system mode on page load
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initializeFirebase();
+            await ensureAdminSession();
+
             const settingsSection = document.getElementById('settings');
             if (settingsSection) {
                 loadSystemMode();
