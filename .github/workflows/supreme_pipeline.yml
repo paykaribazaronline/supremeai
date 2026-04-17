@@ -114,11 +114,8 @@ jobs:
         run: |
           cd supremeai-vscode-extension
           npx vsce package --no-git-tag-version
-      - name: Upload_VSIX
-        uses: actions/upload-artifact@v4
-        with:
-          name: supremeai-vscode-extension
-          path: "supremeai-vscode-extension/*.vsix"
+      - name: Store_VSIX_Path
+        run: echo "VSIX_PATH=supremeai-vscode-extension/*.vsix" >> $GITHUB_ENV
 
   java-build-and-test:
     name: Java_Build_And_Test
@@ -224,7 +221,7 @@ jobs:
 
   workflow-summary:
     name: Workflow_Summary
-    needs: [deploy-backend, deploy-frontend, plugin-build]
+    needs: [deploy-backend, deploy-frontend, plugin-build, vscode-extension-build]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -236,6 +233,7 @@ jobs:
           echo "**Frontend URL:** ${{ env.FRONTEND_URL }}" >> $GITHUB_STEP_SUMMARY
           echo "**APK Path:** `${{ env.APK_PATH }}`" >> $GITHUB_STEP_SUMMARY
           echo "**Plugin Path:** `${{ env.PLUGIN_PATH }}`" >> $GITHUB_STEP_SUMMARY
+          echo "**VS Code Extension Path:** `${{ env.VSIX_PATH }}`" >> $GITHUB_STEP_SUMMARY
 
   health-check:
     name: Health_Check
