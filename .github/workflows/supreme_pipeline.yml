@@ -68,12 +68,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: CodeQL_Init
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: "java"
           build-mode: "none"
       - name: Run_CodeQL
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
 
   secret-scan:
     name: Secret_Scanning
@@ -96,7 +96,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Setup_Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: "21"
           distribution: "temurin"
@@ -104,7 +104,7 @@ jobs:
       - name: Build_Plugin
         run: "./gradlew :supremeai-intellij-plugin:buildPlugin"
       - name: Upload_Plugin_Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: supremeai-intellij-plugin
           path: supremeai-intellij-plugin/build/distributions/*.zip
@@ -122,9 +122,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Setup_Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          node-version: "24"
           cache: "npm"
           cache-dependency-path: "supremeai-vscode-extension/package-lock.json"
       - name: Install_Dependencies
@@ -139,7 +139,7 @@ jobs:
         working-directory: ./supremeai-vscode-extension
         run: npx vsce package --no-git-tag-version
       - name: Upload_VSIX_Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: supremeai-vscode-extension
           path: supremeai-vscode-extension/*.vsix
@@ -155,7 +155,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Setup_Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: "21"
           distribution: "temurin"
@@ -163,7 +163,7 @@ jobs:
       - name: Build_And_Test
         run: "./gradlew build -x jacocoTestCoverageVerification"
       - name: Upload_JAR
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: java-backend-jar
           path: "build/libs/*.jar"
@@ -178,11 +178,11 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Authenticate_GCP
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           credentials_json: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}"
       - name: Setup_GCloud
-        uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@v3
       - name: Deploy_Backend_To_Cloud_Run
         id: build
         run: echo "build_id=$(gcloud builds submit --config cloudbuild.yaml --async --format='value(id)')" >> $GITHUB_OUTPUT
@@ -222,13 +222,13 @@ jobs:
         working-directory: ./supremeai
         run: flutter build apk --release --target-platform android-arm64
       - name: Upload_Web
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: customer-web-build
           path: supremeai/build/web
       - name: Upload_APK_Artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: supremeai-android-apk
           path: supremeai/build/app/outputs/flutter-apk/app-release.apk
@@ -250,18 +250,23 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Download_Web
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: customer-web-build
           path: supremeai/build/web
-      - name: Firebase_Deploy
-        uses: FirebaseExtended/action-hosting-deploy@v0
+      - name: Authenticate_GCP
+        uses: google-github-actions/auth@v3
         with:
-          repoToken: "${{ secrets.GITHUB_TOKEN }}"
-          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}"
-          projectId: "supremeai-a"
-          channelId: "live"
-          entryPoint: "./supremeai"
+          credentials_json: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}"
+          project_id: "supremeai-a"
+      - name: Setup_Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - name: Deploy_Firebase_Hosting
+        run: npx firebase-tools@latest deploy --project supremeai-a --only hosting --non-interactive
+        working-directory: ./supremeai
 
   workflow-summary:
     name: Workflow_Summary
