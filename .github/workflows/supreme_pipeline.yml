@@ -121,8 +121,8 @@ jobs:
           name: supremeai-vscode-extension
           path: "supremeai-vscode-extension/*.vsix"
 
-  java-build:
-    name: Java_Build
+  java-build-and-test:
+    name: Java_Build_And_Test
     needs: [changes, secret-scan]
     if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
@@ -134,32 +134,17 @@ jobs:
           java-version: "17"
           distribution: "temurin"
           cache: "gradle"
-      - name: Build_JAR
-        run: "./gradlew build -x test"
+      - name: Build_And_Test
+        run: "./gradlew build -x jacocoTestCoverageVerification"
       - name: Upload_JAR
         uses: actions/upload-artifact@v4
         with:
           name: java-backend-jar
           path: "build/libs/*.jar"
 
-  java-test:
-    name: Java_Test
-    needs: java-build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup_Java
-        uses: actions/setup-java@v4
-        with:
-          java-version: "17"
-          distribution: "temurin"
-          cache: "gradle"
-      - name: Run_Tests
-        run: "./gradlew test -x jacocoTestCoverageVerification"
-
   deploy-backend:
     name: Deploy_Backend
-    needs: [java-test, codeql]
+    needs: [java-build-and-test, codeql]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
@@ -185,8 +170,8 @@ jobs:
         run: |
           gcloud run services describe supremeai --platform managed --region us-central1
 
-  flutter-build:
-    name: Flutter_Build
+  flutter-build-and-test:
+    name: Flutter_Build_And_Test
     needs: [changes, secret-scan]
     if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
@@ -197,10 +182,11 @@ jobs:
         with:
           flutter-version: "3.27.0"
           cache: true
-      - name: Build_Web_APK
+      - name: Test_And_Build
         run: |
           cd supremeai
           flutter pub get
+          flutter test
           flutter build web --release
           flutter build apk --release --target-platform android-arm64
       - name: Upload_Web
@@ -214,26 +200,9 @@ jobs:
           name: supremeai-android-apk
           path: "supremeai/build/app/outputs/flutter-apk/app-release.apk"
 
-  flutter-test:
-    name: Flutter_Test
-    needs: flutter-build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup_Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.27.0"
-          cache: true
-      - name: Run_Tests
-        run: |
-          cd supremeai
-          flutter pub get
-          flutter test
-
   deploy-frontend:
     name: Deploy_Frontend
-    needs: [flutter-test, codeql]
+    needs: [flutter-build-and-test, codeql]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
