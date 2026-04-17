@@ -13,33 +13,25 @@ steps:
         "push",
         "us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest",
       ]
-  - name: "gcr.io/google-appengine/exec-wrapper"
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: gcloud
     args:
-      [
-        "-i",
-        "us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest",
-        "-e",
-        "SPRING_PROFILES_ACTIVE=cloud",
-        "-e",
-        "FIREBASE_PROJECT_ID=supremeai-a",
-        "--",
-        "gcloud",
-        "run",
-        "deploy",
-        "supremeai",
-        "--image",
-        "us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest",
-        "--platform",
-        "managed",
-        "--region",
-        "us-central1",
-        "--allow-unauthenticated",
-        "--memory",
-        "2Gi",
-        "--cpu",
-        "2",
-        "--timeout",
-        "300",
-      ]
+      - "run"
+      - "deploy"
+      - "supremeai"
+      - "--image"
+      - "us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest"
+      - "--platform"
+      - "managed"
+      - "--region"
+      - "us-central1"
+      - "--allow-unauthenticated"
+      - "--memory"
+      - "2Gi"
+      - "--cpu"
+      - "2"
+      - "--timeout"
+      - "300"
+      - "--set-env-vars=SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a"
 images:
   - "us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest"

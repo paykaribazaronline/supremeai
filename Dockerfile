@@ -1,11 +1,24 @@
 # Step 1: Use Gradle for building the JAR
 FROM gradle:8.7-jdk21 AS build
-COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
+
+# Copy build metadata first so dependency layers can be reused across source-only changes.
+COPY --chown=gradle:gradle gradle gradle
+COPY --chown=gradle:gradle gradlew gradlew
+COPY --chown=gradle:gradle settings.gradle.kts settings.gradle.kts
+COPY --chown=gradle:gradle build.gradle.kts build.gradle.kts
+COPY --chown=gradle:gradle gradle.properties gradle.properties
+COPY --chown=gradle:gradle supremeai-intellij-plugin/build.gradle.kts supremeai-intellij-plugin/build.gradle.kts
+COPY --chown=gradle:gradle supremeai-intellij-plugin/settings.gradle.kts supremeai-intellij-plugin/settings.gradle.kts
+
+RUN chmod +x gradlew \
+    && ./gradlew dependencies --no-daemon > /tmp/gradle-dependencies.log
+
+COPY --chown=gradle:gradle src src
+COPY --chown=gradle:gradle supremeai-intellij-plugin supremeai-intellij-plugin
 
 # Set build memory limits and build the app
 RUN printf 'org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=512m\norg.gradle.daemon=false\n' > gradle.properties \
-    && chmod +x gradlew \
     && ./gradlew clean build --no-daemon -x test --parallel
 
 # Find the built JAR and rename it to app.jar

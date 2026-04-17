@@ -20,9 +20,13 @@ jobs:
       frontend: "${{ steps.filter.outputs.frontend }}"
       plugin: "${{ steps.filter.outputs.plugin }}"
       vscode_extension: "${{ steps.filter.outputs.vscode_extension }}"
+      workflow_backend: "${{ steps.filter.outputs.workflow_backend }}"
+      workflow_frontend: "${{ steps.filter.outputs.workflow_frontend }}"
+      workflow_plugin: "${{ steps.filter.outputs.workflow_plugin }}"
+      workflow_vscode_extension: "${{ steps.filter.outputs.workflow_vscode_extension }}"
     steps:
       - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v3.0.2
         id: filter
         with:
           filters: |
@@ -30,22 +34,29 @@ jobs:
               - 'src/**'
               - 'Dockerfile'
               - 'build.gradle*'
-              - '.github/workflows/**'
             frontend:
               - 'supremeai/**'
               - 'firebase.json'
-              - '.github/workflows/**'
             plugin:
               - 'supremeai-intellij-plugin/**'
-              - '.github/workflows/**'
             vscode_extension:
               - 'supremeai-vscode-extension/**'
-              - '.github/workflows/**'
+            workflow_backend:
+              - '.github/workflows/supreme_pipeline.yml'
+              - 'cloudbuild.yaml'
+              - 'Dockerfile'
+            workflow_frontend:
+              - '.github/workflows/supreme_pipeline.yml'
+              - 'firebase.json'
+            workflow_plugin:
+              - '.github/workflows/supreme_pipeline.yml'
+            workflow_vscode_extension:
+              - '.github/workflows/supreme_pipeline.yml'
 
   codeql:
     name: CodeQL_Analysis
     needs: [changes]
-    if: needs.changes.outputs.backend == 'true'
+    if: github.event_name != 'pull_request' && (needs.changes.outputs.backend == 'true' || needs.changes.outputs.workflow_backend == 'true')
     runs-on: ubuntu-latest
     permissions:
       security-events: write
@@ -73,7 +84,7 @@ jobs:
   plugin-build:
     name: Plugin_Build
     needs: [changes, secret-scan]
-    if: needs.changes.outputs.plugin == 'true'
+    if: needs.changes.outputs.plugin == 'true' || needs.changes.outputs.workflow_plugin == 'true'
     runs-on: ubuntu-latest
     outputs:
       plugin_path: ${{ steps.set-path.outputs.path }}
@@ -94,7 +105,7 @@ jobs:
   vscode-extension-build:
     name: VSCode_Extension_Build
     needs: [changes, secret-scan]
-    if: needs.changes.outputs.vscode_extension == 'true'
+    if: needs.changes.outputs.vscode_extension == 'true' || needs.changes.outputs.workflow_vscode_extension == 'true'
     runs-on: ubuntu-latest
     outputs:
       vsix_path: ${{ steps.set-path.outputs.path }}
@@ -109,7 +120,7 @@ jobs:
       - name: Install_Dependencies
         run: |
           cd supremeai-vscode-extension
-          npm install
+          npm ci
       - name: Lint_and_Compile
         run: |
           cd supremeai-vscode-extension
@@ -126,7 +137,7 @@ jobs:
   java-build-and-test:
     name: Java_Build_And_Test
     needs: [changes, secret-scan]
-    if: needs.changes.outputs.backend == 'true'
+    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.workflow_backend == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -146,9 +157,9 @@ jobs:
 
   deploy-backend:
     name: Deploy_Backend
-    needs: [java-build-and-test, codeql]
+    needs: [java-build-and-test]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && needs.java-build-and-test.result == 'success'
     outputs:
       admin_url: ${{ steps.set-url.outputs.url }}
     steps:
@@ -160,7 +171,8 @@ jobs:
       - name: Setup_GCloud
         uses: google-github-actions/setup-gcloud@v2
       - name: Deploy_Backend_To_Cloud_Run
-        run: 'gcloud builds submit --config cloudbuild.yaml .'
+        id: build
+        run: echo "build_id=$(gcloud builds submit --config cloudbuild.yaml --async --format='value(id)')" >> $GITHUB_OUTPUT
       - name: Store_Admin_URL
         id: set-url
         run: echo "url=$(gcloud run services describe supremeai --platform managed --region us-central1 --format='value(status.url)')/admin.html" >> $GITHUB_OUTPUT
@@ -168,13 +180,13 @@ jobs:
         if: failure()
         run: |
           echo "Fetching latest Cloud Build logs..."
-          BUILD_ID=$(gcloud builds list --project=supremeai-a --limit=1 --format='value(id)')
+          BUILD_ID=${{ steps.build.outputs.build_id }}
           gcloud builds log $BUILD_ID --project=supremeai-a
 
   flutter-build-and-test:
     name: Flutter_Build_And_Test
     needs: [changes, secret-scan]
-    if: needs.changes.outputs.frontend == 'true'
+    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.workflow_frontend == 'true'
     runs-on: ubuntu-latest
     outputs:
       frontend_url: ${{ steps.set-paths.outputs.frontend_url }}
@@ -192,7 +204,10 @@ jobs:
           flutter pub get
           flutter test
           flutter build web --release
-          flutter build apk --release --target-platform android-arm64
+      - name: Build_APK
+        if: github.event_name != 'pull_request'
+        working-directory: ./supremeai
+        run: flutter build apk --release --target-platform android-arm64
       - name: Upload_Web
         uses: actions/upload-artifact@v4
         with:
@@ -202,13 +217,17 @@ jobs:
         id: set-paths
         run: |
           echo "frontend_url=https://supremeai-a.web.app/" >> $GITHUB_OUTPUT
-          echo "apk_path=supremeai/build/app/outputs/flutter-apk/app-release.apk" >> $GITHUB_OUTPUT
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "apk_path=N/A" >> $GITHUB_OUTPUT
+          else
+            echo "apk_path=supremeai/build/app/outputs/flutter-apk/app-release.apk" >> $GITHUB_OUTPUT
+          fi
 
   deploy-frontend:
     name: Deploy_Frontend
-    needs: [flutter-build-and-test, codeql]
+    needs: [flutter-build-and-test]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && needs.flutter-build-and-test.result == 'success'
     steps:
       - uses: actions/checkout@v4
       - name: Download_Web
@@ -216,8 +235,6 @@ jobs:
         with:
           name: customer-web-build
           path: supremeai/build/web
-      - name: Debug_File_Structure
-        run: ls -R
       - name: Firebase_Deploy
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
