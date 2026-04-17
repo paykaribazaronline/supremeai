@@ -16,22 +16,19 @@ public class ExpertAgentRouterTest {
 
     @BeforeEach
     void setUp() {
-        // Initialize mock behaviors here once the ExpertAgentRouter has implementation
     }
 
     @Test
     void testRouteRequest_ToCodingAgent() {
         String prompt = "Write a Java function to sort a list";
-        // String result = expertAgentRouter.route(prompt);
-        // assertEquals("CODING_AGENT", result);
-        assertTrue(true, "Placeholder for routing logic test");
+        String result = expertAgentRouter.route(prompt);
+        assertEquals("CODING_AGENT", result);
     }
 
     @Test
     void testRouteRequest_ToGeneralAgent() {
         String prompt = "What is the capital of France?";
-        // String result = expertAgentRouter.route(prompt);
-        // assertEquals("GENERAL_AGENT", result);
-        assertTrue(true, "Placeholder for routing logic test");
+        String result = expertAgentRouter.route(prompt);
+        assertEquals("GENERAL_AGENT", result);
     }
 }

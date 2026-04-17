@@ -19,6 +19,7 @@ jobs:
       backend: "${{ steps.filter.outputs.backend }}"
       frontend: "${{ steps.filter.outputs.frontend }}"
       plugin: "${{ steps.filter.outputs.plugin }}"
+      vscode_extension: "${{ steps.filter.outputs.vscode_extension }}"
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -37,6 +38,9 @@ jobs:
               - '.github/workflows/**'
             plugin:
               - 'supremeai-intellij-plugin/**'
+              - '.github/workflows/**'
+            vscode_extension:
+              - 'supremeai-vscode-extension/**'
               - '.github/workflows/**'
 
   codeql:
@@ -85,6 +89,33 @@ jobs:
         with:
           name: supremeai-intellij-plugin
           path: "supremeai-intellij-plugin/build/distributions/*.zip"
+
+  vscode-extension-build:
+    name: VSCode_Extension_Build
+    needs: [changes, secret-scan]
+    if: needs.changes.outputs.vscode_extension == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup_Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "supremeai-vscode-extension/package-lock.json"
+      - name: Install_Dependencies
+        run: |
+          cd supremeai-vscode-extension
+          npm install
+      - name: Package_Extension
+        run: |
+          cd supremeai-vscode-extension
+          npx vsce package --no-git-tag-version
+      - name: Upload_VSIX
+        uses: actions/upload-artifact@v4
+        with:
+          name: supremeai-vscode-extension
+          path: "supremeai-vscode-extension/*.vsix"
 
   java-build:
     name: Java_Build
