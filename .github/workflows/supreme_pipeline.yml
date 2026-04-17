@@ -31,11 +31,10 @@ jobs:
               - 'Dockerfile'
               - 'build.gradle*'
               - '.github/workflows/**'
-            frontend:
-              - 'supremeai/**'
-              - 'flutter_admin_app/**'
-              - 'firebase.json'
-              - '.github/workflows/**'
+             frontend:
+               - 'supremeai/**'
+               - 'firebase.json'
+               - '.github/workflows/**'
             plugin:
               - 'supremeai-intellij-plugin/**'
               - '.github/workflows/**'
@@ -174,7 +173,7 @@ jobs:
         run: "echo 'Deploying to Google Cloud Run...'"
 
   flutter-build:
-    name: Flutter_Customer_Build
+    name: Flutter_Build
     needs: [changes, secret-scan]
     if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
@@ -202,31 +201,8 @@ jobs:
           name: supremeai-android-apk
           path: "supremeai/build/app/outputs/flutter-apk/app-release.apk"
 
-  flutter-admin-build:
-    name: Flutter_Admin_Build
-    needs: [changes, secret-scan]
-    if: needs.changes.outputs.frontend == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup_Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.27.0"
-          cache: true
-      - name: Build_Web
-        run: |
-          cd flutter_admin_app
-          flutter pub get
-          flutter build web --release
-      - name: Upload_Admin_Web
-        uses: actions/upload-artifact@v4
-        with:
-          name: admin-web-build
-          path: "flutter_admin_app/build/web"
-
   flutter-test:
-    name: Flutter_Customer_Test
+    name: Flutter_Test
     needs: flutter-build
     runs-on: ubuntu-latest
     steps:
@@ -239,23 +215,6 @@ jobs:
       - name: Run_Tests
         run: |
           cd supremeai
-          flutter pub get
-          flutter test
-
-  flutter-admin-test:
-    name: Flutter_Admin_Test
-    needs: flutter-admin-build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup_Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.27.0"
-          cache: true
-      - name: Run_Tests
-        run: |
-          cd flutter_admin_app
           flutter pub get
           flutter test
 
