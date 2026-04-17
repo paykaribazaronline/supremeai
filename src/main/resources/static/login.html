@@ -277,8 +277,17 @@
         const FIREBASE_AUTH_FLAG = 'supremeai_firebase_authenticated';
         const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
-        // Firebase config will be loaded from backend API endpoint
-        // This prevents hardcoding credentials in client-side code
+        // Prefer backend config, but keep a fallback so auth can still start
+        // if the config endpoint is unavailable in production.
+        const firebaseConfigFallback = {
+            apiKey: "AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8",
+            authDomain: "supremeai-a.firebaseapp.com",
+            databaseURL: "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "supremeai-a",
+            storageBucket: "supremeai-a.firebasestorage.app",
+            messagingSenderId: "565236080752",
+            appId: "1:565236080752:web:572bb9313db9afb355d4b5"
+        };
         let firebaseConfig = null;
 
         let firebaseAuth = null;
@@ -286,10 +295,15 @@
         async function initializeFirebase() {
             try {
                 // Load Firebase config from backend API (environment-based, not hardcoded)
-                const response = await fetch('/api/config/firebase');
-                if (!response.ok) throw new Error('Failed to load Firebase config');
+                const response = await fetch('/api/config/firebase', {
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (!response.ok) throw new Error(`Failed to load Firebase config (${response.status})`);
                 
                 firebaseConfig = await response.json();
+                if (!firebaseConfig || !firebaseConfig.apiKey) {
+                    throw new Error('Firebase config response was incomplete');
+                }
                 
                 // Initialize Firebase with config from backend
                 if (!firebase.apps.length) {
@@ -299,7 +313,15 @@
                 console.log('✅ Firebase initialized from backend config');
             } catch (err) {
                 console.error('❌ Firebase init failed:', err.message);
-                showError('Failed to initialize authentication service. Please refresh the page.');
+                try {
+                    firebaseConfig = firebaseConfigFallback;
+                    if (!firebase.apps.length) {
+                        firebase.initializeApp(firebaseConfig);
+                    }
+                    firebaseAuth = firebase.auth();
+                } catch (fallbackErr) {
+                    showError('Failed to initialize authentication service. Please refresh the page.');
+                }
             }
         }
 

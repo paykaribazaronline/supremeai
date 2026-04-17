@@ -2529,6 +2529,15 @@
 
     <script>
         let availableProviders = [];
+        const firebaseConfigFallback = {
+            apiKey: "AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8",
+            authDomain: "supremeai-a.firebaseapp.com",
+            databaseURL: "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "supremeai-a",
+            storageBucket: "supremeai-a.firebasestorage.app",
+            messagingSenderId: "565236080752",
+            appId: "1:565236080752:web:572bb9313db9afb355d4b5"
+        };
         let firebaseConfig = null;
         let firebaseAuth = null;
         let stompClient = null;
@@ -2536,10 +2545,15 @@
         async function initializeFirebase() {
             try {
                 // Load Firebase config from backend API
-                const response = await fetch('/api/config/firebase');
-                if (!response.ok) throw new Error('Failed to load Firebase config');
+                const response = await fetch('/api/config/firebase', {
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (!response.ok) throw new Error(`Failed to load Firebase config (${response.status})`);
 
                 firebaseConfig = await response.json();
+                if (!firebaseConfig || !firebaseConfig.apiKey) {
+                    throw new Error('Firebase config response was incomplete');
+                }
 
                 // Initialize Firebase
                 if (!firebase.apps.length) {
@@ -2550,7 +2564,16 @@
             return true;
         } catch (err) {
             console.error('❌ Firebase init failed:', err.message);
-            return false;
+            try {
+                firebaseConfig = firebaseConfigFallback;
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                firebaseAuth = firebase.auth();
+                return true;
+            } catch (fallbackErr) {
+                return false;
+            }
         }
 
         function connectWebSocket() {
