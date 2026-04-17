@@ -65,7 +65,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Secret_Scan
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@v3.80.1
         with:
           path: "./"
           extra_args: "--only-verified"
@@ -160,16 +160,7 @@ jobs:
       - name: Setup_GCloud
         uses: google-github-actions/setup-gcloud@v2
       - name: Deploy_Backend_To_Cloud_Run
-        run: |
-          gcloud run deploy supremeai \
-            --source . \
-            --platform managed \
-            --region us-central1 \
-            --allow-unauthenticated \
-            --memory 2Gi \
-            --cpu 2 \
-            --timeout 300 \
-            --set-env-vars=SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a,"JAVA_OPTS=-Xms256m -Xmx1024m -XX:+UseG1GC"
+        run: 'gcloud builds submit --config cloudbuild.yaml .'
       - name: Store_Admin_URL
         id: set-url
         run: echo "url=$(gcloud run services describe supremeai --platform managed --region us-central1 --format='value(status.url)')/admin.html" >> $GITHUB_OUTPUT

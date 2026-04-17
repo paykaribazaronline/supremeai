@@ -26,6 +26,7 @@ dist/
 # Gradle
 .gradle/
 gradle/wrapper/dists/
+!gradle/wrapper/gradle-wrapper.jar
 gradlew.bat.backup
 .gradle-home/
 
