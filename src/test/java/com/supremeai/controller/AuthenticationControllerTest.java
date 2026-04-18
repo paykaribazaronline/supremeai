@@ -58,7 +58,7 @@ public class AuthenticationControllerTest {
                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status").value("error"))
-                    .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("Invalid Firebase token")));
+                    .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("Auth failed")));
         }
     }
 

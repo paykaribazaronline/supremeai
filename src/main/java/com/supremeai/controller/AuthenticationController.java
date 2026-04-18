@@ -1,5 +1,7 @@
 package com.supremeai.controller;
 
+import com.supremeai.model.ActivityLog;
+import com.supremeai.repository.ActivityLogRepository;
 import com.supremeai.model.User;
 import com.supremeai.model.UserTier;
 import com.supremeai.repository.UserRepository;
@@ -23,6 +25,9 @@ public class AuthenticationController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ActivityLogRepository activityLogRepository;
 
     @PostMapping("/firebase-login")
     public Map<String, Object> firebaseLogin(@RequestBody Map<String, String> request, HttpServletRequest httpRequest) {
@@ -65,6 +70,16 @@ public class AuthenticationController {
             }
 
             userRepository.save(user);
+
+            // Log successful login
+            ActivityLog log = new ActivityLog(
+                user.getFirebaseUid(), 
+                "LOGIN_SUCCESS", 
+                "USER", 
+                "User '" + user.getDisplayName() + "' logged in successfully.", 
+                "LOW"
+            );
+            activityLogRepository.save(log);
             
             // ৪. স্প্রিং সিকিউরিটি সেশন তৈরি করা
             establishSession(user, httpRequest);
@@ -90,7 +105,23 @@ public class AuthenticationController {
     @PostMapping("/logout")
     public Map<String, Object> logout(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
-        if (session != null) session.invalidate();
+        if (session != null) {
+            SecurityContext context = (SecurityContext) session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
+            if (context != null && context.getAuthentication() != null) {
+                String uid = context.getAuthentication().getName();
+                userRepository.findByFirebaseUid(uid).ifPresent(user -> {
+                    ActivityLog log = new ActivityLog(
+                        uid, 
+                        "LOGOUT_SUCCESS", 
+                        "USER", 
+                        "User '" + user.getDisplayName() + "' logged out.", 
+                        "LOW"
+                    );
+                    activityLogRepository.save(log);
+                });
+            }
+            session.invalidate();
+        }
         SecurityContextHolder.clearContext();
         return Map.of("status", "success");
     }

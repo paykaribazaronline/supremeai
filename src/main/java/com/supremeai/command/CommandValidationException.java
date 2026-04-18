@@ -1,4 +1,4 @@
-package org.example.command;
+package com.supremeai.command;
 
 /**
  * Custom exception for command validation errors

@@ -1,4 +1,4 @@
-package org.example.command;
+package com.supremeai.command;
 
 /**
  * Command execution context

@@ -60,7 +60,7 @@ CommandHub is a comprehensive command orchestration platform for SupremeAI. It p
 
 ## Core Components
 
-### 1. Command Framework (`command-hub/core/`)
+### 1. Command Framework (`src/main/java/com/supremeai/command`)
 
 The foundation for all commands:
 
@@ -89,7 +89,7 @@ CommandResult result = executor.execute(       // Execute with validation
 );
 ```
 
-### 2. MonitoringCommands (`command-hub/core/MonitoringCommands.java`)
+### 2. MonitoringCommands (`src/main/java/com/supremeai/command/MonitoringCommands.java`)
 
 System health and metrics:
 
@@ -123,7 +123,7 @@ supcmd exec quota-status
 supcmd exec metrics
 ```
 
-### 3. DataRefreshCommands (`command-hub/core/DataRefreshCommands.java`)
+### 3. DataRefreshCommands (`src/main/java/com/supremeai/command/DataRefreshCommands.java`)
 
 Data collection and synchronization:
 
@@ -398,14 +398,24 @@ supcmd --url http://prod-api.example.com:8080 exec health-check
 **1. Create beans in configuration:**
 
 ```java
+package com.supremeai.config;
+
+import com.supremeai.command.CommandExecutor;
+import com.supremeai.command.MonitoringCommands;
+import com.supremeai.service.HybridDataCollector;
+import com.supremeai.service.BudgetManager;
+import com.supremeai.service.QuotaTracker;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 @Configuration
 public class CommandHubConfig {
-    
+
     @Bean
     public CommandExecutor commandExecutor(
             HybridDataCollector dataCollector,
             BudgetManager budgetManager,
-            DataCollectorService collectorService) {
+            QuotaTracker quotaTracker) {
         
         CommandExecutor executor = new CommandExecutor();
         
@@ -416,13 +426,6 @@ public class CommandHubConfig {
         executor.register(monitoring.getHealthCheckCommand());
         executor.register(monitoring.getQuotaStatusCommand());
         executor.register(monitoring.getMetricsCommand());
-        
-        // Register data refresh commands
-        DataRefreshCommands refresh = new DataRefreshCommands(collectorService);
-        executor.register(refresh.getRefreshGitHubCommand());
-        executor.register(refresh.getRefreshVercelCommand());
-        executor.register(refresh.getRefreshFirebaseCommand());
-        executor.register(refresh.getRefreshAllCommand());
         
         return executor;
     }
@@ -575,28 +578,24 @@ curl http://localhost:8080/api/commands/health
 ## File Structure
 
 ```
-command-hub/
-├── README.md                           (This file)
-├── core/
-│   ├── Command.java                    (Interface)
-│   ├── CommandResult.java              (Response wrapper)
-│   ├── CommandContext.java             (User/auth context)
-│   ├── CommandEnums.java               (Category, Type)
-│   ├── CommandSchema.java              (Parameter validation)
-│   ├── CommandValidationException.java (Custom exception)
-│   ├── CommandExecutor.java            (Registry + dispatcher)
-│   ├── MonitoringCommands.java         (Health, quota, metrics)
-│   └── DataRefreshCommands.java        (GitHub, Vercel, Firebase)
-├── rest/
-│   └── CommandController.java          (Spring REST endpoints)
-├── cli/
-│   └── supcmd.py                       (Python CLI tool)
-├── dashboard/                          (React/Vue app - pending)
-│   └── README.md
-└── docs/
-    ├── API.md                          (REST API documentation)
-    ├── CLI.md                          (CLI usage guide)
-    └── ARCHITECTURE.md                 (Detailed architecture)
+src/main/java/com/supremeai/
+├── command/
+│   ├── Command.java
+│   ├── CommandCategory.java
+│   ├── CommandContext.java
+│   ├── CommandExecutor.java
+│   ├── CommandResult.java
+│   ├── CommandSchema.java
+│   ├── CommandType.java
+│   ├── CommandValidationException.java
+│   ├── AISwitchCommand.java
+│   ├── MonitoringCommands.java
+│   └── DataRefreshCommands.java
+├── provider/
+│   ├── AIProvider.java
+│   ├── AIProviderFactory.java
+│   └── GroqProvider.java
+└── ...
 ```
 
 ## Next Steps

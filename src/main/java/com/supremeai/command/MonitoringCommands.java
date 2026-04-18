@@ -1,7 +1,6 @@
-package org.example.command.impl;
+package com.supremeai.command;
 
-import org.example.command.*;
-import org.example.service.*;
+import com.supremeai.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

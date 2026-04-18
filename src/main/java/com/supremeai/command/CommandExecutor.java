@@ -1,4 +1,4 @@
-package org.example.command;
+package com.supremeai.command;
 
 import java.util.*;
 import org.slf4j.Logger;
