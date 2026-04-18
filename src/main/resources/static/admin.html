@@ -7,7 +7,72 @@
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('resourceChart').getContext('2d');
+        const resourceChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'CPU (%)',
+                    borderColor: '#4fd1c5',
+                    data: [],
+                    fill: false,
+                    tension: 0.4
+                }, {
+                    label: 'Memory (MB)',
+                    borderColor: '#f6ad55',
+                    data: [],
+                    fill: false,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { ticks: { color: '#a0aec0' } },
+                    y: { ticks: { color: '#a0aec0' } }
+                },
+                plugins: {
+                    legend: { labels: { color: '#e2e8f0' } }
+                }
+            }
+        });
+
+        const socket = new SockJS('/ws');
+        const stompClient = Stomp.over(socket);
+        stompClient.debug = null; // Disable debug logs
+
+        stompClient.connect({}, function (frame) {
+            console.log('Connected: ' + frame);
+            stompClient.subscribe('/topic/metrics', function (message) {
+                const data = JSON.parse(message.body);
+                updateDashboard(data);
+            });
+        });
+
+        function updateDashboard(data) {
+            // Update Text Values
+            document.getElementById('metCpu').innerText = data.cpuLoad.toFixed(2) + '%';
+            document.getElementById('metMem').innerText = data.memoryUsed + ' MB';
+
+            // Update Chart
+            const time = new Date().toLocaleTimeString();
+            if (resourceChart.data.labels.length > 20) {
+                resourceChart.data.labels.shift();
+                resourceChart.data.datasets[0].data.shift();
+                resourceChart.data.datasets[1].data.shift();
+            }
+            resourceChart.data.labels.push(time);
+            resourceChart.data.datasets[0].data.push(data.cpuLoad);
+            resourceChart.data.datasets[1].data.push(data.memoryUsed);
+            resourceChart.update('none');
+        }
+    </script>
     <style>
         * {
             margin: 0;
@@ -796,24 +861,17 @@
                     <h1>💻 Admin Command Console</h1>
                     <p>Execute system-level commands wired to live backend APIs.</p>
                     
-                    <div class="console" id="commandConsole">
-                        <div class="console-output" id="consoleOutput">SupremeAI OS v1.0.0 — type <strong>help</strong> for available commands.</div>
-                        <div class="console-input-line">
-                            <span class="console-prompt">admin@supremeai:~$</span>
-                            <input type="text" class="console-input" id="consoleInput" autocomplete="off">
-                        </div>
+                    <div class="form-group">
+                        <label for="commandSelect">Select Command</label>
+                        <select id="commandSelect" onchange="showCommandParameters()"></select>
                     </div>
 
-                    <h2>Quick Commands</h2>
-                    <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap:wrap;">
-                        <button class="btn btn-secondary" onclick="runCommand('status')">System Status</button>
-                        <button class="btn btn-secondary" onclick="runCommand('git-status')">Git Status</button>
-                        <button class="btn btn-secondary" onclick="runCommand('quota')">Quota Summary</button>
-                        <button class="btn btn-secondary" onclick="runCommand('agents')">Work History</button>
-                        <button class="btn btn-secondary" onclick="runCommand('metrics')">Metrics</button>
-                        <button class="btn btn-secondary" onclick="runCommand('clear')">Clear</button>
-                        <button class="btn btn-danger" onclick="runCommand('emergency-stop')">Emergency Stop</button>
-                    </div>
+                    <div id="commandParameters"></div>
+
+                    <button class="btn" onclick="executeSelectedCommand()">Execute Command</button>
+
+                    <h2>Result</h2>
+                    <pre id="commandResult" style="background: #000; color: #0f0; padding: 15px; border-radius: 5px; min-height: 100px;"></pre>
                 </div>
 
                 <!-- Browser Automation Section -->
@@ -1262,6 +1320,11 @@
                         <div class="stat-card"><div class="stat-label">Success Rate</div><div class="stat-value" id="metSuccess">--</div></div>
                         <div class="stat-card"><div class="stat-label">Error Rate</div><div class="stat-value" id="metError">--</div></div>
                         <div class="stat-card"><div class="stat-label">Uptime (s)</div><div class="stat-value" id="metUptime">--</div></div>
+                    </div>
+
+                    <h2 style="margin-top:28px;">💻 Real-time System Resources</h2>
+                    <div style="background:#1a202c;border:1px solid #2d3748;border-radius:10px;padding:20px;margin-bottom:20px;height:350px;">
+                        <canvas id="resourceChart"></canvas>
                     </div>
                     <div id="metricsMsg" style="margin-top:16px;"></div>
 
@@ -2763,6 +2826,7 @@
             if (sectionId === 'airllm-config') { loadAirllmConfig(); }
             if (sectionId === 'activity-summary') loadActivitySummary();
             if (sectionId === 'browser-automation') refreshBrowserWorkspace();
+            if (sectionId === 'commands') loadCommands();
         }
 
         function showModal(modalId) {
@@ -2935,7 +2999,86 @@
             }
         }
 
-        // --- Commands Logic (wired in COMMANDS CONSOLE section above) ---
+        // --- Commands Section Logic ---
+        async function loadCommands() {
+            const select = document.getElementById('commandSelect');
+            select.innerHTML = '<option>Loading...</option>';
+            try {
+                const response = await fetch('/api/commands/list', { headers: getAuthHeaders() });
+                const data = await response.json();
+                select.innerHTML = '<option value="">-- Select a command --</option>';
+                data.commands.forEach(cmd => {
+                    const option = document.createElement('option');
+                    option.value = cmd.name;
+                    option.textContent = `${cmd.name} - ${cmd.description}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                select.innerHTML = `<option>Error: ${error.message}</option>`;
+            }
+        }
+
+        async function showCommandParameters() {
+            const commandName = document.getElementById('commandSelect').value;
+            const paramsContainer = document.getElementById('commandParameters');
+            paramsContainer.innerHTML = '';
+            if (!commandName) return;
+
+            try {
+                const response = await fetch(`/api/commands/${commandName}`, { headers: getAuthHeaders() });
+                const data = await response.json();
+                if (data.parameters) {
+                    data.parameters.forEach(param => {
+                        const div = document.createElement('div');
+                        div.className = 'form-group';
+                        div.innerHTML = `
+                            <label for="param-${param.name}">${param.name} (${param.type})</label>
+                            <input type="text" id="param-${param.name}" data-param-name="${param.name}">
+                        `;
+                        paramsContainer.appendChild(div);
+                    });
+                }
+            } catch (error) {
+                paramsContainer.innerHTML = `<p style="color:red;">Error loading parameters: ${error.message}</p>`;
+            }
+        }
+
+        async function executeSelectedCommand() {
+            const commandName = document.getElementById('commandSelect').value;
+            const resultContainer = document.getElementById('commandResult');
+            if (!commandName) {
+                resultContainer.textContent = 'Please select a command.';
+                return;
+            }
+
+            const params = {};
+            document.querySelectorAll('#commandParameters input').forEach(input => {
+                const paramName = input.getAttribute('data-param-name');
+                // Basic type inference, can be improved
+                let value = input.value;
+                if (!isNaN(value) && value.trim() !== '') {
+                    value = Number(value);
+                } else if (value.toLowerCase() === 'true') {
+                    value = true;
+                } else if (value.toLowerCase() === 'false') {
+                    value = false;
+                }
+                params[paramName] = value;
+            });
+
+            resultContainer.textContent = 'Executing...';
+            try {
+                const response = await fetch('/api/commands/execute', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ name: commandName, parameters: params })
+                });
+                const result = await response.json();
+                resultContainer.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                resultContainer.textContent = `Error: ${error.message}`;
+            }
+        }
 
         function getAuthHeaders() {
             const headers = {

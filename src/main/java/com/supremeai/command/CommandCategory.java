@@ -1,14 +1,8 @@
-package org.example.command;
+package com.supremeai.command;
 
 /**
- * Command classification enums
+ * Command category enum
  */
-
-public enum CommandType {
-    SYNC,   // Execute and return immediately
-    ASYNC   // Queue for background execution
-}
-
 public enum CommandCategory {
     MONITORING,      // Health checks, metrics
     DATA_REFRESH,    // Fetch from external sources
