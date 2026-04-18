@@ -150,7 +150,7 @@ jobs:
   java-build-and-test:
     name: Java_Build_And_Test
     needs: [changes, secret-scan]
-    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.workflow_backend == 'true'
+    if: github.event_name == 'push' || (needs.changes.outputs.backend == 'true' || needs.changes.outputs.workflow_backend == 'true')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
