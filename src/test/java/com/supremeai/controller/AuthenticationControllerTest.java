@@ -37,6 +37,9 @@ public class AuthenticationControllerTest {
     private UserRepository userRepository;
 
     @MockBean
+    private com.supremeai.repository.ActivityLogRepository activityLogRepository;
+
+    @MockBean
     private FirebaseAuth firebaseAuth;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
