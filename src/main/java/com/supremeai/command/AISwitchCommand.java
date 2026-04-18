@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 public class AISwitchCommand implements Command {
+    // This command allows for dynamic switching of AI providers.
 
     @Override
     public String getName() {
