@@ -1,4 +1,4 @@
-﻿package com.supremeai.command;
+package com.supremeai.command;
 
 import java.util.Map;
 import java.util.HashMap;

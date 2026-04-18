@@ -73,11 +73,13 @@ public class AuthenticationController {
 
             // Log successful login
             ActivityLog log = new ActivityLog(
-                user.getFirebaseUid(), 
-                "LOGIN_SUCCESS", 
-                "USER", 
-                "User '" + user.getDisplayName() + "' logged in successfully.", 
-                "LOW"
+                "LOGIN_SUCCESS",
+                user.getFirebaseUid(),
+                "USER",
+                "LOW",
+                "User '" + user.getDisplayName() + "' logged in successfully.",
+                "SUCCESS",
+                httpRequest.getRemoteAddr()
             );
             activityLogRepository.save(log);
             
@@ -111,11 +113,13 @@ public class AuthenticationController {
                 String uid = context.getAuthentication().getName();
                 userRepository.findByFirebaseUid(uid).ifPresent(user -> {
                     ActivityLog log = new ActivityLog(
-                        uid, 
-                        "LOGOUT_SUCCESS", 
-                        "USER", 
-                        "User '" + user.getDisplayName() + "' logged out.", 
-                        "LOW"
+                        "LOGOUT_SUCCESS",
+                        uid,
+                        "USER",
+                        "LOW",
+                        "User '" + user.getDisplayName() + "' logged out.",
+                        "SUCCESS",
+                        request.getRemoteAddr()
                     );
                     activityLogRepository.save(log);
                 });
