@@ -10,6 +10,8 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  # Cache keys for better cache hits
+  GRADLE_CACHE_KEY: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/build.gradle.kts') }}
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
@@ -32,18 +34,33 @@ jobs:
               - 'Dockerfile'
               - 'build.gradle*'
 
-  build:
-    name: Build
+  java-build-and-test:
+    name: Java_Build_And_Test
     needs: [changes]
     runs-on: ubuntu-latest
     if: needs.changes.outputs.backend == 'true'
     steps:
       - uses: actions/checkout@v6
-      - name: Setup Java
+      - name: Setup_Java_Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ env.GRADLE_CACHE_KEY }}
+          restore-keys: |
+            ${{ env.GRADLE_CACHE_KEY }}
+      - name: Setup_Java
         uses: actions/setup-java@v5
         with:
           java-version: "21"
           distribution: "temurin"
-      - name: Echo Hello
-        run: echo "Hello from build job"
+          cache: "gradle"
+      - name: Build_And_Test
+        run: "./gradlew build -x jacocoTestCoverageVerification"
+      - name: Upload_JAR
+        uses: actions/upload-artifact@v6
+        with:
+          name: java-backend-jar
+          path: "build/libs/*.jar"
 ...
