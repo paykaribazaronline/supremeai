@@ -2,6 +2,8 @@ package com.supremeai.selfhealing;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.Callable;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class SelfHealingServiceTest {
@@ -11,12 +13,10 @@ class SelfHealingServiceTest {
     @Test
     void testExecuteWithRetry_SuccessOnFirstTry() throws Exception {
         // Given
-        var task = java.util.concurrent.Callable<String>.class
-            .getConstructor(() -> "success")
-            .newInstance();
+        Callable<String> task = () -> "success";
 
         // When
-        String result = service.executeWithRetry(() -> "success", 3, 10);
+        String result = service.executeWithRetry(task, 3, 10);
 
         // Then
         assertEquals("success", result);
