@@ -235,7 +235,25 @@ jobs:
         run: |
           BUILD_ID=$(gcloud builds submit --config cloudbuild.yaml --async --format='value(id)')
           echo "build_id=$BUILD_ID" >> $GITHUB_OUTPUT
-          gcloud builds wait $BUILD_ID --timeout=1200s
+      - name: Wait_For_Build
+        run: |
+          BUILD_ID="${{ steps.build.outputs.build_id }}"
+          for i in {1..120}; do
+            STATUS=$(gcloud builds describe $BUILD_ID --format='value(status)' 2>/dev/null || echo "UNKNOWN")
+            if [ "$STATUS" = "SUCCESS" ]; then
+              echo "Build completed successfully"
+              exit 0
+            elif [ "$STATUS" = "FAILURE" ] || [ "$STATUS" = "INTERNAL_ERROR" ]; then
+              echo "Build failed with status: $STATUS"
+              gcloud builds log $BUILD_ID --project=supremeai-a --limit=100 || echo "Could not fetch build logs"
+              exit 1
+            fi
+            echo "Build status: $STATUS. Waiting... ($i/120)"
+            sleep 10
+          done
+          echo "Timeout waiting for build"
+          gcloud builds log $BUILD_ID --project=supremeai-a --limit=100 || echo "Could not fetch build logs"
+          exit 1
       - name: Store_Admin_URL
         id: set-url
         run: |
@@ -245,7 +263,7 @@ jobs:
         if: failure()
         run: |
           echo "Fetching latest Cloud Build logs..."
-          BUILD_ID=${{ steps.build.outputs.build_id }}
+          BUILD_ID="${{ steps.build.outputs.build_id }}"
           gcloud builds log $BUILD_ID --project=supremeai-a --limit=100 || echo "Could not fetch build logs"
 
   deploy-frontend:
