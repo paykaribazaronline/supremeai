@@ -9,8 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
+import reactor.core.publisher.Mono;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -37,7 +36,7 @@ public class QuotaServiceTest {
 
     @Test
     void testHasQuotaRemaining_Success() {
-        when(userApiRepository.findByApiKey(API_KEY)).thenReturn(Optional.of(testApi));
+        when(userApiRepository.findByApiKey(API_KEY)).thenReturn(Mono.just(testApi));
 
         boolean hasQuota = quotaService.hasQuotaRemaining(API_KEY);
 
@@ -48,7 +47,7 @@ public class QuotaServiceTest {
     @Test
     void testHasQuotaRemaining_Exceeded() {
         testApi.setCurrentUsage(100L); // Limit reached
-        when(userApiRepository.findByApiKey(API_KEY)).thenReturn(Optional.of(testApi));
+        when(userApiRepository.findByApiKey(API_KEY)).thenReturn(Mono.just(testApi));
 
         boolean hasQuota = quotaService.hasQuotaRemaining(API_KEY);
 
@@ -58,7 +57,7 @@ public class QuotaServiceTest {
     @Test
     void testHasQuotaRemaining_InactiveApi() {
         testApi.setIsActive(false);
-        when(userApiRepository.findByApiKey(API_KEY)).thenReturn(Optional.of(testApi));
+        when(userApiRepository.findByApiKey(API_KEY)).thenReturn(Mono.just(testApi));
 
         boolean hasQuota = quotaService.hasQuotaRemaining(API_KEY);
 
@@ -67,7 +66,8 @@ public class QuotaServiceTest {
 
     @Test
     void testIncrementUsage_Success() {
-        when(userApiRepository.findByApiKey(API_KEY)).thenReturn(Optional.of(testApi));
+        when(userApiRepository.findByApiKey(API_KEY)).thenReturn(Mono.just(testApi));
+        when(userApiRepository.save(testApi)).thenReturn(Mono.just(testApi));
 
         boolean result = quotaService.incrementUsage(API_KEY);
 
@@ -79,7 +79,7 @@ public class QuotaServiceTest {
     @Test
     void testIncrementUsage_Fail_WhenNoQuota() {
         testApi.setCurrentUsage(100L);
-        when(userApiRepository.findByApiKey(API_KEY)).thenReturn(Optional.of(testApi));
+        when(userApiRepository.findByApiKey(API_KEY)).thenReturn(Mono.just(testApi));
 
         boolean result = quotaService.incrementUsage(API_KEY);
 
@@ -90,7 +90,7 @@ public class QuotaServiceTest {
 
     @Test
     void testGetUsageStats_ValidKey() {
-        when(userApiRepository.findByApiKey(API_KEY)).thenReturn(Optional.of(testApi));
+        when(userApiRepository.findByApiKey(API_KEY)).thenReturn(Mono.just(testApi));
 
         QuotaService.ApiUsageStats stats = quotaService.getUsageStats(API_KEY);
 
@@ -102,7 +102,7 @@ public class QuotaServiceTest {
 
     @Test
     void testGetUsageStats_InvalidKey() {
-        when(userApiRepository.findByApiKey(anyString())).thenReturn(Optional.empty());
+        when(userApiRepository.findByApiKey(anyString())).thenReturn(Mono.empty());
 
         QuotaService.ApiUsageStats stats = quotaService.getUsageStats("invalid-key");
 

@@ -14,10 +14,9 @@ public class ActivityLog {
     private String user;
     private String category;
     private String severity; // info, warning, critical
-    
-    @Column(length = 1000)
+     
     private String details;
-    
+     
     private LocalDateTime timestamp;
     private String ip;
     private String outcome; // success, failure, pending
