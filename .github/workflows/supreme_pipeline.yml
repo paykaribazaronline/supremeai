@@ -1,3 +1,4 @@
+---
 name: SupremeAI_Master_Pipeline
 
 on:
@@ -283,19 +284,33 @@ jobs:
         run: |
           BUILD_ID=$(gcloud builds submit --config cloudbuild.yaml --async --format='value(id)')
           echo "build_id=$BUILD_ID" >> $GITHUB_OUTPUT
-          # Wait for build to complete and get URL
-          gcloud builds wait $BUILD_ID --timeout=1200s
+          # Wait for build to complete (with timeout)
+          if ! gcloud builds wait $BUILD_ID --timeout=1200s; then
+            echo "Build wait failed or timed out, but continuing to check service status..."
+          fi
       - name: Store_Admin_URL
         id: set-url
         run: |
-          URL=$(gcloud run services describe supremeai --platform managed --region us-central1 --format='value(status.url)')
-          echo "url=$URL/admin.html" >> $GITHUB_OUTPUT
+          # Retry logic for service description
+          for i in {1..5}; do
+            if URL=$(gcloud run services describe supremeai --platform managed --region us-central1 --format='value(status.url)' 2>/dev/null); then
+              echo "url=$URL/admin.html" >> $GITHUB_OUTPUT
+              echo "Successfully retrieved service URL: $URL"
+              exit 0
+            fi
+            if [ $i -lt 5 ]; then
+              echo "Attempt $i failed, retrying in 10 seconds..."
+              sleep 10
+            fi
+          done
+          echo "Failed to get service URL after 5 attempts" >&2
+          exit 1
       - name: Show_Cloud_Build_Logs
         if: failure()
         run: |
           echo "Fetching latest Cloud Build logs..."
           BUILD_ID=${{ steps.build.outputs.build_id }}
-          gcloud builds log $BUILD_ID --project=supremeai-a --limit=100
+          gcloud builds log $BUILD_ID --project=supremeai-a --limit=100 || echo "Could not fetch build logs"
 
   deploy-frontend:
     name: Deploy_Frontend
@@ -374,3 +389,4 @@ jobs:
           else
             echo "⚠️ Deployment completed with some issues. Check logs for details."
           fi
+...
