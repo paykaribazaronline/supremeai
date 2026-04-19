@@ -2,6 +2,7 @@ package com.supremeai.controller;
 
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/ai-agents")
@@ -11,9 +12,9 @@ public class AIAgentsController {
 
     public AIAgentsController() {
         // Mock data for initial implementation
-        agents.add(createAgent(1L, "Sentinel-1", "Security Monitor", "ACTIVE"));
-        agents.add(createAgent(2L, "Infiltrator-Alpha", "Exploitation Specialist", "IDLE"));
-        agents.add(createAgent(3L, "Guardian-X", "Defense Coordinator", "ACTIVE"));
+        agents.add(createAgent("agent-1", "Sentinel-1", "Security Monitor", "ACTIVE"));
+        agents.add(createAgent("agent-2", "Infiltrator-Alpha", "Exploitation Specialist", "IDLE"));
+        agents.add(createAgent("agent-3", "Guardian-X", "Defense Coordinator", "ACTIVE"));
     }
 
     @GetMapping
@@ -32,14 +33,14 @@ public class AIAgentsController {
 
     @PostMapping
     public Map<String, Object> createAgent(@RequestBody Map<String, Object> agent) {
-        agent.put("id", (long) (agents.size() + 1));
+        agent.put("id", UUID.randomUUID().toString());
         agent.put("status", "IDLE");
         agents.add(agent);
         return agent;
     }
 
     @PutMapping("/{id}/status")
-    public Map<String, Object> updateAgentStatus(@PathVariable Long id, @RequestParam String status) {
+    public Map<String, Object> updateAgentStatus(@PathVariable String id, @RequestParam String status) {
         for (Map<String, Object> agent : agents) {
             if (agent.get("id").equals(id)) {
                 agent.put("status", status);
@@ -50,11 +51,11 @@ public class AIAgentsController {
     }
 
     @DeleteMapping("/{id}")
-    public void removeAgent(@PathVariable Long id) {
+    public void removeAgent(@PathVariable String id) {
         agents.removeIf(a -> a.get("id").equals(id));
     }
 
-    private Map<String, Object> createAgent(Long id, String name, String type, String status) {
+    private Map<String, Object> createAgent(String id, String name, String type, String status) {
         Map<String, Object> agent = new HashMap<>();
         agent.put("id", id);
         agent.put("name", name);

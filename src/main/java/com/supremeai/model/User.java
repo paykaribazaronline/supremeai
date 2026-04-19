@@ -10,26 +10,18 @@ public class User {
     @DocumentId
     private String firebaseUid;
 
-    @Column(nullable = false)
     private String email;
 
-    @Column
     private String displayName;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private UserTier tier = UserTier.FREE;
 
-    @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    @Column
     private LocalDateTime lastLoginAt;
 
-    @Column(nullable = false)
     private Boolean isActive = true;
 
     // Constructors

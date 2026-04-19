@@ -10,38 +10,26 @@ public class UserApi {
     @DocumentId
     private String id;
 
-    @Column(nullable = false)
     private String userId;
 
-    @Column(nullable = false)
     private String apiName;
 
-    @Column(nullable = false)
     private String apiKey;
 
-    @Column(nullable = false)
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private UserTier userTier;
 
-    @Column(nullable = false)
     private Long monthlyQuota;
 
-    @Column(nullable = false)
     private Long currentUsage = 0L;
 
-    @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    @Column
     private LocalDateTime lastUsedAt;
 
-    @Column(nullable = false)
     private Boolean isActive = true;
 
     // Constructors

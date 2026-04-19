@@ -19,7 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
+import reactor.core.publisher.Mono;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -78,7 +78,9 @@ public class AuthenticationControllerTest {
         // Mocking User in database
         User existingUser = new User("test-uid", "test@example.com", "Test User");
         existingUser.setTier(UserTier.FREE);
-        when(userRepository.findByFirebaseUid("test-uid")).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByFirebaseUid("test-uid")).thenReturn(Mono.just(existingUser));
+        when(userRepository.save(any(User.class))).thenReturn(Mono.just(existingUser));
+        when(activityLogRepository.save(any())).thenReturn(Mono.empty());
 
         try (MockedStatic<FirebaseAuth> mockedAuth = mockStatic(FirebaseAuth.class)) {
             mockedAuth.when(FirebaseAuth::getInstance).thenReturn(firebaseAuth);
