@@ -264,7 +264,7 @@ jobs:
         run: |
           echo "Fetching latest Cloud Build logs..."
           BUILD_ID="${{ steps.build.outputs.build_id }}"
-          gcloud builds log $BUILD_ID --project=supremeai-a --limit=100 || echo "Could not fetch build logs"
+          gcloud builds log $BUILD_ID --project=supremeai-a || echo "Could not fetch build logs"
 
   deploy-frontend:
     name: Deploy_Frontend
