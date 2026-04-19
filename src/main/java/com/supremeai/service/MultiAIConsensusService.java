@@ -5,6 +5,7 @@ import com.supremeai.model.ConsensusResult;
 import com.supremeai.model.ProviderVote;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
+import com.supremeai.selfhealing.SelfHealingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -26,6 +27,9 @@ public class MultiAIConsensusService {
     @Autowired
     private AIProviderFactory providerFactory;
 
+    @Autowired
+    private SelfHealingService selfHealingService;
+
     // In-memory history for taste phase (no Firebase)
     private final List<ConsensusVote> history = new CopyOnWriteArrayList<>();
 
@@ -35,19 +39,25 @@ public class MultiAIConsensusService {
     private static final org.slf4j.Logger logger =
         org.slf4j.LoggerFactory.getLogger(MultiAIConsensusService.class);
 
+    private static final int MAX_RETRIES = 2;
+    private static final long RETRY_BACKOFF_MS = 250L;
+
     /**
      * Query multiple AI providers and return consensus result
      */
     public ConsensusResult askAllAIs(String question, List<String> providerNames, long timeoutMs) {
         List<ProviderVote> votes = new CopyOnWriteArrayList<>();
-        
-        // Query all providers in parallel
+
+        // Query all providers in parallel with retry via SelfHealingService
         List<Future<?>> futures = providerNames.stream()
             .map(providerName -> executor.submit(() -> {
                 try {
                     AIProvider provider = providerFactory.getProvider(providerName);
-                    String response = provider.generate(question);
-                    
+                    String response = selfHealingService.executeWithRetry(
+                        () -> provider.generate(question),
+                        MAX_RETRIES,
+                        RETRY_BACKOFF_MS
+                    );
                     votes.add(new ProviderVote(
                         providerName,
                         response,
@@ -55,7 +65,7 @@ public class MultiAIConsensusService {
                         System.currentTimeMillis()
                     ));
                 } catch (Exception e) {
-                    logger.warn("Provider {} failed: {}", providerName, e.getMessage());
+                    logger.warn("Provider {} failed after retries: {}", providerName, e.getMessage());
                 }
             }))
             .collect(Collectors.toList());
