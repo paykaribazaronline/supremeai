@@ -7,11 +7,80 @@
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const ctx = document.getElementById('resourceChart').getContext('2d');
+        // Firebase Auth Configuration
+        const STORAGE_KEY = 'supremeai_remembered_username';
+        const STORAGE_EXPIRY_KEY = 'supremeai_remembered_expiry';
+        const STORAGE_PERSISTENCE_KEY = 'supremeai_firebase_persistence_enabled';
+        const FIREBASE_AUTH_FLAG = 'supremeai_firebase_authenticated';
+
+        const firebaseConfigFallback = {
+            apiKey: "AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8",
+            authDomain: "supremeai-a.firebaseapp.com",
+            databaseURL: "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "supremeai-a",
+            storageBucket: "supremeai-a.firebasestorage.app",
+            messagingSenderId: "565236080752",
+            appId: "1:565236080752:web:572bb9313db9afb355d4b5"
+        };
+
+        let firebaseAuth = null;
+        let authenticated = false;
+
+        async function initializeFirebase() {
+            try {
+                const response = await fetch('/api/config/firebase', {
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (response.ok) {
+                    const firebaseConfig = await response.json();
+                    if (firebaseConfig && firebaseConfig.apiKey) {
+                        if (!firebase.apps.length) {
+                            firebase.initializeApp(firebaseConfig);
+                        }
+                        firebaseAuth = firebase.auth();
+                        return;
+                    }
+                }
+                throw new Error("Using fallback config");
+            } catch (err) {
+                try {
+                    if (!firebase.apps.length) {
+                        firebase.initializeApp(firebaseConfigFallback);
+                    }
+                    firebaseAuth = firebase.auth();
+                } catch (fallbackErr) {
+                    window.location.href = '/login.html?redirect=%2Fadmin.html';
+                }
+            }
+        }
+
+        async function checkAuth() {
+            await initializeFirebase();
+            
+            if (!firebaseAuth) {
+                window.location.href = '/login.html?redirect=%2Fadmin.html';
+                return;
+            }
+
+            firebaseAuth.onAuthStateChanged((user) => {
+                if (!user) {
+                    localStorage.removeItem(FIREBASE_AUTH_FLAG);
+                    localStorage.removeItem('supremeai_user');
+                    window.location.href = '/login.html?redirect=%2Fadmin.html';
+                } else {
+                    authenticated = true;
+                    localStorage.setItem(FIREBASE_AUTH_FLAG, 'true');
+                    initializeDashboard();
+                }
+            });
+        }
+
+        function initializeDashboard() {
+            // All existing dashboard code runs only after successful auth
+            const ctx = document.getElementById('resourceChart').getContext('2d');
         const resourceChart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -72,6 +141,9 @@
             resourceChart.data.datasets[1].data.push(data.memoryUsed);
             resourceChart.update('none');
         }
+
+        // Start authentication check when page loads
+        window.addEventListener('DOMContentLoaded', checkAuth);
     </script>
     <style>
         * {
