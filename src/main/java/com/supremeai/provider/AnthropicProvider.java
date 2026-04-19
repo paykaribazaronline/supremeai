@@ -59,7 +59,7 @@ public class AnthropicProvider implements AIProvider {
                     throw new IOException("Unexpected code " + response + " - " + response.body().string());
                 }
 
-                Map<String, Object> responseMap = objectMapper.readValue(response.body().string(), Map.class);
+                Map<String, Object> responseMap = objectMapper.readValue(response.body().string(), new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
                 List<Map<String, Object>> content = (List<Map<String, Object>>) responseMap.get("content");
                 if (content != null && !content.isEmpty()) {
                     return (String) content.get(0).get("text");

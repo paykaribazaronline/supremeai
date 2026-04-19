@@ -11,12 +11,13 @@ group = "com.supremeai"
 version = "6.0.0"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 repositories {
     google()
+    mavenCentral()
     maven {
         name = "GoogleMavenCentralMirror"
         url = uri("https://maven-central.storage-download.googleapis.com/maven2/")
@@ -25,7 +26,13 @@ repositories {
         name = "MavenCentralMirror"
         url = uri("https://repo1.maven.org/maven2/")
     }
-    mavenCentral()
+}
+
+dependencyManagement {
+    imports {
+        // Spring Cloud GCP BOM for version alignment
+        mavenBom("com.google.cloud:spring-cloud-gcp-dependencies:5.1.2")
+    }
 }
 
 dependencies {
@@ -75,8 +82,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 
     // Spring Cloud GCP - Firestore
-    implementation("com.google.cloud:spring-cloud-gcp-starter:3.8.3")
-    implementation("com.google.cloud:spring-cloud-gcp-starter-firestore:3.8.3")
+    implementation("com.google.cloud:spring-cloud-gcp-starter-data-firestore")
     
     // Spring Data
     implementation("org.springframework.data:spring-data-commons:3.2.2")
