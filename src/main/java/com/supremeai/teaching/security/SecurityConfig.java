@@ -24,7 +24,7 @@ public class SecurityConfig {
                 .requestMatchers("/", "/index.html", "/customer.html", "/login.html", "/static/**", "/css/**", "/js/**", "/images/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/config/**").permitAll()
-                .requestMatchers("/api/status/**").permitAll()
+                .requestMatchers("/api/status", "/api/status/**").permitAll()
                 
                 // ৩. ডিফল্টভাবে বাকি সবকিছু অথেনটিকেটেড হতে হবে (অথবা আপনি চাইলে permitAll() দিতে পারেন যদি একদম সিম্পল চান)
                 .anyRequest().permitAll()
