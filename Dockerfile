@@ -8,14 +8,11 @@ COPY --chown=gradle:gradle gradlew gradlew
 COPY --chown=gradle:gradle settings.gradle.kts settings.gradle.kts
 COPY --chown=gradle:gradle build.gradle.kts build.gradle.kts
 COPY --chown=gradle:gradle gradle.properties gradle.properties
-COPY --chown=gradle:gradle supremeai-intellij-plugin/build.gradle.kts supremeai-intellij-plugin/build.gradle.kts
-COPY --chown=gradle:gradle supremeai-intellij-plugin/settings.gradle.kts supremeai-intellij-plugin/settings.gradle.kts
 
 RUN chmod +x gradlew \
     && ./gradlew dependencies --no-daemon > /tmp/gradle-dependencies.log
 
 COPY --chown=gradle:gradle src src
-COPY --chown=gradle:gradle supremeai-intellij-plugin supremeai-intellij-plugin
 
 # Set build memory limits and build the app
 RUN printf 'org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=512m\norg.gradle.daemon=false\n' > gradle.properties \
