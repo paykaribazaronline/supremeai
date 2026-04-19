@@ -1,3 +1,4 @@
+---
 name: SupremeAI_Master_Pipeline
 
 on:
@@ -6,13 +7,6 @@ on:
   pull_request:
     branches: ["main"]
   workflow_dispatch:
-
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-  # Cache keys for better cache hits
-  GRADLE_CACHE_KEY: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/build.gradle.kts') }}
-  NPM_CACHE_KEY: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}
-  FLUTTER_CACHE_KEY: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
@@ -29,10 +23,6 @@ jobs:
       frontend: "${{ steps.filter.outputs.frontend }}"
       plugin: "${{ steps.filter.outputs.plugin }}"
       vscode_extension: "${{ steps.filter.outputs.vscode_extension }}"
-      workflow_backend: "${{ steps.filter.outputs.workflow_backend }}"
-      workflow_frontend: "${{ steps.filter.outputs.workflow_frontend }}"
-      workflow_plugin: "${{ steps.filter.outputs.workflow_plugin }}"
-      workflow_vscode_extension: "${{ steps.filter.outputs.workflow_vscode_extension }}"
     steps:
       - uses: actions/checkout@v6
       - uses: step-security/paths-filter@v4
@@ -50,19 +40,7 @@ jobs:
               - 'supremeai-intellij-plugin/**'
             vscode_extension:
               - 'supremeai-vscode-extension/**'
-            workflow_backend:
-              - '.github/workflows/supreme_pipeline.yml'
-              - 'cloudbuild.yaml'
-              - 'Dockerfile'
-            workflow_frontend:
-              - '.github/workflows/supreme_pipeline.yml'
-              - 'supremeai/firebase.json'
-            workflow_plugin:
-              - '.github/workflows/supreme_pipeline.yml'
-            workflow_vscode_extension:
-              - '.github/workflows/supreme_pipeline.yml'
 
-  # Run security scans EARLY and IN PARALLEL
   secret-scan:
     name: Secret_Scanning
     runs-on: ubuntu-latest
@@ -77,7 +55,7 @@ jobs:
   codeql:
     name: CodeQL_Analysis
     needs: [changes]
-    if: github.event_name != 'pull_request' && (needs.changes.outputs.backend == 'true' || needs.changes.outputs.workflow_backend == 'true')
+    if: github.event_name != 'pull_request' && needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     permissions:
       security-events: write
@@ -91,11 +69,9 @@ jobs:
       - name: Run_CodeQL
         uses: github/codeql-action/analyze@v4
 
-  # ALL BUILD JOBS RUN IN PARALLEL - NO UNNECESSARY DEPENDENCIES
   java-build-and-test:
     name: Java_Build_And_Test
     needs: [changes, secret-scan]
-    if: github.event_name == 'push' || (needs.changes.outputs.backend == 'true' || needs.changes.outputs.workflow_backend == 'true')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -105,9 +81,9 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ env.GRADLE_CACHE_KEY }}
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}
           restore-keys: |
-            ${{ env.GRADLE_CACHE_KEY }}
+            gradle-${{ runner.os }}-
       - name: Setup_Java
         uses: actions/setup-java@v5
         with:
@@ -125,7 +101,6 @@ jobs:
   flutter-build-and-test:
     name: Flutter_Build_And_Test
     needs: [changes, secret-scan]
-    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.workflow_frontend == 'true'
     runs-on: ubuntu-latest
     outputs:
       frontend_url: ${{ steps.set-paths.outputs.frontend_url }}
@@ -138,9 +113,9 @@ jobs:
           path: |
             ~/.pub-cache
             **/.dart_tool/flutter_build
-          key: ${{ env.FLUTTER_CACHE_KEY }}
+          key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
-            ${{ env.FLUTTER_CACHE_KEY }}
+            flutter-${{ runner.os }}-
       - name: Setup_Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -155,10 +130,6 @@ jobs:
       - name: Build_Web
         working-directory: ./supremeai
         run: flutter build web --release
-      - name: Build_APK
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        working-directory: ./supremeai
-        run: flutter build apk --release --target-platform android-arm64 --split-debug-info=./debug-info
       - name: Upload_Artifacts
         uses: actions/upload-artifact@v6
         with:
@@ -167,26 +138,14 @@ jobs:
             supremeai/build/web
             !**/**.map
           if-no-files-found: warn
-      - name: Upload_APK_Artifact
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v6
-        with:
-          name: supremeai-android-apk
-          path: supremeai/build/app/outputs/flutter-apk/app-release.apk
       - name: Store_Artifact_Paths
         id: set-paths
         run: |
           echo "frontend_url=https://supremeai-a.web.app/" >> $GITHUB_OUTPUT
-          if [ "${{ github.ref }}" = "refs/heads/main" ] && [ "${{ github.event_name }}" != "pull_request" ]; then
-            echo "apk_path=supremeai/build/app/outputs/flutter-apk/app-release.apk" >> $GITHUB_OUTPUT
-          else
-            echo "apk_path=N/A" >> $GITHUB_OUTPUT
-          fi
 
   plugin-build:
     name: Plugin_Build
     needs: [changes, secret-scan]
-    if: needs.changes.outputs.plugin == 'true' || needs.changes.outputs.workflow_plugin == 'true'
     runs-on: ubuntu-latest
     outputs:
       plugin_path: ${{ steps.set-path.outputs.path }}
@@ -198,9 +157,9 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ env.GRADLE_CACHE_KEY }}-plugin
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}
           restore-keys: |
-            ${{ env.GRADLE_CACHE_KEY }}-plugin
+            gradle-${{ runner.os }}-
       - name: Setup_Java
         uses: actions/setup-java@v5
         with:
@@ -221,7 +180,6 @@ jobs:
   vscode-extension-build:
     name: VSCode_Extension_Build
     needs: [changes, secret-scan]
-    if: needs.changes.outputs.vscode_extension == 'true' || needs.changes.outputs.workflow_vscode_extension == 'true'
     runs-on: ubuntu-latest
     outputs:
       vsix_path: ${{ steps.set-path.outputs.path }}
@@ -231,9 +189,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ env.NPM_CACHE_KEY }}-vscode
+          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ env.NPM_CACHE_KEY }}-vscode
+            npm-${{ runner.os }}-
       - name: Setup_Node
         uses: actions/setup-node@v6
         with:
@@ -248,9 +206,6 @@ jobs:
         run: |
           npm run lint
           npm run compile
-      - name: Package_Extension
-        working-directory: ./supremeai-vscode-extension
-        run: npx vsce package --no-git-tag-version
       - name: Upload_VSIX_Artifact
         uses: actions/upload-artifact@v6
         with:
@@ -260,12 +215,11 @@ jobs:
         id: set-path
         run: echo "path=supremeai-vscode-extension/*.vsix" >> $GITHUB_OUTPUT
 
-  # DEPLOYMENTS RUN IN PARALLEL - BACKEND AND FRONTEND AT SAME TIME
   deploy-backend:
     name: Deploy_Backend
     needs: [java-build-and-test]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && needs.java-build-and-test.result == 'success'
+    if: github.ref == 'refs/heads/main'
     outputs:
       admin_url: ${{ steps.set-url.outputs.url }}
     steps:
@@ -279,39 +233,14 @@ jobs:
       - name: Deploy_Backend_To_Cloud_Run
         id: build
         run: |
-          # Retry deployment up to 2 times
-          for i in {1..2}; do
-            BUILD_ID=$(gcloud builds submit --config cloudbuild.yaml --async --format='value(id)') && break
-            if [ $i -lt 2 ]; then
-              echo "Deployment attempt $i failed, retrying in 15 seconds..."
-              sleep 15
-            else
-              echo "All deployment attempts failed" >&2
-              exit 1
-            fi
-          done
+          BUILD_ID=$(gcloud builds submit --config cloudbuild.yaml --async --format='value(id)')
           echo "build_id=$BUILD_ID" >> $GITHUB_OUTPUT
-          # Wait for build completion with timeout
-          set +e
           gcloud builds wait $BUILD_ID --timeout=1200s
-          set -e
       - name: Store_Admin_URL
         id: set-url
         run: |
-          # Retry getting service URL up to 5 times
-          for i in {1..5}; do
-            if URL=$(gcloud run services describe supremeai --platform managed --region us-central1 --format='value(status.url)' 2>/dev/null); then
-              echo "url=$URL/admin.html" >> $GITHUB_OUTPUT
-              echo "Successfully retrieved service URL: $URL"
-              exit 0
-            fi
-            if [ $i -lt 5 ]; then
-              echo "Attempt $i failed, retrying in 10 seconds..."
-              sleep 10
-            fi
-          done
-          echo "Failed to get service URL after 5 attempts" >&2
-          exit 1
+          URL=$(gcloud run services describe supremeai --platform managed --region us-central1 --format='value(status.url)')
+          echo "url=$URL/admin.html" >> $GITHUB_OUTPUT
       - name: Show_Cloud_Build_Logs
         if: failure()
         run: |
@@ -323,7 +252,7 @@ jobs:
     name: Deploy_Frontend
     needs: [flutter-build-and-test]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && needs.flutter-build-and-test.result == 'success'
+    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v6
       - name: Download_Web
@@ -345,7 +274,6 @@ jobs:
         run: npx firebase-tools@latest deploy --project supremeai-a --only hosting --non-interactive
         working-directory: ./supremeai
 
-  # Summary and notification jobs
   workflow-summary:
     name: Workflow_Summary
     needs: [deploy-backend, deploy-frontend, plugin-build, vscode-extension-build, flutter-build-and-test]
@@ -357,10 +285,6 @@ jobs:
           echo "### Workflow Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Admin Dashboard URL:** ${{ needs.deploy-backend.outputs.admin_url || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Customer App URL:** ${{ needs.flutter-build-and-test.outputs.frontend_url || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
-          echo "**APK Path:** `${{ needs.flutter-build-and-test.outputs.apk_path || 'N/A' }}`" >> $GITHUB_STEP_SUMMARY
-          echo "**Plugin Path:** `${{ needs.plugin-build.outputs.plugin_path || 'N/A' }}`" >> $GITHUB_STEP_SUMMARY
-          echo "**VS Code Extension Path:** `${{ needs.vscode-extension-build.outputs.vsix_path || 'N/A' }}`" >> $GITHUB_STEP_SUMMARY
 
   health-check:
     name: Health_Check
@@ -396,3 +320,4 @@ jobs:
           else
             echo "⚠️ Deployment completed with some issues. Check logs for details."
           fi
+...
