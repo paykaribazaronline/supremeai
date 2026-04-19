@@ -6,7 +6,7 @@ Welcome to SupremeAI! This repository contains a comprehensive multi-agent syste
 
 The system is live and can be monitored via the Admin Dashboard:
 
-- **Production URL:** [https://supremeai-backend-565236080752.us-central1.run.app/admin.html](https://supremeai-backend-565236080752.us-central1.run.app/admin.html)
+- **Production URL:** [https://supremeai-565236080752.us-central1.run.app/admin.html](https://supremeai-565236080752.us-central1.run.app/admin.html)
 
 ## 📚 Documentation
 
