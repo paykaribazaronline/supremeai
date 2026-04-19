@@ -22,8 +22,9 @@ public class AdaptiveAgentOrchestrator {
      */
     public OrchesResultContext orchestrate(String requirement) {
         Map<String, Object> context = new LinkedHashMap<>();
+        Date started = new Date();
+        context.put("startedAt", started);
         context.put("originalRequirement", requirement);
-        context.put("startedAt", new Date());
 
         // Step 1: Generate questions (taste phase: hardcoded)
         List<Question> questions = generateQuestions(requirement);
@@ -41,10 +42,15 @@ public class AdaptiveAgentOrchestrator {
         Map<String, Object> generationContext = buildGenerationContext(decisions);
         context.put("generationContext", generationContext);
 
-        context.put("completedAt", new Date());
+        Date completed = new Date();
+        context.put("completedAt", completed);
         context.put("status", "COMPLETED");
 
-        return new OrchesResultContext(context);
+        OrchesResultContext result = new OrchesResultContext(context);
+        result.setStartedAt(started);
+        result.setCompletedAt(completed);
+        result.setStatus("COMPLETED");
+        return result;
     }
 
     /**
