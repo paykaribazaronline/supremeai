@@ -1,0 +1,40 @@
+package com.supremeai.api;
+
+import com.supremeai.service.CodeGenerationService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+import reactor.core.publisher.Mono;
+
+@RestController
+@RequestMapping("/api/generate")
+public class CodeGenerationController {
+
+    @Autowired
+    private CodeGenerationService codeGenerationService;
+
+    /**
+     * POST /api/generate/app
+     * Generate a skeleton application from requirements.
+     * Body: {"name": "MyApp", "description": "..."}
+     */
+    @PostMapping("/app")
+    public Mono<ResponseEntity<Map<String, Object>>> generateApp(@RequestBody Map<String, Object> request) {
+        Map<String, Object> result = codeGenerationService.generate(request);
+        return Mono.just(ResponseEntity.ok(result));
+    }
+
+    /**
+     * GET /api/generate/health
+     * Health check
+     */
+    @GetMapping("/health")
+    public Mono<ResponseEntity<Object>> health() {
+        return Mono.just(ResponseEntity.ok((Object) Map.of(
+            "status", "UP",
+            "service", "CodeGenerationService"
+        )));
+    }
+}

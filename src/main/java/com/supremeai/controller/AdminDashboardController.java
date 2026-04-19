@@ -28,23 +28,50 @@ public class AdminDashboardController {
     @Autowired
     private ProviderRepository providerRepository;
 
+    @Autowired
+    private ActivityLogRepository activityLogRepository;
+
+    @Autowired
+    private SystemLearningRepository systemLearningRepository;
+
+    @Autowired
+    private VPNRepository vpnRepository;
+
     @GetMapping("/dashboard/contract")
     public Mono<Map<String, Object>> getContract() {
         return Mono.zip(
             agentRepository.findAll().count(),
-            projectRepository.findAll().count()
+            projectRepository.findAll().count(),
+            projectRepository.findByStatus("COMPLETED").count(),
+            activityLogRepository.findAll().count(),
+            activityLogRepository.findBySeverityOrderByTimestampDesc("CRITICAL").count(),
+            systemLearningRepository.findAll().count(),
+            vpnRepository.findAll().count()
         ).map(tuple -> {
+            long totalAgents = tuple.getT1();
+            long totalProjects = tuple.getT2();
+            long completedProjects = tuple.getT3();
+            long totalLogs = tuple.getT4();
+            long criticalErrors = tuple.getT5();
+            long totalKnowledge = tuple.getT6();
+            long activeVPNs = tuple.getT7();
+
+            double successRate = totalProjects > 0 ? (double) completedProjects / totalProjects * 100 : 100.0;
+            double healthScore = totalLogs > 0 ? Math.max(0, 100.0 - ((double) criticalErrors / totalLogs * 1000)) : 100.0;
+
             Map<String, Object> contract = new HashMap<>();
-            contract.put("contractVersion", "2026-04-09-unified");
+            contract.put("contractVersion", "2026-04-10-live");
             contract.put("title", "SupremeAI Admin Dashboard");
 
             Map<String, Object> stats = new HashMap<>();
-            stats.put("activeAIAgents", tuple.getT1());
-            stats.put("systemHealthScore", 98.5);
-            stats.put("runningProjects", tuple.getT2());
-            stats.put("completedProjects", 142);
-            stats.put("successRate", 99.2);
-            stats.put("systemHealthStatus", "HEALTHY");
+            stats.put("activeAIAgents", totalAgents);
+            stats.put("systemHealthScore", Math.round(healthScore * 10) / 10.0);
+            stats.put("runningProjects", totalProjects - completedProjects);
+            stats.put("completedProjects", completedProjects);
+            stats.put("successRate", Math.round(successRate * 10) / 10.0);
+            stats.put("systemHealthStatus", healthScore > 90 ? "HEALTHY" : (healthScore > 70 ? "STABLE" : "CRITICAL"));
+            stats.put("knowledgeBaseSize", totalKnowledge);
+            stats.put("activeConnections", activeVPNs);
             contract.put("stats", stats);
 
             List<Map<String, Object>> navigation = new ArrayList<>();
@@ -79,7 +106,7 @@ public class AdminDashboardController {
     }
 
     @GetMapping("/users")
-    public Mono<ResponseEntity<?>> getUsers() {
+    public Mono<ResponseEntity<Object>> getUsers() {
         return userRepository.findAll()
                 .collectList()
                 .map(users -> {
@@ -95,25 +122,30 @@ public class AdminDashboardController {
                         userMap.put("isActive", user.getIsActive());
                         return userMap;
                     }).toList();
-                    return ResponseEntity.ok(Map.of("users", userList));
+                    Map<String, Object> responseBody = Map.of("users", userList);
+                    return (ResponseEntity<Object>) ResponseEntity.ok((Object) responseBody);
                 })
-                .onErrorResume(e -> Mono.just(ResponseEntity.status(500)
-                        .body(Map.of("error", "Failed to fetch users: " + e.getMessage()))));
+                .onErrorResume(e -> {
+                    Map<String, Object> errorBody = Map.of("error", "Failed to fetch users: " + e.getMessage());
+                    return Mono.just((ResponseEntity<Object>) ResponseEntity.status(500).body((Object) errorBody));
+                });
     }
 
     @PutMapping("/users/{userId}/tier")
-    public Mono<ResponseEntity<?>> updateUserTier(@PathVariable String userId,
+    public Mono<ResponseEntity<Object>> updateUserTier(@PathVariable String userId,
                                                  @RequestBody Map<String, String> request) {
         String newTierStr = request.get("tier");
         if (newTierStr == null) {
-            return Mono.just(ResponseEntity.badRequest().body(Map.of("error", "Tier is required")));
+            Map<String, Object> errorBody = Map.of("error", "Tier is required");
+            return Mono.just((ResponseEntity<Object>) ResponseEntity.badRequest().body((Object) errorBody));
         }
 
         UserTier newTier;
         try {
             newTier = UserTier.valueOf(newTierStr.toUpperCase());
         } catch (IllegalArgumentException e) {
-            return Mono.just(ResponseEntity.badRequest().body(Map.of("error", "Invalid tier: " + newTierStr)));
+            Map<String, Object> errorBody = Map.of("error", "Invalid tier: " + newTierStr);
+            return Mono.just((ResponseEntity<Object>) ResponseEntity.badRequest().body((Object) errorBody));
         }
 
         return userRepository.findById(userId)
@@ -122,21 +154,26 @@ public class AdminDashboardController {
                     user.setUpdatedAt(java.time.LocalDateTime.now());
                     return userRepository.save(user);
                 })
-                .map(user -> ResponseEntity.ok(Map.of(
+                .map(user -> {
+                    Map<String, Object> responseBody = Map.of(
                         "message", "User tier updated successfully",
                         "user", Map.of(
                                 "id", user.getFirebaseUid(),
                                 "tier", user.getTier().toString(),
                                 "monthlyQuota", user.getMonthlyQuota()
                         )
-                )))
-                .defaultIfEmpty(ResponseEntity.status(404).body(Map.of("error", "User not found")))
-                .onErrorResume(e -> Mono.just(ResponseEntity.status(500)
-                        .body(Map.of("error", "Failed to update user tier: " + e.getMessage()))));
+                    );
+                    return (ResponseEntity<Object>) ResponseEntity.ok((Object) responseBody);
+                })
+                .defaultIfEmpty((ResponseEntity<Object>) ResponseEntity.status(404).body((Object) Map.of("error", "User not found")))
+                .onErrorResume(e -> {
+                    Map<String, Object> errorBody = Map.of("error", "Failed to update user tier: " + e.getMessage());
+                    return Mono.just((ResponseEntity<Object>) ResponseEntity.status(500).body((Object) errorBody));
+                });
     }
 
     @GetMapping("/tiers")
-    public ResponseEntity<?> getAvailableTiers() {
+    public Mono<ResponseEntity<Object>> getAvailableTiers() {
         List<Map<String, Object>> tiers = new ArrayList<>();
         for (UserTier tier : UserTier.values()) {
             Map<String, Object> tierMap = new HashMap<>();
@@ -147,7 +184,7 @@ public class AdminDashboardController {
             tierMap.put("hasUnlimitedQuota", tier.hasUnlimitedQuota());
             tiers.add(tierMap);
         }
-        return ResponseEntity.ok(Map.of("tiers", tiers));
+        return Mono.just(ResponseEntity.ok((Object) Map.of("tiers", tiers)));
     }
 
     private Map<String, Object> createNavItem(String key, String label, String icon, boolean enabled) {

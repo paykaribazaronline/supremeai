@@ -57,7 +57,7 @@ public class GroqProvider implements AIProvider {
                     throw new IOException("Unexpected code " + response);
                 }
 
-                Map<String, Object> responseMap = objectMapper.readValue(response.body().string(), Map.class);
+                Map<String, Object> responseMap = objectMapper.readValue(response.body().string(), new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
                 List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
                 if (choices != null && !choices.isEmpty()) {
                     Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");

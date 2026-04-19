@@ -8,4 +8,5 @@ import reactor.core.publisher.Flux;
 @Repository
 public interface ProjectRepository extends FirestoreReactiveRepository<ExistingProject> {
     Flux<ExistingProject> findByOwnerId(String ownerId);
+    Flux<ExistingProject> findByStatus(String status);
 }

@@ -1,0 +1,144 @@
+package com.supremeai.agentorchestration;
+
+import com.supremeai.service.MultiAIConsensusService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+
+/**
+ * AdaptiveAgentOrchestrator - Coordinates AI agents for app generation.
+ * 
+ * This is a simplified taste-phase implementation that:
+ * 1. Receives a requirement string
+ * 2. Generates basic architecture questions (hardcoded for now)
+ * 3. Runs consensus voting on key decisions
+ * 4. Returns a context map for code generation
+ */
+@Service
+public class AdaptiveAgentOrchestrator {
+
+    @Autowired
+    private MultiAIConsensusService consensusService;
+
+    /**
+     * Main orchestration entry point.
+     * Takes a requirement and returns an OrchesResultContext.
+     */
+    public OrchesResultContext orchestrate(String requirement) {
+        Map<String, Object> context = new LinkedHashMap<>();
+        context.put("originalRequirement", requirement);
+        context.put("startedAt", new Date());
+
+        // Step 1: Generate questions (taste phase: hardcoded)
+        List<Question> questions = generateQuestions(requirement);
+        context.put("questions", questions);
+
+        // Step 2: For taste phase, auto-answer questions (simulate admin)
+        Map<String, String> answers = autoAnswerQuestions(questions);
+        context.put("answers", answers);
+
+        // Step 3: Run consensus voting on key decisions
+        List<VotingDecision> decisions = runConsensusVoting(answers);
+        context.put("decisions", decisions);
+
+        // Step 4: Build final context for code generator
+        Map<String, Object> generationContext = buildGenerationContext(decisions);
+        context.put("generationContext", generationContext);
+
+        context.put("completedAt", new Date());
+        context.put("status", "COMPLETED");
+
+        return new OrchesResultContext(context);
+    }
+
+    /**
+     * Generate a set of standard architecture/design questions.
+     * In full version, this would use an AI to generate specific questions.
+     */
+    private List<Question> generateQuestions(String requirement) {
+        List<Question> questions = new ArrayList<>();
+        questions.add(new Question("architecture", "What architecture style? (monolith, microservices, serverless)", "HIGH"));
+        questions.add(new Question("database", "Which database? (PostgreSQL, MySQL, MongoDB, DynamoDB)", "CRITICAL"));
+        questions.add(new Question("apiStyle", "API style? (REST, GraphQL, gRPC)", "MEDIUM"));
+        questions.add(new Question("authType", "Authentication type? (JWT, OAuth2, Session)", "HIGH"));
+        questions.add(new Question("frontend", "Frontend framework? (React, Vue, Angular, None)", "MEDIUM"));
+        questions.add(new Question("deployment", "Deployment target? (AWS, GCP, Azure, On-prem)", "MEDIUM"));
+        return questions;
+    }
+
+    /**
+     * Auto-answer questions for taste phase (simulates admin).
+     * In production, admin would answer via UI.
+     */
+    private Map<String, String> autoAnswerQuestions(List<Question> questions) {
+        Map<String, String> answers = new LinkedHashMap<>();
+        // Default sensible answers for demo
+        for (Question q : questions) {
+            String key = q.getKey();
+            switch (key) {
+                case "architecture": answers.put(key, "monolith"); break;
+                case "database": answers.put(key, "PostgreSQL"); break;
+                case "apiStyle": answers.put(key, "REST"); break;
+                case "authType": answers.put(key, "JWT"); break;
+                case "frontend": answers.put(key, "React"); break;
+                case "deployment": answers.put(key, "GCP"); break;
+                default: answers.put(key, "default");
+            }
+        }
+        return answers;
+    }
+
+    /**
+     * Run consensus voting for each decision using AI providers.
+     */
+    private List<VotingDecision> runConsensusVoting(Map<String, String> answers) {
+        List<VotingDecision> decisions = new ArrayList<>();
+        
+        for (Map.Entry<String, String> entry : answers.entrySet()) {
+            String key = entry.getKey();
+            String answer = entry.getValue();
+            
+            // Formulate a question for AI consensus
+            String question = formatVotingQuestion(key, answer);
+            
+            // Query AI providers
+            var result = consensusService.askAllAIs(question, 
+                List.of("openai", "anthropic", "groq"), 10000L);
+            
+            VotingDecision decision = new VotingDecision();
+            decision.setDecisionKey(key);
+            decision.setProposedAnswer(answer); // from admin
+            decision.setAiConsensus(result.getConsensusAnswer());
+            decision.setConfidence(result.getAverageConfidence());
+            decision.setStrength(result.getStrength());
+            decision.setProviderVotes(result.getProviderVotes());
+            
+            decisions.add(decision);
+        }
+        
+        return decisions;
+    }
+
+    private String formatVotingQuestion(String key, String adminAnswer) {
+        return String.format(
+            "For a software application, the admin has selected '%s' for %s. " +
+            "As an AI expert, do you agree with this choice? If not, what would you recommend? " +
+            "Provide a concise yes/no with brief reasoning.", 
+            adminAnswer, key
+        );
+    }
+
+    private Map<String, Object> buildGenerationContext(List<VotingDecision> decisions) {
+        Map<String, Object> ctx = new LinkedHashMap<>();
+        for (VotingDecision d : decisions) {
+            ctx.put(d.getDecisionKey(), d.getAiConsensus());
+        }
+        // Add defaults
+        ctx.putIfAbsent("javaVersion", "17");
+        ctx.putIfAbsent("springBootVersion", "3.2.3");
+        ctx.putIfAbsent("includeTests", true);
+        ctx.putIfAbsent("includeDocker", true);
+        return ctx;
+    }
+}

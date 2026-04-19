@@ -9,6 +9,7 @@ import com.intellij.ui.components.JBTextField
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.net.HttpURLConnection
+import java.net.URI
 import java.net.URL
 import javax.swing.*
 import javax.swing.border.EmptyBorder
@@ -102,7 +103,7 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                     val endpoint = settings.apiEndpoint.takeIf { it.isNotBlank() }
                         ?: "https://supremeai-565236080752.us-central1.run.app"
 
-                    val url = URL("$endpoint/api/chat/send")
+                    val url = URI("$endpoint/api/chat/send").toURL()
                     val conn = url.openConnection() as HttpURLConnection
                     conn.requestMethod = "POST"
                     conn.setRequestProperty("Content-Type", "application/json")
@@ -141,7 +142,7 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                     val endpoint = settings.apiEndpoint.takeIf { it.isNotBlank() }
                         ?: "https://supremeai-565236080752.us-central1.run.app"
 
-                    val url = URL("$endpoint/api/status")
+                    val url = URI("$endpoint/api/status").toURL()
                     val conn = url.openConnection() as HttpURLConnection
                     conn.connectTimeout = 5000
                     conn.readTimeout = 5000
