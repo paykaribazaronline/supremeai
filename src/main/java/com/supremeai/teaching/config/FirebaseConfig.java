@@ -24,24 +24,32 @@ public class FirebaseConfig {
     public void initialize() {
         try {
             if (FirebaseApp.getApps().isEmpty()) {
-                InputStream serviceAccount;
+                GoogleCredentials credentials;
                 try {
                     // Try loading from classpath first
-                    serviceAccount = getClass().getClassLoader().getResourceAsStream("service-account.json");
-                    if (serviceAccount == null) {
+                    InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream("service-account.json");
+                    if (serviceAccount != null) {
+                        credentials = GoogleCredentials.fromStream(serviceAccount);
+                    } else if (configPath != null && !configPath.trim().isEmpty()) {
                         // Fallback to file system
-                        serviceAccount = new FileInputStream(configPath);
+                        credentials = GoogleCredentials.fromStream(new FileInputStream(configPath));
+                    } else {
+                        // Use Application Default Credentials for Cloud Run
+                        credentials = GoogleCredentials.getApplicationDefault();
                     }
                 } catch (Exception e) {
-                    serviceAccount = new FileInputStream(configPath);
+                    // Fallback to Application Default Credentials if file not found
+                    System.out.println("Could not load service-account.json, falling back to Application Default Credentials");
+                    credentials = GoogleCredentials.getApplicationDefault();
                 }
 
                 FirebaseOptions options = FirebaseOptions.builder()
-                        .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                        .setCredentials(credentials)
                         .setDatabaseUrl(databaseUrl)
                         .build();
 
                 FirebaseApp.initializeApp(options);
+                System.out.println("FirebaseApp initialized successfully.");
             }
         } catch (IOException e) {
             e.printStackTrace();
