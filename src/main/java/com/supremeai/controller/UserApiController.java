@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -45,18 +44,16 @@ public class UserApiController {
                     .body(Map.of("error", "Description is required"));
             }
 
-            Optional<User> userOpt = userRepository.findByFirebaseUid(userId);
-            if (userOpt.isEmpty()) {
+            User user = userRepository.findByFirebaseUid(userId).block();
+            if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "User not found"));
             }
 
-            User user = userOpt.get();
-
             // Check if user has reached max APIs for their tier
-            List<UserApi> userApis = userApiRepository.findByUserIdAndIsActive(userId, true);
+            List<UserApi> userApis = userApiRepository.findByUserIdAndIsActive(userId, true).collectList().block();
             int maxApis = getMaxApisForTier(user.getTier());
-            if (userApis.size() >= maxApis) {
+            if (userApis != null && userApis.size() >= maxApis) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("error", "Maximum API limit reached for your tier"));
             }
@@ -65,11 +62,11 @@ public class UserApiController {
             String apiKey;
             do {
                 apiKey = "sk-" + UUID.randomUUID().toString().replace("-", "");
-            } while (userApiRepository.findByApiKey(apiKey).isPresent());
+            } while (userApiRepository.findByApiKey(apiKey).block() != null);
 
             UserApi userApi = new UserApi(userId, apiName, apiKey, description,
                                         user.getTier(), user.getMonthlyQuota());
-            userApiRepository.save(userApi);
+            userApiRepository.save(userApi).block();
 
             Map<String, Object> response = new HashMap<>();
             response.put("id", userApi.getId());
@@ -92,7 +89,11 @@ public class UserApiController {
     public ResponseEntity<?> getUserApis(Authentication authentication) {
         try {
             String userId = getCurrentUserId(authentication);
-            List<UserApi> userApis = userApiRepository.findByUserIdAndIsActive(userId, true);
+            List<UserApi> userApis = userApiRepository.findByUserIdAndIsActive(userId, true).collectList().block();
+
+            if (userApis == null) {
+                return ResponseEntity.ok(Map.of("apis", List.of()));
+            }
 
             List<Map<String, Object>> response = userApis.stream().map(api -> {
                 Map<String, Object> apiMap = new HashMap<>();
@@ -118,17 +119,16 @@ public class UserApiController {
     }
 
     @DeleteMapping("/apis/{apiId}")
-    public ResponseEntity<?> deleteApi(@PathVariable Long apiId, Authentication authentication) {
+    public ResponseEntity<?> deleteApi(@PathVariable String apiId, Authentication authentication) {
         try {
             String userId = getCurrentUserId(authentication);
-            Optional<UserApi> apiOpt = userApiRepository.findById(apiId);
+            UserApi api = userApiRepository.findById(apiId).block();
 
-            if (apiOpt.isEmpty()) {
+            if (api == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", "API not found"));
             }
 
-            UserApi api = apiOpt.get();
             if (!api.getUserId().equals(userId)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("error", "Access denied"));
@@ -136,7 +136,7 @@ public class UserApiController {
 
             api.setIsActive(false);
             api.setUpdatedAt(LocalDateTime.now());
-            userApiRepository.save(api);
+            userApiRepository.save(api).block();
 
             return ResponseEntity.ok(Map.of("message", "API deleted successfully"));
 
@@ -156,12 +156,11 @@ public class UserApiController {
                     .body(Map.of("valid", false, "error", "API key is required"));
             }
 
-            Optional<UserApi> apiOpt = userApiRepository.findByApiKey(apiKey);
-            if (apiOpt.isEmpty()) {
+            UserApi api = userApiRepository.findByApiKey(apiKey).block();
+            if (api == null) {
                 return ResponseEntity.ok(Map.of("valid", false, "error", "Invalid API key"));
             }
 
-            UserApi api = apiOpt.get();
             if (!api.getIsActive()) {
                 return ResponseEntity.ok(Map.of("valid", false, "error", "API key is inactive"));
             }
@@ -183,17 +182,16 @@ public class UserApiController {
     }
 
     @PostMapping("/apis/{apiId}/regenerate-key")
-    public ResponseEntity<?> regenerateApiKey(@PathVariable Long apiId, Authentication authentication) {
+    public ResponseEntity<?> regenerateApiKey(@PathVariable String apiId, Authentication authentication) {
         try {
             String userId = getCurrentUserId(authentication);
-            Optional<UserApi> apiOpt = userApiRepository.findById(apiId);
+            UserApi api = userApiRepository.findById(apiId).block();
 
-            if (apiOpt.isEmpty()) {
+            if (api == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", "API not found"));
             }
 
-            UserApi api = apiOpt.get();
             if (!api.getUserId().equals(userId)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("error", "Access denied"));
@@ -203,11 +201,11 @@ public class UserApiController {
             String newApiKey;
             do {
                 newApiKey = "sk-" + UUID.randomUUID().toString().replace("-", "");
-            } while (userApiRepository.findByApiKey(newApiKey).isPresent());
+            } while (userApiRepository.findByApiKey(newApiKey).block() != null);
 
             api.setApiKey(newApiKey);
             api.setUpdatedAt(LocalDateTime.now());
-            userApiRepository.save(api);
+            userApiRepository.save(api).block();
 
             return ResponseEntity.ok(Map.of(
                 "apiKey", api.getApiKey(),
@@ -221,8 +219,6 @@ public class UserApiController {
     }
 
     private String getCurrentUserId(Authentication authentication) {
-        // This would need to be implemented based on your authentication setup
-        // For now, assuming Firebase UID is stored in authentication principal
         return authentication.getName();
     }
 
@@ -237,12 +233,12 @@ public class UserApiController {
     }
 
     private String maskApiKey(String apiKey) {
-        if (apiKey.length() <= 8) return apiKey;
+        if (apiKey == null || apiKey.length() <= 8) return apiKey;
         return apiKey.substring(0, 8) + "..." + apiKey.substring(apiKey.length() - 4);
     }
 
     private double calculateUsagePercent(UserApi api) {
-        if (api.getMonthlyQuota() == 0) return 0.0;
+        if (api.getMonthlyQuota() == null || api.getMonthlyQuota() == 0) return 0.0;
         return (double) api.getCurrentUsage() / api.getMonthlyQuota() * 100.0;
     }
 }

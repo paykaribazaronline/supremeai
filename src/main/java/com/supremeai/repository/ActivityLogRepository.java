@@ -1,13 +1,12 @@
 package com.supremeai.repository;
 
 import com.supremeai.model.ActivityLog;
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.google.cloud.spring.data.firestore.FirestoreRepository;
 import org.springframework.stereotype.Repository;
-import java.util.List;
+import reactor.core.publisher.Flux;
 
 @Repository
-public interface ActivityLogRepository extends JpaRepository<ActivityLog, Long> {
-    List<ActivityLog> findTop100ByOrderByTimestampDesc();
-    List<ActivityLog> findByCategoryOrderByTimestampDesc(String category);
-    List<ActivityLog> findBySeverityOrderByTimestampDesc(String severity);
+public interface ActivityLogRepository extends FirestoreRepository<ActivityLog> {
+    Flux<ActivityLog> findByCategoryOrderByTimestampDesc(String category);
+    Flux<ActivityLog> findBySeverityOrderByTimestampDesc(String severity);
 }

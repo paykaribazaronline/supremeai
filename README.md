@@ -2,6 +2,12 @@
 
 Welcome to SupremeAI! This repository contains a comprehensive multi-agent system for automated Android app generation.
 
+## 🌐 Production Environment
+
+The system is live and can be monitored via the Admin Dashboard:
+
+- **Production URL:** [https://supremeai-backend-565236080752.us-central1.run.app/admin.html](https://supremeai-backend-565236080752.us-central1.run.app/admin.html)
+
 ## 📚 Documentation
 
 All documentation has been organized into the `docs_new/` directory for better maintainability:

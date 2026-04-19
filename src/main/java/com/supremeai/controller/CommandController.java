@@ -35,8 +35,10 @@ public class CommandController {
         }
 
         String uid = authentication.getName();
-        User user = userRepository.findByFirebaseUid(uid)
-                .orElseThrow(() -> new IllegalStateException("Authenticated user not found in database."));
+        User user = userRepository.findByFirebaseUid(uid).block();
+        if (user == null) {
+            throw new IllegalStateException("Authenticated user not found in database.");
+        }
 
         String[] roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
@@ -62,7 +64,6 @@ public class CommandController {
     public Map<String, Object> getCommandDetails(@PathVariable String name) {
         com.supremeai.command.Command command = executor.getCommand(name);
         if (command == null) {
-            // You might want to return a 404 Not Found status here
             return Map.of("error", "Command not found");
         }
         return Map.of(

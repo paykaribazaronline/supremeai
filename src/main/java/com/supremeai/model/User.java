@@ -1,13 +1,13 @@
 package com.supremeai.model;
 
-import jakarta.persistence.*;
+import com.google.cloud.firestore.annotation.DocumentId;
+import com.google.cloud.spring.data.firestore.Document;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "users")
+@Document(collectionName = "users")
 public class User {
 
-    @Id
+    @DocumentId
     private String firebaseUid;
 
     @Column(nullable = false)

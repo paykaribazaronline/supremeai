@@ -43,7 +43,7 @@ kotlin {
 intellijPlatform {
     pluginConfiguration {
         name.set("SupremeAI Assistant")
-        description.set("Fully Compatible with K2 Mode")
+        description.set("SupremeAI Assistant is a powerful AI-driven tool for Android Studio that helps you generate entire Android applications from natural language prompts, provides real-time code learning and context-aware suggestions, and offers K2 Mode compatibility for the latest IDE performance.")
         ideaVersion {
             sinceBuild.set("243")
             untilBuild.set("253.*")
