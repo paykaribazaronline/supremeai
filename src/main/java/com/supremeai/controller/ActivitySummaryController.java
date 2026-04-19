@@ -26,22 +26,22 @@ public class ActivitySummaryController {
         List<ActivityLog> recentActions;
         
         if (severity != null && !severity.isEmpty()) {
-            recentActions = activityLogRepository.findBySeverityOrderByTimestampDesc(severity.toUpperCase());
+            recentActions = activityLogRepository.findBySeverityOrderByTimestampDesc(severity.toUpperCase()).collectList().block();
         } else if (category != null && !category.isEmpty()) {
-            recentActions = activityLogRepository.findByCategoryOrderByTimestampDesc(category.toUpperCase());
+            recentActions = activityLogRepository.findByCategoryOrderByTimestampDesc(category.toUpperCase()).collectList().block();
         } else {
-            recentActions = activityLogRepository.findTop100ByOrderByTimestampDesc();
+            recentActions = activityLogRepository.findAll().take(100).collectList().block();
         }
         
         Map<String, Object> summary = new HashMap<>();
         summary.put("recentActions", recentActions);
-        summary.put("totalActions", activityLogRepository.count());
+        summary.put("totalActions", activityLogRepository.count().block());
         
         return ResponseEntity.ok(summary);
     }
 
     @PostMapping("/log")
     public ResponseEntity<ActivityLog> logActivity(@RequestBody ActivityLog log) {
-        return ResponseEntity.ok(activityLogRepository.save(log));
+        return ResponseEntity.ok(activityLogRepository.save(log).block());
     }
 }

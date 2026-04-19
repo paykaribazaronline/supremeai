@@ -37,8 +37,8 @@ const AuthHelper = {
                 credentials: 'include'
             });
         } catch (_) {}
-        if (window.firebase && firebase.apps && firebase.apps.length && firebase.auth) {
-            firebase.auth().signOut().catch(() => {}).finally(() => {
+        if (window.firebase && window.firebase.apps && window.firebase.apps.length && window.firebase.auth) {
+            window.firebase.auth().signOut().catch(() => {}).finally(() => {
                 window.location.href = '/login.html';
             });
             return;

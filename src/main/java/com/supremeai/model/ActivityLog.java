@@ -1,15 +1,14 @@
 package com.supremeai.model;
 
-import jakarta.persistence.*;
+import com.google.cloud.firestore.annotation.DocumentId;
+import com.google.cloud.spring.data.firestore.Document;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "activity_logs")
+@Document(collectionName = "activity_logs")
 public class ActivityLog {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @DocumentId
+    private String id;
 
     private String action;
     private String user;
@@ -39,8 +38,8 @@ public class ActivityLog {
     }
 
     // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
     public String getAction() { return action; }
     public void setAction(String action) { this.action = action; }
     public String getUser() { return user; }

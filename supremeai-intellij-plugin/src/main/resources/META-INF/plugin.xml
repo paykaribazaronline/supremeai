@@ -24,6 +24,7 @@
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
+        <applicationService serviceImplementation="com.supremeai.ide.SupremeAISettings"/>
 
         <toolWindow id="SupremeAI"
                     secondary="false"

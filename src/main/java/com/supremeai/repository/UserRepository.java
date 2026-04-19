@@ -1,12 +1,12 @@
 package com.supremeai.repository;
 
 import com.supremeai.model.User;
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.google.cloud.spring.data.firestore.FirestoreRepository;
 import org.springframework.stereotype.Repository;
-import java.util.Optional;
+import reactor.core.publisher.Mono;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, String> {
-    Optional<User> findByEmail(String email);
-    Optional<User> findByFirebaseUid(String firebaseUid);
+public interface UserRepository extends FirestoreRepository<User> {
+    Mono<User> findByEmail(String email);
+    Mono<User> findByFirebaseUid(String firebaseUid);
 }

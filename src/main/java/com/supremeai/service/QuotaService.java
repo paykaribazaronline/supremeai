@@ -5,10 +5,8 @@ import com.supremeai.repository.UserApiRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
 public class QuotaService {
@@ -20,12 +18,11 @@ public class QuotaService {
      * Check if an API key has quota remaining for the current month
      */
     public boolean hasQuotaRemaining(String apiKey) {
-        Optional<UserApi> apiOpt = userApiRepository.findByApiKey(apiKey);
-        if (apiOpt.isEmpty()) {
+        UserApi api = userApiRepository.findByApiKey(apiKey).block();
+        if (api == null) {
             return false;
         }
 
-        UserApi api = apiOpt.get();
         if (!api.getIsActive()) {
             return false;
         }
@@ -37,14 +34,12 @@ public class QuotaService {
      * Increment usage for an API key
      * Returns true if successful, false if quota exceeded
      */
-    @Transactional
     public boolean incrementUsage(String apiKey) {
-        Optional<UserApi> apiOpt = userApiRepository.findByApiKey(apiKey);
-        if (apiOpt.isEmpty()) {
+        UserApi api = userApiRepository.findByApiKey(apiKey).block();
+        if (api == null) {
             return false;
         }
 
-        UserApi api = apiOpt.get();
         if (!api.getIsActive()) {
             return false;
         }
@@ -54,7 +49,7 @@ public class QuotaService {
         }
 
         api.incrementUsage();
-        userApiRepository.save(api);
+        userApiRepository.save(api).block();
         return true;
     }
 
@@ -62,40 +57,42 @@ public class QuotaService {
      * Get current usage for an API key
      */
     public Long getCurrentUsage(String apiKey) {
-        Optional<UserApi> apiOpt = userApiRepository.findByApiKey(apiKey);
-        return apiOpt.map(UserApi::getCurrentUsage).orElse(0L);
+        UserApi api = userApiRepository.findByApiKey(apiKey).block();
+        return api != null ? api.getCurrentUsage() : 0L;
     }
 
     /**
      * Get monthly quota for an API key
      */
     public Long getMonthlyQuota(String apiKey) {
-        Optional<UserApi> apiOpt = userApiRepository.findByApiKey(apiKey);
-        return apiOpt.map(UserApi::getMonthlyQuota).orElse(0L);
+        UserApi api = userApiRepository.findByApiKey(apiKey).block();
+        return api != null ? api.getMonthlyQuota() : 0L;
     }
 
     /**
      * Reset monthly usage for all APIs - runs on the 1st of every month at midnight
      */
     @Scheduled(cron = "0 0 0 1 * ?")
-    @Transactional
     public void resetMonthlyUsage() {
-        userApiRepository.resetMonthlyUsage(LocalDateTime.now());
+        userApiRepository.findAll()
+            .doOnNext(api -> {
+                api.resetMonthlyUsage();
+                userApiRepository.save(api).subscribe();
+            })
+            .subscribe();
     }
 
     /**
      * Manually reset usage for a specific API (admin function)
      */
-    @Transactional
     public boolean resetApiUsage(String apiKey) {
-        Optional<UserApi> apiOpt = userApiRepository.findByApiKey(apiKey);
-        if (apiOpt.isEmpty()) {
+        UserApi api = userApiRepository.findByApiKey(apiKey).block();
+        if (api == null) {
             return false;
         }
 
-        UserApi api = apiOpt.get();
         api.resetMonthlyUsage();
-        userApiRepository.save(api);
+        userApiRepository.save(api).block();
         return true;
     }
 
@@ -103,12 +100,11 @@ public class QuotaService {
      * Get usage statistics for an API
      */
     public ApiUsageStats getUsageStats(String apiKey) {
-        Optional<UserApi> apiOpt = userApiRepository.findByApiKey(apiKey);
-        if (apiOpt.isEmpty()) {
+        UserApi api = userApiRepository.findByApiKey(apiKey).block();
+        if (api == null) {
             return null;
         }
 
-        UserApi api = apiOpt.get();
         return new ApiUsageStats(
             api.getCurrentUsage(),
             api.getMonthlyQuota(),

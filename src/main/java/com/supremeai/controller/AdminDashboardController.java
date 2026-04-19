@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -67,7 +66,9 @@ public class AdminDashboardController {
     @GetMapping("/users")
     public ResponseEntity<?> getUsers() {
         try {
-            List<User> users = userRepository.findAll();
+            List<User> users = userRepository.findAll().collectList().block();
+            if (users == null) users = new ArrayList<>();
+            
             List<Map<String, Object>> userList = users.stream().map(user -> {
                 Map<String, Object> userMap = new HashMap<>();
                 userMap.put("id", user.getFirebaseUid());
@@ -106,16 +107,15 @@ public class AdminDashboardController {
                     .body(Map.of("error", "Invalid tier: " + newTierStr));
             }
 
-            Optional<User> userOpt = userRepository.findById(userId);
-            if (userOpt.isEmpty()) {
+            User user = userRepository.findById(userId).block();
+            if (user == null) {
                 return ResponseEntity.status(404)
                     .body(Map.of("error", "User not found"));
             }
 
-            User user = userOpt.get();
             user.setTier(newTier);
             user.setUpdatedAt(java.time.LocalDateTime.now());
-            userRepository.save(user);
+            userRepository.save(user).block();
 
             return ResponseEntity.ok(Map.of(
                 "message", "User tier updated successfully",

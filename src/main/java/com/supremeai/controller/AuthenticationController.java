@@ -34,7 +34,6 @@ public class AuthenticationController {
         String idToken = request.get("idToken");
 
         try {
-            // ১. Firebase Admin SDK দিয়ে টোকেন ভেরিফাই করা
             com.google.firebase.auth.FirebaseToken decodedToken =
                 com.google.firebase.auth.FirebaseAuth.getInstance().verifyIdToken(idToken);
 
@@ -42,25 +41,20 @@ public class AuthenticationController {
             String email = decodedToken.getEmail();
             String name = (String) decodedToken.getClaims().get("name");
             
-            // ২. Firebase Custom Claims থেকে রোল (Role) চেক করা
-            // আপনি Firebase Admin SDK বা Console থেকে ইউজারের জন্য {"role": "ADMIN"} সেট করতে পারেন
             Object roleClaim = decodedToken.getClaims().get("role");
             Object adminClaim = decodedToken.getClaims().get("admin");
             
-            UserTier tier = UserTier.FREE; // ডিফল্ট টায়ার
+            UserTier tier = UserTier.FREE;
             
             if ("ADMIN".equals(roleClaim) || Boolean.TRUE.equals(adminClaim)) {
                 tier = UserTier.ADMIN;
             }
 
-            // ৩. ডাটাবেসে ইউজার সিঙ্ক করা
-            Optional<User> existingUser = userRepository.findByFirebaseUid(uid);
-            User user;
+            User user = userRepository.findByFirebaseUid(uid).block();
             boolean isNewUser = false;
 
-            if (existingUser.isPresent()) {
-                user = existingUser.get();
-                user.setTier(tier); // Firebase থেকে আসা রোল অনুযায়ী আপডেট
+            if (user != null) {
+                user.setTier(tier);
                 user.setLastLoginAt(LocalDateTime.now());
                 user.setUpdatedAt(LocalDateTime.now());
             } else {
@@ -69,9 +63,8 @@ public class AuthenticationController {
                 isNewUser = true;
             }
 
-            userRepository.save(user);
+            userRepository.save(user).block();
 
-            // Log successful login
             ActivityLog log = new ActivityLog(
                 "LOGIN_SUCCESS",
                 user.getFirebaseUid(),
@@ -81,12 +74,10 @@ public class AuthenticationController {
                 "SUCCESS",
                 httpRequest.getRemoteAddr()
             );
-            activityLogRepository.save(log);
+            activityLogRepository.save(log).subscribe();
             
-            // ৪. স্প্রিং সিকিউরিটি সেশন তৈরি করা
             establishSession(user, httpRequest);
 
-            // ৫. রেসপন্স পাঠানো
             Map<String, Object> response = new HashMap<>();
             response.put("status", "success");
             response.put("isNewUser", isNewUser);
@@ -111,7 +102,8 @@ public class AuthenticationController {
             SecurityContext context = (SecurityContext) session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
             if (context != null && context.getAuthentication() != null) {
                 String uid = context.getAuthentication().getName();
-                userRepository.findByFirebaseUid(uid).ifPresent(user -> {
+                User user = userRepository.findByFirebaseUid(uid).block();
+                if (user != null) {
                     ActivityLog log = new ActivityLog(
                         "LOGOUT_SUCCESS",
                         uid,
@@ -121,8 +113,8 @@ public class AuthenticationController {
                         "SUCCESS",
                         request.getRemoteAddr()
                     );
-                    activityLogRepository.save(log);
-                });
+                    activityLogRepository.save(log).subscribe();
+                }
             }
             session.invalidate();
         }

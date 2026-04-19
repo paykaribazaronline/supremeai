@@ -4,75 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SupremeAI - Admin Dashboard</title>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        const ctx = document.getElementById('resourceChart').getContext('2d');
-        const resourceChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'CPU (%)',
-                    borderColor: '#4fd1c5',
-                    data: [],
-                    fill: false,
-                    tension: 0.4
-                }, {
-                    label: 'Memory (MB)',
-                    borderColor: '#f6ad55',
-                    data: [],
-                    fill: false,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: { ticks: { color: '#a0aec0' } },
-                    y: { ticks: { color: '#a0aec0' } }
-                },
-                plugins: {
-                    legend: { labels: { color: '#e2e8f0' } }
-                }
-            }
-        });
-
-        const socket = new SockJS('/ws');
-        const stompClient = Stomp.over(socket);
-        stompClient.debug = null; // Disable debug logs
-
-        stompClient.connect({}, function (frame) {
-            console.log('Connected: ' + frame);
-            stompClient.subscribe('/topic/metrics', function (message) {
-                const data = JSON.parse(message.body);
-                updateDashboard(data);
-            });
-        });
-
-        function updateDashboard(data) {
-            // Update Text Values
-            document.getElementById('metCpu').innerText = data.cpuLoad.toFixed(2) + '%';
-            document.getElementById('metMem').innerText = data.memoryUsed + ' MB';
-
-            // Update Chart
-            const time = new Date().toLocaleTimeString();
-            if (resourceChart.data.labels.length > 20) {
-                resourceChart.data.labels.shift();
-                resourceChart.data.datasets[0].data.shift();
-                resourceChart.data.datasets[1].data.shift();
-            }
-            resourceChart.data.labels.push(time);
-            resourceChart.data.datasets[0].data.push(data.cpuLoad);
-            resourceChart.data.datasets[1].data.push(data.memoryUsed);
-            resourceChart.update('none');
-        }
-    </script>
     <style>
         * {
             margin: 0;
@@ -661,8 +592,7 @@
             <div class="menu-item" onclick="showSection('live-activity')">⚡ Live Activity</div>
             <div class="menu-item" onclick="showSection('kimi-k2')">🔮 AI Learning Orchestration</div>
             <div class="menu-item" onclick="showSection('chat')">💬 Chat with SupremeAI</div>
-             <div class="menu-item" onclick="showSection('analytics')">📊 Analytics</div>
-             <div class="menu-item" onclick="showSection('settings')">⚙️ Settings</div>
+            <div class="menu-item" onclick="showSection('settings')">⚙️ Settings</div>
         </div>
 
         <!-- Main Content -->
@@ -861,17 +791,24 @@
                     <h1>💻 Admin Command Console</h1>
                     <p>Execute system-level commands wired to live backend APIs.</p>
                     
-                    <div class="form-group">
-                        <label for="commandSelect">Select Command</label>
-                        <select id="commandSelect" onchange="showCommandParameters()"></select>
+                    <div class="console" id="commandConsole">
+                        <div class="console-output" id="consoleOutput">SupremeAI OS v1.0.0 — type <strong>help</strong> for available commands.</div>
+                        <div class="console-input-line">
+                            <span class="console-prompt">admin@supremeai:~$</span>
+                            <input type="text" class="console-input" id="consoleInput" autocomplete="off">
+                        </div>
                     </div>
 
-                    <div id="commandParameters"></div>
-
-                    <button class="btn" onclick="executeSelectedCommand()">Execute Command</button>
-
-                    <h2>Result</h2>
-                    <pre id="commandResult" style="background: #000; color: #0f0; padding: 15px; border-radius: 5px; min-height: 100px;"></pre>
+                    <h2>Quick Commands</h2>
+                    <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap:wrap;">
+                        <button class="btn btn-secondary" onclick="runCommand('status')">System Status</button>
+                        <button class="btn btn-secondary" onclick="runCommand('git-status')">Git Status</button>
+                        <button class="btn btn-secondary" onclick="runCommand('quota')">Quota Summary</button>
+                        <button class="btn btn-secondary" onclick="runCommand('agents')">Work History</button>
+                        <button class="btn btn-secondary" onclick="runCommand('metrics')">Metrics</button>
+                        <button class="btn btn-secondary" onclick="runCommand('clear')">Clear</button>
+                        <button class="btn btn-danger" onclick="runCommand('emergency-stop')">Emergency Stop</button>
+                    </div>
                 </div>
 
                 <!-- Browser Automation Section -->
@@ -1320,11 +1257,6 @@
                         <div class="stat-card"><div class="stat-label">Success Rate</div><div class="stat-value" id="metSuccess">--</div></div>
                         <div class="stat-card"><div class="stat-label">Error Rate</div><div class="stat-value" id="metError">--</div></div>
                         <div class="stat-card"><div class="stat-label">Uptime (s)</div><div class="stat-value" id="metUptime">--</div></div>
-                    </div>
-
-                    <h2 style="margin-top:28px;">💻 Real-time System Resources</h2>
-                    <div style="background:#1a202c;border:1px solid #2d3748;border-radius:10px;padding:20px;margin-bottom:20px;height:350px;">
-                        <canvas id="resourceChart"></canvas>
                     </div>
                     <div id="metricsMsg" style="margin-top:16px;"></div>
 
@@ -1873,51 +1805,6 @@
                 </div>
 
                 <!-- Chat Section -->
-                <!-- Analytics Section -->
-                <div id="analytics" class="content-section">
-                    <h1>📊 Usage Analytics & Trends</h1>
-                    <p>Real-time insights into API usage patterns, performance metrics, and system health trends.</p>
-
-                    <div class="dashboard-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">Total API Calls (24h)</div>
-                            <div class="stat-value" id="totalApiCalls">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Active Users</div>
-                            <div class="stat-value" id="activeUsersCount">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Avg Response Time</div>
-                            <div class="stat-value" id="avgResponseTime">0ms</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Error Rate</div>
-                            <div class="stat-value" id="errorRateValue">0%</div>
-                        </div>
-                    </div>
-
-                    <h2>Usage Trends (Last 7 Days)</h2>
-                    <div style="background:#1a202c;border:1px solid #2d3748;border-radius:10px;padding:20px;margin-bottom:20px;">
-                        <canvas id="usageChart" width="800" height="300"></canvas>
-                    </div>
-
-                    <h2>Top API Endpoints</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Endpoint</th>
-                                <th>Requests</th>
-                                <th>Avg Response Time</th>
-                                <th>Error Rate</th>
-                            </tr>
-                        </thead>
-                        <tbody id="apiEndpointsTableBody">
-                            <tr><td colspan="4" style="text-align: center; padding: 40px; color: #a0aec0;">Loading analytics data...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
                 <div id="chat" class="content-section">
                     <h1>💬 Chat with SupremeAI</h1>
 
@@ -2592,157 +2479,6 @@
 
     <script>
         let availableProviders = [];
-        const firebaseConfigFallback = {
-            apiKey: "AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8",
-            authDomain: "supremeai-a.firebaseapp.com",
-            databaseURL: "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/",
-            projectId: "supremeai-a",
-            storageBucket: "supremeai-a.firebasestorage.app",
-            messagingSenderId: "565236080752",
-            appId: "1:565236080752:web:572bb9313db9afb355d4b5"
-        };
-        let firebaseConfig = null;
-        let firebaseAuth = null;
-        let stompClient = null;
-
-        async function initializeFirebase() {
-            try {
-                // Load Firebase config from backend API
-                const response = await fetch('/api/config/firebase', {
-                    headers: { 'Accept': 'application/json' }
-                });
-                if (!response.ok) throw new Error(`Failed to load Firebase config (${response.status})`);
-
-                firebaseConfig = await response.json();
-                if (!firebaseConfig || !firebaseConfig.apiKey) {
-                    throw new Error('Firebase config response was incomplete');
-                }
-
-                // Initialize Firebase
-                if (!firebase.apps.length) {
-                    firebase.initializeApp(firebaseConfig);
-                }
-                firebaseAuth = firebase.auth();
-            console.log('✅ Firebase initialized');
-            return true;
-        } catch (err) {
-            console.error('❌ Firebase init failed:', err.message);
-            try {
-                firebaseConfig = firebaseConfigFallback;
-                if (!firebase.apps.length) {
-                    firebase.initializeApp(firebaseConfig);
-                }
-                firebaseAuth = firebase.auth();
-                return true;
-            } catch (fallbackErr) {
-                return false;
-            }
-        }
-
-        function connectWebSocket() {
-            const socket = new SockJS('/ws');
-            stompClient = Stomp.over(socket);
-
-            stompClient.connect({}, function(frame) {
-                console.log('✅ Connected to WebSocket:', frame);
-
-                // Subscribe to dashboard updates
-                stompClient.subscribe('/topic/dashboard', function(message) {
-                    const data = JSON.parse(message.body);
-                    updateDashboardStats(data.stats);
-                });
-
-                // Subscribe to quota updates
-                stompClient.subscribe('/topic/quota', function(message) {
-                    const data = JSON.parse(message.body);
-                    updateQuotaDisplay(data.quota);
-                });
-
-                // Request initial data
-                stompClient.send('/app/dashboard/subscribe', {}, '');
-
-            }, function(error) {
-                console.error('❌ WebSocket connection error:', error);
-                setTimeout(connectWebSocket, 5000); // Retry connection after 5 seconds
-            });
-        }
-
-        function updateDashboardStats(stats) {
-            if (stats.activeAIAgents !== undefined) {
-                const element = document.getElementById('activeAgentsCount');
-                if (element) {
-                    element.textContent = stats.activeAIAgents;
-                    element.style.color = '#4299e1';
-                    setTimeout(() => element.style.color = '', 2000);
-                }
-            }
-            if (stats.systemHealthScore !== undefined) {
-                const element = document.getElementById('systemLoadValue');
-                if (element) {
-                    element.textContent = stats.systemHealthScore + '%';
-                    element.style.color = stats.systemHealthScore >= 95 ? '#48bb78' : stats.systemHealthScore >= 90 ? '#ed8936' : '#f56565';
-                }
-            }
-            if (stats.runningProjects !== undefined) {
-                const element = document.getElementById('activeProjectsCount');
-                if (element) {
-                    element.textContent = stats.runningProjects;
-                    element.style.color = '#4299e1';
-                    setTimeout(() => element.style.color = '', 2000);
-                }
-            }
-            if (stats.completedProjects !== undefined) {
-                const element = document.getElementById('completedProjectsCount');
-                if (element) {
-                    element.textContent = stats.completedProjects;
-                }
-            }
-            if (stats.successRate !== undefined) {
-                const element = document.getElementById('successRateValue');
-                if (element) {
-                    element.textContent = stats.successRate + '%';
-                }
-            }
-            if (stats.systemHealthStatus) {
-                const element = document.getElementById('systemStatusValue');
-                if (element) {
-                    element.textContent = stats.systemHealthStatus;
-                    element.style.color = stats.systemHealthStatus === 'HEALTHY' ? '#48bb78' : '#f56565';
-                }
-            }
-        }
-
-        function updateQuotaDisplay(quotaData) {
-            // Update any quota display elements if they exist
-            console.log('📊 Quota update received:', quotaData);
-        }
-        }
-
-        function showError(message) {
-            // Create or update error display
-            let errorDiv = document.getElementById('authError');
-            if (!errorDiv) {
-                errorDiv = document.createElement('div');
-                errorDiv.id = 'authError';
-                errorDiv.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background: #d32f2f;
-                    color: white;
-                    padding: 15px;
-                    border-radius: 5px;
-                    z-index: 10000;
-                    max-width: 400px;
-                `;
-                document.body.appendChild(errorDiv);
-            }
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            setTimeout(() => {
-                errorDiv.style.display = 'none';
-            }, 5000);
-        }
 
         function getCurrentAdminEmail() {
             return 'admin@supremeai.com';
@@ -2826,7 +2562,6 @@
             if (sectionId === 'airllm-config') { loadAirllmConfig(); }
             if (sectionId === 'activity-summary') loadActivitySummary();
             if (sectionId === 'browser-automation') refreshBrowserWorkspace();
-            if (sectionId === 'commands') loadCommands();
         }
 
         function showModal(modalId) {
@@ -2999,99 +2734,12 @@
             }
         }
 
-        // --- Commands Section Logic ---
-        async function loadCommands() {
-            const select = document.getElementById('commandSelect');
-            select.innerHTML = '<option>Loading...</option>';
-            try {
-                const response = await fetch('/api/commands/list', { headers: getAuthHeaders() });
-                const data = await response.json();
-                select.innerHTML = '<option value="">-- Select a command --</option>';
-                data.commands.forEach(cmd => {
-                    const option = document.createElement('option');
-                    option.value = cmd.name;
-                    option.textContent = `${cmd.name} - ${cmd.description}`;
-                    select.appendChild(option);
-                });
-            } catch (error) {
-                select.innerHTML = `<option>Error: ${error.message}</option>`;
-            }
-        }
-
-        async function showCommandParameters() {
-            const commandName = document.getElementById('commandSelect').value;
-            const paramsContainer = document.getElementById('commandParameters');
-            paramsContainer.innerHTML = '';
-            if (!commandName) return;
-
-            try {
-                const response = await fetch(`/api/commands/${commandName}`, { headers: getAuthHeaders() });
-                const data = await response.json();
-                if (data.parameters) {
-                    data.parameters.forEach(param => {
-                        const div = document.createElement('div');
-                        div.className = 'form-group';
-                        div.innerHTML = `
-                            <label for="param-${param.name}">${param.name} (${param.type})</label>
-                            <input type="text" id="param-${param.name}" data-param-name="${param.name}">
-                        `;
-                        paramsContainer.appendChild(div);
-                    });
-                }
-            } catch (error) {
-                paramsContainer.innerHTML = `<p style="color:red;">Error loading parameters: ${error.message}</p>`;
-            }
-        }
-
-        async function executeSelectedCommand() {
-            const commandName = document.getElementById('commandSelect').value;
-            const resultContainer = document.getElementById('commandResult');
-            if (!commandName) {
-                resultContainer.textContent = 'Please select a command.';
-                return;
-            }
-
-            const params = {};
-            document.querySelectorAll('#commandParameters input').forEach(input => {
-                const paramName = input.getAttribute('data-param-name');
-                // Basic type inference, can be improved
-                let value = input.value;
-                if (!isNaN(value) && value.trim() !== '') {
-                    value = Number(value);
-                } else if (value.toLowerCase() === 'true') {
-                    value = true;
-                } else if (value.toLowerCase() === 'false') {
-                    value = false;
-                }
-                params[paramName] = value;
-            });
-
-            resultContainer.textContent = 'Executing...';
-            try {
-                const response = await fetch('/api/commands/execute', {
-                    method: 'POST',
-                    headers: getAuthHeaders(),
-                    body: JSON.stringify({ name: commandName, parameters: params })
-                });
-                const result = await response.json();
-                resultContainer.textContent = JSON.stringify(result, null, 2);
-            } catch (error) {
-                resultContainer.textContent = `Error: ${error.message}`;
-            }
-        }
+        // --- Commands Logic (wired in COMMANDS CONSOLE section above) ---
 
         function getAuthHeaders() {
-            const headers = {
+            return {
                 'Content-Type': 'application/json'
             };
-
-            // Add authorization token if available
-            const token = localStorage.getItem('supremeai_auth_token');
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
-
-            return headers;
         }
 
         function getFriendlyNetworkMessage(error) {
@@ -3106,65 +2754,11 @@
             const isAuth = localStorage.getItem('supremeai_firebase_authenticated') === 'true';
             if (!isAuth) {
                 localStorage.removeItem('supremeai_user');
-                localStorage.removeItem('supremeai_auth_token');
                 window.location.href = '/login.html';
                 return false;
             }
 
-            // Check if we have a backend auth token
-            const backendToken = localStorage.getItem('supremeai_auth_token');
-            if (!backendToken) {
-                // Need to authenticate with backend
-                try {
-                    await authenticateWithBackend();
-                } catch (error) {
-                    console.error('Backend authentication failed:', error);
-                    showError('Failed to initialize authentication service. Please refresh the page.');
-                    return false;
-                }
-            }
-
-            // Connect to WebSocket for real-time updates
-            connectWebSocket();
-
             return true;
-        }
-
-        async function authenticateWithBackend() {
-            try {
-                // Get Firebase ID token
-                const user = firebase.auth().currentUser;
-                if (!user) {
-                    throw new Error('No Firebase user found');
-                }
-
-                const idToken = await user.getIdToken();
-
-                // Call backend authentication
-                const response = await fetch('/api/auth/firebase-login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ idToken: idToken })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Backend authentication failed');
-                }
-
-                const authData = await response.json();
-                if (authData.status === 'success') {
-                    // Store the backend token
-                    localStorage.setItem('supremeai_auth_token', authData.token);
-                    console.log('✅ Backend authentication successful');
-                } else {
-                    throw new Error(authData.message || 'Authentication failed');
-                }
-            } catch (error) {
-                console.error('Backend auth error:', error);
-                throw error;
-            }
         }
 
         async function fetchTechniques(category = '') {
@@ -6037,7 +5631,6 @@
             if (!confirm('Are you sure you want to logout?')) return;
             localStorage.removeItem('supremeai_firebase_authenticated');
             localStorage.removeItem('supremeai_user');
-            localStorage.removeItem('supremeai_auth_token');
             if (window.firebase && window.firebase.apps && window.firebase.apps.length && window.firebase.auth) {
                 window.firebase.auth().signOut().catch(() => null).finally(() => {
                     window.location.href = '/login.html';
@@ -6648,12 +6241,6 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
-            const firebaseReady = await initializeFirebase();
-            if (!firebaseReady) {
-                showError('Failed to initialize authentication service. Please refresh the page.');
-                return;
-            }
-
             const hasSession = await ensureAdminSession();
             if (!hasSession) {
                 return;
@@ -7513,10 +7100,7 @@
         }
 
         // Initialize system mode on page load
-        document.addEventListener('DOMContentLoaded', async () => {
-            await initializeFirebase();
-            await ensureAdminSession();
-
+        document.addEventListener('DOMContentLoaded', () => {
             const settingsSection = document.getElementById('settings');
             if (settingsSection) {
                 loadSystemMode();
