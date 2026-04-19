@@ -117,7 +117,7 @@ jobs:
           distribution: "temurin"
           cache: "gradle"
       - name: Build_And_Test
-        run: "./gradlew build -x jacocoTestCoverageVerification --parallel"
+        run: "./gradlew build -x jacocoTestCoverageVerification"
       - name: Upload_JAR
         uses: actions/upload-artifact@v6
         with:
@@ -211,7 +211,7 @@ jobs:
           distribution: "temurin"
           cache: "gradle"
       - name: Build_Plugin
-        run: "./gradlew :supremeai-intellij-plugin:buildPlugin --parallel"
+        run: "./gradlew :supremeai-intellij-plugin:buildPlugin"
       - name: Upload_Plugin_Artifact
         uses: actions/upload-artifact@v6
         with:
@@ -284,14 +284,19 @@ jobs:
         run: |
           BUILD_ID=$(gcloud builds submit --config cloudbuild.yaml --async --format='value(id)')
           echo "build_id=$BUILD_ID" >> $GITHUB_OUTPUT
-          # Wait for build to complete (with timeout)
-          if ! gcloud builds wait $BUILD_ID --timeout=1200s; then
-            echo "Build wait failed or timed out, but continuing to check service status..."
+          # Wait for build to complete (with timeout) or continue on failure
+          set +e
+          gcloud builds wait $BUILD_ID --timeout=1200s
+          BUILD_WAIT_STATUS=$?
+          set -e
+          if [ $BUILD_WAIT_STATUS -ne 0 ]; then
+            echo "Build wait failed or timed out (exit code: $BUILD_WAIT_STATUS), but continuing to check service status..."
           fi
       - name: Store_Admin_URL
         id: set-url
         run: |
           # Retry logic for service description
+          set +e
           for i in {1..5}; do
             if URL=$(gcloud run services describe supremeai --platform managed --region us-central1 --format='value(status.url)' 2>/dev/null); then
               echo "url=$URL/admin.html" >> $GITHUB_OUTPUT
@@ -303,6 +308,7 @@ jobs:
               sleep 10
             fi
           done
+          set -e
           echo "Failed to get service URL after 5 attempts" >&2
           exit 1
       - name: Show_Cloud_Build_Logs
