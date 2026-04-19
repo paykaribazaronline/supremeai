@@ -47,8 +47,27 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
             
             // Header
             val header = JPanel(BorderLayout())
-            header.add(JLabel("SupremeAI Assistant"), BorderLayout.WEST)
-            header.add(statusLabel, BorderLayout.EAST)
+            val titlePanel = JPanel(BorderLayout())
+            titlePanel.add(JLabel("SupremeAI Assistant"), BorderLayout.WEST)
+            titlePanel.add(statusLabel, BorderLayout.EAST)
+            header.add(titlePanel, BorderLayout.NORTH)
+
+            // API Key Setting in Tool Window
+            val settingsPanel = JPanel(BorderLayout())
+            settingsPanel.border = EmptyBorder(5, 0, 5, 0)
+            val apiKeyInput = JBTextField(SupremeAISettings.getInstance().apiKey)
+            apiKeyInput.emptyText.text = "Enter API Key..."
+            settingsPanel.add(JLabel("API Key: "), BorderLayout.WEST)
+            settingsPanel.add(apiKeyInput, BorderLayout.CENTER)
+            val saveBtn = JButton("Set")
+            saveBtn.addActionListener {
+                SupremeAISettings.getInstance().apiKey = apiKeyInput.text
+                statusLabel.text = "● Backend: Updating..."
+                checkBackendStatus()
+            }
+            settingsPanel.add(saveBtn, BorderLayout.EAST)
+            header.add(settingsPanel, BorderLayout.SOUTH)
+
             panel.add(header, BorderLayout.NORTH)
 
             // Chat Area
