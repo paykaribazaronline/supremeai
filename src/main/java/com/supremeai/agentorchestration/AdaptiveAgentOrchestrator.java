@@ -6,20 +6,15 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-/**
- * AdaptiveAgentOrchestrator - Coordinates AI agents for app generation.
- * 
- * This is a simplified taste-phase implementation that:
- * 1. Receives a requirement string
- * 2. Generates basic architecture questions (hardcoded for now)
- * 3. Runs consensus voting on key decisions
- * 4. Returns a context map for code generation
- */
 @Service
 public class AdaptiveAgentOrchestrator {
 
+    private final MultiAIConsensusService consensusService;
+
     @Autowired
-    private MultiAIConsensusService consensusService;
+    public AdaptiveAgentOrchestrator(MultiAIConsensusService consensusService) {
+        this.consensusService = consensusService;
+    }
 
     /**
      * Main orchestration entry point.

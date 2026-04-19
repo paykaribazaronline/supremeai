@@ -2,21 +2,61 @@ package com.supremeai.service;
 
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class CodeGenerationService {
 
     /**
-     * Generate a simple skeleton application based on spec.
-     * This is a minimal taste-phase implementation - returns static template.
+     * Generate a simple skeleton application based on flat spec (legacy).
      */
     public Map<String, Object> generate(Map<String, Object> spec) {
-        String appName = (String) spec.getOrDefault("name", "MyApp");
+        return generateFromContext(Collections.emptyMap());
+    }
+
+    /**
+     * Generate application from orchestration context (decisions: db, architecture, etc).
+     * Context keys expected: "architecture", "database", "apiStyle", "authType", "frontend", "deployment"
+     */
+    public Map<String, Object> generateFromContext(Map<String, String> decisions) {
+        String appName = "GeneratedApp";
         Map<String, String> files = new LinkedHashMap<>();
 
-        // Generate a basic Gradle build file
+        // Derive tech stack from decisions (with defaults)
+        String architecture = decisions.getOrDefault("architecture", "monolith");
+        String database = decisions.getOrDefault("database", "PostgreSQL");
+        String apiStyle = decisions.getOrDefault("apiStyle", "REST");
+        String authType = decisions.getOrDefault("authType", "JWT");
+        String frontend = decisions.getOrDefault("frontend", "React");
+        String deployment = decisions.getOrDefault("deployment", "GCP");
+
+        // Build dependencies based on decisions
+        List<String> dependencies = new ArrayList<>();
+        dependencies.add("implementation(\"org.springframework.boot:spring-boot-starter-web\")");
+        dependencies.add("implementation(\"org.springframework.boot:spring-boot-starter-validation\")");
+        
+        // Database driver
+        switch (database.toLowerCase()) {
+            case "postgresql": 
+                dependencies.add("runtimeOnly(\"org.postgresql:postgresql\")");
+                break;
+            case "mysql": 
+                dependencies.add("runtimeOnly(\"com.mysql:mysql-connector-j\")");
+                break;
+            case "mongodb": 
+                dependencies.add("implementation(\"org.springframework.boot:spring-boot-starter-data-mongodb\")");
+                break;
+        }
+
+        // JWT auth
+        if (authType.equalsIgnoreCase("JWT")) {
+            dependencies.add("implementation(\"io.jsonwebtoken:jjwt-api:0.12.5\")");
+            dependencies.add("runtimeOnly(\"io.jsonwebtoken:jjwt-impl:0.12.5\")");
+            dependencies.add("runtimeOnly(\"io.jsonwebtoken:jjwt-jackson:0.12.5\")");
+        }
+
+        // Build.gradle
+        String depsBlock = String.join(",\n                ", dependencies);
         String buildGradle = """
             plugins {
                 id("org.springframework.boot") version "3.2.3"
@@ -32,67 +72,85 @@ public class CodeGenerationService {
                 mavenCentral()
             }
             dependencies {
-                implementation("org.springframework.boot:spring-boot-starter-web")
-                testImplementation("org.springframework.boot:spring-boot-starter-test")
+                %s
             }
             tasks.getByName("test") {
                 useJUnitPlatform()
             }
-            """;
+            """.formatted(depsBlock);
         files.put("build.gradle.kts", buildGradle);
 
-        // Generate a simple main application class
+        // Application class
         String appClass = """
-            package com.example.%s;
-
+            package com.example.generated;
+            
             import org.springframework.boot.SpringApplication;
             import org.springframework.boot.autoconfigure.SpringBootApplication;
-
+            
             @SpringBootApplication
-            public class %sApplication {
+            public class GeneratedAppApplication {
                 public static void main(String[] args) {
-                    SpringApplication.run(%sApplication.class, args);
+                    SpringApplication.run(GeneratedAppApplication.class, args);
                 }
             }
-            """.formatted(appName.toLowerCase(), appName, appName);
-        files.put("src/main/java/com/example/" + appName.toLowerCase() + "/" + appName + "Application.java", appClass);
+            """;
+        files.put("src/main/java/com/example/generated/GeneratedAppApplication.java", appClass);
 
-        // Generate a simple REST controller
-        String controller = """
-            package com.example.%s.controller;
-
+        // Health controller
+        String healthCtrl = """
+            package com.example.generated.controller;
+            
             import org.springframework.web.bind.annotation.GetMapping;
             import org.springframework.web.bind.annotation.RequestMapping;
             import org.springframework.web.bind.annotation.RestController;
-
+            
             @RestController
             @RequestMapping("/api")
-            public class HelloController {
-                @GetMapping("/hello")
-                public String hello() {
-                    return "Hello from %s!";
+            public class HealthController {
+                @GetMapping("/health")
+                public Map<String, String> health() {
+                    return Map.of("status", "UP", "database", "%s", "architecture", "%s");
+                }
+                
+                @GetMapping("/info")
+                public Map<String, String> info() {
+                    return Map.of("app", "GeneratedApp", "version", "1.0.0");
                 }
             }
-            """.formatted(appName.toLowerCase(), appName, appName);
-        files.put("src/main/java/com/example/" + appName.toLowerCase() + "/controller/HelloController.java", controller);
+            """.formatted(database, architecture);
+        files.put("src/main/java/com/example/generated/controller/HealthController.java", healthCtrl);
 
-        // Generate application.yml
-        String yml = """
-            server:
-              port: 8080
-            spring:
-              application:
-                name: %s
+        // Dockerfile if requested
+        String dockerfile = """
+            FROM eclipse-temurin:17-jre-alpine
+            ARG JAR_FILE=build/libs/*.jar
+            COPY ${JAR_FILE} app.jar
+            ENTRYPOINT ["java","-jar","/app.jar"]
             """;
-        files.put("src/main/resources/application.yml", yml);
+        files.put("Dockerfile", dockerfile);
 
-        // Generate README
+        // README with decisions
         String readme = """
-            # %s
-            Generated by SupremeAI (taste phase).
-            - Run with: ./gradlew bootRun
-            - Access: http://localhost:8080/api/hello
-            """.formatted(appName);
+            # Generated Application
+            
+            Architecture: %s
+            Database: %s
+            API Style: %s
+            Auth: %s
+            Frontend: %s
+            Deployment: %s
+            
+            ## Run
+            
+            ./gradlew bootRun
+            
+            ## API Endpoints
+            
+            - GET /api/health - health check
+            - GET /api/info - app info
+            
+            Generated by SupremeAI (Sprint 2).
+            """.formatted(architecture, database, apiStyle, authType, frontend, deployment);
         files.put("README.md", readme);
 
         Map<String, Object> result = new LinkedHashMap<>();
@@ -100,7 +158,8 @@ public class CodeGenerationService {
         result.put("files", files);
         result.put("fileCount", files.size());
         result.put("status", "GENERATED");
-        result.put("message", "Skeleton app generated (taste phase)");
+        result.put("decisions", decisions);
+        result.put("message", "App generated from consensus decisions (Sprint 2)");
         return result;
     }
 }

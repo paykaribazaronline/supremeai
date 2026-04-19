@@ -17,7 +17,7 @@ public class CodeGenerationController {
 
     /**
      * POST /api/generate/app
-     * Generate a skeleton application from requirements.
+     * Generate a skeleton application from basic spec (legacy/simple).
      * Body: {"name": "MyApp", "description": "..."}
      */
     @PostMapping("/app")
@@ -27,8 +27,22 @@ public class CodeGenerationController {
     }
 
     /**
+     * POST /api/generate/from-orchestration
+     * Generate app using orchestration context (decisions from consensus voting).
+     * Body: {"decisions": {"database":"PostgreSQL","architecture":"monolith",...}}
+     */
+    @PostMapping("/from-orchestration")
+    public Mono<ResponseEntity<Map<String, Object>>> generateFromOrchestration(@RequestBody Map<String, Object> request) {
+        Map<String, String> decisions = (Map<String, String>) request.get("decisions");
+        if (decisions == null) {
+            decisions = Map.of();
+        }
+        Map<String, Object> result = codeGenerationService.generateFromContext(decisions);
+        return Mono.just(ResponseEntity.ok(result));
+    }
+
+    /**
      * GET /api/generate/health
-     * Health check
      */
     @GetMapping("/health")
     public Mono<ResponseEntity<Object>> health() {

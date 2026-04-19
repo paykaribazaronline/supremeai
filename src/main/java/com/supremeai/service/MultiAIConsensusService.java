@@ -5,7 +5,6 @@ import com.supremeai.model.ConsensusResult;
 import com.supremeai.model.ProviderVote;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
-import com.supremeai.repository.ConsensusVoteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -27,13 +26,13 @@ public class MultiAIConsensusService {
     @Autowired
     private AIProviderFactory providerFactory;
 
-    @Autowired
-    private ConsensusVoteRepository voteRepository;
+    // In-memory history for taste phase (no Firebase)
+    private final List<ConsensusVote> history = new CopyOnWriteArrayList<>();
 
     private final ExecutorService executor = Executors.newFixedThreadPool(10);
     private final java.util.Random random = new java.util.Random();
 
-    private static final org.slf4j.Logger logger = 
+    private static final org.slf4j.Logger logger =
         org.slf4j.LoggerFactory.getLogger(MultiAIConsensusService.class);
 
     /**
@@ -121,6 +120,9 @@ public class MultiAIConsensusService {
         );
     }
 
+    /**
+     * Save vote to in-memory history (taste phase - no Firebase).
+     */
     private void saveVoteToFirebase(String question, List<ProviderVote> votes, String consensus, double percentage) {
         try {
             ConsensusVote result = new ConsensusVote();
@@ -128,17 +130,20 @@ public class MultiAIConsensusService {
             result.setConsensusAnswer(consensus);
             result.setConsensusPercentage(percentage);
             result.setVotes(votes);
-            
-            voteRepository.save(result).subscribe();
+            // Note: id and timestamp set by ConsensusVote constructor/setters
+            history.add(result);
+            logger.info("Saved consensus vote to in-memory history (size: {})", history.size());
         } catch (Exception e) {
-            logger.warn("Failed to save vote to Firebase: " + e.getMessage());
+            logger.warn("Failed to save vote to history: " + e.getMessage());
         }
     }
 
     /**
-     * Get recent consensus history
+     * Get recent consensus history from in-memory store.
      */
     public Flux<ConsensusVote> getHistory(int limit) {
-        return voteRepository.findAll().take(limit);
+        return Flux.fromIterable(history)
+            .sort((a, b) -> b.getTimestamp().compareTo(a.getTimestamp()))
+            .take(limit);
     }
 }
