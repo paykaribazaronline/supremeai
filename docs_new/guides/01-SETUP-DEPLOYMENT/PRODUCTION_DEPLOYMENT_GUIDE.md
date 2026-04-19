@@ -327,9 +327,9 @@ https://supremeai-PROJECT_ID.us-central1.run.app
 
 | Component | URL | Status |
 |-----------|-----|--------|
-| Main Dashboard | `https://supremeai-565236080752.us-central1.run.app/admin.html` | Cloud Run |
+| Main Dashboard | `https://supremeai-backend-565236080752.us-central1.run.app/admin.html` | Cloud Run |
 | Admin Panel | `https://supremeai-a.web.app/admin/` | Firebase Hosting |
-| Backend API | `https://supremeai-565236080752.us-central1.run.app` | Cloud Run |
+| Backend API | `https://supremeai-backend-565236080752.us-central1.run.app` | Cloud Run |
 | Firebase Console | `https://console.firebase.google.com/project/supremeai-a` | supremeai-a |
 
 ---
