@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -16,6 +17,7 @@ import java.util.Map;
  * Tuned for maximum performance with local LLaMA 3 70B
  */
 @Component
+@Profile("!cloud")
 public class OllamaProvider implements AIProvider {
 
     @Override
