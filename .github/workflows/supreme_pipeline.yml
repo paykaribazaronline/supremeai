@@ -263,12 +263,12 @@ jobs:
             --platform managed \
             --region us-central1 \
             --allow-unauthenticated \
-            --memory 8Gi \
+            --memory 4Gi \
             --cpu 2 \
-            --timeout 3600 \
+            --timeout 300 \
             --set-env-vars="SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a,spring.threads.virtual.enabled=true" \
-            --max-instances 20 \
-            --concurrency 1000 \
+            --max-instances 10 \
+            --concurrency 80 \
             --cpu-boost
       - name: Store_Admin_URL
         id: set-url

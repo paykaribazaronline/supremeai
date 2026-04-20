@@ -16,4 +16,7 @@ EXPOSE 8080
 # Optimized JVM settings for container environments
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
 
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -fsS http://localhost:8080/actuator/health || exit 1
+
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
