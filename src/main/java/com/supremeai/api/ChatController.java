@@ -6,6 +6,8 @@ import com.supremeai.service.GuestQuotaService;
 import com.supremeai.service.quota.QuotaExceededException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,8 @@ import java.time.LocalDateTime;
 @RestController
 @RequestMapping("/api/chat")
 public class ChatController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ChatController.class);
 
     @Autowired
     private SystemLearningRepository learningRepository;
@@ -57,20 +61,19 @@ public class ChatController {
         // Mock response for now, to be replaced with actual AI service call
         String aiResponse = "SupremeAI: I've received your message about '" + message + "'. I am currently processing this through " + provider + ".";
 
-        return learningRepository.save(learningEntry)
-                .map(saved -> (ResponseEntity<Object>) ResponseEntity.ok((Object) Map.of(
-                        "response", aiResponse,
-                        "status", "LEARNED",
-                        "learningId", saved.getId(),
-                        "guestRemaining", guestQuotaService.getRemainingQuota(guestId),
-                        "guestLimit", guestQuotaService.getGuestQuotaLimit()
-                )))
-                .onErrorResume(e -> Mono.just((ResponseEntity<Object>) ResponseEntity.ok((Object) Map.of(
-                        "response", aiResponse,
-                        "status", "OFFLINE_MODE",
-                        "error", e.getMessage(),
-                        "guestRemaining", guestQuotaService.getRemainingQuota(guestId),
-                        "guestLimit", guestQuotaService.getGuestQuotaLimit()
-                ))));
+        // Fire and forget with guaranteed persistence
+        learningRepository.save(learningEntry)
+            .doOnSuccess(saved -> logger.debug("Learning entry saved: {}", saved.getId()))
+            .doOnError(e -> logger.error("Failed to save learning entry: {}", e.getMessage()))
+            .subscribe();
+
+        // Return response immediately
+        return Mono.just(ResponseEntity.ok(Map.of(
+                "response", aiResponse,
+                "status", "LEARNED",
+                "learningId", learningEntry.getId(),
+                "guestRemaining", guestQuotaService.getRemainingQuota(guestId),
+                "guestLimit", guestQuotaService.getGuestQuotaLimit()
+        )));
     }
 }

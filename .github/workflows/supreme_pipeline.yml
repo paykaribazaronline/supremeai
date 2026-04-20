@@ -247,45 +247,28 @@ jobs:
           credentials_json: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}"
       - name: Setup_GCloud
         uses: google-github-actions/setup-gcloud@v2
-      - name: Deploy_Backend_To_Cloud_Run
-        id: build
+      - name: Deploy_To_Cloud_Run
         run: |
-          BUILD_ID=$(gcloud builds submit --config cloudbuild.yaml --async --format='value(id)')
-          echo "build_id=$BUILD_ID" >> $GITHUB_OUTPUT
-      - name: Wait_For_Build
-        run: |
-          BUILD_ID="${{ steps.build.outputs.build_id }}"
-          PROJECT_ID="supremeai-a"
-          echo "Build started: https://console.cloud.google.com/cloud-build/builds/$BUILD_ID?project=$PROJECT_ID"
-          for i in {1..120}; do
-            STATUS=$(gcloud builds describe $BUILD_ID --project=$PROJECT_ID --format='value(status)' 2>/dev/null || echo "UNKNOWN")
-            if [ "$STATUS" = "SUCCESS" ]; then
-              echo "Build completed successfully"
-              exit 0
-            elif [ "$STATUS" = "FAILURE" ] || [ "$STATUS" = "INTERNAL_ERROR" ] || [ "$STATUS" = "TIMEOUT" ] || [ "$STATUS" = "CANCELLED" ]; then
-              echo "Build finished with status: $STATUS"
-              echo "Check logs at: https://console.cloud.google.com/cloud-build/builds/$BUILD_ID?project=$PROJECT_ID"
-              # Attempt to fetch logs, but don't fail the step if it fails (it might be a permission issue)
-              gcloud builds log $BUILD_ID --project=$PROJECT_ID || echo "Could not fetch build logs via CLI. Please check the Google Cloud Console link above."
-              exit 1
-            fi
-            echo "Build status: $STATUS. Waiting... ($i/120)"
-            sleep 10
-          done
-          echo "Timeout waiting for build"
-          echo "Check logs at: https://console.cloud.google.com/cloud-build/builds/$BUILD_ID?project=$PROJECT_ID"
-          exit 1
+          gcloud run deploy supremeai \
+            --source . \
+            --platform managed \
+            --region us-central1 \
+            --allow-unauthenticated \
+            --memory 2Gi \
+            --cpu 2 \
+            --timeout 300 \
+            --set-env-vars="SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a" \
+            --max-instances 10
       - name: Store_Admin_URL
         id: set-url
         run: |
           URL=$(gcloud run services describe supremeai --platform managed --region us-central1 --format='value(status.url)')
           echo "url=$URL/admin.html" >> $GITHUB_OUTPUT
-      - name: Show_Cloud_Build_Logs
+      - name: Show_Logs_On_Failure
         if: failure()
         run: |
-          echo "Fetching latest Cloud Build logs..."
-          BUILD_ID="${{ steps.build.outputs.build_id }}"
-          gcloud builds log $BUILD_ID --project=supremeai-a || echo "Could not fetch build logs"
+          echo "Fetching latest Cloud Run logs for troubleshooting..."
+          gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=supremeai" --limit 50
 
   deploy-frontend:
     name: Deploy_Frontend
