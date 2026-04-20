@@ -79,14 +79,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-websocket")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    // Removed spring-boot-starter-data-jpa to avoid conflict with Firestore reactive repositories
 
     // Spring Cloud GCP - Firestore
     implementation("com.google.cloud:spring-cloud-gcp-starter-data-firestore")
-    
-    // Spring Data
-    implementation("org.springframework.data:spring-data-commons:3.2.2")
-    implementation("org.springframework.data:spring-data-jpa:3.2.2")
 
     // Database
     runtimeOnly("com.h2database:h2")
