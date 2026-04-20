@@ -25,7 +25,7 @@ jobs:
       vscode_extension: "${{ steps.filter.outputs.vscode_extension }}"
     steps:
       - uses: actions/checkout@v4
-      - uses: step-security/paths-filter@v3
+      - uses: dorny/paths-filter@v3
         id: filter
         with:
           filters: |
