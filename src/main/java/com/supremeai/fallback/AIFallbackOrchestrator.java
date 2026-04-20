@@ -82,7 +82,7 @@ public class AIFallbackOrchestrator {
                 // If code is clean:
                 // 1. Save to Knowledge Base for future
                 // 2. Tell AI Profiler this AI did a GREAT job so it gets higher ranking next time!
-                knowledgeBase.recordSuccess(errorSignature, generatedCode, provider.name(), timeTaken, 0.95);
+                knowledgeBase.recordSuccessWithPermission(errorSignature, generatedCode, provider.name(), timeTaken, 0.95);
                 aiProfiler.recordPerformance(taskCategory, provider, true, timeTaken);
                 
                 return generatedCode;

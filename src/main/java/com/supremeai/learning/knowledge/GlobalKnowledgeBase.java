@@ -1,5 +1,7 @@
 package com.supremeai.learning.knowledge;
 
+import com.supremeai.admin.AdminDashboardService;
+import com.supremeai.admin.ImprovementProposal;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -10,17 +12,21 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class GlobalKnowledgeBase {
 
-    // Map: Error Signature -> List of Solutions
     private final Map<String, List<SolutionMemory>> globalMemory = new ConcurrentHashMap<>();
+    private final AdminDashboardService adminDashboard;
+
+    public GlobalKnowledgeBase(AdminDashboardService adminDashboard) {
+        this.adminDashboard = adminDashboard;
+    }
 
     /**
-     * Records a successful fix, including its performance and security metrics.
+     * Records a successful fix, BUT checks with Admin Dashboard first!
      */
-    public void recordSuccess(String errorSignature, String successfulCode, String aiProvider, 
+    public void recordSuccessWithPermission(String errorSignature, String successfulCode, String aiProvider, 
                               long executionTimeMs, double securityScore) {
+        
+        // 1. Check if we already have this exact solution (Just boosting confidence doesn't need admin permission)
         List<SolutionMemory> solutions = globalMemory.computeIfAbsent(errorSignature, k -> new ArrayList<>());
-
-        // Check if we already have this exact solution
         for (SolutionMemory solution : solutions) {
             if (solution.getResolvedCode().equals(successfulCode)) {
                 solution.incrementSuccess();
@@ -29,14 +35,26 @@ public class GlobalKnowledgeBase {
             }
         }
 
-        // New solution learned!
-        solutions.add(new SolutionMemory(errorSignature, successfulCode, aiProvider, executionTimeMs, securityScore));
-        System.out.println("[Knowledge Base] Learned NEW solution for error: '" + errorSignature + "' (Provided by " + aiProvider + ")");
+        // 2. It's a brand NEW solution. We must ask permission or check Auto-Pilot!
+        ImprovementProposal proposal = new ImprovementProposal(
+            "Learn new fix for " + errorSignature,
+            "AI Provider " + aiProvider + " successfully fixed this error. Should I add it to Global Memory?",
+            "KNOWLEDGE_BASE",
+            successfulCode
+        );
+
+        boolean isApprovedImmediately = adminDashboard.submitImprovement(proposal);
+
+        if (isApprovedImmediately) {
+            // Auto-Pilot is ON (or admin approved synchronously). Save it!
+            solutions.add(new SolutionMemory(errorSignature, successfulCode, aiProvider, executionTimeMs, securityScore));
+            System.out.println("[Knowledge Base] Learned NEW solution automatically!");
+        } else {
+            System.out.println("[Knowledge Base] Solution pending. Waiting for Admin to approve in the Dashboard.");
+            // In a real app, when Admin clicks 'Approve', an event would trigger the addition.
+        }
     }
     
-    /**
-     * If a solution that was given previously turns out to be wrong or causes a secondary bug.
-     */
     public void recordFailure(String errorSignature, String failedCode) {
         List<SolutionMemory> solutions = globalMemory.get(errorSignature);
         if (solutions != null) {
@@ -50,31 +68,15 @@ public class GlobalKnowledgeBase {
         }
     }
 
-    /**
-     * INTELLIGENT RANKING SYSTEM
-     * Evaluates multiple solutions for the same problem and picks the absolute BEST one.
-     */
     public String findKnownSolution(String errorSignature) {
         List<SolutionMemory> solutions = globalMemory.get(errorSignature);
-        
-        if (solutions == null || solutions.isEmpty()) {
-            return null; // Don't know how to fix this yet
-        }
+        if (solutions == null || solutions.isEmpty()) return null; 
 
-        // The Magic: Sort by our Supreme Score formula (Highest score first)
         solutions.sort((s1, s2) -> Double.compare(s2.calculateSupremeScore(), s1.calculateSupremeScore()));
-        
         SolutionMemory bestSolution = solutions.get(0);
         
-        // If the best solution has a terrible score (e.g., failed too many times), ignore it!
-        if (bestSolution.calculateSupremeScore() < 0.4) {
-             System.out.println("[Knowledge Base] Found known solutions, but they are unreliable (Low Score). Falling back to AI API.");
-             return null;
-        }
+        if (bestSolution.calculateSupremeScore() < 0.4) return null;
 
-        System.out.printf("[Knowledge Base] Picked the BEST solution out of %d options! (Score: %.2f) provided originally by %s\n", 
-                          solutions.size(), bestSolution.calculateSupremeScore(), bestSolution.getWorkingAIProvider());
-                          
         return bestSolution.getResolvedCode();
     }
 }
