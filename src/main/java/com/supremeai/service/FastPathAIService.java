@@ -1,5 +1,6 @@
 package com.supremeai.service;
 
+import com.supremeai.config.VirtualThreadConfig;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
@@ -32,7 +33,7 @@ public class FastPathAIService {
     private ResponseCacheService cacheService;
 
     private CircuitBreaker groqCircuitBreaker;
-    private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+    private final ExecutorService executor = VirtualThreadConfig.getVirtualThreadExecutor();
 
     @PostConstruct
     public void init() {

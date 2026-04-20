@@ -60,6 +60,7 @@ public class AnthropicProvider implements AIProvider {
                 }
 
                 Map<String, Object> responseMap = objectMapper.readValue(response.body().string(), new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+                @SuppressWarnings("unchecked")
                 List<Map<String, Object>> content = (List<Map<String, Object>>) responseMap.get("content");
                 if (content != null && !content.isEmpty()) {
                     return (String) content.get(0).get("text");

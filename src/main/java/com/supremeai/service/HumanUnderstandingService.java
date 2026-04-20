@@ -1,5 +1,6 @@
 package com.supremeai.service;
 
+import com.supremeai.config.VirtualThreadConfig;
 import com.supremeai.model.SystemLearning;
 import com.supremeai.repository.SystemLearningRepository;
 import org.slf4j.Logger;
@@ -7,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Human Understanding Service
@@ -22,7 +22,7 @@ public class HumanUnderstandingService {
 
     private final SystemLearningRepository learningRepository;
     private final MultiAIConsensusService consensusService;
-    private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+    private final ExecutorService executor = VirtualThreadConfig.getVirtualThreadExecutor();
 
     public HumanUnderstandingService(SystemLearningRepository learningRepository,
                                      MultiAIConsensusService consensusService) {
