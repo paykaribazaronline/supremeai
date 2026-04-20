@@ -24,8 +24,8 @@ jobs:
       plugin: "${{ steps.filter.outputs.plugin }}"
       vscode_extension: "${{ steps.filter.outputs.vscode_extension }}"
     steps:
-      - uses: actions/checkout@v6
-      - uses: step-security/paths-filter@v4
+      - uses: actions/checkout@v4
+      - uses: step-security/paths-filter@v3
         id: filter
         with:
           filters: |
@@ -45,7 +45,7 @@ jobs:
     name: Secret_Scanning
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - name: Secret_Scan
         uses: trufflesecurity/trufflehog@v3.80.1
         with:
@@ -60,21 +60,21 @@ jobs:
     permissions:
       security-events: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - name: CodeQL_Init
-        uses: github/codeql-action/init@v4
+        uses: github/codeql-action/init@v3
         with:
           languages: "java"
           build-mode: "none"
       - name: Run_CodeQL
-        uses: github/codeql-action/analyze@v4
+        uses: github/codeql-action/analyze@v3
 
   java-build-and-test:
     name: Java_Build_And_Test
     needs: [changes, secret-scan]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - name: Setup_Gradle_Cache
         uses: actions/cache@v4
         with:
@@ -85,7 +85,7 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
       - name: Setup_Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           java-version: "21"
           distribution: "temurin"
@@ -118,7 +118,7 @@ jobs:
       frontend_url: ${{ steps.set-paths.outputs.frontend_url }}
       apk_path: ${{ steps.set-paths.outputs.apk_path }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - name: Setup_Flutter_Cache
         uses: actions/cache@v4
         with:
@@ -162,7 +162,7 @@ jobs:
     outputs:
       plugin_path: ${{ steps.set-path.outputs.path }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - name: Setup_Gradle_Cache
         uses: actions/cache@v4
         with:
@@ -173,7 +173,7 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
       - name: Setup_Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           java-version: "21"
           distribution: "temurin"
@@ -196,7 +196,7 @@ jobs:
     outputs:
       vsix_path: ${{ steps.set-path.outputs.path }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - name: Setup_Node_Cache
         uses: actions/cache@v4
         with:
@@ -205,9 +205,9 @@ jobs:
           restore-keys: |
             npm-${{ runner.os }}-
       - name: Setup_Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
-          node-version: "24"
+          node-version: "20"
           cache: "npm"
           cache-dependency-path: "supremeai-vscode-extension/package-lock.json"
       - name: Install_Dependencies
@@ -235,18 +235,18 @@ jobs:
     outputs:
       admin_url: ${{ steps.set-url.outputs.url }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - name: Download_JAR
         uses: actions/download-artifact@v4
         with:
           name: java-backend-jar
           path: build/libs
       - name: Authenticate_GCP
-        uses: google-github-actions/auth@v3
+        uses: google-github-actions/auth@v2
         with:
           credentials_json: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}"
       - name: Setup_GCloud
-        uses: google-github-actions/setup-gcloud@v3
+        uses: google-github-actions/setup-gcloud@v2
       - name: Deploy_Backend_To_Cloud_Run
         id: build
         run: |
@@ -293,21 +293,21 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - name: Download_Web
         uses: actions/download-artifact@v4
         with:
           name: flutter-artifacts
           path: supremeai/build/web
       - name: Authenticate_GCP
-        uses: google-github-actions/auth@v3
+        uses: google-github-actions/auth@v2
         with:
           credentials_json: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}"
           project_id: "supremeai-a"
       - name: Setup_Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
-          node-version: "24"
+          node-version: "20"
           package-manager-cache: false
       - name: Deploy_Firebase_Hosting
         run: npx firebase-tools@latest deploy --project supremeai-a --only hosting --non-interactive
