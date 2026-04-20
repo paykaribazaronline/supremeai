@@ -2,13 +2,12 @@
 
 # Ignore everything by default
 *
-*/**
-
 # But DO include the following:
-!/src
+!/src/**
 !/build.gradle.kts
 !/settings.gradle.kts
 !/gradle.properties
 !/gradlew
 !/gradle/**
 !/Dockerfile
+!/cloudbuild.yaml
