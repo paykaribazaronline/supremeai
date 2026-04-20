@@ -1,4 +1,4 @@
-package com.supremeai.learning.knowledge;
+qstn package com.supremeai.learning.knowledge;
 
 import com.supremeai.admin.AdminDashboardService;
 import com.supremeai.admin.ImprovementProposal;
