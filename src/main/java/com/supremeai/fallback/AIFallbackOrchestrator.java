@@ -1,6 +1,7 @@
 package com.supremeai.fallback;
 
 import com.supremeai.cost.QuotaManager;
+import com.supremeai.learning.knowledge.GlobalKnowledgeBase;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -11,6 +12,7 @@ public class AIFallbackOrchestrator {
 
     private final QuotaManager quotaManager;
     private final APIKeyManager apiKeyManager;
+    private final GlobalKnowledgeBase knowledgeBase;
 
     // Ordered by preference: Primary -> Secondary -> Free tier backup
     private final List<AIProvider> fallbackChain = Arrays.asList(
@@ -19,62 +21,66 @@ public class AIFallbackOrchestrator {
             AIProvider.HUGGINGFACE_FREE
     );
 
-    public AIFallbackOrchestrator(QuotaManager quotaManager, APIKeyManager apiKeyManager) {
+    public AIFallbackOrchestrator(QuotaManager quotaManager, APIKeyManager apiKeyManager, GlobalKnowledgeBase knowledgeBase) {
         this.quotaManager = quotaManager;
         this.apiKeyManager = apiKeyManager;
+        this.knowledgeBase = knowledgeBase;
     }
 
-    public String executeWithFallback(String prompt) {
+    /**
+     * Executes a fix for a given error. This is where Learning happens!
+     */
+    public String executeWithLearning(String errorSignature, String prompt) {
+        
+        // STEP 1: CHECK GLOBAL KNOWLEDGE BASE (Has any AI solved this exact error before?)
+        String knownSolution = knowledgeBase.findKnownSolution(errorSignature);
+        if (knownSolution != null) {
+            // We saved money and time! No API call needed.
+            return knownSolution; 
+        }
+
+        // STEP 2: NO KNOWN SOLUTION. ASK AI TO FIX IT.
         for (AIProvider provider : fallbackChain) {
             
-            // Step 1: Check if the AI service global quota is reached
             if (!isServiceQuotaAvailable(provider)) {
-                System.out.println("-> [Orchestrator] " + provider + " global quota exhausted. Moving to next AI Model...");
-                continue; // Skip this provider entirely
+                continue; 
             }
 
-            // Step 2: Intelligent Key Selection (Round Robin + Cooldown)
             String safeKey = apiKeyManager.getNextHealthyKey(provider);
-            
             if (safeKey == null) {
-                System.out.println("-> [Warning] All keys for " + provider + " are currently rate-limited (cooling down). Skipping to next Model...");
-                continue; // Fast failover without waiting/timing out!
+                continue; 
             }
 
             try {
-                System.out.println("-> [Orchestrator] Attempting: " + provider + " (Key: ***" + safeKey.substring(Math.max(0, safeKey.length() - 4)) + ")");
+                System.out.println("-> Asking " + provider + " to fix new error: " + errorSignature);
                 
-                String result = callAIProvider(provider, safeKey, prompt);
+                String newSolutionCode = callAIProvider(provider, safeKey, prompt);
                 
-                // Record successful usage
+                // Record API usage
                 recordUsage(provider);
-                return result;
+                
+                // STEP 3: THE AI FIXED IT! NOW SYSTEM LEARNS AND STORES IT.
+                // The next time this error happens, the system won't ask the AI, it will just use this solution!
+                knowledgeBase.recordSuccess(errorSignature, newSolutionCode, provider.name());
+                
+                return newSolutionCode;
                 
             } catch (RateLimitException e) {
-                System.err.println("   [Rate Limit 429] Key hit limit! Putting it in cooldown for 60 seconds.");
-                // Put the key in a 60-second cooldown so we don't try it again immediately 
                 apiKeyManager.markKeyAsRateLimited(safeKey, 60000); 
-                
-                // Instead of a simple continue, we recursively call the orchestrator 
-                // so it can immediately grab the next healthy key from the Round-Robin pool
-                return executeWithFallback(prompt); 
-                
+                return executeWithLearning(errorSignature, prompt); 
             } catch (TimeoutException e) {
-                 System.err.println("   [Timeout 504] " + provider + " server is dead. Failing over to next model immediately!");
-                 // Skip the whole provider, no point trying other keys if the provider's server is down
                  continue; 
-                 
             } catch (Exception e) {
-                System.err.println("   [Error] Unknown error with " + provider + ": " + e.getMessage());
+                 // Unknown error
             }
         }
         
-        throw new RuntimeException("CRITICAL DOWN: All AI models and all their respective API keys have failed or are rate-limited!");
+        throw new RuntimeException("CRITICAL: All AI failed. Cannot fix error.");
     }
 
     private boolean isServiceQuotaAvailable(AIProvider provider) {
         String serviceName = getServiceNameForProvider(provider);
-        if (quotaManager.getQuotaStatus(serviceName, "Requests") == null) return true; // Unlimited/Untracked
+        if (quotaManager.getQuotaStatus(serviceName, "Requests") == null) return true; 
         return quotaManager.getQuotaStatus(serviceName, "Requests").getRemainingQuota() > 0;
     }
 
@@ -93,21 +99,13 @@ public class AIFallbackOrchestrator {
     }
 
     private String callAIProvider(AIProvider provider, String apiKey, String prompt) throws Exception {
-        // Mocking the actual API calls
-        if (provider == AIProvider.GROQ_LLAMA3 && apiKey.contains("11111")) {
-            throw new RateLimitException("HTTP 429 Too Many Requests");
-        }
-        if (provider == AIProvider.GEMINI_PRO) {
-             throw new TimeoutException("HTTP 504 Gateway Timeout");
-        }
-        return "Success! [Model: " + provider + ", Result: Validated answer]";
+        if (provider == AIProvider.GROQ_LLAMA3 && apiKey.contains("11111")) throw new RateLimitException("HTTP 429");
+        if (provider == AIProvider.GEMINI_PRO) throw new TimeoutException("HTTP 504");
+        
+        // Simulating the AI giving a perfect code fix
+        return "public void fixedMethod() { /* " + provider + " magically fixed the bug! */ }";
     }
     
-    // Custom exception classes for precise handling
-    private static class RateLimitException extends Exception {
-        public RateLimitException(String msg) { super(msg); }
-    }
-    private static class TimeoutException extends Exception {
-        public TimeoutException(String msg) { super(msg); }
-    }
+    private static class RateLimitException extends Exception { public RateLimitException(String msg) { super(msg); } }
+    private static class TimeoutException extends Exception { public TimeoutException(String msg) { super(msg); } }
 }
