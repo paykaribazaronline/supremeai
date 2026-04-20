@@ -29,7 +29,7 @@ class K2CompatibleCodeAnalyzer {
                 val symbol = ktClass.symbol as? KaClassSymbol ?: return@analyze null
 
                 ClassAnalysisInfo(
-                    name = symbol.name?.asString() ?: "anonymous",
+                    name = ktClass.name ?: "anonymous",
                     qualifiedName = symbol.classId?.asFqNameString() ?: "",
                     isAbstract = symbol.modality == KaSymbolModality.ABSTRACT,
                     superTypes = emptyList(),
@@ -55,7 +55,7 @@ class K2CompatibleCodeAnalyzer {
                 val symbol = ktFunction.symbol as? KaFunctionSymbol ?: return@analyze null
 
                 FunctionAnalysisInfo(
-                    name = symbol.name?.asString() ?: "anonymous",
+                    name = ktFunction.name ?: "anonymous",
                     returnType = "Unit",
                     parameters = emptyList(),
                     isSuspend = ktFunction.hasModifier(org.jetbrains.kotlin.lexer.KtTokens.SUSPEND_KEYWORD)
