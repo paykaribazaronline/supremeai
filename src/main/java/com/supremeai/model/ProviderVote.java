@@ -7,6 +7,9 @@ public class ProviderVote {
     private String response;
     private double confidence; // 0.0-1.0
     private long timestamp;
+    private long latencyMs;
+    private boolean success;
+    private String errorMessage;
 
     public ProviderVote() {}
 
@@ -29,4 +32,13 @@ public class ProviderVote {
     
     public long getTimestamp() { return timestamp; }
     public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
+    
+    public long getLatencyMs() { return latencyMs; }
+    public void setLatencyMs(long latencyMs) { this.latencyMs = latencyMs; }
+    
+    public boolean isSuccess() { return success; }
+    public void setSuccess(boolean success) { this.success = success; }
+    
+    public String getErrorMessage() { return errorMessage; }
+    public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
 }
