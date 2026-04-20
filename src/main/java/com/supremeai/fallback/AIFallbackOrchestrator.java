@@ -2,6 +2,7 @@ package com.supremeai.fallback;
 
 import com.supremeai.cost.QuotaManager;
 import com.supremeai.learning.knowledge.GlobalKnowledgeBase;
+import com.supremeai.learning.immunity.CodeImmunitySystem;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -13,6 +14,7 @@ public class AIFallbackOrchestrator {
     private final QuotaManager quotaManager;
     private final APIKeyManager apiKeyManager;
     private final GlobalKnowledgeBase knowledgeBase;
+    private final CodeImmunitySystem immunitySystem;
 
     // Ordered by preference: Primary -> Secondary -> Free tier backup
     private final List<AIProvider> fallbackChain = Arrays.asList(
@@ -21,53 +23,51 @@ public class AIFallbackOrchestrator {
             AIProvider.HUGGINGFACE_FREE
     );
 
-    public AIFallbackOrchestrator(QuotaManager quotaManager, APIKeyManager apiKeyManager, GlobalKnowledgeBase knowledgeBase) {
+    public AIFallbackOrchestrator(QuotaManager quotaManager, APIKeyManager apiKeyManager, 
+                                  GlobalKnowledgeBase knowledgeBase, CodeImmunitySystem immunitySystem) {
         this.quotaManager = quotaManager;
         this.apiKeyManager = apiKeyManager;
         this.knowledgeBase = knowledgeBase;
+        this.immunitySystem = immunitySystem;
     }
 
-    /**
-     * Executes a fix for a given error. This is where Learning happens!
-     */
-    public String executeWithLearning(String errorSignature, String prompt) {
+    public String executeWithLearningAndImmunity(String errorSignature, String prompt) {
         
-        // STEP 1: CHECK GLOBAL KNOWLEDGE BASE (Has any AI solved this exact error before?)
+        // STEP 1: CHECK GLOBAL KNOWLEDGE BASE
         String knownSolution = knowledgeBase.findKnownSolution(errorSignature);
         if (knownSolution != null) {
-            // We saved money and time! No API call needed.
             return knownSolution; 
         }
 
-        // STEP 2: NO KNOWN SOLUTION. ASK AI TO FIX IT.
+        // STEP 2: ASK AI TO FIX IT
         for (AIProvider provider : fallbackChain) {
-            
-            if (!isServiceQuotaAvailable(provider)) {
-                continue; 
-            }
+            if (!isServiceQuotaAvailable(provider)) continue; 
 
             String safeKey = apiKeyManager.getNextHealthyKey(provider);
-            if (safeKey == null) {
-                continue; 
-            }
+            if (safeKey == null) continue; 
 
             try {
-                System.out.println("-> Asking " + provider + " to fix new error: " + errorSignature);
+                System.out.println("-> Asking " + provider + " to fix new error...");
                 
-                String newSolutionCode = callAIProvider(provider, safeKey, prompt);
-                
-                // Record API usage
+                String generatedCode = callAIProvider(provider, safeKey, prompt);
                 recordUsage(provider);
                 
-                // STEP 3: THE AI FIXED IT! NOW SYSTEM LEARNS AND STORES IT.
-                // The next time this error happens, the system won't ask the AI, it will just use this solution!
-                knowledgeBase.recordSuccess(errorSignature, newSolutionCode, provider.name());
-                
-                return newSolutionCode;
+                // STEP 3: THE GENIUS IDEA -> THE IMMUNE SYSTEM CHECK
+                if (immunitySystem.isCodeInfected(generatedCode)) {
+                    System.err.println("-> [Orchestrator] AI generated toxic/broken code! Rejecting and trying another model...");
+                    
+                    // The system learns that this provider gave bad code for this specific prompt
+                    // It rejects the code and forces the loop to continue to the next AI provider
+                    continue; 
+                }
+
+                // If code is clean and passes immunity, save to knowledge base and return
+                knowledgeBase.recordSuccess(errorSignature, generatedCode, provider.name());
+                return generatedCode;
                 
             } catch (RateLimitException e) {
                 apiKeyManager.markKeyAsRateLimited(safeKey, 60000); 
-                return executeWithLearning(errorSignature, prompt); 
+                return executeWithLearningAndImmunity(errorSignature, prompt); 
             } catch (TimeoutException e) {
                  continue; 
             } catch (Exception e) {
@@ -75,7 +75,7 @@ public class AIFallbackOrchestrator {
             }
         }
         
-        throw new RuntimeException("CRITICAL: All AI failed. Cannot fix error.");
+        throw new RuntimeException("CRITICAL: All AI failed or generated toxic code. Cannot fix error.");
     }
 
     private boolean isServiceQuotaAvailable(AIProvider provider) {
@@ -102,8 +102,7 @@ public class AIFallbackOrchestrator {
         if (provider == AIProvider.GROQ_LLAMA3 && apiKey.contains("11111")) throw new RateLimitException("HTTP 429");
         if (provider == AIProvider.GEMINI_PRO) throw new TimeoutException("HTTP 504");
         
-        // Simulating the AI giving a perfect code fix
-        return "public void fixedMethod() { /* " + provider + " magically fixed the bug! */ }";
+        return "public void fixedMethod() { /* Clean Code Fix */ }";
     }
     
     private static class RateLimitException extends Exception { public RateLimitException(String msg) { super(msg); } }
