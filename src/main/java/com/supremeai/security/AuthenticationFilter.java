@@ -11,7 +11,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
-@Component
+// @Component // Disabled: using Firebase auth filter instead
 public class AuthenticationFilter extends OncePerRequestFilter {
 
     @Value("${supremeai.api.key:dev-api-key-taste-phase}")
