@@ -23,15 +23,10 @@ __pycache__/
 local.properties
 service-account.json
 
-# Build directories (Ignore everything in build EXCEPT the JAR we need)
-build/.gradle/
-build/classes/
-build/generated/
-build/resources/
-build/tmp/
-build/reports/
-build/test-results/
-build/jacoco/
+# Build directories - Ignore everything in build EXCEPT the libs folder
+build/*
+!build/libs/
+!build/libs/app.jar
 
 # Ensure the JAR is NOT ignored
 # (By NOT listing build/libs/ here, it will be included by default)
