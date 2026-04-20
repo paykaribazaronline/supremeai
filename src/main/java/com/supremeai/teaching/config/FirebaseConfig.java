@@ -6,7 +6,8 @@ import com.google.firebase.FirebaseOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.PostConstruct;
+import org.springframework.context.event.EventListener;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,7 +21,7 @@ public class FirebaseConfig {
     @Value("${firebase.database.url:https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/}")
     private String databaseUrl;
 
-    @PostConstruct
+    @EventListener(ApplicationReadyEvent.class)
     public void initialize() {
         try {
             if (FirebaseApp.getApps().isEmpty()) {
