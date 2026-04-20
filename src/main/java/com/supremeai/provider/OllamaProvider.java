@@ -1,14 +1,14 @@
 package com.supremeai.provider;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
+import java.io.IOException;
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,21 +34,25 @@ public class OllamaProvider implements AIProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(OllamaProvider.class);
 
-    private final WebClient webClient;
+    private final OkHttpClient httpClient;
+    private final ObjectMapper objectMapper;
     private static final String DEFAULT_MODEL = "llama3:70b";
-    private static final String BASE_URL = "http://localhost:11434";
+    private static final String BASE_URL = "http://localhost:11434/api/generate";
+    public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
     public OllamaProvider() {
-        this.webClient = WebClient.builder()
-                .baseUrl(BASE_URL)
-                .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(10 * 1024 * 1024))
+        this.httpClient = new OkHttpClient.Builder()
+                .callTimeout(Duration.ofSeconds(60))
+                .readTimeout(Duration.ofSeconds(60))
+                .writeTimeout(Duration.ofSeconds(60))
                 .build();
-        logger.info("OllamaProvider initialized with optimized configuration");
+        this.objectMapper = new ObjectMapper();
+        logger.info("OllamaProvider initialized with OkHttpClient");
     }
 
     @Override
     public String generate(String prompt) {
-        OllamaRequest request = new OllamaRequest(
+        OllamaRequest requestPayload = new OllamaRequest(
                 DEFAULT_MODEL,
                 prompt,
                 false,
@@ -62,15 +66,21 @@ public class OllamaProvider implements AIProvider {
         );
 
         try {
-            return webClient.post()
-                    .uri("/api/generate")
-                    .bodyValue(request)
-                    .retrieve()
-                    .bodyToMono(OllamaResponse.class)
-                    .timeout(Duration.ofSeconds(60))
-                    .map(OllamaResponse::response)
-                    .block();
+            String requestBody = objectMapper.writeValueAsString(requestPayload);
+            RequestBody body = RequestBody.create(requestBody, JSON);
+            Request request = new Request.Builder()
+                    .url(BASE_URL)
+                    .post(body)
+                    .build();
 
+            try (Response response = httpClient.newCall(request).execute()) {
+                if (!response.isSuccessful() || response.body() == null) {
+                    throw new IOException("Unexpected code " + response);
+                }
+                String responseBody = response.body().string();
+                OllamaResponse ollamaResponse = objectMapper.readValue(responseBody, OllamaResponse.class);
+                return ollamaResponse.response();
+            }
         } catch (Exception e) {
             logger.error("Ollama generation failed: {}", e.getMessage());
             throw new RuntimeException("Ollama unavailable", e);
