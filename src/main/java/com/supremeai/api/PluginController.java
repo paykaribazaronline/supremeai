@@ -35,6 +35,7 @@ public class PluginController {
      * No API key required, admin controls daily guest quota
      */
     @PostMapping("/complete")
+    @SuppressWarnings("unchecked")
     public Mono<ResponseEntity<Object>> completeCode(@RequestBody Map<String, Object> request,
                                                      HttpServletRequest httpRequest) {
         String guestId = guestQuotaService.extractGuestIdentifier(httpRequest);

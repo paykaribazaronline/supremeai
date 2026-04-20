@@ -61,13 +61,16 @@ jobs:
       security-events: write
     steps:
       - uses: actions/checkout@v4
-      - name: CodeQL_Init
-        uses: github/codeql-action/init@v3
-        with:
-          languages: "java"
-          build-mode: "none"
-      - name: Run_CodeQL
-        uses: github/codeql-action/analyze@v3
+       - name: CodeQL_Init
+         uses: github/codeql-action/init@v3
+         with:
+           languages: "java"
+           build-mode: "manual"
+       - name: Build_For_CodeQL
+         run: ./gradlew compileJava
+         
+       - name: Run_CodeQL
+         uses: github/codeql-action/analyze@v3
 
   java-build-and-test:
     name: Java_Build_And_Test
@@ -250,15 +253,16 @@ jobs:
       - name: Deploy_To_Cloud_Run
         run: |
           gcloud run deploy supremeai \
-            --source . \
+            --jar build/libs/app.jar \
             --platform managed \
             --region us-central1 \
             --allow-unauthenticated \
-            --memory 2Gi \
+            --memory 4Gi \
             --cpu 2 \
-            --timeout 300 \
-            --set-env-vars="SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a" \
-            --max-instances 10
+            --timeout 3600 \
+            --set-env-vars="SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a,spring.threads.virtual.enabled=true" \
+            --max-instances 20 \
+            --concurrency 1000
       - name: Store_Admin_URL
         id: set-url
         run: |

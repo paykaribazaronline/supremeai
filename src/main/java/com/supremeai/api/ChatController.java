@@ -4,6 +4,7 @@ import com.supremeai.model.SystemLearning;
 import com.supremeai.repository.SystemLearningRepository;
 import com.supremeai.service.FastPathAIService;
 import com.supremeai.service.GuestQuotaService;
+import com.supremeai.service.HumanUnderstandingService;
 import com.supremeai.service.quota.QuotaExceededException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ public class ChatController {
 
     @Autowired
     private FastPathAIService fastPathAIService;
+
+    @Autowired
+    private HumanUnderstandingService humanUnderstandingService;
 
     @PostMapping("/send")
     public Mono<ResponseEntity<Object>> sendMessage(@RequestBody Map<String, String> request,
@@ -64,6 +68,10 @@ public class ChatController {
         
         // Fast path AI generation
         String aiResponse = fastPathAIService.generateParallel(message, "groq", "ollama");
+
+        // Automatically analyze human factors on EVERY interaction
+        // Runs in background virtual thread - ZERO performance impact
+        humanUnderstandingService.analyzeHumanFactors(message, aiResponse);
 
         // Fire and forget with guaranteed persistence
         learningRepository.save(learningEntry)

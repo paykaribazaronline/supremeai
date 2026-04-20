@@ -30,6 +30,7 @@ public class OrchesResultContext {
     public void setStatus(String status) { this.status = status; }
 
     // Helper methods
+    @SuppressWarnings("unchecked")
     public String getDecision(String key) {
         var decisions = (List<VotingDecision>) context.get("decisions");
         if (decisions != null) {
@@ -42,6 +43,7 @@ public class OrchesResultContext {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     public Map<String, Object> getGenerationContext() {
         return (Map<String, Object>) context.get("generationContext");
     }
