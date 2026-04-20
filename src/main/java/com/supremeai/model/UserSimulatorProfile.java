@@ -18,6 +18,9 @@ public class UserSimulatorProfile {
     @DocumentId
     private String userId;
 
+    /** User's subscription tier */
+    private UserTier userTier = UserTier.FREE;
+
     /** Maximum number of apps user can have installed simultaneously */
     private int installQuota = 5;
 
@@ -62,6 +65,9 @@ public class UserSimulatorProfile {
 
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
+
+    public UserTier getUserTier() { return userTier; }
+    public void setUserTier(UserTier userTier) { this.userTier = userTier; }
 
     public int getInstallQuota() { return installQuota; }
     public void setInstallQuota(int installQuota) { this.installQuota = installQuota; }

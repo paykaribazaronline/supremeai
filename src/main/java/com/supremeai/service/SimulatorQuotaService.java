@@ -5,8 +5,10 @@ import com.supremeai.exception.SimulatorQuotaExceededException;
 import com.supremeai.exception.SimulatorResourceNotFoundException;
 import com.supremeai.exception.SimulatorSessionException;
 import com.supremeai.model.UserSimulatorProfile;
+import com.supremeai.service.quota.SimulatorQuotaManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +20,9 @@ import java.util.List;
 public class SimulatorQuotaService {
 
     private static final Logger logger = LoggerFactory.getLogger(SimulatorQuotaService.class);
+
+    @Autowired
+    private SimulatorQuotaManager quotaManager;
 
     /**
      * Validates whether a user can install an app based on quota and duplicates.
@@ -35,18 +40,17 @@ public class SimulatorQuotaService {
             throw new IllegalArgumentException("appId cannot be null or empty");
         }
 
-        int used = profile.getActiveInstalls();
-        int quota = profile.getInstallQuota();
-
-        // Check quota
-        if (used >= quota) {
+        // Check quota using unified manager
+        if (!quotaManager.hasQuotaRemaining(profile)) {
+            long used = quotaManager.getCurrentUsage(profile);
+            long quota = quotaManager.getQuotaLimit(profile);
             logger.warn("User {} exceeded simulator quota: {}/{}", 
                 profile.getUserId(), used, quota);
-            throw new SimulatorQuotaExceededException(used, quota);
+            throw new SimulatorQuotaExceededException((int)used, (int)quota);
         }
 
         // Check duplicate
-        if (profile.hasAppInstalled(appId)) {
+        if (quotaManager.isAppInstalled(profile, appId)) {
             logger.info("User {} attempted to reinstall already-installed app {}", 
                 profile.getUserId(), appId);
             throw new SimulatorConflictException(
@@ -55,22 +59,21 @@ public class SimulatorQuotaService {
         }
 
         logger.debug("Quota validation passed for user {} ({} / {})", 
-            profile.getUserId(), used, quota);
+            profile.getUserId(), quotaManager.getCurrentUsage(profile), quotaManager.getQuotaLimit(profile));
     }
 
     /**
      * Checks if user has remaining quota slots (non-throwing)
      */
     public boolean hasQuotaRemaining(UserSimulatorProfile profile) {
-        return profile != null && profile.getActiveInstalls() < profile.getInstallQuota();
+        return quotaManager.hasQuotaRemaining(profile);
     }
 
     /**
      * Returns number of remaining install slots
      */
     public int getRemainingSlots(UserSimulatorProfile profile) {
-        if (profile == null) return 0;
-        return Math.max(0, profile.getInstallQuota() - profile.getActiveInstalls());
+        return (int) quotaManager.getRemainingQuota(profile);
     }
 
     /**

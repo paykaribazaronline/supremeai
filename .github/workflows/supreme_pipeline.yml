@@ -308,7 +308,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          package-manager-cache: false
       - name: Deploy_Firebase_Hosting
         run: npx firebase-tools@latest deploy --project supremeai-a --only hosting --non-interactive
         working-directory: ./supremeai

@@ -5,6 +5,7 @@ import com.supremeai.model.UserApi;
 import com.supremeai.model.UserTier;
 import com.supremeai.repository.UserRepository;
 import com.supremeai.repository.UserApiRepository;
+import com.supremeai.service.ConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,9 @@ public class UserApiController {
 
     @Autowired
     private UserApiRepository userApiRepository;
+
+    @Autowired
+    private ConfigService configService;
 
     @PostMapping("/apis")
     public ResponseEntity<?> createApi(@RequestBody Map<String, String> request,
@@ -52,7 +56,7 @@ public class UserApiController {
 
             // Check if user has reached max APIs for their tier
             List<UserApi> userApis = userApiRepository.findByUserIdAndIsActive(userId, true).collectList().block();
-            int maxApis = getMaxApisForTier(user.getTier());
+            int maxApis = configService.getMaxApisForTier(user.getTier());
             if (userApis != null && userApis.size() >= maxApis) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("error", "Maximum API limit reached for your tier"));
@@ -220,16 +224,6 @@ public class UserApiController {
 
     private String getCurrentUserId(Authentication authentication) {
         return authentication.getName();
-    }
-
-    private int getMaxApisForTier(UserTier tier) {
-        return switch (tier) {
-            case FREE -> 1;
-            case BASIC -> 3;
-            case PRO -> 10;
-            case ENTERPRISE -> 50;
-            case ADMIN -> 100;
-        };
     }
 
     private String maskApiKey(String apiKey) {
