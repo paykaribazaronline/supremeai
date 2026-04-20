@@ -11,3 +11,4 @@
 !/gradle/**
 !/Dockerfile
 !/cloudbuild.yaml
+!/build/libs/app.jar

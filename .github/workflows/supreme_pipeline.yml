@@ -255,21 +255,25 @@ jobs:
       - name: Wait_For_Build
         run: |
           BUILD_ID="${{ steps.build.outputs.build_id }}"
+          PROJECT_ID="supremeai-a"
+          echo "Build started: https://console.cloud.google.com/cloud-build/builds/$BUILD_ID?project=$PROJECT_ID"
           for i in {1..120}; do
-            STATUS=$(gcloud builds describe $BUILD_ID --format='value(status)' 2>/dev/null || echo "UNKNOWN")
+            STATUS=$(gcloud builds describe $BUILD_ID --project=$PROJECT_ID --format='value(status)' 2>/dev/null || echo "UNKNOWN")
             if [ "$STATUS" = "SUCCESS" ]; then
               echo "Build completed successfully"
               exit 0
-            elif [ "$STATUS" = "FAILURE" ] || [ "$STATUS" = "INTERNAL_ERROR" ]; then
-              echo "Build failed with status: $STATUS"
-              gcloud builds log $BUILD_ID --project=supremeai-a || echo "Could not fetch build logs"
+            elif [ "$STATUS" = "FAILURE" ] || [ "$STATUS" = "INTERNAL_ERROR" ] || [ "$STATUS" = "TIMEOUT" ] || [ "$STATUS" = "CANCELLED" ]; then
+              echo "Build finished with status: $STATUS"
+              echo "Check logs at: https://console.cloud.google.com/cloud-build/builds/$BUILD_ID?project=$PROJECT_ID"
+              # Attempt to fetch logs, but don't fail the step if it fails (it might be a permission issue)
+              gcloud builds log $BUILD_ID --project=$PROJECT_ID || echo "Could not fetch build logs via CLI. Please check the Google Cloud Console link above."
               exit 1
             fi
             echo "Build status: $STATUS. Waiting... ($i/120)"
             sleep 10
           done
           echo "Timeout waiting for build"
-          gcloud builds log $BUILD_ID --project=supremeai-a || echo "Could not fetch build logs"
+          echo "Check logs at: https://console.cloud.google.com/cloud-build/builds/$BUILD_ID?project=$PROJECT_ID"
           exit 1
       - name: Store_Admin_URL
         id: set-url
