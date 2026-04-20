@@ -1,8 +1,8 @@
 package com.supremeai.model;
 
 import com.google.cloud.firestore.annotation.DocumentId;
+import com.google.cloud.firestore.annotation.ServerTimestamp;
 import com.google.cloud.spring.data.firestore.Document;
-import com.google.cloud.spring.data.firestore.ServerTimestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
