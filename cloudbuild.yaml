@@ -29,5 +29,8 @@ steps:
       - '300'
       - '--set-env-vars=SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a'
 
+options:
+  logging: CLOUD_LOGGING_ONLY
+
 images:
   - 'us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest'
