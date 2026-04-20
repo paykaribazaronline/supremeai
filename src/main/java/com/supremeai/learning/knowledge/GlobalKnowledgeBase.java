@@ -14,13 +14,13 @@ public class GlobalKnowledgeBase {
     private final Map<String, List<SolutionMemory>> globalMemory = new ConcurrentHashMap<>();
 
     /**
-     * When any AI (Groq, Gemini, etc.) successfully fixes an error, this method is called.
-     * It stores the error and the exact code that fixed it.
+     * Records a successful fix, including its performance and security metrics.
      */
-    public void recordSuccess(String errorSignature, String successfulCode, String aiProvider) {
+    public void recordSuccess(String errorSignature, String successfulCode, String aiProvider, 
+                              long executionTimeMs, double securityScore) {
         List<SolutionMemory> solutions = globalMemory.computeIfAbsent(errorSignature, k -> new ArrayList<>());
 
-        // Check if we already have this exact solution. If yes, just boost its confidence.
+        // Check if we already have this exact solution
         for (SolutionMemory solution : solutions) {
             if (solution.getResolvedCode().equals(successfulCode)) {
                 solution.incrementSuccess();
@@ -30,14 +30,29 @@ public class GlobalKnowledgeBase {
         }
 
         // New solution learned!
-        solutions.add(new SolutionMemory(errorSignature, successfulCode, aiProvider));
+        solutions.add(new SolutionMemory(errorSignature, successfulCode, aiProvider, executionTimeMs, securityScore));
         System.out.println("[Knowledge Base] Learned NEW solution for error: '" + errorSignature + "' (Provided by " + aiProvider + ")");
-        
-        // In a real system, you would async flush this to Firebase/Firestore here
+    }
+    
+    /**
+     * If a solution that was given previously turns out to be wrong or causes a secondary bug.
+     */
+    public void recordFailure(String errorSignature, String failedCode) {
+        List<SolutionMemory> solutions = globalMemory.get(errorSignature);
+        if (solutions != null) {
+            for (SolutionMemory solution : solutions) {
+                if (solution.getResolvedCode().equals(failedCode)) {
+                    solution.incrementFailure();
+                    System.err.println("[Knowledge Base] Penalized a solution that failed in production.");
+                    return;
+                }
+            }
+        }
     }
 
     /**
-     * Before asking an expensive AI, the system checks if it already knows the answer.
+     * INTELLIGENT RANKING SYSTEM
+     * Evaluates multiple solutions for the same problem and picks the absolute BEST one.
      */
     public String findKnownSolution(String errorSignature) {
         List<SolutionMemory> solutions = globalMemory.get(errorSignature);
@@ -46,10 +61,20 @@ public class GlobalKnowledgeBase {
             return null; // Don't know how to fix this yet
         }
 
-        // Return the solution that has the highest success count (Most reliable)
-        solutions.sort((s1, s2) -> Integer.compare(s2.getSuccessCount(), s1.getSuccessCount()));
+        // The Magic: Sort by our Supreme Score formula (Highest score first)
+        solutions.sort((s1, s2) -> Double.compare(s2.calculateSupremeScore(), s1.calculateSupremeScore()));
         
-        System.out.println("[Knowledge Base] Found known solution! Saved an API call.");
-        return solutions.get(0).getResolvedCode();
+        SolutionMemory bestSolution = solutions.get(0);
+        
+        // If the best solution has a terrible score (e.g., failed too many times), ignore it!
+        if (bestSolution.calculateSupremeScore() < 0.4) {
+             System.out.println("[Knowledge Base] Found known solutions, but they are unreliable (Low Score). Falling back to AI API.");
+             return null;
+        }
+
+        System.out.printf("[Knowledge Base] Picked the BEST solution out of %d options! (Score: %.2f) provided originally by %s\n", 
+                          solutions.size(), bestSolution.calculateSupremeScore(), bestSolution.getWorkingAIProvider());
+                          
+        return bestSolution.getResolvedCode();
     }
 }

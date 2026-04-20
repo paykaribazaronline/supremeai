@@ -256,8 +256,15 @@ jobs:
           credentials_json: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}"
       - name: Setup_GCloud
         uses: google-github-actions/setup-gcloud@v2
+      - name: Verify_GCloud
+        run: |
+          echo "GCloud version:"
+          gcloud --version
+          echo "Authenticated project:"
+          gcloud config get-value project
       - name: Deploy_To_Cloud_Run
         run: |
+          echo "Starting Cloud Run deployment..."
           gcloud run deploy supremeai \
             --source . \
             --platform managed \
@@ -269,7 +276,8 @@ jobs:
             --set-env-vars="SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a,spring.threads.virtual.enabled=true" \
             --max-instances 10 \
             --concurrency 80 \
-            --cpu-boost
+            --quiet
+          echo "Cloud Run deployment completed successfully."
       - name: Store_Admin_URL
         id: set-url
         run: |
