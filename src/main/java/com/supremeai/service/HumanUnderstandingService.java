@@ -61,7 +61,7 @@ public class HumanUnderstandingService {
                 SystemLearning learning = new SystemLearning();
                 learning.setCategory("HUMAN_UNDERSTANDING");
                 learning.setContent(analysis.getConsensus());
-                learningRepository.save(learning).subscribe();
+                learningRepository.save(learning).block(); // Use block() for synchronous save
 
                 logger.debug("Analyzed human factors: satisfaction={}",
                         analysis.getConsensus().contains("\"satisfaction\":"));
