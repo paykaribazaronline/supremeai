@@ -88,6 +88,7 @@ public class AgentOrchestrationController {
     }
 
     @PostMapping("/generate-with-context")
+    @SuppressWarnings("unchecked")
     public Mono<ResponseEntity<Object>> generateWithContext(@RequestBody Map<String, Object> request) {
         Map<String, Object> context = (Map<String, Object>) request.get("context");
         if (context == null) {

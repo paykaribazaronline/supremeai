@@ -26,6 +26,7 @@ public class CommandController {
     }
 
     @PostMapping("/execute")
+    @SuppressWarnings("unchecked")
     public CommandResult execute(@RequestBody Map<String, Object> request, Authentication authentication, HttpServletRequest httpRequest) {
         String commandName = (String) request.get("name");
         Map<String, Object> parameters = (Map<String, Object>) request.get("parameters");

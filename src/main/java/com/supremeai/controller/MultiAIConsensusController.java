@@ -23,6 +23,7 @@ public class MultiAIConsensusController {
      * Body: {"question": "...", "providers": ["openai","anthropic","groq"]}
      */
     @PostMapping("/vote")
+    @SuppressWarnings("unchecked")
     public Mono<ResponseEntity<Object>> voteOnQuestion(@RequestBody Map<String, Object> request) {
         String question = (String) request.get("question");
         List<String> providers = (List<String>) request.getOrDefault("providers", 
@@ -79,6 +80,7 @@ public class MultiAIConsensusController {
      * Compare different voting strategies
      */
     @PostMapping("/compare-strategies")
+    @SuppressWarnings("unchecked")
     public Mono<ResponseEntity<Object>> compareStrategies(@RequestBody Map<String, Object> request) {
         String question = (String) request.get("question");
         List<String> providers = (List<String>) request.get("providers");

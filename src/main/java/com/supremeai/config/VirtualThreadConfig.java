@@ -30,7 +30,7 @@ public class VirtualThreadConfig {
         };
     }
 
-    private ExecutorService getVirtualThreadExecutor() {
+    public static ExecutorService getVirtualThreadExecutor() {
         try {
             // Java 21+ method
             return (ExecutorService) Executors.class.getMethod("newVirtualThreadPerTaskExecutor").invoke(null);

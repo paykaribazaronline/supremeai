@@ -18,6 +18,7 @@ public class AdminChatController {
     private MultiAIConsensusService consensusService;
 
     @PostMapping("/ask")
+    @SuppressWarnings("unchecked")
     public Mono<ResponseEntity<Object>> askAI(@RequestBody Map<String, Object> request) {
         String question = (String) request.get("question");
         List<String> providers = (List<String>) request.get("providers");
