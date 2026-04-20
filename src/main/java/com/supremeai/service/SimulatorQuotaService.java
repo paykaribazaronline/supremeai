@@ -3,6 +3,7 @@ package com.supremeai.service;
 import com.supremeai.exception.SimulatorConflictException;
 import com.supremeai.exception.SimulatorQuotaExceededException;
 import com.supremeai.exception.SimulatorResourceNotFoundException;
+import com.supremeai.exception.SimulatorSessionException;
 import com.supremeai.model.UserSimulatorProfile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
