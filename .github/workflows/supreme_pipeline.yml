@@ -92,15 +92,23 @@ jobs:
           cache: "gradle"
       - name: Build_And_Test
         run: |
-          ./gradlew build -x jacocoTestCoverageVerification
-          # Rename the jar to a predictable name for the Dockerfile
+          ./gradlew clean build -x test -x jacocoTestCoverageVerification
           mkdir -p build/libs
-          cp build/libs/*.jar build/libs/app.jar || true
+          # Find the boot jar (usually ends with .jar and is not -plain.jar)
+          BOOT_JAR=$(find build/libs -name "*.jar" ! -name "*-plain.jar" | head -n 1)
+          if [ -n "$BOOT_JAR" ]; then
+            cp "$BOOT_JAR" build/libs/app.jar
+          else
+            echo "Error: No executable JAR found in build/libs"
+            ls -R build/libs
+            exit 1
+          fi
       - name: Upload_JAR
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: java-backend-jar
-          path: "build/libs/app.jar"
+          path: build/libs/app.jar
+          if-no-files-found: error
 
   flutter-build-and-test:
     name: Flutter_Build_And_Test
@@ -135,7 +143,7 @@ jobs:
         working-directory: ./supremeai
         run: flutter build web --release
       - name: Upload_Artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: flutter-artifacts
           path: |
@@ -173,7 +181,7 @@ jobs:
       - name: Build_Plugin
         run: "./gradlew :supremeai-intellij-plugin:buildPlugin"
       - name: Upload_Plugin_Artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: supremeai-intellij-plugin
           path: supremeai-intellij-plugin/build/distributions/*.zip
@@ -211,7 +219,7 @@ jobs:
           npm run lint
           npm run compile
       - name: Upload_VSIX_Artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: supremeai-vscode-extension
           path: supremeai-vscode-extension/*.vsix
@@ -229,7 +237,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Download_JAR
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v4
         with:
           name: java-backend-jar
           path: build/libs
@@ -283,7 +291,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Download_Web
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v4
         with:
           name: flutter-artifacts
           path: supremeai/build/web

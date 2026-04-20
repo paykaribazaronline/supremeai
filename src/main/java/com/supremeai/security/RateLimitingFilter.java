@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@Component
+// @Component // Disabled: using servlet RateLimitingFilter instead
 public class RateLimitingFilter implements WebFilter {
 
     @Value("${rate.limit.per.minute:100}")
