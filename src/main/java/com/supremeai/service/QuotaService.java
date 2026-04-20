@@ -2,6 +2,8 @@ package com.supremeai.service;
 
 import com.supremeai.model.UserApi;
 import com.supremeai.repository.UserApiRepository;
+import com.supremeai.service.quota.ApiQuotaManager;
+import com.supremeai.service.quota.QuotaExceededException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -14,20 +16,18 @@ public class QuotaService {
     @Autowired
     private UserApiRepository userApiRepository;
 
+    @Autowired
+    private ApiQuotaManager quotaManager;
+
     /**
      * Check if an API key has quota remaining for the current month
      */
     public boolean hasQuotaRemaining(String apiKey) {
         UserApi api = userApiRepository.findByApiKey(apiKey).block();
-        if (api == null) {
+        if (api == null || !api.getIsActive()) {
             return false;
         }
-
-        if (!api.getIsActive()) {
-            return false;
-        }
-
-        return api.hasQuotaRemaining();
+        return quotaManager.hasQuotaRemaining(api);
     }
 
     /**
@@ -36,21 +36,29 @@ public class QuotaService {
      */
     public boolean incrementUsage(String apiKey) {
         UserApi api = userApiRepository.findByApiKey(apiKey).block();
-        if (api == null) {
+        if (api == null || !api.getIsActive()) {
             return false;
         }
-
-        if (!api.getIsActive()) {
-            return false;
+        
+        if (quotaManager.incrementUsage(api)) {
+            userApiRepository.save(api).block();
+            return true;
         }
+        return false;
+    }
 
-        if (!api.hasQuotaRemaining()) {
-            return false;
+    /**
+     * Validate and increment usage atomically
+     * @throws QuotaExceededException if quota is exceeded
+     */
+    public void validateAndIncrement(String apiKey) throws QuotaExceededException {
+        UserApi api = userApiRepository.findByApiKey(apiKey).block();
+        if (api == null || !api.getIsActive()) {
+            throw new IllegalArgumentException("Invalid or inactive API key");
         }
-
-        api.incrementUsage();
+        
+        quotaManager.validateAndIncrement(api);
         userApiRepository.save(api).block();
-        return true;
     }
 
     /**
@@ -58,7 +66,7 @@ public class QuotaService {
      */
     public Long getCurrentUsage(String apiKey) {
         UserApi api = userApiRepository.findByApiKey(apiKey).block();
-        return api != null ? api.getCurrentUsage() : 0L;
+        return quotaManager.getCurrentUsage(api);
     }
 
     /**
@@ -66,7 +74,7 @@ public class QuotaService {
      */
     public Long getMonthlyQuota(String apiKey) {
         UserApi api = userApiRepository.findByApiKey(apiKey).block();
-        return api != null ? api.getMonthlyQuota() : 0L;
+        return quotaManager.getQuotaLimit(api);
     }
 
     /**
@@ -91,7 +99,7 @@ public class QuotaService {
             return false;
         }
 
-        api.resetMonthlyUsage();
+        quotaManager.resetUsage(api);
         userApiRepository.save(api).block();
         return true;
     }

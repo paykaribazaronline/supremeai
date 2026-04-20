@@ -1,35 +1,21 @@
-// AdminDashboardUnified.tsx
+// AdminDashboardUnified.tsx - MODERN PREMIUM REDESIGN
 // UNIFIED ADMIN DASHBOARD - Single Source of Truth Contract
-// 
-// ⭐ ALL CLIENTS CONSUME THIS:
-// - React Web (this file)
-// - Flutter Mobile (fetches same /api/admin/dashboard/contract)
-// - Flutter Web (fetches same /api/admin/dashboard/contract)
-//
-// ONE CHANGE IN BACKEND = EVERYWHERE UPDATES
 
-import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Card, Statistic, Row, Col, Alert, Badge, Space, Tabs, Empty, Button, Modal, Input, message } from 'antd';
-import { BulbOutlined } from '@ant-design/icons';
-import { authUtils } from '../lib/authUtils';
-import {
-    DashboardOutlined,
-    ApiOutlined,
-    CloudServerOutlined,
-    RobotOutlined,
-    TeamOutlined,
-    SettingOutlined,
-    CheckCircleOutlined,
-    WarningOutlined,
-    BugOutlined,
-    NodeIndexOutlined,
+import React, { useState, useEffect, useMemo } from 'react';
+import { Layout, Menu, Card, Statistic, Row, Col, Alert, Badge, Space, Tabs, Empty, Button, Modal, Input, message, Avatar, Dropdown, Typography, Divider } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
+import { 
+    BulbOutlined, LogoutOutlined, UserOutlined, BellOutlined,
+    DashboardOutlined, ApiOutlined, CloudServerOutlined, RobotOutlined,
+    TeamOutlined, SettingOutlined, CheckCircleOutlined, WarningOutlined,
+    BugOutlined, NodeIndexOutlined, MenuFoldOutlined, MenuUnfoldOutlined
 } from '@ant-design/icons';
+import { authUtils } from '../lib/authUtils';
 import PhasesOverview from '../components/PhasesOverview';
 import AIAgentsDashboard from '../components/AIAgentsDashboard';
 import ExploitationDashboard from '../components/ExploitationDashboard';
 
-const { TextArea } = Input;
-
+const { TextArea, Title } = Typography;
 const { Header, Content, Sider } = Layout;
 
 interface DashboardStats {
@@ -77,6 +63,7 @@ const AdminDashboardUnified: React.FC = () => {
     const [contract, setContract] = useState<DashboardContract | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
 
     // Suggestion modal state
     const [suggestionOpen, setSuggestionOpen] = useState(false);
@@ -155,119 +142,417 @@ const AdminDashboardUnified: React.FC = () => {
         return <Alert type="error" message={error || 'Failed to load dashboard'} />;
     }
 
-    // Build menu from contract navigation
-    const menuItems = contract.navigation.map((item) => ({
-        key: item.key,
-        icon: <span>{item.icon}</span>,
-        label: item.label,
-        title: item.description,
-        disabled: !item.enabled,
-    }));
+    // Build grouped menu from contract navigation
+    const menuGroups = [
+        {
+            key: 'dashboard',
+            label: '📊 Dashboard & Analytics',
+            type: 'group',
+            children: contract.navigation
+                .filter(i => ['overview', 'metrics', 'analytics', 'quota', 'cost'].includes(i.key))
+                .map(item => ({
+                    key: item.key,
+                    icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
+                    label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
+                    title: item.description,
+                    disabled: !item.enabled,
+                }))
+        },
+        {
+            key: 'ai',
+            label: '🤖 AI Systems',
+            type: 'group',
+            children: contract.navigation
+                .filter(i => ['ai-agents', 'providers', 'ml-intelligence', 'ai-models'].includes(i.key))
+                .map(item => ({
+                    key: item.key,
+                    icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
+                    label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
+                    title: item.description,
+                    disabled: !item.enabled,
+                }))
+        },
+        {
+            key: 'learning',
+            label: '📚 Knowledge & Learning',
+            type: 'group',
+            children: contract.navigation
+                .filter(i => ['learning', 'system-learning', 'teaching', 'research'].includes(i.key))
+                .map(item => ({
+                    key: item.key,
+                    icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
+                    label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
+                    title: item.description,
+                    disabled: !item.enabled,
+                }))
+        },
+        {
+            key: 'operations',
+            label: '⚙️ Operations',
+            type: 'group',
+            children: contract.navigation
+                .filter(i => ['git-ops', 'deployment', 'vpn', 'headless-browser', 'exploitation-techniques'].includes(i.key))
+                .map(item => ({
+                    key: item.key,
+                    icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
+                    label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
+                    title: item.description,
+                    disabled: !item.enabled,
+                }))
+        },
+        {
+            key: 'health',
+            label: '🛡️ System Health',
+            type: 'group',
+            children: contract.navigation
+                .filter(i => ['resilience', 'autofix', 'self-healing', 'audit'].includes(i.key))
+                .map(item => ({
+                    key: item.key,
+                    icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
+                    label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
+                    title: item.description,
+                    disabled: !item.enabled,
+                }))
+        },
+        {
+            key: 'admin',
+            label: '👥 Administration',
+            type: 'group',
+            children: contract.navigation
+                .filter(i => ['user-management', 'api-keys', 'notifications', 'settings', 'phases'].includes(i.key))
+                .map(item => ({
+                    key: item.key,
+                    icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
+                    label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
+                    title: item.description,
+                    disabled: !item.enabled,
+                }))
+        },
+    ];
+
+    // Filter out empty groups
+    const menuItems = menuGroups.filter(group => group.children.length > 0);
 
     // Get selected component from contract
     const selectedComponent = contract.components.find((c) => c.key === selectedKey);
 
+    const handleLogout = () => {
+        authUtils.clearToken();
+        window.location.reload();
+    };
+
+    const userDropdownItems = [
+        { key: 'profile', label: 'Profile', icon: <UserOutlined /> },
+        { key: 'settings', label: 'Settings', icon: <SettingOutlined /> },
+        { type: 'divider' },
+        { key: 'logout', label: 'Logout', icon: <LogoutOutlined />, onClick: handleLogout },
+    ];
+
     return (
-        <Layout style={{ minHeight: '100vh' }}>
-            {/* SIDEBAR - From contract navigation */}
+        <Layout style={{ minHeight: '100vh', background: '#F8FAFC' }}>
+            {/* SIDEBAR - Modern premium design */}
             <Sider
                 collapsible
                 collapsed={collapsed}
                 onCollapse={setCollapsed}
-                width={250}
-                style={{ background: '#001529' }}
+                width={280}
+                collapsedWidth={80}
+                style={{ 
+                    background: '#0F172A',
+                    borderRight: '1px solid rgba(255,255,255,0.05)',
+                    boxShadow: '2px 0 10px rgba(0,0,0,0.1)',
+                }}
             >
                 <div
                     style={{
-                        height: '64px',
-                        background: '#rgba(255,255,255,0.1)',
+                        height: '80px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        color: '#fff',
-                        fontWeight: 'bold',
-                        fontSize: '16px',
+                        padding: '0 20px',
+                        borderBottom: '1px solid rgba(255,255,255,0.05)',
                     }}
                 >
-                    {collapsed ? 'AI' : '⭐ SupremeAI'}
+                    {collapsed ? (
+                        <Avatar 
+                            size={44} 
+                            style={{ 
+                                background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
+                                fontWeight: 700,
+                                fontSize: '18px',
+                            }}
+                        >
+                            AI
+                        </Avatar>
+                    ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <Avatar 
+                                size={44} 
+                                style={{ 
+                                    background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
+                                    fontWeight: 700,
+                                }}
+                                icon={<RobotOutlined style={{ fontSize: '22px' }} />}
+                            />
+                            <div>
+                                <div style={{ color: '#fff', fontWeight: 700, fontSize: '18px' }}>SupremeAI</div>
+                                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px' }}>Admin Console</div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
-                <Menu
-                    theme="dark"
-                    mode="inline"
-                    selectedKeys={[selectedKey]}
-                    onSelect={(e) => setSelectedKey(e.key)}
-                    items={menuItems}
-                />
+                <div style={{ padding: '12px 12px' }}>
+                    {!collapsed && (
+                        <Input
+                            prefix={<SearchOutlined style={{ color: 'rgba(255,255,255,0.4)' }} />}
+                            placeholder="Search tabs..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            style={{
+                                background: 'rgba(255,255,255,0.05)',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                borderRadius: '10px',
+                                color: 'white',
+                                marginBottom: '8px',
+                            }}
+                            placeholderStyle={{ color: 'rgba(255,255,255,0.4)' }}
+                            allowClear
+                        />
+                    )}
+                    
+                    <Menu
+                        theme="dark"
+                        mode="inline"
+                        selectedKeys={[selectedKey]}
+                        onSelect={(e) => {
+                            setSelectedKey(e.key);
+                            setSearchQuery('');
+                        }}
+                        items={useMemo(() => {
+                            if (!searchQuery.trim()) return menuItems;
+                            
+                            // Filter menu when searching
+                            const query = searchQuery.toLowerCase();
+                            const flatItems = contract.navigation.filter(i => 
+                                i.label.toLowerCase().includes(query) ||
+                                i.key.toLowerCase().includes(query) ||
+                                i.description?.toLowerCase().includes(query)
+                            ).map(item => ({
+                                key: item.key,
+                                icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
+                                label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
+                                title: item.description,
+                                disabled: !item.enabled,
+                            }));
+                            
+                            return flatItems.length > 0 ? flatItems : [{
+                                key: 'no-results',
+                                label: <span style={{ color: 'rgba(255,255,255,0.4)' }}>No results found</span>,
+                                disabled: true
+                            }];
+                        }, [searchQuery, menuItems, contract])}
+                        style={{ 
+                            background: 'transparent',
+                            borderRight: 'none',
+                        }}
+                    />
+                </div>
             </Sider>
 
             <Layout>
-                {/* HEADER */}
-                <Header style={{ background: '#fff', padding: '0 24px', borderBottom: '1px solid #f0f0f0' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h1 style={{ margin: 0 }}>{contract.title}</h1>
+                {/* HEADER - Modern premium design */}
+                <Header style={{ 
+                    background: '#FFFFFF', 
+                    padding: '0 32px', 
+                    borderBottom: '1px solid #E5E7EB',
+                    height: '72px',
+                    lineHeight: '72px',
+                    boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
+                }}>
+                    <div style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center',
+                        height: '100%',
+                    }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                                {contract.stats.systemHealthStatus && (
-                                    <>
-                                        <Badge
-                                            status={contract.stats.systemHealthStatus === 'healthy' ? 'success' : contract.stats.systemHealthStatus === 'warning' ? 'warning' : 'error'}
-                                            text={`System: ${contract.stats.systemHealthStatus}`}
-                                        />
-                                        {contract.stats.systemHealthReason && (
-                                            <span style={{ fontSize: '12px', color: '#666', maxWidth: '300px', textAlign: 'right' }}>
-                                                {contract.stats.systemHealthReason}
-                                            </span>
-                                        )}
-                                    </>
-                                )}
+                            <Button 
+                                type="text" 
+                                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                                onClick={() => setCollapsed(!collapsed)}
+                                style={{ fontSize: '18px', width: '44px', height: '44px', borderRadius: '10px' }}
+                            />
+                            <div>
+                                <Title level={4} style={{ margin: 0, fontWeight: 700 }}>{contract.title}</Title>
+                                <div style={{ color: '#6B7280', fontSize: '13px', marginTop: '-4px' }}>
+                                    Intelligent Platform Management
+                                </div>
                             </div>
+                        </div>
+                        
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                            {contract.stats.systemHealthStatus && (
+                                <Badge
+                                    status={contract.stats.systemHealthStatus === 'healthy' ? 'success' : contract.stats.systemHealthStatus === 'warning' ? 'warning' : 'error'}
+                                    text={<span style={{ fontWeight: 500 }}>System {contract.stats.systemHealthStatus}</span>}
+                                />
+                            )}
+                            
+                            <Button 
+                                type="text" 
+                                icon={<BellOutlined style={{ fontSize: '20px', color: '#6B7280' }} />}
+                                style={{ width: '44px', height: '44px', borderRadius: '10px' }}
+                            />
+                            
                             <Badge
                                 count={`v${contract.contractVersion}`}
-                                style={{ backgroundColor: '#52c41a' }}
+                                style={{ 
+                                    backgroundColor: '#7C3AED',
+                                    fontWeight: 600,
+                                    padding: '0 12px',
+                                    borderRadius: '20px',
+                                    height: '28px',
+                                    lineHeight: '28px',
+                                }}
                             />
+                            
+                            <Divider type="vertical" style={{ height: '32px' }} />
+                            
+                            <Dropdown menu={{ items: userDropdownItems }} placement="bottomRight">
+                                <div style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    gap: '12px', 
+                                    cursor: 'pointer',
+                                    padding: '6px 12px',
+                                    borderRadius: '12px',
+                                    transition: 'all 0.2s',
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = '#F3F4F6'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                >
+                                    <Avatar 
+                                        size={36} 
+                                        style={{ 
+                                            background: 'linear-gradient(135deg, #10B981 0%, #34D399 100%)',
+                                            fontWeight: 600,
+                                        }}
+                                        icon={<UserOutlined />}
+                                    />
+                                    <div style={{ textAlign: 'right' }}>
+                                        <div style={{ fontWeight: 600, color: '#111827' }}>Admin</div>
+                                        <div style={{ fontSize: '12px', color: '#6B7280' }}>Administrator</div>
+                                    </div>
+                                </div>
+                            </Dropdown>
                         </div>
                     </div>
                 </Header>
 
                 {/* CONTENT */}
-                <Content style={{ margin: '24px' }}>
-                    {/* Stats Row - From contract */}
-                    <Row gutter={16} style={{ marginBottom: '24px' }}>
+                <Content style={{ margin: '28px 32px', paddingBottom: '40px' }}>
+                    {/* Stats Row - Modern gradient cards */}
+                    <Row gutter={[20, 20]} style={{ marginBottom: '28px' }}>
                         <Col xs={24} sm={12} md={6}>
-                            <Card>
+                            <Card 
+                                style={{ 
+                                    borderRadius: '16px',
+                                    border: 'none',
+                                    background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
+                                    boxShadow: '0 10px 40px -10px rgba(124, 58, 237, 0.3)',
+                                    transition: 'all 0.3s ease',
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(-4px)';
+                                    e.currentTarget.style.boxShadow = '0 20px 60px -15px rgba(124, 58, 237, 0.4)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = '0 10px 40px -10px rgba(124, 58, 237, 0.3)';
+                                }}
+                            >
                                 <Statistic
-                                    title="Active AI Agents"
+                                    title={<span style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500, fontSize: '13px' }}>Active AI Agents</span>}
                                     value={contract.stats.activeAIAgents}
-                                    prefix={<RobotOutlined />}
+                                    prefix={<RobotOutlined style={{ color: 'rgba(255,255,255,0.9)', fontSize: '22px' }} />}
+                                    valueStyle={{ color: '#FFFFFF', fontWeight: 700, fontSize: '32px' }}
                                 />
                             </Card>
                         </Col>
                         <Col xs={24} sm={12} md={6}>
-                            <Card>
+                            <Card 
+                                style={{ 
+                                    borderRadius: '16px',
+                                    border: 'none',
+                                    background: 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)',
+                                    boxShadow: '0 10px 40px -10px rgba(59, 130, 246, 0.3)',
+                                    transition: 'all 0.3s ease',
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(-4px)';
+                                    e.currentTarget.style.boxShadow = '0 20px 60px -15px rgba(59, 130, 246, 0.4)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = '0 10px 40px -10px rgba(59, 130, 246, 0.3)';
+                                }}
+                            >
                                 <Statistic
-                                    title="Running Tasks"
+                                    title={<span style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500, fontSize: '13px' }}>Running Tasks</span>}
                                     value={contract.stats.runningTasks}
-                                    valueStyle={{ color: '#1890ff' }}
+                                    valueStyle={{ color: '#FFFFFF', fontWeight: 700, fontSize: '32px' }}
                                 />
                             </Card>
                         </Col>
                         <Col xs={24} sm={12} md={6}>
-                            <Card>
+                            <Card 
+                                style={{ 
+                                    borderRadius: '16px',
+                                    border: 'none',
+                                    background: 'linear-gradient(135deg, #10B981 0%, #34D399 100%)',
+                                    boxShadow: '0 10px 40px -10px rgba(16, 185, 129, 0.3)',
+                                    transition: 'all 0.3s ease',
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(-4px)';
+                                    e.currentTarget.style.boxShadow = '0 20px 60px -15px rgba(16, 185, 129, 0.4)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = '0 10px 40px -10px rgba(16, 185, 129, 0.3)';
+                                }}
+                            >
                                 <Statistic
-                                    title="Completed Tasks"
+                                    title={<span style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500, fontSize: '13px' }}>Completed Tasks</span>}
                                     value={contract.stats.completedTasks}
-                                    valueStyle={{ color: '#52c41a' }}
+                                    valueStyle={{ color: '#FFFFFF', fontWeight: 700, fontSize: '32px' }}
                                 />
                             </Card>
                         </Col>
                         <Col xs={24} sm={12} md={6}>
-                            <Card>
+                            <Card 
+                                style={{ 
+                                    borderRadius: '16px',
+                                    border: 'none',
+                                    background: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)',
+                                    boxShadow: '0 10px 40px -10px rgba(245, 158, 11, 0.3)',
+                                    transition: 'all 0.3s ease',
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(-4px)';
+                                    e.currentTarget.style.boxShadow = '0 20px 60px -15px rgba(245, 158, 11, 0.4)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = '0 10px 40px -10px rgba(245, 158, 11, 0.3)';
+                                }}
+                            >
                                 <Statistic
-                                    title="Success Rate"
+                                    title={<span style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500, fontSize: '13px' }}>Success Rate</span>}
                                     value={contract.stats.successRate}
-                                    suffix="%"
-                                    valueStyle={{ color: '#faad14' }}
+                                    suffix={<span style={{ fontSize: '20px' }}>%</span>}
+                                    valueStyle={{ color: '#FFFFFF', fontWeight: 700, fontSize: '32px' }}
                                 />
                             </Card>
                         </Col>
@@ -275,24 +560,61 @@ const AdminDashboardUnified: React.FC = () => {
 
                     {/* Selected Component Panel */}
                     <Card
+                        style={{ 
+                            borderRadius: '16px',
+                            border: 'none',
+                            boxShadow: '0 4px 20px -5px rgba(0, 0, 0, 0.08)',
+                        }}
                         title={
-                            selectedComponent
-                                ? `${selectedComponent.icon} ${selectedComponent.label}`
-                                : 'Select a component'
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                {selectedComponent && (
+                                    <div style={{
+                                        width: '40px',
+                                        height: '40px',
+                                        borderRadius: '12px',
+                                        background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '18px',
+                                        color: 'white',
+                                    }}>
+                                        {selectedComponent.icon}
+                                    </div>
+                                )}
+                                <div>
+                                    <div style={{ fontWeight: 700, fontSize: '18px', color: '#111827' }}>
+                                        {selectedComponent ? selectedComponent.label : 'Welcome'}
+                                    </div>
+                                    {selectedComponent && (
+                                        <div style={{ fontSize: '13px', color: '#6B7280' }}>
+                                            {selectedComponent.category} Module
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         }
                         extra={
-                            <Space>
+                            <Space size="middle">
                                 {selectedComponent && (
                                     <Badge
                                         status={selectedComponent.enabled ? 'success' : 'error'}
                                         text={selectedComponent.enabled ? 'Enabled' : 'Disabled'}
+                                        style={{ fontWeight: 500 }}
                                     />
                                 )}
                                 <Button
                                     type="primary"
                                     icon={<BulbOutlined />}
                                     onClick={() => setSuggestionOpen(true)}
-                                    style={{ background: '#722ed1', borderColor: '#722ed1' }}
+                                    style={{ 
+                                        background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
+                                        border: 'none',
+                                        borderRadius: '10px',
+                                        height: '40px',
+                                        fontWeight: 500,
+                                        boxShadow: '0 4px 15px -5px rgba(124, 58, 237, 0.4)',
+                                    }}
                                 >
                                     Suggest Changes
                                 </Button>
@@ -346,13 +668,48 @@ const AdminDashboardUnified: React.FC = () => {
                     </Card>
 
                     {/* Available Endpoints - From contract */}
-                    <Card title="📡 API Endpoints" style={{ marginTop: '24px' }}>
+                    <Card 
+                        title={
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{
+                                    width: '36px',
+                                    height: '36px',
+                                    borderRadius: '10px',
+                                    background: 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: 'white',
+                                    fontSize: '16px',
+                                }}>
+                                    📡
+                                </div>
+                                <span style={{ fontWeight: 700, fontSize: '16px' }}>API Endpoints</span>
+                            </div>
+                        }
+                        style={{ 
+                            marginTop: '28px',
+                            borderRadius: '16px',
+                            border: 'none',
+                            boxShadow: '0 4px 20px -5px rgba(0, 0, 0, 0.08)',
+                        }}
+                    >
                         <Tabs
+                            size="large"
                             items={Object.entries(contract.apiEndpoints).map(([category, endpoints]) => ({
                                 key: category,
-                                label: category.toUpperCase(),
+                                label: <span style={{ fontWeight: 600, textTransform: 'uppercase' }}>{category}</span>,
                                 children: (
-                                    <pre style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
+                                    <pre style={{ 
+                                        background: '#F8FAFC', 
+                                        padding: '20px', 
+                                        borderRadius: '12px',
+                                        border: '1px solid #E5E7EB',
+                                        overflow: 'auto',
+                                        maxHeight: '400px',
+                                        fontSize: '13px',
+                                        fontFamily: 'JetBrains Mono, monospace',
+                                    }}>
                                         {JSON.stringify(endpoints, null, 2)}
                                     </pre>
                                 ),
@@ -365,38 +722,67 @@ const AdminDashboardUnified: React.FC = () => {
             {/* Suggestion Modal */}
             <Modal
                 title={
-                    <Space>
-                        <BulbOutlined style={{ color: '#722ed1' }} />
-                        <span>
-                            Suggest Changes
-                            {selectedComponent ? ` — ${selectedComponent.label}` : ''}
-                        </span>
-                    </Space>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '12px',
+                            background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}>
+                            <BulbOutlined style={{ color: 'white', fontSize: '20px' }} />
+                        </div>
+                        <div>
+                            <div style={{ fontWeight: 700, fontSize: '18px' }}>Suggest Changes</div>
+                            {selectedComponent && (
+                                <div style={{ fontSize: '13px', color: '#6B7280' }}>
+                                    for {selectedComponent.label}
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 }
                 open={suggestionOpen}
                 onCancel={() => { setSuggestionOpen(false); setSuggestionText(''); }}
                 footer={[
-                    <Button key="cancel" onClick={() => { setSuggestionOpen(false); setSuggestionText(''); }}>
+                    <Button 
+                        key="cancel" 
+                        onClick={() => { setSuggestionOpen(false); setSuggestionText(''); }}
+                        style={{ borderRadius: '10px', height: '44px', fontWeight: 500 }}
+                    >
                         Cancel
                     </Button>,
                     <Button
                         key="save"
                         loading={suggestionLoading}
                         onClick={() => submitSuggestion(false)}
+                        style={{ borderRadius: '10px', height: '44px', fontWeight: 500 }}
                     >
-                        💾 Save
+                        💾 Save Suggestion
                     </Button>,
                     <Button
                         key="apply"
                         type="primary"
                         loading={suggestionLoading}
                         onClick={() => submitSuggestion(true)}
-                        style={{ background: '#722ed1', borderColor: '#722ed1' }}
+                        style={{ 
+                            background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
+                            border: 'none',
+                            borderRadius: '10px',
+                            height: '44px',
+                            fontWeight: 600,
+                            boxShadow: '0 4px 15px -5px rgba(124, 58, 237, 0.4)',
+                        }}
                     >
-                        🤖 Do Now
+                        🤖 Apply Immediately
                     </Button>,
                 ]}
-                width={600}
+                width={650}
+                centered
+                style={{ top: 20 }}
+                bodyStyle={{ padding: '24px 32px' }}
             >
                 <p style={{ color: '#666', marginBottom: '12px' }}>
                     Describe the change you want on the <strong>{selectedComponent?.label || selectedKey}</strong> tab.
