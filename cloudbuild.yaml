@@ -22,11 +22,11 @@ steps:
       - 'us-central1'
       - '--allow-unauthenticated'
       - '--memory'
-      - '1Gi'
+      - '2Gi'
       - '--cpu'
-      - '1'
+      - '2'
       - '--timeout'
-      - '300'
+      - '600'
       - '--set-env-vars=SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a'
 
 options:
