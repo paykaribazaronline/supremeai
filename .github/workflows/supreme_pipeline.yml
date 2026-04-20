@@ -91,12 +91,16 @@ jobs:
           distribution: "temurin"
           cache: "gradle"
       - name: Build_And_Test
-        run: "./gradlew build -x jacocoTestCoverageVerification"
+        run: |
+          ./gradlew build -x jacocoTestCoverageVerification
+          # Rename the jar to a predictable name for the Dockerfile
+          mkdir -p build/libs
+          cp build/libs/*.jar build/libs/app.jar || true
       - name: Upload_JAR
         uses: actions/upload-artifact@v6
         with:
           name: java-backend-jar
-          path: "build/libs/*.jar"
+          path: "build/libs/app.jar"
 
   flutter-build-and-test:
     name: Flutter_Build_And_Test
@@ -224,6 +228,11 @@ jobs:
       admin_url: ${{ steps.set-url.outputs.url }}
     steps:
       - uses: actions/checkout@v6
+      - name: Download_JAR
+        uses: actions/download-artifact@v6
+        with:
+          name: java-backend-jar
+          path: build/libs
       - name: Authenticate_GCP
         uses: google-github-actions/auth@v3
         with:

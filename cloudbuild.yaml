@@ -1,37 +1,33 @@
 steps:
-  - name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "build",
-        "-t",
-        "us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest",
-        ".",
-      ]
-  - name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "push",
-        "us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest",
-      ]
-  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+  # Build the container image using the thin Dockerfile
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest', '.']
+
+  # Push the image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest']
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
-      - "run"
-      - "deploy"
-      - "supremeai"
-      - "--image"
-      - "us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest"
-      - "--platform"
-      - "managed"
-      - "--region"
-      - "us-central1"
-      - "--allow-unauthenticated"
-      - "--memory"
-      - "2Gi"
-      - "--cpu"
-      - "2"
-      - "--timeout"
-      - "300"
-      - "--set-env-vars=SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a"
+      - 'run'
+      - 'deploy'
+      - 'supremeai'
+      - '--image'
+      - 'us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest'
+      - '--platform'
+      - 'managed'
+      - '--region'
+      - 'us-central1'
+      - '--allow-unauthenticated'
+      - '--memory'
+      - '1Gi'
+      - '--cpu'
+      - '1'
+      - '--timeout'
+      - '300'
+      - '--set-env-vars=SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a'
+
 images:
-  - "us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest"
+  - 'us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest'
