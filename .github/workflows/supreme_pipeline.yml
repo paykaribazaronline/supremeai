@@ -61,16 +61,16 @@ jobs:
       security-events: write
     steps:
       - uses: actions/checkout@v4
-       - name: CodeQL_Init
-         uses: github/codeql-action/init@v3
-         with:
-           languages: "java"
-           build-mode: "manual"
-       - name: Build_For_CodeQL
-         run: ./gradlew compileJava
-         
-       - name: Run_CodeQL
-         uses: github/codeql-action/analyze@v3
+      - name: CodeQL_Init
+        uses: github/codeql-action/init@v3
+        with:
+          languages: "java"
+          build-mode: "manual"
+      - name: Build_For_CodeQL
+        run: ./gradlew compileJava
+        
+      - name: Run_CodeQL
+        uses: github/codeql-action/analyze@v3
 
   java-build-and-test:
     name: Java_Build_And_Test
