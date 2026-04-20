@@ -3,8 +3,10 @@ package com.supremeai.fallback;
 import com.supremeai.cost.QuotaManager;
 import com.supremeai.learning.knowledge.GlobalKnowledgeBase;
 import com.supremeai.learning.immunity.CodeImmunitySystem;
+import com.supremeai.intelligence.profiling.AIProfiler;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -15,67 +17,89 @@ public class AIFallbackOrchestrator {
     private final APIKeyManager apiKeyManager;
     private final GlobalKnowledgeBase knowledgeBase;
     private final CodeImmunitySystem immunitySystem;
+    private final AIProfiler aiProfiler;
 
-    // Ordered by preference: Primary -> Secondary -> Free tier backup
-    private final List<AIProvider> fallbackChain = Arrays.asList(
+    private final List<AIProvider> allProviders = Arrays.asList(
             AIProvider.GROQ_LLAMA3,
             AIProvider.GEMINI_PRO,
-            AIProvider.HUGGINGFACE_FREE
+            AIProvider.HUGGINGFACE_FREE,
+            AIProvider.ANTHROPIC_CLAUDE
     );
 
     public AIFallbackOrchestrator(QuotaManager quotaManager, APIKeyManager apiKeyManager, 
-                                  GlobalKnowledgeBase knowledgeBase, CodeImmunitySystem immunitySystem) {
+                                  GlobalKnowledgeBase knowledgeBase, CodeImmunitySystem immunitySystem,
+                                  AIProfiler aiProfiler) {
         this.quotaManager = quotaManager;
         this.apiKeyManager = apiKeyManager;
         this.knowledgeBase = knowledgeBase;
         this.immunitySystem = immunitySystem;
+        this.aiProfiler = aiProfiler;
     }
 
-    public String executeWithLearningAndImmunity(String errorSignature, String prompt) {
+    public String executeWithSupremeIntelligence(String taskCategory, String errorSignature, String prompt) {
         
         // STEP 1: CHECK GLOBAL KNOWLEDGE BASE
         String knownSolution = knowledgeBase.findKnownSolution(errorSignature);
-        if (knownSolution != null) {
-            return knownSolution; 
+        if (knownSolution != null) return knownSolution; 
+
+        // STEP 2: DYNAMICALLY RE-ORDER THE FALLBACK CHAIN BASED ON AI PROFILER
+        // Instead of hardcoding Groq -> Gemini -> HF...
+        // The system asks: "Who is the historic expert for THIS specific task (e.g., 'SQL_FIX')?"
+        AIProvider expertProvider = aiProfiler.getBestAIForTask(taskCategory);
+        
+        List<AIProvider> dynamicChain = new ArrayList<>();
+        dynamicChain.add(expertProvider); // Put the expert first!
+        
+        for (AIProvider p : allProviders) {
+            if (p != expertProvider) dynamicChain.add(p); // Add the rest as backups
         }
 
-        // STEP 2: ASK AI TO FIX IT
-        for (AIProvider provider : fallbackChain) {
+        // STEP 3: EXECUTE WITH LEARNING, IMMUNITY, AND PERFORMANCE TRACKING
+        for (AIProvider provider : dynamicChain) {
             if (!isServiceQuotaAvailable(provider)) continue; 
 
             String safeKey = apiKeyManager.getNextHealthyKey(provider);
             if (safeKey == null) continue; 
 
+            long startTime = System.currentTimeMillis();
+            
             try {
-                System.out.println("-> Asking " + provider + " to fix new error...");
+                System.out.println("-> Asking " + provider + " (Expert Mode) to handle task: " + taskCategory);
                 
                 String generatedCode = callAIProvider(provider, safeKey, prompt);
+                long timeTaken = System.currentTimeMillis() - startTime;
+                
                 recordUsage(provider);
                 
-                // STEP 3: THE GENIUS IDEA -> THE IMMUNE SYSTEM CHECK
+                // STEP 4: IMMUNITY CHECK (Did the AI generate toxic code?)
                 if (immunitySystem.isCodeInfected(generatedCode)) {
-                    System.err.println("-> [Orchestrator] AI generated toxic/broken code! Rejecting and trying another model...");
-                    
-                    // The system learns that this provider gave bad code for this specific prompt
-                    // It rejects the code and forces the loop to continue to the next AI provider
+                    System.err.println("-> [Orchestrator] AI generated toxic/broken code! Rejecting...");
+                    // Record failure so AIProfiler knows this AI is bad at this task!
+                    aiProfiler.recordPerformance(taskCategory, provider, false, timeTaken);
                     continue; 
                 }
 
-                // If code is clean and passes immunity, save to knowledge base and return
-                knowledgeBase.recordSuccess(errorSignature, generatedCode, provider.name());
+                // If code is clean:
+                // 1. Save to Knowledge Base for future
+                // 2. Tell AI Profiler this AI did a GREAT job so it gets higher ranking next time!
+                knowledgeBase.recordSuccess(errorSignature, generatedCode, provider.name(), timeTaken, 0.95);
+                aiProfiler.recordPerformance(taskCategory, provider, true, timeTaken);
+                
                 return generatedCode;
                 
             } catch (RateLimitException e) {
                 apiKeyManager.markKeyAsRateLimited(safeKey, 60000); 
-                return executeWithLearningAndImmunity(errorSignature, prompt); 
+                return executeWithSupremeIntelligence(taskCategory, errorSignature, prompt); 
             } catch (TimeoutException e) {
+                 long timeTaken = System.currentTimeMillis() - startTime;
+                 aiProfiler.recordPerformance(taskCategory, provider, false, timeTaken); // Record timeout as failure
                  continue; 
             } catch (Exception e) {
                  // Unknown error
             }
         }
         
-        throw new RuntimeException("CRITICAL: All AI failed or generated toxic code. Cannot fix error.");
+        throw new RuntimeException("CRITICAL: All AI failed. Cannot execute task.");
     }
 
     private boolean isServiceQuotaAvailable(AIProvider provider) {
@@ -101,7 +125,7 @@ public class AIFallbackOrchestrator {
     private String callAIProvider(AIProvider provider, String apiKey, String prompt) throws Exception {
         if (provider == AIProvider.GROQ_LLAMA3 && apiKey.contains("11111")) throw new RateLimitException("HTTP 429");
         if (provider == AIProvider.GEMINI_PRO) throw new TimeoutException("HTTP 504");
-        
+        Thread.sleep((long)(Math.random() * 500)); // Simulate API delay 0-500ms
         return "public void fixedMethod() { /* Clean Code Fix */ }";
     }
     
