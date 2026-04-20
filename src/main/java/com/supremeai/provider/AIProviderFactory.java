@@ -1,5 +1,6 @@
 package com.supremeai.provider;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +16,9 @@ public class AIProviderFactory {
     @Value("${supremeai.provider.anthropic.api-key}")
     private String anthropicApiKey;
 
+    @Autowired
+    private OllamaProvider ollamaProvider;
+
     public AIProvider getProvider(String name) {
         switch (name.toLowerCase()) {
             case "groq":
@@ -23,6 +27,8 @@ public class AIProviderFactory {
                 return new OpenAIProvider(openaiApiKey);
             case "anthropic":
                 return new AnthropicProvider(anthropicApiKey);
+            case "ollama":
+                return ollamaProvider;
             default:
                 throw new IllegalArgumentException("Unknown AI provider: " + name);
         }
