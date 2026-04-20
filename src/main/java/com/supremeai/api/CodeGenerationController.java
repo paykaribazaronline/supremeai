@@ -32,6 +32,7 @@ public class CodeGenerationController {
      * Body: {"decisions": {"database":"PostgreSQL","architecture":"monolith",...}}
      */
     @PostMapping("/from-orchestration")
+    @SuppressWarnings("unchecked")
     public Mono<ResponseEntity<Map<String, Object>>> generateFromOrchestration(@RequestBody Map<String, Object> request) {
         Map<String, String> decisions = (Map<String, String>) request.get("decisions");
         if (decisions == null) {
