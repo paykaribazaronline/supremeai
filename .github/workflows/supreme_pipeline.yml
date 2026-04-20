@@ -61,6 +61,12 @@ jobs:
       security-events: write
     steps:
       - uses: actions/checkout@v4
+      - name: Setup_Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: "gradle"
       - name: CodeQL_Init
         uses: github/codeql-action/init@v3
         with:
