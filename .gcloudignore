@@ -1,14 +1,52 @@
-# This file tells gcloud to ignore all files except those needed for the backend build.
+# Optimized .gcloudignore for SupremeAI
+# This file specifies which files should NOT be uploaded to Google Cloud Build.
 
-# Ignore everything by default
-*
-# But DO include the following:
-!/src/**
-!/build.gradle.kts
-!/settings.gradle.kts
-!/gradle.properties
-!/gradlew
-!/gradle/**
-!/Dockerfile
-!/cloudbuild.yaml
-!/build/libs/app.jar
+# Git
+.git/
+.gitignore
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# Node.js
+node_modules/
+npm-debug.log
+
+# Python
+__pycache__/
+*.pyc
+
+# Local Config
+.env
+local.properties
+service-account.json
+
+# Build directories (Ignore everything in build EXCEPT the JAR we need)
+build/.gradle/
+build/classes/
+build/generated/
+build/resources/
+build/tmp/
+build/reports/
+build/test-results/
+build/jacoco/
+
+# Ensure the JAR is NOT ignored
+# (By NOT listing build/libs/ here, it will be included by default)
+
+# Other large or unnecessary folders
+supremeai-intellij-plugin/
+supremeai-vscode-extension/
+supremeai/  # This is the Flutter project folder
+docs/
+docs_new/
+colab/
+monitoring/
+admin/
+public/
+projects/
+dashboard/
+functions/
+command-hub/
