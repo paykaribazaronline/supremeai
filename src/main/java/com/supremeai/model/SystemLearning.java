@@ -17,6 +17,7 @@ public class SystemLearning {
     private Double confidenceScore;
     private Map<String, Object> metadata;
     private LocalDateTime learnedAt;
+    private boolean permanent;
 
     public SystemLearning() {}
 
@@ -45,4 +46,6 @@ public class SystemLearning {
     public void setMetadata(Map<String, Object> metadata) { this.metadata = metadata; }
     public LocalDateTime getLearnedAt() { return learnedAt; }
     public void setLearnedAt(LocalDateTime learnedAt) { this.learnedAt = learnedAt; }
+    public boolean isPermanent() { return permanent; }
+    public void setPermanent(boolean permanent) { this.permanent = permanent; }
 }

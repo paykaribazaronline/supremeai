@@ -2,6 +2,7 @@ package com.supremeai.api;
 
 import com.supremeai.model.SystemLearning;
 import com.supremeai.repository.SystemLearningRepository;
+import com.supremeai.service.FastPathAIService;
 import com.supremeai.service.GuestQuotaService;
 import com.supremeai.service.quota.QuotaExceededException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -61,8 +62,8 @@ public class ChatController {
         learningEntry.setContent(message);
         learningEntry.setLearnedAt(LocalDateTime.now());
         
-        // Mock response for now, to be replaced with actual AI service call
-        String aiResponse = "SupremeAI: I've received your message about '" + message + "'. I am currently processing this through " + provider + ".";
+        // Fast path AI generation
+        String aiResponse = fastPathAIService.generateParallel(message, "groq", "ollama");
 
         // Fire and forget with guaranteed persistence
         learningRepository.save(learningEntry)
