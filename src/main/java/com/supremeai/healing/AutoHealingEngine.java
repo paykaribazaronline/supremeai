@@ -16,7 +16,7 @@ public class AutoHealingEngine {
     public Map<String, Object> detectAndFix(String error) {
         logger.info("Auto-healing engine analyzing error: {}", error);
         
-        errorPatterns.merge(error, 1, Integer::sum);
+        errorPatterns.merge(error, 1, (Integer a, Integer b) -> a + b);
         
         String fix = getKnownFix(error);
         

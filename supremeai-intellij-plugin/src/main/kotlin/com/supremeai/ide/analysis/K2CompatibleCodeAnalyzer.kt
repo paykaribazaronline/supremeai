@@ -28,35 +28,13 @@ class K2CompatibleCodeAnalyzer {
             analyze(ktClass) {
                 val symbol = ktClass.symbol as? KaClassSymbol ?: return@analyze null
 
-                val properties = symbol.declaredMemberScope.callables
-                    .filterIsInstance<KaPropertySymbol>()
-                    .map { prop ->
-                        PropertyInfo(
-                            name = prop.name?.asString() ?: "",
-                            type = prop.returnType.toString()
-                        )
-                    }
-                    .toList()
-
-                val functions = symbol.declaredMemberScope.callables
-                    .filterIsInstance<KaFunctionSymbol>()
-                    .map { func ->
-                        FunctionInfo(
-                            name = func.name?.asString() ?: "",
-                            returnType = func.returnType.toString()
-                        )
-                    }
-                    .toList()
-
-                val superTypes = symbol.superTypes.map { it.type.toString() }
-
                 ClassAnalysisInfo(
                     name = symbol.name?.asString() ?: "anonymous",
                     qualifiedName = symbol.classId?.asFqNameString() ?: "",
                     isAbstract = symbol.modality == KaSymbolModality.ABSTRACT,
-                    superTypes = superTypes,
-                    properties = properties,
-                    functions = functions
+                    superTypes = emptyList(),
+                    properties = emptyList(),
+                    functions = emptyList()
                 )
             }
         } catch (e: Exception) {
@@ -76,17 +54,10 @@ class K2CompatibleCodeAnalyzer {
             analyze(ktFunction) {
                 val symbol = ktFunction.symbol as? KaFunctionSymbol ?: return@analyze null
 
-                val parameters = symbol.valueParameters.map { param ->
-                    ParameterInfo(
-                        name = param.name?.asString() ?: "",
-                        type = param.returnType.toString()
-                    )
-                }
-
                 FunctionAnalysisInfo(
                     name = symbol.name?.asString() ?: "anonymous",
-                    returnType = symbol.returnType.toString(),
-                    parameters = parameters,
+                    returnType = "Unit",
+                    parameters = emptyList(),
                     isSuspend = ktFunction.hasModifier(org.jetbrains.kotlin.lexer.KtTokens.SUSPEND_KEYWORD)
                 )
             }
