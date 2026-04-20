@@ -25,12 +25,15 @@ LICENSE
 *.swo
 
 # Build Artifacts
-build/
+# build/  <-- Commented out to allow build/libs/app.jar
 out/
 target/
 *.class
-*.jar
+# *.jar   <-- Commented out to allow app.jar
 *.war
+
+# Explicitly allow the JAR
+!build/libs/app.jar
 
 # Gradle
 .gradle/
