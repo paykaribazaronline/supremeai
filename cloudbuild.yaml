@@ -1,13 +1,9 @@
 steps:
-  # Build the container image using the thin Dockerfile
+  # Build the container image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest', '.']
 
-  # Push the image to Artifact Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest']
-
-  # Deploy to Cloud Run
+  # Deploy to Cloud Run (The image is pushed automatically via the 'images' field at the end)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
