@@ -262,14 +262,14 @@ jobs:
               exit 0
             elif [ "$STATUS" = "FAILURE" ] || [ "$STATUS" = "INTERNAL_ERROR" ]; then
               echo "Build failed with status: $STATUS"
-              gcloud builds log $BUILD_ID --project=supremeai-a --limit=100 || echo "Could not fetch build logs"
+              gcloud builds log $BUILD_ID --project=supremeai-a || echo "Could not fetch build logs"
               exit 1
             fi
             echo "Build status: $STATUS. Waiting... ($i/120)"
             sleep 10
           done
           echo "Timeout waiting for build"
-          gcloud builds log $BUILD_ID --project=supremeai-a --limit=100 || echo "Could not fetch build logs"
+          gcloud builds log $BUILD_ID --project=supremeai-a || echo "Could not fetch build logs"
           exit 1
       - name: Store_Admin_URL
         id: set-url
