@@ -310,8 +310,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+      - name: Install_Firebase_Tools
+        run: npm install -g firebase-tools
       - name: Deploy_Firebase_Hosting
-        run: npx firebase-tools@latest deploy --project supremeai-a --only hosting --non-interactive
+        run: |
+          echo "Starting Firebase hosting deployment..."
+          npx firebase-tools@latest deploy --project supremeai-a --only hosting --non-interactive
+          echo "Firebase hosting deployment completed successfully."
         working-directory: ./supremeai
 
   workflow-summary:
