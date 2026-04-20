@@ -253,7 +253,7 @@ jobs:
       - name: Deploy_To_Cloud_Run
         run: |
           gcloud run deploy supremeai \
-            --jar build/libs/app.jar \
+            --source . \
             --platform managed \
             --region us-central1 \
             --allow-unauthenticated \
