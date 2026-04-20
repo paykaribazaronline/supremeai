@@ -28,6 +28,9 @@ public class ChatController {
     @Autowired
     private GuestQuotaService guestQuotaService;
 
+    @Autowired
+    private FastPathAIService fastPathAIService;
+
     @PostMapping("/send")
     public Mono<ResponseEntity<Object>> sendMessage(@RequestBody Map<String, String> request,
                                               @RequestHeader(value = "Authorization", required = false) String authHeader,
