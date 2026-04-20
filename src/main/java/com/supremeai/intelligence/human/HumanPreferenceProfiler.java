@@ -7,13 +7,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Learns how a specific developer prefers to code and communicate.
- * E.g., Dev A likes short, direct answers. Dev B likes detailed explanations.
- * Dev A uses 2 spaces for indent. Dev B uses 4 spaces.
+ * Now includes Automatic Language Detection & Simplicity Tuning.
  */
 @Service
 public class HumanPreferenceProfiler {
 
-    // Map: UserID -> Developer DNA
     private final Map<String, DeveloperDNA> globalDeveloperProfiles = new ConcurrentHashMap<>();
 
     public DeveloperDNA getProfile(String userId) {
@@ -22,33 +20,64 @@ public class HumanPreferenceProfiler {
 
     /**
      * Every time the user interacts with the AI, the system analyzes the prompt
-     * and the accepted code to update the user's "DNA".
+     * to update the user's "DNA", including their native language.
      */
     public void learnFromInteraction(String userId, String prompt, String acceptedCode, boolean askedForExplanation) {
         DeveloperDNA dna = getProfile(userId);
         
-        // 1. Learn Communication Style
+        // 1. Detect Local Language
+        detectLanguageAndTone(prompt, dna);
+
+        // 2. Learn Communication Style
         if (prompt.contains("explain") || prompt.contains("how") || askedForExplanation) {
             dna.increaseExplanationPreference();
         } else if (prompt.length() < 50) {
-            // User gives very short prompts, probably wants direct code without talking
             dna.increaseDirectCodePreference();
         }
 
-        // 2. Learn Coding Style (e.g., Indentation)
+        // 3. Learn Coding Style (e.g., Indentation)
         if (acceptedCode != null) {
             if (acceptedCode.contains("\n    ")) {
                 dna.setIndentStyle(4);
             } else if (acceptedCode.contains("\n  ")) {
                 dna.setIndentStyle(2);
             }
-            
-            // Learn naming conventions (camelCase vs snake_case)
             if (acceptedCode.matches(".*\\b[a-z]+[A-Z][a-zA-Z]*\\b.*")) {
                 dna.setUsesCamelCase(true);
             }
         }
         
         System.out.println("[Human Profiler] Learned new traits for user: " + userId + " -> " + dna.getSummary());
+    }
+
+    /**
+     * Simple heuristic language detection.
+     * In a real system, you would use an NLP library (like Apache Tika or Google CLD3).
+     */
+    private void detectLanguageAndTone(String prompt, DeveloperDNA dna) {
+        String lowerPrompt = prompt.toLowerCase();
+
+        // Detect Bengali
+        if (lowerPrompt.matches(".*[\\u0980-\\u09FF]+.*") || 
+            lowerPrompt.contains("koro") || lowerPrompt.contains("banaw") || lowerPrompt.contains("bhalo")) {
+            dna.setPreferredLanguage("Bengali");
+            dna.setPrefersSimpleLanguage(true); // Non-English users usually prefer simpler tech terms
+        } 
+        // Detect Hindi
+        else if (lowerPrompt.matches(".*[\\u0900-\\u097F]+.*") || 
+                 lowerPrompt.contains("karo") || lowerPrompt.contains("banao") || lowerPrompt.contains("hai")) {
+            dna.setPreferredLanguage("Hindi");
+            dna.setPrefersSimpleLanguage(true);
+        }
+        // Detect Spanish
+        else if (lowerPrompt.contains("hola") || lowerPrompt.contains("hacer") || lowerPrompt.contains("por favor")) {
+            dna.setPreferredLanguage("Spanish");
+        }
+
+        // Detect if user is struggling with tech terms (requests simple explanations)
+        if (lowerPrompt.contains("simple") || lowerPrompt.contains("easy") || 
+            lowerPrompt.contains("non-technical") || lowerPrompt.contains("don't understand")) {
+            dna.setPrefersSimpleLanguage(true);
+        }
     }
 }
