@@ -264,12 +264,12 @@ jobs:
           gcloud config get-value project
       - name: Build_And_Push_Container
         run: |
-          gcloud builds submit --tag gcr.io/supremeai-a/supremeai
+          gcloud builds submit --tag us-central1-docker.pkg.dev/supremeai-a/gcr.io/supremeai
       - name: Deploy_To_Cloud_Run
         run: |
           echo "Starting Cloud Run deployment..."
           gcloud run deploy supremeai \
-            --image gcr.io/supremeai-a/supremeai \
+            --image us-central1-docker.pkg.dev/supremeai-a/gcr.io/supremeai \
             --platform managed \
             --region us-central1 \
             --allow-unauthenticated \
