@@ -1,5 +1,6 @@
 {
   "name": "supremeai-vscode-extension",
+  "publisher": "paykaribazaronline",
   "displayName": "SupremeAI",
   "description": "AI-powered development assistant for SupremeAI",
   "version": "0.0.1",
