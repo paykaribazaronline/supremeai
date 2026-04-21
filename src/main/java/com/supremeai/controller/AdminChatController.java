@@ -3,6 +3,8 @@ package com.supremeai.controller;
 import com.supremeai.model.ConsensusResult;
 import com.supremeai.model.ConsensusVote;
 import com.supremeai.service.MultiAIConsensusService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,8 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/api/admin/chat")
 public class AdminChatController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AdminChatController.class);
 
     @Autowired
     private MultiAIConsensusService consensusService;
@@ -52,6 +56,7 @@ public class AdminChatController {
 
             return Mono.just(ResponseEntity.ok((Object) response));
         } catch (Exception e) {
+            logger.error("Failed to get AI response for question: {}", question, e);
             return Mono.just(ResponseEntity.status(500)
                 .body((Object) Map.of("error", "Failed to get AI response: " + e.getMessage())));
         }

@@ -3,6 +3,8 @@ package com.supremeai.intelligence.healing;
 import com.supremeai.fallback.AIFallbackOrchestrator;
 import com.supremeai.intelligence.voting.CouncilVotingSystem;
 import com.supremeai.fallback.AIProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -15,9 +17,10 @@ import java.util.List;
 @Service
 public class InfiniteAutoHealer {
 
+    private static final Logger log = LoggerFactory.getLogger(InfiniteAutoHealer.class);
     private final AIFallbackOrchestrator fallbackOrchestrator;
     private final CouncilVotingSystem votingSystem;
-    
+
     private final int MAX_ITERATIONS = 5; // Prevent literal infinite loops that drain money
 
     public InfiniteAutoHealer(AIFallbackOrchestrator fallbackOrchestrator, CouncilVotingSystem votingSystem) {
@@ -26,18 +29,18 @@ public class InfiniteAutoHealer {
     }
 
     /**
-     * This method acts as the overseer. It writes code -> triggers CI/CD -> 
+     * This method acts as the overseer. It writes code -> triggers CI/CD ->
      * if it fails -> feeds logs back to AI -> writes new code -> repeat until SUCCESS.
      */
     public String developUntilPerfection(String taskCategory, String userPrompt) {
-        
-        System.out.println("\n[Auto-Healer] Starting development loop for: " + taskCategory);
-        
+
+        log.info("\n[Auto-Healer] Starting development loop for: {}", taskCategory);
+
         String currentCode = "";
         String currentPrompt = userPrompt;
-        
+
         for (int attempt = 1; attempt <= MAX_ITERATIONS; attempt++) {
-            System.out.println("\n=== ATTEMPT " + attempt + " ===");
+            log.info("\n=== ATTEMPT {} ===", attempt);
 
             // 1. Generate/Fix the code
             currentCode = fallbackOrchestrator.executeWithSupremeIntelligence(taskCategory, "SIGNATURE_" + taskCategory, currentPrompt);
@@ -47,20 +50,20 @@ public class InfiniteAutoHealer {
             boolean councilApproved = votingSystem.conductVote("GENERAL_REVIEW", currentCode, council);
             
             if (!councilApproved) {
-                System.out.println("[Auto-Healer] Council REJECTED the code. Sending back for rewrite...");
+                log.info("[Auto-Healer] Council REJECTED the code. Sending back for rewrite...");
                 currentPrompt = "The Council of AI models rejected your code due to potential logic/security flaws. Please write a safer version.";
                 continue; // Try again!
             }
 
             // 3. Trigger CI/CD Pipeline (Compilation & Tests)
-            System.out.println("[Auto-Healer] Council approved. Triggering CI/CD Pipeline...");
+            log.info("[Auto-Healer] Council approved. Triggering CI/CD Pipeline...");
             BuildResult buildResult = simulateCICDPipeline(currentCode);
 
             if (buildResult.isSuccess()) {
-                System.out.println("\n[Auto-Healer] SUCCESS! Code compiled and all tests passed on attempt " + attempt + "!");
+                log.info("\n[Auto-Healer] SUCCESS! Code compiled and all tests passed on attempt {}!", attempt);
                 return currentCode; // PERFECT RESULT!
             } else {
-                System.out.println("[Auto-Healer] CI/CD FAILED at stage: " + buildResult.getFailedStage());
+                log.error("[Auto-Healer] CI/CD FAILED at stage: {}", buildResult.getFailedStage());
                 
                 // 4. The Magic: Feed the compiler/test error straight back to the AI for the next iteration!
                 currentPrompt = "Your previous code failed during " + buildResult.getFailedStage() + ".\n" +

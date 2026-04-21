@@ -1,6 +1,8 @@
 package com.supremeai.intelligence.voting;
 
 import com.supremeai.fallback.AIProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -13,6 +15,7 @@ import java.util.Map;
 @Service
 public class CouncilVotingSystem {
 
+    private static final Logger log = LoggerFactory.getLogger(CouncilVotingSystem.class);
     private final VotingTopicGenerator topicGenerator;
 
     public CouncilVotingSystem(VotingTopicGenerator topicGenerator) {
@@ -23,37 +26,37 @@ public class CouncilVotingSystem {
      * Conducts a vote among multiple AI models to approve a risky action.
      */
     public boolean conductVote(String changeType, String codeSnippet, List<AIProvider> councilMembers) {
-        
-        System.out.println("\n[Council Voting] Initiating vote for major change: " + changeType);
-        
+
+        log.info("\n[Council Voting] Initiating vote for major change: {}", changeType);
+
         // 1. System intelligently figures out WHAT to ask the council
         VotingTopic topic = topicGenerator.generateTopicForMajorChange(changeType, codeSnippet);
-        System.out.println("[Council Voting] Formulated Question: " + topic.getQuestionToAsk());
+        log.info("[Council Voting] Formulated Question: {}", topic.getQuestionToAsk());
 
         int approveCount = 0;
         int rejectCount = 0;
         
         // 2. Ask each AI model on the council
         for (AIProvider member : councilMembers) {
-            System.out.print(" -> Asking " + member.name() + "... ");
-            
+            log.debug(" -> Asking {}...", member.name());
+
             // Simulate calling the AI API with the context and targeted question
             boolean voteApprove = simulateAIVote(member, topic);
-            
+
             if (voteApprove) {
-                System.out.println("Voted: APPROVE");
+                log.debug("Voted: APPROVE");
                 approveCount++;
             } else {
-                System.out.println("Voted: REJECT (Raised concerns)");
+                log.debug("Voted: REJECT (Raised concerns)");
                 rejectCount++;
             }
         }
 
         // 3. Tally the votes (Requires majority)
         boolean finalDecision = approveCount > rejectCount;
-        
-        System.out.printf("[Council Voting] Final Result: %d Approve, %d Reject -> Decision: %s\n\n", 
-                          approveCount, rejectCount, finalDecision ? "PROCEED" : "ABORT");
+
+        log.info("[Council Voting] Final Result: {} Approve, {} Reject -> Decision: {}",
+                approveCount, rejectCount, finalDecision ? "PROCEED" : "ABORT");
 
         return finalDecision;
     }
