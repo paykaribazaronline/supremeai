@@ -2,18 +2,20 @@ package com.supremeai.controller;
 
 import com.supremeai.model.SystemLearning;
 import com.supremeai.repository.SystemLearningRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.supremeai.util.IdUtils;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/system-learning")
 public class SystemLearningController {
 
-    @Autowired
-    private SystemLearningRepository repository;
+    private final SystemLearningRepository repository;
+
+    public SystemLearningController(SystemLearningRepository repository) {
+        this.repository = repository;
+    }
 
     @GetMapping
     public Flux<SystemLearning> getAllLearning() {
@@ -27,9 +29,7 @@ public class SystemLearningController {
 
     @PostMapping
     public Mono<SystemLearning> addLearning(@RequestBody SystemLearning learning) {
-        if (learning.getId() == null) {
-            learning.setId(UUID.randomUUID().toString());
-        }
+        learning.setId(IdUtils.ensureId(learning.getId()));
         return repository.save(learning);
     }
 

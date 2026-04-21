@@ -2,21 +2,23 @@ package com.supremeai.controller;
 
 import com.supremeai.model.Agent;
 import com.supremeai.repository.AgentRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.supremeai.util.IdUtils;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/ai-agents")
 public class AIAgentsController {
 
-    @Autowired
-    private AgentRepository agentRepository;
+    private final AgentRepository agentRepository;
+
+    public AIAgentsController(AgentRepository agentRepository) {
+        this.agentRepository = agentRepository;
+    }
 
     @GetMapping
     public Flux<Agent> getAllAgents() {
@@ -36,9 +38,7 @@ public class AIAgentsController {
 
     @PostMapping
     public Mono<Agent> createAgent(@RequestBody Agent agent) {
-        if (agent.getId() == null) {
-            agent.setId(UUID.randomUUID().toString());
-        }
+        agent.setId(IdUtils.ensureId(agent.getId()));
         if (agent.getStatus() == null) {
             agent.setStatus("IDLE");
         }

@@ -2,18 +2,22 @@ package com.supremeai.controller;
 
 import com.supremeai.model.ExistingProject;
 import com.supremeai.repository.ProjectRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.supremeai.util.IdUtils;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/projects")
 public class ProjectsController {
 
-    @Autowired
-    private ProjectRepository projectRepository;
+    private final ProjectRepository projectRepository;
+
+    public ProjectsController(ProjectRepository projectRepository) {
+        this.projectRepository = projectRepository;
+    }
 
     @GetMapping
     public Flux<ExistingProject> getAllProjects() {
@@ -27,9 +31,7 @@ public class ProjectsController {
 
     @PostMapping
     public Mono<ExistingProject> createProject(@RequestBody ExistingProject project) {
-        if (project.getId() == null) {
-            project.setId(UUID.randomUUID().toString());
-        }
+        project.setId(IdUtils.ensureId(project.getId()));
         return projectRepository.save(project);
     }
 
