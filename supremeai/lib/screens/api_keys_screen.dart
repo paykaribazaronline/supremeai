@@ -28,7 +28,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://supremeai-565236080752.us-central1.run.app/api/user/apis'),
+        Uri.parse('https://supremeai-lhlwyikwlq-uc.a.run.app/api/user/apis'),
         headers: {
           'Authorization': 'Bearer ${auth.token}',
           'Content-Type': 'application/json',
@@ -54,7 +54,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://supremeai-565236080752.us-central1.run.app/api/user/apis'),
+        Uri.parse('https://supremeai-lhlwyikwlq-uc.a.run.app/api/user/apis'),
         headers: {
           'Authorization': 'Bearer ${auth.token}',
           'Content-Type': 'application/json',
@@ -83,7 +83,8 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
 
     try {
       await http.delete(
-        Uri.parse('https://supremeai-565236080752.us-central1.run.app/api/user/apis/$id'),
+        Uri.parse(
+            'https://supremeai-lhlwyikwlq-uc.a.run.app/api/user/apis/$id'),
         headers: {
           'Authorization': 'Bearer ${auth.token}',
         },
@@ -122,7 +123,8 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              if (nameController.text.isNotEmpty && descController.text.isNotEmpty) {
+              if (nameController.text.isNotEmpty &&
+                  descController.text.isNotEmpty) {
                 _createApiKey(nameController.text, descController.text);
                 Navigator.of(context).pop();
               }
@@ -149,7 +151,8 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _apiKeys.isEmpty
-              ? const Center(child: Text('No API keys found. Create one to get started.'))
+              ? const Center(
+                  child: Text('No API keys found. Create one to get started.'))
               : ListView.builder(
                   itemCount: _apiKeys.length,
                   itemBuilder: (context, index) {
