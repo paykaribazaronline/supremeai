@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -65,7 +66,7 @@ public class AdminChatController {
     @GetMapping("/history")
     public Mono<ResponseEntity<Object>> getHistory(@RequestParam(defaultValue = "50") int limit) {
         return Mono.just(ResponseEntity.ok((Object) Map.of(
-            "messages", List.<ChatMessage>of(),
+            "messages", new ArrayList<>(),
             "count", 0
         )));
     }

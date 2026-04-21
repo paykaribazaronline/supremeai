@@ -6,9 +6,9 @@ import com.supremeai.command.ProviderManagementCommands;
 import com.supremeai.command.OptimizationCommands;
 import com.supremeai.command.DeploymentCommands;
 import com.supremeai.provider.AIProviderFactory;
-import com.supremeai.service.HybridDataCollector;
+import com.supremeai.service.UnifiedDataService;
 import com.supremeai.service.BudgetManager;
-import com.supremeai.service.QuotaTracker;
+import com.supremeai.service.UnifiedQuotaService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -27,9 +27,9 @@ public class CommandHubConfig {
 
     @Bean
     public CommandExecutor commandExecutor(
-            HybridDataCollector dataCollector,
+            UnifiedDataService dataService,
             BudgetManager budgetManager,
-            QuotaTracker quotaTracker,
+            UnifiedQuotaService quotaService,
             AIProviderFactory providerFactory,
             OptimizationCommands optimizationCommands,
             DeploymentCommands deploymentCommands) {
@@ -38,7 +38,7 @@ public class CommandHubConfig {
         
         // Register monitoring commands
         MonitoringCommands monitoring = new MonitoringCommands(
-            dataCollector, budgetManager, quotaTracker
+            dataService, quotaService
         );
         executor.register(monitoring.getHealthCheckCommand());
         executor.register(monitoring.getQuotaStatusCommand());

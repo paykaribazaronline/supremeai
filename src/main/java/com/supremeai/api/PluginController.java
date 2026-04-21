@@ -2,7 +2,6 @@ package com.supremeai.api;
 
 import com.supremeai.service.UnifiedQuotaService;
 import com.supremeai.service.MultiAIConsensusService;
-import com.supremeai.service.quota.QuotaExceededException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,9 +14,7 @@ import java.util.Map;
 
 /**
  * Plugin/IDE Extension Controller
- *
- * Enables guest mode access for VS Code, JetBrains IDEs and other editor extensions
- * No API key required - uses guest quota system controlled by admin
+ * Enabled guest mode access.
  */
 @RestController
 @RequestMapping("/api/plugin")
@@ -25,33 +22,19 @@ import java.util.Map;
 public class PluginController {
 
     @Autowired
-    private UnifiedQuotaService unifiedQuotaService;
+    private UnifiedQuotaService quotaService;
 
     @Autowired
     private MultiAIConsensusService consensusService;
 
-    /**
-     * Completion endpoint for IDE extensions - Guest mode enabled
-     * No API key required, admin controls daily guest quota
-     */
     @PostMapping("/complete")
-    @SuppressWarnings("unchecked")
     public Mono<ResponseEntity<Object>> completeCode(@RequestBody Map<String, Object> request,
                                                      HttpServletRequest httpRequest) {
-        String guestId = guestQuotaService.extractGuestIdentifier(httpRequest);
+        String guestId = httpRequest.getRemoteAddr();
         
-        // Guest quota enforcement - no API key required
-        try {
-            guestQuotaService.validateAndIncrement(guestId);
-        } catch (QuotaExceededException e) {
+        if (!quotaService.checkAndIncrement(guestId, "GUEST")) {
             return Mono.just(ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body(Map.of(
-                            "error", "Daily limit exceeded",
-                            "message", "Guest mode daily limit reached. Please add your API key or try again tomorrow.",
-                            "limit", e.getQuotaLimit(),
-                            "used", e.getCurrentUsage(),
-                            "resetIn", "Midnight UTC"
-                    )));
+                    .body(Map.of("error", "Daily limit exceeded")));
         }
 
         String prompt = (String) request.get("prompt");
@@ -62,46 +45,18 @@ public class PluginController {
 
         return Mono.just(ResponseEntity.ok(Map.of(
                 "completion", result.getConsensus(),
-                "confidence", result.getAverageConfidence(),
-                "providerVotes", result.getVotes(),
-                "guestRemaining", guestQuotaService.getRemainingQuota(guestId),
-                "guestLimit", guestQuotaService.getGuestQuotaLimit()
+                "confidence", result.getAverageConfidence()
         )));
     }
 
-    /**
-     * Get current guest status for plugin
-     */
-    @GetMapping("/status")
-    public ResponseEntity<Object> getPluginStatus(HttpServletRequest httpRequest) {
-        String guestId = guestQuotaService.extractGuestIdentifier(httpRequest);
-        return ResponseEntity.ok(Map.of(
-                "mode", "guest",
-                "guestEnabled", true,
-                "apiKeyRequired", false,
-                "remaining", guestQuotaService.getRemainingQuota(guestId),
-                "limit", guestQuotaService.getGuestQuotaLimit(),
-                "quotaControlledByAdmin", true
-        ));
-    }
-
-    /**
-     * Chat endpoint for plugin - guest mode enabled
-     */
     @PostMapping("/chat")
     public Mono<ResponseEntity<Object>> pluginChat(@RequestBody Map<String, String> request,
                                                    HttpServletRequest httpRequest) {
-        String guestId = guestQuotaService.extractGuestIdentifier(httpRequest);
+        String guestId = httpRequest.getRemoteAddr();
         
-        try {
-            guestQuotaService.validateAndIncrement(guestId);
-        } catch (QuotaExceededException e) {
+        if (!quotaService.checkAndIncrement(guestId, "GUEST")) {
             return Mono.just(ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body(Map.of(
-                            "error", "Guest quota exceeded",
-                            "limit", e.getQuotaLimit(),
-                            "used", e.getCurrentUsage()
-                    )));
+                    .body(Map.of("error", "Guest quota exceeded")));
         }
 
         String message = request.get("message");
@@ -109,8 +64,7 @@ public class PluginController {
 
         return Mono.just(ResponseEntity.ok(Map.of(
                 "response", result.getConsensus(),
-                "confidence", result.getAverageConfidence(),
-                "guestRemaining", guestQuotaService.getRemainingQuota(guestId)
+                "confidence", result.getAverageConfidence()
         )));
     }
 }

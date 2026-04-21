@@ -28,7 +28,7 @@ public class ChatController {
     private SystemLearningRepository learningRepository;
 
     @Autowired
-    private UnifiedQuotaService unifiedQuotaService;
+    private UnifiedQuotaService quotaService;
 
     @Autowired
     private FastPathAIService fastPathAIService;
@@ -44,17 +44,16 @@ public class ChatController {
         String provider = request.getOrDefault("provider", "meta-llama");
 
         // Guest quota enforcement - no API key required
-        String guestId = guestQuotaService.extractGuestIdentifier(httpRequest);
+        // Using IP address as identifier for now
+        String guestId = httpRequest.getRemoteAddr();
         
         try {
-            guestQuotaService.validateAndIncrement(guestId);
-        } catch (QuotaExceededException e) {
+            quotaService.checkAndIncrement(guestId, "GUEST");
+        } catch (Exception e) {
             return Mono.just(ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body(Map.of(
                             "error", "Guest quota exceeded",
-                            "message", "You have reached your daily limit. Please try again tomorrow or register for an account.",
-                            "currentUsage", e.getCurrentUsage(),
-                            "quotaLimit", e.getQuotaLimit()
+                            "message", "You have reached your daily limit."
                     )));
         }
 
@@ -70,22 +69,15 @@ public class ChatController {
         String aiResponse = fastPathAIService.generateParallel(message, "groq", "ollama");
 
         // Automatically analyze human factors on EVERY interaction
-        // Runs in background virtual thread - ZERO performance impact
         humanUnderstandingService.analyzeHumanFactors(message, aiResponse);
 
-        // Fire and forget with guaranteed persistence
         learningRepository.save(learningEntry)
-            .doOnSuccess(saved -> logger.debug("Learning entry saved: {}", saved.getId()))
-            .doOnError(e -> logger.error("Failed to save learning entry: {}", e.getMessage()))
             .subscribe();
 
-        // Return response immediately
         return Mono.just(ResponseEntity.ok(Map.of(
                 "response", aiResponse,
                 "status", "LEARNED",
-                "learningId", learningEntry.getId(),
-                "guestRemaining", guestQuotaService.getRemainingQuota(guestId),
-                "guestLimit", guestQuotaService.getGuestQuotaLimit()
+                "learningId", learningEntry.getId()
         )));
     }
 }
