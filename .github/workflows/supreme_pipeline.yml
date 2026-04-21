@@ -106,7 +106,9 @@ jobs:
           # Find the boot jar (usually ends with .jar and is not -plain.jar)
           BOOT_JAR=$(find build/libs -name "*.jar" ! -name "*-plain.jar" | head -n 1)
           if [ -n "$BOOT_JAR" ]; then
-            cp "$BOOT_JAR" build/libs/app.jar
+            if [ "$(basename "$BOOT_JAR")" != "app.jar" ]; then
+              cp "$BOOT_JAR" build/libs/app.jar
+            fi
           else
             echo "Error: No executable JAR found in build/libs"
             ls -R build/libs
