@@ -30,13 +30,12 @@ public class AgentOrchestrationController {
 
         try {
             OrchesResultContext result = orchestrator.orchestrate(requirement);
-            Map<String, Object> response = Map.of(
-                "status", result.getStatus(),
-                "requirement", requirement,
-                "context", result.getContext(),
-                "generationContext", result.getGenerationContext(),
-                "completedAt", result.getCompletedAt()
-            );
+            Map<String, Object> response = new java.util.LinkedHashMap<>();
+            response.put("status", result.getStatus());
+            response.put("requirement", requirement);
+            response.put("context", result.getContext());
+            response.put("generationContext", result.getGenerationContext());
+            response.put("completedAt", result.getCompletedAt());
             return Mono.just(ResponseEntity.ok((Object) response));
         } catch (Exception e) {
             return Mono.just(ResponseEntity.status(500)
