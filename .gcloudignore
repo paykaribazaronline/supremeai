@@ -24,8 +24,23 @@ local.properties
 service-account.json
 
 # Build directories - Only include the app.jar needed for Cloud Run
-build/
+build/classes/
+build/tmp/
+build/reports/
+build/test-results/
+build/resources/
+build/jacoco/
+!build/libs/
 !build/libs/app.jar
+
+# Gradle
+.gradle/
+.gradle-home/
+.gradle-user-home/
+gradlew
+gradlew.bat
+gradle.properties
+*.gradle
 
 # Other large or unnecessary folders
 supremeai-intellij-plugin/
