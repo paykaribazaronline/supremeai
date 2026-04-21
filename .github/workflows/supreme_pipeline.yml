@@ -102,15 +102,9 @@ jobs:
       - name: Build_And_Test
         run: |
           ./gradlew clean build -x test -x jacocoTestCoverageVerification
-          mkdir -p build/libs
-          # Find the boot jar (usually ends with .jar and is not -plain.jar)
-          BOOT_JAR=$(find build/libs -name "*.jar" ! -name "*-plain.jar" | head -n 1)
-          if [ -n "$BOOT_JAR" ]; then
-            if [ "$(basename "$BOOT_JAR")" != "app.jar" ]; then
-              cp "$BOOT_JAR" build/libs/app.jar
-            fi
-          else
-            echo "Error: No executable JAR found in build/libs"
+          # The bootJar task now outputs app.jar directly, ensure it exists
+          if [ ! -f "build/libs/app.jar" ]; then
+            echo "Error: app.jar not found in build/libs"
             ls -R build/libs
             exit 1
           fi
