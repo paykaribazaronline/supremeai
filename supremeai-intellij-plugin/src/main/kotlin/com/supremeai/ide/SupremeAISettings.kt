@@ -13,7 +13,21 @@ import com.intellij.util.xmlb.XmlSerializerUtil
 class SupremeAISettings : PersistentStateComponent<SupremeAISettings> {
 
     var apiKey: String = ""
-    var apiEndpoint: String = "https://supremeai-565236080752.us-central1.run.app"
+    var apiEndpoint: String = "https://supremeai-lhlwyikwlq-uc.a.run.app"
+    var kimoMode: Boolean = false
+    var model: String = "google/gemini-1.5-pro"
+    var smallModel: String = "google/gemini-1.5-flash"
+    var fullAuthority: Boolean = false
+    var shareMode: String = "manual"
+    var enableExternalDirectory: Boolean = false
+    var permissions: MutableMap<String, String> = mutableMapOf(
+        "read" to "allow",
+        "edit" to "ask",
+        "bash" to "ask",
+        "task" to "allow",
+        "websearch" to "allow",
+        "external_directory" to "deny"
+    )
 
     override fun getState(): SupremeAISettings = this
 

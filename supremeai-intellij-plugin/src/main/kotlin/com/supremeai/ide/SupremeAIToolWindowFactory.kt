@@ -4,6 +4,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.content.ContentFactory
+import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextField
 import java.awt.BorderLayout
@@ -56,13 +57,22 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
             // API Key Setting in Tool Window
             val settingsPanel = JPanel(BorderLayout())
             settingsPanel.border = EmptyBorder(5, 0, 5, 0)
-            val apiKeyInput = JBTextField(SupremeAISettings.getInstance().apiKey)
-            apiKeyInput.emptyText.text = "Enter API Key..."
-            settingsPanel.add(JLabel("API Key: "), BorderLayout.WEST)
+            val settings = SupremeAISettings.getInstance()
+            val apiKeyInput = JBTextField(settings.apiKey)
+            apiKeyInput.emptyText.text = "API Key (Optional for Public API)"
+            
+            val kimoToggle = JBCheckBox("Kimo", settings.kimoMode)
+            kimoToggle.addActionListener { settings.kimoMode = kimoToggle.isSelected }
+            
+            val leftPanel = JPanel(BorderLayout())
+            leftPanel.add(JLabel("Auth: "), BorderLayout.WEST)
+            leftPanel.add(kimoToggle, BorderLayout.EAST)
+            
+            settingsPanel.add(leftPanel, BorderLayout.WEST)
             settingsPanel.add(apiKeyInput, BorderLayout.CENTER)
             val saveBtn = JButton("Set")
             saveBtn.addActionListener {
-                SupremeAISettings.getInstance().apiKey = apiKeyInput.text
+                settings.apiKey = apiKeyInput.text
                 statusLabel.text = "● Backend: Updating..."
                 checkBackendStatus()
             }
@@ -99,18 +109,21 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
             thread {
                 try {
                     val settings = SupremeAISettings.getInstance()
-                    val apiKey = settings.apiKey.takeIf { it.isNotBlank() } ?: "dev-admin-token-local"
+                    val apiKey = settings.apiKey.trim()
                     val endpoint = settings.apiEndpoint.takeIf { it.isNotBlank() }
-                        ?: "https://supremeai-565236080752.us-central1.run.app"
+                        ?: "https://supremeai-lhlwyikwlq-uc.a.run.app"
 
                     val url = URI("$endpoint/api/chat/send").toURL()
                     val conn = url.openConnection() as HttpURLConnection
                     conn.requestMethod = "POST"
                     conn.setRequestProperty("Content-Type", "application/json")
-                    conn.setRequestProperty("Authorization", "Bearer $apiKey")
+                    if (apiKey.isNotBlank()) {
+                        conn.setRequestProperty("Authorization", "Bearer $apiKey")
+                    }
                     conn.doOutput = true
                     
-                    val jsonInputString = "{\"message\": \"$text\", \"provider\": \"meta-llama\"}"
+                    val kimoSuffix = if (settings.kimoMode) " (Kimo Optimized)" else ""
+                    val jsonInputString = "{\"message\": \"$text$kimoSuffix\", \"provider\": \"google\", \"model\": \"${settings.model}\"}"
                     conn.outputStream.use { os ->
                         os.write(jsonInputString.toByteArray())
                     }
@@ -140,7 +153,7 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                 try {
                     val settings = SupremeAISettings.getInstance()
                     val endpoint = settings.apiEndpoint.takeIf { it.isNotBlank() }
-                        ?: "https://supremeai-565236080752.us-central1.run.app"
+                        ?: "https://supremeai-lhlwyikwlq-uc.a.run.app"
 
                     val url = URI("$endpoint/api/status").toURL()
                     val conn = url.openConnection() as HttpURLConnection
