@@ -46,32 +46,44 @@ DEFAULT_DATASET: Dict[str, Any] = {
             "content": {
                 "layers": {
                     "presentation": {
-                        "components": ["Flutter Admin Dashboard", "Firebase Hosting CDN", "3-Mode Control System"],
+                        "components": [
+                            "Flutter Admin Dashboard",
+                            "Firebase Hosting CDN",
+                            "3-Mode Control System",
+                        ],
                         "urls": {
                             "admin_dashboard": "https://supremeai-a.web.app/admin/",
-                            "main_site": "https://supremeai-a.web.app"
-                        }
+                            "main_site": "https://supremeai-a.web.app",
+                        },
                     },
                     "api_gateway": {
                         "components": ["Cloud Run", "Java Spring Boot", "20 AI Agents"],
-                        "endpoint": "https://supremeai-a.run.app/api/"
+                        "endpoint": "https://supremeai-a.run.app/api/",
                     },
                     "data_layer": {
-                        "components": ["Firestore Database", "Firebase Auth", "GCP Secret Manager"],
-                        "project_id": "supremeai-a"
+                        "components": [
+                            "Firestore Database",
+                            "Firebase Auth",
+                            "GCP Secret Manager",
+                        ],
+                        "project_id": "supremeai-a",
                     },
                     "cicd": {
-                        "components": ["GitHub Actions", "5 Workflows", "Auto-deployment"],
+                        "components": [
+                            "GitHub Actions",
+                            "5 Workflows",
+                            "Auto-deployment",
+                        ],
                         "workflows": [
                             "firebase-hosting-merge.yml",
                             "deploy-cloudrun.yml",
                             "java-ci.yml",
                             "code-quality.yml",
-                            "knowledge-reseed.yml"
-                        ]
-                    }
+                            "knowledge-reseed.yml",
+                        ],
+                    },
                 }
-            }
+            },
         },
         {
             "document_id": "error_resolution_playbook",
@@ -83,7 +95,7 @@ DEFAULT_DATASET: Dict[str, Any] = {
                     "root_cause": "Version 3 does not exist",
                     "solution": "Change to subosito/flutter-action@v2",
                     "file": ".github/workflows/flutter-ci-cd.yml",
-                    "priority": "CRITICAL"
+                    "priority": "CRITICAL",
                 },
                 {
                     "error_code": "SECRETS_IN_IF",
@@ -91,30 +103,30 @@ DEFAULT_DATASET: Dict[str, Any] = {
                     "root_cause": "Cannot use secrets context in if: conditions",
                     "solution": "Pass through env first, then evaluate env value in conditions.",
                     "file": ".github/workflows/flutter-ci-cd.yml",
-                    "priority": "CRITICAL"
+                    "priority": "CRITICAL",
                 },
                 {
                     "error_code": "GCP_PERMISSION_DENIED",
                     "symptom": "PERMISSION_DENIED to enable service",
                     "root_cause": "Missing service usage IAM role",
                     "solution": "Grant roles/serviceusage.serviceUsageAdmin to the deployment service account.",
-                    "priority": "HIGH"
+                    "priority": "HIGH",
                 },
                 {
                     "error_code": "JAVA_TEST_FAILURE",
                     "symptom": "Build passes, tests fail",
                     "root_cause": "Unit test logic or environment issues",
                     "solution": "Run targeted Gradle tests with --info, then fix the failing test or isolate it temporarily.",
-                    "priority": "MEDIUM"
+                    "priority": "MEDIUM",
                 },
                 {
                     "error_code": "CORS_ERROR",
                     "symptom": "Admin dashboard cannot connect to API",
                     "root_cause": "Cross-origin requests not enabled",
                     "solution": "Enable CORS in the active Spring Security configuration for Firebase Hosting and Cloud Run origins.",
-                    "priority": "HIGH"
-                }
-            ]
+                    "priority": "HIGH",
+                },
+            ],
         },
         {
             "document_id": "deployment_procedures",
@@ -122,8 +134,14 @@ DEFAULT_DATASET: Dict[str, Any] = {
             "procedures": {
                 "automatic": {
                     "trigger": "Push to main branch",
-                    "workflows": ["Java CI", "Cloud Run Deploy", "Firebase Hosting", "Code Quality", "Knowledge Reseed"],
-                    "duration": "3-7 minutes"
+                    "workflows": [
+                        "Java CI",
+                        "Cloud Run Deploy",
+                        "Firebase Hosting",
+                        "Code Quality",
+                        "Knowledge Reseed",
+                    ],
+                    "duration": "3-7 minutes",
                 },
                 "manual_emergency": {
                     "steps": [
@@ -132,15 +150,15 @@ DEFAULT_DATASET: Dict[str, Any] = {
                         "docker build -t gcr.io/supremeai-a/supremeai:latest .",
                         "docker push gcr.io/supremeai-a/supremeai:latest",
                         "gcloud run deploy supremeai --image gcr.io/supremeai-a/supremeai:latest --region us-central1 --platform managed --allow-unauthenticated",
-                        "firebase deploy --project supremeai-a"
+                        "firebase deploy --project supremeai-a",
                     ]
                 },
                 "3_mode_control": {
                     "auto": "Deploy on every push",
                     "wait": "Build but don't deploy (review mode)",
-                    "force_stop": "Emergency stop all deployments"
-                }
-            }
+                    "force_stop": "Emergency stop all deployments",
+                },
+            },
         },
         {
             "document_id": "service_account_setup",
@@ -155,24 +173,43 @@ DEFAULT_DATASET: Dict[str, Any] = {
                 "roles/secretmanager.admin",
                 "roles/serviceaccount.user",
                 "roles/serviceusage.serviceUsageAdmin",
-                "roles/storage.admin"
+                "roles/storage.admin",
             ],
             "github_secrets": [
                 {"name": "GCP_PROJECT_ID", "value": "supremeai-a"},
                 {"name": "GCP_SA_KEY", "type": "JSON service account key"},
-                {"name": "FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A", "type": "JSON Firebase admin key"},
-                {"name": "FIREBASE_TOKEN", "type": "CI token from firebase login:ci"}
-            ]
+                {
+                    "name": "FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A",
+                    "type": "JSON Firebase admin key",
+                },
+                {"name": "FIREBASE_TOKEN", "type": "CI token from firebase login:ci"},
+            ],
         },
         {
             "document_id": "health_monitoring",
             "category": "monitoring",
             "endpoints": [
-                {"name": "API Health", "url": "https://supremeai-a.run.app/api/health", "expected": {"status": "UP"}},
-                {"name": "Agent Status", "url": "https://supremeai-a.run.app/api/agents/status", "expected": {"agents": 20, "status": "OPERATIONAL"}},
-                {"name": "Admin Dashboard", "url": "https://supremeai-a.web.app/admin/", "expected": "200 OK"},
-                {"name": "Metrics", "url": "https://supremeai-a.run.app/api/metrics/health", "expected": "CPU/Memory stats"}
-            ]
+                {
+                    "name": "API Health",
+                    "url": "https://supremeai-a.run.app/api/health",
+                    "expected": {"status": "UP"},
+                },
+                {
+                    "name": "Agent Status",
+                    "url": "https://supremeai-a.run.app/api/agents/status",
+                    "expected": {"agents": 20, "status": "OPERATIONAL"},
+                },
+                {
+                    "name": "Admin Dashboard",
+                    "url": "https://supremeai-a.web.app/admin/",
+                    "expected": "200 OK",
+                },
+                {
+                    "name": "Metrics",
+                    "url": "https://supremeai-a.run.app/api/metrics/health",
+                    "expected": "CPU/Memory stats",
+                },
+            ],
         },
         {
             "document_id": "teaching_methodology",
@@ -183,14 +220,14 @@ DEFAULT_DATASET: Dict[str, Any] = {
                 "Before/after code comparisons",
                 "Multiple solution options (quick fix vs proper fix)",
                 "Automated self-healing via CI/CD",
-                "Comprehensive error-to-solution mapping"
+                "Comprehensive error-to-solution mapping",
             ],
             "documentation_standards": [
                 "Every error must have documented solution",
                 "Every solution must have verification step",
                 "Every workflow must have rollback plan",
-                "Every deployment must have health check"
-            ]
+                "Every deployment must have health check",
+            ],
         },
         {
             "document_id": "project_metrics",
@@ -203,16 +240,16 @@ DEFAULT_DATASET: Dict[str, Any] = {
                 "documentation_coverage": "95%",
                 "test_coverage": "67 tests (some pending fixes)",
                 "ai_agents": 20,
-                "firebase_documents": 58
+                "firebase_documents": 58,
             },
             "ratings": {
                 "ci_cd_health": "10/10",
                 "code_quality": "9/10",
                 "devops_maturity": "10/10",
                 "documentation": "10/10",
-                "overall": "9.5/10"
-            }
-        }
+                "overall": "9.5/10",
+            },
+        },
     ]
 }
 
@@ -225,7 +262,7 @@ VERIFIED_RECORD_BLUEPRINTS: List[Dict[str, Any]] = [
         "solutions": [
             "State the exact stack in the prompt: Spring Boot, Flutter, React, Firebase, Cloud Run.",
             "Ask for folder structure, CI workflow, and README in the same scaffolding prompt.",
-            "Reject vague prompts like modern stack or latest framework because they produce unstable output."
+            "Reject vague prompts like modern stack or latest framework because they produce unstable output.",
         ],
         "severity": "HIGH",
         "confidence": 0.95,
@@ -234,9 +271,9 @@ VERIFIED_RECORD_BLUEPRINTS: List[Dict[str, Any]] = [
             "sourceDocument": "verified_project_creation",
             "importSource": VERIFIED_SOURCE,
             "verification": "repo-proven",
-            "origin": "curated-from-operational-playbook"
+            "origin": "curated-from-operational-playbook",
         },
-        "learning_id": "verified-project-creation-stack-explicit"
+        "learning_id": "verified-project-creation-stack-explicit",
     },
     {
         "type": "PATTERN",
@@ -245,7 +282,7 @@ VERIFIED_RECORD_BLUEPRINTS: List[Dict[str, Any]] = [
         "solutions": [
             "For Spring Boot keep controller, service, model, repository, and config packages separated.",
             "For Flutter keep screens, widgets, models, services, and utils separated.",
-            "Avoid renaming generated root folders unless the whole import surface is updated with verification."
+            "Avoid renaming generated root folders unless the whole import surface is updated with verification.",
         ],
         "severity": "MEDIUM",
         "confidence": 0.92,
@@ -253,9 +290,9 @@ VERIFIED_RECORD_BLUEPRINTS: List[Dict[str, Any]] = [
         "context": {
             "sourceDocument": "verified_project_structure",
             "importSource": VERIFIED_SOURCE,
-            "verification": "repo-proven"
+            "verification": "repo-proven",
         },
-        "learning_id": "verified-project-structure-conventions"
+        "learning_id": "verified-project-structure-conventions",
     },
     {
         "type": "PATTERN",
@@ -264,7 +301,7 @@ VERIFIED_RECORD_BLUEPRINTS: List[Dict[str, Any]] = [
         "solutions": [
             "Capture the exact failing log line, test name, or endpoint response before changing code.",
             "Fix the smallest root-cause layer first: workflow config, security config, persistence wiring, or auth sync.",
-            "Re-run the same failing path before expanding to wider verification."
+            "Re-run the same failing path before expanding to wider verification.",
         ],
         "severity": "HIGH",
         "confidence": 0.99,
@@ -273,9 +310,9 @@ VERIFIED_RECORD_BLUEPRINTS: List[Dict[str, Any]] = [
             "sourceDocument": "verified_debugging_playbook",
             "importSource": VERIFIED_SOURCE,
             "verification": "repo-proven",
-            "services": ["SystemLearningService", "AutoFixLoopService"]
+            "services": ["SystemLearningService", "AutoFixLoopService"],
         },
-        "learning_id": "verified-evidence-first-debugging"
+        "learning_id": "verified-evidence-first-debugging",
     },
     {
         "type": "ERROR",
@@ -284,21 +321,25 @@ VERIFIED_RECORD_BLUEPRINTS: List[Dict[str, Any]] = [
         "solutions": [
             "Match the workflow's --only=hosting:<target> value to a real target in .firebaserc.",
             "If unified hosting handles live deploys, skip the direct Flutter-only deploy step instead of failing the workflow.",
-            "Verify firebase.json and .firebaserc target names before changing deployment commands."
+            "Verify firebase.json and .firebaserc target names before changing deployment commands.",
         ],
         "severity": "HIGH",
         "confidence": 0.98,
         "resolved": True,
-        "resolution": "Skip direct deploy when flutter-admin target is not configured and rely on unified hosting workflow.",
+        "resolution": "Skip direct deploy when main-dashboard target is not configured and rely on unified hosting workflow.",
         "error_count": 1,
         "timesApplied": 1,
         "context": {
             "sourceDocument": "verified_flutter_hosting_target",
             "importSource": VERIFIED_SOURCE,
             "verification": "repo-proven",
-            "files": [".github/workflows/flutter-ci-cd.yml", ".firebaserc", "firebase.json"]
+            "files": [
+                ".github/workflows/flutter-ci-cd.yml",
+                ".firebaserc",
+                "firebase.json",
+            ],
         },
-        "learning_id": "verified-invalid-hosting-target-deploy"
+        "learning_id": "verified-invalid-hosting-target-deploy",
     },
     {
         "type": "ERROR",
@@ -307,7 +348,7 @@ VERIFIED_RECORD_BLUEPRINTS: List[Dict[str, Any]] = [
         "solutions": [
             "Enable CORS on the active SecurityFilterChain, not just in an unused config class.",
             "Allow Firebase Hosting and Cloud Run origin patterns in the CORS configuration source.",
-            "Redeploy the backend after changing CORS and verify the hosted admin app can reach Cloud Run endpoints."
+            "Redeploy the backend after changing CORS and verify the hosted admin app can reach Cloud Run endpoints.",
         ],
         "severity": "CRITICAL",
         "confidence": 0.99,
@@ -319,9 +360,9 @@ VERIFIED_RECORD_BLUEPRINTS: List[Dict[str, Any]] = [
             "sourceDocument": "verified_hosted_admin_cors",
             "importSource": VERIFIED_SOURCE,
             "verification": "repo-proven",
-            "file": "src/main/java/org/example/Application.java"
+            "file": "src/main/java/org/example/Application.java",
         },
-        "learning_id": "verified-hosted-admin-cors"
+        "learning_id": "verified-hosted-admin-cors",
     },
     {
         "type": "ERROR",
@@ -330,7 +371,7 @@ VERIFIED_RECORD_BLUEPRINTS: List[Dict[str, Any]] = [
         "solutions": [
             "Persist backend users under a stable key even when the user id is initially null.",
             "Update existing Firebase Auth users with the current password instead of only creating missing users.",
-            "Surface backend auth errors in the client instead of replacing them with a generic invalid credentials message."
+            "Surface backend auth errors in the client instead of replacing them with a generic invalid credentials message.",
         ],
         "severity": "CRITICAL",
         "confidence": 0.98,
@@ -345,10 +386,10 @@ VERIFIED_RECORD_BLUEPRINTS: List[Dict[str, Any]] = [
             "files": [
                 "src/main/java/org/example/service/AuthenticationService.java",
                 "src/main/java/org/example/service/FirebaseService.java",
-                "flutter_admin_app/lib/services/auth_service.dart"
-            ]
+                "flutter_admin_app/lib/services/auth_service.dart",
+            ],
         },
-        "learning_id": "verified-admin-auth-sync"
+        "learning_id": "verified-admin-auth-sync",
     },
     {
         "type": "ERROR",
@@ -357,7 +398,7 @@ VERIFIED_RECORD_BLUEPRINTS: List[Dict[str, Any]] = [
         "solutions": [
             "Use FirebaseService as the injected dependency and fetch FirebaseDatabase through that service.",
             "Guard writes with isInitialized checks before calling getDatabase().",
-            "Re-run reseed after the wiring fix and verify system/learnings appears in Realtime Database."
+            "Re-run reseed after the wiring fix and verify system/learnings appears in Realtime Database.",
         ],
         "severity": "HIGH",
         "confidence": 0.99,
@@ -369,9 +410,9 @@ VERIFIED_RECORD_BLUEPRINTS: List[Dict[str, Any]] = [
             "sourceDocument": "verified_system_learning_persistence",
             "importSource": VERIFIED_SOURCE,
             "verification": "repo-proven",
-            "file": "src/main/java/org/example/service/SystemLearningService.java"
+            "file": "src/main/java/org/example/service/SystemLearningService.java",
         },
-        "learning_id": "verified-system-learning-persistence"
+        "learning_id": "verified-system-learning-persistence",
     },
     {
         "type": "REQUIREMENT",
@@ -380,16 +421,16 @@ VERIFIED_RECORD_BLUEPRINTS: List[Dict[str, Any]] = [
         "solutions": [
             "AUTO executes immediately.",
             "WAIT queues for approval.",
-            "FORCE_STOP blocks execution until explicitly cleared."
+            "FORCE_STOP blocks execution until explicitly cleared.",
         ],
         "severity": "CRITICAL",
         "confidence": 1.0,
         "context": {
             "sourceDocument": "verified_admin_modes",
             "importSource": VERIFIED_SOURCE,
-            "verification": "verified-against-user-memory"
+            "verification": "verified-against-user-memory",
         },
-        "learning_id": "verified-three-mode-admin-control"
+        "learning_id": "verified-three-mode-admin-control",
     },
     {
         "type": "PATTERN",
@@ -398,7 +439,7 @@ VERIFIED_RECORD_BLUEPRINTS: List[Dict[str, Any]] = [
         "solutions": [
             "Build Flutter web with the /admin/ base path.",
             "Copy the admin build into combined_deploy/admin for unified hosting deployment.",
-            "Keep firebase-hosting-merge.yml as the source of truth for live hosting deploys."
+            "Keep firebase-hosting-merge.yml as the source of truth for live hosting deploys.",
         ],
         "severity": "HIGH",
         "confidence": 0.96,
@@ -407,10 +448,10 @@ VERIFIED_RECORD_BLUEPRINTS: List[Dict[str, Any]] = [
             "sourceDocument": "verified_unified_hosting",
             "importSource": VERIFIED_SOURCE,
             "verification": "repo-proven",
-            "files": ["firebase.json", ".github/workflows/firebase-hosting-merge.yml"]
+            "files": ["firebase.json", ".github/workflows/firebase-hosting-merge.yml"],
         },
-        "learning_id": "verified-unified-firebase-hosting"
-    }
+        "learning_id": "verified-unified-firebase-hosting",
+    },
 ]
 
 
@@ -510,10 +551,18 @@ def architecture_records(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
         "and Firebase/GCP services for auth, secrets, and operational data persistence."
     )
     solutions = [
-        f"Presentation layer components: {', '.join(presentation)}" if presentation else "Presentation layer uses hosted admin and web surfaces.",
-        f"API gateway components: {', '.join(api_gateway)}" if api_gateway else "Backend runs on Cloud Run with Spring Boot.",
-        f"Data layer components: {', '.join(data_layer)}" if data_layer else "Data layer uses Firebase and GCP managed services.",
-        f"Verified workflow files: {', '.join(workflows)}" if workflows else "Deployment is workflow-driven through GitHub Actions.",
+        f"Presentation layer components: {', '.join(presentation)}"
+        if presentation
+        else "Presentation layer uses hosted admin and web surfaces.",
+        f"API gateway components: {', '.join(api_gateway)}"
+        if api_gateway
+        else "Backend runs on Cloud Run with Spring Boot.",
+        f"Data layer components: {', '.join(data_layer)}"
+        if data_layer
+        else "Data layer uses Firebase and GCP managed services.",
+        f"Verified workflow files: {', '.join(workflows)}"
+        if workflows
+        else "Deployment is workflow-driven through GitHub Actions.",
     ]
     context = {
         "sourceDocument": doc["document_id"],
@@ -617,7 +666,11 @@ def deployment_records(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 def service_account_records(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
     roles = doc.get("required_roles", [])
-    secrets = [item.get("name") for item in doc.get("github_secrets", []) if isinstance(item, dict) and item.get("name")]
+    secrets = [
+        item.get("name")
+        for item in doc.get("github_secrets", [])
+        if isinstance(item, dict) and item.get("name")
+    ]
     content = "GitHub Actions deployment requires a correctly permissioned GCP service account plus matching GitHub secrets for Cloud Run and Firebase automation."
     return [
         make_learning(
@@ -730,7 +783,9 @@ def infer_error_category(error_code: str) -> str:
     return "ERROR_SOLVING"
 
 
-def convert_dataset(dataset: Dict[str, Any], include_analytics: bool, include_verified: bool) -> Tuple[List[Dict[str, Any]], List[str]]:
+def convert_dataset(
+    dataset: Dict[str, Any], include_analytics: bool, include_verified: bool
+) -> Tuple[List[Dict[str, Any]], List[str]]:
     records: List[Dict[str, Any]] = []
     skipped: List[str] = []
 
@@ -752,21 +807,27 @@ def convert_dataset(dataset: Dict[str, Any], include_analytics: bool, include_ve
             if include_analytics:
                 records.extend(analytics_records(doc))
             else:
-                skipped.append("project_metrics skipped: summary metrics and ratings are not verified by default")
+                skipped.append(
+                    "project_metrics skipped: summary metrics and ratings are not verified by default"
+                )
         else:
             skipped.append(f"{doc_id} skipped: no mapper registered")
 
     if include_verified:
         records.extend(verified_records())
     else:
-        skipped.append("verified Copilot/GPT-5.4 operational records skipped by request")
+        skipped.append(
+            "verified Copilot/GPT-5.4 operational records skipped by request"
+        )
 
     deduped = {record["id"]: record for record in records}
     return list(deduped.values()), skipped
 
 
 def print_dry_run(records: List[Dict[str, Any]], skipped: List[str]) -> None:
-    print("\n🔍 DRY RUN — Kimi K2 + verified Copilot/GPT-5.4 knowledge → SystemLearning")
+    print(
+        "\n🔍 DRY RUN — Kimi K2 + verified Copilot/GPT-5.4 knowledge → SystemLearning"
+    )
     print(f"   records to write: {len(records)}")
     categories: Dict[str, int] = {}
     for record in records:
@@ -883,7 +944,9 @@ def connect_database(credentials_path: Optional[str] = None):
             cred = credentials.ApplicationDefault()
             firebase_admin.initialize_app(cred, app_options)
         except Exception as exc:
-            detail = "; ".join(errors) if errors else "No usable Firebase credentials found"
+            detail = (
+                "; ".join(errors) if errors else "No usable Firebase credentials found"
+            )
             raise RuntimeError(
                 "Unable to initialize Firebase Admin SDK. "
                 f"Tried {SERVICE_ACCOUNT_ENV}, {GOOGLE_CREDENTIALS_ENV}, FIREBASE_CREDENTIALS_FILE, and ADC. Details: {detail}. ADC error: {exc}"
@@ -892,7 +955,9 @@ def connect_database(credentials_path: Optional[str] = None):
     return db
 
 
-def write_records(records: Iterable[Dict[str, Any]], credentials_path: Optional[str] = None) -> int:
+def write_records(
+    records: Iterable[Dict[str, Any]], credentials_path: Optional[str] = None
+) -> int:
     db = connect_database(credentials_path)
     ref = db.reference("system/learnings")
     count = 0
@@ -903,12 +968,31 @@ def write_records(records: Iterable[Dict[str, Any]], credentials_path: Optional[
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Import Kimi K2 and verified Copilot/GPT-5.4 knowledge into system/learnings")
-    parser.add_argument("--input", help="Path to a JSON file containing Kimi K2 documents")
-    parser.add_argument("--credentials", help="Path to a Firebase service-account JSON file for project supremeai-a")
-    parser.add_argument("--dry-run", action="store_true", help="Preview the normalized records without writing to Firebase")
-    parser.add_argument("--include-analytics", action="store_true", help="Include low-confidence analytics summary imports")
-    parser.add_argument("--skip-verified-knowledge", action="store_true", help="Do not add the built-in verified Copilot/GPT-5.4 operational records")
+    parser = argparse.ArgumentParser(
+        description="Import Kimi K2 and verified Copilot/GPT-5.4 knowledge into system/learnings"
+    )
+    parser.add_argument(
+        "--input", help="Path to a JSON file containing Kimi K2 documents"
+    )
+    parser.add_argument(
+        "--credentials",
+        help="Path to a Firebase service-account JSON file for project supremeai-a",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview the normalized records without writing to Firebase",
+    )
+    parser.add_argument(
+        "--include-analytics",
+        action="store_true",
+        help="Include low-confidence analytics summary imports",
+    )
+    parser.add_argument(
+        "--skip-verified-knowledge",
+        action="store_true",
+        help="Do not add the built-in verified Copilot/GPT-5.4 operational records",
+    )
     return parser.parse_args()
 
 
@@ -936,7 +1020,9 @@ def main() -> int:
         print(f"❌ Firebase write failed: {exc}")
         return 1
 
-    print("\n✅ Kimi K2 and verified Copilot/GPT-5.4 knowledge imported into system/learnings")
+    print(
+        "\n✅ Kimi K2 and verified Copilot/GPT-5.4 knowledge imported into system/learnings"
+    )
     print(f"   records written: {written}")
     print(f"   project: {FIREBASE_PROJECT_ID}")
     print(f"   database: {DATABASE_URL}")

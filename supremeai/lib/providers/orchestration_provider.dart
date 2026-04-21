@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'auth_provider.dart';
 
 class OrchestrationProvider with ChangeNotifier {
   bool _isLoading = false;

@@ -1,4 +1,4 @@
-﻿{
+{
   "models": [
     {
       "title": "SupremeAI-Llama",
@@ -14,6 +14,30 @@
       "apiBase": "https://api.x.ai/v1",
       "model": "grok-2",
       "capabilities": ["code-gen"]
+    },
+    {
+      "title": "Mistral Tiny (free)",
+      "model": "mistralai/mistral-tiny:free",
+      "apiKey": "${OPENROUTER_API_KEY}",
+      "provider": "openrouter"
+    },
+    {
+      "title": "Google: Gemini 2.0 Flash (free)",
+      "model": "google/gemini-2.0-flash-001:free",
+      "apiKey": "${OPENROUTER_API_KEY}",
+      "provider": "openrouter"
+    },
+    {
+      "title": "Google: Gemma 2 9B (free)",
+      "model": "google/gemma-2-9b-it:free",
+      "apiKey": "${OPENROUTER_API_KEY}",
+      "provider": "openrouter"
+    },
+    {
+      "title": "Meta: Llama 3.1 8B Instruct (free)",
+      "model": "meta-llama/llama-3.1-8b-instruct:free",
+      "apiKey": "${OPENROUTER_API_KEY}",
+      "provider": "openrouter"
     }
   ]
 }

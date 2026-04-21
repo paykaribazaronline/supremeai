@@ -59,7 +59,7 @@ echo -e "${YELLOW}Verifying Firebase Configuration...${NC}"
 echo ""
 
 check_item ".firebaserc has default project" "grep -q '\"default\"' .firebaserc"
-check_item "firebase.json has flutter-admin target" "grep -q 'flutter-admin' firebase.json"
+check_item "firebase.json has main-dashboard target" "grep -q 'main-dashboard' firebase.json"
 check_item "firebase.json has rewrites configured" "grep -q 'rewrites' firebase.json"
 
 echo ""
