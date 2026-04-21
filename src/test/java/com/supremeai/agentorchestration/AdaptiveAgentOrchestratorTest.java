@@ -8,6 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,8 +23,19 @@ class AdaptiveAgentOrchestratorTest {
     @Mock
     MultiAIConsensusService consensusService;
 
+    private AdaptiveAgentOrchestrator orchestrator;
+
     @Test
     void testOrchestrationProducesDecisionsAndContext() {
+        orchestrator = new AdaptiveAgentOrchestrator(consensusService);
+        // Set activeProviders via reflection since @Value doesn't work in tests
+        try {
+            Field field = AdaptiveAgentOrchestrator.class.getDeclaredField("activeProviders");
+            field.setAccessible(true);
+            field.set(orchestrator, "groq,openai");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         // Arrange
         AdaptiveAgentOrchestrator orchestrator = new AdaptiveAgentOrchestrator(consensusService);
 
@@ -40,7 +52,7 @@ class AdaptiveAgentOrchestratorTest {
             .thenReturn(mockResult);
 
         // Act
-        OrchesResultContext result = orchestrator.orchestrate("Build a REST API");
+        OrchesResultContext result = this.orchestrator.orchestrate("Build a REST API");
 
         // Assert
         assertNotNull(result);
