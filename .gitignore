@@ -56,6 +56,9 @@ Thumbs.db
 .settings/
 *.sublime-workspace
 
+# IntelliJ IDEA Platform Plugin Development
+.intellijPlatform/localPlatformArtifacts/
+
 # ========================================
 # SECURITY & CREDENTIALS (⚠️ CRITICAL)
 # Never commit these files!
@@ -129,6 +132,15 @@ npm-cache/
 yarn-cache/
 .grunt/
 dist/
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# VSCode extension package
+*.vsix
+
+# Flutter metadata
+.metadata
 
 # ========================================
 # OS SPECIFIC
