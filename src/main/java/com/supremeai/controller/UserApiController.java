@@ -2,7 +2,6 @@ package com.supremeai.controller;
 
 import com.supremeai.model.User;
 import com.supremeai.model.UserApi;
-import com.supremeai.model.UserTier;
 import com.supremeai.repository.UserRepository;
 import com.supremeai.repository.UserApiRepository;
 import com.supremeai.service.ConfigService;
@@ -38,211 +37,62 @@ public class UserApiController {
     @PostMapping("/apis")
     public ResponseEntity<?> createApi(@RequestBody Map<String, String> request,
                                       Authentication authentication) {
+        String userId = getCurrentUserId(authentication);
         try {
-            String userId = getCurrentUserId(authentication);
             String apiName = request.get("apiName");
             String description = request.get("description");
 
-            if (apiName == null || apiName.trim().isEmpty()) {
-                return ResponseEntity.badRequest()
-                    .body(Map.of("error", "API name is required"));
-            }
-
-            if (description == null || description.trim().isEmpty()) {
-                return ResponseEntity.badRequest()
-                    .body(Map.of("error", "Description is required"));
+            if (apiName == null || description == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid request"));
             }
 
             User user = userRepository.findByFirebaseUid(userId).block();
-            if (user == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "User not found"));
-            }
+            if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
-            // Check if user has reached max APIs for their tier
-            List<UserApi> userApis = userApiRepository.findByUserIdAndIsActive(userId, true).collectList().block();
-            int maxApis = configService.getMaxApisForTier(user.getTier());
-            if (userApis != null && userApis.size() >= maxApis) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error", "Maximum API limit reached for your tier"));
-            }
-
-            // Generate unique API key
-            String apiKey;
-            do {
-                apiKey = "sk-" + UUID.randomUUID().toString().replace("-", "");
-            } while (userApiRepository.findByApiKey(apiKey).block() != null);
-
-            UserApi userApi = new UserApi(userId, apiName, apiKey, description,
-                                        user.getTier(), user.getMonthlyQuota());
+            String apiKey = "sk-" + UUID.randomUUID().toString().replace("-", "");
+            UserApi userApi = new UserApi(userId, apiName, apiKey, description, user.getTier(), user.getMonthlyQuota());
             userApiRepository.save(userApi).block();
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("id", userApi.getId());
-            response.put("apiName", userApi.getApiName());
-            response.put("apiKey", userApi.getApiKey());
-            response.put("description", userApi.getDescription());
-            response.put("tier", userApi.getUserTier().toString());
-            response.put("monthlyQuota", userApi.getMonthlyQuota());
-            response.put("createdAt", userApi.getCreatedAt());
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(Map.of("apiKey", apiKey));
 
         } catch (Exception e) {
             logger.error("Failed to create API for user {}", userId, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Failed to create API: " + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @GetMapping("/apis")
     public ResponseEntity<?> getUserApis(Authentication authentication) {
-        try {
-            String userId = getCurrentUserId(authentication);
-            List<UserApi> userApis = userApiRepository.findByUserIdAndIsActive(userId, true).collectList().block();
-
-            if (userApis == null) {
-                return ResponseEntity.ok(Map.of("apis", List.of()));
-            }
-
-            List<Map<String, Object>> response = userApis.stream().map(api -> {
-                Map<String, Object> apiMap = new HashMap<>();
-                apiMap.put("id", api.getId());
-                apiMap.put("apiName", api.getApiName());
-                apiMap.put("apiKey", maskApiKey(api.getApiKey()));
-                apiMap.put("description", api.getDescription());
-                apiMap.put("tier", api.getUserTier().toString());
-                apiMap.put("monthlyQuota", api.getMonthlyQuota());
-                apiMap.put("currentUsage", api.getCurrentUsage());
-                apiMap.put("usagePercent", calculateUsagePercent(api));
-                apiMap.put("createdAt", api.getCreatedAt());
-                apiMap.put("lastUsedAt", api.getLastUsedAt());
-                return apiMap;
-            }).toList();
-
-            return ResponseEntity.ok(Map.of("apis", response));
-
-        } catch (Exception e) {
-            logger.error("Failed to fetch APIs for user {}", userId, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Failed to fetch APIs: " + e.getMessage()));
-        }
+        String userId = getCurrentUserId(authentication);
+        List<UserApi> userApis = userApiRepository.findByUserIdAndIsActive(userId, true).collectList().block();
+        return ResponseEntity.ok(Map.of("apis", userApis != null ? userApis : List.of()));
     }
 
     @DeleteMapping("/apis/{apiId}")
     public ResponseEntity<?> deleteApi(@PathVariable String apiId, Authentication authentication) {
-        try {
-            String userId = getCurrentUserId(authentication);
-            UserApi api = userApiRepository.findById(apiId).block();
-
-            if (api == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "API not found"));
-            }
-
-            if (!api.getUserId().equals(userId)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error", "Access denied"));
-            }
-
+        String userId = getCurrentUserId(authentication);
+        UserApi api = userApiRepository.findById(apiId).block();
+        if (api != null && api.getUserId().equals(userId)) {
             api.setIsActive(false);
-            api.setUpdatedAt(LocalDateTime.now());
             userApiRepository.save(api).block();
-
-            return ResponseEntity.ok(Map.of("message", "API deleted successfully"));
-
-        } catch (Exception e) {
-            logger.error("Failed to delete API {} for user {}", apiId, userId, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Failed to delete API: " + e.getMessage()));
+            return ResponseEntity.ok(Map.of("message", "API deleted"));
         }
-    }
-
-    @PostMapping("/apis/verify")
-    public ResponseEntity<?> verifyApiKey(@RequestBody Map<String, String> request) {
-        try {
-            String apiKey = request.get("apiKey");
-
-            if (apiKey == null || apiKey.trim().isEmpty()) {
-                return ResponseEntity.badRequest()
-                    .body(Map.of("valid", false, "error", "API key is required"));
-            }
-
-            UserApi api = userApiRepository.findByApiKey(apiKey).block();
-            if (api == null) {
-                return ResponseEntity.ok(Map.of("valid", false, "error", "Invalid API key"));
-            }
-
-            if (!api.getIsActive()) {
-                return ResponseEntity.ok(Map.of("valid", false, "error", "API key is inactive"));
-            }
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("valid", true);
-            response.put("apiName", api.getApiName());
-            response.put("tier", api.getUserTier().toString());
-            response.put("monthlyQuota", api.getMonthlyQuota());
-            response.put("currentUsage", api.getCurrentUsage());
-            response.put("hasQuotaRemaining", api.hasQuotaRemaining());
-
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            logger.error("Failed to verify API key", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("valid", false, "error", "Verification failed: " + e.getMessage()));
-        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
     @PostMapping("/apis/{apiId}/regenerate-key")
     public ResponseEntity<?> regenerateApiKey(@PathVariable String apiId, Authentication authentication) {
-        try {
-            String userId = getCurrentUserId(authentication);
-            UserApi api = userApiRepository.findById(apiId).block();
-
-            if (api == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "API not found"));
-            }
-
-            if (!api.getUserId().equals(userId)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error", "Access denied"));
-            }
-
-            // Generate new unique API key
-            String newApiKey;
-            do {
-                newApiKey = "sk-" + UUID.randomUUID().toString().replace("-", "");
-            } while (userApiRepository.findByApiKey(newApiKey).block() != null);
-
-            api.setApiKey(newApiKey);
-            api.setUpdatedAt(LocalDateTime.now());
+        String userId = getCurrentUserId(authentication);
+        UserApi api = userApiRepository.findById(apiId).block();
+        if (api != null && api.getUserId().equals(userId)) {
+            api.setApiKey("sk-" + UUID.randomUUID().toString().replace("-", ""));
             userApiRepository.save(api).block();
-
-            return ResponseEntity.ok(Map.of(
-                "apiKey", api.getApiKey(),
-                "message", "API key regenerated successfully"
-            ));
-
-        } catch (Exception e) {
-            logger.error("Failed to regenerate API key {} for user {}", apiId, userId, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Failed to regenerate API key: " + e.getMessage()));
+            return ResponseEntity.ok(Map.of("apiKey", api.getApiKey()));
         }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
     private String getCurrentUserId(Authentication authentication) {
-        return authentication.getName();
-    }
-
-    private String maskApiKey(String apiKey) {
-        if (apiKey == null || apiKey.length() <= 8) return apiKey;
-        return apiKey.substring(0, 8) + "..." + apiKey.substring(apiKey.length() - 4);
-    }
-
-    private double calculateUsagePercent(UserApi api) {
-        if (api.getMonthlyQuota() == null || api.getMonthlyQuota() == 0) return 0.0;
-        return (double) api.getCurrentUsage() / api.getMonthlyQuota() * 100.0;
+        return authentication != null ? authentication.getName() : "guest";
     }
 }

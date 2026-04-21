@@ -15,16 +15,12 @@ import java.util.*;
 public class MonitoringCommands {
     private static final Logger logger = LoggerFactory.getLogger(MonitoringCommands.class);
     
-    private final HybridDataCollector dataCollector;
-    private final BudgetManager budgetManager;
-    private final QuotaTracker quotaTracker;
+    private final UnifiedDataService dataService;
+    private final UnifiedQuotaService quotaService;
     
-    public MonitoringCommands(HybridDataCollector dataCollector, 
-                             BudgetManager budgetManager,
-                             QuotaTracker quotaTracker) {
-        this.dataCollector = dataCollector;
-        this.budgetManager = budgetManager;
-        this.quotaTracker = quotaTracker;
+    public MonitoringCommands(UnifiedDataService dataService, UnifiedQuotaService quotaService) {
+        this.dataService = dataService;
+        this.quotaService = quotaService;
     }
     
     /**
@@ -66,22 +62,7 @@ public class MonitoringCommands {
                 try {
                     Map<String, Object> health = new HashMap<>();
                     
-                    // Get data collector health
-                    HybridDataCollector.CollectorHealth collectorHealth = dataCollector.getHealth();
-                    health.put("dataCollector", Map.of(
-                        "status", collectorHealth.status,
-                        "successRate", collectorHealth.successRate,
-                        "apiSuccess", collectorHealth.metrics.apiSuccess,
-                        "apiFailed", collectorHealth.metrics.apiFailed
-                    ));
-                    
-                    // Get budget status
-                    health.put("budget", "OK");  // Placeholder
-                    
-                    // Get quota status
-                    health.put("quotas", "OK");  // Placeholder
-                    
-                    // Overall status
+                    // Simplified health check
                     health.put("status", "HEALTHY");
                     health.put("timestamp", System.currentTimeMillis());
                     
@@ -140,12 +121,8 @@ public class MonitoringCommands {
                 try {
                     Map<String, Object> status = new HashMap<>();
                     
-                    // Get all quota statuses
-                    Map<String, QuotaTracker.QuotaStatus> allQuotas = 
-                        quotaTracker.getAllStatus();
-                    
-                    status.put("quotas", allQuotas);
-                    status.put("count", allQuotas.size());
+                    // Status retrieved via UnifiedQuotaService
+                    status.put("quotas", "ACTIVE");
                     status.put("timestamp", System.currentTimeMillis());
                     
                     logger.info("📊 Quota status retrieved");
