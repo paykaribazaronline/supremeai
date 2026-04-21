@@ -266,7 +266,18 @@ jobs:
         run: |
           BUILD_ID=$(gcloud builds submit --tag us-central1-docker.pkg.dev/supremeai-a/gcr.io/supremeai --async --format="value(id)")
           echo "Build started with ID: $BUILD_ID"
-          gcloud builds wait $BUILD_ID
+          while true; do
+            STATUS=$(gcloud builds describe $BUILD_ID --format="value(status)")
+            echo "Current build status: $STATUS"
+            if [ "$STATUS" = "SUCCESS" ]; then
+              echo "Build completed successfully!"
+              break
+            elif [ "$STATUS" = "FAILURE" ] || [ "$STATUS" = "INTERNAL_ERROR" ] || [ "$STATUS" = "TIMEOUT" ]; then
+              echo "Build failed with status: $STATUS"
+              exit 1
+            fi
+            sleep 10
+          done
       - name: Deploy_To_Cloud_Run
         run: |
           echo "Starting Cloud Run deployment..."
