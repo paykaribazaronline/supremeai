@@ -190,6 +190,13 @@ firebase-exports/
 # Continue.dev AI assistant config (may contain secrets)
 .continue/
 
+# Local admin/utility scripts
+*_inventory.*
+update_*.ps1
+test_*.txt
+test_details.*
+test_info.*
+
 # ========================================
 # ADDITIONAL SAFEGUARDS (Simplicity-First)
 # ========================================
