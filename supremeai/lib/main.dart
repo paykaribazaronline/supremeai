@@ -4,7 +4,6 @@ import 'providers/auth_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/orchestration_provider.dart';
 import 'screens/login_screen.dart';
-import 'screens/settings_screen.dart';
 import 'screens/dashboard/home_screen.dart';
 
 void main() {

@@ -60,7 +60,7 @@ $firebaserc = Get-Content ".firebaserc" -Raw
 Check-Item ".firebaserc has default project" { $firebaserc -match '"default"' }
 
 $firebaseJson = Get-Content "firebase.json" -Raw
-Check-Item "firebase.json has flutter-admin target" { $firebaseJson -match 'flutter-admin' }
+Check-Item "firebase.json has main-dashboard target" { $firebaseJson -match 'main-dashboard' }
 Check-Item "firebase.json has rewrites configured" { $firebaseJson -match 'rewrites' }
 
 Write-Host ""

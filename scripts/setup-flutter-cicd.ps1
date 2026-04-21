@@ -148,10 +148,10 @@ Write-Host ""
 Write-Host "To deploy the web app to Firebase Hosting:" -ForegroundColor $Yellow
 Write-Host ""
 Write-Host "  # Option 1: If logged in locally" -ForegroundColor $Yellow
-Write-Host "  firebase deploy --only hosting:flutter-admin" -ForegroundColor $Green
+Write-Host "  firebase deploy --only hosting:main-dashboard" -ForegroundColor $Green
 Write-Host ""
 Write-Host "  # Option 2: Using token" -ForegroundColor $Yellow
-Write-Host "  firebase deploy --only hosting:flutter-admin --token `$FIREBASE_TOKEN" -ForegroundColor $Green
+Write-Host "  firebase deploy --only hosting:main-dashboard --token `$FIREBASE_TOKEN" -ForegroundColor $Green
 Write-Host ""
 
 Write-Host "✅ Setup Complete!" -ForegroundColor $Green
