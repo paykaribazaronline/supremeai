@@ -25,6 +25,9 @@ service-account.json
 
 # Build directories - Build happens in Cloud Build
 build/
+# Include the built JAR for Docker image
+!build/libs/
+!build/libs/app.jar
 
 # Gradle
 .gradle/
