@@ -2,49 +2,32 @@ package com.supremeai.controller;
 
 import com.supremeai.model.VPNConnection;
 import com.supremeai.repository.VPNRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/vpn")
-public class VPNController {
+public class VPNController extends BaseAdminController<VPNConnection, String> {
 
-    @Autowired
-    private VPNRepository vpnRepository;
+    private final VPNRepository vpnRepository;
+
+    public VPNController(VPNRepository vpnRepository) {
+        this.vpnRepository = vpnRepository;
+    }
 
     @GetMapping
     public Mono<ResponseEntity<Object>> getConnections() {
-        return vpnRepository.findAll()
-                .collectList()
-                .map(connections -> ResponseEntity.ok((Object) Map.of("connections", connections)))
-                .onErrorResume(e -> {
-                    Map<String, Object> errorBody = Map.of("error", "Failed to fetch VPN connections: " + e.getMessage());
-                    return Mono.just(ResponseEntity.status(500).body((Object) errorBody));
-                });
+        return wrapList(vpnRepository.findAll(), "connections");
     }
 
     @PostMapping
     public Mono<ResponseEntity<Object>> createConnection(@RequestBody VPNConnection connection) {
-        return vpnRepository.save(connection)
-                .map(saved -> ResponseEntity.ok((Object) Map.of("message", "VPN connection created", "connection", saved)))
-                .onErrorResume(e -> {
-                    Map<String, Object> errorBody = Map.of("error", "Failed to create VPN connection: " + e.getMessage());
-                    return Mono.just(ResponseEntity.status(500).body((Object) errorBody));
-                });
+        return wrapSave(vpnRepository.save(connection), "VPN connection created", connection);
     }
 
     @DeleteMapping("/{id}")
     public Mono<ResponseEntity<Object>> deleteConnection(@PathVariable String id) {
-        return vpnRepository.deleteById(id)
-                .then(Mono.just(ResponseEntity.ok((Object) Map.of("message", "VPN connection deleted"))))
-                .onErrorResume(e -> {
-                    Map<String, Object> errorBody = Map.of("error", "Failed to delete VPN connection: " + e.getMessage());
-                    return Mono.just(ResponseEntity.status(500).body((Object) errorBody));
-                });
+        return wrapDelete(vpnRepository.deleteById(id), "VPN connection deleted");
     }
 }

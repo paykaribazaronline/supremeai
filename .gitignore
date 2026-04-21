@@ -186,3 +186,10 @@ coverage/
 data/
 postgres_data/
 firebase-exports/
+
+# Continue.dev AI assistant config (may contain secrets)
+.continue/
+
+# ========================================
+# ADDITIONAL SAFEGUARDS (Simplicity-First)
+# ========================================
