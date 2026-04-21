@@ -1,5 +1,7 @@
 package com.supremeai.learning;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -11,6 +13,7 @@ import java.util.Properties;
 @Service
 public class EvolutionPersistence {
 
+    private static final Logger log = LoggerFactory.getLogger(EvolutionPersistence.class);
     private static final String SAVE_FILE = "data/best_agent_config.properties";
 
     public EvolutionPersistence() {
@@ -20,7 +23,7 @@ public class EvolutionPersistence {
                 Files.createDirectories(path);
             }
         } catch (IOException e) {
-            System.err.println("Failed to create data directory: " + e.getMessage());
+            log.error("Failed to create data directory", e);
         }
     }
 
@@ -33,9 +36,9 @@ public class EvolutionPersistence {
 
         try (FileOutputStream out = new FileOutputStream(SAVE_FILE)) {
             props.store(out, "Saved automatically by Self-Improvement Engine (Phase 10)");
-            System.out.println("Evolution data saved successfully. Generation: " + generation);
+            log.info("Evolution data saved successfully. Generation: {}", generation);
         } catch (IOException e) {
-            System.err.println("Failed to save evolution data: " + e.getMessage());
+            log.error("Failed to save evolution data", e);
         }
     }
 
@@ -43,16 +46,16 @@ public class EvolutionPersistence {
         Properties props = new Properties();
         try (FileInputStream in = new FileInputStream(SAVE_FILE)) {
             props.load(in);
-            
+
             double dw = Double.parseDouble(props.getProperty("decisionWeight", "0.5"));
             double ct = Double.parseDouble(props.getProperty("confidenceThreshold", "0.5"));
             double lr = Double.parseDouble(props.getProperty("learningRate", "0.1"));
-            
-            System.out.println("Loaded previous evolution data from generation: " + props.getProperty("generation", "0"));
+
+            log.info("Loaded previous evolution data from generation: {}", props.getProperty("generation", "0"));
             return new AgentConfig(dw, ct, lr);
-            
+
         } catch (IOException e) {
-            System.out.println("No previous evolution data found. Starting fresh.");
+            log.info("No previous evolution data found. Starting fresh.");
             return null; // Will start fresh
         }
     }

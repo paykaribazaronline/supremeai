@@ -2,6 +2,8 @@ package com.supremeai.automation.farm;
 
 import com.supremeai.fallback.APIKeyManager;
 import com.supremeai.fallback.AIProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,12 +12,13 @@ import java.util.UUID;
 
 /**
  * The "Quota Multiplier" Engine.
- * Automatically creates accounts using Catch-All emails, rotates VPNs, 
+ * Automatically creates accounts using Catch-All emails, rotates VPNs,
  * extracts API keys, and feeds them back into our AIFallbackOrchestrator.
  */
 @Service
 public class AccountFarmingEngine {
 
+    private static final Logger log = LoggerFactory.getLogger(AccountFarmingEngine.class);
     private final VPNController vpnController;
     private final APIKeyManager apiKeyManager;
     private final List<SyntheticAccount> accountPool = new CopyOnWriteArrayList<>();
@@ -37,7 +40,7 @@ public class AccountFarmingEngine {
      * System auto-farms X new accounts to replenish the pool.
      */
     public void autoFarmNewAccounts(AIProvider targetProvider, int count) {
-        System.out.println("\n[Farming Engine] CRITICAL QUOTA WARNING. Initiating auto-farm for " + count + " new " + targetProvider + " accounts...");
+        log.info("\n[Farming Engine] CRITICAL QUOTA WARNING. Initiating auto-farm for {} new {} accounts...", count, targetProvider);
 
         for (int i = 0; i < count; i++) {
             // 1. Generate unique synthetic email
@@ -53,29 +56,29 @@ public class AccountFarmingEngine {
             
             try {
                 // 3. Simulate Selenium/Puppeteer automation to sign up on Groq/HuggingFace website
-                System.out.println("   -> [Web Automator] Navigating to " + targetProvider + " signup page...");
-                System.out.println("   -> [Web Automator] Bypassing Captcha...");
-                System.out.println("   -> [Web Automator] Registering with: " + syntheticEmail);
-                
+                log.debug("   -> [Web Automator] Navigating to {} signup page...", targetProvider);
+                log.debug("   -> [Web Automator] Bypassing Captcha...");
+                log.debug("   -> [Web Automator] Registering with: {}", syntheticEmail);
+
                 // 4. Simulate verifying the email via IMAP/Catch-All
-                System.out.println("   -> [Email Automator] Reading Catch-All inbox... Found verification link! Clicking...");
-                
+                log.debug("   -> [Email Automator] Reading Catch-All inbox... Found verification link! Clicking...");
+
                 // 5. Simulate extracting the free API Key from the dashboard
-                System.out.println("   -> [Web Automator] Navigating to API settings... Extracting new Key...");
+                log.debug("   -> [Web Automator] Navigating to API settings... Extracting new Key...");
                 String newlyHarvestedKey = "farmed_" + targetProvider.name().toLowerCase() + "_" + UUID.randomUUID().toString().substring(0, 8);
-                
+
                 // Save state
                 newAccount.setAssociatedApiKey(newlyHarvestedKey);
                 accountPool.add(newAccount);
-                
+
                 // 6. FEED IT BACK INTO OUR SYSTEM!
                 // The AI Fallback Orchestrator now has a fresh key to use!
                 apiKeyManager.addKey(targetProvider, newlyHarvestedKey);
-                
-                System.out.println("   [SUCCESS] Harvested new Key! Added to Fallback Pool. Total Farmed Accounts: " + accountPool.size() + "\n");
-                
+
+                log.info("   [SUCCESS] Harvested new Key! Added to Fallback Pool. Total Farmed Accounts: {}", accountPool.size());
+
             } catch (Exception e) {
-                System.err.println("   [FAILED] Could not farm account for " + syntheticEmail + ". Anti-bot protection triggered?");
+                log.error("   [FAILED] Could not farm account for {}. Anti-bot protection triggered?", syntheticEmail, e);
                 newAccount.markAsBanned();
             }
         }

@@ -1,7 +1,9 @@
-qstn package com.supremeai.learning.knowledge;
+package com.supremeai.learning.knowledge;
 
 import com.supremeai.admin.AdminDashboardService;
 import com.supremeai.admin.ImprovementProposal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -12,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class GlobalKnowledgeBase {
 
+    private static final Logger log = LoggerFactory.getLogger(GlobalKnowledgeBase.class);
     private final Map<String, List<SolutionMemory>> globalMemory = new ConcurrentHashMap<>();
     private final AdminDashboardService adminDashboard;
 
@@ -30,7 +33,7 @@ public class GlobalKnowledgeBase {
         for (SolutionMemory solution : solutions) {
             if (solution.getResolvedCode().equals(successfulCode)) {
                 solution.incrementSuccess();
-                System.out.println("[Knowledge Base] Boosted confidence for existing solution by " + aiProvider);
+                log.info("[Knowledge Base] Boosted confidence for existing solution by {}", aiProvider);
                 return;
             }
         }
@@ -48,9 +51,9 @@ public class GlobalKnowledgeBase {
         if (isApprovedImmediately) {
             // Auto-Pilot is ON (or admin approved synchronously). Save it!
             solutions.add(new SolutionMemory(errorSignature, successfulCode, aiProvider, executionTimeMs, securityScore));
-            System.out.println("[Knowledge Base] Learned NEW solution automatically!");
+            log.info("[Knowledge Base] Learned NEW solution automatically!");
         } else {
-            System.out.println("[Knowledge Base] Solution pending. Waiting for Admin to approve in the Dashboard.");
+            log.info("[Knowledge Base] Solution pending. Waiting for Admin to approve in the Dashboard.");
             // In a real app, when Admin clicks 'Approve', an event would trigger the addition.
         }
     }
@@ -61,7 +64,7 @@ public class GlobalKnowledgeBase {
             for (SolutionMemory solution : solutions) {
                 if (solution.getResolvedCode().equals(failedCode)) {
                     solution.incrementFailure();
-                    System.err.println("[Knowledge Base] Penalized a solution that failed in production.");
+                    log.error("[Knowledge Base] Penalized a solution that failed in production.");
                     return;
                 }
             }

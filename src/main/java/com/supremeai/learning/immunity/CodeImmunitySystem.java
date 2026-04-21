@@ -1,5 +1,7 @@
 package com.supremeai.learning.immunity;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -13,6 +15,7 @@ import java.util.regex.Pattern;
 @Service
 public class CodeImmunitySystem {
 
+    private static final Logger log = LoggerFactory.getLogger(CodeImmunitySystem.class);
     // Stores regex patterns of bad code that previously broke the build
     private final Set<Pattern> toxicCodePatterns = new HashSet<>();
 
@@ -31,7 +34,7 @@ public class CodeImmunitySystem {
         // Escape special regex characters to safely match exact string
         String escapedPattern = Pattern.quote(badCodeSnippet.trim());
         toxicCodePatterns.add(Pattern.compile(escapedPattern));
-        System.out.println("[Immunity System] Developed new antibody against toxic code snippet!");
+        log.info("[Immunity System] Developed new antibody against toxic code snippet!");
     }
 
     /**
@@ -40,7 +43,7 @@ public class CodeImmunitySystem {
     public boolean isCodeInfected(String aiGeneratedCode) {
         for (Pattern toxicPattern : toxicCodePatterns) {
             if (toxicPattern.matcher(aiGeneratedCode).find()) {
-                System.err.println("[Immunity System] THREAT DETECTED! AI generated known toxic code. Blocking...");
+                log.error("[Immunity System] THREAT DETECTED! AI generated known toxic code. Blocking...");
                 return true;
             }
         }

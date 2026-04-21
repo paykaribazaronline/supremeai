@@ -1,6 +1,8 @@
 package com.supremeai.intelligence.profiling;
 
 import com.supremeai.fallback.AIProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -13,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class AIProfiler {
 
+    private static final Logger log = LoggerFactory.getLogger(AIProfiler.class);
     // Map: TaskCategory -> (Map: AIProvider -> TaskPerformanceProfile)
     // E.g., "SQL_FIX" -> { GROQ_LLAMA3 -> [SuccessRate: 90%, AvgSpeed: 200ms] }
     private final Map<String, Map<AIProvider, TaskPerformanceProfile>> providerProfiles = new ConcurrentHashMap<>();
@@ -22,8 +25,8 @@ public class AIProfiler {
         TaskPerformanceProfile profile = categoryProfiles.computeIfAbsent(provider, k -> new TaskPerformanceProfile());
 
         profile.update(success, executionTimeMs);
-        System.out.println(String.format("[AI Profiler] Updated %s for task '%s'. Success Rate: %.1f%%, Avg Speed: %dms", 
-                provider.name(), taskCategory, profile.getSuccessRate() * 100, profile.getAverageSpeedMs()));
+        log.debug("[AI Profiler] Updated {} for task '{}'. Success Rate: {:.1f}%, Avg Speed: {}ms",
+                provider.name(), taskCategory, profile.getSuccessRate() * 100, profile.getAverageSpeedMs());
     }
 
     /**
@@ -48,7 +51,7 @@ public class AIProfiler {
             }
         }
 
-        System.out.println("[AI Profiler] Selected " + bestProvider + " as the expert for task: " + taskCategory);
+        log.info("[AI Profiler] Selected {} as the expert for task: {}", bestProvider, taskCategory);
         return bestProvider;
     }
 }

@@ -3,10 +3,13 @@ package com.supremeai.controller;
 import com.supremeai.model.User;
 import com.supremeai.model.UserTier;
 import com.supremeai.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
@@ -15,6 +18,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin")
 public class AdminDashboardController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AdminDashboardController.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -126,6 +131,7 @@ public class AdminDashboardController {
                     return (ResponseEntity<Object>) ResponseEntity.ok((Object) responseBody);
                 })
                 .onErrorResume(e -> {
+                    logger.error("Failed to fetch users", e);
                     Map<String, Object> errorBody = Map.of("error", "Failed to fetch users: " + e.getMessage());
                     return Mono.just((ResponseEntity<Object>) ResponseEntity.status(500).body((Object) errorBody));
                 });
@@ -167,6 +173,7 @@ public class AdminDashboardController {
                 })
                 .defaultIfEmpty((ResponseEntity<Object>) ResponseEntity.status(404).body((Object) Map.of("error", "User not found")))
                 .onErrorResume(e -> {
+                    logger.error("Failed to update user tier for user: {}", userId, e);
                     Map<String, Object> errorBody = Map.of("error", "Failed to update user tier: " + e.getMessage());
                     return Mono.just((ResponseEntity<Object>) ResponseEntity.status(500).body((Object) errorBody));
                 });

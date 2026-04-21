@@ -1,5 +1,7 @@
 package com.supremeai.intelligence.human;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -12,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class HumanPreferenceProfiler {
 
+    private static final Logger log = LoggerFactory.getLogger(HumanPreferenceProfiler.class);
     private final Map<String, DeveloperDNA> globalDeveloperProfiles = new ConcurrentHashMap<>();
 
     public DeveloperDNA getProfile(String userId) {
@@ -46,8 +49,8 @@ public class HumanPreferenceProfiler {
                 dna.setUsesCamelCase(true);
             }
         }
-        
-        System.out.println("[Human Profiler] Learned new traits for user: " + userId + " -> " + dna.getSummary());
+
+        log.info("[Human Profiler] Learned new traits for user: {} -> {}", userId, dna.getSummary());
     }
 
     /**

@@ -1,5 +1,7 @@
 package com.supremeai.cost;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
@@ -9,6 +11,7 @@ import java.util.Properties;
 @Service
 public class DynamicQuotaLoader {
 
+    private static final Logger log = LoggerFactory.getLogger(DynamicQuotaLoader.class);
     private final QuotaManager quotaManager;
 
     public DynamicQuotaLoader(QuotaManager quotaManager) {
@@ -47,7 +50,7 @@ public class DynamicQuotaLoader {
                 }
             }
         } catch (IOException e) {
-            System.err.println("Failed to load quotas from " + filePath + ": " + e.getMessage());
+            log.error("Failed to load quotas from {}", filePath, e);
         }
     }
 }

@@ -4,6 +4,8 @@ import com.supremeai.cost.QuotaManager;
 import com.supremeai.learning.knowledge.GlobalKnowledgeBase;
 import com.supremeai.learning.immunity.CodeImmunitySystem;
 import com.supremeai.intelligence.profiling.AIProfiler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -13,6 +15,7 @@ import java.util.List;
 @Service
 public class AIFallbackOrchestrator {
 
+    private static final Logger log = LoggerFactory.getLogger(AIFallbackOrchestrator.class);
     private final QuotaManager quotaManager;
     private final APIKeyManager apiKeyManager;
     private final GlobalKnowledgeBase knowledgeBase;
@@ -56,27 +59,27 @@ public class AIFallbackOrchestrator {
 
         // STEP 3: EXECUTE WITH LEARNING, IMMUNITY, AND PERFORMANCE TRACKING
         for (AIProvider provider : dynamicChain) {
-            if (!isServiceQuotaAvailable(provider)) continue; 
+            if (!isServiceQuotaAvailable(provider)) continue;
 
             String safeKey = apiKeyManager.getNextHealthyKey(provider);
-            if (safeKey == null) continue; 
+            if (safeKey == null) continue;
 
             long startTime = System.currentTimeMillis();
-            
+
             try {
-                System.out.println("-> Asking " + provider + " (Expert Mode) to handle task: " + taskCategory);
-                
+                log.info("-> Asking {} (Expert Mode) to handle task: {}", provider, taskCategory);
+
                 String generatedCode = callAIProvider(provider, safeKey, prompt);
                 long timeTaken = System.currentTimeMillis() - startTime;
-                
+
                 recordUsage(provider);
-                
+
                 // STEP 4: IMMUNITY CHECK (Did the AI generate toxic code?)
                 if (immunitySystem.isCodeInfected(generatedCode)) {
-                    System.err.println("-> [Orchestrator] AI generated toxic/broken code! Rejecting...");
+                    log.error("-> [Orchestrator] AI generated toxic/broken code! Rejecting...");
                     // Record failure so AIProfiler knows this AI is bad at this task!
                     aiProfiler.recordPerformance(taskCategory, provider, false, timeTaken);
-                    continue; 
+                    continue;
                 }
 
                 // If code is clean:
@@ -84,21 +87,24 @@ public class AIFallbackOrchestrator {
                 // 2. Tell AI Profiler this AI did a GREAT job so it gets higher ranking next time!
                 knowledgeBase.recordSuccessWithPermission(errorSignature, generatedCode, provider.name(), timeTaken, 0.95);
                 aiProfiler.recordPerformance(taskCategory, provider, true, timeTaken);
-                
+
                 return generatedCode;
-                
+
             } catch (RateLimitException e) {
-                apiKeyManager.markKeyAsRateLimited(safeKey, 60000); 
-                return executeWithSupremeIntelligence(taskCategory, errorSignature, prompt); 
+                log.warn("Rate limit exceeded for provider: {}", provider);
+                apiKeyManager.markKeyAsRateLimited(safeKey, 60000);
+                return executeWithSupremeIntelligence(taskCategory, errorSignature, prompt);
             } catch (TimeoutException e) {
-                 long timeTaken = System.currentTimeMillis() - startTime;
-                 aiProfiler.recordPerformance(taskCategory, provider, false, timeTaken); // Record timeout as failure
-                 continue; 
+                log.warn("Timeout for provider: {} on task: {}", provider, taskCategory);
+                long timeTaken = System.currentTimeMillis() - startTime;
+                aiProfiler.recordPerformance(taskCategory, provider, false, timeTaken); // Record timeout as failure
+                continue;
             } catch (Exception e) {
-                 // Unknown error
+                log.error("Unknown error from provider: {} on task: {}", provider, taskCategory, e);
+                // Continue to next provider
             }
         }
-        
+
         throw new RuntimeException("CRITICAL: All AI failed. Cannot execute task.");
     }
 

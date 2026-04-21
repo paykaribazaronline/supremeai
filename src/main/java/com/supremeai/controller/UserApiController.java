@@ -6,11 +6,14 @@ import com.supremeai.model.UserTier;
 import com.supremeai.repository.UserRepository;
 import com.supremeai.repository.UserApiRepository;
 import com.supremeai.service.ConfigService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +23,8 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/user")
 public class UserApiController {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserApiController.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -84,6 +89,7 @@ public class UserApiController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
+            logger.error("Failed to create API for user {}", userId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Failed to create API: " + e.getMessage()));
         }
@@ -117,6 +123,7 @@ public class UserApiController {
             return ResponseEntity.ok(Map.of("apis", response));
 
         } catch (Exception e) {
+            logger.error("Failed to fetch APIs for user {}", userId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Failed to fetch APIs: " + e.getMessage()));
         }
@@ -145,6 +152,7 @@ public class UserApiController {
             return ResponseEntity.ok(Map.of("message", "API deleted successfully"));
 
         } catch (Exception e) {
+            logger.error("Failed to delete API {} for user {}", apiId, userId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Failed to delete API: " + e.getMessage()));
         }
@@ -180,6 +188,7 @@ public class UserApiController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
+            logger.error("Failed to verify API key", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("valid", false, "error", "Verification failed: " + e.getMessage()));
         }
@@ -217,6 +226,7 @@ public class UserApiController {
             ));
 
         } catch (Exception e) {
+            logger.error("Failed to regenerate API key {} for user {}", apiId, userId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Failed to regenerate API key: " + e.getMessage()));
         }
