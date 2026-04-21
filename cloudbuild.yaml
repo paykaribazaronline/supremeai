@@ -1,0 +1,11 @@
+steps:
+  # Build the JAR
+  - name: 'gradle:8.5.0-jdk17'
+    args: ['build', '-x', 'test']  # Skip tests since they were already run locally
+
+  # Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/supremeai-a/gcr.io/supremeai', '.']
+
+images:
+  - 'us-central1-docker.pkg.dev/supremeai-a/gcr.io/supremeai'

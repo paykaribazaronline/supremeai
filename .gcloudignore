@@ -23,15 +23,8 @@ __pycache__/
 local.properties
 service-account.json
 
-# Build directories - Only include the app.jar needed for Cloud Run
-build/classes/
-build/tmp/
-build/reports/
-build/test-results/
-build/resources/
-build/jacoco/
-!build/libs/
-!build/libs/app.jar
+# Build directories - Build happens in Cloud Build
+build/
 
 # Gradle
 .gradle/
