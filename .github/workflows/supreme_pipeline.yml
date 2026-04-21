@@ -264,7 +264,9 @@ jobs:
           gcloud config get-value project
       - name: Build_And_Push_Container
         run: |
-          gcloud builds submit --tag us-central1-docker.pkg.dev/supremeai-a/gcr.io/supremeai --no-stream
+          BUILD_ID=$(gcloud builds submit --tag us-central1-docker.pkg.dev/supremeai-a/gcr.io/supremeai --format="value(id)")
+          echo "Build started with ID: $BUILD_ID"
+          gcloud builds wait $BUILD_ID
       - name: Deploy_To_Cloud_Run
         run: |
           echo "Starting Cloud Run deployment..."
