@@ -29,16 +29,16 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        // Skip Firebase auth for public endpoints
+        // Only enforce Firebase auth on API routes.
+        // This keeps static UI pages (e.g. /admin.html, /login.html) publicly reachable.
+        if (!path.startsWith("/api/")) {
+            return true;
+        }
+
+        // Skip Firebase auth for explicitly public API endpoints.
         return path.startsWith("/api/health") ||
                path.startsWith("/api/status") ||
-               path.startsWith("/api/auth/") ||
-               path.startsWith("/static/") ||
-               path.startsWith("/css/") ||
-               path.startsWith("/js/") ||
-               path.equals("/") ||
-               path.startsWith("/index.html") ||
-               path.startsWith("/favicon.ico");
+               path.startsWith("/api/auth/");
     }
 
     @Override
