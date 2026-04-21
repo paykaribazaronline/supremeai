@@ -1,10 +1,5 @@
 steps:
-  # Build the JAR
-  - name: 'gradle:8.5.0-jdk17'
-    entrypoint: 'gradle'
-    args: ['build', '-x', 'test']  # Skip tests since they were already run locally
-
-  # Build the Docker image
+  # Build the Docker image (JAR is already built by GitHub Actions and downloaded as artifact)
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'us-central1-docker.pkg.dev/supremeai-a/gcr.io/supremeai', '.']
 
