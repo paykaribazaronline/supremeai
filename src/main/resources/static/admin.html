@@ -698,6 +698,42 @@
             gap: 6px;
         }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .sidebar-menu-category summary {
+            font-weight: bold;
+            color: #a0aec0;
+            padding: 12px 15px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            list-style: none; /* Remove default marker */
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .sidebar-menu-category summary:hover {
+            background: #2d3748;
+        }
+
+        .sidebar-menu-category summary::-webkit-details-marker {
+            display: none; /* Hide for Chrome */
+        }
+
+        .sidebar-menu-category summary::before {
+            content: '▶';
+            position: absolute;
+            right: 15px;
+            font-size: 0.8em;
+            transition: transform 0.2s;
+        }
+
+        .sidebar-menu-category[open] > summary::before {
+            transform: rotate(90deg);
+        }
+
+        .sidebar-menu-category .menu-item {
+            padding-left: 30px;
+        }
     </style>
 <body>
     <div class="container">
@@ -705,36 +741,56 @@
         <div class="sidebar">
             <div class="logo">👑 SupremeAI Admin</div>
             <div class="menu-item active" onclick="showSection('dashboard')">📊 Dashboard</div>
-            <div class="menu-item" onclick="showSection('activity-summary')" id="sidebarActivityItem">� Activity Summary</div>
-            <div class="menu-item" onclick="showSection('system-alerts')" id="sidebarAlertsItem">🚨 System Alerts</div>
-            <div class="menu-item" onclick="showSection('techniques')">💡 Techniques</div>
-            <div class="menu-item" onclick="showSection('provider-coverage')">🛰️ Provider Coverage</div>
-            <div class="menu-item" onclick="showSection('approvals')">✅ Approvals</div>
-            <div class="menu-item" onclick="showSection('commands')">💻 Commands</div>
-            <div class="menu-item" onclick="showSection('browser-automation')">🌐 Browser Automation</div>
-            <div class="menu-item" onclick="showSection('api-keys')">🔑 API Key Manager</div>
-            <div class="menu-item" onclick="showSection('airllm-config')">⚙️ AirLLM Config</div>
-            <div class="menu-item" onclick="showSection('ai-agents')">🤖 AI Agent Assignment</div>
-            <div class="menu-item" onclick="showSection('git-projects')">🔄 Git Projects</div>
-            <div class="menu-item" onclick="showSection('projects')">📦 Projects</div>
-            <div class="menu-item" onclick="showSection('logs')">📝 Audit Logs</div>
-            <div class="menu-item" onclick="showSection('user-management')">👥 User Management & Tiers</div>
-            <div class="menu-item" onclick="showSection('vpn-management')">🔒 VPN Management</div>
-            <div class="menu-item" onclick="openVisualization3D()">🌐 3D Visualization ↗</div>
-            <div class="menu-item" onclick="showSection('timeline')">� AI Decision Log</div>
-            <div class="menu-item" onclick="showSection('metrics')">📈 Metrics &amp; Alerts</div>
-            <div class="menu-item" onclick="showSection('deployment')">🚀 Deployment</div>
-            <div class="menu-item" onclick="showSection('system-engine')">🛠️ System Engine</div>
-            <div class="menu-item" onclick="showSection('consensus')">� Multi-AI Consensus</div>
-            <div class="menu-item" onclick="showSection('system-learning')">📖 System Learning</div>
-            <div class="menu-item" onclick="showSection('existing-projects')">🔧 Improve Existing App</div>
-            <div class="menu-item" onclick="showSection('workflow-chat')">🗨️ ওয়ার্কফ্লো চ্যাট</div>
-            <div class="menu-item" onclick="showSection('notifications')">📬 Notifications</div>
-            <div class="menu-item" onclick="showSection('live-activity')">⚡ Live Activity</div>
-            <div class="menu-item" onclick="showSection('kimi-k2')">🔮 AI Learning Orchestration</div>
-            <div class="menu-item" onclick="showSection('chat')">💬 Chat with SupremeAI</div>
-             <div class="menu-item" onclick="showSection('analytics')">📊 Analytics</div>
-             <div class="menu-item" onclick="showSection('settings')">⚙️ Settings</div>
+
+            <details class="sidebar-menu-category">
+                <summary>⚙️ System & Operations</summary>
+                <div class="menu-item" onclick="showSection('system-alerts')" id="sidebarAlertsItem">🚨 System Alerts</div>
+                <div class="menu-item" onclick="showSection('system-engine')">🛠️ System Engine</div>
+                <div class="menu-item" onclick="showSection('deployment')">🚀 Deployment</div>
+                <div class="menu-item" onclick="showSection('approvals')">✅ Approvals</div>
+                <div class="menu-item" onclick="showSection('commands')">💻 Commands</div>
+                <div class="menu-item" onclick="showSection('provider-coverage')">🛰️ Provider Coverage</div>
+                <div class="menu-item" onclick="showSection('live-activity')">⚡ Live Activity</div>
+                <div class="menu-item" onclick="showSection('notifications')">📬 Notifications</div>
+                <div class="menu-item" onclick="showSection('logs')">📝 Audit Logs</div>
+            </details>
+
+            <details class="sidebar-menu-category">
+                <summary>🤖 AI Management</summary>
+                <div class="menu-item" onclick="showSection('techniques')">💡 Techniques</div>
+                <div class="menu-item" onclick="showSection('ai-agents')">🤖 AI Agent Assignment</div>
+                <div class="menu-item" onclick="showSection('consensus')">🧠 Multi-AI Consensus</div>
+                <div class="menu-item" onclick="showSection('timeline')">📜 AI Decision Log</div>
+                <div class="menu-item" onclick="showSection('kimi-k2')">🔮 AI Learning Orchestration</div>
+                <div class="menu-item" onclick="showSection('system-learning')">📖 System Learning</div>
+                <div class="menu-item" onclick="showSection('existing-projects')">🔧 Improve Existing App</div>
+                <div class="menu-item" onclick="showSection('chat')">💬 Chat with SupremeAI</div>
+                <div class="menu-item" onclick="showSection('workflow-chat')">🗨️ ওয়ার্কফ্লো চ্যাট</div>
+            </details>
+
+            <details class="sidebar-menu-category">
+                <summary>📦 Projects & Code</summary>
+                <div class="menu-item" onclick="showSection('projects')">📦 Projects</div>
+                <div class="menu-item" onclick="showSection('git-projects')">🔄 Git Projects</div>
+                <div class="menu-item" onclick="showSection('browser-automation')">🌐 Browser Automation</div>
+            </details>
+
+            <details class="sidebar-menu-category">
+                <summary>🔧 Configuration</summary>
+                <div class="menu-item" onclick="showSection('settings')">⚙️ Settings</div>
+                <div class="menu-item" onclick="showSection('api-keys')">🔑 API Key Manager</div>
+                <div class="menu-item" onclick="showSection('airllm-config')">⚙️ AirLLM Config</div>
+                <div class="menu-item" onclick="showSection('user-management')">👥 User Management & Tiers</div>
+                <div class="menu-item" onclick="showSection('vpn-management')">🔒 VPN Management</div>
+            </details>
+
+            <details class="sidebar-menu-category">
+                <summary>📊 Analytics</summary>
+                <div class="menu-item" onclick="showSection('activity-summary')" id="sidebarActivityItem">📈 Activity Summary</div>
+                <div class="menu-item" onclick="showSection('metrics')">📈 Metrics &amp; Alerts</div>
+                <div class="menu-item" onclick="openVisualization3D()">🌐 3D Visualization ↗</div>
+                <div class="menu-item" onclick="showSection('analytics')">📊 Analytics</div>
+            </details>
         </div>
 
         <!-- Main Content -->
