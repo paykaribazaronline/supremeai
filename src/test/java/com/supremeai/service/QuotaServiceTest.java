@@ -3,6 +3,7 @@ package com.supremeai.service;
 import com.supremeai.model.UserApi;
 import com.supremeai.model.UserTier;
 import com.supremeai.repository.UserApiRepository;
+import com.supremeai.service.quota.ApiQuotaManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,7 +22,9 @@ public class QuotaServiceTest {
     @Mock
     private UserApiRepository userApiRepository;
 
-    @InjectMocks
+    @Mock
+    private ApiQuotaManager quotaManager;
+
     private QuotaService quotaService;
 
     private UserApi testApi;
@@ -32,22 +35,38 @@ public class QuotaServiceTest {
         testApi = new UserApi("user-1", "Test API", API_KEY, "Description", UserTier.FREE, 100L);
         testApi.setIsActive(true);
         testApi.setCurrentUsage(10L);
+        quotaService = new QuotaService();
+        // Manually inject @Autowired fields
+        try {
+            var repoField = QuotaService.class.getDeclaredField("userApiRepository");
+            repoField.setAccessible(true);
+            repoField.set(quotaService, userApiRepository);
+
+            var managerField = QuotaService.class.getDeclaredField("quotaManager");
+            managerField.setAccessible(true);
+            managerField.set(quotaService, quotaManager);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test
     void testHasQuotaRemaining_Success() {
         when(userApiRepository.findByApiKey(API_KEY)).thenReturn(Mono.just(testApi));
+        when(quotaManager.hasQuotaRemaining(testApi)).thenReturn(true);
 
         boolean hasQuota = quotaService.hasQuotaRemaining(API_KEY);
 
         assertTrue(hasQuota);
         verify(userApiRepository).findByApiKey(API_KEY);
+        verify(quotaManager).hasQuotaRemaining(testApi);
     }
 
     @Test
     void testHasQuotaRemaining_Exceeded() {
         testApi.setCurrentUsage(100L); // Limit reached
         when(userApiRepository.findByApiKey(API_KEY)).thenReturn(Mono.just(testApi));
+        when(quotaManager.hasQuotaRemaining(testApi)).thenReturn(false);
 
         boolean hasQuota = quotaService.hasQuotaRemaining(API_KEY);
 
@@ -68,24 +87,32 @@ public class QuotaServiceTest {
     void testIncrementUsage_Success() {
         when(userApiRepository.findByApiKey(API_KEY)).thenReturn(Mono.just(testApi));
         when(userApiRepository.save(testApi)).thenReturn(Mono.just(testApi));
+        doAnswer(invocation -> {
+            UserApi api = invocation.getArgument(0);
+            api.setCurrentUsage(api.getCurrentUsage() + 1);
+            return true;
+        }).when(quotaManager).incrementUsage(testApi);
 
         boolean result = quotaService.incrementUsage(API_KEY);
 
         assertTrue(result);
         assertEquals(11L, testApi.getCurrentUsage());
         verify(userApiRepository).save(testApi);
+        verify(quotaManager).incrementUsage(testApi);
     }
 
     @Test
     void testIncrementUsage_Fail_WhenNoQuota() {
         testApi.setCurrentUsage(100L);
         when(userApiRepository.findByApiKey(API_KEY)).thenReturn(Mono.just(testApi));
+        when(quotaManager.incrementUsage(testApi)).thenReturn(false);
 
         boolean result = quotaService.incrementUsage(API_KEY);
 
         assertFalse(result);
         assertEquals(100L, testApi.getCurrentUsage());
         verify(userApiRepository, never()).save(any());
+        verify(quotaManager).incrementUsage(testApi);
     }
 
     @Test

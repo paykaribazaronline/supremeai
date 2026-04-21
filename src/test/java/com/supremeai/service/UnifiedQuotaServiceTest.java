@@ -3,6 +3,9 @@ package com.supremeai.service;
 import com.supremeai.model.UserApi;
 import com.supremeai.repository.UserApiRepository;
 import com.supremeai.service.quota.ApiQuotaManager;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,14 +19,45 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class UnifiedQuotaServiceTest {
 
-    @InjectMocks
     private UnifiedQuotaService unifiedQuotaService;
+
+    @Mock
+    private MeterRegistry meterRegistry;
+
+    @Mock
+    private Counter quotaCheckCounter;
+
+    @Mock
+    private Counter quotaIncrementCounter;
+
+    @Mock
+    private Counter quotaSpecialCounter;
 
     @Mock
     private UserApiRepository userApiRepository;
 
     @Mock
     private ApiQuotaManager quotaManager;
+
+    @BeforeEach
+    void setUp() {
+        when(meterRegistry.counter("unified_quota_service.check")).thenReturn(quotaCheckCounter);
+        when(meterRegistry.counter("unified_quota_service.increment")).thenReturn(quotaIncrementCounter);
+        when(meterRegistry.counter("unified_quota_service.special")).thenReturn(quotaSpecialCounter);
+        unifiedQuotaService = new UnifiedQuotaService(meterRegistry);
+        // Manually inject the @Autowired fields
+        try {
+            var repoField = UnifiedQuotaService.class.getDeclaredField("userApiRepository");
+            repoField.setAccessible(true);
+            repoField.set(unifiedQuotaService, userApiRepository);
+
+            var managerField = UnifiedQuotaService.class.getDeclaredField("quotaManager");
+            managerField.setAccessible(true);
+            managerField.set(unifiedQuotaService, quotaManager);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Test
     void checkAndIncrement_ShouldReturnFalse_WhenApiKeyNotFound() {
