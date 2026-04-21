@@ -262,11 +262,14 @@ jobs:
           gcloud --version
           echo "Authenticated project:"
           gcloud config get-value project
+      - name: Build_And_Push_Container
+        run: |
+          gcloud builds submit --tag gcr.io/supremeai-a/supremeai
       - name: Deploy_To_Cloud_Run
         run: |
           echo "Starting Cloud Run deployment..."
           gcloud run deploy supremeai \
-            --source . \
+            --image gcr.io/supremeai-a/supremeai \
             --platform managed \
             --region us-central1 \
             --allow-unauthenticated \
