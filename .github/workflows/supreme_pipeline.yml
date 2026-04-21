@@ -81,6 +81,7 @@ jobs:
   java-build-and-test:
     name: Java_Build_And_Test
     needs: [changes, secret-scan]
+    if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -118,6 +119,7 @@ jobs:
   flutter-build-and-test:
     name: Flutter_Build_And_Test
     needs: [changes, secret-scan]
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     outputs:
       frontend_url: ${{ steps.set-paths.outputs.frontend_url }}
@@ -163,6 +165,7 @@ jobs:
   plugin-build:
     name: Plugin_Build
     needs: [changes, secret-scan]
+    if: needs.changes.outputs.plugin == 'true'
     runs-on: ubuntu-latest
     outputs:
       plugin_path: ${{ steps.set-path.outputs.path }}
@@ -197,6 +200,7 @@ jobs:
   vscode-extension-build:
     name: VSCode_Extension_Build
     needs: [changes, secret-scan]
+    if: needs.changes.outputs.vscode_extension == 'true'
     runs-on: ubuntu-latest
     outputs:
       vsix_path: ${{ steps.set-path.outputs.path }}
@@ -234,9 +238,9 @@ jobs:
 
   deploy-backend:
     name: Deploy_Backend
-    needs: [java-build-and-test]
+    needs: [changes, java-build-and-test]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && needs.changes.outputs.backend == 'true'
     outputs:
       admin_url: ${{ steps.set-url.outputs.url }}
     steps:
@@ -251,9 +255,12 @@ jobs:
           echo "Verifying JAR download..."
           ls -la build/libs
           if [ -f "build/libs/app.jar" ]; then
-            echo "✅ app.jar found"
+            echo "✅ app.jar found, copying to repo root"
+            cp build/libs/app.jar ./app.jar
+            echo "✅ Copied to ./app.jar"
           else
-            echo "❌ app.jar NOT found"
+            echo "❌ app.jar NOT found in build/libs"
+            ls -R build/libs
             exit 1
           fi
       - name: Authenticate_GCP
@@ -313,9 +320,9 @@ jobs:
 
   deploy-frontend:
     name: Deploy_Frontend
-    needs: [flutter-build-and-test]
+    needs: [changes, flutter-build-and-test]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && needs.changes.outputs.frontend == 'true'
     steps:
       - uses: actions/checkout@v4
       - name: Download_Web
