@@ -119,8 +119,8 @@ public class MultiAIConsensusService {
             .average()
             .orElse(0.0);
 
-        // Save to Firebase for learning (async, fire-and-forget)
-        saveVoteToFirebase(question, votes, consensusAnswer, consensusPercentage);
+        // Save to local history for learning and diagnostics.
+        saveVoteToHistory(question, votes, consensusAnswer, consensusPercentage);
 
         return new ConsensusResult(
             question,
@@ -134,7 +134,7 @@ public class MultiAIConsensusService {
     /**
      * Save vote to in-memory history (taste phase - no Firebase).
      */
-    private void saveVoteToFirebase(String question, List<ProviderVote> votes, String consensus, double percentage) {
+    private void saveVoteToHistory(String question, List<ProviderVote> votes, String consensus, double percentage) {
         try {
             ConsensusVote result = new ConsensusVote();
             result.setQuestion(question);

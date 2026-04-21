@@ -3,7 +3,10 @@ package com.supremeai.controller;
 import com.supremeai.model.SystemConfig;
 import com.supremeai.model.UserTier;
 import com.supremeai.service.ConfigService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -14,6 +17,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/admin/config")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminConfigController {
 
     @Autowired
@@ -31,8 +35,12 @@ public class AdminConfigController {
      * Update the entire system configuration.
      */
     @PutMapping
-    public Mono<SystemConfig> updateSystemConfig(@RequestBody SystemConfig config) {
-        return configService.updateConfig(config);
+    public Mono<SystemConfig> updateSystemConfig(
+            @RequestBody SystemConfig config,
+            Authentication authentication,
+            HttpServletRequest request) {
+        String actor = authentication != null ? authentication.getName() : "unknown";
+        return configService.updateConfig(config, actor, request.getRemoteAddr());
     }
 
     /**
