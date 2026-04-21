@@ -28,14 +28,16 @@ public interface UserSimulatorProfileRepository extends ReactiveCrudRepository<U
     Flux<UserSimulatorProfile> findByActiveInstallsGreaterThan(int minInstalls);
 
     /**
-     * Count profiles that have an active session
+     * Count profiles that have an active session.
+     * Firestore does not support IsNotNull. Implement in service layer.
      */
-    Mono<Long> countByCurrentSessionIsNotNull();
+    // Mono<Long> countByCurrentSessionIsNotNull();
 
     /**
      * Find profiles that have been inactive before cutoff (for cleanup job)
+     * Firestore does not support Before. Implement in service layer.
      */
-    Flux<UserSimulatorProfile> findByLastActiveAtBefore(LocalDateTime cutoffTime);
+    // Flux<UserSimulatorProfile> findByLastActiveAtBefore(LocalDateTime cutoffTime);
 
     /**
      * Find all profiles for a specific user tier

@@ -102,7 +102,7 @@ public class ConfigService {
      */
     public Mono<SystemConfig> updateTierQuota(UserTier tier, long limit) {
         SystemConfig current = getConfig();
-        current.getTierQuotas().put(tier, limit);
+        current.getTierQuotas().put(tier.name(), limit);
         return updateConfig(current);
     }
 }

@@ -7,8 +7,8 @@ RUN apt-get update && apt-get install -y curl ca-certificates && rm -rf /var/lib
 WORKDIR /app
 
 # The JAR is copied from the build context (uploaded by GitHub Actions)
-# Accept any jar file from build/libs and rename to app.jar
-COPY build/libs/*.jar app.jar
+# Only copy app.jar to avoid issues with multiple JARs
+COPY build/libs/app.jar app.jar
 
 # Cloud Run sets the PORT env var
 ENV PORT=8080

@@ -16,7 +16,7 @@ public class AIProviderFactory {
     @Value("${supremeai.provider.anthropic.api-key}")
     private String anthropicApiKey;
 
-    @Autowired
+    @Autowired(required = false)
     private OllamaProvider ollamaProvider;
 
     public AIProvider getProvider(String name) {
@@ -28,6 +28,9 @@ public class AIProviderFactory {
             case "anthropic":
                 return new AnthropicProvider(anthropicApiKey);
             case "ollama":
+                if (ollamaProvider == null) {
+                    throw new IllegalStateException("Ollama provider is not available in cloud profile");
+                }
                 return ollamaProvider;
             default:
                 throw new IllegalArgumentException("Unknown AI provider: " + name);

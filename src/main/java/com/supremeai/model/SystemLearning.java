@@ -8,7 +8,8 @@ import java.util.Map;
 
 @Document(collectionName = "system_learning")
 public class SystemLearning {
-    @DocumentId
+    // Firestore document id - do NOT use @DocumentId if 'id' field exists in document data
+    // Use document name as id instead
     private String id;
     private String topic;
     private String category;
