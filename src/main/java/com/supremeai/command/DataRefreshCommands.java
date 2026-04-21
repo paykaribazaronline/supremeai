@@ -16,10 +16,10 @@ import java.util.*;
 public class DataRefreshCommands {
     private static final Logger logger = LoggerFactory.getLogger(DataRefreshCommands.class);
     
-    private final DataCollectorService collectorService;
+    private final UnifiedDataService dataService;
     
-    public DataRefreshCommands(DataCollectorService collectorService) {
-        this.collectorService = collectorService;
+    public DataRefreshCommands(UnifiedDataService dataService) {
+        this.dataService = dataService;
     }
     
     /**
@@ -66,7 +66,7 @@ public class DataRefreshCommands {
                     logger.info("🔄 Refreshing GitHub data: {}/{}", owner, repo);
                     
                     // Call the service to fetch fresh data
-                    Map<String, Object> data = collectorService.getGitHubData(owner, repo);
+                    Map<String, Object> data = (Map<String, Object>) dataService.getCollectedData("github:" + owner + "/" + repo);
                     
                     logger.info("✅ GitHub data refreshed");
                     
@@ -128,7 +128,7 @@ public class DataRefreshCommands {
                     logger.info("🔄 Refreshing Vercel status: {}", projectId);
                     
                     // Call the service
-                    Map<String, Object> data = collectorService.getVercelStatus(projectId);
+                    Map<String, Object> data = (Map<String, Object>) dataService.getCollectedData("vercel:" + projectId);
                     
                     logger.info("✅ Vercel data refreshed");
                     
@@ -185,7 +185,7 @@ public class DataRefreshCommands {
                     logger.info("🔄 Refreshing Firebase metrics");
                     
                     // Call the service
-                    Map<String, Object> data = collectorService.getFirebaseStatus();
+                    Map<String, Object> data = (Map<String, Object>) dataService.getCollectedData("firebase");
                     
                     logger.info("✅ Firebase data refreshed");
                     
@@ -243,8 +243,8 @@ public class DataRefreshCommands {
                     
                     // Refresh all in parallel
                     List<Map<String, Object>> results = new ArrayList<>();
-                    results.add(collectorService.getGitHubData("supremeai", "core"));
-                    results.add(collectorService.getFirebaseStatus());
+                    results.add((Map<String, Object>) dataService.getCollectedData("github:supremeai/core"));
+                    results.add((Map<String, Object>) dataService.getCollectedData("firebase"));
                     
                     logger.info("✅ All data sources refreshed");
                     
