@@ -3,7 +3,7 @@ package com.supremeai.api;
 import com.supremeai.model.SystemLearning;
 import com.supremeai.repository.SystemLearningRepository;
 import com.supremeai.service.FastPathAIService;
-import com.supremeai.service.GuestQuotaService;
+import com.supremeai.service.UnifiedQuotaService;
 import com.supremeai.service.HumanUnderstandingService;
 import com.supremeai.service.quota.QuotaExceededException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,7 +28,7 @@ public class ChatController {
     private SystemLearningRepository learningRepository;
 
     @Autowired
-    private GuestQuotaService guestQuotaService;
+    private UnifiedQuotaService unifiedQuotaService;
 
     @Autowired
     private FastPathAIService fastPathAIService;

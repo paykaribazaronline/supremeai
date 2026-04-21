@@ -1,6 +1,6 @@
 package com.supremeai.automation.farm;
 
-import com.supremeai.fallback.APIKeyManager;
+// Removed APIKeyManager dependency; using RateLimiterService if needed.
 import com.supremeai.fallback.AIProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +20,7 @@ public class AccountFarmingEngine {
 
     private static final Logger log = LoggerFactory.getLogger(AccountFarmingEngine.class);
     private final VPNController vpnController;
-    private final APIKeyManager apiKeyManager;
+// Removed apiKeyManager dependency
     private final List<SyntheticAccount> accountPool = new CopyOnWriteArrayList<>();
 
     // A catch-all domain setup (e.g., anything@mycompany.com goes to one inbox)
@@ -30,7 +30,7 @@ public class AccountFarmingEngine {
     private final String[] VPN_REGIONS = {"US", "UK", "CA", "SG", "DE", "JP"};
     private int vpnIndex = 0;
 
-    public AccountFarmingEngine(VPNController vpnController, APIKeyManager apiKeyManager) {
+    public AccountFarmingEngine(VPNController vpnController) {
         this.vpnController = vpnController;
         this.apiKeyManager = apiKeyManager;
     }

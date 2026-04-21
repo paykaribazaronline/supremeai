@@ -1,6 +1,6 @@
 package com.supremeai.api;
 
-import com.supremeai.service.GuestQuotaService;
+import com.supremeai.service.UnifiedQuotaService;
 import com.supremeai.service.MultiAIConsensusService;
 import com.supremeai.service.quota.QuotaExceededException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,7 +25,7 @@ import java.util.Map;
 public class PluginController {
 
     @Autowired
-    private GuestQuotaService guestQuotaService;
+    private UnifiedQuotaService unifiedQuotaService;
 
     @Autowired
     private MultiAIConsensusService consensusService;
