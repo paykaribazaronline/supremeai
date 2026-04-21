@@ -246,6 +246,16 @@ jobs:
         with:
           name: java-backend-jar
           path: build/libs
+      - name: Verify_JAR
+        run: |
+          echo "Verifying JAR download..."
+          ls -la build/libs
+          if [ -f "build/libs/app.jar" ]; then
+            echo "✅ app.jar found"
+          else
+            echo "❌ app.jar NOT found"
+            exit 1
+          fi
       - name: Authenticate_GCP
         uses: google-github-actions/auth@v2
         with:
