@@ -1,7 +1,9 @@
 package com.supremeai.agentorchestration;
 
 import com.supremeai.service.MultiAIConsensusService;
+import com.supremeai.model.SystemConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -10,6 +12,8 @@ import java.util.*;
 public class AdaptiveAgentOrchestrator {
 
     private final MultiAIConsensusService consensusService;
+    @Value("${supremeai.active.providers:groq,openai,anthropic,ollama}")
+    private String activeProviders;
 
     @Autowired
     public AdaptiveAgentOrchestrator(MultiAIConsensusService consensusService) {
@@ -105,7 +109,7 @@ public class AdaptiveAgentOrchestrator {
             
             // Query AI providers
             var result = consensusService.askAllAIs(question, 
-                List.of("openai", "anthropic", "groq"), 10000L);
+                Arrays.asList(activeProviders.split(",")), 10000L);
             
             VotingDecision decision = new VotingDecision();
             decision.setDecisionKey(key);

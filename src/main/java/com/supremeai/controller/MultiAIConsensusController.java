@@ -3,10 +3,13 @@ package com.supremeai.controller;
 import com.supremeai.model.ConsensusResult;
 import com.supremeai.model.ConsensusVote;
 import com.supremeai.service.MultiAIConsensusService;
+import com.supremeai.model.SystemConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import reactor.core.publisher.Mono;
@@ -17,6 +20,9 @@ public class MultiAIConsensusController {
 
     @Autowired
     private MultiAIConsensusService consensusService;
+    
+    @Value("${supremeai.active.providers:groq,openai,anthropic,ollama}")
+    private String activeProviders;
 
     /**
      * POST /api/consensus/vote
@@ -27,13 +33,13 @@ public class MultiAIConsensusController {
     public Mono<ResponseEntity<Object>> voteOnQuestion(@RequestBody Map<String, Object> request) {
         String question = (String) request.get("question");
         List<String> providers = (List<String>) request.getOrDefault("providers", 
-            List.of("openai", "anthropic", "groq"));
+            Arrays.asList(activeProviders.split(",")));
         
         if (question == null || question.trim().isEmpty()) {
             return Mono.just(ResponseEntity.badRequest()
                 .body((Object) Map.of("error", "Question is required")));
         }
-
+        
         ConsensusResult result = consensusService.askAllAIs(question, providers, 10000L);
         
         return Mono.just(ResponseEntity.ok((Object) Map.of(
@@ -71,7 +77,7 @@ public class MultiAIConsensusController {
         return Mono.just(ResponseEntity.ok((Object) Map.of(
             "status", "UP",
             "service", "MultiAIConsensusService",
-            "providers", List.of("openai", "anthropic", "groq")
+            "providers", Arrays.asList(activeProviders.split(","))
         )));
     }
 

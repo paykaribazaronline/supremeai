@@ -33,7 +33,7 @@ public class MultiAIConsensusService {
     // In-memory history for taste phase (no Firebase)
     private final List<ConsensusVote> history = new CopyOnWriteArrayList<>();
 
-    private final ExecutorService executor = Executors.newFixedThreadPool(10);
+    private final ExecutorService executor = Executors.newCachedThreadPool();
     private final java.util.Random random = new java.util.Random();
 
     private static final org.slf4j.Logger logger =
@@ -76,6 +76,7 @@ public class MultiAIConsensusService {
                 future.get(timeoutMs, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
                 // Timeout or execution error - skip this provider
+                logger.debug("Provider future get timeout or interruption", e);
             }
         }
 

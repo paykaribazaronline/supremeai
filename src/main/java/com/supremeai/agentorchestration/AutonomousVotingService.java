@@ -6,9 +6,11 @@ import com.supremeai.provider.AIProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -21,9 +23,10 @@ import java.util.stream.Collectors;
 public class AutonomousVotingService {
 
     private static final Logger logger = LoggerFactory.getLogger(AutonomousVotingService.class);
-    private static final List<String> PROVIDERS = List.of("groq", "openai", "anthropic", "ollama");
+    @Value("${supremeai.active.providers:groq,openai,anthropic,ollama}")
+    private String activeProviders;
     
-    private final ExecutorService executor = Executors.newFixedThreadPool(10);
+    private final ExecutorService executor = Executors.newCachedThreadPool();
     
     @Autowired
     private AIProviderFactory providerFactory;
@@ -31,9 +34,10 @@ public class AutonomousVotingService {
     public VotingDecision conductVote(String question, String context) {
         logger.info("Starting autonomous voting for question: {}", question);
         
+        List<String> providerList = Arrays.asList(activeProviders.split(","));
         List<CompletableFuture<ProviderVote>> futures = new ArrayList<>();
         
-        for (String providerName : PROVIDERS) {
+        for (String providerName : providerList) {
             CompletableFuture<ProviderVote> future = CompletableFuture.supplyAsync(() -> {
                 try {
                     AIProvider provider = providerFactory.getProvider(providerName);

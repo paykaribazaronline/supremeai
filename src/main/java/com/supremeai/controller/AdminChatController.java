@@ -1,11 +1,14 @@
 package com.supremeai.controller;
 
-import com.supremeai.model.ChatMessage;
+import com.supremeai.model.ConsensusResult;
+import com.supremeai.model.ConsensusVote;
 import com.supremeai.service.MultiAIConsensusService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import reactor.core.publisher.Mono;
@@ -16,6 +19,9 @@ public class AdminChatController {
 
     @Autowired
     private MultiAIConsensusService consensusService;
+    
+    @Value("${supremeai.active.providers:groq,openai,anthropic,ollama}")
+    private String activeProviders;
 
     @PostMapping("/ask")
     @SuppressWarnings("unchecked")
@@ -24,7 +30,7 @@ public class AdminChatController {
         List<String> providers = (List<String>) request.get("providers");
         
         if (providers == null || providers.isEmpty()) {
-            providers = List.of("openai", "anthropic", "groq");
+            providers = Arrays.asList(activeProviders.split(","));
         }
 
         if (question == null || question.trim().isEmpty()) {
