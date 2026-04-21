@@ -35,7 +35,7 @@ public class SimulatorService {
     private ConfigService configService;
 
     @Autowired
-    private UnifiedQuotaService quotaService;
+    private QuotaService quotaService;
 
     @Autowired
     private SimulatorDeploymentService deploymentService;
@@ -58,8 +58,8 @@ public class SimulatorService {
             profile.setInstallQuota(dynamicQuota);
         }
 
-        // Use UnifiedQuotaService for validation
-        if (!quotaService.checkAndIncrement(userId, "SIMULATOR")) {
+        // Use QuotaService for validation
+        if (!quotaService.incrementUsage(userId)) {
              throw new RuntimeException("Simulator quota exceeded");
         }
 

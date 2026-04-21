@@ -1,5 +1,9 @@
 package com.supremeai.agentorchestration;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.supremeai.provider.AIProvider;
+import com.supremeai.provider.AIProviderFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -9,6 +13,11 @@ import java.util.*;
 public class AdaptiveAgentOrchestrator {
 
     @Autowired
+    private RequirementAnalyzerAI requirementAnalyzer;
+
+    @Autowired
+    private AIProviderFactory providerFactory;
+
     public AdaptiveAgentOrchestrator() {}
 
     /**
@@ -21,8 +30,8 @@ public class AdaptiveAgentOrchestrator {
         context.put("startedAt", started);
         context.put("originalRequirement", requirement);
 
-        // Step 1: Generate questions (taste phase: hardcoded)
-        List<Question> questions = generateQuestions(requirement);
+        // Step 1: Generate questions (moved from taste phase to AI-driven)
+        List<Question> questions = generateQuestionsAI(requirement);
         context.put("questions", questions);
 
         // Step 2: For taste phase, auto-answer questions (simulate admin)
@@ -49,9 +58,12 @@ public class AdaptiveAgentOrchestrator {
     }
 
     /**
-     * Generate a set of standard architecture/design questions.
-     * In full version, this would use an AI to generate specific questions.
+     * Generate questions using AI based on the requirement.
      */
+    private List<Question> generateQuestionsAI(String requirement) {
+        return requirementAnalyzer.analyze(requirement);
+    }
+
     private List<Question> generateQuestions(String requirement) {
         List<Question> questions = new ArrayList<>();
         questions.add(new Question("architecture", "What architecture style? (monolith, microservices, serverless)", "HIGH"));

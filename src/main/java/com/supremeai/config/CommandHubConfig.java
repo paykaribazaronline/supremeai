@@ -8,7 +8,7 @@ import com.supremeai.command.DeploymentCommands;
 import com.supremeai.provider.AIProviderFactory;
 import com.supremeai.service.UnifiedDataService;
 import com.supremeai.service.BudgetManager;
-import com.supremeai.service.UnifiedQuotaService;
+import com.supremeai.service.QuotaService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -29,7 +29,7 @@ public class CommandHubConfig {
     public CommandExecutor commandExecutor(
             UnifiedDataService dataService,
             BudgetManager budgetManager,
-            UnifiedQuotaService quotaService,
+            QuotaService quotaService,
             AIProviderFactory providerFactory,
             OptimizationCommands optimizationCommands,
             DeploymentCommands deploymentCommands) {

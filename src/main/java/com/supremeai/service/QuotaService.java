@@ -1,9 +1,8 @@
 package com.supremeai.service;
 
-import com.supremeai.model.UserApi;
-import com.supremeai.repository.UserApiRepository;
-import com.supremeai.service.quota.ApiQuotaManager;
-import com.supremeai.service.quota.QuotaExceededException;
+import com.supremeai.model.User;
+import com.supremeai.repository.UserRepository;
+import com.supremeai.exception.SimulatorQuotaExceededException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -14,34 +13,33 @@ import java.time.LocalDateTime;
 public class QuotaService {
 
     @Autowired
-    private UserApiRepository userApiRepository;
-
-    @Autowired
-    private ApiQuotaManager quotaManager;
+    private UserRepository userRepository;
 
     /**
-     * Check if an API key has quota remaining for the current month
+     * Check if a user has quota remaining for the current month
      */
-    public boolean hasQuotaRemaining(String apiKey) {
-        UserApi api = userApiRepository.findByApiKey(apiKey).block();
-        if (api == null || !api.getIsActive()) {
+    public boolean hasQuotaRemaining(String userId) {
+        User user = userRepository.findByFirebaseUid(userId).block();
+        if (user == null || !user.getIsActive()) {
             return false;
         }
-        return quotaManager.hasQuotaRemaining(api);
+        return user.hasQuotaRemaining();
     }
 
     /**
-     * Increment usage for an API key
+     * Increment usage for a user
      * Returns true if successful, false if quota exceeded
      */
-    public boolean incrementUsage(String apiKey) {
-        UserApi api = userApiRepository.findByApiKey(apiKey).block();
-        if (api == null || !api.getIsActive()) {
+    public boolean incrementUsage(String userId) {
+        User user = userRepository.findByFirebaseUid(userId).block();
+        if (user == null || !user.getIsActive()) {
             return false;
         }
         
-        if (quotaManager.incrementUsage(api)) {
-            userApiRepository.save(api).block();
+        if (user.hasQuotaRemaining()) {
+            user.setCurrentUsage(user.getCurrentUsage() + 1);
+            user.setLastUsedAt(LocalDateTime.now());
+            userRepository.save(user).block();
             return true;
         }
         return false;
@@ -49,85 +47,90 @@ public class QuotaService {
 
     /**
      * Validate and increment usage atomically
-     * @throws QuotaExceededException if quota is exceeded
+     * @throws SimulatorQuotaExceededException if quota is exceeded
      */
-    public void validateAndIncrement(String apiKey) throws QuotaExceededException {
-        UserApi api = userApiRepository.findByApiKey(apiKey).block();
-        if (api == null || !api.getIsActive()) {
-            throw new IllegalArgumentException("Invalid or inactive API key");
+    public void validateAndIncrement(String userId) throws SimulatorQuotaExceededException {
+        User user = userRepository.findByFirebaseUid(userId).block();
+        if (user == null || !user.getIsActive()) {
+            throw new IllegalArgumentException("Invalid or inactive user");
         }
         
-        quotaManager.validateAndIncrement(api);
-        userApiRepository.save(api).block();
+        if (!user.hasQuotaRemaining()) {
+            throw new SimulatorQuotaExceededException("Monthly quota exceeded for user: " + userId);
+        }
+
+        user.setCurrentUsage(user.getCurrentUsage() + 1);
+        user.setLastUsedAt(LocalDateTime.now());
+        userRepository.save(user).block();
     }
 
     /**
-     * Get current usage for an API key
+     * Get current usage for a user
      */
-    public Long getCurrentUsage(String apiKey) {
-        UserApi api = userApiRepository.findByApiKey(apiKey).block();
-        return quotaManager.getCurrentUsage(api);
+    public Long getCurrentUsage(String userId) {
+        User user = userRepository.findByFirebaseUid(userId).block();
+        return user != null ? user.getCurrentUsage() : 0L;
     }
 
     /**
-     * Get monthly quota for an API key
+     * Get monthly quota for a user
      */
-    public Long getMonthlyQuota(String apiKey) {
-        UserApi api = userApiRepository.findByApiKey(apiKey).block();
-        return quotaManager.getQuotaLimit(api);
+    public Long getMonthlyQuota(String userId) {
+        User user = userRepository.findByFirebaseUid(userId).block();
+        return user != null ? user.getMonthlyQuota() : 0L;
     }
 
     /**
-     * Reset monthly usage for all APIs - runs on the 1st of every month at midnight
+     * Reset monthly usage for all users - runs on the 1st of every month at midnight
      */
     @Scheduled(cron = "0 0 0 1 * ?")
     public void resetMonthlyUsage() {
-        userApiRepository.findAll()
-            .doOnNext(api -> {
-                api.resetMonthlyUsage();
-                userApiRepository.save(api).subscribe();
+        userRepository.findAll()
+            .doOnNext(user -> {
+                user.resetMonthlyUsage();
+                userRepository.save(user).subscribe();
             })
             .subscribe();
     }
 
     /**
-     * Manually reset usage for a specific API (admin function)
+     * Manually reset usage for a specific user (admin function)
      */
-    public boolean resetApiUsage(String apiKey) {
-        UserApi api = userApiRepository.findByApiKey(apiKey).block();
-        if (api == null) {
+    public boolean resetUserUsage(String userId) {
+        User user = userRepository.findByFirebaseUid(userId).block();
+        if (user == null) {
             return false;
         }
 
-        quotaManager.resetUsage(api);
-        userApiRepository.save(api).block();
+        user.resetMonthlyUsage();
+        userRepository.save(user).block();
         return true;
     }
 
     /**
-     * Get usage statistics for an API
+     * Get usage statistics for a user
      */
-    public ApiUsageStats getUsageStats(String apiKey) {
-        UserApi api = userApiRepository.findByApiKey(apiKey).block();
-        if (api == null) {
+    public UserUsageStats getUsageStats(String userId) {
+        User user = userRepository.findByFirebaseUid(userId).block();
+        if (user == null) {
             return null;
         }
 
-        return new ApiUsageStats(
-            api.getCurrentUsage(),
-            api.getMonthlyQuota(),
-            api.getLastUsedAt(),
-            api.hasQuotaRemaining()
+        return new UserUsageStats(
+            user.getCurrentUsage(),
+            user.getMonthlyQuota(),
+            user.getLastUsedAt(),
+            user.hasQuotaRemaining()
         );
     }
 
-    public static class ApiUsageStats {
+    public static class UserUsageStats {
         private final Long currentUsage;
         private final Long monthlyQuota;
         private final LocalDateTime lastUsedAt;
         private final boolean hasQuotaRemaining;
 
-        public ApiUsageStats(Long currentUsage, Long monthlyQuota, LocalDateTime lastUsedAt, boolean hasQuotaRemaining) {
+        public UserUsageStats(Long currentUsage, Long monthlyQuota, LocalDateTime lastUsedAt, boolean hasQuotaRemaining) {
             this.currentUsage = currentUsage;
             this.monthlyQuota = monthlyQuota;
             this.lastUsedAt = lastUsedAt;
@@ -141,6 +144,7 @@ public class QuotaService {
 
         public double getUsagePercentage() {
             if (monthlyQuota == 0) return 0.0;
+            if (monthlyQuota == Long.MAX_VALUE) return 0.0;
             return (double) currentUsage / monthlyQuota * 100.0;
         }
     }
