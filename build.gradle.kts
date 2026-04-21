@@ -202,3 +202,11 @@ tasks.jacocoTestCoverageVerification {
 application {
     mainClass.set("com.supremeai.Application")
 }
+
+tasks.bootJar {
+    archiveFileName.set("app.jar")
+}
+
+tasks.jar {
+    enabled = false
+}
