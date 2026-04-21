@@ -36,11 +36,13 @@ if ([string]::IsNullOrWhiteSpace($sha)) {
     throw "Could not resolve git short SHA"
 }
 
-$imageSha = "gcr.io/$ProjectId/$ServiceName`:$sha"
-$imageLatest = "gcr.io/$ProjectId/$ServiceName`:latest"
+# Use Artifact Registry repository in us-central1
+$imageSha = "us-central1-docker.pkg.dev/$ProjectId/supremeai-repo/supremeai`:$sha"
+$imageLatest = "us-central1-docker.pkg.dev/$ProjectId/supremeai-repo/supremeai`:latest"
 
 Run-Checked "gcloud config set project $ProjectId"
-Run-Checked "gcloud auth configure-docker gcr.io --quiet"
+# Configure Docker auth for Artifact Registry
+Run-Checked "gcloud auth configure-docker us-central1-docker.pkg.dev --quiet"
 
 if (-not $SkipBuild) {
     $useLocalDocker = $false
@@ -103,12 +105,13 @@ $deployCommand = @(
     "--region $Region",
     "--platform managed",
     "--port 8080",
-    "--memory 1Gi",
-    "--cpu 1",
+    "--memory 4Gi",
+    "--cpu 2",
     "--max-instances 10",
-    "--timeout 3600",
+    "--timeout 300",
     "--allow-unauthenticated",
-    "--update-env-vars `"FIREBASE_PROJECT_ID=$ProjectId,GOOGLE_CLOUD_PROJECT=$ProjectId,FIREBASE_DATABASE_URL=$FirebaseDatabaseUrl`""
+    "--concurrency 80",
+    "--set-env-vars `"SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=$ProjectId,spring.threads.virtual.enabled=true`""
 )
 
 if ($secretExists) {
