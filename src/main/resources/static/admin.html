@@ -2212,12 +2212,12 @@
                     <h2 style="margin-top: 30px;">System Settings</h2>
                     <div class="form-group">
                         <label>
-                            <input type="checkbox" checked> Enable Email Notifications
+                            <input type="checkbox" id="settingsEmailNotifications" checked> Enable Email Notifications
                         </label>
                     </div>
                     <div class="form-group">
                         <label>
-                            <input type="checkbox" checked> Enable SMS Alerts
+                            <input type="checkbox" id="settingsSmsAlerts" checked> Enable SMS Alerts
                         </label>
                     </div>
 
@@ -6030,13 +6030,76 @@
         // SETTINGS
         // =============================================
 
-        function saveSettings() {
-            const emailNotif = document.querySelector('#settings input[type=checkbox]:first-of-type')?.checked;
-            const smsAlerts = document.querySelector('#settings input[type=checkbox]:last-of-type')?.checked;
+        async function loadSettings() {
+            const emailCheckbox = document.getElementById('settingsEmailNotifications');
+            const smsCheckbox = document.getElementById('settingsSmsAlerts');
             const msg = document.getElementById('settingsMsg');
-            localStorage.setItem('supremeai_email_notifications', emailNotif);
-            localStorage.setItem('supremeai_sms_alerts', smsAlerts);
-            msg.innerHTML = '<span style="color:#48bb78;">✅ Settings saved locally.</span>';
+
+            try {
+                const response = await fetch('/api/admin/config', { headers: getAuthHeaders() });
+                const config = await response.json();
+                if (!response.ok) {
+                    throw new Error(config.error || 'Failed to load settings');
+                }
+
+                if (emailCheckbox) {
+                    emailCheckbox.checked = config.emailNotifications !== false;
+                }
+                if (smsCheckbox) {
+                    smsCheckbox.checked = config.smsAlerts !== false;
+                }
+            } catch (error) {
+                if (msg) {
+                    msg.innerHTML = `<span style="color:#ecc94b;">⚠️ Could not load server settings (${escHtml(error.message)}). Using local values.</span>`;
+                }
+                if (emailCheckbox) {
+                    const localEmail = localStorage.getItem('supremeai_email_notifications');
+                    if (localEmail !== null) emailCheckbox.checked = localEmail === 'true';
+                }
+                if (smsCheckbox) {
+                    const localSms = localStorage.getItem('supremeai_sms_alerts');
+                    if (localSms !== null) smsCheckbox.checked = localSms === 'true';
+                }
+            }
+        }
+
+        async function saveSettings() {
+            const emailNotif = document.getElementById('settingsEmailNotifications')?.checked ?? true;
+            const smsAlerts = document.getElementById('settingsSmsAlerts')?.checked ?? true;
+            const msg = document.getElementById('settingsMsg');
+            msg.innerHTML = '<span style="color:#63b3ed;">⏳ Saving settings...</span>';
+
+            try {
+                const currentRes = await fetch('/api/admin/config', { headers: getAuthHeaders() });
+                const currentConfig = await currentRes.json();
+                if (!currentRes.ok) {
+                    throw new Error(currentConfig.error || 'Failed to load current config');
+                }
+
+                const payload = {
+                    ...currentConfig,
+                    emailNotifications: emailNotif,
+                    smsAlerts: smsAlerts
+                };
+
+                const saveRes = await fetch('/api/admin/config', {
+                    method: 'PUT',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(payload)
+                });
+                const saveData = await saveRes.json();
+                if (!saveRes.ok) {
+                    throw new Error(saveData.error || 'Failed to save settings');
+                }
+
+                localStorage.setItem('supremeai_email_notifications', String(emailNotif));
+                localStorage.setItem('supremeai_sms_alerts', String(smsAlerts));
+                msg.innerHTML = '<span style="color:#48bb78;">✅ Settings saved to server.</span>';
+            } catch (error) {
+                localStorage.setItem('supremeai_email_notifications', String(emailNotif));
+                localStorage.setItem('supremeai_sms_alerts', String(smsAlerts));
+                msg.innerHTML = `<span style="color:#f56565;">❌ Failed to save server settings: ${escHtml(error.message)}</span>`;
+            }
         }
 
         /* ── Feature Sync Dashboard ─────────────────────── */
@@ -6749,6 +6812,7 @@
             loadAuditLogs();
             loadDashboardStats();
             loadProjects();
+            loadSettings();
             toggleBrowserAuthFields();
         });
 

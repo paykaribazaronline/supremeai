@@ -1,9 +1,6 @@
 package com.supremeai.agentorchestration;
 
-import com.supremeai.service.MultiAIConsensusService;
-import com.supremeai.model.SystemConfig;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -11,14 +8,8 @@ import java.util.*;
 @Service
 public class AdaptiveAgentOrchestrator {
 
-    private final MultiAIConsensusService consensusService;
-    @Value("${supremeai.active.providers:groq,openai,anthropic,ollama}")
-    private String activeProviders;
-
     @Autowired
-    public AdaptiveAgentOrchestrator(MultiAIConsensusService consensusService) {
-        this.consensusService = consensusService;
-    }
+    public AdaptiveAgentOrchestrator() {}
 
     /**
      * Main orchestration entry point.
@@ -38,8 +29,8 @@ public class AdaptiveAgentOrchestrator {
         Map<String, String> answers = autoAnswerQuestions(questions);
         context.put("answers", answers);
 
-        // Step 3: Run consensus voting on key decisions
-        List<VotingDecision> decisions = runConsensusVoting(answers);
+        // MVP mode: direct decisions for fastest response and lowest complexity.
+        List<VotingDecision> decisions = buildDirectDecisions(answers);
         context.put("decisions", decisions);
 
         // Step 4: Build final context for code generator
@@ -94,44 +85,19 @@ public class AdaptiveAgentOrchestrator {
         return answers;
     }
 
-    /**
-     * Run consensus voting for each decision using AI providers.
-     */
-    private List<VotingDecision> runConsensusVoting(Map<String, String> answers) {
+    private List<VotingDecision> buildDirectDecisions(Map<String, String> answers) {
         List<VotingDecision> decisions = new ArrayList<>();
-        
         for (Map.Entry<String, String> entry : answers.entrySet()) {
-            String key = entry.getKey();
-            String answer = entry.getValue();
-            
-            // Formulate a question for AI consensus
-            String question = formatVotingQuestion(key, answer);
-            
-            // Query AI providers
-            var result = consensusService.askAllAIs(question, 
-                Arrays.asList(activeProviders.split(",")), 10000L);
-            
             VotingDecision decision = new VotingDecision();
-            decision.setDecisionKey(key);
-            decision.setProposedAnswer(answer); // from admin
-            decision.setAiConsensus(result.getConsensusAnswer());
-            decision.setConfidence(result.getAverageConfidence());
-            decision.setStrength(result.getStrength());
-            decision.setProviderVotes(result.getProviderVotes());
-            
+            decision.setDecisionKey(entry.getKey());
+            decision.setProposedAnswer(entry.getValue());
+            decision.setAiConsensus(entry.getValue());
+            decision.setConfidence(1.0);
+            decision.setStrength("DIRECT");
+            decision.setProviderVotes(List.of());
             decisions.add(decision);
         }
-        
         return decisions;
-    }
-
-    private String formatVotingQuestion(String key, String adminAnswer) {
-        return String.format(
-            "For a software application, the admin has selected '%s' for %s. " +
-            "As an AI expert, do you agree with this choice? If not, what would you recommend? " +
-            "Provide a concise yes/no with brief reasoning.", 
-            adminAnswer, key
-        );
     }
 
     private Map<String, Object> buildGenerationContext(List<VotingDecision> decisions) {

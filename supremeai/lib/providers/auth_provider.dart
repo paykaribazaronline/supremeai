@@ -12,6 +12,11 @@ class AuthProvider with ChangeNotifier {
   Map<String, dynamic>? get user => _user;
   String? get token => _token;
   bool get isGuest => _status == AuthStatus.guest;
+  bool get isAdmin {
+    final role = _user?['role']?.toString().toLowerCase();
+    final tier = _user?['tier']?.toString().toUpperCase();
+    return role == 'admin' || tier == 'ADMIN';
+  }
 
   AuthProvider() {
     _checkAuth();

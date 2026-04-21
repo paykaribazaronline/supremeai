@@ -28,8 +28,17 @@ public class SystemConfig {
 
     // General AI Settings
     private String activeModel = "gpt-4o";
+    private String smallModel = "google/gemini-1.5-flash";
+    private Long version = 1L;
     private boolean maintenanceMode = false;
+    private boolean fullAuthority = false;
+    private String shareMode = "manual";
+    private boolean enableExternalDirectory = false;
+    private boolean emailNotifications = true;
+    private boolean smsAlerts = true;
     private String systemMessage = "You are SupremeAI, an expert software architect and assistant.";
+    private Map<String, String> permissions = new HashMap<>();
+    private Map<String, Map<String, Object>> providers = new HashMap<>();
 
     public SystemConfig() {
         // Default quotas as a fallback
@@ -55,6 +64,14 @@ public class SystemConfig {
         tierMaxSimulatorInstalls.put(UserTier.PRO.name(), 10);
         tierMaxSimulatorInstalls.put(UserTier.ENTERPRISE.name(), 20);
         tierMaxSimulatorInstalls.put(UserTier.ADMIN.name(), 50);
+
+        // Default tool permissions
+        permissions.put("read", "allow");
+        permissions.put("edit", "ask");
+        permissions.put("bash", "ask");
+        permissions.put("task", "allow");
+        permissions.put("websearch", "allow");
+        permissions.put("external_directory", "deny");
     }
 
     // Getters and Setters
@@ -73,11 +90,38 @@ public class SystemConfig {
     public String getActiveModel() { return activeModel; }
     public void setActiveModel(String activeModel) { this.activeModel = activeModel; }
 
+    public String getSmallModel() { return smallModel; }
+    public void setSmallModel(String smallModel) { this.smallModel = smallModel; }
+
+    public Long getVersion() { return version; }
+    public void setVersion(Long version) { this.version = version; }
+
     public boolean isMaintenanceMode() { return maintenanceMode; }
     public void setMaintenanceMode(boolean maintenanceMode) { this.maintenanceMode = maintenanceMode; }
 
+    public boolean isFullAuthority() { return fullAuthority; }
+    public void setFullAuthority(boolean fullAuthority) { this.fullAuthority = fullAuthority; }
+
+    public String getShareMode() { return shareMode; }
+    public void setShareMode(String shareMode) { this.shareMode = shareMode; }
+
+    public boolean isEnableExternalDirectory() { return enableExternalDirectory; }
+    public void setEnableExternalDirectory(boolean enableExternalDirectory) { this.enableExternalDirectory = enableExternalDirectory; }
+
+    public boolean isEmailNotifications() { return emailNotifications; }
+    public void setEmailNotifications(boolean emailNotifications) { this.emailNotifications = emailNotifications; }
+
+    public boolean isSmsAlerts() { return smsAlerts; }
+    public void setSmsAlerts(boolean smsAlerts) { this.smsAlerts = smsAlerts; }
+
     public String getSystemMessage() { return systemMessage; }
     public void setSystemMessage(String systemMessage) { this.systemMessage = systemMessage; }
+
+    public Map<String, String> getPermissions() { return permissions; }
+    public void setPermissions(Map<String, String> permissions) { this.permissions = permissions; }
+
+    public Map<String, Map<String, Object>> getProviders() { return providers; }
+    public void setProviders(Map<String, Map<String, Object>> providers) { this.providers = providers; }
 
     /**
      * Helper to get quota for a specific tier
