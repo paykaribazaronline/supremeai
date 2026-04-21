@@ -8,5 +8,5 @@ import reactor.core.publisher.Flux;
 @Repository
 public interface SystemLearningRepository extends FirestoreReactiveRepository<SystemLearning> {
     Flux<SystemLearning> findByCategory(String category);
-    Flux<SystemLearning> findByLearnedAtAfter(java.time.LocalDateTime learnedAt);
+    // Note: Firestore does not support 'After' predicate. Use custom query or filter in service.
 }

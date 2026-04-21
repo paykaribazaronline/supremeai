@@ -17,13 +17,14 @@ public class SystemConfig {
     private String id = "global_settings";
 
     // Quota limits for different tiers (Number of installs/AI calls)
-    private Map<UserTier, Long> tierQuotas = new HashMap<>();
+    // Firestore does not support enum keys, so we use String keys
+    private Map<String, Long> tierQuotas = new HashMap<>();
 
     // Maximum number of API Keys a user can create based on tier
-    private Map<UserTier, Integer> tierMaxApis = new HashMap<>();
+    private Map<String, Integer> tierMaxApis = new HashMap<>();
 
     // Maximum number of apps user can have installed in simulator simultaneously
-    private Map<UserTier, Integer> tierMaxSimulatorInstalls = new HashMap<>();
+    private Map<String, Integer> tierMaxSimulatorInstalls = new HashMap<>();
 
     // General AI Settings
     private String activeModel = "gpt-4o";
@@ -32,42 +33,42 @@ public class SystemConfig {
 
     public SystemConfig() {
         // Default quotas as a fallback
-        tierQuotas.put(UserTier.GUEST, 5L);
-        tierQuotas.put(UserTier.FREE, 20L);
-        tierQuotas.put(UserTier.BASIC, 100L);
-        tierQuotas.put(UserTier.PRO, 500L);
-        tierQuotas.put(UserTier.ENTERPRISE, 2000L);
-        tierQuotas.put(UserTier.ADMIN, -1L); // Unlimited
+        tierQuotas.put(UserTier.GUEST.name(), 5L);
+        tierQuotas.put(UserTier.FREE.name(), 20L);
+        tierQuotas.put(UserTier.BASIC.name(), 100L);
+        tierQuotas.put(UserTier.PRO.name(), 500L);
+        tierQuotas.put(UserTier.ENTERPRISE.name(), 2000L);
+        tierQuotas.put(UserTier.ADMIN.name(), -1L); // Unlimited
 
         // Default API limits
-        tierMaxApis.put(UserTier.GUEST, 0);
-        tierMaxApis.put(UserTier.FREE, 1);
-        tierMaxApis.put(UserTier.BASIC, 3);
-        tierMaxApis.put(UserTier.PRO, 10);
-        tierMaxApis.put(UserTier.ENTERPRISE, 50);
-        tierMaxApis.put(UserTier.ADMIN, 100);
+        tierMaxApis.put(UserTier.GUEST.name(), 0);
+        tierMaxApis.put(UserTier.FREE.name(), 1);
+        tierMaxApis.put(UserTier.BASIC.name(), 3);
+        tierMaxApis.put(UserTier.PRO.name(), 10);
+        tierMaxApis.put(UserTier.ENTERPRISE.name(), 50);
+        tierMaxApis.put(UserTier.ADMIN.name(), 100);
 
         // Default Simulator Limits
-        tierMaxSimulatorInstalls.put(UserTier.GUEST, 1);
-        tierMaxSimulatorInstalls.put(UserTier.FREE, 3);
-        tierMaxSimulatorInstalls.put(UserTier.BASIC, 5);
-        tierMaxSimulatorInstalls.put(UserTier.PRO, 10);
-        tierMaxSimulatorInstalls.put(UserTier.ENTERPRISE, 20);
-        tierMaxSimulatorInstalls.put(UserTier.ADMIN, 50);
+        tierMaxSimulatorInstalls.put(UserTier.GUEST.name(), 1);
+        tierMaxSimulatorInstalls.put(UserTier.FREE.name(), 3);
+        tierMaxSimulatorInstalls.put(UserTier.BASIC.name(), 5);
+        tierMaxSimulatorInstalls.put(UserTier.PRO.name(), 10);
+        tierMaxSimulatorInstalls.put(UserTier.ENTERPRISE.name(), 20);
+        tierMaxSimulatorInstalls.put(UserTier.ADMIN.name(), 50);
     }
 
     // Getters and Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
-    public Map<UserTier, Long> getTierQuotas() { return tierQuotas; }
-    public void setTierQuotas(Map<UserTier, Long> tierQuotas) { this.tierQuotas = tierQuotas; }
+    public Map<String, Long> getTierQuotas() { return tierQuotas; }
+    public void setTierQuotas(Map<String, Long> tierQuotas) { this.tierQuotas = tierQuotas; }
 
-    public Map<UserTier, Integer> getTierMaxApis() { return tierMaxApis; }
-    public void setTierMaxApis(Map<UserTier, Integer> tierMaxApis) { this.tierMaxApis = tierMaxApis; }
+    public Map<String, Integer> getTierMaxApis() { return tierMaxApis; }
+    public void setTierMaxApis(Map<String, Integer> tierMaxApis) { this.tierMaxApis = tierMaxApis; }
 
-    public Map<UserTier, Integer> getTierMaxSimulatorInstalls() { return tierMaxSimulatorInstalls; }
-    public void setTierMaxSimulatorInstalls(Map<UserTier, Integer> tierMaxSimulatorInstalls) { this.tierMaxSimulatorInstalls = tierMaxSimulatorInstalls; }
+    public Map<String, Integer> getTierMaxSimulatorInstalls() { return tierMaxSimulatorInstalls; }
+    public void setTierMaxSimulatorInstalls(Map<String, Integer> tierMaxSimulatorInstalls) { this.tierMaxSimulatorInstalls = tierMaxSimulatorInstalls; }
 
     public String getActiveModel() { return activeModel; }
     public void setActiveModel(String activeModel) { this.activeModel = activeModel; }
@@ -82,20 +83,20 @@ public class SystemConfig {
      * Helper to get quota for a specific tier
      */
     public long getQuotaForTier(UserTier tier) {
-        return tierQuotas.getOrDefault(tier, 0L);
+        return tierQuotas.getOrDefault(tier.name(), 0L);
     }
 
     /**
      * Helper to get max APIs for a specific tier
      */
     public int getMaxApisForTier(UserTier tier) {
-        return tierMaxApis.getOrDefault(tier, 0);
+        return tierMaxApis.getOrDefault(tier.name(), 0);
     }
 
     /**
      * Helper to get max simulator installs for a specific tier
      */
     public int getMaxSimulatorInstallsForTier(UserTier tier) {
-        return tierMaxSimulatorInstalls.getOrDefault(tier, 0);
+        return tierMaxSimulatorInstalls.getOrDefault(tier.name(), 0);
     }
 }

@@ -23,13 +23,9 @@ __pycache__/
 local.properties
 service-account.json
 
-# Build directories - Ignore everything in build EXCEPT the libs folder
-build/*
-!build/libs/
+# Build directories - Only include the app.jar needed for Cloud Run
+build/
 !build/libs/app.jar
-
-# Ensure the JAR is NOT ignored
-# (By NOT listing build/libs/ here, it will be included by default)
 
 # Other large or unnecessary folders
 supremeai-intellij-plugin/

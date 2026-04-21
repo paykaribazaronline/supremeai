@@ -11,9 +11,5 @@ import java.time.LocalDateTime;
 public interface ActivityLogRepository extends FirestoreReactiveRepository<ActivityLog> {
     Flux<ActivityLog> findByCategoryOrderByTimestampDesc(String category);
     Flux<ActivityLog> findBySeverityOrderByTimestampDesc(String severity);
-    Mono<Long> deleteByTimestampBefore(LocalDateTime cutoff);
-
-    default Mono<Long> deleteByCreatedAtBefore(LocalDateTime cutoff) {
-        return deleteByTimestampBefore(cutoff);
-    }
+    // Firestore does not support 'Before' predicate. Implement delete in service layer.
 }

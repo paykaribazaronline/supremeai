@@ -39,7 +39,7 @@ public class AdminConfigController {
      * Get all tier quotas.
      */
     @GetMapping("/quotas")
-    public Map<UserTier, Long> getQuotas() {
+    public Map<String, Long> getQuotas() {
         return configService.getConfig().getTierQuotas();
     }
 

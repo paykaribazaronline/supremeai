@@ -51,7 +51,8 @@ public class SelfImprovementService {
 
         LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
 
-        learningRepository.findByLearnedAtAfter(oneHourAgo)
+        learningRepository.findAll()
+                .filter(entry -> entry.getLearnedAt() != null && entry.getLearnedAt().isAfter(oneHourAgo))
                 .collectList()
                 .doOnNext(entries -> {
                     logger.info("📊 Analyzing {} new learning entries", entries.size());
