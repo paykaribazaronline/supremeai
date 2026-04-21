@@ -2,7 +2,7 @@ package com.supremeai.cost;
 
 import org.springframework.stereotype.Service;
 
-@Service
+@Service("costBudgetManager")
 public class BudgetManager {
 
     private final double MONTHLY_BUDGET = 1000.0;
