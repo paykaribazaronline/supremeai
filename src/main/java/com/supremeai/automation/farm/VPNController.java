@@ -11,7 +11,7 @@ import java.util.List;
  * Handles automatic IP rotation to bypass AI provider IP-based rate limits.
  * (Mock implementation for conceptual architecture)
  */
-@Service
+@Service("farmVPNController")
 public class VPNController {
 
     private static final Logger log = LoggerFactory.getLogger(VPNController.class);

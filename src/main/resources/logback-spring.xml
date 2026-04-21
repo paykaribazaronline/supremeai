@@ -32,7 +32,7 @@
 
     <!-- Async Appender (for performance) -->
     <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
-        <appenderRef ref="FILE"/>
+        <appender-ref ref="FILE"/>
         <queueSize>512</queueSize>
         <discardingThreshold>0</discardingThreshold>
         <includeCallerData>false</includeCallerData>
@@ -55,7 +55,7 @@
 
     <!-- Async Audit Log Appender -->
     <appender name="ASYNC_AUDIT" class="ch.qos.logback.classic.AsyncAppender">
-        <appenderRef ref="AUDIT_LOG"/>
+        <appender-ref ref="AUDIT_LOG"/>
         <queueSize>1024</queueSize>
         <discardingThreshold>0</discardingThreshold>
     </appender>
@@ -76,28 +76,28 @@
 
     <!-- Audit logger (separate appender) -->
     <logger name="AUDIT" level="INFO" additivity="false">
-        <appenderRef ref="ASYNC_AUDIT"/>
+        <appender-ref ref="ASYNC_AUDIT"/>
     </logger>
 
     <!-- Root logger -->
     <root level="INFO">
-        <appenderRef ref="CONSOLE"/>
-        <appenderRef ref="ASYNC_FILE"/>
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="ASYNC_FILE"/>
     </root>
 
     <!-- Profiles -->
     <!-- Development profile -->
-    <profile name="dev">
+    <springProfile name="dev">
         <root level="DEBUG">
-            <appenderRef ref="CONSOLE"/>
+            <appender-ref ref="CONSOLE"/>
         </root>
-    </profile>
+    </springProfile>
 
     <!-- Production profile -->
-    <profile name="prod">
+    <springProfile name="prod">
         <root level="WARN">
-            <appenderRef ref="ASYNC_FILE"/>
+            <appender-ref ref="ASYNC_FILE"/>
         </root>
-    </profile>
+    </springProfile>
 
 </configuration>
