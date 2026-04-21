@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://supremeai.com/schemas/supremeai-settings.schema.json",
+  "title": "SupremeAI Settings",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+     "apiEndpoint": {
+       "type": "string",
+       "format": "uri",
+       "default": "https://supremeai-lhlwyikwlq-uc.a.run.app"
+     },
+    "apiKey": {
+      "type": "string",
+      "default": ""
+    },
+    "model": {
+      "type": "string",
+      "default": "google/gemini-1.5-pro"
+    },
+    "smallModel": {
+      "type": "string",
+      "default": "google/gemini-1.5-flash"
+    },
+    "fullAuthority": {
+      "type": "boolean",
+      "default": false
+    },
+    "providers": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/provider"
+      },
+      "default": {
+        "openai": {
+          "apiKey": ""
+        },
+        "anthropic": {
+          "apiKey": ""
+        },
+        "google": {
+          "apiKey": ""
+        },
+        "groq": {
+          "apiKey": ""
+        }
+      }
+    },
+    "permissions": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/permissionValue"
+      },
+      "default": {
+        "read": "allow",
+        "edit": "ask",
+        "bash": "ask",
+        "task": "allow",
+        "websearch": "allow",
+        "external_directory": "deny"
+      }
+    },
+    "shareMode": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "auto",
+        "disabled"
+      ],
+      "default": "manual"
+    },
+    "enableExternalDirectory": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "apiEndpoint",
+    "model",
+    "smallModel",
+    "fullAuthority",
+    "permissions"
+  ],
+  "$defs": {
+    "permissionValue": {
+      "type": "string",
+      "enum": [
+        "allow",
+        "ask",
+        "deny"
+      ]
+    },
+    "provider": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "apiKey": {
+          "type": "string"
+        },
+        "baseURL": {
+          "type": "string",
+          "format": "uri"
+        },
+        "timeout": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "whitelist": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "blacklist": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

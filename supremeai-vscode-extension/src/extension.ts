@@ -9,7 +9,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Get configuration
     const config = vscode.workspace.getConfiguration('supremeai');
     const apiKey = config.get<string>('apiKey', '');
-    const apiEndpoint = config.get<string>('apiEndpoint', 'https://supremeai-565236080752.us-central1.run.app');
+    const apiEndpoint = config.get<string>('apiEndpoint', 'https://supremeai-lhlwyikwlq-uc.a.run.app');
 
     // Register chat provider
     const chatProvider = new ChatProvider(apiEndpoint, apiKey);

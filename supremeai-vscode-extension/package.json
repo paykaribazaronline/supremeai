@@ -28,8 +28,60 @@
         },
         "supremeai.apiEndpoint": {
           "type": "string",
-          "default": "https://supremeai-565236080752.us-central1.run.app",
+          "default": "https://supremeai-lhlwyikwlq-uc.a.run.app",
           "description": "SupremeAI API endpoint URL."
+        },
+        "supremeai.fullAuthority": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable Full Authority Mode: The AI can perform all actions (read, edit, bash, deploy) without asking for confirmation."
+        },
+        "supremeai.model": {
+          "type": "string",
+          "default": "google/gemini-1.5-pro",
+          "description": "Primary AI model to use (e.g., openai/gpt-4o, anthropic/claude-3-5-sonnet)."
+        },
+        "supremeai.smallModel": {
+          "type": "string",
+          "default": "google/gemini-1.5-flash",
+          "description": "Smaller model used for titles and summaries."
+        },
+        "supremeai.providers": {
+          "type": "object",
+          "default": {
+            "openai": { "apiKey": "" },
+            "anthropic": { "apiKey": "" },
+            "google": { "apiKey": "" },
+            "groq": { "apiKey": "" }
+          },
+          "description": "API keys and configurations for different LLM providers."
+        },
+        "supremeai.permissions": {
+          "type": "object",
+          "default": {
+            "read": "allow",
+            "edit": "ask",
+            "bash": "ask",
+            "task": "allow",
+            "websearch": "allow",
+            "external_directory": "deny"
+          },
+          "description": "Default permission levels for various tools (overridden if Full Authority is enabled)."
+        },
+        "supremeai.shareMode": {
+          "type": "string",
+          "enum": [
+            "manual",
+            "auto",
+            "disabled"
+          ],
+          "default": "manual",
+          "description": "Controls if chat sessions are shared manually, automatically, or disabled."
+        },
+        "supremeai.enableExternalDirectory": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow access to directories outside the current workspace."
         }
       }
     },

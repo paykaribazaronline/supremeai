@@ -138,7 +138,7 @@ cp .env.example .env
 
 - **Web Dashboard:** http://localhost:8080/admin.html
 - **API Health Check:** http://localhost:8080/api/health
-- **Production API:** https://supremeai-565236080752.us-central1.run.app
+- **Production API:** https://supremeai-lhlwyikwlq-uc.a.run.app
 
 ### 5. Create Admin User
 
@@ -599,7 +599,7 @@ GET /api/v1/optimization/cache/stats
 
 ### Key URLs
 
-- **Production API:** https://supremeai-565236080752.us-central1.run.app
+- **Production API:** https://supremeai-lhlwyikwlq-uc.a.run.app
 - **GitHub Repository:** https://github.com/paykaribazaronline/supremeai
 - **Documentation Site:** https://supremeai-docs.netlify.app
 - **Status Page:** https://supremeai.statuspage.io
