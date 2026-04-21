@@ -14,7 +14,8 @@
     "url": "https://github.com/paykaribazaronline/supremeai.git"
   },
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onView:supremeai-chat"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -39,7 +40,7 @@
         "supremeai.model": {
           "type": "string",
           "default": "google/gemini-1.5-pro",
-          "description": "Primary AI model to use (e.g., openai/gpt-4o, anthropic/claude-3-5-sonnet)."
+          "description": "Primary AI model to use (e.g., openai/gpt-4o, anthropic/claude-3.5-sonnet)."
         },
         "supremeai.smallModel": {
           "type": "string",
@@ -85,12 +86,26 @@
         }
       }
     },
-    "viewsWelcome": [
-      {
-        "view": "supremeai-chat",
-        "contents": "Welcome to SupremeAI! \n[Learn More](https://supremeai.com)"
-      }
-    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "supremeai-chat",
+          "name": "Chat"
+        },
+        {
+          "id": "supremeai-agents",
+          "name": "Agents"
+        },
+        {
+          "id": "supremeai-projects",
+          "name": "Projects"
+        }
+      ]
+    },
+    "viewsWelcome": {
+      "view": "supremeai-chat",
+      "contents": "Welcome to SupremeAI!\\nSelect a conversation or start chatting."
+    },
     "commands": [
       {
         "command": "supremeai.generateApp",
@@ -107,34 +122,12 @@
       {
         "command": "supremeai.deploy",
         "title": "SupremeAI: Deploy"
+      },
+      {
+        "command": "supremeai.chat",
+        "title": "SupremeAI: Start Chat"
       }
-    ],
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "supremeai-explorer",
-          "title": "SupremeAI",
-          "icon": "media/icon.svg"
-        }
-      ]
-    },
-    "views": {
-      "supremeai-explorer": [
-        {
-          "id": "supremeai-chat",
-          "name": "SupremeAI Chat",
-          "type": "webview"
-        },
-        {
-          "id": "supremeai-agents",
-          "name": "Agents"
-        },
-        {
-          "id": "supremeai-projects",
-          "name": "Projects"
-        }
-      ]
-    }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
