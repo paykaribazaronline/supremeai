@@ -1,7 +1,7 @@
 steps:
   # Build the Docker image (JAR is already built by GitHub Actions and downloaded as artifact)
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-central1-docker.pkg.dev/supremeai-a/gcr.io/supremeai', '.']
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai', '.']
 
 images:
-  - 'us-central1-docker.pkg.dev/supremeai-a/gcr.io/supremeai'
+  - 'us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai'
