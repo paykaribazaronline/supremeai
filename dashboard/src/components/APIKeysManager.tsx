@@ -56,6 +56,65 @@ interface OpenRouterModel {
     top_provider: { max_completion_tokens: number };
 }
 
+interface GoogleAIModel {
+    name: string;                   // e.g. "models/gemini-2.0-flash"
+    displayName: string;            // e.g. "Gemini 2.0 Flash"
+    description: string;
+    supportedGenerationMethods: string[];
+    inputTokenLimit: number;
+    outputTokenLimit: number;
+    temperature?: number;
+    topP?: number;
+}
+
+interface PopularModel {
+    id: string;
+    name: string;
+    provider: string;
+    providerTitle: string;
+    baseUrl: string;
+    description: string;
+    category: string;
+}
+
+// ─── Popular / Quick-Add Models (curated, no API call needed) ────────────────
+
+const POPULAR_MODELS: PopularModel[] = [
+    // Google Gemini
+    { id: 'gemini-2.5-pro-preview-03-25', name: 'Gemini 2.5 Pro', provider: 'google', providerTitle: 'Google AI', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', description: 'Latest Gemini Pro — best reasoning & coding', category: 'Gemini' },
+    { id: 'gemini-2.5-flash-preview-04-17', name: 'Gemini 2.5 Flash', provider: 'google', providerTitle: 'Google AI', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', description: 'Fast & efficient Gemini Flash model', category: 'Gemini' },
+    { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', provider: 'google', providerTitle: 'Google AI', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', description: 'Stable Gemini 2.0 Flash — great for most tasks', category: 'Gemini' },
+    { id: 'gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash Lite', provider: 'google', providerTitle: 'Google AI', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', description: 'Cost-optimized Gemini Flash', category: 'Gemini' },
+    { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', provider: 'google', providerTitle: 'Google AI', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', description: '1M+ token context window', category: 'Gemini' },
+    { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', provider: 'google', providerTitle: 'Google AI', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', description: 'Fast Gemini 1.5 with long context', category: 'Gemini' },
+    // OpenAI
+    { id: 'gpt-4.1', name: 'GPT-4.1', provider: 'openai', providerTitle: 'OpenAI', baseUrl: 'https://api.openai.com/v1', description: 'Latest GPT-4.1 — advanced coding & reasoning', category: 'OpenAI' },
+    { id: 'gpt-4.1-mini', name: 'GPT-4.1 Mini', provider: 'openai', providerTitle: 'OpenAI', baseUrl: 'https://api.openai.com/v1', description: 'Fast & affordable GPT-4.1', category: 'OpenAI' },
+    { id: 'gpt-4.1-nano', name: 'GPT-4.1 Nano', provider: 'openai', providerTitle: 'OpenAI', baseUrl: 'https://api.openai.com/v1', description: 'Ultra-fast & cheapest GPT-4.1', category: 'OpenAI' },
+    { id: 'gpt-4o', name: 'GPT-4o', provider: 'openai', providerTitle: 'OpenAI', baseUrl: 'https://api.openai.com/v1', description: 'Multimodal GPT-4 Omni', category: 'OpenAI' },
+    { id: 'o4-mini', name: 'o4-mini', provider: 'openai', providerTitle: 'OpenAI', baseUrl: 'https://api.openai.com/v1', description: 'Reasoning model — efficient', category: 'OpenAI' },
+    { id: 'o3', name: 'o3', provider: 'openai', providerTitle: 'OpenAI', baseUrl: 'https://api.openai.com/v1', description: 'Advanced reasoning model', category: 'OpenAI' },
+    // Anthropic
+    { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4', provider: 'anthropic', providerTitle: 'Anthropic', baseUrl: 'https://api.anthropic.com/v1', description: 'Latest Claude — best coding & analysis', category: 'Anthropic' },
+    { id: 'claude-3-7-sonnet-20250219', name: 'Claude 3.7 Sonnet', provider: 'anthropic', providerTitle: 'Anthropic', baseUrl: 'https://api.anthropic.com/v1', description: 'Extended thinking, strong coding', category: 'Anthropic' },
+    { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku', provider: 'anthropic', providerTitle: 'Anthropic', baseUrl: 'https://api.anthropic.com/v1', description: 'Fast & affordable Claude', category: 'Anthropic' },
+    // Meta Llama
+    { id: 'llama-4-maverick-17b-128e-instruct', name: 'Llama 4 Maverick', provider: 'meta', providerTitle: 'Meta (via OpenRouter)', baseUrl: 'https://openrouter.ai/api/v1', description: 'Llama 4 MoE model', category: 'Meta' },
+    { id: 'llama-3.3-70b-instruct', name: 'Llama 3.3 70B', provider: 'meta', providerTitle: 'Meta (via OpenRouter)', baseUrl: 'https://openrouter.ai/api/v1', description: 'Latest Llama 3.3 70B', category: 'Meta' },
+    // Mistral
+    { id: 'mistral-large-latest', name: 'Mistral Large', provider: 'mistral', providerTitle: 'Mistral AI', baseUrl: 'https://api.mistral.ai/v1', description: 'Top-tier Mistral model', category: 'Mistral' },
+    { id: 'mistral-small-latest', name: 'Mistral Small', provider: 'mistral', providerTitle: 'Mistral AI', baseUrl: 'https://api.mistral.ai/v1', description: 'Fast Mistral model', category: 'Mistral' },
+    // Groq (fast inference)
+    { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B (Groq)', provider: 'groq', providerTitle: 'Groq', baseUrl: 'https://api.groq.com/openai/v1', description: 'Ultra-fast Llama inference on Groq', category: 'Groq' },
+    { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B (Groq)', provider: 'groq', providerTitle: 'Groq', baseUrl: 'https://api.groq.com/openai/v1', description: 'Fastest model on Groq', category: 'Groq' },
+    // DeepSeek
+    { id: 'deepseek-chat', name: 'DeepSeek V3', provider: 'deepseek', providerTitle: 'DeepSeek', baseUrl: 'https://api.deepseek.com/v1', description: 'DeepSeek V3 — strong coding model', category: 'DeepSeek' },
+    { id: 'deepseek-reasoner', name: 'DeepSeek R1', provider: 'deepseek', providerTitle: 'DeepSeek', baseUrl: 'https://api.deepseek.com/v1', description: 'DeepSeek reasoning model', category: 'DeepSeek' },
+    // xAI
+    { id: 'grok-3', name: 'Grok 3', provider: 'xai', providerTitle: 'xAI', baseUrl: 'https://api.x.ai/v1', description: 'Latest Grok model by xAI', category: 'xAI' },
+    { id: 'grok-3-mini', name: 'Grok 3 Mini', provider: 'xai', providerTitle: 'xAI', baseUrl: 'https://api.x.ai/v1', description: 'Fast Grok 3 Mini', category: 'xAI' },
+];
+
 // ─── API Key Management Tab ──────────────────────────────────────────────────
 
 const APIKeysTab: React.FC = () => {
@@ -262,7 +321,24 @@ const APIKeysTab: React.FC = () => {
             >
                 <Form form={form} layout="vertical" onFinish={handleSave}>
                     <Form.Item name="provider" label="Provider Name" rules={[{ required: true, message: 'Enter provider name' }]}>
-                        <Input placeholder="e.g. OpenAI, Anthropic, Google, Mistral, Groq, Together..." />
+                        <Select
+                            showSearch
+                            placeholder="Select or type a provider name..."
+                            options={[
+                                { value: 'Google AI', label: 'Google AI (Gemini)' },
+                                { value: 'OpenAI', label: 'OpenAI (GPT, o1, o3)' },
+                                { value: 'Anthropic', label: 'Anthropic (Claude)' },
+                                { value: 'Mistral', label: 'Mistral AI' },
+                                { value: 'Groq', label: 'Groq (Fast Inference)' },
+                                { value: 'DeepSeek', label: 'DeepSeek' },
+                                { value: 'xAI', label: 'xAI (Grok)' },
+                                { value: 'OpenRouter', label: 'OpenRouter (Multi-provider)' },
+                                { value: 'Together AI', label: 'Together AI' },
+                                { value: 'Fireworks AI', label: 'Fireworks AI' },
+                                { value: 'Cohere', label: 'Cohere' },
+                                { value: 'Ollama', label: 'Ollama (Local)' },
+                            ]}
+                        />
                     </Form.Item>
                     <Form.Item name="label" label="Label (optional)">
                         <Input placeholder="e.g. Production Key, Dev Key, Personal..." />
@@ -296,9 +372,13 @@ const ModelDiscoveryTab: React.FC = () => {
     const [query, setQuery] = useState('');
     const [hfModels, setHfModels] = useState<HuggingFaceModel[]>([]);
     const [orModels, setOrModels] = useState<OpenRouterModel[]>([]);
+    const [googleModels, setGoogleModels] = useState<GoogleAIModel[]>([]);
     const [loading, setLoading] = useState(false);
-    const [source, setSource] = useState<'huggingface' | 'openrouter' | 'all'>('all');
+    const [source, setSource] = useState<'huggingface' | 'openrouter' | 'google' | 'all'>('all');
     const [pipelineFilter, setPipelineFilter] = useState<string>('');
+    const [googleApiKey, setGoogleApiKey] = useState('');
+    const [showGoogleKeyInput, setShowGoogleKeyInput] = useState(false);
+    const [popularFilter, setPopularFilter] = useState<string>('all');
 
     const searchHuggingFace = useCallback(async (q: string, pipeline?: string) => {
         const params = new URLSearchParams({ search: q, limit: '30', sort: 'likes', direction: '-1' });
@@ -324,6 +404,22 @@ const ModelDiscoveryTab: React.FC = () => {
         }
     }, []);
 
+    const searchGoogleAI = useCallback(async (q: string, apiKey: string) => {
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+            if (!response.ok) return [];
+            const data = await response.json();
+            const models = (data.models || []) as GoogleAIModel[];
+            if (!q) return models;
+            const lower = q.toLowerCase();
+            return models.filter(
+                (m) => m.name.toLowerCase().includes(lower) || m.displayName.toLowerCase().includes(lower)
+            );
+        } catch {
+            return [];
+        }
+    }, []);
+
     const handleSearch = async (searchQuery?: string) => {
         const q = (searchQuery ?? query).trim();
         if (!q) {
@@ -332,14 +428,42 @@ const ModelDiscoveryTab: React.FC = () => {
         }
         setLoading(true);
         try {
-            const [hf, or] = await Promise.all([
-                (source === 'openrouter') ? Promise.resolve([]) : searchHuggingFace(q, pipelineFilter),
-                (source === 'huggingface') ? Promise.resolve([]) : searchOpenRouter(q),
-            ]);
+            const promises: Promise<any>[] = [];
+
+            // HuggingFace
+            if (source !== 'openrouter' && source !== 'google') {
+                promises.push(searchHuggingFace(q, pipelineFilter));
+            } else {
+                promises.push(Promise.resolve([]));
+            }
+
+            // OpenRouter
+            if (source !== 'huggingface' && source !== 'google') {
+                promises.push(searchOpenRouter(q));
+            } else {
+                promises.push(Promise.resolve([]));
+            }
+
+            // Google AI
+            if (source === 'google' || source === 'all') {
+                if (googleApiKey.trim()) {
+                    promises.push(searchGoogleAI(q, googleApiKey.trim()));
+                } else {
+                    promises.push(Promise.resolve([]));
+                    if (source === 'google' || source === 'all') {
+                        setShowGoogleKeyInput(true);
+                    }
+                }
+            } else {
+                promises.push(Promise.resolve([]));
+            }
+
+            const [hf, or, google] = await Promise.all(promises);
             setHfModels(hf);
             setOrModels(or);
-            if (hf.length === 0 && or.length === 0) {
-                message.info('No models found. Try a different search term.');
+            setGoogleModels(google);
+            if (hf.length === 0 && or.length === 0 && google.length === 0) {
+                message.info('No models found. Try a different search term or add a Google API key for Gemini models.');
             }
         } catch {
             message.error('Search failed. Check your connection.');
@@ -377,11 +501,69 @@ const ModelDiscoveryTab: React.FC = () => {
 
     return (
         <div>
+            {/* Popular Models Quick-Access */}
+            <Card style={{ marginBottom: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                    <Title level={5} style={{ margin: 0 }}>
+                        <StarOutlined style={{ color: '#faad14' }} /> Popular Models — Quick Add
+                    </Title>
+                    <Select
+                        value={popularFilter}
+                        onChange={setPopularFilter}
+                        style={{ width: 160 }}
+                        size="small"
+                        options={[
+                            { value: 'all', label: 'All Providers' },
+                            { value: 'Gemini', label: 'Google Gemini' },
+                            { value: 'OpenAI', label: 'OpenAI' },
+                            { value: 'Anthropic', label: 'Anthropic' },
+                            { value: 'Meta', label: 'Meta Llama' },
+                            { value: 'Mistral', label: 'Mistral' },
+                            { value: 'Groq', label: 'Groq' },
+                            { value: 'DeepSeek', label: 'DeepSeek' },
+                            { value: 'xAI', label: 'xAI Grok' },
+                        ]}
+                    />
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {POPULAR_MODELS
+                        .filter(m => popularFilter === 'all' || m.category === popularFilter)
+                        .map((model) => (
+                            <Tooltip key={model.id} title={model.description}>
+                                <Tag
+                                    style={{ cursor: 'pointer', padding: '4px 10px', fontSize: 13 }}
+                                    color={
+                                        model.provider === 'google' ? 'blue' :
+                                        model.provider === 'openai' ? 'green' :
+                                        model.provider === 'anthropic' ? 'orange' :
+                                        model.provider === 'groq' ? 'purple' :
+                                        model.provider === 'xai' ? 'geekblue' :
+                                        model.provider === 'deepseek' ? 'cyan' :
+                                        'default'
+                                    }
+                                    onClick={() => {
+                                        const text = model.id;
+                                        navigator.clipboard.writeText(text);
+                                        message.success(`"${model.name}" (${model.id}) copied! Add it when creating an API key for ${model.providerTitle}.`);
+                                    }}
+                                >
+                                    {model.name}
+                                    <span style={{ color: '#999', marginLeft: 4, fontSize: 11 }}>({model.providerTitle})</span>
+                                </Tag>
+                            </Tooltip>
+                        ))}
+                </div>
+                <Paragraph type="secondary" style={{ marginTop: 8, marginBottom: 0, fontSize: 12 }}>
+                    Click any model to copy its ID. Then paste it when adding an API key for that provider.
+                </Paragraph>
+            </Card>
+
+            {/* Live Search */}
             <Card style={{ marginBottom: 16 }}>
                 <Row gutter={[12, 12]} align="middle">
-                    <Col xs={24} md={10}>
+                    <Col xs={24} md={8}>
                         <Search
-                            placeholder="Search any AI model... (e.g. GPT, Llama, Mistral, Gemma, SDXL, Whisper)"
+                            placeholder="Search any AI model... (e.g. Gemini, GPT, Claude, Llama, Mistral)"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             onSearch={handleSearch}
@@ -390,20 +572,21 @@ const ModelDiscoveryTab: React.FC = () => {
                             loading={loading}
                         />
                     </Col>
-                    <Col xs={12} md={5}>
+                    <Col xs={12} md={4}>
                         <Select
                             value={source}
                             onChange={setSource}
                             style={{ width: '100%' }}
                             size="large"
                             options={[
-                                { value: 'all', label: '🌐 All Sources' },
-                                { value: 'huggingface', label: '🤗 HuggingFace' },
-                                { value: 'openrouter', label: '🔀 OpenRouter' },
+                                { value: 'all', label: 'All Sources' },
+                                { value: 'huggingface', label: 'HuggingFace' },
+                                { value: 'openrouter', label: 'OpenRouter' },
+                                { value: 'google', label: 'Google AI (Gemini)' },
                             ]}
                         />
                     </Col>
-                    <Col xs={12} md={5}>
+                    <Col xs={12} md={4}>
                         <Select
                             value={pipelineFilter}
                             onChange={setPipelineFilter}
@@ -426,25 +609,122 @@ const ModelDiscoveryTab: React.FC = () => {
                         </Button>
                     </Col>
                 </Row>
+
+                {/* Google AI API Key input */}
+                {(source === 'google' || source === 'all') && (
+                    <div style={{ marginTop: 12, padding: '8px 12px', background: '#f6f8fa', borderRadius: 8, border: '1px solid #e8e8e8' }}>
+                        <Row gutter={12} align="middle">
+                            <Col flex="auto">
+                                <Input.Password
+                                    placeholder="Enter your Google AI API key to search Gemini models..."
+                                    value={googleApiKey}
+                                    onChange={(e) => setGoogleApiKey(e.target.value)}
+                                    size="small"
+                                />
+                            </Col>
+                            <Col>
+                                <Tooltip title="Get a free API key from aistudio.google.com">
+                                    <Button
+                                        type="link"
+                                        size="small"
+                                        icon={<LinkOutlined />}
+                                        href="https://aistudio.google.com/apikey"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        Get Key
+                                    </Button>
+                                </Tooltip>
+                            </Col>
+                        </Row>
+                        <Text type="secondary" style={{ fontSize: 11 }}>
+                            Required for searching Gemini / Google AI models. Your key is used only in your browser — never sent to our server.
+                        </Text>
+                    </div>
+                )}
+
                 <Paragraph type="secondary" style={{ marginTop: 8, marginBottom: 0 }}>
-                    <GlobalOutlined /> Live search across HuggingFace Hub & OpenRouter — finds any model, including ones released today.
+                    <GlobalOutlined /> Live search across HuggingFace Hub, OpenRouter & Google AI — finds any model, including ones released today.
                 </Paragraph>
             </Card>
 
             <Spin spinning={loading}>
-                {hfModels.length === 0 && orModels.length === 0 && !loading ? (
+                {hfModels.length === 0 && orModels.length === 0 && googleModels.length === 0 && !loading ? (
                     <Card>
                         <Empty
                             description={
                                 <span>
                                     Search to discover AI models from the global registry.<br />
-                                    <Text type="secondary">Try: "llama", "whisper", "stable diffusion", "gemma", "phi", "qwen"...</Text>
+                                    <Text type="secondary">Try: "gemini", "gpt", "claude", "llama", "mistral", "phi", "qwen"...</Text>
                                 </span>
                             }
                         />
                     </Card>
                 ) : (
                     <>
+                        {googleModels.length > 0 && (
+                            <Card
+                                title={<><span>Google AI Models (Gemini)</span> <Tag color="blue">{googleModels.length} results</Tag></>}
+                                style={{ marginBottom: 16 }}
+                            >
+                                <List
+                                    dataSource={googleModels}
+                                    renderItem={(model) => (
+                                        <List.Item
+                                            key={model.name}
+                                            actions={[
+                                                <Tooltip title="View on Google AI" key="link">
+                                                    <Button
+                                                        type="link"
+                                                        icon={<LinkOutlined />}
+                                                        href={`https://ai.google.dev/gemini-api/docs/models`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        Docs
+                                                    </Button>
+                                                </Tooltip>,
+                                                <Button
+                                                    key="use"
+                                                    type="primary"
+                                                    size="small"
+                                                    icon={<PlusOutlined />}
+                                                    onClick={() => {
+                                                        const modelId = model.name.replace('models/', '');
+                                                        message.success(`Model "${model.displayName}" (${modelId}) copied! Add it when creating an API key for Google AI.`);
+                                                        navigator.clipboard.writeText(modelId);
+                                                    }}
+                                                >
+                                                    Copy ID
+                                                </Button>,
+                                            ]}
+                                        >
+                                            <List.Item.Meta
+                                                title={
+                                                    <Space>
+                                                        <Text strong>{model.displayName}</Text>
+                                                        <Tag color="blue">{model.name}</Tag>
+                                                        {model.supportedGenerationMethods?.map((method) => (
+                                                            <Tag key={method} color="geekblue" style={{ fontSize: 11 }}>{method}</Tag>
+                                                        ))}
+                                                    </Space>
+                                                }
+                                                description={
+                                                    <Space size="large">
+                                                        <span>Input: {formatNumber(model.inputTokenLimit)} tokens</span>
+                                                        <span>Output: {formatNumber(model.outputTokenLimit)} tokens</span>
+                                                        <Text type="secondary" style={{ maxWidth: 400 }} ellipsis>
+                                                            {model.description}
+                                                        </Text>
+                                                    </Space>
+                                                }
+                                            />
+                                        </List.Item>
+                                    )}
+                                />
+                            </Card>
+                        )}
+
                         {hfModels.length > 0 && (
                             <Card
                                 title={<><span>🤗 HuggingFace Models</span> <Tag>{hfModels.length} results</Tag></>}

@@ -16,9 +16,9 @@ public class MonitoringCommands {
     private static final Logger logger = LoggerFactory.getLogger(MonitoringCommands.class);
     
     private final UnifiedDataService dataService;
-    private final UnifiedQuotaService quotaService;
+    private final QuotaService quotaService;
     
-    public MonitoringCommands(UnifiedDataService dataService, UnifiedQuotaService quotaService) {
+    public MonitoringCommands(UnifiedDataService dataService, QuotaService quotaService) {
         this.dataService = dataService;
         this.quotaService = quotaService;
     }

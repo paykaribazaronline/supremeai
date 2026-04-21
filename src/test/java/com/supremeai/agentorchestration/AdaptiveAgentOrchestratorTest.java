@@ -27,17 +27,19 @@ class AdaptiveAgentOrchestratorTest {
 
     @Test
     void testOrchestrationProducesDecisionsAndContext() {
-        orchestrator = new AdaptiveAgentOrchestrator(consensusService);
-        // Set activeProviders via reflection since @Value doesn't work in tests
+        orchestrator = new AdaptiveAgentOrchestrator();
+        // Set consensusService via reflection since we are not using Spring runner
         try {
+            Field csField = AdaptiveAgentOrchestrator.class.getDeclaredField("consensusService");
+            csField.setAccessible(true);
+            csField.set(orchestrator, consensusService);
+
             Field field = AdaptiveAgentOrchestrator.class.getDeclaredField("activeProviders");
             field.setAccessible(true);
             field.set(orchestrator, "groq,openai");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        // Arrange
-        AdaptiveAgentOrchestrator orchestrator = new AdaptiveAgentOrchestrator(consensusService);
 
         // Mock consensus result
         ConsensusResult mockResult = new ConsensusResult(

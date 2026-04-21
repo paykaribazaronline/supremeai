@@ -25,23 +25,17 @@ service-account.json
 
 # Build directories - Build happens in Cloud Build
 build/
-# Include the built JAR for Docker image
-!build/libs/
-!build/libs/app.jar
-
-# Gradle
 .gradle/
 .gradle-home/
 .gradle-user-home/
-gradlew
-gradlew.bat
-gradle.properties
-*.gradle
+
+# Include the built JAR for Docker image (CI copies it to root)
+!app.jar
 
 # Other large or unnecessary folders
 supremeai-intellij-plugin/
 supremeai-vscode-extension/
-supremeai/  # This is the Flutter project folder
+supremeai/
 docs/
 docs_new/
 colab/
@@ -52,3 +46,4 @@ projects/
 dashboard/
 functions/
 command-hub/
+.kilo/

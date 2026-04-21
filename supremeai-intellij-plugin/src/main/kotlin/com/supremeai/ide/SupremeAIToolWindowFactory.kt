@@ -7,6 +7,7 @@ import com.intellij.ui.content.ContentFactory
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.table.JBTable
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.net.HttpURLConnection
@@ -14,6 +15,7 @@ import java.net.URI
 import java.net.URL
 import javax.swing.*
 import javax.swing.border.EmptyBorder
+import javax.swing.table.DefaultTableModel
 import kotlin.concurrent.thread
 
 class SupremeAIToolWindowFactory : ToolWindowFactory {
@@ -31,6 +33,10 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
         val projectsPanel = SupremeAIProjectsPanel()
         val projectsContent = contentFactory.createContent(projectsPanel.getContent(), "Projects", false)
         toolWindow.contentManager.addContent(projectsContent)
+
+        val orchestrationPanel = SupremeAIOrchestrationPanel()
+        val orchestrationContent = contentFactory.createContent(orchestrationPanel.getContent(), "Orchestration", false)
+        toolWindow.contentManager.addContent(orchestrationContent)
     }
 
     class SupremeAIChatPanel {
@@ -210,6 +216,92 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
             panel.add(JBScrollPane(list), BorderLayout.CENTER)
             panel.add(JLabel("Managed Projects"), BorderLayout.NORTH)
         }
+        fun getContent(): JPanel = panel
+    }
+
+    class SupremeAIOrchestrationPanel {
+        private val panel = JPanel(BorderLayout())
+        private val requirementField = JBTextField()
+        private val tableModel = DefaultTableModel(arrayOf("Decision Key", "AI Consensus"), 0)
+        private val resultTable = JBTable(tableModel)
+        private val statusLabel = JLabel("Ready")
+
+        init {
+            panel.border = EmptyBorder(10, 10, 10, 10)
+            val topPanel = JPanel(BorderLayout())
+            topPanel.add(JLabel("App Requirement:"), BorderLayout.NORTH)
+            topPanel.add(requirementField, BorderLayout.CENTER)
+            val orchestrateBtn = JButton("Orchestrate")
+            orchestrateBtn.addActionListener { orchestrate() }
+            topPanel.add(orchestrateBtn, BorderLayout.SOUTH)
+            panel.add(topPanel, BorderLayout.NORTH)
+
+            val centerPanel = JPanel(BorderLayout())
+            centerPanel.add(JBScrollPane(resultTable), BorderLayout.CENTER)
+            centerPanel.add(statusLabel, BorderLayout.SOUTH)
+            panel.add(centerPanel, BorderLayout.CENTER)
+        }
+
+        private fun orchestrate() {
+            val requirement = requirementField.text.trim()
+            if (requirement.isEmpty()) return
+
+            statusLabel.text = "Orchestrating..."
+            tableModel.rowCount = 0
+            
+            thread {
+                try {
+                    val settings = SupremeAISettings.getInstance()
+                    val apiKey = settings.apiKey.takeIf { it.isNotBlank() } ?: "dev-admin-token-local"
+                    val endpoint = settings.apiEndpoint.takeIf { it.isNotBlank() }
+                        ?: "https://supremeai-lhlwyikwlq-uc.a.run.app"
+
+                    val url = URI("$endpoint/api/orchestrate/requirement").toURL()
+                    val conn = url.openConnection() as HttpURLConnection
+                    conn.requestMethod = "POST"
+                    conn.setRequestProperty("Content-Type", "application/json")
+                    conn.setRequestProperty("Authorization", "Bearer $apiKey")
+                    conn.doOutput = true
+
+                    val jsonInputString = "{\"requirement\": \"$requirement\"}"
+                    conn.outputStream.use { it.write(jsonInputString.toByteArray()) }
+
+                    val responseCode = conn.responseCode
+                    if (responseCode == 200) {
+                        val response = conn.inputStream.bufferedReader().use { it.readText() }
+                        SwingUtilities.invokeLater {
+                            try {
+                                val json = com.google.gson.JsonParser.parseString(response).asJsonObject
+                                val status = json.get("status")?.asString ?: "Unknown"
+                                val context = json.getAsJsonObject("context")
+                                val decisions = context?.getAsJsonArray("decisions")
+                                
+                                statusLabel.text = "Status: $status"
+                                decisions?.forEach { d ->
+                                    val decObj = d.asJsonObject
+                                    val key = decObj.get("decisionKey")?.asString ?: ""
+                                    val consensus = decObj.get("aiConsensus")?.asString ?: ""
+                                    tableModel.addRow(arrayOf(key, consensus))
+                                }
+                            } catch (ex: Exception) {
+                                statusLabel.text = "Error parsing response"
+                                tableModel.addRow(arrayOf("Raw Response", response))
+                            }
+                        }
+                    } else {
+                        val error = conn.errorStream?.bufferedReader()?.use { it.readText() } ?: "Error $responseCode"
+                        SwingUtilities.invokeLater {
+                            statusLabel.text = "Failed: $error"
+                        }
+                    }
+                } catch (e: Exception) {
+                    SwingUtilities.invokeLater {
+                        statusLabel.text = "Error: ${e.message}"
+                    }
+                }
+            }
+        }
+
         fun getContent(): JPanel = panel
     }
 }

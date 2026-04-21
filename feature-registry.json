@@ -5,7 +5,7 @@
   "_platforms": {
     "adminHtml": "src/main/resources/static/admin.html",
     "reactDashboard": "dashboard/src/components/",
-    "flutterApp": "flutter_admin_app/lib/screens/"
+    "flutterApp": "supremeai/lib/screens/"
   },
   "features": [
     {

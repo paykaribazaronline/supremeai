@@ -16,9 +16,13 @@ public class User {
 
     private UserTier tier = UserTier.FREE;
 
+    private Long currentUsage = 0L;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    private LocalDateTime lastUsedAt;
 
     private LocalDateTime lastLoginAt;
 
@@ -48,11 +52,17 @@ public class User {
     public UserTier getTier() { return tier; }
     public void setTier(UserTier tier) { this.tier = tier; }
 
+    public Long getCurrentUsage() { return currentUsage; }
+    public void setCurrentUsage(Long currentUsage) { this.currentUsage = currentUsage; }
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public LocalDateTime getLastUsedAt() { return lastUsedAt; }
+    public void setLastUsedAt(LocalDateTime lastUsedAt) { this.lastUsedAt = lastUsedAt; }
 
     public LocalDateTime getLastLoginAt() { return lastLoginAt; }
     public void setLastLoginAt(LocalDateTime lastLoginAt) { this.lastLoginAt = lastLoginAt; }
@@ -67,5 +77,15 @@ public class User {
 
     public Long getMonthlyQuota() {
         return this.tier.getDefaultMonthlyQuota();
+    }
+
+    public void resetMonthlyUsage() {
+        this.currentUsage = 0L;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public boolean hasQuotaRemaining() {
+        if (this.tier == UserTier.ADMIN) return true;
+        return this.currentUsage < getMonthlyQuota();
     }
 }
