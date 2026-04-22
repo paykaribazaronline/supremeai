@@ -20,9 +20,9 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             
             // Simple CORS for development
-            .cors(cors -> cors.configurationSource(request -> {
+                        .cors(cors -> cors.configurationSource(request -> {
                 var configuration = new org.springframework.web.cors.CorsConfiguration();
-                configuration.setAllowedOrigins(java.util.List.of("*"));
+                configuration.setAllowedOriginPatterns(java.util.List.of("*"));
                 configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(java.util.List.of("*"));
                 configuration.setAllowCredentials(true);
