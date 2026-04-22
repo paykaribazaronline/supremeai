@@ -46,6 +46,7 @@ public class AuthenticationController {
     @PostMapping("/firebase-login")
     public Map<String, Object> firebaseLogin(@RequestBody Map<String, String> request, HttpServletRequest httpRequest) {
         String idToken = request.get("idToken");
+        log.info("firebase-login request received from {}", httpRequest.getRemoteAddr());
 
         try {
             com.google.firebase.auth.FirebaseToken decodedToken =
@@ -54,11 +55,13 @@ public class AuthenticationController {
             String uid = decodedToken.getUid();
             String email = decodedToken.getEmail();
             String name = (String) decodedToken.getClaims().get("name");
+            log.info("Firebase token verified for uid={}, email={}", uid, email);
 
             // Resolve role: Firestore document takes priority, then Firebase token claims
             UserTier tier = UserTier.FREE;
 
             User user = userRepository.findByFirebaseUid(uid).block();
+            log.info("Firestore lookup for uid={}: {}", uid, user != null ? "found" : "new user");
             boolean isNewUser = false;
 
             if (user != null) {
