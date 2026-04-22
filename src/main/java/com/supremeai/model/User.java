@@ -16,6 +16,10 @@ public class User {
 
     private UserTier tier = UserTier.FREE;
 
+    // Legacy Firestore fields (used by some documents that store isAdmin/role instead of tier)
+    private Boolean isAdmin;
+    private String role;
+
     private Long currentUsage = 0L;
 
     private LocalDateTime createdAt;
@@ -49,8 +53,19 @@ public class User {
     public String getDisplayName() { return displayName; }
     public void setDisplayName(String displayName) { this.displayName = displayName; }
 
-    public UserTier getTier() { return tier; }
+    public UserTier getTier() {
+        // If tier is explicitly set, use it; otherwise derive from legacy Firestore fields
+        if (tier != null && tier != UserTier.FREE) return tier;
+        if (Boolean.TRUE.equals(isAdmin) || "admin".equalsIgnoreCase(role)) return UserTier.ADMIN;
+        return tier != null ? tier : UserTier.FREE;
+    }
     public void setTier(UserTier tier) { this.tier = tier; }
+
+    public Boolean getIsAdmin() { return isAdmin; }
+    public void setIsAdmin(Boolean isAdmin) { this.isAdmin = isAdmin; }
+
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 
     public Long getCurrentUsage() { return currentUsage; }
     public void setCurrentUsage(Long currentUsage) { this.currentUsage = currentUsage; }
@@ -72,11 +87,11 @@ public class User {
 
     // Helper methods
     public boolean isAdmin() {
-        return this.tier == UserTier.ADMIN;
+        return getTier() == UserTier.ADMIN;
     }
 
     public Long getMonthlyQuota() {
-        return this.tier.getDefaultMonthlyQuota();
+        return getTier().getDefaultMonthlyQuota();
     }
 
     public void resetMonthlyUsage() {
@@ -85,7 +100,7 @@ public class User {
     }
 
     public boolean hasQuotaRemaining() {
-        if (this.tier == UserTier.ADMIN) return true;
+        if (getTier() == UserTier.ADMIN) return true;
         return this.currentUsage < getMonthlyQuota();
     }
 }

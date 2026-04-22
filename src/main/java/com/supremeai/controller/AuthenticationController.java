@@ -40,24 +40,25 @@ public class AuthenticationController {
             String uid = decodedToken.getUid();
             String email = decodedToken.getEmail();
             String name = (String) decodedToken.getClaims().get("name");
-            
-            Object roleClaim = decodedToken.getClaims().get("role");
-            Object adminClaim = decodedToken.getClaims().get("admin");
-            
+
+            // Resolve role: Firestore document takes priority, then Firebase token claims
             UserTier tier = UserTier.FREE;
-            
-            if ("ADMIN".equals(roleClaim) || Boolean.TRUE.equals(adminClaim)) {
-                tier = UserTier.ADMIN;
-            }
 
             User user = userRepository.findByFirebaseUid(uid).block();
             boolean isNewUser = false;
 
             if (user != null) {
-                user.setTier(tier);
+                // Existing user: use their persisted tier from Firestore
+                tier = user.getTier();
                 user.setLastLoginAt(LocalDateTime.now());
                 user.setUpdatedAt(LocalDateTime.now());
             } else {
+                // New user: check Firebase custom claims for initial role
+                Object roleClaim = decodedToken.getClaims().get("role");
+                Object adminClaim = decodedToken.getClaims().get("admin");
+                if ("ADMIN".equals(roleClaim) || Boolean.TRUE.equals(adminClaim)) {
+                    tier = UserTier.ADMIN;
+                }
                 user = new User(uid, email, name != null ? name : email.split("@")[0]);
                 user.setTier(tier);
                 isNewUser = true;
