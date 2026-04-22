@@ -4,15 +4,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.content.ContentFactory
-import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextField
-import com.intellij.ui.table.JBTable
 import java.awt.BorderLayout
-import java.awt.Dimension
 import java.net.HttpURLConnection
 import java.net.URI
-import java.net.URL
 import javax.swing.*
 import javax.swing.border.EmptyBorder
 import javax.swing.table.DefaultTableModel
@@ -26,17 +22,13 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
         val chatContent = contentFactory.createContent(chatPanel.getContent(), "Chat", false)
         toolWindow.contentManager.addContent(chatContent)
 
-        val agentsPanel = SupremeAIAgentsPanel()
-        val agentsContent = contentFactory.createContent(agentsPanel.getContent(), "Agents", false)
-        toolWindow.contentManager.addContent(agentsContent)
-
-        val projectsPanel = SupremeAIProjectsPanel()
-        val projectsContent = contentFactory.createContent(projectsPanel.getContent(), "Projects", false)
-        toolWindow.contentManager.addContent(projectsContent)
-
         val orchestrationPanel = SupremeAIOrchestrationPanel()
         val orchestrationContent = contentFactory.createContent(orchestrationPanel.getContent(), "Orchestration", false)
         toolWindow.contentManager.addContent(orchestrationContent)
+
+        val settingsPanel = SupremeAISettingsPanel()
+        val settingsContent = contentFactory.createContent(settingsPanel.getContent(), "Settings", false)
+        toolWindow.contentManager.addContent(settingsContent)
     }
 
     class SupremeAIChatPanel {
@@ -55,36 +47,8 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
             
             // Header
             val header = JPanel(BorderLayout())
-            val titlePanel = JPanel(BorderLayout())
-            titlePanel.add(JLabel("SupremeAI Assistant"), BorderLayout.WEST)
-            titlePanel.add(statusLabel, BorderLayout.EAST)
-            header.add(titlePanel, BorderLayout.NORTH)
-
-            // API Key Setting in Tool Window
-            val settingsPanel = JPanel(BorderLayout())
-            settingsPanel.border = EmptyBorder(5, 0, 5, 0)
-            val settings = SupremeAISettings.getInstance()
-            val apiKeyInput = JBTextField(settings.apiKey)
-            apiKeyInput.emptyText.text = "API Key (Optional for Public API)"
-            
-            val kimoToggle = JBCheckBox("Kimo", settings.kimoMode)
-            kimoToggle.addActionListener { settings.kimoMode = kimoToggle.isSelected }
-            
-            val leftPanel = JPanel(BorderLayout())
-            leftPanel.add(JLabel("Auth: "), BorderLayout.WEST)
-            leftPanel.add(kimoToggle, BorderLayout.EAST)
-            
-            settingsPanel.add(leftPanel, BorderLayout.WEST)
-            settingsPanel.add(apiKeyInput, BorderLayout.CENTER)
-            val saveBtn = JButton("Set")
-            saveBtn.addActionListener {
-                settings.apiKey = apiKeyInput.text
-                statusLabel.text = "● Backend: Updating..."
-                checkBackendStatus()
-            }
-            settingsPanel.add(saveBtn, BorderLayout.EAST)
-            header.add(settingsPanel, BorderLayout.SOUTH)
-
+            header.add(JLabel("SupremeAI Assistant"), BorderLayout.WEST)
+            header.add(statusLabel, BorderLayout.EAST)
             panel.add(header, BorderLayout.NORTH)
 
             // Chat Area
@@ -128,8 +92,7 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                     }
                     conn.doOutput = true
                     
-                    val kimoSuffix = if (settings.kimoMode) " (Kimo Optimized)" else ""
-                    val jsonInputString = "{\"message\": \"$text$kimoSuffix\", \"provider\": \"google\", \"model\": \"${settings.model}\"}"
+                    val jsonInputString = "{\"message\": \"$text\", \"provider\": \"google\", \"model\": \"${settings.model}\"}"
                     conn.outputStream.use { os ->
                         os.write(jsonInputString.toByteArray())
                     }
@@ -197,31 +160,105 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
         fun getContent(): JPanel = panel
     }
 
-    class SupremeAIAgentsPanel {
-        private val panel = JPanel(BorderLayout())
-        init {
-            val model = DefaultListModel<String>()
-            model.addElement("X-Builder - Active")
-            model.addElement("Y-Reviewer - Waiting")
-            model.addElement("Z-Architect - Standby")
-            val list = JList(model)
-            panel.add(JBScrollPane(list), BorderLayout.CENTER)
-            panel.add(JLabel("Active AI Agents"), BorderLayout.NORTH)
-        }
-        fun getContent(): JPanel = panel
-    }
+    class SupremeAISettingsPanel {
+        private val panel = JPanel()
+        private val settings = SupremeAISettings.getInstance()
 
-    class SupremeAIProjectsPanel {
-        private val panel = JPanel(BorderLayout())
         init {
-            val model = DefaultListModel<String>()
-            model.addElement("SupremeAI Mobile (Android)")
-            model.addElement("SupremeAI Web (React)")
-            model.addElement("Admin Dashboard (Spring Boot)")
-            val list = JList(model)
-            panel.add(JBScrollPane(list), BorderLayout.CENTER)
-            panel.add(JLabel("Managed Projects"), BorderLayout.NORTH)
+            panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
+            panel.border = EmptyBorder(15, 15, 15, 15)
+
+            addSection("API Configuration")
+
+            val endpointInput = JBTextField(settings.apiEndpoint)
+            endpointInput.emptyText.text = "API Endpoint URL"
+            addSettingRow("Endpoint:", endpointInput)
+
+            val apiKeyInput = JBTextField(settings.apiKey)
+            apiKeyInput.emptyText.text = "API Key (optional)"
+            addSettingRow("API Key:", apiKeyInput)
+
+            val modelInput = JBTextField(settings.model)
+            modelInput.emptyText.text = "AI Model"
+            addSettingRow("Model:", modelInput)
+
+            addSection("Permissions")
+
+            addPermissionRow("Read", "read")
+            addPermissionRow("Edit", "edit")
+            addPermissionRow("Bash", "bash")
+            addPermissionRow("Web Search", "websearch")
+            addPermissionRow("External Directory", "external_directory")
+
+            addSection("Options")
+
+            val kimoToggle = JCheckBox("Kimo Mode", settings.kimoMode)
+            kimoToggle.alignmentX = java.awt.Component.LEFT_ALIGNMENT
+            panel.add(kimoToggle)
+            panel.add(Box.createVerticalStrut(6))
+
+            val fullAuthToggle = JCheckBox("Full Authority", settings.fullAuthority)
+            fullAuthToggle.alignmentX = java.awt.Component.LEFT_ALIGNMENT
+            panel.add(fullAuthToggle)
+            panel.add(Box.createVerticalStrut(6))
+
+            val shareModeCombo = JComboBox(arrayOf("manual", "auto", "disabled"))
+            shareModeCombo.selectedItem = settings.shareMode
+            shareModeCombo.alignmentX = java.awt.Component.LEFT_ALIGNMENT
+            addSettingRow("Share Mode:", shareModeCombo)
+
+            addSection("Actions")
+
+            val saveBtn = JButton("Save Settings")
+            saveBtn.alignmentX = java.awt.Component.LEFT_ALIGNMENT
+            saveBtn.addActionListener {
+                settings.apiEndpoint = endpointInput.text
+                settings.apiKey = apiKeyInput.text
+                settings.model = modelInput.text
+                settings.kimoMode = kimoToggle.isSelected
+                settings.fullAuthority = fullAuthToggle.isSelected
+                settings.shareMode = shareModeCombo.selectedItem.toString()
+                settings.save()
+                JOptionPane.showMessageDialog(panel, "Settings saved successfully!")
+            }
+            panel.add(saveBtn)
+
+            panel.add(Box.createVerticalGlue())
         }
+
+        private fun addSection(title: String) {
+            val label = JLabel(title)
+            label.font = label.font.deriveFont(java.awt.Font.BOLD, 14f)
+            label.alignmentX = java.awt.Component.LEFT_ALIGNMENT
+            panel.add(label)
+            panel.add(Box.createVerticalStrut(8))
+        }
+
+        private fun addSettingRow(labelText: String, component: JComponent) {
+            val row = JPanel(BorderLayout())
+            row.alignmentX = java.awt.Component.LEFT_ALIGNMENT
+            row.maximumSize = java.awt.Dimension(Int.MAX_VALUE, 35)
+            row.add(JLabel(labelText), BorderLayout.WEST)
+            row.add(component, BorderLayout.CENTER)
+            panel.add(row)
+            panel.add(Box.createVerticalStrut(6))
+        }
+
+        private fun addPermissionRow(labelText: String, permissionKey: String) {
+            val row = JPanel(BorderLayout())
+            row.alignmentX = java.awt.Component.LEFT_ALIGNMENT
+            row.maximumSize = java.awt.Dimension(Int.MAX_VALUE, 35)
+            row.add(JLabel(labelText), BorderLayout.WEST)
+            val combo = JComboBox(arrayOf("allow", "ask", "deny"))
+            combo.selectedItem = settings.permissions[permissionKey] ?: "ask"
+            combo.addActionListener {
+                settings.permissions[permissionKey] = combo.selectedItem.toString()
+            }
+            row.add(combo, BorderLayout.CENTER)
+            panel.add(row)
+            panel.add(Box.createVerticalStrut(4))
+        }
+
         fun getContent(): JPanel = panel
     }
 
@@ -229,7 +266,7 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
         private val panel = JPanel(BorderLayout())
         private val requirementField = JBTextField()
         private val tableModel = DefaultTableModel(arrayOf("Decision Key", "AI Consensus"), 0)
-        private val resultTable = JBTable(tableModel)
+        private val resultTable = JTable(tableModel)
         private val statusLabel = JLabel("Ready")
 
         init {
