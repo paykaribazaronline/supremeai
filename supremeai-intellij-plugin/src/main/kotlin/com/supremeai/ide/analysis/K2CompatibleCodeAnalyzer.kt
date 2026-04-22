@@ -6,9 +6,9 @@ import org.jetbrains.kotlin.analysis.api.symbols.KaClassSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaPropertySymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaSymbolModality
-import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.types.Variance
 
 /**
  * A code analyzer that is compatible with the K2 Kotlin compiler plugin.
@@ -32,9 +32,30 @@ class K2CompatibleCodeAnalyzer {
                     name = ktClass.name ?: "anonymous",
                     qualifiedName = symbol.classId?.asFqNameString() ?: "",
                     isAbstract = symbol.modality == KaSymbolModality.ABSTRACT,
-                    superTypes = emptyList(),
-                    properties = emptyList(),
-                    functions = emptyList()
+                    superTypes = symbol.superTypes.map { it.render(position = Variance.INVARIANT) },
+                    properties = symbol.combinedDeclaredMemberScope.callables
+                        .filterIsInstance<KaPropertySymbol>()
+                        .map { 
+                            PropertyInfo(
+                                name = it.name.asString(), 
+                                type = it.returnType.render(position = Variance.INVARIANT),
+                                visibility = it.visibility.name,
+                                modality = it.modality.name
+                            ) 
+                        }
+                        .toList(),
+                    functions = symbol.combinedDeclaredMemberScope.callables
+                        .mapNotNull { it as? KaFunctionSymbol }
+                        .map { 
+                            FunctionInfo(
+                                name = (it as? org.jetbrains.kotlin.analysis.api.symbols.markers.KaNamedSymbol)?.name?.asString() ?: "<anonymous>", 
+                                returnType = it.returnType.render(position = Variance.INVARIANT),
+                                visibility = it.visibility.name,
+                                modality = it.modality.name,
+                                isExternal = false // Removed it.isExternal as it might not be available in this K2 version
+                            ) 
+                        }
+                        .toList()
                 )
             }
         } catch (e: Exception) {
@@ -56,8 +77,10 @@ class K2CompatibleCodeAnalyzer {
 
                 FunctionAnalysisInfo(
                     name = ktFunction.name ?: "anonymous",
-                    returnType = "Unit",
-                    parameters = emptyList(),
+                    returnType = symbol.returnType.render(position = Variance.INVARIANT),
+                    parameters = symbol.valueParameters.map { 
+                        ParameterInfo(it.name.asString(), it.returnType.render(position = Variance.INVARIANT))
+                    },
                     isSuspend = ktFunction.hasModifier(org.jetbrains.kotlin.lexer.KtTokens.SUSPEND_KEYWORD)
                 )
             }
@@ -107,8 +130,15 @@ data class FunctionAnalysisInfo(
  *
  * @property name The name of the property.
  * @property type The type of the property.
+ * @property visibility The visibility of the property.
+ * @property modality The modality of the property.
  */
-data class PropertyInfo(val name: String, val type: String)
+data class PropertyInfo(
+    val name: String, 
+    val type: String,
+    val visibility: String,
+    val modality: String
+)
 
 /**
  * Holds information about a parameter.
@@ -123,5 +153,14 @@ data class ParameterInfo(val name: String, val type: String)
  *
  * @property name The name of the function.
  * @property returnType The return type of the function.
+ * @property visibility The visibility of the function.
+ * @property modality The modality of the function.
+ * @property isExternal Whether the function is external.
  */
-data class FunctionInfo(val name: String, val returnType: String)
+data class FunctionInfo(
+    val name: String, 
+    val returnType: String,
+    val visibility: String,
+    val modality: String,
+    val isExternal: Boolean
+)

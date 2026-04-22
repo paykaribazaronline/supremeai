@@ -37,6 +37,14 @@
             instance="com.supremeai.ide.SupremeAISettingsConfigurable"
             id="supremeai.settings"
             displayName="SupremeAI" />
+
+        <localInspection language="kotlin"
+                         displayName="SupremeAI Patterns"
+                         groupPath="Kotlin"
+                         groupName="SupremeAI"
+                         enabledByDefault="true"
+                         level="WARNING"
+                         implementationClass="com.supremeai.ide.inspection.SupremeAIInspection"/>
     </extensions>
 
     <actions>
