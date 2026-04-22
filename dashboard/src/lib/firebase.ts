@@ -8,6 +8,7 @@ import {
   signOut,
   Auth,
   UserCredential,
+  getIdTokenResult,
 } from 'firebase/auth';
 
 const firebaseConfig = {
@@ -25,8 +26,8 @@ const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseCon
 export const firebaseAuth: Auth = getAuth(app);
 
 /**
- * Sign in with Firebase Auth and exchange the resulting ID token for a
- * SupremeAI backend session JWT via POST /api/auth/firebase-login.
+ * Sign in with Firebase Auth, verify admin role, then exchange the ID token
+ * for a SupremeAI backend session JWT via POST /api/auth/firebase-login.
  *
  * Returns the backend JWT string, or throws on failure.
  */
@@ -39,7 +40,16 @@ export async function firebaseSignIn(
     email,
     password,
   );
-  const idToken = await cred.user.getIdToken();
+
+  // Check admin role via Firebase custom claims
+  const idTokenResult = await getIdTokenResult(cred.user);
+  const role = idTokenResult.claims['role'] as string | undefined;
+  if (role !== 'admin') {
+    await signOut(firebaseAuth);
+    throw new Error('Access denied: You do not have admin privileges.');
+  }
+
+  const idToken = idTokenResult.token;
 
   const resp = await fetch('/api/auth/firebase-login', {
     method: 'POST',

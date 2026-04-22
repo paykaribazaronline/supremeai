@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple7;
 
 import java.util.HashMap;
 import java.util.List;
@@ -82,29 +83,13 @@ public class AdminDashboardController extends BaseAdminController<User, String> 
 
         List<Map<String, Object>> navigation = List.of(
                 createNavItem("overview", "Dashboard", "📊", true),
-                createNavItem("projects", "Projects", "📂", true),
-                createNavItem("providers", "AI Providers", "🤖", true),
-                createNavItem("metrics", "Metrics", "📈", true),
-                createNavItem("settings", "Settings", "⚙️", true),
-                createNavItem("api-keys", "API Keys", "🔑", true),
-                createNavItem("learning", "Learning", "🧠", true),
-                createNavItem("vpn", "VPN", "🔒", true),
-                createNavItem("quota", "Quota", "📊", true),
-                createNavItem("resilience", "Resilience", "🛡️", true),
-                createNavItem("ml-intelligence", "ML Intelligence", "🤖", true),
-                createNavItem("notifications", "Notifications", "🔔", true),
-                createNavItem("analytics", "Analytics", "📊", true),
-                createNavItem("consensus", "Consensus", "🤝", true),
-                createNavItem("git-ops", "Git Ops", "🔀", true),
-                createNavItem("headless-browser", "Headless Browser", "🌐", true),
-                createNavItem("chat-history", "Chat History", "💬", true),
-                createNavItem("system-learning", "System Learning", "📚", true),
-                createNavItem("autofix", "Auto Fix", "🔧", true),
-                createNavItem("deployment", "Deployment", "🚀", true),
-                createNavItem("self-healing", "Self Healing", "💊", true),
-                createNavItem("ai-agents", "AI Agents", "🤖", true),
-                createNavItem("exploitation-techniques", "Exploitation Techniques", "🧨", true),
-                createNavItem("user-management", "User Management", "👥", true)
+                createNavItem("projects", "Projects & Git", "📂", true),
+                createNavItem("ai-systems", "AI Systems", "🤖", true),
+                createNavItem("metrics", "Metrics & Analytics", "📈", true),
+                createNavItem("knowledge", "Knowledge & Learning", "🧠", true),
+                createNavItem("integrations", "Integrations", "🔌", true),
+                createNavItem("resilience", "System Resilience", "🛡️", true),
+                createNavItem("administration", "Administration", "⚙️", true)
         );
         contract.put("navigation", navigation);
 

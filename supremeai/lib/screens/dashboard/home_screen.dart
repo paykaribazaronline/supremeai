@@ -36,6 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final orchestration = context.watch<OrchestrationProvider>();
+    final auth = context.watch<AuthProvider>();
     final result = orchestration.lastResult;
 
     return Scaffold(
