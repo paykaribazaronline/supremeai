@@ -138,7 +138,13 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                     if (responseCode == 200) {
                         val response = conn.inputStream.bufferedReader().use { it.readText() }
                         SwingUtilities.invokeLater {
-                            chatArea.append("AI: Response received\n")
+                            try {
+                                val json = com.google.gson.JsonParser.parseString(response).asJsonObject
+                                val aiMessage = json.get("message")?.asString ?: "Response received"
+                                chatArea.append("AI: $aiMessage\n")
+                            } catch (e: Exception) {
+                                chatArea.append("AI: Response received\n")
+                            }
                         }
                     } else {
                         val errorResponse = conn.errorStream?.bufferedReader()?.use { it.readText() } ?: "No error details"
