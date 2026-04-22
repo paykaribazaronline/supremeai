@@ -1,89 +1,169 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Welcome to Firebase Hosting</title>
-
-    <!-- update the version number as needed -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SupremeAI - Admin Login</title>
     <script defer src="/__/firebase/12.11.0/firebase-app-compat.js"></script>
-    <!-- include only the Firebase features as you need -->
     <script defer src="/__/firebase/12.11.0/firebase-auth-compat.js"></script>
-    <script defer src="/__/firebase/12.11.0/firebase-database-compat.js"></script>
     <script defer src="/__/firebase/12.11.0/firebase-firestore-compat.js"></script>
-    <script defer src="/__/firebase/12.11.0/firebase-functions-compat.js"></script>
-    <script defer src="/__/firebase/12.11.0/firebase-messaging-compat.js"></script>
-    <script defer src="/__/firebase/12.11.0/firebase-storage-compat.js"></script>
-    <script defer src="/__/firebase/12.11.0/firebase-analytics-compat.js"></script>
-    <script defer src="/__/firebase/12.11.0/firebase-remote-config-compat.js"></script>
-    <script defer src="/__/firebase/12.11.0/firebase-performance-compat.js"></script>
-    <!-- 
-      initialize the SDK after all desired features are loaded, set useEmulator to false
-      to avoid connecting the SDK to running emulators.
-    -->
     <script defer src="/__/firebase/init.js?useEmulator=true"></script>
-
-    <style media="screen">
-      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
-      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
-      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
-      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
-      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
-      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
-      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
-      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
-      @media (max-width: 600px) {
-        body, #message { margin-top: 0; background: white; box-shadow: none; }
-        body { border-top: 16px solid #ffa100; }
-      }
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .login-box {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+        }
+        .logo { font-size: 28px; font-weight: bold; color: #1e3c72; margin-bottom: 10px; text-align: center; }
+        .logo span { color: #4299e1; }
+        .subtitle { color: #666; font-size: 14px; text-align: center; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #333; font-weight: 600; font-size: 14px; }
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        input:focus { outline: none; border-color: #4299e1; box-shadow: 0 0 0 3px rgba(66,153,225,0.1); }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(30,60,114,0.4); }
+        button:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+        .error { color: #d32f2f; background: #ffebee; padding: 12px; border-radius: 5px; margin-bottom: 20px; display: none; border-left: 4px solid #d32f2f; }
+        .error.show { display: block; }
+        .loading { display: none; text-align: center; margin-bottom: 10px; }
+        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #4299e1; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loading.show { display: block; }
     </style>
-  </head>
-  <body>
-    <div id="message">
-      <h2>Welcome</h2>
-      <h1>Firebase Hosting Setup Complete</h1>
-      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
-      <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
+</head>
+<body>
+    <div class="login-box">
+        <div class="logo">Supreme<span>AI</span></div>
+        <div class="subtitle">Admin Dashboard Login</div>
+        <div class="error" id="error"></div>
+        <div class="loading" id="loading"><div class="spinner"></div></div>
+        <form id="form">
+            <div class="form-group">
+                <label for="email">Admin Email</label>
+                <input type="email" id="email" placeholder="admin@supremeai.com" required autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
+            </div>
+            <button type="submit" id="btn" disabled>Sign In</button>
+        </form>
     </div>
-    <p id="load">Firebase SDK Loading&hellip;</p>
 
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const loadEl = document.querySelector('#load');
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-        // // The Firebase SDK is initialized and available here!
-        //
-        // firebase.auth().onAuthStateChanged(user => { });
-        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
-        // firebase.firestore().doc('/foo/bar').get().then(() => { });
-        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
-        // firebase.messaging().requestPermission().then(() => { });
-        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
-        // firebase.analytics(); // call to activate
-        // firebase.analytics().logEvent('tutorial_completed');
-        // firebase.performance(); // call to activate
-        //
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+        let auth, db, firebaseReady = false;
+        const errorEl = document.getElementById('error');
+        const loadingEl = document.getElementById('loading');
+        const btn = document.getElementById('btn');
+        const form = document.getElementById('form');
 
-        try {
-          let app = firebase.app();
-          let features = [
-            'auth', 
-            'database', 
-            'firestore',
-            'functions',
-            'messaging', 
-            'storage', 
-            'analytics', 
-            'remoteConfig',
-            'performance',
-          ].filter(feature => typeof app[feature] === 'function');
-          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
-        } catch (e) {
-          console.error(e);
-          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
+        function showError(msg) { errorEl.textContent = msg; errorEl.classList.add('show'); }
+        function hideError() { errorEl.classList.remove('show'); }
+        function setLoading(loading) { loadingEl.classList.toggle('show', loading); btn.disabled = loading; }
+
+        function initFirebase() {
+            if (typeof firebase === 'undefined' || !firebase.apps.length) return false;
+            auth = firebase.auth();
+            db = firebase.firestore();
+            firebaseReady = true;
+            btn.disabled = false;
+            return true;
         }
-      });
+
+        // Wait for Firebase to load via Hosting auto-config
+        function waitForFirebase() {
+            const check = setInterval(() => {
+                if (initFirebase()) clearInterval(check);
+            }, 500);
+        }
+
+        waitForFirebase();
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideError();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) { showError('Enter both email and password'); return; }
+            if (!firebaseReady) { showError('Firebase not loaded. Refresh.'); return; }
+
+            setLoading(true);
+            try {
+                // Sign in with Firebase Auth
+                const cred = await auth.signInWithEmailAndPassword(email, password);
+                const user = cred.user;
+                const uid = user.uid;
+
+                // Check admin status in Firestore
+                const userDoc = await db.collection('users').doc(uid).get();
+                
+                if (!userDoc.exists) {
+                    // Fallback: check Firebase custom claims if user doc not yet created
+                    const idTokenResult = await user.getIdTokenResult();
+                    const isAdmin = idTokenResult.claims.admin === true || idTokenResult.claims.role === 'ADMIN';
+                    
+                    if (!isAdmin) {
+                        await auth.signOut();
+                        throw new Error('Access denied: Admin only');
+                    }
+                } else {
+                    const data = userDoc.data();
+                    const isAdmin = data.isAdmin === true || data.role === 'admin';
+                    if (!isAdmin) {
+                        await auth.signOut();
+                        throw new Error('Access denied: Admin only');
+                    }
+                }
+
+                // Store auth state and redirect
+                sessionStorage.setItem('supremeai_admin', 'true');
+                sessionStorage.setItem('supremeai_user', JSON.stringify({
+                    email: user.email,
+                    uid: uid,
+                    displayName: user.displayName || email.split('@')[0]
+                }));
+
+                window.location.href = '/admin-console.html';
+            } catch (err) {
+                console.error(err);
+                showError(err.message || 'Login failed');
+            } finally {
+                setLoading(false);
+            }
+        });
     </script>
-  </body>
+</body>
 </html>
