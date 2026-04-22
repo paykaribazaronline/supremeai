@@ -58,6 +58,8 @@ Thumbs.db
 
 # IntelliJ IDEA Platform Plugin Development
 .intellijPlatform/localPlatformArtifacts/
+.intellijPlatform/self-update.lock
+supremeai-intellij-plugin/.intellijPlatform/self-update.lock
 
 # ========================================
 # SECURITY & CREDENTIALS (⚠️ CRITICAL)
