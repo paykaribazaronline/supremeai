@@ -36,14 +36,16 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        // Skip rate limiting for health checks and static assets
+        // Skip rate limiting for health checks, static assets, and auth endpoints
+        // (auth endpoints are already secured by Firebase ID token verification)
         return path.startsWith("/api/health") ||
                path.startsWith("/api/status") ||
                path.startsWith("/static/") ||
                path.startsWith("/css/") ||
                path.startsWith("/js/") ||
                path.equals("/") ||
-               path.startsWith("/index.html");
+               path.startsWith("/index.html") ||
+               path.startsWith("/api/auth/");
     }
 
     @Override
