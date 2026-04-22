@@ -4,6 +4,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
+import com.intellij.ui.components.JBTextField
 import com.intellij.util.xmlb.XmlSerializerUtil
 
 @State(
@@ -28,6 +29,18 @@ class SupremeAISettings : PersistentStateComponent<SupremeAISettings> {
         "websearch" to "allow",
         "external_directory" to "deny"
     )
+
+    // Convenience input fields for Settings UI
+    val apiKeyInput: JBTextField
+        get() = JBTextField(apiKey)
+    val apiEndpointInput: JBTextField
+        get() = JBTextField(apiEndpoint)
+    val modelInput: JBTextField
+        get() = JBTextField(model)
+
+    fun save() {
+        // State is auto-saved by IntelliJ platform when state changes
+    }
 
     override fun getState(): SupremeAISettings = this
 
