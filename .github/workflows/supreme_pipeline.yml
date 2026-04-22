@@ -306,6 +306,7 @@ jobs:
             --cpu 2 \
             --timeout 300 \
             --set-env-vars="SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a,spring.threads.virtual.enabled=true" \
+            --update-secrets FIREBASE_SERVICE_ACCOUNT_JSON=firebase-service-account-json:latest \
             --max-instances 10 \
             --concurrency 80 \
             --quiet
