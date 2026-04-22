@@ -27,13 +27,15 @@ class OrchestrationError {
   factory OrchestrationError.fromException(dynamic e) {
     if (e is TimeoutException) {
       return OrchestrationError(
-        message: 'The request timed out. Please check your connection and try again.',
+        message:
+            'The request timed out. Please check your connection and try again.',
         type: OrchestrationErrorType.timeout,
       );
     }
     if (e is http.ClientException) {
       return OrchestrationError(
-        message: 'Unable to connect to the server. Please check your internet connection.',
+        message:
+            'Unable to connect to the server. Please check your internet connection.',
         type: OrchestrationErrorType.network,
       );
     }
@@ -59,7 +61,8 @@ class OrchestrationError {
         );
       case 503:
         return OrchestrationError(
-          message: 'The service is temporarily unavailable. Please try again later.',
+          message:
+              'The service is temporarily unavailable. Please try again later.',
           type: OrchestrationErrorType.serverError,
         );
       default:
@@ -96,16 +99,20 @@ class OrchestrationProvider with ChangeNotifier {
     try {
       final result = await Connectivity().checkConnectivity();
       _updateConnectionStatus(result);
-      
-      Connectivity().onConnectivityChanged.listen(_updateConnectionStatus);
+
+      Connectivity()
+          .onConnectivityChanged
+          .listen((List<ConnectivityResult> result) {
+        _updateConnectionStatus(result);
+      });
     } catch (_) {
       // Ignore connectivity check errors
     }
   }
 
-  void _updateConnectionStatus(ConnectivityResult result) {
+  void _updateConnectionStatus(List<ConnectivityResult> result) {
     final wasOnline = _isOnline;
-    _isOnline = result != ConnectivityResult.none;
+    _isOnline = result.isNotEmpty && result.first != ConnectivityResult.none;
     if (wasOnline != _isOnline) {
       notifyListeners();
     }
@@ -120,7 +127,8 @@ class OrchestrationProvider with ChangeNotifier {
       }
       final cachedQueue = prefs.getString(_offlineQueueKey);
       if (cachedQueue != null) {
-        _offlineQueue = List<Map<String, dynamic>>.from(json.decode(cachedQueue));
+        _offlineQueue =
+            List<Map<String, dynamic>>.from(json.decode(cachedQueue));
       }
       notifyListeners();
     } catch (_) {
@@ -164,7 +172,8 @@ class OrchestrationProvider with ChangeNotifier {
         'timestamp': DateTime.now().toIso8601String(),
       });
       _error = OrchestrationError(
-        message: 'You are currently offline. Your request has been queued and will be processed when connection is restored.',
+        message:
+            'You are currently offline. Your request has been queued and will be processed when connection is restored.',
         type: OrchestrationErrorType.network,
       );
       _isLoading = false;
