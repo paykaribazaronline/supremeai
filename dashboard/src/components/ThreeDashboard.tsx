@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import './ThreeDashboard.css';
 
@@ -59,8 +59,14 @@ const ThreeDashboard: React.FC = () => {
     const [fps, setFps] = useState(0);
     const [connectedClients, setConnectedClients] = useState(0);
     const [isConnected, setIsConnected] = useState(false);
+    const [connectionError, setConnectionError] = useState<string | null>(null);
     const fpsCounterRef = useRef(0);
     const lastTimeRef = useRef(Date.now());
+    const frameCountRef = useRef(0);
+
+    // Keyboard navigation state
+    const cameraTargetRef = useRef({ x: 0, y: 50, z: 100 });
+    const isFocusedRef = useRef(false);
 
     /**
      * Initialize Three.js scene, camera, renderer
@@ -71,7 +77,7 @@ const ThreeDashboard: React.FC = () => {
         // Scene setup
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x1a1a1a);
-        scene.fog = new THREE.Fog(0x1a1a1a, 2000, 200);
+        scene.fog = new THREE.Fog(0x1a1a1a, 50, 200);
         sceneRef.current = scene;
 
         // Camera setup
@@ -85,11 +91,19 @@ const ThreeDashboard: React.FC = () => {
         camera.lookAt(0, 0, 0);
         cameraRef.current = camera;
 
-        // Renderer setup
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        // Renderer setup with performance optimizations
+        const renderer = new THREE.WebGLRenderer({ 
+            antialias: true, 
+            alpha: false,
+            powerPreference: 'high-performance',
+        });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFShadowMap;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        // Limit pixel ratio for performance on high-DPI screens
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        // Enable frustum culling
+        renderer.info.autoReset = true;
         rendererRef.current = renderer;
         
         mountRef.current.appendChild(renderer.domElement);
@@ -105,6 +119,9 @@ const ThreeDashboard: React.FC = () => {
         directionalLight.shadow.camera.right = 500;
         directionalLight.shadow.camera.top = 500;
         directionalLight.shadow.camera.bottom = -500;
+        // Optimize shadow map resolution
+        directionalLight.shadow.mapSize.width = 1024;
+        directionalLight.shadow.mapSize.height = 1024;
         scene.add(directionalLight);
 
         // Grid helper for reference
@@ -121,6 +138,41 @@ const ThreeDashboard: React.FC = () => {
             renderer.setSize(width, height);
         };
         window.addEventListener('resize', onWindowResize);
+
+        // Keyboard navigation for accessibility
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (!isFocusedRef.current) return;
+            
+            const step = e.shiftKey ? 10 : 5;
+            switch (e.key) {
+                case 'ArrowUp':
+                    cameraTargetRef.current.y += step;
+                    e.preventDefault();
+                    break;
+                case 'ArrowDown':
+                    cameraTargetRef.current.y -= step;
+                    e.preventDefault();
+                    break;
+                case 'ArrowLeft':
+                    cameraTargetRef.current.x -= step;
+                    e.preventDefault();
+                    break;
+                case 'ArrowRight':
+                    cameraTargetRef.current.x += step;
+                    e.preventDefault();
+                    break;
+                case '+':
+                case '=':
+                    cameraTargetRef.current.z -= step;
+                    e.preventDefault();
+                    break;
+                case '-':
+                    cameraTargetRef.current.z += step;
+                    e.preventDefault();
+                    break;
+            }
+        };
+        window.addEventListener('keydown', onKeyDown);
 
         // Start animation loop
         animate();
@@ -139,25 +191,38 @@ const ThreeDashboard: React.FC = () => {
         lastTimeRef.current = now;
         
         fpsCounterRef.current++;
-        if (deltaTime > 100) {
+        frameCountRef.current++;
+        if (deltaTime > 1000) {
             setFps(Math.round((fpsCounterRef.current * 1000) / deltaTime));
             fpsCounterRef.current = 0;
             lastTimeRef.current = now;
         }
 
-        // Rotate agent nodes for visual interest
-        agentsRef.current.forEach((agent) => {
-            if (agent.mesh && agent.mesh.geometry) {
-                agent.mesh.rotation.x += 0.01;
-                agent.mesh.rotation.y += 0.02;
-            }
-        });
+        // Performance: Skip rotation animation when FPS is low
+        if (fps > 30 || fps === 0) {
+            // Rotate agent nodes for visual interest
+            agentsRef.current.forEach((agent) => {
+                if (agent.mesh && agent.mesh.geometry) {
+                    agent.mesh.rotation.x += 0.01;
+                    agent.mesh.rotation.y += 0.02;
+                }
+            });
+        }
+
+        // Smooth camera movement for keyboard navigation
+        if (cameraRef.current) {
+            const target = cameraTargetRef.current;
+            cameraRef.current.position.x += (target.x - cameraRef.current.position.x) * 0.05;
+            cameraRef.current.position.y += (target.y - cameraRef.current.position.y) * 0.05;
+            cameraRef.current.position.z += (target.z - cameraRef.current.position.z) * 0.05;
+            cameraRef.current.lookAt(0, 0, 0);
+        }
 
         // Light pulse on voting progress
         const scene = sceneRef.current;
         if (scene) {
-            const lights = scene.children.filter((c) => c instanceof THREE.Light);
-            lights.forEach((light) => {
+            const lights = scene.children.filter((c: THREE.Object3D) => c instanceof THREE.Light);
+            lights.forEach((light: THREE.Object3D) => {
                 if (light instanceof THREE.DirectionalLight) {
                     const intensity = 0.6 + Math.sin(Date.now() / 1000) * 0.2;
                     light.intensity = intensity;
@@ -183,7 +248,7 @@ const ThreeDashboard: React.FC = () => {
             websocketRef.current = ws;
 
             ws.onopen = () => {
-                console.log('✓ 3D Visualization WebSocket connected');
+                setConnectionError(null);
                 setIsConnected(true);
             };
 
@@ -192,23 +257,22 @@ const ThreeDashboard: React.FC = () => {
                     const data = JSON.parse(event.data);
                     handleVisualizationFrame(data);
                 } catch (e) {
-                    console.error('Error parsing visualization frame:', e);
+                    setConnectionError('Received invalid data from server.');
                 }
             };
 
             ws.onclose = () => {
-                console.log('✗ 3D Visualization WebSocket disconnected');
                 setIsConnected(false);
                 // Attempt reconnection after 3 seconds
                 setTimeout(connectWebSocket, 3000);
             };
 
-            ws.onerror = (event) => {
-                console.error('WebSocket error:', event);
+            ws.onerror = () => {
+                setConnectionError('Unable to connect to visualization server.');
                 setIsConnected(false);
             };
         } catch (e) {
-            console.error('Failed to connect WebSocket:', e);
+            setConnectionError('Failed to initialize WebSocket connection.');
             setTimeout(connectWebSocket, 3000);
         }
     };
@@ -410,15 +474,35 @@ const ThreeDashboard: React.FC = () => {
         };
     }, []);
 
+    const handleContainerFocus = useCallback(() => {
+        isFocusedRef.current = true;
+    }, []);
+
+    const handleContainerBlur = useCallback(() => {
+        isFocusedRef.current = false;
+    }, []);
+
     /**
      * Render component
      */
     return (
-        <div className="three-dashboard">
-            <div ref={mountRef} className="scene-container" />
+        <div className="three-dashboard" role="region" aria-label="3D Real-Time Visualization Dashboard">
+            <div
+                ref={mountRef}
+                className="scene-container"
+                role="img"
+                aria-label="3D real-time visualization dashboard showing system architecture, services, agents, and components. Use arrow keys to navigate when focused."
+                aria-describedby="dashboard-description"
+                tabIndex={0}
+                onFocus={handleContainerFocus}
+                onBlur={handleContainerBlur}
+            />
             
             {/* HUD Overlay with metrics */}
-            <div className="hud-overlay">
+            <div className="hud-overlay" aria-live="polite" aria-atomic="true">
+                <div id="dashboard-description" className="sr-only">
+                    Interactive 3D dashboard displaying real-time system metrics including FPS, connection status, and connected clients. Use arrow keys to move the camera, plus/minus to zoom.
+                </div>
                 <div className="hud-section top-left">
                     <div className="hud-title">3D VISUALIZATION</div>
                     <div className="hud-stat">
@@ -430,9 +514,15 @@ const ThreeDashboard: React.FC = () => {
                     <div className="hud-stat">
                         <span className="label">Status:</span>
                         <span className={`value ${isConnected ? 'connected' : 'disconnected'}`}>
-                            {isConnected ? '● LIVE' : '○ OFFLINE'}
+                            {isConnected ? 'LIVE' : 'OFFLINE'}
                         </span>
                     </div>
+                    {connectionError && (
+                        <div className="hud-stat" style={{ color: '#ff4d4f' }}>
+                            <span className="label">Error:</span>
+                            <span>{connectionError}</span>
+                        </div>
+                    )}
                 </div>
 
                 <div className="hud-section bottom-right">
@@ -460,6 +550,11 @@ const ThreeDashboard: React.FC = () => {
                             <div className="legend-color" style={{ backgroundColor: '#ff8800' }} />
                             <span>Components</span>
                         </div>
+                    </div>
+                    <div className="keyboard-hints" style={{ marginTop: 8, fontSize: 11, color: '#888' }}>
+                        <div>Arrow keys: Move camera</div>
+                        <div>+/-: Zoom in/out</div>
+                        <div>Shift: Faster movement</div>
                     </div>
                 </div>
             </div>
