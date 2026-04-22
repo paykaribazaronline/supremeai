@@ -403,7 +403,14 @@
                 });
 
                 if (!backendResponse.ok) {
-                    throw new Error('Backend authentication failed');
+                    let backendMsg = 'Backend authentication failed';
+                    try {
+                        const errBody = await backendResponse.json();
+                        if (errBody.message) backendMsg = errBody.message;
+                        else if (errBody.error) backendMsg = errBody.error;
+                        else if (errBody.status === 'error') backendMsg = errBody.message || backendMsg;
+                    } catch (_) {}
+                    throw new Error(backendMsg);
                 }
 
                 const backendAuth = await backendResponse.json();

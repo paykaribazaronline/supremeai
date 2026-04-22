@@ -10,9 +10,11 @@ import org.springframework.context.annotation.Configuration;
 
 import org.springframework.context.event.EventListener;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 @Configuration
 public class FirebaseConfig {
@@ -28,24 +30,7 @@ public class FirebaseConfig {
     public void initialize() {
         try {
             if (FirebaseApp.getApps().isEmpty()) {
-                GoogleCredentials credentials;
-                try {
-                    // Try loading from classpath first
-                    InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream("service-account.json");
-                    if (serviceAccount != null) {
-                        credentials = GoogleCredentials.fromStream(serviceAccount);
-                    } else if (configPath != null && !configPath.trim().isEmpty()) {
-                        // Fallback to file system
-                        credentials = GoogleCredentials.fromStream(new FileInputStream(configPath));
-                    } else {
-                        // Use Application Default Credentials for Cloud Run
-                        credentials = GoogleCredentials.getApplicationDefault();
-                    }
-                } catch (Exception e) {
-                    // Fallback to Application Default Credentials if file not found
-                    log.warn("Could not load service-account.json, falling back to Application Default Credentials", e);
-                    credentials = GoogleCredentials.getApplicationDefault();
-                }
+                GoogleCredentials credentials = loadCredentials();
 
                 FirebaseOptions options = FirebaseOptions.builder()
                         .setCredentials(credentials)
@@ -55,8 +40,40 @@ public class FirebaseConfig {
                 FirebaseApp.initializeApp(options);
                 log.info("FirebaseApp initialized successfully.");
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("Failed to initialize Firebase", e);
         }
+    }
+
+    private GoogleCredentials loadCredentials() throws IOException {
+        // 1. Cloud Run: read FIREBASE_SERVICE_ACCOUNT_JSON env var (secret content mounted by --update-secrets)
+        String secretJson = System.getenv("FIREBASE_SERVICE_ACCOUNT_JSON");
+        if (secretJson != null && !secretJson.isBlank()) {
+            log.info("Loading Firebase credentials from FIREBASE_SERVICE_ACCOUNT_JSON env var");
+            try (InputStream stream = new ByteArrayInputStream(secretJson.getBytes(StandardCharsets.UTF_8))) {
+                return GoogleCredentials.fromStream(stream);
+            }
+        }
+
+        // 2. Try classpath resource (works when JAR includes service-account.json)
+        InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream("service-account.json");
+        if (serviceAccount != null) {
+            log.info("Loading Firebase credentials from classpath service-account.json");
+            return GoogleCredentials.fromStream(serviceAccount);
+        }
+
+        // 3. Fallback to file system path
+        if (configPath != null && !configPath.trim().isEmpty()) {
+            try {
+                log.info("Loading Firebase credentials from file: {}", configPath);
+                return GoogleCredentials.fromStream(new FileInputStream(configPath));
+            } catch (IOException e) {
+                log.warn("Could not load Firebase credentials from file: {}", configPath);
+            }
+        }
+
+        // 4. Use Application Default Credentials (ADC) on Cloud Run / GCP
+        log.info("Falling back to Application Default Credentials for Firebase");
+        return GoogleCredentials.getApplicationDefault();
     }
 }

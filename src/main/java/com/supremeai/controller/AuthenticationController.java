@@ -106,7 +106,14 @@ public class AuthenticationController {
 
             return response;
         } catch (com.google.firebase.auth.FirebaseAuthException e) {
+            log.error("Firebase auth verification failed", e);
             return Map.of("status", "error", "message", "Auth failed: " + e.getMessage());
+        } catch (IllegalStateException e) {
+            log.error("Firebase not initialized - cannot verify token", e);
+            return Map.of("status", "error", "message", "Authentication service is not available. Please try again later.");
+        } catch (Exception e) {
+            log.error("Unexpected error during firebase login", e);
+            return Map.of("status", "error", "message", "Login failed: " + e.getMessage());
         }
     }
 
