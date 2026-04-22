@@ -2,18 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/orchestration_provider.dart';
 import '../../providers/auth_provider.dart';
-import '../providers/ai_providers_screen.dart';
-import '../projects/projects_list_screen.dart';
-import '../analytics/analytics_screen.dart';
-import '../notifications/notifications_screen.dart';
-import '../alerts/alerts_screen.dart';
-import '../vpn/vpn_screen.dart';
-import '../resilience/resilience_screen.dart';
-import '../git/git_screen.dart';
-import '../quota/quota_screen.dart';
-import '../extension/extension_screen.dart';
-import '../consensus/consensus_screen.dart';
-import '../learning/learning_screen.dart';
+import '../settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,203 +12,197 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final TextEditingController _requirementController = TextEditingController();
+  int _currentIndex = 0;
+  final TextEditingController _chatController = TextEditingController();
+  final List<Map<String, dynamic>> _messages = [];
 
-  void _submitRequirement() {
+  void _sendMessage() {
+    if (_chatController.text.trim().isEmpty) return;
+
+    final userMessage = _chatController.text.trim();
+    setState(() {
+      _messages.add({'role': 'user', 'content': userMessage});
+    });
+    _chatController.clear();
+
+    // Auto-detect orchestration need and process
+    _processWithAI(userMessage);
+  }
+
+  Future<void> _processWithAI(String message) async {
     final orchestration = context.read<OrchestrationProvider>();
     final auth = context.read<AuthProvider>();
-    if (_requirementController.text.isNotEmpty && auth.token != null) {
-      orchestration.orchestrateRequirement(_requirementController.text, auth.token!);
+
+    if (auth.token == null) return;
+
+    // AI automatically detects if orchestration is needed
+    await orchestration.orchestrateRequirement(message, auth.token!);
+
+    final result = orchestration.lastResult;
+    if (result != null && mounted) {
+      setState(() {
+        if (result['status'] == 'DECIDED') {
+          _messages.add({
+            'role': 'ai',
+            'content': 'I\'ve analyzed your requirement and created a project plan. Tap "Generate" to start building.',
+            'action': 'generate',
+          });
+        } else {
+          _messages.add({
+            'role': 'ai',
+            'content': result.toString(),
+          });
+        }
+      });
     }
+  }
+
+  void _generateProject() {
+    final auth = context.read<AuthProvider>();
+    final orchestration = context.read<OrchestrationProvider>();
+    if (auth.token != null) {
+      orchestration.generateProject(auth.token!);
+    }
+  }
+
+  @override
+  void dispose() {
+    _chatController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final orchestration = context.watch<OrchestrationProvider>();
-    final auth = context.watch<AuthProvider>();
-    final result = orchestration.lastResult;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SupremeAI Dashboard'),
+        title: const Text('SupremeAI'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => context.read<AuthProvider>().logout(),
+            tooltip: 'Logout',
+          ),
+        ],
       ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: Theme.of(context).primaryColor),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(child: Icon(Icons.person)),
-                  SizedBox(height: 10),
-                  Text('Admin User', style: TextStyle(color: Colors.white, fontSize: 18)),
-                ],
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.dashboard),
-              title: const Text('Dashboard'),
-              onTap: () => Navigator.pop(context),
-            ),
-            ListTile(
-              leading: const Icon(Icons.satellite_alt),
-              title: const Text('AI Providers'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const AiProvidersScreen()));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.folder),
-              title: const Text('Projects'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const ProjectsListScreen()));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.analytics),
-              title: const Text('Analytics'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const AnalyticsScreen()));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.notifications),
-              title: const Text('Notifications'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.notification_important),
-              title: const Text('Alerts'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const AlertsScreen()));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.vpn_lock),
-              title: const Text('VPN Management'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const VpnScreen()));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.health_and_safety),
-              title: const Text('Self-Healing'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const ResilienceScreen()));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.commit),
-              title: const Text('Git Ops'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const GitScreen()));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.label_important),
-              title: const Text('Tiers & Quotas'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const QuotaScreen()));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.extension),
-              title: const Text('Self-Extension'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const ExtensionScreen()));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.group_work),
-              title: const Text('Multi-AI Consensus'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const ConsensusScreen()));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.school),
-              title: const Text('System Learning'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const LearningScreen()));
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Logout'),
-              onTap: () => context.read<AuthProvider>().logout(),
-            ),
-          ],
-        ),
+      body: _currentIndex == 0 ? _buildChatInterface(orchestration) : const SettingsScreen(),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _currentIndex,
+        onDestinationSelected: (index) => setState(() => _currentIndex = index),
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.chat),
+            label: 'Chat',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
+        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _requirementController,
-              decoration: const InputDecoration(
-                labelText: 'Enter App Requirement',
-                hintText: 'e.g. Create a task manager with Firebase',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: orchestration.isLoading ? null : _submitRequirement,
-              child: orchestration.isLoading
-                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Orchestrate Requirement'),
-            ),
-            const SizedBox(height: 20),
-            if (orchestration.error != null)
-              Text('Error: ${orchestration.error}', style: const TextStyle(color: Colors.red)),
-            if (result != null) ...[
-              const Text('Orchestration Result:', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 10),
-              if (result['status'] == 'DECIDED')
-                ElevatedButton.icon(
-                  onPressed: orchestration.isLoading ? null : () => orchestration.generateProject(auth.token!),
-                  icon: const Icon(Icons.rocket_launch),
-                  label: const Text('Generate Project'),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, foregroundColor: Colors.white),
+    );
+  }
+
+  Widget _buildChatInterface(OrchestrationProvider orchestration) {
+    return Column(
+      children: [
+        Expanded(
+          child: _messages.isEmpty
+              ? const Center(
+                  child: Text(
+                    'Describe what you want to build...\nAI will handle everything automatically.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _messages.length,
+                  itemBuilder: (context, index) {
+                    final msg = _messages[index];
+                    final isUser = msg['role'] == 'user';
+                    return Align(
+                      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isUser ? Colors.blue[100] : Colors.grey[200],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(msg['content']),
+                            if (msg['action'] == 'generate') ...[
+                              const SizedBox(height: 8),
+                              ElevatedButton.icon(
+                                onPressed: orchestration.isLoading ? null : _generateProject,
+                                icon: const Icon(Icons.rocket_launch),
+                                label: const Text('Generate Project'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.orange,
+                                  foregroundColor: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              const SizedBox(height: 10),
+        ),
+        if (orchestration.isLoading)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                SizedBox(width: 8),
+                Text('AI is processing...'),
+              ],
+            ),
+          ),
+        if (orchestration.error != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Text(
+              'Error: ${orchestration.error}',
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
               Expanded(
-                child: ListView(
-                  children: [
-                    Text('Status: ${result['status']}'),
-                    const Divider(),
-                    const Text('Decisions:', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ...((result['context']?['decisions'] as List?)?.map((d) => ListTile(
-                      title: Text(d['decisionKey'] ?? 'Unknown'),
-                      subtitle: Text(d['aiConsensus'] ?? ''),
-                      leading: const Icon(Icons.check_circle, color: Colors.green),
-                    )).toList() ?? [const Text('No decisions found')]),
-                  ],
+                child: TextField(
+                  controller: _chatController,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter your requirement...',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: null,
+                  textInputAction: TextInputAction.send,
+                  onSubmitted: (_) => _sendMessage(),
                 ),
               ),
-            ]
-          ],
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: orchestration.isLoading ? null : _sendMessage,
+                icon: const Icon(Icons.send),
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }
