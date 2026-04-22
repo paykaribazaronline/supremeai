@@ -38,7 +38,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         // Skip Firebase auth for explicitly public API endpoints.
         return path.startsWith("/api/health") ||
                path.startsWith("/api/status") ||
-               path.startsWith("/api/auth/");
+               path.startsWith("/api/auth/") ||
+               path.startsWith("/api/config/");
     }
 
     @Override
