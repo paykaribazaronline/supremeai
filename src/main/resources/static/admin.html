@@ -57,21 +57,40 @@
             }
         }
 
-        function updateAdminUserDisplay() {
+        async function updateAdminUserDisplay() {
             const userNameEl = document.getElementById('adminUserName');
             const avatarEl = document.getElementById('adminUserAvatar');
             const loginBtn = document.getElementById('adminLoginBtn');
-            const userStr = localStorage.getItem('supremeai_user');
+            const logoutBtn = document.getElementById('adminLogoutBtn');
+            let userStr = localStorage.getItem('supremeai_user');
+
+            // Fallback: fetch from backend session if localStorage is empty
+            if (!userStr) {
+                try {
+                    const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.status === 'success' && data.user) {
+                            userStr = JSON.stringify(data.user);
+                            localStorage.setItem('supremeai_user', userStr);
+                        }
+                    }
+                } catch (e) {
+                    // silent fail
+                }
+            }
+
             if (userStr) {
                 try {
                     const user = JSON.parse(userStr);
-                    const displayName = user.username || user.email || 'Admin';
+                    const displayName = user.displayName || user.username || user.email || 'Admin';
                     if (userNameEl) userNameEl.textContent = displayName;
                     if (avatarEl) {
                         avatarEl.textContent = displayName.charAt(0).toUpperCase();
                         avatarEl.title = user.email || displayName;
                     }
                     if (loginBtn) loginBtn.style.display = 'none';
+                    if (logoutBtn) logoutBtn.style.display = '';
                     if (userNameEl) userNameEl.style.display = '';
                     if (avatarEl) avatarEl.style.display = '';
                 } catch (e) {
@@ -80,17 +99,18 @@
             } else {
                 if (userNameEl) userNameEl.style.display = 'none';
                 if (avatarEl) avatarEl.style.display = 'none';
+                if (logoutBtn) logoutBtn.style.display = 'none';
                 if (loginBtn) loginBtn.style.display = '';
             }
         }
 
         async function checkAuth() {
-            updateAdminUserDisplay();
+            await updateAdminUserDisplay();
 
             await initializeFirebase();
 
             if (!firebaseAuth) {
-                updateAdminUserDisplay();
+                await updateAdminUserDisplay();
                 return;
             }
 
@@ -98,7 +118,7 @@
                 if (!user) {
                     localStorage.removeItem(FIREBASE_AUTH_FLAG);
                     localStorage.removeItem('supremeai_user');
-                    updateAdminUserDisplay();
+                    await updateAdminUserDisplay();
                 } else {
                     // Verify admin role with backend before granting access
                     try {
@@ -128,7 +148,7 @@
                     }
                     authenticated = true;
                     localStorage.setItem(FIREBASE_AUTH_FLAG, 'true');
-                    updateAdminUserDisplay();
+                    await updateAdminUserDisplay();
                     initializeDashboard();
                 }
             });
@@ -854,9 +874,9 @@
             <div class="top-bar">
                 <h2 id="pageTitle">Dashboard</h2>
                 <div class="user-info">
-                    <span id="adminUserName">Admin</span>
-                    <div class="user-avatar" id="adminUserAvatar">A</div>
-                    <a id="adminLoginBtn" href="/login.html?redirect=%2Fadmin.html" style="display:none; background:#4299e1; color:#fff; padding:6px 16px; border-radius:6px; text-decoration:none; font-size:14px; font-weight:600;">Login</a>
+                    <span id="adminUserName" style="display:none;">Admin</span>
+                    <div class="user-avatar" id="adminUserAvatar" style="display:none;">A</div>
+                    <button id="adminLogoutBtn" onclick="logout()" style="display:none; background:#e53e3e; color:#fff; padding:6px 16px; border-radius:6px; border:none; cursor:pointer; font-size:14px; font-weight:600; margin-left:8px;">Logout</button><a id="adminLoginBtn" href="/login.html?redirect=%2Fadmin.html" style="display:none; background:#4299e1; color:#fff; padding:6px 16px; border-radius:6px; text-decoration:none; font-size:14px; font-weight:600;">Login</a>
                 </div>
             </div>
 
@@ -6173,8 +6193,13 @@
             }
         }
 
-        function logout() {
+        async function logout() {
             if (!confirm('Are you sure you want to logout?')) return;
+            try {
+                await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+            } catch (e) {
+                console.warn('Backend logout call failed:', e);
+            }
             localStorage.removeItem('supremeai_firebase_authenticated');
             localStorage.removeItem('supremeai_user');
             localStorage.removeItem('supremeai_auth_token');
