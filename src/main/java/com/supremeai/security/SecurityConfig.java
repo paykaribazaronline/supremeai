@@ -29,9 +29,10 @@ public class SecurityConfig {
                 return configuration;
             }))
             
-            // Keep most endpoints open, but lock admin config APIs.
+            // Admin endpoints require ADMIN role; all other endpoints are open.
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/admin/config/**").hasRole("ADMIN")
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 .anyRequest().permitAll()
             );
 

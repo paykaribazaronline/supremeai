@@ -147,14 +147,10 @@ public class AdminDashboardController extends BaseAdminController<Object, String
                         )
                 )))
                 .defaultIfEmpty(ResponseEntity.status(404).body(Map.of("error", "User not found")))
-                .onErrorResume(e -> Mono.just(handleError("Failed to update user tier for user: " + userId, e)));
+                .onErrorResume(e -> handleError("Failed to update user tier for user: " + userId, e));
     }
 
-    private ResponseEntity<Object> handleError(String context, Throwable e) {
-        logger.error(context, e);
-        Map<String, Object> errorBody = Map.of("error", context + ": " + e.getMessage());
-        return ResponseEntity.status(500).body((Object) errorBody);
-    }
+
 
     @GetMapping("/tiers")
     public Mono<ResponseEntity<Object>> getAvailableTiers() {

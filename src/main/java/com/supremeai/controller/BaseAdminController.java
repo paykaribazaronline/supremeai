@@ -47,7 +47,7 @@ public abstract class BaseAdminController<T, ID> {
     /**
      * Generic error handler - consistent 500 responses with logging.
      */
-    private Mono<ResponseEntity<Object>> handleError(String context, Throwable e) {
+    protected Mono<ResponseEntity<Object>> handleError(String context, Throwable e) {
         logger.error(context, e);
         Map<String, Object> errorBody = Map.of("error", context + ": " + e.getMessage());
         return Mono.just(ResponseEntity.status(500).body((Object) errorBody));
