@@ -68,7 +68,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(ok ? 'Settings saved successfully' : (provider.error ?? 'Save failed')),
+        content: Text(ok
+            ? 'Settings saved successfully'
+            : (provider.error ?? 'Save failed')),
       ),
     );
   }
@@ -79,7 +81,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       appBar: AppBar(title: const Text('SupremeAI Settings')),
       body: Consumer<SettingsProvider>(
         builder: (context, settingsProvider, _) {
-          if (settingsProvider.isLoading && settingsProvider.settings.model.isEmpty) {
+          if (settingsProvider.isLoading &&
+              settingsProvider.settings.model.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -103,11 +106,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                initialValue: _shareMode,
+                value: _shareMode,
                 items: const [
-                  DropdownMenuItem(value: 'manual', child: Text('Manual share')),
+                  DropdownMenuItem(
+                      value: 'manual', child: Text('Manual share')),
                   DropdownMenuItem(value: 'auto', child: Text('Auto share')),
-                  DropdownMenuItem(value: 'disabled', child: Text('Sharing disabled')),
+                  DropdownMenuItem(
+                      value: 'disabled', child: Text('Sharing disabled')),
                 ],
                 onChanged: (value) {
                   if (value == null) return;
@@ -118,15 +123,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 12),
               SwitchListTile(
                 title: const Text('Full authority mode'),
-                subtitle: const Text('Allows all core tools without extra confirmation'),
+                subtitle: const Text(
+                    'Allows all core tools without extra confirmation'),
                 value: _fullAuthority,
                 onChanged: (value) => setState(() => _fullAuthority = value),
               ),
               SwitchListTile(
                 title: const Text('Allow external directory access'),
-                subtitle: const Text('Can access directories outside workspace'),
+                subtitle:
+                    const Text('Can access directories outside workspace'),
                 value: _externalDirectory,
-                onChanged: (value) => setState(() => _externalDirectory = value),
+                onChanged: (value) =>
+                    setState(() => _externalDirectory = value),
               ),
               const SizedBox(height: 12),
               if (settingsProvider.error != null)
@@ -138,7 +146,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ElevatedButton.icon(
                 onPressed: settingsProvider.isLoading ? null : _save,
                 icon: const Icon(Icons.save),
-                label: Text(settingsProvider.isLoading ? 'Saving...' : 'Save Settings'),
+                label: Text(
+                    settingsProvider.isLoading ? 'Saving...' : 'Save Settings'),
               ),
             ],
           );
