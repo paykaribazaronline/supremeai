@@ -39,6 +39,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         return path.startsWith("/api/health") ||
                path.startsWith("/api/status") ||
                path.startsWith("/api/auth/") ||
+               path.startsWith("/api/chat/") ||
                path.startsWith("/api/config/");
     }
 
