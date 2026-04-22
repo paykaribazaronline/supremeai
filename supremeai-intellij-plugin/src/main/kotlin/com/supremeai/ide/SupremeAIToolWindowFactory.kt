@@ -102,11 +102,26 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                         val response = conn.inputStream.bufferedReader().use { it.readText() }
                         SwingUtilities.invokeLater {
                             try {
-                                val json = com.google.gson.JsonParser.parseString(response).asJsonObject
-                                val aiMessage = json.get("message")?.asString ?: "Response received"
-                                chatArea.append("AI: $aiMessage\n")
+                                val jsonElement = com.google.gson.JsonParser.parseString(response)
+                                val aiMessage = when {
+                                    jsonElement.isJsonObject -> {
+                                        val json = jsonElement.asJsonObject
+                                        when {
+                                            json.has("message") && json.get("message").isJsonPrimitive -> json.get("message").asString
+                                            json.has("response") && json.get("response").isJsonPrimitive -> json.get("response").asString
+                                            json.has("text") && json.get("text").isJsonPrimitive -> json.get("text").asString
+                                            json.has("content") && json.get("content").isJsonPrimitive -> json.get("content").asString
+                                            json.has("reply") && json.get("reply").isJsonPrimitive -> json.get("reply").asString
+                                            json.has("answer") && json.get("answer").isJsonPrimitive -> json.get("answer").asString
+                                            else -> "Response received (no valid message field found)"
+                                        }
+                                    }
+                                    jsonElement.isJsonPrimitive -> jsonElement.asString
+                                    else -> "Response received (unsupported JSON format)"
+                                }
+                                chatArea.append("AI: ${aiMessage.replace("\r", "").trim()}\n")
                             } catch (e: Exception) {
-                                chatArea.append("AI: Response received\n")
+                                chatArea.append("AI: Parse error: ${e.message?.replace("\r", "")?.trim() ?: "Unknown parse error"}\n")
                             }
                         }
                     } else {
