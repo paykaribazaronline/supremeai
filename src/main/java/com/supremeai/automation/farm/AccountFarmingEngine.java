@@ -13,15 +13,15 @@ import java.util.UUID;
 public class AccountFarmingEngine {
 
     private static final Logger log = LoggerFactory.getLogger(AccountFarmingEngine.class);
-    private final VPNController vpnController;
+    private final VPNManager vpnManager;
     private final List<SyntheticAccount> accountPool = new CopyOnWriteArrayList<>();
 
     private final String CATCH_ALL_DOMAIN = "@supremeai-internal.net";
     private final String[] VPN_REGIONS = {"US", "UK", "CA", "SG", "DE", "JP"};
     private int vpnIndex = 0;
 
-    public AccountFarmingEngine(VPNController vpnController) {
-        this.vpnController = vpnController;
+    public AccountFarmingEngine(VPNManager vpnManager) {
+        this.vpnManager = vpnManager;
     }
 
     public void autoFarmNewAccounts(AIProvider targetProvider, int count) {
@@ -30,7 +30,7 @@ public class AccountFarmingEngine {
             String syntheticEmail = "bot_" + UUID.randomUUID().toString().substring(0, 8) + CATCH_ALL_DOMAIN;
             String targetVpnRegion = VPN_REGIONS[vpnIndex % VPN_REGIONS.length];
             vpnIndex++;
-            vpnController.connectToRegion(targetVpnRegion);
+            vpnManager.connectToRegion(targetVpnRegion);
             
             log.info("Harvested new keys for {}. Added to pool.", targetProvider);
         }
