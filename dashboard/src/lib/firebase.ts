@@ -12,13 +12,13 @@ import {
 } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8',
-  authDomain: 'supremeai-a.firebaseapp.com',
-  databaseURL: 'https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/',
-  projectId: 'supremeai-a',
-  storageBucket: 'supremeai-a.firebasestorage.app',
-  messagingSenderId: '565236080752',
-  appId: '1:565236080752:web:572bb9313db9afb355d4b5',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'supremeai-a.firebaseapp.com',
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL || 'https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'supremeai-a',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'supremeai-a.firebasestorage.app',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '565236080752',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:565236080752:web:572bb9313db9afb355d4b5',
 };
 
 // Avoid re-initialising the app during HMR
