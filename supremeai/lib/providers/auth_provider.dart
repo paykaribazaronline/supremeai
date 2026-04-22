@@ -40,9 +40,9 @@ class AuthProvider with ChangeNotifier {
 
   void continueAsGuest() async {
     _status = AuthStatus.guest;
+    notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('is_guest', true);
-    notifyListeners();
   }
 
   void logout() async {
