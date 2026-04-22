@@ -15,7 +15,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
-public class AdminDashboardController extends BaseAdminController<User, String> {
+public class AdminDashboardController extends BaseAdminController<Object, String> {
 
     private final UserRepository userRepository;
     private final AgentRepository agentRepository;
@@ -138,7 +138,7 @@ public class AdminDashboardController extends BaseAdminController<User, String> 
                     user.setUpdatedAt(java.time.LocalDateTime.now());
                     return userRepository.save(user);
                 })
-                .map(user -> ResponseEntity.ok(Map.of(
+                .map(user -> (ResponseEntity<Object>) ResponseEntity.ok((Object) Map.of(
                         "message", "User tier updated successfully",
                         "user", Map.of(
                                 "id", user.getFirebaseUid(),
