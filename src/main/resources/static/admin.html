@@ -41,7 +41,18 @@
                             firebase.initializeApp(firebaseConfig);
                         }
                         firebaseAuth = firebase.auth();
-                        return;
+                        // Keep stored token in sync with Firebase's automatic refreshes
+                        firebaseAuth.onIdTokenChanged(async (user) => {
+                            if (user) {
+                                try {
+                                    const token = await user.getIdToken();
+                                    localStorage.setItem('supremeai_auth_token', token);
+                                } catch (e) { /* ignore */ }
+                            } else {
+                                localStorage.removeItem('supremeai_auth_token');
+                            }
+                        });
+                        return true;
                     }
                 }
                 throw new Error("Using fallback config");
@@ -51,8 +62,21 @@
                         firebase.initializeApp(firebaseConfigFallback);
                     }
                     firebaseAuth = firebase.auth();
+                    // Keep stored token in sync with Firebase's automatic refreshes
+                    firebaseAuth.onIdTokenChanged(async (user) => {
+                        if (user) {
+                            try {
+                                const token = await user.getIdToken();
+                                localStorage.setItem('supremeai_auth_token', token);
+                            } catch (e) { /* ignore */ }
+                        } else {
+                            localStorage.removeItem('supremeai_auth_token');
+                        }
+                    });
+                    return true;
                 } catch (fallbackErr) {
                     window.location.href = '/login.html?redirect=%2Fadmin.html';
+                    return false;
                 }
             }
         }
@@ -120,10 +144,12 @@
                     localStorage.removeItem('supremeai_user');
                     await updateAdminUserDisplay();
                 } else {
-                    // Verify admin role with backend before granting access
-                    try {
-                        const idToken = await user.getIdToken();
-                        const resp = await fetch('/api/auth/firebase-login', {
+                     // Verify admin role with backend before granting access
+                     try {
+                         const idToken = await user.getIdToken();
+                         // Store the Firebase ID token for API Authorization headers
+                         localStorage.setItem('supremeai_auth_token', idToken);
+                         const resp = await fetch('/api/auth/firebase-login', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ idToken })
@@ -152,6 +178,49 @@
                     initializeDashboard();
                 }
             });
+         }
+
+        // Ensures admin session exists before loading dashboard data
+        async function ensureAdminSession() {
+            const getAdminUser = () => {
+                const us = localStorage.getItem('supremeai_user');
+                if (!us) return null;
+                try {
+                    const u = JSON.parse(us);
+                    return u.role === 'admin' ? u : null;
+                } catch { return null; }
+            };
+
+            // Fast path: already authenticated via checkAuth
+            if (authenticated) {
+                if (firebaseAuth && firebaseAuth.currentUser) {
+                    try {
+                        const token = await firebaseAuth.currentUser.getIdToken();
+                        localStorage.setItem('supremeai_auth_token', token);
+                    } catch (e) { /* ignore */ }
+                }
+                return true;
+            }
+
+            // Check if we have admin user in localStorage (persisted session)
+            let user = getAdminUser();
+            if (!user) return false;
+
+            // Wait briefly for checkAuth to complete (sets authenticated flag)
+            const start = Date.now();
+            while (!authenticated && Date.now() - start < 3000) {
+                // While waiting, try to ensure auth token exists
+                if (!localStorage.getItem('supremeai_auth_token') && firebaseAuth && firebaseAuth.currentUser) {
+                    try {
+                        const token = await firebaseAuth.currentUser.getIdToken();
+                        localStorage.setItem('supremeai_auth_token', token);
+                    } catch (e) { /* ignore */ }
+                }
+                await new Promise(r => setTimeout(r, 50));
+            }
+
+            // Final verification
+            return getAdminUser() !== null;
         }
 
         function initializeDashboard() {
