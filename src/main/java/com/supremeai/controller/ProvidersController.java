@@ -2,6 +2,7 @@ package com.supremeai.controller;
 
 import com.supremeai.model.APIProvider;
 import com.supremeai.repository.ProviderRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
