@@ -21,6 +21,7 @@ Run:
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 from seed_lib import _learning, run_part
@@ -30,7 +31,6 @@ from seed_lib import _learning, run_part
 # ============================================================================
 
 SYSTEM_LEARNINGS = {
-
     "perf_caching_strategy": _learning(
         type_="PATTERN",
         category="PERFORMANCE",
@@ -59,7 +59,6 @@ SYSTEM_LEARNINGS = {
             "redis_spring": "spring.cache.type=redis + spring.cache.redis.time-to-live=300000",
         },
     ),
-
     "perf_spring_boot_async": _learning(
         type_="PATTERN",
         category="PERFORMANCE",
@@ -87,7 +86,6 @@ SYSTEM_LEARNINGS = {
             "warning": "Propagate MDC context to async threads: DelegatingSecurityContextTaskExecutor + MDC copy",
         },
     ),
-
     "perf_jvm_gc_tuning": _learning(
         type_="PATTERN",
         category="PERFORMANCE",
@@ -116,7 +114,6 @@ SYSTEM_LEARNINGS = {
             "profiler": "async-profiler (open source) or JFR (Java Flight Recorder, built-in Java 11+)",
         },
     ),
-
     "perf_api_pagination": _learning(
         type_="PATTERN",
         category="PERFORMANCE",
@@ -145,7 +142,6 @@ SYSTEM_LEARNINGS = {
             "spring_tip": "Pageable with Sort.by('id').ascending() for keyset compatibility",
         },
     ),
-
     "perf_http_compression": _learning(
         type_="PATTERN",
         category="PERFORMANCE",
@@ -168,9 +164,10 @@ SYSTEM_LEARNINGS = {
         severity="MEDIUM",
         confidence=0.94,
         times_applied=78,
-        context={"bandwidth_saving": "Typical JSON API response: 10KB → 2KB with gzip (80% reduction)"},
+        context={
+            "bandwidth_saving": "Typical JSON API response: 10KB → 2KB with gzip (80% reduction)"
+        },
     ),
-
     "perf_database_read_replicas": _learning(
         type_="PATTERN",
         category="PERFORMANCE",
@@ -198,7 +195,6 @@ SYSTEM_LEARNINGS = {
             "lag_threshold": "Alert if replication lag > 5s — reads may be significantly stale",
         },
     ),
-
     "perf_react_rendering": _learning(
         type_="PATTERN",
         category="FRONTEND_PERFORMANCE",
@@ -226,7 +222,6 @@ SYSTEM_LEARNINGS = {
             "tool": "React DevTools Profiler + why-did-you-render library for re-render debugging",
         },
     ),
-
     "perf_cdn_static_assets": _learning(
         type_="PATTERN",
         category="PERFORMANCE",
@@ -254,7 +249,6 @@ SYSTEM_LEARNINGS = {
             "ttl_guide": "Immutable assets: 1 year; API public: 60s; API private: no-cache",
         },
     ),
-
     "perf_spring_boot_profiling": _learning(
         type_="PATTERN",
         category="PERFORMANCE",
@@ -282,7 +276,6 @@ SYSTEM_LEARNINGS = {
             "download": "async-profiler: github.com/async-profiler/async-profiler",
         },
     ),
-
     "perf_webflux_reactive": _learning(
         type_="PATTERN",
         category="PERFORMANCE",
@@ -310,7 +303,6 @@ SYSTEM_LEARNINGS = {
             "trade_off": "Harder to debug, different programming model; use only when throughput is critical",
         },
     ),
-
     "perf_database_connection_tuning": _learning(
         type_="PATTERN",
         category="PERFORMANCE",
@@ -338,7 +330,6 @@ SYSTEM_LEARNINGS = {
             "cloud_sql": "Cloud SQL max_connections varies by instance tier; check before setting pool size",
         },
     ),
-
     "improvement_performance_testing": _learning(
         type_="IMPROVEMENT",
         category="PERFORMANCE",
@@ -373,7 +364,6 @@ SYSTEM_LEARNINGS = {
 # ============================================================================
 
 PERFORMANCE_KNOWLEDGE_DOCS = {
-
     "caching_patterns_guide": {
         "topic": "Caching — Complete Strategy Guide",
         "category": "CACHING",
@@ -433,7 +423,6 @@ PERFORMANCE_KNOWLEDGE_DOCS = {
         ),
         "confidence": 0.95,
     },
-
     "jvm_performance_guide": {
         "topic": "JVM Performance — Tuning and Analysis",
         "category": "JVM",
@@ -483,7 +472,6 @@ PERFORMANCE_KNOWLEDGE_DOCS = {
         },
         "confidence": 0.93,
     },
-
     "api_performance_guide": {
         "topic": "API Performance — Design for Speed",
         "category": "API_PERFORMANCE",
@@ -536,7 +524,6 @@ PERFORMANCE_KNOWLEDGE_DOCS = {
         ),
         "confidence": 0.94,
     },
-
     "react_performance_guide": {
         "topic": "React Performance — Rendering Optimisation",
         "category": "FRONTEND_PERFORMANCE",
@@ -574,7 +561,6 @@ PERFORMANCE_KNOWLEDGE_DOCS = {
         },
         "confidence": 0.93,
     },
-
     "load_testing_guide": {
         "topic": "Load Testing — Tools and Strategies",
         "category": "PERFORMANCE_TESTING",
@@ -601,7 +587,7 @@ PERFORMANCE_KNOWLEDGE_DOCS = {
             "  },\n"
             "};\n\n"
             "export default function () {\n"
-            "  const res = http.get('https://supremeai-a.run.app/api/health');\n"
+            "  const res = http.get('https://supremeai-lhlwyikwlq-uc.a.run.app/api/health');\n"
             "  check(res, { 'status 200': (r) => r.status === 200 });\n"
             "  sleep(1);\n"
             "}"

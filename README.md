@@ -8,7 +8,7 @@ Welcome to SupremeAI! This repository contains a comprehensive multi-agent syste
 
 The system has a production endpoint (for testing only) and a local development environment:
 
-- **Production (Test):** [https://supremeai-backend-565236080752.us-central1.run.app/admin.html](https://supremeai-backend-565236080752.us-central1.run.app/admin.html)
+- **Production (Test):** [https://supremeai-lhlwyikwlq-uc.a.run.app/admin.html](https://supremeai-lhlwyikwlq-uc.a.run.app/admin.html)
 - **Local Development:** Follow setup instructions below.
 
 ## 📚 Documentation
