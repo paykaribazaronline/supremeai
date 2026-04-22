@@ -10,5 +10,5 @@ COPY app.jar app.jar
 # Expose the port the app runs on
 EXPOSE 8080
 
-# Run the jar file
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Run the jar file with necessary exports for Gson/Java Time
+ENTRYPOINT ["java", "--add-opens", "java.base/java.time.chrono=ALL-UNNAMED", "--add-opens", "java.base/java.time=ALL-UNNAMED", "-jar", "app.jar"]
