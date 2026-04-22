@@ -30,27 +30,6 @@ class OrchestrationProvider with ChangeNotifier {
         _lastResult = json.decode(response.body);
       } else {
         _error = 'Failed: ${response.statusCode}';
-        Future<void> generateProject(String token) async {
-    if (_lastResult == null) return;
-
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      final response = await http.post(
-        Uri.parse('https://supremeai-lhlwyikwlq-uc.a.run.app/api/orchestrate/generate'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: json.encode(_lastResult),
-      );
-
-      if (response.statusCode == 200) {
-        _lastResult = json.decode(response.body);
-      } else {
-        _error = 'Generation Failed: ${response.statusCode}';
       }
     } catch (e) {
       _error = e.toString();
@@ -59,72 +38,7 @@ class OrchestrationProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-}
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-      Future<void> generateProject(String token) async {
-    if (_lastResult == null) return;
 
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      final response = await http.post(
-        Uri.parse('https://supremeai-lhlwyikwlq-uc.a.run.app/api/orchestrate/generate'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: json.encode(_lastResult),
-      );
-
-      if (response.statusCode == 200) {
-        _lastResult = json.decode(response.body);
-      } else {
-        _error = 'Generation Failed: ${response.statusCode}';
-      }
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-}
-    Future<void> generateProject(String token) async {
-    if (_lastResult == null) return;
-
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      final response = await http.post(
-        Uri.parse('https://supremeai-lhlwyikwlq-uc.a.run.app/api/orchestrate/generate'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: json.encode(_lastResult),
-      );
-
-      if (response.statusCode == 200) {
-        _lastResult = json.decode(response.body);
-      } else {
-        _error = 'Generation Failed: ${response.statusCode}';
-      }
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-}
   Future<void> generateProject(String token) async {
     if (_lastResult == null) return;
 

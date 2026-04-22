@@ -4,6 +4,7 @@ import com.supremeai.cost.QuotaManager;
 import com.supremeai.learning.knowledge.GlobalKnowledgeBase;
 import com.supremeai.learning.immunity.CodeImmunitySystem;
 import com.supremeai.intelligence.profiling.AIProfiler;
+import com.supremeai.provider.AIProviderFactory;
 import com.supremeai.resilience.RetryableAIExecutor;
 import com.supremeai.security.ApiKeyRotationService;
 import com.supremeai.model.UserApiKey;
@@ -33,6 +34,7 @@ public class AIFallbackOrchestrator {
     private final AIProfiler aiProfiler;
     private final RetryableAIExecutor retryExecutor;
     private final ApiKeyRotationService keyRotationService;
+    private final AIProviderFactory providerFactory;
 
     private final CircuitBreakerRegistry circuitBreakerRegistry;
     private final Map<AIProvider, CircuitBreaker> providerCircuitBreakers = new EnumMap<>(AIProvider.class);
@@ -47,13 +49,15 @@ public class AIFallbackOrchestrator {
     public AIFallbackOrchestrator(QuotaManager quotaManager,
                                   GlobalKnowledgeBase knowledgeBase, CodeImmunitySystem immunitySystem,
                                   AIProfiler aiProfiler, RetryableAIExecutor retryExecutor,
-                                  ApiKeyRotationService keyRotationService) {
+                                  ApiKeyRotationService keyRotationService,
+                                  AIProviderFactory providerFactory) {
         this.quotaManager = quotaManager;
         this.knowledgeBase = knowledgeBase;
         this.immunitySystem = immunitySystem;
         this.aiProfiler = aiProfiler;
         this.retryExecutor = retryExecutor;
         this.keyRotationService = keyRotationService;
+        this.providerFactory = providerFactory;
 
         CircuitBreakerConfig config = CircuitBreakerConfig.custom()
                 .failureRateThreshold(50)
@@ -202,7 +206,38 @@ public class AIFallbackOrchestrator {
     }
 
     private String callAIProvider(AIProvider provider, String apiKey, String prompt) throws Exception {
-        Thread.sleep((long) (Math.random() * 500));
-        return "public void fixedMethod() { /* Clean Code Fix */ }";
+        String providerName = mapFallbackProviderToFactoryName(provider);
+        com.supremeai.provider.AIProvider realProvider = providerFactory.getProvider(providerName, apiKey);
+        return realProvider.generate(prompt);
+    }
+
+    private String mapFallbackProviderToFactoryName(AIProvider provider) {
+        switch (provider) {
+            case GROQ_LLAMA3: return "groq";
+            case GEMINI_PRO: return "gemini";
+            case ANTHROPIC_CLAUDE: return "anthropic";
+            case HUGGINGFACE_FREE: return "huggingface";
+            default: return provider.name().toLowerCase();
+        }
+    }
+
+    public Map<String, Object> getProviderHealthStatus() {
+        Map<String, Object> status = new java.util.HashMap<>();
+        for (AIProvider provider : allProviders) {
+            CircuitBreaker cb = providerCircuitBreakers.get(provider);
+            Map<String, Object> providerStatus = new java.util.HashMap<>();
+            if (cb != null) {
+                providerStatus.put("state", cb.getState().name());
+                providerStatus.put("failureRate", cb.getMetrics().getFailureRate());
+                providerStatus.put("slowCallRate", cb.getMetrics().getSlowCallRate());
+                providerStatus.put("numberOfSuccessfulCalls", cb.getMetrics().getNumberOfSuccessfulCalls());
+                providerStatus.put("numberOfFailedCalls", cb.getMetrics().getNumberOfFailedCalls());
+            } else {
+                providerStatus.put("state", "UNKNOWN");
+            }
+            providerStatus.put("quotaAvailable", isServiceQuotaAvailable(provider));
+            status.put(provider.name(), providerStatus);
+        }
+        return status;
     }
 }
