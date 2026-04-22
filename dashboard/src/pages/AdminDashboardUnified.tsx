@@ -142,14 +142,28 @@ const AdminDashboardUnified: React.FC = () => {
         return <Alert type="error" message={error || 'Failed to load dashboard'} />;
     }
 
-    // Build grouped menu from contract navigation
+    // Build consolidated single level menu (intelligently merged)
     const menuGroups = [
         {
             key: 'dashboard',
-            label: '📊 Dashboard & Analytics',
+            label: '📊 Dashboard',
             type: 'group',
             children: contract.navigation
-                .filter(i => ['overview', 'metrics', 'analytics', 'quota', 'cost'].includes(i.key))
+                .filter(i => ['overview', 'metrics', 'analytics', 'cost', 'quota'].includes(i.key))
+                .map(item => ({
+                    key: item.key,
+                    icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
+                    label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
+                    title: item.description,
+                    disabled: !item.enabled,
+                }))
+        },
+        {
+            key: 'projects',
+            label: '📂 Projects',
+            type: 'group',
+            children: contract.navigation
+                .filter(i => ['projects', 'deployment', 'git-ops'].includes(i.key))
                 .map(item => ({
                     key: item.key,
                     icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
@@ -160,10 +174,10 @@ const AdminDashboardUnified: React.FC = () => {
         },
         {
             key: 'ai',
-            label: '🤖 AI Systems',
+            label: '🤖 AI',
             type: 'group',
             children: contract.navigation
-                .filter(i => ['ai-agents', 'providers', 'ml-intelligence', 'ai-models'].includes(i.key))
+                .filter(i => ['ai-systems', 'ai-agents', 'providers', 'ml-intelligence', 'ai-models', 'consensus'].includes(i.key))
                 .map(item => ({
                     key: item.key,
                     icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
@@ -174,10 +188,10 @@ const AdminDashboardUnified: React.FC = () => {
         },
         {
             key: 'learning',
-            label: '📚 Knowledge & Learning',
+            label: '🧠 Knowledge',
             type: 'group',
             children: contract.navigation
-                .filter(i => ['learning', 'system-learning', 'teaching', 'research'].includes(i.key))
+                .filter(i => ['knowledge', 'learning', 'system-learning', 'teaching', 'research'].includes(i.key))
                 .map(item => ({
                     key: item.key,
                     icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
@@ -187,11 +201,11 @@ const AdminDashboardUnified: React.FC = () => {
                 }))
         },
         {
-            key: 'operations',
-            label: '⚙️ Operations',
+            key: 'integrations',
+            label: '🔌 Tools',
             type: 'group',
             children: contract.navigation
-                .filter(i => ['git-ops', 'deployment', 'vpn', 'headless-browser', 'exploitation-techniques'].includes(i.key))
+                .filter(i => ['integrations', 'vpn', 'headless-browser', 'exploitation-techniques'].includes(i.key))
                 .map(item => ({
                     key: item.key,
                     icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
@@ -202,7 +216,7 @@ const AdminDashboardUnified: React.FC = () => {
         },
         {
             key: 'health',
-            label: '🛡️ System Health',
+            label: '🛡️ Resilience',
             type: 'group',
             children: contract.navigation
                 .filter(i => ['resilience', 'autofix', 'self-healing', 'audit'].includes(i.key))
@@ -216,10 +230,10 @@ const AdminDashboardUnified: React.FC = () => {
         },
         {
             key: 'admin',
-            label: '👥 Administration',
+            label: '⚙️ Admin',
             type: 'group',
             children: contract.navigation
-                .filter(i => ['user-management', 'api-keys', 'notifications', 'settings', 'phases'].includes(i.key))
+                .filter(i => ['administration', 'user-management', 'api-keys', 'notifications', 'settings', 'phases'].includes(i.key))
                 .map(item => ({
                     key: item.key,
                     icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,

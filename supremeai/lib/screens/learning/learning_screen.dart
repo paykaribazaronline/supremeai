@@ -9,7 +9,8 @@ class LearningScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('System Learning')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        children: [
+        child: Column(
+          children: [
           const Text('Learning Progress', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 20),
           _buildMetricCard('Techniques Learned', '1,245', Icons.school, Colors.blue),
@@ -27,7 +28,8 @@ class LearningScreen extends StatelessWidget {
             value: false,
             onChanged: (val) {},
           ),
-        ],
+          ],
+        ),
       ),
     );
   }

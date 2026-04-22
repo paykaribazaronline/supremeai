@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supremeai/main.dart';
 import 'package:supremeai/providers/auth_provider.dart';
 import 'package:supremeai/screens/login_screen.dart';
+import 'package:supremeai/screens/dashboard/home_screen.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -43,7 +44,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify we are on Home Page
-    expect(find.byType(MyHomePage), findsOneWidget);
-    expect(find.text('SupremeAI Home'), findsOneWidget);
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(find.text('SupremeAI Dashboard'), findsOneWidget);
   });
 }
