@@ -24,6 +24,12 @@ dependencies {
         bundledPlugin("org.jetbrains.kotlin")
         bundledPlugin("org.jetbrains.android")
     }
+    
+    // Regular dependencies
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("org.springframework:spring-messaging:6.1.10")
+    implementation("org.springframework:spring-websocket:6.1.10")
+    implementation("org.glassfish.tyrus.bundles:tyrus-standalone-client:1.21")
 }
 
 kotlin {
