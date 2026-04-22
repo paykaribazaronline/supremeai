@@ -1,4 +1,4 @@
-﻿// KingModePanel.tsx — Admin Override (King Mode) with WAIT/AUTO/FORCE_STOP
+// KingModePanel.tsx — Admin Override (King Mode) with WAIT/AUTO/FORCE_STOP
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Tag, Space, Alert, List, Modal, Typography, Row, Col, Statistic, Switch, Badge, message, Popconfirm } from 'antd';
 import { CrownOutlined, StopOutlined, PlayCircleOutlined, PauseCircleOutlined, CheckOutlined, CloseOutlined, ExclamationCircleOutlined, ReloadOutlined } from '@ant-design/icons';
@@ -23,19 +23,49 @@ interface SystemStatus {
     uptime: string;
 }
 
+interface ErrorState {
+    message: string;
+    recoverable: boolean;
+    action?: string;
+}
+
 const KingModePanel: React.FC = () => {
     const [status, setStatus] = useState<SystemStatus>({ mode: 'AUTO', isRunning: true, pendingCount: 0, lastModeChange: '', uptime: '' });
     const [pendingActions, setPendingActions] = useState<PendingAction[]>([]);
     const [loading, setLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
+    const [error, setError] = useState<ErrorState | null>(null);
 
     const getHeaders = () => {
         const token = authUtils.getToken();
         return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
     };
 
+    const handleError = (err: unknown, context: string): ErrorState => {
+        if (err instanceof TypeError && err.message.includes('fetch')) {
+            return {
+                message: `Unable to connect to the server while ${context.toLowerCase()}. Please check your internet connection and try again.`,
+                recoverable: true,
+                action: 'Retry'
+            };
+        }
+        if (err instanceof Error) {
+            return {
+                message: `${context} failed: ${err.message}`,
+                recoverable: true,
+                action: 'Retry'
+            };
+        }
+        return {
+            message: `An unexpected error occurred during ${context.toLowerCase()}. Please refresh the page and try again.`,
+            recoverable: true,
+            action: 'Refresh Page'
+        };
+    };
+
     const fetchStatus = async () => {
         setLoading(true);
+        setError(null);
         try {
             const [statusRes, pendingRes] = await Promise.all([
                 fetch('/api/admin/control', { headers: getHeaders() }),
@@ -51,13 +81,18 @@ const KingModePanel: React.FC = () => {
                     lastModeChange: data.lastModeChange || data.lastChanged || '',
                     uptime: data.uptime || '',
                 });
+            } else if (statusRes.status === 401) {
+                setError({ message: 'Your session has expired. Please log in again.', recoverable: false });
+            } else if (statusRes.status === 403) {
+                setError({ message: 'You do not have permission to access King Mode controls.', recoverable: false });
             }
             if (pendingRes.ok) {
                 const data = await pendingRes.json();
                 setPendingActions(Array.isArray(data) ? data : data.actions || []);
             }
-        } catch (error) {
-            console.error('Failed to fetch admin control status:', error);
+        } catch (err) {
+            const errorState = handleError(err, 'Fetching system status');
+            setError(errorState);
         } finally {
             setLoading(false);
         }
@@ -66,32 +101,72 @@ const KingModePanel: React.FC = () => {
     useEffect(() => { fetchStatus(); const interval = setInterval(fetchStatus, 10000); return () => clearInterval(interval); }, []);
 
     const changeMode = async (newMode: string) => {
+        setError(null);
         try {
             const res = await fetch('/api/admin/control/mode', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ mode: newMode }) });
-            if (res.ok) { message.success(`Mode changed to ${newMode}`); fetchStatus(); } else { message.error('Failed to change mode'); }
-        } catch { message.error('Error changing mode'); }
+            if (res.ok) {
+                message.success(`Mode changed to ${newMode}`);
+                fetchStatus();
+            } else if (res.status === 401) {
+                setError({ message: 'Session expired. Please log in again to change modes.', recoverable: false });
+            } else if (res.status === 503) {
+                setError({ message: 'System is currently unavailable. Please try again in a few moments.', recoverable: true, action: 'Retry' });
+            } else {
+                setError({ message: `Failed to change mode to ${newMode}. The server returned an error.`, recoverable: true, action: 'Retry' });
+            }
+        } catch (err) {
+            setError(handleError(err, 'Changing mode'));
+        }
     };
 
     const forceStop = async () => {
+        setError(null);
         try {
             const res = await fetch('/api/admin/control/stop', { method: 'POST', headers: getHeaders() });
-            if (res.ok) { message.warning('FORCE STOP executed!'); fetchStatus(); } else { message.error('Stop failed'); }
-        } catch { message.error('Error executing stop'); }
+            if (res.ok) {
+                message.warning('FORCE STOP executed!');
+                fetchStatus();
+            } else if (res.status === 503) {
+                setError({ message: 'System is unresponsive. Try refreshing the page or contacting support.', recoverable: true, action: 'Refresh' });
+            } else {
+                setError({ message: 'Failed to stop operations. Please try again.', recoverable: true, action: 'Retry' });
+            }
+        } catch (err) {
+            setError(handleError(err, 'stopping operations'));
+        }
     };
 
     const resumeOperations = async () => {
+        setError(null);
         try {
             const res = await fetch('/api/admin/control/resume', { method: 'POST', headers: getHeaders() });
-            if (res.ok) { message.success('Operations resumed!'); fetchStatus(); } else { message.error('Resume failed'); }
-        } catch { message.error('Error resuming'); }
+            if (res.ok) {
+                message.success('Operations resumed!');
+                fetchStatus();
+            } else {
+                setError({ message: 'Failed to resume operations. Please try again.', recoverable: true, action: 'Retry' });
+            }
+        } catch (err) {
+            setError(handleError(err, 'resuming operations'));
+        }
     };
 
     const handlePendingAction = async (actionId: string, decision: 'approve' | 'reject') => {
         setActionLoading(actionId);
+        setError(null);
         try {
             const res = await fetch(`/api/admin/control/pending/${actionId}/${decision}`, { method: 'POST', headers: getHeaders() });
-            if (res.ok) { message.success(`Action ${decision}d!`); fetchStatus(); } else { message.error(`Failed to ${decision}`); }
-        } catch { message.error(`Error ${decision}ing action`); }
+            if (res.ok) {
+                message.success(`Action ${decision}d!`);
+                fetchStatus();
+            } else if (res.status === 404) {
+                setError({ message: `This action no longer exists. It may have been handled by another admin.`, recoverable: true, action: 'Refresh' });
+            } else {
+                setError({ message: `Failed to ${decision} the action. Please try again.`, recoverable: true, action: 'Retry' });
+            }
+        } catch (err) {
+            setError(handleError(err, `${decision}ing action`));
+        }
         finally { setActionLoading(null); }
     };
 
@@ -103,6 +178,25 @@ const KingModePanel: React.FC = () => {
             <Alert message={<><CrownOutlined /> King Mode — Full Admin Override Control</>}
                 description="You have complete authority over the AI system. Change modes, approve/reject actions, and force stop operations."
                 type="info" showIcon style={{ marginBottom: 24 }} />
+
+            {error && (
+                <Alert
+                    message="Error"
+                    description={error.message}
+                    type="error"
+                    showIcon
+                    closable
+                    onClose={() => setError(null)}
+                    action={
+                        error.recoverable && error.action ? (
+                            <Button size="small" onClick={error.action === 'Retry' ? fetchStatus : () => window.location.reload()}>
+                                {error.action}
+                            </Button>
+                        ) : null
+                    }
+                    style={{ marginBottom: 24 }}
+                />
+            )}
 
             <Row gutter={16} style={{ marginBottom: 24 }}>
                 <Col span={6}><Card><div style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: '#8c8c8c' }}>Current Mode</div><Tag color={modeColor} style={{ fontSize: 20, padding: '4px 16px', marginTop: 8 }}>{modeIcon} {status.mode}</Tag></div></Card></Col>

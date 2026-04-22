@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
     Card, Tabs, Button, Input, Table, Tag, Space, Modal, Form, Select,
     message, Popconfirm, Empty, List, Spin, Row, Col, Typography, Tooltip, Badge, Switch,
-    Statistic as AntStatistic
+    Statistic as AntStatistic, Alert
 } from 'antd';
 import {
     KeyOutlined, SearchOutlined, PlusOutlined, DeleteOutlined,
@@ -124,11 +124,13 @@ const APIKeysTab: React.FC = () => {
     const [editingKey, setEditingKey] = useState<SavedAPIKey | null>(null);
     const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
     const [form] = Form.useForm();
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => { fetchKeys(); }, []);
 
     const fetchKeys = async () => {
         setLoading(true);
+        setError(null);
         try {
             const token = localStorage.getItem('authToken');
             const response = await fetch('/api/apikeys', {
@@ -136,15 +138,18 @@ const APIKeysTab: React.FC = () => {
             });
             if (response.ok) {
                 setKeys(await response.json());
+            } else if (response.status === 401) {
+                setError('Session expired. Please log in again.');
             }
-        } catch {
-            // Backend may not exist yet - show empty state
+        } catch (err) {
+            setError('Unable to connect to the server. Please check your internet connection and try again.');
         } finally {
             setLoading(false);
         }
     };
 
     const handleSave = async (values: any) => {
+        setError(null);
         try {
             const token = localStorage.getItem('authToken');
             const endpoint = editingKey ? `/api/apikeys/${editingKey.id}` : '/api/apikeys';
@@ -160,29 +165,40 @@ const APIKeysTab: React.FC = () => {
                 form.resetFields();
                 setEditingKey(null);
                 fetchKeys();
+            } else if (response.status === 409) {
+                message.error('An API key with this configuration already exists.');
+            } else if (response.status === 400) {
+                const errData = await response.json().catch(() => ({}));
+                message.error(errData.message || 'Invalid input. Please check your API key and try again.');
             } else {
-                message.error('Failed to save API key');
+                message.error('Failed to save API key. The server encountered an error.');
             }
-        } catch {
-            message.error('Error saving API key');
+        } catch (err) {
+            message.error('Unable to connect to the server. Please check your internet connection.');
         }
     };
 
     const handleDelete = async (id: string) => {
+        setError(null);
         try {
             const token = localStorage.getItem('authToken');
-            await fetch(`/api/apikeys/${id}`, {
+            const response = await fetch(`/api/apikeys/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` },
             });
-            message.success('API key removed');
-            fetchKeys();
-        } catch {
-            message.error('Error removing API key');
+            if (response.ok) {
+                message.success('API key removed');
+                fetchKeys();
+            } else {
+                message.error('Failed to remove API key. Please try again.');
+            }
+        } catch (err) {
+            message.error('Unable to connect to the server. Please check your connection.');
         }
     };
 
     const handleTest = async (id: string) => {
+        setError(null);
         try {
             const token = localStorage.getItem('authToken');
             const response = await fetch(`/api/apikeys/${id}/test`, {
@@ -190,13 +206,17 @@ const APIKeysTab: React.FC = () => {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
             if (response.ok) {
-                message.success('API key is valid!');
+                message.success('API key is valid and working!');
                 fetchKeys();
+            } else if (response.status === 401) {
+                message.error('API key is invalid or has expired. Please update it.');
+            } else if (response.status === 429) {
+                message.warning('Rate limit reached. Please wait a moment before testing again.');
             } else {
-                message.error('API key test failed');
+                message.error('API key test failed. Please verify the key and provider settings.');
             }
-        } catch {
-            message.error('Error testing API key');
+        } catch (err) {
+            message.error('Unable to test API key. Please check your internet connection.');
         }
     };
 
@@ -286,6 +306,18 @@ const APIKeysTab: React.FC = () => {
 
     return (
         <div>
+            {error && (
+                <Alert
+                    message="Connection Error"
+                    description={error}
+                    type="error"
+                    showIcon
+                    closable
+                    onClose={() => setError(null)}
+                    action={<Button size="small" onClick={fetchKeys}>Retry</Button>}
+                    style={{ marginBottom: 16 }}
+                />
+            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
                 <Title level={5} style={{ margin: 0 }}>
                     <SafetyOutlined /> Saved API Keys
@@ -466,7 +498,7 @@ const ModelDiscoveryTab: React.FC = () => {
                 message.info('No models found. Try a different search term or add a Google API key for Gemini models.');
             }
         } catch {
-            message.error('Search failed. Check your connection.');
+            message.error('Search failed due to network issue. Please check your internet connection and try again.');
         } finally {
             setLoading(false);
         }
