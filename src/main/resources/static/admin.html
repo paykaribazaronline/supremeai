@@ -29,6 +29,148 @@
         let firebaseAuth = null;
         let authenticated = false;
 
+        // ========== DYNAMIC SIDEBAR CONFIGURATION ==========
+        // Central definition of all menu items (all original sections preserved)
+        const MENU_ITEMS = {
+          'dashboard': { icon: '📊', label: 'Dashboard' },
+          'system-alerts': { icon: '🚨', label: 'System Alerts', elementId: 'sidebarAlertsItem' },
+          'system-engine': { icon: '🛠️', label: 'System Engine' },
+          'deployment': { icon: '🚀', label: 'Deployment' },
+          'approvals': { icon: '✅', label: 'Approvals' },
+          'commands': { icon: '💻', label: 'Commands' },
+          'provider-coverage': { icon: '🛰️', label: 'Provider Coverage' },
+          'live-activity': { icon: '⚡', label: 'Live Activity' },
+          'notifications': { icon: '📬', label: 'Notifications' },
+          'logs': { icon: '📝', label: 'Audit Logs' },
+          'techniques': { icon: '💡', label: 'Techniques' },
+          'ai-agents': { icon: '🤖', label: 'AI Agent Assignment' },
+          'consensus': { icon: '🧠', label: 'Multi-AI Consensus' },
+          'timeline': { icon: '📜', label: 'AI Decision Log' },
+          'kimi-k2': { icon: '🔮', label: 'AI Learning Orchestration' },
+          'system-learning': { icon: '📖', label: 'System Learning' },
+          'existing-projects': { icon: '🔧', label: 'Improve Existing App' },
+          'chat': { icon: '💬', label: 'Chat with SupremeAI' },
+          // 'workflow-chat' intentionally excluded – integrated into Improve Existing App section
+          'projects': { icon: '📦', label: 'Projects' },
+          'git-projects': { icon: '🔄', label: 'Git Projects' },
+          'browser-automation': { icon: '🌐', label: 'Browser Automation' },
+          'settings': { icon: '⚙️', label: 'Settings' },
+          'api-keys': { icon: '🔑', label: 'API Key Manager' },
+          'airllm-config': { icon: '⚙️', label: 'AirLLM Config' },
+          'user-management': { icon: '👥', label: 'User Management & Tiers' },
+          'vpn-management': { icon: '🔒', label: 'VPN Management' },
+          'activity-summary': { icon: '📈', label: 'Activity Summary' },
+          'metrics': { icon: '📈', label: 'Metrics & Alerts' },
+          'analytics': { icon: '📊', label: 'Usage Analytics' }
+        };
+
+        const MENU_CONFIG = [
+          { type: 'standalone', id: 'dashboard' },
+          {
+            type: 'category',
+            name: 'System & Operations',
+            icon: '⚙️',
+            items: [
+              'system-alerts', 'system-engine', 'deployment', 'approvals',
+              'commands', 'notifications', 'logs'
+            ]
+          },
+          {
+            type: 'category',
+            name: 'AI & Learning',
+            icon: '🤖',
+            items: [
+              { id: 'techniques' },
+              { id: 'ai-agents' },
+              { id: 'consensus' },
+              { id: 'timeline' },
+              { id: 'existing-projects' },
+              { id: 'chat' },
+              {
+                type: 'subcategory',
+                name: 'Learning Hub',
+                icon: '📚',
+                items: ['system-learning', 'kimi-k2']
+              }
+            ]
+          },
+          {
+            type: 'category',
+            name: 'Projects & Code',
+            icon: '📦',
+            items: ['projects', 'git-projects', 'browser-automation']
+          },
+          {
+            type: 'category',
+            name: 'Configuration',
+            icon: '🔧',
+            items: [
+              'settings',
+              {
+                type: 'subcategory',
+                name: 'AI Providers',
+                icon: '🔑',
+                items: ['api-keys', 'provider-coverage']
+              },
+              'airllm-config',
+              'user-management',
+              'vpn-management'
+            ]
+          },
+          {
+            type: 'category',
+            name: 'Monitoring & Analytics',
+            icon: '📈',
+            items: [
+              {
+                type: 'subcategory',
+                name: 'Analytics',
+                icon: '📊',
+                items: ['activity-summary', 'metrics', 'analytics']
+              },
+              // live-activity kept separate for quick access
+              { id: 'live-activity' }
+            ]
+          }
+        ];
+
+        // Render dynamic sidebar from MENU_CONFIG
+        function renderSidebar() {
+          const sidebar = document.getElementById('sidebar');
+          if (!sidebar) return;
+          let html = '<div class="logo">👑 SupremeAI Admin</div>';
+
+          MENU_CONFIG.forEach(entry => {
+            if (entry.type === 'standalone') {
+              const item = MENU_ITEMS[entry.id];
+              html += `<div class="menu-item" onclick="showSection('${entry.id}')">${item.icon} ${item.label}</div>`;
+            } else if (entry.type === 'category') {
+              const catIcon = entry.icon || '📁';
+              html += `<details class="sidebar-menu-category"><summary>${catIcon} ${entry.name}</summary>`;
+              entry.items.forEach(sub => {
+                if (typeof sub === 'string') {
+                  const item = MENU_ITEMS[sub];
+                  const elemId = item.elementId || '';
+                  html += `<div class="menu-item"${elemId ? ' id="'+elemId+'"' : ''} onclick="showSection('${sub}')">${item.icon} ${item.label}</div>`;
+                } else if (sub.type === 'subcategory') {
+                  html += `<details class="sidebar-menu-category"><summary>${sub.icon || '📁'} ${sub.name}</summary>`;
+                  sub.items.forEach(subId => {
+                    const item = MENU_ITEMS[subId];
+                    html += `<div class="menu-item" onclick="showSection('${subId}')">${item.icon} ${item.label}</div>`;
+                  });
+                  html += `</details>`;
+                }
+              });
+              html += `</details>`;
+            }
+          });
+
+          // Special action: 3D Visualization (function call, not showSection)
+          html += `<div class="menu-item" onclick="openVisualization3D()">🌐 3D Visualization ↗</div>`;
+
+          sidebar.innerHTML = html;
+        }
+
         async function initializeFirebase() {
             try {
                 const response = await fetch('/api/config/firebase', {
@@ -285,14 +427,14 @@
             resourceChart.data.datasets[0].data.push(data.cpuLoad);
             resourceChart.data.datasets[1].data.push(data.memoryUsed);
             resourceChart.update('none');
+         }
+
+          // Start authentication check when page loads
+          window.addEventListener('DOMContentLoaded', checkAuth);
         }
+      </script>
 
-        // Start authentication check when page loads
-        window.addEventListener('DOMContentLoaded', checkAuth);
-    }
-
-    // Additional functions continue below...
-    <style>
+     <style>
         * {
             margin: 0;
             padding: 0;
@@ -884,61 +1026,8 @@
     </style>
 <body>
     <div class="container">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="logo">👑 SupremeAI Admin</div>
-            <div class="menu-item active" onclick="showSection('dashboard')">📊 Dashboard</div>
-
-            <details class="sidebar-menu-category">
-                <summary>⚙️ System & Operations</summary>
-                <div class="menu-item" onclick="showSection('system-alerts')" id="sidebarAlertsItem">🚨 System Alerts</div>
-                <div class="menu-item" onclick="showSection('system-engine')">🛠️ System Engine</div>
-                <div class="menu-item" onclick="showSection('deployment')">🚀 Deployment</div>
-                <div class="menu-item" onclick="showSection('approvals')">✅ Approvals</div>
-                <div class="menu-item" onclick="showSection('commands')">💻 Commands</div>
-                <div class="menu-item" onclick="showSection('provider-coverage')">🛰️ Provider Coverage</div>
-                <div class="menu-item" onclick="showSection('live-activity')">⚡ Live Activity</div>
-                <div class="menu-item" onclick="showSection('notifications')">📬 Notifications</div>
-                <div class="menu-item" onclick="showSection('logs')">📝 Audit Logs</div>
-            </details>
-
-            <details class="sidebar-menu-category">
-                <summary>🤖 AI Management</summary>
-                <div class="menu-item" onclick="showSection('techniques')">💡 Techniques</div>
-                <div class="menu-item" onclick="showSection('ai-agents')">🤖 AI Agent Assignment</div>
-                <div class="menu-item" onclick="showSection('consensus')">🧠 Multi-AI Consensus</div>
-                <div class="menu-item" onclick="showSection('timeline')">📜 AI Decision Log</div>
-                <div class="menu-item" onclick="showSection('kimi-k2')">🔮 AI Learning Orchestration</div>
-                <div class="menu-item" onclick="showSection('system-learning')">📖 System Learning</div>
-                <div class="menu-item" onclick="showSection('existing-projects')">🔧 Improve Existing App</div>
-                <div class="menu-item" onclick="showSection('chat')">💬 Chat with SupremeAI</div>
-                <div class="menu-item" onclick="showSection('workflow-chat')">🗨️ ওয়ার্কফ্লো চ্যাট</div>
-            </details>
-
-            <details class="sidebar-menu-category">
-                <summary>📦 Projects & Code</summary>
-                <div class="menu-item" onclick="showSection('projects')">📦 Projects</div>
-                <div class="menu-item" onclick="showSection('git-projects')">🔄 Git Projects</div>
-                <div class="menu-item" onclick="showSection('browser-automation')">🌐 Browser Automation</div>
-            </details>
-
-            <details class="sidebar-menu-category">
-                <summary>🔧 Configuration</summary>
-                <div class="menu-item" onclick="showSection('settings')">⚙️ Settings</div>
-                <div class="menu-item" onclick="showSection('api-keys')">🔑 API Key Manager</div>
-                <div class="menu-item" onclick="showSection('airllm-config')">⚙️ AirLLM Config</div>
-                <div class="menu-item" onclick="showSection('user-management')">👥 User Management & Tiers</div>
-                <div class="menu-item" onclick="showSection('vpn-management')">🔒 VPN Management</div>
-            </details>
-
-            <details class="sidebar-menu-category">
-                <summary>📊 Analytics</summary>
-                <div class="menu-item" onclick="showSection('activity-summary')" id="sidebarActivityItem">📈 Activity Summary</div>
-                <div class="menu-item" onclick="showSection('metrics')">📈 Metrics &amp; Alerts</div>
-                <div class="menu-item" onclick="openVisualization3D()">🌐 3D Visualization ↗</div>
-                <div class="menu-item" onclick="showSection('analytics')">📊 Analytics</div>
-            </details>
-        </div>
+        <!-- Sidebar (dynamically generated) -->
+        <div class="sidebar" id="sidebar"></div>
 
         <!-- Main Content -->
         <div class="main-content">
@@ -2945,7 +3034,6 @@
             // Update any quota display elements if they exist
             console.log('📊 Quota update received:', quotaData);
         }
-        }
 
         function showError(message) {
             // Create or update error display
@@ -2990,12 +3078,20 @@
             
             document.getElementById(sectionId).classList.add('active');
 
-            // Find menu item by text or index if needed, but simple way:
+            // Find and activate the corresponding menu item, opening parent <details> if nested
             const items = document.querySelectorAll('.menu-item');
             items.forEach(item => {
-                if (item.getAttribute('onclick').includes(sectionId)) {
-                    item.classList.add('active');
+              if (item.getAttribute('onclick')?.includes(sectionId)) {
+                item.classList.add('active');
+                // Open any parent <details> to ensure the item is visible
+                let parent = item.parentElement;
+                while (parent) {
+                  if (parent.tagName === 'DETAILS') {
+                    parent.open = true;
+                  }
+                  parent = parent.parentElement;
                 }
+              }
             });
 
             const titles = {
@@ -7751,6 +7847,9 @@
 
         // Initialize system mode on page load
         document.addEventListener('DOMContentLoaded', async () => {
+            // Render dynamic sidebar
+            renderSidebar();
+            
             await initializeFirebase();
             await ensureAdminSession();
 
