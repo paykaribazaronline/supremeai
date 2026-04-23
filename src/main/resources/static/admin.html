@@ -232,6 +232,13 @@
             const avatarEl = document.getElementById('adminUserAvatar');
             const loginBtn = document.getElementById('adminLoginBtn');
             const logoutBtn = document.getElementById('adminLogoutBtn');
+
+            // Start with Login button visible by default (in case of errors)
+            if (loginBtn) loginBtn.style.display = '';
+            if (logoutBtn) logoutBtn.style.display = 'none';
+            if (userNameEl) userNameEl.style.display = 'none';
+            if (avatarEl) avatarEl.style.display = 'none';
+
             let userStr = localStorage.getItem('supremeai_user');
 
             // Fallback: fetch from backend session if localStorage is empty
@@ -246,32 +253,32 @@
                         }
                     }
                 } catch (e) {
-                    // silent fail
+                    // Keep userStr null, will show login button
                 }
             }
 
             if (userStr) {
                 try {
                     const user = JSON.parse(userStr);
-                    const displayName = user.displayName || user.username || user.email || 'Admin';
-                    if (userNameEl) userNameEl.textContent = displayName;
+                    // Use backend-provided displayName if present, otherwise fall back
+                    const displayName = (user && (user.displayName || user.username || user.email)) || 'Admin';
+                    if (userNameEl) {
+                        userNameEl.textContent = displayName;
+                        userNameEl.style.display = '';
+                    }
                     if (avatarEl) {
                         avatarEl.textContent = displayName.charAt(0).toUpperCase();
                         avatarEl.title = user.email || displayName;
+                        avatarEl.style.display = 'flex';
                     }
                     if (loginBtn) loginBtn.style.display = 'none';
                     if (logoutBtn) logoutBtn.style.display = '';
-                    if (userNameEl) userNameEl.style.display = '';
-                    if (avatarEl) avatarEl.style.display = '';
                 } catch (e) {
-                    console.error('Failed to parse user data', e);
+                    console.error('Failed to parse stored user data, clearing session', e);
+                    localStorage.removeItem('supremeai_user');
                 }
-            } else {
-                if (userNameEl) userNameEl.style.display = 'none';
-                if (avatarEl) avatarEl.style.display = 'none';
-                if (logoutBtn) logoutBtn.style.display = 'none';
-                if (loginBtn) loginBtn.style.display = '';
             }
+            // If no valid user, login button already set to visible above
         }
 
         async function checkAuth() {
@@ -6874,6 +6881,9 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
+            // Ensure user display reflects current auth state
+            await updateAdminUserDisplay();
+
             const firebaseReady = await initializeFirebase();
             if (!firebaseReady) {
                 showError('Failed to initialize authentication service. Please refresh the page.');
