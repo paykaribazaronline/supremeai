@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SupremeAI - Performance Dashboard</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
@@ -65,11 +69,6 @@
                 <div class="metric-title" data-en="Cache Hit Rate" data-bn="ক্যাশ হিট রেট">Cache Hit Rate</div>
                 <div class="metric-value"><span id="cache-rate">78</span><span class="metric-unit">%</span></div>
                 <div class="metric-trend trend-up" id="cache-trend">↑ 5% from yesterday</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-title" data-en="Active Users" data-bn="এক্টিভ ব্যবহারকারী">Active Users</div>
-                <div class="metric-value"><span id="active-users">89</span></div>
-                <div class="metric-trend" id="users-trend">↗ 23 new today</div>
             </div>
         </div>
         <div class="charts-grid">
@@ -197,20 +196,44 @@
             document.getElementById('page-subtitle').textContent = translations[lang].subtitle;
             localStorage.setItem('supremeai_lang', lang);
         }
-        function updateMetrics() {
-            const respTime = Math.floor(Math.random() * 100) + 200;
-            const reqCount = Math.floor(Math.random() * 200) + 1100;
-            const cacheRate = Math.floor(Math.random() * 10) + 75;
-            const activeUsers = Math.floor(Math.random() * 20) + 80;
-            document.getElementById('resp-time').textContent = respTime;
-            document.getElementById('req-count').textContent = reqCount.toLocaleString();
-            document.getElementById('cache-rate').textContent = cacheRate;
-            document.getElementById('active-users').textContent = activeUsers;
+        async function updateMetrics() {
+            try {
+                // Fetch response time from actuator metrics
+                const respRes = await fetch('/actuator/metrics/http.server.requests');
+                const respData = await respRes.json();
+                const respTime = respData.measurements?.find(m => m.statistic === 'MEAN')?.value || 0;
+                document.getElementById('resp-time').textContent = Math.round(respTime);
+
+                // Fetch request count
+                const reqCount = respData.measurements?.find(m => m.statistic === 'COUNT')?.value || 0;
+                document.getElementById('req-count').textContent = Math.round(reqCount).toLocaleString();
+
+                // Fetch cache hit rate
+                const cacheRes = await fetch('/actuator/metrics/cache.gets');
+                const cacheData = await cacheRes.json();
+                const cacheHits = cacheData.measurements?.find(m => m.statistic === 'HIT_COUNT')?.value || 0;
+                const cacheMisses = cacheData.measurements?.find(m => m.statistic === 'MISS_COUNT')?.value || 0;
+                const cacheRate = cacheHits + cacheMisses > 0 ? Math.round((cacheHits / (cacheHits + cacheMisses)) * 100) : 0;
+                document.getElementById('cache-rate').textContent = cacheRate;
+
+                // Active users metric removed - no default metric available
+            } catch (e) {
+                console.error('Failed to fetch metrics:', e);
+            }
             document.getElementById('timestamp').textContent = new Date().toLocaleString();
         }
         setLang(localStorage.getItem('supremeai_lang') || 'en');
         updateMetrics();
         setInterval(updateMetrics, 30000);
+
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((reg) => console.log('Service Worker registered:', reg))
+                    .catch((err) => console.log('Service Worker registration failed:', err));
+            });
+        }
     </script>
 </body>
 </html>

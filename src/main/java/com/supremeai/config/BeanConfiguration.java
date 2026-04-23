@@ -9,8 +9,8 @@ import java.util.concurrent.Executor;
 @Configuration
 public class BeanConfiguration {
 
-    @Bean(name = "consensusTaskExecutor", destroyMethod = "shutdown")
-    public Executor consensusTaskExecutor() {
+        @Bean(name = "consensusTaskExecutor", destroyMethod = "shutdown")
+    public ThreadPoolTaskExecutor consensusTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(5);
         executor.setMaxPoolSize(20);
@@ -23,8 +23,8 @@ public class BeanConfiguration {
         return executor;
     }
 
-    @Bean(name = "votingTaskExecutor", destroyMethod = "shutdown")
-    public Executor votingTaskExecutor() {
+        @Bean(name = "votingTaskExecutor", destroyMethod = "shutdown")
+    public ThreadPoolTaskExecutor votingTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(5);
         executor.setMaxPoolSize(20);
@@ -37,8 +37,8 @@ public class BeanConfiguration {
         return executor;
     }
 
-    @Bean(name = "batchTaskExecutor", destroyMethod = "shutdown")
-    public Executor batchTaskExecutor() {
+        @Bean(name = "batchTaskExecutor", destroyMethod = "shutdown")
+    public ThreadPoolTaskExecutor batchTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(Runtime.getRuntime().availableProcessors());
         executor.setMaxPoolSize(Runtime.getRuntime().availableProcessors() * 2);
@@ -51,8 +51,8 @@ public class BeanConfiguration {
         return executor;
     }
 
-    @Bean(name = "analysisTaskExecutor", destroyMethod = "shutdown")
-    public Executor analysisTaskExecutor() {
+        @Bean(name = "analysisTaskExecutor", destroyMethod = "shutdown")
+    public ThreadPoolTaskExecutor analysisTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(Runtime.getRuntime().availableProcessors());
         executor.setMaxPoolSize(Runtime.getRuntime().availableProcessors() * 2);

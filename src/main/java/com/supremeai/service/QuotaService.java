@@ -16,7 +16,11 @@ public class QuotaService {
     private UserRepository userRepository;
 
     @Autowired
-    private QuotaPredictionService predictionService;
+    private org.springframework.context.ApplicationContext context;
+
+    private QuotaPredictionService getPredictionService() {
+        return context.getBean(QuotaPredictionService.class);
+    }
 
     /**
      * Check if a user has quota remaining for the current month
@@ -44,7 +48,7 @@ public class QuotaService {
             user.setLastUsedAt(LocalDateTime.now());
             userRepository.save(user).block();
             // Record usage for prediction
-            predictionService.recordUsage(userId);
+            getPredictionService().recordUsage(userId);
             return true;
         }
         return false;
@@ -68,7 +72,7 @@ public class QuotaService {
         user.setLastUsedAt(LocalDateTime.now());
         userRepository.save(user).block();
         // Record usage for prediction
-        predictionService.recordUsage(userId);
+        getPredictionService().recordUsage(userId);
     }
 
     /**

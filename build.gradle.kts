@@ -108,6 +108,10 @@ dependencies {
     // Note: opentelemetry-exporter-jaeger moved, using basic exporter instead
     // implementation("io.opentelemetry:opentelemetry-exporter-jaeger:1.36.0")
     
+    // Redis caching
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("redis.clients:jedis:5.1.0")
+
     // Caching
     implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
 
@@ -124,6 +128,7 @@ dependencies {
     testImplementation("org.mockito:mockito-junit-jupiter:5.7.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("io.projectreactor:reactor-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

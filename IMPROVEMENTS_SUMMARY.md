@@ -232,7 +232,38 @@ New: https://supremeai-lhlwyikwlq-uc.a.run.app/admin.html
 
 ---
 
-## 📚 New Documentation / নতুন ডকুমেন্টেশন
+## 🔗 Related Documents / সম্পর্কিত ডকুমেন্টস
+
+- **IMPROVEMENT_TRACKING.md** - Real-time tracking of all improvements (completed, in-progress, planned)
+- **IMPROVEMENT_IMPLEMENTATION_LOG.md** - Daily/weekly implementation activity log
+- **IMPROVEMENT_DASHBOARD.md** - At-a-glance status dashboard
+- **COMPLETION_REPORT.md** - Detailed completion report for Apr 24 improvements
+- **SUPREMEAI_ENHANCEMENT_ROADMAP.md** - Comprehensive 12-month strategic roadmap
+- **docs_new/guides/PERFORMANCE_OPTIMIZATION.md** - Technical performance guide
+- **docs_new/guides/MASTER_ROADMAP_INTEGRATED_2026.md** - Unified sprint planning doc
+
+---
+
+## 📋 Quick Reference Cards / দ্রুত রেফারেন্স কার্ড
+
+### Improvement Tracking Categories (NEW)
+
+**Use ID prefixes to categorize improvements:**
+
+| Prefix | Category | Focus |
+|--------|----------|--------|
+| A | Admin Experience | Dashboard, tools, management, UI/UX for admins |
+| C | Customer Experience | Documentation, onboarding, UX, guides, language |
+| S | System Intelligence | AI, automation, learning, reasoning agents |
+| P | Performance | Speed, scaling, caching, database, JVM, monitoring |
+
+**Example:** `A1` = Admin improvement #1, `P15` = Performance improvement #15
+
+**Where tracked:** See `IMPROVEMENT_TRACKING.md` for full live tracking table.
+
+---
+
+## 🏆 Completed Improvements Summary / সম্পন্ন উন্নতির সংক্ষিপ্ত sārāś
 
 ### 1. Bengali Setup Guide / বাংলা সেটআপ গাইড
 

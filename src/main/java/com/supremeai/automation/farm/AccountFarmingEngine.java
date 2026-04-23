@@ -60,7 +60,7 @@ public class AccountFarmingEngine {
             case OPENAI -> "sk-supreme-";
             case ANTHROPIC_CLAUDE -> "sk-ant-supreme-";
             case GEMINI_PRO -> "AIzaSy-supreme-";
-            case GROQ_LLAMA -> "gsk_supreme_";
+            case GROQ_LLAMA3 -> "gsk_supreme_";
             case HUGGINGFACE_FREE -> "hf_supreme_";
             default -> "supreme-key-";
         };

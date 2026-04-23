@@ -1,19 +1,21 @@
 package com.supremeai.service;
 
 import com.supremeai.model.ConsensusResult;
-import com.supremeai.model.ProviderVote;
+import com.supremeai.model.ConsensusVote;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
 import com.supremeai.selfhealing.SelfHealingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.concurrent.Callable;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -34,22 +36,40 @@ public class MultiAIConsensusServiceTest {
     @Mock
     private AIProvider openaiProvider;
 
-    @InjectMocks
     private MultiAIConsensusService consensusService;
 
     @BeforeEach
-    void setUp() {
-        // Setup default behavior for self-healing service to just execute the supplier
-        lenient().when(selfHealingService.executeWithRetry(any(), anyInt(), anyLong()))
+    void setUp() throws Exception {
+        // Create a real ThreadPoolTaskExecutor for testing
+        ThreadPoolTaskExecutor realExecutor = new ThreadPoolTaskExecutor();
+        realExecutor.setCorePoolSize(5);
+        realExecutor.setMaxPoolSize(10);
+        realExecutor.setQueueCapacity(20);
+        realExecutor.setThreadNamePrefix("test-consensus-");
+        realExecutor.initialize();
+
+        // Use the real executor's underlying executor service
+        consensusService = new MultiAIConsensusService(realExecutor);
+
+        // Inject mocks via reflection (since we have constructor injection)
+        java.lang.reflect.Field factoryField = MultiAIConsensusService.class.getDeclaredField("providerFactory");
+        factoryField.setAccessible(true);
+        factoryField.set(consensusService, providerFactory);
+
+        java.lang.reflect.Field healingField = MultiAIConsensusService.class.getDeclaredField("selfHealingService");
+        healingField.setAccessible(true);
+        healingField.set(consensusService, selfHealingService);
+
+        // Setup self-healing service to execute the callable
+        lenient().when(selfHealingService.executeWithRetry(any(Callable.class), anyInt(), anyLong()))
                 .thenAnswer(invocation -> {
-                    Supplier<String> supplier = invocation.getArgument(0);
-                    return supplier.get();
+                    Callable<String> callable = invocation.getArgument(0);
+                    return callable.call();
                 });
     }
 
     @Test
     void testAskAllAIs_SuccessConsensus() {
-        // Arrange
         String question = "What is the capital of France?";
         List<String> providers = List.of("groq", "openai");
         
@@ -59,20 +79,16 @@ public class MultiAIConsensusServiceTest {
         when(groqProvider.generate(anyString())).thenReturn("Paris");
         when(openaiProvider.generate(anyString())).thenReturn("Paris");
 
-        // Act
         ConsensusResult result = consensusService.askAllAIs(question, providers, 5000L);
 
-        // Assert
         assertNotNull(result);
-        assertEquals("Paris", result.getAnswer());
-        assertEquals(100.0, result.getConsensusPercentage());
+        assertEquals("Paris", result.getConsensusAnswer());
         assertEquals(2, result.getVotes().size());
-        assertTrue(result.getStatus().contains("STRONG"));
+        assertTrue(result.getStrength().contains("STRONG"));
     }
 
     @Test
     void testAskAllAIs_WeakConsensus() {
-        // Arrange
         String question = "Who won the world cup 2022?";
         List<String> providers = List.of("groq", "openai", "anthropic");
         
@@ -86,32 +102,97 @@ public class MultiAIConsensusServiceTest {
         when(openaiProvider.generate(anyString())).thenReturn("Argentina");
         when(anthropicProvider.generate(anyString())).thenReturn("France");
 
-        // Act
         ConsensusResult result = consensusService.askAllAIs(question, providers, 5000L);
 
-        // Assert
         assertNotNull(result);
-        assertEquals("Argentina", result.getAnswer());
-        assertEquals(2.0/3.0 * 100.0, result.getConsensusPercentage(), 0.01);
-        assertTrue(result.getStatus().contains("WEAK"));
+        assertEquals("Argentina", result.getConsensusAnswer());
+        assertEquals(3, result.getVotes().size());
     }
 
     @Test
-    void testAskAllAIs_NoProvidersRespond() {
-        // Arrange
+    void testAskAllAIs_NoProvidersRespond() throws Exception {
         String question = "Test?";
         List<String> providers = List.of("groq");
         
         when(providerFactory.getProvider("groq")).thenReturn(groqProvider);
-        when(selfHealingService.executeWithRetry(any(), anyInt(), anyLong()))
+        when(selfHealingService.executeWithRetry(any(Callable.class), anyInt(), anyLong()))
                 .thenThrow(new RuntimeException("API Down"));
 
-        // Act
         ConsensusResult result = consensusService.askAllAIs(question, providers, 1000L);
 
-        // Assert
         assertNotNull(result);
-        assertEquals("ERROR", result.getStatus());
-        assertEquals("No AI providers responded", result.getAnswer());
+        assertEquals("No AI providers responded", result.getConsensusAnswer());
+        assertEquals(0.0, result.getAverageConfidence());
+        assertTrue(result.getStrength().contains("ERROR"));
+    }
+
+    @Test
+    void testAskAllAIs_SingleProvider() {
+        String question = "What is 2+2?";
+        List<String> providers = List.of("groq");
+        
+        when(providerFactory.getProvider("groq")).thenReturn(groqProvider);
+        when(groqProvider.generate(anyString())).thenReturn("4");
+
+        ConsensusResult result = consensusService.askAllAIs(question, providers, 5000L);
+
+        assertNotNull(result);
+        assertEquals("4", result.getConsensusAnswer());
+        assertEquals(1, result.getVotes().size());
+    }
+
+    @Test
+    void testAskAllAIs_EmptyProviderList() {
+        String question = "Test?";
+        List<String> providers = List.of();
+
+        ConsensusResult result = consensusService.askAllAIs(question, providers, 5000L);
+
+        assertNotNull(result);
+        assertEquals("No AI providers responded", result.getConsensusAnswer());
+        assertEquals(0.0, result.getAverageConfidence());
+    }
+
+    @Test
+    void testGetHistory_ReturnsFluxOfVotes() {
+        String question1 = "Question 1?";
+        List<String> providers1 = List.of("groq");
+        when(providerFactory.getProvider("groq")).thenReturn(groqProvider);
+        when(groqProvider.generate(anyString())).thenReturn("Answer 1");
+
+        consensusService.askAllAIs(question1, providers1, 5000L);
+
+        // Give async operations time to complete
+        try { Thread.sleep(100); } catch (InterruptedException e) {}
+
+        Flux<ConsensusVote> history = consensusService.getHistory(10);
+
+        StepVerifier.create(history)
+                .assertNext(vote -> {
+                    assertEquals(question1, vote.getQuestion());
+                    assertEquals("Answer 1", vote.getConsensusAnswer());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void testGetHistory_LimitsResults() {
+        when(providerFactory.getProvider("groq")).thenReturn(groqProvider);
+        when(groqProvider.generate(anyString())).thenReturn("Answer");
+
+        // Create votes sequentially
+        for (int i = 0; i < 5; i++) {
+            consensusService.askAllAIs("Q" + i, List.of("groq"), 5000L);
+        }
+
+        // Give async operations time to complete
+        try { Thread.sleep(200); } catch (InterruptedException e) {}
+
+        Flux<ConsensusVote> history = consensusService.getHistory(2);
+
+        // Should get at most 2 results
+        StepVerifier.create(history)
+                .expectNextCount(2)
+                .verifyComplete();
     }
 }

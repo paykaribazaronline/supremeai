@@ -16,12 +16,22 @@ import java.util.concurrent.TimeUnit;
  * Level 1: In-memory exact match cache (10min TTL)
  * Level 2: Permanent cache for high frequency queries
  */
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import java.util.concurrent.TimeUnit;
+
 @Service
 public class ResponseCacheService {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseCacheService.class);
 
     private Cache<String, String> exactMatchCache;
+    
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     @PostConstruct
     public void init() {
@@ -39,7 +49,26 @@ public class ResponseCacheService {
      */
     public String get(String prompt) {
         String key = hashPrompt(prompt);
-        return exactMatchCache.getIfPresent(key);
+        
+        // Try L1 Cache (Caffeine)
+        String l1Result = exactMatchCache.getIfPresent(key);
+        if (l1Result != null) {
+            return l1Result;
+        }
+        
+        // Try L2 Cache (Redis)
+        try {
+            Object l2Result = redisTemplate.opsForValue().get("ai_resp:" + key);
+            if (l2Result instanceof String) {
+                // Backfill L1 Cache
+                exactMatchCache.put(key, (String) l2Result);
+                return (String) l2Result;
+            }
+        } catch (Exception e) {
+            logger.warn("Redis read failed: {}", e.getMessage());
+        }
+        
+        return null;
     }
 
     /**
@@ -47,7 +76,16 @@ public class ResponseCacheService {
      */
     public void put(String prompt, String response) {
         String key = hashPrompt(prompt);
+        
+        // Put in L1 Cache
         exactMatchCache.put(key, response);
+        
+        // Put in L2 Cache (Redis)
+        try {
+            redisTemplate.opsForValue().set("ai_resp:" + key, response, 30, TimeUnit.MINUTES);
+        } catch (Exception e) {
+            logger.warn("Redis write failed: {}", e.getMessage());
+        }
     }
 
     /**

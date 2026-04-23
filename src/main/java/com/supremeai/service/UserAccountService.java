@@ -16,6 +16,9 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CachePut;
+
 /**
  * Service for creating and managing user accounts using Firebase Authentication.
  *
@@ -198,9 +201,10 @@ public class UserAccountService {
         return userRepository.save(user).block();
     }
 
-    /**
+        /**
      * Update a user's tier.
      */
+    @CachePut(value = "user_sessions", key = "#userId")
     public User updateUserTier(String userId, UserTier newTier) {
         User user = userRepository.findByFirebaseUid(userId).block();
         if (user == null) {
@@ -234,16 +238,18 @@ public class UserAccountService {
         return userRepository.findAll().collectList().block();
     }
 
-    /**
+        /**
      * Get a user by Firebase UID.
      */
+    @Cacheable(value = "user_sessions", key = "#uid")
     public User getUser(String uid) {
         return userRepository.findByFirebaseUid(uid).block();
     }
 
-    /**
+        /**
      * Deactivate a user account (sets isActive = false).
      */
+    @CachePut(value = "user_sessions", key = "#userId")
     public User deactivateUser(String userId) {
         User user = userRepository.findByFirebaseUid(userId).block();
         if (user == null) {

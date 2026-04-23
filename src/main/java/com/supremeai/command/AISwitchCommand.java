@@ -3,7 +3,16 @@ package com.supremeai.command;
 import java.util.Map;
 import java.util.HashMap;
 
+import com.supremeai.service.ConfigService;
+import com.supremeai.model.SystemConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+@Component
 public class AISwitchCommand implements Command {
+    
+    @Autowired
+    private ConfigService configService;
     // This command allows for dynamic switching of AI providers.
 
     @Override
@@ -45,7 +54,14 @@ public class AISwitchCommand implements Command {
             return CommandResult.error("ai-switch", "VALIDATION_ERROR", "Provider argument is required");
         }
 
-        // Logic to switch AI provider would go here
+                // Logic to switch AI provider would go here
+                // context.getEnvironment().put("supremeai.default.provider", provider);
+
+                SystemConfig config = configService.getConfig();
+                if (config != null) {
+                    config.setActiveModel(provider); // Assuming provider implies the active model in this context, or add a specific provider field to SystemConfig
+                    configService.updateConfig(config).subscribe();
+                }
 
         Map<String, Object> data = new HashMap<>();
         data.put("newProvider", provider);
