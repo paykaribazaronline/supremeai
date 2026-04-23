@@ -1,4 +1,4 @@
-Dpackage com.supremeai.provider;
+package com.supremeai.provider;
 
 public enum AIProviderType {
     GROQ_LLAMA3,
