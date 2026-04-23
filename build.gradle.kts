@@ -74,6 +74,7 @@ dependencies {
     // Configuration Management - EXTERNALIZED CONFIG
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("jakarta.servlet:jakarta.servlet-api:6.0.0")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     // Removed spring-boot-starter-webflux - conflicts with servlet stack causing non-web startup
     implementation("org.springframework.boot:spring-boot-starter-security")
