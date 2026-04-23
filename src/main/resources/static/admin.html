@@ -147,20 +147,24 @@
             } else if (entry.type === 'category') {
               const catIcon = entry.icon || '📁';
               html += `<details class="sidebar-menu-category"><summary>${catIcon} ${entry.name}</summary>`;
-              entry.items.forEach(sub => {
-                if (typeof sub === 'string') {
-                  const item = MENU_ITEMS[sub];
-                  const elemId = item.elementId || '';
-                  html += `<div class="menu-item"${elemId ? ' id="'+elemId+'"' : ''} onclick="showSection('${sub}')">${item.icon} ${item.label}</div>`;
-                } else if (sub.type === 'subcategory') {
-                  html += `<details class="sidebar-menu-category"><summary>${sub.icon || '📁'} ${sub.name}</summary>`;
-                  sub.items.forEach(subId => {
-                    const item = MENU_ITEMS[subId];
-                    html += `<div class="menu-item" onclick="showSection('${subId}')">${item.icon} ${item.label}</div>`;
-                  });
-                  html += `</details>`;
-                }
-              });
+               entry.items.forEach(sub => {
+                 if (typeof sub === 'string') {
+                   const item = MENU_ITEMS[sub];
+                   const elemId = item.elementId || '';
+                   html += `<div class="menu-item"${elemId ? ' id="'+elemId+'"' : ''} onclick="showSection('${sub}')">${item.icon} ${item.label}</div>`;
+                 } else if (sub.type === 'subcategory') {
+                   html += `<details class="sidebar-menu-category"><summary>${sub.icon || '📁'} ${sub.name}</summary>`;
+                   sub.items.forEach(subId => {
+                     const item = MENU_ITEMS[subId];
+                     html += `<div class="menu-item" onclick="showSection('${subId}')">${item.icon} ${item.label}</div>`;
+                   });
+                   html += `</details>`;
+                 } else if (sub.id) {
+                   const item = MENU_ITEMS[sub.id];
+                   const elemId = item.elementId || '';
+                   html += `<div class="menu-item"${elemId ? ' id="'+elemId+'"' : ''} onclick="showSection('${sub.id}')">${item.icon} ${item.label}</div>`;
+                 }
+               });
               html += `</details>`;
             }
           });
@@ -3121,7 +3125,10 @@
                 'live-activity': 'Live Activity',
                 'kimi-k2': 'AI Learning Orchestration',
                 'chat': 'Chat with SupremeAI',
-                'settings': 'Settings'
+                'settings': 'Settings',
+                'system-alerts': 'System Alerts',
+                'activity-summary': 'Activity Summary',
+                'analytics': 'Usage Analytics & Trends'
             };
             document.getElementById('pageTitle').innerText = titles[sectionId] || 'Dashboard';
             
@@ -3152,6 +3159,7 @@
             if (sectionId === 'activity-summary') loadActivitySummary();
             if (sectionId === 'browser-automation') refreshBrowserWorkspace();
             if (sectionId === 'commands') loadCommands();
+            if (sectionId === 'deployment') loadDeployHistory();
         }
 
         function showModal(modalId) {
@@ -6544,120 +6552,6 @@
                 container.innerHTML = `<div style="color:#f56565;padding:20px;">Error: ${e.message}</div>`;
             }
         }
-
-        // =============================================
-        // COMMANDS CONSOLE (wired to real APIs)
-        // =============================================
-
-        const consoleInput = document.getElementById('consoleInput');
-        const consoleOutput = document.getElementById('consoleOutput');
-
-        consoleInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                const cmd = consoleInput.value.trim();
-                if (cmd) {
-                    runCommand(cmd);
-                    consoleInput.value = '';
-                }
-            }
-        });
-
-        function logToConsole(text, color = '#e2e8f0') {
-            const div = document.createElement('div');
-            div.style.color = color;
-            div.style.fontFamily = 'monospace';
-            div.style.fontSize = '13px';
-            div.style.marginBottom = '2px';
-            div.innerHTML = text;
-            consoleOutput.appendChild(div);
-            document.getElementById('commandConsole').scrollTop = document.getElementById('commandConsole').scrollHeight;
-        }
-
-        async function runCommand(cmd) {
-            logToConsole(`<span style="color:#68d391;">admin@supremeai:~$</span> ${cmd}`);
-
-            const lower = cmd.trim().toLowerCase();
-
-            if (lower === 'clear') {
-                consoleOutput.innerHTML = '';
-                return;
-            }
-            if (lower === 'help') {
-                logToConsole('Available commands: <strong>status</strong> | <strong>git-status</strong> | <strong>quota</strong> | <strong>agents</strong> | <strong>metrics</strong> | <strong>git-logs</strong> | <strong>clear</strong> | <strong>emergency-stop</strong>', '#63b3ed');
-                return;
-            }
-
-            try {
-                let res, data;
-
-                switch (lower) {
-                    case 'status':
-                    case 'system-status':
-                        res = await fetch('/api/metrics/health', { headers: getAuthHeaders() });
-                        data = await res.json();
-                        logToConsole(`System: <strong>${data.status || 'unknown'}</strong> | CPU: ${data.cpuUsage || '--'}% | Memory: ${data.memoryUsage || '--'}% | Latency: ${data.apiLatency || '--'}ms`, '#68d391');
-                        break;
-
-                    case 'git-status':
-                        res = await fetch('/api/git/status', { headers: getAuthHeaders() });
-                        data = await res.json();
-                        if (data.status === 'success') {
-                            const gs = data.gitStatus || {};
-                            logToConsole(`Branch: <strong>${gs.branch || 'unknown'}</strong> | Modified: ${gs.modifiedCount || 0} | Untracked: ${gs.untrackedCount || 0}`, '#63b3ed');
-                        } else {
-                            logToConsole(`Git status: ${data.message || JSON.stringify(data)}`, '#f6ad55');
-                        }
-                        break;
-
-                    case 'quota':
-                    case 'quota-status':
-                        res = await fetch('/api/quota/summary', { headers: getAuthHeaders() });
-                        data = await res.json();
-                        logToConsole(`Quota: ${JSON.stringify(data).substring(0, 200)}`, '#a0aec0');
-                        break;
-
-                    case 'agents':
-                    case 'work-history':
-                        res = await fetch('/api/work-history', { headers: getAuthHeaders() });
-                        data = await res.json();
-                        const items = Array.isArray(data) ? data : [];
-                        logToConsole(`Work history: <strong>${items.length}</strong> entries`, '#68d391');
-                        items.slice(0,5).forEach(w => logToConsole(`  &nbsp;[${w.agent}] ${w.taskName} — ${w.status}`, '#a0aec0'));
-                        break;
-
-                    case 'metrics':
-                        res = await fetch('/api/metrics/stats', { headers: getAuthHeaders() });
-                        data = await res.json();
-                        logToConsole(`Metrics: ${JSON.stringify(data).substring(0, 300)}`, '#a0aec0');
-                        break;
-
-                    case 'git-logs':
-                        res = await fetch('/api/git/logs?limit=10', { headers: getAuthHeaders() });
-                        data = await res.json();
-                        const commits = data.commits || [];
-                        logToConsole(`Last ${commits.length} commits:`, '#63b3ed');
-                        commits.forEach(c => logToConsole(`  &nbsp;<strong>${(c.hash || '').substring(0,7)}</strong> ${c.message || c.subject || ''}`, '#a0aec0'));
-                        break;
-
-                    case 'emergency-stop':
-                        if (!confirm('Emergency stop ALL operations?')) { logToConsole('Stop cancelled.', '#f6ad55'); return; }
-                        res = await fetch('/api/admin/control/stop', {
-                            method: 'POST',
-                            headers: getAuthHeaders(),
-                            body: JSON.stringify({ reason: 'Admin emergency stop from console' })
-                        });
-                        data = await res.json();
-                        logToConsole(`🛑 ${data.message || 'Emergency stop executed'}`, '#f56565');
-                        break;
-
-                    default:
-                        logToConsole(`Command not found: <strong>${cmd}</strong>. Type <strong>help</strong> for available commands.`, '#f56565');
-                }
-            } catch (e) {
-                logToConsole(`❌ Error: ${e.message}`, '#f56565');
-            }
-        }
-
         // =============================================
         // BROWSER AUTOMATION WORKSPACE
         // =============================================
