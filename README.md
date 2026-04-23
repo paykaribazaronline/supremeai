@@ -4,18 +4,22 @@
 
 Welcome to SupremeAI! This repository contains a comprehensive multi-agent system for automated Android app generation. The platform is currently in **Alpha** phase and under active development. Expect breaking changes and incomplete features.
 
+> **⚠️ Production URL Changed**  
+> Old URL (`https://supremeai-565236080752.us-central1.run.app`) is no longer active.  
+> New URL: [https://supremeai-lhlwyikwlq-uc.a.run.app/admin.html](https://supremeai-lhlwyikwlq-uc.a.run.app/admin.html)
+
 ## 📊 Feature Status
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| **Backend API** | ✅ Working | Spring Boot controllers, agent orchestration, learning system |
+| **Authentication** | ✅ Working | Basic auth infrastructure implemented and functional |
 | **Admin Dashboard** | ✅ Working | Available at `/admin.html` and localhost:8001 |
-| **Multi-Agent System** | ⚠️ Partial | X-Builder, Z-Architect, and 11 providers configured - coverage varies |
-| **Android App Generator** | ⚠️ Partial | Core pipeline exists, needs end-to-end verification |
+| **Backend API** | ✅ Working | Spring Boot controllers, agent orchestration, learning system |
+| **Multi-Agent System** | ❌ Pending | X-Builder, Z-Architect roles not fully implemented |
+| **Android App Generator** | ❌ Pending | Core pipeline exists, needs end-to-end verification |
 | **IntelliJ Plugin** | ✅ Working | K2 mode analysis implemented, v1.2.0 built successfully |
-| **VS Code Extension** | ⚠️ In Progress | Extension scaffolded, needs completion |
-| **Authentication** | ⚠️ Partial | Basic auth infrastructure present, needs hardening |
-| **Provider Coverage** | ⚠️ Partial | Multiple API providers supported - configure keys in `application.properties` |
+| **VS Code Extension** | ❌ Pending | Extension scaffolded, needs completion |
+| **Provider Coverage** | ⚠️ Partial | 11 providers supported - configure keys in `application.properties` |
 | **Self-Healing/Resilience** | ⚠️ Partial | Circuit breakers, recovery config, watchdog health checks exist |
 | **ML/Analytics** | ⚠️ Partial | Vector database, prediction models, analytics controllers present |
 | **K8s/Docker Deployment** | ✅ Available | Dockerfile, cloudbuild.yaml, k8s-service.yaml configured |
@@ -26,6 +30,8 @@ The system has a production endpoint (for testing only) and a local development 
 
 - **Production (Test):** [https://supremeai-lhlwyikwlq-uc.a.run.app/admin.html](https://supremeai-lhlwyikwlq-uc.a.run.app/admin.html)
 - **Local Development:** Follow setup instructions below.
+
+> ℹ️ **Note:** The old production URL (`https://supremeai-565236080752.us-central1.run.app`) has been decommissioned. Please update any bookmarks or links.
 
 ## 📚 Documentation
 
@@ -49,6 +55,8 @@ All documentation is organized into the `docs_new/` directory:
 | `docs_new/troubleshooting/` | Debugging guides, common issues |
 | `docs_new/workflow/` | Project management, planning, processes |
 
+> 📁 **Note:** Documentation has been restructured from `docs/` to `docs_new/` for better organization.
+
 ## 🚀 Quick Start
 
 1. Clone the repository
@@ -62,6 +70,7 @@ All documentation is organized into the `docs_new/` directory:
 - [API Endpoints](docs_new/guides/API_ENDPOINTS.md) - All available REST endpoints
 - [Provider Setup](docs_new/guides/PROVIDER_COVERAGE.md) - Configure AI providers
 - [IDE Plugins](docs_new/guides/IDE_PLUGINS_STATUS.md) - VS Code & IntelliJ setup
+- [URL Redirect Setup](docs_new/guides/URL_REDIRECT_SETUP.md) - Old URL migration
 
 ## 🔧 Development
 
