@@ -69,7 +69,9 @@ public class AdminWebSocketHandler extends TextWebSocketHandler {
 
     private void broadcastToAll(Map<String, Object> message) {
         String json = gson.toJson(message);
-        sessions.forEach(session -> {
+        // Create a snapshot to avoid ConcurrentModificationException
+        List<WebSocketSession> snapshot = sessions.stream().toList();
+        snapshot.forEach(session -> {
             try {
                 if (session.isOpen()) {
                     session.sendMessage(new TextMessage(json));
