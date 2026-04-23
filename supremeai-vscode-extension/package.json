@@ -87,22 +87,30 @@
         }
       }
     },
-    "views": {
-      "explorer": [
-        {
-          "id": "supremeai-chat",
-          "name": "Chat"
-        },
-        {
-          "id": "supremeai-orchestration",
-          "name": "Orchestration"
-        },
-        {
-          "id": "supremeai-settings",
-          "name": "Settings"
-        }
-      ]
-    },
+     "views": {
+       "explorer": [
+         {
+           "id": "supremeai-chat",
+           "name": "Chat"
+         },
+         {
+           "id": "supremeai-agents",
+           "name": "Agents"
+         },
+         {
+           "id": "supremeai-projects",
+           "name": "Projects"
+         },
+         {
+           "id": "supremeai-orchestration",
+           "name": "Orchestration"
+         },
+         {
+           "id": "supremeai-settings",
+           "name": "Settings"
+         }
+       ]
+     },
     "viewsWelcome": {
       "view": "supremeai-chat",
       "contents": "Welcome to SupremeAI!\\nSelect a conversation or start chatting."
