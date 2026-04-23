@@ -36,13 +36,17 @@ jobs:
               - 'src/**'
               - 'Dockerfile'
               - 'build.gradle*'
+              - '.github/workflows/supreme_pipeline.yml'
             frontend:
               - 'supremeai/**'
               - 'supremeai/firebase.json'
+              - '.github/workflows/supreme_pipeline.yml'
             plugin:
               - 'supremeai-intellij-plugin/**'
+              - '.github/workflows/supreme_pipeline.yml'
             vscode_extension:
               - 'supremeai-vscode-extension/**'
+              - '.github/workflows/supreme_pipeline.yml'
 
   secret-scan:
     name: Secret_Scanning
