@@ -68,19 +68,22 @@ jobs:
       security-events: write
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - name: Setup_Java
         uses: actions/setup-java@v4
         with:
           java-version: "21"
           distribution: "temurin"
-          cache: "gradle"
+          cache: ""
       - name: CodeQL_Init
         uses: github/codeql-action/init@v3
         with:
           languages: "java"
           build-mode: "manual"
-      - name: Build_For_CodeQL
-        run: ./gradlew compileJava
+      - name: Clean_Build_For_CodeQL
+        run: |
+          ./gradlew clean compileJava --no-build-cache --refresh-dependencies
         
       - name: Run_CodeQL
         uses: github/codeql-action/analyze@v3
@@ -92,6 +95,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - name: Setup_Gradle_Cache
         uses: actions/cache@v4
         with:
@@ -106,10 +111,10 @@ jobs:
         with:
           java-version: "21"
           distribution: "temurin"
-          cache: "gradle"
+          cache: ""
       - name: Build_And_Test
         run: |
-          ./gradlew clean build -x test -x jacocoTestCoverageVerification
+          ./gradlew clean build -x test -x jacocoTestCoverageVerification --no-build-cache --refresh-dependencies
           # The bootJar task now outputs app.jar directly, ensure it exists
           if [ ! -f "build/libs/app.jar" ]; then
             echo "Error: app.jar not found in build/libs"
