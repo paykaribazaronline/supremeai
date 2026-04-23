@@ -10,6 +10,8 @@ import {
     TeamOutlined, SettingOutlined, CheckCircleOutlined, WarningOutlined,
     BugOutlined, NodeIndexOutlined, MenuFoldOutlined, MenuUnfoldOutlined
 } from '@ant-design/icons';
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 import { authUtils } from '../lib/authUtils';
 import PhasesOverview from '../components/PhasesOverview';
 import AIAgentsDashboard from '../components/AIAgentsDashboard';
@@ -64,6 +66,8 @@ const AdminDashboardUnified: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [quotaData, setQuotaData] = useState<any>(null);
+    const [stompClient, setStompClient] = useState<Client | null>(null);
 
     // Suggestion modal state
     const [suggestionOpen, setSuggestionOpen] = useState(false);
@@ -72,9 +76,46 @@ const AdminDashboardUnified: React.FC = () => {
 
     useEffect(() => {
         fetchContract();
-        // Refresh every 30 seconds
+        // Refresh contract every 30 seconds
         const interval = setInterval(fetchContract, 30000);
-        return () => clearInterval(interval);
+
+        // Setup STOMP WebSocket for real-time quota updates
+        const token = authUtils.getToken();
+        const client = new Client({
+            webSocketFactory: () => new SockJS('/ws'),
+            connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
+            debug: (str) => console.log('STOMP: ' + str),
+            reconnectDelay: 5000,
+            heartbeatIncoming: 4000,
+            heartbeatOutgoing: 4000,
+        });
+
+        client.onConnect = () => {
+            console.log('Connected to WebSocket for real-time updates');
+            // Subscribe to quota updates
+            client.subscribe('/topic/quota', (message) => {
+                try {
+                    const data = JSON.parse(message.body);
+                    setQuotaData(data);
+                } catch (e) {
+                    console.error('Failed to parse quota update:', e);
+                }
+            });
+        };
+
+        client.onStompError = (frame) => {
+            console.error('STOMP error:', frame.headers['message']);
+        };
+
+        client.activate();
+        setStompClient(client);
+
+        return () => {
+            clearInterval(interval);
+            if (client.active) {
+                client.deactivate();
+            }
+        };
     }, []);
 
     const fetchContract = async () => {
@@ -560,7 +601,7 @@ const AdminDashboardUnified: React.FC = () => {
                                 onMouseLeave={(e) => {
                                     e.currentTarget.style.transform = 'translateY(0)';
                                     e.currentTarget.style.boxShadow = '0 10px 40px -10px rgba(245, 158, 11, 0.3)';
-                                }}
+                                }                                }
                             >
                                 <Statistic
                                     title={<span style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500, fontSize: '13px' }}>Success Rate</span>}
@@ -571,6 +612,49 @@ const AdminDashboardUnified: React.FC = () => {
                             </Card>
                         </Col>
                     </Row>
+
+                    {/* Real-time Quota Updates */}
+                    {quotaData && quotaData.quota && (
+                        <Row gutter={[24, 24]} style={{ marginBottom: '32px' }}>
+                            <Col xs={24} sm={12} md={6}>
+                                <Card style={{ borderRadius: '16px', border: 'none', background: 'linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%)' }}>
+                                    <Statistic
+                                        title={<span style={{ color: 'rgba(255,255,255,0.8)' }}>Total Requests</span>}
+                                        value={quotaData.quota.totalRequests}
+                                        valueStyle={{ color: '#FFFFFF', fontWeight: 700, fontSize: '24px' }}
+                                    />
+                                </Card>
+                            </Col>
+                            <Col xs={24} sm={12} md={6}>
+                                <Card style={{ borderRadius: '16px', border: 'none', background: 'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)' }}>
+                                    <Statistic
+                                        title={<span style={{ color: 'rgba(255,255,255,0.8)' }}>Used Quota</span>}
+                                        value={quotaData.quota.usedQuota}
+                                        valueStyle={{ color: '#FFFFFF', fontWeight: 700, fontSize: '24px' }}
+                                    />
+                                </Card>
+                            </Col>
+                            <Col xs={24} sm={12} md={6}>
+                                <Card style={{ borderRadius: '16px', border: 'none', background: 'linear-gradient(135deg, #14B8A6 0%, #2DD4BF 100%)' }}>
+                                    <Statistic
+                                        title={<span style={{ color: 'rgba(255,255,255,0.8)' }}>Remaining Quota</span>}
+                                        value={quotaData.quota.remainingQuota}
+                                        valueStyle={{ color: '#FFFFFF', fontWeight: 700, fontSize: '24px' }}
+                                    />
+                                </Card>
+                            </Col>
+                            <Col xs={24} sm={12} md={6}>
+                                <Card style={{ borderRadius: '16px', border: 'none', background: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)' }}>
+                                    <Statistic
+                                        title={<span style={{ color: 'rgba(255,255,255,0.8)' }}>Usage %</span>}
+                                        value={quotaData.quota.usagePercentage}
+                                        suffix="%"
+                                        valueStyle={{ color: '#FFFFFF', fontWeight: 700, fontSize: '24px' }}
+                                    />
+                                </Card>
+                            </Col>
+                        </Row>
+                    )}
 
                     {/* Selected Component Panel */}
                     <Card

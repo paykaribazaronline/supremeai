@@ -2,8 +2,14 @@ package com.supremeai.controller;
 
 import com.supremeai.model.User;
 import com.supremeai.model.UserTier;
+import com.supremeai.model.ActivityLog;
 import com.supremeai.repository.*;
+import com.supremeai.service.AIRankingService;
+import com.supremeai.service.AutonomousQuestioningService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -24,6 +30,8 @@ public class AdminDashboardController extends BaseAdminController<Object, String
     private final ActivityLogRepository activityLogRepository;
     private final SystemLearningRepository systemLearningRepository;
     private final VPNRepository vpnRepository;
+    private final AIRankingService aiRankingService;
+    private final AutonomousQuestioningService questioningService;
 
     public AdminDashboardController(UserRepository userRepository,
                                      AgentRepository agentRepository,
@@ -31,7 +39,9 @@ public class AdminDashboardController extends BaseAdminController<Object, String
                                      ProviderRepository providerRepository,
                                      ActivityLogRepository activityLogRepository,
                                      SystemLearningRepository systemLearningRepository,
-                                     VPNRepository vpnRepository) {
+                                     VPNRepository vpnRepository,
+                                     AIRankingService aiRankingService,
+                                     AutonomousQuestioningService questioningService) {
         this.userRepository = userRepository;
         this.agentRepository = agentRepository;
         this.projectRepository = projectRepository;
@@ -39,6 +49,8 @@ public class AdminDashboardController extends BaseAdminController<Object, String
         this.activityLogRepository = activityLogRepository;
         this.systemLearningRepository = systemLearningRepository;
         this.vpnRepository = vpnRepository;
+        this.aiRankingService = aiRankingService;
+        this.questioningService = questioningService;
     }
 
     @GetMapping("/dashboard/contract")
@@ -134,18 +146,33 @@ public class AdminDashboardController extends BaseAdminController<Object, String
 
         return userRepository.findById(userId)
                 .flatMap(user -> {
+                    String oldTier = user.getTier().toString();
                     user.setTier(newTier);
                     user.setUpdatedAt(java.time.LocalDateTime.now());
-                    return userRepository.save(user);
+                    String adminUserId = getCurrentAdminUserId();
+                    return userRepository.save(user)
+                                                        .doOnSuccess(savedUser -> {
+                                // Log admin action
+                                ActivityLog log = new ActivityLog();
+                                log.setUser(adminUserId);
+                                log.setAction("UPDATE_USER_TIER");
+                                log.setCategory("USER_MANAGEMENT");
+                                log.setSeverity("INFO");
+                                log.setOutcome("SUCCESS");
+                                log.setDetails("Changed user " + userId + " tier from " + oldTier + " to " + newTier);
+                                activityLogRepository.save(log).block();
+                            });
                 })
-                .map(user -> (ResponseEntity<Object>) ResponseEntity.ok((Object) Map.of(
+                                .map(userObject -> {
+                    User user = (User) userObject;
+                    return (ResponseEntity<Object>) ResponseEntity.ok((Object) Map.of(
                         "message", "User tier updated successfully",
                         "user", Map.of(
                                 "id", user.getFirebaseUid(),
                                 "tier", user.getTier().toString(),
                                 "monthlyQuota", user.getMonthlyQuota()
                         )
-                )))
+                ));})
                 .defaultIfEmpty(ResponseEntity.status(404).body(Map.of("error", "User not found")))
                 .onErrorResume(e -> handleError("Failed to update user tier for user: " + userId, e));
     }
@@ -174,5 +201,94 @@ public class AdminDashboardController extends BaseAdminController<Object, String
         item.put("icon", icon);
         item.put("enabled", enabled);
         return item;
+    }
+
+    /**
+     * Get the current authenticated admin's Firebase UID.
+     */
+    private String getCurrentAdminUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null) {
+            throw new IllegalStateException("Not authenticated");
+        }
+        return auth.getName();
+    }
+
+    /**
+     * Get AI provider rankings based on success rates.
+     */
+    @GetMapping("/providers/rankings")
+    public Mono<ResponseEntity<Object>> getProviderRankings() {
+        return Mono.just(ResponseEntity.ok((Object) Map.of(
+            "rankings", aiRankingService.getRankings(),
+            "timestamp", System.currentTimeMillis()
+        )));
+    }
+
+    /**
+     * Record a successful request to a provider (called by other services).
+     */
+    public void recordProviderSuccess(String provider) {
+        aiRankingService.recordSuccess(provider);
+    }
+
+    /**
+     * Record a failed request to a provider (called by other services).
+     */
+    public void recordProviderFailure(String provider) {
+        aiRankingService.recordFailure(provider);
+    }
+
+    /**
+     * POST /api/admin/prompt/analyze - Analyze a prompt and get clarifying questions.
+     * Helps reduce ambiguity before code generation.
+     */
+    @PostMapping("/prompt/analyze")
+    public ResponseEntity<Map<String, Object>> analyzePrompt(@RequestBody Map<String, String> body) {
+        String prompt = body.get("prompt");
+        if (prompt == null || prompt.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Prompt is required"));
+        }
+
+        Map<String, Object> analysis = questioningService.getPromptAnalysis(prompt);
+        return ResponseEntity.ok(analysis);
+    }
+
+    /**
+     * GET /api/admin/prompt/suggestions - Get common clarifying questions for code generation.
+     */
+    @GetMapping("/prompt/suggestions")
+    public ResponseEntity<Map<String, Object>> getPromptSuggestions() {
+        List<Map<String, Object>> suggestions = List.of(
+            Map.of(
+                "category", "Scope",
+                "questions", List.of(
+                    "What is the target user base?",
+                    "Is this a prototype or production system?",
+                    "What are the key features needed?"
+                )
+            ),
+            Map.of(
+                "category", "Tech Stack",
+                "questions", List.of(
+                    "Preferred programming language?",
+                    "Frontend framework preference?",
+                    "Database requirements?"
+                )
+            ),
+            Map.of(
+                "category", "Constraints",
+                "questions", List.of(
+                    "Timeline expectations?",
+                    "Budget considerations?",
+                    "Existing systems to integrate with?"
+                )
+            )
+        );
+
+        return ResponseEntity.ok(Map.of(
+            "suggestions", suggestions,
+            "timestamp", System.currentTimeMillis()
+        ));
     }
 }
