@@ -272,102 +272,44 @@
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
 
-        const STORAGE_KEY = 'supremeai_remembered_username';
-        const STORAGE_EXPIRY_KEY = 'supremeai_remembered_expiry';
-        const STORAGE_PERSISTENCE_KEY = 'supremeai_firebase_persistence_enabled';
-        const FIREBASE_AUTH_FLAG = 'supremeai_firebase_authenticated';
-        const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
-
-        // Prefer backend config, but keep a fallback so auth can still start
-        // if the config endpoint is unavailable in production.
-        const firebaseConfigFallback = {
+        // SIMPLE FIREBASE CONFIG - NO BACKEND CALLS
+        const firebaseConfig = {
             apiKey: "AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8",
             authDomain: "supremeai-a.firebaseapp.com",
-            databaseURL: "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/",
             projectId: "supremeai-a",
             storageBucket: "supremeai-a.firebasestorage.app",
             messagingSenderId: "565236080752",
             appId: "1:565236080752:web:572bb9313db9afb355d4b5"
         };
-        let firebaseConfig = null;
 
-        let firebaseAuth = null;
-        
-        async function initializeFirebase() {
-            try {
-                // Load Firebase config from backend API (environment-based, not hardcoded)
-                const response = await fetch('/api/config/firebase', {
-                    headers: { 'Accept': 'application/json' }
-                });
-                if (!response.ok) throw new Error(`Failed to load Firebase config (${response.status})`);
-                
-                firebaseConfig = await response.json();
-                if (!firebaseConfig || !firebaseConfig.apiKey) {
-                    throw new Error('Firebase config response was incomplete');
-                }
-                
-                // Initialize Firebase with config from backend
-                if (!firebase.apps.length) {
-                    firebase.initializeApp(firebaseConfig);
-                }
-                firebaseAuth = firebase.auth();
-                console.log('✅ Firebase initialized from backend config');
-            } catch (err) {
-                console.error('❌ Firebase init failed:', err.message);
-                try {
-                    firebaseConfig = firebaseConfigFallback;
-                    if (!firebase.apps.length) {
-                        firebase.initializeApp(firebaseConfig);
-                    }
-                    firebaseAuth = firebase.auth();
-                } catch (fallbackErr) {
-                    showError('Failed to initialize authentication service. Please refresh the page.');
-                }
-            }
+        // Initialize Firebase RIGHT AWAY - NO WAITING, NO API CALLS
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
         }
-
-        // Load remembered username on page load
-        window.addEventListener('DOMContentLoaded', async () => {
-            await initializeFirebase(); // Load config from backend first
-            checkRememberedUser();
-            checkExistingSession();
+        const auth = firebase.auth();
+        
+        // Keep user logged in across browser restarts
+        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+        
+        // Page load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Load remembered email if present
+            const savedEmail = localStorage.getItem('supremeai_remember_email');
+            if (savedEmail) {
+                emailInput.value = savedEmail;
+                rememberMe.checked = true;
+                passwordInput.focus();
+            }
+        
+            // Check if already logged in
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    window.location.href = '/admin.html';
+                }
+            });
         });
 
-        function checkRememberedUser() {
-            const savedUsername = localStorage.getItem(STORAGE_KEY);
-            const savedExpiry = localStorage.getItem(STORAGE_EXPIRY_KEY);
-            
-            if (savedUsername && savedExpiry) {
-                const expiryTime = parseInt(savedExpiry);
-                const currentTime = Date.now();
-                
-                if (currentTime < expiryTime) {
-                    // Not expired, restore it
-                    emailInput.value = savedUsername;
-                    rememberMe.checked = true;
-                    passwordInput.focus();
-                    return;
-                } else {
-                    // Expired, clear it
-                    localStorage.removeItem(STORAGE_KEY);
-                    localStorage.removeItem(STORAGE_EXPIRY_KEY);
-                    rememberMe.checked = false;
-                }
-            }
-        }
-
-        function checkExistingSession() {
-            const persistenceEnabled = localStorage.getItem(STORAGE_PERSISTENCE_KEY);
-            if (firebaseAuth && persistenceEnabled === 'true') {
-                firebaseAuth.onAuthStateChanged((user) => {
-                    if (user) {
-                        localStorage.setItem(FIREBASE_AUTH_FLAG, 'true');
-                        window.location.href = '/admin.html';
-                    }
-                });
-            }
-        }
-
+        // Form submit handler
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             clearMessages();
@@ -380,106 +322,49 @@
                 return;
             }
 
-            await loginUser(email, password);
-        });
-
-        async function loginUser(email, password) {
             try {
                 loading.classList.add('show');
                 loginButton.disabled = true;
 
-                if (!firebaseAuth) {
-                    throw new Error('Firebase authentication is not available');
-                }
-
-                const credential = await firebaseAuth.signInWithEmailAndPassword(email, password);
-                const user = credential.user;
-                const idToken = await user.getIdToken();
-                const backendResponse = await fetch('/api/auth/firebase-login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ idToken })
-                });
-
-                if (!backendResponse.ok) {
-                    let backendMsg = 'Backend authentication failed';
-                    try {
-                        const errBody = await backendResponse.json();
-                        if (errBody.message) backendMsg = errBody.message;
-                        else if (errBody.error) backendMsg = errBody.error;
-                        else if (errBody.status === 'error') backendMsg = errBody.message || backendMsg;
-                    } catch (_) {}
-                    throw new Error(backendMsg);
-                }
-
-                const backendAuth = await backendResponse.json();
-                if (backendAuth.status !== 'success') {
-                    throw new Error(backendAuth.message || 'Backend authentication failed');
-                }
-
-                localStorage.setItem(FIREBASE_AUTH_FLAG, 'true');
-                localStorage.setItem('supremeai_user', JSON.stringify({
-                    username: backendAuth.user?.username || user.displayName || user.email,
-                    email: backendAuth.user?.email || user.email,
-                    uid: backendAuth.user?.id || user.uid,
-                    role: backendAuth.user?.role || 'user'
-                }));
-                localStorage.removeItem('supremeai_auth_token');
-
+                // SIMPLE DIRECT FIREBASE LOGIN - NO BACKEND
+                await auth.signInWithEmailAndPassword(email, password);
+                
+                // Store login state
+                localStorage.setItem('supremeai_logged_in', 'true');
+                localStorage.setItem('supremeai_user_role', 'admin');
+                
+                // Remember email if checkbox is checked
                 if (rememberMe.checked) {
-                    const expiryTime = Date.now() + THIRTY_DAYS_MS;
-                    localStorage.setItem(STORAGE_KEY, email);
-                    localStorage.setItem(STORAGE_EXPIRY_KEY, expiryTime.toString());
-                    localStorage.setItem(STORAGE_PERSISTENCE_KEY, 'true');
+                    localStorage.setItem('supremeai_remember_email', email);
                 } else {
-                    localStorage.removeItem(STORAGE_KEY);
-                    localStorage.removeItem(STORAGE_EXPIRY_KEY);
-                    localStorage.removeItem(STORAGE_PERSISTENCE_KEY);
+                    localStorage.removeItem('supremeai_remember_email');
                 }
-
-                showSuccess('✅ Login successful! Redirecting to dashboard...');
-                setTimeout(() => { window.location.href = '/admin.html'; }, 1000);
+                
+                showSuccess('✅ Login successful! Redirecting...');
+                setTimeout(() => { window.location.href = '/admin.html'; }, 800);
 
             } catch (error) {
-                console.error('Login error:', error);
-                showError('❌ ' + (error.message || 'Login failed. Please try again.'));
+                showError('❌ Invalid email or password');
                 loginButton.disabled = false;
             } finally {
                 loading.classList.remove('show');
             }
-        }
+        });
 
         function showError(message) {
             errorMessage.textContent = message;
             errorMessage.classList.add('show');
-            console.error('Auth Error:', message);
         }
 
         function showSuccess(message) {
             successMessage.textContent = message;
             successMessage.classList.add('show');
-            console.log('Auth Success:', message);
         }
 
         function clearMessages() {
             errorMessage.classList.remove('show');
             successMessage.classList.remove('show');
         }
-
-        function clearAuthStorage() {
-            localStorage.removeItem(FIREBASE_AUTH_FLAG);
-            localStorage.removeItem('supremeai_user');
-            localStorage.removeItem(STORAGE_PERSISTENCE_KEY);
-        }
-
-        // Allow Enter key to submit form
-        document.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && document.activeElement !== loginButton) {
-                loginForm.dispatchEvent(new Event('submit'));
-            }
-        });
     </script>
 </body>
 </html>
