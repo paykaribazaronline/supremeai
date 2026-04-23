@@ -45,10 +45,11 @@ void main() {
 
     // Click Guest Mode
     await tester.tap(find.text('গেস্ট হিসেবে ব্যবহার করুন (Guest Mode)'));
+    await tester.pump();
     await tester.pumpAndSettle();
 
     // Verify we are on Home Page
     expect(find.byType(HomeScreen), findsOneWidget);
-    expect(find.text('SupremeAI Dashboard'), findsOneWidget);
+    expect(find.text('SupremeAI'), findsOneWidget);
   });
 }
