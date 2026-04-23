@@ -2771,71 +2771,95 @@
     </div>
 
     <!-- MODALS -->
-    <!-- Add API Key Modal -->
-    <div id="addKeyModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Add New AI Model API</h2>
-                <span class="close-btn" onclick="closeModal('addKeyModal')">&times;</span>
-            </div>
+     <!-- Add API Key Modal -->
+     <div id="addKeyModal" class="modal">
+         <div class="modal-content">
+             <div class="modal-header">
+                 <h2>Add New AI Model API</h2>
+                 <span class="close-btn" onclick="closeModal('addKeyModal')">&times;</span>
+             </div>
 
-            <!-- Section A: Previously added (from DB) -->
-            <div class="form-group">
-                <label>📌 Update an Existing Provider</label>
-                <select id="aiModelSelect" style="width:100%;">
-                    <option value="">-- Choose a saved provider (or add new below) --</option>
-                </select>
-                <div style="font-size:11px;color:#718096;margin-top:4px;">Providers you have already saved. Select one to update its API key.</div>
-            </div>
+             <!-- Section A: Previously added (from DB) -->
+             <div class="form-group">
+                 <label>📌 Update an Existing Provider</label>
+                 <select id="aiModelSelect" style="width:100%;">
+                     <option value="">-- Choose a saved provider (or add new below) --</option>
+                 </select>
+                 <div style="font-size:11px;color:#718096;margin-top:4px;">Providers you have already saved. Select one to update its API key.</div>
+             </div>
 
-            <!-- Section B: Search / discover new models -->
-            <div class="form-group">
-                <label>🔍 Or search to add a new provider</label>
-                <input type="text" id="aiModelSearch" placeholder="Type provider name e.g. groq, gpt, claude, gemini..." oninput="onProviderSearchInput()" style="width:100%;">
-                <div id="suggestionsDropdown" style="display:none;background:#2d3748;border:1px solid #4a5568;border-radius:6px;max-height:200px;overflow-y:auto;margin-top:4px;z-index:9999;position:relative;">
-                </div>
-                <div style="font-size:11px;color:#718096;margin-top:4px;">
-                    💡 Real-time search across AI model registries (OpenRouter, HuggingFace). New models appear automatically — no code changes needed.
-                </div>
-            </div>
+             <!-- Section B: Quick-Add Popular Providers (User-friendly) -->
+             <div class="form-group">
+                 <label>🚀 Quick-Add Popular Providers</label>
+                 <select id="quickProviderSelect" onchange="applyQuickProvider()" style="width:100%;">
+                     <option value="">-- Select a provider to quickly configure --</option>
+                     <option value="openai">OpenAI (GPT-4o, GPT-4o Mini)</option>
+                     <option value="openai-mini">OpenAI (GPT-4o Mini – cheaper)</option>
+                     <option value="anthropic">Anthropic Claude 3.5 Sonnet</option>
+                     <option value="anthropic-opus">Anthropic Claude 3 Opus</option>
+                     <option value="groq">Groq Llama 3 70B (fast & free)</option>
+                     <option value="groq-mixtral">Groq Mixtral 8x7B</option>
+                     <option value="gemini">Google Gemini 1.5 Pro</option>
+                     <option value="gemini-flash">Google Gemini 1.5 Flash</option>
+                     <option value="cohere">Cohere Command R+</option>
+                     <option value="together">Together Llama 3 70B</option>
+                     <option value="deepseek">DeepSeek V3</option>
+                     <option value="openrouter">OpenRouter (GPT-4o via marketplace)</option>
+                 </select>
+                 <div style="font-size:11px;color:#718096;margin-top:4px;">
+                     ✅ Select a provider above → endpoint & model auto-fill → just paste your API key.
+                 </div>
+             </div>
 
-            <div id="customProviderFields">
-                <div class="form-group">
-                    <label>Provider ID <span style="color:#f56565;">*</span></label>
-                    <input type="text" id="customProviderId" placeholder="e.g. groq, openai, anthropic, together-ai">
-                </div>
-                <div class="form-group">
-                    <label>Display Name</label>
-                    <input type="text" id="customProviderName" placeholder="e.g. Groq (Free)">
-                </div>
-                <div class="form-group">
-                    <label>Model Name</label>
-                    <input type="text" id="customBaseModel" placeholder="e.g. llama3-70b-8192 or gpt-4o-mini">
-                </div>
-                <div class="form-group">
-                    <label>API Endpoint URL</label>
-                    <input type="text" id="customProviderEndpoint" placeholder="e.g. https://api.groq.com/openai/v1/chat/completions">
-                </div>
-            </div>
-            <div class="form-group">
-                <label>👤 Created By Email</label>
-                <input type="email" id="createdByEmail" placeholder="admin@supremeai.com">
-            </div>
-            <div class="form-group">
-                <label>Provider API Key <span style="color:#f56565;">*</span></label>
-                <textarea id="apiKeyInput" placeholder="Paste your API key here..."></textarea>
-                <div style="font-size:11px;color:#718096;margin-top:4px;">
-                    💡 Groq free key: <a href="https://console.groq.com" target="_blank" style="color:#63b3ed;">console.groq.com</a> |
-                    OpenAI: <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#63b3ed;">platform.openai.com</a> |
-                    Anthropic: <a href="https://console.anthropic.com" target="_blank" style="color:#63b3ed;">console.anthropic.com</a> |
-                    Google: <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#63b3ed;">aistudio.google.com</a>
-                </div>
-            </div>
-            <button class="btn" onclick="addNewProvider()">✅ Add / Update Provider</button>
-            <button class="btn btn-secondary" onclick="closeModal('addKeyModal')">❌ Cancel</button>
-            <div id="addKeyMsg" style="margin-top:10px;"></div>
-        </div>
-    </div>
+             <!-- Section C: Search / discover new models (advanced) -->
+             <div class="form-group">
+                 <label>🔍 Or browse/search more models</label>
+                 <input type="text" id="aiModelSearch" placeholder="Type to search (e.g. 'llama', 'claude', 'gpt')..." oninput="onProviderSearchInput()" style="width:100%;">
+                 <div id="suggestionsDropdown" style="display:none;background:#2d3748;border:1px solid #4a5568;border-radius:6px;max-height:200px;overflow-y:auto;margin-top:4px;z-index:9999;position:relative;">
+                 </div>
+             </div>
+
+             <!-- Custom provider fields (shown when search result selected or quick provider chosen) -->
+             <div id="customProviderFields">
+                 <div class="form-group">
+                     <label>Provider ID <span style="color:#f56565;">*</span></label>
+                     <input type="text" id="customProviderId" placeholder="e.g. openai, anthropic, groq">
+                 </div>
+                 <div class="form-group">
+                     <label>Display Name</label>
+                     <input type="text" id="customProviderName" placeholder="e.g. OpenAI GPT-4">
+                 </div>
+                 <div class="form-group">
+                     <label>Model Name <span style="color:#f56565;">*</span></label>
+                     <input type="text" id="customBaseModel" placeholder="e.g. gpt-4o or claude-3-5-sonnet-20240620">
+                 </div>
+                 <div class="form-group">
+                     <label>API Endpoint URL <span style="color:#f56565;">*</span></label>
+                     <input type="text" id="customProviderEndpoint" placeholder="https://api.openai.com/v1/chat/completions">
+                 </div>
+             </div>
+
+             <div class="form-group">
+                 <label>👤 Created By Email</label>
+                 <input type="email" id="createdByEmail" placeholder="admin@supremeai.com">
+             </div>
+             <div class="form-group">
+                 <label>Provider API Key <span style="color:#f56565;">*</span></label>
+                 <textarea id="apiKeyInput" placeholder="Paste your API key here (e.g. sk-..., gsk-..., anthropic-api-key)"></textarea>
+                 <div style="font-size:11px;color:#718096;margin-top:4px;">
+                     🔗 Get keys: 
+                     <a href="https://console.groq.com" target="_blank" style="color:#63b3ed;">Groq</a> |
+                     <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#63b3ed;">OpenAI</a> |
+                     <a href="https://console.anthropic.com" target="_blank" style="color:#63b3ed;">Anthropic</a> |
+                     <a href="https://aistudio.google.com/apikey" target="_blank" style="color:#63b3ed;">Google</a> |
+                     <a href="https://dashboard.cohere.com/api-keys" target="_blank" style="color:#63b3ed;">Cohere</a>
+                 </div>
+             </div>
+             <button class="btn" onclick="addNewProvider()">✅ Add / Update Provider</button>
+             <button class="btn btn-secondary" onclick="closeModal('addKeyModal')">❌ Cancel</button>
+             <div id="addKeyMsg" style="margin-top:10px;"></div>
+         </div>
+     </div>
 
     <!-- Rotate API Key Modal -->
     <div id="rotateKeyModal" class="modal">
@@ -3266,8 +3290,48 @@
             document.getElementById('apiKeyInput').focus();
         }
 
+        // Pre-configured quick provider templates (kept in sync with backend /api/providers/templates)
+        const QUICK_PROVIDER_TEMPLATES = {
+          openai:       { id: 'openai',       name: 'OpenAI GPT-4o',         provider: 'openai',  model: 'gpt-4o',  endpoint: 'https://api.openai.com/v1/chat/completions' },
+          'openai-mini':{ id: 'openai-mini',  name: 'OpenAI GPT-4o Mini',    provider: 'openai',  model: 'gpt-4o-mini', endpoint: 'https://api.openai.com/v1/chat/completions' },
+          anthropic:    { id: 'anthropic',    name: 'Anthropic Claude 3.5 Sonnet', provider: 'anthropic', model: 'claude-3-5-sonnet-20240620', endpoint: 'https://api.anthropic.com/v1/messages' },
+          'anthropic-opus': { id: 'anthropic-opus', name: 'Anthropic Claude 3 Opus', provider: 'anthropic', model: 'claude-3-opus-20240229', endpoint: 'https://api.anthropic.com/v1/messages' },
+          groq:         { id: 'groq',         name: 'Groq Llama 3 70B',      provider: 'groq',    model: 'llama3-70b-8192', endpoint: 'https://api.groq.com/openai/v1/chat/completions' },
+          'groq-mixtral': { id: 'groq-mixtral', name: 'Groq Mixtral 8x7B',    provider: 'groq',    model: 'mixtral-8x7b-32768', endpoint: 'https://api.groq.com/openai/v1/chat/completions' },
+          gemini:       { id: 'gemini',       name: 'Google Gemini 1.5 Pro', provider: 'google',  model: 'gemini-1.5-pro', endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent' },
+          'gemini-flash': { id: 'gemini-flash', name: 'Google Gemini 1.5 Flash', provider: 'google',  model: 'gemini-1.5-flash', endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent' },
+          cohere:       { id: 'cohere',       name: 'Cohere Command R+',     provider: 'cohere',  model: 'command-r-plus', endpoint: 'https://api.cohere.ai/v1/chat' },
+          together:     { id: 'together',     name: 'Together Llama 3 70B',  provider: 'together', model: 'meta-llama/Meta-Llama-3-70B-Instruct-Turbo', endpoint: 'https://api.together.xyz/v1/chat/completions' },
+          deepseek:     { id: 'deepseek',     name: 'DeepSeek V3',           provider: 'deepseek', model: 'deepseek-chat', endpoint: 'https://api.deepseek.com/chat/completions' },
+          openrouter:   { id: 'openrouter',   name: 'OpenRouter GPT-4o',     provider: 'openrouter', model: 'openai/gpt-4o', endpoint: 'https://openrouter.ai/api/v1/chat/completions' }
+        };
+
+        function applyQuickProvider() {
+            const select = document.getElementById('quickProviderSelect');
+            const key = select.value;
+            if (!key) return;
+
+            const tmpl = QUICK_PROVIDER_TEMPLATES[key];
+            if (!tmpl) return;
+
+            // Fill all custom provider fields
+            document.getElementById('customProviderId').value = tmpl.id;
+            document.getElementById('customProviderName').value = tmpl.name;
+            document.getElementById('customBaseModel').value = tmpl.model;
+            document.getElementById('customProviderEndpoint').value = tmpl.endpoint;
+
+            // Clear search and suggestions
+            document.getElementById('aiModelSearch').value = '';
+            document.getElementById('suggestionsDropdown').style.display = 'none';
+            document.getElementById('aiModelSelect').value = '';
+
+            // Focus API key input for immediate entry
+            document.getElementById('apiKeyInput').focus();
+        }
+
         async function prepareAddProviderModal() {
             document.getElementById('createdByEmail').value = getCurrentAdminEmail();
+            document.getElementById('quickProviderSelect').value = '';
             document.getElementById('aiModelSearch').value = '';
             document.getElementById('customProviderId').value = '';
             document.getElementById('customProviderName').value = '';
