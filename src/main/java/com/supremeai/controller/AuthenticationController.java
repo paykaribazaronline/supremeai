@@ -4,8 +4,10 @@ import com.supremeai.model.ActivityLog;
 import com.supremeai.repository.ActivityLogRepository;
 import com.supremeai.model.User;
 import com.supremeai.model.UserTier;
+import com.supremeai.repository.UserRepository;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.UserRecord;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -21,12 +23,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import com.google.cloud.firestore.Firestore;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import com.google.cloud.spring.data.firestore.FirestoreTemplate;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,8 +32,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 import jakarta.servlet.http.HttpSession;
-import java.time.LocalDateTime;
-import java.util.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -45,7 +41,10 @@ public class AuthenticationController {
     private static final Logger log = LoggerFactory.getLogger(AuthenticationController.class);
 
     @Autowired
-    private com.google.cloud.spring.data.firestore.FirestoreTemplate firestoreTemplate;
+    private FirestoreTemplate firestoreTemplate;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private ActivityLogRepository activityLogRepository;
@@ -85,7 +84,7 @@ public class AuthenticationController {
             // Resolve tier: Firestore document takes priority, then Firebase token claims
             UserTier tier = UserTier.FREE;
             boolean isNewUser = false;
-            User user = firestoreTemplate.get(uid, User.class);
+            User user = userRepository.findByFirebaseUid(uid).block();
 
             log.info("Firestore lookup for uid={}: {}", uid, user != null ? "found" : "new user");
 
@@ -110,7 +109,7 @@ public class AuthenticationController {
             }
 
             try {
-                firestoreTemplate.save(user);
+                userRepository.save(user).block();
                 log.info("User saved to Firestore successfully: uid={}", uid);
             } catch (Exception e) {
                 log.error("Failed to save user to Firestore: uid={}, error={}", uid, e.getMessage(), e);

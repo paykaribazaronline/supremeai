@@ -52,7 +52,7 @@ public class AutonomousVotingService {
                     ProviderVote vote = new ProviderVote();
                     vote.setProviderName(providerName);
                     vote.setResponse(response);
-                    vote.setConfidence(0.8); // Will be calculated based on response quality
+                    vote.setConfidence(calculateConfidence(response, latency));
                     vote.setLatencyMs(latency);
                     vote.setSuccess(true);
                     
@@ -89,6 +89,30 @@ public class AutonomousVotingService {
             
             Provide your expert opinion on this question. Be concise and specific.
             """, context, question);
+    }
+
+    private double calculateConfidence(String response, long latencyMs) {
+        double confidence = 0.3; // Base confidence
+
+        // Latency score: lower latency = higher score
+        if (latencyMs < 100) {
+            confidence += 0.3;
+        } else if (latencyMs < 500) {
+            confidence += 0.2;
+        } else {
+            confidence += 0.1;
+        }
+
+        // Response length score: reasonable length = higher score
+        int length = response != null ? response.length() : 0;
+        if (length >= 50 && length <= 500) {
+            confidence += 0.4;
+        } else if (length > 0) {
+            confidence += 0.2;
+        }
+
+        // Cap confidence between 0 and 1
+        return Math.max(0.0, Math.min(1.0, confidence));
     }
     
     private VotingDecision calculateConsensus(String question, List<ProviderVote> votes) {

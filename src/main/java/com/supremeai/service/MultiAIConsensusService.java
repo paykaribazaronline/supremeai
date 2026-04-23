@@ -8,6 +8,7 @@ import com.supremeai.provider.AIProviderFactory;
 import com.supremeai.selfhealing.SelfHealingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -50,6 +51,7 @@ public class MultiAIConsensusService {
     /**
      * Query multiple AI providers and return consensus result
      */
+    @Cacheable(value = "ai_responses", key = "#question + '_' + T(java.util.Collections).unmodifiableSortedSet(new java.util.TreeSet(#providerNames)).hashCode()")
     public ConsensusResult askAllAIs(String question, List<String> providerNames, long timeoutMs) {
         List<ProviderVote> votes = new CopyOnWriteArrayList<>();
 
