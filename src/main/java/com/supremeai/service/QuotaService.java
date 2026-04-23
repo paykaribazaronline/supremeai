@@ -15,6 +15,9 @@ public class QuotaService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private QuotaPredictionService predictionService;
+
     /**
      * Check if a user has quota remaining for the current month
      */
@@ -40,6 +43,8 @@ public class QuotaService {
             user.setCurrentUsage(user.getCurrentUsage() + 1);
             user.setLastUsedAt(LocalDateTime.now());
             userRepository.save(user).block();
+            // Record usage for prediction
+            predictionService.recordUsage(userId);
             return true;
         }
         return false;
@@ -62,6 +67,8 @@ public class QuotaService {
         user.setCurrentUsage(user.getCurrentUsage() + 1);
         user.setLastUsedAt(LocalDateTime.now());
         userRepository.save(user).block();
+        // Record usage for prediction
+        predictionService.recordUsage(userId);
     }
 
     /**

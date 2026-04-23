@@ -7,11 +7,13 @@ import {
     message, Popconfirm, Empty, List, Spin, Row, Col, Typography, Tooltip, Badge, Switch,
     Statistic as AntStatistic, Alert
 } from 'antd';
+import ApiTestConsole from './ApiTestConsole';
 import {
     KeyOutlined, SearchOutlined, PlusOutlined, DeleteOutlined,
     EditOutlined, EyeOutlined, EyeInvisibleOutlined, CheckCircleOutlined,
     ExperimentOutlined, LinkOutlined, CloudDownloadOutlined, StarOutlined,
-    GlobalOutlined, ThunderboltOutlined, SafetyOutlined, BarChartOutlined
+    GlobalOutlined, ThunderboltOutlined, SafetyOutlined, BarChartOutlined,
+    ReloadOutlined
 } from '@ant-design/icons';
 
 const { TabPane } = Tabs;
@@ -123,6 +125,9 @@ const APIKeysTab: React.FC = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingKey, setEditingKey] = useState<SavedAPIKey | null>(null);
     const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
+    const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+    const [bulkLoading, setBulkLoading] = useState(false);
+    const [testConsoleVisible, setTestConsoleVisible] = useState(false);
     const [form] = Form.useForm();
     const [error, setError] = useState<string | null>(null);
 
@@ -234,6 +239,67 @@ const APIKeysTab: React.FC = () => {
         return key.slice(0, 4) + '••••••••' + key.slice(-4);
     };
 
+    const rowSelection = {
+        selectedRowKeys,
+        onChange: (newSelectedRowKeys: React.Key[]) => {
+            setSelectedRowKeys(newSelectedRowKeys);
+        },
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedRowKeys.length === 0) return;
+        setBulkLoading(true);
+        try {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch('/api/apikeys/bulk', {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ keyIds: selectedRowKeys }),
+            });
+            if (response.ok) {
+                message.success(`Deleted ${selectedRowKeys.length} API keys`);
+                setSelectedRowKeys([]);
+                fetchKeys();
+            } else {
+                message.error('Bulk delete failed');
+            }
+        } catch (err) {
+            message.error('Unable to connect to server');
+        } finally {
+            setBulkLoading(false);
+        }
+    };
+
+    const handleBulkRegenerate = async () => {
+        if (selectedRowKeys.length === 0) return;
+        setBulkLoading(true);
+        try {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch('/api/apikeys/bulk/regenerate', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ keyIds: selectedRowKeys }),
+            });
+            if (response.ok) {
+                message.success(`Regenerated ${selectedRowKeys.length} API keys`);
+                setSelectedRowKeys([]);
+                fetchKeys();
+            } else {
+                message.error('Bulk regenerate failed');
+            }
+        } catch (err) {
+            message.error('Unable to connect to server');
+        } finally {
+            setBulkLoading(false);
+        }
+    };
+
     const columns = [
         {
             title: 'Provider',
@@ -318,21 +384,49 @@ const APIKeysTab: React.FC = () => {
                     style={{ marginBottom: 16 }}
                 />
             )}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, alignItems: 'center' }}>
                 <Title level={5} style={{ margin: 0 }}>
                     <SafetyOutlined /> Saved API Keys
                 </Title>
-                <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => {
-                        setEditingKey(null);
-                        form.resetFields();
-                        setIsModalVisible(true);
-                    }}
-                >
-                    Add API Key
-                </Button>
+                <Space>
+                    {selectedRowKeys.length > 0 && (
+                        <>
+                            <span style={{ color: '#666' }}>{selectedRowKeys.length} selected</span>
+                            <Button
+                                danger
+                                icon={<DeleteOutlined />}
+                                loading={bulkLoading}
+                                onClick={handleBulkDelete}
+                            >
+                                Bulk Delete
+                            </Button>
+                            <Button
+                                icon={<ReloadOutlined />}
+                                loading={bulkLoading}
+                                onClick={handleBulkRegenerate}
+                            >
+                                Bulk Regenerate
+                            </Button>
+                        </>
+                    )}
+                    <Button
+                        icon={<CodeOutlined />}
+                        onClick={() => setTestConsoleVisible(true)}
+                    >
+                        API Test Console
+                    </Button>
+                    <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        onClick={() => {
+                            setEditingKey(null);
+                            form.resetFields();
+                            setIsModalVisible(true);
+                        }}
+                    >
+                        Add API Key
+                    </Button>
+                </Space>
             </div>
 
             <Table
@@ -340,6 +434,7 @@ const APIKeysTab: React.FC = () => {
                 dataSource={keys}
                 rowKey="id"
                 loading={loading}
+                rowSelection={rowSelection}
                 locale={{ emptyText: <Empty description="No API keys configured yet. Add one to get started!" /> }}
                 pagination={false}
             />
@@ -880,6 +975,12 @@ const ModelDiscoveryTab: React.FC = () => {
                     </>
                 )}
             </Spin>
+
+            <ApiTestConsole
+                visible={testConsoleVisible}
+                onClose={() => setTestConsoleVisible(false)}
+                apiKeys={keys.map(k => ({ id: k.id, label: k.label, provider: k.provider, baseUrl: k.baseUrl }))}
+            />
         </div>
     );
 };
