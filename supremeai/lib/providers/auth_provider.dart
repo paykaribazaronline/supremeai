@@ -64,14 +64,15 @@ class AuthProvider with ChangeNotifier {
       await prefs.setString('auth_token', _token!);
       return true;
     } catch (e) {
-      _errorMessage = 'Login failed. Please check your credentials and try again.';
+      _errorMessage =
+          'Login failed. Please check your credentials and try again.';
       _status = AuthStatus.unauthenticated;
       notifyListeners();
       return false;
     }
   }
 
-  void continueAsGuest() async {
+  Future<void> continueAsGuest() async {
     _status = AuthStatus.authenticating;
     notifyListeners();
 
