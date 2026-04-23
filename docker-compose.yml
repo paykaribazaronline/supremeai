@@ -13,7 +13,7 @@ services:
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-local}
       - AIRLLM_ENDPOINT=${AIRLLM_ENDPOINT:-https://unsymmetrical-unrepugnant-lilah.ngrok-free.dev/v1/chat/completions}
       - AIRLLM_HEALTHCHECK_URL=${AIRLLM_HEALTHCHECK_URL:-https://unsymmetrical-unrepugnant-lilah.ngrok-free.dev/health}
-      - AIRLLM_RATE_LIMIT_PER_MINUTE=${AIRLLM_RATE_LIMIT_PER_MINUTE:-10}
+      - AIRLLM_RATE_LIMIT_PER_MINUTE=${AIRLLM_RATE_LIMIT_PER_MINUTE:-277}
       - FIREBASE_SERVICE_ACCOUNT=${FIREBASE_SERVICE_ACCOUNT}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
@@ -36,5 +36,8 @@ services:
     environment:
       - MODEL=${AIRLLM_MODEL:-meta-llama/Llama-3.3-70B-Instruct}
       - COMPRESSION=${AIRLLM_COMPRESSION:-4bit}
+      - BATCH_SIZE=${AIRLLM_BATCH_SIZE:-12}
+      - PREFETCH_LAYERS=${AIRLLM_PREFETCH_LAYERS:-4}
+      - CONTINUOUS_BATCHING=true
       - PORT=8081
     restart: unless-stopped

@@ -48,13 +48,31 @@ public class AuthenticationController {
         String idToken = request.get("idToken");
         log.info("firebase-login request received from {}", httpRequest.getRemoteAddr());
 
+        if (idToken == null || idToken.trim().isEmpty()) {
+            log.error("idToken is null or empty");
+            return Map.of("status", "error", "message", "Invalid token: idToken is required");
+        }
+
+        String uid = null;
+        String email = null;
         try {
             com.google.firebase.auth.FirebaseToken decodedToken =
                 com.google.firebase.auth.FirebaseAuth.getInstance().verifyIdToken(idToken);
 
-            String uid = decodedToken.getUid();
-            String email = decodedToken.getEmail();
+            uid = decodedToken.getUid();
+            email = decodedToken.getEmail();
             String name = (String) decodedToken.getClaims().get("name");
+
+            if (uid == null || uid.trim().isEmpty()) {
+                log.error("Firebase token missing uid");
+                return Map.of("status", "error", "message", "Invalid token: uid is missing");
+            }
+
+            if (email == null || email.trim().isEmpty()) {
+                log.error("Firebase token missing email");
+                return Map.of("status", "error", "message", "Invalid token: email is missing");
+            }
+
             log.info("Firebase token verified for uid={}, email={}", uid, email);
 
             // Resolve role: Firestore document takes priority, then Firebase token claims
@@ -76,25 +94,41 @@ public class AuthenticationController {
                 if ("ADMIN".equals(roleClaim) || Boolean.TRUE.equals(adminClaim)) {
                     tier = UserTier.ADMIN;
                 }
-                user = new User(uid, email, name != null ? name : email.split("@")[0]);
+                String displayName = name != null && !name.trim().isEmpty() ? name.trim() : email.split("@")[0];
+                user = new User(uid, email, displayName);
                 user.setTier(tier);
                 isNewUser = true;
             }
 
-            userRepository.save(user).block();
+            try {
+                userRepository.save(user).block();
+                log.info("User saved successfully: uid={}", uid);
+            } catch (Exception e) {
+                log.error("Failed to save user to Firestore: uid={}, error={}", uid, e.getMessage(), e);
+                return Map.of("status", "error", "message", "Failed to save user data. Please try again.");
+            }
 
-            ActivityLog log = new ActivityLog(
-                "LOGIN_SUCCESS",
-                user.getFirebaseUid(),
-                "USER",
-                "LOW",
-                "User '" + user.getDisplayName() + "' logged in successfully.",
-                "SUCCESS",
-                httpRequest.getRemoteAddr()
-            );
-            activityLogRepository.save(log).subscribe();
+            try {
+                ActivityLog logEntry = new ActivityLog(
+                    "LOGIN_SUCCESS",
+                    user.getFirebaseUid(),
+                    "USER",
+                    "LOW",
+                    "User '" + user.getDisplayName() + "' logged in successfully.",
+                    "SUCCESS",
+                    httpRequest.getRemoteAddr()
+                );
+                activityLogRepository.save(logEntry).subscribe();
+            } catch (Exception e) {
+                log.warn("Failed to save activity log, but continuing with login: {}", e.getMessage());
+            }
             
-            establishSession(user, httpRequest);
+            try {
+                establishSession(user, httpRequest);
+            } catch (Exception e) {
+                log.error("Failed to establish session: {}", e.getMessage(), e);
+                return Map.of("status", "error", "message", "Failed to establish session. Please try again.");
+            }
 
             Map<String, Object> response = new HashMap<>();
             response.put("status", "success");
@@ -109,14 +143,14 @@ public class AuthenticationController {
 
             return response;
         } catch (com.google.firebase.auth.FirebaseAuthException e) {
-            log.error("Firebase auth verification failed", e);
-            return Map.of("status", "error", "message", "Auth failed: " + e.getMessage());
+            log.error("Firebase auth verification failed: idToken length={}, error={}", idToken != null ? idToken.length() : 0, e.getMessage(), e);
+            return Map.of("status", "error", "message", "Authentication failed: " + e.getMessage());
         } catch (IllegalStateException e) {
             log.error("Firebase not initialized - cannot verify token", e);
             return Map.of("status", "error", "message", "Authentication service is not available. Please try again later.");
         } catch (Exception e) {
-            log.error("Unexpected error during firebase login", e);
-            return Map.of("status", "error", "message", "Login failed: " + e.getMessage());
+            log.error("Unexpected error during firebase login: uid={}, email={}, error={}", uid, email, e.getMessage(), e);
+            return Map.of("status", "error", "message", "Login failed due to server error. Please try again.");
         }
     }
 

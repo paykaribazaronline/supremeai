@@ -94,12 +94,12 @@
           "name": "Chat"
         },
         {
-          "id": "supremeai-agents",
-          "name": "Agents"
+          "id": "supremeai-orchestration",
+          "name": "Orchestration"
         },
         {
-          "id": "supremeai-projects",
-          "name": "Projects"
+          "id": "supremeai-settings",
+          "name": "Settings"
         }
       ]
     },

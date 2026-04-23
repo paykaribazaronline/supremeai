@@ -2,7 +2,7 @@ package com.supremeai.intelligence.healing;
 
 import com.supremeai.fallback.AIFallbackOrchestrator;
 import com.supremeai.intelligence.voting.CouncilVotingSystem;
-import com.supremeai.fallback.AIProvider;
+import com.supremeai.provider.AIProviderType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -46,7 +46,7 @@ public class InfiniteAutoHealer {
             currentCode = fallbackOrchestrator.executeWithSupremeIntelligence(taskCategory, "SIGNATURE_" + taskCategory, currentPrompt);
             
             // 2. Voting Council Review (Before even trying to compile, filter out obvious bad logic)
-            List<AIProvider> council = Arrays.asList(AIProvider.GROQ_LLAMA3, AIProvider.GEMINI_PRO);
+            List<AIProviderType> council = Arrays.asList(AIProviderType.GROQ_LLAMA3, AIProviderType.GEMINI_PRO);
             boolean councilApproved = votingSystem.conductVote("GENERAL_REVIEW", currentCode, council);
             
             if (!councilApproved) {

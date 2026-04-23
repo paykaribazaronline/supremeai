@@ -1,8 +1,9 @@
 package com.supremeai.automation.farm;
 
-import com.supremeai.fallback.AIProvider;
+import com.supremeai.provider.AIProviderType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,7 +25,8 @@ public class AccountFarmingEngine {
         this.vpnManager = vpnManager;
     }
 
-    public void autoFarmNewAccounts(AIProvider targetProvider, int count) {
+    @Async
+    public void autoFarmNewAccounts(AIProviderType targetProvider, int count) {
         log.info("\n[Farming Engine] Auto-farming for {}...", targetProvider);
         for (int i = 0; i < count; i++) {
             String syntheticEmail = "bot_" + UUID.randomUUID().toString().substring(0, 8) + CATCH_ALL_DOMAIN;
