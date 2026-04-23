@@ -282,56 +282,80 @@
         }
 
         async function checkAuth() {
+            // Clear any previous auth errors
+            clearAuthError();
+
+            // Show initial state (login button)
             await updateAdminUserDisplay();
 
-            await initializeFirebase();
-
-            if (!firebaseAuth) {
-                await updateAdminUserDisplay();
+            const firebaseReady = await initializeFirebase();
+            if (!firebaseReady) {
+                showError('Failed to initialize authentication service. Please refresh the page.');
                 return;
             }
 
+            if (!firebaseAuth) {
+                // Firebase not available
+                showError('Firebase authentication is not available.');
+                return;
+            }
+
+            // Listen for auth state changes
             firebaseAuth.onAuthStateChanged(async (user) => {
                 if (!user) {
+                    // User signed out
                     localStorage.removeItem(FIREBASE_AUTH_FLAG);
                     localStorage.removeItem('supremeai_user');
+                    localStorage.removeItem('supremeai_auth_token');
                     await updateAdminUserDisplay();
-                } else {
-                     // Verify admin role with backend before granting access
-                     try {
-                         const idToken = await user.getIdToken();
-                         // Store the Firebase ID token for API Authorization headers
-                         localStorage.setItem('supremeai_auth_token', idToken);
-                         const resp = await fetch('/api/auth/firebase-login', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ idToken })
-                        });
-                        const data = await resp.json();
-                        if (data.status === 'success' && data.user) {
-                            localStorage.setItem('supremeai_user', JSON.stringify({
-                                username: data.user.username || user.displayName || user.email,
-                                email: data.user.email || user.email,
-                                uid: data.user.id || user.uid,
-                                role: data.user.role || 'user'
-                            }));
-                            if (data.user.role !== 'admin') {
-                                // Not an admin - redirect to frontend
-                                localStorage.setItem(FIREBASE_AUTH_FLAG, 'true');
+                    return;
+                }
+
+                try {
+                    const idToken = await user.getIdToken();
+                    localStorage.setItem('supremeai_auth_token', idToken);
+
+                    const resp = await fetch('/api/auth/firebase-login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idToken })
+                    });
+                    const data = await resp.json();
+
+                    if (data.status === 'success' && data.user) {
+                        // Check admin role
+                        if (data.user.role !== 'admin') {
+                            showError('Access denied: Admin role required. Redirecting to customer portal...');
+                            setTimeout(() => {
                                 window.location.href = '/customer.html';
-                                return;
-                            }
+                            }, 1500);
+                            return;
                         }
-                    } catch (e) {
-                        console.error('Backend auth check failed:', e);
+
+                        // Save user session
+                        localStorage.setItem('supremeai_user', JSON.stringify({
+                            username: data.user.username || user.displayName || user.email,
+                            email: data.user.email || user.email,
+                            uid: data.user.id || user.uid,
+                            role: data.user.role
+                        }));
+                        authenticated = true;
+                        localStorage.setItem(FIREBASE_AUTH_FLAG, 'true');
+
+                        await updateAdminUserDisplay();
+                        initializeDashboard();
+                    } else {
+                        // Backend returned failure
+                        throw new Error(data.message || 'Authentication failed on server');
                     }
-                    authenticated = true;
-                    localStorage.setItem(FIREBASE_AUTH_FLAG, 'true');
+                } catch (e) {
+                    console.error('Backend auth check failed:', e);
+                    showError('Login failed: ' + e.message);
+                    localStorage.removeItem('supremeai_user');
                     await updateAdminUserDisplay();
-                    initializeDashboard();
                 }
             });
-         }
+        }
 
         // Ensures admin session exists before loading dashboard data
         async function ensureAdminSession() {
@@ -440,9 +464,20 @@
             resourceChart.update('none');
          }
 
-          // Start authentication check when page loads
-          window.addEventListener('DOMContentLoaded', checkAuth);
+         // Load all main dashboard content after auth confirmed
+         loadConfiguredProviders();
+         loadLearningSummary();
+         loadTechniquePreview();
+         loadProviderCoveragePreview();
+         loadAuditLogs();
+         loadDashboardStats();
+         loadProjects();
+          loadSettings();
+          toggleBrowserAuthFields();
         }
+
+        // Start authentication check when page loads
+        window.addEventListener('DOMContentLoaded', checkAuth);
       </script>
 
      <style>
@@ -1044,6 +1079,7 @@
         <div class="main-content">
             <div class="top-bar">
                 <h2 id="pageTitle">Dashboard</h2>
+                <div id="authError" style="display:none; background:#e53e3e; color:#fff; padding:8px 16px; border-radius:6px; margin-right:16px; font-size:13px;"></div>
                 <div class="user-info">
                     <span id="adminUserName" style="display:none;">Admin</span>
                     <div class="user-avatar" id="adminUserAvatar" style="display:none;">A</div>
@@ -3091,9 +3127,20 @@
             }
             errorDiv.textContent = message;
             errorDiv.style.display = 'block';
+            // Auto-hide after 8 seconds
             setTimeout(() => {
                 errorDiv.style.display = 'none';
-            }, 5000);
+            }, 8000);
+        }
+
+        function clearAuthError() {
+            const el = document.getElementById('authError');
+            if (el) el.style.display = 'none';
+        }
+
+        function clearAuthError() {
+            const el = document.getElementById('authError');
+            if (el) el.style.display = 'none';
         }
 
         function getCurrentAdminEmail() {
@@ -6942,44 +6989,6 @@
                 msg.innerHTML = `<span style="color:#f56565;">❌ ${e.message}</span>`;
             }
         }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Ensure user display reflects current auth state
-            await updateAdminUserDisplay();
-
-            const firebaseReady = await initializeFirebase();
-            if (!firebaseReady) {
-                showError('Failed to initialize authentication service. Please refresh the page.');
-                return;
-            }
-
-            const hasSession = await ensureAdminSession();
-            if (!hasSession) {
-                return;
-            }
-
-            fetch('/api/v1/requirements', {
-                    headers: getAuthHeaders(),
-                    credentials: 'include'
-                })
-                .then(r => r.ok ? r.json() : [])
-                .then(reqs => {
-                    if (Array.isArray(reqs)) {
-                        document.getElementById('pendingCount').innerText = reqs.filter(r => r.status === 'PENDING').length;
-                    }
-                }).catch(() => {});
-
-            loadConfiguredProviders();
-            loadLearningSummary();
-            loadTechniquePreview();
-            loadProviderCoveragePreview();
-            loadAuditLogs();
-            loadDashboardStats();
-            loadProjects();
-            loadSettings();
-            toggleBrowserAuthFields();
-        });
 
         // =============================================
         // LIVE ACTIVITY
