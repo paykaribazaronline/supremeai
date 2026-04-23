@@ -29,151 +29,414 @@
         let firebaseAuth = null;
         let authenticated = false;
 
-        // ========== DYNAMIC SIDEBAR CONFIGURATION ==========
-        // Central definition of all menu items (all original sections preserved)
-        const MENU_ITEMS = {
-          'dashboard': { icon: '📊', label: 'Dashboard' },
-          'system-alerts': { icon: '🚨', label: 'System Alerts', elementId: 'sidebarAlertsItem' },
-          'system-engine': { icon: '🛠️', label: 'System Engine' },
-          'deployment': { icon: '🚀', label: 'Deployment' },
-          'approvals': { icon: '✅', label: 'Approvals' },
-          'commands': { icon: '💻', label: 'Commands' },
-          'provider-coverage': { icon: '🛰️', label: 'Provider Coverage' },
-          'live-activity': { icon: '⚡', label: 'Live Activity' },
-          'notifications': { icon: '📬', label: 'Notifications' },
-          'logs': { icon: '📝', label: 'Audit Logs' },
-          'techniques': { icon: '💡', label: 'Techniques' },
-          'ai-agents': { icon: '🤖', label: 'AI Agent Assignment' },
-          'consensus': { icon: '🧠', label: 'Multi-AI Consensus' },
-          'timeline': { icon: '📜', label: 'AI Decision Log' },
-          'kimi-k2': { icon: '🔮', label: 'AI Learning Orchestration' },
-          'system-learning': { icon: '📖', label: 'System Learning' },
-          'existing-projects': { icon: '🔧', label: 'Improve Existing App' },
-          'chat': { icon: '💬', label: 'Chat with SupremeAI' },
-          // 'workflow-chat' intentionally excluded – integrated into Improve Existing App section
-          'projects': { icon: '📦', label: 'Projects' },
-          'git-projects': { icon: '🔄', label: 'Git Projects' },
-          'browser-automation': { icon: '🌐', label: 'Browser Automation' },
-          'settings': { icon: '⚙️', label: 'Settings' },
-          'api-keys': { icon: '🔑', label: 'API Key Manager' },
-          'airllm-config': { icon: '⚙️', label: 'AirLLM Config' },
-          'user-management': { icon: '👥', label: 'User Management & Tiers' },
-          'vpn-management': { icon: '🔒', label: 'VPN Management' },
-          'activity-summary': { icon: '📈', label: 'Activity Summary' },
-          'metrics': { icon: '📈', label: 'Metrics & Alerts' },
-          'analytics': { icon: '📊', label: 'Usage Analytics' }
+        // ========== LANGUAGE TRANSLATION SYSTEM ==========
+        let currentLanguage = 'en';
+        
+        const translations = {
+            en: {
+                dashboard: 'Dashboard',
+                todaySummary: "Today's Summary",
+                metrics: 'Metrics & Alerts',
+                aiAgentAssignment: 'AI Agent Assignment',
+                multiAIconsensus: 'Multi-AI Consensus',
+                providerCoverage: 'Provider Coverage',
+                techniques: 'Techniques',
+                systemLearning: 'System Learning',
+                projects: 'Projects',
+                improveExistingApp: 'Improve Existing App',
+                gitProjects: 'Git Projects',
+                deployment: 'Deployment',
+                selfHealing: 'Self-Healing & Extension',
+                commands: 'Commands',
+                decisionTimeline: 'Decision Timeline',
+                apiKeyManager: 'API Key Manager',
+                userManagement: 'User Management',
+                approvals: 'Approvals',
+                auditLogs: 'Audit Logs',
+                systemAlerts: 'System Alerts',
+                settings: 'Settings',
+                vpnManagement: 'VPN Management',
+                visualization3D: '3D Visualization',
+                airllmConfig: 'AirLLM Config',
+                browserAutomation: 'Browser Automation',
+                notifications: 'Notifications',
+                aiLearningOrchestration: 'AI Learning Orchestration',
+                chatWithSupremeAI: 'Chat with SupremeAI',
+                liveActivity: 'Live Activity',
+                workflowChat: 'Project Workflow Chat',
+                logout: 'Logout',
+                welcome: 'Welcome',
+                adminPanel: 'Admin Panel',
+                totalUsers: 'Total Users',
+                activeSessions: 'Active Sessions',
+                systemHealth: 'System Health',
+                cpuUsage: 'CPU Usage',
+                memoryUsage: 'Memory Usage',
+                storageUsage: 'Storage Usage',
+                apiRequests: 'API Requests',
+                responseTime: 'Response Time',
+                successRate: 'Success Rate',
+                viewDetails: 'View Details',
+                generateApp: 'Generate App',
+                reviewCode: 'Review Code',
+                deploy: 'Deploy',
+                chat: 'Chat',
+                allProjects: 'All Projects',
+                running: 'Running',
+                completed: 'Completed',
+                failed: 'Failed',
+                pending: 'Pending',
+                actions: 'Actions',
+                edit: 'Edit',
+                delete: 'Delete',
+                save: 'Save',
+                cancel: 'Cancel',
+                confirm: 'Confirm',
+                yes: 'Yes',
+                no: 'No',
+                search: 'Search',
+                filter: 'Filter',
+                export: 'Export',
+                import: 'Import',
+                add: 'Add',
+                remove: 'Remove',
+                update: 'Update',
+                create: 'Create',
+                submit: 'Submit',
+                reset: 'Reset',
+                close: 'Close',
+                next: 'Next',
+                previous: 'Previous',
+                finish: 'Finish',
+                loading: 'Loading...',
+                pleaseWait: 'Please wait...',
+                success: 'Success',
+                error: 'Error',
+                warning: 'Warning',
+                info: 'Info',
+                saved: 'Saved successfully',
+                deleted: 'Deleted successfully',
+                updated: 'Updated successfully',
+                created: 'Created successfully',
+                notFound: 'Not found',
+                unauthorized: 'Unauthorized',
+                forbidden: 'Forbidden',
+                serverError: 'Server error',
+                networkError: 'Network error',
+                timeout: 'Request timeout',
+                required: 'This field is required',
+                invalidEmail: 'Please enter a valid email',
+                weakPassword: 'Password must be at least 8 characters',
+                passwordsDontMatch: 'Passwords do not match',
+                invalidInput: 'Invalid input',
+                today: 'Today',
+                yesterday: 'Yesterday',
+                week: 'This Week',
+                month: 'This Month',
+                year: 'This Year'
+            },
+            bn: {
+                dashboard: 'ড্যাশবোর্ড',
+                todaySummary: 'আজের সারাংশ',
+                metrics: 'মেট্রিক্স ও সতর্কতা',
+                aiAgentAssignment: 'AI এজেন্ট অ্যাসাইনমেন্ট',
+                multiAIconsensus: 'মাল্টি-AI কনসেনসাস',
+                providerCoverage: 'প্রোভাইডার কাভারেজ',
+                techniques: 'কৌশলসমূহ',
+                systemLearning: 'সিস্টেম শেখার ব্যবস্থা',
+                projects: 'প্রজেক্টগুলো',
+                improveExistingApp: 'বিদ্যমান অ্যাপ উন্নত করুন',
+                gitProjects: 'গিট প্রজেক্টগুলো',
+                deployment: 'ডিপ্লয়মেন্ট',
+                selfHealing: 'সেল্ফ-হিলিং ও এক্সটেনশন',
+                commands: 'কমান্ডসমূহ',
+                decisionTimeline: 'নির্ধারণের সময়রেখা',
+                apiKeyManager: 'API কী ম্যানেজার',
+                userManagement: 'ব্যবহারকারী ব্যবস্থাপনা',
+                approvals: 'অনুমোদনসমূহ',
+                auditLogs: 'অডিট লগ',
+                systemAlerts: 'সিস্টেম সতর্কতা',
+                settings: 'সেটিংস',
+                vpnManagement: 'VPN ব্যবস্থাপনা',
+                visualization3D: '৩ডি ভিজ্যুয়ালাইজেশন',
+                airllmConfig: 'এয়ারএলএলএম কনফিগ',
+                browserAutomation: 'ব্রাউজার অটোমেশন',
+                notifications: 'বিজ্ঞপ্তি',
+                aiLearningOrchestration: 'AI শেখার অর্কেস্ট্রেশন',
+                chatWithSupremeAI: 'সুপ্রিমএআই-এর সাথে চ্যাট',
+                liveActivity: 'লাইভ অ্যাক্টিভিটি',
+                workflowChat: 'প্রজেক্ট ওয়ার্কফ্লো চ্যাট',
+                logout: 'লগআউট',
+                welcome: 'স্বাগতম',
+                adminPanel: 'অ্যাডমিন প্যানেল',
+                totalUsers: 'মোট ব্যবহারকারী',
+                activeSessions: 'সক্রিয় সেশন',
+                systemHealth: 'সিস্টেম সুস্থতা',
+                cpuUsage: 'CPU ব্যবহার',
+                memoryUsage: 'মেমরি ব্যবহার',
+                storageUsage: 'স্টোরেজ ব্যবহার',
+                apiRequests: 'API রিকোয়েস্ট',
+                responseTime: 'রেসপন্স সময়',
+                successRate: 'সাফল্যের হার',
+                viewDetails: 'বিস্তারিত দেখুন',
+                generateApp: 'অ্যাপ জেনারেট করুন',
+                reviewCode: 'কোড রিভিউ করুন',
+                deploy: 'ডিপ্লয়',
+                chat: 'চ্যাট',
+                allProjects: 'সকল প্রজেক্ট',
+                running: 'চলমান',
+                completed: 'সম্পন্ন',
+                failed: 'ব্যর্থ',
+                pending: 'অপেক্ষমাণ',
+                actions: 'কর',
+                edit: 'সম্পাদনা',
+                delete: 'মুছে ফেলুন',
+                save: 'সংরক্ষণ',
+                cancel: 'বাতিল',
+                confirm: 'নিশ্চিত',
+                yes: 'হ্যাঁ',
+                no: 'না',
+                search: 'খোঁজুন',
+                filter: 'ফিল্টার',
+                export: 'রপ্তানি',
+                import: 'আমদানি',
+                add: 'যোগ করুন',
+                remove: 'অর্জন',
+                update: 'আপডেট',
+                create: 'তৈরি করুন',
+                submit: 'জমা করুন',
+                reset: 'রিসেট',
+                close: 'বন্ধ করুন',
+                next: 'পরবর্তী',
+                previous: 'পূর্ববর্তী',
+                finish: 'শেষ',
+                loading: 'লোড হচ্ছে...',
+                pleaseWait: 'অনুগ্রহ করে অপেক্ষা করুন...',
+                success: 'সফল',
+                error: 'ত্রুটি',
+                warning: 'সতর্কতা',
+                info: 'তথ্য',
+                saved: 'সফলভাবে সংরক্ষণ করা হয়েছে',
+                deleted: 'সফলভাবে মুছে ফেলা হয়েছে',
+                updated: 'সফলভাবে আপডেট করা হয়েছে',
+                created: 'সফলভাবে তৈরি করা হয়েছে',
+                notFound: 'পাওয়া যায়নি',
+                unauthorized: 'অনুমোদন নেই',
+                forbidden: 'প্রবেশ নিষিদ্ধ',
+                serverError: 'সার্ভার ত্রুটি',
+                networkError: 'নেটওয়ার্ক ত্রুটি',
+                timeout: 'রিকোয়েস্ট সময় শেষ',
+                required: 'এই ক্ষেত্রটি প্রয়োজন',
+                invalidEmail: 'বৈধ ইমেইল ঠিকানা প্রবেশ করান',
+                weakPassword: 'পাসওয়ার্ড অন্তত ৮ অক্ষরের হতে হবে',
+                passwordsDontMatch: 'পাসওয়ার্ড মিলছে না',
+                invalidInput: 'অবৈধ ইনপুট',
+                today: 'আজ',
+                yesterday: 'গতকাল',
+                week: 'এই সপ্তাহ',
+                month: 'এই মাস',
+                year: 'এই বছর'
+            }
         };
+        
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+            document.getElementById('lang-bn').classList.toggle('active', lang === 'bn');
+            
+            // Update all translatable elements
+            document.querySelectorAll('[data-translate]').forEach(el => {
+                const key = el.getAttribute('data-translate');
+                if (translations[lang] && translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
+            });
+            
+            // Update placeholders and titles
+            document.querySelectorAll('[data-translate-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-translate-placeholder');
+                if (translations[lang] && translations[lang][key]) {
+                    el.placeholder = translations[lang][key];
+                }
+            });
+            
+            // Update title attributes
+            document.querySelectorAll('[data-translate-title]').forEach(el => {
+                const key = el.getAttribute('data-translate-title');
+                if (translations[lang] && translations[lang][key]) {
+                    el.title = translations[lang][key];
+                }
+            });
+            
+            // Save preference
+            localStorage.setItem('supremeai_lang', lang);
+        }
+        
+
+
 
         const MENU_CONFIG = [
-          { type: 'standalone', id: 'dashboard' },
           {
             type: 'category',
-            name: 'System & Operations',
-            icon: '⚙️',
-            items: [
-              'system-alerts', 'system-engine', 'deployment', 'approvals',
-              'commands', 'notifications', 'logs'
-            ]
+            name: '📊 Dashboard',
+            icon: '📊',
+            items: ['dashboard', 'activity-summary', 'metrics']
           },
           {
             type: 'category',
-            name: 'AI & Learning',
+            name: '🤖 AI & Agents',
             icon: '🤖',
-            items: [
-              { id: 'techniques' },
-              { id: 'ai-agents' },
-              { id: 'consensus' },
-              { id: 'timeline' },
-              { id: 'existing-projects' },
-              { id: 'chat' },
-              {
-                type: 'subcategory',
-                name: 'Learning Hub',
-                icon: '📚',
-                items: ['system-learning', 'kimi-k2']
-              }
-            ]
+            items: ['ai-agents', 'consensus', 'provider-coverage', 'techniques', 'system-learning']
           },
           {
             type: 'category',
-            name: 'Projects & Code',
-            icon: '📦',
-            items: ['projects', 'git-projects', 'browser-automation']
+            name: '📱 App Development',
+            icon: '📱',
+            items: ['projects', 'existing-projects', 'git-projects', 'deployment']
           },
           {
             type: 'category',
-            name: 'Configuration',
-            icon: '🔧',
-            items: [
-              'settings',
-              {
-                type: 'subcategory',
-                name: 'AI Providers',
-                icon: '🔑',
-                items: ['api-keys', 'provider-coverage']
-              },
-              'airllm-config',
-              'user-management',
-              'vpn-management'
-            ]
+            name: '⚙️ Automation',
+            icon: '⚙️',
+            items: ['system-engine', 'commands', 'timeline']
           },
           {
             type: 'category',
-            name: 'Monitoring & Analytics',
-            icon: '📈',
-            items: [
-              {
-                type: 'subcategory',
-                name: 'Analytics',
-                icon: '📊',
-                items: ['activity-summary', 'metrics', 'analytics']
-              },
-              // live-activity kept separate for quick access
-              { id: 'live-activity' }
-            ]
+            name: '🔐 Security & Admin',
+            icon: '🔐',
+            items: ['api-keys', 'user-management', 'approvals', 'logs', 'system-alerts']
+          },
+          {
+            type: 'category',
+            name: '💰 Settings',
+            icon: '💰',
+            items: ['settings', 'vpn-management', 'analytics']
           }
         ];
 
-        // Render dynamic sidebar from MENU_CONFIG
+        // ========== SIDEBAR RENDERING FUNCTION ==========
         function renderSidebar() {
-          const sidebar = document.getElementById('sidebar');
-          if (!sidebar) return;
-          let html = '<div class="logo">👑 SupremeAI Admin</div>';
-
-          MENU_CONFIG.forEach(entry => {
-            if (entry.type === 'standalone') {
-              const item = MENU_ITEMS[entry.id];
-              html += `<div class="menu-item" onclick="showSection('${entry.id}')">${item.icon} ${item.label}</div>`;
-            } else if (entry.type === 'category') {
-              const catIcon = entry.icon || '📁';
-              html += `<details class="sidebar-menu-category"><summary>${catIcon} ${entry.name}</summary>`;
-               entry.items.forEach(sub => {
-                 if (typeof sub === 'string') {
-                   const item = MENU_ITEMS[sub];
-                   const elemId = item.elementId || '';
-                   html += `<div class="menu-item"${elemId ? ' id="'+elemId+'"' : ''} onclick="showSection('${sub}')">${item.icon} ${item.label}</div>`;
-                 } else if (sub.type === 'subcategory') {
-                   html += `<details class="sidebar-menu-category"><summary>${sub.icon || '📁'} ${sub.name}</summary>`;
-                   sub.items.forEach(subId => {
-                     const item = MENU_ITEMS[subId];
-                     html += `<div class="menu-item" onclick="showSection('${subId}')">${item.icon} ${item.label}</div>`;
-                   });
-                   html += `</details>`;
-                 } else if (sub.id) {
-                   const item = MENU_ITEMS[sub.id];
-                   const elemId = item.elementId || '';
-                   html += `<div class="menu-item"${elemId ? ' id="'+elemId+'"' : ''} onclick="showSection('${sub.id}')">${item.icon} ${item.label}</div>`;
-                 }
-               });
-              html += `</details>`;
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar) {
+                console.error('[Sidebar] Sidebar element not found');
+                return;
             }
-          });
 
-          // Special action: 3D Visualization (function call, not showSection)
-          html += `<div class="menu-item" onclick="openVisualization3D()">🌐 3D Visualization ↗</div>`;
+            let html = '<div class="logo">👑 SupremeAI Admin</div>';
 
-          sidebar.innerHTML = html;
+            MENU_CONFIG.forEach(entry => {
+                if (!entry.type || entry.type === 'category') {
+                    // Category group
+                    const catIcon = entry.icon || '';
+                    const catName = entry.name || '';
+                    html += `<details class="sidebar-menu-category" open><summary>${catIcon} ${catName}</summary>`;
+                    
+                    if (entry.items && Array.isArray(entry.items)) {
+                        entry.items.forEach(itemId => {
+                            // Get translation key for this item
+                            const t = getTranslation(itemId);
+                            const icon = getIconForItem(itemId);
+                            html += `<div class="menu-item" onclick="showSection('${itemId}')">${icon} ${t}</div>`;
+                        });
+                    }
+                    
+                    html += `</details>`;
+                }
+            });
+
+            // Add special action: 3D Visualization
+            html += `<div class="menu-item" onclick="openVisualization3D()">🌐 3D Visualization ↗</div>`;
+
+            sidebar.innerHTML = html;
+            console.log('[Sidebar] Sidebar rendered with', MENU_CONFIG.length, 'categories');
         }
+
+        // Helper: Get translation for menu item
+        function getTranslation(itemId) {
+            // Try to use translation system if available
+            if (typeof translations !== 'undefined' && currentLanguage) {
+                const transMap = {
+                    'dashboard': 'dashboard',
+                    'activity-summary': 'todaySummary',
+                    'metrics': 'metrics',
+                    'ai-agents': 'aiAgentAssignment',
+                    'consensus': 'multiAIconsensus',
+                    'provider-coverage': 'providerCoverage',
+                    'techniques': 'techniques',
+                    'system-learning': 'systemLearning',
+                    'projects': 'projects',
+                    'existing-projects': 'improveExistingApp',
+                    'git-projects': 'gitProjects',
+                    'deployment': 'deployment',
+                    'system-engine': 'selfHealing',
+                    'commands': 'commands',
+                    'timeline': 'decisionTimeline',
+                    'api-keys': 'apiKeyManager',
+                    'user-management': 'userManagement',
+                    'approvals': 'approvals',
+                    'logs': 'auditLogs',
+                    'system-alerts': 'systemAlerts',
+                    'settings': 'settings',
+                    'vpn-management': 'vpnManagement',
+                    'analytics': 'visualization3D',
+                    'airllm-config': 'airllmConfig',
+                    'browser-automation': 'browserAutomation',
+                    'notifications': 'notifications',
+                    'kimi-k2': 'aiLearningOrchestration',
+                    'chat': 'chatWithSupremeAI',
+                    'live-activity': 'liveActivity',
+                    'workflow-chat': 'workflowChat'
+                };
+                
+                const key = transMap[itemId];
+                if (key && translations[currentLanguage] && translations[currentLanguage][key]) {
+                    return translations[currentLanguage][key];
+                }
+            }
+            
+            // Fallback: return formatted ID
+            return itemId.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        }
+
+        // Helper: Get icon for menu item
+        function getIconForItem(itemId) {
+            const icons = {
+                'dashboard': '📈',
+                'activity-summary': '📋',
+                'metrics': '📊',
+                'ai-agents': '🤖',
+                'consensus': '🗳️',
+                'provider-coverage': '🛰️',
+                'techniques': '🧠',
+                'system-learning': '📚',
+                'projects': '📦',
+                'existing-projects': '🔧',
+                'git-projects': '🔗',
+                'deployment': '🚀',
+                'system-engine': '🩹',
+                'commands': '⌨️',
+                'timeline': '📅',
+                'api-keys': '🔑',
+                'user-management': '👥',
+                'approvals': '✅',
+                'logs': '📝',
+                'system-alerts': '🚨',
+                'settings': '⚙️',
+                'vpn-management': '🔒',
+                'analytics': '🌐',
+                'airllm-config': '⚙️',
+                'browser-automation': '🌐',
+                'notifications': '📬',
+                'kimi-k2': '🔮',
+                'chat': '💬',
+                'live-activity': '⚡',
+                'workflow-chat': '💬'
+            };
+            return icons[itemId] || '📄';
+        }
+
+
+
 
         async function initializeFirebase() {
             try {
@@ -7834,7 +8097,276 @@
             if (settingsSection) {
                 loadSystemMode();
             }
+
+            // Initialize realtime sync after auth
+            initializeRealtimeSync();
         });
-    </script>
-</body>
+
+        // ========== FIREBASE REALTIME SYNC ENGINE ==========
+        class SupremeAdminSync {
+            constructor() {
+                this.db = firebase.firestore ? firebase.firestore() : null;
+                this.realtime = firebase.database ? firebase.database() : null;
+                this.ws = null;
+                this.syncActive = false;
+            }
+
+            // Initialize all sync channels
+            initSync() {
+                if (this.syncActive) return;
+                this.syncActive = true;
+                console.log('[Sync] Initializing realtime sync...');
+                
+                this.syncAgents();
+                this.syncProjects();
+                this.syncAlerts();
+                this.syncMetrics();
+                this.syncUsers();
+            }
+
+            // 1. AI Agents Status (Real-time)
+            syncAgents() {
+                if (!this.db) return;
+                this.db.collection('agents').onSnapshot(snapshot => {
+                    const agents = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data(),
+                        status: doc.data().status || 'offline',
+                        lastActive: doc.data().lastActive?.toDate?.() || new Date()
+                    }));
+                    
+                    const activeCount = agents.filter(a => a.status === 'active').length;
+                    this.updateBadge('ai-agents', activeCount, 'blue');
+                    console.log(`[Sync] Agents: ${activeCount} active`);
+                }, err => console.error('[Sync] Agents sync failed:', err));
+            }
+
+            // 2. Projects Status
+            syncProjects() {
+                if (!this.db) return;
+                this.db.collection('projects').orderBy('updatedAt', 'desc').onSnapshot(snapshot => {
+                    const projects = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    
+                    this.updateBadge('projects', projects.length, 'green');
+                    console.log(`[Sync] Projects: ${projects.length} total`);
+                }, err => console.error('[Sync] Projects sync failed:', err));
+            }
+
+            // 3. System Alerts (Priority Queue)
+            syncAlerts() {
+                if (!this.db) return;
+                this.db.collection('alerts')
+                    .where('resolved', '==', false)
+                    .orderBy('severity', 'desc')
+                    .onSnapshot(snapshot => {
+                        const alerts = snapshot.docs.map(doc => doc.data());
+                        const criticalCount = alerts.filter(a => a.severity === 'critical').length;
+                        
+                        this.updateBadge('system-alerts', criticalCount, criticalCount > 0 ? 'red' : 'gray');
+                        
+                        // Auto-show critical alerts
+                        if (criticalCount > 0) {
+                            this.triggerAutoAlert(alerts.filter(a => a.severity === 'critical'));
+                        }
+                    }, err => console.error('[Sync] Alerts sync failed:', err));
+            }
+
+            // 4. Real-time Metrics (WebSocket)
+            syncMetrics() {
+                try {
+                    const wsUrl = 'wss://' + window.location.host + '/ws/metrics';
+                    this.ws = new WebSocket(wsUrl);
+                    
+                    this.ws.onmessage = (event) => {
+                        try {
+                            const metrics = JSON.parse(event.data);
+                            this.updateMetricsDashboard(metrics);
+                            this.checkAnomalies(metrics);
+                        } catch (e) {
+                            console.error('[Sync] Metrics parse error:', e);
+                        }
+                    };
+                    
+                    this.ws.onclose = () => {
+                        console.log('[Sync] WebSocket closed, reconnecting...');
+                        setTimeout(() => this.syncMetrics(), 5000);
+                    };
+                } catch (e) {
+                    console.error('[Sync] WebSocket failed:', e);
+                }
+            }
+
+            // 5. User Activity
+            syncUsers() {
+                if (!this.db) return;
+                this.db.collection('users').onSnapshot(snapshot => {
+                    const users = snapshot.docs.map(doc => doc.data());
+                    this.updateBadge('user-management', users.length, 'purple');
+                }, err => console.error('[Sync] Users sync failed:', err));
+            }
+
+            // Helper: Update sidebar badge
+            updateBadge(tabId, count, color = 'blue') {
+                const menuItem = document.querySelector(`.menu-item[onclick*="${tabId}"]`);
+                if (!menuItem) return;
+                
+                let badge = menuItem.querySelector('.badge');
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'badge';
+                    menuItem.appendChild(badge);
+                }
+                
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.style.cssText = `
+                    display: ${count > 0 ? 'inline' : 'none'};
+                    background: ${color === 'red' ? '#f56565' : color === 'green' ? '#48bb78' : color === 'purple' ? '#9f7aea' : '#4299e1'};
+                    color: white;
+                    border-radius: 10px;
+                    padding: 2px 6px;
+                    font-size: 11px;
+                    margin-left: 8px;
+                    font-weight: bold;
+                `;
+            }
+
+            // Helper: Check anomalies and auto-alert
+            checkAnomalies(metrics) {
+                const cpuThreshold = 80;
+                const memoryThreshold = 85;
+                
+                if (metrics.cpu > cpuThreshold || metrics.memory > memoryThreshold) {
+                    console.warn('[Sync] Resource anomaly detected!');
+                }
+            }
+
+            // Helper: Trigger auto-alert for critical issues
+            triggerAutoAlert(criticalAlerts) {
+                if (criticalAlerts.length === 0) return;
+                
+                const toast = document.createElement('div');
+                toast.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #f56565;
+                    color: white;
+                    padding: 15px 20px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
+                    z-index: 10000;
+                    animation: slideIn 0.3s ease;
+                `;
+                toast.innerHTML = `
+                    <strong>&#x1F6A8; ${criticalAlerts.length} Critical Alert(s)</strong>
+                    <div style="margin-top: 5px; font-size: 13px;">${criticalAlerts[0].message || 'Check System Alerts tab'}</div>
+                `;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }, 5000);
+            }
+
+            // Helper: Update metrics dashboard if visible
+            updateMetricsDashboard(metrics) {
+                const cpuEl = document.getElementById('metCpu');
+                const memEl = document.getElementById('metMem');
+                
+                if (cpuEl && metrics.cpu !== undefined) {
+                    cpuEl.innerText = metrics.cpu.toFixed(2) + '%';
+                }
+                if (memEl && metrics.memory !== undefined) {
+                    memEl.innerText = metrics.memory + ' MB';
+                }
+            }
+        }
+
+        // ========== DYNAMIC TAB CONTENT LOADER ==========
+        class TabRouter {
+            constructor() {
+                this.currentTab = 'dashboard';
+                this.cache = new Map();
+                this.cacheTTL = 30000; // 30 seconds
+                this.loading = false;
+            }
+
+            async loadTab(tabId) {
+                if (this.loading) return;
+                this.loading = true;
+                
+                try {
+                    // Check cache
+                    if (this.cache.has(tabId)) {
+                        const cached = this.cache.get(tabId);
+                        if (Date.now() - cached.time < this.cacheTTL) {
+                            console.log(`[TabRouter] Using cached data for: ${tabId}`);
+                            return cached.data;
+                        }
+                    }
+
+                    // Fetch from API
+                    console.log(`[TabRouter] Fetching fresh data for: ${tabId}`);
+                    const response = await fetch(`/api/admin/${tabId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('supremeai_auth_token')}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            console.warn(`[TabRouter] No API endpoint for: ${tabId}`);
+                            return null;
+                        }
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // Cache the data
+                    this.cache.set(tabId, { data, time: Date.now() });
+                    return data;
+                    
+                } catch (error) {
+                    console.error(`[TabRouter] Failed to load ${tabId}:`, error);
+                    return null;
+                } finally {
+                    this.loading = false;
+                }
+            }
+
+            // Clear cache for specific tab
+            invalidateCache(tabId) {
+                this.cache.delete(tabId);
+            }
+
+            // Clear all cache
+            clearCache() {
+                this.cache.clear();
+            }
+        }
+
+        // Initialize sync on page load
+        let adminSync = null;
+        let tabRouter = null;
+
+        function initializeRealtimeSync() {
+            if (!adminSync) {
+                adminSync = new SupremeAdminSync();
+                adminSync.initSync();
+                console.log('[Sync] Realtime sync initialized');
+            }
+            
+            if (!tabRouter) {
+                tabRouter = new TabRouter();
+                console.log('[TabRouter] Dynamic tab loader initialized');
+            }
+        }
+
+
 </html>

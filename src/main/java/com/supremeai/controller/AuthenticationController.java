@@ -21,7 +21,21 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import com.google.cloud.spring.data.firestore.core.FirestoreTemplate;
+import com.google.cloud.firestore.Firestore;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+
+import jakarta.servlet.http.HttpSession;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -31,7 +45,7 @@ public class AuthenticationController {
     private static final Logger log = LoggerFactory.getLogger(AuthenticationController.class);
 
     @Autowired
-    private FirestoreTemplate firestoreTemplate;
+    private com.google.cloud.spring.data.firestore.FirestoreTemplate firestoreTemplate;
 
     @Autowired
     private ActivityLogRepository activityLogRepository;

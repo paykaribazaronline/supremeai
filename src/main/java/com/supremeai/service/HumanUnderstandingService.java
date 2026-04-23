@@ -7,7 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import jakarta.annotation.PreDestroy;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Human Understanding Service
@@ -78,5 +80,21 @@ public class HumanUnderstandingService {
     public double getEmotionalIntelligenceScore() {
         // This improves automatically over time
         return 0.3 + (System.currentTimeMillis() % 100000000000L) / 100000000000.0 * 0.7;
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        logger.info("Shutting down HumanUnderstandingService executor...");
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
+                logger.warn("HumanUnderstandingService executor did not terminate in time, forcing shutdown");
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            logger.error("Interrupted during HumanUnderstandingService executor shutdown", e);
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 }

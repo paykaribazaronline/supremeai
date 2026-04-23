@@ -7,6 +7,8 @@ import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
 import com.supremeai.selfhealing.SelfHealingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
@@ -16,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -33,7 +34,7 @@ public class MultiAIConsensusService {
     // In-memory history for taste phase (no Firebase)
     private final List<ConsensusVote> history = new CopyOnWriteArrayList<>();
 
-    private final ExecutorService executor = Executors.newCachedThreadPool();
+    private final ExecutorService executor;
     private final java.util.Random random = new java.util.Random();
 
     private static final org.slf4j.Logger logger =
@@ -41,6 +42,10 @@ public class MultiAIConsensusService {
 
     private static final int MAX_RETRIES = 2;
     private static final long RETRY_BACKOFF_MS = 250L;
+
+    public MultiAIConsensusService(@Qualifier("consensusTaskExecutor") ThreadPoolTaskExecutor consensusTaskExecutor) {
+        this.executor = consensusTaskExecutor.getThreadPoolExecutor();
+    }
 
     /**
      * Query multiple AI providers and return consensus result

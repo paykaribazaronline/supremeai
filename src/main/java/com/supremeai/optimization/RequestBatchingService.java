@@ -2,9 +2,12 @@ package com.supremeai.optimization;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -33,13 +36,7 @@ public class RequestBatchingService {
     private static final int MAX_CONCURRENT_BATCHES = 4;
     private static final Duration MIN_INTERVAL_PER_PROVIDER = Duration.ofMillis(50);
 
-    private final ExecutorService executor = Executors.newFixedThreadPool(
-            Runtime.getRuntime().availableProcessors() * 2,
-            r -> {
-                Thread t = new Thread(r, "batch-worker");
-                t.setDaemon(true);
-                return t;
-            });
+    private final ExecutorService executor;
     private final Map<String, Semaphore> providerConcurrency = new ConcurrentHashMap<>();
     private final Map<String, Instant> lastBatchSent = new ConcurrentHashMap<>();
 
@@ -50,9 +47,30 @@ public class RequestBatchingService {
         return t;
     });
 
+    public RequestBatchingService(@Qualifier("batchTaskExecutor") ThreadPoolTaskExecutor batchTaskExecutor) {
+        this.executor = batchTaskExecutor.getThreadPoolExecutor();
+    }
+
     @PostConstruct
     public void init() {
         scheduler.scheduleAtFixedRate(this::flushAllBatches, BATCH_WINDOW_MS, BATCH_WINDOW_MS, TimeUnit.MILLISECONDS);
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        log.info("Shutting down RequestBatchingService scheduler...");
+        scheduler.shutdown();
+        try {
+            if (!scheduler.awaitTermination(15, TimeUnit.SECONDS)) {
+                log.warn("Scheduler did not terminate in time, forcing shutdown");
+                scheduler.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            log.error("Interrupted during scheduler shutdown", e);
+            scheduler.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+        // Note: executor is Spring-managed (batchTaskExecutor), shutdown handled by Spring
     }
 
     /**

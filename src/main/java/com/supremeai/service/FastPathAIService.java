@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.time.Duration;
 import java.util.concurrent.*;
 
@@ -143,5 +144,21 @@ public class FastPathAIService {
      */
     public boolean isGroqHealthy() {
         return groqCircuitBreaker.getState() == CircuitBreaker.State.CLOSED;
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        logger.info("Shutting down FastPathAIService executor...");
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
+                logger.warn("FastPathAIService executor did not terminate in time, forcing shutdown");
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            logger.error("Interrupted during FastPathAIService executor shutdown", e);
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 }
