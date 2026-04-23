@@ -4,31 +4,24 @@ import com.supremeai.model.ActivityLog;
 import com.supremeai.repository.ActivityLogRepository;
 import com.supremeai.model.User;
 import com.supremeai.model.UserTier;
-import com.supremeai.repository.UserRepository;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.UserRecord;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.*;
+
+import com.google.cloud.spring.data.firestore.core.FirestoreTemplate;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -38,7 +31,7 @@ public class AuthenticationController {
     private static final Logger log = LoggerFactory.getLogger(AuthenticationController.class);
 
     @Autowired
-    private UserRepository userRepository;
+    private FirestoreTemplate firestoreTemplate;
 
     @Autowired
     private ActivityLogRepository activityLogRepository;
@@ -57,7 +50,7 @@ public class AuthenticationController {
         String email = null;
         try {
             com.google.firebase.auth.FirebaseToken decodedToken =
-                com.google.firebase.auth.FirebaseAuth.getInstance().verifyIdToken(idToken);
+                FirebaseAuth.getInstance().verifyIdToken(idToken);
 
             uid = decodedToken.getUid();
             email = decodedToken.getEmail();
@@ -75,12 +68,12 @@ public class AuthenticationController {
 
             log.info("Firebase token verified for uid={}, email={}", uid, email);
 
-            // Resolve role: Firestore document takes priority, then Firebase token claims
+            // Resolve tier: Firestore document takes priority, then Firebase token claims
             UserTier tier = UserTier.FREE;
-
-            User user = userRepository.findByFirebaseUid(uid).block();
-            log.info("Firestore lookup for uid={}: {}", uid, user != null ? "found" : "new user");
             boolean isNewUser = false;
+            User user = firestoreTemplate.get(uid, User.class);
+
+            log.info("Firestore lookup for uid={}: {}", uid, user != null ? "found" : "new user");
 
             if (user != null) {
                 // Existing user: use their persisted tier from Firestore
@@ -94,15 +87,17 @@ public class AuthenticationController {
                 if ("ADMIN".equals(roleClaim) || Boolean.TRUE.equals(adminClaim)) {
                     tier = UserTier.ADMIN;
                 }
-                String displayName = name != null && !name.trim().isEmpty() ? name.trim() : email.split("@")[0];
+                String displayName = (name != null && !name.trim().isEmpty())
+                    ? name.trim()
+                    : email.split("@")[0];
                 user = new User(uid, email, displayName);
                 user.setTier(tier);
                 isNewUser = true;
             }
 
             try {
-                userRepository.save(user).block();
-                log.info("User saved successfully: uid={}", uid);
+                firestoreTemplate.save(user);
+                log.info("User saved to Firestore successfully: uid={}", uid);
             } catch (Exception e) {
                 log.error("Failed to save user to Firestore: uid={}, error={}", uid, e.getMessage(), e);
                 return Map.of("status", "error", "message", "Failed to save user data. Please try again.");
@@ -122,7 +117,7 @@ public class AuthenticationController {
             } catch (Exception e) {
                 log.warn("Failed to save activity log, but continuing with login: {}", e.getMessage());
             }
-            
+
             try {
                 establishSession(user, httpRequest);
             } catch (Exception e) {
@@ -143,7 +138,8 @@ public class AuthenticationController {
 
             return response;
         } catch (com.google.firebase.auth.FirebaseAuthException e) {
-            log.error("Firebase auth verification failed: idToken length={}, error={}", idToken != null ? idToken.length() : 0, e.getMessage(), e);
+            log.error("Firebase auth verification failed: idToken length={}, error={}",
+                idToken != null ? idToken.length() : 0, e.getMessage(), e);
             return Map.of("status", "error", "message", "Authentication failed: " + e.getMessage());
         } catch (IllegalStateException e) {
             log.error("Firebase not initialized - cannot verify token", e);
