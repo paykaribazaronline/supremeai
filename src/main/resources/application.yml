@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: supremeai
+
+supremeai:
+  providers:
+    openai: ${OPENAI_API_KEY:}
+    gemini: ${GEMINI_API_KEY:}
+    anthropic: ${ANTHROPIC_API_KEY:}
+    cohere: ${COHERE_API_KEY:}
+    perplexity: ${PERPLEXITY_API_KEY:}
+    mistral: ${MISTRAL_API_KEY:}
+    llama: ${LLAMA_API_KEY:}
+    deepseek: ${DEEPSEEK_API_KEY:}
+    grok: ${GROK_API_KEY:}
+    custom-supreme-ai: ${CUSTOM_SUPREME_AI_KEY:}
+
+logging:
+  level:
+    com.supremeai: DEBUG
