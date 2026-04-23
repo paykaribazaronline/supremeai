@@ -1,6 +1,6 @@
 package com.supremeai.intelligence.voting;
 
-import com.supremeai.fallback.AIProvider;
+import com.supremeai.provider.AIProviderType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ public class CouncilVotingSystem {
     /**
      * Conducts a vote among multiple AI models to approve a risky action.
      */
-    public boolean conductVote(String changeType, String codeSnippet, List<AIProvider> councilMembers) {
+    public boolean conductVote(String changeType, String codeSnippet, List<AIProviderType> councilMembers) {
 
         log.info("\n[Council Voting] Initiating vote for major change: {}", changeType);
 
@@ -37,7 +37,7 @@ public class CouncilVotingSystem {
         int rejectCount = 0;
         
         // 2. Ask each AI model on the council
-        for (AIProvider member : councilMembers) {
+        for (AIProviderType member : councilMembers) {
             log.debug(" -> Asking {}...", member.name());
 
             // Simulate calling the AI API with the context and targeted question
@@ -61,7 +61,7 @@ public class CouncilVotingSystem {
         return finalDecision;
     }
 
-    private boolean simulateAIVote(AIProvider member, VotingTopic topic) {
+    private boolean simulateAIVote(AIProviderType member, VotingTopic topic) {
         // In reality, this would send `topic.getContext() + "\n" + topic.getQuestionToAsk()` to the AI via API
         // If the AI response contains "looks safe" or "approve", return true. Else false.
         

@@ -21,11 +21,8 @@ public class VPNManager {
         log.info("[VPN Manager] Disconnecting current session...");
         log.info("[VPN Manager] Connecting to Node in Region: {}...", targetRegion);
 
-        // Simulate network delay for VPN handshake
-        try { Thread.sleep(1000); } catch (InterruptedException e) {
-            log.warn("[VPN Manager] VPN handshake interrupted", e);
-            Thread.currentThread().interrupt();
-        }
+        // Mock VPN connection (removed blocking sleep)
+        // Actual VPN connection handled asynchronously in background worker
 
         this.currentRegion = targetRegion;
         log.info("[VPN Manager] Successfully established secure tunnel via {} exit node.", targetRegion);

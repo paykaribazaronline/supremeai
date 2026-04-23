@@ -8,8 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.support.TaskExecutorAdapter;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 /**
  * Virtual Thread Configuration
@@ -39,9 +38,15 @@ public class VirtualThreadConfig {
             // Java 21+ method
             return (ExecutorService) Executors.class.getMethod("newVirtualThreadPerTaskExecutor").invoke(null);
         } catch (Exception e) {
-            log.warn("Virtual threads not available, falling back to cached thread pool", e);
-            // Fallback for Java 17
-            return Executors.newCachedThreadPool();
+            log.warn("Virtual threads not available, falling back to bounded fixed thread pool", e);
+            // Safe bounded fallback for Java 17: 200 max threads, 500 queue capacity
+            return new ThreadPoolExecutor(
+                50,
+                200,
+                60L, TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(500),
+                new ThreadPoolExecutor.CallerRunsPolicy()
+            );
         }
     }
 }

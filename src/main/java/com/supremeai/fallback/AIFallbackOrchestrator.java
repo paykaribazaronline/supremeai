@@ -4,6 +4,7 @@ import com.supremeai.cost.QuotaManager;
 import com.supremeai.learning.knowledge.GlobalKnowledgeBase;
 import com.supremeai.learning.immunity.CodeImmunitySystem;
 import com.supremeai.intelligence.profiling.AIProfiler;
+import com.supremeai.provider.AIProviderType;
 import com.supremeai.provider.AIProviderFactory;
 import com.supremeai.resilience.RetryableAIExecutor;
 import com.supremeai.security.ApiKeyRotationService;
@@ -37,13 +38,13 @@ public class AIFallbackOrchestrator {
     private final AIProviderFactory providerFactory;
 
     private final CircuitBreakerRegistry circuitBreakerRegistry;
-    private final Map<AIProvider, CircuitBreaker> providerCircuitBreakers = new EnumMap<>(AIProvider.class);
+    private final Map<AIProviderType, CircuitBreaker> providerCircuitBreakers = new EnumMap<>(AIProviderType.class);
 
-    private final List<AIProvider> allProviders = Arrays.asList(
-            AIProvider.GROQ_LLAMA3,
-            AIProvider.GEMINI_PRO,
-            AIProvider.HUGGINGFACE_FREE,
-            AIProvider.ANTHROPIC_CLAUDE
+    private final List<AIProviderType> allProviders = Arrays.asList(
+            AIProviderType.GROQ_LLAMA3,
+            AIProviderType.GEMINI_PRO,
+            AIProviderType.HUGGINGFACE_FREE,
+            AIProviderType.ANTHROPIC_CLAUDE
     );
 
     public AIFallbackOrchestrator(QuotaManager quotaManager,
@@ -71,7 +72,7 @@ public class AIFallbackOrchestrator {
 
     @PostConstruct
     public void init() {
-        for (AIProvider provider : allProviders) {
+        for (AIProviderType provider : allProviders) {
             CircuitBreaker cb = circuitBreakerRegistry.circuitBreaker(provider.name().toLowerCase());
             providerCircuitBreakers.put(provider, cb);
 
@@ -98,17 +99,17 @@ public class AIFallbackOrchestrator {
         if (knownSolution != null) return knownSolution;
 
         // STEP 2: DYNAMICALLY RE-ORDER THE FALLBACK CHAIN
-        AIProvider expertProvider = aiProfiler.getBestAIForTask(taskCategory);
+        AIProviderType expertProvider = aiProfiler.getBestAIForTask(taskCategory);
 
-        List<AIProvider> dynamicChain = new ArrayList<>();
+        List<AIProviderType> dynamicChain = new ArrayList<>();
         dynamicChain.add(expertProvider);
 
-        for (AIProvider p : allProviders) {
+        for (AIProviderType p : allProviders) {
             if (p != expertProvider) dynamicChain.add(p);
         }
 
         // STEP 3: EXECUTE WITH CIRCUIT BREAKER + RETRY
-        for (AIProvider provider : dynamicChain) {
+        for (AIProviderType provider : dynamicChain) {
             if (!isServiceQuotaAvailable(provider)) {
                 log.warn("Quota exhausted for {}, skipping.", provider);
                 continue;
@@ -122,11 +123,13 @@ public class AIFallbackOrchestrator {
 
             long startTime = System.currentTimeMillis();
 
-            try {
-                log.info("-> Asking {} (Expert Mode) to handle task: {}", provider, taskCategory);
+            log.info("-> Asking {} (Expert Mode) to handle task: {}", provider, taskCategory);
 
-                String apiKey = resolveApiKey(userId, provider);
-                String generatedCode = callAIProviderWithRetry(provider, apiKey, prompt, cb);
+            String apiKey = resolveApiKey(userId, provider);
+            String generatedCode = null;
+            
+            try {
+                generatedCode = callAIProviderWithRetry(provider, apiKey, prompt, cb);
                 long timeTaken = System.currentTimeMillis() - startTime;
 
                 recordUsage(provider);
@@ -144,35 +147,36 @@ public class AIFallbackOrchestrator {
 
             } catch (Exception e) {
                 log.error("Error from provider: {} on task: {}", provider, taskCategory, e);
-                // Continue to next provider
+                aiProfiler.recordPerformance(taskCategory, provider, false, System.currentTimeMillis() - startTime);
+                // Continue to next provider ONCE ONLY - no retries per provider
             }
         }
 
         throw new RuntimeException("CRITICAL: All AI failed. Cannot execute task.");
     }
 
-    private boolean isServiceQuotaAvailable(AIProvider provider) {
+    private boolean isServiceQuotaAvailable(AIProviderType provider) {
         String serviceName = getServiceNameForProvider(provider);
         if (quotaManager.getQuotaStatus(serviceName, "Requests") == null) return true;
         return quotaManager.getQuotaStatus(serviceName, "Requests").getRemainingQuota() > 0;
     }
 
-    private void recordUsage(AIProvider provider) {
+    private void recordUsage(AIProviderType provider) {
         String serviceName = getServiceNameForProvider(provider);
         quotaManager.recordUsage(serviceName, "Requests", 1);
     }
 
-    private String getServiceNameForProvider(AIProvider provider) {
+    private String getServiceNameForProvider(AIProviderType provider) {
         switch (provider) {
             case GROQ_LLAMA3: return "Groq";
             case GEMINI_PRO: return "Google";
             case ANTHROPIC_CLAUDE: return "Anthropic";
             case HUGGINGFACE_FREE: return "HuggingFace";
-            default: return "Unknown";
+            default: throw new IllegalArgumentException("Unknown AI provider: " + provider);
         }
     }
 
-    private String resolveApiKey(String userId, AIProvider provider) {
+    private String resolveApiKey(String userId, AIProviderType provider) {
         if (userId == null || "system".equals(userId)) {
             return System.getenv(getEnvKeyForProvider(provider));
         }
@@ -181,7 +185,7 @@ public class AIFallbackOrchestrator {
                 .orElseGet(() -> System.getenv(getEnvKeyForProvider(provider)));
     }
 
-    private String getEnvKeyForProvider(AIProvider provider) {
+    private String getEnvKeyForProvider(AIProviderType provider) {
         switch (provider) {
             case GROQ_LLAMA3: return "GROQ_API_KEY";
             case GEMINI_PRO: return "GOOGLE_AI_API_KEY";
@@ -191,7 +195,7 @@ public class AIFallbackOrchestrator {
         }
     }
 
-    private String callAIProviderWithRetry(AIProvider provider, String apiKey, String prompt, CircuitBreaker cb) {
+    private String callAIProviderWithRetry(AIProviderType provider, String apiKey, String prompt, CircuitBreaker cb) {
         String serviceName = getServiceNameForProvider(provider);
         return retryExecutor.executeWithCircuitBreaker(
                 provider.name(), serviceName, cb,
@@ -205,13 +209,13 @@ public class AIFallbackOrchestrator {
         );
     }
 
-    private String callAIProvider(AIProvider provider, String apiKey, String prompt) throws Exception {
+    private String callAIProvider(AIProviderType provider, String apiKey, String prompt) throws Exception {
         String providerName = mapFallbackProviderToFactoryName(provider);
         com.supremeai.provider.AIProvider realProvider = providerFactory.getProvider(providerName, apiKey);
         return realProvider.generate(prompt);
     }
 
-    private String mapFallbackProviderToFactoryName(AIProvider provider) {
+    private String mapFallbackProviderToFactoryName(AIProviderType provider) {
         switch (provider) {
             case GROQ_LLAMA3: return "groq";
             case GEMINI_PRO: return "gemini";
@@ -223,7 +227,7 @@ public class AIFallbackOrchestrator {
 
     public Map<String, Object> getProviderHealthStatus() {
         Map<String, Object> status = new java.util.HashMap<>();
-        for (AIProvider provider : allProviders) {
+        for (AIProviderType provider : allProviders) {
             CircuitBreaker cb = providerCircuitBreakers.get(provider);
             Map<String, Object> providerStatus = new java.util.HashMap<>();
             if (cb != null) {

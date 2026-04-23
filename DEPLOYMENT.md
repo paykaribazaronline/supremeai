@@ -1,39 +1,18 @@
 # SupremeAI One Click Deployment
 
-## 🚀 Production Deployment
+**ARCHIVED - See scripts/DEPLOYMENT.md for current comprehensive deployment guide**
 
-### Docker
+This file contains simplified deployment instructions. For production deployment, automated CI/CD, and detailed configuration options, use:
 
-```bash
-# Build
-./gradlew bootJar
-docker build -t supremeai .
+**→ scripts/DEPLOYMENT.md (Recommended)**
 
-# Run
-docker run -d -p 8080:8080 \
-  --name supremeai \
-  --restart unless-stopped \
-  supremeai
-```
+This includes:
 
-### Systemd Service
-
-```ini
-[Unit]
-Description=SupremeAI Platform
-After=network.target
-
-[Service]
-Type=simple
-User=supremeai
-ExecStart=/usr/bin/java -jar /opt/supremeai/supremeai.jar
-Restart=always
-RestartSec=5
-Environment="JAVA_OPTS=-XX:+UseZGC -XX:+ZGenerational -Xms4g -Xmx16g"
-
-[Install]
-WantedBy=multi-user.target
-```
+- GitHub Actions CI/CD pipeline
+- Cloud Run deployment
+- Docker configuration
+- Security settings
+- Troubleshooting guides
 
 ## 🔥 The Most Important Thing
 
@@ -47,4 +26,4 @@ This is better infrastructure than 99% of all AI startups right now.
 
 ---
 
-There is nothing else missing. The project is complete.
+**Note:** This simplified guide is maintained for quick local testing. Use scripts/DEPLOYMENT.md for production deployments.
