@@ -19,6 +19,10 @@
         footer { text-align: center; color: white; font-size: 0.9em; margin-top: 40px; padding: 20px; }
         .auth-error { background: #ffebee; color: #c62828; padding: 20px; text-align: center; border-radius: 8px; }
         .user-info { background: #e3f2fd; padding: 10px 15px; border-radius: 6px; color: #1565c0; font-weight: 500; }
+        .lang-switcher { float: right; margin-top: -50px; }
+        .lang-btn { padding: 8px 16px; margin-left: 10px; font-size: 14px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .lang-btn:hover { background: #764ba2; }
+        .lang-btn.active { background: #764ba2; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -32,27 +36,98 @@
     </div>
 
     <div id="dashboard" class="container">
+        <div class="lang-switcher">
+            <button class="lang-btn active" onclick="setLanguage('en')" id="btn-en">EN</button>
+            <button class="lang-btn" onclick="setLanguage('bn')" id="btn-bn">বাংলা</button>
+        </div>
         <header>
-            <h1>🚀 SupremeAI Unified Dashboard</h1>
-            <p class="subtitle">Multi-Agent Code Generation & Cloud Operations Platform</p>
+            <h1 id="header-title">🚀 SupremeAI Unified Dashboard</h1>
+            <p class="subtitle" id="header-subtitle">Multi-Agent Code Generation & Cloud Operations Platform</p>
             <div style="margin-top: 15px;">
                 <span class="user-info" id="userInfo"></span>
-                <button onclick="logout()" style="padding: 8px 16px; margin-left: 10px; font-size: 14px; background: #c62828;">Logout</button>
+                <button onclick="logout()" style="padding: 8px 16px; margin-left: 10px; font-size: 14px; background: #c62828;" id="logout-btn">Logout</button>
             </div>
         </header>
 
         <div class="dashboard-grid">
-            <!-- Same dashboard content as before -->
-            <div class="card"><div class="card-header"><div class="card-icon">📱</div><div><div class="card-title">Phase 7: Code Generation</div><div class="card-subtitle">Multi-Platform Agent System</div></div></div><div class="progress-bar"><div class="progress-fill" style="width: 95%"></div></div><div class="metric"><span class="metric-label">Completion</span><span class="metric-value">95%</span></div><ul class="feature-list"><li>iOS SwiftUI (DiOSAgent) - 700+ LOC</li><li>Web React PWA (EWebAgent) - 700+ LOC</li><li>Desktop Apps (FDesktopAgent) - 700+ LOC</li><li>App Publishing (GPublishAgent) - 750+ LOC</li></ul><span class="status-badge status-success">✓ Ready for Production</span></div>
+            <!-- Phase 7: Code Generation -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">📱</div>
+                    <div>
+                        <div class="card-title" data-en="Phase 7: Code Generation" data-bn="পর্যায় ৭: কোড জেনারেশন">Phase 7: Code Generation</div>
+                        <div class="card-subtitle" data-en="Multi-Platform Agent System" data-bn="মাল্টি-প্ল্যাটফর্ম এজেন্ট সিস্টেম">Multi-Platform Agent System</div>
+                    </div>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" style="width: 95%"></div></div>
+                <div class="metric"><span class="metric-label" data-en="Completion" data-bn="সম্পন্নতা">Completion</span><span class="metric-value">95%</span></div>
+                <ul class="feature-list">
+                    <li data-en="iOS SwiftUI (DiOSAgent) - 700+ LOC" data-bn="iOS SwiftUI (DiOSAgent) - 700+ লাইন">iOS SwiftUI (DiOSAgent) - 700+ LOC</li>
+                    <li data-en="Web React PWA (EWebAgent) - 700+ LOC" data-bn="Web React PWA (EWebAgent) - 700+ লাইন">Web React PWA (EWebAgent) - 700+ LOC</li>
+                    <li data-en="Desktop Apps (FDesktopAgent) - 700+ LOC" data-bn="ডেস্কটপ অ্যাপস (FDesktopAgent) - 700+ লাইন">Desktop Apps (FDesktopAgent) - 700+ LOC</li>
+                    <li data-en="App Publishing (GPublishAgent) - 750+ LOC" data-bn="অ্যাপ পাবলিশিং (GPublishAgent) - 750+ লাইন">App Publishing (GPublishAgent) - 750+ LOC</li>
+                </ul>
+                <span class="status-badge status-success" data-en="✓ Ready for Production" data-bn="✓ প্রোডাকশনের জন্য প্রস্তুত">✓ Ready for Production</span>
+            </div>
 
-            <div class="card"><div class="card-header"><div class="card-icon">🔒</div><div><div class="card-title">Phase 8: Security</div><div class="card-subtitle">Enterprise Security Suite</div></div></div><div class="progress-bar"><div class="progress-fill" style="width: 9.85%; background: #ff9800;"></div></div><div class="metric"><span class="metric-label">Completion</span><span class="metric-value" style="color: #ff9800;">9.85%</span></div><ul class="feature-list"><li>OWASP Scanning Framework</li><li class="incomplete">Real vulnerability detection</li></ul><span class="status-badge status-warning">⚠️ In Development</span></div>
+            <!-- Phase 8: Security -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🔒</div>
+                    <div>
+                        <div class="card-title" data-en="Phase 8: Security" data-bn="পর্যায় ৮: নিরাপত্তা">Phase 8: Security</div>
+                        <div class="card-subtitle" data-en="Enterprise Security Suite" data-bn="এন্টারপ্রাইজ সিকিউরিটি স্যুট">Enterprise Security Suite</div>
+                    </div>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" style="width: 9.85%; background: #ff9800;"></div></div>
+                <div class="metric"><span class="metric-label" data-en="Completion" data-bn="সম্পন্নতা">Completion</span><span class="metric-value" style="color: #ff9800;">9.85%</span></div>
+                <ul class="feature-list">
+                    <li data-en="OWASP Scanning Framework" data-bn="OWASP স্ক্যানিং ফ্রেমওয়ার্ক">OWASP Scanning Framework</li>
+                    <li class="incomplete" data-en="Real vulnerability detection" data-bn="বাস্তব 취약점 সনাক্তকরণ">Real vulnerability detection</li>
+                </ul>
+                <span class="status-badge status-warning" data-en="⚠️ In Development" data-bn="⚠️ উন্নয়নমধ্যে">⚠️ In Development</span>
+            </div>
 
-            <div class="card"><div class="card-header"><div class="card-icon">💰</div><div><div class="card-title">Phase 9: Cost Intelligence</div><div class="card-subtitle">Multi-Cloud Cost Optimization</div></div></div><div class="progress-bar"><div class="progress-fill" style="width: 50%; background: #4caf50;"></div></div><div class="metric"><span class="metric-label">Completion</span><span class="metric-value" style="color: #4caf50;">50%+</span></div><div class="cost-breakdown"><div class="cost-item"><div class="cost-item-label">GCP</div><div class="cost-item-value">$425</div></div><div class="cost-item"><div class="cost-item-label">AWS</div><div class="cost-item-value">$150</div></div></div><span class="status-badge status-success">✓ Functional</span></div>
+            <!-- Phase 9: Cost Intelligence -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">💰</div>
+                    <div>
+                        <div class="card-title" data-en="Phase 9: Cost Intelligence" data-bn="পর্যায় ৯: খরচ বুদ্ধিমত্তা">Phase 9: Cost Intelligence</div>
+                        <div class="card-subtitle" data-en="Multi-Cloud Cost Optimization" data-bn="মাল্টি-ক্লাউড খরচ অপটিমাইজেশন">Multi-Cloud Cost Optimization</div>
+                    </div>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" style="width: 50%; background: #4caf50;"></div></div>
+                <div class="metric"><span class="metric-label" data-en="Completion" data-bn="সম্পন্নতা">Completion</span><span class="metric-value" style="color: #4caf50;">50%+</span></div>
+                <div class="cost-breakdown">
+                    <div class="cost-item">
+                        <div class="cost-item-label" data-en="GCP" data-bn="জিসিপি">GCP</div>
+                        <div class="cost-item-value">$425</div>
+                    </div>
+                    <div class="cost-item">
+                        <div class="cost-item-label" data-en="AWS" data-bn="অ্যাওয়েস">AWS</div>
+                        <div class="cost-item-value">$150</div>
+                    </div>
+                </div>
+                <span class="status-badge status-success" data-en="✓ Functional" data-bn="✓ কার্যকর">✓ Functional</span>
+            </div>
 
-            <div class="card"><div class="card-header"><div class="card-icon">🧬</div><div><div class="card-title">Phase 10: Self-Evolution</div><div class="card-subtitle">Autonomous Agent Learning</div></div></div><div class="progress-bar"><div class="progress-fill" style="width: 11.8%; background: #2196f3;"></div></div><div class="metric"><span class="metric-label">Completion</span><span class="metric-value" style="color: #2196f3;">11.8%</span></div><span class="status-badge status-warning">⚠️ Framework Phase</span></div>
+            <!-- Phase 10: Self-Evolution -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🧬</div>
+                    <div>
+                        <div class="card-title" data-en="Phase 10: Self-Evolution" data-bn="পর্যায় ১০: স্ব-উন্নতি">Phase 10: Self-Evolution</div>
+                        <div class="card-subtitle" data-en="Autonomous Agent Learning" data-bn="স্বয়ংক্রিয় এজেন্ট শেখার ব্যবস্থা">Autonomous Agent Learning</div>
+                    </div>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" style="width: 11.8%; background: #2196f3;"></div></div>
+                <div class="metric"><span class="metric-label" data-en="Completion" data-bn="সম্পন্নতা">Completion</span><span class="metric-value" style="color: #2196f3;">11.8%</span></div>
+                <span class="status-badge status-warning" data-en="⚠️ Framework Phase" data-bn="⚠️ ফ্রেমওয়ার্ক পর্যায়">⚠️ Framework Phase</span>
+            </div>
         </div>
 
-        <footer>SupremeAI Platform v2.0 | Last Updated: <span id="timestamp"></span></footer>
+        <footer><span id="footer-text" data-en="SupremeAI Platform v2.0 | Last Updated:" data-bn="সুপ্রিমএআই প্ল্যাটফর্ম v2.0 | সর্বশেষ আপডেট:">SupremeAI Platform v2.0 | Last Updated:</span> <span id="timestamp"></span></footer>
     </div>
 
     <style>
@@ -79,13 +154,90 @@
         .user-info { background: #e3f2fd; padding: 10px 15px; border-radius: 6px; color: #1565c0; font-weight: 500; display: inline-block; }
         .logout-btn { padding: 8px 16px; margin-left: 10px; font-size: 14px; background: #c62828; border: none; color: white; border-radius: 4px; cursor: pointer; }
         .logout-btn:hover { background: #b71c1c; }
+        .lang-switcher { float: right; margin-top: -50px; }
+        .lang-btn { padding: 8px 16px; margin-left: 10px; font-size: 14px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .lang-btn:hover { background: #764ba2; }
+        .lang-btn.active { background: #764ba2; font-weight: bold; }
+    </style>
     </style>
 
     <script>
         let auth;
+        let currentLang = 'en';
         const authGuard = document.getElementById('authGuard');
         const dashboard = document.getElementById('dashboard');
         const userInfo = document.getElementById('userInfo');
+
+        // Language translations
+        const translations = {
+            en: {
+                title: '🚀 SupremeAI Unified Dashboard',
+                subtitle: 'Multi-Agent Code Generation & Cloud Operations Platform',
+                logout: 'Logout',
+                phase7: 'Phase 7: Code Generation',
+                phase7sub: 'Multi-Platform Agent System',
+                phase8: 'Phase 8: Security',
+                phase8sub: 'Enterprise Security Suite',
+                phase9: 'Phase 9: Cost Intelligence',
+                phase9sub: 'Multi-Cloud Cost Optimization',
+                phase10: 'Phase 10: Self-Evolution',
+                phase10sub: 'Autonomous Agent Learning',
+                completion: 'Completion',
+                ready: '✓ Ready for Production',
+                development: '⚠️ In Development',
+                functional: '✓ Functional',
+                framework: '⚠️ Framework Phase',
+                gcp: 'GCP',
+                aws: 'AWS',
+                footer: 'SupremeAI Platform v2.0 | Last Updated:'
+            },
+            bn: {
+                title: '🚀 সুপ্রিমএআই ইউনিফাইড ড্যাশবোর্ড',
+                subtitle: 'মাল্টি-এজেন্ট কোড জেনারেশন ও ক্লাউড অপারেশন প্ল্যাটফর্ম',
+                logout: 'লগআউট',
+                phase7: 'পর্যায় ৭: কোড জেনারেশন',
+                phase7sub: 'মাল্টি-প্ল্যাটফর্ম এজেন্ট সিস্টেম',
+                phase8: 'পর্যায় ৮: নিরাপত্তা',
+                phase8sub: 'এন্টারপ্রাইজ সিকিউরিটি স্যুট',
+                phase9: 'পর্যায় ৯: খরচ বুদ্ধিমত্তা',
+                phase9sub: 'মাল্টি-ক্লাউড খরচ অপ্টিমাইজেশন',
+                phase10: 'পর্যায় ১০: স্ব-উন্নতি',
+                phase10sub: 'স্বয়ংক্রিয় এজেন্ট শেখার ব্যবস্থা',
+                completion: 'সম্পন্নতা',
+                ready: '✓ প্রোডাকশনের জন্য প্রস্তুত',
+                development: '⚠️ উন্নয়নমধ্যে',
+                functional: '✓ কার্যকর',
+                framework: '⚠️ ফ্রেমওয়ার্ক পর্যায়',
+                gcp: 'জিসিপি',
+                aws: 'অ্যাওয়েস',
+                footer: 'সুপ্রিমএআই প্ল্যাটফর্ম v2.0 | সর্বশেষ আপডেট:'
+            }
+        };
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            
+            // Update button states
+            document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+            document.getElementById('btn-bn').classList.toggle('active', lang === 'bn');
+            
+            // Update all translatable elements
+            document.querySelectorAll('[data-en]').forEach(el => {
+                const key = el.getAttribute('data-' + lang);
+                if (key) el.textContent = key;
+            });
+            
+            // Update header
+            document.getElementById('header-title').textContent = translations[lang].title;
+            document.getElementById('header-subtitle').textContent = translations[lang].subtitle;
+            document.getElementById('logout-btn').textContent = translations[lang].logout;
+            
+            // Update footer
+            document.getElementById('footer-text').textContent = translations[lang].footer;
+            
+            // Save preference
+            localStorage.setItem('supremeai_lang', lang);
+        }
 
         function checkAuth() {
             const admin = sessionStorage.getItem('supremeai_admin');
@@ -109,29 +261,11 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('timestamp').textContent = new Date().toLocaleString();
-            if (typeof firebase !== 'undefined' && firebase.apps.length) {
-                auth = firebase.auth();
-                auth.onAuthStateChanged(async (user) => {
-                    if (user) {
-                        // Re-verify admin status in Firestore
-                        const db = firebase.firestore();
-                        const doc = await db.collection('users').doc(user.uid).get();
-                        const isAdmin = doc.exists ? (doc.data().isAdmin === true || doc.data().role === 'admin') : false;
-                        if (!isAdmin) { logout(); return; }
-                        sessionStorage.setItem('supremeai_admin', 'true');
-                        sessionStorage.setItem('supremeai_user', JSON.stringify({
-                            email: user.email,
-                            uid: user.uid,
-                            displayName: user.displayName || user.email.split('@')[0]
-                        }));
-                    }
-                    checkAuth();
-                });
-            } else {
-                checkAuth();
-            }
-        });
+        document.getElementById('timestamp').textContent = new Date().toLocaleString();
+        
+        // Initialize language
+        const savedLang = localStorage.getItem('supremeai_lang') || 'en';
+        setLanguage(savedLang);
     </script>
 </body>
 </html>

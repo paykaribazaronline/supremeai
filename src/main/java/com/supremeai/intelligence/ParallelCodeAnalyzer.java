@@ -2,6 +2,8 @@ package com.supremeai.intelligence;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.*;
@@ -11,8 +13,11 @@ import java.util.List;
 public class ParallelCodeAnalyzer {
 
     private static final Logger log = LoggerFactory.getLogger(ParallelCodeAnalyzer.class);
-    // Thread pool optimized for ultra-fast multi-core code analysis
-    private final ExecutorService analysisPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
+    private final ExecutorService analysisPool;
+
+    public ParallelCodeAnalyzer(@Qualifier("analysisTaskExecutor") ThreadPoolTaskExecutor analysisTaskExecutor) {
+        this.analysisPool = analysisTaskExecutor.getThreadPoolExecutor();
+    }
 
     /**
      * Kimi/Cursor Level Speed: Instead of analyzing a 10,000 line file line-by-line,

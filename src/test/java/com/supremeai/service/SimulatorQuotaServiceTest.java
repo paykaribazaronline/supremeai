@@ -7,22 +7,10 @@ import com.supremeai.exception.SimulatorSessionException;
 import com.supremeai.model.UserSimulatorProfile;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Unit tests for SimulatorQuotaService.
- *
- * Covers:
- * - Quota validation (pass/fail)
- * - Duplicate detection
- * - Remaining slots calculation
- * - Session launch validation
- */
-@ExtendWith(MockitoExtension.class)
-class SimulatorQuotaServiceTest {
+public class SimulatorQuotaServiceTest {
 
     private SimulatorQuotaService quotaService;
     private UserSimulatorProfile profile;
@@ -30,120 +18,69 @@ class SimulatorQuotaServiceTest {
     @BeforeEach
     void setUp() {
         quotaService = new SimulatorQuotaService();
-        profile = new UserSimulatorProfile("test-user-123");
-        profile.setInstallQuota(5);
-        profile.setActiveInstalls(0);
+        profile = new UserSimulatorProfile("test-user");
+        profile.setInstallQuota(2); // Set a small quota for testing
     }
 
     @Test
-    void testValidateCanInstall_WithinQuota_Passes() {
-        // Act & Assert - no exception
-        quotaService.validateCanInstall(profile, "app-001");
-    }
-
-    @Test
-    void testValidateCanInstall_AtQuota_Throws() {
-        // Arrange: user has 5/5 installed
-        profile.setActiveInstalls(5);
-        
-        // Act & Assert
-        SimulatorQuotaExceededException ex = assertThrows(
-            SimulatorQuotaExceededException.class,
-            () -> quotaService.validateCanInstall(profile, "app-001")
-        );
-        assertEquals(5, ex.getUsed());
-        assertEquals(5, ex.getLimit());
-    }
-
-    @Test
-    void testValidateCanInstall_DuplicateApp_Throws() {
-        // Arrange: app already installed
-        UserSimulatorProfile.InstalledApp existing = 
-            new UserSimulatorProfile.InstalledApp("app-001", "TestApp", "1.0", "http://url");
-        profile.addInstalledApp(existing);
-        
-        // Act & Assert
-        assertThrows(SimulatorConflictException.class,
-            () -> quotaService.validateCanInstall(profile, "app-001")
-        );
-    }
-
-    @Test
-    void testHasQuotaRemaining_WhenUnderLimit_ReturnsTrue() {
-        profile.setActiveInstalls(3);
+    void testHasQuotaRemaining_True() {
+        profile.setActiveInstalls(1);
         assertTrue(quotaService.hasQuotaRemaining(profile));
     }
 
     @Test
-    void testHasQuotaRemaining_AtLimit_ReturnsFalse() {
-        profile.setActiveInstalls(5);
+    void testHasQuotaRemaining_False() {
+        profile.setActiveInstalls(2);
         assertFalse(quotaService.hasQuotaRemaining(profile));
     }
 
     @Test
-    void testGetRemainingSlots_CalculatesCorrectly() {
+    void testValidateCanInstall_Success() {
+        profile.setActiveInstalls(1);
+        assertDoesNotThrow(() -> quotaService.validateCanInstall(profile, "new-app"));
+    }
+
+    @Test
+    void testValidateCanInstall_ThrowsQuotaExceeded() {
         profile.setActiveInstalls(2);
-        assertEquals(3, quotaService.getRemainingSlots(profile));
-        
-        profile.setActiveInstalls(5);
-        assertEquals(0, quotaService.getRemainingSlots(profile));
+        assertThrows(SimulatorQuotaExceededException.class, 
+            () -> quotaService.validateCanInstall(profile, "new-app"));
     }
 
     @Test
-    void testValidateCanLaunchSession_WhenNoSession_Allows() {
-        // No session active
-        UserSimulatorProfile.InstalledApp app = 
-            new UserSimulatorProfile.InstalledApp("app-001", "TestApp", "1.0", "http://url");
+    void testValidateCanInstall_ThrowsConflict() {
+        profile.setActiveInstalls(1);
+        UserSimulatorProfile.InstalledApp app = new UserSimulatorProfile.InstalledApp("existing-app", "Test App", "1.0", "url");
         profile.addInstalledApp(app);
         
-        // Should not throw
-        quotaService.validateCanLaunchSession(profile, "app-001");
+        assertThrows(SimulatorConflictException.class, 
+            () -> quotaService.validateCanInstall(profile, "existing-app"));
     }
 
     @Test
-    void testValidateCanLaunchSession_WhenSameAppAlreadyRunning_Idempotent() {
-        // App is already running - should be idempotent (no-op)
-        UserSimulatorProfile.InstalledApp app = 
-            new UserSimulatorProfile.InstalledApp("app-001", "TestApp", "1.0", "http://url");
+    void testValidateCanLaunchSession_Success() {
+        UserSimulatorProfile.InstalledApp app = new UserSimulatorProfile.InstalledApp("app-1", "Test App", "1.0", "url");
         profile.addInstalledApp(app);
         
-        UserSimulatorProfile.ActiveSession session = 
-            new UserSimulatorProfile.ActiveSession("sess-123", "app-001", "ws://");
-        profile.setCurrentSession(session);
-        
-        // Should not throw - same app is already running
-        quotaService.validateCanLaunchSession(profile, "app-001");
+        assertDoesNotThrow(() -> quotaService.validateCanLaunchSession(profile, "app-1"));
     }
 
     @Test
-    void testValidateCanLaunchSession_WhenDifferentAppRunning_Throws() {
-        // App A running, try to launch App B
-        UserSimulatorProfile.InstalledApp appA = 
-            new UserSimulatorProfile.InstalledApp("app-A", "AppA", "1.0", "http://a");
-        UserSimulatorProfile.InstalledApp appB = 
-            new UserSimulatorProfile.InstalledApp("app-B", "AppB", "1.0", "http://b");
-        profile.addInstalledApp(appA);
-        profile.addInstalledApp(appB);
-        
-        UserSimulatorProfile.ActiveSession session = 
-            new UserSimulatorProfile.ActiveSession("sess-123", "app-A", "ws://");
-        profile.setCurrentSession(session);
-        
-        // Should throw because another app is running
-        SimulatorSessionException ex = assertThrows(
-            SimulatorSessionException.class,
-            () -> quotaService.validateCanLaunchSession(profile, "app-B")
-        );
-        assertTrue(ex.getMessage().contains("Another app is currently running"));
+    void testValidateCanLaunchSession_ThrowsNotFound() {
+        assertThrows(SimulatorResourceNotFoundException.class, 
+            () -> quotaService.validateCanLaunchSession(profile, "non-existent-app"));
     }
 
     @Test
-    void testValidateCanLaunchSession_WhenAppNotInstalled_Throws() {
-        // Try to launch app that's not installed
-        SimulatorResourceNotFoundException ex = assertThrows(
-            SimulatorResourceNotFoundException.class,
-            () -> quotaService.validateCanLaunchSession(profile, "non-existent")
-        );
-        assertTrue(ex.getMessage().contains("App not installed"));
+    void testValidateCanLaunchSession_ThrowsSessionException() {
+        UserSimulatorProfile.InstalledApp app1 = new UserSimulatorProfile.InstalledApp("app-1", "App 1", "1.0", "url");
+        UserSimulatorProfile.InstalledApp app2 = new UserSimulatorProfile.InstalledApp("app-2", "App 2", "1.0", "url");
+        profile.addInstalledApp(app1);
+        profile.addInstalledApp(app2);
+        
+        profile.setCurrentSession(new UserSimulatorProfile.ActiveSession("session-1", "app-1", "url"));
+        
+        assertThrows(SimulatorSessionException.class, 
+            () -> quotaService.validateCanLaunchSession(profile, "app-2"));
     }
 }

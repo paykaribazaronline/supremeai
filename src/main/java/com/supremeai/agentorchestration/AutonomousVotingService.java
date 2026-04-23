@@ -6,7 +6,9 @@ import com.supremeai.provider.AIProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -15,8 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,10 +26,14 @@ public class AutonomousVotingService {
     @Value("${supremeai.active.providers:groq,openai,anthropic,ollama}")
     private String activeProviders;
     
-    private final ExecutorService executor = Executors.newCachedThreadPool();
+    private final java.util.concurrent.ExecutorService executor;
     
     @Autowired
     private AIProviderFactory providerFactory;
+
+    public AutonomousVotingService(@Qualifier("votingTaskExecutor") ThreadPoolTaskExecutor votingTaskExecutor) {
+        this.executor = votingTaskExecutor.getThreadPoolExecutor();
+    }
 
     public VotingDecision conductVote(String question, String context) {
         logger.info("Starting autonomous voting for question: {}", question);
