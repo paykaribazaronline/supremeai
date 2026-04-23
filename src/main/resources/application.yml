@@ -1,6 +1,25 @@
 spring:
   application:
     name: supremeai
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+  datasource:
+    url: ${DATABASE_URL:jdbc:h2:mem:testdb}
+    username: ${DATABASE_USERNAME:sa}
+    password: ${DATABASE_PASSWORD:}
+    hikari:
+      maximum-pool-size: 100
+      minimum-idle: 10
+      idle-timeout: 300000
+      connection-timeout: 10000
+      max-lifetime: 1200000
+      leak-detection-threshold: 60000
+
+jwt:
+  secret: ${JWT_SECRET:my-secret-key-should-be-changed-in-production}
 
 supremeai:
   providers:

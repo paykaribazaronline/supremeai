@@ -6,7 +6,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/admin/test")
@@ -14,11 +16,27 @@ public class ApiTestingController {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    private static final Set<String> ALLOWED_HOSTS = Set.of(
+            "api.openai.com",
+            "api.anthropic.com",
+            "api.gemini.google.com",
+            "localhost",
+            "127.0.0.1"
+    );
+
     @PostMapping("/endpoint")
     public ResponseEntity<ApiTestResult> testEndpoint(@RequestBody ApiTestRequest request) {
         long startTime = System.currentTimeMillis();
 
         try {
+            if (!isUrlAllowed(request.getUrl())) {
+                return ResponseEntity.ok(ApiTestResult.builder()
+                        .success(false)
+                        .error("URL not allowed. Only whitelisted hosts are permitted.")
+                        .responseTimeMs(System.currentTimeMillis() - startTime)
+                        .build());
+            }
+
             org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
             if (request.getHeaders() != null) {
                 request.getHeaders().forEach(headers::add);
@@ -50,6 +68,16 @@ public class ApiTestingController {
                     .error(e.getMessage())
                     .responseTimeMs(System.currentTimeMillis() - startTime)
                     .build());
+        }
+    }
+
+    private boolean isUrlAllowed(String url) {
+        try {
+            URI uri = new URI(url);
+            String host = uri.getHost();
+            return host != null && ALLOWED_HOSTS.contains(host);
+        } catch (Exception e) {
+            return false;
         }
     }
 

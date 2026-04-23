@@ -1,6 +1,10 @@
 package com.supremeai.security;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -8,9 +12,18 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 
 @Slf4j
 public class JwtAuthFilter extends OncePerRequestFilter {
+
+    @Value("${jwt.secret:my-secret-key-should-be-changed-in-production}")
+    private String jwtSecret;
+
+    private Key getSigningKey() {
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -24,10 +37,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String token = authHeader.substring(7);
         try {
-            if (validateToken(token)) {
-                String role = extractRole(token);
-                request.setAttribute("userRole", role);
-                logger.debug("Authenticated request with role: " + role);
+            Claims claims = validateToken(token);
+            if (claims != null) {
+                String role = claims.get("role", String.class);
+                request.setAttribute("userRole", role != null ? role : "USER");
+                log.debug("Authenticated request with role: {}", role);
+            } else {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Invalid or expired token");
+                return;
             }
         } catch (Exception e) {
             log.warn("Invalid JWT token: {}", e.getMessage());
@@ -39,11 +57,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private boolean validateToken(String token) {
-        return token != null && token.length() > 20;
-    }
-
-    private String extractRole(String token) {
-        return "USER";
+    private Claims validateToken(String token) {
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (Exception e) {
+            log.warn("JWT validation failed: {}", e.getMessage());
+            return null;
+        }
     }
 }
