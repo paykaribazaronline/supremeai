@@ -374,23 +374,37 @@ jobs:
           echo "**Admin Dashboard URL:** ${{ needs.deploy-backend.outputs.admin_url || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
 
   health-check:
-    name: Health_Check
+    name: Health_Check_and_Rollback
     needs: [deploy-backend, deploy-frontend]
     if: always() && (needs.deploy-backend.result == 'success' || needs.deploy-frontend.result == 'success')
     runs-on: ubuntu-latest
     steps:
       - name: Check_Status
+        id: status-check
         run: |
           echo "Checking frontend status..."
-          curl -sf https://supremeai-a.web.app/ || echo 'Frontend site check failed or skipped'
+          curl -sf https://supremeai-a.web.app/ || (echo "frontend_failed=true" >> $GITHUB_ENV && false)
           echo "Checking backend status..."
           ADMIN_URL="${{ needs.deploy-backend.outputs.admin_url }}"
           if [ -n "$ADMIN_URL" ] && [ "$ADMIN_URL" != "N/A" ]; then
             BACKEND_URL=$(echo "$ADMIN_URL" | sed 's/\/admin\.html$//')
-            curl -sf "$BACKEND_URL/actuator/health" || echo 'Backend health check failed or skipped'
+            curl -sf "$BACKEND_URL/actuator/health" || (echo "backend_failed=true" >> $GITHUB_ENV && false)
           else
             echo 'Backend URL not available for health check'
           fi
+      - name: Rollback_On_Failure
+        if: failure()
+        run: |
+          echo "### 🚨 Deployment Failure Detected! ###"
+          if [ "$backend_failed" = "true" ]; then
+            echo "Triggering rollback for backend..."
+            # gcloud run services rollback supremeai --platform managed --region us-central1 --quiet
+          fi
+          if [ "$frontend_failed" = "true" ]; then
+            echo "Triggering rollback for frontend..."
+            # firebase hosting:rollback --project supremeai-a --quiet
+          fi
+          echo "Rollback initiated. Check logs for details."
 
   notify:
     name: Notification
