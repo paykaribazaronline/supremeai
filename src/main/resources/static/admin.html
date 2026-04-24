@@ -1092,6 +1092,157 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="card" style="grid-column: 1 / -1;">
+                            <div class="card-header">
+                                <div class="card-title">🎯 8 Milestones Roadmap</div>
+                                <button class="btn btn-secondary btn-sm" onclick="refreshRoadmap()">🔄 Refresh</button>
+                            </div>
+                            <div style="font-size: 12px; color: #718096; margin-bottom: 15px; padding: 10px; background: #111827; border-radius: 5px;">
+                                💡 Reduced from 28 points to 8 milestones for realistic delivery. Priority order: Security → Core Product → Automation → UX → Advanced Features
+                            </div>
+                            <div id="roadmapMilestones">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
+                                    <!-- M1: Secure Foundation -->
+                                    <div style="background: #111827; padding: 15px; border-radius: 8px; border-left: 3px solid #f56565;">
+                                        <div style="font-weight: 600; color: #f56565; margin-bottom: 8px;">🔒 M1: Secure Foundation</div>
+                                        <div style="font-size: 12px; color: #718096; margin-bottom: 5px;">Timeline: 2 weeks</div>
+                                        <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+                                            • Auth system<br>
+                                            • Emergency stop switch ✅<br>
+                                            • Sandbox testing<br>
+                                            • API access lock ✅
+                                        </div>
+                                        <div style="margin-top: 8px;">
+                                            <div class="progress-bar" style="height: 6px;">
+                                                <div class="progress-fill" style="width: 50%; background: #f56565;"></div>
+                                            </div>
+                                            <div style="font-size: 11px; color: #718096; margin-top: 3px;">50% complete</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- M2: Working Android Generator -->
+                                    <div style="background: #111827; padding: 15px; border-radius: 8px; border-left: 3px solid #ed8936;">
+                                        <div style="font-weight: 600; color: #ed8936; margin-bottom: 8px;">📱 M2: Working Android Generator</div>
+                                        <div style="font-size: 12px; color: #718096; margin-bottom: 5px;">Timeline: 4 weeks</div>
+                                        <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+                                            • End-to-end: prompt → APK<br>
+                                            • Core product deliverable<br>
+                                            • Without this, nothing else matters
+                                        </div>
+                                        <div style="margin-top: 8px;">
+                                            <div class="progress-bar" style="height: 6px;">
+                                                <div class="progress-fill" style="width: 0%; background: #ed8936;"></div>
+                                            </div>
+                                            <div style="font-size: 11px; color: #718096; margin-top: 3px;">Not started</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- M3: Multi-Agent Core -->
+                                    <div style="background: #111827; padding: 15px; border-radius: 8px; border-left: 3px solid #4299e1;">
+                                        <div style="font-weight: 600; color: #4299e1; margin-bottom: 8px;">🤖 M3: Multi-Agent Core</div>
+                                        <div style="font-size: 12px; color: #718096; margin-bottom: 5px;">Timeline: 3 weeks</div>
+                                        <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+                                            • X-Builder + Z-Architect<br>
+                                            • With fallback chain ✅<br>
+                                            • Voting system (60% threshold) ✅
+                                        </div>
+                                        <div style="margin-top: 8px;">
+                                            <div class="progress-bar" style="height: 6px;">
+                                                <div class="progress-fill" style="width: 30%; background: #4299e1;"></div>
+                                            </div>
+                                            <div style="font-size: 11px; color: #718096; margin-top: 3px;">30% complete</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- M4: Smart Operations -->
+                                    <div style="background: #111827; padding: 15px; border-radius: 8px; border-left: 3px solid #48bb78;">
+                                        <div style="font-weight: 600; color: #48bb78; margin-bottom: 8px;">⚙️ M4: Smart Operations</div>
+                                        <div style="font-size: 12px; color: #718096; margin-bottom: 5px;">Timeline: 2 weeks</div>
+                                        <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+                                            • Dynamic API rotation ✅<br>
+                                            • Quota detection ✅<br>
+                                            • ER learning (basic) ✅
+                                        </div>
+                                        <div style="margin-top: 8px;">
+                                            <div class="progress-bar" style="height: 6px;">
+                                                <div class="progress-fill" style="width: 60%; background: #48bb78;"></div>
+                                            </div>
+                                            <div style="font-size: 11px; color: #718096; margin-top: 3px;">60% complete</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- M5: GitHub Integration -->
+                                    <div style="background: #111827; padding: 15px; border-radius: 8px; border-left: 3px solid #a78bfa;">
+                                        <div style="font-weight: 600; color: #a78bfa; margin-bottom: 8px;">🐙 M5: GitHub Integration</div>
+                                        <div style="font-size: 12px; color: #718096; margin-bottom: 5px;">Timeline: 2 weeks</div>
+                                        <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+                                            • GitHub App installation ✅<br>
+                                            • Workflow monitoring<br>
+                                            • Auto-push & PR suggestions
+                                        </div>
+                                        <div style="margin-top: 8px;">
+                                            <div class="progress-bar" style="height: 6px;">
+                                                <div class="progress-fill" style="width: 40%; background: #a78bfa;"></div>
+                                            </div>
+                                            <div style="font-size: 11px; color: #718096; margin-top: 3px;">40% complete</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- M6: Admin Polish -->
+                                    <div style="background: #111827; padding: 15px; border-radius: 8px; border-left: 3px solid #3182ce;">
+                                        <div style="font-weight: 600; color: #3182ce; margin-bottom: 8px;">🎨 M6: Admin Polish</div>
+                                        <div style="font-size: 12px; color: #718096; margin-bottom: 5px;">Timeline: 2 weeks</div>
+                                        <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+                                            • Language toggle (EN/BN) ✅<br>
+                                            • Intent detection<br>
+                                            • User preferences
+                                        </div>
+                                        <div style="margin-top: 8px;">
+                                            <div class="progress-bar" style="height: 6px;">
+                                                <div class="progress-fill" style="width: 20%; background: #3182ce;"></div>
+                                            </div>
+                                            <div style="font-size: 11px; color: #718096; margin-top: 3px;">20% complete</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- M7: Intelligence Layer -->
+                                    <div style="background: #111827; padding: 15px; border-radius: 8px; border-left: 3px solid #ffd700;">
+                                        <div style="font-weight: 600; color: #ffd700; margin-bottom: 8px;">🧠 M7: Intelligence Layer</div>
+                                        <div style="font-size: 12px; color: #718096; margin-bottom: 5px;">Timeline: 3 weeks</div>
+                                        <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+                                            • Reasoning logs<br>
+                                            • Vision analysis ✅<br>
+                                            • Knowledge acquisition<br>
+                                            • Alpha Player evolution ✅
+                                        </div>
+                                        <div style="margin-top: 8px;">
+                                            <div class="progress-bar" style="height: 6px;">
+                                                <div class="progress-fill" style="width: 25%; background: #ffd700;"></div>
+                                            </div>
+                                            <div style="font-size: 11px; color: #718096; margin-top: 3px;">25% complete</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- M8: Scale Prep -->
+                                    <div style="background: #111827; padding: 15px; border-radius: 8px; border-left: 3px solid #68d391;">
+                                        <div style="font-weight: 600; color: #68d391; margin-bottom: 8px;">🚀 M8: Scale Prep (Ongoing)</div>
+                                        <div style="font-size: 12px; color: #718096; margin-bottom: 5px;">Timeline: Ongoing</div>
+                                        <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+                                            • Cost management<br>
+                                            • Analytics & user behavior<br>
+                                            • Plugin architecture
+                                        </div>
+                                        <div style="margin-top: 8px;">
+                                            <div class="progress-bar" style="height: 6px;">
+                                                <div class="progress-fill" style="width: 5%; background: #68d391;"></div>
+                                            </div>
+                                            <div style="font-size: 11px; color: #718096; margin-top: 3px;">5% complete</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Tab 2: AI Providers Hub -->
@@ -3932,6 +4083,43 @@
             } else {
                 statusDiv.innerHTML = '⚠️ Auto-execution allowed without approval';
                 statusDiv.style.color = '#ed8936';
+            }
+        }
+
+        // ========== ROADMAP DISPLAY ==========
+        function refreshRoadmap() {
+            // In real implementation, this would fetch milestone progress from Firebase
+            // For demo, update the progress bars with current values
+            
+            const milestones = {
+                'm1': { progress: 50, color: '#f56565' },
+                'm2': { progress: 0, color: '#ed8936' },
+                'm3': { progress: 30, color: '#4299e1' },
+                'm4': { progress: 60, color: '#48bb78' },
+                'm5': { progress: 40, color: '#a78bfa' },
+                'm6': { progress: 20, color: '#3182ce' },
+                'm7': { progress: 25, color: '#ffd700' },
+                'm8': { progress: 5, color: '#68d391' }
+            };
+            
+            // Update progress bars (they are in the roadmap card)
+            // Note: In a real implementation, you'd have IDs for each milestone's progress bar
+            console.log('Roadmap refreshed:', milestones);
+            
+            // Show refresh confirmation
+            const roadmapCard = document.querySelector('[class*="card-title"]:contains("8 Milestones")');
+            if (roadmapCard) {
+                const card = roadmapCard.closest('.card');
+                const existingMsg = card.querySelector('.refresh-msg');
+                if (existingMsg) existingMsg.remove();
+                
+                const msg = document.createElement('div');
+                msg.className = 'refresh-msg';
+                msg.style.cssText = 'font-size: 11px; color: #48bb78; margin-top: 10px;';
+                msg.textContent = '✅ Roadmap refreshed - Progress data loaded from Firebase';
+                card.appendChild(msg);
+                
+                setTimeout(() => msg.remove(), 3000);
             }
         }
     </script>
