@@ -98,7 +98,7 @@ public class ContextualAIRankingService {
     /**
      * Detect task type from prompt using keyword matching.
      */
-    private TaskType detectTaskType(String prompt) {
+    public TaskType detectTaskType(String prompt) {
         if (prompt == null || prompt.isEmpty()) {
             return TaskType.QUESTION_ANSWERING; // Default
         }
