@@ -344,7 +344,14 @@
                 Core Product: "Without this, nothing else matters" - Ready for integration.
             </div>
             
-            <button class="btn btn-primary" id="generateBtn" onclick="startGeneration()">🚀 Generate Android App</button>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" id="generateBtn" onclick="startGeneration()">🚀 Generate Android App</button>
+                <button class="btn btn-secondary" onclick="connectBackend()" style="background: #48bb78;">🔗 Connect to Backend</button>
+            </div>
+            
+            <div id="backendStatus" style="margin-top: 10px; font-size: 11px; color: #718096;">
+                💡 Backend: <span id="backendStatusText" style="color: #f56565;">Disconnected</span> (Demo Mode Active)
+            </div>
         </div>
         
         <!-- Generation Progress -->
