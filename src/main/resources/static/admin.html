@@ -1151,6 +1151,47 @@
                                 <button class="btn btn-primary" onclick="configureFallbackChain()">Configure Chain</button>
                             </div>
                         </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">🧬 Evolution State & Alpha Players</div>
+                                <button class="btn btn-secondary btn-sm" onclick="refreshEvolutionState()">🔄 Refresh</button>
+                            </div>
+                            <div id="evolutionState">
+                                <div style="font-size: 13px; color: #cbd5e1; line-height: 1.8;">
+                                    <div style="margin-bottom: 10px; font-weight: 600; color: #4299e1;">📊 Model Evolution Tracking</div>
+                                    <div style="background: #111827; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+                                        <div style="color: #718096; font-size: 11px; margin-bottom: 5px;">EVOLUTIONARY SYSTEM STATUS</div>
+                                        <div>Total Models Tracked: <strong id="totalModelsTracked">0</strong></div>
+                                        <div>Alpha Players: <strong id="alphaPlayersCount" style="color: #ffd700;">0</strong> 🏆</div>
+                                        <div>Total XP Generated: <strong id="totalXP">0</strong></div>
+                                    </div>
+                                    
+                                    <div id="evolvedModelsList">
+                                        <div class="empty-state-icon">🧬</div>
+                                        <div class="empty-state-title">No evolution data yet</div>
+                                        <div class="empty-state-desc">Models will evolve as they participate in chats and contribute to the system.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">📚 Source Tracking</div>
+                            </div>
+                            <div id="sourceTracking">
+                                <div style="font-size: 12px; color: #718096; margin-bottom: 10px;">
+                                    Track which AI models contribute what sources to the system.
+                                </div>
+                                <div id="sourceTrackingList" style="max-height: 300px; overflow-y: auto;">
+                                    <div class="empty-state">
+                                        <div class="empty-state-icon">📚</div>
+                                        <div class="empty-state-title">No source data yet</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Add Any AI Model Modal -->
@@ -1952,6 +1993,124 @@
         let messageCount = 0;
         let pendingConfirmations = {};
 
+        // ========== EVOLUTIONARY ER LEARNING & SOURCE TRACKING ==========
+        let aiModelsEvolution = JSON.parse(localStorage.getItem('supremeai_evolution') || {});
+        let modelSources = JSON.parse(localStorage.getItem('supremeai_sources') || {});
+        
+        // Track AI model evolution and sources
+        function trackModelEvolution(modelName, contribution, sourceType = 'chat') {
+            if (!aiModelsEvolution[modelName]) {
+                aiModelsEvolution[modelName] = {
+                    name: modelName,
+                    level: 1,
+                    xp: 0,
+                    contributions: [],
+                    sources: [],
+                    isAlphaPlayer: false,
+                    evolutionHistory: [],
+                    lastEvolution: null
+                };
+            }
+            
+            const model = aiModelsEvolution[modelName];
+            
+            // Add contribution
+            model.contributions.push({
+                timestamp: Date.now(),
+                type: sourceType,
+                content: contribution,
+                xpGained: 10
+            });
+            
+            model.xp += 10;
+            
+            // Check for level up (every 100 XP)
+            const newLevel = Math.floor(model.xp / 100) + 1;
+            if (newLevel > model.level) {
+                model.level = newLevel;
+                model.evolutionHistory.push({
+                    timestamp: Date.now(),
+                    fromLevel: model.level - 1,
+                    toLevel: model.level,
+                    reason: `Gained enough XP through ${sourceType} contributions`
+                });
+                
+                // Check for Alpha Player status (Level 5+)
+                if (model.level >= 5 && !model.isAlphaPlayer) {
+                    model.isAlphaPlayer = true;
+                    model.evolutionHistory.push({
+                        timestamp: Date.now(),
+                        event: 'ALPHA_PLAYER_UNLOCKED',
+                        reason: 'Reached Level 5 - Now an Alpha Player!'
+                    });
+                }
+            }
+            
+            // Track source
+            if (!modelSources[modelName]) {
+                modelSources[modelName] = [];
+            }
+            
+            modelSources[modelName].push({
+                timestamp: Date.now(),
+                source: sourceType,
+                contribution: contribution
+            });
+            
+            saveEvolutionData();
+            return model;
+        }
+        
+        function saveEvolutionData() {
+            localStorage.setItem('supremeai_evolution', JSON.stringify(aiModelsEvolution));
+            localStorage.setItem('supremeai_sources', JSON.stringify(modelSources));
+        }
+        
+        function getModelEvolutionState(modelName) {
+            return aiModelsEvolution[modelName] || null;
+        }
+        
+        function getAllEvolvedModels() {
+            return Object.values(aiModelsEvolution)
+                .sort((a, b) => b.xp - a.xp);
+        }
+        
+        function getAlphaPlayers() {
+            return Object.values(aiModelsEvolution)
+                .filter(m => m.isAlphaPlayer)
+                .sort((a, b) => b.level - a.level);
+        }
+        
+        function getModelSources(modelName) {
+            return modelSources[modelName] || [];
+        }
+        
+        // Update processUserMessage to track evolution
+        const originalProcessUserMessage = processUserMessage;
+        function processUserMessage(message, images = []) {
+            const response = originalProcessUserMessage(message, images);
+            
+            // Track which AI models participate (simulated)
+            const participatingModels = ['GPT-4', 'Claude', 'Gemini'].filter(() => Math.random() > 0.5);
+            
+            if (!response.modelsUsed) {
+                response.modelsUsed = [];
+            }
+            
+            participatingModels.forEach(modelName => {
+                const contribution = `Analyzed: "${message.substring(0, 50)}..."`;
+                const evolved = trackModelEvolution(modelName, contribution, 'chat');
+                response.modelsUsed.push({
+                    name: modelName,
+                    level: evolved.level,
+                    isAlpha: evolved.isAlphaPlayer,
+                    xp: evolved.xp
+                });
+            });
+            
+            return response;
+        }
+
         function showTypingIndicator() {
             const chatMessages = document.getElementById('chatMessages');
             const typingDiv = document.createElement('div');
@@ -2235,7 +2394,7 @@
             }, 1000 + Math.random() * 1000);
         }
 
-        // Update addMessage to display images
+        // Update addMessage to display images and evolution state
         const originalAddMessage = addMessage;
         function addMessage(sender, text, metadata = null, images = []) {
             const chatMessages = document.getElementById('chatMessages');
@@ -2253,6 +2412,19 @@
                 images.forEach(img => {
                     const imgSrc = typeof img === 'string' ? img : URL.createObjectURL(img);
                     bubbleContent += `<img src="${imgSrc}" class="chat-image" alt="Uploaded image">`;
+                });
+                bubbleContent += '</div>';
+            }
+            
+            // Add evolution state for AI messages
+            if (sender === 'ai' && metadata && metadata.modelsUsed) {
+                bubbleContent += '<div style="margin-top: 10px; padding: 8px; background: rgba(66, 153, 225, 0.1); border-radius: 5px; font-size: 11px;">';
+                bubbleContent += '<div style="color: #4299e1; font-weight: 600; margin-bottom: 5px;">🧬 Model Evolution State:</div>';
+                metadata.modelsUsed.forEach(model => {
+                    const alphaBadge = model.isAlpha ? ' 🏆 <span style="color: #ffd700;">Alpha Player</span>' : '';
+                    bubbleContent += `<div style="color: #cbd5e1; margin-bottom: 3px;">
+                        • ${model.name}: Level ${model.level} | XP: ${model.xp}${alphaBadge}
+                    </div>`;
                 });
                 bubbleContent += '</div>';
             }
@@ -3363,6 +3535,110 @@
             updateProviderGrid();
         }
 
+        // ========== EVOLUTION STATE DISPLAY ==========
+        function refreshEvolutionState() {
+            const evolvedModels = getAllEvolvedModels();
+            const alphaPlayers = getAlphaPlayers();
+            
+            // Update summary stats
+            document.getElementById('totalModelsTracked').textContent = evolvedModels.length;
+            document.getElementById('alphaPlayersCount').textContent = alphaPlayers.length;
+            document.getElementById('totalXP').textContent = 
+                evolvedModels.reduce((sum, m) => sum + m.xp, 0);
+            
+            // Display evolved models
+            displayEvolvedModels(evolvedModels, alphaPlayers);
+            
+            // Display source tracking
+            displaySourceTracking();
+        }
+        
+        function displayEvolvedModels(evolvedModels, alphaPlayers) {
+            const listDiv = document.getElementById('evolvedModelsList');
+            
+            if (evolvedModels.length === 0) {
+                listDiv.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🧬</div>
+                        <div class="empty-state-title">No evolution data yet</div>
+                        <div class="empty-state-desc">Models will evolve as they participate in chats and contribute to the system.</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div style="max-height: 400px; overflow-y: auto;">';
+            
+            evolvedModels.forEach((model, index) => {
+                const isAlpha = model.isAlphaPlayer;
+                const alphaBadge = isAlpha ? 
+                    '<span style="color: #ffd700; font-size: 16px;" title="Alpha Player">🏆</span>' : '';
+                const levelColor = model.level >= 5 ? '#ffd700' : 
+                               model.level >= 3 ? '#48bb78' : '#4299e1';
+                
+                html += `
+                    <div style="background: #111827; padding: 12px; border-radius: 8px; margin-bottom: 10px; 
+                                border-left: 3px solid ${levelColor};">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div style="font-weight: 600; color: #e2e8f0; font-size: 14px;">
+                                ${alphaBadge} ${model.name} ${alphaBadge}
+                            </div>
+                            <div style="font-size: 11px; color: #718096;">
+                                Level ${model.level} | XP: ${model.xp}
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
+                            <div class="progress-bar" style="flex: 1; height: 8px;">
+                                <div class="progress-fill" style="width: ${model.xp % 100}%; background: ${levelColor};"></div>
+                            </div>
+                            <span style="font-size: 11px; color: #718096;">${model.xp % 100}/100 to next level</span>
+                        </div>
+                        <div style="font-size: 11px; color: #718096;">
+                            Contributions: ${model.contributions.length} | 
+                            Sources: ${modelSources[model.name]?.length || 0}
+                            ${isAlpha ? '| 🏆 Alpha Player Status' : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            listDiv.innerHTML = html;
+        }
+        
+        function displaySourceTracking() {
+            const trackingDiv = document.getElementById('sourceTrackingList');
+            const allSources = Object.entries(modelSources);
+            
+            if (allSources.length === 0) {
+                trackingDiv.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📚</div>
+                        <div class="empty-state-title">No source data yet</div>
+                        <div class="empty-state-desc">Source tracking will appear as models contribute to the system.</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div style="max-height: 300px; overflow-y: auto;">';
+            
+            allSources.forEach(([modelName, sources]) => {
+                html += `
+                    <div style="background: #111827; padding: 10px; border-radius: 5px; margin-bottom: 8px;">
+                        <div style="font-weight: 600; color: #4299e1; margin-bottom: 5px;">${modelName}</div>
+                        <div style="font-size: 11px; color: #718096;">
+                            Total Sources: ${sources.length}<br>
+                            Latest: ${new Date(sources[sources.length - 1]?.timestamp).toLocaleString() || 'N/A'}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            trackingDiv.innerHTML = html;
+        }
+        
         // ========== INITIALIZATION ==========
         window.addEventListener('DOMContentLoaded', () => {
             setLanguage(currentLanguage);
@@ -3376,6 +3652,9 @@
                     addMessage(msg.sender, msg.text);
                 });
             }
+            
+            // Load evolution state
+            refreshEvolutionState();
         });
     </script>
 </body>
