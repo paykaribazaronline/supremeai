@@ -2,22 +2,21 @@ package com.supremeai.service;
 
 import com.supremeai.model.UserGuide;
 import com.supremeai.repository.UserGuideRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
 import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 /**
  * Data initializer for sample video tutorials.
  * Populates Firestore with Bangla and English guides on first startup.
  */
+@Slf4j
 @Component
 public class GuideDataInitializer {
 
@@ -30,13 +29,15 @@ public class GuideDataInitializer {
         userGuideRepository.count()
             .flatMapMany(count -> {
                 if (count == 0) {
+                    log.info("No guides found. Initializing sample video guides...");
                     return createSampleGuides();
                 }
                 return Flux.empty();
             })
             .subscribe(
-                unused -> System.out.println("Sample video guides initialized successfully"),
-                error -> System.err.println("Failed to initialize sample guides: " + error.getMessage())
+                guide -> log.debug("Initialized guide: {}", guide.getId()),
+                error -> log.error("Failed to initialize sample guides: {}", error.getMessage()),
+                () -> log.info("Sample video guides initialization process completed")
             );
     }
 
