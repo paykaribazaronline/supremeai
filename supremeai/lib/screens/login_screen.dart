@@ -28,8 +28,23 @@ class LoginScreen extends StatelessWidget {
                   button: true,
                   label: 'Sign in to your account',
                   child: ElevatedButton(
-                    onPressed: () {
-                      // TODO: Implement Login
+                    onPressed: () async {
+                      // Simple login implementation
+                      try {
+                        // Show a simple dialog for email/password (or use guest mode)
+                        final provider = context.read<AuthProvider>();
+                        await provider
+                            .signInAnonymously(); // Temporary: use anonymous auth
+                        if (context.mounted) {
+                          Navigator.of(context).pushReplacementNamed('/home');
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Login failed: $e')),
+                          );
+                        }
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(double.infinity, 50),

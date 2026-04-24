@@ -2,6 +2,7 @@ package com.supremeai.security;
 
 import com.supremeai.model.UserApiKey;
 import com.supremeai.repository.UserApiKeyRepository;
+import com.supremeai.security.EncryptionService;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -58,6 +59,17 @@ public class ApiKeyRotationService {
     @Autowired
     private UserApiKeyRepository userApiKeyRepository;
 
+    @Autowired
+    private EncryptionService encryptionService;
+
+    /**
+     * Get the decrypted API key string from a UserApiKey object.
+     */
+    public String getDecryptedApiKey(UserApiKey key) {
+        if (key == null || key.getApiKey() == null) return null;
+        return encryptionService.decrypt(key.getApiKey());
+    }
+
     /**
      * Get the recommended rotation period in days for a given provider.
      */
@@ -94,19 +106,22 @@ public class ApiKeyRotationService {
             return result;
         }
 
+        // Decrypt API key before using
+        String decryptedApiKey = encryptionService.decrypt(key.getApiKey());
+
         // Handle Google AI which uses query param auth
         String url = config.testEndpoint;
         if ("QueryParam".equals(config.authMethod)) {
-            url = url + key.getApiKey();
+            url = url + decryptedApiKey;
         }
 
         try {
             Request.Builder requestBuilder = new Request.Builder().url(url).get();
 
             if ("Bearer".equals(config.authMethod)) {
-                requestBuilder.header("Authorization", "Bearer " + key.getApiKey());
+                requestBuilder.header("Authorization", "Bearer " + decryptedApiKey);
             } else if ("x-api-key".equals(config.authMethod)) {
-                requestBuilder.header("x-api-key", key.getApiKey());
+                requestBuilder.header("x-api-key", decryptedApiKey);
                 requestBuilder.header("anthropic-version", "2023-06-01");
             }
 

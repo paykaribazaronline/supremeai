@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * REST API for user account management.
@@ -23,7 +24,6 @@ import java.util.*;
  */
 @RestController
 @RequestMapping("/api/accounts")
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class UserAccountController {
 
     @Autowired
@@ -81,20 +81,26 @@ public class UserAccountController {
      */
     @PostMapping("/bulk-create")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> bulkCreate(@RequestBody Map<String, String> body) {
+    public CompletableFuture<ResponseEntity<Map<String, Object>>> bulkCreate(@RequestBody Map<String, String> body) {
         String collectionName = body.get("collectionName");
 
         if (collectionName == null || collectionName.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "collectionName is required"));
+            return CompletableFuture.completedFuture(
+                ResponseEntity.badRequest().body(Map.of("error", "collectionName is required")));
         }
 
         try {
-            Map<String, Object> summary = userAccountService.createAccountsFromCollection(collectionName);
-            return ResponseEntity.ok(summary);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(503).body(Map.of("error", e.getMessage()));
+            return userAccountService.createAccountsFromCollection(collectionName)
+                    .thenApply(ResponseEntity::ok)
+                    .exceptionally(ex -> {
+                        if (ex.getCause() instanceof IllegalStateException) {
+                            return ResponseEntity.status(503).body(Map.of("error", ex.getCause().getMessage()));
+                        }
+                        return ResponseEntity.internalServerError().body(Map.of("error", ex.getMessage()));
+                    });
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+            return CompletableFuture.completedFuture(
+                ResponseEntity.internalServerError().body(Map.of("error", e.getMessage())));
         }
     }
 

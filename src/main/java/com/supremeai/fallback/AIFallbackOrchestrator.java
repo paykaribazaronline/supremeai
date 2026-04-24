@@ -181,7 +181,7 @@ public class AIFallbackOrchestrator {
             return System.getenv(getEnvKeyForProvider(provider));
         }
         Optional<UserApiKey> key = keyRotationService.selectBestKey(userId, getServiceNameForProvider(provider));
-        return key.map(UserApiKey::getApiKey)
+        return key.map(k -> keyRotationService.getDecryptedApiKey(k))
                 .orElseGet(() -> System.getenv(getEnvKeyForProvider(provider)));
     }
 
