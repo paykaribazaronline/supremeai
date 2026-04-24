@@ -29,21 +29,20 @@ class LoginScreen extends StatelessWidget {
                   label: 'Sign in to your account',
                   child: ElevatedButton(
                     onPressed: () async {
-                      // Simple login implementation
-                      try {
-                        // Show a simple dialog for email/password (or use guest mode)
-                        final provider = context.read<AuthProvider>();
-                        await provider
-                            .signInAnonymously(); // Temporary: use anonymous auth
-                        if (context.mounted) {
-                          Navigator.of(context).pushReplacementNamed('/home');
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Login failed: $e')),
-                          );
-                        }
+                      final provider = context.read<AuthProvider>();
+                      final success = await provider.login(
+                        'demo@supremeai.com',
+                        'Demo@123456',
+                      );
+                      if (success && context.mounted) {
+                        Navigator.of(context).pushReplacementNamed('/home');
+                      } else if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content:
+                                Text(provider.errorMessage ?? 'Login failed'),
+                          ),
+                        );
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -69,6 +68,7 @@ class LoginScreen extends StatelessWidget {
                 child: TextButton(
                   onPressed: () {
                     context.read<AuthProvider>().continueAsGuest();
+                    Navigator.of(context).pushReplacementNamed('/home');
                   },
                   child: const Text(
                     'গেস্ট হিসেবে ব্যবহার করুন (Guest Mode)',
