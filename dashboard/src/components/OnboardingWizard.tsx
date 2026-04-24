@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Steps, Button, Typography, Checkbox, Card, Row, Col } from 'antd';
 import { RocketOutlined, RobotOutlined, DashboardOutlined, SafetyOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -11,115 +12,117 @@ interface OnboardingWizardProps {
 const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [dontShowAgain, setDontShowAgain] = useState(false);
+  const { t } = useTranslation();
 
   const steps = [
     {
-      title: 'Welcome',
+      title: t('onboarding.welcome', 'Welcome'),
       icon: <RocketOutlined />,
       content: (
         <div style={{ textAlign: 'center', padding: '20px 0' }}>
           <RocketOutlined style={{ fontSize: 64, color: '#1677ff', marginBottom: 16 }} />
-          <Title level={3}>Welcome to SupremeAI!</Title>
+          <Title level={3}>{t('onboarding.welcome', 'Welcome to SupremeAI!')}</Title>
           <Paragraph style={{ fontSize: 16, marginTop: 16 }}>
-            Your AI-powered Android app generation platform is ready to use.
+            {t('onboarding.welcome_desc', 'Your AI-powered Android app generation platform is ready to use.')}
           </Paragraph>
           <Paragraph type="secondary">
-            Let's take a quick tour to get you started.
+            {t('onboarding.tour_desc', "Let's take a quick tour to get you started.")}
           </Paragraph>
         </div>
       ),
     },
     {
-      title: 'AI Agents',
+      title: t('onboarding.agents_title', 'AI Agents'),
       icon: <RobotOutlined />,
       content: (
         <div>
-          <Title level={4}>🤖 AI Agent Orchestration</Title>
+          <Title level={4}>{t('onboarding.agents_title', '🤖 AI Agent Orchestration')}</Title>
           <Paragraph>
-            SupremeAI uses multiple AI agents working together to build your Android apps:
+            {t('onboarding.agents_desc', 'SupremeAI uses multiple AI agents working together to build your Android apps:')}
           </Paragraph>
           <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
             <Col span={12}>
-              <Card size="small" title="X-Builder Agent">
-                Designs app architecture & UI
+              <Card size="small" title={t('agent.x_builder', 'X-Builder Agent')}>
+                {t('agent.x_builder_desc', 'Designs app architecture & UI')}
               </Card>
             </Col>
             <Col span={12}>
-              <Card size="small" title="Z-Architect Agent">
-                Handles technical implementation
+              <Card size="small" title={t('agent.z_architect', 'Z-Architect Agent')}>
+                {t('agent.z_architect_desc', 'Handles technical implementation')}
               </Card>
             </Col>
           </Row>
           <Paragraph style={{ marginTop: 16 }}>
-            Agents use <Text strong>consensus voting</Text> across multiple AI providers (OpenAI, Anthropic, Gemini, etc.) for better decisions.
+            {t('onboarding.agents_voting', 'Agents use ')}
+            <Text strong>consensus voting</Text> {t('onboarding.across', 'across multiple AI providers (OpenAI, Anthropic, Gemini, etc.) for better decisions.')}
           </Paragraph>
         </div>
       ),
     },
     {
-      title: 'Dashboard',
+      title: t('onboarding.dashboard_title', 'Dashboard'),
       icon: <DashboardOutlined />,
       content: (
         <div>
-          <Title level={4}>📊 Your Command Center</Title>
+          <Title level={4}>{t('onboarding.dashboard_title', '📊 Your Command Center')}</Title>
           <Paragraph>
-            The dashboard gives you real-time visibility into:
+            {t('onboarding.dashboard_desc', 'The dashboard gives you real-time visibility into:')}
           </Paragraph>
           <ul style={{ textAlign: 'left', marginTop: 16 }}>
-            <li><Text strong>System Health</Text> - Monitor AI agents & performance</li>
-            <li><Text strong>Project Progress</Text> - Track app generation status</li>
-            <li><Text strong>API Keys</Text> - Manage your AI provider keys</li>
-            <li><Text strong>Admin Controls</Text> - Approve/Reject AI decisions</li>
+            <li><Text strong>System Health</Text> - {t('desc.system_health', 'Monitor AI agents & performance')}</li>
+            <li><Text strong>Project Progress</Text> - {t('desc.project_status', 'Track app generation status')}</li>
+            <li><Text strong>API Keys</Text> - {t('desc.api_keys', 'Manage your AI provider keys')}</li>
+            <li><Text strong>Admin Controls</Text> - {t('desc.admin_controls', 'Approve/Reject AI decisions')}</li>
           </ul>
           <Paragraph style={{ marginTop: 16 }}>
-            Use the sidebar to navigate between sections.
+            {t('onboarding.use_sidebar', 'Use the sidebar to navigate between sections.')}
           </Paragraph>
         </div>
       ),
     },
     {
-      title: 'Security',
+      title: t('onboarding.security_title', 'Security'),
       icon: <SafetyOutlined />,
       content: (
         <div>
-          <Title level={4}>🔒 Security & Control</Title>
+          <Title level={4}>{t('onboarding.security_title', '🔒 Security & Control')}</Title>
           <Paragraph>
-            SupremeAI provides multiple layers of security:
+            {t('onboarding.security_desc', 'SupremeAI provides multiple layers of security:')}
           </Paragraph>
           <ul style={{ textAlign: 'left', marginTop: 16 }}>
-            <li><Text strong>King Mode</Text> - AUTO / WAIT / FORCE_STOP controls</li>
-            <li><Text strong>Admin Approval</Text> - Review AI decisions before execution</li>
-            <li><Text strong>API Key Encryption</Text> - Your keys are encrypted at rest</li>
-            <li><Text strong>Rate Limiting</Text> - Protection against abuse</li>
+            <li><Text strong>King Mode</Text> - {t('desc.king_mode', 'AUTO / WAIT / FORCE_STOP controls')}</li>
+            <li><Text strong>Admin Approval</Text> - {t('desc.admin_approval', 'Review AI decisions before execution')}</li>
+            <li><Text strong>API Key Encryption</Text> - {t('desc.api_encryption', 'Your keys are encrypted at rest')}</li>
+            <li><Text strong>Rate Limiting</Text> - {t('desc.rate_limiting', 'Protection against abuse')}</li>
           </ul>
           <Paragraph style={{ marginTop: 16 }}>
-            Start in <Text strong>WAIT mode</Text> to review all AI actions first.
+            {t('onboarding.start_wait', 'Start in ')}<Text strong>WAIT mode</Text> {t('onboarding.review_first', 'to review all AI actions first.')}
           </Paragraph>
         </div>
       ),
     },
     {
-      title: 'Get Started',
+      title: t('onboarding.get_started_title', 'Get Started'),
       icon: <CheckCircleOutlined />,
       content: (
         <div style={{ textAlign: 'center' }}>
           <CheckCircleOutlined style={{ fontSize: 64, color: '#52c41a', marginBottom: 16 }} />
-          <Title level={4}>You're All Set!</Title>
+          <Title level={4}>{t('onboarding.get_started_title', "You're All Set!")}</Title>
           <Paragraph style={{ marginTop: 16 }}>
-            Here's how to start building your first Android app:
+            {t('onboarding.get_started_desc', "Here's how to start building your first Android app:")}
           </Paragraph>
           <div style={{ textAlign: 'left', marginTop: 24, background: '#fafafa', padding: 16, borderRadius: 8 }}>
-            <Paragraph><Text strong>1.</Text> Go to <Text code>AI Agents</Text> section</Paragraph>
-            <Paragraph><Text strong>2.</Text> Describe your app idea in detail</Paragraph>
-            <Paragraph><Text strong>3.</Text> Watch the AI agents build it!</Paragraph>
-            <Paragraph><Text strong>4.</Text> Download your APK when ready</Paragraph>
+            <Paragraph><Text strong>1.</Text> {t('step.go_to', 'Go to')} <Text code>AI Agents</Text> {t('step.section', 'section')}</Paragraph>
+            <Paragraph><Text strong>2.</Text> {t('step.describe', 'Describe your app idea in detail')}</Paragraph>
+            <Paragraph><Text strong>3.</Text> {t('step.watch', 'Watch the AI agents build it!')}</Paragraph>
+            <Paragraph><Text strong>4.</Text> {t('step.download', 'Download your APK when ready')}</Paragraph>
           </div>
           <Checkbox
             checked={dontShowAgain}
             onChange={(e) => setDontShowAgain(e.target.checked)}
             style={{ marginTop: 24 }}
           >
-            Don't show this again
+            {t('btn.dont_show', "Don't show this again")}
           </Checkbox>
         </div>
       ),
