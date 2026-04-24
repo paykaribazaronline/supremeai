@@ -41,6 +41,12 @@ public class TenAIVotingSystem {
     @Autowired
     private AIProviderFactory providerFactory;
 
+    @Autowired
+    private AIRankingService aiRankingService;
+
+    @Autowired
+    private ContextualAIRankingService contextualRankingService;
+
     @Autowired(required = false)
     private com.supremeai.selfhealing.SelfHealingService selfHealingService;
 
@@ -93,12 +99,16 @@ public class TenAIVotingSystem {
 
         // Collect results with timeout
         long startTime = System.currentTimeMillis();
+        
+        // Detect task type for better weighting
+        ContextualAIRankingService.TaskType taskType = contextualRankingService.detectTaskType(prompt);
+
         for (Future<ProviderVote> future : futures) {
             try {
                 ProviderVote vote = future.get(timeoutMs, TimeUnit.MILLISECONDS);
                 if (vote != null && vote.getResponse() != null && !vote.getResponse().isEmpty()) {
                     allVotes.add(vote);
-                    updatePerformanceTracker(vote);
+                    updatePerformanceTracker(vote, taskType);
                 }
             } catch (TimeoutException e) {
                 logger.warn("Model query timed out");
@@ -112,7 +122,7 @@ public class TenAIVotingSystem {
         logger.info("Voting completed in {}ms with {} responses", duration, allVotes.size());
 
         // Calculate ensemble result
-        return calculateEnsembleResult(prompt, allVotes, duration);
+        return calculateEnsembleResult(prompt, allVotes, duration, taskType);
     }
 
     /**
@@ -136,7 +146,11 @@ public class TenAIVotingSystem {
             }
             
             long responseTime = System.currentTimeMillis() - startTime;
-            double confidence = calculateConfidence(response, modelName, responseTime);
+            
+            // Detect task type for confidence calculation
+            ContextualAIRankingService.TaskType taskType = contextualRankingService.detectTaskType(prompt);
+            
+            double confidence = calculateConfidence(response, modelName, responseTime, taskType);
             
             return new ProviderVote(modelName, response, confidence, System.currentTimeMillis());
             
@@ -149,7 +163,7 @@ public class TenAIVotingSystem {
     /**
      * Calculate confidence score for a model response
      */
-    private double calculateConfidence(String response, String modelName, long responseTime) {
+    private double calculateConfidence(String response, String modelName, long responseTime, ContextualAIRankingService.TaskType taskType) {
         double confidence = 0.5; // Base confidence
 
         // Factor 1: Response length (longer responses often better, up to a point)
@@ -167,10 +181,13 @@ public class TenAIVotingSystem {
             confidence -= 0.1;
         }
 
-        // Factor 3: Historical performance
-        ModelPerformanceTracker tracker = performanceTrackers.get(modelName);
-        if (tracker != null) {
-            confidence += tracker.getHistoricalScore() * 0.3;
+        // Factor 3: Historical performance (Context-aware)
+        List<ContextualAIRankingService.ProviderRanking> rankings = contextualRankingService.getRankingsForTask(taskType);
+        for (ContextualAIRankingService.ProviderRanking r : rankings) {
+            if (r.provider.equalsIgnoreCase(modelName)) {
+                confidence += (r.successRate / 100.0) * 0.3;
+                break;
+            }
         }
 
         // Factor 4: Code quality indicators (if applicable)
@@ -189,7 +206,7 @@ public class TenAIVotingSystem {
     /**
      * Calculate ensemble result using weighted voting
      */
-    private VotingResult calculateEnsembleResult(String prompt, List<ProviderVote> votes, long duration) {
+    private VotingResult calculateEnsembleResult(String prompt, List<ProviderVote> votes, long duration, ContextualAIRankingService.TaskType taskType) {
         if (votes.isEmpty()) {
             return new VotingResult(prompt, "No AI models responded successfully", 
                                    votes, 0.0, "ERROR", duration);
@@ -210,7 +227,7 @@ public class TenAIVotingSystem {
             double weightedScore = 0;
 
             for (ProviderVote vote : groupVotes) {
-                double weight = calculateModelWeight(vote.getProviderName(), vote.getConfidence());
+                double weight = calculateModelWeight(vote.getProviderName(), vote.getConfidence(), taskType);
                 weightedScore += vote.getConfidence() * weight;
                 totalWeight += weight;
             }
@@ -221,7 +238,7 @@ public class TenAIVotingSystem {
 
         // Find winning group
         String winningGroupKey = groupScores.entrySet().stream()
-            .max(Map.Entry.comparingByValue())
+            .max(Comparator.comparingDouble(e -> groupWeights.get(e.getKey()) * e.getValue()))
             .map(Map.Entry::getKey)
             .orElse(votes.get(0).getResponse().substring(0, Math.min(100, votes.get(0).getResponse().length())));
 
@@ -239,10 +256,7 @@ public class TenAIVotingSystem {
 
         // Update performance trackers for winning models
         for (ProviderVote vote : winningVotes) {
-            ModelPerformanceTracker tracker = performanceTrackers.get(vote.getProviderName());
-            if (tracker != null) {
-                tracker.recordSuccess(vote.getConfidence());
-            }
+            updatePerformanceTracker(vote, taskType);
         }
 
         String verdict = determineVerdict(consensusPercentage, avgConfidence);
@@ -271,34 +285,46 @@ public class TenAIVotingSystem {
     }
 
     /**
-     * Simple similarity check based on common words and structure
+     * Simple similarity check based on common words and structure (Optimized)
      */
     private String findSimilarGroup(Set<String> existingKeys, String newResponse) {
+        if (newResponse.length() < 10) return null;
+        
         String normalizedNew = newResponse.toLowerCase().replaceAll("[^a-z0-9]", " ");
         String[] newWords = normalizedNew.split("\\s+");
-        Set<String> newWordSet = new HashSet<>(Arrays.asList(newWords));
-        newWordSet.remove(""); // Remove empty strings
+        if (newWords.length == 0) return null;
+        
+        Set<String> newWordSet = new HashSet<>();
+        for (String w : newWords) if (w.length() > 2) newWordSet.add(w);
 
         for (String key : existingKeys) {
+            // Quick length check
+            if (Math.abs(key.length() - newResponse.length()) > Math.max(key.length(), newResponse.length()) * 0.5) {
+                continue;
+            }
+
             String normalizedKey = key.toLowerCase().replaceAll("[^a-z0-9]", " ");
             String[] keyWords = normalizedKey.split("\\s+");
-            Set<String> keyWordSet = new HashSet<>(Arrays.asList(keyWords));
-            keyWordSet.remove("");
+            
+            int matches = 0;
+            int totalRelevant = 0;
+            for (String kw : keyWords) {
+                if (kw.length() > 2) {
+                    totalRelevant++;
+                    if (newWordSet.contains(kw)) matches++;
+                }
+            }
 
-            // Calculate Jaccard similarity
-            Set<String> intersection = new HashSet<>(newWordSet);
-            intersection.retainAll(keyWordSet);
+            if (totalRelevant == 0) continue;
+            
+            double similarity = (double) matches / Math.max(totalRelevant, newWordSet.size());
 
-            Set<String> union = new HashSet<>(newWordSet);
-            union.addAll(keyWordSet);
+            // S4 Enhancement: Structural similarity (punctuation and line breaks)
+            double structuralSimilarity = calculateStructuralSimilarity(key, newResponse);
+            
+            double finalSimilarity = (similarity * 0.6) + (structuralSimilarity * 0.4);
 
-            double similarity = union.isEmpty() ? 0 : (double) intersection.size() / union.size();
-
-            // S4 Enhancement: Length similarity boost
-            double lengthRatio = Math.min(newResponse.length(), key.length()) / (double) Math.max(newResponse.length(), key.length());
-            double finalSimilarity = (similarity * 0.7) + (lengthRatio * 0.3);
-
-            if (finalSimilarity > 0.65) { // Adjusted threshold
+            if (finalSimilarity > 0.65) {
                 return key;
             }
         }
@@ -306,31 +332,68 @@ public class TenAIVotingSystem {
         return null;
     }
 
+    private double calculateStructuralSimilarity(String s1, String s2) {
+        int lines1 = s1.split("\n").length;
+        int lines2 = s2.split("\n").length;
+        double lineRatio = Math.min(lines1, lines2) / (double) Math.max(lines1, lines2);
+        
+        int codeBlocks1 = s1.split("```").length / 2;
+        int codeBlocks2 = s2.split("```").length / 2;
+        double codeRatio = (codeBlocks1 == codeBlocks2) ? 1.0 : 0.0;
+        
+        return (lineRatio * 0.5) + (codeRatio * 0.5);
+    }
+
     /**
      * Calculate weight for a model based on name and confidence
      */
-    private double calculateModelWeight(String modelName, double confidence) {
-        double baseWeight = getModelBaseWeight(modelName);
+    private double calculateModelWeight(String modelName, double confidence, ContextualAIRankingService.TaskType taskType) {
+        double baseWeight = getModelBaseWeight(modelName, taskType);
         return baseWeight * (0.5 + 0.5 * confidence); // Weight ranges from 50% to 100% of base
     }
 
     /**
-     * Get base weight for each model (based on reputation/reliability)
+     * Get base weight for each model (based on reputation/reliability and task performance)
      */
-    private double getModelBaseWeight(String modelName) {
-        switch (modelName.toLowerCase()) {
-            case "gpt4": return 1.0;      // Highest weight
-            case "claude": return 0.95;
-            case "gemini": return 0.9;
-            case "deepseek": return 0.85;
-            case "groq": return 0.8;
-            case "mistral": return 0.75;
-            case "kimi": return 0.7;
-            case "huggingface": return 0.65;
-            case "airllm": return 0.6;
-            case "ollama": return 0.5;     // Local models get lower weight
-            default: return 0.5;
+    private double getModelBaseWeight(String modelName, ContextualAIRankingService.TaskType taskType) {
+        // 1. Get contextual ranking score (0.0 to 1.0)
+        double contextualScore = 0.5;
+        if (taskType != null) {
+            List<ContextualAIRankingService.ProviderRanking> rankings = contextualRankingService.getRankingsForTask(taskType);
+            for (ContextualAIRankingService.ProviderRanking r : rankings) {
+                if (r.provider.equalsIgnoreCase(modelName)) {
+                    contextualScore = r.successRate / 100.0;
+                    break;
+                }
+            }
         }
+
+        // 2. Get overall success rate (0.0 to 1.0)
+        AIRankingService.ProviderRanking overallRanking = aiRankingService.getRankingForProvider(modelName);
+        double overallScore = overallRanking.getSuccessRate() / 100.0;
+
+        // 3. Fallback to static weights if no data
+        double staticWeight;
+        switch (modelName.toLowerCase()) {
+            case "gpt4": staticWeight = 1.0; break;
+            case "claude": staticWeight = 0.95; break;
+            case "gemini": staticWeight = 0.9; break;
+            case "deepseek": staticWeight = 0.85; break;
+            case "groq": staticWeight = 0.8; break;
+            case "mistral": staticWeight = 0.75; break;
+            case "kimi": staticWeight = 0.7; break;
+            case "huggingface": staticWeight = 0.65; break;
+            case "airllm": staticWeight = 0.6; break;
+            case "ollama": staticWeight = 0.5; break;
+            default: staticWeight = 0.5;
+        }
+
+        // Combine scores: 40% task-specific, 30% overall performance, 30% reputation (static)
+        if (overallRanking.getSuccessCount() == 0) {
+            return staticWeight;
+        }
+
+        return (contextualScore * 0.4) + (overallScore * 0.3) + (staticWeight * 0.3);
     }
 
     /**
@@ -348,11 +411,25 @@ public class TenAIVotingSystem {
     /**
      * Update performance tracker for a model
      */
-    private void updatePerformanceTracker(ProviderVote vote) {
+    private void updatePerformanceTracker(ProviderVote vote, ContextualAIRankingService.TaskType taskType) {
+        // 1. Update internal tracker
         ModelPerformanceTracker tracker = performanceTrackers.get(vote.getProviderName());
         if (tracker != null) {
             tracker.recordAttempt(vote.getConfidence());
         }
+
+        // 2. Sync with AIRankingService
+        aiRankingService.recordSuccess(vote.getProviderName());
+
+        // 3. Sync with ContextualAIRankingService
+        // Estimate response time and quality for context recording
+        contextualRankingService.recordTaskOutcome(
+            vote.getProviderName(), 
+            taskType, 
+            true, 
+            1000, // Approximate response time
+            vote.getConfidence() * 5.0 // Convert to 0-5 scale
+        );
     }
 
     /**
