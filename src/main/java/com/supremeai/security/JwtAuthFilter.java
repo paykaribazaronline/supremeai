@@ -1,72 +1,63 @@
 package com.supremeai.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.filter.OncePerRequestFilter;
-
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import javax.crypto.SecretKey;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 
-@Slf4j
+@Component
 public class JwtAuthFilter extends OncePerRequestFilter {
-
-    @Value("${jwt.secret}")
-    private String jwtSecret;
-
-    private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
-    }
-
+    
+    @Autowired
+    private JwtUtil jwtUtil;
+    
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
-
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        String token = authHeader.substring(7);
+    protected void doFilterInternal(HttpServletRequest request, 
+                                     HttpServletResponse response, 
+                                     FilterChain chain) throws ServletException, IOException {
+        
+        String token = extractToken(request);
+        
         try {
-            Claims claims = validateToken(token);
-            if (claims != null) {
-                String role = claims.get("role", String.class);
-                request.setAttribute("userRole", role != null ? role : "USER");
-                log.debug("Authenticated request with role: {}", role);
-            } else {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Invalid or expired token");
-                return;
+            if (token != null && jwtUtil.validateToken(token)) {
+                String username = jwtUtil.getUsername(token);
+                String role = jwtUtil.getRole(token);
+                
+                UsernamePasswordAuthenticationToken auth = 
+                    new UsernamePasswordAuthenticationToken(
+                        username, null, 
+                        Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))
+                    );
+                
+                SecurityContextHolder.getContext().setAuthentication(auth);
             }
-        } catch (Exception e) {
-            log.warn("Invalid JWT token: {}", e.getMessage());
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Invalid or expired token");
+        } catch (ExpiredJwtException e) {
+            response.setStatus(401);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"Token expired\",\"message\":\"Please login again\"}");
             return;
-        }
-
-        filterChain.doFilter(request, response);
-    }
-
-    private Claims validateToken(String token) {
-        try {
-            return Jwts.parser()
-                    .verifyWith(getSigningKey())
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
         } catch (Exception e) {
-            log.warn("JWT validation failed: {}", e.getMessage());
-            return null;
+            // Log error if needed
         }
+        
+        chain.doFilter(request, response);
+    }
+    
+    private String extractToken(HttpServletRequest request) {
+        String header = request.getHeader("Authorization");
+        if (header != null && header.startsWith("Bearer ")) {
+            return header.substring(7);
+        }
+        return null;
     }
 }
