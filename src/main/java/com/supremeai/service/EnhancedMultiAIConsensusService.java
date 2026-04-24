@@ -102,7 +102,7 @@ public class EnhancedMultiAIConsensusService {
 
             completedRounds = round;
 
-            if (consensus.consensusStrength.equals("CONSENSUS_STRONG")) {
+            if ("CONSENSUS_STRONG".equals(consensus.getStrength())) {
                 metadata.put("achieved_strong_consensus", true);
                 metadata.put("rounds_to_consensus", round);
                 break;
@@ -118,17 +118,32 @@ public class EnhancedMultiAIConsensusService {
         ConsensusResult finalConsensus = calculateWeightedConsensus(question, currentVotes);
 
         // Save to history
-        saveVoteToHistory(question, currentVotes, finalConsensus.consensusAnswer,
-            finalConsensus.confidence);
+        saveVoteToHistory(question, currentVotes, finalConsensus.getConsensusAnswer(),
+            finalConsensus.getConfidence());
 
         return new EnhancedConsensusResult(
             question,
-            finalConsensus.consensusAnswer,
-            finalConsensus.votes,
-            finalConsensus.confidence,
-            finalConsensus.consensusStrength,
+            finalConsensus.getConsensusAnswer(),
+            finalConsensus.getVotes(),
+            finalConsensus.getConfidence(),
+            finalConsensus.getStrength(),
             completedRounds,
             metadata
+        );
+    }
+
+    /**
+     * Create a failure result.
+     */
+    private EnhancedConsensusResult createFailureResult(String question, List<ProviderVote> votes, String error) {
+        return new EnhancedConsensusResult(
+            question,
+            error,
+            votes,
+            0.0,
+            "ERROR",
+            1,
+            Map.of("error", error)
         );
     }
 

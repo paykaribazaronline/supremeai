@@ -11,9 +11,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
 
 @Slf4j
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -21,7 +21,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-    private Key getSigningKey() {
+    private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -60,7 +60,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private Claims validateToken(String token) {
         try {
             return Jwts.parser()
-                    .verifyWith((java.security.Key) getSigningKey())
+                    .verifyWith(getSigningKey())
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();

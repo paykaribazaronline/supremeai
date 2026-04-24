@@ -1,6 +1,5 @@
 package com.supremeai.controller;
 
-import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.http.ResponseEntity;
@@ -39,12 +38,20 @@ public class SystemMetricsController {
         metrics.put("availableProcessors", osMXBean.getAvailableProcessors());
 
         // DB Pool Metrics
-        if (dataSource instanceof HikariDataSource) {
-            HikariDataSource hikari = (HikariDataSource) dataSource;
-            if (hikari.getHikariPoolMXBean() != null) {
-                metrics.put("dbActiveConnections", hikari.getHikariPoolMXBean().getActiveConnections());
-                metrics.put("dbIdleConnections", hikari.getHikariPoolMXBean().getIdleConnections());
-                metrics.put("dbTotalConnections", hikari.getHikariPoolMXBean().getTotalConnections());
+        if (dataSource != null) {
+            String className = dataSource.getClass().getName();
+            metrics.put("dataSourceType", className);
+            
+            // Try to extract metrics using reflection if it's Hikari
+            if (className.contains("HikariDataSource")) {
+                try {
+                    Object pool = dataSource.getClass().getMethod("getHikariPoolMXBean").invoke(dataSource);
+                    if (pool != null) {
+                        metrics.put("dbActiveConnections", pool.getClass().getMethod("getActiveConnections").invoke(pool));
+                        metrics.put("dbIdleConnections", pool.getClass().getMethod("getIdleConnections").invoke(pool));
+                        metrics.put("dbTotalConnections", pool.getClass().getMethod("getTotalConnections").invoke(pool));
+                    }
+                } catch (Exception ignored) {}
             }
         }
 

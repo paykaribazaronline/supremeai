@@ -417,10 +417,13 @@ public class EnhancedRandomForestPredictor {
 
             if (leftCount == 0 || rightCount == 0) return 1.0;
 
+            final int finalLeftCount = leftCount;
             double giniLeft = 1.0 - leftLabels.values().stream()
-                .mapToDouble(c -> Math.pow((double) c / leftCount, 2)).sum();
+                .mapToDouble(c -> Math.pow((double) c / finalLeftCount, 2)).sum();
+
+            final int finalRightCount = rightCount;
             double giniRight = 1.0 - rightLabels.values().stream()
-                .mapToDouble(c -> Math.pow((double) c / rightCount, 2)).sum();
+                .mapToDouble(c -> Math.pow((double) c / finalRightCount, 2)).sum();
 
             double totalCount = leftCount + rightCount;
             return (leftCount / totalCount) * giniLeft +

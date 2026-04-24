@@ -28,7 +28,7 @@ public class GuideDataInitializer {
     public void initialize() {
         // Check if guides already exist
         userGuideRepository.count()
-            .flatMap(count -> {
+            .flatMapMany(count -> {
                 if (count == 0) {
                     return createSampleGuides();
                 }

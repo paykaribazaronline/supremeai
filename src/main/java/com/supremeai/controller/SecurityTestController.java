@@ -48,19 +48,17 @@ public class SecurityTestController {
 
         try {
             FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
-            
             Map<String, Object> result = new HashMap<>();
+            Map<String, Object> claims = new HashMap<>(decodedToken.getClaims());
             result.put("valid", true);
             result.put("uid", decodedToken.getUid());
             result.put("email", decodedToken.getEmail());
             result.put("emailVerified", decodedToken.isEmailVerified());
-            result.put("authTime", decodedToken.getAuthTime());
-            result.put("issuedAt", decodedToken.getIssuedAtTime());
-            result.put("expiresAt", decodedToken.getExpiresTime());
-            result.put("signInProvider", decodedToken.getSignInProvider());
+            result.put("authTime", claims.get("auth_time"));
+            result.put("issuedAt", claims.get("iat"));
+            result.put("expiresAt", claims.get("exp"));
+            result.put("signInProvider", claims.get("firebase") instanceof Map ? ((Map<?,?>)claims.get("firebase")).get("sign_in_provider") : null);
             
-            // Include custom claims if any
-            Map<String, Object> claims = new HashMap<>(decodedToken.getClaims());
             result.put("claims", claims);
             
             // Check Firestore user record
@@ -213,7 +211,7 @@ public class SecurityTestController {
 
         // Check Firebase Auth connectivity
         try {
-            FirebaseAuth.getInstance().getApp();
+            FirebaseAuth.getInstance().getUser("dummy-uid");
             health.put("firebaseAuth", Map.of(
                 "status", "CONNECTED",
                 "message", "Firebase Authentication service is reachable"
