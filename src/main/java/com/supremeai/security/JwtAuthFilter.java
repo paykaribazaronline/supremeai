@@ -18,7 +18,7 @@ import java.security.Key;
 @Slf4j
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    @Value("${jwt.secret:my-secret-key-should-be-changed-in-production}")
+    @Value("${jwt.secret}")
     private String jwtSecret;
 
     private Key getSigningKey() {

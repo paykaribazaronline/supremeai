@@ -8,8 +8,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +26,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @EnableAsync
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -37,7 +40,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable()) // JWT in Authorization header - no cookies, CSRF not applicable
+            .csrf(AbstractHttpConfigurer::disable) // JWT in Authorization header - no cookies, CSRF not applicable
             .headers(headers -> headers
                 .frameOptions(frame -> frame.deny()) // Prevent clickjacking
                 .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' wss:; frame-ancestors 'none'"))
@@ -46,10 +49,20 @@ public class SecurityConfig {
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // Public endpoints
+                .requestMatchers("/api/auth/firebase-login", "/api/auth/register", "/api/auth/forgot-password", "/api/auth/validate-token").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/agent/**").hasAnyRole("ADMIN", "AGENT_MANAGER")
+                .requestMatchers("/api/chat/**").permitAll()
                 .requestMatchers("/ws/**").permitAll()
+                
+                // Admin-only endpoints
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                
+                // Manager/Specialized role endpoints
+                .requestMatchers("/api/agent/**").hasAnyRole("ADMIN", "AGENT_MANAGER")
+                
+                // All other endpoints require authentication
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -67,8 +80,13 @@ public class SecurityConfig {
             configuration.setAllowedOrigins(origins);
         } else {
             // In production, this should be empty if not set
-            // For development, allow localhost
-            configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:5173"));
+            // For development, allow localhost and common frontend ports
+            configuration.setAllowedOrigins(Arrays.asList(
+                "https://supremeai.com", 
+                "https://app.supremeai.com", 
+                "http://localhost:3000", 
+                "http://localhost:5173"
+            ));
         }
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
