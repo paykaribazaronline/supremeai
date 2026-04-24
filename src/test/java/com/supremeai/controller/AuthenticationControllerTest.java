@@ -177,7 +177,7 @@ public class AuthenticationControllerTest {
         Map<String, Object> response = authenticationController.firebaseLogin(loginRequest, httpRequest);
 
         assertEquals("error", response.get("status"));
-        assertTrue(response.get("message").toString().contains("Auth failed"));
+        assertTrue(response.get("message").toString().contains("Authentication failed"));
     }
 
     @Test
