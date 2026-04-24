@@ -496,6 +496,9 @@
         // Check backend connection
         checkBackendConnection();
         
+        // Show mode status on load
+        updateModeStatus();
+        
         async function startGeneration() {
             const appName = document.getElementById('appName').value.trim();
             const description = document.getElementById('appDescription').value.trim();
