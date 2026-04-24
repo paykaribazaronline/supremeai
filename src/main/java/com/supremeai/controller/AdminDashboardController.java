@@ -55,15 +55,20 @@ public class AdminDashboardController extends BaseAdminController<Object, String
 
     @GetMapping("/dashboard/contract")
     public Mono<Map<String, Object>> getContract() {
-        return Mono.zip(
-                agentRepository.findAll().count(),
-                projectRepository.findAll().count(),
-                projectRepository.findByStatus("COMPLETED").count(),
-                activityLogRepository.findAll().count(),
-                activityLogRepository.findBySeverityOrderByTimestampDesc("CRITICAL").count(),
-                systemLearningRepository.findAll().count(),
-                vpnRepository.findAll().count()
-        ).map(tuple -> buildContract(tuple));
+        return Mono.zipDelayError(
+                agentRepository.findAll().count().onErrorReturn(0L),
+                projectRepository.findAll().count().onErrorReturn(0L),
+                projectRepository.findByStatus("COMPLETED").count().onErrorReturn(0L),
+                activityLogRepository.findAll().count().onErrorReturn(0L),
+                activityLogRepository.findBySeverityOrderByTimestampDesc("CRITICAL").count().onErrorReturn(0L),
+                systemLearningRepository.findAll().count().onErrorReturn(0L),
+                vpnRepository.findAll().count().onErrorReturn(0L)
+        ).map(tuple -> buildContract(tuple))
+        .onErrorResume(e -> Mono.just(buildDefaultContract()));
+    }
+
+    private Map<String, Object> buildDefaultContract() {
+        return buildContract(reactor.util.function.Tuples.of(0L, 0L, 0L, 0L, 0L, 0L, 0L));
     }
 
     private Map<String, Object> buildContract(Tuple7<Long, Long, Long, Long, Long, Long, Long> tuple) {
@@ -79,31 +84,54 @@ public class AdminDashboardController extends BaseAdminController<Object, String
         double healthScore = totalLogs > 0 ? Math.max(0, 100.0 - ((double) criticalErrors / totalLogs * 1000)) : 100.0;
 
         Map<String, Object> contract = new HashMap<>();
-        contract.put("contractVersion", "2026-04-10-live");
-        contract.put("title", "SupremeAI Admin Dashboard");
+        contract.put("contractVersion", "2.1.0-stable");
+        contract.put("title", "SupremeAI Premium Admin Console");
+        contract.put("description", "Unified Multi-Agent Orchestration & Cloud Operations Control");
 
         Map<String, Object> stats = new HashMap<>();
         stats.put("activeAIAgents", totalAgents);
         stats.put("systemHealthScore", Math.round(healthScore * 10) / 10.0);
-        stats.put("runningProjects", totalProjects - completedProjects);
-        stats.put("completedProjects", completedProjects);
+        stats.put("runningTasks", totalProjects - completedProjects);
+        stats.put("completedTasks", completedProjects);
         stats.put("successRate", Math.round(successRate * 10) / 10.0);
-        stats.put("systemHealthStatus", healthScore > 90 ? "HEALTHY" : (healthScore > 70 ? "STABLE" : "CRITICAL"));
+        stats.put("systemHealthStatus", healthScore > 90 ? "healthy" : (healthScore > 70 ? "warning" : "critical"));
+        stats.put("systemHealthReason", criticalErrors > 0 ? criticalErrors + " critical system alerts detected" : "All systems operational");
         stats.put("knowledgeBaseSize", totalKnowledge);
         stats.put("activeConnections", activeVPNs);
         contract.put("stats", stats);
 
         List<Map<String, Object>> navigation = List.of(
-                createNavItem("overview", "Dashboard", "📊", true),
-                createNavItem("projects", "Projects & Git", "📂", true),
-                createNavItem("ai-systems", "AI Systems", "🤖", true),
-                createNavItem("metrics", "Metrics & Analytics", "📈", true),
-                createNavItem("knowledge", "Knowledge & Learning", "🧠", true),
-                createNavItem("integrations", "Integrations", "🔌", true),
-                createNavItem("resilience", "System Resilience", "🛡️", true),
-                createNavItem("administration", "Administration", "⚙️", true)
+                createNavItem("overview", "Dashboard", "📊", "System overview and key performance metrics", true),
+                createNavItem("projects", "Projects", "📂", "Manage code generation projects and repositories", true),
+                createNavItem("ai-systems", "AI Systems", "🤖", "Monitor and assign autonomous agents", true),
+                createNavItem("metrics", "Metrics", "📈", "Detailed system and infrastructure analytics", true),
+                createNavItem("learning", "Learning", "🧠", "Knowledge harvester and system evolution status", true),
+                createNavItem("vpn", "VPN Management", "🔒", "Secure tunnel and proxy orchestration", true),
+                createNavItem("audit", "Audit Logs", "📝", "Full traceability of system and admin actions", true),
+                createNavItem("phases", "Roadmap", "🗺️", "Implementation progress and feature roadmap", true),
+                createNavItem("settings", "Settings", "⚙️", "Global platform and AI provider configurations", true)
         );
         contract.put("navigation", navigation);
+
+        List<Map<String, Object>> components = List.of(
+                createComponent("phases", "Roadmap Overview", "🗺️", "Management", true, Map.of()),
+                createComponent("ai-agents", "AI Agent Assignment", "🤖", "AI Systems", true, Map.of("endpoint", "/api/admin/agents")),
+                createComponent("projects", "Project Manager", "📦", "Development", true, Map.of("endpoint", "/api/admin/projects")),
+                createComponent("metrics", "System Metrics", "📊", "Operations", true, Map.of("endpoint", "/api/admin/metrics")),
+                createComponent("learning", "System Learning", "📚", "Intelligence", true, Map.of("endpoint", "/api/admin/learning")),
+                createComponent("vpn", "VPN Orchestrator", "🔒", "Infrastructure", true, Map.of("endpoint", "/api/admin/vpn")),
+                createComponent("audit", "Audit Explorer", "📝", "Security", true, Map.of("endpoint", "/api/admin/audit")),
+                createComponent("settings", "Global Settings", "⚙️", "Admin", true, Map.of("endpoint", "/api/admin/settings")),
+                createComponent("exploitation-techniques", "Exploitation Dashboard", "⚔️", "Security", true, Map.of("endpoint", "/api/admin/security/exploitation"))
+        );
+        contract.put("components", components);
+
+        contract.put("apiEndpoints", Map.of(
+                "contract", "/api/admin/dashboard/contract",
+                "stats", "/api/admin/metrics/stats",
+                "logs", "/api/admin/logs",
+                "suggestions", "/api/admin/suggestions"
+        ));
 
         return contract;
     }
@@ -194,13 +222,25 @@ public class AdminDashboardController extends BaseAdminController<Object, String
         return Mono.just(ResponseEntity.ok((Object) Map.of("tiers", tiers)));
     }
 
-    private Map<String, Object> createNavItem(String key, String label, String icon, boolean enabled) {
+    private Map<String, Object> createNavItem(String key, String label, String icon, String description, boolean enabled) {
         Map<String, Object> item = new HashMap<>();
         item.put("key", key);
         item.put("label", label);
         item.put("icon", icon);
+        item.put("description", description);
         item.put("enabled", enabled);
         return item;
+    }
+
+    private Map<String, Object> createComponent(String key, String label, String icon, String category, boolean enabled, Map<String, Object> config) {
+        Map<String, Object> comp = new HashMap<>();
+        comp.put("key", key);
+        comp.put("label", label);
+        comp.put("icon", icon);
+        comp.put("category", category);
+        comp.put("enabled", enabled);
+        comp.put("config", config);
+        return comp;
     }
 
     /**
