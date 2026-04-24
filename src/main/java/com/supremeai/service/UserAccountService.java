@@ -10,10 +10,12 @@ import com.supremeai.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.cache.annotation.Cacheable;
@@ -102,21 +104,22 @@ public class UserAccountService {
         }
     }
 
-    /**
-     * Create user accounts in bulk from pre-saved credentials stored in a Firestore collection.
-     *
-     * The credentials collection should have documents with:
-     *   - email: String (required)
-     *   - password: String (required)
-     *   - displayName: String (optional)
-     *   - tier: String (optional, defaults to FREE)
-     *   - status: String (will be updated to "created" or "error")
-     *   - uid: String (will be populated after creation)
-     *
-     * @param collectionName The Firestore collection containing pre-saved credentials
-     * @return Summary of created accounts
-     */
-    public Map<String, Object> createAccountsFromCollection(String collectionName) {
+     /**
+      * Create user accounts in bulk from pre-saved credentials stored in a Firestore collection.
+      *
+      * The credentials collection should have documents with:
+      *   - email: String (required)
+      *   - password: String (required)
+      *   - displayName: String (optional)
+      *   - tier: String (optional, defaults to FREE)
+      *   - status: String (will be updated to "created" or "error")
+      *   - uid: String (will be populated after creation)
+      *
+      * @param collectionName The Firestore collection containing pre-saved credentials
+      * @return CompletableFuture with summary of created accounts
+      */
+    @Async
+    public CompletableFuture<Map<String, Object>> createAccountsFromCollection(String collectionName) {
         if (firestore == null) {
             throw new IllegalStateException("Firestore is not available. Ensure cloud profile is active.");
         }
@@ -186,7 +189,7 @@ public class UserAccountService {
         summary.put("errors", errors);
         summary.put("createdEmails", createdEmails);
         summary.put("errorDetails", errorEmails);
-        return summary;
+        return CompletableFuture.completedFuture(summary);
     }
 
     /**

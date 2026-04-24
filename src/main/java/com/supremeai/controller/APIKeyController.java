@@ -5,6 +5,7 @@ import com.supremeai.model.ActivityLog;
 import com.supremeai.repository.UserApiKeyRepository;
 import com.supremeai.repository.ActivityLogRepository;
 import com.supremeai.security.ApiKeyRotationService;
+import com.supremeai.security.EncryptionService;
 import com.supremeai.service.AIRankingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +37,6 @@ import reactor.core.publisher.Mono;
  */
 @RestController
 @RequestMapping("/api/apikeys")
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class APIKeyController {
 
     @Autowired
@@ -50,6 +50,9 @@ public class APIKeyController {
 
     @Autowired
     private AIRankingService aiRankingService;
+
+    @Autowired
+    private EncryptionService encryptionService;
 
     /**
      * Get the current authenticated user's Firebase UID.
@@ -94,6 +97,7 @@ public class APIKeyController {
 
     /**
      * POST /api/apikeys - Add a new API key.
+     * API key is encrypted before storing.
      */
     @PostMapping
     public ResponseEntity<Map<String, Object>> addKey(@RequestBody Map<String, Object> body) {
@@ -103,7 +107,11 @@ public class APIKeyController {
         key.setUserId(userId);
         key.setProvider((String) body.get("provider"));
         key.setLabel((String) body.get("label"));
-        key.setApiKey((String) body.get("apiKey"));
+
+        // Encrypt API key before storing
+        String plainApiKey = (String) body.get("apiKey");
+        key.setApiKey(encryptionService.encrypt(plainApiKey));
+
         key.setBaseUrl((String) body.get("baseUrl"));
 
         if (body.get("models") instanceof List) {
@@ -141,7 +149,10 @@ public class APIKeyController {
 
         if (body.containsKey("provider")) key.setProvider((String) body.get("provider"));
         if (body.containsKey("label")) key.setLabel((String) body.get("label"));
-        if (body.containsKey("apiKey")) key.setApiKey((String) body.get("apiKey"));
+        if (body.containsKey("apiKey")) {
+            String plainApiKey = (String) body.get("apiKey");
+            key.setApiKey(encryptionService.encrypt(plainApiKey));
+        }
         if (body.containsKey("baseUrl")) key.setBaseUrl((String) body.get("baseUrl"));
         if (body.containsKey("status")) key.setStatus((String) body.get("status"));
         if (body.get("models") instanceof List) {
@@ -381,7 +392,10 @@ public class APIKeyController {
                         // Create request
                         HttpHeaders httpHeaders = new HttpHeaders();
                         headers.forEach((k, v) -> httpHeaders.add(k, v.toString()));
-                        httpHeaders.add("Authorization", "Bearer " + key.getApiKey());
+
+                        // Decrypt API key before using
+                        String decryptedApiKey = encryptionService.decrypt(key.getApiKey());
+                        httpHeaders.add("Authorization", "Bearer " + decryptedApiKey);
             
                         HttpEntity<Object> requestEntity = new HttpEntity<>(
                                 (!"GET".equals(method) && !"DELETE".equals(method)) ? requestBody : null, 

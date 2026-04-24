@@ -2,11 +2,15 @@ package com.supremeai.learning.immunity;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.gcp.firestore.FirestoreTemplate;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 
 /**
  * Project Immunity System
@@ -16,13 +20,65 @@ import java.util.regex.Pattern;
 public class CodeImmunitySystem {
 
     private static final Logger log = LoggerFactory.getLogger(CodeImmunitySystem.class);
-    // Stores regex patterns of bad code that previously broke the build
-    private final Set<Pattern> toxicCodePatterns = new HashSet<>();
+    private static final String COLLECTION_NAME = "system_configs";
+    private static final String DOCUMENT_ID = "code_immunity";
+
+    // In-memory cache for fast access
+    private final Set<Pattern> toxicCodePatterns = ConcurrentHashMap.newKeySet();
+
+    @Autowired(required = false)
+    private FirestoreTemplate firestoreTemplate;
 
     public CodeImmunitySystem() {
         // Initial generic toxic patterns (e.g., hardcoded passwords, obvious infinite loops)
-        toxicCodePatterns.add(Pattern.compile("(?i)(password|secret|key)\\s*=\\s*['\"][^'\"]+['\"]"));
-        toxicCodePatterns.add(Pattern.compile("while\\s*\\(\\s*true\\s*\\)\\s*\\{\\s*\\}")); 
+        learnToxicPattern("password\\s*=\\s*['\\\"][^'\\\"]+['\\\"]");
+        learnToxicPattern("while\\s*\\(\\s*true\\s*\\)\\s*\\{\\s*\\}");
+    }
+
+    /**
+     * Load patterns from Firestore on startup.
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    public void loadPatterns() {
+        if (firestoreTemplate == null) {
+            log.warn("Firestore not available, using in-memory patterns only");
+            return;
+        }
+
+        try {
+            Map<String, Object> doc = firestoreTemplate.findById(DOCUMENT_ID, COLLECTION_NAME, Map.class).block();
+            if (doc != null && doc.containsKey("patterns")) {
+                @SuppressWarnings("unchecked")
+                List<String> patterns = (List<String>) doc.get("patterns");
+                for (String patternStr : patterns) {
+                    toxicCodePatterns.add(Pattern.compile(patternStr));
+                }
+                log.info("Loaded {} toxic patterns from Firestore", toxicCodePatterns.size());
+            }
+        } catch (Exception e) {
+            log.error("Failed to load patterns from Firestore: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Save patterns to Firestore.
+     */
+    private void savePatterns() {
+        if (firestoreTemplate == null) return;
+
+        List<String> patterns = new ArrayList<>();
+        for (Pattern p : toxicCodePatterns) {
+            patterns.add(p.pattern());
+        }
+
+        Map<String, Object> doc = new HashMap<>();
+        doc.put("patterns", patterns);
+        doc.put("updatedAt", new Date());
+
+        firestoreTemplate.save(doc, COLLECTION_NAME, DOCUMENT_ID).subscribe(
+                result -> log.debug("Saved {} patterns to Firestore", patterns.size()),
+                error -> log.error("Failed to save patterns: {}", error.getMessage())
+        );
     }
 
     /**
@@ -35,6 +91,9 @@ public class CodeImmunitySystem {
         String escapedPattern = Pattern.quote(badCodeSnippet.trim());
         toxicCodePatterns.add(Pattern.compile(escapedPattern));
         log.info("[Immunity System] Developed new antibody against toxic code snippet!");
+
+        // Persist to Firestore asynchronously
+        savePatterns();
     }
 
     /**

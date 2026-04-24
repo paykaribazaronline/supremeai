@@ -5,6 +5,7 @@ import com.supremeai.repository.ActivityLogRepository;
 import com.supremeai.model.User;
 import com.supremeai.model.UserTier;
 import com.supremeai.repository.UserRepository;
+import com.supremeai.security.BruteForceProtectionService;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.UserRecord;
@@ -35,7 +36,6 @@ import jakarta.servlet.http.HttpSession;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class AuthenticationController {
 
     private static final Logger log = LoggerFactory.getLogger(AuthenticationController.class);
@@ -48,6 +48,9 @@ public class AuthenticationController {
 
     @Autowired
     private ActivityLogRepository activityLogRepository;
+
+    @Autowired
+    private BruteForceProtectionService bruteForceProtectionService;
 
     @PostMapping("/firebase-login")
     public Map<String, Object> firebaseLogin(@RequestBody Map<String, String> request, HttpServletRequest httpRequest) {
@@ -168,7 +171,26 @@ public class AuthenticationController {
      */
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> register(@Valid @RequestBody RegisterRequest request,
-                                                        HttpServletRequest httpRequest) {
+                                                         HttpServletRequest httpRequest) {
+        String remoteAddr = httpRequest.getRemoteAddr();
+        String email = request.email();
+
+        // Check if IP or email is locked due to brute force
+        if (bruteForceProtectionService.isLocked(remoteAddr)) {
+            long remainingSeconds = bruteForceProtectionService.getRemainingLockTimeSeconds(remoteAddr);
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "Too many attempts. Please try again in " + (remainingSeconds / 60) + " minutes.");
+        }
+        if (bruteForceProtectionService.isLocked(email)) {
+            long remainingSeconds = bruteForceProtectionService.getRemainingLockTimeSeconds(email);
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "Too many attempts for this email. Please try again in " + (remainingSeconds / 60) + " minutes.");
+        }
+
+        // Record this attempt for brute force protection (rate limiting)
+        bruteForceProtectionService.recordFailedAttempt(remoteAddr);
+        bruteForceProtectionService.recordFailedAttempt(email);
+
         try {
             // Validate password strength
             if (request.password().length() < 8) {
@@ -242,11 +264,30 @@ public class AuthenticationController {
      * Send a password reset email to the user.
      */
     @PostMapping("/forgot-password")
-    public ResponseEntity<Map<String, Object>> forgotPassword(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> forgotPassword(@RequestBody Map<String, String> request,
+                                                                 HttpServletRequest httpRequest) {
         String email = request.get("email");
+        String remoteAddr = httpRequest.getRemoteAddr();
+
         if (email == null || email.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is required");
         }
+
+        // Check if email or IP is locked
+        if (bruteForceProtectionService.isLocked(email)) {
+            long remainingSeconds = bruteForceProtectionService.getRemainingLockTimeSeconds(email);
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "Too many attempts for this email. Please try again in " + (remainingSeconds / 60) + " minutes.");
+        }
+        if (bruteForceProtectionService.isLocked(remoteAddr)) {
+            long remainingSeconds = bruteForceProtectionService.getRemainingLockTimeSeconds(remoteAddr);
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "Too many attempts. Please try again in " + (remainingSeconds / 60) + " minutes.");
+        }
+
+        // Record attempt for rate limiting
+        bruteForceProtectionService.recordFailedAttempt(email);
+        bruteForceProtectionService.recordFailedAttempt(remoteAddr);
 
         try {
             String link = FirebaseAuth.getInstance().generatePasswordResetLink(email);
