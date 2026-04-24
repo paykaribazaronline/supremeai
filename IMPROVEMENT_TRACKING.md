@@ -87,9 +87,9 @@
 |----------|-----------|-------------|---------|-------|
 | 🅰️ Admin | 6 | 0 | TBD | 6 |
 | 🅲 Customer | 8 | 0 | TBD | 8 |
-| 🅂 System Intelligence | 2 | 0 | TBD | 2 |
-| 🅿️ Performance | 14 | 0 | TBD | 14 |
-| **Total** | **30** | **0** | **TBD** | **30** |
+| 🅂 System Intelligence | 2 | 2 | TBD | 4 |
+| 🅿️ Performance | 14 | 2 | TBD | 16 |
+| **Total** | **30** | **4** | **TBD** | **34** |
 
 ### By Impact / প্রভাব অনুযায়ী
 
@@ -103,7 +103,12 @@
 
 ## 🔄 IN PROGRESS IMPROVEMENTS / চলমান উন্নতিসমূহ
 
-*No improvements currently in progress. All completed items moved to ✅ section.*
+| ID | Improvement | Area | Status | Started | Impact |
+|-----|-------------|------|--------|---------|--------|
+| P15 | Redis Caching Layer Implementation | Caching | 🔄 In Progress | 2026-04-24 | High |
+| P16 | Database Connection Pool Optimization | Database | 🔄 In Progress | 2026-04-24 | High |
+| S3 | Autonomous Questioning Engine | AI | 🔄 In Progress | 2026-04-24 | High |
+| S4 | 10-AI Voting & Consensus System | AI | 🔄 In Progress | 2026-04-24 | High |
 
 ---
 
@@ -138,8 +143,6 @@
 
 | ID | Improvement | Area | Priority | Estimated Effort | Dependencies |
 |-----|-------------|------|----------|------------------|--------------|
-| S3 | Autonomous Questioning Engine | AI | H | 3 weeks | Phase 1 |
-| S4 | 10-AI Voting & Consensus System | AI | H | 2 weeks | AI integration |
 | S5 | Predictive Quota Alerts (ML) | Analytics | H | 2 weeks | Usage data |
 | S6 | Error Intelligence (categorization) | Observability | M | 1 week | Logging |
 | S7 | Usage Pattern Analysis | Analytics | M | 2 weeks | Data pipeline |
@@ -151,8 +154,6 @@
 
 | ID | Improvement | Area | Priority | Estimated Effort | Dependencies |
 |-----|-------------|------|----------|------------------|--------------|
-| P15 | Redis Caching Layer Implementation | Caching | H | 1 week | Redis setup |
-| P16 | Database Connection Pool Optimization | Database | H | 3 days | HikariCP |
 | P17 | Real-time Quota Updates (WebSocket) | Real-time | H | 1 week | WS infra |
 | P18 | Service Worker / PWA Implementation | Frontend | M | 2 weeks | Service worker |
 | P19 | Code Splitting & Lazy Loading | Frontend | M | 1 week | Router setup |
