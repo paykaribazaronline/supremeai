@@ -15,11 +15,20 @@ import javax.swing.table.DefaultTableModel
 import kotlin.concurrent.thread
 
 class SupremeAIToolWindowFactory : ToolWindowFactory {
+    companion object {
+        private var chatPanel: SupremeAIChatPanel? = null
+        
+        fun sendToChat(message: String) {
+            chatPanel?.addExternalMessage(message)
+        }
+    }
+
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val contentFactory = ContentFactory.getInstance()
 
-        val chatPanel = SupremeAIChatPanel()
-        val chatContent = contentFactory.createContent(chatPanel.getContent(), "Chat", false)
+        val panel = SupremeAIChatPanel()
+        chatPanel = panel
+        val chatContent = contentFactory.createContent(panel.getContent(), "Chat", false)
         toolWindow.contentManager.addContent(chatContent)
 
         val orchestrationPanel = SupremeAIOrchestrationPanel()
@@ -173,6 +182,11 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
         }
 
         fun getContent(): JPanel = panel
+
+        fun addExternalMessage(message: String) {
+            inputField.text = message
+            sendMessage()
+        }
     }
 
     class SupremeAISettingsPanel {
