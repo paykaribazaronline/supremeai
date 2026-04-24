@@ -5,7 +5,6 @@ import com.supremeai.model.ConsensusResult;
 import com.supremeai.model.ProviderVote;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
-import com.supremeai.selfhealing.SelfHealingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +32,9 @@ public class EnhancedMultiAIConsensusService {
 
     @Autowired
     private AIRankingService aiRankingService;
+
+    @Autowired
+    private AIReasoningService aiReasoningService;
 
     private final ExecutorService executor;
     private final List<ConsensusVote> history = new CopyOnWriteArrayList<>();
@@ -116,6 +118,15 @@ public class EnhancedMultiAIConsensusService {
 
         // Final consensus calculation
         ConsensusResult finalConsensus = calculateWeightedConsensus(question, currentVotes);
+
+        aiReasoningService.logReasoning(
+            "CONSENSUS_" + System.currentTimeMillis(),
+            "Final Consensus Reached",
+            String.format("Strength: %s, Confidence: %.2f%%, Rounds: %d. Answer: %s", 
+                finalConsensus.getStrength(), finalConsensus.getConfidence(), completedRounds, 
+                finalConsensus.getConsensusAnswer().substring(0, Math.min(100, finalConsensus.getConsensusAnswer().length()))),
+            "EnhancedMultiAIConsensusService"
+        );
 
         // Save to history
         saveVoteToHistory(question, currentVotes, finalConsensus.getConsensusAnswer(),
