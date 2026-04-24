@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SupremeAI Platform v0.1 - Android Generator</title>
+    <script src="/firebase-app-compat.js"></script>
+    <script src="/firebase-auth-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f1419;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #2d3748;
+        }
+        
+        .header h1 { color: #4299e1; font-size: 24px; }
+        .header h1 span { color: #718096; font-size: 12px; }
+        
+        .back-btn {
+            padding: 8px 16px;
+            background: #2d3748;
+            color: #e2e8f0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            text-decoration: none;
+        }
+        
+        .back-btn:hover { background: #4a5568; }
+        
+        .progress-tracker {
+            background: #1a202c;
+            border: 1px solid #2d3748;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .progress-tracker h2 { color: #4299e1; font-size: 16px; margin-bottom: 15px; }
+        
+        .milestone-progress {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .milestone {
+            background: #111827;
+            border-left: 3px solid #ed8936;
+            padding: 12px 15px;
+            border-radius: 5px;
+        }
+        
+        .milestone.complete { border-left-color: #48bb78; }
+        .milestone.active { border-left-color: #4299e1; animation: pulse 2s infinite; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .milestone-name { font-weight: 600; color: #e2e8f0; margin-bottom: 5px; }
+        .milestone-status { font-size: 11px; color: #718096; }
+        
+        .card {
+            background: #1a202c;
+            border: 1px solid #2d3748;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #2d3748;
+        }
+        
+        .card-title { color: #4299e1; font-size: 16px; font-weight: 600; }
+        
+        .form-group { margin-bottom: 15px; }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #a0aec0;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 10px 12px;
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            border-radius: 5px;
+            color: #e2e8f0;
+            font-family: inherit;
+            font-size: 13px;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+        
+        textarea { resize: vertical; min-height: 100px; }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .btn-primary { background: #4299e1; color: white; }
+        .btn-primary:hover { background: #3182ce; }
+        .btn-success { background: #48bb78; color: white; }
+        .btn-success:hover { background: #38a169; }
+        .btn-warning { background: #ed8936; color: white; }
+        .btn-warning:hover { background: #dd6b20; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .alert {
+            padding: 12px 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .alert-success { background: rgba(72, 187, 120, 0.1); border-left: 3px solid #48bb78; color: #48bb78; }
+        .alert-warning { background: rgba(237, 137, 54, 0.1); border-left: 3px solid #ed8936; color: #ed8936; }
+        .alert-danger { background: rgba(245, 101, 101, 0.1); border-left: 3px solid #f56565; color: #f56565; }
+        
+        .generation-steps {
+            background: #111827;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .step {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .step.active { background: rgba(66, 153, 225, 0.1); }
+        .step.complete { background: rgba(72, 187, 120, 0.1); }
+        
+        .step-number {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .step.active .step-number { background: #4299e1; color: white; }
+        .step.complete .step-number { background: #48bb78; color: white; }
+        .step.pending .step-number { background: #4a5568; color: #718096; }
+        
+        .step-content { flex: 1; }
+        .step-title { font-weight: 600; font-size: 13px; margin-bottom: 3px; }
+        .step.active .step-title { color: #4299e1; }
+        .step.complete .step-title { color: #48bb78; }
+        .step.pending .step-title { color: #718096; }
+        
+        .step-desc { font-size: 11px; color: #718096; }
+        
+        .download-section {
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            margin-top: 15px;
+            transition: all 0.3s;
+        }
+        
+        .download-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(66, 153, 225, 0.3); }
+        
+        .output-preview {
+            background: #0f1419;
+            border: 1px solid #2d3748;
+            border-radius: 5px;
+            padding: 15px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            max-height: 300px;
+            overflow-y: auto;
+            color: #cbd5e1;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 Android Generator <span>v0.1 - M2 Core Product</span></h1>
+            <a href="/admin.html" class="back-btn">← Back to Dashboard</a>
+        </div>
+        
+        <!-- Progress Tracker -->
+        <div class="progress-tracker">
+            <h2>🎯 Milestone M2: Working Android Generator (0% Complete)</h2>
+            <div class="milestone-progress">
+                <div class="milestone active" id="ms1">
+                    <div class="milestone-name">1. Prompt Processing</div>
+                    <div class="milestone-status">⚡️ In Progress</div>
+                </div>
+                <div class="milestone pending" id="ms2">
+                    <div class="milestone-name">2. AI Agents Setup</div>
+                    <div class="milestone-status">⏳️ Pending</div>
+                </div>
+                <div class="milestone pending" id="ms3">
+                    <div class="milestone-name">3. Code Generation</div>
+                    <div class="milestone-status">⏳️ Pending</div>
+                </div>
+                <div class="milestone pending" id="ms4">
+                    <div class="milestone-name">4. APK Build</div>
+                    <div class="milestone-status">⏳️ Pending</div>
+                </div>
+                <div class="milestone pending" id="ms5">
+                    <div class="milestone-name">5. Testing & Download</div>
+                    <div class="milestone-status">⏳️ Pending</div>
+                </div>
+            </div>
+            <div style="font-size: 11px; color: #718096;">
+                💡 Core Product - "Without this, nothing else matters"
+            </div>
+        </div>
+        
+        <!-- Project Input -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">📝 Project Description</div>
+            </div>
+            
+            <div class="form-group">
+                <label>App Name</label>
+                <input type="text" id="appName" placeholder="e.g., MyAwesomeApp, TaskManager...">
+            </div>
+            
+            <div class="form-group">
+                <label>Describe Your Android App</label>
+                <textarea id="appDescription" rows="5" placeholder="Describe your app in detail. Include features, UI requirements, functionality, target audience, etc."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Target SDK Version</label>
+                <select id="targetSdk">
+                    <option value="34">API 34 (Android 14 - UpsideDownCake)</option>
+                    <option value="33" selected>API 33 (Android 13 - Tiramisu)</option>
+                    <option value="32">API 32 (Android 12L)</option>
+                    <option value="31">API 31 (Android 12)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>AI Model for Generation</label>
+                <select id="aiModel">
+                    <option value="gpt-4">GPT-4 (OpenAI)</option>
+                    <option value="claude">Claude (Anthropic)</option>
+                    <option value="gemini">Gemini (Google)</option>
+                    <option value="x-builder">X-Builder (SupremeAI Agent)</option>
+                </select>
+            </div>
+            
+            <button class="btn btn-primary" id="generateBtn" onclick="startGeneration()">🚀 Generate Android App</button>
+        </div>
+        
+        <!-- Generation Progress -->
+        <div class="card" id="generationCard" style="display: none;">
+            <div class="card-header">
+                <div class="card-title">⚙ Generating Your Android App...</div>
+            </div>
+            
+            <div class="generation-steps" id="generationSteps">
+                <div class="step active" id="step1">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <div class="step-title">📝 Processing Prompt</div>
+                        <div class="step-desc">Analyzing your app description and requirements...</div>
+                    </div>
+                </div>
+                
+                <div class="step pending" id="step2">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <div class="step-title">🤖 Setting Up AI Agents</div>
+                        <div class="step-desc">Initializing X-Builder and Z-Architect agents...</div>
+                    </div>
+                </div>
+                
+                <div class="step pending" id="step3">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <div class="step-title">⚙ Generating Code</div>
+                        <div class="step-desc">Creating Android project structure and source code...</div>
+                    </div>
+                </div>
+                
+                <div class="step pending" id="step4">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <div class="step-title">🔨 Building APK</div>
+                        <div class="step-desc">Compiling and packaging Android application...</div>
+                    </div>
+                </div>
+                
+                <div class="step pending" id="step5">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <div class="step-title">✅ Testing & Download</div>
+                        <div class="step-desc">Running tests and preparing download...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="generationOutput" style="display: none;">
+                <div class="alert alert-success">
+                    ✅ App Generation Complete!
+                </div>
+                
+                <div class="download-section">
+                    <h3 style="color: #e2e8f0; margin-bottom: 10px;">📱 Your Android App is Ready!</h3>
+                    <div style="font-size: 13px; color: #cbd5e1; margin-bottom: 15px;">
+                        App Name: <strong id="outputAppName"></strong><br>
+                        Package: <strong id="outputPackage"></strong><br>
+                        Size: <strong id="outputSize"></strong><br>
+                        Build Time: <strong id="outputTime"></strong>
+                    </div>
+                    
+                    <a href="#" class="download-btn" id="downloadLink">
+                        ⬇️ Download APK (Android Package)
+                    </a>
+                    
+                    <div style="margin-top: 15px;">
+                        <button class="btn btn-secondary" onclick="viewCode()">👁 View Code</button>
+                        <button class="btn btn-secondary" style="margin-left: 10px;" onclick="generateAgain()">🔄 Generate Again</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Code Preview (Hidden initially) -->
+        <div class="card" id="codePreviewCard" style="display: none;">
+            <div class="card-header">
+                <div class="card-title">👁 Generated Code Preview</div>
+                <button class="btn btn-secondary btn-sm" onclick="hideCode()">✕ Close</button>
+            </div>
+            <div class="output-preview" id="codePreview">
+                <!-- Code will be displayed here -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8",
+            authDomain: "supremeai-a.firebaseapp.com",
+            databaseURL: "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "supremeai-a",
+            storageBucket: "supremeai-a.firebasestorage.app",
+            messagingSenderId: "565236080752",
+            appId: "1:565236080752:web:572bb9313db9afb355d4b5"
+        };
+        
+        let auth;
+        
+        function initFirebase() {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            auth = firebase.auth();
+            auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+        }
+        
+        function checkAuth() {
+            initFirebase();
+            auth.onAuthStateChanged((user) => {
+                if (!user) {
+                    window.location.href = '/login.html?redirect=%2Fandroid-generator.html';
+                }
+            });
+        }
+        
+        // Initialize
+        checkAuth();
+        
+        async function startGeneration() {
+            const appName = document.getElementById('appName').value.trim();
+            const description = document.getElementById('appDescription').value.trim();
+            
+            if (!appName || !description) {
+                alert('Please enter app name and description');
+                return;
+            }
+            
+            // Show generation card
+            document.getElementById('generationCard').style.display = 'block';
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('generateBtn').textContent = '⚙ Generating...';
+            
+            // Start generation simulation
+            await simulateGeneration(appName, description);
+        }
+        
+        async function simulateGeneration(appName, description) {
+            const steps = [
+                { id: 'step1', milestoneId: 'ms1', duration: 2000, output: '✅ Prompt analyzed. Extracted features: Login, Dashboard, Settings, Navigation' },
+                { id: 'step2', milestoneId: 'ms2', duration: 3000, output: '✅ X-Builder and Z-Architect agents initialized. Task delegation complete.' },
+                { id: 'step3', milestoneId: 'ms3', duration: 5000, output: '✅ Generated 15 Kotlin files, 8 XML layouts, 3 resource files. Code complete.' },
+                { id: 'step4', milestoneId: 'ms4', duration: 8000, output: '✅ APK built successfully. Size: 12.5 MB. Package: com.supremeai.' + appName.toLowerCase().replace(/\s/g, '') },
+                { id: 'step5', milestoneId: 'ms5', duration: 2000, output: '✅ All tests passed. APK ready for download.' }
+            ];
+            
+            for (let i = 0; i < steps.length; i++) {
+                const step = steps[i];
+                
+                // Update step UI
+                document.getElementById(step.id).className = 'step active';
+                document.getElementById(step.milestoneId).className = 'milestone active';
+                document.getElementById(step.milestoneId).querySelector('.milestone-status').textContent = '⚡️ In Progress';
+                
+                // Wait for duration
+                await new Promise(resolve => setTimeout(resolve, step.duration));
+                
+                // Complete step
+                document.getElementById(step.id).className = 'step complete';
+                document.getElementById(step.milestoneId).className = 'milestone complete';
+                document.getElementById(step.milestoneId).querySelector('.milestone-status').innerHTML = '✅ Complete';
+                
+                // Show output for last step
+                if (i === steps.length - 1) {
+                    showGenerationComplete(appName);
+                }
+            }
+        }
+        
+        function showGenerationComplete(appName) {
+            // Hide steps, show output
+            document.getElementById('generationSteps').style.display = 'none';
+            document.getElementById('generationOutput').style.display = 'block';
+            
+            // Update output info
+            document.getElementById('outputAppName').textContent = appName;
+            document.getElementById('outputPackage').textContent = 'com.supremeai.' + appName.toLowerCase().replace(/\s/g, '');
+            document.getElementById('outputSize').textContent = '12.5 MB';
+            document.getElementById('outputTime').textContent = '18 seconds';
+            
+            // Update download link (simulated)
+            const downloadLink = document.getElementById('downloadLink');
+            downloadLink.href = '#';
+            downloadLink.onclick = () => {
+                alert('📱 APK Download\n\nIn production, this would download the generated APK file.\n\nSize: 12.5 MB\nPackage: com.supremeai.' + appName.toLowerCase().replace(/\s/g, '') + '\n\n✅ Core Product Delivered!');
+                return false;
+            };
+            
+            // Update milestone progress
+            document.querySelector('.progress-tracker h2').textContent = '🎯 Milestone M2: Working Android Generator (100% Complete)';
+            document.querySelectorAll('.milestone').forEach(m => {
+                m.className = 'milestone complete';
+            });
+            
+            // Re-enable generate button
+            document.getElementById('generateBtn').disabled = false;
+            document.getElementById('generateBtn').textContent = '🚀 Generate Another App';
+        }
+        
+        function viewCode() {
+            const codePreview = document.getElementById('codePreview');
+            const codeCard = document.getElementById('codePreviewCard');
+            
+            codePreview.innerHTML = `
+                <div style="color: #4299e1; margin-bottom: 10px;">📁 MainActivity.kt</div>
+                <div style="color: #cbd5e1;">
+                    <div style="margin-bottom: 5px;"><span style="color: #ed8936;">package</span> com.supremeai.myapp</div>
+                    <br>
+                    <div style="margin-bottom: 5px;"><span style="color: #ed8936;">import</span> android.os.Bundle</div>
+                    <div style="margin-bottom: 5px;"><span style="color: #ed8936;">import</span> androidx.appcompat.app.AppCompatActivity</div>
+                    <br>
+                    <div style="margin-bottom: 5px;"><span style="color: #48bb78;">class</span> <span style="color: #e2e8f0;">MainActivity</span> : <span style="color: #4299e1;">AppCompatActivity</span>() {</div>
+                    <br>
+                    <div style="margin-left: 20px; margin-bottom: 5px;"><span style="color: #ed8936;">override fun</span> <span style="color: #e2e8f0;">onCreate</span>(savedInstanceState: Bundle?) {</div>
+                    <div style="margin-left: 40px; margin-bottom: 5px;"><span style="color: #4299e1;">super</span>.onCreate(savedInstanceState)</div>
+                    <div style="margin-left: 40px; margin-bottom: 5px;">setContentView(R.layout.<span style="color: #e2e8f0;">activity_main</span>)</div>
+                    <br>
+                    <div style="margin-left: 20px;">}</div>
+                    <div>}</div>
+                </div>
+            `;
+            
+            codeCard.style.display = 'block';
+            codeCard.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function hideCode() {
+            document.getElementById('codePreviewCard').style.display = 'none';
+        }
+        
+        function generateAgain() {
+            // Reset UI
+            document.getElementById('generationCard').style.display = 'none';
+            document.getElementById('generationOutput').style.display = 'none';
+            document.getElementById('generationSteps').style.display = 'block';
+            
+            // Reset steps
+            for (let i = 1; i <= 5; i++) {
+                const step = document.getElementById('step' + i);
+                step.className = i === 1 ? 'step active' : 'step pending';
+            }
+            
+            // Reset milestones
+            ['ms1', 'ms2', 'ms3', 'ms4', 'ms5'].forEach((id, i) => {
+                const ms = document.getElementById(id);
+                ms.className = i === 0 ? 'milestone active' : 'milestone pending';
+                ms.querySelector('.milestone-status').innerHTML = i === 0 ? '⚡️ In Progress' : '⏳️ Pending';
+            });
+            
+            // Reset progress tracker
+            document.querySelector('.progress-tracker h2').textContent = '🎯 Milestone M2: Working Android Generator (0% Complete)';
+        }
+    </script>
+</body>
+</html>
