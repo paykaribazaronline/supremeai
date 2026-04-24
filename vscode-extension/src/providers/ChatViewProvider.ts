@@ -1,12 +1,18 @@
 import * as vscode from 'vscode';
+import { SupremeAIApi, OrchestrateRequest, OrchestrateResponse } from '../services/SupremeAIApi';
 
 export class ChatViewProvider implements vscode.WebviewViewProvider {
     public static readonly viewType = 'supremeai-chat-view';
     private _view?: vscode.WebviewView;
+    private api: SupremeAIApi;
 
     constructor(
         private readonly _extensionUri: vscode.Uri,
-    ) { }
+        private readonly apiEndpoint: string,
+        private readonly apiKey?: string
+    ) {
+        this.api = new SupremeAIApi(apiEndpoint, apiKey);
+    }
 
     public resolveWebviewView(
         webviewView: vscode.WebviewView,
@@ -29,9 +35,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                 case 'sendMessage':
                     {
                         // Handle message from webview
-                        vscode.window.showInformationMessage(`SupremeAI received: ${data.value}`);
-                        // Mock response
-                        this._view?.webview.postMessage({ type: 'addResponse', value: `I'm processing your request: "${data.value}". As an AI, I can help you with coding, debugging, and project management.` });
+                        this._handleUserMessage(data.value);
                         break;
                     }
             }
@@ -42,7 +46,86 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         if (this._view) {
             this._view.show?.(true);
             this._view.webview.postMessage({ type: 'addQuestion', value: message });
+            this._handleUserMessage(message);
         }
+    }
+
+    /**
+     * ব্যবহারকারীর মেসেজ প্রসেস করে এবং এজেন্ট অর্কেস্ট্রেশন API কল করে
+     */
+    private async _handleUserMessage(message: string) {
+        try {
+            // প্রথমে ব্যবহারকারীর মেসেজ চ্যাটে দেখানো হয়েছে
+
+            // লোডিং ইন্ডিকেটর দেখানো
+            this._view?.webview.postMessage({ type: 'showLoading' });
+
+            // এজেন্ট অর্কেস্ট্রেশন API কল করা
+            const request: OrchestrateRequest = { requirement: message };
+            const response: OrchestrateResponse = await this.api.orchestrate(request);
+
+            // লোডিং ইন্ডিকেটর লুকানো
+            this._view?.webview.postMessage({ type: 'hideLoading' });
+
+            // এজেন্ট থেকে প্রাপ্ত প্রতিক্রিয়া দেখানো
+            let responseText = this._formatOrchestrationResponse(response);
+            this._view?.webview.postMessage({ type: 'addResponse', value: responseText });
+
+        } catch (error) {
+            // লোডিং ইন্ডিকেটর লুকানো
+            this._view?.webview.postMessage({ type: 'hideLoading' });
+
+            // ত্রুটি বার্তা দেখানো
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            this._view?.webview.postMessage({ 
+                type: 'addResponse', 
+                value: `দুঃখিত, আপনার অনুরোধ প্রসেস করতে সমস্যা হয়েছে: ${errorMessage}` 
+            });
+        }
+    }
+
+    /**
+     * এজেন্ট অর্কেস্ট্রেশন রেসপন্স ফরম্যাট করে
+     */
+    private _formatOrchestrationResponse(response: OrchestrateResponse): string {
+        let formatted = "আমি আপনার প্রয়োজনীয়তা বিশ্লেষণ করেছি। এখানে আমার পর্যালোচনা:\n\n";
+
+        // প্রশ্ন এবং উত্তর যোগ করা
+        if (response.context && response.context['questions']) {
+            const questions = response.context['questions'] as any[];
+            if (questions && questions.length > 0) {
+                formatted += "**প্রশ্ন এবং উত্তর:**\n";
+                questions.forEach((q, index) => {
+                    formatted += `${index + 1}. ${q.text}\n`;
+                });
+                formatted += "\n";
+            }
+        }
+
+        // সিদ্ধান্ত যোগ করা
+        if (response.context && response.context['decisions']) {
+            const decisions = response.context['decisions'] as any[];
+            if (decisions && decisions.length > 0) {
+                formatted += "**সিদ্ধান্ত:**\n";
+                decisions.forEach((d, index) => {
+                    formatted += `${index + 1}. ${d.decisionKey}: ${d.aiConsensus}\n`;
+                });
+                formatted += "\n";
+            }
+        }
+
+        // জেনারেশন কনটেক্সট যোগ করা
+        if (response.generationContext && Object.keys(response.generationContext).length > 0) {
+            formatted += "**জেনারেশন কনটেক্সট:**\n";
+            Object.entries(response.generationContext).forEach(([key, value]) => {
+                formatted += `- ${key}: ${value}\n`;
+            });
+            formatted += "\n";
+        }
+
+        formatted += "আপনি কি এই সিদ্ধান্তগুলির ভিত্তিতে কোড জেনারেট করতে চান?";
+
+        return formatted;
     }
 
     private _getHtmlForWebview(_webview: vscode.Webview) {
@@ -111,16 +194,61 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 					button:hover {
 						background-color: var(--vscode-button-hoverBackground);
 					}
+					.loading-indicator {
+						display: none;
+						padding: 10px;
+						text-align: center;
+						background-color: var(--vscode-editor-background);
+						border: 1px solid var(--vscode-panel-border);
+						border-radius: 4px;
+						margin-bottom: 10px;
+					}
+					.loading-spinner {
+						display: inline-block;
+						width: 20px;
+						height: 20px;
+						border: 2px solid var(--vscode-button-background);
+						border-radius: 50%;
+						border-top-color: transparent;
+						animation: spin 1s linear infinite;
+						margin-right: 10px;
+						vertical-align: middle;
+					}
+					@keyframes spin {
+						to { transform: rotate(360deg); }
+					}
+					.action-buttons {
+						display: flex;
+						gap: 5px;
+						margin-top: 10px;
+					}
+					.action-button {
+						flex: 1;
+						background-color: var(--vscode-button-secondaryBackground);
+						color: var(--vscode-button-secondaryForeground);
+						border: none;
+						padding: 5px 10px;
+						cursor: pointer;
+						border-radius: 3px;
+						font-size: 0.9em;
+					}
+					.action-button:hover {
+						background-color: var(--vscode-button-secondaryHoverBackground);
+					}
 				</style>
 			</head>
 			<body>
 				<div class="chat-container">
 					<div id="chat-history">
-						<div class="message ai-message">Hello! How can I help you today?</div>
+						<div class="message ai-message">সুপ্রিমএআইতে স্বাগতম! আমি কিভাবে সাহায্য করতে পারি?</div>
+					</div>
+					<div id="loading-indicator" class="loading-indicator">
+						<div class="loading-spinner"></div>
+						<span>প্রসেস করা হচ্ছে...</span>
 					</div>
 					<div class="input-container">
-						<input type="text" id="chat-input" placeholder="Type a message...">
-						<button id="send-button">Send</button>
+						<input type="text" id="chat-input" placeholder="একটি বার্তা লিখুন...">
+						<button id="send-button">পাঠান</button>
 					</div>
 				</div>
 
@@ -161,7 +289,12 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 								break;
 							case 'addQuestion':
 								addMessage(message.value, 'user-message');
-                                // Trigger AI response logic would go here
+								break;
+							case 'showLoading':
+								document.getElementById('loading-indicator').style.display = 'block';
+								break;
+							case 'hideLoading':
+								document.getElementById('loading-indicator').style.display = 'none';
 								break;
 						}
 					});

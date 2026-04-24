@@ -12,7 +12,7 @@ import { SupremeAIApi } from './services/SupremeAIApi';
      const apiKey = config.get<string>('apiKey', '');
      
      // Register Chat Webview Provider
-     const chatViewProvider = new ChatViewProvider(context.extensionUri);
+     const chatViewProvider = new ChatViewProvider(context.extensionUri, apiEndpoint, apiKey);
      context.subscriptions.push(
          vscode.window.registerWebviewViewProvider(ChatViewProvider.viewType, chatViewProvider)
      );
