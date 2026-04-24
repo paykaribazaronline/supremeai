@@ -17,6 +17,6 @@ module.exports = {
     node: true
   },
   rules: {
-    // Add any custom rules here
+    '@typescript-eslint/no-unused-vars': ['error', { 'argsIgnorePattern': '^_' }]
   }
 };

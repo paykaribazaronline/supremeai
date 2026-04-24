@@ -19,7 +19,7 @@ spring:
       leak-detection-threshold: 60000
 
 jwt:
-  secret: ${JWT_SECRET:my-secret-key-should-be-changed-in-production}
+  secret: ${JWT_SECRET}
 
 supremeai:
   providers:

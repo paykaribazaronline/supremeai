@@ -87,30 +87,32 @@
         }
       }
     },
-     "views": {
-       "explorer": [
-         {
-           "id": "supremeai-chat",
-           "name": "Chat"
-         },
-         {
-           "id": "supremeai-agents",
-           "name": "Agents"
-         },
-         {
-           "id": "supremeai-projects",
-           "name": "Projects"
-         },
-         {
-           "id": "supremeai-orchestration",
-           "name": "Orchestration"
-         },
-         {
-           "id": "supremeai-settings",
-           "name": "Settings"
-         }
-       ]
-     },
+    "views": {
+      "explorer": [
+        {
+          "type": "webview",
+          "id": "supremeai-chat-view",
+          "name": "SupremeAI Chat",
+          "icon": "media/icon.svg"
+        },
+        {
+          "id": "supremeai-agents",
+          "name": "Agents"
+        },
+        {
+          "id": "supremeai-projects",
+          "name": "Projects"
+        },
+        {
+          "id": "supremeai-orchestration",
+          "name": "Orchestration"
+        },
+        {
+          "id": "supremeai-settings",
+          "name": "Settings"
+        }
+      ]
+    },
     "viewsWelcome": {
       "view": "supremeai-chat",
       "contents": "Welcome to SupremeAI!\\nSelect a conversation or start chatting."
@@ -135,8 +137,53 @@
       {
         "command": "supremeai.chat",
         "title": "SupremeAI: Start Chat"
+      },
+      {
+        "command": "supremeai.askAboutCode",
+        "title": "Ask SupremeAI about this code"
+      },
+      {
+        "command": "supremeai.explainFile",
+        "title": "Explain file with SupremeAI"
+      },
+      {
+        "command": "supremeai.refreshProjects",
+        "title": "Refresh Projects",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "supremeai.refreshAgents",
+        "title": "Refresh Agents",
+        "icon": "$(refresh)"
       }
-    ]
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "supremeai.refreshProjects",
+          "group": "navigation",
+          "when": "view == supremeai-projects"
+        },
+        {
+          "command": "supremeai.refreshAgents",
+          "group": "navigation",
+          "when": "view == supremeai-agents"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "supremeai.askAboutCode",
+          "group": "supremeai@1",
+          "when": "editorHasSelection"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "supremeai.explainFile",
+          "group": "supremeai@1"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
