@@ -20,13 +20,14 @@ class SupremeDashboard {
     
     async loadAllData() {
         try {
-            const [agents, providers, projects, alerts, metrics, reasoning] = await Promise.all([
+            const [agents, providers, projects, alerts, metrics, reasoning, knowledge] = await Promise.all([
                 this.fetch('/agents/status'),
                 this.fetch('/providers/status'),
                 this.fetch('/projects/summary'),
                 this.fetch('/alerts/active'),
                 this.fetch('/metrics/current'),
-                this.fetch('/ai/reasoning/recent')
+                this.fetch('/ai/reasoning/recent'),
+                this.fetch('/ai/knowledge/all')
             ]);
             
             this.renderAgents(agents);
@@ -35,6 +36,7 @@ class SupremeDashboard {
             this.renderAlerts(alerts);
             this.renderMetrics(metrics);
             this.renderReasoningLogs(reasoning);
+            this.renderKnowledgeBase(knowledge);
             
         } catch (error) {
             if (error.status === 401) {
@@ -50,9 +52,37 @@ class SupremeDashboard {
             <div class="log-entry">
                 <span class="timestamp">${new Date(l.timestamp).toLocaleTimeString()}</span>
                 <strong>${l.decision}</strong>: ${l.reason}
-                <small>(${l.modelName})</small>
+                <div class="actions">
+                    <button class="approve-btn" onclick="dashboard.handleAction('${l.id}', 'APPROVE')">Approve</button>
+                    <button class="reject-btn" onclick="dashboard.handleAction('${l.id}', 'REJECT')">Reject</button>
+                </div>
             </div>
         `).join('');
+    }
+
+    renderKnowledgeBase(entries) {
+        const container = document.getElementById('knowledge-base');
+        if (!container) return;
+        container.innerHTML = entries.map(e => `
+            <div class="knowledge-card">
+                <h5>${e.topic}</h5>
+                <p>Pattern: <code>${e.pattern}</code></p>
+                <small>Learned from: ${e.sourceProvider}</small>
+            </div>
+        `).join('');
+    }
+
+    async handleAction(logId, action) {
+        console.log(`Action ${action} for log ${logId}`);
+        await fetch(`${this.apiBase}/ai/action`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${this.token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ logId, action })
+        });
+        this.loadAllData();
     }
     
     async fetch(endpoint) {

@@ -1,5 +1,6 @@
 package com.supremeai.provider;
 
+import com.supremeai.service.AIProviderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -11,38 +12,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class AIProviderFactory {
 
-    @Value("${supremeai.provider.groq.api-key}")
-    private String groqApiKey;
-
-    @Value("${supremeai.provider.openai.api-key}")
-    private String openaiApiKey;
-
-    @Value("${supremeai.provider.anthropic.api-key}")
-    private String anthropicApiKey;
-
-    @Value("${supremeai.provider.gemini.api-key}")
-    private String geminiApiKey;
-
-    @Value("${supremeai.provider.huggingface.api-key}")
-    private String huggingfaceApiKey;
-
-    @Value("${ai.deepseek.api-key:}")
-    private String deepseekApiKey;
-
-    @Value("${ai.kimi.api-key:}")
-    private String kimiApiKey;
+    @Autowired
+    private AIProviderService aiProviderService;
 
     @Value("${ai.providers.airllm.endpoint:}")
     private String airllmEndpoint;
 
-    @Value("${ai.providers.airllm.api-key:}")
-    private String airllmApiKey;
-
     @Value("${ai.providers.airllm.model:mistralai/Mistral-7B-Instruct-v0.3}")
     private String airllmModel;
-
-    @Value("${ai.providers.mistral.api-key:}")
-    private String mistralApiKey;
 
     @Autowired(required = false)
     private OllamaProvider ollamaProvider;
@@ -52,24 +29,28 @@ public class AIProviderFactory {
     }
 
     public AIProvider getProvider(String name, String overrideApiKey) {
+        String key = (overrideApiKey != null && !overrideApiKey.isEmpty()) 
+                     ? overrideApiKey 
+                     : aiProviderService.getActiveKey(name.toLowerCase());
+
         switch (name.toLowerCase()) {
             // Core 10 AI Models for S4 Voting System
             case "gpt4":
             case "openai":
-                return new OpenAIProvider(resolveKey(overrideApiKey, openaiApiKey));
+                return new OpenAIProvider(key);
 
             case "claude":
             case "anthropic":
-                return new AnthropicProvider(resolveKey(overrideApiKey, anthropicApiKey));
+                return new AnthropicProvider(key);
 
             case "gemini":
-                return new GeminiProvider(resolveKey(overrideApiKey, geminiApiKey));
+                return new GeminiProvider(key);
 
             case "groq":
-                return new GroqProvider(resolveKey(overrideApiKey, groqApiKey));
+                return new GroqProvider(key);
 
             case "deepseek":
-                return new DeepSeekProvider(resolveKey(overrideApiKey, deepseekApiKey));
+                return new DeepSeekProvider(key);
 
             case "ollama":
                 if (ollamaProvider == null) {
@@ -78,16 +59,16 @@ public class AIProviderFactory {
                 return ollamaProvider;
 
             case "huggingface":
-                return new HuggingFaceProvider(resolveKey(overrideApiKey, huggingfaceApiKey));
+                return new HuggingFaceProvider(key);
 
             case "airllm":
-                return new AirLLMProvider(airllmEndpoint, resolveKey(overrideApiKey, airllmApiKey), airllmModel);
+                return new AirLLMProvider(airllmEndpoint, key, airllmModel);
 
             case "kimi":
-                return new KimiProvider(resolveKey(overrideApiKey, kimiApiKey));
+                return new KimiProvider(key);
 
             case "mistral":
-                return new MistralProvider(resolveKey(overrideApiKey, mistralApiKey));
+                return new MistralProvider(key);
 
             default:
                 throw new IllegalArgumentException("Unknown AI provider: " + name + ". Supported: gpt4, claude, gemini, groq, deepseek, ollama, huggingface, airllm, kimi, mistral");
