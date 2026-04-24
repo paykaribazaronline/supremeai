@@ -41,7 +41,23 @@ public class WebSocketController {
 
     @Scheduled(fixedRate = 10000) // Update every 10 seconds
     public void broadcastQuotaUpdates() {
-        getGlobalQuotaData().subscribe(quotaData -> 
+        getGlobalQuotaData().flatMap(globalData -> 
+            userRepository.findAll().collectList().map(users -> {
+                Map<String, Object> data = new HashMap<>(globalData);
+                List<Map<String, Object>> userQuotas = users.stream().map(user -> {
+                    Map<String, Object> uq = new HashMap<>();
+                    uq.put("userId", user.getFirebaseUid());
+                    uq.put("displayName", user.getDisplayName());
+                    uq.put("email", user.getEmail());
+                    uq.put("usedQuota", user.getCurrentUsage());
+                    uq.put("totalQuota", user.getMonthlyQuota());
+                    uq.put("usagePercentage", user.getMonthlyQuota() > 0 ? (double) user.getCurrentUsage() / user.getMonthlyQuota() * 100.0 : 0.0);
+                    return uq;
+                }).collect(java.util.stream.Collectors.toList());
+                data.put("userQuotas", userQuotas);
+                return data;
+            })
+        ).subscribe(quotaData -> 
             messagingTemplate.convertAndSend("/topic/quota", quotaData)
         );
     }

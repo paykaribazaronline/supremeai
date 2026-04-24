@@ -271,15 +271,19 @@ public class TenAIVotingSystem {
     }
 
     /**
-     * Simple similarity check based on common words
+     * Simple similarity check based on common words and structure
      */
     private String findSimilarGroup(Set<String> existingKeys, String newResponse) {
-        String[] newWords = newResponse.toLowerCase().split("\\s+");
+        String normalizedNew = newResponse.toLowerCase().replaceAll("[^a-z0-9]", " ");
+        String[] newWords = normalizedNew.split("\\s+");
         Set<String> newWordSet = new HashSet<>(Arrays.asList(newWords));
+        newWordSet.remove(""); // Remove empty strings
 
         for (String key : existingKeys) {
-            String[] keyWords = key.toLowerCase().split("\\s+");
+            String normalizedKey = key.toLowerCase().replaceAll("[^a-z0-9]", " ");
+            String[] keyWords = normalizedKey.split("\\s+");
             Set<String> keyWordSet = new HashSet<>(Arrays.asList(keyWords));
+            keyWordSet.remove("");
 
             // Calculate Jaccard similarity
             Set<String> intersection = new HashSet<>(newWordSet);
@@ -290,7 +294,11 @@ public class TenAIVotingSystem {
 
             double similarity = union.isEmpty() ? 0 : (double) intersection.size() / union.size();
 
-            if (similarity > 0.6) { // 60% similarity threshold
+            // S4 Enhancement: Length similarity boost
+            double lengthRatio = Math.min(newResponse.length(), key.length()) / (double) Math.max(newResponse.length(), key.length());
+            double finalSimilarity = (similarity * 0.7) + (lengthRatio * 0.3);
+
+            if (finalSimilarity > 0.65) { // Adjusted threshold
                 return key;
             }
         }

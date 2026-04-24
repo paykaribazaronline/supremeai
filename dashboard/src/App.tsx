@@ -17,6 +17,7 @@ const KingModePanel = lazy(() => import('./components/KingModePanel'));
 const AuditLog = lazy(() => import('./components/AuditLog'));
 const ThreeDashboard = lazy(() => import('./components/ThreeDashboard'));
 const AdminDashboardUnified = lazy(() => import('./pages/AdminDashboardUnified'));
+const VideoTutorials = lazy(() => import('./components/VideoTutorials'));
 
 const App: React.FC = () => {
     const [authed, setAuthed] = useState<boolean>(authUtils.isAuthenticated());
@@ -63,6 +64,7 @@ const App: React.FC = () => {
                                     <Route path="/progress" element={<ProgressMonitor />} />
                                     <Route path="/kingmode" element={<KingModePanel />} />
                                     <Route path="/audit" element={<AuditLog />} />
+                                    <Route path="/tutorials" element={<VideoTutorials />} />
                                     <Route path="*" element={<Navigate to="/admin" replace />} />
                                 </Routes>
                             </Router>

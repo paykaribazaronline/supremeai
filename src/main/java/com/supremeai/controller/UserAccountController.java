@@ -6,6 +6,8 @@ import com.supremeai.service.UserAccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -15,10 +17,10 @@ import java.util.concurrent.CompletableFuture;
  * REST API for user account management.
  *
  * Endpoints:
- *   POST /api/accounts/create          - Create a single account
- *   POST /api/accounts/bulk-create      - Create accounts from pre-saved Firestore credentials
+ *   POST /api/accounts/create          - Create a single account (ADMIN only)
+ *   POST /api/accounts/bulk-create      - Create accounts from pre-saved Firestore credentials (ADMIN only)
  *   GET  /api/accounts                  - List all users (admin only)
- *   GET  /api/accounts/{uid}            - Get user details
+ *   GET  /api/accounts/{uid}            - Get user details (ADMIN or self)
  *   PUT  /api/accounts/{uid}/tier       - Update user tier (admin only)
  *   PUT  /api/accounts/{uid}/deactivate - Deactivate a user (admin only)
  */
@@ -133,9 +135,25 @@ public class UserAccountController {
 
     /**
      * GET /api/accounts/{uid} - Get details for a specific user.
+     * Accessible by ADMIN or the user themselves.
      */
     @GetMapping("/{uid}")
     public ResponseEntity<Map<String, Object>> getUser(@PathVariable String uid) {
+        // Get current authenticated user
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not authenticated");
+        }
+        
+        String currentUid = auth.getName();
+        boolean isAdmin = auth.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        
+        // Only allow users to view their own data or admins to view any user
+        if (!isAdmin && !currentUid.equals(uid)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: You can only view your own profile");
+        }
+        
         User user = userAccountService.getUser(uid);
         if (user == null) {
             return ResponseEntity.status(404).body(Map.of("error", "User not found"));
