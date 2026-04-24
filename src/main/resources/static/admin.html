@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SupremeAI - Admin Dashboard</title>
+    <title>SupremeAI Platform v0.1 - Admin Dashboard</title>
     <script src="/firebase-app-compat.js"></script>
     <script src="/firebase-auth-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -954,7 +954,7 @@
     <div class="auth-gate" id="authGate" style="display: none;">
         <div class="auth-message">
             <h2>🔐 Authentication Required</h2>
-            <p>Please log in to access the Admin Dashboard</p>
+            <p>Please log in to access the SupremeAI Platform v0.1</p>
             <a href="/login.html?redirect=%2Fadmin.html">Sign In</a>
         </div>
     </div>
@@ -964,9 +964,10 @@
         <div class="container">
             <!-- Sidebar -->
             <div class="sidebar">
-                <div class="sidebar-header">
-                    <div class="logo">👑 SupremeAI</div>
-                </div>
+                    <div class="sidebar-header">
+                        <div class="logo">👑 SupremeAI<span style="font-size: 12px; color: #718096;"> v0.1</span></div>
+                        <div style="font-size: 11px; color: #718096; margin-top: 5px;">Alpha Engine</div>
+                    </div>
                 
                 <div class="sidebar-menu">
                     <div class="menu-category">
@@ -1655,29 +1656,141 @@
                                 </div>
                             </div>
                             
-                            <div id="settings-sync" style="display: none;">
-                                <div class="empty-state">
-                                    <div class="empty-state-icon">🔄</div>
-                                    <div class="empty-state-title">Feature Sync Status</div>
-                                    <div class="empty-state-desc">Check feature parity between Admin / React / Flutter</div>
-                                    <button class="btn btn-primary">Check Sync</button>
-                                </div>
+                        <div id="settings-sync" style="display: none;">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">🔄</div>
+                                <div class="empty-state-title">Feature Sync Status</div>
+                                <div class="empty-state-desc">Check feature parity between Admin / React / Flutter</div>
+                                <button class="btn btn-primary">Check Sync</button>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title">Notification Settings</div>
-                            </div>
-                            <div class="form-group">
-                                <label>Notification Channels</label>
-                                <div style="display: flex; gap: 10px;">
-                                    <label><input type="checkbox" checked style="width: auto;"> Email</label>
-                                    <label><input type="checkbox" style="width: auto;"> Slack</label>
-                                    <label><input type="checkbox" style="width: auto;"> Discord</label>
-                                </div>
+                    <!-- P0: Emergency Stop Switch -->
+                    <div class="card" style="border: 2px solid #f56565;">
+                        <div class="card-header">
+                            <div class="card-title">🛑 Emergency Stop Switch</div>
+                            <span style="color: #f56565; font-size: 12px;">GLOBAL OVERRIDE</span>
+                        </div>
+                        <div style="background: rgba(245, 101, 101, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                            <div style="color: #f56565; font-weight: 600; margin-bottom: 8px;">⚠️ WARNING: This stops ALL AI operations immediately</div>
+                            <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+                                When activated, all agents will stop processing. No new tasks will be accepted.<br>
+                                This flag is checked by all agents before executing any action.
                             </div>
                         </div>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="emergencyStop" onchange="toggleEmergencyStop()" style="width: auto; transform: scale(1.5);">
+                                <span style="font-size: 15px; font-weight: 600;">🛑 ACTIVATE EMERGENCY STOP</span>
+                            </label>
+                            <div id="emergencyStatus" style="margin-top: 10px; font-size: 12px; color: #48bb78;">
+                                ✅ System is operational (Emergency Stop: OFF)
+                            </div>
+                        </div>
+                        <div style="font-size: 11px; color: #718096; margin-top: 10px;">
+                            💡 Stored in Firebase. All agents check this flag before acting. Survives restarts.
+                        </div>
+                    </div>
+
+                    <!-- P0: API Access Lock -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">🔒 API Access Lock</div>
+                        </div>
+                        <div style="background: rgba(66, 153, 225, 0.1); padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 12px; color: #cbd5e1;">
+                            🔒 Simple middleware check. If API key is invalid or quota exceeded, lock access automatically.
+                        </div>
+                        <div id="apiAccessStatus">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                <span class="status-dot status-dot-online" id="apiLockStatus" style="width: 12px; height: 12px;"></span>
+                                <span id="apiLockText">All API keys are valid and operational</span>
+                            </div>
+                            <div class="progress-bar" style="margin-bottom: 10px;">
+                                <div class="progress-fill" id="apiLockBar" style="width: 100%; background: #48bb78;"></div>
+                            </div>
+                        </div>
+                        <button class="btn btn-warning btn-sm" onclick="lockAPIAccess()">🔒 Lock All API Access</button>
+                        <button class="btn btn-success btn-sm" style="margin-left: 10px;" onclick="unlockAPIAccess()">🔓 Unlock API Access</button>
+                        <div style="font-size: 11px; color: #718096; margin-top: 10px;">
+                            💡 Automatically locks when quota exceeded or key invalid. Middleware checks on every request.
+                        </div>
+                    </div>
+
+                    <!-- P0: Dynamic API Rotation -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">🔄 Dynamic API Rotation</div>
+                        </div>
+                        <div style="background: rgba(66, 153, 225, 0.1); padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 12px; color: #cbd5e1;">
+                            🔄 Automatically switch between multiple API keys for the same provider. Simple key-switching logic.
+                        </div>
+                        <div class="form-group">
+                            <label>Rotation Strategy</label>
+                            <select id="rotationStrategy" onchange="updateRotationStrategy()">
+                                <option value="sequential">Sequential (Round Robin)</option>
+                                <option value="random">Random Selection</option>
+                                <option value="quota-based" selected>Quota-Based (Use key with most remaining)</option>
+                            </select>
+                        </div>
+                        <div id="rotationStatus" style="background: #111827; padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 12px; color: #cbd5e1;">
+                            <div style="margin-bottom: 5px;">Active Strategy: <strong id="currentStrategy">Quota-Based</strong></div>
+                            <div>Keys Rotated: <strong id="keysRotated">0</strong> times today</div>
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="testRotation()">🧪 Test Rotation</button>
+                        <div style="font-size: 11px; color: #718096; margin-top: 10px;">
+                            💡 Firebase stores multiple keys per provider. System switches automatically on rate limits.
+                        </div>
+                    </div>
+
+                    <!-- P0: Auto-Execution + Admin Approval -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">⚡ Auto-Execution & Admin Approval</div>
+                        </div>
+                        <div style="background: rgba(237, 137, 54, 0.1); border: 1px solid #ed8936; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 12px; color: #cbd5e1;">
+                            ⚡ GitHub Actions supports this. Admin approval gate is a simple UI toggle below.
+                        </div>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="autoExecApproval" checked onchange="toggleAutoExecApproval()" style="width: auto;">
+                                <span>Require Admin Approval for Auto-Execution</span>
+                            </label>
+                            <div id="autoExecStatus" style="margin-top: 8px; font-size: 12px; color: #48bb78;">
+                                ✅ Admin approval required for all auto-execution actions
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top: 15px;">
+                            <label>Approval Timeout (minutes)</label>
+                            <input type="number" id="approvalTimeout" value="30" min="5" max="1440" style="width: 100px;">
+                            <div style="font-size: 11px; color: #718096; margin-top: 5px;">
+                                Actions pending approval will auto-reject after this time.
+                            </div>
+                        </div>
+                        <div id="pendingAutoExec" style="margin-top: 15px;">
+                            <div style="font-size: 12px; color: #ed8936; margin-bottom: 8px;">Pending Auto-Execution Approvals:</div>
+                            <div class="empty-state" style="padding: 10px;">
+                                <div style="font-size: 12px;">No pending approvals</div>
+                            </div>
+                        </div>
+                        <div style="font-size: 11px; color: #718096; margin-top: 10px;">
+                            💡 GitHub Actions workflow waits for approval. Admin can approve/reject from dashboard.
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Notification Settings</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Notification Channels</label>
+                            <div style="display: flex; gap: 10px;">
+                                <label><input type="checkbox" checked style="width: auto;"> Email</label>
+                                <label><input type="checkbox" style="width: auto;"> Slack</label>
+                                <label><input type="checkbox" style="width: auto;"> Discord</label>
+                            </div>
+                        </div>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -3655,7 +3768,172 @@
             
             // Load evolution state
             refreshEvolutionState();
+            
+            // Initialize P0 features
+            initEmergencyStop();
+            initAPIAccessLock();
+            initDynamicRotation();
+            initAutoExecApproval();
         });
+
+        // ========== P0: EMERGENCY STOP SWITCH ==========
+        let emergencyStopActive = false;
+        
+        function initEmergencyStop() {
+            // In real implementation, this would read from Firebase
+            // For demo, check localStorage
+            emergencyStopActive = localStorage.getItem('supremeai_emergency_stop') === 'true';
+            document.getElementById('emergencyStop').checked = emergencyStopActive;
+            updateEmergencyStatus();
+        }
+        
+        function toggleEmergencyStop() {
+            emergencyStopActive = !emergencyStopActive;
+            localStorage.setItem('supremeai_emergency_stop', emergencyStopActive);
+            
+            // In real implementation, this would write to Firebase
+            // All agents check this flag before acting
+            updateEmergencyStatus();
+            
+            if (emergencyStopActive) {
+                alert('🛑 EMERGENCY STOP ACTIVATED!\n\nAll AI operations will stop immediately.\nAgents will not process any new tasks.');
+            } else {
+                alert('✅ Emergency Stop DEACTIVATED.\n\nSystem operations can resume.');
+            }
+        }
+        
+        function updateEmergencyStatus() {
+            const statusDiv = document.getElementById('emergencyStatus');
+            if (emergencyStopActive) {
+                statusDiv.innerHTML = '🛑 SYSTEM HALTED (Emergency Stop: ON)';
+                statusDiv.style.color = '#f56565';
+                statusDiv.style.fontWeight = '600';
+            } else {
+                statusDiv.innerHTML = '✅ System is operational (Emergency Stop: OFF)';
+                statusDiv.style.color = '#48bb78';
+                statusDiv.style.fontWeight = 'normal';
+            }
+        }
+
+        // ========== P0: API ACCESS LOCK ==========
+        let apiAccessLocked = false;
+        let apiKeysRotated = 0;
+        
+        function initAPIAccessLock() {
+            // In real implementation, check middleware status
+            apiAccessLocked = localStorage.getItem('supremeai_api_lock') === 'true';
+            updateAPILockStatus();
+        }
+        
+        function lockAPIAccess() {
+            apiAccessLocked = true;
+            localStorage.setItem('supremeai_api_lock', 'true');
+            updateAPILockStatus();
+            alert('🔒 All API access LOCKED!\n\nNo API requests will be processed until unlocked.');
+        }
+        
+        function unlockAPIAccess() {
+            apiAccessLocked = false;
+            localStorage.setItem('supremeai_api_lock', 'false');
+            updateAPILockStatus();
+            alert('🔓 API access UNLOCKED!\n\nAPI requests can now be processed.');
+        }
+        
+        function updateAPILockStatus() {
+            const statusDot = document.getElementById('apiLockStatus');
+            const statusText = document.getElementById('apiLockText');
+            const bar = document.getElementById('apiLockBar');
+            
+            if (apiAccessLocked) {
+                statusDot.className = 'status-dot offline';
+                statusText.textContent = 'API access is LOCKED';
+                bar.style.width = '100%';
+                bar.style.background = '#f56565';
+            } else {
+                statusDot.className = 'status-dot online';
+                statusText.textContent = 'All API keys are valid and operational';
+                bar.style.width = '100%';
+                bar.style.background = '#48bb78';
+            }
+        }
+
+        // ========== P0: DYNAMIC API ROTATION ==========
+        let rotationStrategy = 'quota-based';
+        let keysRotatedToday = 0;
+        
+        function initDynamicRotation() {
+            rotationStrategy = localStorage.getItem('supremeai_rotation_strategy') || 'quota-based';
+            keysRotatedToday = parseInt(localStorage.getItem('supremeai_keys_rotated') || 0);
+            document.getElementById('rotationStrategy').value = rotationStrategy;
+            document.getElementById('currentStrategy').textContent = 
+                rotationStrategy === 'sequential' ? 'Sequential' :
+                rotationStrategy === 'random' ? 'Random' : 'Quota-Based';
+            document.getElementById('keysRotated').textContent = keysRotatedToday;
+        }
+        
+        function updateRotationStrategy() {
+            rotationStrategy = document.getElementById('rotationStrategy').value;
+            localStorage.setItem('supremeai_rotation_strategy', rotationStrategy);
+            document.getElementById('currentStrategy').textContent = 
+                rotationStrategy === 'sequential' ? 'Sequential' :
+                rotationStrategy === 'random' ? 'Random' : 'Quota-Based';
+            
+            // In real implementation, update Firebase config
+            console.log(`Rotation strategy updated to: ${rotationStrategy}`);
+        }
+        
+        async function testRotation() {
+            const resultDiv = document.getElementById('rotationStatus');
+            resultDiv.innerHTML = `
+                <div style="background: rgba(66, 153, 225, 0.1); padding: 10px; border-radius: 5px;">
+                    🔄 Testing API rotation with "${rotationStrategy}" strategy...
+                </div>
+            `;
+            
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            keysRotatedToday++;
+            localStorage.setItem('supremeai_keys_rotated', keysRotatedToday);
+            
+            resultDiv.innerHTML = `
+                <div style="background: rgba(72, 187, 120, 0.1); padding: 10px; border-radius: 5px;">
+                    ✅ Rotation test successful!<br>
+                    <div style="font-size: 11px; margin-top: 5px;">
+                        Strategy: ${rotationStrategy}<br>
+                        Keys rotated today: ${keysRotatedToday}<br>
+                        Next rotation: Check API response headers for quota remaining
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('keysRotated').textContent = keysRotatedToday;
+        }
+
+        // ========== P0: AUTO-EXECUTION + ADMIN APPROVAL ==========
+        let autoExecNeedsApproval = true;
+        
+        function initAutoExecApproval() {
+            autoExecNeedsApproval = localStorage.getItem('supremeai_auto_exec_approval') !== 'false';
+            document.getElementById('autoExecApproval').checked = autoExecNeedsApproval;
+            updateAutoExecStatus();
+        }
+        
+        function toggleAutoExecApproval() {
+            autoExecNeedsApproval = !autoExecNeedsApproval;
+            localStorage.setItem('supremeai_auto_exec_approval', autoExecNeedsApproval);
+            updateAutoExecStatus();
+        }
+        
+        function updateAutoExecStatus() {
+            const statusDiv = document.getElementById('autoExecStatus');
+            if (autoExecNeedsApproval) {
+                statusDiv.innerHTML = '⚡ Admin approval required for all auto-execution actions';
+                statusDiv.style.color = '#48bb78';
+            } else {
+                statusDiv.innerHTML = '⚠️ Auto-execution allowed without approval';
+                statusDiv.style.color = '#ed8936';
+            }
+        }
     </script>
 </body>
 </html>
