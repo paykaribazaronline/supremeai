@@ -87,6 +87,11 @@ class OrchestrationProvider with ChangeNotifier {
   bool get isOnline => _isOnline;
   List<Map<String, dynamic>> get offlineQueue => _offlineQueue;
 
+  static const String _baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://localhost:8080',
+  );
+
   static const String _cachedResultKey = 'orchestration_cached_result';
   static const String _offlineQueueKey = 'orchestration_offline_queue';
 
@@ -184,8 +189,7 @@ class OrchestrationProvider with ChangeNotifier {
     try {
       final response = await http
           .post(
-            Uri.parse(
-                'https://supremeai-lhlwyikwlq-uc.a.run.app/api/orchestrate/requirement'),
+            Uri.parse('$_baseUrl/api/orchestrate/requirement'),
             headers: {
               'Content-Type': 'application/json',
               'Authorization': 'Bearer $token',
@@ -229,8 +233,7 @@ class OrchestrationProvider with ChangeNotifier {
     try {
       final response = await http
           .post(
-            Uri.parse(
-                'https://supremeai-lhlwyikwlq-uc.a.run.app/api/orchestrate/generate'),
+            Uri.parse('$_baseUrl/api/orchestrate/generate'),
             headers: {
               'Content-Type': 'application/json',
               'Authorization': 'Bearer $token',

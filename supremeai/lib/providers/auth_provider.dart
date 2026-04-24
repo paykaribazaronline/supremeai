@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/api_service.dart';
 
 enum AuthStatus { authenticated, unauthenticated, guest, authenticating }
 
@@ -8,6 +9,7 @@ class AuthProvider with ChangeNotifier {
   Map<String, dynamic>? _user;
   String? _token;
   String? _errorMessage;
+  final ApiService _apiService = ApiService();
 
   AuthStatus get status => _status;
   Map<String, dynamic>? get user => _user;
@@ -35,8 +37,17 @@ class AuthProvider with ChangeNotifier {
       final isGuestMode = prefs.getBool('is_guest') ?? false;
 
       if (_token != null) {
-        _status = AuthStatus.authenticated;
-        // Fetch user profile logic here
+        // Fetch user profile from backend
+        final result = await _apiService.getUserProfile();
+        if (result['success'] == true) {
+          _user = result['data'] as Map<String, dynamic>?;
+          _status = AuthStatus.authenticated;
+        } else {
+          // Token invalid, clear
+          await prefs.clear();
+          _token = null;
+          _status = AuthStatus.unauthenticated;
+        }
       } else if (isGuestMode) {
         _status = AuthStatus.guest;
       } else {
@@ -55,17 +66,31 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // TODO: Implement actual login
-      _token = 'mock_token';
-      _status = AuthStatus.authenticated;
-      notifyListeners();
+      // Register/login with backend
+      final result =
+          await _apiService.register(email, password, email.split('@')[0]);
 
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('auth_token', _token!);
-      return true;
+      if (result['success'] == true) {
+        final data = result['data'] as Map<String, dynamic>;
+        _token = data['token'] ?? data['idToken'];
+        _user = data['user'] as Map<String, dynamic>?;
+        _status = AuthStatus.authenticated;
+        notifyListeners();
+
+        final prefs = await SharedPreferences.getInstance();
+        if (_token != null) {
+          await prefs.setString('auth_token', _token!);
+        }
+        return true;
+      } else {
+        _errorMessage =
+            result['error'] ?? 'Login failed. Please check your credentials.';
+        _status = AuthStatus.unauthenticated;
+        notifyListeners();
+        return false;
+      }
     } catch (e) {
-      _errorMessage =
-          'Login failed. Please check your credentials and try again.';
+      _errorMessage = 'Login failed. Please check your credentials.';
       _status = AuthStatus.unauthenticated;
       notifyListeners();
       return false;
@@ -88,17 +113,16 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  void logout() async {
+  Future<void> logout() async {
     _status = AuthStatus.authenticating;
     notifyListeners();
 
     try {
+      await _apiService.logout();
       _status = AuthStatus.unauthenticated;
       _token = null;
       _user = null;
       _errorMessage = null;
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
       notifyListeners();
     } catch (e) {
       _errorMessage = 'Failed to logout.';
