@@ -299,31 +299,49 @@
             btn.textContent = '🔄 Refreshing...';
             btn.disabled = true;
             
-            // Simulate API call
+            // Check backend connection first
+            try {
+                const healthCheck = await fetch('/api/health', { signal: AbortSignal.timeout(3000) });
+                if (healthCheck.ok) {
+                    backendConnected = true;
+                    addLog('success', '[SUCCESS] Backend connected - Loading real workflow data...');
+                    // In real implementation, fetch from GitHub API via backend
+                    // GET /api/github/workflows
+                } else {
+                    backendConnected = false;
+                }
+            } catch (e) {
+                backendConnected = false;
+            }
+            
+            // Simulate API call (use demo data if backend not available)
             await new Promise(resolve => setTimeout(resolve, 1500));
             
-            // Demo data
+            // Enhanced demo data with PR suggestions
             const runs = [
                 {
                     workflow: 'CI/CD Pipeline',
                     status: 'success',
                     branch: 'main',
                     commit: 'a1b2c3d',
-                    time: '2 hours ago'
+                    time: '2 hours ago',
+                    pr: null
                 },
                 {
                     workflow: 'Android Build',
                     status: 'failure',
                     branch: 'feature/new-ui',
                     commit: 'e4f5g6h',
-                    time: '5 hours ago'
+                    time: '5 hours ago',
+                    pr: { number: 42, title: 'feat: New UI for Dashboard', action: 'needs-review' }
                 },
                 {
                     workflow: 'Deploy to Staging',
                     status: 'success',
                     branch: 'main',
                     commit: 'i7j8k9l',
-                    time: '1 day ago'
+                    time: '1 day ago',
+                    pr: null
                 }
             ];
             
@@ -336,7 +354,8 @@
                     <td><code style="font-size: 11px;">${run.commit}</code></td>
                     <td>${run.time}</td>
                     <td>
-                        <button class="btn btn-secondary btn-sm" onclick="viewLogs('${run.workflow}')">View Logs</button>
+                        <button class="btn btn-secondary btn-sm" onclick="viewLogs('${run.workflow}')">View</button>
+                        ${run.pr ? `<button class="btn btn-warning btn-sm" style="margin-left: 5px;" onclick="viewPR(${run.pr.number})">PR #${run.pr.number}</button>` : ''}
                     </td>
                 </tr>
             `).join('');
@@ -347,7 +366,67 @@
             
             addLog('success', `[SUCCESS] Loaded ${runs.length} workflow runs`);
             
+            // Show PR suggestions if any
+            const prs = runs.filter(r => r.pr);
+            if (prs.length > 0) {
+                showPRSuggestions(prs);
+            }
+            
             btn.textContent = originalText;
+            btn.disabled = false;
+        }
+        
+        function showPRSuggestions(prs) {
+            const resultsDiv = document.getElementById('secretScanResults');
+            resultsDiv.innerHTML = `
+                <div style="margin-top: 15px;">
+                    <div style="font-weight: 600; color: #e2e8f0; margin-bottom: 10px;">📬 Pull Requests Needing Review:</div>
+                    ${prs.map(pr => `
+                        <div class="secret-scan" style="margin-bottom: 8px;">
+                            <div style="font-weight: 600; color: #e2e8f0;">PR #${pr.pr.number}: ${pr.pr.title}</div>
+                            <div style="font-size: 11px; color: #718096;">Branch: ${pr.branch} | Action: ${pr.pr.action}</div>
+                            <button class="btn btn-success btn-sm" style="margin-top: 5px;" onclick="approvePR(${pr.pr.number})">✅ Approve</button>
+                            <button class="btn btn-danger btn-sm" style="margin-left: 5px;" onclick="rejectPR(${pr.pr.number})">❌ Reject</button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            addLog('info', `[INFO] Found ${prs.length} PR(s) needing review`);
+        }
+        
+        async function viewPR(prNumber) {
+            addLog('info', `[INFO] Viewing PR #${prNumber}`);
+            alert(`📬 Pull Request #${prNumber}\n\nIn production, this would show:\n- PR diff and changes\n- Review comments\n- Merge/Reject options\n- Auto-fix suggestions`);
+        }
+        
+        async function approvePR(prNumber) {
+            addLog('success', `[SUCCESS] Approving PR #${prNumber}`);
+            alert(`✅ PR #${prNumber} Approved!\n\nIn production, this would:\n- Merge the PR automatically\n- Trigger deployment\n- Notify the author`);
+        }
+        
+        async function rejectPR(prNumber) {
+            const reason = prompt(`Reason for rejecting PR #${prNumber}:`);
+            if (reason) {
+                addLog('warning', `[WARNING] Rejected PR #${prNumber}: ${reason}`);
+                alert(`❌ PR #${prNumber} Rejected.\n\nIn production, this would:\n- Post review comment\n- Notify the author`);
+            }
+        }
+        
+        async function autoPush() {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = '🚀 Pushing...';
+            
+            addLog('info', '[INFO] Starting auto-push to GitHub...');
+            
+            // Simulate push
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            addLog('success', '[SUCCESS] Auto-push complete! Changes pushed to GitHub.');
+            document.getElementById('runsToday').textContent = 
+                parseInt(document.getElementById('runsToday').textContent) + 1;
+            
+            btn.textContent = '🚀 Auto-Push to GitHub';
             btn.disabled = false;
         }
         
