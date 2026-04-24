@@ -579,6 +579,277 @@
         }
         
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Chat Interface */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 150px);
+            background: #111827;
+            border: 1px solid #2d3748;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            padding: 15px 20px;
+            background: #1a202c;
+            border-bottom: 1px solid #2d3748;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .chat-title { color: #4299e1; font-size: 16px; font-weight: 600; }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .chat-msg {
+            display: flex;
+            gap: 10px;
+            max-width: 80%;
+        }
+        
+        .chat-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+        .chat-msg.ai { align-self: flex-start; }
+        
+        .chat-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .chat-avatar.user { background: #4299e1; color: white; }
+        .chat-avatar.ai { background: #48bb78; color: white; }
+        
+        .chat-bubble {
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+        
+        .chat-msg.user .chat-bubble {
+            background: #4299e1;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .chat-msg.ai .chat-bubble {
+            background: #2d3748;
+            color: #e2e8f0;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .chat-meta {
+            font-size: 11px;
+            color: #718096;
+            margin-top: 4px;
+            padding: 0 4px;
+        }
+        
+        .chat-msg.user .chat-meta { text-align: right; }
+        
+        /* Rule Suggestion Card */
+        .rule-suggestion {
+            background: rgba(66, 153, 225, 0.1);
+            border: 1px solid #4299e1;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        
+        .rule-suggestion-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #4299e1;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        
+        .rule-content {
+            background: #1a202c;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 13px;
+            color: #cbd5e1;
+            margin-bottom: 10px;
+        }
+        
+        /* Work Plan Card */
+        .work-plan {
+            background: rgba(72, 187, 120, 0.1);
+            border: 1px solid #48bb78;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        
+        .work-plan-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #48bb78;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        
+        .work-plan-steps {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+        
+        .work-plan-step {
+            padding: 8px 10px;
+            background: #1a202c;
+            border-radius: 5px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step-number {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #48bb78;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        /* Confirmation Dialog */
+        .confirmation-dialog {
+            background: rgba(237, 137, 54, 0.1);
+            border: 1px solid #ed8936;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        
+        .confirmation-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ed8936;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        
+        .confirmation-message {
+            font-size: 13px;
+            color: #cbd5e1;
+            margin-bottom: 15px;
+        }
+        
+        .confirmation-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* Chat Input */
+        .chat-input-container {
+            padding: 15px 20px;
+            background: #1a202c;
+            border-top: 1px solid #2d3748;
+        }
+        
+        .chat-input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 12px 15px;
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            border-radius: 20px;
+            color: #e2e8f0;
+            font-family: inherit;
+            font-size: 14px;
+            resize: none;
+            max-height: 120px;
+            min-height: 44px;
+        }
+        
+        .chat-input:focus {
+            outline: none;
+            border-color: #4299e1;
+        }
+        
+        .chat-send-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #4299e1;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .chat-send-btn:hover { background: #3182ce; }
+        .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+            background: #2d3748;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            align-self: flex-start;
+            width: fit-content;
+        }
+        
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #718096;
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
     </style>
 </head>
 <body>
@@ -603,29 +874,30 @@
                 <div class="sidebar-menu">
                     <div class="menu-category">
                         <div class="menu-category-title">MAIN</div>
-                        <div class="menu-item active" onclick="showSection('overview')">📊 Overview</div>
+                        <div class="menu-item active" onclick="showSection('overview', this)">📊 Overview</div>
                     </div>
                     
                     <div class="menu-category">
                         <div class="menu-category-title">AI & PROVIDERS</div>
-                        <div class="menu-item" onclick="showSection('providers')">⚡ AI Providers</div>
-                        <div class="menu-item" onclick="showSection('knowledge')">🧠 Knowledge Base</div>
+                        <div class="menu-item" onclick="showSection('providers', this)">⚡ AI Providers</div>
+                        <div class="menu-item" onclick="showSection('knowledge', this)">🧠 Knowledge Base</div>
+                        <div class="menu-item" onclick="showSection('chat', this)">💬 Chat with SupremeAI</div>
                     </div>
                     
                     <div class="menu-category">
                         <div class="menu-category-title">PROJECTS</div>
-                        <div class="menu-item" onclick="showSection('projects')">🚀 Projects & Deploy</div>
+                        <div class="menu-item" onclick="showSection('projects', this)">🚀 Projects & Deploy</div>
                     </div>
                     
                     <div class="menu-category">
                         <div class="menu-category-title">ADMIN</div>
-                        <div class="menu-item" onclick="showSection('users')">👥 User Management</div>
-                        <div class="menu-item" onclick="showSection('activity')">📋 Activity & Approvals</div>
+                        <div class="menu-item" onclick="showSection('users', this)">👥 User Management</div>
+                        <div class="menu-item" onclick="showSection('activity', this)">📋 Activity & Approvals</div>
                     </div>
                     
                     <div class="menu-category">
                         <div class="menu-category-title">SYSTEM</div>
-                        <div class="menu-item" onclick="showSection('settings')">⚙️ System Settings</div>
+                        <div class="menu-item" onclick="showSection('settings', this)">⚙️ System Settings</div>
                     </div>
                 </div>
                 
@@ -795,7 +1067,43 @@
                                 <textarea id="consensusPrompt" rows="3" placeholder="Enter a prompt to test multi-AI consensus..."></textarea>
                             </div>
                             <button class="btn btn-primary" onclick="testConsensus()">Test Consensus</button>
-                            <div id="consensusResult" style="margin-top: 15px;"></div>
+                        <div id="consensusResult" style="margin-top: 15px;"></div>
+                        </div>
+
+                    <!-- Tab 3.5: Chat with SupremeAI -->
+                    <div class="content-section" id="section-chat">
+                        <div class="chat-container">
+                            <div class="chat-header">
+                                <div class="chat-title">💬 Chat with SupremeAI</div>
+                                <button class="btn btn-secondary btn-sm" onclick="clearChat()">Clear Chat</button>
+                            </div>
+                            
+                            <div class="chat-messages" id="chatMessages">
+                                <div class="chat-msg ai">
+                                    <div class="chat-avatar ai">AI</div>
+                                    <div>
+                                        <div class="chat-bubble">
+                                            Hello! I'm SupremeAI. I can help you with:<br><br>
+                                            • Understanding your requirements<br>
+                                            • Extracting rules from our conversation<br>
+                                            • Creating work plans for projects<br>
+                                            • Confirming my understanding before proceeding<br><br>
+                                            How can I help you today?
+                                        </div>
+                                        <div class="chat-meta">Just now</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="chat-input-container">
+                                <div class="chat-input-wrapper">
+                                    <textarea class="chat-input" id="chatInput" placeholder="Type your message... (I'll understand rules, work plans, and confirm before acting)" rows="1" onkeydown="handleChatKeydown(event)"></textarea>
+                                    <button class="chat-send-btn" id="chatSendBtn" onclick="sendMessage()">➤</button>
+                                </div>
+                                <div style="font-size: 11px; color: #718096; margin-top: 8px;">
+                                    💡 Tip: I'll automatically detect rules to save and work plans. I'll always confirm my understanding before executing.
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -1103,20 +1411,33 @@
         }
 
         // ========== NAVIGATION ==========
-        function showSection(sectionId) {
+        function showSection(sectionId, element) {
             // Hide all sections
             document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
             
             // Show selected section
-            document.getElementById('section-' + sectionId).classList.add('active');
-            event.target.classList.add('active');
+            const targetSection = document.getElementById('section-' + sectionId);
+            if (targetSection) targetSection.classList.add('active');
+            
+            // Mark menu item as active
+            if (element) {
+                element.classList.add('active');
+            } else {
+                // Fallback: find the menu item that triggered this
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    if (item.onclick && item.onclick.toString().includes(sectionId)) {
+                        item.classList.add('active');
+                    }
+                });
+            }
             
             // Update page title
             const titles = {
                 'overview': '📊 Overview Dashboard',
                 'providers': '⚡ AI Providers Hub',
                 'knowledge': '🧠 AI Knowledge Base',
+                'chat': '💬 Chat with SupremeAI',
                 'projects': '🚀 Projects & Deployment',
                 'users': '👥 User Management',
                 'activity': '📋 Activity & Approvals',
@@ -1300,10 +1621,403 @@
                 `Mode: <strong>${mode}</strong> | ${mode === 'AUTO' ? 'System will execute instantly' : mode === 'WAIT' ? 'System is waiting for manual approvals' : 'All operations halted'}`;
         }
 
+        // ========== CHAT SYSTEM ==========
+        let chatHistory = JSON.parse(localStorage.getItem('supremeai_chat_history') || '[]');
+        let messageCount = 0;
+        let pendingConfirmations = {};
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message to chat
+            addMessage('user', message);
+            input.value = '';
+            input.style.height = 'auto';
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Process message and get AI response
+            setTimeout(() => {
+                removeTypingIndicator();
+                const aiResponse = processUserMessage(message);
+                addMessage('ai', aiResponse.text, aiResponse);
+            }, 1000 + Math.random() * 1000);
+        }
+
+        function handleChatKeydown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function addMessage(sender, text, metadata = null) {
+            const chatMessages = document.getElementById('chatMessages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `chat-msg ${sender}`;
+            
+            const avatarLetter = sender === 'user' ? 'U' : 'AI';
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            let bubbleContent = text;
+            
+            // Add rule suggestion if detected
+            if (metadata && metadata.rule) {
+                const ruleId = 'rule_' + Date.now();
+                pendingConfirmations[ruleId] = { type: 'rule', content: metadata.rule.content, category: metadata.rule.category };
+                bubbleContent += `
+                    <div class="rule-suggestion">
+                        <div class="rule-suggestion-header">📋 Rule Detected</div>
+                        <div class="rule-content">${metadata.rule.content}</div>
+                        <div style="font-size: 11px; color: #718096; margin-bottom: 8px;">Category: ${metadata.rule.category}</div>
+                        <button class="btn btn-success btn-sm" onclick="saveRule('${ruleId}')">💾 Save as Rule</button>
+                    </div>
+                `;
+            }
+            
+            // Add work plan if detected
+            if (metadata && metadata.workPlan) {
+                const planId = 'plan_' + Date.now();
+                pendingConfirmations[planId] = { type: 'workplan', steps: metadata.workPlan.steps, description: metadata.workPlan.description };
+                bubbleContent += `
+                    <div class="work-plan">
+                        <div class="work-plan-header">📋 Work Plan Created</div>
+                        <div style="font-size: 12px; color: #718096; margin-bottom: 10px;">${metadata.workPlan.description}</div>
+                        <ul class="work-plan-steps">
+                            ${metadata.workPlan.steps.map((step, i) => `
+                                <li class="work-plan-step">
+                                    <span class="step-number">${i + 1}</span>
+                                    <span>${step}</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                        <button class="btn btn-success btn-sm" onclick="executeWorkPlan('${planId}')">▶ Execute Plan</button>
+                    </div>
+                `;
+            }
+            
+            // Add confirmation if needed
+            if (metadata && metadata.needsConfirmation) {
+                const confId = metadata.confirmationId || ('conf_' + Date.now());
+                pendingConfirmations[confId] = { type: 'confirmation', message: metadata.confirmationMessage };
+                bubbleContent += `
+                    <div class="confirmation-dialog">
+                        <div class="confirmation-header">⚠️ Confirmation Needed</div>
+                        <div class="confirmation-message">${metadata.confirmationMessage}</div>
+                        <div class="confirmation-actions">
+                            <button class="btn btn-success btn-sm" onclick="handleConfirmation(true, '${confId}')">✅ Confirm</button>
+                            <button class="btn btn-danger btn-sm" onclick="handleConfirmation(false, '${confId}')">❌ Cancel</button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            msgDiv.innerHTML = `
+                <div class="chat-avatar ${sender}">${avatarLetter}</div>
+                <div>
+                    <div class="chat-bubble">${bubbleContent}</div>
+                    <div class="chat-meta">${time}</div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Save to history
+            chatHistory.push({ sender, text, timestamp: Date.now() });
+            if (chatHistory.length > 100) chatHistory.shift();
+            localStorage.setItem('supremeai_chat_history', JSON.stringify(chatHistory));
+        }
+
+        function handleChatKeydown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function addMessage(sender, text, metadata = null) {
+            const chatMessages = document.getElementById('chatMessages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `chat-msg ${sender}`;
+            
+            const avatarLetter = sender === 'user' ? 'U' : 'AI';
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            let bubbleContent = text;
+            
+            // Add rule suggestion if detected
+            if (metadata && metadata.rule) {
+                bubbleContent += `
+                    <div class="rule-suggestion">
+                        <div class="rule-suggestion-header">📋 Rule Detected</div>
+                        <div class="rule-content">${metadata.rule.content}</div>
+                        <div style="font-size: 11px; color: #718096; margin-bottom: 8px;">Category: ${metadata.rule.category}</div>
+                        <button class="btn btn-success btn-sm" onclick="saveRule('${escapeJs(metadata.rule.content)}', '${metadata.rule.category}')">💾 Save as Rule</button>
+                    </div>
+                `;
+            }
+            
+            // Add work plan if detected
+            if (metadata && metadata.workPlan) {
+                bubbleContent += `
+                    <div class="work-plan">
+                        <div class="work-plan-header">📋 Work Plan Created</div>
+                        <div style="font-size: 12px; color: #718096; margin-bottom: 10px;">${metadata.workPlan.description}</div>
+                        <ul class="work-plan-steps">
+                            ${metadata.workPlan.steps.map((step, i) => `
+                                <li class="work-plan-step">
+                                    <span class="step-number">${i + 1}</span>
+                                    <span>${step}</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                        <button class="btn btn-success btn-sm" onclick="executeWorkPlan(${JSON.stringify(metadata.workPlan.steps).replace(/"/g, '&quot;')})">▶ Execute Plan</button>
+                    </div>
+                `;
+            }
+            
+            // Add confirmation if needed
+            if (metadata && metadata.needsConfirmation) {
+                bubbleContent += `
+                    <div class="confirmation-dialog">
+                        <div class="confirmation-header">⚠️ Confirmation Needed</div>
+                        <div class="confirmation-message">${metadata.confirmationMessage}</div>
+                        <div class="confirmation-actions">
+                            <button class="btn btn-success btn-sm" onclick="handleConfirmation(true, '${metadata.confirmationId || 'default'}')">✅ Confirm</button>
+                            <button class="btn btn-danger btn-sm" onclick="handleConfirmation(false, '${metadata.confirmationId || 'default'}')">❌ Cancel</button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            msgDiv.innerHTML = `
+                <div class="chat-avatar ${sender}">${avatarLetter}</div>
+                <div>
+                    <div class="chat-bubble">${bubbleContent}</div>
+                    <div class="chat-meta">${time}</div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Save to history
+            chatHistory.push({ sender, text, timestamp: Date.now() });
+            if (chatHistory.length > 100) chatHistory.shift();
+            localStorage.setItem('supremeai_chat_history', JSON.stringify(chatHistory));
+        }
+
+        function showTypingIndicator() {
+            const chatMessages = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'chat-msg ai';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = `
+                <div class="chat-avatar ai">AI</div>
+                <div class="typing-indicator">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            `;
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const typing = document.getElementById('typingIndicator');
+            if (typing) typing.remove();
+        }
+
+        function processUserMessage(message) {
+            const lowerMsg = message.toLowerCase();
+            let response = { text: '', rule: null, workPlan: null, needsConfirmation: false };
+            
+            // Detect rules (things to remember/save)
+            if (lowerMsg.includes('remember') || lowerMsg.includes('rule') || lowerMsg.includes('always') || lowerMsg.includes('never')) {
+                response.rule = {
+                    content: `Rule extracted: ${message}`,
+                    category: lowerMsg.includes('user') ? 'User Preference' : 'System Rule'
+                };
+                response.text = "I've detected a potential rule in your message. ";
+                response.text += "Based on my understanding, you want me to remember: " + message;
+                response.text += "<br><br>Is my understanding correct? I can save this as a rule.";
+                response.needsConfirmation = true;
+                response.confirmationId = 'rule_' + Date.now();
+                response.confirmationMessage = `Save this rule: "${message}"?`;
+            }
+            
+            // Detect work plans
+            else if (lowerMsg.includes('create') && (lowerMsg.includes('project') || lowerMsg.includes('app'))) {
+                response.workPlan = {
+                    description: 'Create a new project/app based on your request',
+                    steps: [
+                        'Analyze requirements from your description',
+                        'Generate project structure',
+                        'Set up AI agents (X-Builder, Z-Architect)',
+                        'Create initial codebase',
+                        'Run tests and validation',
+                        'Deploy to staging environment'
+                    ]
+                };
+                response.text = "I've created a work plan for your project creation request. ";
+                response.text += "Here's what I understand you want: " + message;
+                response.text += "<br><br>Please review the work plan below and confirm if this matches your expectations.";
+                response.needsConfirmation = true;
+                response.confirmationId = 'workplan_' + Date.now();
+                response.confirmationMessage = `Execute work plan with ${response.workPlan.steps.length} steps?`;
+            }
+            
+            // Detect improvement requests
+            else if (lowerMsg.includes('improve') || lowerMsg.includes('fix') || lowerMsg.includes('update')) {
+                response.workPlan = {
+                    description: 'Improve existing project based on your request',
+                    steps: [
+                        'Analyze current codebase',
+                        'Identify areas for improvement',
+                        'Generate improvement plan',
+                        'Apply changes with AI agents',
+                        'Run tests to verify improvements',
+                        'Commit changes to repository'
+                    ]
+                };
+                response.text = "I've created a work plan to improve your project. ";
+                response.text += "My understanding: " + message;
+                response.text += "<br><br>Please confirm if I've understood correctly before I proceed.";
+                response.needsConfirmation = true;
+                response.confirmationId = 'improve_' + Date.now();
+                response.confirmationMessage = `Execute improvement plan?`;
+            }
+            
+            // General response
+            else {
+                response.text = "Thank you for your message. ";
+                response.text += "Let me confirm my understanding: You're asking about \"" + message + "\". ";
+                response.text += "<br><br>Is this correct? I want to make sure I understand before proceeding.";
+                response.needsConfirmation = true;
+                response.confirmationId = 'general_' + Date.now();
+                response.confirmationMessage = `Is my understanding correct: "${message}"?`;
+            }
+            
+            return response;
+        }
+
+        function saveRule(ruleId) {
+            // Get rule from pendingConfirmations
+            const ruleData = pendingConfirmations[ruleId];
+            if (!ruleData || ruleData.type !== 'rule') {
+                alert('Error: Rule not found!');
+                return;
+            }
+            
+            // In real implementation, this would call backend API
+            alert(`✅ Rule saved successfully!\n\nCategory: ${ruleData.category}\nContent: ${ruleData.content}`);
+            
+            // Add success message to chat
+            addMessage('ai', `✅ Rule has been saved to the Knowledge Base under "${ruleData.category}". I'll remember this for future interactions.`);
+            
+            // Clean up
+            delete pendingConfirmations[ruleId];
+        }
+
+        async function executeWorkPlan(planId) {
+            // Get plan from pendingConfirmations
+            const planData = pendingConfirmations[planId];
+            if (!planData || planData.type !== 'workplan') {
+                alert('Error: Work plan not found!');
+                return;
+            }
+            
+            const steps = planData.steps;
+            
+            // Show execution started message
+            addMessage('ai', '🚀 Executing work plan...<br><br>I\'ll update you as each step completes.');
+            
+            // Simulate step execution
+            for (let i = 0; i < steps.length; i++) {
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                addMessage('ai', `✅ Step ${i + 1} completed: ${steps[i]}`);
+            }
+            
+            addMessage('ai', '🎉 Work plan execution completed successfully! All steps have been executed.');
+            
+            // Clean up
+            delete pendingConfirmations[planId];
+        }
+
+        function handleConfirmation(confirmed, confId) {
+            const confData = pendingConfirmations[confId];
+            
+            if (confirmed) {
+                addMessage('user', '✅ Yes, proceed with the plan.');
+                addMessage('ai', 'Perfect! I\'ll proceed with the plan. Let me start...');
+                
+                // If it was a rule confirmation, save it
+                if (confId.startsWith('rule_')) {
+                    saveRule(confId);
+                }
+                
+                // If it was a work plan confirmation, execute it
+                if (confId.startsWith('plan_')) {
+                    executeWorkPlan(confId);
+                }
+            } else {
+                addMessage('user', '❌ No, let me clarify.');
+                addMessage('ai', 'Understood. Please provide more details or corrections so I can better understand your requirements.');
+            }
+            
+            // Clean up confirmation
+            delete pendingConfirmations[confId];
+        }
+
+        function clearChat() {
+            if (confirm('Clear all chat history?')) {
+                document.getElementById('chatMessages').innerHTML = `
+                    <div class="chat-msg ai">
+                        <div class="chat-avatar ai">AI</div>
+                        <div>
+                            <div class="chat-bubble">
+                                Hello! I'm SupremeAI. I can help you with:<br><br>
+                                • Understanding your requirements<br>
+                                • Extracting rules from our conversation<br>
+                                • Creating work plans for projects<br>
+                                • Confirming my understanding before proceeding<br><br>
+                                How can I help you today?
+                            </div>
+                            <div class="chat-meta">Just now</div>
+                        </div>
+                    </div>
+                `;
+                chatHistory = [];
+                localStorage.removeItem('supremeai_chat_history');
+                pendingConfirmations = {};
+            }
+        }
+
+        // Auto-resize chat input
+        document.getElementById('chatInput').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
         // ========== INITIALIZATION ==========
         window.addEventListener('DOMContentLoaded', () => {
             setLanguage(currentLanguage);
             checkAuth();
+            
+            // Load chat history
+            if (chatHistory.length > 0) {
+                const chatMessages = document.getElementById('chatMessages');
+                // Keep the initial message, add history
+                chatHistory.forEach(msg => {
+                    addMessage(msg.sender, msg.text);
+                });
+            }
         });
     </script>
 </body>
