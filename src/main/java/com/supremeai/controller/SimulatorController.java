@@ -118,44 +118,24 @@ public class SimulatorController {
                 .body(Map.of("error", "appId is required"));
         }
 
-        try {
-            SimulatorService.SimulatorInstallResult result = 
-                simulatorService.installApp(userId, appId, deviceProfile);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("app", Map.of(
-                "appId", result.getInstalledApp().getAppId(),
-                "appName", result.getInstalledApp().getAppName(),
-                "previewUrl", result.getPreviewUrl(),
-                "installedAt", result.getInstalledApp().getInstalledAt(),
-                "status", result.getInstalledApp().getStatus().name()
-            ));
-            response.put("quota", Map.of(
-                "used", result.getActiveInstalls(),
-                "total", result.getInstallQuota()
-            ));
-            
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-            
-        } catch (SimulatorQuotaExceededException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
-                "error", "QUOTA_EXCEEDED",
-                "message", e.getMessage(),
-                "quota", Map.of("used", e.getUsed(), "total", e.getLimit())
-            ));
-        } catch (SimulatorDeploymentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of(
-                "error", "DEPLOYMENT_FAILED",
-                "message", e.getMessage()
-            ));
-        } catch (Exception e) {
-            logger.error("Failed to install app {} for user {}", appId, userId, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                "error", "INSTALL_FAILED",
-                "message", "An unexpected error occurred"
-            ));
-        }
+        SimulatorService.SimulatorInstallResult result = 
+            simulatorService.installApp(userId, appId, deviceProfile);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("app", Map.of(
+            "appId", result.getInstalledApp().getAppId(),
+            "appName", result.getInstalledApp().getAppName(),
+            "previewUrl", result.getPreviewUrl(),
+            "installedAt", result.getInstalledApp().getInstalledAt(),
+            "status", result.getInstalledApp().getStatus().name()
+        ));
+        response.put("quota", Map.of(
+            "used", result.getActiveInstalls(),
+            "total", result.getInstallQuota()
+        ));
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
@@ -169,22 +149,8 @@ public class SimulatorController {
             @PathVariable String appId) {
         
         String userId = auth.getName();
-        
-        try {
-            simulatorService.uninstallApp(userId, appId);
-            return ResponseEntity.ok(Map.of("success", true));
-        } catch (SimulatorResourceNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
-                "error", "NOT_FOUND",
-                "message", e.getMessage()
-            ));
-        } catch (Exception e) {
-            logger.error("Failed to uninstall app {} for user {}", appId, userId, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                "error", "UNINSTALL_FAILED",
-                "message", e.getMessage()
-            ));
-        }
+        simulatorService.uninstallApp(userId, appId);
+        return ResponseEntity.ok(Map.of("success", true));
     }
 
     /**
@@ -245,41 +211,17 @@ public class SimulatorController {
         
         String userId = auth.getName();
         
-        try {
-            SimulatorService.SessionStartResult result = 
-                simulatorService.startSession(userId, appId);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("sessionId", result.getSessionId());
-            response.put("websocketUrl", result.getWebsocketUrl());
-            response.put("previewUrl", result.getPreviewUrl());
-            response.put("state", result.getState());
-            response.put("startedAt", result.getStartedAt());
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (SimulatorQuotaExceededException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
-                "error", "SESSION_LIMIT_REACHED",
-                "message", e.getMessage()
-            ));
-        } catch (SimulatorResourceNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
-                "error", "APP_NOT_FOUND",
-                "message", e.getMessage()
-            ));
-        } catch (SimulatorSessionException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
-                "error", "SESSION_CONFLICT",
-                "message", e.getMessage()
-            ));
-        } catch (Exception e) {
-            logger.error("Failed to start session for user {} app {}", userId, appId, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                "error", "SESSION_START_FAILED",
-                "message", "Failed to start simulator session"
-            ));
-        }
+        SimulatorService.SessionStartResult result = 
+            simulatorService.startSession(userId, appId);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("sessionId", result.getSessionId());
+        response.put("websocketUrl", result.getWebsocketUrl());
+        response.put("previewUrl", result.getPreviewUrl());
+        response.put("state", result.getState());
+        response.put("startedAt", result.getStartedAt());
+        
+        return ResponseEntity.ok(response);
     }
 
     /**
