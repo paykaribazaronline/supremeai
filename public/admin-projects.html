@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SupremeAI - Project Management</title>
+    <script defer src="/__/firebase/12.11.0/firebase-app-compat.js"></script>
+    <script defer src="/__/firebase/12.11.0/firebase-auth-compat.js"></script>
+    <script defer src="/__/firebase/12.11.0/firebase-firestore-compat.js"></script>
+    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: #f5f5f5; color: #333; min-height: 100vh; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 0; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header-content { display: flex; justify-content: space-between; align-items: center; }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-link { color: white; text-decoration: none; padding: 8px 16px; border-radius: 4px; transition: background 0.3s; }
+        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.2); }
+        .card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card-title { font-size: 1.3em; font-weight: 600; color: #333; }
+        .projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+        .project-card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .project-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .project-name { font-size: 1.2em; font-weight: 600; color: #333; }
+        .project-status { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+        .status-active { background: #d4edda; color: #155724; }
+        .status-archived { background: #f8d7da; color: #721c24; }
+        .project-metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px; }
+        .metric { padding: 10px; background: #f8f9fa; border-radius: 4px; }
+        .metric-label { font-size: 12px; color: #666; margin-bottom: 5px; }
+        .metric-value { font-size: 1.2em; font-weight: 600; color: #333; }
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #764ba2; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #5a6268; }
+        .btn-danger { background: #f44336; color: white; }
+        .btn-danger:hover { background: #d32f2f; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #666; font-weight: 500; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        .form-group textarea { height: 100px; resize: vertical; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+        .modal.show { display: flex; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 8px; width: 90%; max-width: 600px; }
+        .loading { text-align: center; padding: 20px; }
+        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .empty-state { text-align: center; padding: 40px; color: #999; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container header-content">
+            <h1>📁 Project Management</h1>
+            <div class="nav-links">
+                <a href="/admin-console.html" class="nav-link">Dashboard</a>
+                <a href="/admin-users.html" class="nav-link">Users</a>
+                <a href="/admin-settings.html" class="nav-link">Settings</a>
+                <a href="/admin-logs.html" class="nav-link">Logs</a>
+                <a href="/admin-providers.html" class="nav-link">Providers</a>
+                <a href="/admin-projects.html" class="nav-link active">Projects</a>
+                <a href="/monitoring-dashboard.html" class="nav-link">Monitoring</a>
+                <a href="/performance-dashboard.html" class="nav-link">Performance</a>
+                <button onclick="logout()" class="btn btn-danger">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Projects</div>
+                <button onclick="openAddProjectModal()" class="btn btn-primary">+ Add Project</button>
+            </div>
+
+            <div class="loading" id="loading"><div class="spinner"></div></div>
+            <div id="projects-container" style="display: none;">
+                <div class="projects-grid" id="projects-grid"></div>
+            </div>
+            <div class="empty-state" id="empty-state" style="display: none;">No projects found</div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Project Modal -->
+    <div class="modal" id="project-modal">
+        <div class="modal-content">
+            <h2 id="modal-title" style="margin-bottom: 20px;">Add New Project</h2>
+            <form id="project-form">
+                <input type="hidden" id="project-id">
+                <div class="form-group">
+                    <label for="project-name">Project Name</label>
+                    <input type="text" id="project-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="project-description">Description</label>
+                    <textarea id="project-description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="project-status">Status</label>
+                    <select id="project-status" required>
+                        <option value="active">Active</option>
+                        <option value="archived">Archived</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="project-type">Type</label>
+                    <select id="project-type" required>
+                        <option value="web">Web Application</option>
+                        <option value="mobile">Mobile Application</option>
+                        <option value="api">API Service</option>
+                        <option value="data">Data Processing</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Project</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let auth, db;
+        let projects = [];
+
+        function initFirebase() {
+            if (typeof firebase === 'undefined' || !firebase.apps.length) return false;
+            auth = firebase.auth();
+            db = firebase.firestore();
+            return true;
+        }
+
+        function checkAuth() {
+            const admin = sessionStorage.getItem('supremeai_admin');
+            if (admin !== 'true') {
+                window.location.href = '/index.html';
+                return false;
+            }
+            return true;
+        }
+
+        function logout() {
+            if (auth) auth.signOut().catch(() => {});
+            sessionStorage.removeItem('supremeai_admin');
+            sessionStorage.removeItem('supremeai_user');
+            window.location.href = '/index.html';
+        }
+
+        async function loadProjects() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('projects-container').style.display = 'none';
+            document.getElementById('empty-state').style.display = 'none';
+
+            try {
+                const snapshot = await db.collection('projects').get();
+                projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderProjects();
+            } catch (error) {
+                console.error('Error loading projects:', error);
+                alert('Failed to load projects');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                if (projects.length > 0) {
+                    document.getElementById('projects-container').style.display = 'block';
+                } else {
+                    document.getElementById('empty-state').style.display = 'block';
+                }
+            }
+        }
+
+        function renderProjects() {
+            const grid = document.getElementById('projects-grid');
+            grid.innerHTML = projects.map(project => `
+                <div class="project-card">
+                    <div class="project-header">
+                        <div class="project-name">${project.name}</div>
+                        <div class="project-status ${project.status === 'active' ? 'status-active' : 'status-archived'}">
+                            ${project.status === 'active' ? 'Active' : 'Archived'}
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 10px; color: #666; font-size: 14px;">${project.description || 'No description'}</div>
+                    <div style="margin-bottom: 10px; color: #666; font-size: 14px;">Type: ${project.type}</div>
+
+                    <div class="project-metrics">
+                        <div class="metric">
+                            <div class="metric-label">Total Requests</div>
+                            <div class="metric-value">${project.totalRequests || 0}</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Active Users</div>
+                            <div class="metric-value">${project.activeUsers || 0}</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Success Rate</div>
+                            <div class="metric-value">${project.successRate || 0}%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Avg Response Time</div>
+                            <div class="metric-value">${project.avgResponseTime || 0}ms</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <button onclick="editProject('${project.id}')" class="btn btn-secondary" style="flex: 1;">Edit</button>
+                        <button onclick="archiveProject('${project.id}')" class="btn btn-secondary" style="flex: 1;">${project.status === 'active' ? 'Archive' : 'Activate'}</button>
+                        <button onclick="deleteProject('${project.id}')" class="btn btn-danger" style="flex: 1;">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openAddProjectModal() {
+            document.getElementById('modal-title').textContent = 'Add New Project';
+            document.getElementById('project-form').reset();
+            document.getElementById('project-id').value = '';
+            document.getElementById('project-modal').classList.add('show');
+        }
+
+        function editProject(projectId) {
+            const project = projects.find(p => p.id === projectId);
+            if (!project) return;
+
+            document.getElementById('modal-title').textContent = 'Edit Project';
+            document.getElementById('project-id').value = project.id;
+            document.getElementById('project-name').value = project.name;
+            document.getElementById('project-description').value = project.description || '';
+            document.getElementById('project-status').value = project.status;
+            document.getElementById('project-type').value = project.type;
+            document.getElementById('project-modal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('project-modal').classList.remove('show');
+        }
+
+        async function saveProject(e) {
+            e.preventDefault();
+
+            const projectId = document.getElementById('project-id').value;
+            const projectData = {
+                name: document.getElementById('project-name').value,
+                description: document.getElementById('project-description').value,
+                status: document.getElementById('project-status').value,
+                type: document.getElementById('project-type').value,
+                updatedAt: new Date().toISOString()
+            };
+
+            try {
+                if (projectId) {
+                    await db.collection('projects').doc(projectId).update(projectData);
+                } else {
+                    projectData.createdAt = new Date().toISOString();
+                    projectData.totalRequests = 0;
+                    projectData.activeUsers = 0;
+                    projectData.successRate = 100;
+                    projectData.avgResponseTime = 0;
+                    await db.collection('projects').add(projectData);
+                }
+
+                closeModal();
+                loadProjects();
+            } catch (error) {
+                console.error('Error saving project:', error);
+                alert('Failed to save project');
+            }
+        }
+
+        async function archiveProject(projectId) {
+            const project = projects.find(p => p.id === projectId);
+            if (!project) return;
+
+            const newStatus = project.status === 'active' ? 'archived' : 'active';
+            if (!confirm(`Are you sure you want to ${newStatus === 'active' ? 'activate' : 'archive'} this project?`)) return;
+
+            try {
+                await db.collection('projects').doc(projectId).update({ status: newStatus });
+                loadProjects();
+            } catch (error) {
+                console.error('Error updating project status:', error);
+                alert('Failed to update project status');
+            }
+        }
+
+        async function deleteProject(projectId) {
+            if (!confirm('Are you sure you want to delete this project?')) return;
+
+            try {
+                await db.collection('projects').doc(projectId).delete();
+                loadProjects();
+            } catch (error) {
+                console.error('Error deleting project:', error);
+                alert('Failed to delete project');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!initFirebase()) {
+                const check = setInterval(() => {
+                    if (initFirebase()) {
+                        clearInterval(check);
+                        if (checkAuth()) {
+                            loadProjects();
+                        }
+                    }
+                }, 500);
+            } else if (checkAuth()) {
+                loadProjects();
+            }
+
+            document.getElementById('project-form').addEventListener('submit', saveProject);
+        });
+    </script>
+</body>
+</html>

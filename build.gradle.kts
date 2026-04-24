@@ -112,6 +112,7 @@ dependencies {
     // Redis caching
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("io.lettuce:lettuce-core:6.3.0.RELEASE")
+    implementation("redis.clients:jedis:4.4.3")
 
     // Database Connection Pooling
     implementation("com.zaxxer:HikariCP:5.1.0")

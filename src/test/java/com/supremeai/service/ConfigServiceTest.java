@@ -43,8 +43,11 @@ class ConfigServiceTest {
     private ConfigService configService;
 
     @BeforeEach
-    void setUp() {
-        // Reset state before each test
+    void setUp() throws Exception {
+        // Reset state before each test - set cachedConfig to null
+        java.lang.reflect.Field cachedConfigField = ConfigService.class.getDeclaredField("cachedConfig");
+        cachedConfigField.setAccessible(true);
+        cachedConfigField.set(configService, null);
     }
 
     @Test

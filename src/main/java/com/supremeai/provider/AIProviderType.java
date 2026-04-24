@@ -5,5 +5,10 @@ public enum AIProviderType {
     GEMINI_PRO,
     HUGGINGFACE_FREE,
     ANTHROPIC_CLAUDE,
-    OPENAI
+    OPENAI,
+    DEEPSEEK,
+    KIMI,
+    MISTRAL,
+    AIRLLM,
+    OLLAMA
 }

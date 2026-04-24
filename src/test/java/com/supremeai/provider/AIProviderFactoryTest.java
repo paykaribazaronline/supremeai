@@ -1,9 +1,12 @@
 package com.supremeai.provider;
 
+import com.supremeai.service.AIProviderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for AIProviderFactory.
@@ -12,17 +15,26 @@ import static org.junit.jupiter.api.Assertions.*;
 class AIProviderFactoryTest {
 
     private AIProviderFactory factory;
+    private AIProviderService mockService;
 
     @BeforeEach
     void setUp() throws Exception {
         factory = new AIProviderFactory();
-
-        // Use reflection to set the @Value fields
-        setField("groqApiKey", "gsk-test-groq-key");
-        setField("openaiApiKey", "sk-test-openai-key");
-        setField("anthropicApiKey", "sk-ant-test-anthropic-key");
-        setField("geminiApiKey", "AIzaSy-test-gemini-key");
-        setField("huggingfaceApiKey", "hf-test-huggingface-key");
+        
+        // Create mock AIProviderService
+        mockService = Mockito.mock(AIProviderService.class);
+        
+        // Set up mock to return test keys
+        when(mockService.getActiveKey("groq")).thenReturn("gsk-test-groq-key");
+        when(mockService.getActiveKey("openai")).thenReturn("sk-test-openai-key");
+        when(mockService.getActiveKey("anthropic")).thenReturn("sk-ant-test-anthropic-key");
+        when(mockService.getActiveKey("gemini")).thenReturn("AIzaSy-test-gemini-key");
+        when(mockService.getActiveKey("huggingface")).thenReturn("hf-test-huggingface-key");
+        
+        // Use reflection to set the mock service
+        java.lang.reflect.Field field = AIProviderFactory.class.getDeclaredField("aiProviderService");
+        field.setAccessible(true);
+        field.set(factory, mockService);
     }
 
     @Test
@@ -128,11 +140,5 @@ class AIProviderFactoryTest {
         
         assertNotNull(provider.getCapabilities());
         assertTrue(provider.getCapabilities() instanceof java.util.Map);
-    }
-
-    private void setField(String fieldName, Object value) throws Exception {
-        java.lang.reflect.Field field = AIProviderFactory.class.getDeclaredField(fieldName);
-        field.setAccessible(true);
-        field.set(factory, value);
     }
 }
