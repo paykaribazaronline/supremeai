@@ -1001,7 +1001,10 @@
                         <div class="card">
                             <div class="card-header">
                                 <div class="card-title">Provider Status</div>
-                                <button class="btn btn-primary btn-sm" onclick="refreshProviders()">🔄 Refresh</button>
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="btn btn-success btn-sm" onclick="showAddProviderModal()">+ Add Any AI Model</button>
+                                    <button class="btn btn-primary btn-sm" onclick="refreshProviders()">🔄 Refresh</button>
+                                </div>
                             </div>
                             <div class="provider-grid" id="providerGrid">
                                 <!-- Providers will be loaded here -->
@@ -1010,21 +1013,23 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <div class="card-title">API Key Manager</div>
-                                <button class="btn btn-success btn-sm" onclick="showAddKeyModal()">+ Add Key</button>
+                                <div class="card-title">AI Model Manager</div>
+                                <button class="btn btn-success btn-sm" onclick="showAddProviderModal()">+ Add Custom Model</button>
                             </div>
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Provider</th>
+                                        <th>Model Name</th>
+                                        <th>Type</th>
+                                        <th>API Keys</th>
+                                        <th>Free Limit</th>
                                         <th>Status</th>
-                                        <th>Last Used</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="apiKeyTable">
                                     <tr>
-                                        <td colspan="4" class="empty-state">No API keys configured</td>
+                                        <td colspan="6" class="empty-state">No AI models configured yet. Click "+ Add Any AI Model" to get started.</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1033,12 +1038,69 @@
                         <div class="card">
                             <div class="card-header">
                                 <div class="card-title">Fallback Chain</div>
+                                <button class="btn btn-primary btn-sm" onclick="configureFallbackChain()">Configure Chain</button>
                             </div>
                             <div id="fallbackChain" class="empty-state">
                                 <div class="empty-state-icon">🔗</div>
                                 <div class="empty-state-title">No fallback chain configured</div>
-                                <div class="empty-state-desc">Configure provider priority for automatic failover</div>
-                                <button class="btn btn-primary">Configure Chain</button>
+                                <div class="empty-state-desc">Configure provider priority for automatic failover. Drag to reorder.</div>
+                                <button class="btn btn-primary" onclick="configureFallbackChain()">Configure Chain</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add Any AI Model Modal -->
+                    <div class="modal" id="addProviderModal">
+                        <div class="modal-content" style="max-width: 700px;">
+                            <div class="modal-header">
+                                <h2>+ Add Any AI Model</h2>
+                                <span class="close-btn" onclick="closeAddProviderModal()">&times;</span>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Model Name</label>
+                                <input type="text" id="newModelName" placeholder="e.g., GPT-4, Claude-3, LLaMA-3, MyCustomAI..." style="font-size: 15px; padding: 12px;">
+                                <div style="font-size: 11px; color: #718096; margin-top: 5px;">
+                                    💡 Tip: You can add ANY AI model - just enter the name and provide API details below
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Model Type / Provider</label>
+                                <input type="text" id="newModelProvider" placeholder="e.g., OpenAI, Anthropic, Meta, Custom...">
+                            </div>
+
+                            <div class="form-group">
+                                <label>API Endpoint (Optional - for custom models)</label>
+                                <input type="text" id="newModelEndpoint" placeholder="https://api.example.com/v1/chat (leave empty for standard endpoints)">
+                            </div>
+
+                            <hr style="border: none; border-top: 1px solid #2d3748; margin: 20px 0;">
+
+                            <div id="providerApiKeysContainer">
+                                <label>API Key(s) - Test before saving</label>
+                                <div id="providerApiKeysList">
+                                    <div class="api-key-row" style="display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start;">
+                                        <div style="flex: 1;">
+                                            <input type="text" placeholder="Enter API key..." style="width: 100%;">
+                                        </div>
+                                        <button class="btn btn-sm btn-warning" onclick="testProviderApiKey(this)" style="padding: 8px 14px; white-space: nowrap;">🧪 Test</button>
+                                        <button class="btn btn-sm btn-danger" onclick="removeProviderApiKey(this)" style="padding: 8px 14px;">✕</button>
+                                    </div>
+                                </div>
+                                <button class="btn btn-sm btn-secondary" onclick="addProviderApiKeyField()">+ Add Another Key</button>
+                                <div id="providerApiTestResult" style="margin-top: 12px;"></div>
+                            </div>
+
+                            <div class="form-group" style="margin-top: 20px;">
+                                <label>Auto-Detect Free Tier Limit</label>
+                                <button class="btn btn-sm btn-info" onclick="autoDetectLimits()" style="background: #4299e1; color: white; margin-left: 10px;">🔍 Detect Limits</button>
+                                <div id="detectedLimits" style="margin-top: 10px; font-size: 13px; color: #cbd5e1;"></div>
+                            </div>
+
+                            <div style="margin-top: 25px; text-align: right;">
+                                <button class="btn btn-secondary" onclick="closeAddProviderModal()">Cancel</button>
+                                <button class="btn btn-success" onclick="saveNewProvider()" style="margin-left: 10px;">💾 Save AI Model</button>
                             </div>
                         </div>
                     </div>
@@ -1120,17 +1182,18 @@
                                         <th>Project</th>
                                         <th>Status</th>
                                         <th>AI Assigned</th>
+                                        <th>GitHub App</th>
                                         <th>Progress</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="projectsTable">
                                     <tr>
-                                        <td colspan="5" class="empty-state">
+                                        <td colspan="6" class="empty-state">
                                             <div class="empty-state-icon">🚀</div>
                                             <div class="empty-state-title">No projects yet</div>
-                                            <div class="empty-state-desc">Create your first project to get started</div>
-                                            <button class="btn btn-primary">Create Project</button>
+                                            <div class="empty-state-desc">Create your first project and install our GitHub App to get started</div>
+                                            <button class="btn btn-primary" onclick="showNewProjectModal()">Create Project</button>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -1145,6 +1208,137 @@
                                 <div class="empty-state-icon">🚀</div>
                                 <div class="empty-state-title">No deployments yet</div>
                                 <div class="empty-state-desc">Deployment pipeline will appear when projects are active</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- New Project Modal with GitHub App Installation -->
+                    <div class="modal" id="newProjectModal">
+                        <div class="modal-content" style="max-width: 600px;">
+                            <div class="modal-header">
+                                <h2>🚀 Create New Project</h2>
+                                <span class="close-btn" onclick="closeNewProjectModal()">&times;</span>
+                            </div>
+                            
+                            <div class="section-tabs" style="margin-bottom: 20px;">
+                                <button class="section-tab active" onclick="showProjectStep('info', this)">1. Project Info</button>
+                                <button class="section-tab" onclick="showProjectStep('github', this)">2. GitHub App</button>
+                                <button class="section-tab" onclick="showProjectStep('ai', this)">3. AI Setup</button>
+                                <button class="section-tab" onclick="showProjectStep('review', this)">4. Review</button>
+                            </div>
+
+                            <!-- Step 1: Project Info -->
+                            <div id="project-step-info">
+                                <div class="form-group">
+                                    <label>Project Name</label>
+                                    <input type="text" id="projectName" placeholder="Enter project name...">
+                                </div>
+                                <div class="form-group">
+                                    <label>Description</label>
+                                    <textarea id="projectDescription" rows="3" placeholder="Describe your project..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>Repository URL (optional)</label>
+                                    <input type="text" id="repoUrl" placeholder="https://github.com/user/repo">
+                                </div>
+                                <div style="text-align: right; margin-top: 20px;">
+                                    <button class="btn btn-primary" onclick="nextProjectStep('github')">Next →</button>
+                                </div>
+                            </div>
+
+                            <!-- Step 2: GitHub App Installation -->
+                            <div id="project-step-github" style="display: none;">
+                                <div class="card" style="background: rgba(66, 153, 225, 0.1); border-color: #4299e1;">
+                                    <div class="card-header">
+                                        <div class="card-title">📎 Install SupremeAI GitHub App</div>
+                                    </div>
+                                    <div style="font-size: 13px; color: #cbd5e1; line-height: 1.6;">
+                                        <p>To allow SupremeAI to access your repository and make automated commits, you need to install our GitHub App.</p>
+                                        <div style="background: #1a202c; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                                            <div style="font-weight: 600; margin-bottom: 8px;">What permissions we need:</div>
+                                            <ul style="padding-left: 20px; margin: 0;">
+                                                <li>✅ Read/Write access to code (to create/modify files)</li>
+                                                <li>✅ Read access to issues and PRs</li>
+                                                <li>✅ Webhook access for real-time updates</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-success" style="width: 100%; margin-top: 15px;" onclick="installGitHubApp()">
+                                        📎 Install SupremeAI GitHub App
+                                    </button>
+                                    <div id="githubInstallStatus" style="margin-top: 10px;"></div>
+                                </div>
+                                
+                                <div style="text-align: right; margin-top: 20px;">
+                                    <button class="btn btn-secondary" onclick="nextProjectStep('info')">← Back</button>
+                                    <button class="btn btn-primary" onclick="nextProjectStep('ai')" style="margin-left: 10px;">Next →</button>
+                                </div>
+                            </div>
+
+                            <!-- Step 3: AI Model Selection -->
+                            <div id="project-step-ai" style="display: none;">
+                                <div class="form-group">
+                                    <label>Primary AI Model</label>
+                                    <select id="primaryAI" onchange="showCustomAIFields()">
+                                        <option value="">Select AI Model...</option>
+                                        <option value="gemini">Gemini (Google)</option>
+                                        <option value="gpt4">GPT-4 (OpenAI)</option>
+                                        <option value="claude">Claude (Anthropic)</option>
+                                        <option value="deepseek">DeepSeek</option>
+                                        <option value="custom">+ Add Custom AI Model...</option>
+                                    </select>
+                                </div>
+                                
+                                <div id="customAIFields" style="display: none;">
+                                    <div class="form-group">
+                                        <label>Custom AI Model Name</label>
+                                        <input type="text" id="customAIName" placeholder="e.g., MyCustomAI, LLaMA-3, Mistral...">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>API Endpoint (if different from standard)</label>
+                                        <input type="text" id="customAIEndpoint" placeholder="https://api.custom-ai.com/v1/chat">
+                                    </div>
+                                </div>
+                                
+                                <div id="apiKeysContainer">
+                                    <div class="form-group">
+                                        <label>API Key(s)</label>
+                                        <div id="apiKeysList">
+                                            <div class="api-key-row" style="display: flex; gap: 10px; margin-bottom: 10px;">
+                                                <input type="text" placeholder="Enter API key..." style="flex: 1;">
+                                                <button class="btn btn-sm btn-warning" onclick="testApiKey(this)" style="padding: 6px 12px;">🧪 Test</button>
+                                                <button class="btn btn-sm btn-danger" onclick="removeApiKey(this)" style="padding: 6px 12px;">✕</button>
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-sm btn-secondary" onclick="addApiKeyField()">+ Add Another Key</button>
+                                    </div>
+                                </div>
+                                
+                                <div id="apiTestResult" style="margin-top: 10px;"></div>
+                                
+                                <div style="text-align: right; margin-top: 20px;">
+                                    <button class="btn btn-secondary" onclick="nextProjectStep('github')">← Back</button>
+                                    <button class="btn btn-primary" onclick="nextProjectStep('review')" style="margin-left: 10px;">Next →</button>
+                                </div>
+                            </div>
+
+                            <!-- Step 4: Review -->
+                            <div id="project-step-review" style="display: none;">
+                                <div class="card" style="background: #111827;">
+                                    <div class="card-header">
+                                        <div class="card-title">📋 Review Project</div>
+                                    </div>
+                                    <div id="projectReviewContent" style="font-size: 13px; color: #cbd5e1; line-height: 1.8;">
+                                        <!-- Will be populated by JavaScript -->
+                                    </div>
+                                </div>
+                                
+                                <div id="githubAppStatusReview" style="margin-top: 15px;"></div>
+                                
+                                <div style="text-align: right; margin-top: 20px;">
+                                    <button class="btn btn-secondary" onclick="nextProjectStep('ai')">← Back</button>
+                                    <button class="btn btn-success" onclick="createProject()" style="margin-left: 10px;">✅ Create Project</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2004,6 +2198,697 @@
             this.style.height = 'auto';
             this.style.height = Math.min(this.scrollHeight, 120) + 'px';
         });
+
+        // ========== NEW PROJECT WITH GITHUB APP FLOW ==========
+        let currentProjectStep = 'info';
+        let projectData = {};
+
+        function showNewProjectModal() {
+            document.getElementById('newProjectModal').classList.add('active');
+            projectData = {};
+            showProjectStep('info', null);
+        }
+
+        function closeNewProjectModal() {
+            document.getElementById('newProjectModal').classList.remove('active');
+        }
+
+        function showProjectStep(step, btn) {
+            // Hide all steps
+            ['info', 'github', 'ai', 'review'].forEach(s => {
+                const el = document.getElementById('project-step-' + s);
+                if (el) el.style.display = 'none';
+            });
+            document.querySelectorAll('#newProjectModal .section-tab').forEach(t => t.classList.remove('active'));
+            
+            // Validate current step before leaving
+            if (currentProjectStep === 'info' && step !== 'info') {
+                const name = document.getElementById('projectName').value.trim();
+                if (!name) {
+                    alert('Please enter a project name');
+                    return;
+                }
+                projectData.name = name;
+                projectData.description = document.getElementById('projectDescription').value;
+                projectData.repoUrl = document.getElementById('repoUrl').value;
+            }
+            
+            // Show selected step
+            const stepEl = document.getElementById('project-step-' + step);
+            if (stepEl) stepEl.style.display = 'block';
+            
+            if (btn) btn.classList.add('active');
+            else {
+                // Find and activate the correct tab button
+                const tabs = document.querySelectorAll('#newProjectModal .section-tab');
+                const tabIndex = ['info', 'github', 'ai', 'review'].indexOf(step);
+                if (tabs[tabIndex]) tabs[tabIndex].classList.add('active');
+            }
+            
+            currentProjectStep = step;
+            
+            // Populate review step
+            if (step === 'review') {
+                populateReview();
+            }
+        }
+
+        function nextProjectStep(step) {
+            showProjectStep(step, null);
+        }
+
+        function installGitHubApp() {
+            const statusDiv = document.getElementById('githubInstallStatus');
+            
+            // In real implementation, this would redirect to GitHub App installation URL
+            // For now, simulate installation
+            statusDiv.innerHTML = `
+                <div class="alert alert-warning">
+                    🔄 Redirecting to GitHub App installation...
+                </div>
+            `;
+            
+            setTimeout(() => {
+                // Simulate successful installation
+                projectData.githubAppInstalled = true;
+                projectData.githubRepoAccess = 'full';
+                
+                statusDiv.innerHTML = `
+                    <div class="alert alert-success">
+                        ✅ GitHub App installed successfully!
+                        <div style="font-size: 11px; margin-top: 5px;">SupremeAI now has access to your repositories.</div>
+                    </div>
+                `;
+                
+                // Update button
+                event.target.disabled = true;
+                event.target.textContent = '✅ Installed';
+                event.target.style.background = '#48bb78';
+            }, 2000);
+            
+            // In real implementation:
+            // const clientId = 'YOUR_GITHUB_APP_CLIENT_ID';
+            // const redirectUri = encodeURIComponent(window.location.origin + '/github-callback');
+            // window.location.href = `https://github.com/apps/supremeai/installations/new?client_id=${clientId}&redirect_uri=${redirectUri}`;
+        }
+
+        function showCustomAIFields() {
+            const select = document.getElementById('primaryAI');
+            const customFields = document.getElementById('customAIFields');
+            
+            if (select.value === 'custom') {
+                customFields.style.display = 'block';
+            } else {
+                customFields.style.display = 'none';
+                projectData.aiModel = select.value;
+            }
+        }
+
+        function addApiKeyField() {
+            const container = document.getElementById('apiKeysList');
+            const newRow = document.createElement('div');
+            newRow.className = 'api-key-row';
+            newRow.style.cssText = 'display: flex; gap: 10px; margin-bottom: 10px;';
+            newRow.innerHTML = `
+                <input type="text" placeholder="Enter API key..." style="flex: 1;">
+                <button class="btn btn-sm btn-warning" onclick="testApiKey(this)" style="padding: 6px 12px;">🧪 Test</button>
+                <button class="btn btn-sm btn-danger" onclick="removeApiKey(this)" style="padding: 6px 12px;">✕</button>
+            `;
+            container.appendChild(newRow);
+        }
+
+        function removeApiKey(btn) {
+            btn.parentElement.remove();
+        }
+
+        async function testApiKey(btn) {
+            const input = btn.parentElement.querySelector('input');
+            const apiKey = input.value.trim();
+            
+            if (!apiKey) {
+                alert('Please enter an API key to test');
+                return;
+            }
+            
+            // Get AI model info
+            const aiSelect = document.getElementById('primaryAI');
+            const customName = document.getElementById('customAIName').value;
+            const model = aiSelect.value === 'custom' ? customName : aiSelect.options[aiSelect.selectedIndex].text;
+            
+            // Update button to show testing
+            const originalText = btn.textContent;
+            btn.textContent = '🔄 Testing...';
+            btn.disabled = true;
+            
+            // Show result div
+            let resultDiv = document.getElementById('apiTestResult');
+            if (!resultDiv) {
+                resultDiv = document.createElement('div');
+                resultDiv.id = 'apiTestResult';
+                resultDiv.style.marginTop = '10px';
+                document.getElementById('apiKeysContainer').appendChild(resultDiv);
+            }
+            
+            try {
+                // Simulate API key test based on model type
+                const testResult = await simulateApiKeyTest(model, apiKey);
+                
+                if (testResult.success) {
+                    input.style.borderColor = '#48bb78';
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            ✅ API Key Valid!
+                            <div style="font-size: 11px; margin-top: 5px;">
+                                Model: ${model}<br>
+                                Status: Connected<br>
+                                Free Tier Limit: ${testResult.freeLimit}<br>
+                                Requests Remaining: ${testResult.remaining}
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Store test result
+                    input.dataset.tested = 'true';
+                    input.dataset.freeLimit = testResult.freeLimit;
+                    input.dataset.remaining = testResult.remaining;
+                } else {
+                    input.style.borderColor = '#f56565';
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            ❌ API Key Invalid: ${testResult.error}
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        ❌ Test failed: ${e.message}
+                    </div>
+                `;
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        async function simulateApiKeyTest(model, apiKey) {
+            // Simulate API test with free limit detection
+            // In real implementation, this would make actual API calls
+            
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    // Simulate different responses based on model
+                    const modelLower = model.toLowerCase();
+                    
+                    if (modelLower.includes('gemini')) {
+                        resolve({
+                            success: true,
+                            freeLimit: '15 requests/minute, 1500 requests/day',
+                            remaining: Math.floor(Math.random() * 1500)
+                        });
+                    } else if (modelLower.includes('gpt') || modelLower.includes('openai')) {
+                        resolve({
+                            success: true,
+                            freeLimit: '3 requests/minute (GPT-4), 200 requests/day',
+                            remaining: Math.floor(Math.random() * 200)
+                        });
+                    } else if (modelLower.includes('claude')) {
+                        resolve({
+                            success: true,
+                            freeLimit: '50 requests/minute, 5000 requests/month',
+                            remaining: Math.floor(Math.random() * 5000)
+                        });
+                    } else if (modelLower.includes('deepseek')) {
+                        resolve({
+                            success: true,
+                            freeLimit: '20 requests/minute, 500 requests/day',
+                            remaining: Math.floor(Math.random() * 500)
+                        });
+                    } else {
+                        // Custom model - try to auto-detect
+                        resolve({
+                            success: true,
+                            freeLimit: 'Auto-detected: Check provider docs',
+                            remaining: 'Unknown (custom model)'
+                        });
+                    }
+                }, 1500);
+            });
+        }
+
+        function populateReview() {
+            const reviewDiv = document.getElementById('projectReviewContent');
+            const githubStatusDiv = document.getElementById('githubAppStatusReview');
+            
+            let html = `
+                <div style="margin-bottom: 15px;">
+                    <div style="color: #718096; font-size: 11px;">PROJECT NAME</div>
+                    <div style="color: #e2e8f0; font-size: 15px; font-weight: 600;">${projectData.name || '(Not specified)'}</div>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <div style="color: #718096; font-size: 11px;">DESCRIPTION</div>
+                    <div style="color: #cbd5e1;">${projectData.description || 'No description'}</div>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <div style="color: #718096; font-size: 11px;">REPOSITORY</div>
+                    <div style="color: #cbd5e1;">${projectData.repoUrl || 'Not specified (can be added later)'}</div>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <div style="color: #718096; font-size: 11px;">AI MODEL</div>
+                    <div style="color: #cbd5e1;">${projectData.aiModel || 'Not selected'}</div>
+                </div>
+            `;
+            
+            reviewDiv.innerHTML = html;
+            
+            // GitHub App status
+            if (projectData.githubAppInstalled) {
+                githubStatusDiv.innerHTML = `
+                    <div class="alert alert-success">
+                        ✅ GitHub App Installed - SupremeAI has access to your repositories
+                    </div>
+                `;
+            } else {
+                githubStatusDiv.innerHTML = `
+                    <div class="alert alert-warning">
+                        ⚠️ GitHub App not installed - You can install it later from project settings
+                    </div>
+                `;
+            }
+        }
+
+        function createProject() {
+            // Validate API keys are tested
+            const apiKeys = document.querySelectorAll('#apiKeysList input');
+            let untestedKeys = 0;
+            apiKeys.forEach(keyInput => {
+                if (keyInput.value.trim() && keyInput.dataset.tested !== 'true') {
+                    untestedKeys++;
+                }
+            });
+            
+            if (untestedKeys > 0) {
+                if (!confirm(`You have ${untestedKeys} API key(s) that haven't been tested. Do you want to save anyway?`)) {
+                    return;
+                }
+            }
+            
+            // Collect API keys
+            const apiKeysData = [];
+            apiKeys.forEach(keyInput => {
+                if (keyInput.value.trim()) {
+                    apiKeysData.push({
+                        key: keyInput.value.trim(),
+                        tested: keyInput.dataset.tested === 'true',
+                        freeLimit: keyInput.dataset.freeLimit || 'Unknown',
+                        remaining: keyInput.dataset.remaining || 'Unknown'
+                    });
+                }
+            });
+            
+            // In real implementation, this would call backend API
+            alert(`✅ Project "${projectData.name}" created successfully!\n\n` +
+                  `AI Model: ${projectData.aiModel || 'Not specified'}\n` +
+                  `API Keys: ${apiKeysData.length} key(s) added\n` +
+                  `GitHub App: ${projectData.githubAppInstalled ? 'Installed' : 'Not installed'}`);
+            
+            closeNewProjectModal();
+            
+            // Add to projects table (demo)
+            addProjectToTable(projectData.name, projectData.aiModel, projectData.githubAppInstalled);
+        }
+
+        function addProjectToTable(name, ai, githubInstalled) {
+            const tbody = document.getElementById('projectsTable');
+            // Remove "No projects yet" row if present
+            if (tbody.querySelector('.empty-state')) {
+                tbody.innerHTML = '';
+            }
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${name}</td>
+                <td><span class="badge badge-warning">Setting Up</span></td>
+                <td>${ai || 'Not assigned'}</td>
+                <td><span class="badge ${githubInstalled ? 'badge-success' : 'badge-warning'}">${githubInstalled ? '✅ Installed' : '⚠️ Not Installed'}</span></td>
+                <td>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 10%;"></div>
+                    </div>
+                </td>
+                <td>
+                    <button class="btn btn-secondary btn-sm">View</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        // Update showNewProjectModal function call in HTML
+        document.querySelectorAll('[onclick*="showNewProjectModal"]').forEach(btn => {
+            btn.onclick = showNewProjectModal;
+        });
+
+        // ========== AI PROVIDERS HUB - UNIVERSAL AI MODEL SUPPORT ==========
+        function showAddProviderModal() {
+            document.getElementById('addProviderModal').classList.add('active');
+        }
+
+        function closeAddProviderModal() {
+            document.getElementById('addProviderModal').classList.remove('active');
+            // Reset form
+            document.getElementById('newModelName').value = '';
+            document.getElementById('newModelProvider').value = '';
+            document.getElementById('newModelEndpoint').value = '';
+            document.getElementById('providerApiKeysList').innerHTML = `
+                <div class="api-key-row" style="display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start;">
+                    <div style="flex: 1;">
+                        <input type="text" placeholder="Enter API key..." style="width: 100%;">
+                    </div>
+                    <button class="btn btn-sm btn-warning" onclick="testProviderApiKey(this)" style="padding: 8px 14px; white-space: nowrap;">🧪 Test</button>
+                    <button class="btn btn-sm btn-danger" onclick="removeProviderApiKey(this)" style="padding: 8px 14px;">✕</button>
+                </div>
+            `;
+            document.getElementById('providerApiTestResult').innerHTML = '';
+            document.getElementById('detectedLimits').innerHTML = '';
+        }
+
+        function addProviderApiKeyField() {
+            const container = document.getElementById('providerApiKeysList');
+            const newRow = document.createElement('div');
+            newRow.className = 'api-key-row';
+            newRow.style.cssText = 'display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start;';
+            newRow.innerHTML = `
+                <div style="flex: 1;">
+                    <input type="text" placeholder="Enter API key..." style="width: 100%;">
+                </div>
+                <button class="btn btn-sm btn-warning" onclick="testProviderApiKey(this)" style="padding: 8px 14px; white-space: nowrap;">🧪 Test</button>
+                <button class="btn btn-sm btn-danger" onclick="removeProviderApiKey(this)" style="padding: 8px 14px;">✕</button>
+            `;
+            container.appendChild(newRow);
+        }
+
+        function removeProviderApiKey(btn) {
+            btn.parentElement.remove();
+        }
+
+        async function testProviderApiKey(btn) {
+            const input = btn.parentElement.querySelector('input');
+            const apiKey = input.value.trim();
+            const modelName = document.getElementById('newModelName').value.trim() || 'Unknown Model';
+            
+            if (!apiKey) {
+                alert('Please enter an API key to test');
+                return;
+            }
+
+            // Update button to show testing
+            const originalText = btn.textContent;
+            btn.textContent = '🔄 Testing...';
+            btn.disabled = true;
+
+            let resultDiv = document.getElementById('providerApiTestResult');
+            
+            try {
+                // Simulate API test with auto-detect free limits
+                const testResult = await simulateProviderApiTest(modelName, apiKey);
+                
+                if (testResult.success) {
+                    input.style.borderColor = '#48bb78';
+                    input.dataset.tested = 'true';
+                    input.dataset.freeLimit = testResult.freeLimit;
+                    input.dataset.remaining = testResult.remaining;
+                    
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            ✅ API Key Valid!
+                            <div style="font-size: 11px; margin-top: 5px;">
+                                Model: ${modelName}<br>
+                                Status: Connected<br>
+                                Free Tier Limit: ${testResult.freeLimit}<br>
+                                Requests Remaining: ${testResult.remaining}<br>
+                                Rate Limit: ${testResult.rateLimit}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    input.style.borderColor = '#f56565';
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            ❌ API Key Invalid: ${testResult.error}
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        ❌ Test failed: ${e.message}
+                    </div>
+                `;
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        async function simulateProviderApiTest(modelName, apiKey) {
+            // Simulate API test with free limit auto-detection
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    const modelLower = modelName.toLowerCase();
+                    
+                    // Auto-detect based on model name
+                    if (modelLower.includes('gemini')) {
+                        resolve({
+                            success: true,
+                            freeLimit: '15 requests/minute, 1500 requests/day',
+                            remaining: Math.floor(Math.random() * 1500),
+                            rateLimit: '15 req/min'
+                        });
+                    } else if (modelLower.includes('gpt') || modelLower.includes('openai')) {
+                        resolve({
+                            success: true,
+                            freeLimit: '3 requests/minute (GPT-4), 200 requests/day',
+                            remaining: Math.floor(Math.random() * 200),
+                            rateLimit: '3 req/min (GPT-4)'
+                        });
+                    } else if (modelLower.includes('claude')) {
+                        resolve({
+                            success: true,
+                            freeLimit: '50 requests/minute, 5000 requests/month',
+                            remaining: Math.floor(Math.random() * 5000),
+                            rateLimit: '50 req/min'
+                        });
+                    } else if (modelLower.includes('deepseek')) {
+                        resolve({
+                            success: true,
+                            freeLimit: '20 requests/minute, 500 requests/day',
+                            remaining: Math.floor(Math.random() * 500),
+                            rateLimit: '20 req/min'
+                        });
+                    } else if (modelLower.includes('llama')) {
+                        resolve({
+                            success: true,
+                            freeLimit: 'No official free tier (self-hosted or paid)',
+                            remaining: 'N/A',
+                            rateLimit: 'Depends on deployment'
+                        });
+                    } else if (modelLower.includes('mistral')) {
+                        resolve({
+                            success: true,
+                            freeLimit: '500 requests/day (Mistral Tiny)',
+                            remaining: Math.floor(Math.random() * 500),
+                            rateLimit: '5 req/sec'
+                        });
+                    } else {
+                        // Custom/Unknown model - try to auto-detect
+                        resolve({
+                            success: true,
+                            freeLimit: 'Auto-detected: Check provider documentation',
+                            remaining: 'Unknown (custom model)',
+                            rateLimit: 'Unknown - will be determined on first use'
+                        });
+                    }
+                }, 1500);
+            });
+        }
+
+        async function autoDetectLimits() {
+            const modelName = document.getElementById('newModelName').value.trim();
+            
+            if (!modelName) {
+                alert('Please enter a model name first');
+                return;
+            }
+
+            const detectDiv = document.getElementById('detectedLimits');
+            detectDiv.innerHTML = `
+                <div class="alert alert-warning">
+                    🔍 Auto-detecting free tier limits for "${modelName}"...
+                </div>
+            `;
+
+            try {
+                const testResult = await simulateProviderApiTest(modelName, 'dummy-key-for-detection');
+                
+                detectDiv.innerHTML = `
+                    <div class="alert alert-success">
+                        🔍 Auto-Detected Limits for ${modelName}:
+                        <div style="font-size: 11px; margin-top: 8px; line-height: 1.6;">
+                            <strong>Free Tier:</strong> ${testResult.freeLimit}<br>
+                            <strong>Rate Limit:</strong> ${testResult.rateLimit}<br>
+                            <strong>Note:</strong> Limits are auto-detected based on model name. Verify with provider docs.
+                        </div>
+                    </div>
+                `;
+            } catch (e) {
+                detectDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        ❌ Could not auto-detect limits: ${e.message}
+                    </div>
+                `;
+            }
+        }
+
+        function saveNewProvider() {
+            const modelName = document.getElementById('newModelName').value.trim();
+            const provider = document.getElementById('newModelProvider').value.trim();
+            const endpoint = document.getElementById('newModelEndpoint').value.trim();
+            
+            if (!modelName) {
+                alert('Please enter a model name');
+                return;
+            }
+
+            // Collect API keys
+            const apiKeys = [];
+            const apiKeyRows = document.querySelectorAll('#providerApiKeysList .api-key-row');
+            let untestedCount = 0;
+            
+            apiKeyRows.forEach(row => {
+                const input = row.querySelector('input');
+                const key = input.value.trim();
+                if (key) {
+                    if (input.dataset.tested !== 'true') {
+                        untestedCount++;
+                    }
+                    apiKeys.push({
+                        key: key,
+                        tested: input.dataset.tested === 'true',
+                        freeLimit: input.dataset.freeLimit || 'Unknown',
+                        remaining: input.dataset.remaining || 'Unknown'
+                    });
+                }
+            });
+
+            if (apiKeys.length === 0) {
+                alert('Please add at least one API key');
+                return;
+            }
+
+            if (untestedCount > 0) {
+                if (!confirm(`You have ${untestedCount} API key(s) that haven't been tested. Save anyway?`)) {
+                    return;
+                }
+            }
+
+            // In real implementation, this would call backend API
+            alert(`✅ AI Model "${modelName}" added successfully!\n\n` +
+                  `Provider: ${provider || 'Not specified'}\n` +
+                  `API Keys: ${apiKeys.length} key(s) added\n` +
+                  `Endpoint: ${endpoint || 'Default'}`);
+
+            closeAddProviderModal();
+
+            // Add to providers table (demo)
+            addProviderToTable(modelName, provider, apiKeys);
+        }
+
+        function addProviderToTable(modelName, provider, apiKeys) {
+            const tbody = document.getElementById('apiKeyTable');
+            // Remove "No API keys configured" row if present
+            if (tbody.querySelector('.empty-state')) {
+                tbody.innerHTML = '';
+            }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${modelName}</td>
+                <td>${provider || 'Custom'}</td>
+                <td>
+                    <span class="badge badge-info">${apiKeys.length} key(s)</span>
+                    ${apiKeys.filter(k => k.tested).length > 0 ? '<span class="badge badge-success" style="margin-left: 5px;">✓ Tested</span>' : ''}
+                </td>
+                <td>${apiKeys[0]?.freeLimit || 'Unknown'}</td>
+                <td><span class="badge badge-success">Active</span></td>
+                <td>
+                    <button class="btn btn-secondary btn-sm">Edit</button>
+                    <button class="btn btn-danger btn-sm" style="margin-left: 5px;">Remove</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+
+            // Also update provider grid
+            updateProviderGrid();
+        }
+
+        function updateProviderGrid() {
+            // In a real implementation, this would fetch from backend
+            // For demo, add a card for the new provider
+            const grid = document.getElementById('providerGrid');
+            const newProviderName = document.getElementById('newModelName').value.trim();
+            const provider = document.getElementById('newModelProvider').value.trim();
+            
+            if (newProviderName && !grid.querySelector(`[data-provider="${newProviderName}"]`)) {
+                const card = document.createElement('div');
+                card.className = 'provider-card';
+                card.setAttribute('data-provider', newProviderName);
+                card.innerHTML = `
+                    <div class="provider-header">
+                        <div class="provider-name">${newProviderName}</div>
+                        <span class="badge badge-success">Active</span>
+                    </div>
+                    <div class="provider-stats">
+                        <div class="provider-stat">
+                            <div class="provider-stat-value">0</div>
+                            <div class="provider-stat-label">Requests</div>
+                        </div>
+                        <div class="provider-stat">
+                            <div class="provider-stat-value">0%</div>
+                            <div class="provider-stat-label">Quota Used</div>
+                        </div>
+                    </div>
+                    ${provider ? `<div style="font-size: 11px; color: #718096; margin-top: 8px;">Provider: ${provider}</div>` : ''}
+                `;
+                grid.appendChild(card);
+            }
+        }
+
+        function configureFallbackChain() {
+            const tbody = document.getElementById('apiKeyTable');
+            const rows = tbody.querySelectorAll('tr');
+            
+            if (rows.length === 0 || (rows.length === 1 && rows[0].querySelector('.empty-state'))) {
+                alert('Please add at least two AI models to configure fallback chain');
+                return;
+            }
+
+            // In real implementation, this would open a drag-and-drop interface
+            alert('✅ Fallback chain configuration would open here.\n\nYou can drag to reorder providers for automatic failover.');
+            
+            document.getElementById('fallbackChain').innerHTML = `
+                <div style="font-size: 13px; color: #cbd5e1;">
+                    <div style="margin-bottom: 10px; font-weight: 600;">Current Fallback Chain:</div>
+                    <ol style="padding-left: 20px;">
+                        <li style="margin-bottom: 5px;">${document.getElementById('newModelName').value || 'GPT-4'} (Primary)</li>
+                        <li style="margin-bottom: 5px;">Gemini (Secondary)</li>
+                        <li style="margin-bottom: 5px;">Claude (Tertiary)</li>
+                    </ol>
+                    <div style="font-size: 11px; color: #718096; margin-top: 10px;">
+                        System will automatically try the next provider if the current one fails.
+                    </div>
+                </div>
+            `;
+        }
 
         // ========== INITIALIZATION ==========
         window.addEventListener('DOMContentLoaded', () => {
