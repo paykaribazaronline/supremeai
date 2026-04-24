@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -37,6 +38,7 @@ public class IntelligenceController {
      * GET /api/v2/intelligence/rankings
      */
     @GetMapping("/rankings")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'AGENT_MANAGER')")
     public ResponseEntity<?> getRankings() {
         return ResponseEntity.ok(rankingService.getRankings());
     }
@@ -46,6 +48,7 @@ public class IntelligenceController {
      * POST /api/v2/intelligence/validate
      */
     @PostMapping("/validate")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'AGENT_MANAGER')")
     public ResponseEntity<?> validateInput(@RequestBody ValidationRequest request) {
         try {
             logger.info("S3: Validating input of type: {}", request.getRequestType());
@@ -77,6 +80,7 @@ public class IntelligenceController {
      * POST /api/v2/intelligence/vote
      */
     @PostMapping("/vote")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'AGENT_MANAGER')")
     public ResponseEntity<?> executeVoting(@RequestBody VotingRequest request) {
         try {
             logger.info("S4: Executing 10-AI voting for prompt: {}", 

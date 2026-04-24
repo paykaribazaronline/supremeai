@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -31,6 +32,7 @@ public class ChatController {
     private TenAIVotingSystem votingSystem;
 
     @PostMapping("/send")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'AGENT_MANAGER')")
     public Mono<ResponseEntity<Object>> sendMessage(@RequestBody Map<String, Object> request) {
         String message = (String) request.get("message");
         Boolean skipValidation = (Boolean) request.getOrDefault("skipValidation", false);
@@ -96,6 +98,7 @@ public class ChatController {
     }
 
     @PostMapping("/feedback")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'AGENT_MANAGER')")
     public Mono<ResponseEntity<Object>> submitFeedback(@RequestBody Map<String, Object> request) {
         String messageId = (String) request.get("messageId");
         Boolean helpful = (Boolean) request.get("helpful");

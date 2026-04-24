@@ -52,7 +52,8 @@ public class SecurityConfig {
                 // Public endpoints
                 .requestMatchers("/api/auth/firebase-login", "/api/auth/register", "/api/auth/forgot-password", "/api/auth/validate-token").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
-                .requestMatchers("/api/chat/**").permitAll()
+                .requestMatchers("/api/chat/health").permitAll()
+                .requestMatchers("/api/status/health", "/api/apps/health").permitAll()
                 .requestMatchers("/ws/**").permitAll()
                 
                 // Admin-only endpoints
@@ -61,6 +62,9 @@ public class SecurityConfig {
                 
                 // Manager/Specialized role endpoints
                 .requestMatchers("/api/agent/**").hasAnyRole("ADMIN", "AGENT_MANAGER")
+                
+                // Chat requires authentication
+                .requestMatchers("/api/chat/**").authenticated()
                 
                 // All other endpoints require authentication
                 .anyRequest().authenticated()
