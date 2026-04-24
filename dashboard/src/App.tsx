@@ -6,6 +6,10 @@ import { supremeTheme } from './lib/theme';
 import { authUtils } from './lib/authUtils';
 import LoginPage from './pages/LoginPage';
 import OnboardingWizard from './components/OnboardingWizard';
+import i18n from './i18n/conf';
+
+// Initialize i18n
+i18n.changeLanguage(localStorage.getItem('language') || 'en');
 
 const ChatWithAI = lazy(() => import('./components/ChatWithAI'));
 const ProgressMonitor = lazy(() => import('./components/ProgressMonitor'));
