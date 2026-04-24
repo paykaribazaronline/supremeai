@@ -24,7 +24,8 @@ public class SecurityConfig {
             .sessionManagement(session -> 
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/public/**", "/admin.html", "/login").permitAll()
+                .requestMatchers("/api/public/**", "/login", "/index.html", "/").permitAll()
+                .requestMatchers("/admin.html", "/admin-console.html", "/monitoring-dashboard.html", "/performance-dashboard.html").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated())
             .exceptionHandling(ex -> ex

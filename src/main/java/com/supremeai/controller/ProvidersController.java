@@ -37,9 +37,29 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
         return auth.getName();
     }
 
-    @GetMapping
-    public Mono<ResponseEntity<Object>> getProviders() {
+        @GetMapping("/configured")
+    public Mono<ResponseEntity<Object>> getConfiguredProviders() {
         return wrapList(providerRepository.findAll(), "providers");
+    }
+
+    @PostMapping("/add")
+    public Mono<ResponseEntity<Object>> addProvider(@RequestBody APIProvider provider) {
+        return updateProvider(provider);
+    }
+
+    @PutMapping("/{id}")
+    public Mono<ResponseEntity<Object>> updateProviderById(@PathVariable String id, @RequestBody APIProvider provider) {
+        provider.setId(id);
+        return updateProvider(provider);
+    }
+
+    @PostMapping("/remove")
+    public Mono<ResponseEntity<Object>> removeProvider(@RequestBody Map<String, String> payload) {
+        String providerId = payload.get("providerId");
+        if (providerId == null) {
+            return Mono.just(ResponseEntity.badRequest().body(Map.of("error", "providerId is required")));
+        }
+        return deleteProvider(providerId);
     }
 
     @PostMapping

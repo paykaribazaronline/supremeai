@@ -1,12 +1,79 @@
 package com.supremeai.generation;
 
+import com.supremeai.agent.DiOSAgent;
+import com.supremeai.agent.EWebAgent;
+import com.supremeai.agent.FDesktopAgent;
+import com.supremeai.agent.GPublishAgent;
+import com.supremeai.agentorchestration.Question;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Service
 public class MultiPlatformGenerator {
 
+    private static final Logger logger = LoggerFactory.getLogger(MultiPlatformGenerator.class);
+
+    @Autowired
+    private DiOSAgent diOSAgent;
+
+    @Autowired
+    private EWebAgent eWebAgent;
+
+    @Autowired
+    private FDesktopAgent fDesktopAgent;
+
+    @Autowired
+    private GPublishAgent gPublishAgent;
+
     public Map<String, String> generateForPlatform(String requirements, String platform) {
+        // প্ল্যাটফর্ম অনুযায়ী প্রশ্ন তৈরি করা
+        List<Question> questions = generatePlatformQuestions(requirements, platform);
+
+        // প্ল্যাটফর্ম অনুযায়ী অ্যাপ জেনারেট করা
+        Map<String, String> appCode = generatePlatformApp(requirements, platform);
+
+        // পাবলিশিং প্ল্যান তৈরি করা
+        Map<String, String> publishingPlan = gPublishAgent.createPublishingPlan(platform, Map.of());
+
+        // সব ফলাফল একত্রিত করা
+        Map<String, String> result = new java.util.LinkedHashMap<>();
+        result.putAll(appCode);
+        result.put("questionCount", String.valueOf(questions.size()));
+        result.put("publishingPlan", publishingPlan.toString());
+
+        return result;
+    }
+
+    /**
+     * প্ল্যাটফর্ম অনুযায়ী প্রশ্ন তৈরি করে
+     */
+    private List<Question> generatePlatformQuestions(String requirements, String platform) {
+        try {
+            switch (platform.toLowerCase()) {
+                case "ios":
+                    return diOSAgent.analyzeIOSRequirements(requirements);
+                case "desktop":
+                    return fDesktopAgent.analyzeDesktopRequirements(requirements);
+                case "web":
+                    return eWebAgent.analyzeWebRequirements(requirements);
+                default:
+                    return new ArrayList<>();
+            }
+        } catch (Exception e) {
+            logger.error("প্ল্যাটফর্ম প্রশ্ন তৈরিতে ব্যর্থ: {}", e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * প্ল্যাটফর্ম অনুযায়ী অ্যাপ কোড জেনারেট করে
+     */
+    private Map<String, String> generatePlatformApp(String requirements, String platform) {
         return switch (platform.toLowerCase()) {
             case "ios" -> generateiOSApp(requirements);
             case "web" -> generateWebApp(requirements);

@@ -99,4 +99,40 @@ public class AgentOrchestrationController {
         Map<String, Object> result = codeGenerationService.generateFromContext(decisions);
         return Mono.just(ResponseEntity.ok((Object) result));
     }
+
+    /**
+     * পাবলিশিং প্ল্যান তৈরি এন্ডপয়েন্ট
+     * প্ল্যাটফর্ম এবং কনফিগারেশন অনুযায়ী পাবলিশিং প্ল্যান তৈরি করে
+     */
+    @PostMapping("/publishing-plan")
+    @SuppressWarnings("unchecked")
+    public Mono<ResponseEntity<Object>> createPublishingPlan(@RequestBody Map<String, Object> request) {
+        String platform = (String) request.get("platform");
+        Map<String, String> config = (Map<String, String>) request.get("config");
+
+        if (platform == null || platform.trim().isEmpty()) {
+            return Mono.just(ResponseEntity.badRequest()
+                .body(Map.of("error", "Platform is required")));
+        }
+
+        if (config == null) {
+            config = new java.util.HashMap<>();
+        }
+
+        try {
+            com.supremeai.agent.GPublishAgent publishAgent = 
+                new com.supremeai.agent.GPublishAgent();
+            Map<String, String> plan = publishAgent.createPublishingPlan(platform, config);
+
+            Map<String, Object> response = new java.util.LinkedHashMap<>();
+            response.put("status", "SUCCESS");
+            response.put("platform", platform);
+            response.put("publishingPlan", plan);
+
+            return Mono.just(ResponseEntity.ok((Object) response));
+        } catch (Exception e) {
+            return Mono.just(ResponseEntity.status(500)
+                .body(Map.of("error", "Publishing plan creation failed: " + e.getMessage())));
+        }
+    }
 }

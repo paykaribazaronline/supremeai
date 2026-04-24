@@ -18,6 +18,18 @@ public class AdaptiveAgentOrchestrator {
     @Autowired
     private AIProviderFactory providerFactory;
 
+    @Autowired
+    private com.supremeai.agent.DiOSAgent diOSAgent;
+
+    @Autowired
+    private com.supremeai.agent.EWebAgent eWebAgent;
+
+    @Autowired
+    private com.supremeai.agent.FDesktopAgent fDesktopAgent;
+
+    @Autowired
+    private com.supremeai.agent.GPublishAgent gPublishAgent;
+
     public AdaptiveAgentOrchestrator() {}
 
     /**
@@ -59,9 +71,46 @@ public class AdaptiveAgentOrchestrator {
 
     /**
      * Generate questions using AI based on the requirement.
+     * প্ল্যাটফর্ম অনুযায়ী উপযুক্ত এজেন্ট নির্বাচন করে প্রশ্ন তৈরি করে
      */
     private List<Question> generateQuestionsAI(String requirement) {
-        return requirementAnalyzer.analyze(requirement);
+        // প্ল্যাটফর্ম সনাক্তকরণ
+        String platform = detectPlatform(requirement);
+
+        // প্ল্যাটফর্ম অনুযায়ী এজেন্ট নির্বাচন
+        switch (platform.toLowerCase()) {
+            case "ios":
+                return diOSAgent.analyzeIOSRequirements(requirement);
+            case "desktop":
+                return fDesktopAgent.analyzeDesktopRequirements(requirement);
+            case "web":
+                return eWebAgent.analyzeWebRequirements(requirement);
+            default:
+                // ডিফল্ট হিসেবে মূল প্রয়োজনীয়তা বিশ্লেষক ব্যবহার
+                return requirementAnalyzer.analyze(requirement);
+        }
+    }
+
+    /**
+     * প্রয়োজনীয়তা থেকে প্ল্যাটফর্ম সনাক্ত করে
+     */
+    private String detectPlatform(String requirement) {
+        String lowerReq = requirement.toLowerCase();
+
+        if (lowerReq.contains("ios") || lowerReq.contains("iphone") || lowerReq.contains("ipad")) {
+            return "ios";
+        } else if (lowerReq.contains("desktop") || lowerReq.contains("windows") || 
+                   lowerReq.contains("mac") || lowerReq.contains("linux")) {
+            return "desktop";
+        } else if (lowerReq.contains("web") || lowerReq.contains("website") || 
+                   lowerReq.contains("browser")) {
+            return "web";
+        } else if (lowerReq.contains("android")) {
+            return "android";
+        }
+
+        // ডিফল্ট প্ল্যাটফর্ম
+        return "web";
     }
 
     private List<Question> generateQuestions(String requirement) {

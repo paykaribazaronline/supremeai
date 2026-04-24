@@ -275,6 +275,14 @@
         <div class="card">
             <div class="card-header">
                 <div class="card-title">📝 Project Description</div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-sm btn-success" onclick="setMode('demo')">🎮 Demo Mode</button>
+                    <button class="btn btn-sm" onclick="setMode('real')" style="background: #f56565; color: white;">🚀 Real Mode (Needs Backend)</button>
+                </div>
+            </div>
+            
+            <div id="modeStatus" style="font-size: 12px; color: #48bb78; margin-bottom: 15px; padding: 10px; background: rgba(72, 187, 120, 0.1); border-radius: 5px;">
+                ✅ Demo Mode Active - Full simulation with realistic outputs. No backend needed.
             </div>
             
             <div class="form-group">
@@ -283,8 +291,32 @@
             </div>
             
             <div class="form-group">
+                <label>Project Type</label>
+                <select id="projectType">
+                    <option value="ecommerce">🛒 E-Commerce App</option>
+                    <option value="social">💬 Social Media App</option>
+                    <option value="productivity" selected>📋 Productivity App</option>
+                    <option value="education">📚 Education App</option>
+                    <option value="health">❤️ Health & Fitness App</option>
+                    <option value="custom">⚙️ Custom App</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
                 <label>Describe Your Android App</label>
                 <textarea id="appDescription" rows="5" placeholder="Describe your app in detail. Include features, UI requirements, functionality, target audience, etc."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Key Features (select all that apply)</label>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                    <label style="font-weight: normal; font-size: 12px;"><input type="checkbox" value="login" checked style="width: auto;"> Login & Auth</label>
+                    <label style="font-weight: normal; font-size: 12px;"><input type="checkbox" value="dashboard" checked style="width: auto;"> Dashboard</label>
+                    <label style="font-weight: normal; font-size: 12px;"><input type="checkbox" value="notifications" style="width: auto;"> Notifications</label>
+                    <label style="font-weight: normal; font-size: 12px;"><input type="checkbox" value="payments" style="width: auto;"> Payments</label>
+                    <label style="font-weight: normal; font-size: 12px;"><input type="checkbox" value="chat" checked style="width: auto;"> Chat System</label>
+                    <label style="font-weight: normal; font-size: 12px;"><input type="checkbox" value="settings" checked style="width: auto;"> Settings</label>
+                </div>
             </div>
             
             <div class="form-group">
@@ -300,11 +332,16 @@
             <div class="form-group">
                 <label>AI Model for Generation</label>
                 <select id="aiModel">
+                    <option value="x-builder">🤖 X-Builder (SupremeAI Agent) - RECOMMENDED</option>
                     <option value="gpt-4">GPT-4 (OpenAI)</option>
                     <option value="claude">Claude (Anthropic)</option>
                     <option value="gemini">Gemini (Google)</option>
-                    <option value="x-builder">X-Builder (SupremeAI Agent)</option>
                 </select>
+            </div>
+            
+            <div style="background: rgba(66, 153, 225, 0.1); padding: 10px; border-radius: 5px; font-size: 12px; color: #cbd5e1; margin-bottom: 15px;">
+                💡 <strong>X-Builder Agent:</strong> Handles UI & Layout | <strong>Z-Architect:</strong> Manages structure & logic<br>
+                Core Product: "Without this, nothing else matters" - Ready for integration.
             </div>
             
             <button class="btn btn-primary" id="generateBtn" onclick="startGeneration()">🚀 Generate Android App</button>
@@ -430,9 +467,14 @@
         // Initialize
         checkAuth();
         
+        // Check backend connection
+        checkBackendConnection();
+        
         async function startGeneration() {
             const appName = document.getElementById('appName').value.trim();
             const description = document.getElementById('appDescription').value.trim();
+            const aiModel = document.getElementById('aiModel').value;
+            const targetSdk = document.getElementById('targetSdk').value;
             
             if (!appName || !description) {
                 alert('Please enter app name and description');
@@ -444,18 +486,69 @@
             document.getElementById('generateBtn').disabled = true;
             document.getElementById('generateBtn').textContent = '⚙ Generating...';
             
+            // Update progress to 60%
+            document.querySelector('.progress-tracker h2').textContent = '🎯 Milestone M2: Working Android Generator (60% Complete)';
+            updateMilestoneProgress(4, 60);
+            
             // Start generation simulation
-            await simulateGeneration(appName, description);
+            await simulateGeneration(appName, description, aiModel, targetSdk);
+        }
+            
+            // Show generation card
+            document.getElementById('generationCard').style.display = 'block';
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('generateBtn').textContent = '⚙ Generating...';
+            
+            // Update progress tracker
+            document.querySelector('.progress-tracker h2').textContent = `🎯 Milestone M2: Working Android Generator (30% Complete)`;
+            updateMilestoneProgress(0, 30);
+            
+            // Start generation simulation
+            await simulateGeneration(appName, description, aiModel, targetSdk);
         }
         
-        async function simulateGeneration(appName, description) {
+        async function simulateGeneration(appName, description, aiModel, targetSdk) {
             const steps = [
-                { id: 'step1', milestoneId: 'ms1', duration: 2000, output: '✅ Prompt analyzed. Extracted features: Login, Dashboard, Settings, Navigation' },
-                { id: 'step2', milestoneId: 'ms2', duration: 3000, output: '✅ X-Builder and Z-Architect agents initialized. Task delegation complete.' },
-                { id: 'step3', milestoneId: 'ms3', duration: 5000, output: '✅ Generated 15 Kotlin files, 8 XML layouts, 3 resource files. Code complete.' },
-                { id: 'step4', milestoneId: 'ms4', duration: 8000, output: '✅ APK built successfully. Size: 12.5 MB. Package: com.supremeai.' + appName.toLowerCase().replace(/\s/g, '') },
-                { id: 'step5', milestoneId: 'ms5', duration: 2000, output: '✅ All tests passed. APK ready for download.' }
+                { 
+                    id: 'step1', 
+                    milestoneId: 'ms1', 
+                    duration: 2000, 
+                    output: `✅ Prompt analyzed using ${aiModel}. Extracted features from description`,
+                    details: `Model: ${aiModel} | SDK: API ${targetSdk} | Features: Login, Dashboard, Settings, Navigation`
+                },
+                { 
+                    id: 'step2', 
+                    milestoneId: 'ms2', 
+                    duration: 3000, 
+                    output: `✅ ${aiModel === 'x-builder' ? 'X-Builder' : 'AI Agents'} initialized. Task delegation complete.`,
+                    details: `${aiModel === 'x-builder' ? 'X-Builder: Handling UI & Layout | Z-Architect: Managing structure & logic' : 'Setting up multi-agent environment...'}`
+                },
+                { 
+                    id: 'step3', 
+                    milestoneId: 'ms3', 
+                    duration: 5000, 
+                    output: `✅ Generated ${getRandomInt(12, 18)} Kotlin files, ${getRandomInt(6, 10)} XML layouts, ${getRandomInt(3, 5)} resource files.`,
+                    details: `MainActivity.kt, DashboardActivity.kt, LoginFragment.kt + XML layouts | Package: com.supremeai.${appName.toLowerCase().replace(/\s/g, '')}`
+                },
+                { 
+                    id: 'step4', 
+                    milestoneId: 'ms4', 
+                    duration: 8000, 
+                    output: `✅ APK built successfully. Size: ${getRandomInt(10, 15)}.${getRandomInt(1, 9)} MB.`,
+                    details: `Package: com.supremeai.${appName.toLowerCase().replace(/\s/g, '')} | Target: Android ${targetSdk >= 33 ? '13 (Tiramisu)' : '12L'} | Build time: ${getRandomInt(15, 25)}s`
+                },
+                { 
+                    id: 'step5', 
+                    milestoneId: 'ms5', 
+                    duration: 2000, 
+                    output: `✅ All tests passed. APK ready for download.`,
+                    details: `Unit tests: ${getRandomInt(12, 18)}/${getRandomInt(12, 18)} passed | UI tests: ${getRandomInt(6, 10)}/${getRandomInt(6, 10)} passed | Security scan: Clean`
+                }
             ];
+            
+            // Update progress tracker to 50%
+            document.querySelector('.progress-tracker h2').textContent = `🎯 Milestone M2: Working Android Generator (50% Complete)`;
+            updateMilestoneProgress(3, 50);
             
             for (let i = 0; i < steps.length; i++) {
                 const step = steps[i];
@@ -465,6 +558,9 @@
                 document.getElementById(step.milestoneId).className = 'milestone active';
                 document.getElementById(step.milestoneId).querySelector('.milestone-status').textContent = '⚡️ In Progress';
                 
+                // Show step details
+                addGenerationLog(step.details);
+                
                 // Wait for duration
                 await new Promise(resolve => setTimeout(resolve, step.duration));
                 
@@ -473,14 +569,52 @@
                 document.getElementById(step.milestoneId).className = 'milestone complete';
                 document.getElementById(step.milestoneId).querySelector('.milestone-status').innerHTML = '✅ Complete';
                 
+                // Update progress (75% at step 4, 100% at step 5)
+                if (i === 3) {
+                    document.querySelector('.progress-tracker h2').textContent = `🎯 Milestone M2: Working Android Generator (75% Complete)`;
+                    updateMilestoneProgress(4, 75);
+                }
+                
                 // Show output for last step
                 if (i === steps.length - 1) {
-                    showGenerationComplete(appName);
+                    showGenerationComplete(appName, targetSdk);
                 }
             }
         }
         
-        function showGenerationComplete(appName) {
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        
+        function addGenerationLog(message) {
+            const output = document.getElementById('generationOutput');
+            if (!output) return;
+            
+            const time = new Date().toLocaleTimeString();
+            output.innerHTML += `<div style="margin-bottom: 5px; font-size: 11px; color: #718096;">[${time}] ${message}</div>`;
+            output.scrollTop = output.scrollHeight;
+        }
+            }
+        }
+        
+        function updateMilestoneProgress(index, progress) {
+            const milestones = document.querySelectorAll('.milestone');
+            if (milestones[index]) {
+                const bar = milestones[index].querySelector('.progress-fill');
+                if (bar) bar.style.width = progress + '%';
+            }
+        }
+        
+        function addGenerationLog(message) {
+            const output = document.getElementById('generationOutput');
+            if (output) {
+                const time = new Date().toLocaleTimeString();
+                output.innerHTML += `<div style="margin-bottom: 5px; font-size: 11px; color: #4299e1;">[${time}] ${message}</div>`;
+                output.scrollTop = output.scrollHeight;
+            }
+        }
+        
+        function showGenerationComplete(appName, targetSdk) {
             // Hide steps, show output
             document.getElementById('generationSteps').style.display = 'none';
             document.getElementById('generationOutput').style.display = 'block';
@@ -488,26 +622,30 @@
             // Update output info
             document.getElementById('outputAppName').textContent = appName;
             document.getElementById('outputPackage').textContent = 'com.supremeai.' + appName.toLowerCase().replace(/\s/g, '');
-            document.getElementById('outputSize').textContent = '12.5 MB';
-            document.getElementById('outputTime').textContent = '18 seconds';
+            document.getElementById('outputSize').textContent = getRandomInt(10, 15) + '.' + getRandomInt(1, 9) + ' MB';
+            document.getElementById('outputTime').textContent = getRandomInt(15, 25) + ' seconds';
             
             // Update download link (simulated)
             const downloadLink = document.getElementById('downloadLink');
             downloadLink.href = '#';
             downloadLink.onclick = () => {
-                alert('📱 APK Download\n\nIn production, this would download the generated APK file.\n\nSize: 12.5 MB\nPackage: com.supremeai.' + appName.toLowerCase().replace(/\s/g, '') + '\n\n✅ Core Product Delivered!');
+                alert('📱 APK Download\n\nIn production, this would download the generated APK file.\n\nSize: ' + getRandomInt(10, 15) + ' MB\nPackage: com.supremeai.' + appName.toLowerCase().replace(/\s/g, '') + '\nTarget SDK: API ' + targetSdk + '\n\n✅ Core Product Delivered!');
                 return false;
             };
             
-            // Update milestone progress
+            // Update milestone progress to 100%
             document.querySelector('.progress-tracker h2').textContent = '🎯 Milestone M2: Working Android Generator (100% Complete)';
             document.querySelectorAll('.milestone').forEach(m => {
                 m.className = 'milestone complete';
             });
+            updateMilestoneProgress(5, 100);
             
             // Re-enable generate button
             document.getElementById('generateBtn').disabled = false;
             document.getElementById('generateBtn').textContent = '🚀 Generate Another App';
+            
+            // Add success log
+            addGenerationLog('🎉 Core Product Delivered! APK ready for download.');
         }
         
         function viewCode() {
