@@ -17,9 +17,15 @@ spec:
         - name: PORT
           value: '8080'
         - name: FIREBASE_PROJECT_ID
-          value: 'supremeai-a'
+          valueFrom:
+            secretKeyRef:
+              name: supremeai-secrets
+              key: firebase-project-id
         - name: app.jwtSecret
-          value: 'supremeai-secret-key-for-jwt-token-generation-2026'
+          valueFrom:
+            secretKeyRef:
+              name: supremeai-secrets
+              key: jwt-secret
         ports:
         - containerPort: 8080
         resources:
