@@ -59,11 +59,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private Claims validateToken(String token) {
         try {
-            return Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
+            return Jwts.parser()
+                    .verifyWith((java.security.Key) getSigningKey())
                     .build()
-                    .parseClaimsJws(token)
-                    .getBody();
+                    .parseSignedClaims(token)
+                    .getPayload();
         } catch (Exception e) {
             log.warn("JWT validation failed: {}", e.getMessage());
             return null;

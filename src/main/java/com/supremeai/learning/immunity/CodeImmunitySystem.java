@@ -3,7 +3,7 @@ package com.supremeai.learning.immunity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.gcp.firestore.FirestoreTemplate;
+import com.google.cloud.spring.data.firestore.FirestoreTemplate;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +46,11 @@ public class CodeImmunitySystem {
         }
 
         try {
+            // TODO: Update for new FirestoreTemplate API in Spring Cloud GCP 5.x
+            log.warn("Firestore loading disabled - please update for new API");
+            return;
+            
+            /*
             Map<String, Object> doc = firestoreTemplate.findById(DOCUMENT_ID, COLLECTION_NAME, Map.class).block();
             if (doc != null && doc.containsKey("patterns")) {
                 @SuppressWarnings("unchecked")
@@ -55,6 +60,7 @@ public class CodeImmunitySystem {
                 }
                 log.info("Loaded {} toxic patterns from Firestore", toxicCodePatterns.size());
             }
+            */
         } catch (Exception e) {
             log.error("Failed to load patterns from Firestore: {}", e.getMessage());
         }
@@ -66,6 +72,11 @@ public class CodeImmunitySystem {
     private void savePatterns() {
         if (firestoreTemplate == null) return;
 
+        // TODO: Update for new FirestoreTemplate API in Spring Cloud GCP 5.x
+        log.warn("Firestore save disabled - please update for new API");
+        return;
+        
+        /*
         List<String> patterns = new ArrayList<>();
         for (Pattern p : toxicCodePatterns) {
             patterns.add(p.pattern());
@@ -79,6 +90,7 @@ public class CodeImmunitySystem {
                 result -> log.debug("Saved {} patterns to Firestore", patterns.size()),
                 error -> log.error("Failed to save patterns: {}", error.getMessage())
         );
+        */
     }
 
     /**

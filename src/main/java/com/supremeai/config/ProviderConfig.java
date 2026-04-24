@@ -1,6 +1,6 @@
 package com.supremeai.config;
 
-import com.supremeai.ai.provider.*;
+import com.supremeai.provider.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -33,36 +33,28 @@ public class ProviderConfig {
             log.info("Registered Gemini provider");
         }
         if (StringUtils.hasText(properties.getAnthropic())) {
-            providers.add(new ClaudeProvider(properties.getAnthropic()));
-            log.info("Registered Claude provider");
-        }
-        if (StringUtils.hasText(properties.getCohere())) {
-            providers.add(new CohereProvider(properties.getCohere()));
-            log.info("Registered Cohere provider");
-        }
-        if (StringUtils.hasText(properties.getPerplexity())) {
-            providers.add(new PerplexityProvider(properties.getPerplexity()));
-            log.info("Registered Perplexity provider");
+            providers.add(new AnthropicProvider(properties.getAnthropic()));
+            log.info("Registered Anthropic/Claude provider");
         }
         if (StringUtils.hasText(properties.getMistral())) {
             providers.add(new MistralProvider(properties.getMistral()));
             log.info("Registered Mistral provider");
         }
-        if (StringUtils.hasText(properties.getLlama())) {
-            providers.add(new LlamaProvider(properties.getLlama()));
-            log.info("Registered Llama provider");
-        }
         if (StringUtils.hasText(properties.getDeepseek())) {
             providers.add(new DeepSeekProvider(properties.getDeepseek()));
             log.info("Registered DeepSeek provider");
         }
-        if (StringUtils.hasText(properties.getGrok())) {
-            providers.add(new GrokProvider(properties.getGrok()));
-            log.info("Registered Grok provider");
+        if (StringUtils.hasText(properties.getGroq())) {
+            providers.add(new GroqProvider(properties.getGroq()));
+            log.info("Registered Groq provider");
         }
-        if (StringUtils.hasText(properties.getCustomSupremeAi())) {
-            providers.add(new CustomSupremeAIProvider(properties.getCustomSupremeAi()));
-            log.info("Registered Custom Supreme AI provider");
+        if (StringUtils.hasText(properties.getKimi())) {
+            providers.add(new KimiProvider(properties.getKimi()));
+            log.info("Registered Kimi provider");
+        }
+        if (StringUtils.hasText(properties.getAirllm())) {
+            providers.add(new AirLLMProvider("https://airllm-endpoint/v1/chat/completions", properties.getAirllm(), "mistralai/Mistral-7B-Instruct-v0.3"));
+            log.info("Registered AirLLM provider");
         }
 
         if (providers.isEmpty()) {
@@ -76,13 +68,11 @@ public class ProviderConfig {
         private String openai;
         private String gemini;
         private String anthropic;
-        private String cohere;
-        private String perplexity;
+        private String groq;
         private String mistral;
-        private String llama;
         private String deepseek;
-        private String grok;
-        private String customSupremeAi;
+        private String kimi;
+        private String airllm;
 
         public String getOpenai() { return openai; }
         public void setOpenai(String openai) { this.openai = openai; }
@@ -90,19 +80,15 @@ public class ProviderConfig {
         public void setGemini(String gemini) { this.gemini = gemini; }
         public String getAnthropic() { return anthropic; }
         public void setAnthropic(String anthropic) { this.anthropic = anthropic; }
-        public String getCohere() { return cohere; }
-        public void setCohere(String cohere) { this.cohere = cohere; }
-        public String getPerplexity() { return perplexity; }
-        public void setPerplexity(String perplexity) { this.perplexity = perplexity; }
+        public String getGroq() { return groq; }
+        public void setGroq(String groq) { this.groq = groq; }
         public String getMistral() { return mistral; }
         public void setMistral(String mistral) { this.mistral = mistral; }
-        public String getLlama() { return llama; }
-        public void setLlama(String llama) { this.llama = llama; }
         public String getDeepseek() { return deepseek; }
         public void setDeepseek(String deepseek) { this.deepseek = deepseek; }
-        public String getGrok() { return grok; }
-        public void setGrok(String grok) { this.grok = grok; }
-        public String getCustomSupremeAi() { return customSupremeAi; }
-        public void setCustomSupremeAi(String customSupremeAi) { this.customSupremeAi = customSupremeAi; }
+        public String getKimi() { return kimi; }
+        public void setKimi(String kimi) { this.kimi = kimi; }
+        public String getAirllm() { return airllm; }
+        public void setAirllm(String airllm) { this.airllm = airllm; }
     }
 }
