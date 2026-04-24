@@ -44,7 +44,13 @@ public class AIFallbackOrchestrator {
             AIProviderType.GROQ_LLAMA3,
             AIProviderType.GEMINI_PRO,
             AIProviderType.HUGGINGFACE_FREE,
-            AIProviderType.ANTHROPIC_CLAUDE
+            AIProviderType.ANTHROPIC_CLAUDE,
+            AIProviderType.OPENAI,
+            AIProviderType.DEEPSEEK,
+            AIProviderType.KIMI,
+            AIProviderType.MISTRAL,
+            AIProviderType.AIRLLM,
+            AIProviderType.OLLAMA
     );
 
     public AIFallbackOrchestrator(QuotaManager quotaManager,
@@ -172,6 +178,12 @@ public class AIFallbackOrchestrator {
             case GEMINI_PRO: return "Google";
             case ANTHROPIC_CLAUDE: return "Anthropic";
             case HUGGINGFACE_FREE: return "HuggingFace";
+            case OPENAI: return "OpenAI";
+            case DEEPSEEK: return "DeepSeek";
+            case KIMI: return "Kimi";
+            case MISTRAL: return "Mistral";
+            case AIRLLM: return "AirLLM";
+            case OLLAMA: return "Ollama";
             default: throw new IllegalArgumentException("Unknown AI provider: " + provider);
         }
     }
@@ -191,6 +203,12 @@ public class AIFallbackOrchestrator {
             case GEMINI_PRO: return "GOOGLE_AI_API_KEY";
             case ANTHROPIC_CLAUDE: return "ANTHROPIC_API_KEY";
             case HUGGINGFACE_FREE: return "HF_API_KEY";
+            case OPENAI: return "OPENAI_API_KEY";
+            case DEEPSEEK: return "DEEPSEEK_API_KEY";
+            case KIMI: return "KIMI_API_KEY";
+            case MISTRAL: return "MISTRAL_API_KEY";
+            case AIRLLM: return "AIRLLM_API_KEY";
+            case OLLAMA: return "OLLAMA_API_KEY";
             default: return "AI_API_KEY";
         }
     }
@@ -221,6 +239,12 @@ public class AIFallbackOrchestrator {
             case GEMINI_PRO: return "gemini";
             case ANTHROPIC_CLAUDE: return "anthropic";
             case HUGGINGFACE_FREE: return "huggingface";
+            case OPENAI: return "openai";
+            case DEEPSEEK: return "deepseek";
+            case KIMI: return "kimi";
+            case MISTRAL: return "mistral";
+            case AIRLLM: return "airllm";
+            case OLLAMA: return "ollama";
             default: return provider.name().toLowerCase();
         }
     }

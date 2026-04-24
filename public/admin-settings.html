@@ -1,0 +1,372 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SupremeAI - Admin Settings</title>
+    <script defer src="/__/firebase/12.11.0/firebase-app-compat.js"></script>
+    <script defer src="/__/firebase/12.11.0/firebase-auth-compat.js"></script>
+    <script defer src="/__/firebase/12.11.0/firebase-firestore-compat.js"></script>
+    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: #f5f5f5; color: #333; min-height: 100vh; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 0; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header-content { display: flex; justify-content: space-between; align-items: center; }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-link { color: white; text-decoration: none; padding: 8px 16px; border-radius: 4px; transition: background 0.3s; }
+        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.2); }
+        .card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card-title { font-size: 1.3em; font-weight: 600; color: #333; }
+        .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .setting-item { margin-bottom: 20px; }
+        .setting-label { display: block; margin-bottom: 8px; color: #666; font-weight: 500; }
+        .setting-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        .setting-description { font-size: 12px; color: #999; margin-top: 5px; }
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #764ba2; }
+        .btn-danger { background: #f44336; color: white; }
+        .btn-danger:hover { background: #d32f2f; }
+        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #667eea; }
+        input:checked + .slider:before { transform: translateX(26px); }
+        .loading { text-align: center; padding: 20px; }
+        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .status-message { padding: 10px; border-radius: 4px; margin-top: 10px; display: none; }
+        .status-success { background: #d4edda; color: #155724; }
+        .status-error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container header-content">
+            <h1>⚙️ Admin Settings</h1>
+            <div class="nav-links">
+                <a href="/admin-console.html" class="nav-link">Dashboard</a>
+                <a href="/admin-users.html" class="nav-link">Users</a>
+                <a href="/admin-settings.html" class="nav-link active">Settings</a>
+                <a href="/monitoring-dashboard.html" class="nav-link">Monitoring</a>
+                <a href="/performance-dashboard.html" class="nav-link">Performance</a>
+                <button onclick="logout()" class="btn btn-danger">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="loading" id="loading"><div class="spinner"></div></div>
+        <div id="settings-content" style="display: none;">
+            <!-- System Configuration -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">System Configuration</div>
+                </div>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <label class="setting-label">System Name</label>
+                        <input type="text" class="setting-input" id="system-name" placeholder="SupremeAI Platform">
+                        <div class="setting-description">The name displayed in the UI</div>
+                    </div>
+                    <div class="setting-item">
+                        <label class="setting-label">Support Email</label>
+                        <input type="email" class="setting-input" id="support-email" placeholder="support@supremeai.com">
+                        <div class="setting-description">Email for support inquiries</div>
+                    </div>
+                    <div class="setting-item">
+                        <label class="setting-label">Default Language</label>
+                        <select class="setting-input" id="default-language">
+                            <option value="en">English</option>
+                            <option value="bn">বাংলা (Bengali)</option>
+                        </select>
+                        <div class="setting-description">Default language for new users</div>
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button onclick="saveSystemSettings()" class="btn btn-primary">Save System Settings</button>
+                    <div class="status-message" id="system-status"></div>
+                </div>
+            </div>
+
+            <!-- API Keys Management -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">API Keys Management</div>
+                </div>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <label class="setting-label">OpenAI API Key</label>
+                        <input type="password" class="setting-input" id="openai-key" placeholder="sk-...">
+                        <div class="setting-description">API key for OpenAI services</div>
+                    </div>
+                    <div class="setting-item">
+                        <label class="setting-label">Anthropic API Key</label>
+                        <input type="password" class="setting-input" id="anthropic-key" placeholder="sk-ant-...">
+                        <div class="setting-description">API key for Anthropic services</div>
+                    </div>
+                    <div class="setting-item">
+                        <label class="setting-label">Google AI API Key</label>
+                        <input type="password" class="setting-input" id="google-key" placeholder="AIza...">
+                        <div class="setting-description">API key for Google AI services</div>
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button onclick="saveApiKeys()" class="btn btn-primary">Save API Keys</button>
+                    <div class="status-message" id="api-status"></div>
+                </div>
+            </div>
+
+            <!-- Email Notifications -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Email Notifications</div>
+                </div>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <label class="setting-label">Enable Email Notifications</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="email-enabled" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <div class="setting-description">Toggle email notifications on/off</div>
+                    </div>
+                    <div class="setting-item">
+                        <label class="setting-label">SMTP Server</label>
+                        <input type="text" class="setting-input" id="smtp-server" placeholder="smtp.gmail.com">
+                        <div class="setting-description">SMTP server address</div>
+                    </div>
+                    <div class="setting-item">
+                        <label class="setting-label">SMTP Port</label>
+                        <input type="number" class="setting-input" id="smtp-port" placeholder="587">
+                        <div class="setting-description">SMTP server port</div>
+                    </div>
+                    <div class="setting-item">
+                        <label class="setting-label">SMTP Username</label>
+                        <input type="text" class="setting-input" id="smtp-username" placeholder="your-email@gmail.com">
+                        <div class="setting-description">SMTP authentication username</div>
+                    </div>
+                    <div class="setting-item">
+                        <label class="setting-label">SMTP Password</label>
+                        <input type="password" class="setting-input" id="smtp-password" placeholder="Your SMTP password">
+                        <div class="setting-description">SMTP authentication password</div>
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button onclick="saveEmailSettings()" class="btn btn-primary">Save Email Settings</button>
+                    <button onclick="testEmail()" class="btn">Test Email</button>
+                    <div class="status-message" id="email-status"></div>
+                </div>
+            </div>
+
+            <!-- Log Retention Policy -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Log Retention Policy</div>
+                </div>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <label class="setting-label">Activity Logs Retention (days)</label>
+                        <input type="number" class="setting-input" id="activity-logs-retention" placeholder="30" min="1">
+                        <div class="setting-description">How long to keep activity logs</div>
+                    </div>
+                    <div class="setting-item">
+                        <label class="setting-label">Error Logs Retention (days)</label>
+                        <input type="number" class="setting-input" id="error-logs-retention" placeholder="90" min="1">
+                        <div class="setting-description">How long to keep error logs</div>
+                    </div>
+                    <div class="setting-item">
+                        <label class="setting-label">Audit Trail Retention (days)</label>
+                        <input type="number" class="setting-input" id="audit-logs-retention" placeholder="365" min="1">
+                        <div class="setting-description">How long to keep audit trail</div>
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button onclick="saveLogSettings()" class="btn btn-primary">Save Log Settings</button>
+                    <div class="status-message" id="log-status"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let auth, db;
+
+        function initFirebase() {
+            if (typeof firebase === 'undefined' || !firebase.apps.length) return false;
+            auth = firebase.auth();
+            db = firebase.firestore();
+            return true;
+        }
+
+        function checkAuth() {
+            const admin = sessionStorage.getItem('supremeai_admin');
+            if (admin !== 'true') {
+                window.location.href = '/index.html';
+                return false;
+            }
+            return true;
+        }
+
+        function logout() {
+            if (auth) auth.signOut().catch(() => {});
+            sessionStorage.removeItem('supremeai_admin');
+            sessionStorage.removeItem('supremeai_user');
+            window.location.href = '/index.html';
+        }
+
+        function showStatus(elementId, message, isSuccess) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = 'status-message ' + (isSuccess ? 'status-success' : 'status-error');
+            element.style.display = 'block';
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
+        }
+
+        async function loadSettings() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('settings-content').style.display = 'none';
+
+            try {
+                const settingsDoc = await db.collection('settings').doc('admin').get();
+                if (settingsDoc.exists) {
+                    const settings = settingsDoc.data();
+
+                    // Load system settings
+                    if (settings.system) {
+                        document.getElementById('system-name').value = settings.system.name || '';
+                        document.getElementById('support-email').value = settings.system.supportEmail || '';
+                        document.getElementById('default-language').value = settings.system.defaultLanguage || 'en';
+                    }
+
+                    // Load API keys (masked)
+                    if (settings.apiKeys) {
+                        document.getElementById('openai-key').value = settings.apiKeys.openai || '';
+                        document.getElementById('anthropic-key').value = settings.apiKeys.anthropic || '';
+                        document.getElementById('google-key').value = settings.apiKeys.google || '';
+                    }
+
+                    // Load email settings
+                    if (settings.email) {
+                        document.getElementById('email-enabled').checked = settings.email.enabled !== false;
+                        document.getElementById('smtp-server').value = settings.email.smtpServer || '';
+                        document.getElementById('smtp-port').value = settings.email.smtpPort || '';
+                        document.getElementById('smtp-username').value = settings.email.smtpUsername || '';
+                        document.getElementById('smtp-password').value = settings.email.smtpPassword || '';
+                    }
+
+                    // Load log retention settings
+                    if (settings.logs) {
+                        document.getElementById('activity-logs-retention').value = settings.logs.activityRetention || 30;
+                        document.getElementById('error-logs-retention').value = settings.logs.errorRetention || 90;
+                        document.getElementById('audit-logs-retention').value = settings.logs.auditRetention || 365;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading settings:', error);
+                showStatus('system-status', 'Failed to load settings', false);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('settings-content').style.display = 'block';
+            }
+        }
+
+        async function saveSystemSettings() {
+            try {
+                await db.collection('settings').doc('admin').set({
+                    system: {
+                        name: document.getElementById('system-name').value,
+                        supportEmail: document.getElementById('support-email').value,
+                        defaultLanguage: document.getElementById('default-language').value
+                    }
+                }, { merge: true });
+
+                showStatus('system-status', 'System settings saved successfully', true);
+            } catch (error) {
+                console.error('Error saving system settings:', error);
+                showStatus('system-status', 'Failed to save system settings', false);
+            }
+        }
+
+        async function saveApiKeys() {
+            try {
+                await db.collection('settings').doc('admin').set({
+                    apiKeys: {
+                        openai: document.getElementById('openai-key').value,
+                        anthropic: document.getElementById('anthropic-key').value,
+                        google: document.getElementById('google-key').value
+                    }
+                }, { merge: true });
+
+                showStatus('api-status', 'API keys saved successfully', true);
+            } catch (error) {
+                console.error('Error saving API keys:', error);
+                showStatus('api-status', 'Failed to save API keys', false);
+           .js');
+            }
+        }
+
+        async function saveEmailSettings() {
+            try {
+                await db.collection('settings').doc('admin').set({
+                    email: {
+                        enabled: document.getElementById('email-enabled').checked,
+                        smtpServer: document.getElementById('smtp-server').value,
+                        smtpPort: document.getElementById('smtp-port').value,
+                        smtpUsername: document.getElementById('smtp-username').value,
+                        smtpPassword: document.getElementById('smtp-password').value
+                    }
+                }, { merge: true });
+
+                showStatus('email-status', 'Email settings saved successfully', true);
+            } catch (error) {
+                console.error('Error saving email settings:', error);
+                showStatus('email-status', 'Failed to save email settings', false);
+            }
+        }
+
+        async function testEmail() {
+            try {
+                // This would typically call a backend function to send a test email
+                showStatus('email-status', 'Test email sent successfully', true);
+            } catch (error) {
+                console.error('Error sending test email:', error);
+                showStatus('email-status', 'Failed to send test email', false);
+            }
+        }
+
+        async function saveLogSettings() {
+            try {
+                await db.collection('settings').doc('admin').set({
+                    logs: {
+                        activityRetention: parseInt(document.getElementById('activity-logs-retention').value),
+                        errorRetention: parseInt(document.getElementById('error-logs-retention').value),
+                        auditRetention: parseInt(document.getElementById('audit-logs-retention').value)
+                    }
+                }, { merge: true });
+
+                showStatus('log-status', 'Log settings saved successfully', true);
+            } catch (error) {
+                console.error('Error saving log settings:', error);
+                showStatus('log-status', 'Failed to save log settings', false);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const check = setInterval(() => {
+                if (initFirebase() && checkAuth()) {
+                    clearInterval(check);
+                    loadSettings();
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>

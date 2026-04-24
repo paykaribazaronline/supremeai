@@ -30,7 +30,7 @@ public class DiOSAgent {
     public List<Question> analyzeIOSRequirements(String requirement) {
         try {
             AIProvider provider = providerFactory.getProvider("groq");
-            String prompt = "একটি iOS অ্যাপের জন্য নিম্নলিখিত প্রয়োজনীয়তা বিশ্লেষণ করুন: "" + requirement + ""\n" +
+            String prompt = "একটি iOS অ্যাপের জন্য নিম্নলিখিত প্রয়োজনীয়তা বিশ্লেষণ করুন: " + requirement + "\n" +
                     "iOS অ্যাপ ডেভেলপমেন্ট সম্পর্কিত 5-7টি প্রশ্ন তৈরি করুন।\n" +
                     "প্রতিটি প্রশ্নকে একটি JSON অবজেক্ট হিসেবে ফরম্যাট করুন যেখানে 'key', 'text', এবং 'priority' (CRITICAL, HIGH, MEDIUM, LOW) থাকবে।\n" +
                     "শুধুমাত্র এই অবজেক্টগুলির একটি JSON অ্যারে রিটার্ন করুন।";
@@ -49,7 +49,7 @@ public class DiOSAgent {
     public List<Question> analyzeDesktopRequirements(String requirement) {
         try {
             AIProvider provider = providerFactory.getProvider("groq");
-            String prompt = "একটি ডেস্কটপ অ্যাপের জন্য নিম্নলিখিত প্রয়োজনীয়তা বিশ্লেষণ করুন: "" + requirement + ""\n" +
+            String prompt = "একটি ডেস্কটপ অ্যাপের জন্য নিম্নলিখিত প্রয়োজনীয়তা বিশ্লেষণ করুন: " + requirement + "\n" +
                     "ডেস্কটপ অ্যাপ ডেভেলপমেন্ট সম্পর্কিত 5-7টি প্রশ্ন তৈরি করুন।\n" +
                     "প্রতিটি প্রশ্নকে একটি JSON অবজেক্ট হিসেবে ফরম্যাট করুন যেখানে 'key', 'text', এবং 'priority' (CRITICAL, HIGH, MEDIUM, LOW) থাকবে।\n" +
                     "শুধুমাত্র এই অবজেক্টগুলির একটি JSON অ্যারে রিটার্ন করুন।";

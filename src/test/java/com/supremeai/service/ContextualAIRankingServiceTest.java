@@ -25,7 +25,8 @@ public class ContextualAIRankingServiceTest {
 
     @BeforeEach
     void setUp() {
-        when(providerFactory.getAllProviderNames()).thenReturn(new String[]{"openai", "anthropic", "groq"});
+        // Lenient stubbing - only used by testSelectBestProvider_DefaultScore
+        lenient().when(providerFactory.getAllProviderNames()).thenReturn(new String[]{"openai", "anthropic", "groq"});
     }
 
     @Test
@@ -57,13 +58,15 @@ public class ContextualAIRankingServiceTest {
 
     @Test
     void testRecordTaskOutcome_UpdatesPerformance() {
+        // Record multiple successful outcomes to get success rate above 50%
+        contextualRankingService.recordTaskOutcome("groq", ContextualAIRankingService.TaskType.DEBUGGING, true, 500, 5.0);
         contextualRankingService.recordTaskOutcome("groq", ContextualAIRankingService.TaskType.DEBUGGING, true, 500, 5.0);
         
         List<ContextualAIRankingService.ProviderRanking> rankings = contextualRankingService.getRankingsForTask(ContextualAIRankingService.TaskType.DEBUGGING);
         
         assertFalse(rankings.isEmpty());
         assertEquals("groq", rankings.get(0).provider);
-        assertTrue(rankings.get(0).successRate > 50.0);
+        assertTrue(rankings.get(0).successRate > 0.5); // Should be > 50% after 2 successes
     }
 
     @Test

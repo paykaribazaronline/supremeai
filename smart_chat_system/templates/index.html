@@ -1,0 +1,648 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>স্মার্ট চ্যাট সিস্টেম</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'SolaimanLipi', 'Arial', sans-serif;
+            background-color: #f5f5f5;
+        }
+        .chat-container {
+            max-width: 900px;
+            margin: 30px auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .chat-header {
+            background-color: #4a6bdf;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-messages {
+            height: 500px;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            border-radius: 10px;
+            max-width: 75%;
+            position: relative;
+        }
+        .user-message {
+            background-color: #4a6bdf;
+            color: white;
+            margin-left: auto;
+        }
+        .system-message {
+            background-color: #e9ecef;
+            color: #333;
+            margin-right: auto;
+        }
+        .message-time {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 5px;
+            text-align: right;
+        }
+        .chat-input {
+            padding: 15px;
+            background-color: white;
+            border-top: 1px solid #eee;
+        }
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .confirmation-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .confirmation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .confirmation-body {
+            margin-bottom: 20px;
+        }
+        .type-badge {
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-right: 5px;
+        }
+        .type-rule {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .type-plan {
+            background-color: #3498db;
+            color: white;
+        }
+        .type-command {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .confidence-bar {
+            height: 5px;
+            background-color: #eee;
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .confidence-fill {
+            height: 100%;
+            background-color: #4a6bdf;
+        }
+        .pending-items {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .pending-item {
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .pending-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .nav-tabs .nav-link {
+            color: #4a6bdf;
+        }
+        .nav-tabs .nav-link.active {
+            color: #4a6bdf;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="chat-container">
+            <div class="chat-header">
+                <h4 class="mb-0"><i class="fas fa-robot me-2"></i>স্মার্ট চ্যাট সিস্টেম</h4>
+                <div>
+                    <button class="btn btn-sm btn-outline-light me-2" id="pending-btn">
+                        <i class="fas fa-clock me-1"></i>পেন্ডিং কনফার্মেশন
+                        <span class="badge bg-danger" id="pending-count">0</span>
+                    </button>
+                    <a href="/admin" class="btn btn-sm btn-light">
+                        <i class="fas fa-user-shield me-1"></i>এডমিন প্যানেল
+                    </a>
+                </div>
+            </div>
+
+            <ul class="nav nav-tabs" id="chatTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chat" type="button" role="tab" aria-controls="chat" aria-selected="true">
+                        <i class="fas fa-comments me-1"></i>চ্যাট
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="rules-tab" data-bs-toggle="tab" data-bs-target="#rules" type="button" role="tab" aria-controls="rules" aria-selected="false">
+                        <i class="fas fa-list me-1"></i>রুলস
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="plans-tab" data-bs-toggle="tab" data-bs-target="#plans" type="button" role="tab" aria-controls="plans" aria-selected="false">
+                        <i class="fas fa-tasks me-1"></i>প্ল্যান
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="commands-tab" data-bs-toggle="tab" data-bs-target="#commands" type="button" role="tab" aria-controls="commands" aria-selected="false">
+                        <i class="fas fa-terminal me-1"></i>কমান্ড
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="chatTabsContent">
+                <div class="tab-pane fade show active" id="chat" role="tabpanel" aria-labelledby="chat-tab">
+                    <div class="chat-messages" id="chat-messages">
+                        <div class="message system-message">
+                            <div class="message-content">স্বাগতম! আমি স্মার্ট চ্যাট সিস্টেম। আপনি আমার সাথে চ্যাট করতে পারেন এবং আমি স্বয়ংক্রিয়ভাবে রুলস, প্ল্যান এবং কমান্ড ডিটেক্ট করব।</div>
+                            <div class="message-time">আজ</div>
+                        </div>
+                    </div>
+                    <div class="chat-input">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="message-input" placeholder="আপনার মেসেজ লিখুন...">
+                            <button class="btn btn-primary" id="send-btn">
+                                <i class="fas fa-paper-plane"></i> পাঠান
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="rules" role="tabpanel" aria-labelledby="rules-tab">
+                    <div class="p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5><i class="fas fa-list me-2"></i>সকল রুলস</h5>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="active-rules-only" checked>
+                                <label class="form-check-label" for="active-rules-only">শুধুমাত্র সক্রিয় রুলস</label>
+                            </div>
+                        </div>
+                        <div id="rules-list">
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">লোড হচ্ছে...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="plans" role="tabpanel" aria-labelledby="plans-tab">
+                    <div class="p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5><i class="fas fa-tasks me-2"></i>সকল প্ল্যান</h5>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="active-plans-only" checked>
+                                <label class="form-check-label" for="active-plans-only">শুধুমাত্র সক্রিয় প্ল্যান</label>
+                            </div>
+                        </div>
+                        <div id="plans-list">
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">লোড হচ্ছে...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="commands" role="tabpanel" aria-labelledby="commands-tab">
+                    <div class="p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5><i class="fas fa-terminal me-2"></i>সকল কমান্ড</h5>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="active-commands-only" checked>
+                                <label class="form-check-label" for="active-commands-only">শুধুমাত্র সক্রিয় কমান্ড</label>
+                            </div>
+                        </div>
+                        <div id="commands-list">
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">লোড হচ্ছে...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- কনফার্মেশন মোডাল -->
+    <div class="confirmation-modal" id="confirmation-modal">
+        <div class="confirmation-content">
+            <div class="confirmation-header">
+                <h5><i class="fas fa-question-circle me-2"></i>কনফার্মেশন প্রয়োজন</h5>
+                <button type="button" class="btn-close" id="close-modal"></button>
+            </div>
+            <div class="confirmation-body">
+                <p>আমি মনে করি এটি একটি <span id="item-type-badge" class="type-badge"></span>। আপনি কি কনফার্ম করতে চান?</p>
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <p id="item-content" class="mb-0"></p>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <small>কনফিডেন্স স্কোর:</small>
+                        <small id="confidence-value">0%</small>
+                    </div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="confidence-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end">
+                <button class="btn btn-secondary me-2" id="reject-btn">
+                    <i class="fas fa-times me-1"></i>প্রত্যাখ্যান
+                </button>
+                <button class="btn btn-success" id="confirm-btn">
+                    <i class="fas fa-check me-1"></i>কনফার্ম
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- পেন্ডিং আইটেম মোডাল -->
+    <div class="confirmation-modal" id="pending-modal">
+        <div class="confirmation-content">
+            <div class="confirmation-header">
+                <h5><i class="fas fa-clock me-2"></i>পেন্ডিং কনফার্মেশন</h5>
+                <button type="button" class="btn-close" id="close-pending-modal"></button>
+            </div>
+            <div class="confirmation-body">
+                <div class="pending-items" id="pending-items-list">
+                    <div class="text-center py-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">লোড হচ্ছে...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+        // সকেট কানেকশন তৈরি করা
+        const socket = io();
+
+        // DOM এলিমেন্ট
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const chatMessages = document.getElementById('chat-messages');
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const pendingModal = document.getElementById('pending-modal');
+        const pendingBtn = document.getElementById('pending-btn');
+        const pendingCount = document.getElementById('pending-count');
+        const itemContent = document.getElementById('item-content');
+        const itemTypeBadge = document.getElementById('item-type-badge');
+        const confidenceValue = document.getElementById('confidence-value');
+        const confidenceFill = document.getElementById('confidence-fill');
+        const confirmBtn = document.getElementById('confirm-btn');
+        const rejectBtn = document.getElementById('reject-btn');
+        const closeModal = document.getElementById('close-modal');
+        const closePendingModal = document.getElementById('close-pending-modal');
+        const pendingItemsList = document.getElementById('pending-items-list');
+
+        // বর্তমান আইটেম ট্র্যাক করা
+        let currentItem = null;
+
+        // সকেট ইভেন্ট হ্যান্ডলার
+        socket.on('connected', (data) => {
+            console.log(data.data);
+            loadPendingItems();
+        });
+
+        socket.on('chat_response', (data) => {
+            // সিস্টেম মেসেজ যোগ করা
+            addSystemMessage(data.reason);
+
+            // যদি কনফার্মেশন প্রয়োজন হয়
+            if (data.needs_confirmation) {
+                currentItem = data;
+                showConfirmationModal(data);
+            }
+
+            // পেন্ডিং আইটেম আপডেট করা
+            loadPendingItems();
+        });
+
+        socket.on('confirmation_response', (data) => {
+            if (data.success) {
+                addSystemMessage(data.message);
+                loadPendingItems();
+            } else {
+                addSystemMessage(data.message, 'error');
+            }
+        });
+
+        socket.on('pending_items', (data) => {
+            updatePendingItems(data.items);
+        });
+
+        socket.on('error', (data) => {
+            addSystemMessage(data.message, 'error');
+        });
+
+        // মেসেজ পাঠানো
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // ইউজার মেসেজ যোগ করা
+            addUserMessage(message);
+
+            // সার্ভারে পাঠানো
+            socket.emit('chat_message', {
+                message: message,
+                is_admin: false
+            });
+
+            // ইনপুট ক্লিয়ার করা
+            messageInput.value = '';
+        }
+
+        // ইউজার মেসেজ যোগ করা
+        function addUserMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user-message';
+            messageDiv.innerHTML = `
+                <div class="message-content">${message}</div>
+                <div class="message-time">এখন</div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // সিস্টেম মেসেজ যোগ করা
+        function addSystemMessage(message, type = 'info') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message system-message';
+
+            if (type === 'error') {
+                messageDiv.style.backgroundColor = '#ffebee';
+                messageDiv.style.color = '#c62828';
+            }
+
+            messageDiv.innerHTML = `
+                <div class="message-content">${message}</div>
+                <div class="message-time">এখন</div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // কনফার্মেশন মোডাল দেখানো
+        function showConfirmationModal(data) {
+            itemContent.textContent = data.content;
+
+            // টাইপ ব্যাজ সেট করা
+            itemTypeBadge.className = 'type-badge';
+            itemTypeBadge.textContent = data.item_type;
+            itemTypeBadge.classList.add(`type-${data.item_type}`);
+
+            // কনফিডেন্স স্কোর সেট করা
+            const confidencePercent = Math.round(data.confidence * 100);
+            confidenceValue.textContent = `${confidencePercent}%`;
+            confidenceFill.style.width = `${confidencePercent}%`;
+
+            // মোডাল দেখানো
+            confirmationModal.style.display = 'flex';
+        }
+
+        // কনফার্মেশন পাঠানো
+        function sendConfirmation(confirmed) {
+            if (!currentItem) return;
+
+            socket.emit('confirm_item', {
+                item_id: currentItem.item_id,
+                confirmed: confirmed
+            });
+
+            // মোডাল বন্ধ করা
+            confirmationModal.style.display = 'none';
+            currentItem = null;
+        }
+
+        // পেন্ডিং আইটেম লোড করা
+        function loadPendingItems() {
+            socket.emit('get_pending');
+        }
+
+        // পেন্ডিং আইটেম আপডেট করা
+        function updatePendingItems(items) {
+            pendingCount.textContent = items.length;
+
+            if (items.length === 0) {
+                pendingItemsList.innerHTML = '<div class="text-center py-3">কোন পেন্ডিং কনফার্মেশন নেই</div>';
+                return;
+            }
+
+            pendingItemsList.innerHTML = '';
+            items.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'pending-item';
+
+                const typeClass = `type-${item.item_type}`;
+                const confidencePercent = Math.round(item.confidence * 100);
+
+                itemDiv.innerHTML = `
+                    <div class="pending-item-header">
+                        <div>
+                            <span class="type-badge ${typeClass}">${item.item_type}</span>
+                            <small class="text-muted">${new Date().toLocaleTimeString('bn-BD')}</small>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-outline-danger me-1 confirm-item" data-item-id="${item.item_id}" data-confirmed="false">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success confirm-item" data-item-id="${item.item_id}" data-confirmed="true">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="mb-2">${item.content}</p>
+                    <div class="mb-0">
+                        <div class="d-flex justify-content-between">
+                            <small>কনফিডেন্স স্কোর:</small>
+                            <small>${confidencePercent}%</small>
+                        </div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${confidencePercent}%"></div>
+                        </div>
+                    </div>
+                `;
+
+                pendingItemsList.appendChild(itemDiv);
+            });
+
+            // কনফার্ম বাটনে ইভেন্ট লিসেনার যোগ করা
+            document.querySelectorAll('.confirm-item').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const itemId = this.getAttribute('data-item-id');
+                    const confirmed = this.getAttribute('data-confirmed') === 'true';
+
+                    socket.emit('confirm_item', {
+                        item_id: itemId,
+                        confirmed: confirmed
+                    });
+                });
+            });
+        }
+
+        // ইভেন্ট লিসেনার
+        sendBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        confirmBtn.addEventListener('click', () => sendConfirmation(true));
+        rejectBtn.addEventListener('click', () => sendConfirmation(false));
+        closeModal.addEventListener('click', () => {
+            confirmationModal.style.display = 'none';
+            currentItem = null;
+        });
+
+        pendingBtn.addEventListener('click', () => {
+            pendingModal.style.display = 'flex';
+            loadPendingItems();
+        });
+
+        closePendingModal.addEventListener('click', () => {
+            pendingModal.style.display = 'none';
+        });
+
+        // ট্যাব চেঞ্জ ইভেন্ট
+        document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+            tab.addEventListener('shown.bs.tab', (e) => {
+                const targetId = e.target.getAttribute('data-bs-target');
+
+                if (targetId === '#rules') {
+                    loadRules();
+                } else if (targetId === '#plans') {
+                    loadPlans();
+                } else if (targetId === '#commands') {
+                    loadCommands();
+                }
+            });
+        });
+
+        // রুলস লোড করা
+        function loadRules() {
+            const activeOnly = document.getElementById('active-rules-only').checked;
+
+            fetch(`/api/rules?active_only=${activeOnly}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayItems(data.rules, 'rules-list', 'rule');
+                    }
+                });
+        }
+
+        // প্ল্যান লোড করা
+        function loadPlans() {
+            const activeOnly = document.getElementById('active-plans-only').checked;
+
+            fetch(`/api/plans?active_only=${activeOnly}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayItems(data.plans, 'plans-list', 'plan');
+                    }
+                });
+        }
+
+        // কমান্ড লোড করা
+        function loadCommands() {
+            const activeOnly = document.getElementById('active-commands-only').checked;
+
+            fetch(`/api/commands?active_only=${activeOnly}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayItems(data.commands, 'commands-list', 'command');
+                    }
+                });
+        }
+
+        // আইটেম ডিসপ্লে করা
+        function displayItems(items, containerId, type) {
+            const container = document.getElementById(containerId);
+
+            if (items.length === 0) {
+                container.innerHTML = `<div class="text-center py-5">কোন ${type} পাওয়া যায়নি</div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            items.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'card mb-3';
+
+                const typeClass = `type-${type}`;
+                const confidencePercent = Math.round(item.confidence * 100);
+                const createdAt = new Date(item.created_at).toLocaleString('bn-BD');
+
+                itemDiv.innerHTML = `
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <div>
+                                <span class="type-badge ${typeClass}">${type}</span>
+                                <small class="text-muted">${createdAt}</small>
+                            </div>
+                            <div>
+                                <small class="text-muted">কনফিডেন্স: ${confidencePercent}%</small>
+                            </div>
+                        </div>
+                        <p class="mb-0">${item.content}</p>
+                    </div>
+                `;
+
+                container.appendChild(itemDiv);
+            });
+        }
+
+        // অ্যাক্টিভ সুইচ ইভেন্ট লিসেনার
+        document.getElementById('active-rules-only').addEventListener('change', loadRules);
+        document.getElementById('active-plans-only').addEventListener('change', loadPlans);
+        document.getElementById('active-commands-only').addEventListener('change', loadCommands);
+    </script>
+</body>
+</html>

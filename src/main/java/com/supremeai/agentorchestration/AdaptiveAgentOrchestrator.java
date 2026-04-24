@@ -4,8 +4,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
+import com.supremeai.service.TranslationService;
+import com.supremeai.service.UserLanguagePreferenceService;
+import com.supremeai.model.UserLanguagePreference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
 import java.util.*;
 
@@ -30,25 +35,58 @@ public class AdaptiveAgentOrchestrator {
     @Autowired
     private com.supremeai.agent.GPublishAgent gPublishAgent;
 
+    @Autowired
+    private TranslationService translationService;
+
+    @Autowired
+    private UserLanguagePreferenceService languagePreferenceService;
+
     public AdaptiveAgentOrchestrator() {}
 
     /**
-     * Main orchestration entry point.
-     * Takes a requirement and returns an OrchesResultContext.
+     * Main orchestration entry point - single argument version for API compatibility.
+     * Takes a requirement and uses default userId.
      */
     public OrchesResultContext orchestrate(String requirement) {
+        return orchestrate(requirement, "default-user");
+    }
+
+    /**
+     * Main orchestration entry point.
+     * Takes a requirement and userId, returns an OrchesResultContext.
+     * Language support: translates questions to user's preferred language.
+     */
+    public OrchesResultContext orchestrate(String requirement, String userId) {
         Map<String, Object> context = new LinkedHashMap<>();
         Date started = new Date();
         context.put("startedAt", started);
         context.put("originalRequirement", requirement);
 
-        // Step 1: Generate questions (moved from taste phase to AI-driven)
+        // Get user's language preference
+        UserLanguagePreference languagePreference = languagePreferenceService
+                .getUserLanguagePreference(userId)
+                .block(); // Blocking for simplicity in this context
+        String userLanguage = languagePreference != null ?
+                languagePreference.getLanguageName() : "English";
+        // Step 1: Generate questions (in English)
         List<Question> questions = generateQuestionsAI(requirement);
-        context.put("questions", questions);
+
+        // Translate questions to user's language
+        List<Question> translatedQuestions = new ArrayList<>();
+        for (Question question : questions) {
+            String translatedText = translationService.translateFromEnglish(
+                    question.getText(), userLanguage).block();
+            Question translatedQuestion = new Question(
+                    question.getKey(),
+                    translatedText,
+                    question.getPriority()
+            );
+            translatedQuestions.add(translatedQuestion);
+        }
+        context.put("translatedQuestions", translatedQuestions);
 
         // Step 2: For taste phase, auto-answer questions (simulate admin)
         Map<String, String> answers = autoAnswerQuestions(questions);
-        context.put("answers", answers);
 
         // MVP mode: direct decisions for fastest response and lowest complexity.
         List<VotingDecision> decisions = buildDirectDecisions(answers);

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { ChatViewProvider } from './providers/ChatViewProvider';
 import { ProjectsProvider } from './providers/ProjectsProvider';
 import { AgentsProvider } from './providers/AgentsProvider';
+import { OrchestrationProvider } from './providers/OrchestrationProvider';
 import { SupremeAIApi } from './services/SupremeAIApi';
 
  export function activate(context: vscode.ExtensionContext) {
@@ -24,6 +25,10 @@ import { SupremeAIApi } from './services/SupremeAIApi';
      // Register agents provider
      const agentsProvider = new AgentsProvider(apiEndpoint, apiKey);
      vscode.window.registerTreeDataProvider('supremeai-agents', agentsProvider);
+
+     // Register orchestration provider
+     const orchestrationProvider = new OrchestrationProvider(apiEndpoint, apiKey);
+     vscode.window.registerTreeDataProvider('supremeai-orchestration', orchestrationProvider);
 
      // Status Bar Item
      const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
