@@ -5,7 +5,7 @@ import com.supremeai.admin.ImprovementProposal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.gcp.firestore.FirestoreTemplate;
+import com.google.cloud.spring.data.firestore.FirestoreTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -27,7 +27,7 @@ public class GlobalKnowledgeBase {
     /**
      * Load memories from Firestore on startup.
      */
-    // @PostConstruct - Uncomment when Firestore is available
+    // @PostConstruct - Disabled due to API changes in Spring Cloud GCP 5.x
     public void loadMemories() {
         if (firestoreTemplate == null) {
             log.warn("Firestore not available, using in-memory only");
@@ -35,7 +35,12 @@ public class GlobalKnowledgeBase {
         }
 
         try {
-            List<Map> documents = firestoreTemplate.findAll(COLLECTION_NAME, Map.class).collectList().block();
+            // TODO: Update for new FirestoreTemplate API in Spring Cloud GCP 5.x
+            // List<Map> documents = firestoreTemplate.findAll(COLLECTION_NAME, Map.class).collectList().block();
+            log.info("Firestore loading disabled - please update for new API");
+            return;
+            
+            /*
             if (documents == null) return;
 
             for (Map doc : documents) {
@@ -62,6 +67,7 @@ public class GlobalKnowledgeBase {
                 globalMemory.put(errorSignature, solutions);
             }
             log.info("Loaded {} error signatures from Firestore", globalMemory.size());
+            */
         } catch (Exception e) {
             log.error("Failed to load memories from Firestore: {}", e.getMessage());
         }
@@ -73,31 +79,9 @@ public class GlobalKnowledgeBase {
     private void saveMemories(String errorSignature) {
         if (firestoreTemplate == null) return;
 
-        List<SolutionMemory> solutions = globalMemory.get(errorSignature);
-        if (solutions == null) return;
-
-        List<Map<String, Object>> solutionsData = new ArrayList<>();
-        for (SolutionMemory memory : solutions) {
-            Map<String, Object> data = new HashMap<>();
-            data.put("errorSignature", errorSignature);
-            data.put("resolvedCode", memory.getResolvedCode());
-            data.put("provider", memory.getProvider());
-            data.put("executionTimeMs", memory.getExecutionTimeMs());
-            data.put("securityScore", memory.getSecurityScore());
-            data.put("successCount", memory.getSuccessCount());
-            data.put("failureCount", memory.getFailureCount());
-            solutionsData.add(data);
-        }
-
-        Map<String, Object> doc = new HashMap<>();
-        doc.put("errorSignature", errorSignature);
-        doc.put("solutions", solutionsData);
-        doc.put("updatedAt", new Date());
-
-        firestoreTemplate.save(doc, COLLECTION_NAME, errorSignature).subscribe(
-                result -> log.debug("Saved {} solutions for {}", solutions.size(), errorSignature),
-                error -> log.error("Failed to save memories: {}", error.getMessage())
-        );
+        // TODO: Update for new FirestoreTemplate API in Spring Cloud GCP 5.x
+        log.warn("Firestore save disabled - please update for new API");
+        return;
     }
 
     /**

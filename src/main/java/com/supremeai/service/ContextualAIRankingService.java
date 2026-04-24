@@ -212,7 +212,8 @@ public class ContextualAIRankingService {
     private List<String> getAllProviderNames() {
         try {
             // Get all registered providers from the factory
-            return providerFactory.getAllProviderNames();
+            String[] providerNames = providerFactory.getAllProviderNames();
+            return java.util.Arrays.asList(providerNames);
         } catch (Exception e) {
             log.error("Failed to get provider names from factory", e);
             return List.of();

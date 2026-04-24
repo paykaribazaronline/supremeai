@@ -1,6 +1,7 @@
 package com.supremeai.service;
 
 import com.supremeai.dto.AgentStatus;
+import com.supremeai.dto.Provider;
 import com.supremeai.repository.AgentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

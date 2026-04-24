@@ -5,6 +5,7 @@ import com.supremeai.ai.client.OpenAIClient;
 import com.supremeai.dto.AmbiguityScore;
 import com.supremeai.dto.ClarificationResponse;
 import com.supremeai.dto.UserRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -86,7 +87,11 @@ public class AutonomousQuestioning {
             """, request.getDescription(), score.getUnclearAreas(), languageInstruction);
 
         try {
-            return geminiClient.generateQuestions(prompt);
+            String response = geminiClient.generateQuestions(prompt);
+            // Parse JSON array response to List<String>
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(response, 
+                mapper.getTypeFactory().constructCollectionType(List.class, String.class));
         } catch (Exception e) {
             log.error("Failed to generate questions", e);
             return List.of("Could you provide more details about your request?");

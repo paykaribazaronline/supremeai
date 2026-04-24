@@ -67,15 +67,15 @@ public class EnhancedMultiAIConsensusService {
         ConsensusResult initialConsensus = calculateWeightedConsensus(question, currentVotes);
 
         // If strong consensus, return early
-        if (initialConsensus.consensusStrength.equals("CONSENSUS_STRONG")) {
+        if ("CONSENSUS_STRONG".equals(initialConsensus.getStrength())) {
             return new EnhancedConsensusResult(
-                question,
-                initialConsensus.consensusAnswer,
-                initialConsensus.votes,
-                initialConsensus.confidence,
-                initialConsensus.consensusStrength,
-                1, // rounds completed
-                Map.of("initial_consensus", true)
+                    question,
+                    initialConsensus.getConsensusAnswer(),
+                    initialConsensus.getVotes(),
+                    initialConsensus.getAverageConfidence(),
+                    initialConsensus.getStrength(),
+                    1, // rounds completed
+                    Map.of("initial_consensus", true)
             );
         }
 

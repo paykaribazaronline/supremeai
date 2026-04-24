@@ -64,6 +64,13 @@ public class SolutionMemory {
     public String getTriggerError() { return triggerError; }
     public String getResolvedCode() { return resolvedCode; }
     public String getWorkingAIProvider() { return workingAIProvider; }
+    public long getTimestamp() { return timestamp; }
     public int getSuccessCount() { return successCount; }
     public int getFailureCount() { return failureCount; }
+    public long getExecutionTimeMs() { return executionTimeMs; }
+    public double getSecurityScore() { return securityScore; }
+    
+    // Setters
+    public void setSuccessCount(int count) { this.successCount = count; }
+    public void setFailureCount(int count) { this.failureCount = count; }
 }
