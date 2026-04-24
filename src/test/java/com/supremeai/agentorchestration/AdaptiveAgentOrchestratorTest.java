@@ -21,37 +21,28 @@ import static org.mockito.Mockito.when;
 class AdaptiveAgentOrchestratorTest {
 
     @Mock
-    MultiAIConsensusService consensusService;
+    private RequirementAnalyzerAI requirementAnalyzer;
 
     private AdaptiveAgentOrchestrator orchestrator;
 
     @Test
     void testOrchestrationProducesDecisionsAndContext() {
         orchestrator = new AdaptiveAgentOrchestrator();
-        // Set consensusService via reflection since we are not using Spring runner
+        
+        // Inject mock via reflection
         try {
-            Field csField = AdaptiveAgentOrchestrator.class.getDeclaredField("consensusService");
-            csField.setAccessible(true);
-            csField.set(orchestrator, consensusService);
-
-            Field field = AdaptiveAgentOrchestrator.class.getDeclaredField("activeProviders");
-            field.setAccessible(true);
-            field.set(orchestrator, "groq,openai");
+            Field raField = AdaptiveAgentOrchestrator.class.getDeclaredField("requirementAnalyzer");
+            raField.setAccessible(true);
+            raField.set(orchestrator, requirementAnalyzer);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
-        // Mock consensus result
-        ConsensusResult mockResult = new ConsensusResult(
-            "dummy question",
-            "PostgreSQL",
-            List.of(),
-            0.95,
-            "STRONG"
-        );
-
-        when(consensusService.askAllAIs(anyString(), anyList(), anyLong()))
-            .thenReturn(mockResult);
+        // Mock analyzer
+        when(requirementAnalyzer.analyze(anyString())).thenReturn(List.of(
+            new Question("database", "Which database?", "CRITICAL"),
+            new Question("architecture", "Style?", "HIGH")
+        ));
 
         // Act
         OrchesResultContext result = this.orchestrator.orchestrate("Build a REST API");
@@ -64,17 +55,11 @@ class AdaptiveAgentOrchestratorTest {
         @SuppressWarnings("unchecked")
         var decisions = (List<VotingDecision>) result.getContext().get("decisions");
         assertNotNull(decisions);
-        assertFalse(decisions.isEmpty(), "Should contain decisions");
-
-        for (VotingDecision d : decisions) {
-            assertEquals("PostgreSQL", d.getAiConsensus());
-            assertEquals(0.95, d.getConfidence());
-            assertEquals("STRONG", d.getStrength());
-        }
+        assertEquals(2, decisions.size());
 
         var genCtx = result.getGenerationContext();
         assertNotNull(genCtx);
-        assertTrue(genCtx.size() > 0, "Generation context should contain decisions");
         assertEquals("PostgreSQL", genCtx.get("database"));
+        assertEquals("monolith", genCtx.get("architecture"));
     }
 }
