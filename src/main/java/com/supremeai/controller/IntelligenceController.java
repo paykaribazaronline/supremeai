@@ -1,5 +1,6 @@
 package com.supremeai.controller;
 
+import com.supremeai.service.AIRankingService;
 import com.supremeai.service.AutonomousQuestioningEngine;
 import com.supremeai.service.TenAIVotingSystem;
 import org.slf4j.Logger;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Controller for S3 (Autonomous Questioning) and S4 (10-AI Voting) systems
@@ -26,6 +28,18 @@ public class IntelligenceController {
 
     @Autowired
     private TenAIVotingSystem votingSystem;
+
+    @Autowired
+    private AIRankingService rankingService;
+
+    /**
+     * S9: Get AI Provider Rankings (Auto-Ranking)
+     * GET /api/v2/intelligence/rankings
+     */
+    @GetMapping("/rankings")
+    public ResponseEntity<?> getRankings() {
+        return ResponseEntity.ok(rankingService.getRankings());
+    }
 
     /**
      * S3: Validate user input and get clarifying questions

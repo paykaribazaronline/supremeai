@@ -46,6 +46,9 @@ public class AutonomousQuestioningEngine {
 
         // Check for conflicting information
         questions.addAll(checkConflicts(userInput));
+        
+        // S3 Enhancement: Check for missing context or "low-effort" prompts
+        questions.addAll(checkContextualCompleteness(userInput, requestType));
 
         ValidationResult result = new ValidationResult();
         result.setOriginalInput(userInput);
@@ -183,6 +186,32 @@ public class AutonomousQuestioningEngine {
             questions.add("You mentioned both 'simple' and 'complex/advanced' - could you clarify the complexity level needed?");
         }
 
+        return questions;
+    }
+
+    /**
+     * Check for missing context or low-effort prompts
+     */
+    private List<String> checkContextualCompleteness(String input, RequestType type) {
+        List<String> questions = new ArrayList<>();
+        String lowerInput = input.toLowerCase();
+        
+        // Check for "empty" action verbs without subjects
+        if (lowerInput.matches("^(build|create|make|generate|implement|fix)(\\s+a|\\s+an|\\s+the)?\\s*$")) {
+            questions.add("What exactly do you want me to " + lowerInput.split("\\s+")[0] + "? Please provide a subject.");
+        }
+        
+        // Check for lack of tech stack in creation tasks
+        if ((type == RequestType.CODE_GENERATION || type == RequestType.API_DESIGN) && 
+            !lowerInput.contains("stack") && !hasProgrammingLanguage(lowerInput)) {
+            questions.add("Do you have a preferred technology stack or framework (e.g., React, Spring Boot, Node.js)?");
+        }
+        
+        // Check for lack of "why" or "goal"
+        if (input.split("\\s+").length < 5) {
+            questions.add("Could you describe the end goal or the use case for this request?");
+        }
+        
         return questions;
     }
 

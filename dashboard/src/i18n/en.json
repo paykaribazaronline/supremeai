@@ -90,5 +90,10 @@
     "required": "This field is required",
     "network": "Network error. Please check your connection.",
     "server": "Server error. Please try again later."
-  }
+  },
+  "video_tutorials": "Video Tutorials",
+  "video_tutorials_desc": "Learn how to use SupremeAI with these step-by-step video guides.",
+  "no_tutorials_available": "No tutorials available yet.",
+  "watch_now": "Watch Now",
+  "duration": "Duration"
 }

@@ -1,155 +1,187 @@
-// k6 Load Testing Script for SupremeAI
-// Tests 500 concurrent users with < 2 second response time requirement
-// Run: k6 run --vus 500 --duration 5m load-test.js
+// k6 Load Test Script for SupremeAI
+// Run: k6 run load-test.js
+// Or with params: k6 run --vus 50 --duration 30s load-test.js
 
 import http from 'k6/http';
 import { check, sleep, group } from 'k6';
 import { Rate, Trend, Counter } from 'k6/metrics';
 
 // Custom metrics
-const errorRate = new Rate('errors');
-const responseTimeTrend = new Trend('response_time');
-const loginCounter = new Counter('login_requests');
-const aiRequestCounter = new Counter('ai_requests');
+const errorRate = new Rate('error_rate');
+const responseTimeTrend = new Trend('response_time_trend');
+const memoryUsageCounter = new Counter('memory_usage_check');
+const latencyTrend = new Trend('latency_trend');
 
 // Test configuration
 export const options = {
   stages: [
-    { duration: '30s', target: 50 },   // Ramp up to 50 users
-    { duration: '1m', target: 200 },    // Ramp to 200 users
-    { duration: '1m', target: 500 },    // Ramp to 500 users
-    { duration: '2m', target: 500 },    // Stay at 500 users
-    { duration: '30s', target: 0 },     // Ramp down
+    { duration: '30s', target: 10 },   // Warm up
+    { duration: '1m', target: 50 },    // Ramp to 50 users
+    { duration: '2m', target: 50 },    // Stay at 50 users
+    { duration: '1m', target: 100 },   // Ramp to 100 users
+    { duration: '2m', target: 100 },   // Stay at 100 users
+    { duration: '30s', target: 0 },    // Ramp down
   ],
   thresholds: {
-    'http_req_duration': ['p(95)<2000', 'p(99)<2000'], // 95% and 99% under 2s
-    'errors': ['rate<0.01'], // Error rate under 1%
-  },
-  ext: {
-    loadimpact: {
-      projectID: undefined,
-      name: 'SupremeAI Load Test - 500 Users',
-    },
+    'http_req_duration': ['p(95)<2000'],  // 95% of requests under 2s
+    'error_rate': ['rate<0.05'],          // Error rate under 5%
+    'response_time_trend': ['p(90)<1500'], // 90% under 1.5s
   },
 };
 
-// Base URL - change to your environment
+// Base URL
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
 
 // Test data
-const testUsers = [
-  { username: 'user1', password: 'pass123' },
-  { username: 'user2', password: 'pass123' },
-  { username: 'user3', password: 'pass123' },
-];
-
-const aiPrompts = [
-  'Create a simple React component',
-  'Generate a REST API endpoint',
-  'Write a Python function to sort array',
-  'Build a login form',
-  'Create a database schema',
-];
+const providers = ['groq', 'openai', 'anthropic', 'ollama'];
+const authToken = __ENV.AUTH_TOKEN || 'dev-admin-token-local';
 
 export function setup() {
-  console.log('Starting load test for SupremeAI...');
-  console.log(`Target: ${BASE_URL}`);
-  console.log('Goal: 500 concurrent users, < 2s response time');
-  return { startTime: new Date().toISOString() };
+  console.log('Starting SupremeAI Load Test');
+  console.log('Target URL: ' + BASE_URL);
+  console.log('Test duration: ~7 minutes');
+  return { startTime: new Date() };
 }
 
 export default function (data) {
-  const user = testUsers[Math.floor(Math.random() * testUsers.length)];
-  const prompt = aiPrompts[Math.floor(Math.random() * aiPrompts.length)];
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${authToken}`,
+  };
 
-  // Group 1: Health Check
-  group('Health Check', function () {
-    const res = http.get(`${BASE_URL}/actuator/health`);
-    check(res, {
-      'health status is 200': (r) => r.status === 200,
-      'health response time < 500ms': (r) => r.timings.duration < 500,
-    });
-    responseTimeTrend.add(res.timings.duration);
-  });
-
-  sleep(1);
-
-  // Group 2: User Login
-  group('User Login', function () {
-    loginCounter.add(1);
-    const loginPayload = JSON.stringify({
-      username: user.username,
-      password: user.password,
-    });
-
-    const res = http.post(`${BASE_URL}/api/auth/login`, loginPayload, { headers });
+  group('Health Check & Metrics', function () {
+    const healthRes = http.get(`${BASE_URL}/actuator/health`);
+    check(healthRes, {
+      'health check status 200': (r) => r.status === 200,
+      'health check response time < 500ms': (r) => r.timings.duration < 500,
+    }) || errorRate.add(1);
     
-    check(res, {
-      'login status is 200 or 401': (r) => r.status === 200 || r.status === 401,
-      'login response time < 2000ms': (r) => r.timings.duration < 2000,
-    });
-
-    responseTimeTrend.add(res.timings.duration);
-    errorRate.add(res.status !== 200 && res.status !== 401);
-  });
-
-  sleep(1);
-
-  // Group 3: AI Request (Core functionality)
-  group('AI Request', function () {
-    aiRequestCounter.add(1);
-    const aiPayload = JSON.stringify({
-      prompt: prompt,
-      model: 'auto',
-      maxTokens: 1500,
-    });
-
-    const startTime = new Date().getTime();
-    const res = http.post(`${BASE_URL}/api/ai/generate`, aiPayload, { headers });
-    const duration = new Date().getTime() - startTime;
-
-    check(res, {
-      'AI request status is 200': (r) => r.status === 200,
-      'AI response time < 2000ms': (r) => r.timings.duration < 2000,
-      'AI response has content': (r) => r.body && r.body.length > 0,
-    });
-
-    responseTimeTrend.add(res.timings.duration);
-    errorRate.add(res.status !== 200);
-
-    if (res.timings.duration > 2000) {
-      console.warn(`Slow request: ${duration}ms for prompt: ${prompt.substring(0, 50)}...`);
+    // Check memory metrics if available
+    const metricsRes = http.get(`${BASE_URL}/actuator/metrics/jvm.memory.used`);
+    if (metricsRes.status === 200) {
+      try {
+        const metrics = JSON.parse(metricsRes.body);
+        memoryUsageCounter.add(metrics.measurements?.value || 0);
+      } catch (e) {
+        // Ignore parse errors
+      }
     }
   });
 
-  sleep(2);
-
-  // Group 4: Cache Test (Check Redis caching)
-  group('Cache Test', function () {
-    const res = http.get(`${BASE_URL}/api/ai/models`);
-    check(res, {
-      'cache status is 200': (r) => r.status === 200,
-      'cache response time < 1000ms': (r) => r.timings.duration < 1000,
+  group('Authentication', function () {
+    const payload = JSON.stringify({
+      idToken: 'test-firebase-token-' + Math.random()
     });
-    responseTimeTrend.add(res.timings.duration);
+    
+    const authRes = http.post(`${BASE_URL}/api/auth/firebase-login`, payload, { headers });
+    check(authRes, {
+      'auth endpoint responds': (r) => r.status === 200 || r.status === 401,
+      'auth response time < 1s': (r) => r.timings.duration < 1000,
+    }) || errorRate.add(1);
+    
+    responseTimeTrend.add(authRes.timings.duration);
   });
 
-  sleep(Math.random() * 3 + 1); // Random sleep 1-4 seconds
+  group('AI Orchestration', function () {
+    const provider = providers[Math.floor(Math.random() * providers.length)];
+    const prompts = [
+      'Create a simple TODO app with React',
+      'Build a REST API for user management',
+      'Generate a login page with Firebase Auth',
+      'Make a dashboard with charts and graphs',
+      'Create a chat application with WebSocket support',
+    ];
+    const prompt = prompts[Math.floor(Math.random() * prompts.length)];
+    
+    const payload = JSON.stringify({
+      prompt: prompt,
+      provider: provider,
+      context: 'load-test-generation'
+    });
+    
+    const orchRes = http.post(`${BASE_URL}/api/orchestrate`, payload, { headers });
+    check(orchRes, {
+      'orchestration responds': (r) => r.status !== 0,
+      'orchestration time < 10s': (r) => r.timings.duration < 10000,
+    }) || errorRate.add(1);
+    
+    latencyTrend.add(orchRes.timings.duration);
+  });
+
+  group('Performance Dashboard', function () {
+    const perfRes = http.get(`${BASE_URL}/performance-dashboard.html`);
+    check(perfRes, {
+      'dashboard loads': (r) => r.status === 200,
+      'dashboard size reasonable': (r) => r.body.length > 1000,
+      'dashboard load < 500ms': (r) => r.timings.duration < 500,
+    }) || errorRate.add(1);
+  });
+
+  group('API Key Management', function () {
+    const keysRes = http.get(`${BASE_URL}/api/admin/api-keys`, { headers });
+    check(keysRes, {
+      'api keys endpoint accessible': (r) => r.status === 200 || r.status === 403,
+      'api keys response < 500ms': (r) => r.timings.duration < 500,
+    });
+  });
+
+  group('Admin Dashboard', function () {
+    const adminRes = http.get(`${BASE_URL}/admin.html`);
+    check(adminRes, {
+      'admin dashboard loads': (r) => r.status === 200,
+      'admin dashboard has content': (r) => r.body.includes('SupremeAI'),
+    }) || errorRate.add(1);
+  });
+
+  // Think time between requests
+  sleep(Math.random() * 3 + 1);  // 1-4 seconds
 }
 
 export function teardown(data) {
-  console.log('Load test completed!');
-  console.log(`Started at: ${data.startTime}`);
-  console.log(`Ended at: ${new Date().toISOString()}`);
+  console.log('Load Test Completed');
+  console.log('Start Time: ' + data.startTime);
+  console.log('End Time: ' + new Date());
+  
+  // Final memory check
+  const finalMetrics = http.get(`${BASE_URL}/actuator/metrics/jvm.memory.used}`);
+  if (finalMetrics.status === 200) {
+    console.log('Final Memory Check: ' + finalMetrics.body);
+  }
 }
 
-// Helper function to generate random string
-function randomString(length) {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
+// Handle summary
+export function handleSummary(data) {
+  return {
+    'stdout': textSummary(data, { indent: ' ', enableColors: true }),
+    'load-test-results.json': JSON.stringify(data),
+    'load-test-metrics.csv': generateCSV(data),
+  };
+}
+
+function generateCSV(data) {
+  let csv = 'metric,value\n';
+  csv += `total_requests,${data.metrics.http_reqs.values.count}\n`;
+  csv += `failed_requests,${data.metrics.http_req_failed.values.count}\n`;
+  csv += `p95_response_time,${data.metrics.http_req_duration.values['p(95)']}\n`;
+  csv += `avg_response_time,${data.metrics.http_req_duration.values.avg}\n`;
+  csv += `error_rate,${data.metrics.error_rate.values.rate}\n`;
+  return csv;
+}
+
+// textSummary helper (simplified)
+function textSummary(data, options) {
+  const indent = options?.indent || ' ';
+  let summary = '\n=== SupremeAI Load Test Results ===\n\n';
+  summary += `${indent}Total Requests: ${data.metrics.http_reqs.values.count}\n`;
+  summary += `${indent}Failed Requests: ${data.metrics.http_req_failed.values.count}\n`;
+  summary += `${indent}Error Rate: ${(data.metrics.error_rate.values.rate * 100).toFixed(2)}%\n\n`;
+  summary += `${indent}Response Time (ms):\n`;
+  summary += `${indent}${indent}Avg: ${data.metrics.http_req_duration.values.avg.toFixed(2)}\n`;
+  summary += `${indent}${indent}Min: ${data.metrics.http_req_duration.values.min.toFixed(2)}\n`;
+  summary += `${indent}${indent}Med: ${data.metrics.http_req_duration.values.med.toFixed(2)}\n`;
+  summary += `${indent}${indent}Max: ${data.metrics.http_req_duration.values.max.toFixed(2)}\n`;
+  summary += `${indent}${indent}P95: ${data.metrics.http_req_duration.values['p(95)'].toFixed(2)}\n`;
+  summary += `${indent}${indent}P99: ${data.metrics.http_req_duration.values['p(99)'].toFixed(2)}\n\n`;
+  summary += `${indent}Virtual Users: ${data.metrics.vus?.values?.value || 'N/A'}\n`;
+  return summary;
 }

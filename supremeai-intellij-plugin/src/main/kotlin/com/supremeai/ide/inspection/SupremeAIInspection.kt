@@ -33,12 +33,21 @@ class SupremeAIInspection : LocalInspectionTool() {
                         )
                     }
                     
-                    // Specific K2-based check: check for abstract agents without supertypes
+                                        // Specific K2-based check: check for abstract agents without supertypes
                     if (info.isAbstract && info.superTypes.isEmpty() && info.name.endsWith("Agent")) {
                         holder.registerProblem(
                             klass.nameIdentifier ?: klass,
                             "Abstract agent should typically extend a BaseAgent.",
                             com.intellij.codeInspection.ProblemHighlightType.GENERIC_ERROR_OR_WARNING
+                        )
+                    }
+                    
+                    // Context-aware optimization for RecyclerView adapters
+                    if (info.superTypes.any { it.contains("RecyclerView.Adapter") } || info.name.endsWith("Adapter")) {
+                        holder.registerProblem(
+                            klass.nameIdentifier ?: klass,
+                            "Context-Aware AI Suggestion: Consider using DiffUtil instead of notifyDataSetChanged() for optimal RecyclerView performance.",
+                            com.intellij.codeInspection.ProblemHighlightType.WEAK_WARNING
                         )
                     }
                 }

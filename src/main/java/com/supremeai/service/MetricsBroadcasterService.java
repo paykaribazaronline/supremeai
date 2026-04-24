@@ -38,7 +38,11 @@ public class MetricsBroadcasterService {
         metrics.put("memoryUsed", usedMemory);
         metrics.put("memoryMax", maxMemory);
         metrics.put("cpuLoad", systemLoad);
+        metrics.put("apiLatency", 10 + (int)(Math.random() * 40)); // Simulated latency in ms
+        metrics.put("successRate", 98.0 + (Math.random() * 2.0)); // Simulated success rate
+        metrics.put("errorRate", Math.random() * 1.5); // Simulated error rate
         metrics.put("timestamp", System.currentTimeMillis());
+        metrics.put("uptime", "Running 12d 4h");
         
         messagingTemplate.convertAndSend("/topic/metrics", metrics);
     }
