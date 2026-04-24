@@ -189,8 +189,30 @@ data/
 postgres_data/
 firebase-exports/
 
-# Continue.dev AI assistant config (may contain secrets)
+# IDE configs that shouldn't be in repo
 .continue/
+.zencoder/
+.playwright-mcp/
+.intellijPlatform/
+
+# Environment files
+.env
+*.env
+!.env.example
+
+# Build outputs
+build/
+*.jar
+*.war
+
+# OS files
+.DS_Store
+Thumbs.db
+nul
+
+# Logs
+*.log
+logs/
 
 # Local admin/utility scripts
 *_inventory.*
