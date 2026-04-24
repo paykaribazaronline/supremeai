@@ -65,7 +65,7 @@ public class QuotaController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: You can only view your own quota");
         }
         
-        QuotaService.UserUsageStats stats = quotaService.getUsageStats(userId);
+        QuotaService.ApiUsageStats stats = quotaService.getUsageStats(userId);
         if (stats == null) {
             return ResponseEntity.status(404).body(Map.of("error", "User not found"));
         }

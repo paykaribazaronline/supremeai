@@ -1,12 +1,12 @@
 package com.supremeai.controller;
 
 import com.supremeai.model.SystemLearning;
-import com.supremeai.repository.SystemLearningRepository;
-import com.supremeai.util.IdUtils;
+import com.supremeai.service.SystemLearningService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 /**
  * System learning endpoints - ADMIN only.
@@ -17,30 +17,41 @@ import reactor.core.publisher.Mono;
 @PreAuthorize("hasRole('ADMIN')")
 public class SystemLearningController {
 
-    private final SystemLearningRepository repository;
+    private final SystemLearningService service;
 
-    public SystemLearningController(SystemLearningRepository repository) {
-        this.repository = repository;
+    public SystemLearningController(SystemLearningService service) {
+        this.service = service;
     }
 
     @GetMapping
-    public Flux<SystemLearning> getAllLearning() {
-        return repository.findAll();
+    public List<SystemLearning> getAllLearning() {
+        return service.getAllLearningSync();
     }
 
     @GetMapping("/category/{category}")
-    public Flux<SystemLearning> getByCategory(@PathVariable String category) {
-        return repository.findByCategory(category);
+    public List<SystemLearning> getByCategory(@PathVariable String category) {
+        return service.getByCategorySync(category);
     }
 
     @PostMapping
     public Mono<SystemLearning> addLearning(@RequestBody SystemLearning learning) {
-        learning.setId(IdUtils.ensureId(learning.getId()));
-        return repository.save(learning);
+        return service.addLearning(learning);
     }
 
     @DeleteMapping("/{id}")
     public Mono<Void> deleteLearning(@PathVariable String id) {
-        return repository.deleteById(id);
+        return service.deleteLearning(id);
+    }
+
+    /**
+     * Get system 'wisdom' - highly confident autonomous learnings.
+     */
+    @GetMapping("/wisdom")
+    public Mono<List<SystemLearning>> getSystemWisdom() {
+        return service.getAllLearning()
+            .filter(l -> l.getConfidenceScore() != null && l.getConfidenceScore() >= 0.85)
+            .sort((a, b) -> b.getLearnedAt().compareTo(a.getLearnedAt()))
+            .take(20)
+            .collectList();
     }
 }

@@ -8,6 +8,7 @@ import reactor.core.publisher.Mono;
 
 @Repository
 public interface UserApiKeyRepository extends FirestoreReactiveRepository<UserApiKey> {
+    Mono<UserApiKey> findByApiKey(String apiKey);
     Flux<UserApiKey> findByUserId(String userId);
     Flux<UserApiKey> findByUserIdAndProvider(String userId, String provider);
     Flux<UserApiKey> findByUserIdAndStatus(String userId, String status);

@@ -32,10 +32,15 @@ public class MultiAIConsensusService {
     @Autowired
     private SelfHealingService selfHealingService;
 
+    @Autowired
+    private KnowledgeFeedbackService feedbackService;
+
     // In-memory history for taste phase (no Firebase)
     private final List<ConsensusVote> history = new CopyOnWriteArrayList<>();
 
-    private final ExecutorService executor;
+    // Use Virtual Thread Executor if available, otherwise fallback
+    private final ExecutorService executor = com.supremeai.config.VirtualThreadConfig.getVirtualThreadExecutor();
+    
     private final java.util.Random random = new java.util.Random();
 
     private static final org.slf4j.Logger logger =
@@ -44,8 +49,8 @@ public class MultiAIConsensusService {
     private static final int MAX_RETRIES = 2;
     private static final long RETRY_BACKOFF_MS = 250L;
 
-    public MultiAIConsensusService(@Qualifier("consensusTaskExecutor") ThreadPoolTaskExecutor consensusTaskExecutor) {
-        this.executor = consensusTaskExecutor.getThreadPoolExecutor();
+    public MultiAIConsensusService() {
+        // Virtual Thread executor is initialized directly above
     }
 
     /**
@@ -78,13 +83,22 @@ public class MultiAIConsensusService {
             .collect(Collectors.toList());
 
         // Wait for all with timeout
+        long start = System.currentTimeMillis();
         for (Future<?> future : futures) {
             try {
                 future.get(timeoutMs, TimeUnit.MILLISECONDS);
+            } catch (java.util.concurrent.TimeoutException e) {
+                logger.warn("AI consensus query timed out after {}ms", timeoutMs);
+                feedbackService.recordErrorLesson("MultiAI Consensus Timeout", e, 
+                    "Consider increasing timeout or checking provider health").subscribe();
             } catch (Exception e) {
-                // Timeout or execution error - skip this provider
-                logger.debug("Provider future get timeout or interruption", e);
+                logger.debug("Provider future get error or interruption", e);
             }
+        }
+        long duration = System.currentTimeMillis() - start;
+        if (duration > timeoutMs / 2) {
+            feedbackService.recordPerformanceLesson("MultiAI AskAllAIs", duration, 
+                "High latency detected in parallel provider querying").subscribe();
         }
 
         return calculateConsensus(question, votes);
