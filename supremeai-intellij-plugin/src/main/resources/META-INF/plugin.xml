@@ -38,6 +38,8 @@
             id="supremeai.settings"
             displayName="SupremeAI" />
 
+        <statusBarWidgetFactory implementation="com.supremeai.ide.SupremeAIStatusBarWidgetFactory"/>
+
         <localInspection language="kotlin"
                          displayName="SupremeAI Patterns"
                          groupPath="Kotlin"
@@ -56,5 +58,19 @@
                     description="Generate a new Android app using SupremeAI">
             </action>
         </group>
+
+        <action id="com.supremeai.ide.AskSupremeAIAction"
+                class="com.supremeai.ide.AskSupremeAIAction"
+                text="Ask SupremeAI"
+                description="Ask SupremeAI about selected code">
+            <add-to-group group-id="EditorPopupMenu" anchor="first"/>
+        </action>
+
+        <action id="com.supremeai.ide.ExplainFileAction"
+                class="com.supremeai.ide.ExplainFileAction"
+                text="Explain with SupremeAI"
+                description="Explain file content with SupremeAI">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+        </action>
     </actions>
 </idea-plugin>
