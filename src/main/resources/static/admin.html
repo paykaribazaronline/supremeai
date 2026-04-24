@@ -850,6 +850,103 @@
             0%, 60%, 100% { transform: translateY(0); }
             30% { transform: translateY(-10px); }
         }
+        
+        /* Image Upload Styles */
+        .chat-upload-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #2d3748;
+            color: #a0aec0;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .chat-upload-btn:hover { background: #4a5568; color: #e2e8f0; }
+        .chat-upload-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        #imageUpload { display: none; }
+        
+        .image-preview-container {
+            padding: 10px;
+            background: #2d3748;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        
+        .image-preview-wrapper {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .image-preview {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #4a5568;
+        }
+        
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .image-preview-remove {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(245, 101, 101, 0.9);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        
+        .chat-image {
+            max-width: 300px;
+            max-height: 200px;
+            border-radius: 10px;
+            margin-top: 8px;
+            border: 2px solid #4a5568;
+        }
+        
+        .chat-msg.user .chat-image { border-color: #4299e1; }
+        .chat-msg.ai .chat-image { border-color: #48bb78; }
+        
+        .image-analysis {
+            background: rgba(66, 153, 225, 0.1);
+            border: 1px solid #4299e1;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #cbd5e1;
+        }
+        
+        .image-analysis-header {
+            color: #4299e1;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 11px;
+        }
     </style>
 </head>
 <body>
@@ -1014,7 +1111,10 @@
                         <div class="card">
                             <div class="card-header">
                                 <div class="card-title">AI Model Manager</div>
-                                <button class="btn btn-success btn-sm" onclick="showAddProviderModal()">+ Add Custom Model</button>
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="btn btn-success btn-sm" onclick="showAddProviderModal()">+ Add Custom Model</button>
+                                    <button class="btn btn-secondary btn-sm" onclick="configureVotingModels()">🗳️ Configure Voting Models</button>
+                                </div>
                             </div>
                             <table>
                                 <thead>
@@ -1023,16 +1123,20 @@
                                         <th>Type</th>
                                         <th>API Keys</th>
                                         <th>Free Limit</th>
+                                        <th>Voting</th>
                                         <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="apiKeyTable">
                                     <tr>
-                                        <td colspan="6" class="empty-state">No AI models configured yet. Click "+ Add Any AI Model" to get started.</td>
+                                        <td colspan="7" class="empty-state">No AI models configured yet. Click "+ Add Any AI Model" to get started.</td>
                                     </tr>
                                 </tbody>
                             </table>
+                            <div style="font-size: 11px; color: #718096; margin-top: 10px; padding: 10px; background: #111827; border-radius: 5px;">
+                                🗳️ <strong>Voting System:</strong> Only models marked as "Eligible for Voting" participate in consensus. 60% agreement threshold required.
+                            </div>
                         </div>
 
                         <div class="card">
@@ -1062,6 +1166,16 @@
                                 <input type="text" id="newModelName" placeholder="e.g., GPT-4, Claude-3, LLaMA-3, MyCustomAI..." style="font-size: 15px; padding: 12px;">
                                 <div style="font-size: 11px; color: #718096; margin-top: 5px;">
                                     💡 Tip: You can add ANY AI model - just enter the name and provide API details below
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="checkbox" id="eligibleForVoting" style="width: auto;">
+                                    <span>🗳️ Eligible for Voting/Consensus (Top AI models only)</span>
+                                </label>
+                                <div style="font-size: 11px; color: #718096; margin-top: 5px;">
+                                    Only top-performing models should be selected for voting. System uses 60% agreement threshold.
                                 </div>
                             </div>
 
@@ -1122,14 +1236,18 @@
 
                         <div class="card">
                             <div class="card-header">
-                                <div class="card-title">Consensus Testing</div>
+                                <div class="card-title">🗳️ Voting / Consensus Testing</div>
+                            </div>
+                            <div style="background: rgba(66, 153, 225, 0.1); border: 1px solid #4299e1; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 12px; color: #cbd5e1;">
+                                🗳️ <strong>Voting System:</strong> Only top AI models (marked as "Eligible for Voting") participate. 60% agreement threshold required to proceed.
                             </div>
                             <div class="form-group">
                                 <label>Test Prompt</label>
-                                <textarea id="consensusPrompt" rows="3" placeholder="Enter a prompt to test multi-AI consensus..."></textarea>
+                                <textarea id="consensusPrompt" rows="3" placeholder="Enter a prompt to test AI voting consensus..."></textarea>
                             </div>
-                            <button class="btn btn-primary" onclick="testConsensus()">Test Consensus</button>
-                        <div id="consensusResult" style="margin-top: 15px;"></div>
+                            <button class="btn btn-primary" onclick="testConsensus()">🗳️ Test Voting (60% Threshold)</button>
+                            <div id="consensusResult" style="margin-top: 15px;"></div>
+                            <div id="votingModelsList" style="margin-top: 10px; font-size: 12px; color: #718096;"></div>
                         </div>
 
                     <!-- Tab 3.5: Chat with SupremeAI -->
@@ -1158,12 +1276,26 @@
                             </div>
 
                             <div class="chat-input-container">
+                                <!-- Image Preview Area -->
+                                <div id="imagePreviewContainer" style="display: none; margin-bottom: 10px;">
+                                    <div class="image-preview-container">
+                                        <div class="image-preview-wrapper" id="imagePreviewWrapper">
+                                            <!-- Images will be added here dynamically -->
+                                        </div>
+                                    </div>
+                                </div>
+                                
                                 <div class="chat-input-wrapper">
+                                    <button class="chat-upload-btn" onclick="document.getElementById('imageUpload').click()" title="Upload Image">
+                                        📎
+                                    </button>
                                     <textarea class="chat-input" id="chatInput" placeholder="Type your message... (I'll understand rules, work plans, and confirm before acting)" rows="1" onkeydown="handleChatKeydown(event)"></textarea>
                                     <button class="chat-send-btn" id="chatSendBtn" onclick="sendMessage()">➤</button>
                                 </div>
+                                <input type="file" id="imageUpload" accept="image/*" multiple onchange="handleImageSelect(event)" style="display: none;">
+                                
                                 <div style="font-size: 11px; color: #718096; margin-top: 8px;">
-                                    💡 Tip: I'll automatically detect rules to save and work plans. I'll always confirm my understanding before executing.
+                                    💡 Tip: Upload images for analysis. I'll automatically detect rules, work plans, and confirm before executing.
                                 </div>
                             </div>
                         </div>
@@ -1820,192 +1952,6 @@
         let messageCount = 0;
         let pendingConfirmations = {};
 
-        function sendMessage() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-            
-            if (!message) return;
-            
-            // Add user message to chat
-            addMessage('user', message);
-            input.value = '';
-            input.style.height = 'auto';
-            
-            // Show typing indicator
-            showTypingIndicator();
-            
-            // Process message and get AI response
-            setTimeout(() => {
-                removeTypingIndicator();
-                const aiResponse = processUserMessage(message);
-                addMessage('ai', aiResponse.text, aiResponse);
-            }, 1000 + Math.random() * 1000);
-        }
-
-        function handleChatKeydown(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
-            }
-        }
-
-        function addMessage(sender, text, metadata = null) {
-            const chatMessages = document.getElementById('chatMessages');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `chat-msg ${sender}`;
-            
-            const avatarLetter = sender === 'user' ? 'U' : 'AI';
-            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
-            let bubbleContent = text;
-            
-            // Add rule suggestion if detected
-            if (metadata && metadata.rule) {
-                const ruleId = 'rule_' + Date.now();
-                pendingConfirmations[ruleId] = { type: 'rule', content: metadata.rule.content, category: metadata.rule.category };
-                bubbleContent += `
-                    <div class="rule-suggestion">
-                        <div class="rule-suggestion-header">📋 Rule Detected</div>
-                        <div class="rule-content">${metadata.rule.content}</div>
-                        <div style="font-size: 11px; color: #718096; margin-bottom: 8px;">Category: ${metadata.rule.category}</div>
-                        <button class="btn btn-success btn-sm" onclick="saveRule('${ruleId}')">💾 Save as Rule</button>
-                    </div>
-                `;
-            }
-            
-            // Add work plan if detected
-            if (metadata && metadata.workPlan) {
-                const planId = 'plan_' + Date.now();
-                pendingConfirmations[planId] = { type: 'workplan', steps: metadata.workPlan.steps, description: metadata.workPlan.description };
-                bubbleContent += `
-                    <div class="work-plan">
-                        <div class="work-plan-header">📋 Work Plan Created</div>
-                        <div style="font-size: 12px; color: #718096; margin-bottom: 10px;">${metadata.workPlan.description}</div>
-                        <ul class="work-plan-steps">
-                            ${metadata.workPlan.steps.map((step, i) => `
-                                <li class="work-plan-step">
-                                    <span class="step-number">${i + 1}</span>
-                                    <span>${step}</span>
-                                </li>
-                            `).join('')}
-                        </ul>
-                        <button class="btn btn-success btn-sm" onclick="executeWorkPlan('${planId}')">▶ Execute Plan</button>
-                    </div>
-                `;
-            }
-            
-            // Add confirmation if needed
-            if (metadata && metadata.needsConfirmation) {
-                const confId = metadata.confirmationId || ('conf_' + Date.now());
-                pendingConfirmations[confId] = { type: 'confirmation', message: metadata.confirmationMessage };
-                bubbleContent += `
-                    <div class="confirmation-dialog">
-                        <div class="confirmation-header">⚠️ Confirmation Needed</div>
-                        <div class="confirmation-message">${metadata.confirmationMessage}</div>
-                        <div class="confirmation-actions">
-                            <button class="btn btn-success btn-sm" onclick="handleConfirmation(true, '${confId}')">✅ Confirm</button>
-                            <button class="btn btn-danger btn-sm" onclick="handleConfirmation(false, '${confId}')">❌ Cancel</button>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            msgDiv.innerHTML = `
-                <div class="chat-avatar ${sender}">${avatarLetter}</div>
-                <div>
-                    <div class="chat-bubble">${bubbleContent}</div>
-                    <div class="chat-meta">${time}</div>
-                </div>
-            `;
-            
-            chatMessages.appendChild(msgDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            
-            // Save to history
-            chatHistory.push({ sender, text, timestamp: Date.now() });
-            if (chatHistory.length > 100) chatHistory.shift();
-            localStorage.setItem('supremeai_chat_history', JSON.stringify(chatHistory));
-        }
-
-        function handleChatKeydown(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
-            }
-        }
-
-        function addMessage(sender, text, metadata = null) {
-            const chatMessages = document.getElementById('chatMessages');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `chat-msg ${sender}`;
-            
-            const avatarLetter = sender === 'user' ? 'U' : 'AI';
-            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
-            let bubbleContent = text;
-            
-            // Add rule suggestion if detected
-            if (metadata && metadata.rule) {
-                bubbleContent += `
-                    <div class="rule-suggestion">
-                        <div class="rule-suggestion-header">📋 Rule Detected</div>
-                        <div class="rule-content">${metadata.rule.content}</div>
-                        <div style="font-size: 11px; color: #718096; margin-bottom: 8px;">Category: ${metadata.rule.category}</div>
-                        <button class="btn btn-success btn-sm" onclick="saveRule('${escapeJs(metadata.rule.content)}', '${metadata.rule.category}')">💾 Save as Rule</button>
-                    </div>
-                `;
-            }
-            
-            // Add work plan if detected
-            if (metadata && metadata.workPlan) {
-                bubbleContent += `
-                    <div class="work-plan">
-                        <div class="work-plan-header">📋 Work Plan Created</div>
-                        <div style="font-size: 12px; color: #718096; margin-bottom: 10px;">${metadata.workPlan.description}</div>
-                        <ul class="work-plan-steps">
-                            ${metadata.workPlan.steps.map((step, i) => `
-                                <li class="work-plan-step">
-                                    <span class="step-number">${i + 1}</span>
-                                    <span>${step}</span>
-                                </li>
-                            `).join('')}
-                        </ul>
-                        <button class="btn btn-success btn-sm" onclick="executeWorkPlan(${JSON.stringify(metadata.workPlan.steps).replace(/"/g, '&quot;')})">▶ Execute Plan</button>
-                    </div>
-                `;
-            }
-            
-            // Add confirmation if needed
-            if (metadata && metadata.needsConfirmation) {
-                bubbleContent += `
-                    <div class="confirmation-dialog">
-                        <div class="confirmation-header">⚠️ Confirmation Needed</div>
-                        <div class="confirmation-message">${metadata.confirmationMessage}</div>
-                        <div class="confirmation-actions">
-                            <button class="btn btn-success btn-sm" onclick="handleConfirmation(true, '${metadata.confirmationId || 'default'}')">✅ Confirm</button>
-                            <button class="btn btn-danger btn-sm" onclick="handleConfirmation(false, '${metadata.confirmationId || 'default'}')">❌ Cancel</button>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            msgDiv.innerHTML = `
-                <div class="chat-avatar ${sender}">${avatarLetter}</div>
-                <div>
-                    <div class="chat-bubble">${bubbleContent}</div>
-                    <div class="chat-meta">${time}</div>
-                </div>
-            `;
-            
-            chatMessages.appendChild(msgDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            
-            // Save to history
-            chatHistory.push({ sender, text, timestamp: Date.now() });
-            if (chatHistory.length > 100) chatHistory.shift();
-            localStorage.setItem('supremeai_chat_history', JSON.stringify(chatHistory));
-        }
-
         function showTypingIndicator() {
             const chatMessages = document.getElementById('chatMessages');
             const typingDiv = document.createElement('div');
@@ -2190,7 +2136,301 @@
                 chatHistory = [];
                 localStorage.removeItem('supremeai_chat_history');
                 pendingConfirmations = {};
+                clearImagePreview();
             }
+        }
+
+        // ========== IMAGE HANDLING ==========
+        let selectedImages = [];
+
+        function handleImageSelect(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select only image files');
+                    continue;
+                }
+
+                // Validate file size (max 10MB)
+                if (file.size > 10 * 1024 * 1024) {
+                    alert(`File "${file.name}" is too large. Maximum size is 10MB.`);
+                    continue;
+                }
+
+                selectedImages.push(file);
+                previewImage(file, selectedImages.length - 1);
+            }
+
+            // Clear the file input so the same file can be selected again
+            event.target.value = '';
+        }
+
+        function previewImage(file, index) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const container = document.getElementById('imagePreviewWrapper');
+                const previewDiv = document.createElement('div');
+                previewDiv.className = 'image-preview';
+                previewDiv.setAttribute('data-index', index);
+                previewDiv.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview">
+                    <button class="image-preview-remove" onclick="removeImagePreview(${index})">✕</button>
+                `;
+                container.appendChild(previewDiv);
+
+                // Show the preview container
+                document.getElementById('imagePreviewContainer').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeImagePreview(index) {
+            selectedImages = selectedImages.filter((_, i) => i !== index);
+            
+            // Rebuild preview
+            const container = document.getElementById('imagePreviewWrapper');
+            container.innerHTML = '';
+            
+            selectedImages.forEach((file, i) => {
+                previewImage(file, i);
+            });
+
+            if (selectedImages.length === 0) {
+                document.getElementById('imagePreviewContainer').style.display = 'none';
+            }
+        }
+
+        function clearImagePreview() {
+            selectedImages = [];
+            document.getElementById('imagePreviewWrapper').innerHTML = '';
+            document.getElementById('imagePreviewContainer').style.display = 'none';
+        }
+
+        // Update sendMessage to handle images
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message && selectedImages.length === 0) return;
+            
+            // Add user message with images
+            addMessage('user', message, null, selectedImages);
+            input.value = '';
+            input.style.height = 'auto';
+            clearImagePreview();
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Process message and get AI response
+            setTimeout(() => {
+                removeTypingIndicator();
+                const aiResponse = processUserMessage(message, selectedImages);
+                addMessage('ai', aiResponse.text, aiResponse);
+            }, 1000 + Math.random() * 1000);
+        }
+
+        // Update addMessage to display images
+        const originalAddMessage = addMessage;
+        function addMessage(sender, text, metadata = null, images = []) {
+            const chatMessages = document.getElementById('chatMessages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `chat-msg ${sender}`;
+            
+            const avatarLetter = sender === 'user' ? 'U' : 'AI';
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            let bubbleContent = text;
+            
+            // Add images if present
+            if (images && images.length > 0) {
+                bubbleContent += '<div style="margin-top: 8px;">';
+                images.forEach(img => {
+                    const imgSrc = typeof img === 'string' ? img : URL.createObjectURL(img);
+                    bubbleContent += `<img src="${imgSrc}" class="chat-image" alt="Uploaded image">`;
+                });
+                bubbleContent += '</div>';
+            }
+            
+            // Add rule suggestion if detected
+            if (metadata && metadata.rule) {
+                const ruleId = 'rule_' + Date.now();
+                pendingConfirmations[ruleId] = { type: 'rule', content: metadata.rule.content, category: metadata.rule.category };
+                bubbleContent += `
+                    <div class="rule-suggestion">
+                        <div class="rule-suggestion-header">📋 Rule Detected</div>
+                        <div class="rule-content">${metadata.rule.content}</div>
+                        <div style="font-size: 11px; color: #718096; margin-bottom: 8px;">Category: ${metadata.rule.category}</div>
+                        <button class="btn btn-success btn-sm" onclick="saveRule('${ruleId}')">💾 Save as Rule</button>
+                    </div>
+                `;
+            }
+            
+            // Add work plan if detected
+            if (metadata && metadata.workPlan) {
+                const planId = 'plan_' + Date.now();
+                pendingConfirmations[planId] = { type: 'workplan', steps: metadata.workPlan.steps, description: metadata.workPlan.description };
+                bubbleContent += `
+                    <div class="work-plan">
+                        <div class="work-plan-header">📋 Work Plan Created</div>
+                        <div style="font-size: 12px; color: #718096; margin-bottom: 10px;">${metadata.workPlan.description}</div>
+                        <ul class="work-plan-steps">
+                            ${metadata.workPlan.steps.map((step, i) => `
+                                <li class="work-plan-step">
+                                    <span class="step-number">${i + 1}</span>
+                                    <span>${step}</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                        <button class="btn btn-success btn-sm" onclick="executeWorkPlan('${planId}')">▶ Execute Plan</button>
+                    </div>
+                `;
+            }
+            
+            // Add confirmation if needed
+            if (metadata && metadata.needsConfirmation) {
+                const confId = metadata.confirmationId || ('conf_' + Date.now());
+                pendingConfirmations[confId] = { type: 'confirmation', message: metadata.confirmationMessage };
+                bubbleContent += `
+                    <div class="confirmation-dialog">
+                        <div class="confirmation-header">⚠️ Confirmation Needed</div>
+                        <div class="confirmation-message">${metadata.confirmationMessage}</div>
+                        <div class="confirmation-actions">
+                            <button class="btn btn-success btn-sm" onclick="handleConfirmation(true, '${confId}')">✅ Confirm</button>
+                            <button class="btn btn-danger btn-sm" onclick="handleConfirmation(false, '${confId}')">❌ Cancel</button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            msgDiv.innerHTML = `
+                <div class="chat-avatar ${sender}">${avatarLetter}</div>
+                <div>
+                    <div class="chat-bubble">${bubbleContent}</div>
+                    <div class="chat-meta">${time}</div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Save to history (without images for localStorage)
+            chatHistory.push({ sender, text, timestamp: Date.now() });
+            if (chatHistory.length > 100) chatHistory.shift();
+            localStorage.setItem('supremeai_chat_history', JSON.stringify(chatHistory));
+        }
+
+        // Update processUserMessage to handle images
+        function processUserMessage(message, images = []) {
+            const lowerMsg = message.toLowerCase();
+            let response = { text: '', rule: null, workPlan: null, needsConfirmation: false };
+            
+            // Add image analysis if images are present
+            if (images && images.length > 0) {
+                const analysis = analyzeImage(images);
+                response.text = `I've analyzed ${images.length} image(s) you uploaded.<br><br>`;
+                response.text += `<div class="image-analysis">
+                    <div class="image-analysis-header">🔍 Image Analysis Result</div>
+                    ${analysis}
+                </div><br>`;
+                response.text += "Based on the image(s), here's what I understand: ";
+            }
+            
+            // Detect rules (things to remember/save)
+            if (lowerMsg.includes('remember') || lowerMsg.includes('rule') || lowerMsg.includes('always') || lowerMsg.includes('never')) {
+                response.rule = {
+                    content: `Rule extracted: ${message}`,
+                    category: lowerMsg.includes('user') ? 'User Preference' : 'System Rule'
+                };
+                response.text += "I've detected a potential rule in your message. ";
+                response.text += "Based on my understanding, you want me to remember: " + message;
+                response.text += "<br><br>Is my understanding correct? I can save this as a rule.";
+                response.needsConfirmation = true;
+                response.confirmationId = 'rule_' + Date.now();
+                response.confirmationMessage = `Save this rule: "${message}"?`;
+            }
+            
+            // Detect work plans
+            else if (lowerMsg.includes('create') && (lowerMsg.includes('project') || lowerMsg.includes('app'))) {
+                response.workPlan = {
+                    description: 'Create a new project/app based on your request',
+                    steps: [
+                        'Analyze requirements from your description',
+                        'Generate project structure',
+                        'Set up AI agents (X-Builder, Z-Architect)',
+                        'Create initial codebase',
+                        'Run tests and validation',
+                        'Deploy to staging environment'
+                    ]
+                };
+                response.text += "I've created a work plan for your project creation request. ";
+                response.text += "Here's what I understand you want: " + message;
+                response.text += "<br><br>Please review the work plan below and confirm if this matches your expectations.";
+                response.needsConfirmation = true;
+                response.confirmationId = 'workplan_' + Date.now();
+                response.confirmationMessage = `Execute work plan with ${response.workPlan.steps.length} steps?`;
+            }
+            
+            // Detect improvement requests
+            else if (lowerMsg.includes('improve') || lowerMsg.includes('fix') || lowerMsg.includes('update')) {
+                response.workPlan = {
+                    description: 'Improve existing project based on your request',
+                    steps: [
+                        'Analyze current codebase',
+                        'Identify areas for improvement',
+                        'Generate improvement plan',
+                        'Apply changes with AI agents',
+                        'Run tests to verify improvements',
+                        'Commit changes to repository'
+                    ]
+                };
+                response.text += "I've created a work plan to improve your project. ";
+                response.text += "My understanding: " + message;
+                response.text += "<br><br>Please confirm if I've understood correctly before I proceed.";
+                response.needsConfirmation = true;
+                response.confirmationId = 'improve_' + Date.now();
+                response.confirmationMessage = `Execute improvement plan?`;
+            }
+            
+            // General response
+            else if (!images || images.length === 0) {
+                response.text += "Thank you for your message. ";
+                response.text += "Let me confirm my understanding: You're asking about \"" + message + "\". ";
+                response.text += "<br><br>Is this correct? I want to make sure I understand before proceeding.";
+                response.needsConfirmation = true;
+                response.confirmationId = 'general_' + Date.now();
+                response.confirmationMessage = `Is my understanding correct: "${message}"?`;
+            }
+            
+            return response;
+        }
+
+        function analyzeImage(images) {
+            // Simulate AI image analysis
+            // In real implementation, this would send the image to vision-capable AI models
+            let analysis = '';
+            
+            images.forEach((img, i) => {
+                analysis += `<div style="margin-bottom: 10px;">
+                    <strong>Image ${i + 1}:</strong><br>
+                    • Type: UI Screenshot / Code Snippet / Diagram<br>
+                    • Detected elements: Buttons, Text fields, Navigation<br>
+                    • Colors: Dark theme with blue accents (#4299e1)<br>
+                    • Text content: Detected readable text<br>
+                    • Recommendation: This appears to be a ${i === 0 ? 'dashboard UI' : 'technical diagram'}
+                </div>`;
+            });
+            
+            analysis += `<div style="font-size: 11px; color: #718096; margin-top: 8px;">
+                ⚡ Analysis complete. I can help you with code review, UI improvements, or technical questions about the image(s).
+            </div>`;
+            
+            return analysis;
         }
 
         // Auto-resize chat input
@@ -2888,6 +3128,239 @@
                     </div>
                 </div>
             `;
+        }
+
+        // ========== VOTING SYSTEM (60% Threshold) ==========
+        function configureVotingModels() {
+            const tbody = document.getElementById('apiKeyTable');
+            const rows = tbody.querySelectorAll('tr');
+            
+            if (rows.length === 0 || (rows.length === 1 && rows[0].querySelector('.empty-state'))) {
+                alert('Please add at least one AI model to configure voting');
+                return;
+            }
+
+            // In real implementation, this would open a modal with checkboxes
+            const votingModels = getVotingModels();
+            alert(`🗳️ Voting Configuration:\n\nVoting-eligible models: ${votingModels.length}\nThreshold: 60% agreement required\n\nOnly top-performing models should participate in voting.`);
+        }
+
+        function getVotingModels() {
+            // In real implementation, this would fetch from backend
+            // For demo, return models marked as eligible for voting
+            const tbody = document.getElementById('apiKeyTable');
+            const votingModels = [];
+            
+            tbody.querySelectorAll('tr').forEach(row => {
+                const votingBadge = row.querySelector('.badge-warning');
+                if (votingBadge && votingBadge.textContent.includes('Voting')) {
+                    const modelName = row.cells[0].textContent;
+                    votingModels.push(modelName);
+                }
+            });
+            
+            return votingModels.length > 0 ? votingModels : ['GPT-4', 'Claude', 'Gemini']; // Default top 3
+        }
+
+        async function testConsensus() {
+            const prompt = document.getElementById('consensusPrompt').value;
+            if (!prompt) {
+                alert('Please enter a test prompt');
+                return;
+            }
+
+            const resultDiv = document.getElementById('consensusResult');
+            resultDiv.innerHTML = '<div class="alert alert-warning">🗳️ Running voting with top AI models (60% threshold)...</div>';
+
+            const votingModels = getVotingModels();
+            
+            if (votingModels.length === 0) {
+                resultDiv.innerHTML = '<div class="alert alert-danger">❌ No voting-eligible models found. Please mark models as "Eligible for Voting".</div>';
+                return;
+            }
+
+            // Simulate AI responses
+            const responses = await simulateVotingResponses(prompt, votingModels);
+            
+            // Calculate agreement percentage
+            const agreement = calculateAgreement(responses);
+            const threshold = 60;
+            const passed = agreement >= threshold;
+            
+            let html = `
+                <div class="card" style="margin-top: 15px;">
+                    <div class="card-header">
+                        <div class="card-title">🗳️ Voting Result (${votingModels.length} models)</div>
+                    </div>
+                    <div style="font-size: 13px; color: #cbd5e1; line-height: 1.8;">
+                        <div style="margin-bottom: 10px;">
+                            <strong>Prompt:</strong> "${prompt}"
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <strong>Participating Models:</strong> ${votingModels.join(', ')}
+                        </div>
+                        <div style="background: ${passed ? 'rgba(72, 187, 120, 0.1)' : 'rgba(245, 101, 101, 0.1)'}; 
+                             padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                            <div style="font-size: 24px; font-weight: bold; color: ${passed ? '#48bb78' : '#f56565'};">
+                                ${agreement}% Agreement
+                            </div>
+                            <div style="font-size: 11px; color: #718096; margin-top: 5px;">
+                                Threshold: ${threshold}% | Status: ${passed ? '✅ PASSED' : '❌ FAILED'}
+                            </div>
+                        </div>
+            `;
+
+            responses.forEach((resp, i) => {
+                html += `
+                    <div style="background: #111827; padding: 10px; border-radius: 5px; margin-bottom: 8px;">
+                        <div style="color: #4299e1; font-weight: 600; font-size: 12px;">${resp.model}:</div>
+                        <div style="font-size: 12px; color: #cbd5e1; margin-top: 5px;">${resp.response}</div>
+                    </div>
+                `;
+            });
+
+            html += `
+                    <div style="margin-top: 10px; font-size: 12px; color: #718096;">
+                        ${passed ? 
+                            '✅ Consensus reached! System will proceed with the action.' : 
+                            '❌ Consensus not reached. Manual review required.'}
+                    </div>
+                    </div>
+                </div>
+            `;
+
+            resultDiv.innerHTML = html;
+            
+            // Update voting models list
+            document.getElementById('votingModelsList').innerHTML = 
+                `🗳️ Voting Models: ${votingModels.length} active | 60% threshold`;
+        }
+
+        async function simulateVotingResponses(prompt, models) {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    const responses = models.map(model => {
+                        const responses = [
+                            `Yes, I agree with this approach. ${model} recommends proceeding.`,
+                            `Based on my analysis, this is correct. ${model} supports this.`,
+                            `I have some concerns but generally agree. ${model} suggests caution.`,
+                            `This looks good. ${model} approves.`
+                        ];
+                        return {
+                            model: model,
+                            response: responses[Math.floor(Math.random() * responses.length)]
+                        };
+                    });
+                    resolve(responses);
+                }, 2000);
+            });
+        }
+
+        function calculateAgreement(responses) {
+            // Simple simulation: count positive responses
+            const positiveKeywords = ['agree', 'support', 'approve', 'correct', 'good', 'yes'];
+            let positiveCount = 0;
+            
+            responses.forEach(resp => {
+                const lowerResp = resp.response.toLowerCase();
+                if (positiveKeywords.some(keyword => lowerResp.includes(keyword))) {
+                    positiveCount++;
+                }
+            });
+            
+            return Math.round((positiveCount / responses.length) * 100);
+        }
+
+        // Update saveNewProvider to save voting eligibility
+        const originalSaveNewProvider = saveNewProvider;
+        function saveNewProvider() {
+            const modelName = document.getElementById('newModelName').value.trim();
+            const provider = document.getElementById('newModelProvider').value.trim();
+            const endpoint = document.getElementById('newModelEndpoint').value.trim();
+            const eligibleForVoting = document.getElementById('eligibleForVoting').checked;
+            
+            if (!modelName) {
+                alert('Please enter a model name');
+                return;
+            }
+
+            // Collect API keys
+            const apiKeys = [];
+            const apiKeyRows = document.querySelectorAll('#providerApiKeysList .api-key-row');
+            let untestedCount = 0;
+            
+            apiKeyRows.forEach(row => {
+                const input = row.querySelector('input');
+                const key = input.value.trim();
+                if (key) {
+                    if (input.dataset.tested !== 'true') {
+                        untestedCount++;
+                    }
+                    apiKeys.push({
+                        key: key,
+                        tested: input.dataset.tested === 'true',
+                        freeLimit: input.dataset.freeLimit || 'Unknown',
+                        remaining: input.dataset.remaining || 'Unknown'
+                    });
+                }
+            });
+
+            if (apiKeys.length === 0) {
+                alert('Please add at least one API key');
+                return;
+            }
+
+            if (untestedCount > 0) {
+                if (!confirm(`You have ${untestedCount} API key(s) that haven't been tested. Save anyway?`)) {
+                    return;
+                }
+            }
+
+            // In real implementation, this would call backend API
+            alert(`✅ AI Model "${modelName}" added successfully!\n\n` +
+                  `Provider: ${provider || 'Not specified'}\n` +
+                  `API Keys: ${apiKeys.length} key(s) added\n` +
+                  `Endpoint: ${endpoint || 'Default'}\n` +
+                  `Voting Eligible: ${eligibleForVoting ? 'Yes 🗳️' : 'No'}`);
+
+            closeAddProviderModal();
+
+            // Add to providers table (demo)
+            addProviderToTable(modelName, provider, apiKeys, eligibleForVoting);
+        }
+
+        // Update addProviderToTable to show voting eligibility
+        function addProviderToTable(modelName, provider, apiKeys, eligibleForVoting) {
+            const tbody = document.getElementById('apiKeyTable');
+            // Remove "No API keys configured" row if present
+            if (tbody.querySelector('.empty-state')) {
+                tbody.innerHTML = '';
+            }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${modelName}</td>
+                <td>${provider || 'Custom'}</td>
+                <td>
+                    <span class="badge badge-info">${apiKeys.length} key(s)</span>
+                    ${apiKeys.filter(k => k.tested).length > 0 ? '<span class="badge badge-success" style="margin-left: 5px;">✓ Tested</span>' : ''}
+                </td>
+                <td>${apiKeys[0]?.freeLimit || 'Unknown'}</td>
+                <td>
+                    ${eligibleForVoting ? 
+                        '<span class="badge badge-warning">🗳️ Voting</span>' : 
+                        '<span class="badge badge-secondary">No Voting</span>'}
+                </td>
+                <td><span class="badge badge-success">Active</span></td>
+                <td>
+                    <button class="btn btn-secondary btn-sm">Edit</button>
+                    <button class="btn btn-danger btn-sm" style="margin-left: 5px;">Remove</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+
+            // Also update provider grid
+            updateProviderGrid();
         }
 
         // ========== INITIALIZATION ==========
