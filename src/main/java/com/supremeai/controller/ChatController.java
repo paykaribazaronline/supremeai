@@ -3,6 +3,7 @@ package com.supremeai.controller;
 import com.supremeai.service.AutonomousQuestioningEngine;
 import com.supremeai.service.TenAIVotingSystem;
 import com.supremeai.service.MultiAIConsensusService;
+import com.supremeai.service.EnhancedLearningService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,9 @@ public class ChatController {
 
     @Autowired
     private TenAIVotingSystem votingSystem;
+
+    @Autowired(required = false)
+    private EnhancedLearningService enhancedLearningService;
 
     @PostMapping("/send")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'AGENT_MANAGER')")
@@ -59,14 +63,28 @@ public class ChatController {
         // S4: 10-AI Voting System - Execute voting across models
         try {
             var votingResult = votingSystem.executeVoting(message, null, 15000L);
-            
+
+            String bestResponse = votingResult.getBestResponse();
+            Double confidence = votingResult.getAverageConfidence();
+
             Map<String, Object> response = new HashMap<>();
-            response.put("message", votingResult.getBestResponse());
+            response.put("message", bestResponse);
             response.put("verdict", votingResult.getVerdict());
-            response.put("confidence", votingResult.getAverageConfidence());
+            response.put("confidence", confidence);
             response.put("modelsUsed", votingResult.getTotalModelsUsed());
             response.put("processingTimeMs", votingResult.getProcessingTimeMs());
             response.put("timestamp", java.time.Instant.now().toString());
+
+            // Capture NLP learning from this interaction
+            if (enhancedLearningService != null) {
+                enhancedLearningService.learnFromNLPInteraction(
+                        message,
+                        bestResponse,
+                        "voting_system",
+                        confidence != null ? confidence : 0.5,
+                        Map.of("modelsUsed", votingResult.getTotalModelsUsed())
+                ).subscribe(); // Fire and forget
+            }
 
             return Mono.just(ResponseEntity.ok(response));
         } catch (Exception e) {
@@ -102,8 +120,22 @@ public class ChatController {
     public Mono<ResponseEntity<Object>> submitFeedback(@RequestBody Map<String, Object> request) {
         String messageId = (String) request.get("messageId");
         Boolean helpful = (Boolean) request.get("helpful");
+        String userMessage = (String) request.getOrDefault("userMessage", "");
+        String aiResponse = (String) request.getOrDefault("aiResponse", "");
 
         logger.info("Received feedback for message: {}, helpful: {}", messageId, helpful);
+
+        // Capture learning from feedback - this is valuable for NLP improvement
+        if (enhancedLearningService != null && userMessage != null && aiResponse != null) {
+            double qualityScore = helpful != null && helpful ? 1.0 : 0.3;
+            enhancedLearningService.learnFromNLPInteraction(
+                    userMessage,
+                    aiResponse,
+                    "feedback_system",
+                    qualityScore,
+                    Map.of("messageId", messageId, "helpful", helpful)
+            ).subscribe(); // Fire and forget
+        }
 
         return Mono.just(ResponseEntity.ok(Map.of("status", "received")));
     }

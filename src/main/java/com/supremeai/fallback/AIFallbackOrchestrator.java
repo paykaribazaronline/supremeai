@@ -9,11 +9,13 @@ import com.supremeai.provider.AIProviderFactory;
 import com.supremeai.resilience.RetryableAIExecutor;
 import com.supremeai.security.ApiKeyRotationService;
 import com.supremeai.model.UserApiKey;
+import com.supremeai.service.EnhancedLearningService;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -21,6 +23,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -36,6 +39,9 @@ public class AIFallbackOrchestrator {
     private final RetryableAIExecutor retryExecutor;
     private final ApiKeyRotationService keyRotationService;
     private final AIProviderFactory providerFactory;
+
+    @Autowired(required = false)
+    private EnhancedLearningService enhancedLearningService;
 
     private final CircuitBreakerRegistry circuitBreakerRegistry;
     private final Map<AIProviderType, CircuitBreaker> providerCircuitBreakers = new EnumMap<>(AIProviderType.class);
@@ -143,17 +149,68 @@ public class AIFallbackOrchestrator {
                 if (immunitySystem.isCodeInfected(generatedCode)) {
                     log.error("-> [Orchestrator] AI generated toxic/broken code! Rejecting...");
                     aiProfiler.recordPerformance(taskCategory, provider, false, timeTaken);
+                    
+                    // Capture ecosystem learning for infected code
+                    if (enhancedLearningService != null) {
+                        Map<String, Object> requestMeta = new HashMap<>();
+                        requestMeta.put("taskCategory", taskCategory);
+                        requestMeta.put("errorSignature", errorSignature);
+                        requestMeta.put("infected", true);
+                        
+                        enhancedLearningService.learnFromAPIUsage(
+                                "generateCode",
+                                provider.name(),
+                                timeTaken,
+                                false,
+                                requestMeta
+                        ).subscribe(); // Fire and forget
+                    }
+                    
                     continue;
                 }
 
                 knowledgeBase.recordSuccessWithPermission(errorSignature, generatedCode, provider.name(), timeTaken, 0.95);
                 aiProfiler.recordPerformance(taskCategory, provider, true, timeTaken);
 
+                // Capture ecosystem learning for successful API call
+                if (enhancedLearningService != null) {
+                    Map<String, Object> requestMeta = new HashMap<>();
+                    requestMeta.put("taskCategory", taskCategory);
+                    requestMeta.put("errorSignature", errorSignature);
+                    requestMeta.put("codeLength", generatedCode != null ? generatedCode.length() : 0);
+                    
+                    enhancedLearningService.learnFromAPIUsage(
+                            "generateCode",
+                            provider.name(),
+                            timeTaken,
+                            true,
+                            requestMeta
+                    ).subscribe(); // Fire and forget
+                }
+
                 return generatedCode;
 
             } catch (Exception e) {
+                long timeTaken = System.currentTimeMillis() - startTime;
                 log.error("Error from provider: {} on task: {}", provider, taskCategory, e);
-                aiProfiler.recordPerformance(taskCategory, provider, false, System.currentTimeMillis() - startTime);
+                aiProfiler.recordPerformance(taskCategory, provider, false, timeTaken);
+                
+                // Capture ecosystem learning for failed API call
+                if (enhancedLearningService != null) {
+                    Map<String, Object> requestMeta = new HashMap<>();
+                    requestMeta.put("taskCategory", taskCategory);
+                    requestMeta.put("errorSignature", errorSignature);
+                    requestMeta.put("errorMessage", e.getMessage());
+                    
+                    enhancedLearningService.learnFromAPIUsage(
+                            "generateCode",
+                            provider.name(),
+                            timeTaken,
+                            false,
+                            requestMeta
+                    ).subscribe(); // Fire and forget
+                }
+                
                 // Continue to next provider ONCE ONLY - no retries per provider
             }
         }

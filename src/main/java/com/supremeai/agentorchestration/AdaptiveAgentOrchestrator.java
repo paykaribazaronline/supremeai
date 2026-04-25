@@ -6,7 +6,10 @@ import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
 import com.supremeai.service.TranslationService;
 import com.supremeai.service.UserLanguagePreferenceService;
+import com.supremeai.service.EnhancedLearningService;
 import com.supremeai.model.UserLanguagePreference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -16,6 +19,8 @@ import java.util.*;
 
 @Service
 public class AdaptiveAgentOrchestrator {
+
+    private static final Logger logger = LoggerFactory.getLogger(AdaptiveAgentOrchestrator.class);
 
     @Autowired
     private RequirementAnalyzerAI requirementAnalyzer;
@@ -44,6 +49,9 @@ public class AdaptiveAgentOrchestrator {
     @Autowired
     private com.supremeai.service.AIBehaviorProfileService behaviorProfileService;
 
+    @Autowired(required = false)
+    private EnhancedLearningService enhancedLearningService;
+
     public AdaptiveAgentOrchestrator() {}
 
     /**
@@ -51,7 +59,7 @@ public class AdaptiveAgentOrchestrator {
      * Takes a requirement and uses default userId and project.
      */
     public OrchesResultContext orchestrate(String requirement) {
-        return orchestrate(requirement, "default-user", "default");
+        return orchestrate(requirement, "default-user", "default", null);
     }
 
     /**
@@ -60,21 +68,35 @@ public class AdaptiveAgentOrchestrator {
      * Language support: translates questions to user's preferred language.
      */
     public OrchesResultContext orchestrate(String requirement, String userId) {
-        return orchestrate(requirement, userId, "default");
+        return orchestrate(requirement, userId, "default", null);
     }
 
     /**
-     * Main orchestration entry point.
+     * Main orchestration entry point (3-param version - delegates to multimodal version).
      * Takes a requirement, userId, and projectId, returns an OrchesResultContext.
      * Language support: translates questions to user's preferred language.
      * Behavior profiles: applies project-specific AI coding standards.
      */
     public OrchesResultContext orchestrate(String requirement, String userId, String projectId) {
+        return orchestrate(requirement, userId, projectId, null);
+    }
+
+    /**
+     * Multimodal orchestration entry point - with image support.
+     * Takes a requirement, userId, projectId, and optional image URL.
+     * Enables multimodal learning capture.
+     */
+    public OrchesResultContext orchestrate(String requirement, String userId, String projectId, String imageUrl) {
         Map<String, Object> context = new LinkedHashMap<>();
         Date started = new Date();
         context.put("startedAt", started);
         context.put("originalRequirement", requirement);
         context.put("projectId", projectId);
+        context.put("imageUrl", imageUrl);
+
+        // Detect platform for learning capture
+        String detectedPlatform = detectPlatform(requirement);
+        context.put("detectedPlatform", detectedPlatform);
 
         // Get user's language preference
         UserLanguagePreference languagePreference = languagePreferenceService
@@ -131,7 +153,62 @@ public class AdaptiveAgentOrchestrator {
         result.setStartedAt(started);
         result.setCompletedAt(completed);
         result.setStatus("COMPLETED");
+
+        // Capture app generation learning
+        if (enhancedLearningService != null) {
+            Map<String, Object> buildMetrics = new HashMap<>();
+            buildMetrics.put("platform", detectedPlatform);
+            buildMetrics.put("decisionsCount", decisions != null ? decisions.size() : 0);
+            buildMetrics.put("processingTimeMs", completed.getTime() - started.getTime());
+            buildMetrics.put("hasImage", imageUrl != null && !imageUrl.isEmpty());
+
+            enhancedLearningService.learnFromAppGeneration(
+                    requirement,
+                    detectedPlatform,
+                    true, // Assume success for now - will be updated by build process
+                    null,
+                    buildMetrics,
+                    "AdaptiveAgentOrchestrator"
+            ).subscribe(); // Fire and forget
+
+            // If image is provided, also capture multimodal learning
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                enhancedLearningService.learnFromMultimodalInteraction(
+                        requirement,
+                        imageUrl,
+                        null, // Generated code will be set later
+                        "AdaptiveAgentOrchestrator",
+                        0.5 // Initial score, will be updated
+                ).subscribe(); // Fire and forget
+            }
+        }
+
         return result;
+    }
+
+    /**
+     * Record the final build result - call this after actual app build completes
+     */
+    public void recordBuildResult(String requirement, String appType, boolean buildSuccess,
+                                  String apkPath, Map<String, Object> additionalMetrics) {
+        if (enhancedLearningService != null) {
+            Map<String, Object> buildMetrics = new HashMap<>();
+            if (additionalMetrics != null) {
+                buildMetrics.putAll(additionalMetrics);
+            }
+            buildMetrics.put("platform", appType);
+
+            enhancedLearningService.learnFromAppGeneration(
+                    requirement,
+                    appType,
+                    buildSuccess,
+                    apkPath,
+                    buildMetrics,
+                    "AdaptiveAgentOrchestrator"
+            ).subscribe(); // Fire and forget
+
+            logger.info("Recorded build result: type={}, success={}, apkPath={}", appType, buildSuccess, apkPath);
+        }
     }
 
     /**
