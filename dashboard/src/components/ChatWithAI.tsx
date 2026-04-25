@@ -1,8 +1,10 @@
 ﻿// ChatWithAI.tsx - Chat Interface for Commanding AI Agents
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Card, Input, Button, Space, message, Spin, Empty, Tag, List, Divider, Row, Col, Avatar, Tooltip } from 'antd';
-import { SendOutlined, DeleteOutlined, CopyOutlined, RobotOutlined } from '@ant-design/icons';
+import { Card, Input, Button, Space, message, Empty, Tag, List, Divider, Row, Col, Tooltip, Alert, Typography } from 'antd';
+import { SendOutlined, DeleteOutlined, CopyOutlined, RobotOutlined, CheckCircleOutlined, CloseCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
+
+const { Text, Paragraph } = Typography;
 
 interface ChatMessage {
     id: string;
@@ -12,6 +14,17 @@ interface ChatMessage {
     timestamp: string;
     confidence?: number;
     status?: 'pending' | 'completed' | 'error';
+    processingTimeMs?: number;
+    modelsUsed?: number;
+    errorCode?: string;
+}
+
+interface ModelStatus {
+    name: string;
+    supportsImages: boolean;
+    supportsVision: boolean;
+    status: 'online' | 'offline' | 'degraded';
+    lastChecked: string;
 }
 
 const ChatWithAI: React.FC = () => {
@@ -20,12 +33,27 @@ const ChatWithAI: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [selectedAgent, setSelectedAgent] = useState('all');
     const [agents, setAgents] = useState<any[]>([]);
+    const [modelStatuses, setModelStatuses] = useState<ModelStatus[]>([
+        { name: 'Google Gemini', supportsImages: true, supportsVision: true, status: 'online', lastChecked: new Date().toISOString() },
+        { name: 'OpenAI GPT-4', supportsImages: true, supportsVision: true, status: 'online', lastChecked: new Date().toISOString() },
+        { name: 'Meta Llama', supportsImages: false, supportsVision: false, status: 'online', lastChecked: new Date().toISOString() },
+        { name: 'Tencent Hunyuan', supportsImages: false, supportsVision: false, status: 'online', lastChecked: new Date().toISOString() },
+    ]);
+    const [systemStatus, setSystemStatus] = useState<{ status: string; message: string; version: string }>({
+        status: 'UP',
+        message: 'Checking...',
+        version: '6.0.0'
+    });
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         fetchAgents();
         fetchChatHistory();
-        const interval = setInterval(fetchChatHistory, 5000);
+        fetchSystemStatus();
+        const interval = setInterval(() => {
+            fetchChatHistory();
+            fetchSystemStatus();
+        }, 5000);
         return () => clearInterval(interval);
     }, []);
 
@@ -49,6 +77,18 @@ const ChatWithAI: React.FC = () => {
             }
         } catch (error) {
             console.error('Failed to fetch agents');
+        }
+    };
+
+    const fetchSystemStatus = async () => {
+        try {
+            const response = await fetch('/api/status');
+            if (response.ok) {
+                const data = await response.json();
+                setSystemStatus(data);
+            }
+        } catch (error) {
+            setSystemStatus({ status: 'DOWN', message: 'Unable to reach server', version: 'unknown' });
         }
     };
 
@@ -106,18 +146,39 @@ const ChatWithAI: React.FC = () => {
                 const aiMessage: ChatMessage = {
                     id: (Date.now() + 1).toString(),
                     sender: 'ai',
-                    agent: data.agentName,
-                    content: data.response,
+                    agent: data.agentName || 'AI System',
+                    content: data.response || data.message,
                     timestamp: new Date().toLocaleTimeString(),
                     confidence: data.confidence,
-                    status: data.status,
+                    status: data.status || 'completed',
+                    processingTimeMs: data.processingTimeMs,
+                    modelsUsed: data.modelsUsed,
                 };
                 setMessages((prev) => [...prev, aiMessage]);
             } else {
-                message.error('Failed to send message');
+                const errorData = await response.json().catch(() => ({}));
+                const errorMessage: ChatMessage = {
+                    id: (Date.now() + 1).toString(),
+                    sender: 'ai',
+                    agent: 'System',
+                    content: errorData.error || `ERROR: ${response.status} - Failed to process request`,
+                    timestamp: new Date().toLocaleTimeString(),
+                    status: 'error',
+                    errorCode: errorData.error?.includes('image') ? 'UNSUPPORTED_MEDIA_TYPE' : 'REQUEST_FAILED',
+                };
+                setMessages((prev) => [...prev, errorMessage]);
             }
-        } catch (error) {
-            message.error('Error communicating with AI');
+        } catch (error: any) {
+            const errorMessage: ChatMessage = {
+                id: (Date.now() + 1).toString(),
+                sender: 'ai',
+                agent: 'System',
+                content: `ERROR: ${error.message || 'Communication failed'}`,
+                timestamp: new Date().toLocaleTimeString(),
+                status: 'error',
+                errorCode: 'NETWORK_ERROR',
+            };
+            setMessages((prev) => [...prev, errorMessage]);
         } finally {
             setLoading(false);
         }
@@ -135,6 +196,32 @@ const ChatWithAI: React.FC = () => {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 'calc(100vh - 300px)' }}>
+            {/* System Status Bar */}
+            <Card size="small" style={{ marginBottom: '16px' }}>
+                <Row gutter={16} align="middle">
+                    <Col>
+                        <Space>
+                            <Tag color={systemStatus.status === 'UP' ? 'green' : 'red'} icon={systemStatus.status === 'UP' ? <CheckCircleOutlined /> : <CloseCircleOutlined />}>
+                                System: {systemStatus.status}
+                            </Tag>
+                            <Text type="secondary">v{systemStatus.version}</Text>
+                        </Space>
+                    </Col>
+                    <Col flex="auto">
+                        <Space wrap>
+                            {modelStatuses.map((model) => (
+                                <Tooltip key={model.name} title={`${model.name} - Images: ${model.supportsImages ? 'Yes' : 'No'} | Vision: ${model.supportsVision ? 'Yes' : 'No'}`}>
+                                    <Tag color={model.status === 'online' ? 'blue' : 'orange'}>
+                                        {model.name}
+                                        {!model.supportsImages && <span style={{ marginLeft: '4px' }}>🚫🖼️</span>}
+                                    </Tag>
+                                </Tooltip>
+                            ))}
+                        </Space>
+                    </Col>
+                </Row>
+            </Card>
+
             <Card
                 title="Chat with AI Agents"
                 style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
@@ -201,8 +288,9 @@ const ChatWithAI: React.FC = () => {
                                             maxWidth: '70%',
                                             padding: '12px 16px',
                                             borderRadius: '8px',
-                                            backgroundColor: msg.sender === 'user' ? '#1890ff' : '#f0f2f5',
+                                            backgroundColor: msg.sender === 'user' ? '#1890ff' : msg.status === 'error' ? '#fff2f0' : '#f0f2f5',
                                             color: msg.sender === 'user' ? '#fff' : '#000',
+                                            border: msg.status === 'error' ? '1px solid #ffccc7' : 'none',
                                         }}
                                     >
                                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
@@ -210,10 +298,23 @@ const ChatWithAI: React.FC = () => {
                                                 <>
                                                     <RobotOutlined style={{ marginRight: '8px' }} />
                                                     <strong>{msg.agent}</strong>
+                                                    {msg.status === 'error' && <CloseCircleOutlined style={{ marginLeft: '8px', color: '#ff4d4f' }} />}
                                                 </>
                                             )}
                                         </div>
-                                        <div>{msg.content}</div>
+                                        <div>
+                                            {msg.status === 'error' ? (
+                                                <Alert
+                                                    type="error"
+                                                    message={msg.content}
+                                                    description={msg.errorCode && <Text code>{msg.errorCode}</Text>}
+                                                    showIcon
+                                                    style={{ padding: '8px', margin: 0 }}
+                                                />
+                                            ) : (
+                                                <Paragraph style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{msg.content}</Paragraph>
+                                            )}
+                                        </div>
                                         <div
                                             style={{
                                                 fontSize: '11px',
@@ -223,6 +324,8 @@ const ChatWithAI: React.FC = () => {
                                         >
                                             {msg.timestamp}
                                             {msg.confidence && ` | Confidence: ${msg.confidence}%`}
+                                            {msg.processingTimeMs && ` | ${msg.processingTimeMs}ms`}
+                                            {msg.modelsUsed && ` | ${msg.modelsUsed} models`}
                                             {msg.status && (
                                                 <>
                                                     {' '}
@@ -233,7 +336,7 @@ const ChatWithAI: React.FC = () => {
                                                 </>
                                             )}
                                         </div>
-                                        {msg.sender === 'ai' && (
+                                        {msg.sender === 'ai' && msg.status !== 'error' && (
                                             <Button
                                                 type="text"
                                                 size="small"
@@ -282,6 +385,18 @@ const ChatWithAI: React.FC = () => {
                     <div>• generate [report/insight/plan]</div>
                     <div>• execute [task/command]</div>
                     <div>• status [component/system]</div>
+                </div>
+
+                <Divider style={{ margin: '16px 0' }} />
+
+                <div style={{ fontSize: '11px', color: '#999' }}>
+                    <Space>
+                        <InfoCircleOutlined />
+                        <Text type="secondary">
+                            Models without 🖼️ icon don't support image input.
+                            Errors will show in chat with error codes for debugging.
+                        </Text>
+                    </Space>
                 </div>
             </Card>
         </div>

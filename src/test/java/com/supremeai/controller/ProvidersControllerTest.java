@@ -169,7 +169,7 @@ public class ProvidersControllerTest {
         // Act & Assert
         mockMvc.perform(post("/api/providers/test")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{"type":"openai"}"))
+                        .content("{\"type\":\"openai\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
     }
@@ -183,7 +183,7 @@ public class ProvidersControllerTest {
         // Act & Assert
         mockMvc.perform(post("/api/providers/test")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{"type":"openai"}"))
+                        .content("{\"type\":\"openai\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(false));
     }
