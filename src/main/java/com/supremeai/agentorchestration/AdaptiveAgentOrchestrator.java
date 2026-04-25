@@ -41,26 +41,40 @@ public class AdaptiveAgentOrchestrator {
     @Autowired
     private UserLanguagePreferenceService languagePreferenceService;
 
+    @Autowired
+    private com.supremeai.service.AIBehaviorProfileService behaviorProfileService;
+
     public AdaptiveAgentOrchestrator() {}
 
     /**
      * Main orchestration entry point - single argument version for API compatibility.
-     * Takes a requirement and uses default userId.
+     * Takes a requirement and uses default userId and project.
      */
     public OrchesResultContext orchestrate(String requirement) {
-        return orchestrate(requirement, "default-user");
+        return orchestrate(requirement, "default-user", "default");
     }
 
     /**
-     * Main orchestration entry point.
+     * Main orchestration entry point with userId.
      * Takes a requirement and userId, returns an OrchesResultContext.
      * Language support: translates questions to user's preferred language.
      */
     public OrchesResultContext orchestrate(String requirement, String userId) {
+        return orchestrate(requirement, userId, "default");
+    }
+
+    /**
+     * Main orchestration entry point.
+     * Takes a requirement, userId, and projectId, returns an OrchesResultContext.
+     * Language support: translates questions to user's preferred language.
+     * Behavior profiles: applies project-specific AI coding standards.
+     */
+    public OrchesResultContext orchestrate(String requirement, String userId, String projectId) {
         Map<String, Object> context = new LinkedHashMap<>();
         Date started = new Date();
         context.put("startedAt", started);
         context.put("originalRequirement", requirement);
+        context.put("projectId", projectId);
 
         // Get user's language preference
         UserLanguagePreference languagePreference = languagePreferenceService
@@ -68,6 +82,13 @@ public class AdaptiveAgentOrchestrator {
                 .block(); // Blocking for simplicity in this context
         String userLanguage = languagePreference != null ?
                 languagePreference.getLanguageName() : "English";
+
+        // Get and apply behavior profile for the project
+        com.supremeai.model.AIBehaviorProfile behaviorProfile = behaviorProfileService
+                .getProfileForProject(projectId)
+                .block();
+        context.put("behaviorProfile", behaviorProfile);
+
         // Step 1: Generate questions (in English)
         List<Question> questions = generateQuestionsAI(requirement);
 
@@ -94,6 +115,12 @@ public class AdaptiveAgentOrchestrator {
 
         // Step 4: Build final context for code generator
         Map<String, Object> generationContext = buildGenerationContext(decisions);
+
+        // Apply behavior profile to generation context
+        if (behaviorProfile != null) {
+            behaviorProfileService.applyProfileToContext(behaviorProfile, generationContext);
+        }
+
         context.put("generationContext", generationContext);
 
         Date completed = new Date();

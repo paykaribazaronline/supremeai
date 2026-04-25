@@ -24,9 +24,13 @@ public class SecurityConfig {
             .sessionManagement(session -> 
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/public/**", "/login", "/index.html", "/").permitAll()
-                .requestMatchers("/admin.html", "/admin-console.html", "/monitoring-dashboard.html", "/performance-dashboard.html").hasRole("ADMIN")
+                // Public endpoints - authentication not required
+                .requestMatchers("/api/auth/firebase-login", "/api/auth/register", "/api/auth/forgot-password", "/api/auth/validate-token").permitAll()
+                .requestMatchers("/api/chat/**").permitAll()
+                // Admin-only endpoints
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                // All other endpoints require authentication
                 .anyRequest().authenticated())
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((req, res, ex2) -> {

@@ -1,16 +1,27 @@
 
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, send_from_directory
 from flask_socketio import SocketIO, emit
 from smart_chat_system import SmartChatSystem
+from plan_analyzer import PlanAnalyzer
+from image_processor import ImageProcessor
 import os
 import uuid
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload size
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 # স্মার্ট চ্যাট সিস্টেম ইনিশিয়ালাইজ করা
 chat_system = SmartChatSystem()
+
+# প্ল্যান অ্যানালাইজার ইনিশিয়ালাইজ করা
+plan_analyzer = PlanAnalyzer()
+
+# ইমেজ প্রসেসর ইনিশিয়ালাইজ করা
+current_dir = os.path.dirname(os.path.abspath(__file__))
+uploads_dir = os.path.join(current_dir, "uploads")
+image_processor = ImageProcessor(uploads_dir)
 
 @app.route('/')
 def index():
@@ -129,6 +140,108 @@ def get_confirmations():
     confirmations = chat_system.get_confirmation_history(item_id, chat_id)
 
     return jsonify({"success": True, "confirmations": confirmations})
+
+@app.route('/api/plan/analyze', methods=['POST'])
+def analyze_plan():
+    """নতুন প্ল্যানের সাথে বিদ্যমান প্ল্যানের সামঞ্জস্যতা বিশ্লেষণ করে"""
+    data = request.json
+
+    # ইউজার আইডি পাওয়া
+    if 'user_id' not in session:
+        return jsonify({"success": False, "message": "ইউজার আইডি পাওয়া যায়নি"}), 400
+
+    user_id = session['user_id']
+    new_plan = data.get('plan', '')
+
+    if not new_plan:
+        return jsonify({"success": False, "message": "প্ল্যান প্রদান করতে হবে"}), 400
+
+    # বিদ্যমান প্ল্যান লোড করা
+    existing_plans = chat_system.get_plans(active_only=True)
+
+    # প্ল্যান অ্যানালিসিস করা
+    compatibility_report = plan_analyzer.analyze_plan_compatibility(new_plan, existing_plans)
+
+    # ফিউচার স্টেট প্রেডিক্ট করা
+    future_state = plan_analyzer.predict_future_state(new_plan, existing_plans)
+
+    return jsonify({
+        "success": True,
+        "compatibility_report": compatibility_report,
+        "future_state": future_state
+    })
+
+@app.route('/api/image/upload', methods=['POST'])
+def upload_image():
+    """ইমেজ আপলোড করে"""
+    # ইউজার আইডি পাওয়া
+    if 'user_id' not in session:
+        return jsonify({"success": False, "message": "ইউজার আইডি পাওয়া যায়নি"}), 400
+
+    user_id = session['user_id']
+
+    # চেক করা যে ফাইল আপলোড করা হয়েছে কিনা
+    if 'image' not in request.files:
+        return jsonify({"success": False, "message": "কোন ইমেজ ফাইল পাওয়া যায়নি"}), 400
+
+    file = request.files['image']
+
+    # ফাইল নাম চেক করা
+    if file.filename == '':
+        return jsonify({"success": False, "message": "কোন ফাইল নির্বাচন করা হয়নি"}), 400
+
+    # ইমেজ প্রসেস করা
+    try:
+        # ফাইল থেকে বাইনারি ডাটা পড়া
+        image_data = file.read()
+
+        # বাইনারি ডাটা থেকে Base64 তৈরি করা
+        import base64
+        import mimetypes
+        mime_type, _ = mimetypes.guess_type(file.filename)
+        if not mime_type or not mime_type.startswith('image/'):
+            return jsonify({"success": False, "message": "অবৈধ ইমেজ ফাইল"}), 400
+
+        base64_data = f"data:{mime_type};base64,{base64.b64encode(image_data).decode('utf-8')}"
+
+        # ইমেজ প্রসেস করা
+        result = image_processor.process_base64_image(base64_data, user_id)
+
+        if result.get('success'):
+            return jsonify(result)
+        else:
+            return jsonify(result), 400
+    except Exception as e:
+        return jsonify({"success": False, "message": f"ইমেজ আপলোডে সমস্যা: {str(e)}"}), 500
+
+@app.route('/api/image/upload-base64', methods=['POST'])
+def upload_image_base64():
+    """Base64 এনকোডেড ইমেজ আপলোড করে"""
+    # ইউজার আইডি পাওয়া
+    if 'user_id' not in session:
+        return jsonify({"success": False, "message": "ইউজার আইডি পাওয়া যায়নি"}), 400
+
+    user_id = session['user_id']
+    data = request.json
+
+    # Base64 ডাটা পাওয়া
+    base64_data = data.get('image', '')
+
+    if not base64_data:
+        return jsonify({"success": False, "message": "ইমেজ ডাটা প্রদান করতে হবে"}), 400
+
+    # ইমেজ প্রসেস করা
+    result = image_processor.process_base64_image(base64_data, user_id)
+
+    if result.get('success'):
+        return jsonify(result)
+    else:
+        return jsonify(result), 400
+
+@app.route('/uploads/<path:filename>')
+def uploaded_file(filename):
+    """আপলোড করা ফাইল সার্ভ করে"""
+    return send_from_directory(uploads_dir, filename)
 
 # WebSocket ইভেন্ট হ্যান্ডলার
 @socketio.on('connect')
