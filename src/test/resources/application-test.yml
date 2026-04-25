@@ -1,0 +1,58 @@
+
+# Test Configuration for SupremeAI
+
+spring:
+  application:
+    name: supremeai-test
+
+  # Use in-memory H2 database for testing
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+
+  # JPA configuration
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+  # Disable Firestore for testing
+  cloud:
+    gcp:
+      firestore:
+        enabled: false
+
+  # Redis configuration for testing
+  redis:
+    host: localhost
+    port: 6379
+    database: 1
+
+# Firebase configuration for testing
+firebase:
+  project-id: test-project
+  credentials:
+    path: classpath:firebase-test-credentials.json
+
+# Security configuration for testing
+security:
+  jwt:
+    secret: test-secret-key-for-testing-only
+    expiration: 86400000 # 24 hours in milliseconds
+
+# Logging configuration for testing
+logging:
+  level:
+    com.supremeai: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+    reactor.core: DEBUG
+
+# Test properties
+test:
+  timeout:
+    default: 5000
+    long-running: 30000

@@ -91,7 +91,8 @@ class ConfigServiceTest {
         // Ensure cache is null
         SystemConfig config = configService.getConfig();
         assertNotNull(config);
-        assertNull(config.getId()); // It's a fresh instance, not from cache
+        // new SystemConfig() has default id "global_settings"
+        assertEquals("global_settings", config.getId());
     }
 
     @Test
