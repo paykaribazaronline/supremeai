@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -53,124 +54,82 @@ public class AuthenticationController {
     private BruteForceProtectionService bruteForceProtectionService;
 
     @PostMapping("/firebase-login")
-    public Map<String, Object> firebaseLogin(@RequestBody Map<String, String> request, HttpServletRequest httpRequest) {
+    public Mono<Map<String, Object>> firebaseLogin(@RequestBody Map<String, String> request, HttpServletRequest httpRequest) {
         String idToken = request.get("idToken");
         log.info("firebase-login request received from {}", httpRequest.getRemoteAddr());
 
         if (idToken == null || idToken.trim().isEmpty()) {
             log.error("idToken is null or empty");
-            return Map.of("status", "error", "message", "Invalid token: idToken is required");
+            return Mono.just(Map.of("status", "error", "message", "Invalid token: idToken is required"));
         }
 
-        String uid = null;
-        String email = null;
-        try {
-            com.google.firebase.auth.FirebaseToken decodedToken =
-                FirebaseAuth.getInstance().verifyIdToken(idToken);
+        return Mono.fromCallable(() -> FirebaseAuth.getInstance().verifyIdToken(idToken))
+            .flatMap(decodedToken -> {
+                String uid = decodedToken.getUid();
+                String email = decodedToken.getEmail();
+                String name = (String) decodedToken.getClaims().get("name");
 
-            uid = decodedToken.getUid();
-            email = decodedToken.getEmail();
-            String name = (String) decodedToken.getClaims().get("name");
+                return userRepository.findByFirebaseUid(uid)
+                    .defaultIfEmpty(new User()) // Return empty user if not found
+                    .flatMap(user -> {
+                        boolean isNewUser = (user.getFirebaseUid() == null);
+                        UserTier tier = UserTier.FREE;
+                        
+                        if (!isNewUser) {
+                            tier = user.getTier();
+                            user.setLastLoginAt(LocalDateTime.now());
+                            user.setUpdatedAt(LocalDateTime.now());
+                        } else {
+                            Object roleClaim = decodedToken.getClaims().get("role");
+                            Object adminClaim = decodedToken.getClaims().get("admin");
+                            if ("ADMIN".equals(roleClaim) || Boolean.TRUE.equals(adminClaim)) {
+                                tier = UserTier.ADMIN;
+                            }
+                            String displayName = (name != null && !name.trim().isEmpty())
+                                ? name.trim()
+                                : email.split("@")[0];
+                            user.setFirebaseUid(uid);
+                            user.setEmail(email);
+                            user.setDisplayName(displayName);
+                            user.setTier(tier);
+                        }
 
-            if (uid == null || uid.trim().isEmpty()) {
-                log.error("Firebase token missing uid");
-                return Map.of("status", "error", "message", "Invalid token: uid is missing");
-            }
-
-            if (email == null || email.trim().isEmpty()) {
-                log.error("Firebase token missing email");
-                return Map.of("status", "error", "message", "Invalid token: email is missing");
-            }
-
-            log.info("Firebase token verified for uid={}, email={}", uid, email);
-
-            // Resolve tier: Firestore document takes priority, then Firebase token claims
-            UserTier tier = UserTier.FREE;
-            boolean isNewUser = false;
-            User user = userRepository.findByFirebaseUid(uid).block();
-
-            log.info("Firestore lookup for uid={}: {}", uid, user != null ? "found" : "new user");
-
-            if (user != null) {
-                // Existing user: use their persisted tier from Firestore
-                tier = user.getTier();
-                user.setLastLoginAt(LocalDateTime.now());
-                user.setUpdatedAt(LocalDateTime.now());
-            } else {
-                // New user: check Firebase custom claims for initial role
-                Object roleClaim = decodedToken.getClaims().get("role");
-                Object adminClaim = decodedToken.getClaims().get("admin");
-                if ("ADMIN".equals(roleClaim) || Boolean.TRUE.equals(adminClaim)) {
-                    tier = UserTier.ADMIN;
-                }
-                String displayName = (name != null && !name.trim().isEmpty())
-                    ? name.trim()
-                    : email.split("@")[0];
-                user = new User(uid, email, displayName);
-                user.setTier(tier);
-                isNewUser = true;
-            }
-
-            try {
-                userRepository.save(user).block();
-                log.info("User saved to Firestore successfully: uid={}", uid);
-            } catch (Exception e) {
-                log.error("Failed to save user to Firestore: uid={}, error={}", uid, e.getMessage(), e);
-                return Map.of("status", "error", "message", "Failed to save user data. Please try again.");
-            }
-
-            try {
-                ActivityLog logEntry = new ActivityLog(
-                    "LOGIN_SUCCESS",
-                    user.getFirebaseUid(),
-                    "USER",
-                    "LOW",
-                    "User '" + user.getDisplayName() + "' logged in successfully.",
-                    "SUCCESS",
-                    httpRequest.getRemoteAddr()
-                );
-                activityLogRepository.save(logEntry).subscribe();
-            } catch (Exception e) {
-                log.warn("Failed to save activity log, but continuing with login: {}", e.getMessage());
-            }
-
-            try {
-                establishSession(user, httpRequest);
-            } catch (Exception e) {
-                log.error("Failed to establish session: {}", e.getMessage(), e);
-                return Map.of("status", "error", "message", "Failed to establish session. Please try again.");
-            }
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("status", "success");
-            response.put("isNewUser", isNewUser);
-            response.put("user", Map.of(
-                "id", user.getFirebaseUid(),
-                "username", user.getDisplayName(),
-                "email", user.getEmail(),
-                "role", user.getTier() == UserTier.ADMIN ? "admin" : "user",
-                "tier", user.getTier().toString()
-            ));
-
-            return response;
-        } catch (com.google.firebase.auth.FirebaseAuthException e) {
-            log.error("Firebase auth verification failed: idToken length={}, error={}",
-                idToken != null ? idToken.length() : 0, e.getMessage(), e);
-            return Map.of("status", "error", "message", "Authentication failed: " + e.getMessage());
-        } catch (IllegalStateException e) {
-            log.error("Firebase not initialized - cannot verify token", e);
-            return Map.of("status", "error", "message", "Authentication service is not available. Please try again later.");
-        } catch (Exception e) {
-            log.error("Unexpected error during firebase login: uid={}, email={}, error={}", uid, email, e.getMessage(), e);
-            return Map.of("status", "error", "message", "Login failed due to server error. Please try again.");
-        }
+                        return userRepository.save(user)
+                            .doOnNext(savedUser -> {
+                                ActivityLog logEntry = new ActivityLog(
+                                    "LOGIN_SUCCESS", savedUser.getFirebaseUid(), "USER", "LOW",
+                                    "User '" + savedUser.getDisplayName() + "' logged in successfully.",
+                                    "SUCCESS", httpRequest.getRemoteAddr()
+                                );
+                                activityLogRepository.save(logEntry).subscribe();
+                                establishSession(savedUser, httpRequest);
+                            })
+                            .map(savedUser -> {
+                                Map<String, Object> response = new HashMap<>();
+                                response.put("status", "success");
+                                response.put("isNewUser", isNewUser);
+                                response.put("user", Map.of(
+                                    "id", savedUser.getFirebaseUid(),
+                                    "username", savedUser.getDisplayName(),
+                                    "email", savedUser.getEmail(),
+                                    "role", savedUser.getTier() == UserTier.ADMIN ? "admin" : "user",
+                                    "tier", savedUser.getTier().toString()
+                                ));
+                                return (Map<String, Object>) response;
+                            });
+                    });
+            })
+            .onErrorResume(e -> {
+                log.error("Login failed: {}", e.getMessage());
+                return Mono.just(Map.of("status", "error", "message", "Authentication failed: " + e.getMessage()));
+            });
     }
 
     /**
      * Register a new user with email and password via Firebase Authentication.
      */
     @PostMapping("/register")
-    public ResponseEntity<Map<String, Object>> register(@Valid @RequestBody RegisterRequest request,
+    public Mono<ResponseEntity<Map<String, Object>>> register(@Valid @RequestBody RegisterRequest request,
                                                          HttpServletRequest httpRequest) {
         String remoteAddr = httpRequest.getRemoteAddr();
         String email = request.email();
@@ -178,36 +137,23 @@ public class AuthenticationController {
         // Check if IP or email is locked due to brute force
         if (bruteForceProtectionService.isLocked(remoteAddr)) {
             long remainingSeconds = bruteForceProtectionService.getRemainingLockTimeSeconds(remoteAddr);
-            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
-                    "Too many attempts. Please try again in " + (remainingSeconds / 60) + " minutes.");
+            return Mono.error(new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "Too many attempts. Please try again in " + (remainingSeconds / 60) + " minutes."));
         }
         if (bruteForceProtectionService.isLocked(email)) {
             long remainingSeconds = bruteForceProtectionService.getRemainingLockTimeSeconds(email);
-            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
-                    "Too many attempts for this email. Please try again in " + (remainingSeconds / 60) + " minutes.");
+            return Mono.error(new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "Too many attempts for this email. Please try again in " + (remainingSeconds / 60) + " minutes."));
         }
 
         // Record this attempt for brute force protection (rate limiting)
         bruteForceProtectionService.recordFailedAttempt(remoteAddr);
         bruteForceProtectionService.recordFailedAttempt(email);
 
-        try {
+        return Mono.fromCallable(() -> {
             // Validate password strength
             if (request.password().length() < 8) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must be at least 8 characters");
-            }
-
-            // Check if email already exists
-            try {
-                UserRecord existing = FirebaseAuth.getInstance().getUserByEmail(request.email());
-                if (existing != null) {
-                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered");
-                }
-            } catch (FirebaseAuthException e) {
-                if (!e.getMessage().contains("No user record")) {
-                    throw e;
-                }
-                // User doesn't exist - proceed
             }
 
             UserRecord.CreateRequest createRequest = new UserRecord.CreateRequest()
@@ -217,47 +163,31 @@ public class AuthenticationController {
                     .setEmailVerified(false)
                     .setDisabled(false);
 
-            UserRecord userRecord = FirebaseAuth.getInstance().createUser(createRequest);
-
-            // Create Firestore user document
+            return FirebaseAuth.getInstance().createUser(createRequest);
+        }).flatMap(userRecord -> {
             User user = new User(userRecord.getUid(), request.email(),
                     request.displayName() != null ? request.displayName() : request.email().split("@")[0]);
             user.setTier(UserTier.FREE);
             user.setCreatedAt(LocalDateTime.now());
             user.setUpdatedAt(LocalDateTime.now());
-            userRepository.save(user).block();
-
-            ActivityLog log = new ActivityLog(
-                    "REGISTER_SUCCESS",
-                    userRecord.getUid(),
-                    "USER",
-                    "LOW",
-                    "User '" + user.getDisplayName() + "' registered successfully.",
-                    "SUCCESS",
-                    httpRequest.getRemoteAddr()
-            );
-            activityLogRepository.save(log).subscribe();
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+            
+            return userRepository.save(user).doOnNext(savedUser -> {
+                ActivityLog log = new ActivityLog(
+                        "REGISTER_SUCCESS", userRecord.getUid(), "USER", "LOW",
+                        "User '" + savedUser.getDisplayName() + "' registered successfully.",
+                        "SUCCESS", httpRequest.getRemoteAddr()
+                );
+                activityLogRepository.save(log).subscribe();
+            }).map(savedUser -> ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
                     "status", "success",
                     "message", "Registration successful. Please check your email to verify your account.",
                     "user", Map.of(
                             "id", userRecord.getUid(),
-                            "email", user.getEmail(),
-                            "displayName", user.getDisplayName()
+                            "email", savedUser.getEmail(),
+                            "displayName", savedUser.getDisplayName()
                     )
-            ));
-
-        } catch (ResponseStatusException e) {
-            throw e;
-        } catch (FirebaseAuthException e) {
-            if (e.getMessage() != null && e.getMessage().contains("EMAIL_EXISTS")) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered");
-            }
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Registration failed: " + e.getMessage());
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Registration failed: " + e.getMessage());
-        }
+            )));
+        });
     }
 
     /**
@@ -311,68 +241,52 @@ public class AuthenticationController {
      * Validate an ID token and return current user information.
      */
     @PostMapping("/validate-token")
-    public ResponseEntity<Map<String, Object>> validateToken(@RequestBody Map<String, String> request) {
+    public Mono<ResponseEntity<Map<String, Object>>> validateToken(@RequestBody Map<String, String> request) {
         String idToken = request.get("idToken");
         if (idToken == null || idToken.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "idToken is required");
+            return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "idToken is required"));
         }
 
-        try {
-            com.google.firebase.auth.FirebaseToken decodedToken =
-                    FirebaseAuth.getInstance().verifyIdToken(idToken);
+        return Mono.fromCallable(() -> FirebaseAuth.getInstance().verifyIdToken(idToken))
+            .flatMap(decodedToken -> userRepository.findByFirebaseUid(decodedToken.getUid()))
+            .map(user -> {
+                if (Boolean.TRUE.equals(user.getIsActive()) == false) {
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Account is deactivated");
+                }
 
-            String uid = decodedToken.getUid();
-            User user = userRepository.findByFirebaseUid(uid).block();
-
-            if (user == null) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found");
-            }
-
-            if (Boolean.TRUE.equals(user.getIsActive()) == false) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Account is deactivated");
-            }
-
-            return ResponseEntity.ok(Map.of(
-                    "status", "success",
-                    "valid", true,
-                    "user", Map.of(
-                            "id", user.getFirebaseUid(),
-                            "email", user.getEmail(),
-                            "displayName", user.getDisplayName(),
-                            "tier", user.getTier().toString(),
-                            "role", user.getTier() == UserTier.ADMIN ? "admin" : "user"
-                    )
-            ));
-
-        } catch (ResponseStatusException e) {
-            throw e;
-        } catch (FirebaseAuthException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired token");
-        }
+                return ResponseEntity.ok(Map.of(
+                        "status", "success",
+                        "valid", true,
+                        "user", Map.of(
+                                "id", user.getFirebaseUid(),
+                                "email", user.getEmail(),
+                                "displayName", user.getDisplayName(),
+                                "tier", user.getTier().toString(),
+                                "role", user.getTier() == UserTier.ADMIN ? "admin" : "user"
+                        )
+                ));
+            })
+            .onErrorResume(e -> Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token")));
     }
 
     /**
      * Get the currently authenticated user's profile.
      */
     @GetMapping("/me")
-    public ResponseEntity<Map<String, Object>> getCurrentUser(HttpServletRequest request) {
+    public Mono<ResponseEntity<Map<String, Object>>> getCurrentUser(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No active session");
+            return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No active session"));
         }
 
         SecurityContext context = (SecurityContext) session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
         if (context == null || context.getAuthentication() == null || !context.getAuthentication().isAuthenticated()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not authenticated");
+            return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not authenticated"));
         }
 
         String uid = context.getAuthentication().getName();
-        User user = userRepository.findByFirebaseUid(uid).block();
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found");
-        }
-
-        return ResponseEntity.ok(Map.of(
+        return userRepository.findByFirebaseUid(uid)
+            .map(user -> ResponseEntity.ok(Map.of(
                 "status", "success",
                 "user", Map.of(
                         "id", user.getFirebaseUid(),
@@ -382,34 +296,36 @@ public class AuthenticationController {
                         "role", user.getTier() == UserTier.ADMIN ? "admin" : "user",
                         "lastLoginAt", user.getLastLoginAt() != null ? user.getLastLoginAt().toString() : null
                 )
-        ));
+            )))
+            .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found")));
     }
 
     @PostMapping("/logout")
-    public Map<String, Object> logout(HttpServletRequest request) {
+    public Mono<Map<String, Object>> logout(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session != null) {
             SecurityContext context = (SecurityContext) session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
             if (context != null && context.getAuthentication() != null) {
                 String uid = context.getAuthentication().getName();
-                User user = userRepository.findByFirebaseUid(uid).block();
-                if (user != null) {
-                    ActivityLog log = new ActivityLog(
-                        "LOGOUT_SUCCESS",
-                        uid,
-                        "USER",
-                        "LOW",
-                        "User '" + user.getDisplayName() + "' logged out.",
-                        "SUCCESS",
-                        request.getRemoteAddr()
-                    );
-                    activityLogRepository.save(log).subscribe();
-                }
+                return userRepository.findByFirebaseUid(uid)
+                    .doOnNext(user -> {
+                        ActivityLog log = new ActivityLog(
+                            "LOGOUT_SUCCESS", uid, "USER", "LOW",
+                            "User '" + user.getDisplayName() + "' logged out.",
+                            "SUCCESS", request.getRemoteAddr()
+                        );
+                        activityLogRepository.save(log).subscribe();
+                    })
+                    .then(Mono.fromRunnable(() -> {
+                        session.invalidate();
+                        SecurityContextHolder.clearContext();
+                    }))
+                    .thenReturn(Map.of("status", "success"));
             }
             session.invalidate();
         }
         SecurityContextHolder.clearContext();
-        return Map.of("status", "success");
+        return Mono.just(Map.of("status", "success"));
     }
 
     private void establishSession(User user, HttpServletRequest request) {

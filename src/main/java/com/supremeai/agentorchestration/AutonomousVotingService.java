@@ -46,7 +46,7 @@ public class AutonomousVotingService {
                 try {
                     AIProvider provider = providerFactory.getProvider(providerName);
                     long start = System.currentTimeMillis();
-                    String response = provider.generate(buildPrompt(question, context));
+                    String response = provider.generate(buildPrompt(question, context)).block();
                     long latency = System.currentTimeMillis() - start;
                     
                     ProviderVote vote = new ProviderVote();

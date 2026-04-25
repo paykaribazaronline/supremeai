@@ -11,6 +11,8 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import java.time.Duration;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -59,75 +61,61 @@ public class MultiAIConsensusService {
      * Query multiple AI providers and return consensus result
      */
     @Cacheable(value = "ai_responses", key = "#question + '_' + T(java.util.Collections).unmodifiableSortedSet(new java.util.TreeSet(#providerNames)).hashCode()")
-    public ConsensusResult askAllAIs(String question, List<String> providerNames, long timeoutMs) {
+    public Mono<ConsensusResult> askAllAIs(String question, List<String> providerNames, long timeoutMs) {
         long startTime = System.currentTimeMillis();
-        List<ProviderVote> votes = new CopyOnWriteArrayList<>();
-        int totalExpected = providerNames.size();
 
-        // Query all providers in parallel with retry via SelfHealingService
-        List<Future<?>> futures = providerNames.stream()
-            .map(providerName -> executor.submit(() -> {
-                try {
-                    AIProvider provider = providerFactory.getProvider(providerName);
-                    long pStart = System.currentTimeMillis();
-                    String response = selfHealingService.executeWithRetry(
-                        () -> provider.generate(question),
-                        MAX_RETRIES,
-                        RETRY_BACKOFF_MS
-                    );
+        return Flux.fromIterable(providerNames)
+            .flatMap(providerName -> {
+                AIProvider provider = providerFactory.getProvider(providerName);
+                long pStart = System.currentTimeMillis();
+                
+                return selfHealingService.executeWithRetry(
+                    () -> provider.generate(question),
+                    MAX_RETRIES,
+                    RETRY_BACKOFF_MS
+                )
+                .map(response -> {
                     long pDuration = System.currentTimeMillis() - pStart;
+                    ContextualAIRankingService.TaskType taskType = contextualRankingService.detectTaskType(question);
+                    double confidence = contextualRankingService.calculateProviderScore(providerName, taskType, null) / 100.0;
                     
-                    double confidence = 0.85 + random.nextDouble() * 0.14;
-                    votes.add(new ProviderVote(
+                    // Fallback if score is 0
+                    if (confidence <= 0) {
+                        confidence = 0.85 + random.nextDouble() * 0.14;
+                    }
+                    
+                    ProviderVote vote = new ProviderVote(
                         providerName,
                         response,
                         confidence,
                         System.currentTimeMillis()
-                    ));
-
-                    // Record outcome
+                    );
+                    
                     recordProviderOutcome(providerName, question, response, pDuration, confidence);
-                } catch (Exception e) {
+                    return vote;
+                })
+                .onErrorResume(e -> {
                     logger.warn("Provider {} failed after retries: {}", providerName, e.getMessage());
-                }
-            }))
-            .collect(Collectors.toList());
-
-        // Wait with early exit if strong consensus reached
-        long checkInterval = 100L;
-        long elapsed = 0;
-        while (elapsed < timeoutMs) {
-            // Check if we have enough votes for strong consensus
-            if (votes.size() >= Math.max(3, totalExpected / 2 + 1)) {
-                ConsensusResult current = calculateConsensus(question, votes, System.currentTimeMillis() - startTime);
-                if (current.isStrongConsensus() && votes.size() >= totalExpected * 0.7) {
-                    logger.info("Early exit reached with {}/{} votes (Strong Consensus)", votes.size(), totalExpected);
-                    // Cancel remaining futures
-                    futures.forEach(f -> f.cancel(true));
-                    return current;
-                }
-            }
-            
-            // Check if all futures are done
-            if (futures.stream().allMatch(Future::isDone)) break;
-            
-            try {
-                Thread.sleep(checkInterval);
-                elapsed += checkInterval;
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
-            }
-        }
-
-        long duration = System.currentTimeMillis() - startTime;
-        return calculateConsensus(question, votes, duration);
+                    return Mono.empty();
+                });
+            })
+            .collectList()
+            .map(votes -> {
+                long duration = System.currentTimeMillis() - startTime;
+                return calculateConsensus(question, votes, duration);
+            })
+            .timeout(Duration.ofMillis(timeoutMs))
+            .onErrorResume(java.util.concurrent.TimeoutException.class, e -> {
+                logger.warn("Consensus timed out for question: {}", question);
+                // We could return partial results here if needed
+                return Mono.just(new ConsensusResult(question, "Timeout reached", List.of(), 0.0, "TIMEOUT", 0.0, timeoutMs, 0.0));
+            });
     }
 
     /**
      * Enhanced contextual AI query that automatically selects the best providers
      */
-    public ConsensusResult askContextualAIs(String question, int count, long timeoutMs) {
+    public Mono<ConsensusResult> askContextualAIs(String question, int count, long timeoutMs) {
         ContextualAIRankingService.ProviderSelection selection = contextualRankingService.selectBestProvider(question, null);
         List<String> providerNames = new ArrayList<>();
         

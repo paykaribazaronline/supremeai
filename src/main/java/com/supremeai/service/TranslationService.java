@@ -20,20 +20,19 @@ public class TranslationService {
      * টেক্সট এক ভাষা থেকে অন্য ভাষায় অনুবাদ করে
      */
     public Mono<String> translate(String text, String fromLanguage, String toLanguage) {
-        try {
-            AIProvider provider = providerFactory.getProvider("groq");
-            String prompt = String.format(
-                    "Translate the following text from %s to %s. Return only the translated text without any explanation:\n\n%s",
-                    fromLanguage, toLanguage, text
-            );
+        AIProvider provider = providerFactory.getProvider("groq");
+        String prompt = String.format(
+                "Translate the following text from %s to %s. Return only the translated text without any explanation:\n\n%s",
+                fromLanguage, toLanguage, text
+        );
 
-            return Mono.fromCallable(() -> provider.generate(prompt))
-                    .doOnSuccess(translated -> logger.debug("অনুবাদ সফল: {} -> {}", text, translated))
-                    .doOnError(error -> logger.error("অনুবাদ ব্যর্থ: {}", error.getMessage()));
-        } catch (Exception e) {
-            logger.error("অনুবাদ সার্ভিস ত্রু라: {}", e.getMessage());
-            return Mono.just(text); // অনুবাদ ব্যর্থ হলে মূল টেক্সট ফেরত দেয়
-        }
+        return provider.generate(prompt)
+                .doOnSuccess(translated -> logger.debug("অনুবাদ সফল: {} -> {}", text, translated))
+                .doOnError(error -> logger.error("অনুবাদ ব্যর্থ: {}", error.getMessage()))
+                .onErrorResume(e -> {
+                    logger.error("অনুবাদ সার্ভিস ত্রুটি: {}", e.getMessage());
+                    return Mono.just(text); // অনুবাদ ব্যর্থ হলে মূল টেক্সট ফেরত দেয়
+                });
     }
 
     /**

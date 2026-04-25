@@ -1,9 +1,14 @@
 package com.supremeai.provider;
 
 import com.supremeai.service.AIProviderService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Factory for creating AI provider instances
@@ -12,8 +17,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class AIProviderFactory {
 
+    private static final Logger logger = LoggerFactory.getLogger(AIProviderFactory.class);
+
     @Autowired
     private AIProviderService aiProviderService;
+
+    @Autowired
+    private com.supremeai.service.AIRankingService aiRankingService;
 
     @Value("${ai.providers.airllm.endpoint:}")
     private String airllmEndpoint;
@@ -23,6 +33,9 @@ public class AIProviderFactory {
 
     @Autowired(required = false)
     private OllamaProvider ollamaProvider;
+
+    // Cache for provider health status
+    private final Map<String, Boolean> providerHealthCache = new ConcurrentHashMap<>();
 
     public AIProvider getProvider(String name) {
         return getProvider(name, null);
@@ -76,6 +89,104 @@ public class AIProviderFactory {
     }
 
     /**
+     * Get the best provider for a specific task type based on rankings and health
+     * @param taskType Type of task (e.g., "code_generation", "code_analysis", "question_answering")
+     * @return Best available AI provider for the task
+     */
+    public AIProvider getBestProviderForTask(String taskType) {
+        logger.debug("Finding best provider for task: {}", taskType);
+
+        // Try to get ranked providers for this task
+        try {
+            List<com.supremeai.model.ProviderRanking> rankings = aiRankingService.getRankingsForTask(taskType);
+
+            if (rankings != null && !rankings.isEmpty()) {
+                // Try providers in order of ranking
+                for (com.supremeai.model.ProviderRanking ranking : rankings) {
+                    try {
+                        AIProvider provider = getProvider(ranking.getProviderId());
+                        if (isProviderHealthy(provider)) {
+                            logger.info("Using ranked provider {} for task {}", ranking.getProviderId(), taskType);
+                            return provider;
+                        }
+                    } catch (Exception e) {
+                        logger.warn("Ranked provider {} unavailable: {}", ranking.getProviderId(), e.getMessage());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to get provider rankings for task {}: {}", taskType, e.getMessage());
+        }
+
+        // Fall back to default provider
+        logger.info("No ranked providers available for task {}, using default", taskType);
+        return getDefaultProvider();
+    }
+
+    /**
+     * Get the default/healthiest available provider
+     * @return A working AI provider
+     */
+    public AIProvider getDefaultProvider() {
+        // Preferred providers in order
+        String[] preferredProviders = {"gpt4", "claude", "gemini", "groq", "deepseek"};
+
+        // Try preferred providers first
+        for (String providerName : preferredProviders) {
+            try {
+                AIProvider provider = getProvider(providerName);
+                if (isProviderHealthy(provider)) {
+                    logger.info("Using {} as default provider", providerName);
+                    return provider;
+                }
+            } catch (Exception e) {
+                logger.warn("Preferred provider {} unavailable: {}", providerName, e.getMessage());
+            }
+        }
+
+        // Try all supported providers
+        for (String providerName : getSupportedProviders()) {
+            try {
+                AIProvider provider = getProvider(providerName);
+                if (isProviderHealthy(provider)) {
+                    logger.info("Using {} as fallback default provider", providerName);
+                    return provider;
+                }
+            } catch (Exception e) {
+                logger.debug("Provider {} unavailable: {}", providerName, e.getMessage());
+            }
+        }
+
+        throw new RuntimeException("No working AI provider available");
+    }
+
+    /**
+     * Check if a provider is healthy and responsive
+     * @param provider The provider to check
+     * @return true if the provider is healthy
+     */
+    private boolean isProviderHealthy(AIProvider provider) {
+        String providerName = provider.getName();
+
+        // Check cache first
+        if (providerHealthCache.containsKey(providerName)) {
+            return providerHealthCache.get(providerName);
+        }
+
+        // Perform health check
+        try {
+            String testResponse = provider.generate("test").block();
+            boolean isHealthy = testResponse != null && !testResponse.isEmpty();
+            providerHealthCache.put(providerName, isHealthy);
+            return isHealthy;
+        } catch (Exception e) {
+            logger.debug("Health check failed for {}: {}", providerName, e.getMessage());
+            providerHealthCache.put(providerName, false);
+            return false;
+        }
+    }
+
+    /**
      * Get list of all supported provider names
      */
     public String[] getSupportedProviders() {
@@ -87,6 +198,38 @@ public class AIProviderFactory {
      */
     public String[] getAllProviderNames() {
         return getSupportedProviders();
+    }
+
+    /**
+     * Get all available provider instances
+     * @return List of all provider instances
+     */
+    public List<AIProvider> getAllProviders() {
+        List<AIProvider> providers = new ArrayList<>();
+        for (String providerName : getSupportedProviders()) {
+            try {
+                providers.add(getProvider(providerName));
+            } catch (Exception e) {
+                logger.debug("Could not create provider instance for {}: {}", providerName, e.getMessage());
+            }
+        }
+        return providers;
+    }
+
+    /**
+     * Get all available provider IDs
+     * @return List of provider IDs
+     */
+    public List<String> getAvailableProviderIds() {
+        return Arrays.asList(getSupportedProviders());
+    }
+
+    /**
+     * Clear the provider health cache
+     */
+    public void clearHealthCache() {
+        providerHealthCache.clear();
+        logger.info("Provider health cache cleared");
     }
 
     private String resolveKey(String override, String fallback) {

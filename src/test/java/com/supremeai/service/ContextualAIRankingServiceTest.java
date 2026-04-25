@@ -16,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@Disabled("Failing due to incorrect test assertions")
 public class ContextualAIRankingServiceTest {
 
     @Mock

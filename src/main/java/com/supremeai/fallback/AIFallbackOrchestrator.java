@@ -287,7 +287,7 @@ public class AIFallbackOrchestrator {
     private String callAIProvider(AIProviderType provider, String apiKey, String prompt) throws Exception {
         String providerName = mapFallbackProviderToFactoryName(provider);
         com.supremeai.provider.AIProvider realProvider = providerFactory.getProvider(providerName, apiKey);
-        return realProvider.generate(prompt);
+        return realProvider.generate(prompt).block();
     }
 
     private String mapFallbackProviderToFactoryName(AIProviderType provider) {

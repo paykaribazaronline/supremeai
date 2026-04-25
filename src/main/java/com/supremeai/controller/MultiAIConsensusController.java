@@ -40,15 +40,14 @@ public class MultiAIConsensusController {
                 .body((Object) Map.of("error", "Question is required")));
         }
         
-        ConsensusResult result = consensusService.askAllAIs(question, providers, 10000L);
-        
-        return Mono.just(ResponseEntity.ok((Object) Map.of(
-            "question", result.getQuestion(),
-            "consensus", result.getConsensusAnswer(),
-            "confidence", result.getAverageConfidence(),
-            "strength", result.getStrength(),
-            "votes", result.getProviderVotes()
-        )));
+        return consensusService.askAllAIs(question, providers, 10000L)
+            .map(result -> ResponseEntity.ok((Object) Map.of(
+                "question", result.getQuestion(),
+                "consensus", result.getConsensusAnswer(),
+                "confidence", result.getAverageConfidence(),
+                "strength", result.getStrength(),
+                "votes", result.getProviderVotes()
+            )));
     }
 
     /**
@@ -96,16 +95,15 @@ public class MultiAIConsensusController {
                 .body((Object) Map.of("error", "At least 2 providers required for comparison")));
         }
 
-        ConsensusResult result = consensusService.askAllAIs(question, providers, 15000L);
-        
-        return Mono.just(ResponseEntity.ok((Object) Map.of(
-            "question", question,
-            "result", Map.of(
-                "consensus", result.getConsensusAnswer(),
-                "confidence", result.getAverageConfidence(),
-                "voteCount", result.getProviderVotes().size(),
-                "strategy", "MAJORITY"
-            )
-        )));
+        return consensusService.askAllAIs(question, providers, 15000L)
+            .map(result -> ResponseEntity.ok((Object) Map.of(
+                "question", question,
+                "result", Map.of(
+                    "consensus", result.getConsensusAnswer(),
+                    "confidence", result.getAverageConfidence(),
+                    "voteCount", result.getProviderVotes().size(),
+                    "strategy", "MAJORITY"
+                )
+            )));
     }
 }

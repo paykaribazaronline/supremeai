@@ -26,7 +26,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints - authentication not required
                 .requestMatchers("/api/auth/firebase-login", "/api/auth/register", "/api/auth/forgot-password", "/api/auth/validate-token").permitAll()
-                .requestMatchers("/api/chat/**").permitAll()
+                // Chat and consensus endpoints require authentication
+                .requestMatchers("/api/chat/**").authenticated()
+                .requestMatchers("/api/consensus/**").authenticated()
                 // Admin-only endpoints
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")

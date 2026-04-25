@@ -1,5 +1,7 @@
 package com.supremeai.service;
 
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 import com.supremeai.model.UserApiKey;
 import com.supremeai.repository.UserApiKeyRepository;
 import com.supremeai.security.ApiKeyRotationService;
@@ -122,106 +124,107 @@ public class UsageOptimizationService {
      * @param complexity Task complexity: "simple", "moderate", "complex", "critical"
      * @return Recommended model name and the API key to use
      */
-    public Optional<SelectedModel> selectModelForTask(String userId, String complexity) {
+    public Mono<SelectedModel> selectModelForTask(String userId, String complexity) {
         String targetTier = mapComplexityToTier(complexity);
 
         // Find all active keys for this user
-        List<UserApiKey> keys = userApiKeyRepository
-                .findByUserIdAndStatus(userId, "active")
-                .collectList().block();
+        return userApiKeyRepository.findByUserIdAndStatus(userId, "active")
+            .collectList()
+            .flatMap(keys -> {
+                if (keys.isEmpty()) return Mono.empty();
 
-        if (keys == null || keys.isEmpty()) return Optional.empty();
-
-        // Group keys by provider
-        Map<String, List<UserApiKey>> keysByProvider = new LinkedHashMap<>();
-        for (UserApiKey key : keys) {
-            keysByProvider.computeIfAbsent(key.getProvider().toLowerCase(), k -> new ArrayList<>()).add(key);
-        }
-
-        // Find the cheapest model in the target tier that the user has a key for
-        List<Map.Entry<String, ModelTier>> candidates = new ArrayList<>();
-        for (Map.Entry<String, ModelTier> entry : MODEL_TIERS.entrySet()) {
-            if (entry.getValue().tier.equals(targetTier) || isHigherTier(entry.getValue().tier, targetTier)) {
-                // Check if user has a key for this model's provider
-                String modelProvider = getProviderForModel(entry.getKey());
-                if (modelProvider != null && keysByProvider.containsKey(modelProvider)) {
-                    candidates.add(entry);
+                // Group keys by provider
+                Map<String, List<UserApiKey>> keysByProvider = new LinkedHashMap<>();
+                for (UserApiKey key : keys) {
+                    keysByProvider.computeIfAbsent(key.getProvider().toLowerCase(), k -> new ArrayList<>()).add(key);
                 }
-            }
-        }
 
-        if (candidates.isEmpty()) {
-            // Fallback: use any available key with its default model
-            UserApiKey anyKey = keys.get(0);
-            return Optional.of(new SelectedModel(
-                    getDefaultModelForProvider(anyKey.getProvider()),
-                    anyKey.getApiKey(),
-                    anyKey.getProvider(),
-                    anyKey.getBaseUrl()
-            ));
-        }
+                // Find the cheapest model in the target tier that the user has a key for
+                List<Map.Entry<String, ModelTier>> candidates = new ArrayList<>();
+                for (Map.Entry<String, ModelTier> entry : MODEL_TIERS.entrySet()) {
+                    if (entry.getValue().tier.equals(targetTier) || isHigherTier(entry.getValue().tier, targetTier)) {
+                        // Check if user has a key for this model's provider
+                        String modelProvider = getProviderForModel(entry.getKey());
+                        if (modelProvider != null && keysByProvider.containsKey(modelProvider)) {
+                            candidates.add(entry);
+                        }
+                    }
+                }
 
-        // Sort by cost (cheapest first within the target tier)
-        candidates.sort(Comparator.comparingDouble(e -> e.getValue().costPerRequest));
+                if (candidates.isEmpty()) {
+                    // Fallback: use any available key with its default model
+                    UserApiKey anyKey = keys.get(0);
+                    return Mono.just(new SelectedModel(
+                            getDefaultModelForProvider(anyKey.getProvider()),
+                            anyKey.getApiKey(),
+                            anyKey.getProvider(),
+                            anyKey.getBaseUrl()
+                    ));
+                }
 
-        Map.Entry<String, ModelTier> selected = candidates.get(0);
-        String modelProvider = getProviderForModel(selected.getKey());
+                // Sort by cost (cheapest first within the target tier)
+                candidates.sort(Comparator.comparingDouble(e -> e.getValue().costPerRequest));
 
-        // Pick the least-used key for this provider
-        UserApiKey bestKey = keysByProvider.getOrDefault(modelProvider, keys).stream()
-                .min(Comparator.comparingLong(k -> k.getRequestCount() != null ? k.getRequestCount() : 0L))
-                .orElse(keys.get(0));
+                Map.Entry<String, ModelTier> selected = candidates.get(0);
+                String modelProvider = getProviderForModel(selected.getKey());
 
-        return Optional.of(new SelectedModel(
-                selected.getKey(),
-                bestKey.getApiKey(),
-                bestKey.getProvider(),
-                bestKey.getBaseUrl()
-        ));
+                // Pick the least-used key for this provider
+                UserApiKey bestKey = keysByProvider.getOrDefault(modelProvider, keys).stream()
+                        .min(Comparator.comparingLong(k -> k.getRequestCount() != null ? k.getRequestCount() : 0L))
+                        .orElse(keys.get(0));
+
+                return Mono.just(new SelectedModel(
+                        selected.getKey(),
+                        bestKey.getApiKey(),
+                        bestKey.getProvider(),
+                        bestKey.getBaseUrl()
+                ));
+            });
     }
 
     /**
      * Record usage of an API key (for cost tracking and rotation awareness).
      */
-    public void recordKeyUsage(String keyId, double estimatedCost) {
-        UserApiKey key = userApiKeyRepository.findById(keyId).block();
-        if (key != null) {
-            key.recordUsage(estimatedCost);
-            userApiKeyRepository.save(key).block();
-        }
+    public Mono<Void> recordKeyUsage(String keyId, double estimatedCost) {
+        return userApiKeyRepository.findById(keyId)
+            .flatMap(key -> {
+                key.recordUsage(estimatedCost);
+                return userApiKeyRepository.save(key);
+            })
+            .then();
     }
 
     /**
      * Get usage summary for a user across all providers.
      */
-    public Map<String, Object> getUserUsageSummary(String userId) {
-        List<UserApiKey> keys = userApiKeyRepository.findByUserId(userId).collectList().block();
-        if (keys == null) keys = Collections.emptyList();
+    public Mono<Map<String, Object>> getUserUsageSummary(String userId) {
+        return userApiKeyRepository.findByUserId(userId).collectList()
+            .map(keys -> {
+                long totalRequests = keys.stream()
+                        .mapToLong(k -> k.getRequestCount() != null ? k.getRequestCount() : 0L)
+                        .sum();
 
-        long totalRequests = keys.stream()
-                .mapToLong(k -> k.getRequestCount() != null ? k.getRequestCount() : 0L)
-                .sum();
+                double totalCost = keys.stream()
+                        .mapToDouble(k -> k.getEstimatedCost() != null ? k.getEstimatedCost() : 0.0)
+                        .sum();
 
-        double totalCost = keys.stream()
-                .mapToDouble(k -> k.getEstimatedCost() != null ? k.getEstimatedCost() : 0.0)
-                .sum();
+                long keysNeedingRotation = keys.stream()
+                        .filter(UserApiKey::needsRotation)
+                        .count();
 
-        long keysNeedingRotation = keys.stream()
-                .filter(UserApiKey::needsRotation)
-                .count();
+                int cacheSize = responseCache.size();
 
-        int cacheSize = responseCache.size();
+                Map<String, Object> summary = new LinkedHashMap<>();
+                summary.put("totalRequests", totalRequests);
+                summary.put("totalCost", Math.round(totalCost * 100.0) / 100.0);
+                summary.put("totalKeys", keys.size());
+                summary.put("activeKeys", keys.stream().filter(k -> "active".equals(k.getStatus())).count());
+                summary.put("keysNeedingRotation", keysNeedingRotation);
+                summary.put("cacheSize", cacheSize);
+                summary.put("cacheTTLMinutes", CACHE_TTL_MINUTES);
 
-        Map<String, Object> summary = new LinkedHashMap<>();
-        summary.put("totalRequests", totalRequests);
-        summary.put("totalCost", Math.round(totalCost * 100.0) / 100.0);
-        summary.put("totalKeys", keys.size());
-        summary.put("activeKeys", keys.stream().filter(k -> "active".equals(k.getStatus())).count());
-        summary.put("keysNeedingRotation", keysNeedingRotation);
-        summary.put("cacheSize", cacheSize);
-        summary.put("cacheTTLMinutes", CACHE_TTL_MINUTES);
-
-        return summary;
+                return summary;
+            });
     }
 
     // ─── Private helpers ──────────────────────────────────────────────

@@ -8,6 +8,8 @@ import okhttp3.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -55,52 +57,54 @@ public class AirLLMProvider implements AIProvider {
     }
 
     @Override
-    public String generate(String prompt) {
-        try {
-            Map<String, Object> requestBody = Map.of(
-                    "messages", List.of(Map.of("role", "user", "content", prompt)),
-                    "model", model,
-                    "temperature", 0.7,
-                    "max_tokens", 2048
-            );
-
-            String jsonBody = objectMapper.writeValueAsString(requestBody);
-
-            Request.Builder requestBuilder = new Request.Builder()
-                    .url(endpoint)
-                    .addHeader("Content-Type", "application/json")
-                    .post(RequestBody.create(jsonBody, JSON));
-
-            // Add API key if provided
-            if (apiKey != null && !apiKey.isEmpty()) {
-                requestBuilder.addHeader("Authorization", "Bearer " + apiKey);
-            }
-
-            Request request = requestBuilder.build();
-
-            try (okhttp3.Response response = httpClient.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    logger.error("AirLLM API error: {} - {}", response.code(), response.message());
-                    throw new RuntimeException("AirLLM API error: " + response.code());
-                }
-
-                Map<String, Object> responseMap = objectMapper.readValue(
-                        response.body().string(),
-                        new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {}
+    public Mono<String> generate(String prompt) {
+        return Mono.fromCallable(() -> {
+            try {
+                Map<String, Object> requestBody = Map.of(
+                        "messages", List.of(Map.of("role", "user", "content", prompt)),
+                        "model", model,
+                        "temperature", 0.7,
+                        "max_tokens", 2048
                 );
 
-                @SuppressWarnings("unchecked")
-                List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
-                if (choices != null && !choices.isEmpty()) {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-                    return (String) message.get("content");
+                String jsonBody = objectMapper.writeValueAsString(requestBody);
+
+                Request.Builder requestBuilder = new Request.Builder()
+                        .url(endpoint)
+                        .addHeader("Content-Type", "application/json")
+                        .post(RequestBody.create(jsonBody, JSON));
+
+                // Add API key if provided
+                if (apiKey != null && !apiKey.isEmpty()) {
+                    requestBuilder.addHeader("Authorization", "Bearer " + apiKey);
                 }
-                return "No response from AirLLM.";
+
+                Request request = requestBuilder.build();
+
+                try (okhttp3.Response response = httpClient.newCall(request).execute()) {
+                    if (!response.isSuccessful()) {
+                        logger.error("AirLLM API error: {} - {}", response.code(), response.message());
+                        throw new RuntimeException("AirLLM API error: " + response.code());
+                    }
+
+                    Map<String, Object> responseMap = objectMapper.readValue(
+                            response.body().string(),
+                            new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {}
+                    );
+
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
+                    if (choices != null && !choices.isEmpty()) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                        return (String) message.get("content");
+                    }
+                    return "No response from AirLLM.";
+                }
+            } catch (Exception e) {
+                logger.error("Failed to call AirLLM API", e);
+                throw new RuntimeException("Failed to call AirLLM API", e);
             }
-        } catch (Exception e) {
-            logger.error("Failed to call AirLLM API", e);
-            throw new RuntimeException("Failed to call AirLLM API", e);
-        }
+        }).subscribeOn(Schedulers.boundedElastic());
     }
 }

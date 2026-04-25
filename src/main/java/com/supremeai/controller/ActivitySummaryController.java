@@ -4,6 +4,9 @@ import com.supremeai.model.ActivityLog;
 import com.supremeai.repository.ActivityLogRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,29 +22,34 @@ public class ActivitySummaryController {
     }
 
     @GetMapping("/summary")
-    public ResponseEntity<Map<String, Object>> getActivitySummary(
+    public Mono<ResponseEntity<Map<String, Object>>> getActivitySummary(
         @RequestParam(required = false) String category,
         @RequestParam(required = false) String severity
     ) {
-        List<ActivityLog> recentActions;
+        Flux<ActivityLog> recentActionsFlux;
         
         if (severity != null && !severity.isEmpty()) {
-            recentActions = activityLogRepository.findBySeverityOrderByTimestampDesc(severity.toUpperCase()).collectList().block();
+            recentActionsFlux = activityLogRepository.findBySeverityOrderByTimestampDesc(severity.toUpperCase());
         } else if (category != null && !category.isEmpty()) {
-            recentActions = activityLogRepository.findByCategoryOrderByTimestampDesc(category.toUpperCase()).collectList().block();
+            recentActionsFlux = activityLogRepository.findByCategoryOrderByTimestampDesc(category.toUpperCase());
         } else {
-            recentActions = activityLogRepository.findAll().take(100).collectList().block();
+            recentActionsFlux = activityLogRepository.findAll().take(100);
         }
         
-        Map<String, Object> summary = new HashMap<>();
-        summary.put("recentActions", recentActions);
-        summary.put("totalActions", activityLogRepository.count().block());
-        
-        return ResponseEntity.ok(summary);
+        return Mono.zip(
+            recentActionsFlux.collectList(),
+            activityLogRepository.count()
+        ).map(tuple -> {
+            Map<String, Object> summary = new HashMap<>();
+            summary.put("recentActions", tuple.getT1());
+            summary.put("totalActions", tuple.getT2());
+            return ResponseEntity.ok(summary);
+        });
     }
 
     @PostMapping("/log")
-    public ResponseEntity<ActivityLog> logActivity(@RequestBody ActivityLog log) {
-        return ResponseEntity.ok(activityLogRepository.save(log).block());
+    public Mono<ResponseEntity<ActivityLog>> logActivity(@RequestBody ActivityLog log) {
+        return activityLogRepository.save(log)
+                .map(ResponseEntity::ok);
     }
 }

@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
@@ -53,40 +55,42 @@ public class OllamaProvider implements AIProvider {
     }
 
     @Override
-    public String generate(String prompt) {
-        OllamaRequest requestPayload = new OllamaRequest(
-                DEFAULT_MODEL,
-                prompt,
-                false,
-                new OllamaOptions(
-                        8192,
-                        0.7f,
-                        0.95f,
-                        64,
-                        Runtime.getRuntime().availableProcessors()
-                )
-        );
+    public Mono<String> generate(String prompt) {
+        return Mono.fromCallable(() -> {
+            OllamaRequest requestPayload = new OllamaRequest(
+                    DEFAULT_MODEL,
+                    prompt,
+                    false,
+                    new OllamaOptions(
+                            8192,
+                            0.7f,
+                            0.95f,
+                            64,
+                            Runtime.getRuntime().availableProcessors()
+                    )
+            );
 
-        try {
-            String requestBody = objectMapper.writeValueAsString(requestPayload);
-            RequestBody body = RequestBody.create(requestBody, JSON);
-            Request request = new Request.Builder()
-                    .url(BASE_URL)
-                    .post(body)
-                    .build();
+            try {
+                String requestBody = objectMapper.writeValueAsString(requestPayload);
+                RequestBody body = RequestBody.create(requestBody, JSON);
+                Request request = new Request.Builder()
+                        .url(BASE_URL)
+                        .post(body)
+                        .build();
 
-            try (Response response = httpClient.newCall(request).execute()) {
-                if (!response.isSuccessful() || response.body() == null) {
-                    throw new IOException("Unexpected code " + response);
+                try (Response response = httpClient.newCall(request).execute()) {
+                    if (!response.isSuccessful() || response.body() == null) {
+                        throw new IOException("Unexpected code " + response);
+                    }
+                    String responseBody = response.body().string();
+                    OllamaResponse ollamaResponse = objectMapper.readValue(responseBody, OllamaResponse.class);
+                    return ollamaResponse.response();
                 }
-                String responseBody = response.body().string();
-                OllamaResponse ollamaResponse = objectMapper.readValue(responseBody, OllamaResponse.class);
-                return ollamaResponse.response();
+            } catch (Exception e) {
+                logger.error("Ollama generation failed: {}", e.getMessage());
+                throw new RuntimeException("Ollama unavailable", e);
             }
-        } catch (Exception e) {
-            logger.error("Ollama generation failed: {}", e.getMessage());
-            throw new RuntimeException("Ollama unavailable", e);
-        }
+        }).subscribeOn(Schedulers.boundedElastic());
     }
 
     /**
