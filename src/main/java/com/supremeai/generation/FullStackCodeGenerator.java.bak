@@ -1,37 +1,32 @@
 package com.supremeai.generation;
 
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
-import java.io.*;
-import java.nio.file.*;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.regex.*;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class FullStackCodeGenerator {
 
     public Map<String, String> generateApp(String requirements, String platform) {
         Map<String, String> output = new HashMap<>();
-        
+
         output.put("status", "success");
         output.put("platform", platform);
         output.put("backend", generateSpringBootBackend(requirements));
         output.put("frontend", generateReactFrontend(requirements));
-        
+
         return output;
     }
-    
+
     private String generateSpringBootBackend(String requirements) {
         return """
             // Generated Spring Boot Backend
             package com.generated.app;
-            
+
             import org.springframework.boot.SpringApplication;
             import org.springframework.boot.autoconfigure.SpringBootApplication;
-            
+
             @SpringBootApplication
             public class Application {
                 public static void main(String[] args) {
@@ -40,13 +35,13 @@ public class FullStackCodeGenerator {
             }
             """;
     }
-    
+
     private String generateReactFrontend(String requirements) {
         return """
             // Generated React Frontend
             import React from 'react';
             import ReactDOM from 'react-dom/client';
-            
+
             function App() {
               return (
                 <div className="App">
@@ -55,7 +50,7 @@ public class FullStackCodeGenerator {
                 </div>
               );
             }
-            
+
             const root = ReactDOM.createRoot(document.getElementById('root'));
             root.render(<App />);
             """;

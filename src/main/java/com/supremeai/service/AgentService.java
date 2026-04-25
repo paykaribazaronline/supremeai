@@ -3,8 +3,8 @@ package com.supremeai.service;
 import com.supremeai.dto.AgentStatus;
 import com.supremeai.dto.Provider;
 import com.supremeai.repository.AgentRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -13,12 +13,17 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Service
-@Slf4j
-@RequiredArgsConstructor
 public class AgentService {
+
+    private static final Logger log = LoggerFactory.getLogger(AgentService.class);
 
     private final AgentRepository agentRepository;
     private final RedisTemplate<String, Object> redisTemplate;
+
+    public AgentService(AgentRepository agentRepository, RedisTemplate<String, Object> redisTemplate) {
+        this.agentRepository = agentRepository;
+        this.redisTemplate = redisTemplate;
+    }
 
     private static final String CACHE_KEY_AGENT_STATUS = "agentStatus:";
     private static final String CACHE_KEY_PROVIDER_LIST = "providerList";

@@ -1,0 +1,381 @@
+package com.supremeai.generation;
+
+import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+
+import java.io.*;
+import java.nio.file.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.regex.*;
+
+@Service
+public class FullStackCodeGenerator {
+
+    @Autowired(required = false)
+    private com.supremeai.service.AIProviderService aiProviderService;
+
+    @Value("${app.build.output.dir:/tmp/supremeai/builds}")
+    private String buildOutputDir;
+
+    @Value("${app.android.sdk.path:/opt/android-sdk}")
+    private String androidSdkPath;
+
+    private final ExecutorService buildExecutor = Executors.newFixedThreadPool(3);
+
+    public Map<String, String> generateApp(String requirements, String platform) {
+        Map<String, String> output = new HashMap<>();
+
+        try {
+            switch (platform.toLowerCase()) {
+                case "android":
+                    return generateAndroidApp(requirements);
+                case "web":
+                    output.put("status", "success");
+                    output.put("platform", platform);
+                    output.put("backend", generateSpringBootBackend(requirements));
+                    output.put("frontend", generateReactFrontend(requirements));
+                    break;
+                case "flutter":
+                    return generateFlutterApp(requirements);
+                default:
+                    output.put("status", "error");
+                    output.put("message", "Unsupported platform: " + platform);
+            }
+        } catch (Exception e) {
+            output.put("status", "error");
+            output.put("message", "Generation failed: " + e.getMessage());
+        }
+
+        return output;
+    }
+
+    private Map<String, String> generateAndroidApp(String requirements) {
+        Map<String, String> output = new HashMap<>();
+        String appId = "app_" + UUID.randomUUID().toString().substring(0, 8);
+        String projectPath = Paths.get(buildOutputDir, appId).toString();
+
+        try {
+            // 1. Create project structure
+            createAndroidProjectStructure(projectPath, requirements);
+
+            // 2. Generate code using AI (if available) or use template
+            String generatedCode;
+            if (aiProviderService != null) {
+                generatedCode = generateCodeWithAI(requirements, "android");
+            } else {
+                generatedCode = generateDefaultAndroidCode(requirements);
+            }
+
+            // 3. Validate and inject code
+            if (validateGeneratedCode(generatedCode)) {
+                injectGeneratedCode(projectPath, generatedCode);
+            } else {
+                throw new RuntimeException("Generated code validation failed");
+            }
+
+            // 4. Build APK asynchronously
+            Future<String> buildFuture = buildExecutor.submit(() -> buildAndroidApk(projectPath, appId));
+
+            // Return immediate response with build status
+            output.put("status", "building");
+            output.put("appId", appId);
+            output.put("message", "App generation started. Build is in progress.");
+            output.put("buildStatusUrl", "/api/build/status/" + appId);
+
+            // Store the buildFuture for status checking
+            // In a real implementation, we would store this in a map or database
+
+        } catch (Exception e) {
+            output.put("status", "error");
+            output.put("message", "Android app generation failed: " + e.getMessage());
+        }
+
+        return output;
+    }
+
+    private String generateCodeWithAI(String requirements, String platform) {
+        // This method will use AIProviderService to generate code
+        // For now, we return default code
+        return generateDefaultAndroidCode(requirements);
+    }
+
+    private void createAndroidProjectStructure(String projectPath, String requirements) throws IOException {
+        // Create basic Android project structure
+        Files.createDirectories(Paths.get(projectPath, "app/src/main/java/com/supremeai/app"));
+        Files.createDirectories(Paths.get(projectPath, "app/src/main/res/layout"));
+        Files.createDirectories(Paths.get(projectPath, "app/src/main/res/values"));
+
+        // Create build.gradle file
+        String buildGradle = """
+            plugins {
+                id 'com.android.application'
+            }
+
+            android {
+                namespace 'com.supremeai.app'
+                compileSdk 34
+
+                defaultConfig {
+                    applicationId "com.supremeai.app"
+                    minSdk 24
+                    targetSdk 34
+                    versionCode 1
+                    versionName "1.0"
+                }
+
+                buildTypes {
+                    release {
+                        minifyEnabled false
+                        proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+                    }
+                }
+            }
+
+            dependencies {
+                implementation 'androidx.appcompat:appcompat:1.6.1'
+                implementation 'com.google.android.material:material:1.11.0'
+                implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+            }
+            """;
+
+        Files.writeString(Paths.get(projectPath, "app/build.gradle"), buildGradle);
+
+        // Create AndroidManifest.xml
+        String manifest = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+                <application
+                    android:allowBackup="true"
+                    android:icon="@mipmap/ic_launcher"
+                    android:label="@string/app_name"
+                    android:roundIcon="@mipmap/ic_launcher_round"
+                    android:supportsRtl="true"
+                    android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
+                    <activity
+                        android:name=".MainActivity"
+                        android:exported="true">
+                        <intent-filter>
+                            <action android:name="android.intent.action.MAIN" />
+                            <category android:name="android.intent.category.LAUNCHER" />
+                        </intent-filter>
+                    </activity>
+                </application>
+            </manifest>
+            """;
+
+        Files.writeString(Paths.get(projectPath, "app/src/main/AndroidManifest.xml"), manifest);
+
+        // Create basic MainActivity.java
+        String mainActivity = """
+            package com.supremeai.app;
+
+            import android.os.Bundle;
+            import androidx.appcompat.app.AppCompatActivity;
+
+            public class MainActivity extends AppCompatActivity {
+                @Override
+                protected void onCreate(Bundle savedInstanceState) {
+                    super.onCreate(savedInstanceState);
+                    setContentView(R.layout.activity_main);
+                }
+            }
+            """;
+
+        Files.writeString(Paths.get(projectPath, "app/src/main/java/com/supremeai/app/MainActivity.java"), mainActivity);
+
+        // Create basic layout
+        String layout = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/app_name"
+                    android:textSize="24sp"
+                    android:layout_marginBottom="16dp"/>
+
+                <TextView
+                    android:id="@+id/description"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Built by SupremeAI"
+                    android:textSize="16sp"/>
+            </LinearLayout>
+            """;
+
+        Files.writeString(Paths.get(projectPath, "app/src/main/res/layout/activity_main.xml"), layout);
+
+        // Create strings.xml
+        String strings = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <resources>
+                <string name="app_name">SupremeAI App</string>
+            </resources>
+            """;
+
+        Files.writeString(Paths.get(projectPath, "app/src/main/res/values/strings.xml"), strings);
+    }
+
+    private String generateDefaultAndroidCode(String requirements) {
+        // Generate default Android code based on requirements
+        // This is a simplified version that would be replaced by AI-generated code
+        return """
+            package com.supremeai.app;
+
+            import android.os.Bundle;
+            import android.view.View;
+            import android.widget.Button;
+            import android.widget.TextView;
+            import androidx.appcompat.app.AppCompatActivity;
+
+            public class MainActivity extends AppCompatActivity {
+                private TextView resultText;
+
+                @Override
+                protected void onCreate(Bundle savedInstanceState) {
+                    super.onCreate(savedInstanceState);
+                    setContentView(R.layout.activity_main);
+
+                    resultText = findViewById(R.id.result);
+                    Button actionButton = findViewById(R.id.action_button);
+
+                    actionButton.setOnClickListener(v -> {
+                        resultText.setText("Action performed!");
+                    });
+                }
+            }
+            """;
+    }
+
+    private boolean validateGeneratedCode(String code) {
+        // Basic validation: check for common syntax errors
+        if (code == null || code.trim().isEmpty()) {
+            return false;
+        }
+
+        // Check for balanced braces
+        int openBraces = code.length() - code.replace("{", "").length();
+        int closeBraces = code.length() - code.replace("}", "").length();
+
+        if (openBraces != closeBraces) {
+            return false;
+        }
+
+        // Check for balanced parentheses
+        int openParens = code.length() - code.replace("(", "").length();
+        int closeParens = code.length() - code.replace(")", "").length();
+
+        if (openParens != closeParens) {
+            return false;
+        }
+
+        // Check for basic Java syntax elements
+        if (!code.contains("package") || !code.contains("import")) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private void injectGeneratedCode(String projectPath, String generatedCode) throws IOException {
+        // Extract the class name from the generated code
+        Pattern pattern = Pattern.compile("class\s+(\w+)");
+        Matcher matcher = pattern.matcher(generatedCode);
+
+        if (matcher.find()) {
+            String className = matcher.group(1);
+            String javaFilePath = Paths.get(projectPath, "app/src/main/java/com/supremeai/app", className + ".java").toString();
+            Files.writeString(Paths.get(javaFilePath), generatedCode);
+        }
+    }
+
+    private String buildAndroidApk(String projectPath, String appId) {
+        try {
+            // Build the Android APK using Gradle
+            ProcessBuilder pb = new ProcessBuilder(
+                "./gradlew", "assembleDebug"
+            );
+
+            pb.directory(new File(projectPath));
+            pb.redirectErrorStream(true);
+
+            Process process = pb.start();
+
+            // Read the output
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            StringBuilder output = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line).append("\n");
+            }
+
+            int exitCode = process.waitFor();
+
+            if (exitCode == 0) {
+                // Find the generated APK
+                Path apkPath = Paths.get(projectPath, "app/build/outputs/apk/debug/app-debug.apk");
+                if (Files.exists(apkPath)) {
+                    return apkPath.toString();
+                } else {
+                    throw new RuntimeException("APK file not found after build");
+                }
+            } else {
+                throw new RuntimeException("Build failed with exit code " + exitCode + ": " + output.toString());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to build APK: " + e.getMessage(), e);
+        }
+    }
+
+    private Map<String, String> generateFlutterApp(String requirements) {
+        Map<String, String> output = new HashMap<>();
+        output.put("status", "not_implemented");
+        output.put("message", "Flutter app generation is not yet implemented");
+        return output;
+    }
+
+    private String generateSpringBootBackend(String requirements) {
+        return """
+            // Generated Spring Boot Backend
+            package com.generated.app;
+
+            import org.springframework.boot.SpringApplication;
+            import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+            @SpringBootApplication
+            public class Application {
+                public static void main(String[] args) {
+                    SpringApplication.run(Application.class, args);
+                }
+            }
+            """;
+    }
+
+    private String generateReactFrontend(String requirements) {
+        return """
+            // Generated React Frontend
+            import React from 'react';
+            import ReactDOM from 'react-dom/client';
+
+            function App() {
+              return (
+                <div className="App">
+                  <h1>Generated Application</h1>
+                  <p>Built by SupremeAI</p>
+                </div>
+              );
+            }
+
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(<App />);
+            """;
+    }
+}
