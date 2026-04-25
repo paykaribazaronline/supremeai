@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   changes:
@@ -27,7 +27,7 @@ jobs:
       plugin: "${{ steps.filter.outputs.plugin }}"
       vscode_extension: "${{ steps.filter.outputs.vscode_extension }}"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v4
         id: filter
         with:
@@ -52,7 +52,7 @@ jobs:
     name: Secret_Scanning
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
       - name: Secret_Scan
         uses: trufflesecurity/trufflehog@v3.80.1
         with:
@@ -67,7 +67,7 @@ jobs:
     permissions:
       security-events: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Setup_Java
@@ -94,7 +94,7 @@ jobs:
     if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Setup_Gradle_Cache
@@ -137,7 +137,7 @@ jobs:
       frontend_url: ${{ steps.set-paths.outputs.frontend_url }}
       apk_path: ${{ steps.set-paths.outputs.apk_path }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
       - name: Setup_Flutter_Cache
         uses: actions/cache@v4
         with:
@@ -182,7 +182,7 @@ jobs:
     outputs:
       plugin_path: ${{ steps.set-path.outputs.path }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
       - name: Setup_Gradle_Cache
         uses: actions/cache@v4
         with:
@@ -217,7 +217,7 @@ jobs:
     outputs:
       vsix_path: ${{ steps.set-path.outputs.path }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
       - name: Setup_Node
         uses: actions/setup-node@v4
         with:
@@ -245,7 +245,7 @@ jobs:
     outputs:
       admin_url: ${{ steps.set-url.outputs.url }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
       - name: Download_JAR
         uses: actions/download-artifact@v4
         with:
@@ -326,7 +326,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && needs.changes.outputs.frontend == 'true'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
       - name: Download_Web
         uses: actions/download-artifact@v4
         with:
@@ -346,7 +346,7 @@ jobs:
       - name: Deploy_Firebase_Hosting
         run: |
           echo "Starting Firebase hosting deployment..."
-          npx firebase-tools@latest deploy --project supremeai-a --only hosting --non-interactive
+          firebase deploy --project supremeai-a --only hosting --non-interactive
           echo "Firebase hosting deployment completed successfully."
         working-directory: ./supremeai
 
@@ -365,7 +365,7 @@ jobs:
   health-check:
     name: Health_Check_and_Rollback
     needs: [deploy-backend, deploy-frontend]
-    if: always() && (needs.deploy-backend.result == 'success' || needs.deploy-frontend.result == 'success')
+    if: ${{ always() && (needs.deploy-backend.result == 'success' || needs.deploy-frontend.result == 'success') }}
     runs-on: ubuntu-latest
     steps:
       - name: Check_Status

@@ -5,9 +5,6 @@ on:
     - cron: '0 0 * * 0' # Run every Sunday at midnight
   workflow_dispatch:
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-
 concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: true
@@ -20,10 +17,21 @@ jobs:
       security-events: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup_Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: ""
       - name: CodeQL_Init
         uses: github/codeql-action/init@v3
         with:
           languages: "java"
-          build-mode: "none"
+          build-mode: "manual"
+      - name: Clean_Build_For_CodeQL
+        run: |
+          ./gradlew clean compileJava --no-build-cache --refresh-dependencies
       - name: Run_CodeQL
         uses: github/codeql-action/analyze@v3
