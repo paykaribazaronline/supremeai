@@ -3,7 +3,8 @@ package com.supremeai.websocket;
 import com.google.gson.Gson;
 import com.supremeai.event.AgentStatusEvent;
 import com.supremeai.event.MetricUpdateEvent;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
@@ -17,8 +18,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-@Slf4j
 public class AdminWebSocketHandler extends TextWebSocketHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(AdminWebSocketHandler.class);
 
     private final Set<WebSocketSession> sessions = ConcurrentHashMap.newKeySet();
     private final Gson gson = new Gson();

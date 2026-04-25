@@ -1,6 +1,7 @@
 package com.supremeai.service;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -10,9 +11,10 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Proactive Alerting Service for system health and performance monitoring.
  */
-@Slf4j
 @Service
 public class AlertingService {
+
+    private static final Logger log = LoggerFactory.getLogger(AlertingService.class);
 
     private final Map<String, Integer> failureThresholds = new ConcurrentHashMap<>();
     private static final int CRITICAL_THRESHOLD = 5;

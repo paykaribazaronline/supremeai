@@ -2,7 +2,8 @@ package com.supremeai.service;
 
 import com.supremeai.model.UserGuide;
 import com.supremeai.repository.UserGuideRepository;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
@@ -16,9 +17,10 @@ import java.util.Map;
  * Data initializer for sample video tutorials.
  * Populates Firestore with Bangla and English guides on first startup.
  */
-@Slf4j
 @Component
 public class GuideDataInitializer {
+
+    private static final Logger log = LoggerFactory.getLogger(GuideDataInitializer.class);
 
     @Autowired
     private UserGuideRepository userGuideRepository;
