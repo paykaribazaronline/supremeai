@@ -20,6 +20,16 @@ public class SystemLearning {
     private LocalDateTime learnedAt;
     private boolean permanent;
 
+    // New fields for enhanced learning
+    private String learningType; // NLP, MULTIMODAL, ECOSYSTEM, APP_GENERATION, PREDICTIVE
+    private Map<String, Object> inputData;
+    private Map<String, Object> outputData;
+    private Boolean success;
+    private Double qualityScore;
+    private Integer timesApplied;
+    private String relatedProvider;
+    private List<String> tags;
+
     public SystemLearning() {}
 
     public SystemLearning(String id, String topic, String category, String content) {
@@ -28,6 +38,8 @@ public class SystemLearning {
         this.category = category;
         this.content = content;
         this.learnedAt = LocalDateTime.now();
+        this.timesApplied = 0;
+        this.learningType = "GENERAL";
     }
 
     // Getters and Setters
@@ -49,4 +61,22 @@ public class SystemLearning {
     public void setLearnedAt(LocalDateTime learnedAt) { this.learnedAt = learnedAt; }
     public boolean isPermanent() { return permanent; }
     public void setPermanent(boolean permanent) { this.permanent = permanent; }
+
+    // New getters and setters
+    public String getLearningType() { return learningType; }
+    public void setLearningType(String learningType) { this.learningType = learningType; }
+    public Map<String, Object> getInputData() { return inputData; }
+    public void setInputData(Map<String, Object> inputData) { this.inputData = inputData; }
+    public Map<String, Object> getOutputData() { return outputData; }
+    public void setOutputData(Map<String, Object> outputData) { this.outputData = outputData; }
+    public Boolean getSuccess() { return success; }
+    public void setSuccess(Boolean success) { this.success = success; }
+    public Double getQualityScore() { return qualityScore; }
+    public void setQualityScore(Double qualityScore) { this.qualityScore = qualityScore; }
+    public Integer getTimesApplied() { return timesApplied; }
+    public void setTimesApplied(Integer timesApplied) { this.timesApplied = timesApplied; }
+    public String getRelatedProvider() { return relatedProvider; }
+    public void setRelatedProvider(String relatedProvider) { this.relatedProvider = relatedProvider; }
+    public List<String> getTags() { return tags; }
+    public void setTags(List<String> tags) { this.tags = tags; }
 }
