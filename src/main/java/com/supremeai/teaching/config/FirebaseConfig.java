@@ -1,11 +1,14 @@
 package com.supremeai.teaching.config;
 
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.firestore.Firestore;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import com.google.firebase.cloud.FirestoreClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import org.springframework.context.event.EventListener;
@@ -26,22 +29,52 @@ public class FirebaseConfig {
     @Value("${firebase.database.url:https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/}")
     private String databaseUrl;
 
+    @Value("${firebase.project.id:}")
+    private String projectId;
+
     @EventListener(ApplicationReadyEvent.class)
     public void initialize() {
         try {
             if (FirebaseApp.getApps().isEmpty()) {
                 GoogleCredentials credentials = loadCredentials();
 
-                FirebaseOptions options = FirebaseOptions.builder()
+                FirebaseOptions.Builder optionsBuilder = FirebaseOptions.builder()
                         .setCredentials(credentials)
-                        .setDatabaseUrl(databaseUrl)
-                        .build();
+                        .setDatabaseUrl(databaseUrl);
 
-                FirebaseApp.initializeApp(options);
-                log.info("FirebaseApp initialized successfully.");
+                // Add project ID if available
+                if (projectId != null && !projectId.isEmpty()) {
+                    optionsBuilder.setProjectId(projectId);
+                }
+
+                FirebaseApp.initializeApp(optionsBuilder.build());
+                log.info("FirebaseApp initialized successfully with project ID: {}", 
+                    FirebaseApp.getInstance().getOptions().getProjectId());
             }
+        } catch (IOException e) {
+            log.error("Failed to initialize Firebase: {}", e.getMessage(), e);
+            throw new RuntimeException("Firebase initialization failed", e);
         } catch (Exception e) {
-            log.error("Failed to initialize Firebase", e);
+            log.error("Unexpected error during Firebase initialization: {}", e.getMessage(), e);
+            throw new RuntimeException("Unexpected error during Firebase initialization", e);
+        }
+    }
+
+    /**
+     * Creates a Firestore bean for database operations
+     * @return Firestore client instance
+     */
+    @Bean
+    public Firestore firestore() {
+        try {
+            if (FirebaseApp.getApps().isEmpty()) {
+                log.warn("FirebaseApp not initialized, initializing now");
+                initialize();
+            }
+            return FirestoreClient.getFirestore();
+        } catch (Exception e) {
+            log.error("Failed to create Firestore client: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to create Firestore client", e);
         }
     }
 

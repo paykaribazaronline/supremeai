@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -50,11 +51,11 @@ public class QuotaController {
      * Users can only view their own quota. Admins can view any user's quota.
      */
     @GetMapping("/{userId}")
-    public ResponseEntity<Map<String, Object>> getQuota(@PathVariable String userId) {
+    public Mono<ResponseEntity<Map<String, Object>>> getQuota(@PathVariable String userId) {
         // Check authorization
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getName() == null) {
-            throw new IllegalStateException("Not authenticated");
+            return Mono.error(new IllegalStateException("Not authenticated"));
         }
         
         boolean isAdmin = auth.getAuthorities().stream()
@@ -62,20 +63,18 @@ public class QuotaController {
         
         // Only allow users to view their own quota or admins to view any user
         if (!isAdmin && !auth.getName().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: You can only view your own quota");
+            return Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: You can only view your own quota"));
         }
         
-        QuotaService.ApiUsageStats stats = quotaService.getUsageStats(userId);
-        if (stats == null) {
-            return ResponseEntity.status(404).body(Map.of("error", "User not found"));
-        }
-        return ResponseEntity.ok(Map.of(
+        return quotaService.getUsageStats(userId)
+            .map(stats -> ResponseEntity.ok(Map.<String, Object>of(
                 "currentUsage", stats.getCurrentUsage(),
                 "monthlyQuota", stats.getMonthlyQuota(),
                 "lastUsedAt", stats.getLastUsedAt() != null ? stats.getLastUsedAt().toString() : null,
                 "hasQuotaRemaining", stats.isHasQuotaRemaining(),
                 "usagePercentage", stats.getUsagePercentage()
-        ));
+            )))
+            .defaultIfEmpty(ResponseEntity.status(404).body(Map.of("error", "User not found")));
     }
 
     /**
@@ -83,22 +82,21 @@ public class QuotaController {
      */
     @PostMapping("/{userId}/reset")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> resetQuota(@PathVariable String userId) {
-        boolean success = quotaService.resetUserUsage(userId);
-        if (success) {
-            // Log admin action
-            ActivityLog log = new ActivityLog();
-            log.setUser(getCurrentAdminUserId());
-            log.setAction("RESET_USER_QUOTA");
-            log.setCategory("QUOTA_MANAGEMENT");
-            log.setSeverity("WARN"); // Quota resets are notable events
-            log.setOutcome("SUCCESS");
-            log.setDetails("Reset monthly quota for user: " + userId);
-            activityLogRepository.save(log).block();
-            
-            return ResponseEntity.ok(Map.of("status", "success", "message", "Quota reset for user " + userId));
-        }
-        return ResponseEntity.status(404).body(Map.of("error", "User not found"));
+    public Mono<ResponseEntity<Map<String, Object>>> resetQuota(@PathVariable String userId) {
+        return quotaService.resetUserUsage(userId)
+            .then(Mono.defer(() -> {
+                // Log admin action
+                ActivityLog log = new ActivityLog();
+                log.setUser(getCurrentAdminUserId());
+                log.setAction("RESET_USER_QUOTA");
+                log.setCategory("QUOTA_MANAGEMENT");
+                log.setSeverity("WARN"); // Quota resets are notable events
+                log.setOutcome("SUCCESS");
+                log.setDetails("Reset monthly quota for user: " + userId);
+                return activityLogRepository.save(log);
+            }))
+            .map(savedLog -> ResponseEntity.ok(Map.<String, Object>of("status", "success", "message", "Quota reset for user " + userId)))
+            .onErrorResume(e -> Mono.just(ResponseEntity.status(500).body(Map.of("error", "Failed to reset quota: " + e.getMessage()))));
     }
 
     /**
@@ -106,11 +104,11 @@ public class QuotaController {
      * Users can only view their own prediction. Admins can view any user's prediction.
      */
     @GetMapping("/{userId}/prediction")
-    public ResponseEntity<Map<String, Object>> getQuotaPrediction(@PathVariable String userId) {
+    public Mono<ResponseEntity<Map<String, Object>>> getQuotaPrediction(@PathVariable String userId) {
         // Check authorization
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getName() == null) {
-            throw new IllegalStateException("Not authenticated");
+            return Mono.error(new IllegalStateException("Not authenticated"));
         }
         
         boolean isAdmin = auth.getAuthorities().stream()
@@ -118,17 +116,19 @@ public class QuotaController {
         
         // Only allow users to view their own prediction or admins to view any user
         if (!isAdmin && !auth.getName().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: You can only view your own quota prediction");
+            return Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: You can only view your own quota prediction"));
         }
         
-        return ResponseEntity.ok(predictionService.getPrediction(userId));
+        return predictionService.getPrediction(userId)
+            .map(ResponseEntity::ok);
     }
 
     @GetMapping("/warnings")
-    public ResponseEntity<Map<String, Object>> getQuotaWarnings() {
-        return ResponseEntity.ok(Map.of(
-            "warnings", predictionService.getUsersNeedingWarning(),
-            "timestamp", System.currentTimeMillis()
-        ));
+    public Mono<ResponseEntity<Map<String, Object>>> getQuotaWarnings() {
+        return predictionService.getUsersNeedingWarning()
+            .map(warnings -> ResponseEntity.ok(Map.<String, Object>of(
+                "warnings", warnings,
+                "timestamp", System.currentTimeMillis()
+            )));
     }
 }

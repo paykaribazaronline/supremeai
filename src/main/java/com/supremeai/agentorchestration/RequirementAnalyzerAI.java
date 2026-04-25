@@ -31,7 +31,7 @@ public class RequirementAnalyzerAI {
                     "Format each question as a JSON object with 'key', 'text', and 'priority' (CRITICAL, HIGH, MEDIUM, LOW).\n" +
                     "Return only a JSON array of these objects.";
             
-            String response = provider.generate(prompt);
+            String response = provider.generate(prompt).block();
             return parseQuestions(response, requirement);
         } catch (Exception e) {
             log.warn("AI analysis failed, falling back to default questions: {}", e.getMessage());

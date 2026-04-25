@@ -3,6 +3,8 @@ package com.supremeai.provider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.*;
 
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -36,40 +38,42 @@ public class GroqProvider implements AIProvider {
     }
 
     @Override
-    public String generate(String prompt) {
-        try {
-            Map<String, Object> requestBody = Map.of(
-                    "messages", List.of(Map.of("role", "user", "content", prompt)),
-                    "model", "mixtral-8x7b-32768"
-            );
+    public Mono<String> generate(String prompt) {
+        return Mono.fromCallable(() -> {
+            try {
+                Map<String, Object> requestBody = Map.of(
+                        "messages", List.of(Map.of("role", "user", "content", prompt)),
+                        "model", "mixtral-8x7b-32768"
+                );
 
-            String jsonBody = objectMapper.writeValueAsString(requestBody);
+                String jsonBody = objectMapper.writeValueAsString(requestBody);
 
-            Request request = new Request.Builder()
-                    .url(API_URL)
-                    .addHeader("Authorization", "Bearer " + apiKey)
-                    .addHeader("Content-Type", "application/json")
-                    .post(RequestBody.create(jsonBody, MediaType.get("application/json")))
-                    .build();
+                Request request = new Request.Builder()
+                        .url(API_URL)
+                        .addHeader("Authorization", "Bearer " + apiKey)
+                        .addHeader("Content-Type", "application/json")
+                        .post(RequestBody.create(jsonBody, MediaType.get("application/json")))
+                        .build();
 
-            try (Response response = httpClient.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    throw new IOException("Unexpected code " + response);
-                }
+                try (Response response = httpClient.newCall(request).execute()) {
+                    if (!response.isSuccessful()) {
+                        throw new IOException("Unexpected code " + response);
+                    }
 
-                Map<String, Object> responseMap = objectMapper.readValue(response.body().string(), new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
-                @SuppressWarnings("unchecked")
-                List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
-                if (choices != null && !choices.isEmpty()) {
+                    Map<String, Object> responseMap = objectMapper.readValue(response.body().string(), new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
                     @SuppressWarnings("unchecked")
-                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-                    return (String) message.get("content");
+                    List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
+                    if (choices != null && !choices.isEmpty()) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                        return (String) message.get("content");
+                    }
+                    return "No response from Groq.";
                 }
-                return "No response from Groq.";
+            } catch (IOException e) {
+                // In a real app, you'd have more robust error handling
+                throw new RuntimeException("Failed to call Groq API", e);
             }
-        } catch (IOException e) {
-            // In a real app, you'd have more robust error handling
-            throw new RuntimeException("Failed to call Groq API", e);
-        }
+        }).subscribeOn(Schedulers.boundedElastic());
     }
 }

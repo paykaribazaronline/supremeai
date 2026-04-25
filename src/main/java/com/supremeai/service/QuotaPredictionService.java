@@ -2,6 +2,8 @@ package com.supremeai.service;
 
 import com.supremeai.model.User;
 import com.supremeai.repository.UserRepository;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -70,57 +72,65 @@ public class QuotaPredictionService {
      * Predict days remaining until quota exhaustion.
      * Returns days remaining, or -1 if quota is unlimited.
      */
-    public double predictDaysRemaining(String userId) {
-        User user = userRepository.findByFirebaseUid(userId).block();
-        if (user == null || user.getTier().hasUnlimitedQuota()) {
-            return -1.0; // Unlimited
-        }
+    public Mono<Double> predictDaysRemaining(String userId) {
+        return userRepository.findByFirebaseUid(userId)
+            .map(user -> {
+                if (user == null || user.getTier().hasUnlimitedQuota()) {
+                    return -1.0; // Unlimited
+                }
 
-        double dailyAverage = calculateMovingAverage(userId, 7);
-        if (dailyAverage <= 0.0) {
-            return Double.POSITIVE_INFINITY; // No usage, can't predict
-        }
+                double dailyAverage = calculateMovingAverage(userId, 7);
+                if (dailyAverage <= 0.0) {
+                    return Double.POSITIVE_INFINITY; // No usage, can't predict
+                }
 
-        long remainingQuota = user.getMonthlyQuota() - user.getCurrentUsage();
-        if (remainingQuota <= 0) {
-            return 0.0; // Already exhausted
-        }
+                long remainingQuota = user.getMonthlyQuota() - user.getCurrentUsage();
+                if (remainingQuota <= 0) {
+                    return 0.0; // Already exhausted
+                }
 
-        return remainingQuota / dailyAverage;
+                return remainingQuota / dailyAverage;
+            })
+            .defaultIfEmpty(-1.0);
     }
 
     /**
      * Check if user should be warned (<=3 days remaining).
      */
-    public boolean shouldWarn(String userId) {
-        Double daysRemaining = predictions.get(userId);
-        return daysRemaining != null && daysRemaining >= 0 && daysRemaining <= 3;
+    public Mono<Boolean> shouldWarn(String userId) {
+        return predictDaysRemaining(userId)
+            .map(daysRemaining -> daysRemaining >= 0 && daysRemaining <= 3);
     }
 
     /**
      * Get prediction details for a user.
      */
-    public Map<String, Object> getPrediction(String userId) {
-        Map<String, Object> result = new HashMap<>();
-        double daysRemaining = predictDaysRemaining(userId);
-        double dailyAvg = calculateMovingAverage(userId, 7);
-        
-        User user = userRepository.findByFirebaseUid(userId).block();
-        long remainingQuota = user != null ? user.getMonthlyQuota() - user.getCurrentUsage() : 0;
-        
-        result.put("userId", userId);
-        result.put("daysRemaining", daysRemaining);
-        result.put("dailyAverageUsage", dailyAvg);
-        result.put("remainingQuota", remainingQuota);
-        result.put("shouldWarn", shouldWarn(userId));
-        result.put("timestamp", System.currentTimeMillis());
-        
-        return result;
+    public Mono<Map<String, Object>> getPrediction(String userId) {
+        return Mono.zip(
+            predictDaysRemaining(userId),
+            userRepository.findByFirebaseUid(userId)
+        ).map(tuple -> {
+            double daysRemaining = tuple.getT1();
+            User user = tuple.getT2();
+            double dailyAvg = calculateMovingAverage(userId, 7);
+            long remainingQuota = user != null ? user.getMonthlyQuota() - user.getCurrentUsage() : 0;
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("userId", userId);
+            result.put("daysRemaining", daysRemaining);
+            result.put("dailyAverageUsage", dailyAvg);
+            result.put("remainingQuota", remainingQuota);
+            result.put("shouldWarn", daysRemaining >= 0 && daysRemaining <= 3);
+            result.put("timestamp", System.currentTimeMillis());
+            
+            return result;
+        });
     }
 
     private void updatePrediction(String userId) {
-        double daysRemaining = predictDaysRemaining(userId);
-        predictions.put(userId, daysRemaining);
+        predictDaysRemaining(userId).subscribe(daysRemaining -> {
+            predictions.put(userId, daysRemaining);
+        });
     }
 
     /**
@@ -128,7 +138,7 @@ public class QuotaPredictionService {
      */
     @Scheduled(cron = "0 0 0 * * ?") // Every day at midnight
     public void updateAllPredictions() {
-        userRepository.findAll().toIterable().forEach(user -> {
+        userRepository.findAll().subscribe(user -> {
             updatePrediction(user.getFirebaseUid());
         });
     }
@@ -136,13 +146,10 @@ public class QuotaPredictionService {
     /**
      * Get all users with low quota warnings.
      */
-    public List<Map<String, Object>> getUsersNeedingWarning() {
-        List<Map<String, Object>> warnings = new ArrayList<>();
-        userRepository.findAll().toIterable().forEach(user -> {
-            if (shouldWarn(user.getFirebaseUid())) {
-                warnings.add(getPrediction(user.getFirebaseUid()));
-            }
-        });
-        return warnings;
+    public Mono<List<Map<String, Object>>> getUsersNeedingWarning() {
+        return userRepository.findAll()
+            .flatMap(user -> shouldWarn(user.getFirebaseUid())
+                .flatMap(warn -> warn ? getPrediction(user.getFirebaseUid()) : Mono.empty()))
+            .collectList();
     }
 }

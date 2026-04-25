@@ -37,7 +37,7 @@ public class GPublishAgent {
                     "প্রতিটি প্রশ্নকে একটি JSON অবজেক্ট হিসেবে ফরম্যাট করুন যেখানে 'key', 'text', এবং 'priority' (CRITICAL, HIGH, MEDIUM, LOW) থাকবে।\n" +
                     "শুধুমাত্র এই অবজেক্টগুলির একটি JSON অ্যারে রিটার্ন করুন।";
 
-            String response = provider.generate(prompt);
+            String response = provider.generate(prompt).block();
             return parseQuestions(response);
         } catch (Exception e) {
             logger.warn("পাবলিশিং প্রয়োজনীয়তা বিশ্লেষণ ব্যর্থ হয়েছে, ডিফল্ট প্রশ্নগুলি ব্যবহার করা হচ্ছে: {}", e.getMessage());

@@ -137,12 +137,12 @@ public class TenAIVotingSystem {
             
             if (selfHealingService != null) {
                 response = selfHealingService.executeWithRetry(
-                    () -> provider.generate(prompt),
+                    () -> provider.generate(prompt).block(),
                     MAX_RETRIES,
                     250L
                 );
             } else {
-                response = provider.generate(prompt);
+                response = provider.generate(prompt).block();
             }
             
             long responseTime = System.currentTimeMillis() - startTime;

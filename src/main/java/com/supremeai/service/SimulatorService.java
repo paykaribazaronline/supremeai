@@ -40,69 +40,68 @@ public class SimulatorService {
     @Autowired
     private SimulatorDeploymentService deploymentService;
 
-    public SimulatorInstallResult installApp(String userId, String appId, String deviceType) {
+    public Mono<SimulatorInstallResult> installApp(String userId, String appId, String deviceType) {
         logger.info("Installing app {} to simulator for user {}", appId, userId);
 
-        UserSimulatorProfile profile = profileRepository.findByUserId(userId)
+        return profileRepository.findByUserId(userId)
             .doOnError(e -> logger.error("Failed to fetch profile for user " + userId, e))
             .onErrorResume(e -> Mono.just(new UserSimulatorProfile(userId)))
-            .block();
+            .flatMap(profile -> userRepository.findByFirebaseUid(userId)
+                .map(user -> {
+                    int dynamicQuota = configService.getMaxSimulatorInstallsForTier(user.getTier());
+                    profile.setInstallQuota(dynamicQuota);
+                    return profile;
+                })
+                .defaultIfEmpty(profile)
+                .flatMap(updatedProfile -> quotaService.incrementUsage(userId)
+                    .flatMap(incremented -> {
+                        if (!incremented) {
+                            return Mono.error(new RuntimeException("Simulator quota exceeded"));
+                        }
 
-        if (profile == null) {
-            throw new IllegalStateException("Failed to load simulator profile");
-        }
+                        String previewUrl;
+                        try {
+                            previewUrl = deploymentService.deployToSimulator(appId, deviceType);
+                        } catch (Exception e) {
+                            logger.error("Deployment failed for app {} user {}", appId, userId, e);
+                            return Mono.error(new SimulatorDeploymentException("Failed to deploy: " + e.getMessage(), e));
+                        }
 
-        User user = userRepository.findByFirebaseUid(userId).block();
-        if (user != null) {
-            int dynamicQuota = configService.getMaxSimulatorInstallsForTier(user.getTier());
-            profile.setInstallQuota(dynamicQuota);
-        }
+                        String appName = "App " + appId.substring(0, Math.min(6, appId.length()));
+                        String version = "1.0.0";
 
-        // Use QuotaService for validation
-        if (!quotaService.incrementUsage(userId)) {
-             throw new RuntimeException("Simulator quota exceeded");
-        }
+                        InstalledApp installedApp = new InstalledApp(appId, appName, version, previewUrl);
+                        installedApp.setStatus(UserSimulatorProfile.AppStatus.INSTALLED);
+                        updatedProfile.addInstalledApp(installedApp);
 
-        String previewUrl;
-        try {
-            previewUrl = deploymentService.deployToSimulator(appId, deviceType);
-        } catch (Exception e) {
-            logger.error("Deployment failed for app {} user {}", appId, userId, e);
-            throw new SimulatorDeploymentException("Failed to deploy: " + e.getMessage(), e);
-        }
-
-        String appName = "App " + appId.substring(0, Math.min(6, appId.length()));
-        String version = "1.0.0";
-
-        InstalledApp installedApp = new InstalledApp(appId, appName, version, previewUrl);
-        installedApp.setStatus(UserSimulatorProfile.AppStatus.INSTALLED);
-        profile.addInstalledApp(installedApp);
-
-        profileRepository.save(profile).block();
-
-        logger.info("Successfully installed app {} for user {}", appId, userId);
-
-        return new SimulatorInstallResult(
-            installedApp,
-            profile.getActiveInstalls(),
-            profile.getInstallQuota(),
-            previewUrl
-        );
+                        return profileRepository.save(updatedProfile)
+                            .map(savedProfile -> new SimulatorInstallResult(
+                                installedApp,
+                                savedProfile.getActiveInstalls(),
+                                savedProfile.getInstallQuota(),
+                                previewUrl
+                            ));
+                    })
+                )
+            );
     }
 
-    public void uninstallApp(String userId, String appId) {
-        UserSimulatorProfile profile = profileRepository.findByUserId(userId)
+    public Mono<Void> uninstallApp(String userId, String appId) {
+        return profileRepository.findByUserId(userId)
             .switchIfEmpty(Mono.error(new SimulatorResourceNotFoundException("Profile not found")))
-            .block();
-
-        if (profile.removeInstalledApp(appId)) {
-            profileRepository.save(profile).block();
-            try {
-                deploymentService.undeployFromSimulator(appId);
-            } catch (Exception e) {
-                logger.warn("Undeployment cleanup failed: {}", e.getMessage());
-            }
-        }
+            .flatMap(profile -> {
+                if (profile.removeInstalledApp(appId)) {
+                    return profileRepository.save(profile)
+                        .then(Mono.fromRunnable(() -> {
+                            try {
+                                deploymentService.undeployFromSimulator(appId);
+                            } catch (Exception e) {
+                                logger.warn("Undeployment cleanup failed: {}", e.getMessage());
+                            }
+                        }));
+                }
+                return Mono.empty();
+            });
     }
 
     public Mono<UserSimulatorProfile> getProfile(String userId) {
@@ -124,29 +123,30 @@ public class SimulatorService {
             });
     }
 
-    public SessionStartResult startSession(String userId, String appId) {
-        UserSimulatorProfile profile = profileRepository.findByUserId(userId).block();
-        if (profile == null) throw new SimulatorResourceNotFoundException("Profile not found");
+    public Mono<SessionStartResult> startSession(String userId, String appId) {
+        return profileRepository.findByUserId(userId)
+            .switchIfEmpty(Mono.error(new SimulatorResourceNotFoundException("Profile not found")))
+            .flatMap(profile -> {
+                String sessionId = "sess_" + UUID.randomUUID().toString().substring(0, 12);
+                String websocketUrl = "/ws/simulator/" + sessionId;
 
-        String sessionId = "sess_" + UUID.randomUUID().toString().substring(0, 12);
-        String websocketUrl = "/ws/simulator/" + sessionId;
+                UserSimulatorProfile.ActiveSession session = 
+                    new UserSimulatorProfile.ActiveSession(sessionId, appId, websocketUrl);
+                session.setState(UserSimulatorProfile.SessionState.ACTIVE);
 
-        UserSimulatorProfile.ActiveSession session = 
-            new UserSimulatorProfile.ActiveSession(sessionId, appId, websocketUrl);
-        session.setState(UserSimulatorProfile.SessionState.ACTIVE);
-
-        profile.setCurrentSession(session);
-        profileRepository.save(profile).block();
-
-        return new SessionStartResult(sessionId, websocketUrl, "PREVIEW_URL", UserSimulatorProfile.SessionState.ACTIVE, java.time.LocalDateTime.now());
+                profile.setCurrentSession(session);
+                return profileRepository.save(profile)
+                    .map(savedProfile -> new SessionStartResult(sessionId, websocketUrl, "PREVIEW_URL", UserSimulatorProfile.SessionState.ACTIVE, java.time.LocalDateTime.now()));
+            });
     }
 
-    public void stopSession(String userId) {
-        UserSimulatorProfile profile = profileRepository.findByUserId(userId).block();
-        if (profile != null) {
-            profile.setCurrentSession(null);
-            profileRepository.save(profile).block();
-        }
+    public Mono<Void> stopSession(String userId) {
+        return profileRepository.findByUserId(userId)
+            .flatMap(profile -> {
+                profile.setCurrentSession(null);
+                return profileRepository.save(profile);
+            })
+            .then();
     }
 
     public Mono<SessionStatusResult> getSessionStatus(String userId) {

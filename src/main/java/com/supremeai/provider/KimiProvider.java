@@ -8,6 +8,8 @@ import okhttp3.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -59,46 +61,48 @@ public class KimiProvider implements AIProvider {
     }
 
     @Override
-    public String generate(String prompt) {
-        try {
-            Map<String, Object> requestBody = Map.of(
-                    "messages", List.of(Map.of("role", "user", "content", prompt)),
-                    "model", model,
-                    "temperature", 0.7
-            );
-
-            String jsonBody = objectMapper.writeValueAsString(requestBody);
-
-            Request request = new Request.Builder()
-                    .url(API_URL)
-                    .addHeader("Authorization", "Bearer " + apiKey)
-                    .addHeader("Content-Type", "application/json")
-                    .post(RequestBody.create(jsonBody, JSON))
-                    .build();
-
-            try (okhttp3.Response response = httpClient.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    logger.error("Kimi API error: {} - {}", response.code(), response.message());
-                    throw new RuntimeException("Kimi API error: " + response.code());
-                }
-
-                Map<String, Object> responseMap = objectMapper.readValue(
-                        response.body().string(),
-                        new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {}
+    public Mono<String> generate(String prompt) {
+        return Mono.fromCallable(() -> {
+            try {
+                Map<String, Object> requestBody = Map.of(
+                        "messages", List.of(Map.of("role", "user", "content", prompt)),
+                        "model", model,
+                        "temperature", 0.7
                 );
 
-                @SuppressWarnings("unchecked")
-                List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
-                if (choices != null && !choices.isEmpty()) {
+                String jsonBody = objectMapper.writeValueAsString(requestBody);
+
+                Request request = new Request.Builder()
+                        .url(API_URL)
+                        .addHeader("Authorization", "Bearer " + apiKey)
+                        .addHeader("Content-Type", "application/json")
+                        .post(RequestBody.create(jsonBody, JSON))
+                        .build();
+
+                try (okhttp3.Response response = httpClient.newCall(request).execute()) {
+                    if (!response.isSuccessful()) {
+                        logger.error("Kimi API error: {} - {}", response.code(), response.message());
+                        throw new RuntimeException("Kimi API error: " + response.code());
+                    }
+
+                    Map<String, Object> responseMap = objectMapper.readValue(
+                            response.body().string(),
+                            new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {}
+                    );
+
                     @SuppressWarnings("unchecked")
-                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-                    return (String) message.get("content");
+                    List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
+                    if (choices != null && !choices.isEmpty()) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                        return (String) message.get("content");
+                    }
+                    return "No response from Kimi.";
                 }
-                return "No response from Kimi.";
+            } catch (Exception e) {
+                logger.error("Failed to call Kimi API", e);
+                throw new RuntimeException("Failed to call Kimi API", e);
             }
-        } catch (Exception e) {
-            logger.error("Failed to call Kimi API", e);
-            throw new RuntimeException("Failed to call Kimi API", e);
-        }
+        }).subscribeOn(Schedulers.boundedElastic());
     }
 }

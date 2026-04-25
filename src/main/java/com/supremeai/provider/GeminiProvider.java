@@ -3,6 +3,8 @@ package com.supremeai.provider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.*;
 
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -36,46 +38,48 @@ public class GeminiProvider implements AIProvider {
     }
 
     @Override
-    public String generate(String prompt) {
-        try {
-            Map<String, Object> requestBody = Map.of(
-                    "contents", List.of(
-                            Map.of("parts", List.of(Map.of("text", prompt)))
-                    )
-            );
+    public Mono<String> generate(String prompt) {
+        return Mono.fromCallable(() -> {
+            try {
+                Map<String, Object> requestBody = Map.of(
+                        "contents", List.of(
+                                Map.of("parts", List.of(Map.of("text", prompt)))
+                        )
+                );
 
-            String jsonBody = objectMapper.writeValueAsString(requestBody);
+                String jsonBody = objectMapper.writeValueAsString(requestBody);
 
-            String urlWithKey = API_URL + "?key=" + apiKey;
-            Request request = new Request.Builder()
-                    .url(urlWithKey)
-                    .addHeader("Content-Type", "application/json")
-                    .post(RequestBody.create(jsonBody, MediaType.get("application/json")))
-                    .build();
+                String urlWithKey = API_URL + "?key=" + apiKey;
+                Request request = new Request.Builder()
+                        .url(urlWithKey)
+                        .addHeader("Content-Type", "application/json")
+                        .post(RequestBody.create(jsonBody, MediaType.get("application/json")))
+                        .build();
 
-            try (Response response = httpClient.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    throw new IOException("Unexpected code " + response + " - " + response.body().string());
-                }
+                try (Response response = httpClient.newCall(request).execute()) {
+                    if (!response.isSuccessful()) {
+                        throw new IOException("Unexpected code " + response + " - " + response.body().string());
+                    }
 
-                Map<String, Object> responseMap = objectMapper.readValue(response.body().string(), new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
-                @SuppressWarnings("unchecked")
-                List<Map<String, Object>> candidates = (List<Map<String, Object>>) responseMap.get("candidates");
-                if (candidates != null && !candidates.isEmpty()) {
+                    Map<String, Object> responseMap = objectMapper.readValue(response.body().string(), new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
                     @SuppressWarnings("unchecked")
-                    Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
-                    if (content != null) {
+                    List<Map<String, Object>> candidates = (List<Map<String, Object>>) responseMap.get("candidates");
+                    if (candidates != null && !candidates.isEmpty()) {
                         @SuppressWarnings("unchecked")
-                        List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
-                        if (parts != null && !parts.isEmpty()) {
-                            return (String) parts.get(0).get("text");
+                        Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
+                        if (content != null) {
+                            @SuppressWarnings("unchecked")
+                            List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
+                            if (parts != null && !parts.isEmpty()) {
+                                return (String) parts.get(0).get("text");
+                            }
                         }
                     }
+                    return "No response from Gemini.";
                 }
-                return "No response from Gemini.";
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to call Gemini API", e);
             }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to call Gemini API", e);
-        }
+        }).subscribeOn(Schedulers.boundedElastic());
     }
 }

@@ -20,7 +20,7 @@ public class AIVotingSystem {
     private final List<AIProvider> providers;
     private final ExecutorService executorService;
 
-    public AIVotingSystem(List<AIProvider> providers, ExecutorService executorService) {
+    public AIVotingSystem(List<AIProvider> providers, @org.springframework.beans.factory.annotation.Qualifier("aiProviderExecutor") ExecutorService executorService) {
         this.providers = providers;
         this.executorService = executorService;
     }

@@ -6,6 +6,7 @@ import com.supremeai.cost.QuotaManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 
@@ -23,57 +24,58 @@ public class QuotaService {
     /**
      * Check if an API key has quota remaining for the current month
      */
-    public boolean hasQuotaRemaining(String apiKey) {
-        UserApiKey api = userApiKeyRepository.findByApiKey(apiKey).block();
-        if (api == null || !"active".equals(api.getStatus())) {
-            return false;
-        }
-        return api.getRequestCount() < DEFAULT_MONTHLY_QUOTA;
+    public Mono<Boolean> hasQuotaRemaining(String apiKey) {
+        return userApiKeyRepository.findByApiKey(apiKey)
+            .map(api -> "active".equals(api.getStatus()) && api.getRequestCount() < DEFAULT_MONTHLY_QUOTA)
+            .defaultIfEmpty(false);
     }
 
     /**
      * Increment usage for an API key
      * Returns true if successful, false if quota exceeded
      */
-    public boolean incrementUsage(String apiKey) {
-        UserApiKey api = userApiKeyRepository.findByApiKey(apiKey).block();
-        if (api == null || !"active".equals(api.getStatus())) {
-            return false;
-        }
-        
-        if (api.getRequestCount() < DEFAULT_MONTHLY_QUOTA) {
-            api.setRequestCount(api.getRequestCount() + 1);
-            api.setLastUsed(LocalDateTime.now());
-            userApiKeyRepository.save(api).block();
-            return true;
-        }
-        return false;
+    public Mono<Boolean> incrementUsage(String apiKey) {
+        return userApiKeyRepository.findByApiKey(apiKey)
+            .flatMap(api -> {
+                if (!"active".equals(api.getStatus())) {
+                    return Mono.just(false);
+                }
+                if (api.getRequestCount() < DEFAULT_MONTHLY_QUOTA) {
+                    api.setRequestCount(api.getRequestCount() + 1);
+                    api.setLastUsed(LocalDateTime.now());
+                    return userApiKeyRepository.save(api).map(saved -> true);
+                }
+                return Mono.just(false);
+            })
+            .defaultIfEmpty(false);
     }
 
     /**
      * Validate and increment usage atomically
      */
-    public void validateAndIncrement(String apiKey) {
-        UserApiKey api = userApiKeyRepository.findByApiKey(apiKey).block();
-        if (api == null || !"active".equals(api.getStatus())) {
-            throw new IllegalArgumentException("Invalid or inactive API key");
-        }
-        
-        if (api.getRequestCount() >= DEFAULT_MONTHLY_QUOTA) {
-            throw new RuntimeException("Quota exceeded");
-        }
-
-        api.setRequestCount(api.getRequestCount() + 1);
-        api.setLastUsed(LocalDateTime.now());
-        userApiKeyRepository.save(api).block();
+    public Mono<Void> validateAndIncrement(String apiKey) {
+        return userApiKeyRepository.findByApiKey(apiKey)
+            .switchIfEmpty(Mono.error(new IllegalArgumentException("Invalid API key")))
+            .flatMap(api -> {
+                if (!"active".equals(api.getStatus())) {
+                    return Mono.error(new IllegalArgumentException("Inactive API key"));
+                }
+                if (api.getRequestCount() >= DEFAULT_MONTHLY_QUOTA) {
+                    return Mono.error(new RuntimeException("Quota exceeded"));
+                }
+                api.setRequestCount(api.getRequestCount() + 1);
+                api.setLastUsed(LocalDateTime.now());
+                return userApiKeyRepository.save(api).then();
+            });
     }
 
     /**
      * Get current usage for an API key
      */
-    public Long getCurrentUsage(String apiKey) {
-        UserApiKey api = userApiKeyRepository.findByApiKey(apiKey).block();
-        return api != null ? api.getRequestCount() : 0L;
+    public Mono<Long> getCurrentUsage(String apiKey) {
+        return userApiKeyRepository.findByApiKey(apiKey)
+            .map(UserApiKey::getRequestCount)
+            .defaultIfEmpty(0L);
     }
 
     /**
@@ -99,45 +101,38 @@ public class QuotaService {
     /**
      * Manually reset usage for a specific API (admin function)
      */
-    public boolean resetApiUsage(String apiKey) {
-        UserApiKey api = userApiKeyRepository.findByApiKey(apiKey).block();
-        if (api == null) {
-            return false;
-        }
-
-        api.setRequestCount(0L);
-        userApiKeyRepository.save(api).block();
-        return true;
+    public Mono<Boolean> resetApiUsage(String apiKey) {
+        return userApiKeyRepository.findByApiKey(apiKey)
+            .flatMap(api -> {
+                api.setRequestCount(0L);
+                return userApiKeyRepository.save(api).map(saved -> true);
+            })
+            .defaultIfEmpty(false);
     }
 
     /**
      * Manually reset usage for a specific user (admin function)
      */
-    public boolean resetUserUsage(String userId) {
-        userApiKeyRepository.findByUserId(userId)
-            .doOnNext(api -> {
+    public Mono<Void> resetUserUsage(String userId) {
+        return userApiKeyRepository.findByUserId(userId)
+            .flatMap(api -> {
                 api.setRequestCount(0L);
-                userApiKeyRepository.save(api).subscribe();
+                return userApiKeyRepository.save(api);
             })
-            .subscribe();
-        return true;
+            .then();
     }
 
     /**
      * Get usage statistics for an API
      */
-    public ApiUsageStats getUsageStats(String apiKey) {
-        UserApiKey api = userApiKeyRepository.findByApiKey(apiKey).block();
-        if (api == null) {
-            return null;
-        }
-
-        return new ApiUsageStats(
-            api.getRequestCount(),
-            DEFAULT_MONTHLY_QUOTA,
-            api.getLastUsed(),
-            api.getRequestCount() < DEFAULT_MONTHLY_QUOTA
-        );
+    public Mono<ApiUsageStats> getUsageStats(String apiKey) {
+        return userApiKeyRepository.findByApiKey(apiKey)
+            .map(api -> new ApiUsageStats(
+                api.getRequestCount(),
+                DEFAULT_MONTHLY_QUOTA,
+                api.getLastUsed(),
+                api.getRequestCount() < DEFAULT_MONTHLY_QUOTA
+            ));
     }
 
     public static class ApiUsageStats {

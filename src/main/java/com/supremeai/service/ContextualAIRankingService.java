@@ -124,7 +124,7 @@ public class ContextualAIRankingService {
     /**
      * Calculate how good a provider is for a specific task.
      */
-    private double calculateProviderScore(String provider, TaskType taskType, String prompt) {
+    public double calculateProviderScore(String provider, TaskType taskType, String prompt) {
         Map<TaskType, TaskPerformance> providerPerf = performanceTracker
             .computeIfAbsent(provider, k -> new ConcurrentHashMap<>());
 

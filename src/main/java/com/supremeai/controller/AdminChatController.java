@@ -43,24 +43,23 @@ public class AdminChatController {
                 .body((Object) Map.of("error", "Question is required")));
         }
 
-        try {
-            var result = consensusService.askAllAIs(question, providers, 10000L);
-            
-            Map<String, Object> response = Map.of(
-                "question", question,
-                "answer", result.getConsensusAnswer(),
-                "confidence", result.getAverageConfidence(),
-                "consensusStrength", result.getStrength(),
-                "votes", result.getProviderVotes(),
-                "timestamp", java.time.LocalDateTime.now().toString()
-            );
-
-            return Mono.just(ResponseEntity.ok((Object) response));
-        } catch (Exception e) {
-            logger.error("Failed to get AI response for question: {}", question, e);
-            return Mono.just(ResponseEntity.status(500)
-                .body((Object) Map.of("error", "Failed to get AI response: " + e.getMessage())));
-        }
+        return consensusService.askAllAIs(question, providers, 10000L)
+            .map(result -> {
+                Map<String, Object> response = Map.of(
+                    "question", question,
+                    "answer", result.getConsensusAnswer(),
+                    "confidence", result.getAverageConfidence(),
+                    "consensusStrength", result.getStrength(),
+                    "votes", result.getProviderVotes(),
+                    "timestamp", java.time.LocalDateTime.now().toString()
+                );
+                return ResponseEntity.ok((Object) response);
+            })
+            .onErrorResume(e -> {
+                logger.error("Failed to get AI response for question: {}", question, e);
+                return Mono.just(ResponseEntity.status(500)
+                    .body((Object) Map.of("error", "Failed to get AI response: " + e.getMessage())));
+            });
     }
 
     @GetMapping("/history")

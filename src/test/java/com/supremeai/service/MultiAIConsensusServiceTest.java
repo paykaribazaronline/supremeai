@@ -4,27 +4,29 @@ import com.supremeai.model.ConsensusResult;
 import com.supremeai.model.ConsensusVote;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
-import com.supremeai.selfhealing.SelfHealingService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-@Disabled("Failing due to reflection issues with field injection")
-public class MultiAIConsensusServiceTest {
+class MultiAIConsensusServiceTest {
 
     @Mock
     private AIProviderFactory providerFactory;
@@ -34,6 +36,9 @@ public class MultiAIConsensusServiceTest {
 
     @Mock
     private KnowledgeFeedbackService feedbackService;
+
+    @Mock
+    private ContextualAIRankingService contextualRankingService;
 
     @Mock
     private AIProvider groqProvider;
@@ -46,158 +51,122 @@ public class MultiAIConsensusServiceTest {
     @BeforeEach
     void setUp() throws Exception {
         consensusService = new MultiAIConsensusService();
-
-        // Inject mocks via reflection
         injectField("providerFactory", providerFactory);
         injectField("selfHealingService", selfHealingService);
         injectField("feedbackService", feedbackService);
-        
-        // Ensure the internal history is empty for each test
-        java.lang.reflect.Field historyField = MultiAIConsensusService.class.getDeclaredField("history");
-        historyField.setAccessible(true);
-        ((java.util.List<?>) historyField.get(consensusService)).clear();
+        injectField("contextualRankingService", contextualRankingService);
 
-        // Setup self-healing service to execute the callable
-        lenient().when(selfHealingService.executeWithRetry(any(Callable.class), anyInt(), anyLong()))
-                .thenAnswer(invocation -> {
-                    Callable<String> callable = invocation.getArgument(0);
-                    return callable.call();
-                });
+        lenient().when(selfHealingService.executeWithRetry(any(), anyInt(), anyLong()))
+            .thenAnswer(invocation -> {
+                @SuppressWarnings("unchecked")
+                Supplier<Mono<String>> supplier = invocation.getArgument(0);
+                return supplier.get();
+            });
+        lenient().when(contextualRankingService.detectTaskType(any()))
+            .thenReturn(ContextualAIRankingService.TaskType.QUESTION_ANSWERING);
+    }
+
+    @Test
+    void askAllAIsReturnsStrongConsensusForMatchingResponses() {
+        when(providerFactory.getProvider("groq")).thenReturn(groqProvider);
+        when(providerFactory.getProvider("openai")).thenReturn(openaiProvider);
+        when(groqProvider.generate("What is the capital of France?")).thenReturn("Paris");
+        when(openaiProvider.generate("What is the capital of France?")).thenReturn("Paris");
+
+        StepVerifier.create(consensusService.askAllAIs(
+                "What is the capital of France?",
+                List.of("groq", "openai"),
+                5_000L))
+            .assertNext(result -> {
+                assertEquals("Paris", result.getConsensusAnswer());
+                assertEquals(2, result.getVotes().size());
+                assertTrue(result.getStrength().contains("STRONG"));
+            })
+            .verifyComplete();
+    }
+
+    @Test
+    void askAllAIsReturnsErrorWhenAllProvidersFail() {
+        when(providerFactory.getProvider("groq")).thenReturn(groqProvider);
+        when(selfHealingService.executeWithRetry(any(), anyInt(), anyLong()))
+            .thenReturn(Mono.error(new RuntimeException("API down")));
+
+        StepVerifier.create(consensusService.askAllAIs("Test", List.of("groq"), 1_000L))
+            .assertNext(result -> {
+                assertEquals("No AI providers responded", result.getConsensusAnswer());
+                assertEquals("ERROR", result.getStrength());
+                assertEquals(0, result.getVotes().size());
+            })
+            .verifyComplete();
+    }
+
+    @Test
+    void askAllAIsReturnsTimeoutResultWhenProviderNeverCompletes() {
+        when(providerFactory.getProvider("groq")).thenReturn(groqProvider);
+        when(selfHealingService.executeWithRetry(any(), anyInt(), anyLong()))
+            .thenReturn(Mono.never());
+
+        StepVerifier.create(consensusService.askAllAIs("Slow question", List.of("groq"), 20L))
+            .assertNext(result -> {
+                assertEquals("Timeout reached", result.getConsensusAnswer());
+                assertEquals("TIMEOUT", result.getStrength());
+            })
+            .verifyComplete();
+    }
+
+    @Test
+    void getHistoryReturnsMostRecentVotesFirst() {
+        when(providerFactory.getProvider("groq")).thenReturn(groqProvider);
+        when(groqProvider.generate("Q1")).thenReturn("A1");
+        when(groqProvider.generate("Q2")).thenReturn("A2");
+
+        consensusService.askAllAIs("Q1", List.of("groq"), 5_000L).block();
+        consensusService.askAllAIs("Q2", List.of("groq"), 5_000L).block();
+
+        Flux<ConsensusVote> history = consensusService.getHistory(2);
+
+        StepVerifier.create(history)
+            .assertNext(vote -> assertEquals("Q2", vote.getQuestion()))
+            .assertNext(vote -> assertEquals("Q1", vote.getQuestion()))
+            .verifyComplete();
+    }
+
+    @Test
+    void askContextualAIsUsesRankedProviderThenFallbacks() {
+        ContextualAIRankingService.ProviderSelection selection =
+            new ContextualAIRankingService.ProviderSelection(
+                "openai",
+                ContextualAIRankingService.TaskType.CODE_GENERATION,
+                0.9,
+                "best");
+        List<ContextualAIRankingService.ProviderRanking> rankings = List.of(
+            new ContextualAIRankingService.ProviderRanking("openai", "CODE_GENERATION", 0.9, 100, 4.0, 10),
+            new ContextualAIRankingService.ProviderRanking("groq", "CODE_GENERATION", 0.8, 200, 4.0, 10)
+        );
+
+        when(contextualRankingService.selectBestProvider("Build a login page", null)).thenReturn(selection);
+        when(contextualRankingService.getRankingsForTask(ContextualAIRankingService.TaskType.CODE_GENERATION))
+            .thenReturn(rankings);
+        when(providerFactory.getAllProviderNames()).thenReturn(new String[] {"openai", "groq", "anthropic"});
+        when(providerFactory.getProvider("openai")).thenReturn(openaiProvider);
+        when(providerFactory.getProvider("groq")).thenReturn(groqProvider);
+        AIProvider anthropicProvider = mock(AIProvider.class);
+        when(providerFactory.getProvider("anthropic")).thenReturn(anthropicProvider);
+        when(openaiProvider.generate("Build a login page")).thenReturn("Use React");
+        when(groqProvider.generate("Build a login page")).thenReturn("Use React");
+        when(anthropicProvider.generate("Build a login page")).thenReturn("Use Vue");
+
+        StepVerifier.create(consensusService.askContextualAIs("Build a login page", 3, 5_000L))
+            .assertNext(result -> {
+                assertEquals("Use React", result.getConsensusAnswer());
+                assertEquals(3, result.getVotes().size());
+            })
+            .verifyComplete();
     }
 
     private void injectField(String fieldName, Object value) throws Exception {
         java.lang.reflect.Field field = MultiAIConsensusService.class.getDeclaredField(fieldName);
         field.setAccessible(true);
         field.set(consensusService, value);
-    }
-
-    @Test
-    void testAskAllAIs_SuccessConsensus() {
-        String question = "What is the capital of France?";
-        List<String> providers = List.of("groq", "openai");
-        
-        when(providerFactory.getProvider("groq")).thenReturn(groqProvider);
-        when(providerFactory.getProvider("openai")).thenReturn(openaiProvider);
-        
-        when(groqProvider.generate(anyString())).thenReturn("Paris");
-        when(openaiProvider.generate(anyString())).thenReturn("Paris");
-
-        ConsensusResult result = consensusService.askAllAIs(question, providers, 5000L);
-
-        assertNotNull(result);
-        assertEquals("Paris", result.getConsensusAnswer());
-        assertEquals(2, result.getVotes().size());
-        assertTrue(result.getStrength().contains("STRONG"));
-    }
-
-    @Test
-    void testAskAllAIs_WeakConsensus() {
-        String question = "Who won the world cup 2022?";
-        List<String> providers = List.of("groq", "openai", "anthropic");
-        
-        AIProvider anthropicProvider = mock(AIProvider.class);
-        
-        when(providerFactory.getProvider("groq")).thenReturn(groqProvider);
-        when(providerFactory.getProvider("openai")).thenReturn(openaiProvider);
-        when(providerFactory.getProvider("anthropic")).thenReturn(anthropicProvider);
-        
-        when(groqProvider.generate(anyString())).thenReturn("Argentina");
-        when(openaiProvider.generate(anyString())).thenReturn("Argentina");
-        when(anthropicProvider.generate(anyString())).thenReturn("France");
-
-        ConsensusResult result = consensusService.askAllAIs(question, providers, 5000L);
-
-        assertNotNull(result);
-        assertEquals("Argentina", result.getConsensusAnswer());
-        assertEquals(3, result.getVotes().size());
-    }
-
-    @Test
-    void testAskAllAIs_NoProvidersRespond() throws Exception {
-        String question = "Test?";
-        List<String> providers = List.of("groq");
-        
-        when(providerFactory.getProvider("groq")).thenReturn(groqProvider);
-        when(selfHealingService.executeWithRetry(any(Callable.class), anyInt(), anyLong()))
-                .thenThrow(new RuntimeException("API Down"));
-
-        ConsensusResult result = consensusService.askAllAIs(question, providers, 1000L);
-
-        assertNotNull(result);
-        assertEquals("No AI providers responded", result.getConsensusAnswer());
-        assertEquals(0.0, result.getAverageConfidence());
-        assertTrue(result.getStrength().contains("ERROR"));
-    }
-
-    @Test
-    void testAskAllAIs_SingleProvider() {
-        String question = "What is 2+2?";
-        List<String> providers = List.of("groq");
-        
-        when(providerFactory.getProvider("groq")).thenReturn(groqProvider);
-        when(groqProvider.generate(anyString())).thenReturn("4");
-
-        ConsensusResult result = consensusService.askAllAIs(question, providers, 5000L);
-
-        assertNotNull(result);
-        assertEquals("4", result.getConsensusAnswer());
-        assertEquals(1, result.getVotes().size());
-    }
-
-    @Test
-    void testAskAllAIs_EmptyProviderList() {
-        String question = "Test?";
-        List<String> providers = List.of();
-
-        ConsensusResult result = consensusService.askAllAIs(question, providers, 5000L);
-
-        assertNotNull(result);
-        assertEquals("No AI providers responded", result.getConsensusAnswer());
-        assertEquals(0.0, result.getAverageConfidence());
-    }
-
-    @Test
-    void testGetHistory_ReturnsFluxOfVotes() {
-        String question1 = "Question 1?";
-        List<String> providers1 = List.of("groq");
-        when(providerFactory.getProvider("groq")).thenReturn(groqProvider);
-        when(groqProvider.generate(anyString())).thenReturn("Answer 1");
-
-        consensusService.askAllAIs(question1, providers1, 5000L);
-
-        // Give async operations time to complete
-        try { Thread.sleep(100); } catch (InterruptedException e) {}
-
-        Flux<ConsensusVote> history = consensusService.getHistory(10);
-
-        StepVerifier.create(history)
-                .assertNext(vote -> {
-                    assertEquals(question1, vote.getQuestion());
-                    assertEquals("Answer 1", vote.getConsensusAnswer());
-                })
-                .verifyComplete();
-    }
-
-    @Test
-    @Disabled("Flaky test due to async history saving and sleep timing")
-    void testGetHistory_LimitsResults() {
-        when(providerFactory.getProvider("groq")).thenReturn(groqProvider);
-        when(groqProvider.generate(anyString())).thenReturn("Answer");
-
-        // Create votes sequentially
-        for (int i = 0; i < 5; i++) {
-            consensusService.askAllAIs("Q" + i, List.of("groq"), 5000L);
-        }
-
-        // Give async operations time to complete
-        try { Thread.sleep(1000); } catch (InterruptedException e) {}
-
-        Flux<ConsensusVote> history = consensusService.getHistory(2);
-
-        // Should get at most 2 results
-        StepVerifier.create(history)
-                .expectNextCount(2)
-                .thenCancel()
-                .verify();
     }
 }

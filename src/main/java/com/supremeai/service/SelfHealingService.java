@@ -2,7 +2,9 @@ package com.supremeai.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.concurrent.Callable;
+import reactor.core.publisher.Mono;
+import java.time.Duration;
+import java.util.function.Supplier;
 
 @Service("selfHealingService-service")
 public class SelfHealingService {
@@ -13,39 +15,23 @@ public class SelfHealingService {
     /**
      * Execute a task with retry and log reasoning on failure.
      */
-    public <T> T executeWithRetry(Callable<T> task, int maxAttempts, long initialBackoff) throws Exception {
-        if (maxAttempts < 1) maxAttempts = 1;
-        long backoff = initialBackoff;
-        Exception lastException = null;
-        
-        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-            try {
-                return task.call();
-            } catch (Exception e) {
-                lastException = e;
-                
-                reasoningService.logReasoning(
-                    "RETRY_" + System.currentTimeMillis(),
-                    "Execution Attempt Failed",
-                    "Attempt " + attempt + " of " + maxAttempts + " failed with: " + e.getMessage(),
-                    "SelfHealingService"
-                );
-
-                if (attempt < maxAttempts) {
-                    try {
-                        Thread.sleep(backoff);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        throw new RuntimeException("Retry interrupted", ie);
-                    }
-                    backoff *= 2; 
-                } else {
-                    handleWorkflowFailure("MAIN_SYSTEM", "TASK_" + System.currentTimeMillis(), e.getMessage());
-                }
-            }
-        }
-        throw lastException != null ? lastException : new IllegalStateException("Retry failed");
+    public <T> Mono<T> executeWithRetry(Supplier<Mono<T>> taskSupplier, int maxAttempts, long initialBackoff) {
+        return taskSupplier.get()
+            .doOnError(e -> reasoningService.logReasoning(
+                "RETRY_" + System.currentTimeMillis(),
+                "Execution Attempt Failed",
+                "Attempt failed with: " + e.getMessage(),
+                "SelfHealingService"
+            ))
+            .retryWhen(reactor.util.retry.Retry.backoff(maxAttempts - 1, Duration.ofMillis(initialBackoff))
+                .doBeforeRetry(signal -> log.warn("Retrying due to: {}", signal.failure().getMessage())))
+            .onErrorResume(e -> {
+                handleWorkflowFailure("MAIN_SYSTEM", "TASK_" + System.currentTimeMillis(), e.getMessage());
+                return Mono.error(e);
+            });
     }
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SelfHealingService.class);
 
     public void handleWorkflowFailure(String repo, String workflowId, String errorLog) {
         reasoningService.logReasoning(

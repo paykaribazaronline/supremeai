@@ -3,6 +3,8 @@ package com.supremeai.provider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.*;
 
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -36,46 +38,48 @@ public class HuggingFaceProvider implements AIProvider {
     }
 
     @Override
-    public String generate(String prompt) {
-        try {
-            Map<String, Object> requestBody = Map.of(
-                    "inputs", prompt,
-                    "parameters", Map.of("max_new_tokens", 512)
-            );
+    public Mono<String> generate(String prompt) {
+        return Mono.fromCallable(() -> {
+            try {
+                Map<String, Object> requestBody = Map.of(
+                        "inputs", prompt,
+                        "parameters", Map.of("max_new_tokens", 512)
+                );
 
-            String jsonBody = objectMapper.writeValueAsString(requestBody);
+                String jsonBody = objectMapper.writeValueAsString(requestBody);
 
-            Request request = new Request.Builder()
-                    .url(API_URL)
-                    .addHeader("Authorization", "Bearer " + apiKey)
-                    .addHeader("Content-Type", "application/json")
-                    .post(RequestBody.create(jsonBody, MediaType.get("application/json")))
-                    .build();
+                Request request = new Request.Builder()
+                        .url(API_URL)
+                        .addHeader("Authorization", "Bearer " + apiKey)
+                        .addHeader("Content-Type", "application/json")
+                        .post(RequestBody.create(jsonBody, MediaType.get("application/json")))
+                        .build();
 
-            try (Response response = httpClient.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    throw new IOException("Unexpected code " + response + " - " + response.body().string());
-                }
-
-                String responseBody = response.body().string();
-                // HuggingFace returns an array of objects
-                List<?> list = objectMapper.readValue(responseBody, List.class);
-                if (list != null && !list.isEmpty()) {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> first = (Map<String, Object>) list.get(0);
-                    String generated = (String) first.get("generated_text");
-                    if (generated != null) {
-                        // Often the generated text includes the prompt; strip it if so
-                        if (generated.startsWith(prompt)) {
-                            generated = generated.substring(prompt.length()).trim();
-                        }
-                        return generated;
+                try (Response response = httpClient.newCall(request).execute()) {
+                    if (!response.isSuccessful()) {
+                        throw new IOException("Unexpected code " + response + " - " + response.body().string());
                     }
+
+                    String responseBody = response.body().string();
+                    // HuggingFace returns an array of objects
+                    List<?> list = objectMapper.readValue(responseBody, List.class);
+                    if (list != null && !list.isEmpty()) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> first = (Map<String, Object>) list.get(0);
+                        String generated = (String) first.get("generated_text");
+                        if (generated != null) {
+                            // Often the generated text includes the prompt; strip it if so
+                            if (generated.startsWith(prompt)) {
+                                generated = generated.substring(prompt.length()).trim();
+                            }
+                            return generated;
+                        }
+                    }
+                    return "No response from HuggingFace.";
                 }
-                return "No response from HuggingFace.";
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to call HuggingFace API", e);
             }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to call HuggingFace API", e);
-        }
+        }).subscribeOn(Schedulers.boundedElastic());
     }
 }

@@ -1,6 +1,7 @@
 package com.supremeai.controller;
 
 import com.supremeai.service.UsageOptimizationService;
+import reactor.core.publisher.Mono;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -37,10 +38,10 @@ public class UsageOptimizationController {
      * GET /api/optimization/usage - Get current user's usage summary.
      */
     @GetMapping("/usage")
-    public ResponseEntity<Map<String, Object>> getUsageSummary() {
+    public Mono<ResponseEntity<Map<String, Object>>> getUsageSummary() {
         String userId = getCurrentUserId();
-        Map<String, Object> summary = optimizationService.getUserUsageSummary(userId);
-        return ResponseEntity.ok(summary);
+        return optimizationService.getUserUsageSummary(userId)
+                .map(ResponseEntity::ok);
     }
 
     /**
@@ -48,41 +49,39 @@ public class UsageOptimizationController {
      * Body: { "complexity": "simple|moderate|complex|critical" }
      */
     @PostMapping("/select-model")
-    public ResponseEntity<Map<String, Object>> selectModel(@RequestBody Map<String, String> body) {
+    public Mono<ResponseEntity<Map<String, Object>>> selectModel(@RequestBody Map<String, String> body) {
         String userId = getCurrentUserId();
         String complexity = body.getOrDefault("complexity", "moderate");
 
-        Optional<UsageOptimizationService.SelectedModel> selected =
-                optimizationService.selectModelForTask(userId, complexity);
-
-        if (selected.isEmpty()) {
-            return ResponseEntity.ok(Map.of(
-                    "status", "no_keys",
-                    "message", "No API keys configured. Add API keys in the API Keys Manager."
-            ));
-        }
-
-        UsageOptimizationService.SelectedModel model = selected.get();
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("status", "success");
-        response.put("modelId", model.modelId);
-        response.put("provider", model.provider);
-        response.put("baseUrl", model.baseUrl);
-        // Don't expose the actual API key in the response
-        response.put("hasKey", true);
-        return ResponseEntity.ok(response);
+        return optimizationService.selectModelForTask(userId, complexity)
+                .map(model -> {
+                    Map<String, Object> response = new LinkedHashMap<>();
+                    response.put("status", "success");
+                    response.put("modelId", model.modelId);
+                    response.put("provider", model.provider);
+                    response.put("baseUrl", model.baseUrl);
+                    // Don't expose the actual API key in the response
+                    response.put("hasKey", true);
+                    return ResponseEntity.ok(response);
+                })
+                .defaultIfEmpty(ResponseEntity.ok(Map.of(
+                        "status", "no_keys",
+                        "message", "No API keys configured. Add API keys in the API Keys Manager."
+                )));
     }
 
     /**
      * GET /api/optimization/cache/stats - Get cache hit/miss statistics.
      */
     @GetMapping("/cache/stats")
-    public ResponseEntity<Map<String, Object>> getCacheStats() {
+    public Mono<ResponseEntity<Map<String, Object>>> getCacheStats() {
         String userId = getCurrentUserId();
-        Map<String, Object> summary = optimizationService.getUserUsageSummary(userId);
-        Map<String, Object> cacheStats = new LinkedHashMap<>();
-        cacheStats.put("cacheSize", summary.get("cacheSize"));
-        cacheStats.put("cacheTTLMinutes", summary.get("cacheTTLMinutes"));
-        return ResponseEntity.ok(cacheStats);
+        return optimizationService.getUserUsageSummary(userId)
+                .map(summary -> {
+                    Map<String, Object> cacheStats = new LinkedHashMap<>();
+                    cacheStats.put("cacheSize", summary.get("cacheSize"));
+                    cacheStats.put("cacheTTLMinutes", summary.get("cacheTTLMinutes"));
+                    return ResponseEntity.ok(cacheStats);
+                });
     }
 }

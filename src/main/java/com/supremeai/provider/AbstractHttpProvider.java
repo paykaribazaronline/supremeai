@@ -5,6 +5,8 @@ import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -40,14 +42,16 @@ public abstract class AbstractHttpProvider implements AIProvider {
      * Common implementation for all HTTP based providers
      */
     @Override
-    public String generate(String prompt) {
-        try {
-            Map<String, Object> body = createRequestBody(prompt);
-            return executeRequest(body);
-        } catch (Exception e) {
-            logger.error("Generation failed: {}", e.getMessage());
-            throw new RuntimeException("Generation failed", e);
-        }
+    public Mono<String> generate(String prompt) {
+        return Mono.fromCallable(() -> {
+            try {
+                Map<String, Object> body = createRequestBody(prompt);
+                return executeRequest(body);
+            } catch (Exception e) {
+                logger.error("Generation failed: {}", e.getMessage());
+                throw new RuntimeException("Generation failed", e);
+            }
+        }).subscribeOn(Schedulers.boundedElastic());
     }
 
     /**
