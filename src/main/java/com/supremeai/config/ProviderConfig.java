@@ -9,7 +9,7 @@ import java.util.Map;
 
 @Configuration
 public class ProviderConfig {
-    
+     
     @Bean
     public Map<String, String> providerApiKeys(
             @Value("${OPENAI_API_KEY:}") String openai,
@@ -23,7 +23,7 @@ public class ProviderConfig {
             @Value("${GROK_API_KEY:}") String grok,
             @Value("${AZURE_OPENAI_API_KEY:}") String azure,
             @Value("${CUSTOM_AI_API_KEY:}") String custom) {
-        
+         
         Map<String, String> keys = new HashMap<>();
         if (!openai.isBlank()) keys.put("openai", openai);
         if (!gemini.isBlank()) keys.put("gemini", gemini);
@@ -36,7 +36,7 @@ public class ProviderConfig {
         if (!grok.isBlank()) keys.put("grok", grok);
         if (!azure.isBlank()) keys.put("azure", azure);
         if (!custom.isBlank()) keys.put("custom", custom);
-        
+         
         return keys;
     }
 }

@@ -4,6 +4,11 @@ import { ProjectsProvider } from './providers/ProjectsProvider';
 import { AgentsProvider } from './providers/AgentsProvider';
 import { OrchestrationProvider } from './providers/OrchestrationProvider';
 import { SupremeAIApi } from './services/SupremeAIApi';
+import { OrchestrationView } from './views/OrchestrationView';
+import { ProjectsView } from './views/ProjectsView';
+import { AgentsView } from './views/AgentsView';
+import { ChatView } from './views/ChatView';
+import { DeploymentView } from './views/DeploymentView';
 
  export function activate(context: vscode.ExtensionContext) {
      console.log('SupremeAI extension is now active!');
@@ -29,6 +34,11 @@ import { SupremeAIApi } from './services/SupremeAIApi';
      // Register orchestration provider
      const orchestrationProvider = new OrchestrationProvider(apiEndpoint, apiKey);
      vscode.window.registerTreeDataProvider('supremeai-orchestration', orchestrationProvider);
+
+     // Initialize views
+     const orchestrationView = new OrchestrationView(context, orchestrationProvider);
+     const projectsView = new ProjectsView(context, projectsProvider);
+     const agentsView = new AgentsView(context, agentsProvider);
 
      // Status Bar Item
      const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
@@ -86,8 +96,8 @@ import { SupremeAIApi } from './services/SupremeAIApi';
              }
          }),
          vscode.commands.registerCommand('supremeai.deploy', () => {
-             vscode.window.showInformationMessage('Deploying to SupremeAI Cloud...');
-             // Logic for deployment
+             const deploymentView = DeploymentView.getInstance();
+             deploymentView.showDeployment();
          }),
           vscode.commands.registerCommand('supremeai.chat', async () => {
               const input = await vscode.window.showInputBox({

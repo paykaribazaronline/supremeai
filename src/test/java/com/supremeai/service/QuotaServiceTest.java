@@ -1,11 +1,9 @@
 
 package com.supremeai.service;
 
-import com.supremeai.cost.QuotaDefinition;
+import com.supremeai.model.UserApiKey;
+import com.supremeai.repository.UserApiKeyRepository;
 import com.supremeai.cost.QuotaManager;
-import com.supremeai.cost.QuotaPeriod;
-import com.supremeai.model.User;
-import com.supremeai.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,18 +13,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class QuotaServiceTest {
 
     @Mock
-    private UserRepository userRepository;
+    private UserApiKeyRepository userApiKeyRepository;
 
     @Mock
     private QuotaManager quotaManager;
@@ -34,167 +30,237 @@ public class QuotaServiceTest {
     @InjectMocks
     private QuotaService quotaService;
 
-    private User testUser;
+    private UserApiKey activeApiKey;
+    private UserApiKey inactiveApiKey;
+    private UserApiKey exhaustedApiKey;
 
     @BeforeEach
     public void setUp() {
-        testUser = new User("test-uid", "test@example.com", "Test User");
-        testUser.setTier(com.supremeai.model.UserTier.FREE);
+        activeApiKey = new UserApiKey("user1", "OpenAI", "Test Key", "encrypted-key-1");
+        activeApiKey.setId("key1");
+        activeApiKey.setStatus("active");
+        activeApiKey.setRequestCount(500L);
+
+        inactiveApiKey = new UserApiKey("user1", "Google AI", "Inactive Key", "encrypted-key-2");
+        inactiveApiKey.setId("key2");
+        inactiveApiKey.setStatus("inactive");
+        inactiveApiKey.setRequestCount(100L);
+
+        exhaustedApiKey = new UserApiKey("user2", "Anthropic", "Exhausted Key", "encrypted-key-3");
+        exhaustedApiKey.setId("key3");
+        exhaustedApiKey.setStatus("active");
+        exhaustedApiKey.setRequestCount(1000L);
     }
 
     @Test
-    public void testCheckQuota_Success() {
-        // Arrange
-        QuotaDefinition quotaDefinition = new QuotaDefinition();
-        quotaDefinition.setMaxRequests(100);
-        quotaDefinition.setPeriod(QuotaPeriod.DAILY);
-        quotaDefinition.setCurrentRequests(50);
+    public void testHasQuotaRemaining_ActiveKeyWithQuota() {
+        when(userApiKeyRepository.findByApiKey("valid-key")).thenReturn(Mono.just(activeApiKey));
 
-        when(quotaManager.getUserQuota(anyString())).thenReturn(quotaDefinition);
-        when(userRepository.findByFirebaseUid(anyString())).thenReturn(Mono.just(testUser));
+        boolean result = quotaService.hasQuotaRemaining("valid-key");
 
-        // Act
-        boolean result = quotaService.checkQuota("test-uid").block();
-
-        // Assert
         assertTrue(result);
-        verify(quotaManager).getUserQuota(anyString());
+        verify(userApiKeyRepository).findByApiKey("valid-key");
     }
 
     @Test
-    public void testCheckQuota_Exceeded() {
-        // Arrange
-        QuotaDefinition quotaDefinition = new QuotaDefinition();
-        quotaDefinition.setMaxRequests(100);
-        quotaDefinition.setPeriod(QuotaPeriod.DAILY);
-        quotaDefinition.setCurrentRequests(100);
+    public void testHasQuotaRemaining_InactiveKey() {
+        when(userApiKeyRepository.findByApiKey("inactive-key")).thenReturn(Mono.just(inactiveApiKey));
 
-        when(quotaManager.getUserQuota(anyString())).thenReturn(quotaDefinition);
-        when(userRepository.findByFirebaseUid(anyString())).thenReturn(Mono.just(testUser));
+        boolean result = quotaService.hasQuotaRemaining("inactive-key");
 
-        // Act
-        boolean result = quotaService.checkQuota("test-uid").block();
-
-        // Assert
         assertFalse(result);
-        verify(quotaManager).getUserQuota(anyString());
+        verify(userApiKeyRepository).findByApiKey("inactive-key");
     }
 
     @Test
-    public void testIncrementQuota_Success() {
-        // Arrange
-        QuotaDefinition quotaDefinition = new QuotaDefinition();
-        quotaDefinition.setMaxRequests(100);
-        quotaDefinition.setPeriod(QuotaPeriod.DAILY);
-        quotaDefinition.setCurrentRequests(50);
+    public void testHasQuotaRemaining_ExhaustedKey() {
+        when(userApiKeyRepository.findByApiKey("exhausted-key")).thenReturn(Mono.just(exhaustedApiKey));
 
-        when(quotaManager.getUserQuota(anyString())).thenReturn(quotaDefinition);
-        when(quotaManager.incrementUserQuota(anyString())).thenReturn(Mono.just(quotaDefinition));
+        boolean result = quotaService.hasQuotaRemaining("exhausted-key");
 
-        // Act
-        QuotaDefinition result = quotaService.incrementQuota("test-uid").block();
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(51, result.getCurrentRequests());
-        verify(quotaManager).incrementUserQuota(anyString());
-    }
-
-    @Test
-    public void testResetQuota_Success() {
-        // Arrange
-        QuotaDefinition quotaDefinition = new QuotaDefinition();
-        quotaDefinition.setMaxRequests(100);
-        quotaDefinition.setPeriod(QuotaPeriod.DAILY);
-        quotaDefinition.setCurrentRequests(100);
-
-        when(quotaManager.getUserQuota(anyString())).thenReturn(quotaDefinition);
-        when(quotaManager.resetUserQuota(anyString())).thenReturn(Mono.just(quotaDefinition));
-
-        // Act
-        QuotaDefinition result = quotaService.resetQuota("test-uid").block();
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(0, result.getCurrentRequests());
-        verify(quotaManager).resetUserQuota(anyString());
-    }
-
-    @Test
-    public void testGetQuotaInfo_Success() {
-        // Arrange
-        QuotaDefinition quotaDefinition = new QuotaDefinition();
-        quotaDefinition.setMaxRequests(100);
-        quotaDefinition.setPeriod(QuotaPeriod.DAILY);
-        quotaDefinition.setCurrentRequests(50);
-        quotaDefinition.setLastReset(LocalDateTime.now());
-
-        when(quotaManager.getUserQuota(anyString())).thenReturn(quotaDefinition);
-
-        // Act
-        Map<String, Object> result = quotaService.getQuotaInfo("test-uid").block();
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(100, result.get("maxRequests"));
-        assertEquals(50, result.get("currentRequests"));
-        assertEquals("DAILY", result.get("period"));
-        verify(quotaManager).getUserQuota(anyString());
-    }
-
-    @Test
-    public void testCheckQuotaForUser_NotFound() {
-        // Arrange
-        when(userRepository.findByFirebaseUid(anyString())).thenReturn(Mono.empty());
-
-        // Act
-        boolean result = quotaService.checkQuota("nonexistent").block();
-
-        // Assert
         assertFalse(result);
-        verify(userRepository).findByFirebaseUid(anyString());
+        verify(userApiKeyRepository).findByApiKey("exhausted-key");
     }
 
     @Test
-    public void testUpdateQuotaLimit_Success() {
-        // Arrange
-        QuotaDefinition quotaDefinition = new QuotaDefinition();
-        quotaDefinition.setMaxRequests(100);
-        quotaDefinition.setPeriod(QuotaPeriod.DAILY);
-        quotaDefinition.setCurrentRequests(50);
+    public void testHasQuotaRemaining_KeyNotFound() {
+        when(userApiKeyRepository.findByApiKey("nonexistent-key")).thenReturn(Mono.empty());
 
-        when(quotaManager.getUserQuota(anyString())).thenReturn(quotaDefinition);
-        when(quotaManager.updateQuotaLimit(anyString(), anyInt())).thenReturn(Mono.just(quotaDefinition));
+        boolean result = quotaService.hasQuotaRemaining("nonexistent-key");
 
-        // Act
-        QuotaDefinition result = quotaService.updateQuotaLimit("test-uid", 200).block();
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(200, result.getMaxRequests());
-        verify(quotaManager).updateQuotaLimit(anyString(), anyInt());
+        assertFalse(result);
+        verify(userApiKeyRepository).findByApiKey("nonexistent-key");
     }
 
     @Test
-    public void testGetQuotaUsageStats_Success() {
-        // Arrange
-        Map<String, Object> usageStats = new HashMap<>();
-        usageStats.put("totalRequests", 1000);
-        usageStats.put("successfulRequests", 950);
-        usageStats.put("failedRequests", 50);
-        usageStats.put("averageResponseTime", 250);
+    public void testIncrementUsage_Success() {
+        activeApiKey.setRequestCount(500L);
+        when(userApiKeyRepository.findByApiKey("valid-key")).thenReturn(Mono.just(activeApiKey));
+        when(userApiKeyRepository.save(any(UserApiKey.class))).thenReturn(Mono.just(activeApiKey));
 
-        when(quotaManager.getQuotaUsageStats(anyString())).thenReturn(usageStats);
+        boolean result = quotaService.incrementUsage("valid-key");
 
-        // Act
-        Map<String, Object> result = quotaService.getQuotaUsageStats("test-uid").block();
+        assertTrue(result);
+        assertEquals(501L, activeApiKey.getRequestCount());
+        verify(userApiKeyRepository).findByApiKey("valid-key");
+        verify(userApiKeyRepository).save(any(UserApiKey.class));
+    }
 
-        // Assert
+    @Test
+    public void testIncrementUsage_QuotaExceeded() {
+        when(userApiKeyRepository.findByApiKey("exhausted-key")).thenReturn(Mono.just(exhaustedApiKey));
+
+        boolean result = quotaService.incrementUsage("exhausted-key");
+
+        assertFalse(result);
+        verify(userApiKeyRepository).findByApiKey("exhausted-key");
+        verify(userApiKeyRepository, never()).save(any(UserApiKey.class));
+    }
+
+    @Test
+    public void testIncrementUsage_InactiveKey() {
+        when(userApiKeyRepository.findByApiKey("inactive-key")).thenReturn(Mono.just(inactiveApiKey));
+
+        boolean result = quotaService.incrementUsage("inactive-key");
+
+        assertFalse(result);
+        verify(userApiKeyRepository).findByApiKey("inactive-key");
+        verify(userApiKeyRepository, never()).save(any(UserApiKey.class));
+    }
+
+    @Test
+    public void testIncrementUsage_KeyNotFound() {
+        when(userApiKeyRepository.findByApiKey("nonexistent-key")).thenReturn(Mono.empty());
+
+        boolean result = quotaService.incrementUsage("nonexistent-key");
+
+        assertFalse(result);
+        verify(userApiKeyRepository).findByApiKey("nonexistent-key");
+        verify(userApiKeyRepository, never()).save(any(UserApiKey.class));
+    }
+
+    @Test
+    public void testValidateAndIncrement_Success() {
+        activeApiKey.setRequestCount(500L);
+        when(userApiKeyRepository.findByApiKey("valid-key")).thenReturn(Mono.just(activeApiKey));
+        when(userApiKeyRepository.save(any(UserApiKey.class))).thenReturn(Mono.just(activeApiKey));
+
+        assertDoesNotThrow(() -> quotaService.validateAndIncrement("valid-key"));
+        assertEquals(501L, activeApiKey.getRequestCount());
+        verify(userApiKeyRepository).findByApiKey("valid-key");
+        verify(userApiKeyRepository).save(any(UserApiKey.class));
+    }
+
+    @Test
+    public void testValidateAndIncrement_InvalidKey() {
+        when(userApiKeyRepository.findByApiKey("invalid-key")).thenReturn(Mono.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> quotaService.validateAndIncrement("invalid-key"));
+        verify(userApiKeyRepository).findByApiKey("invalid-key");
+    }
+
+    @Test
+    public void testValidateAndIncrement_InactiveKey() {
+        when(userApiKeyRepository.findByApiKey("inactive-key")).thenReturn(Mono.just(inactiveApiKey));
+
+        assertThrows(IllegalArgumentException.class, () -> quotaService.validateAndIncrement("inactive-key"));
+        verify(userApiKeyRepository).findByApiKey("inactive-key");
+    }
+
+    @Test
+    public void testValidateAndIncrement_QuotaExceeded() {
+        when(userApiKeyRepository.findByApiKey("exhausted-key")).thenReturn(Mono.just(exhaustedApiKey));
+
+        assertThrows(RuntimeException.class, () -> quotaService.validateAndIncrement("exhausted-key"));
+        verify(userApiKeyRepository).findByApiKey("exhausted-key");
+    }
+
+    @Test
+    public void testGetCurrentUsage_Success() {
+        when(userApiKeyRepository.findByApiKey("valid-key")).thenReturn(Mono.just(activeApiKey));
+
+        Long result = quotaService.getCurrentUsage("valid-key");
+
+        assertEquals(500L, result);
+        verify(userApiKeyRepository).findByApiKey("valid-key");
+    }
+
+    @Test
+    public void testGetCurrentUsage_KeyNotFound() {
+        when(userApiKeyRepository.findByApiKey("nonexistent-key")).thenReturn(Mono.empty());
+
+        Long result = quotaService.getCurrentUsage("nonexistent-key");
+
+        assertEquals(0L, result);
+        verify(userApiKeyRepository).findByApiKey("nonexistent-key");
+    }
+
+    @Test
+    public void testGetMonthlyQuota() {
+        Long result = quotaService.getMonthlyQuota("any-key");
+
+        assertEquals(1000L, result);
+    }
+
+    @Test
+    public void testResetApiUsage_Success() {
+        when(userApiKeyRepository.findByApiKey("valid-key")).thenReturn(Mono.just(activeApiKey));
+        when(userApiKeyRepository.save(any(UserApiKey.class))).thenReturn(Mono.just(activeApiKey));
+
+        boolean result = quotaService.resetApiUsage("valid-key");
+
+        assertTrue(result);
+        assertEquals(0L, activeApiKey.getRequestCount());
+        verify(userApiKeyRepository).findByApiKey("valid-key");
+        verify(userApiKeyRepository).save(any(UserApiKey.class));
+    }
+
+    @Test
+    public void testResetApiUsage_KeyNotFound() {
+        when(userApiKeyRepository.findByApiKey("nonexistent-key")).thenReturn(Mono.empty());
+
+        boolean result = quotaService.resetApiUsage("nonexistent-key");
+
+        assertFalse(result);
+        verify(userApiKeyRepository).findByApiKey("nonexistent-key");
+        verify(userApiKeyRepository, never()).save(any(UserApiKey.class));
+    }
+
+    @Test
+    public void testGetUsageStats_Success() {
+        activeApiKey.setRequestCount(500L);
+        activeApiKey.setLastUsed(LocalDateTime.now());
+        when(userApiKeyRepository.findByApiKey("valid-key")).thenReturn(Mono.just(activeApiKey));
+
+        QuotaService.ApiUsageStats result = quotaService.getUsageStats("valid-key");
+
         assertNotNull(result);
-        assertEquals(1000, result.get("totalRequests"));
-        assertEquals(950, result.get("successfulRequests"));
-        assertEquals(50, result.get("failedRequests"));
-        assertEquals(250, result.get("averageResponseTime"));
-        verify(quotaManager).getQuotaUsageStats(anyString());
+        assertEquals(500L, result.getCurrentUsage());
+        assertEquals(1000L, result.getMonthlyQuota());
+        assertTrue(result.isHasQuotaRemaining());
+        verify(userApiKeyRepository).findByApiKey("valid-key");
+    }
+
+    @Test
+    public void testGetUsageStats_KeyNotFound() {
+        when(userApiKeyRepository.findByApiKey("nonexistent-key")).thenReturn(Mono.empty());
+
+        QuotaService.ApiUsageStats result = quotaService.getUsageStats("nonexistent-key");
+
+        assertNull(result);
+        verify(userApiKeyRepository).findByApiKey("nonexistent-key");
+    }
+
+    @Test
+    public void testGetUsageStats_QuotaExhausted() {
+        exhaustedApiKey.setRequestCount(1000L);
+        when(userApiKeyRepository.findByApiKey("exhausted-key")).thenReturn(Mono.just(exhaustedApiKey));
+
+        QuotaService.ApiUsageStats result = quotaService.getUsageStats("exhausted-key");
+
+        assertNotNull(result);
+        assertEquals(1000L, result.getCurrentUsage());
+        assertFalse(result.isHasQuotaRemaining());
+        verify(userApiKeyRepository).findByApiKey("exhausted-key");
     }
 }
