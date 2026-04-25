@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,131 +17,118 @@ public class EncryptionServiceTest {
     private EncryptionService encryptionService;
 
     private String testPlainText;
-    private String testSecretKey;
 
     @BeforeEach
     public void setUp() {
         testPlainText = "This is a secret message";
-        testSecretKey = "test-secret-key-123";
+        String testSecretKey = EncryptionService.generateKey();
+        ReflectionTestUtils.setField(encryptionService, "base64Key", testSecretKey);
     }
 
     @Test
     public void testEncrypt_Success() {
-        // Act
-        String encryptedText = encryptionService.encrypt(testPlainText, testSecretKey);
+        String encryptedText = encryptionService.encrypt(testPlainText);
 
-        // Assert
         assertNotNull(encryptedText);
         assertNotEquals(testPlainText, encryptedText);
     }
 
     @Test
     public void testDecrypt_Success() {
-        // Arrange
-        String encryptedText = encryptionService.encrypt(testPlainText, testSecretKey);
+        String encryptedText = encryptionService.encrypt(testPlainText);
+        String decryptedText = encryptionService.decrypt(encryptedText);
 
-        // Act
-        String decryptedText = encryptionService.decrypt(encryptedText, testSecretKey);
-
-        // Assert
         assertEquals(testPlainText, decryptedText);
     }
 
     @Test
     public void testEncryptDecrypt_RoundTrip() {
-        // Arrange
         String originalText = "This is a longer secret message with special characters: !@#$%^&*()";
 
-        // Act
-        String encryptedText = encryptionService.encrypt(originalText, testSecretKey);
-        String decryptedText = encryptionService.decrypt(encryptedText, testSecretKey);
+        String encryptedText = encryptionService.encrypt(originalText);
+        String decryptedText = encryptionService.decrypt(encryptedText);
 
-        // Assert
         assertEquals(originalText, decryptedText);
     }
 
     @Test
     public void testEncrypt_WithEmptyString() {
-        // Act
-        String encryptedText = encryptionService.encrypt("", testSecretKey);
+        String encryptedText = encryptionService.encrypt("");
 
-        // Assert
         assertNotNull(encryptedText);
+        assertEquals("", encryptedText);
     }
 
     @Test
     public void testDecrypt_WithEmptyString() {
-        // Arrange
-        String encryptedText = encryptionService.encrypt("", testSecretKey);
+        String decryptedText = encryptionService.decrypt("");
 
-        // Act
-        String decryptedText = encryptionService.decrypt(encryptedText, testSecretKey);
-
-        // Assert
         assertEquals("", decryptedText);
     }
 
     @Test
-    public void testEncrypt_WithDifferentSecretKeys() {
-        // Act
-        String encrypted1 = encryptionService.encrypt(testPlainText, "secret-key-1");
-        String encrypted2 = encryptionService.encrypt(testPlainText, "secret-key-2");
+    public void testEncrypt_WithNull() {
+        String encryptedText = encryptionService.encrypt(null);
 
-        // Assert
+        assertNull(encryptedText);
+    }
+
+    @Test
+    public void testDecrypt_WithNull() {
+        String decryptedText = encryptionService.decrypt(null);
+
+        assertNull(decryptedText);
+    }
+
+    @Test
+    public void testEncrypt_WithDifferentTexts() {
+        String text1 = "First message";
+        String text2 = "Second message";
+
+        String encrypted1 = encryptionService.encrypt(text1);
+        String encrypted2 = encryptionService.encrypt(text2);
+
         assertNotEquals(encrypted1, encrypted2);
     }
 
     @Test
-    public void testDecrypt_WithWrongSecretKey() {
-        // Arrange
-        String encryptedText = encryptionService.encrypt(testPlainText, testSecretKey);
-
-        // Act & Assert
+    public void testDecrypt_WithWrongCipherText() {
         assertThrows(Exception.class, () -> {
-            encryptionService.decrypt(encryptedText, "wrong-secret-key");
+            encryptionService.decrypt("invalid-cipher-text");
         });
     }
 
     @Test
     public void testEncryptDecrypt_WithSpecialCharacters() {
-        // Arrange
         String textWithSpecialChars = "Special chars: !@#$%^&*()_+-=[]{}|;:',./<>?";
 
-        // Act
-        String encryptedText = encryptionService.encrypt(textWithSpecialChars, testSecretKey);
-        String decryptedText = encryptionService.decrypt(encryptedText, testSecretKey);
+        String encryptedText = encryptionService.encrypt(textWithSpecialChars);
+        String decryptedText = encryptionService.decrypt(encryptedText);
 
-        // Assert
         assertEquals(textWithSpecialChars, decryptedText);
     }
 
     @Test
     public void testEncryptDecrypt_WithUnicode() {
-        // Arrange
         String textWithUnicode = "Unicode test: 中文 日本語 한글 العربية עברית";
 
-        // Act
-        String encryptedText = encryptionService.encrypt(textWithUnicode, testSecretKey);
-        String decryptedText = encryptionService.decrypt(encryptedText, testSecretKey);
+        String encryptedText = encryptionService.encrypt(textWithUnicode);
+        String decryptedText = encryptionService.decrypt(encryptedText);
 
-        // Assert
         assertEquals(textWithUnicode, decryptedText);
     }
 
     @Test
     public void testEncrypt_WithVeryLongText() {
-        // Arrange
         StringBuilder longText = new StringBuilder();
         for (int i = 0; i < 1000; i++) {
             longText.append("This is line ").append(i).append(" of a very long text.\n");
         }
         String originalText = longText.toString();
 
-        // Act
-        String encryptedText = encryptionService.encrypt(originalText, testSecretKey);
-        String decryptedText = encryptionService.decrypt(encryptedText, testSecretKey);
+        String encryptedText = encryptionService.encrypt(originalText);
+        String decryptedText = encryptionService.decrypt(encryptedText);
 
-        // Assert
         assertEquals(originalText, decryptedText);
     }
 }

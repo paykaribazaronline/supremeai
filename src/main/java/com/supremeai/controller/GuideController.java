@@ -38,7 +38,7 @@ public class GuideController {
      */
     @GetMapping
     public Flux<UserGuide> getAllGuides() {
-        return userGuideRepository.findByIsPublishedTrue();
+        return userGuideRepository.findByIsPublished(true);
     }
 
     /**

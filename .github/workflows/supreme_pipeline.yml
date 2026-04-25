@@ -112,21 +112,44 @@ jobs:
           java-version: "21"
           distribution: "temurin"
           cache: ""
+      - name: Grant_Execute_Permission
+        run: chmod +x gradlew
       - name: Build_And_Test
         run: |
-          ./gradlew clean build -x test --no-build-cache --refresh-dependencies
+          ./gradlew clean build --no-build-cache --refresh-dependencies
           # The bootJar task now outputs app.jar directly, ensure it exists
           if [ ! -f "build/libs/app.jar" ]; then
             echo "Error: app.jar not found in build/libs"
             ls -R build/libs
             exit 1
           fi
+      - name: Generate_Coverage_Report
+        run: ./gradlew jacocoTestReport
       - name: Upload_JAR
         uses: actions/upload-artifact@v4
         with:
           name: java-backend-jar
           path: build/libs/app.jar
           if-no-files-found: error
+      - name: Upload_Coverage_To_Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./build/reports/jacoco/test/jacocoTestReport.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+      - name: Upload_Test_Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: build/test-results/test/
+      - name: Upload_Coverage_Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: build/reports/jacoco/test/
 
   flutter-build-and-test:
     name: Flutter_Build_And_Test

@@ -38,6 +38,15 @@ public class JwtUtil {
         return getClaim(token, Claims::getExpiration).before(new Date());
     }
 
+    public String generateToken(String username) {
+        return Jwts.builder()
+                .subject(username)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 hours
+                .signWith(getSigningKey())
+                .compact();
+    }
+
     private <T> T getClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = Jwts.parser()
                 .verifyWith(getSigningKey())
