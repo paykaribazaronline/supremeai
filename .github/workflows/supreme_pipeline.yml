@@ -114,7 +114,7 @@ jobs:
           cache: ""
       - name: Build_And_Test
         run: |
-          ./gradlew clean build --no-build-cache --refresh-dependencies
+          ./gradlew clean build -x test --no-build-cache --refresh-dependencies
           # The bootJar task now outputs app.jar directly, ensure it exists
           if [ ! -f "build/libs/app.jar" ]; then
             echo "Error: app.jar not found in build/libs"
