@@ -1,12 +1,16 @@
 package com.supremeai.controller;
 
 import com.supremeai.model.SystemLearning;
+import com.supremeai.service.EnhancedLearningService;
 import com.supremeai.service.SystemLearningService;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * System learning endpoints - ADMIN only.
@@ -18,9 +22,12 @@ import java.util.List;
 public class SystemLearningController {
 
     private final SystemLearningService service;
+    private final EnhancedLearningService enhancedService;
 
-    public SystemLearningController(SystemLearningService service) {
+    public SystemLearningController(SystemLearningService service,
+                                     EnhancedLearningService enhancedService) {
         this.service = service;
+        this.enhancedService = enhancedService;
     }
 
     @GetMapping
@@ -43,9 +50,6 @@ public class SystemLearningController {
         return service.deleteLearning(id);
     }
 
-    /**
-     * Get system 'wisdom' - highly confident autonomous learnings.
-     */
     @GetMapping("/wisdom")
     public Mono<List<SystemLearning>> getSystemWisdom() {
         return service.getAllLearning()
@@ -53,5 +57,41 @@ public class SystemLearningController {
             .sort((a, b) -> b.getLearnedAt().compareTo(a.getLearnedAt()))
             .take(20)
             .collectList();
+    }
+
+    /**
+     * Get comprehensive learning statistics.
+     */
+    @GetMapping("/stats")
+    public Mono<Map<String, Object>> getStats() {
+        return enhancedService.getLearningStats();
+    }
+
+    /**
+     * Get best practices for a given category above a quality threshold.
+     */
+    @GetMapping("/best-practices/{category}")
+    public Flux<SystemLearning> getBestPractices(@PathVariable String category,
+                                                 @RequestParam(defaultValue = "0.8") double minQuality) {
+        return enhancedService.getBestPractices(category, minQuality);
+    }
+
+    /**
+     * Get predictive recommendations for a task type.
+     */
+    @GetMapping("/recommendations")
+    public Flux<SystemLearning> getRecommendations(@RequestParam String taskType) {
+        return enhancedService.getPredictiveRecommendations(taskType, Map.of());
+    }
+
+    /**
+     * Manually trigger a learning cycle (for testing or admin-initiated learning).
+     * Intended for debugging or forcing an immediate improvement pass.
+     */
+    @PostMapping("/trigger-improvement")
+    public Mono<String> triggerImprovement() {
+        // Could integrate with SelfImprovementService if needed.
+        // For now, acknowledge the endpoint.
+        return Mono.just("Improvement trigger not implemented in this context");
     }
 }
