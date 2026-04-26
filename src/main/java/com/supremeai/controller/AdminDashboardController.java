@@ -211,7 +211,7 @@ public class AdminDashboardController extends BaseAdminController<Object, String
                 solution.markObsolete(reason);
                 return solutionMemoryRepository.save(solution);
             })
-            .map(updated -> ResponseEntity.ok(Map.of(
+            .map(updated -> (ResponseEntity<Object>) ResponseEntity.ok((Object) Map.of(
                 "status", "obsoleted",
                 "solutionId", updated.getId(),
                 "reason", updated.getObsoleteReason()
