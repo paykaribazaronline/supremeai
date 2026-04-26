@@ -89,7 +89,7 @@ public class AuthenticationControllerTest {
         Map<String, String> loginRequest = Map.of("idToken", idToken);
         MockHttpServletRequest httpRequest = new MockHttpServletRequest();
 
-        Map<String, Object> response = authenticationController.firebaseLogin(loginRequest, httpRequest);
+        Map<String, Object> response = authenticationController.firebaseLogin(loginRequest, httpRequest).block();
 
         assertEquals("success", response.get("status"));
         assertEquals(false, response.get("isNewUser"));
@@ -125,7 +125,7 @@ public class AuthenticationControllerTest {
         Map<String, String> loginRequest = Map.of("idToken", idToken);
         MockHttpServletRequest httpRequest = new MockHttpServletRequest();
 
-        Map<String, Object> response = authenticationController.firebaseLogin(loginRequest, httpRequest);
+        Map<String, Object> response = authenticationController.firebaseLogin(loginRequest, httpRequest).block();
 
         assertEquals("success", response.get("status"));
         assertEquals(true, response.get("isNewUser"));
@@ -158,7 +158,7 @@ public class AuthenticationControllerTest {
         Map<String, String> loginRequest = Map.of("idToken", idToken);
         MockHttpServletRequest httpRequest = new MockHttpServletRequest();
 
-        Map<String, Object> response = authenticationController.firebaseLogin(loginRequest, httpRequest);
+        Map<String, Object> response = authenticationController.firebaseLogin(loginRequest, httpRequest).block();
 
         @SuppressWarnings("unchecked")
         Map<String, Object> userMap = (Map<String, Object>) response.get("user");
@@ -174,7 +174,7 @@ public class AuthenticationControllerTest {
         Map<String, String> loginRequest = Map.of("idToken", idToken);
         MockHttpServletRequest httpRequest = new MockHttpServletRequest();
 
-        Map<String, Object> response = authenticationController.firebaseLogin(loginRequest, httpRequest);
+        Map<String, Object> response = authenticationController.firebaseLogin(loginRequest, httpRequest).block();
 
         assertEquals("error", response.get("status"));
         assertTrue(response.get("message").toString().contains("Authentication failed"));
@@ -200,7 +200,7 @@ public class AuthenticationControllerTest {
         when(userRepository.findByFirebaseUid(uid)).thenReturn(Mono.just(user));
         when(activityLogRepository.save(any(ActivityLog.class))).thenReturn(Mono.empty());
 
-        Map<String, Object> response = authenticationController.logout(httpRequest);
+        Map<String, Object> response = authenticationController.logout(httpRequest).block();
 
         assertEquals("success", response.get("status"));
         assertNull(SecurityContextHolder.getContext().getAuthentication());

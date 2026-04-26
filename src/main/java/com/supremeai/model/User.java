@@ -130,7 +130,6 @@ public class User {
     public Boolean getIsActive() { return isActive; }
     public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 
-    // Helper methods (Using non-bean names to avoid Firestore conflicts)
     @Exclude
     public boolean isSystemAdmin() {
         return getTier() == UserTier.ADMIN;
@@ -150,5 +149,21 @@ public class User {
     public boolean checkQuotaRemaining() {
         if (getTier() == UserTier.ADMIN) return true;
         return this.currentUsage < fetchMonthlyQuota();
+    }
+
+    // Test compatibility methods
+    @Exclude
+    public boolean isAdmin() {
+        return isSystemAdmin();
+    }
+
+    @Exclude
+    public Long getMonthlyQuota() {
+        return fetchMonthlyQuota();
+    }
+
+    @Exclude
+    public boolean hasQuotaRemaining() {
+        return checkQuotaRemaining();
     }
 }

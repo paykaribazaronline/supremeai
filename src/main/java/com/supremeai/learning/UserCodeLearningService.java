@@ -346,7 +346,7 @@ public class UserCodeLearningService {
     /**
      * Inner class to represent code diff analysis
      */
-    private static class CodeDiffAnalysis {
+    static class CodeDiffAnalysis {
         private List<String> addedLines = new ArrayList<>();
         private List<String> removedLines = new ArrayList<>();
         private double similarityPercentage = 0.0;

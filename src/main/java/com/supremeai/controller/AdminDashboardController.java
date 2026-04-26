@@ -8,6 +8,8 @@ import com.supremeai.service.AIRankingService;
 import com.supremeai.service.AutonomousQuestioningService;
 import com.supremeai.admin.AdminDashboardService;
 import com.supremeai.admin.ImprovementProposal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -25,6 +27,7 @@ import java.util.Map;
 @RequestMapping("/api/admin")
 public class AdminDashboardController extends BaseAdminController<Object, String> {
 
+    private static final Logger log = LoggerFactory.getLogger(AdminDashboardController.class);
     private final UserRepository userRepository;
     private final AgentRepository agentRepository;
     private final ProjectRepository projectRepository;
@@ -35,6 +38,7 @@ public class AdminDashboardController extends BaseAdminController<Object, String
     private final AIRankingService aiRankingService;
     private final AutonomousQuestioningService questioningService;
     private final AdminDashboardService adminDashboardService;
+    private final SolutionMemoryRepository solutionMemoryRepository;
 
     public AdminDashboardController(UserRepository userRepository,
                                      AgentRepository agentRepository,
@@ -45,7 +49,8 @@ public class AdminDashboardController extends BaseAdminController<Object, String
                                      VPNRepository vpnRepository,
                                      AIRankingService aiRankingService,
                                      AutonomousQuestioningService questioningService,
-                                     AdminDashboardService adminDashboardService) {
+                                     AdminDashboardService adminDashboardService,
+                                     SolutionMemoryRepository solutionMemoryRepository) {
         this.userRepository = userRepository;
         this.agentRepository = agentRepository;
         this.projectRepository = projectRepository;
@@ -56,6 +61,7 @@ public class AdminDashboardController extends BaseAdminController<Object, String
         this.aiRankingService = aiRankingService;
         this.questioningService = questioningService;
         this.adminDashboardService = adminDashboardService;
+        this.solutionMemoryRepository = solutionMemoryRepository;
     }
 
     @GetMapping("/dashboard/contract")
@@ -188,6 +194,39 @@ public class AdminDashboardController extends BaseAdminController<Object, String
                 "proposalId", proposalId
             )));
         }
+    }
+
+    /**
+     * Mark a solution memory as obsolete (soft-delete) to unlearn it.
+     * This preserves audit trail but excludes solution from future queries.
+     */
+    @PostMapping("/knowledge/obsolete/{solutionId}")
+    public Mono<ResponseEntity<Object>> markSolutionObsolete(
+            @PathVariable String solutionId,
+            @RequestBody Map<String, String> request) {
+        String reason = request.getOrDefault("reason", "No reason provided");
+
+        return solutionMemoryRepository.findById(solutionId)
+            .flatMap(solution -> {
+                solution.markObsolete(reason);
+                return solutionMemoryRepository.save(solution);
+            })
+            .map(updated -> ResponseEntity.ok(Map.of(
+                "status", "obsoleted",
+                "solutionId", updated.getId(),
+                "reason", updated.getObsoleteReason()
+            )))
+            .defaultIfEmpty(ResponseEntity.status(404).body(Map.of(
+                "error", "Solution not found",
+                "solutionId", solutionId
+            )))
+            .onErrorResume(e -> {
+                log.error("Failed to obsolete solution {}: {}", solutionId, e.getMessage());
+                return Mono.just(ResponseEntity.status(500).body(Map.of(
+                    "error", "Failed to obsolete solution",
+                    "details", e.getMessage()
+                )));
+            });
     }
 
     private Map<String, Object> toUserMap(User user) {

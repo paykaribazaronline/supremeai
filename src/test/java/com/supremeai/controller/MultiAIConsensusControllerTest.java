@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import reactor.core.publisher.Mono;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,16 +47,16 @@ public class MultiAIConsensusControllerTest {
         consensusResult.setStrength("STRONG");
     }
 
-    @Test
-    public void testAskAllAIs_Success() throws Exception {
-        // Arrange
-        Map<String, Object> request = new HashMap<>();
-        request.put("question", "What is AI?");
-        request.put("providers", Collections.singletonList("openai"));
-        request.put("timeout", 5000);
+     @Test
+     public void testAskAllAIs_Success() throws Exception {
+         // Arrange
+         Map<String, Object> request = new HashMap<>();
+         request.put("question", "What is AI?");
+         request.put("providers", Collections.singletonList("openai"));
+         request.put("timeout", 5000);
 
-        when(consensusService.askAllAIs(anyString(), anyList(), anyLong()))
-                .thenReturn(consensusResult);
+         when(consensusService.askAllAIs(anyString(), anyList(), anyLong()))
+                 .thenReturn(Mono.just(consensusResult));
 
         // Act & Assert
         mockMvc.perform(post("/api/consensus/ask")
@@ -67,16 +68,16 @@ public class MultiAIConsensusControllerTest {
                 .andExpect(jsonPath("$.strength").value("STRONG"));
     }
 
-    @Test
-    public void testAskAllAIs_EmptyProviders() throws Exception {
-        // Arrange
-        Map<String, Object> request = new HashMap<>();
-        request.put("question", "What is AI?");
-        request.put("providers", Collections.emptyList());
-        request.put("timeout", 5000);
+     @Test
+     public void testAskAllAIs_EmptyProviders() throws Exception {
+         // Arrange
+         Map<String, Object> request = new HashMap<>();
+         request.put("question", "What is AI?");
+         request.put("providers", Collections.emptyList());
+         request.put("timeout", 5000);
 
-        when(consensusService.askAllAIs(anyString(), anyList(), anyLong()))
-                .thenReturn(consensusResult);
+         when(consensusService.askAllAIs(anyString(), anyList(), anyLong()))
+                 .thenReturn(Mono.just(consensusResult));
 
         // Act & Assert
         mockMvc.perform(post("/api/consensus/ask")

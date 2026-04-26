@@ -79,19 +79,40 @@ public class GlobalKnowledgeBase {
 
     /**
      * Records a successful fix, checking with Admin Dashboard first for new solutions.
-     * Existing solutions are updated in-memory and persisted.
+     * Existing solutions are updated with versioning.
      */
     public void recordSuccessWithPermission(String errorSignature, String successfulCode, String aiProvider,
                               long executionTimeMs, double securityScore) {
 
-        // Check if we already have this exact solution (confidence boost doesn't need admin permission)
         List<SolutionMemory> solutions = globalMemory.computeIfAbsent(errorSignature, k -> new ArrayList<>());
+
+        // Check if we already have this exact solution
         for (SolutionMemory solution : solutions) {
             if (solution.getResolvedCode().equals(successfulCode)) {
-                solution.incrementSuccess();
-                log.info("[Knowledge Base] Boosted confidence for existing solution by {}", aiProvider);
-                // Persist the increment
-                saveMemory(solution);
+                if (solution.isObsolete()) {
+                    // Un-obsolete if it was previously marked obsolete (revival)
+                    solution.setObsolete(false);
+                    solution.setObsoleteReason(null);
+                    solution.setObsoletedAt(null);
+                    log.info("[Knowledge Base] Revived previously obsolete solution by {}", aiProvider);
+                }
+
+                // Create a new version for update (versioning + rollback support)
+                SolutionMemory updated = solution.createUpdate(
+                    successfulCode, // Same code but new version captures updated counters
+                    executionTimeMs,
+                    securityScore
+                );
+                updated.setId(null); // Let Firestore generate new ID for version
+                updated.setPreviousVersionId(solution.getId());
+
+                // Transfer counters from previous version to base
+                updated.setSuccessCount(solution.getSuccessCount() + 1);
+                updated.setFailureCount(solution.getFailureCount());
+
+                solutions.add(updated);
+                log.info("[Knowledge Base] Updated solution (new version: v{}) by {}", updated.getVersion(), aiProvider);
+                saveMemory(updated);
                 return;
             }
         }
@@ -119,21 +140,35 @@ public class GlobalKnowledgeBase {
             saveMemory(newMemory);
         } else {
             log.info("[Knowledge Base] Solution pending. Waiting for Admin to approve in the Dashboard.");
-            // The admin approval flow will need to create and save the SolutionMemory later.
         }
     }
 
     /**
      * Record a failure for an existing solution to help refine scoring.
+     * Creates a new version to preserve history.
      */
     public void recordFailure(String errorSignature, String failedCode) {
         List<SolutionMemory> solutions = globalMemory.get(errorSignature);
         if (solutions != null) {
             for (SolutionMemory solution : solutions) {
                 if (solution.getResolvedCode().equals(failedCode)) {
-                    solution.incrementFailure();
-                    log.warn("[Knowledge Base] Penalized a solution that failed in production.");
-                    saveMemory(solution);
+                    if (solution.isObsolete()) {
+                        log.debug("Ignoring failure for obsolete solution: {}", failedCode);
+                        return;
+                    }
+
+                    // Create new version with updated failure count
+                    SolutionMemory updated = solution.createUpdate(
+                        failedCode,
+                        solution.getExecutionTimeMs(),
+                        solution.getSecurityScore()
+                    );
+                    updated.setSuccessCount(solution.getSuccessCount());
+                    updated.setFailureCount(solution.getFailureCount() + 1);
+
+                    solutions.add(updated);
+                    log.warn("[Knowledge Base] Penalized a solution that failed in production (v{})", updated.getVersion());
+                    saveMemory(updated);
                     return;
                 }
             }
