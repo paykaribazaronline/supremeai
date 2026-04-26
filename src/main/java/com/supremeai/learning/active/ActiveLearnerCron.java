@@ -28,9 +28,9 @@ public class ActiveLearnerCron {
 
         for (ScrapedIssue issue : trendingIssues) {
             knowledgeBase.recordSuccessWithPermission(
-                issue.titleOrError,
-                issue.potentialSolution,
-                "InternetScraper(" + issue.source + ")",
+                issue.getTitle(),
+                issue.getSolution(),
+                "InternetScraper(" + issue.getSource() + ")",
                 100, 
                 0.9
             );
