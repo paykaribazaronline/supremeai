@@ -463,14 +463,25 @@ learning.scraper.stackoverflow.limit=3
 
 ---
 
-## 📋 Next Steps
+## 📋 Next Steps (Phase 2)
 
-1. **Dashboard UI** – Implement `ImprovementProposalsPanel` in React admin dashboard.
-2. **Knowledge Integration** – Wire `GlobalKnowledgeBase` into error-fixing flow.
-3. **Indexing** – Add Firestore composite index on `solution_memories.triggerError` if query volume increases.
-4. **Health Check** – Add `/health/learning` endpoint to verify scraper health.
-5. **Tests** – Refactor `UserCodeLearningServiceTest` to avoid private inner class or use white-box testing approach.
+1. **Dashboard UI** – Implement `ImprovementProposalsPanel` + UX best practices
+2. **Knowledge Integration** – Wire `GlobalKnowledgeBase` into error-fixing flow
+3. **Indexing** – Firestore composite index on `solution_memories.triggerError`
+4. **Health Check** – Add `/health/learning` endpoint
+5. **Tests** – Refactor `UserCodeLearningServiceTest`
+6. **Browser Control** – Implement `BrowserAccessController`
+7. **Tiered Storage** – Migrate to 5-tier model (T1-T5)
 
 ---
 
-**Status:** The self-learning system backend implementation is **~90% complete** per Plan 3. Remaining work is primarily UI integration and minor performance optimizations.
+## 📚 Related Documentation
+
+- [UX Best Practices — SupremeAI](./UX_Best_Practices_SupremeAI.md) - User experience guidelines
+- [Phase 1: Foundation](./phases/Phase1_Foundation.md)
+- [SystemLearningDashboard.tsx](../dashboard/src/components/SystemLearningDashboard.tsx)
+- [HeadlessBrowserDashboard.tsx](../dashboard/src/components/HeadlessBrowserDashboard.tsx)
+
+---
+
+**Status:** The self-learning system backend implementation is **~90% complete** per Plan 3. Remaining work is primarily UI integration following UX best practices, performance tuning, and Phase 2 features.
