@@ -14,9 +14,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
+    
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthFilter.class);
     
     @Autowired
     private JwtUtil jwtUtil;
@@ -47,7 +51,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             response.getWriter().write("{\"error\":\"Token expired\",\"message\":\"Please login again\"}");
             return;
         } catch (Exception e) {
-            // Log error if needed
+            // Log error for debugging
+            logger.error("JWT token validation error: " + e.getMessage(), e);
         }
         
         chain.doFilter(request, response);
