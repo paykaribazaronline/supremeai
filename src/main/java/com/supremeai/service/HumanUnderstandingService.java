@@ -6,6 +6,7 @@ import com.supremeai.repository.SystemLearningRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import jakarta.annotation.PreDestroy;
 import java.util.concurrent.ExecutorService;
@@ -40,7 +41,7 @@ public class HumanUnderstandingService {
         executor.submit(() -> {
             try {
                 // Extract human dimensions from every interaction
-                var analysis = consensusService.askAllAIs("""
+                Mono<com.supremeai.model.ConsensusResult> analysisMono = consensusService.askAllAIs("""
                     Analyze this human-AI interaction and extract ONLY these values:
                     
                     USER MESSAGE: %s
@@ -58,15 +59,19 @@ public class HumanUnderstandingService {
                     java.util.List.of("groq"),
                     10000
                 );
+                var analysis = analysisMono.block();
+                if (analysis == null) {
+                    return;
+                }
 
                 // Permanently store what we learned about humans
                 SystemLearning learning = new SystemLearning();
                 learning.setCategory("HUMAN_UNDERSTANDING");
-                learning.setContent(analysis.getConsensus());
+                learning.setContent(analysis.getConsensusAnswer());
                 learningRepository.save(learning).block(); // Use block() for synchronous save
 
                 logger.debug("Analyzed human factors: satisfaction={}",
-                        analysis.getConsensus().contains("\"satisfaction\":"));
+                        analysis.getConsensusAnswer().contains("\"satisfaction\":"));
 
             } catch (Exception e) {
                 logger.debug("Human analysis failed: {}", e.getMessage());

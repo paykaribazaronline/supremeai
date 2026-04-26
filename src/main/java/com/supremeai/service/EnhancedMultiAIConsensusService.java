@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -178,10 +179,10 @@ public class EnhancedMultiAIConsensusService {
                         prompt = question;
                     }
 
-                    String response = selfHealingService.executeWithRetry(
+                    String response = resolveResponse(selfHealingService.executeWithRetry(
                         () -> provider.generate(prompt),
                         2, 250L
-                    );
+                    ));
 
                     // Get weighted confidence based on provider's past performance
                     double confidence = calculateProviderWeight(providerName);
@@ -288,6 +289,10 @@ public class EnhancedMultiAIConsensusService {
      */
     private double getProviderWeight(String providerName) {
         return calculateProviderWeight(providerName);
+    }
+
+    private String resolveResponse(Mono<String> responseMono) {
+        return java.util.Objects.requireNonNullElse(responseMono.block(), "");
     }
 
     /**

@@ -92,12 +92,12 @@ public class ChatController {
             
             // Fallback to simpler consensus if voting fails
             if (consensusService != null) {
-                var res = consensusService.askAllAIs(message, List.of("google"), 10000L);
-                return Mono.just(ResponseEntity.ok(Map.of(
-                    "message", res.getConsensusAnswer(),
-                    "confidence", res.getAverageConfidence(),
-                    "fallback", true
-                )));
+                return consensusService.askAllAIs(message, List.of("google"), 10000L)
+                    .map(res -> ResponseEntity.ok(Map.of(
+                        "message", res.getConsensusAnswer(),
+                        "confidence", res.getAverageConfidence(),
+                        "fallback", true
+                    )));
             }
             
             return Mono.just(ResponseEntity.status(500).body(Map.of("error", "Voting system error: " + e.getMessage())));

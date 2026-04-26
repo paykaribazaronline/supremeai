@@ -150,7 +150,7 @@ public class AdminDashboardController extends BaseAdminController<Object, String
         userMap.put("email", user.getEmail());
         userMap.put("displayName", user.getDisplayName());
         userMap.put("tier", user.getTier().toString());
-        userMap.put("monthlyQuota", user.getMonthlyQuota());
+        userMap.put("monthlyQuota", user.fetchMonthlyQuota());
         userMap.put("createdAt", user.getCreatedAt());
         userMap.put("lastLoginAt", user.getLastLoginAt());
         userMap.put("isActive", user.getIsActive());
@@ -176,7 +176,7 @@ public class AdminDashboardController extends BaseAdminController<Object, String
                 .flatMap(user -> {
                     String oldTier = user.getTier().toString();
                     user.setTier(newTier);
-                    user.setUpdatedAt(java.time.LocalDateTime.now());
+                    user.setUpdatedAt(java.time.LocalDateTime.now().toString());
                     String adminUserId = getCurrentAdminUserId();
                     return userRepository.save(user)
                                                         .doOnSuccess(savedUser -> {
@@ -198,7 +198,7 @@ public class AdminDashboardController extends BaseAdminController<Object, String
                         "user", Map.of(
                                 "id", user.getFirebaseUid(),
                                 "tier", user.getTier().toString(),
-                                "monthlyQuota", user.getMonthlyQuota()
+                                "monthlyQuota", user.fetchMonthlyQuota()
                         )
                 ));})
                 .defaultIfEmpty(ResponseEntity.status(404).body(Map.of("error", "User not found")))

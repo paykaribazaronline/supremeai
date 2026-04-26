@@ -126,7 +126,7 @@ public class UserAccountController {
             map.put("tier", u.getTier().toString());
             map.put("isActive", u.getIsActive());
             map.put("currentUsage", u.getCurrentUsage());
-            map.put("monthlyQuota", u.getMonthlyQuota());
+            map.put("monthlyQuota", u.fetchMonthlyQuota());
             map.put("createdAt", u.getCreatedAt() != null ? u.getCreatedAt().toString() : null);
             map.put("lastLoginAt", u.getLastLoginAt() != null ? u.getLastLoginAt().toString() : null);
             result.add(map);
@@ -168,8 +168,8 @@ public class UserAccountController {
         response.put("tier", user.getTier().toString());
         response.put("isActive", user.getIsActive());
         response.put("currentUsage", user.getCurrentUsage());
-        response.put("monthlyQuota", user.getMonthlyQuota());
-        response.put("hasQuotaRemaining", user.hasQuotaRemaining());
+        response.put("monthlyQuota", user.fetchMonthlyQuota());
+        response.put("hasQuotaRemaining", user.checkQuotaRemaining());
         response.put("createdAt", user.getCreatedAt() != null ? user.getCreatedAt().toString() : null);
         response.put("lastLoginAt", user.getLastLoginAt() != null ? user.getLastLoginAt().toString() : null);
 
@@ -198,7 +198,7 @@ public class UserAccountController {
                     "status", "success",
                     "uid", user.getFirebaseUid(),
                     "tier", user.getTier().toString(),
-                    "monthlyQuota", user.getMonthlyQuota()
+                    "monthlyQuota", user.fetchMonthlyQuota()
             ));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid tier: " + tierStr));

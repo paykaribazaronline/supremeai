@@ -51,8 +51,8 @@ public class WebSocketController {
                     uq.put("displayName", user.getDisplayName());
                     uq.put("email", user.getEmail());
                     uq.put("usedQuota", user.getCurrentUsage());
-                    uq.put("totalQuota", user.getMonthlyQuota());
-                    uq.put("usagePercentage", user.getMonthlyQuota() > 0 ? (double) user.getCurrentUsage() / user.getMonthlyQuota() * 100.0 : 0.0);
+                    uq.put("totalQuota", user.fetchMonthlyQuota());
+                    uq.put("usagePercentage", user.fetchMonthlyQuota() > 0 ? (double) user.getCurrentUsage() / user.fetchMonthlyQuota() * 100.0 : 0.0);
                     return uq;
                 }).collect(java.util.stream.Collectors.toList());
                 data.put("userQuotas", userQuotas);

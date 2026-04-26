@@ -52,7 +52,7 @@ public class UserCodeLearningService {
         try {
             log.info("Loading existing learning patterns from Firestore collection: {}", systemLearningCollection);
             ApiFuture<QuerySnapshot> future = firestore.collection(systemLearningCollection).get();
-            List<QueryDocumentSnapshot> documents = future.get();
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
             int loadedCount = 0;
             for (QueryDocumentSnapshot doc : documents) {
@@ -147,11 +147,11 @@ public class UserCodeLearningService {
 
         // Set pattern type based on the nature of changes
         if (diffAnalysis.getSimilarityPercentage() > 80) {
-            pattern.setType("MINOR_CORRECTION");
+            pattern.setLearningType("MINOR_CORRECTION");
         } else if (diffAnalysis.getSimilarityPercentage() > 50) {
-            pattern.setType("MODIFICATION");
+            pattern.setLearningType("MODIFICATION");
         } else {
-            pattern.setType("MAJOR_REFACTOR");
+            pattern.setLearningType("MAJOR_REFACTOR");
         }
 
         // Set category based on context
@@ -171,8 +171,8 @@ public class UserCodeLearningService {
 
         pattern.setContent(content.toString());
 
-        // Set timestamp
-        pattern.setTimestamp(System.currentTimeMillis());
+        // Set learnedAt
+        pattern.setLearnedAt(java.time.LocalDateTime.now());
 
         // Set metadata
         Map<String, Object> metadata = new HashMap<>();
@@ -281,7 +281,7 @@ public class UserCodeLearningService {
                 ApiFuture<QuerySnapshot> future = firestore.collection(systemLearningCollection)
                         .whereEqualTo("category", category)
                         .get();
-                List<QueryDocumentSnapshot> documents = future.get();
+                List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 
                 for (QueryDocumentSnapshot doc : documents) {
                     SystemLearning pattern = docToSystemLearning(doc);
@@ -305,10 +305,10 @@ public class UserCodeLearningService {
     private Map<String, Object> systemLearningToMap(SystemLearning pattern) {
         Map<String, Object> map = new HashMap<>();
         map.put("id", pattern.getId());
-        map.put("type", pattern.getType());
+        map.put("type", pattern.getLearningType());
         map.put("category", pattern.getCategory());
         map.put("content", pattern.getContent());
-        map.put("timestamp", pattern.getTimestamp());
+        map.put("timestamp", pattern.getLearnedAt() != null ? pattern.getLearnedAt().toString() : "");
         map.put("metadata", pattern.getMetadata() != null ? pattern.getMetadata() : new HashMap<>());
         return map;
     }
@@ -320,10 +320,17 @@ public class UserCodeLearningService {
         try {
             SystemLearning pattern = new SystemLearning();
             pattern.setId(doc.getString("id"));
-            pattern.setType(doc.getString("type"));
+            pattern.setLearningType(doc.getString("type"));
             pattern.setCategory(doc.getString("category"));
             pattern.setContent(doc.getString("content"));
-            pattern.setTimestamp(doc.getLong("timestamp"));
+            String ts = doc.getString("timestamp");
+            if (ts != null && !ts.isEmpty()) {
+                try {
+                    pattern.setLearnedAt(java.time.LocalDateTime.parse(ts));
+                } catch (Exception e) {
+                    pattern.setLearnedAt(java.time.LocalDateTime.now());
+                }
+            }
 
             @SuppressWarnings("unchecked")
             Map<String, Object> metadata = (Map<String, Object>) doc.get("metadata");

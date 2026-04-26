@@ -262,6 +262,280 @@ exports.updateProgress = functions.https.onRequest(async (req, res) => {
     }
 });
 
+// ============ BENGALI OCR PROCESSING ============
+
+/**
+ * HTTP trigger: Process Bengali OCR on uploaded images
+ * Endpoint: https://region-supremeai.cloudfunctions.net/processBengaliOCR
+ */
+exports.processBengaliOCR = functions.https.onRequest(async (req, res) => {
+    try {
+        const { imageUrls, projectId, userId } = req.body;
+
+        if (!imageUrls || !Array.isArray(imageUrls) || imageUrls.length === 0) {
+            return res.status(400).json({ error: "Missing or invalid imageUrls array" });
+        }
+
+        const results = [];
+        const vision = require('@google-cloud/vision');
+        const client = new vision.ImageAnnotatorClient();
+
+        for (const imageUrl of imageUrls) {
+            try {
+                console.log(`🔍 Processing OCR for: ${imageUrl}`);
+
+                // For Firebase Storage URLs, we need to download the image
+                let image;
+                if (imageUrl.startsWith('gs://') || imageUrl.startsWith('https://firebasestorage.googleapis.com')) {
+                    // Download from Firebase Storage
+                    const bucket = admin.storage().bucket();
+                    const fileName = imageUrl.split('/').pop();
+                    const file = bucket.file(fileName);
+                    const [buffer] = await file.download();
+                    image = { content: buffer };
+                } else if (imageUrl.startsWith('data:image/')) {
+                    // Base64 encoded image
+                    const base64Data = imageUrl.split(',')[1];
+                    image = { content: Buffer.from(base64Data, 'base64') };
+                } else {
+                    // External URL
+                    const axios = require('axios');
+                    const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+                    image = { content: Buffer.from(response.data) };
+                }
+
+                // Configure for Bengali text recognition
+                const imageContext = {
+                    languageHints: ['bn'], // Bengali language hint
+                };
+
+                // Perform OCR
+                const [result] = await client.textDetection({
+                    image,
+                    imageContext,
+                });
+
+                if (result.error) {
+                    throw new Error(`Vision API error: ${result.error.message}`);
+                }
+
+                const detections = result.textAnnotations;
+                const extractedText = detections.length > 0 ? detections[0].description : '';
+
+                // Parse table structure if possible
+                const lines = extractedText.split('\n').filter(line => line.trim());
+                const tableData = parseTableFromText(lines);
+
+                // Save to Firestore
+                const ocrResult = {
+                    imageUrl,
+                    extractedText,
+                    tableData,
+                    language: 'bengali',
+                    processedAt: admin.firestore.FieldValue.serverTimestamp(),
+                    confidence: detections.length > 0 ? detections[0].boundingPoly : null,
+                };
+
+                if (projectId) {
+                    await db.collection('projects').doc(projectId).collection('ocr_results').add(ocrResult);
+                }
+
+                results.push({
+                    imageUrl,
+                    success: true,
+                    textLength: extractedText.length,
+                    linesCount: lines.length,
+                    tableDetected: tableData.length > 0,
+                });
+
+            } catch (imageError) {
+                console.error(`Error processing ${imageUrl}:`, imageError);
+                results.push({
+                    imageUrl,
+                    success: false,
+                    error: imageError.message,
+                });
+            }
+        }
+
+        // Send notification to user
+        if (userId && results.some(r => r.success)) {
+            await admin.messaging().sendToDevice(userId, {
+                notification: {
+                    title: "✅ Bengali OCR Complete",
+                    body: `Processed ${results.filter(r => r.success).length}/${results.length} images`,
+                },
+                data: {
+                    type: "ocr_complete",
+                    projectId: projectId || "",
+                },
+            });
+        }
+
+        res.json({
+            success: true,
+            results,
+            summary: {
+                total: results.length,
+                successful: results.filter(r => r.success).length,
+                failed: results.filter(r => !r.success).length,
+            }
+        });
+
+    } catch (error) {
+        console.error("Error in Bengali OCR processing:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * HTTP trigger: Get OCR results for a project
+ * Endpoint: https://region-supremeai.cloudfunctions.net/getOCRResults
+ */
+exports.getOCRResults = functions.https.onRequest(async (req, res) => {
+    try {
+        const { projectId } = req.query;
+
+        if (!projectId) {
+            return res.status(400).json({ error: "Missing projectId" });
+        }
+
+        const ocrResults = await db.collection('projects').doc(projectId)
+            .collection('ocr_results')
+            .orderBy('processedAt', 'desc')
+            .get();
+
+        const results = [];
+        ocrResults.forEach(doc => {
+            results.push({
+                id: doc.id,
+                ...doc.data(),
+            });
+        });
+
+        res.json({
+            success: true,
+            results,
+        });
+
+    } catch (error) {
+        console.error("Error fetching OCR results:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * HTTP trigger: Convert OCR results to Excel and upload
+ * Endpoint: https://region-supremeai.cloudfunctions.net/exportOCRToExcel
+ */
+exports.exportOCRToExcel = functions.https.onRequest(async (req, res) => {
+    try {
+        const { projectId, resultIds } = req.body;
+
+        if (!projectId || !resultIds || !Array.isArray(resultIds)) {
+            return res.status(400).json({ error: "Missing projectId or resultIds array" });
+        }
+
+        const ExcelJS = require('exceljs');
+        const workbook = new ExcelJS.Workbook();
+
+        for (const resultId of resultIds) {
+            const resultDoc = await db.collection('projects').doc(projectId)
+                .collection('ocr_results').doc(resultId).get();
+
+            if (!resultDoc.exists) {
+                continue;
+            }
+
+            const result = resultDoc.data();
+            const worksheet = workbook.addWorksheet(`OCR_${resultId.slice(-8)}`);
+
+            // Add metadata
+            worksheet.addRow(['Image URL', result.imageUrl]);
+            worksheet.addRow(['Processed At', result.processedAt.toDate()]);
+            worksheet.addRow(['Language', result.language]);
+            worksheet.addRow(['']); // Empty row
+
+            // Add extracted text
+            worksheet.addRow(['Extracted Text']);
+            worksheet.addRow([result.extractedText]);
+            worksheet.addRow(['']); // Empty row
+
+            // Add table data if available
+            if (result.tableData && result.tableData.length > 0) {
+                worksheet.addRow(['Structured Table Data']);
+                result.tableData.forEach(row => {
+                    worksheet.addRow(row);
+                });
+            }
+        }
+
+        // Generate Excel buffer
+        const buffer = await workbook.xlsx.writeBuffer();
+
+        // Upload to Firebase Storage
+        const bucket = admin.storage().bucket();
+        const fileName = `ocr_exports/${projectId}/bengali_ocr_${Date.now()}.xlsx`;
+        const file = bucket.file(fileName);
+
+        await file.save(buffer, {
+            metadata: {
+                contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            },
+        });
+
+        // Get download URL
+        const [url] = await file.getSignedUrl({
+            action: 'read',
+            expires: '03-09-2491', // Long expiry
+        });
+
+        // Save export record
+        await db.collection('projects').doc(projectId).collection('exports').add({
+            type: 'bengali_ocr_excel',
+            fileName,
+            downloadUrl: url,
+            exportedAt: admin.firestore.FieldValue.serverTimestamp(),
+            resultCount: resultIds.length,
+        });
+
+        res.json({
+            success: true,
+            downloadUrl: url,
+            fileName,
+            message: `Excel file created with ${resultIds.length} OCR results`,
+        });
+
+    } catch (error) {
+        console.error("Error exporting to Excel:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ============ HELPER FUNCTIONS ============
+
+/**
+ * Parse table structure from OCR text lines
+ */
+function parseTableFromText(lines) {
+    if (!lines || lines.length === 0) return [];
+
+    const tableData = [];
+
+    // Simple table detection: look for consistent column patterns
+    // This is a basic implementation - can be enhanced with ML
+
+    for (const line of lines) {
+        // Split on multiple spaces or tabs (common in tabular data)
+        const cells = line.split(/\s{2,}|\t/).map(cell => cell.trim()).filter(cell => cell);
+        if (cells.length > 1) { // Likely a table row
+            tableData.push(cells);
+        }
+    }
+
+    return tableData;
+}
+
 // ============ HELPER: VPN SWITCHING ============
 
 async function switchVPN(agentId) {
