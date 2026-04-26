@@ -127,6 +127,7 @@
 | 19 | Brilliant Idea Detection | 🟡 Partial | ~75% |
 | 20 | Learning from Examples | 🟡 Partial | ~80% |
 | 21 | Best Pattern Curation | 🟡 Partial | ~80% |
+| 22 | Simulator Controller Perfection | 🔴 New | ~0% |
 
 ---
 
@@ -480,6 +481,72 @@
 
 ---
 
+## Plan 22: Simulator Controller Perfection 🔴
+**Status:** New — No implementation started  
+**Estimated Effort:** 6-8 sprints (12-16 weeks)
+
+### Concept:
+The SimulatorController provides a **cloud-based app preview environment** where users can install, run, and test their generated Android/iOS applications before publishing to app stores. It adds a critical quality assurance layer to SupremeAI by allowing users to interact with their apps in a live, browser-based simulator rather than just downloading APK files.
+
+### Current State:
+- Basic CRUD endpoints only (`SimulatorController.java` - ~43 lines)
+- In-memory profile storage (volatile)
+- No app installation workflow
+- No actual simulator runtime
+- No quota enforcement
+- No Firestore integration
+
+### Perfect Implementation:
+Enhanced UserSimulatorProfile model with:
+- **Installation Management**: Install/uninstall generated apps with quota enforcement (default 5 apps)
+- **Simulator Runtime**: Cloud Run-based preview deployment (option 2 recommended)
+- **Session Management**: WebSocket-based real-time communication, session lifecycle control
+- **Device Configuration**: Multiple device profiles (Pixel 6, iPhone 15, etc.)
+- **Admin Analytics**: Usage metrics across all users, Prometheus monitoring
+- **Audit Logging**: Comprehensive event tracking
+- **Frontend UI**: React panel for simulator control
+
+### Key Technical Components:
+- **Firestore Collections**: `simulator_profiles`, `simulator_sessions`, `simulator_audit_log`
+- **Quota Enforcement**: Atomic counter updates via Firestore transactions
+- **Preview URL**: `https://{appId}-simulator.run.app` per installed app
+- **Auto-Cleanup**: Apps expire after 7 days default (configurable TTL)
+- **Cost Control**: Quota limits, auto-cleanup, alerting on spikes
+
+### API Endpoints (New):
+- `POST /api/simulator/install` - Install app
+- `DELETE /api/simulator/install/{appId}` - Uninstall
+- `GET /api/simulator/installed` - List installed apps
+- `POST /api/simulator/session/start` - Launch simulator
+- `POST /api/simulator/session/pause|resume|stop` - Session control
+- `GET /api/simulator/devices` - List device profiles
+- `POST /api/simulator/admin/usage` - Admin analytics
+
+### Dependencies:
+- App generation must produce deployable artifacts (APK/web builds)
+- Cloud Run deployment pipeline must be automated
+- Frontend React panel integration needed
+
+### Estimated Timeline:
+- **MVP** (basic install+launch): 2-3 sprints → 4-6 weeks
+- **Perfect** (full feature set): 6-8 sprints → 12-16 weeks
+
+### Value Proposition:
+- Users can **test apps before download** → reduces support issues
+- **Confidence building** — see working demo before committing to install
+- **Professional demos** — shareable simulator links for stakeholders
+- **Early bug detection** — catch issues before app store submission
+
+### Priority: **Medium-High** (Phase 8)
+- After core app generation (Phase 3-4) is stable
+- Parallel with advanced features (Vision, Voice)
+- Requires existing Cloud Run infrastructure
+
+## Integration with Overall Roadmap:
+The Simulator Controller fits naturally as a **Phase 8 feature** in the 4-phase roadmap, extending the system's capabilities in later months (Months 10-12+) after core generation, CI/CD, learning, and platform expansions are mature.
+
+---
+
 # 5. Problem Analysis
 
 ## Problems by Category:
@@ -702,8 +769,20 @@ Every Interaction
 - [ ] Pattern curation (Plan 21)
 - [ ] Idea detection (Plan 19)
 - [ ] Plan compatibility (Plan 5)
+- [ ] Simulator Controller MVP (Plan 22) - Weeks 1-2
 
-## Phase 4: Scale
+## Phase 4: Maturity
+**Duration:** Months 10-12
+**Focus:** Quality of life and polish
+
+### Deliverables:
+- [ ] Simulator Controller full feature set (Plan 22)
+- [ ] Simulator admin dashboard
+- [ ] Multi-device support
+- [ ] Session persistence & recovery
+- [ ] Performance benchmarking
+
+## Phase 5: Scale
 **Duration:** Year 2+
 **Focus:** Dedicated infrastructure
 
