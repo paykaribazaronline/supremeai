@@ -53,6 +53,9 @@ public class AuthenticationController {
     @Autowired
     private BruteForceProtectionService bruteForceProtectionService;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @PostMapping("/firebase-login")
     public Mono<Map<String, Object>> firebaseLogin(@RequestBody Map<String, String> request, HttpServletRequest httpRequest) {
         String idToken = request.get("idToken");
@@ -105,9 +108,15 @@ public class AuthenticationController {
                                 establishSession(savedUser, httpRequest);
                             })
                             .map(savedUser -> {
+                                // Generate JWT token for the user
+                                String token = jwtUtil.generateToken(savedUser.getFirebaseUid(), savedUser.getTier() == UserTier.ADMIN);
+                                String refreshToken = jwtUtil.generateToken(savedUser.getFirebaseUid(), savedUser.getTier() == UserTier.ADMIN);
+
                                 Map<String, Object> response = new HashMap<>();
                                 response.put("status", "success");
                                 response.put("isNewUser", isNewUser);
+                                response.put("token", token);
+                                response.put("refreshToken", refreshToken);
                                 response.put("user", Map.of(
                                     "id", savedUser.getFirebaseUid(),
                                     "username", savedUser.getDisplayName(),
