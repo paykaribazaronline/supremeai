@@ -2,6 +2,7 @@ package com.supremeai.config;
 
 import com.supremeai.security.JwtAuthFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -24,8 +25,23 @@ public class SecurityConfig {
             .sessionManagement(session -> 
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Public endpoints - authentication not required
-                .requestMatchers("/api/auth/firebase-login", "/api/auth/register", "/api/auth/forgot-password", "/api/auth/validate-token").permitAll()
+                // Allow static resources from common locations
+                .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+                // Public endpoints - specific routes only (not wildcards for security)
+                .requestMatchers(
+                    "/",
+                    "/login",
+                    "/login.html",
+                    "/admin",
+                    "/admin.html",
+                    "/customer",
+                    "/customer.html",
+                    "/api/auth/firebase-login",
+                    "/api/auth/register",
+                    "/api/auth/forgot-password",
+                    "/api/auth/validate-token",
+                    "/error"
+                ).permitAll()
                 // Chat and consensus endpoints require authentication
                 .requestMatchers("/api/chat/**").authenticated()
                 .requestMatchers("/api/consensus/**").authenticated()

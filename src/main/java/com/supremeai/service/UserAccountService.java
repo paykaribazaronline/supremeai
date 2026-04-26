@@ -199,8 +199,8 @@ public class UserAccountService {
         User user = new User(uid, email, displayName != null ? displayName : email.split("@")[0]);
         user.setTier(tier != null ? tier : UserTier.FREE);
         user.setIsActive(true);
-        user.setCreatedAt(LocalDateTime.now());
-        user.setUpdatedAt(LocalDateTime.now());
+        user.setCreatedAt(LocalDateTime.now().toString());
+        user.setUpdatedAt(LocalDateTime.now().toString());
         return userRepository.save(user).block();
     }
 
@@ -215,7 +215,7 @@ public class UserAccountService {
         }
 
         user.setTier(newTier);
-        user.setUpdatedAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now().toString());
         user = userRepository.save(user).block();
 
         // Update Firebase custom claims
@@ -259,7 +259,7 @@ public class UserAccountService {
             throw new IllegalArgumentException("User not found: " + userId);
         }
         user.setIsActive(false);
-        user.setUpdatedAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now().toString());
 
         // Disable in Firebase Auth
         try {

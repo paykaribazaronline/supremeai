@@ -77,8 +77,8 @@ public class AuthenticationController {
                         
                         if (!isNewUser) {
                             tier = user.getTier();
-                            user.setLastLoginAt(LocalDateTime.now());
-                            user.setUpdatedAt(LocalDateTime.now());
+                            user.setLastLoginAt(LocalDateTime.now().toString());
+                            user.setUpdatedAt(LocalDateTime.now().toString());
                         } else {
                             Object roleClaim = decodedToken.getClaims().get("role");
                             Object adminClaim = decodedToken.getClaims().get("admin");
@@ -168,8 +168,8 @@ public class AuthenticationController {
             User user = new User(userRecord.getUid(), request.email(),
                     request.displayName() != null ? request.displayName() : request.email().split("@")[0]);
             user.setTier(UserTier.FREE);
-            user.setCreatedAt(LocalDateTime.now());
-            user.setUpdatedAt(LocalDateTime.now());
+            user.setCreatedAt(LocalDateTime.now().toString());
+            user.setUpdatedAt(LocalDateTime.now().toString());
             
             return userRepository.save(user).doOnNext(savedUser -> {
                 ActivityLog log = new ActivityLog(

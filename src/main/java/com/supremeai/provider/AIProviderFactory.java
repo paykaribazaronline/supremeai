@@ -1,6 +1,8 @@
 package com.supremeai.provider;
 
 import com.supremeai.service.AIProviderService;
+import com.supremeai.service.AIRankingService;
+import com.supremeai.service.AIRankingService.ProviderRanking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,19 +100,19 @@ public class AIProviderFactory {
 
         // Try to get ranked providers for this task
         try {
-            List<com.supremeai.model.ProviderRanking> rankings = aiRankingService.getRankingsForTask(taskType);
+            List<ProviderRanking> rankings = aiRankingService.getRankings();
 
             if (rankings != null && !rankings.isEmpty()) {
                 // Try providers in order of ranking
-                for (com.supremeai.model.ProviderRanking ranking : rankings) {
+                for (ProviderRanking ranking : rankings) {
                     try {
-                        AIProvider provider = getProvider(ranking.getProviderId());
+                        AIProvider provider = getProvider(ranking.getProvider());
                         if (isProviderHealthy(provider)) {
-                            logger.info("Using ranked provider {} for task {}", ranking.getProviderId(), taskType);
+                            logger.info("Using ranked provider {} for task {}", ranking.getProvider(), taskType);
                             return provider;
                         }
                     } catch (Exception e) {
-                        logger.warn("Ranked provider {} unavailable: {}", ranking.getProviderId(), e.getMessage());
+                        logger.warn("Ranked provider {} unavailable: {}", ranking.getProvider(), e.getMessage());
                     }
                 }
             }

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static org.mockito.Mockito.when;
@@ -34,7 +35,7 @@ class TranslationServiceTest {
     void translateReturnsProviderResponse() {
         when(providerFactory.getProvider("groq")).thenReturn(groqProvider);
         when(groqProvider.generate(org.mockito.ArgumentMatchers.contains("from English to Bengali")))
-            .thenReturn("হ্যালো");
+            .thenReturn(Mono.just("হ্যালো"));
 
         StepVerifier.create(translationService.translate("Hello", "English", "Bengali"))
             .expectNext("হ্যালো")

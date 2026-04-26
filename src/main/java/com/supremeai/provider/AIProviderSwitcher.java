@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -70,7 +71,7 @@ public class AIProviderSwitcher {
         try {
             AIProvider provider = providerFactory.getProvider(providerName);
             long startTime = System.currentTimeMillis();
-            String result = provider.generate(prompt);
+            String result = resolveResponse(provider.generate(prompt));
             long duration = System.currentTimeMillis() - startTime;
 
             // পারফরম্যান্স রেকর্ড করা
@@ -84,6 +85,10 @@ public class AIProviderSwitcher {
             // ফলব্যাক অর্কেস্ট্রেটর ব্যবহার করা
             return fallbackOrchestrator.executeWithSupremeIntelligence(taskCategory, "provider_error:" + providerName, prompt, userId);
         }
+    }
+
+    private String resolveResponse(Mono<String> responseMono) {
+        return Objects.requireNonNullElse(responseMono.block(), "");
     }
 
     /**

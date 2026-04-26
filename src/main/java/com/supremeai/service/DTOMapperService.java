@@ -32,10 +32,10 @@ public class DTOMapperService {
             user.getEmail(),
             user.getDisplayName(),
             user.getTier() != null ? user.getTier().toString() : "FREE",
-            user.getMonthlyQuota(),
+            user.fetchMonthlyQuota(),
             user.getCurrentUsage(),
-            user.getCreatedAt(),
-            user.getLastLoginAt(),
+            user.getCreatedAt() != null ? java.time.LocalDateTime.parse(user.getCreatedAt()) : null,
+            user.getLastLoginAt() != null ? java.time.LocalDateTime.parse(user.getLastLoginAt()) : null,
             user.getIsActive()
         );
     }

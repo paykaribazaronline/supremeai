@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.util.*;
 
@@ -145,7 +146,7 @@ public class NaturalLanguageQueryService {
                 Return ONLY the rewritten prompt, nothing else.
                 """, query);
 
-            String enhanced = provider.generate(enhancementPrompt);
+            String enhanced = resolveResponse(provider.generate(enhancementPrompt));
             log.info("Query humanized: '{}' → '{}'", query, enhanced);
             return enhanced;
         } catch (Exception e) {
@@ -252,5 +253,9 @@ public class NaturalLanguageQueryService {
         metrics.put("timestamp", new Date());
 
         log.info("Humanization metrics: {}", metrics);
+    }
+
+    private String resolveResponse(Mono<String> responseMono) {
+        return java.util.Objects.requireNonNullElse(responseMono.block(), "");
     }
 }

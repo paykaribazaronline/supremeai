@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -67,7 +68,7 @@ public class FastPathAIService {
             try {
                 String response = groqCircuitBreaker.executeSupplier(() -> {
                     AIProvider groq = providerFactory.getProvider("groq");
-                    return groq.generate(prompt);
+                    return resolveResponse(groq.generate(prompt));
                 });
 
                 cacheService.put(prompt, response);
@@ -82,7 +83,7 @@ public class FastPathAIService {
         // Fallback to local Ollama
         try {
             AIProvider ollama = providerFactory.getProvider("ollama");
-            String response = ollama.generate(prompt);
+            String response = resolveResponse(ollama.generate(prompt));
             cacheService.put(prompt, response);
             logger.debug("Ollama fallback success");
             return response;
@@ -111,7 +112,7 @@ public class FastPathAIService {
             executor.submit(() -> {
                 try {
                     AIProvider provider = providerFactory.getProvider(providerName);
-                    String response = provider.generate(prompt);
+                    String response = resolveResponse(provider.generate(prompt));
 
                     // Complete immediately on first success
                     if (!firstResponse.isDone()) {
@@ -144,6 +145,10 @@ public class FastPathAIService {
      */
     public boolean isGroqHealthy() {
         return groqCircuitBreaker.getState() == CircuitBreaker.State.CLOSED;
+    }
+
+    private String resolveResponse(Mono<String> responseMono) {
+        return java.util.Objects.requireNonNullElse(responseMono.block(), "");
     }
 
     @PreDestroy

@@ -70,8 +70,8 @@ class MultiAIConsensusServiceTest {
     void askAllAIsReturnsStrongConsensusForMatchingResponses() {
         when(providerFactory.getProvider("groq")).thenReturn(groqProvider);
         when(providerFactory.getProvider("openai")).thenReturn(openaiProvider);
-        when(groqProvider.generate("What is the capital of France?")).thenReturn("Paris");
-        when(openaiProvider.generate("What is the capital of France?")).thenReturn("Paris");
+        when(groqProvider.generate("What is the capital of France?")).thenReturn(Mono.just("Paris"));
+        when(openaiProvider.generate("What is the capital of France?")).thenReturn(Mono.just("Paris"));
 
         StepVerifier.create(consensusService.askAllAIs(
                 "What is the capital of France?",
@@ -117,8 +117,8 @@ class MultiAIConsensusServiceTest {
     @Test
     void getHistoryReturnsMostRecentVotesFirst() {
         when(providerFactory.getProvider("groq")).thenReturn(groqProvider);
-        when(groqProvider.generate("Q1")).thenReturn("A1");
-        when(groqProvider.generate("Q2")).thenReturn("A2");
+        when(groqProvider.generate("Q1")).thenReturn(Mono.just("A1"));
+        when(groqProvider.generate("Q2")).thenReturn(Mono.just("A2"));
 
         consensusService.askAllAIs("Q1", List.of("groq"), 5_000L).block();
         consensusService.askAllAIs("Q2", List.of("groq"), 5_000L).block();
@@ -152,9 +152,9 @@ class MultiAIConsensusServiceTest {
         when(providerFactory.getProvider("groq")).thenReturn(groqProvider);
         AIProvider anthropicProvider = mock(AIProvider.class);
         when(providerFactory.getProvider("anthropic")).thenReturn(anthropicProvider);
-        when(openaiProvider.generate("Build a login page")).thenReturn("Use React");
-        when(groqProvider.generate("Build a login page")).thenReturn("Use React");
-        when(anthropicProvider.generate("Build a login page")).thenReturn("Use Vue");
+        when(openaiProvider.generate("Build a login page")).thenReturn(Mono.just("Use React"));
+        when(groqProvider.generate("Build a login page")).thenReturn(Mono.just("Use React"));
+        when(anthropicProvider.generate("Build a login page")).thenReturn(Mono.just("Use Vue"));
 
         StepVerifier.create(consensusService.askContextualAIs("Build a login page", 3, 5_000L))
             .assertNext(result -> {

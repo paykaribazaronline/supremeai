@@ -84,7 +84,7 @@ public class QuotaPredictionService {
                     return Double.POSITIVE_INFINITY; // No usage, can't predict
                 }
 
-                long remainingQuota = user.getMonthlyQuota() - user.getCurrentUsage();
+                long remainingQuota = user.fetchMonthlyQuota() - user.getCurrentUsage();
                 if (remainingQuota <= 0) {
                     return 0.0; // Already exhausted
                 }
@@ -113,7 +113,7 @@ public class QuotaPredictionService {
             double daysRemaining = tuple.getT1();
             User user = tuple.getT2();
             double dailyAvg = calculateMovingAverage(userId, 7);
-            long remainingQuota = user != null ? user.getMonthlyQuota() - user.getCurrentUsage() : 0;
+            long remainingQuota = user != null ? user.fetchMonthlyQuota() - user.getCurrentUsage() : 0;
             
             Map<String, Object> result = new HashMap<>();
             result.put("userId", userId);
