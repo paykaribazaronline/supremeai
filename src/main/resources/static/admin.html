@@ -2254,13 +2254,40 @@
         }
 
         // ========== CHAT SYSTEM ==========
-        let chatHistory = JSON.parse(localStorage.getItem('supremeai_chat_history') || '[]');
+        let chatHistory = [];
         let messageCount = 0;
         let pendingConfirmations = {};
+        try {
+            const historyData = localStorage.getItem('supremeai_chat_history');
+            if (historyData) {
+                chatHistory = JSON.parse(historyData);
+            }
+        } catch (e) {
+            console.error('Error parsing chat history:', e);
+            localStorage.removeItem('supremeai_chat_history');
+        }
 
         // ========== EVOLUTIONARY ER LEARNING & SOURCE TRACKING ==========
-        let aiModelsEvolution = JSON.parse(localStorage.getItem('supremeai_evolution') || {});
-        let modelSources = JSON.parse(localStorage.getItem('supremeai_sources') || {});
+        let aiModelsEvolution = {};
+        let modelSources = {};
+        try {
+            const evolutionData = localStorage.getItem('supremeai_evolution');
+            if (evolutionData) {
+                aiModelsEvolution = JSON.parse(evolutionData);
+            }
+        } catch (e) {
+            console.error('Error parsing evolution data:', e);
+            localStorage.removeItem('supremeai_evolution');
+        }
+        try {
+            const sourcesData = localStorage.getItem('supremeai_sources');
+            if (sourcesData) {
+                modelSources = JSON.parse(sourcesData);
+            }
+        } catch (e) {
+            console.error('Error parsing sources data:', e);
+            localStorage.removeItem('supremeai_sources');
+        }
         
         // Track AI model evolution and sources
         function trackModelEvolution(modelName, contribution, sourceType = 'chat') {

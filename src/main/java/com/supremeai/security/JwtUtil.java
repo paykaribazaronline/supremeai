@@ -47,6 +47,16 @@ public class JwtUtil {
                 .compact();
     }
 
+    public String generateToken(String username, boolean isAdmin) {
+        return Jwts.builder()
+                .subject(username)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 hours
+                .claim("role", isAdmin ? "admin" : "user")
+                .signWith(getSigningKey())
+                .compact();
+    }
+
     private <T> T getClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = Jwts.parser()
                 .verifyWith(getSigningKey())
