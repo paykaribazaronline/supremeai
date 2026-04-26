@@ -1,0 +1,384 @@
+SupremeAI - Self-Learning System Documentation
+Version: Planning Phase | Date: 2026-04-27
+
+1. Overview
+Concept
+SupremeAI একটি স্বয়ংসম্পূর্ণ লার্নিং সিস্টেম যা ইউজারের অনুমতি ও Admin এপ্রুভালের মাধ্যমে নিজেকে আপডেট ও উন্নত করতে পারে।
+Core Principle
+“শেখার জন্য অনুমতি লাগবে, কিন্তু শেখার পর স্বয়ংক্রিয়ভাবে উন্নত হবে”
+
+2. Learning Architecture
+┌─────────────────────────────────────────────────────────────┐
+│                    SupremeAI Learning Engine                 │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐     │
+│  │   Browser   │    │   User      │    │   Other     │     │
+│  │   Access    │    │   Chat      │    │   AI Agents │     │
+│  │   Module    │    │   History   │    │   Feedback  │     │
+│  └──────┬──────┘    └──────┬──────┘    └──────┬──────┘     │
+│         │                   │                   │            │
+│         └───────────────────┼───────────────────┘            │
+│                             ▼                                │
+│              ┌─────────────────────────┐                    │
+│              │    Content Filter        │                    │
+│              │  (Admin Approved Only)   │                    │
+│              └───────────┬─────────────┘                    │
+│                          │                                  │
+│         ┌────────────────┼────────────────┐                 │
+│         ▼                ▼                ▼                 │
+│    ┌─────────┐     ┌─────────┐     ┌─────────┐            │
+│    │  Web    │     │  User   │     │  Agent  │            │
+│    │ Scraper │     │ Pattern │     │ Pattern │            │
+│    └────┬────┘     └────┬────┘     └────┬────┘            │
+│         │               │               │                  │
+│         └───────────────┼───────────────┘                  │
+│                         ▼                                  │
+│              ┌─────────────────────┐                      │
+│              │   Knowledge Base     │                      │
+│              │   (SQLite/PostgreSQL)│                      │
+│              └──────────┬──────────┘                      │
+│                         │                                  │
+│              ┌──────────┴──────────┐                      │
+│              ▼                     ▼                      │
+│    ┌─────────────────┐  ┌─────────────────┐              │
+│    │  Permanent      │  │  Temporary      │              │
+│    │  Storage        │  │  Cache          │              │
+│    │  (Rules,        │  │  (Session data, │              │
+│    │   Preferences)  │  │   Short-term)   │              │
+│    └─────────────────┘  └─────────────────┘              │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+
+3. Browser Access Control (Admin Approval System)
+3.1 Browser Access Levels
+3.2 Admin Approval Workflow
+System: "New learning opportunity detected"
+         ↓
+System: "Suggested browser access: [Site List]"
+         ↓
+Admin Dashboard: Shows suggestion
+         ↓
+Admin: [Approve] / [Reject] / [Modify]
+         ↓
+If Approved:
+    - Access granted
+    - Learning begins
+    - Progress tracked
+
+If Rejected:
+    - Access denied
+    - Alternative suggested
+    - Logged for review
+
+If Modified:
+    - Specific sites approved
+    - Others blocked
+    - Time limits set
+3.3 Suggested Site Categories
+Auto-Approved (Level 1)
+☒ Wikipedia
+☒ Stack Overflow
+☒ GitHub Public Repos
+☒ Official Documentation
+☒ MDN Web Docs
+Suggested (Level 2)
+☐ Google Search
+☐ Reddit (Public)
+☐ Medium Articles
+☐ Dev.to
+☐ Hacker News
+Requires Approval (Level 3)
+☐ GitHub Private Repos
+☐ Internal Wikis
+☐ Paid Documentation
+☐ API Documentation (with keys)
+Restricted (Level 4)
+☐ Banking Sites
+☐ Personal Email
+☐ Social Media (Personal)
+☐ Medical Records
+
+4. Learning Sources
+4.1 Source Types
+Source 1: Browser-Based Learning
+Trigger: Admin approves site access Process: 1. System scrapes approved sites 2. Extracts relevant information 3. Validates content quality 4. Stores in knowledge base
+Example:
+Admin Approves: "python.org", "realpython.com"
+System Learns: Python 3.12 new features, best practices
+Stores: "Python 3.12: type parameter syntax", "asyncio improvements"
+Source 2: User Chat History
+Trigger: Every conversation Process: 1. Analyze user messages 2. Extract preferences 3. Detect patterns 4. Update user profile
+Example:
+User: "Always give me short answers"
+System Learns: User prefers brevity
+Stores: Preference: "response_depth = concise"
+Source 3: Other AI Agent Feedback
+Trigger: Multi-agent task completion Process: 1. Task assigned to Agent A 2. Agent A completes/fails 3. Performance recorded 4. Future routing updated
+Example:
+Task: "Write React component"
+Agent A: Success (95% score)
+Agent B: Success (80% score)
+System Learns: Agent A better for React
+Stores: "react_tasks → Agent A (priority)"
+Source 4: Error & Failure Analysis
+Trigger: Task failure, CI error, vote rejection Process: 1. Log failure details 2. Analyze root cause 3. Update avoidance patterns 4. Suggest improvements
+Example:
+Error: "Module not found: 'react-router-dom'"
+System Learns: Check dependencies before push
+Stores: "Pre-push: verify package.json"
+
+5. Knowledge Storage
+5.1 Storage Tiers
+Tier 1: Permanent (Never Delete)
+User preferences
+Confirmed rules
+Admin settings
+Agent performance history
+API key metadata
+Tier 2: Long-term (1 year+)
+Successful patterns
+Common solutions
+Verified knowledge
+User trust levels
+Tier 3: Medium-term (1-6 months)
+Recent learnings
+Trending topics
+Experimental patterns
+Pending validation
+Tier 4: Short-term (1-30 days)
+Session context
+Temporary preferences
+Draft ideas
+Unverified data
+Tier 5: Immediate (Session only)
+Current conversation
+Active task context
+Real-time suggestions
+Cache data
+5.2 Auto-Expiry Rules
+# Pseudo-code for data lifecycle
+if data.type == "permanent":
+    expiry = None
+elif data.type == "long_term":
+    expiry = 365_days
+elif data.type == "medium_term":
+    expiry = 180_days
+elif data.type == "short_term":
+    expiry = 30_days
+elif data.type == "immediate":
+    expiry = session_end
+
+# Admin can override any expiry
+if admin.override:
+    expiry = admin_specified
+
+6. Learning Process Flow
+6.1 Step-by-Step
+Step 1: Opportunity Detection
+System monitors:
+- New sites visited (if approved)
+- User messages
+- Agent performance
+- Error logs
+- External changes
+Step 2: Relevance Check
+System asks:
+- Is this relevant to our domain?
+- Does user need this?
+- Is this better than existing knowledge?
+- Is this from trusted source?
+Step 3: Admin Suggestion (If needed)
+If new_site_detected:
+    send_admin_notification(
+        title="New Learning Opportunity",
+        content="Site: [URL]\nTopic: [Topic]\nRelevance: [Score]",
+        actions=["Approve", "Reject", "Snooze"]
+    )
+Step 4: Content Extraction
+If approved:
+    content = scrape_site(url)
+    summary = summarize(content)
+    confidence = calculate_confidence(content)
+    store_in_knowledge_base(summary, confidence)
+Step 5: Validation
+System tests:
+- Does this improve task performance?
+- Does user find this helpful?
+- Is this consistent with existing knowledge?
+
+If validation_fails:
+    flag_for_review()
+    reduce_confidence()
+Step 6: Integration
+System updates:
+- Agent routing rules
+- Response templates
+- User preferences
+- API usage patterns
+
+7. Browser Limitations & Solutions
+7.1 Known Limitations
+7.2 Browser Compatibility
+7.3 Admin Browser Control
+Admin Dashboard:
+┌─────────────────────────────────────┐
+│  Browser Access Control              │
+├─────────────────────────────────────┤
+│                                      │
+│  Approved Sites:                     │
+│  [+] python.org                      │
+│  [+] github.com                      │
+│  [+] stackoverflow.com               │
+│  [+] wikipedia.org                   │
+│                                      │
+│  Pending Approval:                   │
+│  [?] medium.com (Suggested by system)│
+│  [?] dev.to (Suggested by system)    │
+│                                      │
+│  Blocked Sites:                      │
+│  [-] facebook.com (User request)     │
+│  [-] banking.example.com (Security)  │
+│                                      │
+│  [Save Changes] [Reset Defaults]     │
+└─────────────────────────────────────┘
+
+8. Feedback Loop
+8.1 Continuous Improvement
+┌─────────┐     ┌─────────┐     ┌─────────┐
+│  Learn  │────→│  Apply  │────→│ Measure │
+└────┬────┘     └────┬────┘     └────┬────┘
+     ↑               │               │
+     └───────────────┴───────────────┘
+              (Feedback)
+8.2 Success Metrics
+
+9. Security & Privacy
+9.1 Data Protection
+9.2 Admin Override
+Emergency Actions:
+- [ ] Pause all learning
+- [ ] Clear specific knowledge
+- [ ] Revoke site access
+- [ ] Export learning data
+- [ ] Reset to defaults
+
+10. Implementation Checklist
+Phase 1: Foundation
+☐ Browser access module
+☐ Admin approval dashboard
+☐ Site categorization system
+☐ Basic scraper
+Phase 2: Learning Engine
+☐ Content extractor
+☐ Knowledge base schema
+☐ Auto-expiry system
+☐ Pattern recognizer
+Phase 3: Integration
+☐ User preference learning
+☐ Agent performance tracking
+☐ Error analysis
+☐ Feedback loop
+Phase 4: Advanced
+☐ Cross-user pattern (anonymized)
+☐ Predictive learning
+☐ A/B testing
+☐ Explainable learning
+
+Document Status: Planning Phase Next Step: Admin approval workflow implementation Owner: SupremeAI Team
+Level
+Access
+Admin Approval
+Description
+Level 0
+None
+N/A
+No browser access
+Level 1
+Read-only
+Auto
+Read public sites only
+Level 2
+Read + Search
+Suggested
+Google, Wikipedia, docs
+Level 3
+Read + Interact
+Required
+Login-required sites
+Level 4
+Full Access
+Required + Audit
+All sites, sensitive data
+Limitation
+Impact
+Solution
+CORS Policy
+Can’t access all sites
+Proxy server / Approved sites only
+Storage Limit
+5-10MB localStorage
+IndexedDB + Server sync
+Computation
+Can’t run large models
+Server-side processing
+Privacy
+User data exposure
+Anonymization + Consent
+Network
+Offline = no learning
+Offline queue + Sync later
+Security
+XSS, injection risks
+Input validation + Sandboxing
+Browser
+Support Level
+Notes
+Chrome
+✅ Full
+Best support
+Firefox
+✅ Full
+Good support
+Edge
+✅ Full
+Chromium-based
+Safari
+⚠️ Partial
+Storage limits stricter
+Mobile Chrome
+⚠️ Partial
+Background restrictions
+Mobile Safari
+⚠️ Limited
+iOS restrictions
+Metric
+Target
+Measurement
+Task Success Rate
+>90%
+Completed / Total tasks
+User Satisfaction
+>4.0/5
+Post-task rating
+Learning Speed
+<1 day
+Time to apply new knowledge
+Accuracy
+>95%
+Correct predictions / Total
+Storage Efficiency
+<100MB
+Database size per user
+Measure
+Implementation
+Encryption
+AES-256 for stored data
+Anonymization
+User ID hashed
+Consent
+Explicit approval for each site
+Audit Log
+All access logged
+Revoke
+One-click data deletion

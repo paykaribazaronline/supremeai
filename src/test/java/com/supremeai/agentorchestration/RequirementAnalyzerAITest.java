@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class RequirementAnalyzerAITest {
                 "]";
         
         when(providerFactory.getProvider("groq")).thenReturn(aiProvider);
-        when(aiProvider.generate(anyString())).thenReturn(mockResponse);
+        when(aiProvider.generate(anyString())).thenReturn(Mono.just(mockResponse));
 
         List<Question> questions = requirementAnalyzer.analyze("Build a web app");
 
@@ -65,7 +66,7 @@ public class RequirementAnalyzerAITest {
     @Test
     public void testAnalyzeWithMalformedJsonFallback() {
         when(providerFactory.getProvider("groq")).thenReturn(aiProvider);
-        when(aiProvider.generate(anyString())).thenReturn("Not a JSON response");
+        when(aiProvider.generate(anyString())).thenReturn(Mono.just("Not a JSON response"));
 
         List<Question> questions = requirementAnalyzer.analyze("Build a web app");
 

@@ -6,6 +6,21 @@
 
 ---
 
+## 🎯 Enhancement Roadmap (Post-Plan 3)
+
+Based on expert review, the following robustness enhancements are planned:
+
+| # | Enhancement | Priority | Status |
+|---|-------------|----------|--------|
+| 1 | Source Authority Hierarchy (Conflict Resolution) | High | Pending |
+| 2 | Unlearning / Obsolete Knowledge Mechanism | High | Pending |
+| 3 | Recency-Based Confidence Scoring | High | Pending |
+| 4 | Content Sanitization Layer (Sandbox Testing) | High | Pending |
+| 5 | Knowledge Versioning & Rollback | Medium | Pending |
+| 6 | Evaluation Test Suite per Phase | Medium | Pending |
+
+---
+
 ## ✅ Completed (Since Last Review)
 
 ### 1. GlobalKnowledgeBase Firestore Modernization
@@ -70,6 +85,91 @@
 ### 9. Unit Test (Minimal)
 - **File:** `src/test/java/com/supremeai/learning/UserCodeLearningServiceTest.java`
 - **Note:** Test currently does not compile due to `UserCodeLearningService.CodeDiffAnalysis` being a private inner class. Requires either test restructuring or making the inner class package-private. Test will be revisited in a separate pass. Other pre-existing test failures also exist in repo.
+
+---
+
+## 🔄 Enhancement Details
+
+### 1. Source Authority Hierarchy
+**Problem:** Multiple sources may provide conflicting information. Need deterministic resolution.
+
+**Solution Design:**
+- Introduce `SourceAuthority` enum: `OFFICIAL_DOCS(1.0)`, `STACK_OVERFLOW(0.8)`, `WIKIPEDIA(0.75)`, `GITHUB(0.7)`, `BLOG(0.6)`, `FORUM(0.5)`
+- `ScrapedIssue` extends to include `sourceAuthority` weight.
+- When merging solutions for same error, higher authority wins tie-breaks if confidence scores are equal.
+- Admin can manually override authority weights via config.
+
+**Files to modify:** `ActiveInternetScraper.ScrapedIssue`, `GlobalKnowledgeBase.recordSuccessWithPermission()`
+
+### 2. Unlearning / Obsolete Mechanism
+**Problem:** System may learn false/outdated information. Need explicit "unlearn" capability.
+
+**Solution Design:**
+- Add `obsolete` flag to `SolutionMemory` (boolean, default false).
+- Add `obsoleteReason` (String) and `obsoletedAt` (LocalDateTime).
+- Admin API: `POST /api/admin/knowledge/obsolete/{solutionId}` flags solution.
+- Query filters exclude obsolete by default; can include with `?includeObsolete=true`.
+- Soft-delete pattern preserves audit trail.
+- Bonus: Auto-detect obsolete via "validation-failure streak" (e.g., 5 consecutive failures → auto-flag for admin review).
+
+**Files to modify:** `SolutionMemory.java`, `GlobalKnowledgeBase.java`, `KnowledgeBaseController.java`, `AdminDashboardController.java`
+
+### 3. Recency-Based Confidence Scoring
+**Problem:** Old solutions may become unreliable (tech evolves).
+
+**Solution Design:**
+- Extend `SolutionMemory.calculateSupremeScore()` to include *recency decay*:
+  - Age in days = `ChronoUnit.DAYS.between(timestamp, now())`
+  - Decay factor = `Math.exp(-0.001 * ageDays)` (half-life ~ 693 days)
+  - New score = `baseScore * decayFactor`
+  - Solutions older than 365 days automatically get 50% penalty unless marked "timeless".
+- Add `isTimeless` boolean to `SolutionMemory` for evergreen knowledge (e.g., "how to reverse a linked list").
+- Configurable decay rate via `application.properties`: `learning.decay.rate=0.001`
+
+**Files to modify:** `SolutionMemory.calculateSupremeScore()`, add `isTimeless` field.
+
+### 4. Content Sanitization Layer
+**Problem:** Malicious websites could inject harmful code into knowledge base.
+
+**Solution Design:**
+- Create `ContentSanitizerService` with methods:
+  - `sanitizeCodeSnippet(String code)` – removes dangerous patterns (via `CodeImmunitySystem.isCodeInfected()`)
+  - `validateSolutionInSandbox(String code)` – executes in containerized sandbox (future integration)
+- Hooks into `ActiveInternetScraper` before creating `ScrapedIssue`.
+- Also sanitize admin-submitted solutions via `KnowledgeBaseController.learnSolution()`.
+- Log sanitization events for audit.
+
+**Files to create:** `ContentSanitizerService.java`
+**Files to modify:** `ActiveInternetScraper`, `KnowledgeBaseController`
+
+### 5. Knowledge Versioning & Rollback
+**Problem:** New learning might degrade performance; need rollback.
+
+**Solution Design:**
+- Add `version` (long) and `previousVersionId` (String) fields to `SolutionMemory`.
+- On update (e.g., success count increment or content change), create new version row (immutable).
+- `SolutionMemory` becomes immutable; updates create new record with incremented version.
+- `KnowledgeRollbackService` can restore prior version by copying data back to active row (or flagging current as obsolete and re-activating old).
+- Admin UI: "View History" for any solution showing version timeline.
+
+**Files to modify:** `SolutionMemory` (add version fields), `GlobalKnowledgeBase` (create version on update), add `KnowledgeRollbackService`.
+
+### 6. Evaluation Test Suite
+**Problem:** No way to measure learning quality or regression.
+
+**Solution Design:**
+- Create `LearningEvaluationService` that runs daily:
+  - Sample 100 recent learnings
+  - Re-validate against current system (have AI re-score)
+  - Compare success rate trends
+  - Alert admin if accuracy drops below threshold (e.g., 70%)
+- Add unit tests simulating:
+  - Source conflict resolution (two sources, different solutions, verify authority wins)
+  - Confidence decay (old solution score drops)
+  - Obsolete flagging (solution excluded from queries)
+- Metrics endpoint: `GET /api/learning/evaluation/results`
+
+**Files to create:** `LearningEvaluationService.java`, `LearningEvaluationTest.java`
 
 ---
 

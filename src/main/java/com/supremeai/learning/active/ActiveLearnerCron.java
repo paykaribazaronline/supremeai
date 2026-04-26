@@ -1,5 +1,6 @@
 package com.supremeai.learning.active;
 
+import com.supremeai.learning.active.ActiveInternetScraper.ScrapedIssue;
 import com.supremeai.learning.knowledge.GlobalKnowledgeBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
