@@ -69,7 +69,8 @@ public class AIProviderFactory {
 
             case "ollama":
                 if (ollamaProvider == null) {
-                    throw new IllegalStateException("Ollama provider is not available in cloud profile");
+                    logger.error("Ollama provider bean not found. Add @Profile exclusion or enable in config.");
+                    throw new IllegalStateException("Ollama provider not available. Check Spring configuration.");
                 }
                 return ollamaProvider;
 

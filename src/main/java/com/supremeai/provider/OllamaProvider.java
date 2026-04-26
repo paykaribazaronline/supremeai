@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import reactor.core.publisher.Mono;
@@ -16,10 +16,9 @@ import java.util.Map;
 
 /**
  * Optimized Ollama provider implementation
- * Tuned for maximum performance with local LLaMA 3 70B
+ * Works as local fallback when cloud providers are unavailable
  */
 @Component
-@Profile("!cloud")
 public class OllamaProvider implements AIProvider {
 
     @Override
@@ -40,25 +39,29 @@ public class OllamaProvider implements AIProvider {
 
     private final OkHttpClient httpClient;
     private final ObjectMapper objectMapper;
-    private static final String DEFAULT_MODEL = "llama3:70b";
-    private static final String BASE_URL = "http://localhost:11434/api/generate";
+    private final String model;
+    private final String baseUrl;
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
-    public OllamaProvider() {
+    public OllamaProvider(
+            @Value("${ai.providers.ollama.model:llama3.1:8b}") String model,
+            @Value("${ai.providers.ollama.endpoint:http://localhost:11434/api/generate}") String baseUrl) {
         this.httpClient = new OkHttpClient.Builder()
                 .callTimeout(Duration.ofSeconds(60))
                 .readTimeout(Duration.ofSeconds(60))
                 .writeTimeout(Duration.ofSeconds(60))
                 .build();
         this.objectMapper = new ObjectMapper();
-        logger.info("OllamaProvider initialized with OkHttpClient");
+        this.model = model;
+        this.baseUrl = baseUrl;
+        logger.info("OllamaProvider initialized with model: {} at {}", model, baseUrl);
     }
 
     @Override
     public Mono<String> generate(String prompt) {
         return Mono.fromCallable(() -> {
             OllamaRequest requestPayload = new OllamaRequest(
-                    DEFAULT_MODEL,
+                    model,
                     prompt,
                     false,
                     new OllamaOptions(
@@ -74,7 +77,7 @@ public class OllamaProvider implements AIProvider {
                 String requestBody = objectMapper.writeValueAsString(requestPayload);
                 RequestBody body = RequestBody.create(requestBody, JSON);
                 Request request = new Request.Builder()
-                        .url(BASE_URL)
+                        .url(baseUrl)
                         .post(body)
                         .build();
 
