@@ -43,6 +43,9 @@ public class SecurityConfig {
                     "/api/auth/register",
                     "/api/auth/forgot-password",
                     "/api/auth/validate-token",
+                    "/api/health",
+                    "/api/status",
+                    "/ws/**",
                     "/error"
                 ).permitAll()
                 // Chat and consensus endpoints require authentication

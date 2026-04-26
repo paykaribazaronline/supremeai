@@ -159,14 +159,30 @@
         .lang-btn:hover { background: #764ba2; }
         .lang-btn.active { background: #764ba2; font-weight: bold; }
     </style>
-    </style>
 
     <script>
-        let auth;
+        let auth, db, firebaseReady = false;
         let currentLang = 'en';
         const authGuard = document.getElementById('authGuard');
         const dashboard = document.getElementById('dashboard');
         const userInfo = document.getElementById('userInfo');
+
+        // Initialize Firebase
+        function initFirebase() {
+            if (typeof firebase === 'undefined' || !firebase.apps.length) return false;
+            auth = firebase.auth();
+            db = firebase.firestore();
+            firebaseReady = true;
+            checkAuth();
+            return true;
+        }
+
+        // Wait for Firebase to load
+        function waitForFirebase() {
+            const check = setInterval(() => {
+                if (initFirebase()) clearInterval(check);
+            }, 500);
+        }
 
         // Language translations
         const translations = {
@@ -266,6 +282,10 @@
         // Initialize language
         const savedLang = localStorage.getItem('supremeai_lang') || 'en';
         setLanguage(savedLang);
+
+            // Wait for Firebase
+            waitForFirebase();
+        });
     </script>
 </body>
 </html>

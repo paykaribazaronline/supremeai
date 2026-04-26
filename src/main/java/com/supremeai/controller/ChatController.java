@@ -92,7 +92,9 @@ public class ChatController {
             
             // Fallback to simpler consensus if voting fails
             if (consensusService != null) {
-                return consensusService.askAllAIs(message, List.of("google"), 10000L)
+                // Use multiple providers (not just google) for better fallback resilience
+                return consensusService.askAllAIs(message, 
+                    java.util.Arrays.asList("groq", "deepseek", "claude", "openai", "ollama"), 10000L)
                     .map(res -> ResponseEntity.ok(Map.of(
                         "message", res.getConsensusAnswer(),
                         "confidence", res.getAverageConfidence(),

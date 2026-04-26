@@ -38,26 +38,21 @@ class DashboardCharts {
     }
 
     connectWebSocket() {
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        this.ws = new WebSocket(protocol + '//' + window.location.host + '/ws/admin');
-
-        this.ws.onopen = () => {
-            console.log('WebSocket connected');
-        };
-
-        this.ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            this.handleUpdate(data);
-        };
-
-        this.ws.onclose = () => {
-            console.log('WebSocket disconnected, reconnecting...');
+        // Use SockJS for better compatibility
+        this.socket = new SockJS('/ws');
+        this.stompClient = Stomp.over(this.socket);
+        
+        this.stompClient.connect({}, (frame) => {
+            console.log('Connected to WebSocket:', frame);
+            // Subscribe to dashboard updates
+            this.stompClient.subscribe('/topic/dashboard', (message) => {
+                const data = JSON.parse(message.body);
+                this.handleUpdate(data);
+            });
+        }, (error) => {
+            console.error('STOMP connection error:', error);
             setTimeout(() => this.connectWebSocket(), 3000);
-        };
-
-        this.ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
-        };
+        });
     }
 
     handleUpdate(data) {
@@ -106,7 +101,6 @@ class DashboardCharts {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('agentChart')) {
-        new DashboardCharts();
-    }
+    // Always connect WebSocket for live dashboard data
+    new DashboardCharts();
 });
