@@ -1,8 +1,12 @@
 package com.supremeai.model;
 
 import com.google.cloud.firestore.annotation.DocumentId;
+import com.google.cloud.firestore.annotation.Exclude;
 import com.google.cloud.spring.data.firestore.Document;
+import com.google.cloud.Timestamp;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.Instant;
 
 @Document(collectionName = "users")
 public class User {
@@ -22,13 +26,14 @@ public class User {
 
     private Long currentUsage = 0L;
 
-    private LocalDateTime createdAt;
+    // Use Object to seamlessly handle legacy Map (from LocalDateTime), String, or Timestamp
+    private Object createdAt;
 
-    private LocalDateTime updatedAt;
+    private Object updatedAt;
 
-    private LocalDateTime lastUsedAt;
+    private Object lastUsedAt;
 
-    private LocalDateTime lastLoginAt;
+    private Object lastLoginAt;
 
     private Boolean isActive = true;
 
@@ -39,8 +44,8 @@ public class User {
         this.firebaseUid = firebaseUid;
         this.email = email;
         this.displayName = displayName;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.createdAt = java.time.LocalDateTime.now().toString();
+        this.updatedAt = java.time.LocalDateTime.now().toString();
     }
 
     // Getters and Setters
@@ -70,37 +75,80 @@ public class User {
     public Long getCurrentUsage() { return currentUsage; }
     public void setCurrentUsage(Long currentUsage) { this.currentUsage = currentUsage; }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public String getCreatedAt() { return convertDateObjToString(createdAt); }
+    public void setCreatedAt(Object createdAt) { this.createdAt = convertToIsoString(createdAt); }
 
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public String getUpdatedAt() { return convertDateObjToString(updatedAt); }
+    public void setUpdatedAt(Object updatedAt) { this.updatedAt = convertToIsoString(updatedAt); }
 
-    public LocalDateTime getLastUsedAt() { return lastUsedAt; }
-    public void setLastUsedAt(LocalDateTime lastUsedAt) { this.lastUsedAt = lastUsedAt; }
+    public String getLastUsedAt() { return convertDateObjToString(lastUsedAt); }
+    public void setLastUsedAt(Object lastUsedAt) { this.lastUsedAt = convertToIsoString(lastUsedAt); }
 
-    public LocalDateTime getLastLoginAt() { return lastLoginAt; }
-    public void setLastLoginAt(LocalDateTime lastLoginAt) { this.lastLoginAt = lastLoginAt; }
+    public String getLastLoginAt() { return convertDateObjToString(lastLoginAt); }
+    public void setLastLoginAt(Object lastLoginAt) { this.lastLoginAt = convertToIsoString(lastLoginAt); }
+
+    /**
+     * Converts any date representation to ISO-8601 string for consistent storage.
+     * Supports: String (already ISO), LocalDateTime, Firestore Timestamp, Map (legacy Firestore format).
+     */
+    private String convertToIsoString(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof String) return (String) obj;
+        if (obj instanceof LocalDateTime) return ((LocalDateTime) obj).toString();
+        if (obj instanceof Timestamp) return ((Timestamp) obj).toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().toString();
+        if (obj instanceof java.util.Map) {
+            // Handle Firestore Map representation of Timestamp: {seconds: X, nanoseconds: Y}
+            try {
+                java.util.Map<?, ?> map = (java.util.Map<?, ?>) obj;
+                Object seconds = map.get("seconds");
+                Object nanos = map.get("nanoseconds");
+                if (seconds instanceof Long && nanos instanceof Integer) {
+                    return LocalDateTime.ofInstant(
+                        Instant.ofEpochSecond((Long) seconds, (Integer) nanos),
+                        ZoneId.systemDefault()
+                    ).toString();
+                }
+            } catch (Exception e) {
+                // Fall through to null return
+            }
+            return null; // Cannot convert this Map format
+        }
+        return null; // Unsupported type
+    }
+
+    /**
+     * Getter conversion - ensures we always return ISO string or null.
+     * Since setters normalize to ISO strings, this mostly handles legacy loaded data.
+     */
+    private String convertDateObjToString(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof String) return (String) obj;
+        // Legacy Map or Timestamp - convert on the fly
+        return convertToIsoString(obj);
+    }
 
     public Boolean getIsActive() { return isActive; }
     public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 
-    // Helper methods
-    public boolean isAdmin() {
+    // Helper methods (Using non-bean names to avoid Firestore conflicts)
+    @Exclude
+    public boolean isSystemAdmin() {
         return getTier() == UserTier.ADMIN;
     }
 
-    public Long getMonthlyQuota() {
+    @Exclude
+    public Long fetchMonthlyQuota() {
         return getTier().getDefaultMonthlyQuota();
     }
 
     public void resetMonthlyUsage() {
         this.currentUsage = 0L;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = java.time.LocalDateTime.now().toString();
     }
 
-    public boolean hasQuotaRemaining() {
+    @Exclude
+    public boolean checkQuotaRemaining() {
         if (getTier() == UserTier.ADMIN) return true;
-        return this.currentUsage < getMonthlyQuota();
+        return this.currentUsage < fetchMonthlyQuota();
     }
 }
