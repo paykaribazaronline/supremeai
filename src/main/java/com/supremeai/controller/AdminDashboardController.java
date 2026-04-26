@@ -6,6 +6,8 @@ import com.supremeai.model.ActivityLog;
 import com.supremeai.repository.*;
 import com.supremeai.service.AIRankingService;
 import com.supremeai.service.AutonomousQuestioningService;
+import com.supremeai.admin.AdminDashboardService;
+import com.supremeai.admin.ImprovementProposal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -32,6 +34,7 @@ public class AdminDashboardController extends BaseAdminController<Object, String
     private final VPNRepository vpnRepository;
     private final AIRankingService aiRankingService;
     private final AutonomousQuestioningService questioningService;
+    private final AdminDashboardService adminDashboardService;
 
     public AdminDashboardController(UserRepository userRepository,
                                      AgentRepository agentRepository,
@@ -41,7 +44,8 @@ public class AdminDashboardController extends BaseAdminController<Object, String
                                      SystemLearningRepository systemLearningRepository,
                                      VPNRepository vpnRepository,
                                      AIRankingService aiRankingService,
-                                     AutonomousQuestioningService questioningService) {
+                                     AutonomousQuestioningService questioningService,
+                                     AdminDashboardService adminDashboardService) {
         this.userRepository = userRepository;
         this.agentRepository = agentRepository;
         this.projectRepository = projectRepository;
@@ -51,6 +55,7 @@ public class AdminDashboardController extends BaseAdminController<Object, String
         this.vpnRepository = vpnRepository;
         this.aiRankingService = aiRankingService;
         this.questioningService = questioningService;
+        this.adminDashboardService = adminDashboardService;
     }
 
     @GetMapping("/dashboard/contract")
@@ -142,6 +147,47 @@ public class AdminDashboardController extends BaseAdminController<Object, String
                 userRepository.findAll().map(this::toUserMap),
                 "users"
         );
+    }
+
+    @GetMapping("/improvements/pending")
+    public Mono<ResponseEntity<Object>> getPendingImprovements() {
+        List<ImprovementProposal> pending = adminDashboardService.getPendingApprovals();
+        return Mono.just(ResponseEntity.ok(Map.of(
+                "pending", pending,
+                "count", pending.size()
+        )));
+    }
+
+    @PostMapping("/improvements/approve/{proposalId}")
+    public Mono<ResponseEntity<Object>> approveProposal(@PathVariable String proposalId) {
+        boolean success = adminDashboardService.approveProposal(proposalId);
+        if (success) {
+            return Mono.just(ResponseEntity.ok(Map.of(
+                "status", "approved",
+                "proposalId", proposalId
+            )));
+        } else {
+            return Mono.just(ResponseEntity.status(404).body(Map.of(
+                "error", "Proposal not found",
+                "proposalId", proposalId
+            )));
+        }
+    }
+
+    @PostMapping("/improvements/reject/{proposalId}")
+    public Mono<ResponseEntity<Object>> rejectProposal(@PathVariable String proposalId) {
+        boolean success = adminDashboardService.rejectProposal(proposalId);
+        if (success) {
+            return Mono.just(ResponseEntity.ok(Map.of(
+                "status", "rejected",
+                "proposalId", proposalId
+            )));
+        } else {
+            return Mono.just(ResponseEntity.status(404).body(Map.of(
+                "error", "Proposal not found",
+                "proposalId", proposalId
+            )));
+        }
     }
 
     private Map<String, Object> toUserMap(User user) {
