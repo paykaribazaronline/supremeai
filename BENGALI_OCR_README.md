@@ -21,17 +21,20 @@ This feature adds powerful Bengali text recognition and Excel conversion capabil
 ## 🛠️ Setup Instructions
 
 ### 1. Install Dependencies
+
 ```bash
 cd functions
 npm install
 ```
 
 ### 2. Deploy Firebase Functions
+
 ```bash
 firebase deploy --only functions
 ```
 
 ### 3. Access the Feature
+
 - Login to SupremeAI admin dashboard
 - Click "🔍 Bengali OCR" in the navigation
 - Upload Bengali document images
@@ -40,6 +43,7 @@ firebase deploy --only functions
 ## 🔧 API Endpoints
 
 ### Process OCR
+
 ```
 POST /processBengaliOCR
 Content-Type: application/json
@@ -52,11 +56,13 @@ Content-Type: application/json
 ```
 
 ### Get OCR Results
+
 ```
 GET /getOCRResults?projectId=project_id
 ```
 
 ### Export to Excel
+
 ```
 POST /exportOCRToExcel
 Content-Type: application/json
@@ -90,14 +96,15 @@ Content-Type: application/json
 
 ## 🐛 Troubleshooting
 
-### Common Issues:
+### Common Issues
 
 1. **"API not enabled"**: Enable Cloud Vision API in Google Cloud Console
 2. **"Permission denied"**: Check service account permissions
 3. **"Quota exceeded"**: Monitor usage in Google Cloud Console
 4. **"Invalid image"**: Ensure images are valid JPG/PNG under 10MB
 
-### Debug Steps:
+### Debug Steps
+
 1. Check Firebase Functions logs: `firebase functions:log`
 2. Verify API keys in Google Cloud Console
 3. Test with smaller images first
@@ -106,12 +113,14 @@ Content-Type: application/json
 ## 🎯 Usage Examples
 
 ### Web Interface
+
 1. Go to `/bengali-ocr.html`
 2. Drag & drop Bengali document images
 3. Click "Process OCR"
 4. View results and export to Excel
 
 ### API Integration
+
 ```javascript
 // Upload and process
 const result = await fetch('/processBengaliOCR', {
@@ -136,6 +145,7 @@ const result = await fetch('/processBengaliOCR', {
 ## 🤝 Contributing
 
 To add new OCR features:
+
 1. Update `functions/index.js`
 2. Modify `public/bengali-ocr.html`
 3. Test with various image types
@@ -144,6 +154,7 @@ To add new OCR features:
 ## 📞 Support
 
 For issues with Bengali OCR:
+
 1. Check the troubleshooting section
 2. Review Firebase Functions logs
 3. Verify Google Cloud API status
