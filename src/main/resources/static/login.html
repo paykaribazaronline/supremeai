@@ -336,7 +336,7 @@
                 }
                 
                 showSuccess('✅ Login successful! Redirecting...');
-                setTimeout(() => { window.location.href = '/admin.html'; }, 800);
+                // Redirect will happen via onAuthStateChanged listener
 
             } catch (error) {
                 console.error('Login error:', error);
