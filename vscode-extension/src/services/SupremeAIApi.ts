@@ -18,6 +18,7 @@ export interface OrchestrateRequest {
 export interface OrchestrateResponse {
     status: string;
     requirement: string;
+    mode?: string;
     context: Record<string, unknown>;
     generationContext: Record<string, unknown>;
     completedAt: string;

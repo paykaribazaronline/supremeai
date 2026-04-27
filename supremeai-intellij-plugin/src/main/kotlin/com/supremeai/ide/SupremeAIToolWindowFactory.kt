@@ -45,6 +45,7 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
         private val chatArea = JTextArea()
         private val inputField = JBTextField()
         private val statusLabel = JLabel("● Backend: Connecting...")
+        private val modeLabel = JLabel("Mode: Code")
 
         init {
             setupUI()
@@ -56,7 +57,13 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
             
             // Header
             val header = JPanel(BorderLayout())
-            header.add(JLabel("SupremeAI Assistant"), BorderLayout.WEST)
+            val leftHeader = JPanel(java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 0))
+            leftHeader.add(JLabel("SupremeAI Assistant"))
+            modeLabel.border = EmptyBorder(0, 10, 0, 0)
+            modeLabel.foreground = java.awt.Color.GRAY
+            leftHeader.add(modeLabel)
+            
+            header.add(leftHeader, BorderLayout.WEST)
             header.add(statusLabel, BorderLayout.EAST)
             panel.add(header, BorderLayout.NORTH)
 
@@ -129,7 +136,18 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                                     jsonElement.isJsonPrimitive -> jsonElement.asString
                                     else -> "Response received (unsupported JSON format)"
                                 }
-                                chatArea.append("AI: ${aiMessage.replace("\r", "").trim()}\n")
+                                
+                                val detectedMode = if (jsonElement.isJsonObject) {
+                                    jsonElement.asJsonObject.get("mode")?.asString
+                                } else null
+                                
+                                SwingUtilities.invokeLater {
+                                    chatArea.append("AI: ${aiMessage.replace("\r", "").trim()}\n")
+                                    detectedMode?.let { 
+                                        modeLabel.text = "Mode: ${it.replaceFirstChar { c -> c.uppercase() }}"
+                                        modeLabel.foreground = java.awt.Color.BLUE
+                                    }
+                                }
                             } catch (e: Exception) {
                                 chatArea.append("AI: Parse error: ${e.message?.replace("\r", "")?.trim() ?: "Unknown parse error"}\n")
                             }

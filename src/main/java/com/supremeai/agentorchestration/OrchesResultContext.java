@@ -13,6 +13,7 @@ public class OrchesResultContext {
     private Date startedAt;
     private Date completedAt;
     private String status;
+    private String mode;
 
     public OrchesResultContext() {}
 
@@ -28,6 +29,8 @@ public class OrchesResultContext {
     public void setCompletedAt(Date completedAt) { this.completedAt = completedAt; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+    public String getMode() { return mode; }
+    public void setMode(String mode) { this.mode = mode; }
 
     // Helper methods
     @SuppressWarnings("unchecked")

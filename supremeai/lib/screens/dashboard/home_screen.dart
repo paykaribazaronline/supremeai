@@ -41,11 +41,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final result = orchestration.lastResult;
     if (result != null && mounted) {
       setState(() {
-        if (result['status'] == 'DECIDED') {
+        if (result['status'] == 'DECIDED' || result['status'] == 'COMPLETED') {
+          final mode = result['mode'] ?? 'code';
           _messages.add({
             'role': 'ai',
-            'content': 'I\'ve analyzed your requirement and created a project plan. Tap "Generate" to start building.',
+            'content': 'I\'ve analyzed your requirement using the **${mode.toString().toUpperCase()}** mode and created a project plan. Tap "Generate" to start building.',
             'action': 'generate',
+            'mode': mode,
           });
         } else {
           _messages.add({

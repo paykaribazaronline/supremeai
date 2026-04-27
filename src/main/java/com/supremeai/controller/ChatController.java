@@ -75,6 +75,10 @@ public class ChatController {
             response.put("processingTimeMs", votingResult.getProcessingTimeMs());
             response.put("timestamp", java.time.Instant.now().toString());
 
+            // ডায়নামিকভাবে মোড সনাক্ত করা
+            String mode = detectMode(message);
+            response.put("mode", mode);
+
             // Capture NLP learning from this interaction
             if (enhancedLearningService != null) {
                 enhancedLearningService.learnFromNLPInteraction(
@@ -140,6 +144,26 @@ public class ChatController {
         }
 
         return Mono.just(ResponseEntity.ok(Map.of("status", "received")));
+    }
+
+    /**
+     * ডায়নামিকভাবে মোড সনাক্ত করার হেল্পার মেথড
+     */
+    private String detectMode(String message) {
+        String lowerMsg = message.toLowerCase();
+        if (lowerMsg.contains("architect") || lowerMsg.contains("design") || lowerMsg.contains("structure")) {
+            return "architect";
+        } else if (lowerMsg.contains("debug") || lowerMsg.contains("fix") || lowerMsg.contains("error") || lowerMsg.contains("issue")) {
+            return "debug";
+        } else if (lowerMsg.contains("review") || lowerMsg.contains("audit") || lowerMsg.contains("analyze")) {
+            return "review";
+        } else if (lowerMsg.contains("ask") || lowerMsg.contains("what") || lowerMsg.contains("how") || lowerMsg.contains("explain")) {
+            return "ask";
+        } else if (lowerMsg.contains("orchestrate") || lowerMsg.contains("manage") || lowerMsg.contains("coordinate")) {
+            return "orchestrator";
+        } else {
+            return "code";
+        }
     }
 
     @GetMapping("/health")
