@@ -8,7 +8,7 @@
     <script src="/firebase-auth-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/dist/bundles/stomp.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <script src="/js/admin-dashboard.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1091,7 +1091,7 @@
                                 <div class="card-title">⚠️ System Alerts</div>
                             </div>
                             <div id="systemAlerts">
-                                <div class="alert alert-warning">
+                                <div class="alert alert-warning" id="backendStatusAlert">
                                     <span>🔧 Backend offline - Connect backend to see live alerts</span>
                                 </div>
                             </div>
@@ -2019,8 +2019,22 @@
         function checkAuth() {
             initFirebase();
             
+            // Check if user is logged in via localStorage flag
+            const isLoggedIn = localStorage.getItem('supremeai_logged_in') === 'true';
+            const hasToken = !!localStorage.getItem('firebase:authUser:AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8');
+            
+            if (!isLoggedIn || !hasToken) {
+                // Not logged in, show auth gate
+                document.getElementById('authGate').style.display = 'flex';
+                document.getElementById('mainDashboard').style.display = 'none';
+                return;
+            }
+            
+            // User claims to be logged in, verify with Firebase
             auth.onAuthStateChanged((user) => {
                 if (!user) {
+                    // Token expired or invalid
+                    localStorage.removeItem('supremeai_logged_in');
                     document.getElementById('authGate').style.display = 'flex';
                     document.getElementById('mainDashboard').style.display = 'none';
                 } else {

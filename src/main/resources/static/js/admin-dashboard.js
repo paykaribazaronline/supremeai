@@ -42,12 +42,27 @@ class DashboardCharts {
         this.socket = new SockJS('/ws');
         this.stompClient = Stomp.over(this.socket);
         
-        this.stompClient.connect({}, (frame) => {
+        // Get Firebase token
+        const token = localStorage.getItem('firebase:authUser:AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8');
+        const headers = token ? { Authorization: `Bearer ${JSON.parse(token).stsTokenManager.accessToken}` } : {};
+        
+        this.stompClient.connect(headers, (frame) => {
             console.log('Connected to WebSocket:', frame);
+            // Update backend status alert
+            const alertEl = document.getElementById('backendStatusAlert');
+            if (alertEl) {
+                alertEl.className = 'alert alert-success';
+                alertEl.querySelector('span').textContent = '✅ Backend online - Live alerts active';
+            }
             // Subscribe to dashboard updates
             this.stompClient.subscribe('/topic/dashboard', (message) => {
                 const data = JSON.parse(message.body);
                 this.handleUpdate(data);
+            });
+            // Subscribe to alerts
+            this.stompClient.subscribe('/topic/alerts', (message) => {
+                const data = JSON.parse(message.body);
+                this.showAlert(data);
             });
         }, (error) => {
             console.error('STOMP connection error:', error);
@@ -69,7 +84,28 @@ class DashboardCharts {
             case 'INITIAL_DATA':
                 console.log('Received initial data');
                 break;
+            case 'dashboard_update':
+                this.updateDashboard(data.stats);
+                break;
         }
+    }
+
+    updateDashboard(stats) {
+        if (!stats) return;
+        
+        // Update Total Users
+        const totalUsersEl = document.getElementById('totalUsers');
+        if (totalUsersEl) totalUsersEl.textContent = stats.totalUsers || '0';
+        
+        // Update Active Projects
+        const activeProjectsEl = document.getElementById('activeProjects');
+        if (activeProjectsEl) activeProjectsEl.textContent = stats.runningProjects || '0';
+        
+        // Update Success Rate
+        const successRateEl = document.getElementById('successRate');
+        if (successRateEl) successRateEl.textContent = stats.successRate ? stats.successRate + '%' : '--';
+        
+        console.log('Dashboard updated with stats:', stats);
     }
 
     updateAgentStatus(data) {
