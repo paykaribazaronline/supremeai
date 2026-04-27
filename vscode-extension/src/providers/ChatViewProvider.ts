@@ -67,6 +67,11 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             // লোডিং ইন্ডিকেটর লুকানো
             this._view?.webview.postMessage({ type: 'hideLoading' });
 
+            // মোড আপডেট করা
+            if (response.mode) {
+                this._view?.webview.postMessage({ type: 'updateMode', value: response.mode });
+            }
+
             // এজেন্ট থেকে প্রাপ্ত প্রতিক্রিয়া দেখানো
             let responseText = this._formatOrchestrationResponse(response);
             this._view?.webview.postMessage({ type: 'addResponse', value: responseText });
@@ -239,6 +244,9 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 			</head>
 			<body>
 				<div class="chat-container">
+					<div id="mode-indicator" style="padding: 5px 10px; background: var(--vscode-badge-background); color: var(--vscode-badge-foreground); font-size: 0.8em; border-radius: 4px; align-self: flex-start; margin-bottom: 10px; display: none;">
+						Mode: <span id="current-mode">Code</span>
+					</div>
 					<div id="chat-history">
 						<div class="message ai-message">সুপ্রিমএআইতে স্বাগতম! আমি কিভাবে সাহায্য করতে পারি?</div>
 					</div>
@@ -289,6 +297,12 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 								break;
 							case 'addQuestion':
 								addMessage(message.value, 'user-message');
+								break;
+							case 'updateMode':
+								const modeIndicator = document.getElementById('mode-indicator');
+								const modeSpan = document.getElementById('current-mode');
+								modeIndicator.style.display = 'block';
+								modeSpan.textContent = message.value.charAt(0).toUpperCase() + message.value.slice(1);
 								break;
 							case 'showLoading':
 								document.getElementById('loading-indicator').style.display = 'block';

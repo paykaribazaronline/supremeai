@@ -149,10 +149,14 @@ public class AdaptiveAgentOrchestrator {
         context.put("completedAt", completed);
         context.put("status", "COMPLETED");
 
+        String detectedMode = detectMode(requirement);
+        context.put("mode", detectedMode);
+
         OrchesResultContext result = new OrchesResultContext(context);
         result.setStartedAt(started);
         result.setCompletedAt(completed);
         result.setStatus("COMPLETED");
+        result.setMode(detectedMode);
 
         // Capture app generation learning
         if (enhancedLearningService != null) {
@@ -314,5 +318,27 @@ public class AdaptiveAgentOrchestrator {
         ctx.putIfAbsent("includeTests", true);
         ctx.putIfAbsent("includeDocker", true);
         return ctx;
+    }
+
+    /**
+     * ডায়নামিকভাবে মোড সনাক্ত করে
+     */
+    private String detectMode(String requirement) {
+        String lowerReq = requirement.toLowerCase();
+        
+        if (lowerReq.contains("architect") || lowerReq.contains("design") || lowerReq.contains("structure")) {
+            return "architect";
+        } else if (lowerReq.contains("debug") || lowerReq.contains("fix") || lowerReq.contains("error") || lowerReq.contains("issue")) {
+            return "debug";
+        } else if (lowerReq.contains("review") || lowerReq.contains("audit") || lowerReq.contains("analyze")) {
+            return "review";
+        } else if (lowerReq.contains("ask") || lowerReq.contains("what") || lowerReq.contains("how") || lowerReq.contains("explain")) {
+            return "ask";
+        } else if (lowerReq.contains("orchestrate") || lowerReq.contains("manage") || lowerReq.contains("coordinate")) {
+            return "orchestrator";
+        } else {
+            // Default mode for general tasks
+            return "code";
+        }
     }
 }
