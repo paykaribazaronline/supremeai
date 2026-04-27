@@ -238,3 +238,6 @@ The application now supports bilingual interface (English/Bengali):
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+#    t e s t   0 4 / 2 8 / 2 0 2 6   0 5 : 4 9 : 1 4 
+ 
+ 
