@@ -50,6 +50,21 @@
         .status-degraded { background: #FFC107; }
         .status-down { background: #f44336; }
 
+        /* Spinner */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         /* Alert Boxes */
         .alert-box { background: #fff3cd; border-left: 4px solid #ff9800; padding: 15px; margin: 10px 0; border-radius: 4px; }
         .alert-box.error { background: #f8d7da; border-left-color: #f44336; }
@@ -181,33 +196,35 @@
                     </tr>
                 </thead>
                 <tbody id="health-table">
-                    <tr>
-                        <td>API Gateway</td>
-                        <td><span class="status-indicator status-up"></span><span data-en="Healthy" data-bn="সুস্থ">Healthy</span></td>
-                        <td>99.9%</td>
-                        <td><div class="progress-bar"><div class="progress-fill" style="width: 35%;"></div></div> 35%</td>
-                        <td>1.2 GB / 4 GB</td>
+                    <tr id="loading-row">
+                        <td colspan="5" style="text-align: center; padding: 20px;">
+                            <div class="spinner"></div>
+                            <p data-en="Loading system health data..." data-bn="সিস্টেম হেলথ ডেটা লোড হচ্ছে...">Loading system health data...</p>
+                        </td>
                     </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Server Connections -->
+        <div class="card">
+            <div class="chart-title" data-en="Server Connections Status" data-bn="সার্ভার কানেকশন স্ট্যাটাস">Server Connections Status</div>
+            <table>
+                <thead>
                     <tr>
-                        <td>Agent Orchestrator</td>
-                        <td><span class="status-indicator status-up"></span><span data-en="Healthy" data-bn="সুস্থ">Healthy</span></td>
-                        <td>99.5%</td>
-                        <td><div class="progress-bar"><div class="progress-fill" style="width: 60%;"></div></div> 60%</td>
-                        <td>2.1 GB / 4 GB</td>
+                        <th data-en="Server" data-bn="সার্ভার">Server</th>
+                        <th data-en="Connection Status" data-bn="কানেকশন স্ট্যাটাস">Connection Status</th>
+                        <th data-en="Response Time" data-bn="রেসপন্স সময়">Response Time</th>
+                        <th data-en="Services" data-bn="সার্ভিস">Services</th>
+                        <th data-en="Last Check" data-bn="শেষ চেক">Last Check</th>
                     </tr>
-                    <tr>
-                        <td>Database</td>
-                        <td><span class="status-indicator status-up"></span><span data-en="Healthy" data-bn="সুস্থ">Healthy</span></td>
-                        <td>99.99%</td>
-                        <td><div class="progress-bar"><div class="progress-fill" style="width: 25%;"></div></div> 25%</td>
-                        <td>800 MB / 2 GB</td>
-                    </tr>
-                    <tr>
-                        <td>Cache (Redis)</td>
-                        <td><span class="status-indicator status-degraded"></span><span data-en="Warning" data-bn="সতর্কতা">Warning</span></td>
-                        <td>98.0%</td>
-                        <td><div class="progress-bar"><div class="progress-fill" style="width: 75%;"></div></div> 75%</td>
-                        <td>1.8 GB / 2 GB</td>
+                </thead>
+                <tbody id="connections-table">
+                    <tr id="connections-loading-row">
+                        <td colspan="5" style="text-align: center; padding: 20px;">
+                            <div class="spinner"></div>
+                            <p data-en="Loading connection data..." data-bn="কানেকশন ডেটা লোড হচ্ছে...">Loading connection data...</p>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -280,33 +297,169 @@
 
         async function updateMetrics() {
             try {
-                // Fetch response time from actuator metrics
-                const respRes = await fetch('/actuator/metrics/http.server.requests');
-                const respData = await respRes.json();
-                const respTime = respData.measurements?.find(m => m.statistic === 'MEAN')?.value || 0;
-                document.getElementById('resp-time').textContent = Math.round(respTime);
+                // Fetch system health data from Firebase Cloud Functions
+                const healthRes = await fetch('https://us-central1-supremeai.cloudfunctions.net/getSystemHealth');
+                const healthData = await healthRes.json();
 
-                // Fetch request count
-                const reqCount = respData.measurements?.find(m => m.statistic === 'COUNT')?.value || 0;
-                document.getElementById('req-count').textContent = Math.round(reqCount).toLocaleString();
-
-                // Fetch cache hit rate
-                const cacheRes = await fetch('/actuator/metrics/cache.gets');
-                const cacheData = await cacheRes.json();
-                const cacheHits = cacheData.measurements?.find(m => m.statistic === 'HIT_COUNT')?.value || 0;
-                const cacheMisses = cacheData.measurements?.find(m => m.statistic === 'MISS_COUNT')?.value || 0;
-                const cacheRate = cacheHits + cacheMisses > 0 ? Math.round((cacheHits / (cacheHits + cacheMisses)) * 100) : 0;
-                document.getElementById('cache-rate').textContent = cacheRate;
-
-                // Update system status
-                document.getElementById('status-indicator').className = 'status-indicator status-up';
-                document.getElementById('status-text').textContent = 'UP';
+                if (healthData.success && healthData.data) {
+                    displayHealthData(healthData.data);
+                } else {
+                    throw new Error('Invalid health data response');
+                }
             } catch (e) {
-                console.error('Failed to fetch metrics:', e);
-                document.getElementById('status-indicator').className = 'status-indicator status-degraded';
-                document.getElementById('status-text').textContent = 'DEGRADED';
+                console.error('Failed to fetch system health:', e);
+                displayErrorState();
             }
             document.getElementById('timestamp').textContent = new Date().toLocaleString();
+        }
+
+        function displayHealthData(data) {
+            const tableBody = document.getElementById('health-table');
+            tableBody.innerHTML = '';
+
+            // Update metrics cards with real data
+            if (data.components.firebase?.responseTime) {
+                document.getElementById('resp-time').textContent = data.components.firebase.responseTime;
+            }
+            if (data.components.firebase?.services?.firestore?.responseTime) {
+                document.getElementById('resp-time').textContent = data.components.firebase.services.firestore.responseTime;
+            }
+
+            // Display each component's health
+            Object.entries(data.components).forEach(([key, component]) => {
+                const row = document.createElement('tr');
+
+                const statusClass = component.status === 'healthy' ? 'status-up' :
+                                   component.status === 'degraded' ? 'status-degraded' : 'status-down';
+
+                const statusText = component.status === 'healthy' ? 'Healthy' :
+                                  component.status === 'degraded' ? 'Warning' : 'Critical';
+
+                const uptime = component.uptime || 'N/A';
+                const cpu = component.cpu?.usage || 'N/A';
+                const memory = component.memory ? 
+                    `${component.memory.usage || 'N/A'} / ${component.memory.total || 'N/A'}` : 'N/A';
+
+                row.innerHTML = `
+                    <td>${component.name}</td>
+                    <td>
+                        <span class="status-indicator ${statusClass}"></span>
+                        <span data-en="${statusText}" data-bn="${statusText}">${statusText}</span>
+                    </td>
+                    <td>${uptime}</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${typeof cpu === 'number' ? cpu : '0'}%;"></div>
+                        </div> 
+                        ${typeof cpu === 'number' ? `${cpu}%` : cpu}
+                    </td>
+                    <td>${memory}</td>
+                `;
+
+                tableBody.appendChild(row);
+            });
+
+            // Update overall system status
+            const statusIndicator = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+
+            if (data.overallStatus === 'healthy') {
+                statusIndicator.className = 'status-indicator status-up';
+                statusText.textContent = 'UP';
+            } else if (data.overallStatus === 'degraded') {
+                statusIndicator.className = 'status-indicator status-degraded';
+                statusText.textContent = 'DEGRADED';
+            } else {
+                statusIndicator.className = 'status-indicator status-down';
+                statusText.textContent = 'DOWN';
+            }
+        }
+
+        function displayErrorState() {
+            const tableBody = document.getElementById('health-table');
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 20px; color: #f44336;">
+                        <p data-en="Failed to load system health data. Please try again later." 
+                           data-bn="সিস্টেম হেলথ ডেটা লোড করতে ব্যর্থ হয়েছে। পরে আবার চেষ্টা করুন।">
+                            Failed to load system health data. Please try again later.
+                        </p>
+                    </td>
+                </tr>
+            `;
+
+            document.getElementById('status-indicator').className = 'status-indicator status-down';
+            document.getElementById('status-text').textContent = 'ERROR';
+        }
+
+        async function updateConnections() {
+            try {
+                const connRes = await fetch('https://us-central1-supremeai.cloudfunctions.net/checkServerConnections');
+                const connData = await connRes.json();
+
+                if (connData.success && connData.data) {
+                    displayConnectionData(connData.data);
+                } else {
+                    throw new Error('Invalid connection data response');
+                }
+            } catch (e) {
+                console.error('Failed to fetch server connections:', e);
+                displayConnectionErrorState();
+            }
+        }
+
+        function displayConnectionData(data) {
+            const tableBody = document.getElementById('connections-table');
+            tableBody.innerHTML = '';
+
+            // Display each server's connection status
+            Object.entries(data.connections).forEach(([key, connection]) => {
+                const row = document.createElement('tr');
+
+                const statusClass = connection.status === 'connected' ? 'status-up' :
+                                   connection.status === 'degraded' ? 'status-degraded' : 'status-down';
+
+                const statusText = connection.status === 'connected' ? 'Connected' :
+                                  connection.status === 'degraded' ? 'Degraded' : 'Disconnected';
+
+                const services = connection.services ? 
+                    Object.entries(connection.services)
+                        .map(([name, svc]) => `${name}: ${svc.status || 'N/A'}`)
+                        .join(', ') : 'N/A';
+
+                const lastCheck = connection.lastCheck ? 
+                    new Date(connection.lastCheck).toLocaleString() : 'N/A';
+
+                row.innerHTML = `
+                    <td>
+                        <strong>${connection.name}</strong>
+                        ${connection.url ? `<br><small>${connection.url}</small>` : ''}
+                    </td>
+                    <td>
+                        <span class="status-indicator ${statusClass}"></span>
+                        <span data-en="${statusText}" data-bn="${statusText}">${statusText}</span>
+                    </td>
+                    <td>${connection.responseTime || 'N/A'}</td>
+                    <td><small>${services}</small></td>
+                    <td><small>${lastCheck}</small></td>
+                `;
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        function displayConnectionErrorState() {
+            const tableBody = document.getElementById('connections-table');
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 20px; color: #f44336;">
+                        <p data-en="Failed to load connection data. Please try again later." 
+                           data-bn="কানেকশন ডেটা লোড করতে ব্যর্থ হয়েছে। পরে আবার চেষ্টা করুন।">
+                            Failed to load connection data. Please try again later.
+                        </p>
+                    </td>
+                </tr>
+            `;
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -321,7 +474,13 @@
 
             // Update metrics
             updateMetrics();
-            setInterval(updateMetrics, 30000);
+            // Refresh health data every 1 minute
+            setInterval(updateMetrics, 60000);
+
+            // Update server connections
+            updateConnections();
+            // Refresh connection data every 1 minute
+            setInterval(updateConnections, 60000);
         });
     </script>
 </body>

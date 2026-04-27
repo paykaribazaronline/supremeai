@@ -6,6 +6,25 @@ from plan_analyzer import PlanAnalyzer
 from image_processor import ImageProcessor
 import os
 import uuid
+import psutil
+import time
+from datetime import datetime
+
+# Load configuration
+def load_config():
+    config_path = os.path.join(os.path.dirname(__file__), 'config.json')
+    if os.path.exists(config_path):
+        with open(config_path, 'r') as f:
+            return json.load(f)
+    return {
+        "server": {
+            "host": "localhost",
+            "port": 5000,
+            "debug": False
+        }
+    }
+
+config = load_config()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
@@ -242,6 +261,96 @@ def upload_image_base64():
 def uploaded_file(filename):
     """আপলোড করা ফাইল সার্ভ করে"""
     return send_from_directory(uploads_dir, filename)
+
+@app.route('/api/status')
+def api_status():
+    """API status endpoint for monitoring"""
+    try:
+        return jsonify({
+            'status': 'running',
+            'timestamp': datetime.utcnow().isoformat(),
+            'services': {
+                'chat_system': 'running' if chat_system else 'stopped',
+                'plan_analyzer': 'running' if plan_analyzer else 'stopped',
+                'image_processor': 'running' if image_processor else 'stopped'
+            },
+            'version': '1.0.0'
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'timestamp': datetime.utcnow().isoformat()
+        }), 500
+
+@app.route('/health')
+def health_check():
+    """System health check endpoint for monitoring"""
+    try:
+        # Get CPU usage
+        cpu_percent = psutil.cpu_percent(interval=1)
+
+        # Get memory information
+        memory = psutil.virtual_memory()
+        memory_used = round(memory.used / (1024**3), 2)  # Convert to GB
+        memory_total = round(memory.total / (1024**3), 2)  # Convert to GB
+        memory_percent = memory.percent
+
+        # Get disk information
+        disk = psutil.disk_usage('/')
+        disk_used = round(disk.used / (1024**3), 2)  # Convert to GB
+        disk_total = round(disk.total / (1024**3), 2)  # Convert to GB
+        disk_percent = disk.percent
+
+        # Calculate uptime (in seconds since process start)
+        uptime_seconds = time.time() - psutil.boot_time()
+        uptime_hours = round(uptime_seconds / 3600, 2)
+
+        # Get process information
+        process = psutil.Process()
+        process_memory = round(process.memory_info().rss / (1024**2), 2)  # Convert to MB
+
+        # Check if essential services are running
+        services_status = {
+            'chat_system': 'running' if chat_system else 'stopped',
+            'plan_analyzer': 'running' if plan_analyzer else 'stopped',
+            'image_processor': 'running' if image_processor else 'stopped'
+        }
+
+        # Determine overall status
+        overall_status = 'healthy'
+        if cpu_percent > 80 or memory_percent > 90 or disk_percent > 90:
+            overall_status = 'degraded'
+        if cpu_percent > 95 or memory_percent > 95 or disk_percent > 95:
+            overall_status = 'critical'
+
+        return jsonify({
+            'status': overall_status,
+            'timestamp': datetime.utcnow().isoformat(),
+            'uptime': f"{uptime_hours}h",
+            'cpu': {
+                'usage': cpu_percent,
+                'cores': psutil.cpu_count()
+            },
+            'memory': {
+                'usage': memory_used,
+                'total': memory_total,
+                'percent': memory_percent,
+                'process_memory': f"{process_memory}MB"
+            },
+            'disk': {
+                'usage': disk_used,
+                'total': disk_total,
+                'percent': disk_percent
+            },
+            'services': services_status
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'timestamp': datetime.utcnow().isoformat()
+        }), 500
 
 # WebSocket ইভেন্ট হ্যান্ডলার
 @socketio.on('connect')

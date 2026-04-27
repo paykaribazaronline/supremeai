@@ -12,3 +12,6 @@ Pillow==9.5.0
 python-socketio==5.8.0
 python-engineio==4.7.1
 eventlet==0.33.3
+
+# সিস্টেম মনিটরিং
+psutil==5.9.5
