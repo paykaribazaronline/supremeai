@@ -12,14 +12,15 @@ void main() {
 
     test('Initial status should be unauthenticated', () async {
       final authProvider = AuthProvider();
-      // Since it's an async constructor call via _checkAuth, 
-      // we need to wait a bit or use a microtask
-      await Future.delayed(Duration.zero);
+      // Wait for _checkAuth async initialization to complete
+      await Future(() {}); // One event loop cycle
+      await Future(() {}); // Another cycle for shared_prefs async
       expect(authProvider.status, AuthStatus.unauthenticated);
     });
 
     test('continueAsGuest should update status to guest', () async {
       final authProvider = AuthProvider();
+      await Future(() {}); // Let initialization settle
       authProvider.continueAsGuest();
       
       expect(authProvider.status, AuthStatus.guest);
@@ -36,8 +37,11 @@ void main() {
       });
       
       final authProvider = AuthProvider();
-      await Future.delayed(Duration.zero);
+      // Wait for _checkAuth to complete reading prefs and setting state
+      await Future(() {}); // microtask
+      await Future(() {}); // ensure any async operations finish
       
+      // Give the API call time to fail/complete if token exists
       authProvider.logout();
       
       expect(authProvider.status, AuthStatus.unauthenticated);
