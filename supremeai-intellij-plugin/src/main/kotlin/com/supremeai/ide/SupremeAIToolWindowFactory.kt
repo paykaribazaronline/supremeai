@@ -111,6 +111,7 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                         val response = conn.inputStream.bufferedReader().use { it.readText() }
                         SwingUtilities.invokeLater {
                             try {
+                                val gson = com.google.gson.Gson()
                                 val jsonElement = com.google.gson.JsonParser.parseString(response)
                                 val aiMessage = when {
                                     jsonElement.isJsonObject -> {
@@ -343,6 +344,7 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                         val response = conn.inputStream.bufferedReader().use { it.readText() }
                         SwingUtilities.invokeLater {
                             try {
+                                val gson = com.google.gson.Gson()
                                 val json = com.google.gson.JsonParser.parseString(response).asJsonObject
                                 val status = json.get("status")?.asString ?: "Unknown"
                                 val context = json.getAsJsonObject("context")

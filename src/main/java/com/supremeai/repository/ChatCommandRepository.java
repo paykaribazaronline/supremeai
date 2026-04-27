@@ -8,6 +8,6 @@ import reactor.core.publisher.Mono;
 
 @Repository
 public interface ChatCommandRepository extends FirestoreReactiveRepository<ChatCommand> {
-    Flux<ChatCommand> findByActiveTrue();
-    Mono<ChatCommand> findByIdAndActiveTrue(String id);
+    Flux<ChatCommand> findByActive(boolean active);
+    Mono<ChatCommand> findByIdAndActive(String id, boolean active);
 }

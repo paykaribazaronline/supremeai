@@ -201,7 +201,7 @@ public class ChatProcessingService {
     public List<Map<String, Object>> getRules(boolean activeOnly) {
         List<ChatRule> rules;
         if (activeOnly) {
-            rules = chatRuleRepository.findByActiveTrue().collectList().block();
+            rules = chatRuleRepository.findByActive(true).collectList().block();
         } else {
             rules = chatRuleRepository.findAll().collectList().block();
         }
@@ -211,7 +211,7 @@ public class ChatProcessingService {
     public List<Map<String, Object>> getPlans(boolean activeOnly) {
         List<ChatPlan> plans;
         if (activeOnly) {
-            plans = chatPlanRepository.findByActiveTrue().collectList().block();
+            plans = chatPlanRepository.findByActive(true).collectList().block();
         } else {
             plans = chatPlanRepository.findAll().collectList().block();
         }
@@ -221,7 +221,7 @@ public class ChatProcessingService {
     public List<Map<String, Object>> getCommands(boolean activeOnly) {
         List<ChatCommand> commands;
         if (activeOnly) {
-            commands = chatCommandRepository.findByActiveTrue().collectList().block();
+            commands = chatCommandRepository.findByActive(true).collectList().block();
         } else {
             commands = chatCommandRepository.findAll().collectList().block();
         }

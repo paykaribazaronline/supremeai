@@ -30,6 +30,16 @@ public class SystemLearning {
     private String relatedProvider;
     private List<String> tags;
 
+    // Additional fields for error tracking and system learning
+    private String type;
+    private String resolution;
+    private String context;
+    private Integer errorCount;
+    private Boolean resolved;
+    private LocalDateTime timestamp;
+    private String severity;
+    private List<String> solutions;
+
     public SystemLearning() {}
 
     public SystemLearning(String id, String topic, String category, String content) {
@@ -79,4 +89,22 @@ public class SystemLearning {
     public void setRelatedProvider(String relatedProvider) { this.relatedProvider = relatedProvider; }
     public List<String> getTags() { return tags; }
     public void setTags(List<String> tags) { this.tags = tags; }
+
+    // Getters and setters for additional fields
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
+    public String getResolution() { return resolution; }
+    public void setResolution(String resolution) { this.resolution = resolution; }
+    public String getContext() { return context; }
+    public void setContext(String context) { this.context = context; }
+    public Integer getErrorCount() { return errorCount; }
+    public void setErrorCount(Integer errorCount) { this.errorCount = errorCount; }
+    public Boolean getResolved() { return resolved; }
+    public void setResolved(Boolean resolved) { this.resolved = resolved; }
+    public LocalDateTime getTimestamp() { return timestamp; }
+    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+    public String getSeverity() { return severity; }
+    public void setSeverity(String severity) { this.severity = severity; }
+    public List<String> getSolutions() { return solutions; }
+    public void setSolutions(List<String> solutions) { this.solutions = solutions; }
 }
