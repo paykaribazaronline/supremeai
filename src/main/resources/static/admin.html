@@ -2017,9 +2017,7 @@
         }
 
         function checkAuth() {
-            initFirebase();
-            
-            // Check if user is logged in via localStorage flag
+            // Simple check: just verify localStorage flag
             const isLoggedIn = localStorage.getItem('supremeai_logged_in') === 'true';
             
             if (!isLoggedIn) {
@@ -2029,31 +2027,12 @@
                 return;
             }
             
-            // User claims to be logged in - show dashboard immediately
-            // Firebase auth state may not be immediately available after redirect
+            // User is logged in - show dashboard immediately
             document.getElementById('authGate').style.display = 'none';
             document.getElementById('mainDashboard').style.display = 'block';
             
-            // Load dashboard immediately
+            // Load dashboard data
             loadDashboard();
-            
-            // Set up Firebase auth listener in background to handle token expiry
-            auth.onAuthStateChanged((user) => {
-                if (!user) {
-                    // Token expired
-                    console.log('Firebase token expired, logging out');
-                    localStorage.removeItem('supremeai_logged_in');
-                    document.getElementById('authGate').style.display = 'flex';
-                    document.getElementById('mainDashboard').style.display = 'none';
-                } else {
-                    // Update user info if needed
-                    const displayName = user.displayName || user.email || 'Admin';
-                    const userNameEl = document.getElementById('userName');
-                    const userAvatarEl = document.getElementById('userAvatar');
-                    if (userNameEl) userNameEl.textContent = displayName;
-                    if (userAvatarEl) userAvatarEl.textContent = displayName.charAt(0).toUpperCase();
-                }
-            });
         }
 
         function logout() {
