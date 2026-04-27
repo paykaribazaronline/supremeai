@@ -23,7 +23,6 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/quota")
-@CrossOrigin(origins = "*")
 public class QuotaController {
 
     private final QuotaService quotaService;

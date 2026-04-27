@@ -1,6 +1,7 @@
 package com.supremeai.security;
 
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,6 +37,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             if (token != null && jwtUtil.validateToken(token)) {
                 String username = jwtUtil.getUsername(token);
                 String role = jwtUtil.getRole(token);
+                if (role == null) {
+                    throw new JwtException("JWT role is missing");
+                }
                 
                 UsernamePasswordAuthenticationToken auth = 
                     new UsernamePasswordAuthenticationToken(
@@ -50,8 +54,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             response.setContentType("application/json");
             response.getWriter().write("{\"error\":\"Token expired\",\"message\":\"Please login again\"}");
             return;
+        } catch (JwtException e) {
+            response.setStatus(401);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"Invalid token\",\"message\":\"Authentication token is invalid\"}");
+            return;
         } catch (Exception e) {
-            // Log error for debugging
             logger.error("JWT token validation error: " + e.getMessage(), e);
         }
         

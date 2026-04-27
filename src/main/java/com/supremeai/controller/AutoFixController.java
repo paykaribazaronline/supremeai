@@ -8,7 +8,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auto-fix")
-@CrossOrigin(origins = "*")
 public class AutoFixController {
 
     private final AutoHealingEngine autoHealingEngine;

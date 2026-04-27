@@ -35,10 +35,10 @@ public class VirtualThreadConfig {
 
     public static ExecutorService getVirtualThreadExecutor() {
         try {
-            // Java 21+ method
+            // Attempt to use Java 21+ Virtual Threads via reflection to maintain Java 17 compatibility
             return (ExecutorService) Executors.class.getMethod("newVirtualThreadPerTaskExecutor").invoke(null);
         } catch (Exception e) {
-            log.warn("Virtual threads not available, falling back to bounded fixed thread pool", e);
+            log.warn("Virtual threads not available (Java 21 required), falling back to bounded fixed thread pool");
             // Safe bounded fallback for Java 17: 200 max threads, 500 queue capacity
             return new ThreadPoolExecutor(
                 50,

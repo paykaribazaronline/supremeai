@@ -8,13 +8,11 @@ import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
-import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import redis.clients.jedis.JedisPoolConfig;
 
 import java.time.Duration;
 
@@ -31,39 +29,13 @@ public class RedisConfig {
     @Value("${spring.data.redis.password:}")
     private String redisPassword;
 
-    @Value("${spring.data.redis.timeout:60000}")
-    private int redisTimeout;
-
-    @Value("${spring.data.redis.jedis.pool.max-active:50}")
-    private int poolMaxActive;
-
-    @Value("${spring.data.redis.jedis.pool.max-idle:20}")
-    private int poolMaxIdle;
-
-    @Value("${spring.data.redis.jedis.pool.min-idle:5}")
-    private int poolMinIdle;
-
     @Bean
-    public JedisConnectionFactory redisConnectionFactory() {
+    public LettuceConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(redisHost, redisPort);
         if (redisPassword != null && !redisPassword.isEmpty()) {
             config.setPassword(redisPassword);
         }
-
-        JedisPoolConfig poolConfig = new JedisPoolConfig();
-        poolConfig.setMaxTotal(poolMaxActive);
-        poolConfig.setMaxIdle(poolMaxIdle);
-        poolConfig.setMinIdle(poolMinIdle);
-        poolConfig.setTestOnBorrow(true);
-        poolConfig.setTestOnReturn(true);
-
-        JedisClientConfiguration clientConfig = JedisClientConfiguration.builder()
-                .connectTimeout(Duration.ofMillis(redisTimeout))
-                .readTimeout(Duration.ofMillis(redisTimeout))
-                .usePooling().poolConfig(poolConfig)
-                .build();
-
-        return new JedisConnectionFactory(config, clientConfig);
+        return new LettuceConnectionFactory(config);
     }
 
     @Bean

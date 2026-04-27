@@ -8,7 +8,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/deployment")
-@CrossOrigin(origins = "*")
 public class DeploymentController {
 
     private final AutoDeploymentOrchestrator deploymentOrchestrator;

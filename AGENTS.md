@@ -17,8 +17,7 @@ This is a monorepo featuring a multi-agent system for automated app generation.
 
 ## Build, Test, and Development Commands
 
-Use the following commands for development:
-
+- **Environment**: Java 21 (Required for Virtual Threads).
 - **Backend (Gradle)**:
   - Run: `./gradlew bootRun`
   - Build (skip tests): `./gradlew clean build -x test`
