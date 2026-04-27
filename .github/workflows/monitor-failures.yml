@@ -20,17 +20,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-       - name: Check Recent Workflow Failures
-         id: check
-         env:
-           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-         run: |
-           # Get the most recent completed run that failed
-           LAST_RUN=$(gh api \
-             repos/${{ github.repository }}/actions/runs \
-             -q '.workflow_runs[0] | select(.status=="completed" and .conclusion!="success") | .id')
+      - name: Check Recent Workflow Failures
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get the most recent completed run that failed
+          LAST_RUN=$(gh api \
+            repos/${{ github.repository }}/actions/runs \
+            -q '.workflow_runs[0] | select(.status=="completed" and .conclusion!="success") | .id')
 
-           if [ -z "$LAST_RUN" ]; then
+          if [ -z "$LAST_RUN" ]; then
             echo "No recent failures found"
             echo "should_retry=false" >> $GITHUB_OUTPUT
             echo "failed_runs=0" >> $GITHUB_OUTPUT
@@ -46,16 +46,16 @@ jobs:
     if: needs.check-failures.outputs.should_retry == 'true'
     runs-on: ubuntu-latest
     steps:
-       - name: Retry SupremeAI Master Pipeline
-         env:
-           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-         run: |
-           echo "Re-triggering SupremeAI_Master_Pipeline due to previous failure..."
-           gh workflow run supreme_pipeline.yml \
-             --ref ${{ github.ref_name }} \
-             -f "force_run_all=true"
-           
-           echo "Retry triggered. Check Actions tab for new run."
+      - name: Retry SupremeAI Master Pipeline
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Re-triggering SupremeAI_Master_Pipeline due to previous failure..."
+          gh workflow run supreme_pipeline.yml \
+            --ref ${{ github.ref_name }} \
+            -f "force_run_all=true"
+
+          echo "Retry triggered. Check Actions tab for new run."
 
   notify:
     name: Notification
