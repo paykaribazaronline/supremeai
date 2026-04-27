@@ -230,3 +230,6 @@ test_info.*
 # ========================================
 # ADDITIONAL SAFEGUARDS (Simplicity-First)
 # ========================================
+
+# Kotlin compiler temp files
+.kotlin/
