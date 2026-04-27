@@ -1,88 +1,78 @@
 package com.supremeai.controller;
 
-import com.supremeai.model.ConsensusResult;
-import com.supremeai.model.ConsensusVote;
-import com.supremeai.service.MultiAIConsensusService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import com.supremeai.service.ChatProcessingService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
-import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/api/admin/chat")
 public class AdminChatController {
 
-    private static final Logger logger = LoggerFactory.getLogger(AdminChatController.class);
+    private final ChatProcessingService chatProcessingService;
 
-    @Autowired
-    private MultiAIConsensusService consensusService;
-    
-    @Value("${supremeai.active.providers:groq,openai,anthropic,ollama}")
-    private String activeProviders;
+    public AdminChatController(ChatProcessingService chatProcessingService) {
+        this.chatProcessingService = chatProcessingService;
+    }
 
-    @PostMapping("/ask")
-    @SuppressWarnings("unchecked")
-    public Mono<ResponseEntity<Object>> askAI(@RequestBody Map<String, Object> request) {
-        String question = (String) request.get("question");
-        List<String> providers = (List<String>) request.get("providers");
-        
-        if (providers == null || providers.isEmpty()) {
-            providers = Arrays.asList(activeProviders.split(","));
-        }
+    @PostMapping("/message")
+    public Mono<ResponseEntity<Map<String, Object>>> processMessage(@RequestBody Map<String, Object> request) {
+        String userId = (String) request.get("user_id");
+        String message = (String) request.get("message");
+        Boolean isAdmin = (Boolean) request.get("is_admin");
 
-        if (question == null || question.trim().isEmpty()) {
+        if (userId == null || message == null) {
             return Mono.just(ResponseEntity.badRequest()
-                .body((Object) Map.of("error", "Question is required")));
+                .body(Map.of("error", "user_id and message are required")));
         }
 
-        return consensusService.askAllAIs(question, providers, 10000L)
-            .map(result -> {
-                Map<String, Object> response = Map.of(
-                    "question", question,
-                    "answer", result.getConsensusAnswer(),
-                    "confidence", result.getAverageConfidence(),
-                    "consensusStrength", result.getStrength(),
-                    "votes", result.getProviderVotes(),
-                    "timestamp", java.time.LocalDateTime.now().toString()
-                );
-                return ResponseEntity.ok((Object) response);
-            })
-            .onErrorResume(e -> {
-                logger.error("Failed to get AI response for question: {}", question, e);
-                return Mono.just(ResponseEntity.status(500)
-                    .body((Object) Map.of("error", "Failed to get AI response: " + e.getMessage())));
-            });
+        Map<String, Object> result = chatProcessingService.processMessage(
+            userId, message, isAdmin != null && isAdmin
+        );
+
+        return Mono.just(ResponseEntity.ok(result));
     }
 
     @GetMapping("/history")
-    public Mono<ResponseEntity<Object>> getHistory(@RequestParam(defaultValue = "50") int limit) {
-        return Mono.just(ResponseEntity.ok((Object) Map.of(
-            "messages", new ArrayList<>(),
-            "count", 0
+    public Mono<ResponseEntity<Map<String, Object>>> getHistory(
+            @RequestParam(required = false) String user_id,
+            @RequestParam(defaultValue = "100") int limit) {
+        List<Map<String, Object>> history = chatProcessingService.getChatHistory(user_id, limit);
+        return Mono.just(ResponseEntity.ok(Map.of(
+            "success", true,
+            "chat_history", history
         )));
     }
 
-    @DeleteMapping("/history")
-    public Mono<ResponseEntity<Object>> clearHistory() {
-        return Mono.just(ResponseEntity.ok((Object) Map.of(
-            "message", "History cleared (taste phase - in-memory only)"
+    @GetMapping("/pending")
+    public Mono<ResponseEntity<Map<String, Object>>> getPending(
+            @RequestParam(required = false) String user_id) {
+        List<Map<String, Object>> pending = chatProcessingService.getPendingConfirmations(user_id);
+        return Mono.just(ResponseEntity.ok(Map.of(
+            "success", true,
+            "items", pending
         )));
     }
 
-    @GetMapping("/health")
-    public Mono<ResponseEntity<Object>> health() {
-        return Mono.just(ResponseEntity.ok((Object) Map.of(
-            "status", "UP",
-            "service", "AdminChatController",
-            "backend", "MultiAIConsensusService"
-        )));
+    @PostMapping("/confirm")
+    public Mono<ResponseEntity<Map<String, Object>>> confirmItem(@RequestBody Map<String, Object> request) {
+        String itemId = (String) request.get("item_id");
+        Boolean confirmed = (Boolean) request.get("confirmed");
+        String userId = (String) request.get("user_id");
+
+        if (itemId == null || confirmed == null || userId == null) {
+            return Mono.just(ResponseEntity.badRequest()
+                .body(Map.of("error", "item_id, confirmed, and user_id are required")));
+        }
+
+        Map<String, Object> result = chatProcessingService.confirmItem(itemId, confirmed, userId);
+        boolean success = (boolean) result.get("success");
+
+        return success
+            ? Mono.just(ResponseEntity.ok(result))
+            : Mono.just(ResponseEntity.badRequest().body(result));
     }
 }

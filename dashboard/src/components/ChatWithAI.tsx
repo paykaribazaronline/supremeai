@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, Input, Button, Space, message, Empty, Tag, List, Divider, Row, Col, Tooltip, Alert, Typography } from 'antd';
 import { SendOutlined, DeleteOutlined, CopyOutlined, RobotOutlined, CheckCircleOutlined, CloseCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { authUtils } from '../lib/authUtils';
 
 const { Text, Paragraph } = Typography;
 
@@ -82,10 +83,14 @@ const ChatWithAI: React.FC = () => {
 
     const fetchSystemStatus = async () => {
         try {
-            const response = await fetch('/api/status');
+            const response = await fetch('/health');
             if (response.ok) {
                 const data = await response.json();
-                setSystemStatus(data);
+                setSystemStatus({
+                    status: data.status === 'healthy' || data.status === 'UP' ? 'UP' : 'DOWN',
+                    message: data.status,
+                    version: data.version || '6.0.0'
+                });
             }
         } catch (error) {
             setSystemStatus({ status: 'DOWN', message: 'Unable to reach server', version: 'unknown' });
@@ -94,17 +99,28 @@ const ChatWithAI: React.FC = () => {
 
     const fetchChatHistory = async () => {
         try {
-            const token = localStorage.getItem('authToken');
-            const url = selectedAgent === 'all'
-                ? '/api/chat/history'
-                : `/api/chat/history?agent=${selectedAgent}`;
+            const token = authUtils.getToken();
+            const user = authUtils.getCurrentUser();
+            const userId = user?.uid || 'anonymous';
 
-            const response = await fetch(url, {
+            const response = await fetch(`/api/chat/history?user_id=${userId}&limit=50`, {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
+
             if (response.ok) {
                 const data = await response.json();
-                setMessages(data);
+                if (data.success && data.chat_history) {
+                    // Convert to ChatMessage format
+                    const historyMessages = data.chat_history.map((item: any) => ({
+                        id: item.id,
+                        sender: item.is_admin ? 'ai' : 'user',
+                        agent: item.is_admin ? 'Admin' : 'User',
+                        content: item.message,
+                        timestamp: new Date(item.timestamp).toLocaleTimeString(),
+                        status: 'completed' as const,
+                    }));
+                    setMessages(historyMessages);
+                }
             }
         } catch (error) {
             console.error('Failed to fetch chat history');
@@ -128,31 +144,46 @@ const ChatWithAI: React.FC = () => {
         setLoading(true);
 
         try {
-            const token = localStorage.getItem('authToken');
-            const response = await fetch('/api/chat/send', {
+            const token = authUtils.getToken();
+            const user = authUtils.getCurrentUser();
+            const userId = user?.uid || 'anonymous_' + Date.now();
+
+            // Send to new Spring Boot chat endpoint
+            const response = await fetch('/api/chat/message', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
+                    user_id: userId,
                     message: input,
-                    agent: selectedAgent === 'all' ? undefined : selectedAgent,
+                    is_admin: false
                 }),
             });
 
             if (response.ok) {
                 const data = await response.json();
+
+                // Determine response content
+                let responseContent = data.reason || 'Message processed';
+                let status: 'completed' | 'error' | 'pending' = 'completed';
+                let confidence = data.confidence ? Math.round(data.confidence * 100) : 90;
+
+                // If needs admin confirmation (rule/plan/command detected)
+                if (data.needs_confirmation) {
+                    status = 'pending';
+                    responseContent = `I've detected a ${data.item_type} that requires admin approval: "${data.content}". It will be reviewed in the admin panel.`;
+                }
+
                 const aiMessage: ChatMessage = {
                     id: (Date.now() + 1).toString(),
                     sender: 'ai',
-                    agent: data.agentName || 'AI System',
-                    content: data.response || data.message,
+                    agent: 'SupremeAI Classifier',
+                    content: responseContent,
                     timestamp: new Date().toLocaleTimeString(),
-                    confidence: data.confidence,
-                    status: data.status || 'completed',
-                    processingTimeMs: data.processingTimeMs,
-                    modelsUsed: data.modelsUsed,
+                    confidence: confidence,
+                    status: status,
                 };
                 setMessages((prev) => [...prev, aiMessage]);
             } else {
@@ -164,7 +195,7 @@ const ChatWithAI: React.FC = () => {
                     content: errorData.error || `ERROR: ${response.status} - Failed to process request`,
                     timestamp: new Date().toLocaleTimeString(),
                     status: 'error',
-                    errorCode: errorData.error?.includes('image') ? 'UNSUPPORTED_MEDIA_TYPE' : 'REQUEST_FAILED',
+                    errorCode: 'REQUEST_FAILED',
                 };
                 setMessages((prev) => [...prev, errorMessage]);
             }

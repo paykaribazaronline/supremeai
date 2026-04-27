@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SupremeAI - Unified Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/admin.css">
+    <style>
+        :root {
+            --bg-primary: #0f1419;
+            --bg-secondary: #1a202c;
+            --bg-card: #1a202c;
+            --text-primary: #e2e8f0;
+            --text-secondary: #a0aec0;
+            --accent: #4299e1;
+            --accent-success: #48bb78;
+            --accent-warning: #ed8936;
+            --accent-danger: #f56565;
+            --border: #2d3748;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .sidebar-menu {
+            padding: 15px;
+        }
+
+        .menu-category-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            padding: 8px 12px;
+            letter-spacing: 1px;
+            margin-top: 15px;
+        }
+
+        .menu-item {
+            padding: 10px 15px;
+            margin: 3px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            font-size: 14px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu-item:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        .menu-item.active {
+            background: var(--bg-card);
+            border-left-color: var(--accent);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-bar {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .page-title {
+            color: var(--accent);
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+            height: 100%;
+        }
+
+        .stat-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(66, 153, 225, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent);
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title {
+            color: var(--accent);
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .list-group-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .list-group-item:hover {
+            border-color: var(--accent);
+        }
+
+        .type-badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .type-rule { background: var(--accent-danger); color: white; }
+        .type-plan { background: var(--accent); color: white; }
+        .type-command { background: var(--accent-success); color: white; }
+
+        .confidence-bar {
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.3s;
+        }
+
+        .form-control, .form-select {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        .form-control:focus, .form-select:focus {
+            background: var(--bg-secondary);
+            border-color: var(--accent);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 0.2rem rgba(66, 153, 225, 0.25);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .btn-primary:hover {
+            background: #3182ce;
+            border-color: #3182ce;
+        }
+
+        .btn-success {
+            background: var(--accent-success);
+            border-color: var(--accent-success);
+        }
+
+        .btn-danger {
+            background: var(--accent-danger);
+            border-color: var(--accent-danger);
+        }
+
+        .badge {
+            font-size: 0.75rem;
+        }
+
+        .pending-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--accent-danger);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-menu-item {
+            position: relative;
+        }
+
+        .tab-content {
+            margin-top: 20px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+            .main-content { margin-left: 0; }
+        }
+
+        /* Pending confirmation highlight */
+        .pending-highlight {
+            border-left: 3px solid var(--accent-warning);
+            background: rgba(237, 137, 54, 0.1);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .approve-btn {
+            background: var(--accent-success);
+            color: white;
+        }
+
+        .reject-btn {
+            background: var(--accent-danger);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-robot me-2"></i>SupremeAI Admin
+            </div>
+        </div>
+        <div class="sidebar-menu" id="sidebar-menu">
+            <!-- Dashboard Category -->
+            <div class="menu-category-title">Overview</div>
+            <div class="menu-item active" data-section="dashboard">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </div>
+
+            <!-- Chat Intelligence Category -->
+            <div class="menu-category-title">Chat Intelligence</div>
+            <div class="menu-item sidebar-menu-item" data-section="pending">
+                <i class="fas fa-clock"></i> Pending Confirmations
+                <span class="pending-badge" id="pending-count" style="display: none;">0</span>
+            </div>
+            <div class="menu-item" data-section="rules">
+                <i class="fas fa-list"></i> Rules
+            </div>
+            <div class="menu-item" data-section="plans">
+                <i class="fas fa-tasks"></i> Plans
+            </div>
+            <div class="menu-item" data-section="commands">
+                <i class="fas fa-terminal"></i> Commands
+            </div>
+            <div class="menu-item" data-section="chat-history">
+                <i class="fas fa-history"></i> Chat History
+            </div>
+
+            <!-- System Category -->
+            <div class="menu-category-title">System</div>
+            <div class="menu-item" data-section="agents">
+                <i class="fas fa-robots"></i> AI Agents
+            </div>
+            <div class="menu-item" data-section="projects">
+                <i class="fas fa-folder"></i> Projects
+            </div>
+            <div class="menu-item" data-section="learning">
+                <i class="fas fa-brain"></i> Learning
+            </div>
+            <div class="menu-item" data-section="vpn">
+                <i class="fas fa-shield-alt"></i> VPN
+            </div>
+            <div class="menu-item" data-section="audit">
+                <i class="fas fa-clipboard-list"></i> Audit Logs
+            </div>
+            <div class="menu-item" data-section="settings">
+                <i class="fas fa-cog"></i> Settings
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="page-title" id="page-title">Dashboard</div>
+            <div>
+                <button class="btn btn-sm btn-outline-primary" id="refresh-btn">
+                    <i class="fas fa-sync-alt me-1"></i> Refresh
+                </button>
+                <a href="/" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-home me-1"></i> User Chat
+                </a>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="section active">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-comments"></i></div>
+                            <div class="stat-value" id="total-chats">0</div>
+                            <div class="stat-label">Total Chats</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="color: var(--accent-danger)"><i class="fas fa-list"></i></div>
+                            <div class="stat-value" id="total-rules">0</div>
+                            <div class="stat-label">Total Rules</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="color: var(--accent)"><i class="fas fa-tasks"></i></div>
+                            <div class="stat-value" id="total-plans">0</div>
+                            <div class="stat-label">Total Plans</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="color: var(--accent-success)"><i class="fas fa-terminal"></i></div>
+                            <div class="stat-value" id="total-commands">0</div>
+                            <div class="stat-label">Total Commands</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Recent Pending Confirmations</div>
+                            </div>
+                            <div class="card-body">
+                                <div id="recent-pending"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Recent Chat Activity</div>
+                            </div>
+                            <div class="card-body">
+                                <div id="recent-chats"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Confirmation Section -->
+            <div id="pending" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Pending Confirmations</div>
+                        <div>
+                            <button class="btn btn-sm btn-success me-2" id="confirm-all-btn">
+                                <i class="fas fa-check-double me-1"></i> Approve All
+                            </button>
+                            <button class="btn btn-sm btn-danger" id="reject-all-btn">
+                                <i class="fas fa-times me-1"></i> Reject All
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="pending-search" placeholder="Search...">
+                        </div>
+                        <div id="all-pending"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rules Section -->
+            <div id="rules" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">All Rules</div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="active-rules-only" checked>
+                            <label class="form-check-label">Active Only</label>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="rules-search" placeholder="Search...">
+                        </div>
+                        <div id="rules-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Plans Section -->
+            <div id="plans" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">All Plans</div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="active-plans-only" checked>
+                            <label class="form-check-label">Active Only</label>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="plans-search" placeholder="Search...">
+                        </div>
+                        <div id="plans-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Commands Section -->
+            <div id="commands" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">All Commands</div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="active-commands-only" checked>
+                            <label class="form-check-label">Active Only</label>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="commands-search" placeholder="Search...">
+                        </div>
+                        <div id="commands-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat History Section -->
+            <div id="chat-history" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Chat History</div>
+                        <select class="form-select" id="history-filter" style="width: auto;">
+                            <option value="all">All Chats</option>
+                            <option value="user">User Only</option>
+                            <option value="admin">Admin Only</option>
+                        </select>
+                    </div>
+                    <div class="card-body">
+                        <div id="chat-history-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Agents Section -->
+            <div id="agents" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">AI Agents Status</div>
+                    </div>
+                    <div class="card-body">
+                        <div id="agents-list">
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <p class="mt-2">Loading agents...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Projects Section -->
+            <div id="projects" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Projects</div>
+                    </div>
+                    <div class="card-body">
+                        <div id="projects-list">
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <p class="mt-2">Loading projects...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Learning Section -->
+            <div id="learning" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">System Learning</div>
+                    </div>
+                    <div class="card-body">
+                        <div id="learning-list">
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <p class="mt-2">Loading learning entries...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VPN Section -->
+            <div id="vpn" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">VPN Connections</div>
+                    </div>
+                    <div class="card-body">
+                        <div id="vpn-list">
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <p class="mt-2">Loading VPN connections...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audit Logs Section -->
+            <div id="audit" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Audit Logs</div>
+                    </div>
+                    <div class="card-body">
+                        <div id="audit-list">
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <p class="mt-2">Loading audit logs...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="settings" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">System Settings</div>
+                    </div>
+                    <div class="card-body">
+                        <p>System configuration options will be displayed here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border);">
+                <div class="modal-header" style="border-bottom: 1px solid var(--border);">
+                    <h5 class="modal-title"><i class="fas fa-question-circle me-2"></i>Confirmation Required</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>I think this is a <span id="item-type-badge" class="type-badge"></span>. Do you want to confirm?</p>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <p id="item-content" class="mb-0"></p>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <small>Confidence Score:</small>
+                            <small id="confidence-value">0%</small>
+                        </div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="confidence-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--border);">
+                    <button type="button" class="btn btn-secondary" id="reject-btn">Reject</button>
+                    <button type="button" class="btn btn-success" id="confirm-btn">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/admin-dashboard.js"></script>
+    <script src="/js/admin-chat.js"></script>
+</body>
+</html>
