@@ -1,0 +1,73 @@
+name: Monitor Failed Workflows
+
+on:
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  check-failures:
+    name: Check For Failed Workflows
+    runs-on: ubuntu-latest
+    outputs:
+      should_retry: ${{ steps.check.outputs.should_retry }}
+      failed_runs: ${{ steps.check.outputs.failed_runs }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check Recent Workflow Failures
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get the last completed run of SupremeAI_Master_Pipeline
+          LAST_RUN=$(gh api \
+            repos/${{ github.repository }}/actions/runs \
+            -q '.workflow_runs[0] | select(.status=="completed" and .conclusion!="success") | .id' \
+            --paginate false)
+
+          if [ -z "$LAST_RUN" ]; then
+            echo "No recent failures found"
+            echo "should_retry=false" >> $GITHUB_OUTPUT
+            echo "failed_runs=0" >> $GITHUB_OUTPUT
+          else
+            echo "Found failed workflow run: $LAST_RUN"
+            echo "should_retry=true" >> $GITHUB_OUTPUT
+            echo "failed_runs=$LAST_RUN" >> $GITHUB_OUTPUT
+          fi
+
+  trigger-retry:
+    name: Trigger Pipeline Retry
+    needs: check-failures
+    if: needs.check-failures.outputs.should_retry == 'true'
+    runs-on: ubuntu-latest
+    steps:
+       - name: Retry SupremeAI Master Pipeline
+         env:
+           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+         run: |
+           echo "Re-triggering SupremeAI_Master_Pipeline due to previous failure..."
+           gh workflow run supreme_pipeline.yml \
+             --ref ${{ github.ref_name }} \
+             -f "force_run_all=true"
+           
+           echo "Retry triggered. Check Actions tab for new run."
+
+  notify:
+    name: Notification
+    needs: [check-failures, trigger-retry]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Status Update
+        run: |
+          if [ "${{ needs.check-failures.outputs.should_retry }}" == "true" ]; then
+            echo "✅ Failure detected and retry triggered automatically."
+          else
+            echo "ℹ️ No failures found in recent workflow runs."
+          fi
