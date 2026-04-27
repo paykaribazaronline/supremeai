@@ -16,8 +16,8 @@ class SupremeAISettings : PersistentStateComponent<SupremeAISettings> {
     var apiKey: String = ""
     var apiEndpoint: String = "https://supremeai-a.web.app"
     var kimoMode: Boolean = false
-    var model: String = "google/gemini-1.5-pro"
-    var smallModel: String = "google/gemini-1.5-flash"
+    var model: String = "SupremeAI-v1 (Stable)"
+    var smallModel: String = "SupremeAI-v1 (Flash)"
     var fullAuthority: Boolean = false
     var shareMode: String = "manual"
     var enableExternalDirectory: Boolean = false
