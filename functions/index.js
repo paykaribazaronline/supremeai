@@ -8,6 +8,12 @@ const axios = require("axios");
 admin.initializeApp();
 const db = admin.firestore();
 
+// ============ SYSTEM HEALTH MONITORING ============
+
+const systemHealth = require('./system-health');
+exports.getSystemHealth = systemHealth.getSystemHealth;
+exports.collectHealthMetrics = systemHealth.collectHealthMetrics;
+
 // ============ REQUIREMENT PROCESSING ============
 
 /**
@@ -261,6 +267,12 @@ exports.updateProgress = functions.https.onRequest(async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+// ============ SERVER CONNECTION MONITORING ============
+
+const serverConnectionMonitor = require('./server-connection-monitor');
+exports.checkServerConnections = serverConnectionMonitor.checkServerConnections;
+exports.monitorConnections = serverConnectionMonitor.monitorConnections;
 
 // ============ BENGALI OCR PROCESSING ============
 

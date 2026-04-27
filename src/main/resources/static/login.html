@@ -301,12 +301,7 @@
                 passwordInput.focus();
             }
         
-            // Check if already logged in
-            auth.onAuthStateChanged(user => {
-                if (user) {
-                    window.location.href = '/admin.html';
-                }
-            });
+            // Check if already logged in - but don't redirect here (handled in form submit)
         });
 
         // Form submit handler
