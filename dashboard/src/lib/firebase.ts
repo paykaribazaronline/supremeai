@@ -1,7 +1,7 @@
 // Firebase configuration for SupremeAI Admin Dashboard
 // Project: supremeai-a
 
-import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import { initializeApp, getApps, getApp, FirebaseApp, FirebaseError } from 'firebase/app';
 import {
   getAuth,
   signInWithEmailAndPassword,
@@ -9,7 +9,6 @@ import {
   Auth,
   UserCredential,
   getIdTokenResult,
-  FirebaseError,
 } from 'firebase/auth';
 
 const firebaseConfig = {
