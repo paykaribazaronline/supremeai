@@ -2029,46 +2029,31 @@
                 return;
             }
             
-            // User claims to be logged in, verify with Firebase
-            // Give Firebase auth a moment to initialize
-            let authChecked = false;
+            // User claims to be logged in - show dashboard immediately
+            // Firebase auth state may not be immediately available after redirect
+            document.getElementById('authGate').style.display = 'none';
+            document.getElementById('mainDashboard').style.display = 'block';
+            
+            // Load dashboard immediately
+            loadDashboard();
+            
+            // Set up Firebase auth listener in background to handle token expiry
             auth.onAuthStateChanged((user) => {
-                authChecked = true;
                 if (!user) {
-                    // Token expired or invalid
-                    console.log('Firebase auth state: no user, but localStorage says logged in');
-                    // Don't immediately log out - Firebase might still be initializing
-                    // Wait a bit and check again
-                    setTimeout(() => {
-                        if (!auth.currentUser) {
-                            localStorage.removeItem('supremeai_logged_in');
-                            document.getElementById('authGate').style.display = 'flex';
-                            document.getElementById('mainDashboard').style.display = 'none';
-                        }
-                    }, 2000);
+                    // Token expired
+                    console.log('Firebase token expired, logging out');
+                    localStorage.removeItem('supremeai_logged_in');
+                    document.getElementById('authGate').style.display = 'flex';
+                    document.getElementById('mainDashboard').style.display = 'none';
                 } else {
-                    document.getElementById('authGate').style.display = 'none';
-                    document.getElementById('mainDashboard').style.display = 'block';
-                    
-                    // Update user info
+                    // Update user info if needed
                     const displayName = user.displayName || user.email || 'Admin';
-                    document.getElementById('userName').textContent = displayName;
-                    document.getElementById('userAvatar').textContent = displayName.charAt(0).toUpperCase();
-                    
-                    // Load dashboard
-                    loadDashboard();
+                    const userNameEl = document.getElementById('userName');
+                    const userAvatarEl = document.getElementById('userAvatar');
+                    if (userNameEl) userNameEl.textContent = displayName;
+                    if (userAvatarEl) userAvatarEl.textContent = displayName.charAt(0).toUpperCase();
                 }
             });
-            
-            // Fallback: if auth state doesn't change within 3 seconds, assume Firebase token is valid
-            setTimeout(() => {
-                if (!authChecked && isLoggedIn) {
-                    console.log('Auth state not confirmed, proceeding with localStorage flag');
-                    document.getElementById('authGate').style.display = 'none';
-                    document.getElementById('mainDashboard').style.display = 'block';
-                    loadDashboard();
-                }
-            }, 3000);
         }
 
         function logout() {

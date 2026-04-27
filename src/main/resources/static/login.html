@@ -336,7 +336,10 @@
                 }
                 
                 showSuccess('✅ Login successful! Redirecting...');
-                // Redirect will happen via onAuthStateChanged listener
+                // Redirect immediately - Firebase token is already in localStorage
+                const urlParams = new URLSearchParams(window.location.search);
+                const redirect = urlParams.get('redirect') || '/admin.html';
+                window.location.href = redirect;
 
             } catch (error) {
                 console.error('Login error:', error);
