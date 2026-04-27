@@ -84,6 +84,12 @@ secrets/
 credentials/
 firebase-key.json
 google-cloud-key.json
+auth-token.txt
+get-fresh-token.js
+setup-admin-user.js
+test-auth.js
+verify-token.js
+*.tokens.js
 
 # API Keys & Tokens
 # FIREBASE_API_KEY=
