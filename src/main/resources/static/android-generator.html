@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SupremeAI Platform v0.1 - Android Generator</title>
+    <title>SupremeAI Platform v0.1 - App Generator</title>
     <script src="/firebase-app-compat.js"></script>
     <script src="/firebase-auth-compat.js"></script>
     <style>
@@ -787,8 +787,38 @@
             });
             
             // Reset progress tracker
-            document.querySelector('.progress-tracker h2').textContent = '🎯 Milestone M2: Working Android Generator (0% Complete)';
+            document.querySelector('.progress-tracker h2').textContent = '🎯 Milestone M2: Working App Generator (0% Complete)';
         }
+        // Check authentication
+        function checkAuth() {
+            // Simple check: if not logged in, redirect to login
+            const isLoggedIn = localStorage.getItem('supremeai_logged_in') === 'true';
+            if (!isLoggedIn) {
+                window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+                return;
+            }
+            
+            // If Firebase is available, verify token
+            if (typeof firebase !== 'undefined') {
+                if (!firebase.apps.length) {
+                    // Firebase config is already loaded via firebase-app-compat.js
+                    // Just use the default app
+                    try {
+                        firebase.auth().onAuthStateChanged((user) => {
+                            if (!user) {
+                                localStorage.removeItem('supremeai_logged_in');
+                                window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.pathname);
+                            }
+                        });
+                    } catch (e) {
+                        console.error('Firebase auth check failed:', e);
+                    }
+                }
+            }
+        }
+        
+        // Initialize
+        checkAuth();
     </script>
 </body>
 </html>
