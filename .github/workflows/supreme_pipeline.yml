@@ -69,7 +69,7 @@ jobs:
           path: "./"
           extra_args: "--only-verified"
 
-   codeql:
+  codeql:
     name: CodeQL_Analysis
     needs: [changes]
     if: >-
@@ -103,7 +103,7 @@ jobs:
       - name: Run_CodeQL
         uses: github/codeql-action/analyze@v3
 
-   java-build-and-test:
+  java-build-and-test:
     name: Java_Build_And_Test
     needs: [changes, secret-scan]
     if: >-
@@ -170,7 +170,7 @@ jobs:
           name: coverage-reports
           path: build/reports/jacoco/test/
 
-   flutter-build-and-test:
+  flutter-build-and-test:
     name: Flutter_Build_And_Test
     needs: [changes, secret-scan]
     if: >-
@@ -220,7 +220,7 @@ jobs:
         run: |
           echo "frontend_url=https://supremeai-a.web.app/" >> $GITHUB_OUTPUT
 
-   plugin-build:
+  plugin-build:
     name: Plugin_Build
     needs: [changes, secret-scan]
     if: >-
@@ -259,7 +259,7 @@ jobs:
         id: set-path
         run: echo "path=supremeai-intellij-plugin/build/distributions/*.zip" >> $GITHUB_OUTPUT
 
-   vscode-extension-build:
+  vscode-extension-build:
     name: VSCode_Extension_Build
     needs: [changes, secret-scan]
     if: >-
@@ -291,7 +291,7 @@ jobs:
         id: set-path
         run: echo "path=supremeai-vscode-extension/*.vsix" >> $GITHUB_OUTPUT
 
-   deploy-backend:
+  deploy-backend:
     name: Deploy_Backend
     needs: [changes, java-build-and-test]
     if: >-
@@ -379,7 +379,7 @@ jobs:
           echo "Fetching latest Cloud Run logs for troubleshooting..."
           gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=supremeai" --limit 50
 
-   deploy-frontend:
+  deploy-frontend:
     name: Deploy_Frontend
     needs: [changes, flutter-build-and-test]
     if: >-
