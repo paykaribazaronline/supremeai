@@ -143,7 +143,8 @@ async function checkGCloudHealth() {
 async function checkLocalPcHealth() {
     try {
         // Try to reach local health endpoint
-        const response = await axios.get('http://localhost:8080/health', {
+        const backendUrl = (functions.config().backend && functions.config().backend.url) || 'https://supremeai-a.web.app';
+        const response = await axios.get(`${backendUrl}/health`, {
             timeout: 5000
         });
 

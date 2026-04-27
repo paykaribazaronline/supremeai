@@ -37,7 +37,9 @@ class SupremeAIMetricsService(private val scope: CoroutineScope) {
                 val stompClient = WebSocketStompClient(sockJsClient)
                 stompClient.messageConverter = StringMessageConverter()
 
-                val url = "ws://localhost:8080/ws-supreme"
+                val settings = SupremeAISettings.getInstance()
+                val baseUrl = settings.apiEndpoint.takeIf { it.isNotBlank() } ?: "https://supremeai-a.web.app"
+                val url = baseUrl.replace("https://", "wss://").replace("http://", "ws://") + "/ws-supreme"
                 val handler = object : StompSessionHandlerAdapter() {
                     override fun afterConnected(session: StompSession, connectedHeaders: StompHeaders) {
                         log.info("Connected to SupremeAI Dashboard")

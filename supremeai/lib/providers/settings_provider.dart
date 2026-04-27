@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 class SupremeAISettings {
   const SupremeAISettings({
-    this.apiEndpoint = 'https://supremeai-lhlwyikwlq-uc.a.run.app',
+    this.apiEndpoint = 'https://supremeai-a.web.app',
     this.apiKey = '',
     this.model = 'google/gemini-1.5-pro',
     this.smallModel = 'google/gemini-1.5-flash',
@@ -61,7 +61,7 @@ class SupremeAISettings {
     final rawPermissions = (json['permissions'] as Map<String, dynamic>?) ?? {};
     return SupremeAISettings(
       apiEndpoint: json['apiEndpoint'] as String? ??
-          'https://supremeai-lhlwyikwlq-uc.a.run.app',
+          'https://supremeai-a.web.app',
       apiKey: json['apiKey'] as String? ?? '',
       model: json['activeModel'] as String? ??
           json['model'] as String? ??
@@ -92,7 +92,7 @@ class SupremeAISettings {
 }
 
 class SettingsProvider extends ChangeNotifier {
-  static const String _baseUrl = 'https://supremeai-lhlwyikwlq-uc.a.run.app';
+  static const String _baseUrl = 'https://supremeai-a.web.app';
 
   SupremeAISettings _settings = const SupremeAISettings();
   bool _isLoading = false;

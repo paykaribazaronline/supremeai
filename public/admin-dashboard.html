@@ -526,15 +526,8 @@
         // Update metrics based on current environment
         async function updateMetrics() {
             try {
-                let healthUrl;
-
-                if (currentEnvironment === 'cloud') {
-                    healthUrl = 'https://supremeai-lhlwyikwlq-uc.a.run.app/api/system-health';
-                } else {
-                    healthUrl = 'http://localhost:8080/actuator/health';
-                }
-
-                const healthRes = await fetch(healthUrl);
+                // Use relative URL - works for both localhost and production
+                const healthRes = await fetch('/actuator/health');
                 const healthData = await healthRes.json();
 
                 if (healthData.status === 'UP') {

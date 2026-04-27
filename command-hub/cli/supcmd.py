@@ -4,7 +4,7 @@ import json
 import os
 import argparse
 
-BASE_URL = os.environ.get("SUPREMEAI_API_URL", "http://localhost:8080/api")
+BASE_URL = os.environ.get("SUPREMEAI_API_URL", "https://supremeai-a.web.app/api")
 TOKEN_FILE = os.path.expanduser("~/.supremeai_token")
 
 def save_token(token):

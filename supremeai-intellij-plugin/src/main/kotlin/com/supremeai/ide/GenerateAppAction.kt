@@ -22,7 +22,7 @@ class GenerateAppAction : AnAction() {
                     val settings = SupremeAISettings.getInstance()
                     val apiKey = settings.apiKey.takeIf { it.isNotBlank() } ?: "dev-admin-token-local"
                     val endpoint = settings.apiEndpoint.takeIf { it.isNotBlank() }
-                        ?: "https://supremeai-lhlwyikwlq-uc.a.run.app"
+                        ?: "https://supremeai-a.web.app"
 
                     val url = URL("$endpoint/api/project/generate")
                     val conn = url.openConnection() as HttpURLConnection

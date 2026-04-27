@@ -15,7 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
     console.log('SupremeAI extension is now active!');
 
     const config = vscode.workspace.getConfiguration('supremeai');
-    const apiEndpoint = config.get<string>('apiEndpoint', 'https://supremeai-lhlwyikwlq-uc.a.run.app');
+    const apiEndpoint = config.get<string>('apiEndpoint', 'https://supremeai-a.web.app');
     const apiKey = config.get<string>('apiKey', '');
 
     // Register Chat Webview Provider

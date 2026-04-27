@@ -45,7 +45,7 @@ Configure the extension in VS Code settings:
 
 ```json
 {
-  "supremeai.apiEndpoint": "https://supremeai-lhlwyikwlq-uc.a.run.app",
+  "supremeai.apiEndpoint": "https://supremeai-a.web.app",
   "supremeai.apiKey": "your-api-key",
   "supremeai.model": "google/gemini-1.5-pro",
   "supremeai.smallModel": "google/gemini-1.5-flash",

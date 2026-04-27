@@ -14,7 +14,7 @@ export const options = {
     },
 };
 
-const BASE_URL = __ENV.BASE_URL || 'https://supremeai-lhlwyikwlq-uc.a.run.app';
+const BASE_URL = __ENV.BASE_URL || 'https://supremeai-a.web.app';
 
 export default function () {
     const res = http.get(`${BASE_URL}/api/agents/status`);

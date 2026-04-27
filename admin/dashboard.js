@@ -1,9 +1,8 @@
 // admin/dashboard.js - Dynamic API Integration
 class SupremeDashboard {
     constructor() {
-        this.apiBase = window.location.origin.includes('localhost') 
-            ? 'http://localhost:8080/api' 
-            : 'https://supremeai-lhlwyikwlq-uc.a.run.app/api';
+        // Use relative URL - works for both localhost and production
+        this.apiBase = window.location.origin + '/api';
         this.token = localStorage.getItem('jwt_token');
         this.refreshInterval = null;
     }

@@ -8,7 +8,7 @@
      "apiEndpoint": {
        "type": "string",
        "format": "uri",
-       "default": "https://supremeai-lhlwyikwlq-uc.a.run.app"
+        "default": "https://supremeai-a.web.app"
      },
     "apiKey": {
       "type": "string",
