@@ -70,29 +70,28 @@ public class APIKeyController {
      * Returns keys with masked API values for security.
      */
     @GetMapping
-    public ResponseEntity<List<Map<String, Object>>> listKeys() {
+    public Mono<ResponseEntity<List<Map<String, Object>>>> listKeys() {
         String userId = getCurrentUserId();
-        List<UserApiKey> keys = userApiKeyRepository.findByUserId(userId).collectList().block();
-
-        if (keys == null) keys = Collections.emptyList();
-
-        List<Map<String, Object>> result = keys.stream().map(key -> {
-            Map<String, Object> map = new LinkedHashMap<>();
-            map.put("id", key.getId());
-            map.put("provider", key.getProvider());
-            map.put("label", key.getLabel());
-            map.put("apiKey", key.getMaskedKey());
-            map.put("baseUrl", key.getBaseUrl());
-            map.put("models", key.getModels());
-            map.put("status", key.getStatus());
-            map.put("addedAt", key.getAddedAt() != null ? key.getAddedAt().toString() : null);
-            map.put("lastTested", key.getLastTested() != null ? key.getLastTested().toString() : null);
-            map.put("requestCount", key.getRequestCount());
-            map.put("needsRotation", key.needsRotation());
-            return map;
-        }).collect(Collectors.toList());
-
-        return ResponseEntity.ok(result);
+        return userApiKeyRepository.findByUserId(userId)
+            .collectList()
+            .map(keys -> {
+                List<Map<String, Object>> result = keys.stream().map(key -> {
+                    Map<String, Object> map = new LinkedHashMap<>();
+                    map.put("id", key.getId());
+                    map.put("provider", key.getProvider());
+                    map.put("label", key.getLabel());
+                    map.put("apiKey", key.getMaskedKey());
+                    map.put("baseUrl", key.getBaseUrl());
+                    map.put("models", key.getModels());
+                    map.put("status", key.getStatus());
+                    map.put("addedAt", key.getAddedAt() != null ? key.getAddedAt().toString() : null);
+                    map.put("lastTested", key.getLastTested() != null ? key.getLastTested().toString() : null);
+                    map.put("requestCount", key.getRequestCount());
+                    map.put("needsRotation", key.needsRotation());
+                    return map;
+                }).collect(Collectors.toList());
+                return ResponseEntity.ok(result);
+            });
     }
 
     /**
@@ -100,7 +99,7 @@ public class APIKeyController {
      * API key is encrypted before storing.
      */
     @PostMapping
-    public ResponseEntity<Map<String, Object>> addKey(@RequestBody Map<String, Object> body) {
+    public Mono<ResponseEntity<Map<String, Object>>> addKey(@RequestBody Map<String, Object> body) {
         String userId = getCurrentUserId();
 
         UserApiKey key = new UserApiKey();
@@ -124,13 +123,14 @@ public class APIKeyController {
         int rotationDays = rotationService.getRotationDaysForKey(key.getProvider());
         key.setRotationDueAt(LocalDateTime.now().plusDays(rotationDays));
 
-        UserApiKey saved = userApiKeyRepository.save(key).block();
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", "success");
-        response.put("id", saved != null ? saved.getId() : null);
-        response.put("message", "API key added successfully");
-        return ResponseEntity.ok(response);
+        return userApiKeyRepository.save(key)
+            .map(saved -> {
+                Map<String, Object> response = new HashMap<>();
+                response.put("status", "success");
+                response.put("id", saved.getId());
+                response.put("message", "API key added successfully");
+                return ResponseEntity.ok(response);
+            });
     }
 
     /**

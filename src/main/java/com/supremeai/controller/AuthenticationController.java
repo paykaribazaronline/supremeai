@@ -110,8 +110,9 @@ public class AuthenticationController {
                             })
                             .map(savedUser -> {
                                 // Generate JWT token for the user
-                                String token = jwtUtil.generateToken(savedUser.getFirebaseUid(), savedUser.getTier() == UserTier.ADMIN);
-                                String refreshToken = jwtUtil.generateToken(savedUser.getFirebaseUid(), savedUser.getTier() == UserTier.ADMIN);
+                                String userRole = savedUser.getTier() == UserTier.ADMIN ? "ADMIN" : "USER";
+                                String token = jwtUtil.generateToken(savedUser.getFirebaseUid(), userRole);
+                                String refreshToken = jwtUtil.generateToken(savedUser.getFirebaseUid(), userRole);
 
                                 Map<String, Object> response = new HashMap<>();
                                 response.put("status", "success");

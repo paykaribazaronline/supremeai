@@ -226,6 +226,18 @@ update_*.ps1
 test_*.txt
 test_details.*
 test_info.*
+hs_err_pid*.log
+replay_pid*.log
+bootrun*.log
+backend.log
+server_log.txt
+compile_output.txt
+
+# Local scratch files
+$null
+nul
+*.tmp
+*.bak
 
 # ========================================
 # ADDITIONAL SAFEGUARDS (Simplicity-First)
