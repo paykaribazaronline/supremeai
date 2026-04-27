@@ -1,71 +1,77 @@
-# Admin Panel Single URL Rule
+# Admin Panel URL Rule - Customer & Admin
 
 ## Overview
 
-The admin panel will be accessible through a single URL that works consistently across:
+URL structure for different user types:
 
-- Local development environment (localhost)
-- GitHub Pages deployment
-- Production backend deployment
+- **Customer**: 1 URL to remember/save
+- **Admin**: 2 URLs to remember/save (localhost + production backend)
 
 ## URL Structure
 
-### Local Development
+### Customer (1 URL only)
 
 ```
-http://localhost:.........
+https://supremeai-a.web.app
 ```
 
-### Production/GitHub Deployment
+Customer saves ONLY this single URL. All customer features accessible from here.
+
+### Admin (2 URLs to save)
+
+#### URL 1: Local Development
 
 ```
-https://supremeai...................
+http://localhost:8080/admin.html
 ```
 
-## Implementation Requirements
-
-### 1. Single Entry Point
-
-- All admin features must be accessible through the `/admin` route
-- No separate URLs for different admin features
-- All features (dashboard, users, settings, etc.) must be sub-routes under `/admin`
-
-### 2. Feature Organization
+#### URL 2: Production Backend (Cloud Run)
 
 ```
-/admin
-  ├── /dashboard (default view)
-  ├── /users
-  ├── /settings
-  ├── /reports
-  └── /other-features
+https://supremeai-lhlwyikwlq-uc.a.run.app/admin.html
 ```
 
-### 3. Consistency Across Environments
+Admin saves BOTH URLs:
 
-- Same URL structure for localhost and production
-- Same feature set in all environments
-- Same authentication mechanism
-- Same UI/UX experience
+- Use localhost URL for local development
+- Use Cloud Run URL for production backend access
 
-### 4. Backend Integration
+## URL Access Mapping
 
-- All admin API endpoints must use consistent base URL
-- Local: `http://localhost:8080/api/admin/*`
-- Production: `https://api.yourdomain.com/api/admin/*`
+All other URLs are accessible FROM these 2 admin URLs:
 
-## Configuration Files
+| Feature | Access Via Admin URL |
+|---------|---------------------|
+| Customer Panel | `https://supremeai-a.web.app` |
+| Admin Dashboard (Local) | `http://localhost:8080/admin.html` |
+| Admin Dashboard (Prod) | `https://supremeai-lhlwyikwlq-uc.a.run.app/admin.html` |
+| API Endpoints (Local) | `http://localhost:8080/api/*` |
+| API Endpoints (Prod) | `https://supremeai-lhlwyikwlq-uc.a.run.app/api/*` |
+| Firebase Hosting | `https://supremeai-a.web.app` (rewrites `/api/**` to Cloud Run) |
 
-### firebase.json (Hosting Rules)
+## Implementation Rules
+
+### 1. No Hard-Coded URLs in Code
+
+All API calls must use:
+
+- **Relative paths** (e.g., `/api/chat/message`, `/actuator/health`)
+- **Environment variables** for configuration
+- **No hard-coded** `localhost:8080` or `supremeai-lhlwyikwlq-uc.a.run.app`
+
+### 2. Firebase Hosting Rewrites (firebase.json)
 
 ```json
 {
   "hosting": {
-    "public": "public",
+    "public": "build/web",
     "rewrites": [
       {
-        "source": "/admin/**",
-        "destination": "/admin.html"
+        "source": "/api/**",
+        "run": {
+          "serviceId": "supremeai",
+          "region": "us-central1"
+        }
       },
       {
         "source": "**",
@@ -76,36 +82,92 @@ https://supremeai...................
 }
 ```
 
-### Nginx/Apache Config (if needed)
+This allows `https://supremeai-a.web.app/api/*` to forward to Cloud Run backend.
 
-All `/admin` routes should be rewritten to serve the same admin.html file with client-side routing.
+### 3. Backend URL Configuration
+
+#### Local Development
+
+- Backend runs on `http://localhost:8080`
+- Frontend uses relative URLs automatically
+
+#### Production
+
+- Cloud Run: `https://supremeai-lhlwyikwlq-uc.a.run.app`
+- Firebase rewrites route `/api/**` to Cloud Run
+
+### 4. Code Examples
+
+#### ✅ Correct (Relative URLs)
+
+```javascript
+fetch('/api/chat/message')  // Works on both localhost and production
+fetch('/actuator/health')    // Works everywhere
+```
+
+#### ❌ Wrong (Hard-coded URLs)
+
+```javascript
+fetch('http://localhost:8080/api/chat/message')  // Breaks on production
+fetch('https://supremeai-lhlwyikwlq-uc.a.run.app/api/health')  // Breaks on localhost
+```
+
+## Files That Need URL Fixes
+
+All files with hard-coded URLs must be updated to use relative paths or env vars:
+
+1. **Flutter App** (`supremeai/lib/`)
+   - `api_service.dart` - remove hard-coded baseUrl
+   - `settings_provider.dart` - use env variable
+   - `orchestration_provider.dart` - use relative URLs
+
+2. **VS Code Extension** (`vscode-extension/`)
+   - `src/extension.ts` - use configuration, not hard-coded
+   - `package.json` - remove default hard-coded URL
+
+3. **IntelliJ Plugin** (`supremeai-intellij-plugin/`)
+   - `SupremeAIToolWindowFactory.kt` - use settings, not hard-coded
+   - `SupremeAISettings.kt` - allow user configuration
+
+4. **Firebase Functions** (`functions/`)
+   - `system-health.js` - use relative or env var
+   - `index.js` - use env variable for backend URL
+
+5. **Admin Dashboard** (`public/`, `src/main/resources/static/`)
+   - `admin-dashboard.html` - use relative URLs
+   - `admin.html` - already uses relative URLs ✅
+
+6. **Documentation** (`.md` files)
+   - Update all hard-coded URLs to reference the 2 admin URLs rule
 
 ## Security Requirements
 
 1. Authentication required for all `/admin` routes
-2. Role-based access control
+2. Role-based access control (Customer vs Admin)
 3. Same security rules for localhost and production
 4. Secure token-based authentication
 
-## Development Guidelines
-
-1. All admin features must use client-side routing
-2. State management should handle route changes
-3. API calls should use environment-specific base URLs
-4. No hard-coded URLs in the codebase
-
 ## Testing Checklist
 
-- [ ] Admin panel accessible at `/admin` on localhost
-- [ ] All features work through single URL
-- [ ] Same structure works on production
-- [ ] Authentication works consistently
+- [ ] Customer accesses only `https://supremeai-a.web.app`
+- [ ] Admin can use both localhost and Cloud Run URLs
+- [ ] No hard-coded URLs in codebase
+- [ ] All API calls use relative paths
+- [ ] Firebase rewrites work correctly
+- [ ] Local and production behave consistently
 - [ ] All sub-routes function correctly
-- [ ] No broken links or missing routes
+
+## Admin Panel Quick Links
+
+The admin panel (`admin.html`) includes **QUICK LINKS** menu section with buttons:
+
+- **🖥️ Admin (Localhost)** → Opens `http://localhost:8080/admin.html` in new tab
+- **☁️ Admin (Production)** → Opens `https://supremeai-lhlwyikwlq-uc.a.run.app/admin.html` in new tab
+- **🏪 Customer Panel** → Opens `https://supremeai-a.web.app` in new tab
 
 ## Deployment Notes
 
-1. Ensure admin.html is built and deployed
-2. Configure routing rules in hosting platform
-3. Test all admin features post-deployment
-4. Verify environment variables are set correctly
+1. **Local**: Run backend on `localhost:8080`, access via `http://localhost:8080/admin.html`
+2. **Production Backend**: Deployed to Cloud Run, access via `https://supremeai-lhlwyikwlq-uc.a.run.app/admin.html`
+3. **Customer Frontend**: Deployed to Firebase, access via `https://supremeai-a.web.app`
+4. All URLs route to same features, just different entry points

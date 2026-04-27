@@ -1013,6 +1013,13 @@
                         <div class="menu-category-title">SYSTEM</div>
                         <div class="menu-item" onclick="showSection('settings', this)">⚙️ System Settings</div>
                     </div>
+                    
+                    <div class="menu-category">
+                        <div class="menu-category-title">QUICK LINKS</div>
+                        <div class="menu-item" onclick="openAdminUrl('local')">🖥️ Admin (Localhost)</div>
+                        <div class="menu-item" onclick="openAdminUrl('production')">☁️ Admin (Production)</div>
+                        <div class="menu-item" onclick="openCustomerUrl()">🏪 Customer Panel</div>
+                    </div>
                 </div>
                 
                 <div class="sidebar-footer">
@@ -2086,59 +2093,85 @@
         // ========== LANGUAGE SYSTEM ==========
         let currentLanguage = localStorage.getItem('supremeai_lang') || 'en';
         
-         const translations = {
-             en: {
-                 overview: 'Overview',
-                 providers: 'AI Providers',
-                 knowledge: 'Knowledge Base',
-                 chat: 'Chat with SupremeAI',
-                 pending: 'Pending Confirmations',
-                 rules: 'Rules',
-                 plans: 'Plans',
-                 commands: 'Commands',
-                 'chat-history': 'Chat History',
-                 projects: 'Projects & Deploy',
-                 users: 'User Management',
-                 activity: 'Activity & Approvals',
-                 settings: 'System Settings'
-             },
-             bn: {
-                 overview: 'ওভারভিউ',
-                 providers: 'AI প্রোভাইডার',
-                 knowledge: 'কন mostr Knowledge Base',
-                 chat: 'সুপ্রিম AI সাথে চ্যাট',
-                 pending: 'পেন্ডিং কনফার্মেশন',
-                 rules: 'রুলস',
-                 plans: 'প্ল্যান',
-                 commands: 'কমান্ড',
-                 'chat-history': 'চ্যategorical hisব',
-                 projects: 'প্রজেক্ট এবং ডেলয়',
-                 users: 'ইউজার ম্যানেজমেন্ট',
-                 activity: 'অ্যাক্টিভিটি এবং অ্যাপ্রোভাল',
-                 settings: 'সিস্টেম সেটিংস'
-             }
-         };
+          const translations = {
+              en: {
+                  overview: 'Overview',
+                  providers: 'AI Providers',
+                  knowledge: 'Knowledge Base',
+                  chat: 'Chat with SupremeAI',
+                  pending: 'Pending Confirmations',
+                  rules: 'Rules',
+                  plans: 'Plans',
+                  commands: 'Commands',
+                  'chat-history': 'Chat History',
+                  projects: 'Projects & Deploy',
+                  users: 'User Management',
+                  activity: 'Activity & Approvals',
+                  settings: 'System Settings',
+                  'admin-local': 'Admin (Localhost)',
+                  'admin-production': 'Admin (Production)',
+                  'customer-panel': 'Customer Panel'
+              },
+              bn: {
+                  overview: 'ওভারভিউ',
+                  providers: 'AI প্রোভাইডার',
+                  knowledge: 'কন mostr Knowledge Base',
+                  chat: 'সুপ্রিম AI সাথে চ্যাট',
+                  pending: 'পেন্ডিং কনফার্মেশন',
+                  rules: 'রুলস',
+                  plans: 'প্ল্যান',
+                  commands: 'কমান্ড',
+                  'chat-history': 'চ্যategorical hisব',
+                  projects: 'প্রজেক্ট এবং ডেলয়',
+                  users: 'ইউজার ম্যানেজমেন্ট',
+                  activity: 'অ্যাক্টিভিটি এবং অ্যাপ্রোভাল',
+                  settings: 'সিস্টেম সেটিংস',
+                  'admin-local': 'অ্যাডমিন (লোকালহোস্ট)',
+                  'admin-production': 'অ্যাডমিন (প্রোডাকশন)',
+                  'customer-panel': 'কাস্টমার প্যানেল'
+              }
+          };
 
-         function setLanguage(lang) {
-             currentLanguage = lang;
-             localStorage.setItem('supremeai_lang', lang);
-             document.getElementById('lang-en').classList.toggle('active', lang === 'en');
-             document.getElementById('lang-bn').classList.toggle('active', lang === 'bn');
-             
-             // Update menu items dynamically based on section ID
-             document.querySelectorAll('.menu-item').forEach(item => {
-                 const onclick = item.getAttribute('onclick');
-                 const match = onclick && onclick.match(/showSection\('([^']+)'/);
-                 if (match) {
-                     const sectionId = match[1];
-                     if (translations[lang][sectionId]) {
-                         // Keep icon (first character/emoji) and update text
-                         const icon = item.textContent.trim().split(' ')[0];
-                         item.textContent = icon + ' ' + translations[lang][sectionId];
-                     }
-                 }
-             });
-         }
+          function setLanguage(lang) {
+              currentLanguage = lang;
+              localStorage.setItem('supremeai_lang', lang);
+              document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+              document.getElementById('lang-bn').classList.toggle('active', lang === 'bn');
+              
+              // Update menu items dynamically based on section ID
+              document.querySelectorAll('.menu-item').forEach(item => {
+                  const onclick = item.getAttribute('onclick');
+                  if (!onclick) return;
+                  
+                  // Handle showSection items
+                  const sectionMatch = onclick.match(/showSection\('([^']+)'/);
+                  if (sectionMatch) {
+                      const sectionId = sectionMatch[1];
+                      if (translations[lang][sectionId]) {
+                          const icon = item.textContent.trim().split(' ')[0];
+                          item.textContent = icon + ' ' + translations[lang][sectionId];
+                      }
+                  }
+                  
+                  // Handle openAdminUrl items
+                  const adminMatch = onclick.match(/openAdminUrl\('([^']+)'/);
+                  if (adminMatch) {
+                      const env = adminMatch[1];
+                      const key = env === 'local' ? 'admin-local' : 'admin-production';
+                      if (translations[lang][key]) {
+                          const icon = item.textContent.trim().split(' ')[0];
+                          item.textContent = icon + ' ' + translations[lang][key];
+                      }
+                  }
+                  
+                  // Handle openCustomerUrl items
+                  const customerMatch = onclick.match(/openCustomerUrl/);
+                  if (customerMatch && translations[lang]['customer-panel']) {
+                      const icon = item.textContent.trim().split(' ')[0];
+                      item.textContent = icon + ' ' + translations[lang]['customer-panel'];
+                  }
+              });
+          }
 
         // ========== FIREBASE AUTH ==========
         let auth;
@@ -2228,6 +2261,19 @@
             // Show selected tab
             document.getElementById('settings-' + tab).style.display = 'block';
             btn.classList.add('active');
+        }
+
+        // ========== QUICK URL REDIRECTS ==========
+        function openAdminUrl(env) {
+            if (env === 'local') {
+                window.open('http://localhost:8080/admin.html', '_blank');
+            } else if (env === 'production') {
+                window.open('https://supremeai-lhlwyikwlq-uc.a.run.app/admin.html', '_blank');
+            }
+        }
+
+        function openCustomerUrl() {
+            window.open('https://supremeai-a.web.app', '_blank');
         }
 
         // ========== DASHBOARD LOADING ==========

@@ -90,7 +90,7 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                     val settings = SupremeAISettings.getInstance()
                     val apiKey = settings.apiKey.trim()
                     val endpoint = settings.apiEndpoint.takeIf { it.isNotBlank() }
-                        ?: "https://supremeai-lhlwyikwlq-uc.a.run.app"
+                        ?: "https://supremeai-a.web.app"
 
                     val url = URI("$endpoint/api/chat/send").toURL()
                     val conn = url.openConnection() as HttpURLConnection
@@ -152,7 +152,7 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                 try {
                     val settings = SupremeAISettings.getInstance()
                     val endpoint = settings.apiEndpoint.takeIf { it.isNotBlank() }
-                        ?: "https://supremeai-lhlwyikwlq-uc.a.run.app"
+                        ?: "https://supremeai-a.web.app"
 
                     val url = URI("$endpoint/api/status").toURL()
                     val conn = url.openConnection() as HttpURLConnection
@@ -326,7 +326,7 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                     val settings = SupremeAISettings.getInstance()
                     val apiKey = settings.apiKey.takeIf { it.isNotBlank() } ?: "dev-admin-token-local"
                     val endpoint = settings.apiEndpoint.takeIf { it.isNotBlank() }
-                        ?: "https://supremeai-lhlwyikwlq-uc.a.run.app"
+                        ?: "https://supremeai-a.web.app"
 
                     val url = URI("$endpoint/api/orchestrate/requirement").toURL()
                     val conn = url.openConnection() as HttpURLConnection

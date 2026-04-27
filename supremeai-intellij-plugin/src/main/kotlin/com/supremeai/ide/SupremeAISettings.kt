@@ -14,7 +14,7 @@ import com.intellij.util.xmlb.XmlSerializerUtil
 class SupremeAISettings : PersistentStateComponent<SupremeAISettings> {
 
     var apiKey: String = ""
-    var apiEndpoint: String = "https://supremeai-lhlwyikwlq-uc.a.run.app"
+    var apiEndpoint: String = "https://supremeai-a.web.app"
     var kimoMode: Boolean = false
     var model: String = "google/gemini-1.5-pro"
     var smallModel: String = "google/gemini-1.5-flash"

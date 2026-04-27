@@ -15,6 +15,10 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
   List<Map<String, dynamic>> _apiKeys = [];
   bool _isLoading = true;
   String? _apiKey;
+  static const String _baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'https://supremeai-a.web.app',
+  );
 
   @override
   void initState() {
@@ -28,7 +32,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://supremeai-lhlwyikwlq-uc.a.run.app/api/user/apis'),
+        Uri.parse('$_baseUrl/api/user/apis'),
         headers: {
           'Authorization': 'Bearer ${auth.token}',
           'Content-Type': 'application/json',
@@ -54,7 +58,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://supremeai-lhlwyikwlq-uc.a.run.app/api/user/apis'),
+        Uri.parse('$_baseUrl/api/user/apis'),
         headers: {
           'Authorization': 'Bearer ${auth.token}',
           'Content-Type': 'application/json',
@@ -84,7 +88,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
     try {
       await http.delete(
         Uri.parse(
-            'https://supremeai-lhlwyikwlq-uc.a.run.app/api/user/apis/$id'),
+            '$_baseUrl/api/user/apis/$id'),
         headers: {
           'Authorization': 'Bearer ${auth.token}',
         },

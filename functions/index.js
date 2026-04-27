@@ -29,7 +29,8 @@ exports.processRequirement = functions.https.onRequest(async (req, res) => {
         }
         
         // Call Java backend to classify
-        const classificationUrl = `http://localhost:8080/classify`;
+        const backendUrl = (functions.config().backend && functions.config().backend.url) || 'https://supremeai-a.web.app';
+        const classificationUrl = `${backendUrl}/classify`;
         const classifyResponse = await axios.post(classificationUrl, { description });
         const size = classifyResponse.data.size; // SMALL, MEDIUM, or BIG
         
@@ -115,7 +116,8 @@ exports.approveRequirement = functions.https.onRequest(async (req, res) => {
             const { projectId, description } = req_doc.data();
             
             // Call Java backend orchestrator
-            const orchestrateUrl = `http://localhost:8080/orchestrate`;
+            const backendUrl = (functions.config().backend && functions.config().backend.url) || 'https://supremeai-a.web.app';
+            const orchestrateUrl = `${backendUrl}/orchestrate`;
             await axios.post(orchestrateUrl, {
                 projectId,
                 requirementDescription: description,

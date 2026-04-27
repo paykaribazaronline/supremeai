@@ -21,12 +21,121 @@
     ],
     "rewrites": [
       {
-        "source": "/admin",
-        "destination": "/admin-dashboard.html"
+        "source": "/api/**",
+        "run": {
+          "serviceId": "supremeai",
+          "region": "us-central1"
+        }
       },
       {
+        "source": "/admin",
+        "destination": "/admin/index.html"
+      },
+      {
+        "source": "/admin/**",
+        "destination": "/admin/index.html"
+      }
+    ],
+    "redirects": [
+      {
         "source": "/admin.html",
-        "destination": "/admin-dashboard.html"
+        "destination": "/admin",
+        "type": 301
+      },
+      {
+        "source": "/admin-dashboard.html",
+        "destination": "/admin",
+        "type": 301
+      },
+      {
+        "source": "/admin-users.html",
+        "destination": "/admin/users",
+        "type": 301
+      },
+      {
+        "source": "/admin-settings.html",
+        "destination": "/admin/settings",
+        "type": 301
+      },
+      {
+        "source": "/admin-projects.html",
+        "destination": "/admin/projects",
+        "type": 301
+      },
+      {
+        "source": "/admin-providers.html",
+        "destination": "/admin/providers",
+        "type": 301
+      },
+      {
+        "source": "/admin-logs.html",
+        "destination": "/admin/logs",
+        "type": 301
+      },
+      {
+        "source": "/admin-notifications.html",
+        "destination": "/admin/notifications",
+        "type": 301
+      },
+      {
+        "source": "/admin-backup.html",
+        "destination": "/admin/backup",
+        "type": 301
+      },
+      {
+        "source": "/admin-reports.html",
+        "destination": "/admin/reports",
+        "type": 301
+      },
+      {
+        "source": "/monitoring-dashboard.html",
+        "destination": "/admin/monitoring",
+        "type": 301
+      },
+      {
+        "source": "/performance-dashboard.html",
+        "destination": "/admin/performance",
+        "type": 301
+      },
+      {
+        "source": "/bengali-ocr.html",
+        "destination": "/admin/ocr",
+        "type": 301
+      },
+      {
+        "source": "/admin-console.html",
+        "destination": "/admin",
+        "type": 301
+      },
+      {
+        "source": "/chat",
+        "destination": "/admin/chat",
+        "type": 301
+      },
+      {
+        "source": "/progress",
+        "destination": "/admin/progress",
+        "type": 301
+      },
+      {
+        "source": "/kingmode",
+        "destination": "/admin/kingmode",
+        "type": 301
+      },
+      {
+        "source": "/audit",
+        "destination": "/admin/audit",
+        "type": 301
+      },
+      {
+        "source": "/tutorials",
+        "destination": "/admin/tutorials",
+        "type": 301
+      },
+      {
+        "source": "/dashboard/3d",
+        "destination": "/admin/3d",
+        "type": 301
       }
     ],
     "headers": [

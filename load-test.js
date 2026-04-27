@@ -30,7 +30,7 @@ export const options = {
 };
 
 // Base URL
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
+const BASE_URL = __ENV.BASE_URL || 'https://supremeai-a.web.app';
 
 // Test data
 const providers = ['groq', 'openai', 'anthropic', 'ollama'];

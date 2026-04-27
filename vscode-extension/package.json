@@ -30,7 +30,7 @@
         },
         "supremeai.apiEndpoint": {
           "type": "string",
-          "default": "https://supremeai-lhlwyikwlq-uc.a.run.app",
+          "default": "https://supremeai-a.web.app",
           "description": "SupremeAI API endpoint URL."
         },
         "supremeai.fullAuthority": {

@@ -10,7 +10,7 @@ export class DeploymentView {
 
     private constructor() {
         const config = vscode.workspace.getConfiguration('supremeai');
-        const apiEndpoint = config.get<string>('apiEndpoint', 'https://supremeai-lhlwyikwlq-uc.a.run.app');
+        const apiEndpoint = config.get<string>('apiEndpoint', 'https://supremeai-a.web.app');
         const apiKey = config.get<string>('apiKey', '');
         this.api = new SupremeAIApi(apiEndpoint, apiKey);
     }
