@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <title>SupremeAI - Admin Login</title>
-    <script defer src="/__/firebase/12.11.0/firebase-app-compat.js"></script>
-    <script defer src="/__/firebase/12.11.0/firebase-auth-compat.js"></script>
-    <script defer src="/__/firebase/12.11.0/firebase-firestore-compat.js"></script>
+    <title>SupremeAI - User Login</title>
+    <script defer src="/__/firebase/10.7.1/firebase-app-compat.js"></script>
+    <script defer src="/__/firebase/10.7.1/firebase-auth-compat.js"></script>
+    <script defer src="/__/firebase/10.7.1/firebase-firestore-compat.js"></script>
     <script defer src="/__/firebase/init.js?useEmulator=true"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -65,15 +65,18 @@
     </style>
 </head>
 <body>
-    <div class="login-box">
         <div class="logo">Supreme<span>AI</span></div>
-        <div class="subtitle">Admin Dashboard Login</div>
+        <div class="subtitle" id="subtitle">Customer Login</div>
         <div class="error" id="error"></div>
         <div class="loading" id="loading"><div class="spinner"></div></div>
         <form id="form">
+            <div class="form-group" id="name-group" style="display: none;">
+                <label for="display-name">Full Name</label>
+                <input type="text" id="display-name" placeholder="John Doe">
+            </div>
             <div class="form-group">
-                <label for="email">Admin Email</label>
-                <input type="email" id="email" placeholder="admin@supremeai.com" required autocomplete="username">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="customer@example.com" required autocomplete="username">
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
@@ -81,18 +84,38 @@
             </div>
             <button type="submit" id="btn" disabled>Sign In</button>
         </form>
+        <div style="margin-top: 20px; text-align: center; font-size: 14px; color: #666;">
+            <span id="toggle-text">Don't have an account?</span>
+            <a href="#" id="toggle-link" style="color: #4299e1; font-weight: 600; text-decoration: none; margin-left: 5px;">Sign Up</a>
+        </div>
     </div>
 
     <script>
         let auth, db, firebaseReady = false;
+        let isLogin = true;
         const errorEl = document.getElementById('error');
         const loadingEl = document.getElementById('loading');
         const btn = document.getElementById('btn');
         const form = document.getElementById('form');
+        const subtitleEl = document.getElementById('subtitle');
+        const nameGroup = document.getElementById('name-group');
+        const toggleText = document.getElementById('toggle-text');
+        const toggleLink = document.getElementById('toggle-link');
 
         function showError(msg) { errorEl.textContent = msg; errorEl.classList.add('show'); }
         function hideError() { errorEl.classList.remove('show'); }
         function setLoading(loading) { loadingEl.classList.toggle('show', loading); btn.disabled = loading; }
+
+        toggleLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            isLogin = !isLogin;
+            subtitleEl.textContent = isLogin ? 'Customer Login' : 'Create Account';
+            btn.textContent = isLogin ? 'Sign In' : 'Sign Up';
+            toggleText.textContent = isLogin ? "Don't have an account?" : "Already have an account?";
+            toggleLink.textContent = isLogin ? "Sign Up" : "Sign In";
+            nameGroup.style.display = isLogin ? 'none' : 'block';
+            hideError();
+        });
 
         function initFirebase() {
             if (typeof firebase === 'undefined' || !firebase.apps.length) return false;
@@ -117,50 +140,41 @@
             hideError();
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
+            const displayName = document.getElementById('display-name').value.trim();
 
             if (!email || !password) { showError('Enter both email and password'); return; }
+            if (!isLogin && !displayName) { showError('Please enter your full name'); return; }
             if (!firebaseReady) { showError('Firebase not loaded. Refresh.'); return; }
 
             setLoading(true);
             try {
-                // Sign in with Firebase Auth
-                const cred = await auth.signInWithEmailAndPassword(email, password);
-                const user = cred.user;
-                const uid = user.uid;
-
-                // Check admin status in Firestore
-                const userDoc = await db.collection('users').doc(uid).get();
-                
-                if (!userDoc.exists) {
-                    // Fallback: check Firebase custom claims if user doc not yet created
-                    const idTokenResult = await user.getIdTokenResult();
-                    const isAdmin = idTokenResult.claims.admin === true || idTokenResult.claims.role === 'ADMIN';
-                    
-                    if (!isAdmin) {
-                        await auth.signOut();
-                        throw new Error('Access denied: Admin only');
-                    }
+                let user;
+                if (isLogin) {
+                    // Sign in
+                    const cred = await auth.signInWithEmailAndPassword(email, password);
+                    user = cred.user;
                 } else {
-                    const data = userDoc.data();
-                    const isAdmin = data.isAdmin === true || data.role === 'admin';
-                    if (!isAdmin) {
-                        await auth.signOut();
-                        throw new Error('Access denied: Admin only');
+                    // Sign up
+                    const cred = await auth.createUserWithEmailAndPassword(email, password);
+                    user = cred.user;
+                    if (displayName) {
+                        await user.updateProfile({ displayName: displayName });
                     }
                 }
 
-                // Store auth state and redirect
-                sessionStorage.setItem('supremeai_admin', 'true');
+                const uid = user.uid;
+                // Store user info and redirect
+                sessionStorage.setItem('supremeai_token', await user.getIdToken());
                 sessionStorage.setItem('supremeai_user', JSON.stringify({
                     email: user.email,
                     uid: uid,
-                    displayName: user.displayName || email.split('@')[0]
+                    displayName: user.displayName || displayName || email.split('@')[0]
                 }));
 
-                window.location.href = '/admin-console.html';
+                window.location.href = '/android-generator.html';
             } catch (err) {
                 console.error(err);
-                showError(err.message || 'Login failed');
+                showError(err.message || 'Authentication failed');
             } finally {
                 setLoading(false);
             }

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -13,6 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
     
     @Autowired
@@ -36,6 +38,7 @@ public class SecurityConfig {
                     "/admin.html",
                     "/customer",
                     "/customer.html",
+                    "/android-generator.html",
                     "/*.js",
                     "/*.css",
                     "/*.svg",
@@ -48,13 +51,10 @@ public class SecurityConfig {
                     "/ws/**",
                     "/error"
                 ).permitAll()
-                // Chat and consensus endpoints require authentication
-                .requestMatchers("/api/chat/**").authenticated()
-                .requestMatchers("/api/consensus/**").authenticated()
-                // Admin-only endpoints
+                .requestMatchers("/api/debug/**").hasRole("ADMIN")
+                .requestMatchers("/api/security/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-                // All other endpoints require authentication
                 .anyRequest().authenticated())
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((req, res, ex2) -> {

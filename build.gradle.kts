@@ -11,8 +11,8 @@ group = "com.supremeai"
 version = "6.0.0"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 repositories {
@@ -146,6 +146,14 @@ tasks.withType<JavaCompile> {
         "-Xlint:deprecation",      // Enable deprecation warnings
         "-Xlint:unchecked"         // Enable unchecked warnings
     ))
+}
+
+tasks.withType<JavaExec> {
+    jvmArgs(
+        "--add-opens", "java.base/java.time.chrono=ALL-UNNAMED",
+        "--add-opens", "java.base/java.util=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang=ALL-UNNAMED"
+    )
 }
 
 tasks.test {

@@ -15,11 +15,12 @@ public class JwtUtilTest {
         jwtUtil = new JwtUtil();
         // Set a test secret (must be at least 32 characters for HS256)
         ReflectionTestUtils.setField(jwtUtil, "secret", "test-secret-key-for-jwt-testing-123456");
+        ReflectionTestUtils.setField(jwtUtil, "issuer", "supremeai");
     }
 
     @Test
     public void testGenerateToken() {
-        String token = jwtUtil.generateToken("test-user");
+        String token = jwtUtil.generateToken("test-user", "USER");
 
         assertNotNull(token);
         assertFalse(token.isEmpty());
@@ -30,23 +31,23 @@ public class JwtUtilTest {
 
     @Test
     public void testGetUsername() {
-        String token = jwtUtil.generateToken("test-user");
+        String token = jwtUtil.generateToken("test-user", "USER");
         String username = jwtUtil.getUsername(token);
 
         assertEquals("test-user", username);
     }
 
     @Test
-    public void testGetRole_NoRole() {
-        String token = jwtUtil.generateToken("test-user");
+    public void testGetRole() {
+        String token = jwtUtil.generateToken("test-user", "USER");
         String role = jwtUtil.getRole(token);
 
-        assertNull(role);
+        assertEquals("USER", role);
     }
 
     @Test
     public void testValidateToken_Valid() {
-        String token = jwtUtil.generateToken("test-user");
+        String token = jwtUtil.generateToken("test-user", "USER");
         boolean isValid = jwtUtil.validateToken(token);
 
         assertTrue(isValid);

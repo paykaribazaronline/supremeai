@@ -54,7 +54,7 @@ public class AppLifecycleIntegrationTest {
         testUser = userRepository.save(testUser).block();
 
         // Generate auth token
-        authToken = jwtUtil.generateToken(testUser.getFirebaseUid());
+        authToken = jwtUtil.generateToken(testUser.getFirebaseUid(), "USER");
     }
 
     @Test
@@ -136,7 +136,7 @@ public class AppLifecycleIntegrationTest {
         adminUser.setTier(com.supremeai.model.UserTier.ADMIN);
         adminUser = userRepository.save(adminUser).block();
 
-        String adminToken = jwtUtil.generateToken(adminUser.getFirebaseUid());
+        String adminToken = jwtUtil.generateToken(adminUser.getFirebaseUid(), "ADMIN");
 
         // 1. Access admin dashboard
         mockMvc.perform(get("/api/admin/dashboard/stats")

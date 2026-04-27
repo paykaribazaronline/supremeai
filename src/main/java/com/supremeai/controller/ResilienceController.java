@@ -9,7 +9,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/resilience")
-@CrossOrigin(origins = "*")
 public class ResilienceController {
 
     private final RetryableAIExecutor retryableAIExecutor;

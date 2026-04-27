@@ -60,7 +60,7 @@ public class AuthenticationIntegrationTest {
     @Test
     public void testProtectedEndpoint_AccessibleWithValidToken() throws Exception {
         // Arrange
-        String token = jwtUtil.generateToken(testUser.getFirebaseUid());
+        String token = jwtUtil.generateToken(testUser.getFirebaseUid(), "USER");
 
         // Act & Assert
         mockMvc.perform(get("/api/user/profile")
@@ -88,7 +88,7 @@ public class AuthenticationIntegrationTest {
         // Arrange
         testUser.setTier(com.supremeai.model.UserTier.ADMIN);
         userRepository.save(testUser).block();
-        String token = jwtUtil.generateToken(testUser.getFirebaseUid());
+        String token = jwtUtil.generateToken(testUser.getFirebaseUid(), "ADMIN");
 
         // Act & Assert
         mockMvc.perform(get("/api/admin/dashboard")
@@ -99,7 +99,7 @@ public class AuthenticationIntegrationTest {
     @Test
     public void testAdminEndpoint_InaccessibleWithRegularUserToken() throws Exception {
         // Arrange
-        String token = jwtUtil.generateToken(testUser.getFirebaseUid());
+        String token = jwtUtil.generateToken(testUser.getFirebaseUid(), "USER");
 
         // Act & Assert
         mockMvc.perform(get("/api/admin/dashboard")

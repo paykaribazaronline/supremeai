@@ -271,7 +271,7 @@ export class ChatView {
         <h1>SupremeAI Chat</h1>
         <div class="language-selector">
             <button class="lang-btn ${currentLanguage === 'en' ? 'active' : ''}" data-lang="en">EN</button>
-            <button class="lang-btn ${currentLanguage === 'bn' ? 'active' : ''}" data-lang="bn">বাংলা</button>
+            <button class="lang-btn ${currentLanguage as string === 'bn' ? 'active' : ''}" data-lang="bn">বাংলা</button>
         </div>
     </div>
 
@@ -280,7 +280,7 @@ export class ChatView {
             <div class="message-header">
                 <span>🤖 SupremeAI</span>
             </div>
-            <div class="message-content">${currentLanguage === 'en' ? 'Hello! I'm SupremeAI, your AI-powered development assistant. How can I help you today?' : 'হ্যালো! আমি সুপ্রিমএআই, আপনার AI-চালিত ডেভেলপমেন্ট সহকারী। আজ আমি কিভাবে সাহায্য করতে পারি?'}</div>
+            <div class="message-content">${currentLanguage === 'en' ? "Hello! I'm SupremeAI, your AI-powered development assistant. How can I help you today?" : 'হ্যালো! আমি সুপ্রিমএআই, আপনার AI-চালিত ডেভেলপমেন্ট সহকারী। আজ আমি কিভাবে সাহায্য করতে পারি?'}</div>
         </div>
     </div>
 

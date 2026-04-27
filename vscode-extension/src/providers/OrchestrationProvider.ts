@@ -5,14 +5,14 @@ import { SupremeAIApi, OrchestrateRequest, OrchestrateResponse } from '../servic
 export class OrchestrationItem extends vscode.TreeItem {
     constructor(
         public readonly label: string,
-        private readonly status: string,
+        private readonly statusText: string,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
         private readonly iconName: string,
-        private readonly description?: string
+        public readonly descriptionText?: string
     ) {
         super(label, collapsibleState);
-        this.tooltip = `${this.label} - ${this.status}`;
-        this.description = description || this.status;
+        this.tooltip = `${this.label} - ${this.statusText}`;
+        this.description = descriptionText || this.statusText;
         this.iconPath = new vscode.ThemeIcon(this.iconName);
     }
 }
@@ -22,7 +22,7 @@ export class OrchestrationProvider implements vscode.TreeDataProvider<Orchestrat
     readonly onDidChangeTreeData: vscode.Event<OrchestrationItem | undefined | void> = this._onDidChangeTreeData.event;
 
     private api: SupremeAIApi;
-    private currentOrchestration?: OrchestrationResponse;
+    private currentOrchestration?: OrchestrateResponse;
 
     constructor(apiEndpoint: string, apiKey?: string) {
         this.api = new SupremeAIApi(apiEndpoint, apiKey);
@@ -54,14 +54,14 @@ export class OrchestrationProvider implements vscode.TreeDataProvider<Orchestrat
                     this.currentOrchestration ? 'সম্পন্ন' : 'অপেক্ষমাণ', 
                     vscode.TreeItemCollapsibleState.None, 
                     'question',
-                    this.currentOrchestration ? `${this.currentOrchestration.context['questions']?.length || 0} প্রশ্ন` : 'কোন প্রশ্ন নেই'
+                    this.currentOrchestration ? `${(this.currentOrchestration.context['questions'] as any[])?.length || 0} প্রশ্ন` : 'কোন প্রশ্ন নেই'
                 ),
                 new OrchestrationItem(
                     'সিদ্ধান্ত গ্রহণ', 
                     this.currentOrchestration ? 'সম্পন্ন' : 'অপেক্ষমাণ', 
                     vscode.TreeItemCollapsibleState.None, 
                     'check',
-                    this.currentOrchestration ? `${this.currentOrchestration.context['decisions']?.length || 0} সিদ্ধান্ত` : 'কোন সিদ্ধান্ত নেই'
+                    this.currentOrchestration ? `${(this.currentOrchestration.context['decisions'] as any[])?.length || 0} সিদ্ধান্ত` : 'কোন সিদ্ধান্ত নেই'
                 ),
                 new OrchestrationItem(
                     'কোড জেনারেশন', 
@@ -79,7 +79,7 @@ export class OrchestrationProvider implements vscode.TreeDataProvider<Orchestrat
     /**
      * নতুন অর্কেস্ট্রেশন শুরু করে
      */
-    async startOrchestration(requirement: string): Promise<OrchestrationResponse> {
+    async startOrchestration(requirement: string): Promise<OrchestrateResponse> {
         try {
             const request: OrchestrateRequest = { requirement };
             this.currentOrchestration = await this.api.orchestrate(request);
@@ -95,7 +95,7 @@ export class OrchestrationProvider implements vscode.TreeDataProvider<Orchestrat
     /**
      * বর্তমান অর্কেস্ট্রেশন ফেরত দেয়
      */
-    getCurrentOrchestration(): OrchestrationResponse | undefined {
+    getCurrentOrchestration(): OrchestrateResponse | undefined {
         return this.currentOrchestration;
     }
 

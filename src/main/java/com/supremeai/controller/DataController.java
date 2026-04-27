@@ -8,7 +8,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/data")
-@CrossOrigin(origins = "*")
 public class DataController {
 
     private final UnifiedDataService unifiedDataService;

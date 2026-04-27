@@ -51,10 +51,18 @@
         "supremeai.providers": {
           "type": "object",
           "default": {
-            "openai": { "apiKey": "" },
-            "anthropic": { "apiKey": "" },
-            "google": { "apiKey": "" },
-            "groq": { "apiKey": "" }
+            "openai": {
+              "apiKey": ""
+            },
+            "anthropic": {
+              "apiKey": ""
+            },
+            "google": {
+              "apiKey": ""
+            },
+            "groq": {
+              "apiKey": ""
+            }
           },
           "description": "API keys and configurations for different LLM providers."
         },
@@ -200,5 +208,8 @@
     "@typescript-eslint/parser": "^8.58.2",
     "eslint": "^8.56.0",
     "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "axios": "^1.15.2"
   }
 }
