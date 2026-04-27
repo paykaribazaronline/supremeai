@@ -69,7 +69,7 @@ const App: React.FC = () => {
                         )}
                         <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
                             <Spin size="large" tip="Loading..." />
-                        </div>}
+                        </div>}>
                             <Router>
                                 <Routes>
                                     {/* Admin Panel Unified Dashboard - Default Route */}

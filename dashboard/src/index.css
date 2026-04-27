@@ -133,9 +133,8 @@ html {
   }
 }
 
-@media (max-width: 768px) {
-  .ant-layout-content {
-    margin: 16px !important;
-  }
-}
-}
+ @media (max-width: 768px) {
+   .ant-layout-content {
+     margin: 16px !important;
+   }
+ }
