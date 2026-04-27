@@ -1023,6 +1023,7 @@
                 </div>
                 
                 <div class="sidebar-footer">
+                    <button class="btn btn-secondary w-100 mb-3" onclick="systemRefresh()">🔄 System Refresh</button>
                     <div class="lang-toggle">
                         <button class="lang-btn active" onclick="setLanguage('en')" id="lang-en">EN</button>
                         <button class="lang-btn" onclick="setLanguage('bn')" id="lang-bn">BN</button>
@@ -4118,14 +4119,12 @@
         async function refreshEvolutionState() {
             try {
                 const headers = await getAuthHeaders();
-                // Map to learning/knowledge endpoint since there's no direct "evolution" entity yet
-                const response = await fetch('/api/admin/learning', { headers });
+                const response = await fetch('/api/admin/evolution', { headers });
 
                 if (response.ok) {
-                    const data = await response.json();
-                    // In real implementation, these would be calculated from knowledge contributions
-                    const evolvedModels = getAllEvolvedModels();
-                    const alphaPlayers = getAlphaPlayers();
+                    const evolvedModels = await response.json();
+
+                    const alphaPlayers = evolvedModels.filter(m => m.isAlphaPlayer);
 
                     document.getElementById('totalModelsTracked').textContent = evolvedModels.length;
                     document.getElementById('alphaPlayersCount').textContent = alphaPlayers.length;
@@ -4133,21 +4132,11 @@
                         evolvedModels.reduce((sum, m) => sum + m.xp, 0);
 
                     displayEvolvedModels(evolvedModels, alphaPlayers);
-                    displaySourceTracking();
+                    // displaySourceTracking(); // To be implemented with SystemLearning
                 }
             } catch (e) {
                 console.warn('Backend evolution sync failed, using local cache:', e);
-                // Fallback to local data
-                const evolvedModels = getAllEvolvedModels();
-                const alphaPlayers = getAlphaPlayers();
-
-                document.getElementById('totalModelsTracked').textContent = evolvedModels.length;
-                document.getElementById('alphaPlayersCount').textContent = alphaPlayers.length;
-                document.getElementById('totalXP').textContent =
-                    evolvedModels.reduce((sum, m) => sum + m.xp, 0);
-
-                displayEvolvedModels(evolvedModels, alphaPlayers);
-                displaySourceTracking();
+                // Fallback logic if needed
             }
         }
         
@@ -4253,7 +4242,10 @@
             
             // Load evolution state
             refreshEvolutionState();
-            
+
+            // Load roadmap
+            refreshRoadmap();
+
             // Initialize P0 features
             initEmergencyStop();
             initAPIAccessLock();
@@ -4525,43 +4517,98 @@
             }
         }
 
-        // ========== ROADMAP DISPLAY ==========
-        function refreshRoadmap() {
-            // In real implementation, this would fetch milestone progress from Firebase
-            // For demo, update the progress bars with current values
-            
-            const milestones = {
-                'm1': { progress: 50, color: '#f56565' },
-                'm2': { progress: 0, color: '#ed8936' },
-                'm3': { progress: 30, color: '#4299e1' },
-                'm4': { progress: 60, color: '#48bb78' },
-                'm5': { progress: 40, color: '#a78bfa' },
-                'm6': { progress: 20, color: '#3182ce' },
-                'm7': { progress: 25, color: '#ffd700' },
-                'm8': { progress: 5, color: '#68d391' }
-            };
-            
-            // Update progress bars (they are in the roadmap card)
-            // Note: In a real implementation, you'd have IDs for each milestone's progress bar
-            console.log('Roadmap refreshed:', milestones);
-            
-            // Show refresh confirmation
-            const roadmapCard = document.querySelector('[class*="card-title"]:contains("8 Milestones")');
-            if (roadmapCard) {
-                const card = roadmapCard.closest('.card');
-                const existingMsg = card.querySelector('.refresh-msg');
-                if (existingMsg) existingMsg.remove();
-                
-                const msg = document.createElement('div');
-                msg.className = 'refresh-msg';
-                msg.style.cssText = 'font-size: 11px; color: #48bb78; margin-top: 10px;';
-                msg.textContent = '✅ Roadmap refreshed - Progress data loaded from Firebase';
-                card.appendChild(msg);
-                
-                setTimeout(() => msg.remove(), 3000);
+        async function systemRefresh() {
+            console.log('Starting global system refresh...');
+            const refreshBtn = event?.target;
+            if (refreshBtn) {
+                refreshBtn.disabled = true;
+                refreshBtn.textContent = '🔄 Refreshing...';
+            }
+
+            try {
+                await Promise.all([
+                    refreshEvolutionState(),
+                    refreshRoadmap(),
+                    initEmergencyStop(),
+                    initAPIAccessLock(),
+                    initDynamicRotation(),
+                    initAutoExecApproval(),
+                    updateProviderGrid(),
+                    (window.adminChat ? window.adminChat.loadInitialData() : Promise.resolve())
+                ]);
+                console.log('System refresh complete');
+            } catch (e) {
+                console.error('System refresh failed:', e);
+            } finally {
+                if (refreshBtn) {
+                    refreshBtn.disabled = false;
+                    refreshBtn.textContent = '🔄 System Refresh';
+                }
             }
         }
+
+        // ========== ROADMAP DISPLAY ==========
+        async function refreshRoadmap() {
+            try {
+                const headers = await getAuthHeaders();
+                const response = await fetch('/api/admin/milestones', { headers });
+
+                if (response.ok) {
+                    const milestones = await response.json();
+                    renderMilestones(milestones);
+
+                    // Show refresh confirmation
+                    showRoadmapRefreshMessage('✅ Roadmap refreshed - Progress data loaded from Firebase');
+                }
+            } catch (e) {
+                console.error('Error refreshing roadmap:', e);
+            }
+        }
+
+        function renderMilestones(milestones) {
+            const container = document.getElementById('roadmapMilestones');
+            if (!container) return;
+            
+            let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">';
+            
+            milestones.forEach(m => {
+                const detailHtml = m.details ? m.details.map(d => `• ${d}`).join('<br>') : '';
+                
+                html += `
+                    <div style="background: #111827; padding: 15px; border-radius: 8px; border-left: 3px solid ${m.color};">
+                        <div style="font-weight: 600; color: ${m.color}; margin-bottom: 8px;">${m.icon} ${m.title}</div>
+                        <div style="font-size: 12px; color: #718096; margin-bottom: 5px;">Timeline: ${m.timeline}</div>
+                        <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+                            ${detailHtml}
+                        </div>
+                        <div style="margin-top: 8px;">
+                            <div class="progress-bar" style="height: 6px;">
+                                <div class="progress-fill" style="width: ${m.progress}%; background: ${m.color};"></div>
+                            </div>
+                            <div style="font-size: 11px; color: #718096; margin-top: 3px;">${m.progress}% complete</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function showRoadmapRefreshMessage(text) {
+            const card = document.getElementById('roadmapMilestones').closest('.card');
+            const existingMsg = card.querySelector('.refresh-msg');
+            if (existingMsg) existingMsg.remove();
+
+            const msg = document.createElement('div');
+            msg.className = 'refresh-msg';
+            msg.style.cssText = 'font-size: 11px; color: #48bb78; margin-top: 10px;';
+            msg.textContent = text;
+            card.appendChild(msg);
+
+            setTimeout(() => msg.remove(), 3000);
+        }
     </script>
-    <script src="/js/admin-chat.js"></script>
+    <script src="/js/admin-chat-fixed.js"></script>
 </body>
 </html>

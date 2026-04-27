@@ -17,7 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple7;
+import reactor.util.function.Tuple8;
 
 import java.util.HashMap;
 import java.util.List;
@@ -73,16 +73,17 @@ public class AdminDashboardController extends BaseAdminController<Object, String
                 activityLogRepository.findAll().count().onErrorReturn(0L),
                 activityLogRepository.findBySeverityOrderByTimestampDesc("CRITICAL").count().onErrorReturn(0L),
                 systemLearningRepository.findAll().count().onErrorReturn(0L),
-                vpnRepository.findAll().count().onErrorReturn(0L)
+                vpnRepository.findAll().count().onErrorReturn(0L),
+                userRepository.findAll().count().onErrorReturn(0L)
         ).map(tuple -> buildContract(tuple))
         .onErrorResume(e -> Mono.just(buildDefaultContract()));
     }
 
     private Map<String, Object> buildDefaultContract() {
-        return buildContract(reactor.util.function.Tuples.of(0L, 0L, 0L, 0L, 0L, 0L, 0L));
+        return buildContract(reactor.util.function.Tuples.of(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L));
     }
 
-    private Map<String, Object> buildContract(Tuple7<Long, Long, Long, Long, Long, Long, Long> tuple) {
+    private Map<String, Object> buildContract(Tuple8<Long, Long, Long, Long, Long, Long, Long, Long> tuple) {
         long totalAgents = tuple.getT1();
         long totalProjects = tuple.getT2();
         long completedProjects = tuple.getT3();
@@ -90,6 +91,7 @@ public class AdminDashboardController extends BaseAdminController<Object, String
         long criticalErrors = tuple.getT5();
         long totalKnowledge = tuple.getT6();
         long activeVPNs = tuple.getT7();
+        long totalUsers = tuple.getT8();
 
         double successRate = totalProjects > 0 ? (double) completedProjects / totalProjects * 100 : 100.0;
         double healthScore = totalLogs > 0 ? Math.max(0, 100.0 - ((double) criticalErrors / totalLogs * 1000)) : 100.0;
@@ -100,6 +102,7 @@ public class AdminDashboardController extends BaseAdminController<Object, String
         contract.put("description", "Unified Multi-Agent Orchestration & Cloud Operations Control");
 
         Map<String, Object> stats = new HashMap<>();
+        stats.put("totalUsers", totalUsers);
         stats.put("activeAIAgents", totalAgents);
         stats.put("systemHealthScore", Math.round(healthScore * 10) / 10.0);
         stats.put("runningTasks", totalProjects - completedProjects);

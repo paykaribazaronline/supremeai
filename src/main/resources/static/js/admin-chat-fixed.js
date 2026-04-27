@@ -3,7 +3,7 @@
 
 class AdminChatManager {
     constructor() {
-        this.baseUrl = '/api/admin/chat';
+        this.baseUrl = '/api/admin/chat-items';
         this.pendingItems = [];
         this.allItems = {
             rules: [],

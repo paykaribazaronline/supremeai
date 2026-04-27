@@ -25,6 +25,9 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
     @Autowired
     private ActivityLogRepository activityLogRepository;
 
+    @Autowired
+    private com.supremeai.provider.AIProviderFactory aiProviderFactory;
+
     public ProvidersController(ProviderRepository providerRepository) {
         this.providerRepository = providerRepository;
     }
@@ -60,6 +63,35 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
             return Mono.just(ResponseEntity.badRequest().body(Map.of("error", "providerId is required")));
         }
         return deleteProvider(providerId);
+    }
+
+    @PostMapping("/test-key")
+    public Mono<ResponseEntity<Object>> testProviderKey(@RequestBody Map<String, String> payload) {
+        String name = payload.get("name");
+        String apiKey = payload.get("apiKey");
+
+        if (name == null || apiKey == null) {
+            return Mono.just(ResponseEntity.badRequest().body(Map.of("error", "name and apiKey are required")));
+        }
+
+        try {
+            com.supremeai.provider.AIProvider provider = aiProviderFactory.getProvider(name, apiKey);
+            return provider.generate("test")
+                    .map(response -> ResponseEntity.ok((Object) Map.of(
+                            "success", true,
+                            "message", "Key validated successfully",
+                            "response", response
+                    )))
+                    .onErrorResume(e -> Mono.just(ResponseEntity.status(401).body(Map.of(
+                            "success", false,
+                            "error", "Invalid key or provider error: " + e.getMessage()
+                    ))));
+        } catch (Exception e) {
+            return Mono.just(ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "error", "Unsupported provider or configuration error: " + e.getMessage()
+            )));
+        }
     }
 
     @PostMapping
