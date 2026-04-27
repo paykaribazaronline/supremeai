@@ -2292,6 +2292,10 @@
                 });
                 if (response.ok) {
                     updateSystemStatus('online');
+                    // If online, also refresh data from real API
+                    refreshProviders();
+                    refreshRoadmap();
+                    refreshEvolutionState();
                 } else {
                     updateSystemStatus('degraded');
                 }
@@ -2399,8 +2403,59 @@
         }
 
         // ========== ACTION HANDLERS ==========
-        function refreshProviders() {
-            alert('Backend offline - cannot refresh providers');
+        async function getAuthHeaders() {
+            let token = null;
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('firebase:authUser:')) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        token = data.stsTokenManager?.accessToken || data.accessToken;
+                        break;
+                    } catch (e) {
+                        console.error('Error parsing Firebase token:', e);
+                    }
+                }
+            }
+            return {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+        }
+
+        async function refreshProviders() {
+            try {
+                const headers = await getAuthHeaders();
+                const response = await fetch('/api/admin/providers/configured', { headers });
+                if (response.ok) {
+                    const data = await response.json();
+                    const providers = data.providers || [];
+
+                    const tbody = document.getElementById('provider-table-body');
+                    tbody.innerHTML = '';
+
+                    providers.forEach(p => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${p.id || ''}</td>
+                            <td>${p.name || ''}</td>
+                            <td><code style="color: #4299e1;">${p.apiKey ? '••••••••' + p.apiKey.slice(-4) : 'N/A'}</code></td>
+                            <td>
+                                ${p.active ?
+                                    '<span class="badge badge-success">Active</span>' :
+                                    '<span class="badge badge-danger">Inactive</span>'}
+                            </td>
+                            <td>
+                                <button class="btn btn-secondary btn-sm" onclick="editProvider('${p.id}')">Edit</button>
+                                <button class="btn btn-danger btn-sm" style="margin-left: 5px;" onclick="removeProvider('${p.id}')">Remove</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            } catch (e) {
+                console.error('Error refreshing providers:', e);
+            }
         }
 
         function showAddKeyModal() {
@@ -3484,15 +3539,46 @@
         async function testProviderApiKey(btn) {
             const input = btn.parentElement.querySelector('input');
             const apiKey = input.value.trim();
-            const modelName = document.getElementById('newModelName').value.trim() || 'Unknown Model';
+            const providerType = document.getElementById('newModelProvider').value;
             
             if (!apiKey) {
                 alert('Please enter an API key to test');
                 return;
             }
 
-            // Update button to show testing
             const originalText = btn.textContent;
+            btn.textContent = '⏳ Testing...';
+            btn.disabled = true;
+
+            try {
+                const headers = await getAuthHeaders();
+                // Using a hypothetical proxy endpoint that validates keys server-side
+                const response = await fetch('/api/admin/providers/test-key', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ apiKey, providerType })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    btn.textContent = '✅ Valid';
+                    btn.className = 'btn btn-sm btn-success';
+                    input.dataset.tested = 'true';
+                    document.getElementById('providerApiTestResult').innerHTML =
+                        `<div style="color: #48bb78; font-size: 12px; margin-top: 5px;">✅ Key validated! Success Rate: ${result.successRate || '100%'}</div>`;
+                } else {
+                    btn.textContent = '❌ Invalid';
+                    btn.className = 'btn btn-sm btn-danger';
+                    document.getElementById('providerApiTestResult').innerHTML =
+                        `<div style="color: #f56565; font-size: 12px; margin-top: 5px;">❌ Key validation failed.</div>`;
+                }
+            } catch (e) {
+                console.error('Key test failed:', e);
+                btn.textContent = '⚠️ Error';
+            } finally {
+                btn.disabled = false;
+            }
+        }
             btn.textContent = '🔄 Testing...';
             btn.disabled = true;
 
@@ -3922,37 +4008,52 @@
         }
 
         // Update saveNewProvider to save voting eligibility
-        const originalSaveNewProvider = saveNewProvider;
-        function saveNewProvider() {
-            const modelName = document.getElementById('newModelName').value.trim();
+        async function saveNewProvider() {
+            const name = document.getElementById('newModelName').value.trim();
             const provider = document.getElementById('newModelProvider').value.trim();
             const endpoint = document.getElementById('newModelEndpoint').value.trim();
-            const eligibleForVoting = document.getElementById('eligibleForVoting').checked;
-            
-            if (!modelName) {
-                alert('Please enter a model name');
+
+            if (!name) {
+                alert('Please enter a provider name');
                 return;
             }
 
-            // Collect API keys
             const apiKeys = [];
             const apiKeyRows = document.querySelectorAll('#providerApiKeysList .api-key-row');
-            let untestedCount = 0;
-            
             apiKeyRows.forEach(row => {
-                const input = row.querySelector('input');
-                const key = input.value.trim();
-                if (key) {
-                    if (input.dataset.tested !== 'true') {
-                        untestedCount++;
-                    }
-                    apiKeys.push({
-                        key: key,
-                        tested: input.dataset.tested === 'true',
-                        freeLimit: input.dataset.freeLimit || 'Unknown',
-                        remaining: input.dataset.remaining || 'Unknown'
-                    });
+                const key = row.querySelector('input').value.trim();
+                if (key) apiKeys.push(key);
+            });
+
+            const providerData = {
+                name: name,
+                providerType: provider,
+                baseUrl: endpoint,
+                apiKey: apiKeys[0] || '', // Controller expects a single apiKey in APIProvider model
+                active: true
+            };
+
+            try {
+                const headers = await getAuthHeaders();
+                const response = await fetch('/api/admin/providers/add', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(providerData)
+                });
+
+                if (response.ok) {
+                    alert('Provider saved successfully');
+                    closeModal('addProviderModal');
+                    refreshProviders();
+                } else {
+                    const err = await response.json();
+                    alert('Error saving provider: ' + (err.error || response.statusText));
                 }
+            } catch (e) {
+                console.error('Save provider failed:', e);
+                alert('Connection error while saving provider');
+            }
+        }
             });
 
             if (apiKeys.length === 0) {
@@ -4014,21 +4115,40 @@
         }
 
         // ========== EVOLUTION STATE DISPLAY ==========
-        function refreshEvolutionState() {
-            const evolvedModels = getAllEvolvedModels();
-            const alphaPlayers = getAlphaPlayers();
-            
-            // Update summary stats
-            document.getElementById('totalModelsTracked').textContent = evolvedModels.length;
-            document.getElementById('alphaPlayersCount').textContent = alphaPlayers.length;
-            document.getElementById('totalXP').textContent = 
-                evolvedModels.reduce((sum, m) => sum + m.xp, 0);
-            
-            // Display evolved models
-            displayEvolvedModels(evolvedModels, alphaPlayers);
-            
-            // Display source tracking
-            displaySourceTracking();
+        async function refreshEvolutionState() {
+            try {
+                const headers = await getAuthHeaders();
+                // Map to learning/knowledge endpoint since there's no direct "evolution" entity yet
+                const response = await fetch('/api/admin/learning', { headers });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // In real implementation, these would be calculated from knowledge contributions
+                    const evolvedModels = getAllEvolvedModels();
+                    const alphaPlayers = getAlphaPlayers();
+
+                    document.getElementById('totalModelsTracked').textContent = evolvedModels.length;
+                    document.getElementById('alphaPlayersCount').textContent = alphaPlayers.length;
+                    document.getElementById('totalXP').textContent =
+                        evolvedModels.reduce((sum, m) => sum + m.xp, 0);
+
+                    displayEvolvedModels(evolvedModels, alphaPlayers);
+                    displaySourceTracking();
+                }
+            } catch (e) {
+                console.warn('Backend evolution sync failed, using local cache:', e);
+                // Fallback to local data
+                const evolvedModels = getAllEvolvedModels();
+                const alphaPlayers = getAlphaPlayers();
+
+                document.getElementById('totalModelsTracked').textContent = evolvedModels.length;
+                document.getElementById('alphaPlayersCount').textContent = alphaPlayers.length;
+                document.getElementById('totalXP').textContent =
+                    evolvedModels.reduce((sum, m) => sum + m.xp, 0);
+
+                displayEvolvedModels(evolvedModels, alphaPlayers);
+                displaySourceTracking();
+            }
         }
         
         function displayEvolvedModels(evolvedModels, alphaPlayers) {
@@ -4144,26 +4264,51 @@
         // ========== P0: EMERGENCY STOP SWITCH ==========
         let emergencyStopActive = false;
         
-        function initEmergencyStop() {
-            // In real implementation, this would read from Firebase
-            // For demo, check localStorage
-            emergencyStopActive = localStorage.getItem('supremeai_emergency_stop') === 'true';
-            document.getElementById('emergencyStop').checked = emergencyStopActive;
-            updateEmergencyStatus();
+        async function initEmergencyStop() {
+            try {
+                const headers = await getAuthHeaders();
+                const response = await fetch('/api/admin/config', { headers });
+                if (response.ok) {
+                    const config = await response.json();
+                    emergencyStopActive = config.emergencyStop || false;
+                    document.getElementById('emergencyStop').checked = emergencyStopActive;
+                    updateEmergencyStatus();
+                }
+            } catch (e) {
+                console.error('Error fetching emergency stop status:', e);
+                emergencyStopActive = localStorage.getItem('supremeai_emergency_stop') === 'true';
+                document.getElementById('emergencyStop').checked = emergencyStopActive;
+                updateEmergencyStatus();
+            }
         }
         
-        function toggleEmergencyStop() {
+        async function toggleEmergencyStop() {
             emergencyStopActive = !emergencyStopActive;
-            localStorage.setItem('supremeai_emergency_stop', emergencyStopActive);
-            
-            // In real implementation, this would write to Firebase
-            // All agents check this flag before acting
-            updateEmergencyStatus();
-            
-            if (emergencyStopActive) {
-                alert('🛑 EMERGENCY STOP ACTIVATED!\n\nAll AI operations will stop immediately.\nAgents will not process any new tasks.');
-            } else {
-                alert('✅ Emergency Stop DEACTIVATED.\n\nSystem operations can resume.');
+            try {
+                const headers = await getAuthHeaders();
+                const configResponse = await fetch('/api/admin/config', { headers });
+                if (configResponse.ok) {
+                    const config = await configResponse.json();
+                    config.emergencyStop = emergencyStopActive;
+
+                    const updateResponse = await fetch('/api/admin/config', {
+                        method: 'PUT',
+                        headers,
+                        body: JSON.stringify(config)
+                    });
+
+                    if (updateResponse.ok) {
+                        localStorage.setItem('supremeai_emergency_stop', emergencyStopActive);
+                        updateEmergencyStatus();
+                        if (emergencyStopActive) {
+                            alert('🛑 EMERGENCY STOP ACTIVATED!');
+                        } else {
+                            alert('✅ Emergency Stop DEACTIVATED.');
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Error toggling emergency stop:', e);
             }
         }
         
@@ -4184,24 +4329,59 @@
         let apiAccessLocked = false;
         let apiKeysRotated = 0;
         
-        function initAPIAccessLock() {
-            // In real implementation, check middleware status
-            apiAccessLocked = localStorage.getItem('supremeai_api_lock') === 'true';
-            updateAPILockStatus();
+        async function initAPIAccessLock() {
+            try {
+                const headers = await getAuthHeaders();
+                const response = await fetch('/api/admin/config', { headers });
+                if (response.ok) {
+                    const config = await response.json();
+                    apiAccessLocked = config.apiAccessLock || false;
+                    updateAPILockStatus();
+                }
+            } catch (e) {
+                apiAccessLocked = localStorage.getItem('supremeai_api_lock') === 'true';
+                updateAPILockStatus();
+            }
         }
         
-        function lockAPIAccess() {
-            apiAccessLocked = true;
-            localStorage.setItem('supremeai_api_lock', 'true');
-            updateAPILockStatus();
-            alert('🔒 All API access LOCKED!\n\nNo API requests will be processed until unlocked.');
+        async function lockAPIAccess() {
+            try {
+                const headers = await getAuthHeaders();
+                const configResponse = await fetch('/api/admin/config', { headers });
+                if (configResponse.ok) {
+                    const config = await configResponse.json();
+                    config.apiAccessLock = true;
+                    await fetch('/api/admin/config', {
+                        method: 'PUT',
+                        headers,
+                        body: JSON.stringify(config)
+                    });
+                    apiAccessLocked = true;
+                    localStorage.setItem('supremeai_api_lock', 'true');
+                    updateAPILockStatus();
+                    alert('🔒 All API access LOCKED!');
+                }
+            } catch (e) { console.error(e); }
         }
         
-        function unlockAPIAccess() {
-            apiAccessLocked = false;
-            localStorage.setItem('supremeai_api_lock', 'false');
-            updateAPILockStatus();
-            alert('🔓 API access UNLOCKED!\n\nAPI requests can now be processed.');
+        async function unlockAPIAccess() {
+            try {
+                const headers = await getAuthHeaders();
+                const configResponse = await fetch('/api/admin/config', { headers });
+                if (configResponse.ok) {
+                    const config = await configResponse.json();
+                    config.apiAccessLock = false;
+                    await fetch('/api/admin/config', {
+                        method: 'PUT',
+                        headers,
+                        body: JSON.stringify(config)
+                    });
+                    apiAccessLocked = false;
+                    localStorage.setItem('supremeai_api_lock', 'false');
+                    updateAPILockStatus();
+                    alert('🔓 API access UNLOCKED!');
+                }
+            } catch (e) { console.error(e); }
         }
         
         function updateAPILockStatus() {
@@ -4226,25 +4406,46 @@
         let rotationStrategy = 'quota-based';
         let keysRotatedToday = 0;
         
-        function initDynamicRotation() {
-            rotationStrategy = localStorage.getItem('supremeai_rotation_strategy') || 'quota-based';
-            keysRotatedToday = parseInt(localStorage.getItem('supremeai_keys_rotated') || 0);
-            document.getElementById('rotationStrategy').value = rotationStrategy;
-            document.getElementById('currentStrategy').textContent = 
-                rotationStrategy === 'sequential' ? 'Sequential' :
-                rotationStrategy === 'random' ? 'Random' : 'Quota-Based';
-            document.getElementById('keysRotated').textContent = keysRotatedToday;
+        async function initDynamicRotation() {
+            try {
+                const headers = await getAuthHeaders();
+                const response = await fetch('/api/admin/config', { headers });
+                if (response.ok) {
+                    const config = await response.json();
+                    rotationStrategy = config.apiRotationStrategy || 'quota-based';
+                    keysRotatedToday = 0; // In real use, this might be a metric
+
+                    document.getElementById('rotationStrategy').value = rotationStrategy;
+                    document.getElementById('currentStrategy').textContent =
+                        rotationStrategy === 'sequential' ? 'Sequential' :
+                        rotationStrategy === 'random' ? 'Random' : 'Quota-Based';
+                    document.getElementById('keysRotated').textContent = keysRotatedToday;
+                }
+            } catch (e) {
+                rotationStrategy = localStorage.getItem('supremeai_rotation_strategy') || 'quota-based';
+                keysRotatedToday = parseInt(localStorage.getItem('supremeai_keys_rotated') || 0);
+            }
         }
         
-        function updateRotationStrategy() {
+        async function updateRotationStrategy() {
             rotationStrategy = document.getElementById('rotationStrategy').value;
-            localStorage.setItem('supremeai_rotation_strategy', rotationStrategy);
-            document.getElementById('currentStrategy').textContent = 
-                rotationStrategy === 'sequential' ? 'Sequential' :
-                rotationStrategy === 'random' ? 'Random' : 'Quota-Based';
-            
-            // In real implementation, update Firebase config
-            console.log(`Rotation strategy updated to: ${rotationStrategy}`);
+            try {
+                const headers = await getAuthHeaders();
+                const configResponse = await fetch('/api/admin/config', { headers });
+                if (configResponse.ok) {
+                    const config = await configResponse.json();
+                    config.apiRotationStrategy = rotationStrategy;
+                    await fetch('/api/admin/config', {
+                        method: 'PUT',
+                        headers,
+                        body: JSON.stringify(config)
+                    });
+                    localStorage.setItem('supremeai_rotation_strategy', rotationStrategy);
+                    document.getElementById('currentStrategy').textContent =
+                        rotationStrategy === 'sequential' ? 'Sequential' :
+                        rotationStrategy === 'random' ? 'Random' : 'Quota-Based';
+                }
+            } catch (e) { console.error(e); }
         }
         
         async function testRotation() {
@@ -4277,16 +4478,40 @@
         // ========== P0: AUTO-EXECUTION + ADMIN APPROVAL ==========
         let autoExecNeedsApproval = true;
         
-        function initAutoExecApproval() {
-            autoExecNeedsApproval = localStorage.getItem('supremeai_auto_exec_approval') !== 'false';
-            document.getElementById('autoExecApproval').checked = autoExecNeedsApproval;
-            updateAutoExecStatus();
+        async function initAutoExecApproval() {
+            try {
+                const headers = await getAuthHeaders();
+                const response = await fetch('/api/admin/config', { headers });
+                if (response.ok) {
+                    const config = await response.json();
+                    autoExecNeedsApproval = config.autoExecApprovalRequired !== false;
+                    document.getElementById('autoExecApproval').checked = autoExecNeedsApproval;
+                    updateAutoExecStatus();
+                }
+            } catch (e) {
+                autoExecNeedsApproval = localStorage.getItem('supremeai_auto_exec_approval') !== 'false';
+                document.getElementById('autoExecApproval').checked = autoExecNeedsApproval;
+                updateAutoExecStatus();
+            }
         }
         
-        function toggleAutoExecApproval() {
+        async function toggleAutoExecApproval() {
             autoExecNeedsApproval = !autoExecNeedsApproval;
-            localStorage.setItem('supremeai_auto_exec_approval', autoExecNeedsApproval);
-            updateAutoExecStatus();
+            try {
+                const headers = await getAuthHeaders();
+                const configResponse = await fetch('/api/admin/config', { headers });
+                if (configResponse.ok) {
+                    const config = await configResponse.json();
+                    config.autoExecApprovalRequired = autoExecNeedsApproval;
+                    await fetch('/api/admin/config', {
+                        method: 'PUT',
+                        headers,
+                        body: JSON.stringify(config)
+                    });
+                    localStorage.setItem('supremeai_auto_exec_approval', autoExecNeedsApproval);
+                    updateAutoExecStatus();
+                }
+            } catch (e) { console.error(e); }
         }
         
         function updateAutoExecStatus() {

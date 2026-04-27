@@ -31,6 +31,10 @@ public class SystemConfig {
     private String smallModel = "google/gemini-1.5-flash";
     private Long version = 1L;
     private boolean maintenanceMode = false;
+    private boolean emergencyStop = false;
+    private boolean apiAccessLock = false;
+    private String apiRotationStrategy = "quota-based";
+    private boolean autoExecApprovalRequired = true;
     private boolean fullAuthority = false;
     private String shareMode = "manual";
     private boolean enableExternalDirectory = false;
@@ -98,6 +102,18 @@ public class SystemConfig {
 
     public boolean isMaintenanceMode() { return maintenanceMode; }
     public void setMaintenanceMode(boolean maintenanceMode) { this.maintenanceMode = maintenanceMode; }
+
+    public boolean isEmergencyStop() { return emergencyStop; }
+    public void setEmergencyStop(boolean emergencyStop) { this.emergencyStop = emergencyStop; }
+
+    public boolean isApiAccessLock() { return apiAccessLock; }
+    public void setApiAccessLock(boolean apiAccessLock) { this.apiAccessLock = apiAccessLock; }
+
+    public String getApiRotationStrategy() { return apiRotationStrategy; }
+    public void setApiRotationStrategy(String apiRotationStrategy) { this.apiRotationStrategy = apiRotationStrategy; }
+
+    public boolean isAutoExecApprovalRequired() { return autoExecApprovalRequired; }
+    public void setAutoExecApprovalRequired(boolean autoExecApprovalRequired) { this.autoExecApprovalRequired = autoExecApprovalRequired; }
 
     public boolean isFullAuthority() { return fullAuthority; }
     public void setFullAuthority(boolean fullAuthority) { this.fullAuthority = fullAuthority; }
