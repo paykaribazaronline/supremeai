@@ -257,7 +257,7 @@ public class AIFallbackOrchestrator {
     private String getEnvKeyForProvider(AIProviderType provider) {
         switch (provider) {
             case GROQ_LLAMA3: return "GROQ_API_KEY";
-            case GEMINI_PRO: return "GOOGLE_AI_API_KEY";
+            case GEMINI_PRO: return "GEMINI_API_KEY";
             case ANTHROPIC_CLAUDE: return "ANTHROPIC_API_KEY";
             case HUGGINGFACE_FREE: return "HF_API_KEY";
             case OPENAI: return "OPENAI_API_KEY";
@@ -265,7 +265,7 @@ public class AIFallbackOrchestrator {
             case KIMI: return "KIMI_API_KEY";
             case MISTRAL: return "MISTRAL_API_KEY";
             case AIRLLM: return "AIRLLM_API_KEY";
-            case OLLAMA: return "OLLAMA_API_KEY";
+            case OLLAMA: return null; // Ollama uses local endpoint, no API key needed
             default: return "AI_API_KEY";
         }
     }

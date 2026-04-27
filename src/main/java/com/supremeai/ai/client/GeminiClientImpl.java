@@ -6,23 +6,21 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class GeminiClientImpl implements GeminiClient {
 
+    private static final Logger log = LoggerFactory.getLogger(GeminiClientImpl.class);
     private final OkHttpClient httpClient;
     private final ObjectMapper objectMapper;
     private final String apiKey;
     private final String model;
 
     public GeminiClientImpl(
-            @Value("${gemini.api-key:}") String apiKey,
-            @Value("${gemini.model:gemini-pro}") String model) {
+            @Value("${supremeai.providers.gemini:${GEMINI_API_KEY:}}") String apiKey,
+            @Value("${gemini.model:gemini-1.5-pro}") String model) {
         this.apiKey = apiKey;
         this.model = model;
         this.httpClient = new OkHttpClient.Builder()
@@ -36,7 +34,7 @@ public class GeminiClientImpl implements GeminiClient {
     public String generateQuestions(String prompt) {
         try {
             String url = String.format(
-                    "https://generativelanguage.googleapis.com/v1/models/%s:generateContent?key=%s",
+                    "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s",
                     model, apiKey);
             
             String jsonBody = String.format(
@@ -62,7 +60,9 @@ public class GeminiClientImpl implements GeminiClient {
                                 .asText();
                     }
                 }
-                return "Failed to generate questions: " + response.message();
+                String errorBody = response.body() != null ? response.body().string() : "No response body";
+                log.error("Gemini API error: {} - {}", response.code(), errorBody);
+                return "Failed to generate questions: " + response.code() + " - " + response.message();
             }
         } catch (IOException e) {
             return "Error generating questions: " + e.getMessage();
