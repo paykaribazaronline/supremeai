@@ -203,7 +203,7 @@ jobs:
         run: flutter pub get
       - name: Run_Tests
         working-directory: ./supremeai
-        run: flutter test || echo "Flutter tests skipped - fixing"
+        run: flutter test
       - name: Build_Web
         working-directory: ./supremeai
         run: flutter build web --release
