@@ -27,6 +27,15 @@ echo   - Main App: http://localhost:5000/
 echo.
 echo Press Ctrl+C to stop the server
 echo.
-python run.py
+
+REM Start Python server in background
+start /B python run.py
+
+REM Wait a moment for Python server to start
+timeout /t 3 /nobreak >nul
+
+REM Start Spring Boot server
+echo Starting Spring Boot server...
+call gradlew bootRun
 
 cd ..

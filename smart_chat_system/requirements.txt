@@ -1,17 +1,16 @@
+# Smart Chat System Required Packages
 
-# স্মার্ট চ্যাট সিস্টেমের জন্য প্রয়োজনীয় প্যাকেজ
-
-# ওয়েব ফ্রেমওয়ার্ক
+# Web Framework
 Flask==2.3.0
 Flask-SocketIO==5.3.0
 
-# ইমেজ প্রসেসিং
-Pillow==9.5.0
+# Image Processing
+Pillow>=10.4.0
 
-# সাপোর্টিং লাইব্রেরি
+# Supporting Libraries
 python-socketio==5.8.0
 python-engineio==4.7.1
 eventlet==0.33.3
 
-# সিস্টেম মনিটরিং
+# System Monitoring
 psutil==5.9.5
