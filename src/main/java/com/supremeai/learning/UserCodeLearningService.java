@@ -319,16 +319,38 @@ public class UserCodeLearningService {
     private SystemLearning docToSystemLearning(DocumentSnapshot doc) {
         try {
             SystemLearning pattern = new SystemLearning();
-            pattern.setId(doc.getString("id"));
-            pattern.setLearningType(doc.getString("type"));
-            pattern.setCategory(doc.getString("category"));
-            pattern.setContent(doc.getString("content"));
-            String ts = doc.getString("timestamp");
-            if (ts != null && !ts.isEmpty()) {
-                try {
-                    pattern.setLearnedAt(java.time.LocalDateTime.parse(ts));
-                } catch (Exception e) {
-                    pattern.setLearnedAt(java.time.LocalDateTime.now());
+            
+            // Handle potential type mismatches from Firestore
+            Object idObj = doc.get("id");
+            if (idObj != null) {
+                pattern.setId(idObj.toString());
+            }
+            
+            Object typeObj = doc.get("type");
+            if (typeObj != null) {
+                pattern.setLearningType(typeObj.toString());
+            }
+            
+            Object categoryObj = doc.get("category");
+            if (categoryObj != null) {
+                pattern.setCategory(categoryObj.toString());
+            }
+            
+            Object contentObj = doc.get("content");
+            if (contentObj != null) {
+                pattern.setContent(contentObj.toString());
+            }
+            
+            Object tsObj = doc.get("timestamp");
+            if (tsObj != null) {
+                String ts = tsObj.toString();
+
+                if (!ts.isEmpty()) {
+                    try {
+                        pattern.setLearnedAt(java.time.LocalDateTime.parse(ts));
+                    } catch (Exception e) {
+                        pattern.setLearnedAt(java.time.LocalDateTime.now());
+                    }
                 }
             }
 

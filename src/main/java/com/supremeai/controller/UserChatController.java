@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 import java.util.*;
 
 @RestController
-@RequestMapping("/api/chat")
+@RequestMapping("/api/chat-legacy")
 public class UserChatController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserChatController.class);

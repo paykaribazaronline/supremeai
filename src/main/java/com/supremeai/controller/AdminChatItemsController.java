@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/admin/chat")
+@RequestMapping("/api/admin/chat-items")
 public class AdminChatItemsController {
 
     private final ChatProcessingService chatProcessingService;

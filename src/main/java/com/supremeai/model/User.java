@@ -37,6 +37,10 @@ public class User {
 
     private Boolean isActive = true;
 
+    // Additional fields to handle legacy Firestore documents
+    private Boolean admin;
+    private Long monthlyQuota;
+
     // Constructors
     public User() {}
 
@@ -166,4 +170,8 @@ public class User {
     public boolean hasQuotaRemaining() {
         return checkQuotaRemaining();
     }
+
+    // Getters and setters for additional fields
+    public Boolean getAdmin() { return admin; }
+    public void setAdmin(Boolean admin) { this.admin = admin; }
 }
