@@ -5,11 +5,13 @@ on:
     workflows: ["SupremeAI_Master_Pipeline"]
     types:
       - completed
+  push:
     branches: [main, develop]
   workflow_dispatch:
 
 permissions:
   actions: write
+  actions: read
   contents: read
 
 jobs:
@@ -28,28 +30,25 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Get the ID of the workflow run that triggered this monitor
           TRIGGERED_RUN_ID="${{ github.event.workflow_run.id }}"
           echo "Checking triggered run: $TRIGGERED_RUN_ID"
           
-          # Get the conclusion of the triggered run
           CONCLUSION=$(gh api \
-            repos/${{ github.repository }}/actions/runs/$TRIGGERED_RUN_ID \
+            "repos/${{ github.repository }}/actions/runs/$TRIGGERED_RUN_ID" \
             -q '.conclusion')
           
           echo "Conclusion: $CONCLUSION"
           
           if [ "$CONCLUSION" == "failure" ] || [ "$CONCLUSION" == "cancelled" ]; then
-            # Check if the previous run of the same workflow also failed
-            # to avoid infinite retry loops (only retry once)
-            PREV_CONCLUSION=$(gh api \
-              repos/${{ github.repository }}/actions/workflows/supreme_pipeline.yml/runs?per_page=10 \
-              -q '.workflow_runs | map(select(.id != $CURRENT_ID and .status=="completed"))[0].conclusion' \
-              --arg current_id="$TRIGGERED_RUN_ID")
+            # Check recent runs to see if we're in a retry chain
+            RECENT_FAILED=$(gh api \
+              "repos/${{ github.repository }}/actions/workflows/supreme_pipeline.yml/runs?per_page=5" | \
+              jq -r --arg current_id "$TRIGGERED_RUN_ID" \
+                '[.workflow_runs[] | select(.id != ($current_id | tonumber) and .status == "completed")] | .[0].conclusion // empty' )
             
-            echo "Previous run conclusion: ${PREV_CONCLUSION:-none}"
+            echo "Most recent previous run conclusion: ${RECENT_FAILED:-none}"
             
-            if [ "$PREV_CONCLUSION" == "failure" ] || [ "$PREV_CONCLUSION" == "cancelled" ]; then
+            if [ "$RECENT_FAILED" == "failure" ] || [ "$RECENT_FAILED" == "cancelled" ]; then
               echo "Previous run also failed. Already retrying. Not retrying again to avoid infinite loop."
               echo "should_retry=false" >> $GITHUB_OUTPUT
               echo "failed_runs=0" >> $GITHUB_OUTPUT
@@ -63,15 +62,40 @@ jobs:
             echo "should_retry=false" >> $GITHUB_OUTPUT
             echo "failed_runs=0" >> $GITHUB_OUTPUT
           fi
+          else
+            echo "No failures found in triggered run"
+            echo "should_retry=false" >> $GITHUB_OUTPUT
+            echo "failed_runs=0" >> $GITHUB_OUTPUT
+          fi
+          else
+            echo "No failures found in triggered run"
+            echo "should_retry=false" >> $GITHUB_OUTPUT
+            echo "failed_runs=0" >> $GITHUB_OUTPUT
+          fi
+          else
+            echo "No failures found in triggered run"
+          # Get the most recent completed run that failed
+          LAST_RUN=$(gh api \
+            repos/${{ github.repository }}/actions/runs \
+            -q '.workflow_runs[0] | select(.status=="completed" and .conclusion=="failure") | .id')
+
+          if [ -z "$LAST_RUN" ]; then
+            echo "No recent failures found"
+            echo "should_retry=false" >> $GITHUB_OUTPUT
+            echo "failed_runs=0" >> $GITHUB_OUTPUT
+          fi
             fi
             
             echo "First failure detected. Triggering retry..."
+          else
+            echo "Found failed workflow run: $LAST_RUN"
             echo "should_retry=true" >> $GITHUB_OUTPUT
             echo "failed_runs=$TRIGGERED_RUN_ID" >> $GITHUB_OUTPUT
           else
             echo "No failures found in triggered run"
             echo "should_retry=false" >> $GITHUB_OUTPUT
             echo "failed_runs=0" >> $GITHUB_OUTPUT
+            echo "failed_runs=$LAST_RUN" >> $GITHUB_OUTPUT
           fi
 
   trigger-retry:
