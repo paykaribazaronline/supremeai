@@ -155,7 +155,7 @@ const AuthHelper = {
             });
         } catch (_) {}
 
-        const fb = this.initFirebase();
+        const fb = await this.initFirebase();
         if (fb && fb.auth) {
             fb.auth().signOut().catch(() => {}).finally(() => {
                 window.location.href = '/login.html';
@@ -261,4 +261,3 @@ document.addEventListener('DOMContentLoaded', () => {
 window.apiCall = async (url, options = {}) => {
     return AuthHelper.apiCall(url, options);
 };
-

@@ -171,14 +171,16 @@ class AdminChatManager {
     async loadChatHistory(filter = 'all') {
         try {
             const data = await this.fetchAPI(`/history?limit=100`);
-            let history = Array.isArray(data) ? data : (data.chat_history || []);
+            const fetchedHistory = Array.isArray(data) ? data : (data.chat_history || []);
+            this.allItems.history = fetchedHistory; // Preserve full history for accurate stats
+            
+            let displayHistory = fetchedHistory;
             if (filter === 'user') {
-                history = history.filter(h => !h.is_admin);
+                displayHistory = fetchedHistory.filter(h => !(h.isAdmin || h.is_admin));
             } else if (filter === 'admin') {
-                history = history.filter(h => h.is_admin);
+                displayHistory = fetchedHistory.filter(h => (h.isAdmin || h.is_admin));
             }
-            this.allItems.history = history;
-            this.renderChatHistory(history);
+            this.renderChatHistory(displayHistory);
         } catch (error) {
             console.error('Failed to load chat history:', error);
         }
@@ -284,7 +286,7 @@ class AdminChatManager {
         container.innerHTML = history.map(item => `
             <div class="list-group-item">
                 <div class="d-flex justify-content-between">
-                    <span class="badge bg-${item.isAdmin ? 'warning' : 'primary'}">${item.isAdmin ? 'Admin' : 'User'}</span>
+                    <span class="badge bg-${(item.isAdmin || item.is_admin) ? 'warning' : 'primary'}">${(item.isAdmin || item.is_admin) ? 'Admin' : 'User'}</span>
                     <small class="text-muted">${new Date(item.timestamp).toLocaleString()}</small>
                 </div>
                 <p class="mt-2 mb-0">${item.message}</p>
@@ -310,7 +312,7 @@ class AdminChatManager {
         });
     }
 
-    async confirmItem(itemId, confirmed) {
+    async confirmItem(itemId, confirmed, skipReload = false) {
         try {
             const response = await this.postAPI('/confirm', {
                 itemId: itemId,
@@ -319,7 +321,9 @@ class AdminChatManager {
             });
 
             this.showNotification(`Item ${confirmed ? 'approved' : 'rejected'}`, 'success');
-            await this.loadInitialData();
+            if (!skipReload) {
+                await this.loadInitialData();
+            }
         } catch (error) {
             this.showNotification(`Error: ${error.message}`, 'danger');
         }
@@ -328,8 +332,9 @@ class AdminChatManager {
     async bulkConfirm(confirmed) {
         const itemIds = this.pendingItems.map(item => item.id || item.item_id);
         for (const itemId of itemIds) {
-            await this.confirmItem(itemId, confirmed);
+            await this.confirmItem(itemId, confirmed, true);
         }
+        await this.loadInitialData();
     }
 
     filterPending(query) {

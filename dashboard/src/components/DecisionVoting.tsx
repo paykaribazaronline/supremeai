@@ -57,7 +57,7 @@ const DecisionVoting: React.FC = () => {
 
     const handleCreateProposal = async (values: any) => {
         try {
-            const token = localStorage.getItem('authToken');
+            const token = authUtils.getToken();
             const response = await fetch('/api/decisions/create', {
                 method: 'POST',
                 headers: {

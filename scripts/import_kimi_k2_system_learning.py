@@ -539,12 +539,11 @@ def normalize_documents(dataset: Dict[str, Any]) -> List[Dict[str, Any]]:
     return [doc for doc in docs if isinstance(doc, dict) and doc.get("document_id")]
 
 
-def architecture_records(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
-    layers = doc.get("content", {}).get("layers", {})
-    presentation = layers.get("presentation", {}).get("components", [])
-    api_gateway = layers.get("api_gateway", {}).get("components", [])
-    data_layer = layers.get("data_layer", {}).get("components", [])
-    workflows = layers.get("cicd", {}).get("workflows", [])
+def architecture_records(doc: Dict[str, Any]) -> List[Dict[str, Any]]:    layers = (doc.get("content") or {}).get("layers") or {}
+    presentation = (layers.get("presentation") or {}).get("components") or []
+    api_gateway = (layers.get("api_gateway") or {}).get("components") or []
+    data_layer = (layers.get("data_layer") or {}).get("components") or []
+    workflows = (layers.get("cicd") or {}).get("workflows") or []
 
     content = (
         "SupremeAI architecture uses Firebase Hosting for web delivery, Cloud Run for the Java backend, "
@@ -586,7 +585,7 @@ def architecture_records(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 def error_playbook_records(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
     records: List[Dict[str, Any]] = []
-    for error in doc.get("errors", []):
+    for error in (doc.get("errors") or []):
         symptom = error.get("symptom", "Unknown failure")
         root_cause = error.get("root_cause", "Unknown root cause")
         solution = error.get("solution", "Investigate and verify fix")
@@ -618,10 +617,10 @@ def error_playbook_records(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 
 def deployment_records(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
-    procedures = doc.get("procedures", {})
-    automatic = procedures.get("automatic", {})
-    manual_steps = procedures.get("manual_emergency", {}).get("steps", [])
-    control = procedures.get("3_mode_control", {})
+    procedures = doc.get("procedures") or {}
+    automatic = procedures.get("automatic") or {}
+    manual_steps = (procedures.get("manual_emergency") or {}).get("steps") or []
+    control = procedures.get("3_mode_control") or {}
 
     return [
         make_learning(
@@ -665,10 +664,10 @@ def deployment_records(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 
 def service_account_records(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
-    roles = doc.get("required_roles", [])
+    roles = doc.get("required_roles") or []
     secrets = [
         item.get("name")
-        for item in doc.get("github_secrets", [])
+        for item in (doc.get("github_secrets") or [])
         if isinstance(item, dict) and item.get("name")
     ]
     content = "GitHub Actions deployment requires a correctly permissioned GCP service account plus matching GitHub secrets for Cloud Run and Firebase automation."
@@ -695,7 +694,7 @@ def service_account_records(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 
 def health_monitoring_records(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
-    endpoints = doc.get("endpoints", [])
+    endpoints = doc.get("endpoints") or []
     normalized_endpoints = []
     for endpoint in endpoints:
         name = endpoint.get("name", "Unknown")
@@ -723,8 +722,8 @@ def health_monitoring_records(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 
 def teaching_methodology_records(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
-    principles = doc.get("principles", [])
-    standards = doc.get("documentation_standards", [])
+    principles = doc.get("principles") or []
+    standards = doc.get("documentation_standards") or []
     return [
         make_learning(
             "PATTERN",
@@ -744,7 +743,7 @@ def teaching_methodology_records(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 
 def analytics_records(doc: Dict[str, Any]) -> List[Dict[str, Any]]:
-    current_status = doc.get("current_status", {})
+    current_status = doc.get("current_status") or {}
     filtered = {
         key: value
         for key, value in current_status.items()

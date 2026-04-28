@@ -46,7 +46,7 @@ public class AutonomousQuestioningService {
         new ClarityRule(
             "missing_users",
             "Target users undefined",
-            List.of("users", "customers", " admins", "people"),
+            List.of("users", "customers", "admins", "people"),
             "Who are the target users? (admin panel, customer-facing, internal?)"
         ),
         new ClarityRule(
@@ -75,7 +75,8 @@ public class AutonomousQuestioningService {
 
         // Check for vague terms
         for (String term : AMBIGUOUS_TERMS) {
-            if (lowerPrompt.contains(term)) {
+            // Use regex word boundaries to avoid matching substrings (e.g. "some" in "awesome")
+            if (lowerPrompt.matches(".*\\b" + java.util.regex.Pattern.quote(term) + "\\b.*")) {
                 questions.add(new ClarifyingQuestion(
                     "Vague language detected",
                     "You used '" + term + "'. Can you be more specific?",

@@ -1259,6 +1259,9 @@ def init_firestore(firebase_admin, credentials, firestore):
         return firestore.client()
 
     cert_error = None
+    if CREDENTIALS_FILE and not os.path.exists(CREDENTIALS_FILE):
+        raise FileNotFoundError(f"Credentials file not found: {CREDENTIALS_FILE}")
+        
     if CREDENTIALS_FILE and os.path.exists(CREDENTIALS_FILE):
         try:
             cred = credentials.Certificate(CREDENTIALS_FILE)

@@ -264,7 +264,12 @@ public class AutonomousQuestioningEngine {
     private boolean hasProgrammingLanguage(String input) {
         String[] languages = {"python", "java", "javascript", "js", "typescript", "ts", "c++", "c#", "go", "rust", "php", "ruby"};
         for (String lang : languages) {
-            if (input.contains(lang)) return true;
+            // Use word boundaries for alphabetical names to prevent "go" from matching "good"
+            if (lang.contains("+") || lang.contains("#")) {
+                if (input.contains(lang)) return true;
+            } else {
+                if (input.matches(".*\\b" + lang + "\\b.*")) return true;
+            }
         }
         return false;
     }
