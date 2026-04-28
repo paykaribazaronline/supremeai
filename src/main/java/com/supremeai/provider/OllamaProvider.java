@@ -69,7 +69,8 @@ public class OllamaProvider implements AIProvider {
                             0.7f,
                             0.95f,
                             64,
-                            Runtime.getRuntime().availableProcessors()
+                            Runtime.getRuntime().availableProcessors(),
+                            0
                     )
             );
 

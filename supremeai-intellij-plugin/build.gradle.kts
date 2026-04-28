@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.9.0"
+    id("org.jetbrains.kotlin.jvm") version "2.1.10"
     id("org.jetbrains.intellij.platform") version "2.2.0"
 }
 
@@ -35,8 +35,8 @@ dependencies {
 kotlin {
     jvmToolchain(21)
     compilerOptions {
-        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9)
-        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9)
+        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_20)
+        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_20)
         freeCompilerArgs.addAll(
             "-Xsuppress-version-warnings",
             "-Xallow-kotlin-package",
