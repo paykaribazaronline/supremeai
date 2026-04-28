@@ -1,6 +1,6 @@
 // 🧠 SupremeAI Project Analyzer - Frontend JavaScript
 
-const API_BASE_URL = 'http://localhost:8080/api/project-analysis';
+const API_BASE_URL = '/api/project-analysis';
 
 // Colors for languages
 const LANG_COLORS = {
@@ -36,6 +36,10 @@ async function analyzeProject() {
             body: JSON.stringify({ projectPath: path })
         });
         
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+        
         const data = await response.json();
         
         if (data.success) {
@@ -68,6 +72,10 @@ async function quickHealth() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ projectPath: path })
         });
+        
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
         
         const data = await response.json();
         
