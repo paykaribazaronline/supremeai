@@ -37,25 +37,13 @@ class DashboardCharts {
         }
     }
 
-    connectWebSocket() {
+    async connectWebSocket() {
         // Use SockJS for better compatibility
         this.socket = new SockJS('/ws');
         this.stompClient = Stomp.over(this.socket);
         
-        // Get Firebase token from localStorage (find the firebase auth key)
-        let token = null;
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && key.startsWith('firebase:authUser:')) {
-                try {
-                    const data = JSON.parse(localStorage.getItem(key));
-                    token = data.stsTokenManager?.accessToken || data.accessToken;
-                    break;
-                } catch (e) {
-                    console.error('Error parsing Firebase token:', e);
-                }
-            }
-        }
+        // Get Firebase token via AuthHelper
+        const token = await AuthHelper.getIdToken();
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
         
         this.stompClient.connect(headers, (frame) => {

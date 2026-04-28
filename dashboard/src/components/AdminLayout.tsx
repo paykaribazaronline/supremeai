@@ -117,6 +117,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => {
     { key: '/admin/users', label: 'Users', icon: <TeamOutlined /> },
     { key: '/admin/projects', label: 'Projects', icon: <FolderOutlined /> },
     { key: '/admin/providers', label: 'Providers', icon: <RobotOutlined /> },
+    { key: '/admin/apikeys', label: 'API Keys', icon: <KeyOutlined /> },
     { key: '/admin/settings', label: 'Settings', icon: <SettingOutlined /> },
     { key: '/admin/notifications', label: 'Notifications', icon: <BellOutlined /> },
     { key: '/admin/logs', label: 'Logs', icon: <FileTextOutlined /> },

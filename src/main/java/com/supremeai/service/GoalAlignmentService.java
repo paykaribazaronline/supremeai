@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-public class CommunicationBridgeService {
+public class GoalAlignmentService {
 
     // ইউজারের মূল প্ল্যান স্টোর করবে
     private final Map<String, String> userGoals = new ConcurrentHashMap<>();

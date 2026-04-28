@@ -3,8 +3,16 @@ $duplicates = @{}
 $allFiles = @()
 
 # Scan all files
-Write-Host "Scanning workspace for duplicate files..." -ForegroundColor Cyan
-Get-ChildItem -Path "." -Recurse -File -ErrorAction SilentlyContinue | ForEach-Object {
+Write-Host "Scanning workspace for duplicate files (excluding build/lib dirs)..." -ForegroundColor Cyan
+$excludeDirs = @('node_modules', 'build', 'bin', '.git', '.gradle', 'logs', 'projects')
+Get-ChildItem -Path "." -Recurse -File -ErrorAction SilentlyContinue | Where-Object { 
+    $path = $_.FullName
+    $exclude = $false
+    foreach ($dir in $excludeDirs) {
+        if ($path -like "*\$dir\*") { $exclude = $true; break }
+    }
+    -not $exclude
+} | ForEach-Object {
     $allFiles += $_
     $name = $_.Name
     if (-not $duplicates.ContainsKey($name)) {
@@ -60,11 +68,11 @@ foreach ($dup in $duplicateList) {
     
     # Determine if truly identical
     if ($uniqueSizes.Count -eq 1) {
-        $report += "  ✓ Status: IDENTICAL FILES (same size)"
-        $report += "  📋 Action: SAFE TO CONSOLIDATE - All copies are identical"
+        $report += "  [OK] Status: IDENTICAL FILES (same size)"
+        $report += "  [PLAN] Action: SAFE TO CONSOLIDATE - All copies are identical"
     } else {
-        $report += "  ⚠ Status: DIFFERENT SIZES (likely different content)"
-        $report += "  📋 Action: REVIEW REQUIRED - Verify before consolidation"
+        $report += "  [WARN] Status: DIFFERENT SIZES (likely different content)"
+        $report += "  [PLAN] Action: REVIEW REQUIRED - Verify before consolidation"
     }
 }
 
@@ -101,4 +109,4 @@ $report | Out-File -FilePath "DUPLICATE_ANALYSIS_REPORT.txt" -Encoding UTF8
 $report | ForEach-Object { Write-Host $_ }
 
 Write-Host ""
-Write-Host "✓ Report saved to: DUPLICATE_ANALYSIS_REPORT.txt" -ForegroundColor Green
+Write-Host "[OK] Report saved to: DUPLICATE_ANALYSIS_REPORT.txt" -ForegroundColor Green
