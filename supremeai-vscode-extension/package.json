@@ -1,0 +1,89 @@
+{
+  "name": "supremeai-vscode",
+  "displayName": "SupremeAI - AI-Powered Development Assistant",
+  "description": "Real-time code analysis, learning, and AI assistance with SupremeAI Core Engine",
+  "version": "6.0.0",
+  "publisher": "supremeai",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Machine Learning",
+    "Snippets",
+    "Other"
+  ],
+  "keywords": [
+    "AI",
+    "Code Assistant",
+    "Learning",
+    "SupremeAI",
+    "Auto-Completion",
+    "Error Detection"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "supremeai.acceptSuggestion",
+        "title": "SupremeAI: Accept Suggestion"
+      },
+      {
+        "command": "supremeai.rejectSuggestion",
+        "title": "SupremeAI: Reject Suggestion"
+      },
+      {
+        "command": "supremeai.sendFeedback",
+        "title": "SupremeAI: Send Feedback"
+      },
+      {
+        "command": "supremeai.reportError",
+        "title": "SupremeAI: Report Error"
+      },
+      {
+        "command": "supremeai.forceLearn",
+        "title": "SupremeAI: Force Learn from Current File"
+      }
+    ],
+    "configuration": {
+      "title": "SupremeAI",
+      "properties": {
+        "supremeai.backendUrl": {
+          "type": "string",
+          "default": "https://supremeai-lhlwyikwlq-uc.a.run.app",
+          "description": "SupremeAI Backend API URL"
+        },
+        "supremeai.enableRealTimeLearning": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable real-time learning from your code edits"
+        },
+        "supremeai.autoReportErrors": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically report errors to SupremeAI for learning"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.54.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "eventemitter3": "^5.0.1"
+  }
+}
