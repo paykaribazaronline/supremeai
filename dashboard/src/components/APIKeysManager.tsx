@@ -1,7 +1,7 @@
 // APIKeysManager.tsx - API Keys & Dynamic AI Model Discovery
 // Uses HuggingFace Hub API for real-time model search (no hardcoded models)
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     Card, Tabs, Button, Input, Table, Tag, Space, Modal, Form, Select,
     message, Popconfirm, Empty, List, Spin, Row, Col, Typography, Tooltip, Badge, Switch,
@@ -13,7 +13,7 @@ import {
     EditOutlined, EyeOutlined, EyeInvisibleOutlined, CheckCircleOutlined,
     ExperimentOutlined, LinkOutlined, CloudDownloadOutlined, StarOutlined,
     GlobalOutlined, ThunderboltOutlined, SafetyOutlined, BarChartOutlined,
-    ReloadOutlined
+    ReloadOutlined, CodeOutlined, RobotOutlined, QuestionCircleOutlined
 } from '@ant-design/icons';
 
 const { TabPane } = Tabs;
@@ -116,6 +116,326 @@ const POPULAR_MODELS: PopularModel[] = [
     { id: 'grok-3', name: 'Grok 3', provider: 'xai', providerTitle: 'xAI', baseUrl: 'https://api.x.ai/v1', description: 'Latest Grok model by xAI', category: 'xAI' },
     { id: 'grok-3-mini', name: 'Grok 3 Mini', provider: 'xai', providerTitle: 'xAI', baseUrl: 'https://api.x.ai/v1', description: 'Fast Grok 3 Mini', category: 'xAI' },
 ];
+
+// ─── Provider Endpoint Auto-Detection ────────────────────────────────────────
+
+const PROVIDER_ENDPOINTS: Record<string, string> = {
+    openai: 'https://api.openai.com/v1',
+    anthropic: 'https://api.anthropic.com/v1',
+    google: 'https://generativelanguage.googleapis.com/v1beta/openai',
+    gemini: 'https://generativelanguage.googleapis.com/v1beta/openai',
+    huggingface: 'https://api-inference.huggingface.co',
+    meta: 'https://openrouter.ai/api/v1',
+    openrouter: 'https://openrouter.ai/api/v1',
+    mistral: 'https://api.mistral.ai/v1',
+    groq: 'https://api.groq.com/openai/v1',
+    deepseek: 'https://api.deepseek.com/v1',
+    xai: 'https://api.x.ai/v1',
+    perplexity: 'https://api.perplexity.ai',
+    cohere: 'https://api.cohere.ai/v1',
+    together: 'https://api.together.xyz/v1',
+    anyscale: 'https://api.endpoints.anyscale.com/v1',
+    azure: 'https://YOUR_RESOURCE.openai.azure.com',
+    aws: 'https://YOUR_REGION.bedrock.aws.amazon.com',
+};
+
+const getProviderEndpoint = (providerName: string): string => {
+    const lower = providerName.toLowerCase();
+    return PROVIDER_ENDPOINTS[lower] || `https://${lower}.com/api/v1`;
+};
+
+// ─── Intelligent Model Search from Internet APIs ─────────────────────────────
+
+interface ModelSearchResult {
+    id: string;
+    name: string;
+    provider: string;
+    providerTitle: string;
+    baseUrl: string;
+    description: string;
+    category: string;
+    downloads?: number;
+    likes?: number;
+    pipelineTag?: string;
+}
+
+const searchHuggingFace = async (query: string, signal?: AbortSignal): Promise<ModelSearchResult[]> => {
+    try {
+        const params = new URLSearchParams({
+            search: query,
+            limit: '20',
+            sort: 'likes',
+            direction: '-1'
+        });
+        const response = await fetch(`https://huggingface.co/api/models?${params}`, { signal });
+        if (!response.ok) return [];
+        const data = await response.json();
+        return data.map((m: any) => ({
+            id: m.id,
+            name: m.id,
+            provider: 'huggingface',
+            providerTitle: 'HuggingFace',
+            baseUrl: 'https://api-inference.huggingface.co',
+            description: m.pipeline_tag || 'Machine Learning Model',
+            category: m.pipeline_tag || 'General',
+            downloads: m.downloads,
+            likes: m.likes,
+            pipelineTag: m.pipeline_tag,
+        }));
+    } catch (error) {
+        console.warn('HuggingFace search failed:', error);
+        return [];
+    }
+};
+
+const searchOpenRouter = async (query: string, signal?: AbortSignal): Promise<ModelSearchResult[]> => {
+    try {
+        const response = await fetch('https://openrouter.ai/api/v1/models', { signal });
+        if (!response.ok) return [];
+        const data = await response.json();
+        const models = (data.data || []) as any[];
+        const lower = query.toLowerCase();
+        const filtered = query
+            ? models.filter((m) => m.id.toLowerCase().includes(lower) || m.name.toLowerCase().includes(lower))
+            : models;
+        return filtered.slice(0, 20).map((m: any) => ({
+            id: m.id,
+            name: m.name || m.id,
+            provider: 'openrouter',
+            providerTitle: 'OpenRouter',
+            baseUrl: 'https://openrouter.ai/api/v1',
+            description: m.description || 'AI Model via OpenRouter',
+            category: 'OpenRouter',
+        }));
+    } catch (error) {
+        console.warn('OpenRouter search failed:', error);
+        return [];
+    }
+};
+
+// ─── Debounced Multi-Source Search Hook ─────────────────────────────────────
+
+const useDebouncedModelSearch = (
+    delay: number = 500,
+    sources: ('huggingface' | 'openrouter')[] = ['huggingface', 'openrouter']
+) => {
+    const [results, setResults] = useState<ModelSearchResult[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
+
+    const search = useCallback(async (query: string) => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+
+        timeoutRef.current = setTimeout(async () => {
+            if (!query.trim()) {
+                setResults([]);
+                setLoading(false);
+                return;
+            }
+
+            setLoading(true);
+            setError(null);
+            abortControllerRef.current = new AbortController();
+            const signal = abortControllerRef.current.signal;
+
+            try {
+                const promises: Array<Promise<ModelSearchResult[]>> = [];
+                if (sources.includes('huggingface')) {
+                    promises.push(searchHuggingFace(query, signal));
+                }
+                if (sources.includes('openrouter')) {
+                    promises.push(searchOpenRouter(query, signal));
+                }
+
+                const allResults = await Promise.all(promises);
+                const flattened = allResults.flat();
+                // Deduplicate by id, keep first occurrence
+                const seen = new Set<string>();
+                const unique = flattened.filter(m => {
+                    if (seen.has(m.id)) return false;
+                    seen.add(m.id);
+                    return true;
+                });
+                // Sort by downloads/likes if available
+                unique.sort((a, b) => (b.downloads || 0) - (a.downloads || 0));
+                setResults(unique.slice(0, 30));
+            } catch (err: any) {
+                if (err.name !== 'AbortError') {
+                    setError('Search failed. Please try again.');
+                    setResults([]);
+                }
+            } finally {
+                setLoading(false);
+            }
+        }, delay);
+    }, [sources, delay]);
+
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+            if (abortControllerRef.current) abortControllerRef.current.abort();
+        };
+    }, []);
+
+    return { results, loading, error, search, setResults };
+};
+
+// ─── ModelSearchSelect Component ─────────────────────────────────────────────
+
+interface ModelSearchSelectProps {
+    value?: string;
+    onChange: (model: ModelSearchResult | null) => void;
+    placeholder?: string;
+}
+
+const ModelSearchSelect: React.FC<ModelSearchSelectProps> = ({
+    value,
+    onChange,
+    placeholder = "Search AI models... e.g., 'GPT-4', 'Llama', 'Claude'"
+}) => {
+    const [query, setQuery] = useState('');
+    const [open, setOpen] = useState(false);
+    const { results, loading, search, setResults } = useDebouncedModelSearch(500, ['huggingface', 'openrouter']);
+
+    const selectedModel = React.useMemo(() => {
+        if (!value) return null;
+        // First check popular models, then check results
+        const popular = POPULAR_MODELS.find(m => m.id === value);
+        if (popular) return popular;
+        // If it's a search result, we might not have full details - construct minimal
+        return {
+            id: value,
+            name: value,
+            provider: 'custom',
+            providerTitle: 'Custom',
+            baseUrl: getProviderEndpoint(value.split('/')[0] || ''),
+            description: 'Custom or discovered model',
+            category: 'Discovered',
+        };
+    }, [value]);
+
+    useEffect(() => {
+        if (open && query.trim()) {
+            search(query);
+        }
+    }, [query, open, search]);
+
+    const handleSearch = (newQuery: string) => {
+        setQuery(newQuery);
+        if (newQuery.trim()) {
+            search(newQuery);
+        } else {
+            setResults([]);
+        }
+    };
+
+    const handleSelect = (model: ModelSearchResult) => {
+        setQuery('');
+        setOpen(false);
+        setResults([]);
+        onChange(model);
+    };
+
+    const mergedResults = React.useMemo(() => {
+        // Combine popular models with search results, deduplicate
+        const popularAsModels: ModelSearchResult[] = POPULAR_MODELS.map(m => ({
+            id: m.id,
+            name: m.name,
+            provider: m.provider,
+            providerTitle: m.providerTitle,
+            baseUrl: m.baseUrl,
+            description: m.description,
+            category: m.category,
+        }));
+        const all = [...popularAsModels, ...results];
+        const seen = new Set<string>();
+        return all.filter(m => {
+            if (seen.has(m.id)) return false;
+            seen.add(m.id);
+            return true;
+        });
+    }, [results]);
+
+    // Quick-access popular models as clickable tags
+    const quickAccessModels = POPULAR_MODELS.slice(0, 8);
+
+    return (
+        <div style={{ position: 'relative' }}>
+            {!value && (
+                <div style={{ marginBottom: 8 }}>
+                    <Text type="secondary" style={{ fontSize: 12, marginRight: 8 }}>Popular:</Text>
+                    {quickAccessModels.map(model => (
+                        <Tag
+                            key={model.id}
+                            style={{ cursor: 'pointer', marginBottom: 4 }}
+                            color="blue"
+                            onClick={() => {
+                                handleSelect({
+                                    id: model.id,
+                                    name: model.name,
+                                    provider: model.provider,
+                                    providerTitle: model.providerTitle,
+                                    baseUrl: model.baseUrl,
+                                    description: model.description,
+                                    category: model.category,
+                                });
+                            }}
+                        >
+                            {model.name}
+                        </Tag>
+                    ))}
+                </div>
+            )}
+            <Select
+                showSearch
+                size="large"
+                value={selectedModel?.id || undefined}
+                placeholder={placeholder}
+                onSearch={handleSearch}
+                onFocus={() => setOpen(true)}
+                onBlur={() => setTimeout(() => setOpen(false), 200)}
+                onChange={(val) => {
+                    const model = mergedResults.find(m => m.id === val) || null;
+                    onChange(model);
+                }}
+                filterOption={false}
+                style={{ width: '100%' }}
+                notFoundContent={loading ? <Spin size="small" /> : (query ? 'No models found. Try a different search term.' : 'Type to search HuggingFace & OpenRouter...')}
+            >
+                {mergedResults.slice(0, 30).map((model) => (
+                    <Select.Option key={model.id} value={model.id}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <Space>
+                                <Text strong>{model.name}</Text>
+                                <Tag color="blue" style={{ marginLeft: 4 }}>{model.providerTitle}</Tag>
+                            </Space>
+                            <Text type="secondary" style={{ fontSize: 11 }}>
+                                {model.description}
+                            </Text>
+                            {model.downloads !== undefined && model.downloads > 0 && (
+                                <Text type="secondary" style={{ fontSize: 10 }}>
+                                    ⬇ {model.downloads >= 1000000 ? (model.downloads / 1000000).toFixed(1) + 'M' : model.downloads >= 1000 ? (model.downloads / 1000).toFixed(1) + 'K' : model.downloads} downloads
+                                </Text>
+                            )}
+                        </div>
+                    </Select.Option>
+                ))}
+            </Select>
+            {loading && (
+                <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }}>
+                    <Spin size="small" />
+                </div>
+            )}
+        </div>
+    );
+};
 
 // ─── API Key Management Tab ──────────────────────────────────────────────────
 
@@ -444,51 +764,141 @@ const APIKeysTab: React.FC = () => {
                 open={isModalVisible}
                 onCancel={() => { setIsModalVisible(false); setEditingKey(null); }}
                 footer={null}
-                width={600}
+                width={editingKey ? 600 : 700}
             >
                 <Form form={form} layout="vertical" onFinish={handleSave}>
-                    <Form.Item name="provider" label="Provider Name" rules={[{ required: true, message: 'Enter provider name' }]}>
-                        <Select
-                            showSearch
-                            placeholder="Select or type a provider name..."
-                            options={[
-                                { value: 'Google AI', label: 'Google AI (Gemini)' },
-                                { value: 'OpenAI', label: 'OpenAI (GPT, o1, o3)' },
-                                { value: 'Anthropic', label: 'Anthropic (Claude)' },
-                                { value: 'Mistral', label: 'Mistral AI' },
-                                { value: 'Groq', label: 'Groq (Fast Inference)' },
-                                { value: 'DeepSeek', label: 'DeepSeek' },
-                                { value: 'xAI', label: 'xAI (Grok)' },
-                                { value: 'OpenRouter', label: 'OpenRouter (Multi-provider)' },
-                                { value: 'Together AI', label: 'Together AI' },
-                                { value: 'Fireworks AI', label: 'Fireworks AI' },
-                                { value: 'Cohere', label: 'Cohere' },
-                                { value: 'Ollama', label: 'Ollama (Local)' },
-                            ]}
-                        />
-                    </Form.Item>
-                    <Form.Item name="label" label="Label (optional)">
-                        <Input placeholder="e.g. Production Key, Dev Key, Personal..." />
-                    </Form.Item>
-                    <Form.Item name="apiKey" label="API Key" rules={[{ required: true, message: 'Enter the API key' }]}>
-                        <Input.Password placeholder="sk-... or key-... or your API key" />
-                    </Form.Item>
-                    <Form.Item name="baseUrl" label="Base URL (optional)">
-                        <Input placeholder="e.g. https://api.openai.com/v1 (leave blank for default)" />
-                    </Form.Item>
-                    <Form.Item name="models" label="Restrict to Models (optional)">
-                        <Select mode="tags" placeholder="Type model names to restrict (leave empty for all models)" />
-                    </Form.Item>
-                    <Form.Item>
+                    {editingKey ? (
+                        // ── Edit mode: show all fields normally ──
+                        <>
+                            <Form.Item name="provider" label="Provider Name" rules={[{ required: true, message: 'Enter provider name' }]}>
+                                <Input placeholder="Provider name" />
+                            </Form.Item>
+                            <Form.Item name="label" label="Label (optional)">
+                                <Input placeholder="e.g. Production Key, Dev Key..." />
+                            </Form.Item>
+                            <Form.Item name="apiKey" label="API Key" rules={[{ required: true, message: 'Enter the API key' }]}>
+                                <Input.Password placeholder="sk-... or key-... or your API key" />
+                            </Form.Item>
+                            <Form.Item name="baseUrl" label="Base URL (optional)">
+                                <Input placeholder="e.g. https://api.openai.com/v1" />
+                            </Form.Item>
+                            <Form.Item name="models" label="Restrict to Models (optional)">
+                                <Select mode="tags" placeholder="Type model names (leave empty for all)" />
+                            </Form.Item>
+                        </>
+                    ) : (
+                        // ── Add mode: intelligent AI-powered model search ──
+                        <>
+                            {/* Step 1: Smart Model Search — searches HuggingFace + OpenRouter in real-time */}
+                            <Form.Item
+                                label={
+                                    <Space>
+                                        <RobotOutlined />
+                                        <span>Search AI Model</span>
+                                        <Tooltip title="Type any model name (e.g., 'GPT-4', 'Llama 3', 'Claude') to search across HuggingFace and OpenRouter. Selecting a model auto-fills all fields below.">
+                                            <QuestionCircleOutlined style={{ color: '#999' }} />
+                                        </Tooltip>
+                                    </Space>
+                                }
+                                rules={[{ required: true, message: 'Search and select an AI model' }]}
+                            >
+                                <ModelSearchSelect 
+                                    placeholder="Search models... e.g. 'GPT-4', 'Llama 3.1', 'Claude Sonnet'"
+                                    onChange={(model) => {
+                                        if (model) {
+                                            form.setFieldsValue({
+                                                provider: model.providerTitle,
+                                                baseUrl: model.baseUrl,
+                                                models: [model.id],
+                                                label: `${model.providerTitle} — ${model.name}`,
+                                            });
+                                        } else {
+                                            form.setFieldsValue({
+                                                provider: '',
+                                                baseUrl: '',
+                                                models: [],
+                                                label: '',
+                                            });
+                                        }
+                                    }}
+                                />
+                            </Form.Item>
+
+                            <Alert
+                                message="Intelligent Auto-Fill"
+                                description="The model you selected will automatically fill the Provider, Endpoint URL, and Model Name below. You can still edit these fields if needed."
+                                type="info"
+                                showIcon
+                                style={{ marginBottom: 16 }}
+                            />
+
+                            {/* Step 2: Paste API key */}
+                            <Form.Item name="apiKey" label="API Key" rules={[{ required: true, message: 'Enter your API key' }]}>
+                                <Input.Password size="large" placeholder="Paste your API key here (sk-... or key-...)" />
+                            </Form.Item>
+
+                            {/* Auto-filled fields with smart provider detection */}
+                            <Row gutter={12}>
+                                <Col span={12}>
+                                    <Form.Item name="provider" label="Provider Name" rules={[{ required: true, message: 'Provider is required' }]}>
+                                        <Input 
+                                            placeholder="e.g. OpenAI, Anthropic, Google" 
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                const currentBaseUrl = form.getFieldValue('baseUrl');
+                                                // Only auto-fill endpoint if it's empty or matches a previous auto-fill pattern
+                                                const isAutoFill = currentBaseUrl && currentBaseUrl.includes(val.toLowerCase());
+                                                if (!currentBaseUrl || isAutoFill) {
+                                                    const endpoint = getProviderEndpoint(val);
+                                                    if (endpoint && endpoint !== `https://${val.toLowerCase()}.com/api/v1`) {
+                                                        form.setFieldsValue({ baseUrl: endpoint });
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                    </Form.Item>
+                                </Col>
+                                <Col span={12}>
+                                    <Form.Item name="label" label="Label (optional)">
+                                        <Input placeholder="e.g. Production Key, Dev Key..." />
+                                    </Form.Item>
+                                </Col>
+                            </Row>
+
+                            <Form.Item name="baseUrl" label="Endpoint URL">
+                                <Input 
+                                    placeholder="e.g. https://api.openai.com/v1" 
+                                    addonAfter={
+                                        <Tooltip title="Common endpoints: OpenAI (https://api.openai.com/v1), Anthropic (https://api.anthropic.com/v1), Google (https://generativelanguage.googleapis.com/v1beta/openai)">
+                                            <QuestionCircleOutlined style={{ color: '#999' }} />
+                                        </Tooltip>
+                                    }
+                                />
+                            </Form.Item>
+
+                            {/* Model(s) field - supports multiple models per key */}
+                            <Form.Item name="models" label="Allowed Models (optional)">
+                                <Select mode="tags" placeholder="Leave empty for all models, or specify which models this key can use" />
+                            </Form.Item>
+                        </>
+                    )}
+
+                    <Form.Item style={{ marginTop: 24 }}>
                         <Space>
-                            <Button type="primary" htmlType="submit">
+                            <Button type="primary" htmlType="submit" size="large">
                                 {editingKey ? 'Update' : 'Save Key'}
                             </Button>
-                            <Button onClick={() => { setIsModalVisible(false); setEditingKey(null); }}>Cancel</Button>
+                            <Button onClick={() => { setIsModalVisible(false); setEditingKey(null); }} size="large">Cancel</Button>
                         </Space>
                     </Form.Item>
                 </Form>
             </Modal>
+
+            <ApiTestConsole
+                visible={testConsoleVisible}
+                onClose={() => setTestConsoleVisible(false)}
+                apiKeys={keys.map(k => ({ id: k.id, label: k.label, provider: k.provider, baseUrl: k.baseUrl }))}
+            />
         </div>
     );
 };
@@ -975,12 +1385,6 @@ const ModelDiscoveryTab: React.FC = () => {
                     </>
                 )}
             </Spin>
-
-            <ApiTestConsole
-                visible={testConsoleVisible}
-                onClose={() => setTestConsoleVisible(false)}
-                apiKeys={keys.map(k => ({ id: k.id, label: k.label, provider: k.provider, baseUrl: k.baseUrl }))}
-            />
         </div>
     );
 };
