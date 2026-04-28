@@ -352,9 +352,9 @@ jobs:
             elif [ "$STATUS" = "FAILURE" ] || [ "$STATUS" = "INTERNAL_ERROR" ] || [ "$STATUS" = "TIMEOUT" ]; then
               echo "Build failed with status: $STATUS"
               exit 1
-            fi
-            sleep 10
-          done
+             fi
+             sleep 10
+           done
        - name: Deploy_To_Cloud_Run
          run: |
            echo "Starting Cloud Run deployment..."
@@ -366,12 +366,13 @@ jobs:
              --memory 4Gi \
              --cpu 2 \
              --timeout 300 \
+             --startup-timeout 600 \
              --set-env-vars="SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a,spring.threads.virtual.enabled=true" \
              --update-secrets FIREBASE_SERVICE_ACCOUNT_JSON=firebase-service-account-json:latest,JWT_SECRET=jwt-secret:latest \
              --max-instances 10 \
              --concurrency 80 \
              --quiet
-          echo "Cloud Run deployment completed successfully."
+           echo "Cloud Run deployment completed successfully."
       - name: Store_Admin_URL
         id: set-url
         run: |
