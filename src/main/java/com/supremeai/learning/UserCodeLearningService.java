@@ -418,11 +418,20 @@ public class UserCodeLearningService {
                 "failedCode", failedCode.substring(0, Math.min(500, failedCode.length()))
             ));
 
-            // Save to cache (will persist to Firestore if available)
+            // Save to cache
             patternCache.put(patternId, pattern);
             
             if (firestore != null) {
-                Map<String, Object> data = docToSystemLearningMap(pattern);
+                Map<String, Object> data = new HashMap<>();
+                data.put("id", pattern.getId());
+                data.put("learningType", pattern.getLearningType());
+                data.put("category", pattern.getCategory());
+                data.put("content", pattern.getContent());
+                data.put("confidenceScore", pattern.getConfidenceScore());
+                data.put("learnedAt", pattern.getLearnedAt().toString());
+                data.put("source", pattern.getSource());
+                data.put("metadata", pattern.getMetadata());
+                
                 firestore.collection(systemLearningCollection)
                         .add(data)
                         .thenAccept(documentReference -> 
@@ -432,6 +441,8 @@ public class UserCodeLearningService {
                             log.error("Failed to save error pattern: {}", e.getMessage());
                             return null;
                         });
+            } else {
+                log.debug("Firestore not available, error pattern saved to cache only");
             }
             
             log.info("Recorded failure pattern: {}", errorSignature);
