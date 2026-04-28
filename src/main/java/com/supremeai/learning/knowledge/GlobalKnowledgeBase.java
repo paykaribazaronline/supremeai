@@ -249,15 +249,4 @@ public class GlobalKnowledgeBase {
                 .doOnSuccess(saved -> log.debug("Saved solution memory to Firestore: {}", saved.getId()))
                 .doOnError(err -> log.error("Failed to save solution memory: {}", err.getMessage()));
     }
-
-    /**
-     * Record a failure for a code pattern (used by VS Code error reporting).
-     * Adds the failing code to the blacklist for this error signature.
-     */
-    public void recordFailure(String errorSignature, String failedCode) {
-        // For failures, we don't have a full SolutionMemory structure,
-        // but we can track failed patterns in-memory for now
-        log.info("Recorded failure for error signature: {}", errorSignature);
-        // Future: store in separate 'failed_patterns' collection
-    }
 }

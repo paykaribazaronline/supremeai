@@ -39,14 +39,14 @@ public class WebSocketController {
 
     @Scheduled(fixedRate = 30000) // Update every 30 seconds
     public void broadcastDashboardUpdates() {
-        getDashboardData().subscribe(data -> 
+        getDashboardData().subscribe(data ->
             messagingTemplate.convertAndSend("/topic/dashboard", data)
         );
     }
 
     @Scheduled(fixedRate = 10000) // Update every 10 seconds
     public void broadcastQuotaUpdates() {
-        getGlobalQuotaData().flatMap(globalData -> 
+        getGlobalQuotaData().flatMap(globalData ->
             userRepository.findAll().collectList().map(users -> {
                 Map<String, Object> data = new HashMap<>(globalData);
                 List<Map<String, Object>> userQuotas = users.stream().map(user -> {
@@ -58,11 +58,11 @@ public class WebSocketController {
                     uq.put("totalQuota", user.fetchMonthlyQuota());
                     uq.put("usagePercentage", user.fetchMonthlyQuota() > 0 ? (double) user.getCurrentUsage() / user.fetchMonthlyQuota() * 100.0 : 0.0);
                     return uq;
-                }).collect(java.util.stream.Collectors.toList());
+                }).toList();
                 data.put("userQuotas", userQuotas);
                 return data;
             })
-        ).subscribe(quotaData -> 
+        ).subscribe(quotaData ->
             messagingTemplate.convertAndSend("/topic/quota", quotaData)
         );
     }
@@ -78,7 +78,7 @@ public class WebSocketController {
         notification.put("message", message);
         notification.put("details", details);
         notification.put("timestamp", System.currentTimeMillis());
-        
+
         messagingTemplate.convertAndSend("/topic/notifications", notification);
         log.info("Broadcast pipeline notification: {} - {}", status, message);
     }
@@ -92,7 +92,7 @@ public class WebSocketController {
         alert.put("status", level.toLowerCase()); // info, warning, error
         alert.put("message", message);
         alert.put("timestamp", System.currentTimeMillis());
-        
+
         messagingTemplate.convertAndSend("/topic/notifications", alert);
         log.info("Broadcast system alert: {} - {}", level, message);
     }
@@ -108,7 +108,7 @@ public class WebSocketController {
         update.put("patternType", patternType);
         update.put("count", count);
         update.put("timestamp", System.currentTimeMillis());
-        
+
         messagingTemplate.convertAndSend("/topic/notifications", update);
     }
 
@@ -134,79 +134,6 @@ public class WebSocketController {
     }
 
     private Mono<Map<String, Object>> getGlobalQuotaData() {
-        return Mono.fromCallable(() -> {
-            Map<String, Object> data = new HashMap<>();
-
-            Map<String, Object> quotaStats = new HashMap<>();
-            quotaStats.put("totalRequests", 15420);
-            quotaStats.put("usedQuota", 8420);
-            quotaStats.put("remainingQuota", 7000);
-            quotaStats.put("usagePercentage", 54.6);
-            quotaStats.put("timestamp", System.currentTimeMillis());
-
-            data.put("quota", quotaStats);
-            data.put("type", "quota_update");
-
-            return data;
-        });
-    }
-}
-
-    @Scheduled(fixedRate = 30000) // Update every 30 seconds
-    public void broadcastDashboardUpdates() {
-        getDashboardData().subscribe(data -> 
-            messagingTemplate.convertAndSend("/topic/dashboard", data)
-        );
-    }
-
-    @Scheduled(fixedRate = 10000) // Update every 10 seconds
-    public void broadcastQuotaUpdates() {
-        getGlobalQuotaData().flatMap(globalData -> 
-            userRepository.findAll().collectList().map(users -> {
-                Map<String, Object> data = new HashMap<>(globalData);
-                List<Map<String, Object>> userQuotas = users.stream().map(user -> {
-                    Map<String, Object> uq = new HashMap<>();
-                    uq.put("userId", user.getFirebaseUid());
-                    uq.put("displayName", user.getDisplayName());
-                    uq.put("email", user.getEmail());
-                    uq.put("usedQuota", user.getCurrentUsage());
-                    uq.put("totalQuota", user.fetchMonthlyQuota());
-                    uq.put("usagePercentage", user.fetchMonthlyQuota() > 0 ? (double) user.getCurrentUsage() / user.fetchMonthlyQuota() * 100.0 : 0.0);
-                    return uq;
-                }).collect(java.util.stream.Collectors.toList());
-                data.put("userQuotas", userQuotas);
-                return data;
-            })
-        ).subscribe(quotaData -> 
-            messagingTemplate.convertAndSend("/topic/quota", quotaData)
-        );
-    }
-
-    private Mono<Map<String, Object>> getDashboardData() {
-        return userRepository.count().map(userCount -> {
-            Map<String, Object> data = new HashMap<>();
-
-            // System metrics
-            Map<String, Object> stats = new HashMap<>();
-            stats.put("totalUsers", userCount);
-            stats.put("activeAIAgents", 12);
-            stats.put("systemHealthScore", 98.5);
-            stats.put("runningProjects", 5);
-            stats.put("completedProjects", 142);
-            stats.put("successRate", 99.2);
-            stats.put("systemHealthStatus", "HEALTHY");
-            stats.put("timestamp", System.currentTimeMillis());
-
-            data.put("stats", stats);
-            data.put("type", "dashboard_update");
-
-            return data;
-        });
-    }
-
-    private Mono<Map<String, Object>> getGlobalQuotaData() {
-        // Since we don't have a global quota yet, we'll aggregate or provide mock for now
-        // but ensure it's reactive-ready.
         return Mono.fromCallable(() -> {
             Map<String, Object> data = new HashMap<>();
 
