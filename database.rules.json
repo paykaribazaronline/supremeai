@@ -39,7 +39,7 @@
     "projects": {
       "$projectId": {
         ".read": "auth != null",
-        ".write": "auth != null",
+        ".write": "auth != null && auth.token.admin === true",
 
         "chat": {
           "$chatId": {
@@ -52,12 +52,12 @@
 
     "requirements": {
       ".read": "auth != null",
-      ".write": "auth != null"
+      ".write": "auth != null && auth.token.admin === true"
     },
 
     "config": {
       ".read": "auth != null",
-      ".write": "auth != null"
+      ".write": "auth != null && auth.token.admin === true"
     },
 
     "security": {

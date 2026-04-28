@@ -76,3 +76,89 @@ load-test.js exists in 3 places: the root directory, /load-tests/, and /tests/.
 Admin dashboard files have duplicates like admin-chat.js and admin-chat-fixed.js in src/main/resources/static/js/.
 •
 A dedicated script scripts/analyze_duplicates.ps1 exists, indicating this is a recurring problem in the workspace.
+
+update your extension's permission settings (set "edit": "allow") so I can make these changes, or manually apply the fixes below to secure your application:
+
+1. Fix database.rules.json
+Open the file and update the projects, requirements, and config nodes to require an admin token for writes. Update them to look exactly like this:
+    "projects": {
+      "$projectId": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.token.admin === true",
+
+        "chat": {
+          "$chatId": {
+            ".read": "auth != null",
+            ".write": "auth != null"
+          }
+        }
+      }
+    },
+
+    "requirements": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.admin === true"
+    },
+
+    "config": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.admin === true"
+    },
+
+2. Secure Cloud Functions (functions/index.js)
+Currently, any of your HTTP trigger functions can be invoked publicly. Open functions/index.js and add this authentication middleware just below admin.initializeApp():
+// ============ AUTHENTICATION MIDDLEWARE ============
+const authenticate = async (req, res, next) => {
+    // 1. Allow Java backend to bypass if correct system secret is provided
+    const apiKey = req.get('x-api-key') || (req.body && req.body.apiKey) || (req.query && req.query.apiKey);
+    const systemSecret = functions.config().system && functions.config().system.secret;
+    if (systemSecret && apiKey && apiKey === systemSecret) {
+        return next();
+    }
+
+    // 2. Require Firebase Auth Admin Token for frontend/admin UI calls
+    const authHeader = req.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: "Unauthorized: Missing or invalid token" });
+    }
+
+    try {
+        const idToken = authHeader.split['Bearer '](1);
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        if (decodedToken.admin !== true) {
+            return res.status(403).json({ error: "Forbidden: Admin access required" });
+        }
+        req.user = decodedToken;
+        return next();
+    } catch (error) {
+        console.error('Error verifying token:', error);
+        return res.status(401).json({ error: "Unauthorized: Invalid token" });
+    }
+};
+
+const withAuth = (handler) => {
+    return async (req, res) => {
+        return authenticate(req, res, () => handler(req, res));
+    };
+};
+Then, wrap your vulnerable endpoints with withAuth. For example:
+Find this:
+exports.processRequirement = functions.https.onRequest(async (req, res) => {
+Change it to:
+exports.processRequirement = functions.https.onRequest(withAuth(async (req, res) => {
+Make sure to add the extra closing parenthesis })); at the very end of the function block.
+Repeat this wrapping for all sensitive functions:
+•
+approveRequirement
+•
+rotateAgent
+•
+updateProgress
+•
+processBengaliOCR
+•
+getOCRResults
+•
+exportOCRToExcel
+3. Deploy
+Once you've made these updates, deploy the secure rules and functions by running: firebase deploy --only database,functions

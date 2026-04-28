@@ -8,6 +8,41 @@ const axios = require("axios");
 admin.initializeApp();
 const db = admin.firestore();
 
+// ============ AUTHENTICATION MIDDLEWARE ============
+const authenticate = async (req, res, next) => {
+    // 1. Allow Java backend to bypass if correct system secret is provided
+    const apiKey = req.get('x-api-key') || (req.body && req.body.apiKey) || (req.query && req.query.apiKey);
+    const systemSecret = functions.config().system && functions.config().system.secret;
+    if (systemSecret && apiKey && apiKey === systemSecret) {
+        return next();
+    }
+    
+    // 2. Require Firebase Auth Admin Token for frontend/admin UI calls
+    const authHeader = req.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: "Unauthorized: Missing or invalid token" });
+    }
+    
+    try {
+        const idToken = authHeader.split('Bearer ')[1];
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        if (decodedToken.admin !== true) {
+            return res.status(403).json({ error: "Forbidden: Admin access required" });
+        }
+        req.user = decodedToken;
+        return next();
+    } catch (error) {
+        console.error('Error verifying token:', error);
+        return res.status(401).json({ error: "Unauthorized: Invalid token" });
+    }
+};
+
+const withAuth = (handler) => {
+    return async (req, res) => {
+        return authenticate(req, res, () => handler(req, res));
+    };
+};
+
 // ============ SYSTEM HEALTH MONITORING ============
 
 const systemHealth = require('./system-health');
@@ -20,7 +55,7 @@ exports.collectHealthMetrics = systemHealth.collectHealthMetrics;
  * HTTP trigger: Process new requirement from admin
  * Endpoint: https://region-supremeai.cloudfunctions.net/processRequirement
  */
-exports.processRequirement = functions.https.onRequest(async (req, res) => {
+exports.processRequirement = functions.https.onRequest(withAuth(async (req, res) => {
     try {
         const { projectId, description } = req.body;
         
@@ -87,7 +122,7 @@ exports.processRequirement = functions.https.onRequest(async (req, res) => {
         console.error("Error processing requirement:", error);
         res.status(500).json({ error: error.message });
     }
-});
+}));
 
 // ============ APPROVAL HANDLING ============
 
@@ -95,7 +130,7 @@ exports.processRequirement = functions.https.onRequest(async (req, res) => {
  * HTTP trigger: Admin approves/rejects requirement
  * Endpoint: https://region-supremeai.cloudfunctions.net/approveRequirement
  */
-exports.approveRequirement = functions.https.onRequest(async (req, res) => {
+exports.approveRequirement = functions.https.onRequest(withAuth(async (req, res) => {
     try {
         const { requirementId, approved, notes } = req.body;
         
@@ -138,7 +173,7 @@ exports.approveRequirement = functions.https.onRequest(async (req, res) => {
         console.error("Error approving requirement:", error);
         res.status(500).json({ error: error.message });
     }
-});
+}));
 
 // ============ AUTO-APPROVAL SCHEDULER ============
 
@@ -178,7 +213,7 @@ exports.autoApproveScheduled = functions.pubsub.schedule("*/1 * * * *").onRun(as
  * HTTP trigger: Handle quota exceeded / API errors
  * Called by Java backend on 429/403 errors
  */
-exports.rotateAgent = functions.https.onRequest(async (req, res) => {
+exports.rotateAgent = functions.https.onRequest(withAuth(async (req, res) => {
     try {
         const { agentId, reason } = req.body;
         
@@ -210,7 +245,7 @@ exports.rotateAgent = functions.https.onRequest(async (req, res) => {
         console.error("Error rotating agent:", error);
         res.status(500).json({ error: error.message });
     }
-});
+}));
 
 // ============ CHAT MESSAGE HANDLER ============
 
@@ -254,7 +289,7 @@ exports.onChatMessage = functions.firestore
 /**
  * HTTP trigger: Update project progress
  */
-exports.updateProgress = functions.https.onRequest(async (req, res) => {
+exports.updateProgress = functions.https.onRequest(withAuth(async (req, res) => {
     try {
         const { projectId, progress, status } = req.body;
         
@@ -268,7 +303,7 @@ exports.updateProgress = functions.https.onRequest(async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
+}));
 
 // ============ SERVER CONNECTION MONITORING ============
 
@@ -282,7 +317,7 @@ exports.monitorConnections = serverConnectionMonitor.monitorConnections;
  * HTTP trigger: Process Bengali OCR on uploaded images
  * Endpoint: https://region-supremeai.cloudfunctions.net/processBengaliOCR
  */
-exports.processBengaliOCR = functions.https.onRequest(async (req, res) => {
+exports.processBengaliOCR = functions.https.onRequest(withAuth(async (req, res) => {
     try {
         const { imageUrls, projectId, userId } = req.body;
 
@@ -400,13 +435,13 @@ exports.processBengaliOCR = functions.https.onRequest(async (req, res) => {
         console.error("Error in Bengali OCR processing:", error);
         res.status(500).json({ error: error.message });
     }
-});
+}));
 
 /**
  * HTTP trigger: Get OCR results for a project
  * Endpoint: https://region-supremeai.cloudfunctions.net/getOCRResults
  */
-exports.getOCRResults = functions.https.onRequest(async (req, res) => {
+exports.getOCRResults = functions.https.onRequest(withAuth(async (req, res) => {
     try {
         const { projectId } = req.query;
 
@@ -436,13 +471,13 @@ exports.getOCRResults = functions.https.onRequest(async (req, res) => {
         console.error("Error fetching OCR results:", error);
         res.status(500).json({ error: error.message });
     }
-});
+}));
 
 /**
  * HTTP trigger: Convert OCR results to Excel and upload
  * Endpoint: https://region-supremeai.cloudfunctions.net/exportOCRToExcel
  */
-exports.exportOCRToExcel = functions.https.onRequest(async (req, res) => {
+exports.exportOCRToExcel = functions.https.onRequest(withAuth(async (req, res) => {
     try {
         const { projectId, resultIds } = req.body;
 
@@ -524,7 +559,7 @@ exports.exportOCRToExcel = functions.https.onRequest(async (req, res) => {
         console.error("Error exporting to Excel:", error);
         res.status(500).json({ error: error.message });
     }
-});
+}));
 
 // ============ HELPER FUNCTIONS ============
 
