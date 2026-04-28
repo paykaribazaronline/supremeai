@@ -19,19 +19,16 @@ export class ErrorHandler {
   register(): void {
     // Listen to diagnostic collection changes
     vscode.languages.onDidChangeDiagnostics(this.onDiagnosticsChanged, this);
-    
-    // Also listen to terminal output for runtime errors
-    vscode.window.onDidWriteTerminalData(this.onTerminalData, this);
 
     console.log('[SupremeAI] ErrorHandler registered');
   }
 
   private onDiagnosticsChanged(event: vscode.DiagnosticChangeEvent): void {
-    const uri = event.uri;
-    const diagnostics = vscode.languages.getDiagnostics(uri);
-
-    for (const diagnostic of diagnostics) {
-      this.processDiagnostic(uri, diagnostic);
+    for (const uri of event.uris) {
+      const diagnostics = vscode.languages.getDiagnostics(uri);
+      for (const diagnostic of diagnostics) {
+        this.processDiagnostic(uri, diagnostic);
+      }
     }
   }
 
@@ -65,36 +62,6 @@ export class ErrorHandler {
     // Send to backend
     this.sendErrorReport(report);
     this.reportedErrors.add(errorKey);
-  }
-
-  private onTerminalData(event: { writer: vscode.Terminal; data: string }): void {
-    // Simple pattern matching for common runtime errors (Node.js, Python, Java)
-    const data = event.data;
-    const terminal = event.writer;
-    
-    // Extract file path and line number from stack traces
-    const stackLineRegex = /at\s+.*?\(?(.*?):(\d+):(\d+)\)?/g;
-    let match;
-    
-    while ((match = stackLineRegex.exec(data)) !== null) {
-      const [_, filePath, lineNum, colNum] = match;
-      
-      // Only report if it's a user workspace file
-      if (filePath.includes('workspace') || filePath.includes('src')) {
-        const report: ErrorReport = {
-          errorType: 'runtime',
-          errorMessage: `Runtime error in ${filePath}`,
-          filePath,
-          lineNumber: parseInt(lineNum),
-          columnNumber: parseInt(colNum),
-          severity: 'error',
-          timestamp: new Date().toISOString(),
-          stackTrace: data.substring(0, 500), // First 500 chars of stack
-        };
-
-        this.sendErrorReport(report);
-      }
-    }
   }
 
   private async sendErrorReport(report: ErrorReport): Promise<void> {

@@ -147,11 +147,11 @@ function registerStatusBar(context: vscode.ExtensionContext): void {
   statusBarItem.show();
 
   // Update status periodically
-  setInterval(() => {
+  setInterval(async () => {
     const service = getSupremeAIService();
-    const stats = service.getLearningStats();
+    const stats = await service.getLearningStats();
     if (stats) {
-      statusBarItem.tooltip = `SupremeAI: ${stats.learningCount || 0} patterns learned`;
+      statusBarItem.tooltip = `SupremeAI: ${stats.learningCount ?? 0} patterns learned`;
     }
   }, 30000);
 

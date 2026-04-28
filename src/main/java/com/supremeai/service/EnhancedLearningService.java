@@ -402,7 +402,8 @@ public class EnhancedLearningService {
         
         // Most applied learnings
         List<SystemLearning> topApplied = learnings.stream()
-                .sorted(Comparator.comparingInt(l -> l.getTimesApplied() != null ? l.getTimesApplied() : 0).reversed())
+                .sorted(Comparator.comparingInt((SystemLearning l) ->
+                        l.getTimesApplied() != null ? l.getTimesApplied() : 0).reversed())
                 .limit(5)
                 .collect(Collectors.toList());
         
@@ -517,11 +518,11 @@ public class EnhancedLearningService {
     private List<String> generateRecommendations(List<SystemLearning> learnings, Map<String, Object> analysis) {
         List<String> recommendations = new ArrayList<>();
         
-        Map<String, Long> byType = (Map<String, Long>) analysis.getOrDefault("successRateByType", Map.of());
-        
-        byType.forEach((type, metrics) -> {
-            @SuppressWarnings("unchecked")
-            Map<String, Double> typeMetrics = (Map<String, Double>) metrics;
+        @SuppressWarnings("unchecked")
+        Map<String, Map<String, Double>> byType =
+                (Map<String, Map<String, Double>>) analysis.getOrDefault("successRateByType", Map.of());
+
+        byType.forEach((type, typeMetrics) -> {
             double rate = typeMetrics.get("successRate");
             
             if (rate < 0.6) {
