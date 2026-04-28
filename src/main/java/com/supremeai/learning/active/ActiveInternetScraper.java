@@ -79,7 +79,7 @@ public class ActiveInternetScraper {
                 JsonNode changes = root.path("query").path("recentchanges");
                 if (changes.isArray()) {
                     for (JsonNode change : changes) {
-                        String title = change.path("title").asText("");
+                        String title = change.path("title").textValue();
                         if (isTechnologyRelated(title)) {
                             String snippet = "Wikipedia update on: " + title;
                             String solution = fetchWikipediaSummary(title);
@@ -128,7 +128,7 @@ public class ActiveInternetScraper {
             if (response != null) {
                 JsonNode root = objectMapper.readTree(response);
                 JsonNode extract = root.path("extract");
-                return extract.isTextual() ? extract.asText("") : "";
+                return extract.isTextual() ? extract.textValue() : "";
             }
         } catch (Exception e) {
             log.debug("Failed to fetch Wikipedia summary for {}: {}", title, e.getMessage());
@@ -156,8 +156,8 @@ public class ActiveInternetScraper {
                 JsonNode items = root.path("items");
                 if (items.isArray()) {
                     for (JsonNode question : items) {
-                        String title = question.path("title").asText("");
-                        String link = question.path("link").asText("");
+                        String title = question.path("title").textValue();
+                        String link = question.path("link").textValue();
                         String answer = "Check StackOverflow for solution: " + link;
 
                         ScrapedIssue issue = new ScrapedIssue(title, answer, "StackOverflow");

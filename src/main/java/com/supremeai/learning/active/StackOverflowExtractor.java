@@ -53,8 +53,8 @@ public class StackOverflowExtractor implements SiteExtractor {
         
         if (items.isArray()) {
             for (JsonNode question : items) {
-                String title = question.path("title").asText("");
-                String link = question.path("link").asText("");
+                String title = question.path("title").textValue();
+                String link = question.path("link").textValue();
                 
                 if (!title.isEmpty() && !link.isEmpty()) {
                     String answer = "Check StackOverflow for solution: " + link;

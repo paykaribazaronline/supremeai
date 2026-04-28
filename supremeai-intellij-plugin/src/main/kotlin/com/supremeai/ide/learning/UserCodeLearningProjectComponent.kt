@@ -53,7 +53,7 @@ class UserCodeLearningProjectComponent(private val project: Project) :
     /**
      * Called when file selection changes (e.g., switching tabs).
      */
-    fun selectionChanged(event: FileEditorManagerEvent) {
+    override fun selectionChanged(event: FileEditorManagerEvent) {
         // No action needed
     }
 

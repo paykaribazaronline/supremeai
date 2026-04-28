@@ -1,0 +1,93 @@
+name: Retry Failed Workflows
+
+on:
+  push:
+    branches: [ main, master, develop ]  # Only run on these branches
+    paths-ignore:
+      - 'README.md'  # Ignore changes to README.md
+      - '.md'        # Ignore all markdown files
+
+env:
+  MAX_RETRY_ATTEMPTS: 3
+  NOTIFICATION_RECIPIENT: "your-team@example.com"  # Replace with your email or team name
+  WORKFLOW_NAME_FILTER: ""  # Leave empty to check all workflows, or specify a workflow name
+
+jobs:
+  check-and-retry:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get failed workflow runs
+        id: get-failed-runs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const maxDays = 7;  // Only check failures from the last 7 days
+            const maxAttempts = process.env.MAX_RETRY_ATTEMPTS || 3;
+            const workflowFilter = process.env.WORKFLOW_NAME_FILTER || '';
+
+            // Get failed workflow runs
+            const runs = await github.rest.actions.listWorkflowRuns({
+              owner,
+              repo,
+              status: 'failure',
+              per_page: 100
+            });
+
+            // Filter by workflow name if specified
+            let failedRuns = runs.data.workflow_runs;
+            if (workflowFilter) {
+              failedRuns = failedRuns.filter(run => run.name === workflowFilter);
+            }
+
+            // Filter by recent runs (last maxDays days)
+            const cutoffDate = new Date();
+            cutoffDate.setDate(cutoffDate.getDate() - maxDays);
+            failedRuns = failedRuns.filter(run => new Date(run.created_at) > cutoffDate);
+
+            // Filter by retry attempts
+            const runsToRetry = failedRuns.filter(run => {
+              const attemptCount = run.run_number - run.run_attempt + 1;
+              return attemptCount <= maxAttempts;
+            });
+
+            // Output the runs to retry
+            core.setOutput('runs-to-retry', JSON.stringify(runsToRetry));
+            core.info(`Found ${runsToRetry.length} failed runs to retry`);
+
+      - name: Retry failed workflows
+        id: retry-workflows
+        uses: actions/github-script@v7
+        if: steps.get-failed-runs.outputs.runs-to-retry != '[]'
+        with:
+          script: |
+            const runsToRetry = JSON.parse(process.env.steps.get-failed-runs.outputs.runs-to-retry);
+            const { owner, repo } = context.repo;
+
+            for (const run of runsToRetry) {
+              try {
+                // Re-run the workflow
+                await github.rest.actions.reRunWorkflow({
+                  owner,
+                  repo,
+                  run_id: run.id
+                });
+
+                core.info(`Successfully re-triggered workflow run #${run.id} (${run.name})`);
+
+                // Send notification (using email as example)
+                if (process.env.NOTIFICATION_RECIPIENT) {
+                  await github.rest.issues.createComment({
+                    owner,
+                    repo,
+                    issue_number: run.id,
+                    body: `This workflow has been automatically retried due to failure.`
+                  });
+                }
+              } catch (error) {
+                core.error(`Failed to re-trigger workflow run #${run.id}: ${error.message}`);
+              }
+            }

@@ -26,17 +26,14 @@ class UserCodeChangeListener(private val project: Project, private val aiSuggest
     private val originalCodeMap = HashMap<VirtualFile, String>()
     private val isProcessingChange = HashMap<VirtualFile, Boolean>()
 
-    override fun documentChanged(e: DocumentEvent?) {
-        val document = e?.document
-        if (document == null) return
+    override fun documentChanged(e: DocumentEvent) {
+        val document = e.document
+        val file = FileDocumentManager.getInstance().getFile(document) ?: return
 
         // Avoid processing our own programmatic changes
-        if (isProcessingChange[document.getUserData(FileDocumentManager.KEY) ?: return] == true) {
+        if (isProcessingChange[file] == true) {
             return
         }
-
-        val file = FileDocumentManager.getInstance().getFile(document)
-        if (file == null) return
 
         // Get current code
         val currentCode = document.getText()
@@ -67,7 +64,7 @@ class UserCodeChangeListener(private val project: Project, private val aiSuggest
         try {
             // Calculate diff and send to backend for learning
             val diff = generateDiff(originalCode, currentCode)
-            
+
             // Send to backend in a separate thread to avoid blocking UI
             ApplicationManager.getApplication().executeOnPooledThread({
                 try {
@@ -116,10 +113,10 @@ class UserCodeChangeListener(private val project: Project, private val aiSuggest
             return "No changes"
         }
 
-        val originalLines = original.linesToSequence().toList()
-        val currentLines = current.linesToSequence().toList()
+        val originalLines = original.lines()
+        val currentLines = current.lines()
 
-        val maxLines = Math.max(originalLines.size, currentLines.size)
+        val maxLines = maxOf(originalLines.size, currentLines.size)
         val diffBuilder = StringBuilder()
 
         for (i in 0 until maxLines) {
