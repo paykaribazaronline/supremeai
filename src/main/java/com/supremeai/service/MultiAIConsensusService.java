@@ -228,7 +228,7 @@ public class MultiAIConsensusService {
             result.setConsensusAnswer(consensus);
             result.setConsensusPercentage(percentage);
             result.setVotes(votes);
-            // Note: id and timestamp set by ConsensusVote constructor/setters
+            result.setTimestamp(java.time.LocalDateTime.now());
             history.add(result);
             logger.info("Saved consensus vote to in-memory history (size: {})", history.size());
         } catch (Exception e) {

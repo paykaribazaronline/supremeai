@@ -42,7 +42,10 @@ public class User {
     private Long monthlyQuota;
 
     // Constructors
-    public User() {}
+    public User() {
+        this.createdAt = java.time.LocalDateTime.now().toString();
+        this.updatedAt = java.time.LocalDateTime.now().toString();
+    }
 
     public User(String firebaseUid, String email, String displayName) {
         this.firebaseUid = firebaseUid;

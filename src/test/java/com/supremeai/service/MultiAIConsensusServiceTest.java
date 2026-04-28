@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -88,8 +89,7 @@ class MultiAIConsensusServiceTest {
     @Test
     void askAllAIsReturnsErrorWhenAllProvidersFail() {
         when(providerFactory.getProvider("groq")).thenReturn(groqProvider);
-        when(selfHealingService.executeWithRetry(any(), anyInt(), anyLong()))
-            .thenReturn(Mono.error(new RuntimeException("API down")));
+        when(groqProvider.generate(anyString())).thenReturn(Mono.error(new RuntimeException("API down")));
 
         StepVerifier.create(consensusService.askAllAIs("Test", List.of("groq"), 1_000L))
             .assertNext(result -> {
@@ -103,8 +103,7 @@ class MultiAIConsensusServiceTest {
     @Test
     void askAllAIsReturnsTimeoutResultWhenProviderNeverCompletes() {
         when(providerFactory.getProvider("groq")).thenReturn(groqProvider);
-        when(selfHealingService.executeWithRetry(any(), anyInt(), anyLong()))
-            .thenReturn(Mono.never());
+        when(groqProvider.generate(anyString())).thenReturn(Mono.never());
 
         StepVerifier.create(consensusService.askAllAIs("Slow question", List.of("groq"), 20L))
             .assertNext(result -> {

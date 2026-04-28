@@ -71,13 +71,13 @@ public class UserTest {
 
         LocalDateTime now = LocalDateTime.now();
         user.setUpdatedAt(now);
-        assertEquals(now, user.getUpdatedAt());
+        assertEquals(now.toString(), user.getUpdatedAt());
 
         user.setLastUsedAt(now);
-        assertEquals(now, user.getLastUsedAt());
+        assertEquals(now.toString(), user.getLastUsedAt());
 
         user.setLastLoginAt(now);
-        assertEquals(now, user.getLastLoginAt());
+        assertEquals(now.toString(), user.getLastLoginAt());
 
         user.setIsActive(false);
         assertFalse(user.getIsActive());

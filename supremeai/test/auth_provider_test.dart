@@ -23,13 +23,13 @@ void main() {
       final authProvider = AuthProvider();
       await Future(() {}); // initial _checkAuth
       await Future(() {});
-      
+
       await authProvider.continueAsGuest();
       await Future(() {}); // allow notification propagation
-      
+
       expect(authProvider.status, AuthStatus.guest);
       expect(authProvider.isGuest, true);
-      
+
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getBool('is_guest'), true);
     });
@@ -39,72 +39,29 @@ void main() {
       SharedPreferences.setMockInitialValues({
         'is_guest': true,
       });
-      
+
       final authProvider = AuthProvider();
       // Wait for _checkAuth to complete
       await Future(() {});
       await Future(() {});
-      
+
       // Verify initial state is guest
       expect(authProvider.status, AuthStatus.guest);
       expect(authProvider.isGuest, true);
-      
+
       // Perform logout
       await authProvider.logout();
       // Wait for async operations to propagate
       await Future(() {});
-      
+
       // Verify logged out
       expect(authProvider.status, AuthStatus.unauthenticated);
       expect(authProvider.user, null);
       expect(authProvider.isGuest, false);
-      
+
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getBool('is_guest'), null); // key removed after clear
     });
-      
-      final authProvider = AuthProvider();
-      // Wait for _checkAuth to complete
-      await Future(() {});
-      await Future(() {});
-      
-      // Verify initial state is guest
-      expect(authProvider.status, AuthStatus.guest);
-      expect(authProvider.isGuest, true);
-      
-      // Perform logout
-      await authProvider.logout();
-      // Wait for async operations to propagate
-      await Future(() {});
-      
-      // Verify logged out
-      expect(authProvider.status, AuthStatus.unauthenticated);
-      expect(authProvider.user, null);
-      expect(authProvider.isGuest, false);
-      
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getBool('is_guest'), false);
-    });
-      
-      final authProvider = AuthProvider();
-      // Wait for _checkAuth to complete loading token and is_guest
-      await Future(() {});
-      await Future(() {});
-      
-      // Ensure initial state is authenticated or guest
-      // Could be guest if is_guest=true and no API token validation
-      expect(authProvider.status, AuthStatus.guest);
-      
-      await authProvider.logout();
-      // Wait for async logout operations
-      await Future(() {});
-      
-      expect(authProvider.status, AuthStatus.unauthenticated);
-      expect(authProvider.user, null);
-      
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('auth_token'), null);
-      expect(prefs.getBool('is_guest'), false);
-    });
+
   });
 }
