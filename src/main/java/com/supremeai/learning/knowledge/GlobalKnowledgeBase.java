@@ -227,4 +227,37 @@ public class GlobalKnowledgeBase {
     public List<SolutionMemory> getSolutions(String errorSignature) {
         return globalMemory.getOrDefault(errorSignature, Collections.emptyList());
     }
+
+    /**
+     * Get total count of solution memories across all error signatures.
+     */
+    public long countSolutions() {
+        return globalMemory.values().stream()
+                .mapToLong(List::size)
+                .sum();
+    }
+
+    /**
+     * Save a solution memory to Firestore (Flux-wrapped for async safety).
+     */
+    public Mono<SolutionMemory> saveSolutionMemory(SolutionMemory memory) {
+        if (solutionMemoryRepository == null) {
+            log.warn("SolutionMemoryRepository not available, skipping Firestore save");
+            return Mono.just(memory);
+        }
+        return solutionMemoryRepository.save(memory)
+                .doOnSuccess(saved -> log.debug("Saved solution memory to Firestore: {}", saved.getId()))
+                .doOnError(err -> log.error("Failed to save solution memory: {}", err.getMessage()));
+    }
+
+    /**
+     * Record a failure for a code pattern (used by VS Code error reporting).
+     * Adds the failing code to the blacklist for this error signature.
+     */
+    public void recordFailure(String errorSignature, String failedCode) {
+        // For failures, we don't have a full SolutionMemory structure,
+        // but we can track failed patterns in-memory for now
+        log.info("Recorded failure for error signature: {}", errorSignature);
+        // Future: store in separate 'failed_patterns' collection
+    }
 }

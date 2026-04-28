@@ -397,4 +397,46 @@ public class UserCodeLearningService {
             this.similarityPercentage = similarityPercentage;
         }
     }
+
+    /**
+     * Record a failure pattern for learning.
+     * Used by VS Code extension to report errors.
+     */
+    public void recordFailure(String errorSignature, String failedCode) {
+        try {
+            SystemLearning pattern = new SystemLearning();
+            String patternId = "error_" + System.currentTimeMillis();
+            pattern.setId(patternId);
+            pattern.setLearningType("ERROR_PATTERN");
+            pattern.setCategory("ERROR");
+            pattern.setContent("Error: " + errorSignature + "\nCode: " + failedCode.substring(0, Math.min(200, failedCode.length())));
+            pattern.setConfidenceScore(0.5);
+            pattern.setLearnedAt(java.time.LocalDateTime.now());
+            pattern.setSource("vscode-extension");
+            pattern.setMetadata(Map.of(
+                "errorSignature", errorSignature,
+                "failedCode", failedCode.substring(0, Math.min(500, failedCode.length()))
+            ));
+
+            // Save to cache (will persist to Firestore if available)
+            patternCache.put(patternId, pattern);
+            
+            if (firestore != null) {
+                Map<String, Object> data = docToSystemLearningMap(pattern);
+                firestore.collection(systemLearningCollection)
+                        .add(data)
+                        .thenAccept(documentReference -> 
+                            log.debug("Saved error pattern to Firestore: {}", documentReference.getId())
+                        )
+                        .exceptionally(e -> {
+                            log.error("Failed to save error pattern: {}", e.getMessage());
+                            return null;
+                        });
+            }
+            
+            log.info("Recorded failure pattern: {}", errorSignature);
+        } catch (Exception e) {
+            log.error("Failed to record failure: {}", e.getMessage(), e);
+        }
+    }
 }
