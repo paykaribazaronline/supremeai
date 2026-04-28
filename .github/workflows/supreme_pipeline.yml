@@ -4,12 +4,20 @@ name: SupremeAI_Master_Pipeline
 on:
   push:
     branches: ["main", "develop"]
+    paths-ignore:
+      - '**/*.md'
+      - 'LICENSE'
   pull_request:
     branches: ["main"]
   workflow_dispatch:
     inputs:
       force_run_all:
         description: 'Force run all jobs regardless of changes'
+        required: false
+        default: 'false'
+        type: boolean
+      retry_failed_jobs:
+        description: 'Retry only failed jobs from previous run'
         required: false
         default: 'false'
         type: boolean
@@ -27,15 +35,19 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
+      actions: read
     outputs:
       backend: "${{ steps.filter.outputs.backend }}"
       frontend: "${{ steps.filter.outputs.frontend }}"
       plugin: "${{ steps.filter.outputs.plugin }}"
       vscode_extension: "${{ steps.filter.outputs.vscode_extension }}"
+      any_changes: "${{ steps.filter.outputs.any_changes }}"
+      failed_jobs: "${{ steps.get-failed.outputs.failed_jobs }}"
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Get_Last_Successful_Commit
         id: last_success
         env:
@@ -47,6 +59,7 @@ jobs:
           else
             echo "base=$LAST_SHA" >> $GITHUB_OUTPUT
           fi
+
       - name: Detect Changes
         id: filter
         uses: dorny/paths-filter@v4
@@ -72,9 +85,32 @@ jobs:
               - 'supremeai-vscode-extension/**'
               - '.github/workflows/supreme_pipeline.yml'
 
+      - name: Get_Failed_Jobs_From_Previous_Run
+        id: get-failed
+        if: github.event.inputs.retry_failed_jobs == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get the most recent workflow run (excluding current)
+          PREVIOUS_RUN=$(gh api repos/${{ github.repository }}/actions/workflows/supreme_pipeline.yml/runs?branch=${{ github.ref_name }}\&per_page=5 -q '.workflow_runs | map(select(.status == "completed" and .id != ${{ github.run_id }})) | .[0]')
+          PREVIOUS_ID=$(echo "$PREVIOUS_RUN" | jq -r '.id // empty')
+
+          if [ -z "$PREVIOUS_ID" ]; then
+            echo "No previous run found"
+            echo "failed_jobs=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Get failed jobs from previous run
+          FAILED_JOBS=$(gh api repos/${{ github.repository }}/actions/runs/$PREVIOUS_ID/jobs -q '.jobs | map(select(.conclusion == "failure")) | map(.name) | join(",")')
+          echo "Previous run ID: $PREVIOUS_ID"
+          echo "Failed jobs: $FAILED_JOBS"
+          echo "failed_jobs=$FAILED_JOBS" >> $GITHUB_OUTPUT
+
   secret-scan:
     name: Secret_Scanning
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - uses: actions/checkout@v4
       - name: Secret_Scan
@@ -122,9 +158,10 @@ jobs:
     name: Java_Build_And_Test
     needs: [changes, secret-scan]
     if: >-
-      ${{ 
+      ${{
         (github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
-        needs.changes.outputs.backend == 'true' 
+        needs.changes.outputs.backend == 'true' ||
+        (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Java_Build_And_Test'))
       }}
     runs-on: ubuntu-latest
     steps:
@@ -184,9 +221,10 @@ jobs:
     name: Flutter_Build_And_Test
     needs: [changes, secret-scan]
     if: >-
-      ${{ 
+      ${{
         (github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
-        needs.changes.outputs.frontend == 'true' 
+        needs.changes.outputs.frontend == 'true' ||
+        (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Flutter_Build_And_Test'))
       }}
     runs-on: ubuntu-latest
     outputs:
@@ -235,9 +273,10 @@ jobs:
     name: Plugin_Build
     needs: [changes, secret-scan]
     if: >-
-      ${{ 
+      ${{
         (github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
-        needs.changes.outputs.plugin == 'true' 
+        needs.changes.outputs.plugin == 'true' ||
+        (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Plugin_Build'))
       }}
     runs-on: ubuntu-latest
     outputs:
@@ -266,9 +305,10 @@ jobs:
     name: VSCode_Extension_Build
     needs: [changes, secret-scan]
     if: >-
-      ${{ 
+      ${{
         (github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
-        needs.changes.outputs.vscode_extension == 'true' 
+        needs.changes.outputs.vscode_extension == 'true' ||
+        (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'VSCode_Extension_Build'))
       }}
     runs-on: ubuntu-latest
     outputs:
@@ -299,10 +339,11 @@ jobs:
     name: Deploy_Backend
     needs: [changes, java-build-and-test]
     if: >-
-      ${{ 
-        github.ref == 'refs/heads/main' && 
+      ${{
+        github.ref == 'refs/heads/main' &&
         ((github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
-         needs.changes.outputs.backend == 'true') 
+         needs.changes.outputs.backend == 'true' ||
+         (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Deploy_Backend')))
       }}
     runs-on: ubuntu-latest
     outputs:
@@ -387,10 +428,11 @@ jobs:
     name: Deploy_Frontend
     needs: [changes, flutter-build-and-test]
     if: >-
-      ${{ 
-        github.ref == 'refs/heads/main' && 
+      ${{
+        github.ref == 'refs/heads/main' &&
         ((github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
-         needs.changes.outputs.frontend == 'true') 
+         needs.changes.outputs.frontend == 'true' ||
+         (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Deploy_Frontend')))
       }}
     runs-on: ubuntu-latest
     steps:
@@ -505,20 +547,8 @@ jobs:
         if: always()
         run: |
           if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
-            echo "⚠️ Pipeline failed! Check the summary for details."
+            echo "Pipeline failed! Check the summary for details."
             exit 1
           else
-            echo "✅ All deployments successful!"
+            echo "All deployments successful!"
           fi
-
-  handle-pipeline-failure:
-    name: Handle_Pipeline_Failure
-    needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, health-check]
-    if: failure() # Checks if any of the needed jobs failed
-    runs-on: ubuntu-latest
-    steps:
-      - name: Alert_On_Failure
-        run: |
-          echo "⚠️ Warning: The main SupremeAI pipeline has failed!"
-          echo "Please check the logs for more details."
-          # এখানে Slack, Discord বা Email এ নোটিফিকেশন পাঠানোর কোড যোগ করতে পারেন।
