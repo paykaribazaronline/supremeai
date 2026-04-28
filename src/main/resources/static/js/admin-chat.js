@@ -1,9 +1,9 @@
-// Admin Chat Management JavaScript
+// Admin Chat Management JavaScript - Fixed for Spring Boot
 // Extends admin-dashboard.js
 
 class AdminChatManager {
     constructor() {
-        this.baseUrl = '/api/admin/chat';
+        this.baseUrl = '/api/admin/chat-items';
         this.pendingItems = [];
         this.allItems = {
             rules: [],
@@ -16,47 +16,23 @@ class AdminChatManager {
 
     init() {
         this.setupEventListeners();
-        // Only load if authenticated
-        if (this.isAuthenticated()) {
-            this.loadInitialData();
-            this.startAutoRefresh();
-        } else {
-            // Wait for auth (poll)
-            const checkAuth = setInterval(() => {
-                if (this.isAuthenticated()) {
-                    clearInterval(checkAuth);
-                    this.loadInitialData();
-                    this.startAutoRefresh();
-                }
-            }, 1000);
-        }
+        // Use AuthHelper to manage initialization and loading
+        AuthHelper.initializeAuth(false).then((authenticated) => {
+            if (authenticated) {
+                this.loadInitialData();
+                this.startAutoRefresh();
+            } else {
+                console.warn("AdminChatManager: Not authenticated, waiting...");
+            }
+        });
     }
 
     isAuthenticated() {
-        // Check Firebase token exists
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && key.startsWith('firebase:authUser:')) {
-                try {
-                    const data = JSON.parse(localStorage.getItem(key));
-                    return !! (data.stsTokenManager?.accessToken || data.accessToken);
-                } catch (e) {}
-            }
-        }
-        return false;
+        return localStorage.getItem('supremeai_firebase_authenticated') === 'true';
     }
 
-    getAuthToken() {
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && key.startsWith('firebase:authUser:')) {
-                try {
-                    const data = JSON.parse(localStorage.getItem(key));
-                    return data.stsTokenManager?.accessToken || data.accessToken;
-                } catch (e) {}
-            }
-        }
-        return '';
+    async getAuthToken() {
+        return await AuthHelper.getIdToken();
     }
 
     setupEventListeners() {
@@ -130,92 +106,63 @@ class AdminChatManager {
         setInterval(() => {
             this.loadPending();
             this.updateStats();
-        }, 5000);
+        }, 10000); // 10s for backend efficiency
     }
 
     // API Calls
     async fetchAPI(endpoint) {
-        const token = this.getAuthToken();
-        const response = await fetch(`${this.baseUrl}${endpoint}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const response = await AuthHelper.apiCall(`${this.baseUrl}${endpoint}`);
+        if (!response.ok) throw new Error('API request failed');
         return response.json();
     }
 
     async postAPI(endpoint, body) {
-        const token = this.getAuthToken();
-        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        const response = await AuthHelper.apiCall(`${this.baseUrl}${endpoint}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
             body: JSON.stringify(body)
         });
+        if (!response.ok) throw new Error('API request failed');
         return response.json();
-    }
-
-    getAuthToken() {
-        // Get Firebase token from localStorage
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && key.startsWith('firebase:authUser:')) {
-                try {
-                    const data = JSON.parse(localStorage.getItem(key));
-                    return data.stsTokenManager?.accessToken || data.accessToken;
-                } catch (e) {
-                    console.error('Error parsing Firebase token:', e);
-                }
-            }
-        }
-        return '';
     }
 
     // Data Loading
     async loadPending() {
         try {
             const data = await this.fetchAPI('/pending');
-            if (data.success) {
-                this.pendingItems = data.items;
-                this.renderPending(this.pendingItems);
-                this.updatePendingBadge(this.pendingItems.length);
-            }
+            // Handle both array response and wrapped response
+            this.pendingItems = Array.isArray(data) ? data : (data.items || []);
+            this.renderPending(this.pendingItems);
+            this.updatePendingBadge(this.pendingItems.length);
         } catch (error) {
             console.error('Failed to load pending:', error);
         }
     }
 
-    async loadRules(activeOnly = true) {
+    async loadRules() {
         try {
-            const data = await this.fetchAPI(`/rules?active_only=${activeOnly}`);
-            if (data.success) {
-                this.allItems.rules = data.rules;
-                this.renderList('rules', data.rules);
-            }
+            const data = await this.fetchAPI('/rules');
+            this.allItems.rules = Array.isArray(data) ? data : (data.rules || []);
+            this.renderList('rules', this.allItems.rules);
         } catch (error) {
             console.error('Failed to load rules:', error);
         }
     }
 
-    async loadPlans(activeOnly = true) {
+    async loadPlans() {
         try {
-            const data = await this.fetchAPI(`/plans?active_only=${activeOnly}`);
-            if (data.success) {
-                this.allItems.plans = data.plans;
-                this.renderList('plans', data.plans);
-            }
+            const data = await this.fetchAPI('/plans');
+            this.allItems.plans = Array.isArray(data) ? data : (data.plans || []);
+            this.renderList('plans', this.allItems.plans);
         } catch (error) {
             console.error('Failed to load plans:', error);
         }
     }
 
-    async loadCommands(activeOnly = true) {
+    async loadCommands() {
         try {
-            const data = await this.fetchAPI(`/commands?active_only=${activeOnly}`);
-            if (data.success) {
-                this.allItems.commands = data.commands;
-                this.renderList('commands', data.commands);
-            }
+            const data = await this.fetchAPI('/commands');
+            this.allItems.commands = Array.isArray(data) ? data : (data.commands || []);
+            this.renderList('commands', this.allItems.commands);
         } catch (error) {
             console.error('Failed to load commands:', error);
         }
@@ -224,16 +171,14 @@ class AdminChatManager {
     async loadChatHistory(filter = 'all') {
         try {
             const data = await this.fetchAPI(`/history?limit=100`);
-            if (data.success) {
-                let history = data.chat_history || [];
-                if (filter === 'user') {
-                    history = history.filter(h => !h.is_admin);
-                } else if (filter === 'admin') {
-                    history = history.filter(h => h.is_admin);
-                }
-                this.allItems.history = history;
-                this.renderChatHistory(history);
+            let history = Array.isArray(data) ? data : (data.chat_history || []);
+            if (filter === 'user') {
+                history = history.filter(h => !h.is_admin);
+            } else if (filter === 'admin') {
+                history = history.filter(h => h.is_admin);
             }
+            this.allItems.history = history;
+            this.renderChatHistory(history);
         } catch (error) {
             console.error('Failed to load chat history:', error);
         }
@@ -241,15 +186,10 @@ class AdminChatManager {
 
     async updateStats() {
         try {
-            const totalRules = this.allItems.rules.length || (await this.fetchAPI('/rules?active_only=false')).rules.length;
-            const totalPlans = this.allItems.plans.length || (await this.fetchAPI('/plans?active_only=false')).plans.length;
-            const totalCommands = this.allItems.commands.length || (await this.fetchAPI('/commands?active_only=false')).commands.length;
-            const totalChats = this.allItems.history.length || (await this.fetchAPI('/history?limit=1')).chat_history.length || 0;
-
-            document.getElementById('total-chats').textContent = totalChats;
-            document.getElementById('total-rules').textContent = totalRules;
-            document.getElementById('total-plans').textContent = totalPlans;
-            document.getElementById('total-commands').textContent = totalCommands;
+            document.getElementById('total-chats').textContent = this.allItems.history.length;
+            document.getElementById('total-rules').textContent = this.allItems.rules.length;
+            document.getElementById('total-plans').textContent = this.allItems.plans.length;
+            document.getElementById('total-commands').textContent = this.allItems.commands.length;
         } catch (error) {
             console.error('Failed to update stats:', error);
         }
@@ -270,14 +210,14 @@ class AdminChatManager {
     }
 
     renderPendingItem(item) {
-        const confidencePercent = Math.round(item.confidence * 100);
-        const date = new Date(item.content).toLocaleString(); // This is wrong - content is string not date
+        const confidencePercent = Math.round((item.confidence || 0) * 100);
+        const id = item.id || item.item_id;
 
         return `
-        <div class="list-group-item pending-highlight" data-item-id="${item.item_id}">
+        <div class="list-group-item pending-highlight" data-item-id="${id}">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <span class="type-badge type-${item.item_type}">${item.item_type}</span>
+                    <span class="type-badge type-${item.itemType || item.item_type}">${item.itemType || item.item_type}</span>
                     <small class="text-muted ms-2">${new Date().toLocaleTimeString()}</small>
                 </div>
                 <div class="confidence-bar" style="width: 100px;">
@@ -287,10 +227,10 @@ class AdminChatManager {
             <p class="mt-2 mb-1">${item.content}</p>
             <small class="text-muted">Confidence: ${confidencePercent}%</small>
             <div class="action-buttons">
-                <button class="action-btn approve-btn" data-item-id="${item.item_id}" data-confirmed="true">
+                <button class="action-btn approve-btn" data-item-id="${id}" data-confirmed="true">
                     <i class="fas fa-check me-1"></i> Approve
                 </button>
-                <button class="action-btn reject-btn" data-item-id="${item.item_id}" data-confirmed="false">
+                <button class="action-btn reject-btn" data-item-id="${id}" data-confirmed="false">
                     <i class="fas fa-times me-1"></i> Reject
                 </button>
             </div>
@@ -312,8 +252,8 @@ class AdminChatManager {
     }
 
     renderListItem(item, type) {
-        const confidencePercent = Math.round(item.confidence * 100);
-        const createdDate = item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A';
+        const confidencePercent = Math.round((item.confidence || 0) * 100);
+        const createdDate = item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A';
 
         return `
         <div class="list-group-item">
@@ -327,7 +267,7 @@ class AdminChatManager {
                 </div>
             </div>
             <p class="mt-2 mb-0">${item.content}</p>
-            <small class="text-muted">Confidence: ${confidencePercent}% | By: ${item.created_by || 'system'}</small>
+            <small class="text-muted">Confidence: ${confidencePercent}% | By: ${item.createdBy || 'system'}</small>
         </div>
         `;
     }
@@ -344,11 +284,11 @@ class AdminChatManager {
         container.innerHTML = history.map(item => `
             <div class="list-group-item">
                 <div class="d-flex justify-content-between">
-                    <span class="badge bg-${item.is_admin ? 'warning' : 'primary'}">${item.is_admin ? 'Admin' : 'User'}</span>
+                    <span class="badge bg-${item.isAdmin ? 'warning' : 'primary'}">${item.isAdmin ? 'Admin' : 'User'}</span>
                     <small class="text-muted">${new Date(item.timestamp).toLocaleString()}</small>
                 </div>
                 <p class="mt-2 mb-0">${item.message}</p>
-                <small class="text-muted">User: ${item.user_id}</small>
+                <small class="text-muted">User: ${item.userId || 'unknown'}</small>
             </div>
         `).join('');
     }
@@ -371,26 +311,22 @@ class AdminChatManager {
     }
 
     async confirmItem(itemId, confirmed) {
-        const token = this.getAuthToken();
-        const response = await this.postAPI('/confirm', {
-            item_id: itemId,
-            confirmed: confirmed,
-            user_id: 'admin' // TODO: get from current user
-        });
+        try {
+            const response = await this.postAPI('/confirm', {
+                itemId: itemId,
+                confirmed: confirmed,
+                userId: 'admin'
+            });
 
-        if (response.success) {
-            this.showNotification(`${response.message}`, 'success');
-            await this.loadPending();
-            await this.loadRules();
-            await this.loadPlans();
-            await this.loadCommands();
-        } else {
-            this.showNotification(`Error: ${response.message}`, 'danger');
+            this.showNotification(`Item ${confirmed ? 'approved' : 'rejected'}`, 'success');
+            await this.loadInitialData();
+        } catch (error) {
+            this.showNotification(`Error: ${error.message}`, 'danger');
         }
     }
 
     async bulkConfirm(confirmed) {
-        const itemIds = this.pendingItems.map(item => item.item_id);
+        const itemIds = this.pendingItems.map(item => item.id || item.item_id);
         for (const itemId of itemIds) {
             await this.confirmItem(itemId, confirmed);
         }
@@ -420,7 +356,7 @@ class AdminChatManager {
 
     showNotification(message, type = 'info') {
         // Simple alert for now, can be enhanced
-        alert(message);
+        console.log(`[${type}] ${message}`);
     }
 }
 

@@ -11,9 +11,9 @@ import java.util.List;
 import java.util.Map;
 
 @Service("selfHealingService-selfhealing")
-public class SelfHealingService {
+public class AutoHealingStrategyService {
 
-    private static final Logger logger = LoggerFactory.getLogger(SelfHealingService.class);
+    private static final Logger logger = LoggerFactory.getLogger(AutoHealingStrategyService.class);
 
     // Healing strategy functional interface
     @FunctionalInterface

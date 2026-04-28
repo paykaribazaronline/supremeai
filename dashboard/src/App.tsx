@@ -24,6 +24,7 @@ const AdminReports = lazy(() => import('./pages/AdminReports'));
 const AdminMonitoring = lazy(() => import('./pages/AdminMonitoring'));
 const AdminPerformance = lazy(() => import('./pages/AdminPerformance'));
 const AdminOCR = lazy(() => import('./pages/AdminOCR'));
+const AdminAPIKeys = lazy(() => import('./pages/AdminAPIKeys'));
 
 // Existing specialty components
 const ChatWithAI = lazy(() => import('./components/ChatWithAI'));
@@ -80,6 +81,7 @@ const App: React.FC = () => {
                                     <Route path="/admin/settings" element={<AdminSettings />} />
                                     <Route path="/admin/projects" element={<AdminProjects />} />
                                     <Route path="/admin/providers" element={<AdminProviders />} />
+                                    <Route path="/admin/apikeys" element={<AdminAPIKeys />} />
                                     <Route path="/admin/logs" element={<AdminLogs />} />
                                     <Route path="/admin/notifications" element={<AdminNotifications />} />
                                     <Route path="/admin/backup" element={<AdminBackup />} />
@@ -104,6 +106,7 @@ const App: React.FC = () => {
                                     <Route path="/admin-settings.html" element={<Navigate to="/admin/settings" replace />} />
                                     <Route path="/admin-projects.html" element={<Navigate to="/admin/projects" replace />} />
                                     <Route path="/admin-providers.html" element={<Navigate to="/admin/providers" replace />} />
+                                    <Route path="/admin-apikeys.html" element={<Navigate to="/admin/apikeys" replace />} />
                                     <Route path="/admin-logs.html" element={<Navigate to="/admin/logs" replace />} />
                                     <Route path="/admin-notifications.html" element={<Navigate to="/admin/notifications" replace />} />
                                     <Route path="/admin-backup.html" element={<Navigate to="/admin/backup" replace />} />

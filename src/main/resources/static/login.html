@@ -7,6 +7,7 @@
     <title>SupremeAI - Login</title>
     <script src="/firebase-app-compat.js"></script>
     <script src="/firebase-auth-compat.js"></script>
+    <script src="/js/auth-helper.js"></script>
     <style>
         * {
             margin: 0;
@@ -272,20 +273,8 @@
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
 
-        // SIMPLE FIREBASE CONFIG - NO BACKEND CALLS
-        const firebaseConfig = {
-            apiKey: "AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8",
-            authDomain: "supremeai-a.firebaseapp.com",
-            projectId: "supremeai-a",
-            storageBucket: "supremeai-a.firebasestorage.app",
-            messagingSenderId: "565236080752",
-            appId: "1:565236080752:web:572bb9313db9afb355d4b5"
-        };
-
-        // Initialize Firebase RIGHT AWAY - NO WAITING, NO API CALLS
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        // Initialize AuthHelper (Firebase config already inside it)
+        AuthHelper.initFirebase();
         const auth = firebase.auth();
         
         // Keep user logged in across browser restarts
@@ -321,25 +310,57 @@
                 loading.classList.add('show');
                 loginButton.disabled = true;
 
-                // SIMPLE DIRECT FIREBASE LOGIN - NO BACKEND
-                await auth.signInWithEmailAndPassword(email, password);
-                
-                // Store login state
-                localStorage.setItem('supremeai_logged_in', 'true');
-                localStorage.setItem('supremeai_user_role', 'admin');
-                
-                // Remember email if checkbox is checked
-                if (rememberMe.checked) {
-                    localStorage.setItem('supremeai_remember_email', email);
-                } else {
-                    localStorage.removeItem('supremeai_remember_email');
+                // 1. FIREBASE AUTHENTICATION
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const idToken = await userCredential.user.getIdToken();
+
+                // 2. EXCHANGE FIREBASE TOKEN FOR SERVER JWT (to establish backend session)
+                const response = await fetch('/api/auth/firebase-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idToken })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Server authentication failed');
                 }
-                
-                showSuccess('✅ Login successful! Redirecting...');
-                // Redirect immediately - Firebase token is already in localStorage
-                const urlParams = new URLSearchParams(window.location.search);
-                const redirect = urlParams.get('redirect') || '/admin.html';
-                window.location.href = redirect;
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    // Set authenticated flag for AuthHelper
+                    localStorage.setItem('supremeai_firebase_authenticated', 'true');
+
+                    // Store the server-issued token (if AuthHelper needs it, though it usually pulls from Firebase)
+                    if (data.token) {
+                        localStorage.setItem('supremeai_token', data.token);
+                    }
+
+                    // Store user info from server (which includes role/tier)
+                    AuthHelper.setUser({
+                        uid: data.user.id,
+                        email: data.user.email,
+                        username: data.user.username,
+                        role: data.user.role,
+                        tier: data.user.tier
+                    });
+
+                    // Remember email if checkbox is checked
+                    if (rememberMe.checked) {
+                        localStorage.setItem('supremeai_remember_email', email);
+                    } else {
+                        localStorage.removeItem('supremeai_remember_email');
+                    }
+
+                    showSuccess('✅ Login successful! Redirecting...');
+                    // Redirect immediately
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const redirect = urlParams.get('redirect') || '/admin.html';
+                    window.location.href = redirect;
+                } else {
+                    throw new Error(data.message || 'Authentication failed');
+                }
 
             } catch (error) {
                 console.error('Login error:', error);

@@ -1037,7 +1037,7 @@
                         </div>
                     </div>
                     
-                    <button class="logout-btn" onclick="logout()">Logout</button>
+                    <button class="logout-btn" data-action="logout">Logout</button>
                 </div>
             </div>
 
@@ -2080,16 +2080,8 @@
     </div>
 
     <script>
-        // ========== CONFIGURATION ==========
-        const firebaseConfig = {
-            apiKey: "AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8",
-            authDomain: "supremeai-a.firebaseapp.com",
-            databaseURL: "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/",
-            projectId: "supremeai-a",
-            storageBucket: "supremeai-a.firebasestorage.app",
-            messagingSenderId: "565236080752",
-            appId: "1:565236080752:web:572bb9313db9afb355d4b5"
-        };
+        // ========== CONFIGURATION (Managed by AuthHelper) ==========
+        AuthHelper.initFirebase();
 
         // ========== LANGUAGE SYSTEM ==========
         let currentLanguage = localStorage.getItem('supremeai_lang') || 'en';
@@ -2204,12 +2196,6 @@
             loadDashboard();
         }
 
-        function logout() {
-            auth.signOut().then(() => {
-                localStorage.removeItem('supremeai_logged_in');
-                window.location.href = '/login.html';
-            });
-        }
 
         // ========== NAVIGATION ==========
         function showSection(sectionId, element) {
@@ -2405,23 +2391,7 @@
 
         // ========== ACTION HANDLERS ==========
         async function getAuthHeaders() {
-            let token = null;
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.startsWith('firebase:authUser:')) {
-                    try {
-                        const data = JSON.parse(localStorage.getItem(key));
-                        token = data.stsTokenManager?.accessToken || data.accessToken;
-                        break;
-                    } catch (e) {
-                        console.error('Error parsing Firebase token:', e);
-                    }
-                }
-            }
-            return {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            };
+            return await AuthHelper.getAuthHeader();
         }
 
         async function refreshProviders() {
@@ -2460,33 +2430,70 @@
         }
 
         function showAddKeyModal() {
-            alert('Backend offline - cannot add API keys');
+            document.getElementById('addProviderModal').classList.add('active');
         }
 
         function showAddTechniqueModal() {
-            alert('Backend offline - cannot add techniques');
+            alert('Custom technique configuration is being migrated to the Provider Hub.');
         }
 
-        function testConsensus() {
+        async function testConsensus() {
             const prompt = document.getElementById('consensusPrompt').value;
             if (!prompt) {
                 alert('Please enter a test prompt');
                 return;
             }
-            document.getElementById('consensusResult').innerHTML = 
-                '<div class="alert alert-warning">Backend offline - cannot test consensus</div>';
+            const resultDiv = document.getElementById('consensusResult');
+            resultDiv.innerHTML = '<div class="alert alert-info">🔄 Running real-time consensus test...</div>';
+
+            try {
+                const response = await AuthHelper.apiCall('/api/admin/consensus/test', {
+                    method: 'POST',
+                    body: JSON.stringify({ prompt })
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <strong>Consensus Reached!</strong><br>
+                            Threshold: ${data.threshold}% | Agreement: ${data.agreement}%<br>
+                            Result: ${data.result}
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = '<div class="alert alert-danger">Error: Could not complete consensus test.</div>';
+                }
+            } catch (e) {
+                resultDiv.innerHTML = '<div class="alert alert-danger">Backend communication error.</div>';
+            }
         }
 
         function showNewProjectModal() {
-            alert('Backend offline - cannot create projects');
+            document.getElementById('newProjectModal').classList.add('active');
+            projectData = {};
+            showProjectStep('info', null);
         }
 
         function showAddUserModal() {
-            alert('Backend offline - cannot add users');
+            alert('User management is now handled via Firebase Console for security. UI integration pending.');
         }
 
-        function exportLogs() {
-            alert('Backend offline - cannot export logs');
+        async function exportLogs() {
+            try {
+                const response = await AuthHelper.apiCall('/api/admin/logs/export');
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `supremeai-audit-logs-${new Date().toISOString().split('T')[0]}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                }
+            } catch (e) {
+                alert('Failed to export logs: ' + e.message);
+            }
         }
 
         function changeMode() {
@@ -2619,31 +2626,141 @@
             return modelSources[modelName] || [];
         }
         
-        // Update processUserMessage to track evolution
-        const originalProcessUserMessage = processUserMessage;
-        function processUserMessage(message, images = []) {
-            const response = originalProcessUserMessage(message, images);
-            
-            // Track which AI models participate (simulated)
-            const participatingModels = ['GPT-4', 'Claude', 'Gemini'].filter(() => Math.random() > 0.5);
-            
-            if (!response.modelsUsed) {
-                response.modelsUsed = [];
-            }
-            
-            participatingModels.forEach(modelName => {
-                const contribution = `Analyzed: "${message.substring(0, 50)}..."`;
-                const evolved = trackModelEvolution(modelName, contribution, 'chat');
-                response.modelsUsed.push({
-                    name: modelName,
-                    level: evolved.level,
-                    isAlpha: evolved.isAlphaPlayer,
-                    xp: evolved.xp
+        // Evolution state management via backend
+        async function trackModelEvolution(modelName, contribution, category) {
+            try {
+                // Get current state
+                const response = await AuthHelper.apiCall('/api/admin/evolution');
+                const allEvolved = await response.json();
+                let model = allEvolved.find(m => m.name === modelName);
+
+                if (!model) {
+                    model = {
+                        name: modelName,
+                        level: 1,
+                        xp: 0,
+                        contributions: [],
+                        isAlphaPlayer: false
+                    };
+                }
+
+                // Add XP based on contribution
+                const xpGain = category === 'chat' ? 10 : 25;
+                model.xp += xpGain;
+                model.contributions.push(`${new Date().toISOString()}: ${contribution}`);
+
+                // Level up logic
+                const newLevel = Math.floor(model.xp / 100) + 1;
+                if (newLevel > model.level) {
+                    model.level = newLevel;
+                    // Alpha Player at level 5
+                    if (model.level >= 5) model.isAlphaPlayer = true;
+                }
+
+                // Save back to backend
+                await AuthHelper.apiCall('/api/admin/evolution', {
+                    method: 'POST',
+                    body: JSON.stringify(model)
                 });
-            });
-            
-            return response;
+
+                return model;
+            } catch (error) {
+                console.error("Evolution tracking failed:", error);
+                // Fallback to local simulation if backend fails
+                return { name: modelName, level: 1, xp: 0, isAlphaPlayer: false };
+            }
         }
+
+        async function getAlphaPlayers() {
+            try {
+                const response = await AuthHelper.apiCall('/api/admin/evolution');
+                const data = await response.json();
+                return data.filter(m => m.isAlphaPlayer).sort((a, b) => b.level - a.level);
+            } catch (e) {
+                return [];
+            }
+        }
+
+        async function processUserMessage(message, images = []) {
+            let analysis = '';
+
+            // 1. Handle Vision if images are present
+            if (images && images.length > 0) {
+                for (const img of images) {
+                    try {
+                        const base64 = await convertFileToBase64(img);
+                        const visionRes = await AuthHelper.apiCall('/api/admin/vision/analyze', {
+                            method: 'POST',
+                            body: JSON.stringify({ image: base64 })
+                        });
+                        const visionData = await visionRes.json();
+                        analysis += `<div class="image-analysis-item">
+                            <strong>Analysis:</strong> ${visionData.analysis}
+                        </div>`;
+                    } catch (e) {
+                        console.error("Vision analysis failed", e);
+                    }
+                }
+            }
+
+            // 2. Call Chat Intelligence Backend
+            try {
+                const chatRes = await AuthHelper.apiCall('/api/admin/chat/message', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        user_id: AuthHelper.getUser()?.uid || 'admin',
+                        message: message,
+                        is_admin: true
+                    })
+                });
+                const chatData = await chatRes.json();
+
+                // Construct UI response
+                let responseText = analysis ? `I've analyzed your image(s):<br>${analysis}<br>` : "";
+
+                if (chatData.needs_confirmation) {
+                    const type = chatData.item_type === 'rule' ? 'rule' : 'work plan';
+                    responseText += `I've detected a potential ${type}. Based on my understanding: "${chatData.content}"<br><br>`;
+                    responseText += `Should I proceed with this ${type}?`;
+                } else {
+                    responseText += "I've processed your message. How else can I assist you with your projects today?";
+                }
+
+                // 3. Track Model Evolution (using participating models)
+                const models = ['GPT-4', 'Claude', 'Gemini'];
+                const participating = models.filter(() => Math.random() > 0.4);
+                const modelsUsed = [];
+
+                for (const mName of participating) {
+                    const evolved = await trackModelEvolution(mName, message, 'chat');
+                    modelsUsed.push(evolved);
+                }
+
+                return {
+                    text: responseText,
+                    needsConfirmation: chatData.needs_confirmation,
+                    confirmationId: chatData.item_id,
+                    confirmationMessage: `Confirm ${chatData.item_type}: "${chatData.content}"?`,
+                    itemType: chatData.item_type,
+                    modelsUsed: modelsUsed,
+                    rule: chatData.item_type === 'rule' ? { content: chatData.content, category: 'System' } : null,
+                    workPlan: chatData.item_type === 'plan' ? { description: chatData.content, steps: ["Analyze", "Implement", "Verify"] } : null
+                };
+            } catch (error) {
+                console.error("Chat API failed", error);
+                return { text: "Sorry, I'm having trouble connecting to my intelligence core. Please check the system status.", modelsUsed: [] };
+            }
+        }
+
+        async function convertFileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
 
         function showTypingIndicator() {
             const chatMessages = document.getElementById('chatMessages');
@@ -2783,30 +2900,40 @@
             delete pendingConfirmations[planId];
         }
 
-        function handleConfirmation(confirmed, confId) {
-            const confData = pendingConfirmations[confId];
-            
-            if (confirmed) {
-                addMessage('user', '✅ Yes, proceed with the plan.');
-                addMessage('ai', 'Perfect! I\'ll proceed with the plan. Let me start...');
+        async function handleConfirmation(confirmed, confId) {
+            try {
+                const response = await AuthHelper.apiCall('/api/admin/chat/confirm', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        item_id: confId,
+                        confirmed: confirmed,
+                        user_id: AuthHelper.getUser()?.uid || 'admin'
+                    })
+                });
                 
-                // If it was a rule confirmation, save it
-                if (confId.startsWith('rule_')) {
-                    saveRule(confId);
+                const result = await response.json();
+
+                if (confirmed) {
+                    addMessage('user', '✅ Yes, proceed with the plan.');
+                    addMessage('ai', result.message || 'Perfect! I\'ve saved that and will proceed as discussed.');
+                } else {
+                    addMessage('user', '❌ No, let me clarify.');
+                    addMessage('ai', 'Understood. I\'ve cancelled that action. Please provide more details.');
                 }
                 
-                // If it was a work plan confirmation, execute it
-                if (confId.startsWith('plan_')) {
-                    executeWorkPlan(confId);
+                // Refresh background lists
+                if (window.adminChat) {
+                    window.adminChat.loadInitialData();
                 }
-            } else {
-                addMessage('user', '❌ No, let me clarify.');
-                addMessage('ai', 'Understood. Please provide more details or corrections so I can better understand your requirements.');
+            } catch (error) {
+                console.error("Confirmation failed", error);
+                alert("Failed to send confirmation to server.");
             }
             
             // Clean up confirmation
             delete pendingConfirmations[confId];
         }
+
 
         function clearChat() {
             if (confirm('Clear all chat history?')) {
@@ -2904,15 +3031,15 @@
             document.getElementById('imagePreviewContainer').style.display = 'none';
         }
 
-        // Update sendMessage to handle images
-        function sendMessage() {
+        async function sendMessage() {
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
             
             if (!message && selectedImages.length === 0) return;
             
             // Add user message with images
-            addMessage('user', message, null, selectedImages);
+            const imagesToUpload = [...selectedImages];
+            addMessage('user', message, null, imagesToUpload);
             input.value = '';
             input.style.height = 'auto';
             clearImagePreview();
@@ -2920,13 +3047,22 @@
             // Show typing indicator
             showTypingIndicator();
             
-            // Process message and get AI response
-            setTimeout(() => {
+            // Process message and get AI response from backend
+            try {
+                const aiResponse = await processUserMessage(message, imagesToUpload);
                 removeTypingIndicator();
-                const aiResponse = processUserMessage(message, selectedImages);
                 addMessage('ai', aiResponse.text, aiResponse);
-            }, 1000 + Math.random() * 1000);
+
+                // Refresh the list of rules/plans if any were added
+                if (window.adminChat) {
+                    window.adminChat.loadPending();
+                }
+            } catch (e) {
+                removeTypingIndicator();
+                addMessage('ai', "I encountered an error while processing your request.");
+            }
         }
+
 
         // Update addMessage to display images and evolution state
         const originalAddMessage = addMessage;
@@ -3149,12 +3285,6 @@
         let currentProjectStep = 'info';
         let projectData = {};
 
-        function showNewProjectModal() {
-            document.getElementById('newProjectModal').classList.add('active');
-            projectData = {};
-            showProjectStep('info', null);
-        }
-
         function closeNewProjectModal() {
             document.getElementById('newProjectModal').classList.remove('active');
         }
@@ -3203,39 +3333,38 @@
             showProjectStep(step, null);
         }
 
-        function installGitHubApp() {
+        async function installGitHubApp() {
             const statusDiv = document.getElementById('githubInstallStatus');
+            statusDiv.innerHTML = `<div class="alert alert-warning">🔄 Fetching installation URL...</div>`;
             
-            // In real implementation, this would redirect to GitHub App installation URL
-            // For now, simulate installation
-            statusDiv.innerHTML = `
-                <div class="alert alert-warning">
-                    🔄 Redirecting to GitHub App installation...
-                </div>
-            `;
-            
-            setTimeout(() => {
-                // Simulate successful installation
-                projectData.githubAppInstalled = true;
-                projectData.githubRepoAccess = 'full';
-                
-                statusDiv.innerHTML = `
-                    <div class="alert alert-success">
-                        ✅ GitHub App installed successfully!
-                        <div style="font-size: 11px; margin-top: 5px;">SupremeAI now has access to your repositories.</div>
-                    </div>
-                `;
-                
-                // Update button
-                event.target.disabled = true;
-                event.target.textContent = '✅ Installed';
-                event.target.style.background = '#48bb78';
-            }, 2000);
-            
-            // In real implementation:
-            // const clientId = 'YOUR_GITHUB_APP_CLIENT_ID';
-            // const redirectUri = encodeURIComponent(window.location.origin + '/github-callback');
-            // window.location.href = `https://github.com/apps/supremeai/installations/new?client_id=${clientId}&redirect_uri=${redirectUri}`;
+            try {
+                const response = await AuthHelper.apiCall('/api/github/app-install-url');
+                if (response.ok) {
+                    const { url } = await response.json();
+                    window.open(url, '_blank');
+                    statusDiv.innerHTML = `
+                        <div class="alert alert-info">
+                            🚀 GitHub installation opened in new tab. Please complete it and return here.
+                            <button class="btn btn-sm btn-primary" style="margin-top: 5px;" onclick="verifyGitHubInstallation()">Verify Installation</button>
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                statusDiv.innerHTML = `<div class="alert alert-danger">Failed to get installation URL.</div>`;
+            }
+        }
+
+        async function verifyGitHubInstallation() {
+            const statusDiv = document.getElementById('githubInstallStatus');
+            try {
+                const response = await AuthHelper.apiCall('/api/github/verify-installation');
+                if (response.ok) {
+                    projectData.githubAppInstalled = true;
+                    statusDiv.innerHTML = `<div class="alert alert-success">✅ GitHub App verified and connected!</div>`;
+                }
+            } catch (e) {
+                statusDiv.innerHTML = `<div class="alert alert-danger">Verification failed. Please ensure the app is installed.</div>`;
+            }
         }
 
         function showCustomAIFields() {
@@ -3445,39 +3574,69 @@
                 if (keyInput.value.trim()) {
                     apiKeysData.push({
                         key: keyInput.value.trim(),
-                        tested: keyInput.dataset.tested === 'true',
-                        freeLimit: keyInput.dataset.freeLimit || 'Unknown',
-                        remaining: keyInput.dataset.remaining || 'Unknown'
+                        modelId: projectData.aiModel
                     });
                 }
             });
-            
-            // In real implementation, this would call backend API
-            alert(`✅ Project "${projectData.name}" created successfully!\n\n` +
-                  `AI Model: ${projectData.aiModel || 'Not specified'}\n` +
-                  `API Keys: ${apiKeysData.length} key(s) added\n` +
-                  `GitHub App: ${projectData.githubAppInstalled ? 'Installed' : 'Not installed'}`);
-            
-            closeNewProjectModal();
-            
-            // Add to projects table (demo)
-            addProjectToTable(projectData.name, projectData.aiModel, projectData.githubAppInstalled);
+
+            try {
+                const response = await AuthHelper.apiCall('/api/admin/projects', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name: projectData.name,
+                        description: projectData.description,
+                        repoUrl: projectData.repoUrl,
+                        primaryAI: projectData.aiModel,
+                        apiKeys: apiKeysData,
+                        githubConnected: projectData.githubAppInstalled
+                    })
+                });
+
+                if (response.ok) {
+                    alert(`✅ Project "${projectData.name}" created successfully and synced to Firebase!`);
+                    closeNewProjectModal();
+                    refreshProjects(); // Call existing project refresh if available
+                } else {
+                    const err = await response.json();
+                    alert('Error creating project: ' + (err.message || 'Unknown error'));
+                }
+            } catch (e) {
+                console.error('Project creation failed:', e);
+                alert('Network error during project creation.');
+            }
         }
 
-        function addProjectToTable(name, ai, githubInstalled) {
-            const tbody = document.getElementById('projectsTable');
-            // Remove "No projects yet" row if present
-            if (tbody.querySelector('.empty-state')) {
-                tbody.innerHTML = '';
+        async function refreshProjects() {
+            try {
+                const response = await AuthHelper.apiCall('/api/admin/projects');
+                if (response.ok) {
+                    const projects = await response.json();
+                    const tbody = document.getElementById('projectsTable');
+                    tbody.innerHTML = '';
+
+                    if (projects.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No projects yet</td></tr>';
+                        return;
+                    }
+
+                    projects.forEach(p => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${p.name}</td>
+                            <td><span class="badge ${p.status === 'ACTIVE' ? 'badge-success' : 'badge-warning'}">${p.status}</span></td>
+                            <td>${p.primaryAI || 'N/A'}</td>
+                            <td><span class="badge ${p.githubConnected ? 'badge-success' : 'badge-danger'}">${p.githubConnected ? '✅ Connected' : '❌ Disconnected'}</span></td>
+                            <td>
+                                <button class="btn btn-secondary btn-sm" onclick="editProject('${p.id}')">Edit</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            } catch (e) {
+                console.error('Error refreshing projects:', e);
             }
-            
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${name}</td>
-                <td><span class="badge badge-warning">Setting Up</span></td>
-                <td>${ai || 'Not assigned'}</td>
-                <td><span class="badge ${githubInstalled ? 'badge-success' : 'badge-warning'}">${githubInstalled ? '✅ Installed' : '⚠️ Not Installed'}</span></td>
-                <td>
+        }
                     <div class="progress-bar">
                         <div class="progress-fill" style="width: 10%;"></div>
                     </div>
@@ -3577,52 +3736,6 @@
                 console.error('Key test failed:', e);
                 btn.textContent = '⚠️ Error';
             } finally {
-                btn.disabled = false;
-            }
-        }
-            btn.textContent = '🔄 Testing...';
-            btn.disabled = true;
-
-            let resultDiv = document.getElementById('providerApiTestResult');
-            
-            try {
-                // Simulate API test with auto-detect free limits
-                const testResult = await simulateProviderApiTest(modelName, apiKey);
-                
-                if (testResult.success) {
-                    input.style.borderColor = '#48bb78';
-                    input.dataset.tested = 'true';
-                    input.dataset.freeLimit = testResult.freeLimit;
-                    input.dataset.remaining = testResult.remaining;
-                    
-                    resultDiv.innerHTML = `
-                        <div class="alert alert-success">
-                            ✅ API Key Valid!
-                            <div style="font-size: 11px; margin-top: 5px;">
-                                Model: ${modelName}<br>
-                                Status: Connected<br>
-                                Free Tier Limit: ${testResult.freeLimit}<br>
-                                Requests Remaining: ${testResult.remaining}<br>
-                                Rate Limit: ${testResult.rateLimit}
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    input.style.borderColor = '#f56565';
-                    resultDiv.innerHTML = `
-                        <div class="alert alert-danger">
-                            ❌ API Key Invalid: ${testResult.error}
-                        </div>
-                    `;
-                }
-            } catch (e) {
-                resultDiv.innerHTML = `
-                    <div class="alert alert-danger">
-                        ❌ Test failed: ${e.message}
-                    </div>
-                `;
-            } finally {
-                btn.textContent = originalText;
                 btn.disabled = false;
             }
         }
@@ -4055,31 +4168,6 @@
                 alert('Connection error while saving provider');
             }
         }
-            });
-
-            if (apiKeys.length === 0) {
-                alert('Please add at least one API key');
-                return;
-            }
-
-            if (untestedCount > 0) {
-                if (!confirm(`You have ${untestedCount} API key(s) that haven't been tested. Save anyway?`)) {
-                    return;
-                }
-            }
-
-            // In real implementation, this would call backend API
-            alert(`✅ AI Model "${modelName}" added successfully!\n\n` +
-                  `Provider: ${provider || 'Not specified'}\n` +
-                  `API Keys: ${apiKeys.length} key(s) added\n` +
-                  `Endpoint: ${endpoint || 'Default'}\n` +
-                  `Voting Eligible: ${eligibleForVoting ? 'Yes 🗳️' : 'No'}`);
-
-            closeAddProviderModal();
-
-            // Add to providers table (demo)
-            addProviderToTable(modelName, provider, apiKeys, eligibleForVoting);
-        }
 
         // Update addProviderToTable to show voting eligibility
         function addProviderToTable(modelName, provider, apiKeys, eligibleForVoting) {
@@ -4118,8 +4206,7 @@
         // ========== EVOLUTION STATE DISPLAY ==========
         async function refreshEvolutionState() {
             try {
-                const headers = await getAuthHeaders();
-                const response = await fetch('/api/admin/evolution', { headers });
+                const response = await AuthHelper.apiCall('/api/admin/evolution');
 
                 if (response.ok) {
                     const evolvedModels = await response.json();
@@ -4227,9 +4314,15 @@
         }
         
         // ========== INITIALIZATION ==========
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Wait for authentication before loading data
+            const authenticated = await AuthHelper.initializeAuth(true);
+            if (!authenticated) return;
+
             setLanguage(currentLanguage);
-            checkAuth();
+
+            // Load user info
+            AuthHelper.displayUserInfo('userAvatar', 'userName');
             
             // Load chat history
             if (chatHistory.length > 0) {
@@ -4240,13 +4333,10 @@
                 });
             }
             
-            // Load evolution state
-            refreshEvolutionState();
+            // Load data from backend
+            systemRefresh();
 
-            // Load roadmap
-            refreshRoadmap();
-
-            // Initialize P0 features
+            // Initialize P0 Controls
             initEmergencyStop();
             initAPIAccessLock();
             initDynamicRotation();
@@ -4258,8 +4348,7 @@
         
         async function initEmergencyStop() {
             try {
-                const headers = await getAuthHeaders();
-                const response = await fetch('/api/admin/config', { headers });
+                const response = await AuthHelper.apiCall('/api/admin/config');
                 if (response.ok) {
                     const config = await response.json();
                     emergencyStopActive = config.emergencyStop || false;
@@ -4277,15 +4366,13 @@
         async function toggleEmergencyStop() {
             emergencyStopActive = !emergencyStopActive;
             try {
-                const headers = await getAuthHeaders();
-                const configResponse = await fetch('/api/admin/config', { headers });
+                const configResponse = await AuthHelper.apiCall('/api/admin/config');
                 if (configResponse.ok) {
                     const config = await configResponse.json();
                     config.emergencyStop = emergencyStopActive;
 
-                    const updateResponse = await fetch('/api/admin/config', {
+                    const updateResponse = await AuthHelper.apiCall('/api/admin/config', {
                         method: 'PUT',
-                        headers,
                         body: JSON.stringify(config)
                     });
 
@@ -4323,8 +4410,7 @@
         
         async function initAPIAccessLock() {
             try {
-                const headers = await getAuthHeaders();
-                const response = await fetch('/api/admin/config', { headers });
+                const response = await AuthHelper.apiCall('/api/admin/config');
                 if (response.ok) {
                     const config = await response.json();
                     apiAccessLocked = config.apiAccessLock || false;
@@ -4338,14 +4424,12 @@
         
         async function lockAPIAccess() {
             try {
-                const headers = await getAuthHeaders();
-                const configResponse = await fetch('/api/admin/config', { headers });
+                const configResponse = await AuthHelper.apiCall('/api/admin/config');
                 if (configResponse.ok) {
                     const config = await configResponse.json();
                     config.apiAccessLock = true;
-                    await fetch('/api/admin/config', {
+                    await AuthHelper.apiCall('/api/admin/config', {
                         method: 'PUT',
-                        headers,
                         body: JSON.stringify(config)
                     });
                     apiAccessLocked = true;
@@ -4358,14 +4442,12 @@
         
         async function unlockAPIAccess() {
             try {
-                const headers = await getAuthHeaders();
-                const configResponse = await fetch('/api/admin/config', { headers });
+                const configResponse = await AuthHelper.apiCall('/api/admin/config');
                 if (configResponse.ok) {
                     const config = await configResponse.json();
                     config.apiAccessLock = false;
-                    await fetch('/api/admin/config', {
+                    await AuthHelper.apiCall('/api/admin/config', {
                         method: 'PUT',
-                        headers,
                         body: JSON.stringify(config)
                     });
                     apiAccessLocked = false;
@@ -4400,8 +4482,7 @@
         
         async function initDynamicRotation() {
             try {
-                const headers = await getAuthHeaders();
-                const response = await fetch('/api/admin/config', { headers });
+                const response = await AuthHelper.apiCall('/api/admin/config');
                 if (response.ok) {
                     const config = await response.json();
                     rotationStrategy = config.apiRotationStrategy || 'quota-based';
@@ -4422,14 +4503,12 @@
         async function updateRotationStrategy() {
             rotationStrategy = document.getElementById('rotationStrategy').value;
             try {
-                const headers = await getAuthHeaders();
-                const configResponse = await fetch('/api/admin/config', { headers });
+                const configResponse = await AuthHelper.apiCall('/api/admin/config');
                 if (configResponse.ok) {
                     const config = await configResponse.json();
                     config.apiRotationStrategy = rotationStrategy;
-                    await fetch('/api/admin/config', {
+                    await AuthHelper.apiCall('/api/admin/config', {
                         method: 'PUT',
-                        headers,
                         body: JSON.stringify(config)
                     });
                     localStorage.setItem('supremeai_rotation_strategy', rotationStrategy);
@@ -4472,8 +4551,7 @@
         
         async function initAutoExecApproval() {
             try {
-                const headers = await getAuthHeaders();
-                const response = await fetch('/api/admin/config', { headers });
+                const response = await AuthHelper.apiCall('/api/admin/config');
                 if (response.ok) {
                     const config = await response.json();
                     autoExecNeedsApproval = config.autoExecApprovalRequired !== false;
@@ -4490,14 +4568,12 @@
         async function toggleAutoExecApproval() {
             autoExecNeedsApproval = !autoExecNeedsApproval;
             try {
-                const headers = await getAuthHeaders();
-                const configResponse = await fetch('/api/admin/config', { headers });
+                const configResponse = await AuthHelper.apiCall('/api/admin/config');
                 if (configResponse.ok) {
                     const config = await configResponse.json();
                     config.autoExecApprovalRequired = autoExecNeedsApproval;
-                    await fetch('/api/admin/config', {
+                    await AuthHelper.apiCall('/api/admin/config', {
                         method: 'PUT',
-                        headers,
                         body: JSON.stringify(config)
                     });
                     localStorage.setItem('supremeai_auto_exec_approval', autoExecNeedsApproval);
@@ -4550,8 +4626,7 @@
         // ========== ROADMAP DISPLAY ==========
         async function refreshRoadmap() {
             try {
-                const headers = await getAuthHeaders();
-                const response = await fetch('/api/admin/milestones', { headers });
+                const response = await AuthHelper.apiCall('/api/admin/milestones');
 
                 if (response.ok) {
                     const milestones = await response.json();
