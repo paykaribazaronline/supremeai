@@ -74,9 +74,9 @@ class UserCodeLearningServiceTest {
                 .getDeclaredMethod("analyzeCodeDiff", String.class, String.class);
         analyzeMethod.setAccessible(true);
         @SuppressWarnings("unchecked")
-        java.util.Map<String, Object> result = (java.util.Map<String, Object>) analyzeMethod.invoke(service, original, edited);
+        UserCodeLearningService.CodeDiffAnalysis result = (UserCodeLearningService.CodeDiffAnalysis) analyzeMethod.invoke(service, original, edited);
 
-        double similarity = (double) result.get("similarity");
+        double similarity = result.getSimilarityPercentage();
         // Minor edit should have high similarity
         assert similarity > 50;
 

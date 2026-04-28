@@ -20,13 +20,13 @@ public class TranslationService {
      * টেক্সট এক ভাষা থেকে অন্য ভাষায় অনুবাদ করে
      */
     public Mono<String> translate(String text, String fromLanguage, String toLanguage) {
-        AIProvider provider = providerFactory.getProvider("groq");
         String prompt = String.format(
                 "Translate the following text from %s to %s. Return only the translated text without any explanation:\n\n%s",
                 fromLanguage, toLanguage, text
         );
 
-        return provider.generate(prompt)
+        return Mono.fromCallable(() -> providerFactory.getProvider("groq"))
+                .flatMap(provider -> provider.generate(prompt))
                 .doOnSuccess(translated -> logger.debug("অনুবাদ সফল: {} -> {}", text, translated))
                 .doOnError(error -> logger.error("অনুবাদ ব্যর্থ: {}", error.getMessage()))
                 .onErrorResume(e -> {

@@ -8,6 +8,7 @@ import com.supremeai.model.User;
 import com.supremeai.model.UserTier;
 import com.supremeai.repository.ActivityLogRepository;
 import com.supremeai.repository.UserRepository;
+import com.supremeai.security.JwtUtil;
 import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +32,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 public class AuthenticationControllerTest {
@@ -44,6 +46,9 @@ public class AuthenticationControllerTest {
     @Mock
     private ActivityLogRepository activityLogRepository;
 
+    @Mock
+    private JwtUtil jwtUtil;
+
     private MockedStatic<FirebaseAuth> firebaseAuthMock;
     private FirebaseAuth firebaseAuth;
     private AutoCloseable closeable;
@@ -54,6 +59,7 @@ public class AuthenticationControllerTest {
         firebaseAuthMock = mockStatic(FirebaseAuth.class);
         firebaseAuth = mock(FirebaseAuth.class);
         firebaseAuthMock.when(FirebaseAuth::getInstance).thenReturn(firebaseAuth);
+        when(jwtUtil.generateToken(anyString(), anyString())).thenReturn("mock-jwt-token");
         SecurityContextHolder.clearContext();
     }
 
