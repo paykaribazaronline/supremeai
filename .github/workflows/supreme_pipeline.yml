@@ -178,12 +178,17 @@ jobs:
         run: chmod +x gradlew
       - name: Build_And_Test
         run: |
-          ./gradlew clean build
+          echo "Starting Java build process..."
+          ./gradlew clean bootJar --no-daemon --stacktrace
           # The bootJar task now outputs app.jar directly, ensure it exists
           if [ ! -f "build/libs/app.jar" ]; then
             echo "Error: app.jar not found in build/libs"
             ls -R build/libs
+            echo "Build logs:"
+            cat build/reports/build/build.log || echo "No build log found"
             exit 1
+          else
+            echo "Successfully built app.jar"
           fi
       - name: Generate_Coverage_Report
         run: ./gradlew jacocoTestReport
