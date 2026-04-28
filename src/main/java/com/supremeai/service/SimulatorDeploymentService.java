@@ -34,13 +34,8 @@ public class SimulatorDeploymentService {
     public String deployToSimulator(String appId, String deviceType) {
         logger.info("Deploying app {} to simulator (device: {})", appId, deviceType);
 
-        // TODO: Implement actual Cloud Run deployment:
-        // 1. Build Docker image from generated source code
-        // 2. Push to Google Container Registry
-        // 3. Create/update Cloud Run service: sim-{appId}-{deviceType}
-        // 4. Return public URL: https://{appId}-simulator.run.app
-
-        // For now, return placeholder URL
+        // Placeholder implementation - returns local preview URL
+        // TODO: Implement actual Cloud Run deployment (see FUTURE steps above)
         String placeholderUrl = String.format(
             "http://%s/simulator/preview/%s?device=%s",
             previewDomain, appId, deviceType.toLowerCase()
@@ -54,13 +49,17 @@ public class SimulatorDeploymentService {
      * Undeploys (deletes) a simulator preview environment.
      * Called when user uninstalls app or cleanup job runs.
      *
+     * CURRENT: No-op - placeholder for future implementation.
+     * FUTURE: Delete Cloud Run service matching pattern: sim-{appId}-*
+     *   gcloud run services delete "sim-{appId}-{device}" --region us-central1 --quiet
+     *
      * @param appId App to undeploy
      */
     public void undeployFromSimulator(String appId) {
         logger.info("Undeploying simulator for app {}", appId);
 
-        // TODO: Delete Cloud Run service matching pattern: sim-{appId}-*
-        // gcloud run services delete "sim-{appId}-{device}" --region us-central1 --quiet
+        // Placeholder implementation - no-op
+        // TODO: Implement actual Cloud Run service deletion (see FUTURE steps above)
     }
 
     /**

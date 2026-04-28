@@ -1,7 +1,24 @@
 steps:
-  # Build the Docker image (JAR is already built by GitHub Actions and downloaded as artifact)
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai', '.']
-
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest', '.']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest']
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'supremeai'
+      - '--image=us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest'
+      - '--platform=managed'
+      - '--region=us-central1'
+      - '--allow-unauthenticated'
+      - '--memory=4Gi'
+      - '--cpu=2'
+      - '--timeout=600'
+      - '--set-env-vars=SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a,GROQ_API_KEY=your-groq-api-key-here'
+      - '--max-instances=10'
+      - '--concurrency=80'
+      - '--quiet'
 images:
-  - 'us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai'
+  - 'us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest'

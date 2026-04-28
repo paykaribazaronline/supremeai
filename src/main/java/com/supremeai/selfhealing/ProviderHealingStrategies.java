@@ -2,6 +2,7 @@ package com.supremeai.selfhealing;
 
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
+import com.supremeai.selfhealing.AutoHealingStrategyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,15 +24,15 @@ public class ProviderHealingStrategies {
     private AIProviderFactory providerFactory;
 
     @Autowired
-    private SelfHealingService selfHealingService;
+    private AutoHealingStrategyService autoHealingService;
 
     /**
      * প্রোভাইডার সুইচিং স্ট্র্যাটেজি
      */
-    public SelfHealingService.HealingStrategy createProviderSwitchingStrategy(
+    public AutoHealingStrategyService.HealingStrategy createProviderSwitchingStrategy(
             String currentProvider, String alternativeProvider) {
         return (Exception error) -> {
-            logger.info("Attempting to switch from {} to {} due to error: {}", 
+            logger.info("Attempting to switch from {} to {} due to error: {}",
                     currentProvider, alternativeProvider, error.getMessage());
 
             try {
@@ -53,10 +54,10 @@ public class ProviderHealingStrategies {
     /**
      * API কী রোটেশন স্ট্র্যাটেজি
      */
-    public SelfHealingService.HealingStrategy createApiKeyRotationStrategy(
+    public AutoHealingStrategyService.HealingStrategy createApiKeyRotationStrategy(
             String providerName, String oldKey, String newKey) {
         return (Exception error) -> {
-            logger.info("Attempting to rotate API key for provider: {} due to error: {}", 
+            logger.info("Attempting to rotate API key for provider: {} due to error: {}",
                     providerName, error.getMessage());
 
             try {
@@ -74,10 +75,10 @@ public class ProviderHealingStrategies {
     /**
      * কনফিগারেশন পুনরুদ্ধার স্ট্র্যাটেজি
      */
-    public SelfHealingService.HealingStrategy createConfigRecoveryStrategy(
+    public AutoHealingStrategyService.HealingStrategy createConfigRecoveryStrategy(
             String providerName, Map<String, Object> defaultConfig) {
         return (Exception error) -> {
-            logger.info("Attempting to recover configuration for provider: {} due to error: {}", 
+            logger.info("Attempting to recover configuration for provider: {} due to error: {}",
                     providerName, error.getMessage());
 
             try {
@@ -97,47 +98,47 @@ public class ProviderHealingStrategies {
      */
     public void registerAllStrategies() {
         // OpenAI প্রোভাইডার হিলিং স্ট্র্যাটেজি
-        selfHealingService.registerHealingStrategy(
+        autoHealingService.registerHealingStrategy(
                 "openai_rate_limit",
                 createProviderSwitchingStrategy("openai", "anthropic"));
 
-        selfHealingService.registerHealingStrategy(
+        autoHealingService.registerHealingStrategy(
                 "openai_auth_error",
                 createApiKeyRotationStrategy("openai", "", ""));
 
         // Anthropic প্রোভাইডার হিলিং স্ট্র্যাটেজি
-        selfHealingService.registerHealingStrategy(
+        autoHealingService.registerHealingStrategy(
                 "anthropic_rate_limit",
                 createProviderSwitchingStrategy("anthropic", "openai"));
 
-        selfHealingService.registerHealingStrategy(
+        autoHealingService.registerHealingStrategy(
                 "anthropic_auth_error",
                 createApiKeyRotationStrategy("anthropic", "", ""));
 
         // Gemini প্রোভাইডার হিলিং স্ট্র্যাটেজি
-        selfHealingService.registerHealingStrategy(
+        autoHealingService.registerHealingStrategy(
                 "gemini_rate_limit",
                 createProviderSwitchingStrategy("gemini", "openai"));
 
-        selfHealingService.registerHealingStrategy(
+        autoHealingService.registerHealingStrategy(
                 "gemini_auth_error",
                 createApiKeyRotationStrategy("gemini", "", ""));
 
         // Groq প্রোভাইডার হিলিং স্ট্র্যাটেজি
-        selfHealingService.registerHealingStrategy(
+        autoHealingService.registerHealingStrategy(
                 "groq_rate_limit",
                 createProviderSwitchingStrategy("groq", "gemini"));
 
-        selfHealingService.registerHealingStrategy(
+        autoHealingService.registerHealingStrategy(
                 "groq_auth_error",
                 createApiKeyRotationStrategy("groq", "", ""));
 
         // DeepSeek প্রোভাইডার হিলিং স্ট্র্যাটেজি
-        selfHealingService.registerHealingStrategy(
+        autoHealingService.registerHealingStrategy(
                 "deepseek_rate_limit",
                 createProviderSwitchingStrategy("deepseek", "openai"));
 
-        selfHealingService.registerHealingStrategy(
+        autoHealingService.registerHealingStrategy(
                 "deepseek_auth_error",
                 createApiKeyRotationStrategy("deepseek", "", ""));
 

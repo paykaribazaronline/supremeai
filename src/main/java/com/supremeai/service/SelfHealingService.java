@@ -42,7 +42,7 @@ public class SelfHealingService {
         );
 
         String suggestedAction = analyzeError(errorLog);
-        System.out.println("Self-Healing suggested action: " + suggestedAction);
+        log.info("Self-Healing suggested action: {}", suggestedAction);
     }
 
     private String analyzeError(String log) {

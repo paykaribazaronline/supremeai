@@ -401,23 +401,23 @@ jobs:
              fi
              sleep 10
            done
-      - name: Deploy_To_Cloud_Run
-        run: |
-          echo "Starting Cloud Run deployment..."
-          gcloud run deploy supremeai \
-            --image us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai \
-            --platform managed \
-            --region us-central1 \
-            --allow-unauthenticated \
-            --memory 4Gi \
-            --cpu 2 \
-            --timeout 600 \
-            --set-env-vars="SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a,spring.threads.virtual.enabled=true" \
-            --update-secrets FIREBASE_SERVICE_ACCOUNT_JSON=firebase-service-account-json:latest,JWT_SECRET=jwt-secret:latest \
-            --max-instances 10 \
-            --concurrency 80 \
-            --quiet
-          echo "Cloud Run deployment completed successfully."
+       - name: Deploy_To_Cloud_Run
+         run: |
+           echo "Starting Cloud Run deployment..."
+           gcloud run deploy supremeai \
+             --image us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai \
+             --platform managed \
+             --region us-central1 \
+             --allow-unauthenticated \
+             --memory 4Gi \
+             --cpu 2 \
+             --timeout 600 \
+             --set-env-vars="SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a,spring.threads.virtual.enabled=true,GROQ_API_KEY=${GROQ_API_KEY_DEPLOYMENT_MONITOR:-${{ secrets.GROQ_API_KEY_DEPLOYMENT_MONITOR }}}" \
+             --update-secrets FIREBASE_SERVICE_ACCOUNT_JSON=firebase-service-account-json:latest,JWT_SECRET=jwt-secret:latest,GROQ_API_KEY=groq-api-key:latest \
+             --max-instances 10 \
+             --concurrency 80 \
+             --quiet
+           echo "Cloud Run deployment completed successfully."
       - name: Store_Admin_URL
         id: set-url
         run: |
@@ -465,72 +465,105 @@ jobs:
           echo "Firebase hosting deployment completed successfully."
         working-directory: ./supremeai
 
-  workflow-summary:
-    name: Workflow_Summary
-    needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, health-check]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Generate_Summary
-        run: |
-          echo "### Workflow Summary" >> $GITHUB_STEP_SUMMARY
-          echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
-          echo "| ☕ Java Backend | ${{ needs.java-build-and-test.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 📱 Flutter Frontend | ${{ needs.flutter-build-and-test.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🔌 IntelliJ Plugin | ${{ needs.plugin-build.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 💻 VS Code Ext | ${{ needs.vscode-extension-build.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| ☁️ Deploy Backend | ${{ needs.deploy-backend.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🌍 Deploy Frontend | ${{ needs.deploy-frontend.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🏥 Health Check | ${{ needs.health-check.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "**Admin Dashboard:** ${{ needs.deploy-backend.outputs.admin_url || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
+   workflow-summary:
+     name: Workflow_Summary
+     needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, deploy-cloud-functions, health-check]
+     if: always()
+     runs-on: ubuntu-latest
+     steps:
+       - name: Generate_Summary
+         run: |
+           echo "### Workflow Summary" >> $GITHUB_STEP_SUMMARY
+           echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
+           echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
+           echo "| ☕ Java Backend | ${{ needs.java-build-and-test.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+           echo "| 📱 Flutter Frontend | ${{ needs.flutter-build-and-test.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+           echo "| 🔌 IntelliJ Plugin | ${{ needs.plugin-build.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+           echo "| 💻 VS Code Ext | ${{ needs.vscode-extension-build.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+           echo "| ☁️ Deploy Backend | ${{ needs.deploy-backend.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+           echo "| 🌍 Deploy Frontend | ${{ needs.deploy-frontend.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+           echo "| ⚡ Cloud Functions | ${{ needs.deploy-cloud-functions.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+           echo "| 🏥 Health Check | ${{ needs.health-check.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+           echo "**Admin Dashboard:** ${{ needs.deploy-backend.outputs.admin_url || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
 
-  health-check:
-    name: Health_Check_and_Rollback
-    needs: [deploy-backend, deploy-frontend]
-    if: ${{ always() && (needs.deploy-backend.result == 'success' || needs.deploy-frontend.result == 'success') }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check_Status
-        id: status-check
-        run: |
-          FAILED=false
-          echo "Checking frontend status..."
-          if ! curl -sf https://supremeai-a.web.app/; then
-            echo "frontend_failed=true" >> $GITHUB_ENV
-            FAILED=true
-          fi
-          echo "Checking backend status..."
-          ADMIN_URL="${{ needs.deploy-backend.outputs.admin_url }}"
-          if [ -n "$ADMIN_URL" ] && [ "$ADMIN_URL" != "N/A" ]; then
-            BACKEND_URL=$(echo "$ADMIN_URL" | sed 's/\/admin\.html$//')
-            if ! curl -sf "$BACKEND_URL/actuator/health"; then
-              echo "backend_failed=true" >> $GITHUB_ENV
-              FAILED=true
-            fi
-          else
-            echo 'Backend URL not available for health check'
-          fi
-          if [ "$FAILED" = "true" ]; then
-            exit 1
-          fi
-      - name: Rollback_On_Failure
-        if: failure()
-        run: |
-          echo "### 🚨 Deployment Failure Detected! ###"
-          if [ "$backend_failed" = "true" ]; then
-            echo "Triggering rollback for backend..."
-            # gcloud run services rollback supremeai --platform managed --region us-central1 --quiet
-          fi
-          if [ "$frontend_failed" = "true" ]; then
-            echo "Triggering rollback for frontend..."
-            # firebase hosting:rollback --project supremeai-a --quiet
-          fi
-          echo "Rollback initiated. Check logs for details."
+   health-check:
+     name: Health_Check
+     needs: [deploy-backend, deploy-frontend]
+     if: ${{ always() && (needs.deploy-backend.result == 'success' || needs.deploy-frontend.result == 'success') }}
+     runs-on: ubuntu-latest
+     steps:
+       - name: Check_Deployment_Status
+         id: status-check
+         run: |
+           FAILED=false
+           echo "Checking frontend status..."
+           if ! curl -sf https://supremeai-a.web.app/; then
+             echo "frontend_failed=true" >> $GITHUB_ENV
+             FAILED=true
+           fi
+           echo "Checking backend health endpoint..."
+           if ! curl -sf https://supremeai-lhlwyikwlq-uc.a.run.app/api/health; then
+             echo "backend_failed=true" >> $GITHUB_ENV
+             FAILED=true
+           fi
+           if [ "$FAILED" = "true" ]; then
+             exit 1
+           fi
+       - name: Rollback_On_Failure
+         if: failure()
+         run: |
+           echo "### 🚨 Deployment Failure Detected! ###"
+           if [ "$backend_failed" = "true" ]; then
+             echo "Triggering rollback for backend..."
+             # Uncomment to enable auto-rollback:
+             # gcloud run services rollback supremeai --platform managed --region us-central1 --quiet
+           fi
+           if [ "$frontend_failed" = "true" ]; then
+             echo "Triggering rollback for frontend..."
+             # Uncomment to enable auto-rollback:
+             # firebase hosting:rollback --project supremeai-a --quiet
+           fi
+           echo "Rollback initiated. Check logs for details."
 
-  notify:
-    name: Notification
-    needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, health-check]
+   deploy-cloud-functions:
+     name: Deploy_Cloud_Functions
+     needs: [changes, secret-scan]
+     if: >-
+       ${{
+         github.ref == 'refs/heads/main' &&
+         ((github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
+          needs.changes.outputs.backend == 'true' ||
+          (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Deploy_Cloud_Functions')))
+       }}
+     runs-on: ubuntu-latest
+     steps:
+       - uses: actions/checkout@v4
+       - name: Setup_Node
+         uses: actions/setup-node@v4
+         with:
+           node-version: "20"
+       - name: Install_Firebase_Tools
+         run: npm install -g firebase-tools
+       - name: Authenticate_GCP
+         uses: google-github-actions/auth@v2
+         with:
+           credentials_json: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}"
+           project_id: "supremeai-a"
+       - name: Set_Function_Config
+         run: |
+           # Set Groq API key as function config (encrypted)
+           firebase functions:config:set groq.api_key="${{ secrets.GROQ_API_KEY_DEPLOYMENT_MONITOR }}" --project supremeai-a
+         continue-on-error: true  # Continue even if config set fails (might be pre-configured)
+       - name: Deploy_Functions
+         run: |
+           cd functions
+           npm install
+           firebase deploy --project supremeai-a --only functions --non-interactive
+         working-directory: ./functions
+
+   notify:
+     name: Notification
+     needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, deploy-cloud-functions, health-check]
     if: always()
     runs-on: ubuntu-latest
     steps:

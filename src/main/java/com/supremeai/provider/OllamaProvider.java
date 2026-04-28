@@ -1,25 +1,37 @@
 package com.supremeai.provider;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import java.io.IOException;
-import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 
 /**
- * Optimized Ollama provider implementation
- * Works as local fallback when cloud providers are unavailable
+ * Ollama Provider for SupremeAI
+ * Connects to local Ollama server (localhost:11434) for free, offline AI inference.
+ * Supports any model installed in Ollama (codegeex4, llama2, mistral, etc.)
  */
-@Component
 public class OllamaProvider implements AIProvider {
+
+    private static final String API_URL = "http://localhost:11434/v1/chat/completions";
+    private final String apiKey; // Not used for local Ollama, but kept for interface compatibility
+    private final OkHttpClient httpClient;
+    private final ObjectMapper objectMapper;
+    private final String modelName;
+
+    public OllamaProvider(String apiKey) {
+        this(apiKey, "codegeex4"); // Default to CodeGeeX4 model
+    }
+
+    public OllamaProvider(String apiKey, String modelName) {
+        this.apiKey = apiKey; // Can be null for local Ollama
+        this.modelName = modelName != null ? modelName : "codegeex4";
+        this.httpClient = new OkHttpClient();
+        this.objectMapper = new ObjectMapper();
+    }
 
     @Override
     public String getName() {
@@ -29,98 +41,48 @@ public class OllamaProvider implements AIProvider {
     @Override
     public Map<String, Object> getCapabilities() {
         return Map.of(
-                "model", "llama3:70b",
-                "local", true,
-                "maxContext", 8192
+                "name", "Ollama (Local)",
+                "models", new String[]{modelName},
+                "endpoint", "http://localhost:11434",
+                "offline", true,
+                "free", true
         );
-    }
-
-    private static final Logger logger = LoggerFactory.getLogger(OllamaProvider.class);
-
-    private final OkHttpClient httpClient;
-    private final ObjectMapper objectMapper;
-    private final String model;
-    private final String baseUrl;
-    public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-
-    public OllamaProvider(
-            @Value("${ai.providers.ollama.model:llama3.1:8b}") String model,
-            @Value("${ai.providers.ollama.endpoint:http://localhost:11434/api/generate}") String baseUrl) {
-        this.httpClient = new OkHttpClient.Builder()
-                .callTimeout(Duration.ofSeconds(180))
-                .readTimeout(Duration.ofSeconds(180))
-                .writeTimeout(Duration.ofSeconds(180))
-                .build();
-        this.objectMapper = new ObjectMapper();
-        this.model = model;
-        this.baseUrl = baseUrl;
-        logger.info("OllamaProvider initialized with model: {} at {}", model, baseUrl);
     }
 
     @Override
     public Mono<String> generate(String prompt) {
         return Mono.fromCallable(() -> {
-            OllamaRequest requestPayload = new OllamaRequest(
-                    model,
-                    prompt,
-                    false,
-                    new OllamaOptions(
-                            8192,
-                            0.7f,
-                            0.95f,
-                            64,
-                            Runtime.getRuntime().availableProcessors(),
-                            0
-                    )
+            Map<String, Object> requestBody = Map.of(
+                    "messages", List.of(Map.of("role", "user", "content", prompt)),
+                    "model", modelName,
+                    "stream", false
             );
 
-            try {
-                String requestBody = objectMapper.writeValueAsString(requestPayload);
-                RequestBody body = RequestBody.create(requestBody, JSON);
-                Request request = new Request.Builder()
-                        .url(baseUrl)
-                        .post(body)
-                        .build();
+            String jsonBody = objectMapper.writeValueAsString(requestBody);
 
-                try (Response response = httpClient.newCall(request).execute()) {
-                    if (!response.isSuccessful() || response.body() == null) {
-                        throw new IOException("Unexpected code " + response);
-                    }
-                    String responseBody = response.body().string();
-                    OllamaResponse ollamaResponse = objectMapper.readValue(responseBody, OllamaResponse.class);
-                    return ollamaResponse.response();
+            Request request = new Request.Builder()
+                    .url(API_URL)
+                    .addHeader("Content-Type", "application/json")
+                    .post(RequestBody.create(jsonBody, MediaType.get("application/json")))
+                    .build();
+
+            try (Response response = httpClient.newCall(request).execute()) {
+                if (!response.isSuccessful()) {
+                    throw new IOException("Unexpected code " + response);
                 }
-            } catch (Exception e) {
-                logger.error("Ollama generation failed: {}", e.getMessage());
-                throw new RuntimeException("Ollama unavailable", e);
+
+                Map<String, Object> responseMap = objectMapper.readValue(response.body().string(),
+                        new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+                
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
+                if (choices != null && !choices.isEmpty()) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                    return (String) message.get("content");
+                }
+                return "No response from Ollama.";
             }
         }).subscribeOn(Schedulers.boundedElastic());
     }
-
-    /**
-     * Optimized Ollama request with performance tuning parameters
-     */
-    record OllamaRequest(
-            String model,
-            String prompt,
-            boolean stream,
-            OllamaOptions options
-    ) {}
-
-     record OllamaOptions(
-             @JsonProperty("num_ctx") int numCtx,
-             float temperature,
-             @JsonProperty("top_p") float topP,
-             @JsonProperty("num_batch") int numBatch,
-             @JsonProperty("num_thread") int numThread,
-             @JsonProperty("num_gpu") int numGpu
-     ) {}
-
-    record OllamaResponse(
-            String response,
-            boolean done,
-            @JsonProperty("total_duration") long totalDuration,
-            @JsonProperty("eval_count") long evalCount,
-            @JsonProperty("eval_duration") long evalDuration
-    ) {}
 }

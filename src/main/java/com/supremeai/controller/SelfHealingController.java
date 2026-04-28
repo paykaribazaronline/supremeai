@@ -1,8 +1,9 @@
 package com.supremeai.controller;
 
-import com.supremeai.selfhealing.SelfHealingService;
+import com.supremeai.service.SelfHealingService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
@@ -24,9 +25,11 @@ public class SelfHealingController {
         String taskName = (String) request.getOrDefault("taskName", "unknown");
 
         try {
-            String result = selfHealingService.executeWithRetry(() -> {
-                return "Task " + taskName + " completed successfully";
-            }, maxAttempts, initialBackoff);
+            String result = selfHealingService.executeWithRetry(
+                    () -> Mono.just("Task " + taskName + " completed successfully"),
+                    maxAttempts,
+                    initialBackoff
+            ).block();
 
             return ResponseEntity.ok(Map.of(
                     "status", "success",

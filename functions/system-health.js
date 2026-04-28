@@ -338,19 +338,33 @@ exports.collectHealthMetrics = functions.pubsub.schedule('*/5 * * * *').onRun(as
 });
 
 /**
- * Send health alert notification
+ * Send health alert notification with AI-generated message
  */
 async function sendHealthAlert(healthData) {
     try {
+        // Get Groq API key for smart message generation
+        const groqApiKey = functions.config().groq?.api_key ||
+                          process.env.GROQ_API_KEY;
+
+        let messageBody;
+        if (groqApiKey) {
+            // Use Groq to generate a smart, concise alert message
+            messageBody = await generateSmartAlertMessage(groqApiKey, healthData);
+        } else {
+            // Fallback to simple message
+            messageBody = `System status is ${healthData.overallStatus.toUpperCase()}. Please check the dashboard.`;
+        }
+
         const message = {
             notification: {
                 title: '🚨 System Health Alert',
-                body: `System status is ${healthData.overallStatus.toUpperCase()}. Please check the dashboard.`
+                body: messageBody
             },
             data: {
                 type: 'health_alert',
                 status: healthData.overallStatus,
-                timestamp: healthData.timestamp
+                timestamp: healthData.timestamp,
+                components: JSON.stringify(Object.keys(healthData.components))
             },
             topic: 'admin-notifications'
         };
@@ -359,5 +373,54 @@ async function sendHealthAlert(healthData) {
         console.log('Health alert sent successfully');
     } catch (error) {
         console.error('Error sending health alert:', error);
+    }
+}
+
+/**
+ * Generate smart alert message using Groq AI
+ */
+async function generateSmartAlertMessage(apiKey, healthData) {
+    const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+
+    const systemPrompt = `You are a system monitoring assistant.
+Generate a VERY SHORT (max 100 chars) alert message based on system health.
+Format: "[COMPONENT] Issue: [brief description]"
+Examples:
+  "Firebase: Auth service degraded"
+  "Database: High latency detected"
+  "Critical: Multiple services down"
+`;
+
+    const userPrompt = `System status: ${healthData.overallStatus}
+Components:
+${JSON.stringify(healthData.components, null, 2)}
+
+Generate a concise alert message:`;
+
+    try {
+        const response = await axios.post(
+            GROQ_API_URL,
+            {
+                model: "llama3-8b-8192",
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: userPrompt }
+                ],
+                temperature: 0.3,
+                max_tokens: 100
+            },
+            {
+                headers: {
+                    "Authorization": `Bearer ${apiKey}`,
+                    "Content-Type": "application/json"
+                },
+                timeout: 5000
+            }
+        );
+
+        return response.data.choices[0].message.content.trim();
+    } catch (error) {
+        console.error("Failed to generate smart alert:", error.message);
+        return `System ${healthData.overallStatus.toUpperCase()}`;
     }
 }
