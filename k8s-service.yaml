@@ -30,22 +30,34 @@ spec:
         - containerPort: 8080
         resources:
           limits:
-            cpu: '1'
-            memory: 1Gi
+            cpu: '2'
+            memory: 2Gi
           requests:
-            cpu: 200m
-            memory: 512Mi
+            cpu: 500m
+            memory: 1Gi
         livenessProbe:
           httpGet:
-            path: /api/status/health
+            path: /api/health
             port: 8080
-          initialDelaySeconds: 30
+          initialDelaySeconds: 60
           periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
         readinessProbe:
           httpGet:
-            path: /api/apps/health
+            path: /api/health
             port: 8080
-          initialDelaySeconds: 5
+          initialDelaySeconds: 30
           periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /api/health
+            port: 8080
+          initialDelaySeconds: 0
+          periodSeconds: 5
+          timeoutSeconds: 10
+          failureThreshold: 60  # Allows up to 5 minutes (60 * 5s) for startup
       serviceAccountName: supremeai-sa
       timeoutSeconds: 300
