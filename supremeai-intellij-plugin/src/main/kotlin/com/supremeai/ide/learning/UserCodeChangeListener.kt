@@ -127,12 +127,12 @@ class UserCodeChangeListener(private val project: Project, private val aiSuggest
             val currLine = if (i < currentLines.size) currentLines[i] else null
 
             if (origLine == null && currLine != null) {
-                diffBuilder.append("+ ").append(currLine).append("\n")
+                diffBuilder.append("+ ").append(currLine as String).append("\n")
             } else if (origLine != null && currLine == null) {
-                diffBuilder.append("- ").append(origLine).append("\n")
+                diffBuilder.append("- ").append(origLine as String).append("\n")
             } else if (origLine != null && currLine != null && origLine != currLine) {
-                diffBuilder.append("- ").append(origLine).append("\n")
-                diffBuilder.append("+ ").append(currLine).append("\n")
+                diffBuilder.append("- ").append(origLine as String).append("\n")
+                diffBuilder.append("+ ").append(currLine as String).append("\n")
             }
             // If lines are equal, no diff needed
         }
