@@ -5,6 +5,7 @@ import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -35,11 +36,6 @@ class UserCodeLearningProjectComponent(private val project: Project) :
         removeAllListeners()
     }
 
-    override fun projectClosing() {
-        // Clean up before project fully closes
-        removeAllListeners()
-    }
-
     /**
      * Called when a file is opened in the editor.
      */
@@ -57,7 +53,7 @@ class UserCodeLearningProjectComponent(private val project: Project) :
     /**
      * Called when file selection changes (e.g., switching tabs).
      */
-    override fun selectionChanged(source: FileEditorManager) {
+    fun selectionChanged(event: FileEditorManagerEvent) {
         // No action needed
     }
 
