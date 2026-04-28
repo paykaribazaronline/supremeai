@@ -47,6 +47,13 @@
                          enabledByDefault="true"
                          level="WARNING"
                          implementationClass="com.supremeai.ide.inspection.SupremeAIInspection"/>
+
+        <!-- External System Task Listener for Gradle Build Failure Detection -->
+        <externalSystemTaskNotificationListener 
+            implementation="com.supremeai.ide.learning.GradleFailureDetector"/>
+
+        <!-- Project Component for User Code Change Learning -->
+        <projectComponent implementation="com.supremeai.ide.learning.UserCodeLearningProjectComponent"/>
     </extensions>
 
     <actions>

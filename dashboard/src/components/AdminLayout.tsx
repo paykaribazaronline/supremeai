@@ -1,7 +1,6 @@
 // AdminLayout.tsx - Consistent layout for all admin pages
 // Provides header with navigation, logout, and responsive design
 
-import React from 'react';
 import React, { useEffect } from 'react';
 import { notification } from 'antd';
 // if sockjs-client and @stomp/stompjs are not installed, run: npm install @stomp/stompjs sockjs-client

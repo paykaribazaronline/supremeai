@@ -510,4 +510,15 @@ jobs:
           else
             echo "✅ All deployments successful!"
           fi
-...
+
+  handle-pipeline-failure:
+    name: Handle_Pipeline_Failure
+    needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, health-check]
+    if: failure() # Checks if any of the needed jobs failed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Alert_On_Failure
+        run: |
+          echo "⚠️ Warning: The main SupremeAI pipeline has failed!"
+          echo "Please check the logs for more details."
+          # এখানে Slack, Discord বা Email এ নোটিফিকেশন পাঠানোর কোড যোগ করতে পারেন।
