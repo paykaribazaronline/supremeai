@@ -1,7 +1,7 @@
 // AdminDashboardUnified.tsx - MODERN PREMIUM REDESIGN
 // UNIFIED ADMIN DASHBOARD - Single Source of Truth Contract
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Layout, Menu, Card, Statistic, Row, Col, Alert, Badge, Space, Tabs, Empty, Button, Modal, Input, message, Avatar, Dropdown, Typography, Divider } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { 
@@ -14,6 +14,9 @@ import { authUtils } from '../lib/authUtils';
 import PhasesOverview from '../components/PhasesOverview';
 import AIAgentsDashboard from '../components/AIAgentsDashboard';
 import ExploitationDashboard from '../components/ExploitationDashboard';
+import { notification } from 'antd';
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 
 const { TextArea, Title } = Typography;
 const { Header, Content, Sider } = Layout;
@@ -74,8 +77,104 @@ const AdminDashboardUnified: React.FC = () => {
         fetchContract();
         // Refresh every 30 seconds
         const interval = setInterval(fetchContract, 30000);
-        return () => clearInterval(interval);
-    }, []);
+        
+        // WebSocket connection for real-time notifications
+        const connectWebSocket = () => {
+          try {
+            // Use relative URL to work with both dev and prod (same origin)
+            const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws'}://${window.location.host}/ws`;
+            const socket = new SockJS(wsUrl);
+            const stompClient = new Client({
+              webSocketFactory: () => socket,
+              reconnectDelay: 5000,
+              onConnect: () => {
+                console.log("[SupremeAI] WebSocket connected for notifications");
+                
+                // Subscribe to notifications topic
+                stompClient.subscribe('/topic/notifications', (message) => {
+                  const data = JSON.parse(message.body);
+                  console.log("[SupremeAI] Notification received:", data);
+                  
+                  if (data.type === 'GITHUB_PIPELINE') {
+                    if (data.status === 'success') {
+                      notification.success({
+                        message: '🚀 Deployment Successful',
+                        description: data.message || 'Pipeline completed successfully',
+                        duration: 5,
+                        placement: 'topRight',
+                      });
+                    } else if (data.status === 'failure' || data.status === 'error') {
+                      notification.error({
+                        message: '🚨 Deployment Failed',
+                        description: data.message || 'Pipeline failed',
+                        duration: 0, // Persistent until user dismisses
+                        placement: 'topRight',
+                      });
+                    } else {
+                      notification.info({
+                        message: '📋 Pipeline Update',
+                        description: data.message,
+                        duration: 4,
+                        placement: 'topRight',
+                      });
+                    }
+                  } else if (data.type === 'SYSTEM_ALERT') {
+                    const level = data.status;
+                    if (level === 'error' || level === 'critical') {
+                      notification.error({
+                        message: '⚠️ System Alert',
+                        description: data.message,
+                        duration: 0,
+                        placement: 'topRight',
+                      });
+                    } else if (level === 'warning') {
+                      notification.warning({
+                        message: '⚡ System Warning',
+                        description: data.message,
+                        duration: 6,
+                        placement: 'topRight',
+                      });
+                    } else {
+                      notification.info({
+                        message: 'ℹ️ System Info',
+                        description: data.message,
+                        duration: 4,
+                        placement: 'topRight',
+                      });
+                    }
+                  } else if (data.type === 'LEARNING_UPDATE') {
+                    notification.success({
+                      message: '🧠 SupremeAI Learning Update',
+                      description: data.message || 'New patterns learned from your edits',
+                      duration: 4,
+                      placement: 'topRight',
+                    });
+                  }
+                });
+              },
+              onStompError: (frame) => {
+                console.error('WebSocket error:', frame);
+                // Silent reconnect will happen automatically
+              },
+              onWebSocketError: (event) => {
+                console.error('WebSocket connection error:', event);
+              }
+            });
+            
+            stompClient.activate();
+            return () => stompClient.deactivate();
+          } catch (err) {
+            console.error("Failed to connect WebSocket:", err);
+          }
+        };
+        
+        const cleanup = connectWebSocket();
+        
+        return () => {
+          clearInterval(interval);
+          if (cleanup) cleanup();
+        };
+      }, []);
 
     const fetchContract = async () => {
         try {
