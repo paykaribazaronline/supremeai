@@ -474,22 +474,25 @@ public class EnhancedLearningService {
     private Map<String, Object> optimizeKnowledgeBase(List<SystemLearning> learnings) {
         Map<String, Object> optimization = new HashMap<>();
         List<String> actions = new ArrayList<>();
-        int applied = 0;
-        
+
         // Merge similar learnings
         Map<String, List<SystemLearning>> byTopic = learnings.stream()
                 .collect(Collectors.groupingBy(l -> l.getTopic() != null ? l.getTopic() : "unknown"));
-        
+
+        // Count how many topics were consolidated
+        long applied = byTopic.values().stream()
+                .filter(list -> list.size() > 3)
+                .count();
+
         byTopic.forEach((topic, similarLearnings) -> {
             if (similarLearnings.size() > 3) {
                 // Consolidate into one high-quality entry
                 SystemLearning best = similarLearnings.stream()
                         .max(Comparator.comparing(l -> l.getQualityScore() != null ? l.getQualityScore() : 0))
                         .orElse(similarLearnings.get(0));
-                
+
                 // Mark others for archival (in real implementation would update status)
                 actions.add("Consolidated " + similarLearnings.size() + " learnings for topic: " + topic);
-                applied++;
             }
         });
         
