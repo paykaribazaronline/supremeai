@@ -37,14 +37,14 @@ dependencyManagement {
 dependencies {
     // Firebase Admin SDK (complete suite)
     implementation("com.google.firebase:firebase-admin:9.2.0")
-    implementation("com.google.cloud:google-cloud-firestore:3.15.0")
-    implementation("com.google.cloud:google-cloud-storage:2.34.0")
+    // Firestore client provided by spring-cloud-gcp-starter-data-firestore (version managed by BOM)
+    implementation("com.google.cloud:google-cloud-storage")
 
     // Authentication & Google Cloud - SECURITY
     implementation("com.google.auth:google-auth-library-oauth2-http:1.14.0")
-    implementation("com.google.cloud:google-cloud-core:2.40.0")
-    implementation("com.google.cloud:google-cloud-secretmanager:2.40.0")
-    implementation("com.google.cloud:google-cloud-bigquery:2.31.0")
+    implementation("com.google.cloud:google-cloud-core")
+    implementation("com.google.cloud:google-cloud-secretmanager")
+    implementation("com.google.cloud:google-cloud-bigquery")
     implementation("software.amazon.awssdk:secretsmanager:2.25.36")
     implementation("software.amazon.awssdk:regions:2.25.36")
     implementation("com.azure:azure-identity:1.12.2")
