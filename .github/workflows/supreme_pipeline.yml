@@ -90,7 +90,6 @@ jobs:
         with:
           java-version: "21"
           distribution: "temurin"
-          cache: ""
       - name: CodeQL_Init
         uses: github/codeql-action/init@v3
         with:
@@ -98,7 +97,7 @@ jobs:
           build-mode: "manual"
       - name: Clean_Build_For_CodeQL
         run: |
-          ./gradlew clean compileJava --no-build-cache --refresh-dependencies
+          ./gradlew clean compileJava
         
       - name: Run_CodeQL
         uses: github/codeql-action/analyze@v3
@@ -116,26 +115,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Setup_Gradle_Cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
       - name: Setup_Java
         uses: actions/setup-java@v4
         with:
           java-version: "21"
           distribution: "temurin"
-          cache: ""
+          cache: "gradle"
       - name: Grant_Execute_Permission
         run: chmod +x gradlew
       - name: Build_And_Test
         run: |
-          ./gradlew clean build --no-build-cache --refresh-dependencies
+          ./gradlew clean build
           # The bootJar task now outputs app.jar directly, ensure it exists
           if [ ! -f "build/libs/app.jar" ]; then
             echo "Error: app.jar not found in build/libs"
@@ -233,15 +223,6 @@ jobs:
       plugin_path: ${{ steps.set-path.outputs.path }}
     steps:
       - uses: actions/checkout@v4
-      - name: Setup_Gradle_Cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
       - name: Setup_Java
         uses: actions/setup-java@v4
         with:
@@ -435,15 +416,25 @@ jobs:
       - name: Check_Status
         id: status-check
         run: |
+          FAILED=false
           echo "Checking frontend status..."
-          curl -sf https://supremeai-a.web.app/ || (echo "frontend_failed=true" >> $GITHUB_ENV && false)
+          if ! curl -sf https://supremeai-a.web.app/; then
+            echo "frontend_failed=true" >> $GITHUB_ENV
+            FAILED=true
+          fi
           echo "Checking backend status..."
           ADMIN_URL="${{ needs.deploy-backend.outputs.admin_url }}"
           if [ -n "$ADMIN_URL" ] && [ "$ADMIN_URL" != "N/A" ]; then
             BACKEND_URL=$(echo "$ADMIN_URL" | sed 's/\/admin\.html$//')
-            curl -sf "$BACKEND_URL/actuator/health" || (echo "backend_failed=true" >> $GITHUB_ENV && false)
+            if ! curl -sf "$BACKEND_URL/actuator/health"; then
+              echo "backend_failed=true" >> $GITHUB_ENV
+              FAILED=true
+            fi
           else
             echo 'Backend URL not available for health check'
+          fi
+          if [ "$FAILED" = "true" ]; then
+            exit 1
           fi
       - name: Rollback_On_Failure
         if: failure()
