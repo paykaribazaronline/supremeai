@@ -1,13 +1,28 @@
-# Use an official OpenJDK runtime as a parent image
-FROM eclipse-temurin:21-jre-alpine
+# Multi-stage Docker build for SupremeAI Backend
+# Stage 1: Build the JAR with Gradle
+FROM eclipse-temurin:21-jdk-alpine AS builder
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Copy the pre-built JAR file from the repo root
-COPY app.jar app.jar
+# Copy Gradle files first for cached dependencies
+COPY gradle ./gradle
+COPY gradlew .
+COPY build.gradle.kts .
+COPY settings.gradle.kts .
+COPY src ./src
 
-# Create a non-root user for security
+# Build the application JAR (skip tests for faster build)
+RUN chmod +x gradlew && ./gradlew bootJar -x test --no-daemon
+
+# Stage 2: Create runtime image
+FROM eclipse-temurin:21-jre-alpine
+
+WORKDIR /app
+
+# Copy the built JAR from builder stage
+COPY --from=builder /app/build/libs/app.jar app.jar
+
+# Create non-root user for security
 RUN addgroup -g 1001 -S supremeai && adduser -u 1001 -S supremeai -G supremeai
 USER supremeai
 

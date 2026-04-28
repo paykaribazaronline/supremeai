@@ -115,7 +115,10 @@ const POPULAR_MODELS: PopularModel[] = [
     // xAI
     { id: 'grok-3', name: 'Grok 3', provider: 'xai', providerTitle: 'xAI', baseUrl: 'https://api.x.ai/v1', description: 'Latest Grok model by xAI', category: 'xAI' },
     { id: 'grok-3-mini', name: 'Grok 3 Mini', provider: 'xai', providerTitle: 'xAI', baseUrl: 'https://api.x.ai/v1', description: 'Fast Grok 3 Mini', category: 'xAI' },
-];
+    // StepFun (阶跃星辰) - Free tier available
+    { id: 'step-3.5-flash', name: 'Step 3.5 Flash', provider: 'stepfun', providerTitle: 'StepFun (阶跃星辰)', baseUrl: 'https://api.stepfun.com/v1', description: 'Free & fast - excellent reasoning & coding', category: 'StepFun' },
+    { id: 'step-3.5-pro', name: 'Step 3.5 Pro', provider: 'stepfun', providerTitle: 'StepFun (阶跃星辰)', baseUrl: 'https://api.stepfun.com/v1', description: 'Advanced reasoning & coding capabilities', category: 'StepFun' },
+  ];
 
 // ─── Provider Endpoint Auto-Detection ────────────────────────────────────────
 
@@ -137,6 +140,7 @@ const PROVIDER_ENDPOINTS: Record<string, string> = {
     anyscale: 'https://api.endpoints.anyscale.com/v1',
     azure: 'https://YOUR_RESOURCE.openai.azure.com',
     aws: 'https://YOUR_REGION.bedrock.aws.amazon.com',
+    stepfun: 'https://api.stepfun.com/v1',
 };
 
 const getProviderEndpoint = (providerName: string): string => {

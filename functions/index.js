@@ -311,6 +311,12 @@ const serverConnectionMonitor = require('./server-connection-monitor');
 exports.checkServerConnections = serverConnectionMonitor.checkServerConnections;
 exports.monitorConnections = serverConnectionMonitor.monitorConnections;
 
+// ============ AI DEPLOYMENT MONITORING ============
+
+const deploymentMonitor = require('./deployment-monitor');
+exports.analyzeDeployment = deploymentMonitor.analyzeDeployment;
+exports.monitorSystemHealth = deploymentMonitor.monitorSystemHealth;
+
 // ============ BENGALI OCR PROCESSING ============
 
 /**

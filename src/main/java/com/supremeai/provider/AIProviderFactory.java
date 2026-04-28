@@ -86,8 +86,11 @@ public class AIProviderFactory {
             case "mistral":
                 return new MistralProvider(key);
 
+            case "stepfun":
+                return new StepFunProvider(key);
+
             default:
-                throw new IllegalArgumentException("Unknown AI provider: " + name + ". Supported: gpt4, claude, gemini, groq, deepseek, ollama, huggingface, airllm, kimi, mistral");
+                throw new IllegalArgumentException("Unknown AI provider: " + name + ". Supported: gpt4, claude, gemini, groq, deepseek, ollama, huggingface, airllm, kimi, mistral, stepfun");
         }
     }
 
@@ -131,8 +134,8 @@ public class AIProviderFactory {
      * @return A working AI provider
      */
     public AIProvider getDefaultProvider() {
-        // Preferred providers in order
-        String[] preferredProviders = {"gpt4", "claude", "gemini", "groq", "deepseek"};
+        // Preferred providers in order (free tier first)
+        String[] preferredProviders = {"stepfun", "groq", "deepseek", "ollama", "gpt4", "claude", "gemini", "mistral"};
 
         // Try preferred providers first
         for (String providerName : preferredProviders) {
@@ -193,7 +196,7 @@ public class AIProviderFactory {
      * Get list of all supported provider names
      */
     public String[] getSupportedProviders() {
-        return new String[]{"gpt4", "claude", "gemini", "groq", "deepseek", "ollama", "huggingface", "airllm", "kimi", "mistral"};
+        return new String[]{"gpt4", "claude", "gemini", "groq", "deepseek", "ollama", "huggingface", "airllm", "kimi", "mistral", "stepfun"};
     }
 
     /**

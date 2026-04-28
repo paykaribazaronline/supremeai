@@ -4,6 +4,7 @@ import com.supremeai.model.ConsensusResult;
 import com.supremeai.model.ProviderVote;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
+import com.supremeai.service.SelfHealingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +49,7 @@ public class TenAIVotingSystem {
     private ContextualAIRankingService contextualRankingService;
 
     @Autowired(required = false)
-    private com.supremeai.selfhealing.SelfHealingService selfHealingService;
+    private SelfHealingService selfHealingService;
 
     private final ExecutorService executor;
     private final Map<String, ModelPerformanceTracker> performanceTrackers;
@@ -137,10 +138,10 @@ public class TenAIVotingSystem {
             
             if (selfHealingService != null) {
                 response = selfHealingService.executeWithRetry(
-                    () -> provider.generate(prompt).block(),
+                    () -> provider.generate(prompt),
                     MAX_RETRIES,
                     250L
-                );
+                ).block();
             } else {
                 response = provider.generate(prompt).block();
             }
