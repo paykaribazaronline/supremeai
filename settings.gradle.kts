@@ -3,4 +3,5 @@ plugins {
 }
 rootProject.name = "supremeai"
 
-include(":supremeai-intellij-plugin")
+// Temporarily disabled for build stability - re-enable after Kotlin 2.1 compatibility fix
+// include(":supremeai-intellij-plugin")
