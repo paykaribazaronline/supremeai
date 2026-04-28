@@ -1,6 +1,7 @@
 package com.supremeai.controller;
 
 import com.supremeai.learning.UserCodeLearningService;
+import com.supremeai.learning.knowledge.GlobalKnowledgeBase;
 import com.supremeai.model.SystemLearning;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

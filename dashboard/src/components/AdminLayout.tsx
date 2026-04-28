@@ -2,6 +2,11 @@
 // Provides header with navigation, logout, and responsive design
 
 import React from 'react';
+import React, { useEffect } from 'react';
+import { notification } from 'antd';
+// if sockjs-client and @stomp/stompjs are not installed, run: npm install @stomp/stompjs sockjs-client
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 import { Link, useLocation } from 'react-router-dom';
 import { Layout, Menu, Button, Space, Avatar, Dropdown } from 'antd';
 import {
@@ -34,6 +39,51 @@ interface AdminLayoutProps {
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => {
   const location = useLocation();
+
+  useEffect(() => {
+    // Connect to the WebSocket server
+    const socket = new SockJS('https://supremeai-lhlwyikwlq-uc.a.run.app/ws/simulator'); // Your backend WebSocket URL
+    const stompClient = new Client({
+      webSocketFactory: () => socket,
+      reconnectDelay: 5000,
+      onConnect: () => {
+        console.log("Connected to SupremeAI WebSocket!");
+        
+        // Subscribe to the GitHub pipeline channel
+        stompClient.subscribe('/topic/notifications', (message) => {
+          const data = JSON.parse(message.body);
+          
+          if (data.type === 'GITHUB_PIPELINE') {
+            if (data.status === 'success') {
+              notification.success({
+                message: '🚀 Deployment Successful',
+                description: data.message,
+                duration: 5, // Disappears after 5 seconds
+                placement: 'topRight',
+              });
+            } else {
+              notification.error({
+                message: '🚨 Deployment Failed',
+                description: data.message,
+                duration: 0, // Stays on screen until user dismisses
+                placement: 'topRight',
+              });
+            }
+          }
+        });
+      },
+      onStompError: (frame) => {
+        console.error('Broker reported error: ' + frame.headers['message']);
+      }
+    });
+
+    stompClient.activate();
+
+    // Disconnect on component unmount
+    return () => {
+      stompClient.deactivate();
+    };
+  }, []);
 
   const logout = () => {
     authUtils.clearAuth();

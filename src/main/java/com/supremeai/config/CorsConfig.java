@@ -18,13 +18,8 @@ public class CorsConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of(
-            "*", // Allow all origins for now (VS Code extension, React dev servers, Cloud Run custom domains)
-            // More restrictive production config:
-            // "https://supremeai-lhlwyikwlq-uc.a.run.app",
-            // "https://*.supremeai.com",
-            // "vscode://*"
-        ));
+        // Allow all origins for local dev (VS Code extension, React dev servers)
+        config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of(
@@ -37,8 +32,8 @@ public class CorsConfig {
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", config);
-        source.registerCorsConfiguration("/ws/**", config); // WebSocket
-        source.registerCorsConfiguration("/actuator/**", config); // Health checks
+        source.registerCorsConfiguration("/ws/**", config);
+        source.registerCorsConfiguration("/actuator/**", config);
 
         return new CorsFilter(source);
     }
