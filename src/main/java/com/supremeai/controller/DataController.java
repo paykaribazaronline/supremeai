@@ -36,7 +36,7 @@ public class DataController {
     @PostMapping("/query")
     public ResponseEntity<Map<String, Object>> queryData(@RequestBody Map<String, String> request) {
         String query = request.get("query");
-        Object result = unifiedDataService.getCollectedData(query);
+        Map<String, Object> result = unifiedDataService.getCollectedData(query);
         return ResponseEntity.ok(Map.of("status", "success", "result", result));
     }
 }

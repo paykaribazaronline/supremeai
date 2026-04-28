@@ -37,18 +37,36 @@ public class OpenAICompatibleController {
     private SystemAutoDetectService autoDetectService;
 
     /**
-     * Handles chat completion requests with auto-detected model.
-     */
-    @PostMapping("/chat/completions")
-    public ResponseEntity<Map<String, Object>> chatCompletions(@RequestBody Map<String, Object> body) {
-        // Extract messages list
-        List<Map<String, String>> messages = (List<Map<String, String>>) body.get("messages");
-        if (messages == null || messages.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "error", "messages is required",
-                "message", "Request body must contain a non-empty 'messages' array"
-            ));
-        }
+      * Handles chat completion requests with auto-detected model.
+      */
+     @PostMapping("/chat/completions")
+     public ResponseEntity<Map<String, Object>> chatCompletions(@RequestBody Map<String, Object> body) {
+         // Extract messages list
+         Object messagesObj = body.get("messages");
+         if (messagesObj == null) {
+             return ResponseEntity.badRequest().body(Map.of(
+                 "error", "messages is required",
+                 "message", "Request body must contain a non-empty 'messages' array"
+             ));
+         }
+
+         if (!(messagesObj instanceof List)) {
+             return ResponseEntity.badRequest().body(Map.of(
+                 "error", "messages must be a list",
+                 "message", "The 'messages' field must be an array"
+             ));
+         }
+
+         List<?> rawMessages = (List<?>) messagesObj;
+         if (rawMessages.isEmpty()) {
+             return ResponseEntity.badRequest().body(Map.of(
+                 "error", "messages is required",
+                 "message", "Request body must contain a non-empty 'messages' array"
+             ));
+         }
+
+         @SuppressWarnings("unchecked")
+         List<Map<String, String>> messages = (List<Map<String, String>>) rawMessages;
 
         // Extract the last user message
         String prompt = extractLastUserMessage(messages);
