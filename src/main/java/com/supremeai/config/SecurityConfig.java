@@ -49,7 +49,8 @@ public class SecurityConfig {
                     "/api/health",
                     "/api/status",
                     "/ws/**",
-                    "/error"
+                    "/error",
+                    "/api/v1/chat/completions"
                 ).permitAll()
                 .requestMatchers("/api/debug/**").hasRole("ADMIN")
                 .requestMatchers("/api/security/**").hasRole("ADMIN")

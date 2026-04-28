@@ -18,8 +18,32 @@ spring:
       max-lifetime: 1200000
       leak-detection-threshold: 60000
 
+  # Enable actuator endpoints for Kubernetes health checks
+  cloud:
+    kubernetes:
+      enabled: true
+      readiness-probe:
+        initial-delay: 30
+      liveness-probe:
+        initial-delay: 60
+
 jwt:
   secret: ${JWT_SECRET}
+
+# Management endpoints for K8s probes
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    defaults:
+      enabled: true
 
 supremeai:
   providers:
