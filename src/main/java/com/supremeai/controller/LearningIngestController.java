@@ -3,6 +3,7 @@ package com.supremeai.controller;
 import com.supremeai.learning.UserCodeLearningService;
 import com.supremeai.learning.knowledge.GlobalKnowledgeBase;
 import com.supremeai.model.SystemLearning;
+import com.supremeai.repository.SystemLearningRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,9 @@ public class LearningIngestController {
 
     @Autowired
     private GlobalKnowledgeBase globalKnowledgeBase;
+
+    @Autowired
+    private SystemLearningRepository systemLearningRepository;
 
     /**
      * Receive code edit event from VS Code extension
@@ -105,12 +109,12 @@ public class LearningIngestController {
             pattern.setContent(String.format("User %s suggestion: %s", 
                 event.isAccepted() ? "accepted" : "rejected", 
                 event.getContext()));
-            pattern.setConfidenceScore(event.isAccepted() ? 0.9 : 0.3); // Higher confidence for accepts
+            pattern.setConfidenceScore(event.isAccepted() ? 0.9 : 0.3);
             pattern.setLearnedAt(java.time.LocalDateTime.now());
-            pattern.setSource("vscode-extension");
+            pattern.setSources(List.of("vscode-extension"));
             
-            // Save via GlobalKnowledgeBase
-            globalKnowledgeBase.saveSolutionMemory(pattern).subscribe();
+            // Save via SystemLearningRepository
+            systemLearningRepository.save(pattern).subscribe();
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
@@ -132,7 +136,8 @@ public class LearningIngestController {
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getStats() {
         try {
-            long patternCount = globalKnowledgeBase.countSolutions();
+            Long count = systemLearningRepository.count().block();
+            long patternCount = count != null ? count : 0L;
             
             Map<String, Object> stats = Map.of(
                 "learningCount", patternCount,

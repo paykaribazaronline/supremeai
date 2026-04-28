@@ -427,15 +427,14 @@ public class UserCodeLearningService {
             
             if (firestore != null) {
                 Map<String, Object> data = systemLearningToMap(pattern);
-                firestore.collection(systemLearningCollection)
-                        .add(data)
-                        .thenAccept(documentReference -> 
-                            log.debug("Saved error pattern to Firestore: {}", documentReference.getId())
-                        )
-                        .exceptionally(e -> {
-                            log.error("Failed to save error pattern: {}", e.getMessage());
-                            return null;
-                        });
+                try {
+                    DocumentReference docRef = firestore.collection(systemLearningCollection)
+                            .add(data)
+                            .get(); // Block for simplicity
+                    log.debug("Saved error pattern to Firestore: {}", docRef.getId());
+                } catch (Exception e) {
+                    log.error("Failed to save error pattern: {}", e.getMessage());
+                }
             } else {
                 log.debug("Firestore not available, error pattern saved to cache only");
             }
