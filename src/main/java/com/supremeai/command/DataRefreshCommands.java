@@ -66,7 +66,7 @@ public class DataRefreshCommands {
                     logger.info("🔄 Refreshing GitHub data: {}/{}", owner, repo);
                     
                     // Call the service to fetch fresh data
-                    Map<String, Object> data = (Map<String, Object>) dataService.getCollectedData("github:" + owner + "/" + repo);
+                    Map<String, Object> data = dataService.getCollectedData("github:" + owner + "/" + repo);
                     
                     logger.info("✅ GitHub data refreshed");
                     
@@ -128,7 +128,7 @@ public class DataRefreshCommands {
                     logger.info("🔄 Refreshing Vercel status: {}", projectId);
                     
                     // Call the service
-                    Map<String, Object> data = (Map<String, Object>) dataService.getCollectedData("vercel:" + projectId);
+                    Map<String, Object> data = dataService.getCollectedData("vercel:" + projectId);
                     
                     logger.info("✅ Vercel data refreshed");
                     
@@ -185,7 +185,7 @@ public class DataRefreshCommands {
                     logger.info("🔄 Refreshing Firebase metrics");
                     
                     // Call the service
-                    Map<String, Object> data = (Map<String, Object>) dataService.getCollectedData("firebase");
+                    Map<String, Object> data = dataService.getCollectedData("firebase");
                     
                     logger.info("✅ Firebase data refreshed");
                     
@@ -243,8 +243,8 @@ public class DataRefreshCommands {
                     
                     // Refresh all in parallel
                     List<Map<String, Object>> results = new ArrayList<>();
-                    results.add((Map<String, Object>) dataService.getCollectedData("github:supremeai/core"));
-                    results.add((Map<String, Object>) dataService.getCollectedData("firebase"));
+                    results.add(dataService.getCollectedData("github:supremeai/core"));
+                    results.add(dataService.getCollectedData("firebase"));
                     
                     logger.info("✅ All data sources refreshed");
                     

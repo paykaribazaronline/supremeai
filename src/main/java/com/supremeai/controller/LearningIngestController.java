@@ -28,9 +28,6 @@ public class LearningIngestController {
     private UserCodeLearningService userCodeLearningService;
 
     @Autowired
-    private GlobalKnowledgeBase globalKnowledgeBase;
-
-    @Autowired
     private SystemLearningRepository systemLearningRepository;
 
     /**

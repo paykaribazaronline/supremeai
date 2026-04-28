@@ -1,8 +1,6 @@
 package com.supremeai.controller;
 
-import com.supremeai.model.User;
 import com.supremeai.repository.UserRepository;
-import com.supremeai.service.QuotaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +25,6 @@ public class WebSocketController {
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private QuotaService quotaService;
 
     @MessageMapping("/dashboard/subscribe")
     @SendTo("/topic/dashboard")

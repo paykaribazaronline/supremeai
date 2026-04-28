@@ -39,11 +39,11 @@ public class UnifiedDataService {
         logger.info("Data purge completed");
     }
 
-    public Object getCollectedData(String query) {
+    public Map<String, Object> getCollectedData(String query) {
         logger.info("Querying data with: {}", query);
         // Consolidated retrieval logic
         dataQueryCounter.increment();
         logger.debug("Data query executed for: {}", query);
-        return null;
+        return new HashMap<>();
     }
 }

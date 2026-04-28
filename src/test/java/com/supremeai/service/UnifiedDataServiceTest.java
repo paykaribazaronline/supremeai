@@ -54,14 +54,15 @@ class UnifiedDataServiceTest {
     }
 
     @Test
-    void getCollectedData_ShouldReturnNull() {
+    void getCollectedData_ShouldReturnEmptyMap() {
         // GIVEN
         String query = "testQuery";
 
         // WHEN
-        Object result = unifiedDataService.getCollectedData(query);
+        Map<String, Object> result = unifiedDataService.getCollectedData(query);
 
         // THEN
-        assertNull(result);
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
     }
 }
