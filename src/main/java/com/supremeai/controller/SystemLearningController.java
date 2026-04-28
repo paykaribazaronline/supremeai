@@ -85,13 +85,22 @@ public class SystemLearningController {
     }
 
     /**
-     * Manually trigger a learning cycle (for testing or admin-initiated learning).
-     * Intended for debugging or forcing an immediate improvement pass.
+     * Manually trigger a learning improvement cycle.
+     * Analyzes collected patterns, optimizes knowledge base, and generates improvements.
+     * ADMIN only endpoint for system maintenance.
      */
     @PostMapping("/trigger-improvement")
-    public Mono<String> triggerImprovement() {
-        // Could integrate with SelfImprovementService if needed.
-        // For now, acknowledge the endpoint.
-        return Mono.just("Improvement trigger not implemented in this context");
+    public Mono<Map<String, Object>> triggerImprovement() {
+        return enhancedService.improveSystemLearning();
+    }
+
+    /**
+     * System learning improvement endpoint for CLI and automation.
+     * Collects error data, analyzes patterns, and updates knowledge base.
+     * More comprehensive than trigger-improvement with detailed reporting.
+     */
+    @PostMapping("/improve")
+    public Mono<Map<String, Object>> improveLearning() {
+        return enhancedService.improveSystemLearning();
     }
 }
