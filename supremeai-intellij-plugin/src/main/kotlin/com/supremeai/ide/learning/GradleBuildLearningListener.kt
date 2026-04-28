@@ -1,10 +1,9 @@
 package com.supremeai.ide.learning
 
-import com.intellij.execution.ExecutionException
-import com.intellij.execution.ExecutionInfo
+import com.intellij.execution.ExecutionEnvironment
 import com.intellij.execution.ExecutionListener
-import com.intellij.execution.ExecutionResult
-import com.intellij.execution.configurations.ConfigurationPerRunnerSettings
+import com.intellij.execution.process.OSProcessHandler
+import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import java.util.regex.Pattern
@@ -19,20 +18,19 @@ class GradleBuildLearningListener : ExecutionListener {
     private val GRADLE_PATTERN = Pattern.compile(".*Gradle.*Build.*", Pattern.CASE_INSENSITIVE)
     private val GRADLE_COMMAND_PATTERN = Pattern.compile(".*gradlew.*|.*gradle.*", Pattern.CASE_INSENSITIVE)
 
-    override fun onExecutionStart(executionInfo: ExecutionInfo?) {
+    override fun processStarted(executorId: String, env: ExecutionEnvironment, handler: ProcessHandler) {
         // No action needed on start
     }
 
-    override fun onExecutionFinish(executionInfo: ExecutionInfo?, executionResult: ExecutionResult) {
-        val project = executionInfo?.project
-        if (project == null) return
+    override fun processTerminated(executorId: String, env: ExecutionEnvironment, handler: ProcessHandler, exitCode: Int) {
+        val project = env.getProject() ?: return
 
         // Check if this is a Gradle build execution
-        if (!isGradleBuild(executionInfo)) return
+        if (!isGradleBuild(env)) return
 
-        val exitCode = executionResult.exitCode
-        val stdout = executionResult.stdout ?: ""
-        val stderr = executionResult.stderr ?: ""
+        // Get output from OSProcessHandler
+        val stdout = if (handler is OSProcessHandler) handler.outputText else ""
+        val stderr = if (handler is OSProcessHandler) handler.errorText else ""
         val fullOutput = "$stdout\n$stderr".trim()
 
         // Only process if we have meaningful output or non-zero exit code
@@ -41,7 +39,7 @@ class GradleBuildLearningListener : ExecutionListener {
                 // Build failed - extract error information
                 val errorMessage = extractErrorMessage(fullOutput)
                 val stackTrace = extractStackTrace(fullOutput)
-                
+
                 SupremeAILearningClient.sendErrorToBrain(
                     project,
                     "GRADLE_BUILD_FAILURE",
@@ -59,23 +57,18 @@ class GradleBuildLearningListener : ExecutionListener {
     /**
      * Determines if the execution represents a Gradle build process.
      */
-    private fun isGradleBuild(executionInfo: ExecutionInfo?): Boolean {
-        if (executionInfo == null) return false
+    private fun isGradleBuild(env: ExecutionEnvironment): Boolean {
+        val runProfile = env.getRunProfile() ?: return false
 
-        // Check the executable name
-        val executable = executionInfo.executable?.toLowerCase() ?: ""
-        if (GRADLE_COMMAND_PATTERN.matcher(executable).matches()) return true
+        // Check the profile name
+        val profileName = runProfile.name?.toLowerCase() ?: ""
+        if (GRADLE_PATTERN.matcher(profileName).matches()) return true
 
-        // Check the command line arguments
-        val commandLine = executionInfo.commandLine?.toLowerCase() ?: ""
-        if (GRADLE_COMMAND_PATTERN.matcher(commandLine).matches()) return true
-
-        // Check the environment or other properties if needed
-        val runProfile = executionInfo.runProfile
-        if (runProfile != null) {
-            val profileName = runProfile.name.toLowerCase()
-            if (GRADLE_PATTERN.matcher(profileName).matches()) return true
-        }
+        // Check command line from environment
+        val commandLinePath = env.getCommandLinePath()?.toLowerCase() ?: ""
+        val commandLineParams = env.getCommandLineParameters()?.toLowerCase() ?: ""
+        val fullCommand = "$commandLinePath $commandLineParams"
+        if (GRADLE_COMMAND_PATTERN.matcher(fullCommand).matches()) return true
 
         return false
     }
@@ -84,7 +77,6 @@ class GradleBuildLearningListener : ExecutionListener {
      * Extracts the main error message from build output.
      */
     private fun extractErrorMessage(output: String): String {
-        // Look for common error patterns in Gradle output
         val errorLines = output.lines().filter { line ->
             line.contains("error:", ignoreCase = true) ||
                     line.contains("FAILURE:", ignoreCase = true) ||
@@ -93,10 +85,8 @@ class GradleBuildLearningListener : ExecutionListener {
         }.toList()
 
         return if (errorLines.isNotEmpty()) {
-            // Take the first few error lines
             errorLines.take(3).joinToString("\n")
         } else {
-            // Fallback: last 500 characters of output
             output.takeLast(500)
         }
     }
