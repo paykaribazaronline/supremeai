@@ -61,41 +61,6 @@ jobs:
             echo "should_retry=false" >> $GITHUB_OUTPUT
             echo "failed_runs=0" >> $GITHUB_OUTPUT
           fi
-          else
-            echo "No failures found in triggered run"
-            echo "should_retry=false" >> $GITHUB_OUTPUT
-            echo "failed_runs=0" >> $GITHUB_OUTPUT
-          fi
-          else
-            echo "No failures found in triggered run"
-            echo "should_retry=false" >> $GITHUB_OUTPUT
-            echo "failed_runs=0" >> $GITHUB_OUTPUT
-          fi
-          else
-            echo "No failures found in triggered run"
-          # Get the most recent completed run that failed
-          LAST_RUN=$(gh api \
-            repos/${{ github.repository }}/actions/runs \
-            -q '.workflow_runs[0] | select(.status=="completed" and .conclusion=="failure") | .id')
-
-          if [ -z "$LAST_RUN" ]; then
-            echo "No recent failures found"
-            echo "should_retry=false" >> $GITHUB_OUTPUT
-            echo "failed_runs=0" >> $GITHUB_OUTPUT
-          fi
-            fi
-            
-            echo "First failure detected. Triggering retry..."
-          else
-            echo "Found failed workflow run: $LAST_RUN"
-            echo "should_retry=true" >> $GITHUB_OUTPUT
-            echo "failed_runs=$TRIGGERED_RUN_ID" >> $GITHUB_OUTPUT
-          else
-            echo "No failures found in triggered run"
-            echo "should_retry=false" >> $GITHUB_OUTPUT
-            echo "failed_runs=0" >> $GITHUB_OUTPUT
-            echo "failed_runs=$LAST_RUN" >> $GITHUB_OUTPUT
-          fi
 
   trigger-retry:
     name: Trigger Pipeline Retry
