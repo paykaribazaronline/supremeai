@@ -1,0 +1,75 @@
+{
+  "providers": [
+    {
+      "name": "google_ai_studio",
+      "base_url": "https://generativelanguage.googleapis.com",
+      "models": [
+        "gemini-2.0-flash-exp",
+        "gemini-1.5-pro"
+      ],
+      "rate_limit_rpm": 15,
+      "rate_limit_tpm": 1000000,
+      "accounts": [],
+      "status": "active",
+      "cost_per_token": 0.0001
+    },
+    {
+      "name": "groq",
+      "base_url": "https://api.groq.com",
+      "models": [
+        "llama3-70b-8192",
+        "mixtral-8x7b-32768"
+      ],
+      "rate_limit_rpm": 60,
+      "rate_limit_tpm": 1000000,
+      "accounts": [],
+      "status": "active",
+      "cost_per_token": 0.0002
+    },
+    {
+      "name": "deepseek",
+      "base_url": "https://api.deepseek.com",
+      "models": [
+        "deepseek-coder",
+        "deepseek-chat"
+      ],
+      "rate_limit_rpm": 100,
+      "rate_limit_tpm": 5000000,
+      "accounts": [],
+      "status": "active",
+      "cost_per_token": 5e-05
+    }
+  ],
+  "task_preferences": {
+    "coding": [
+      "deepseek",
+      "groq",
+      "google_ai_studio"
+    ],
+    "chat": [
+      "groq",
+      "google_ai_studio",
+      "deepseek"
+    ],
+    "reasoning": [
+      "deepseek",
+      "groq",
+      "google_ai_studio"
+    ],
+    "debugging": [
+      "deepseek",
+      "google_ai_studio",
+      "groq"
+    ],
+    "research": [
+      "google_ai_studio",
+      "groq",
+      "deepseek"
+    ],
+    "creative": [
+      "groq",
+      "google_ai_studio",
+      "deepseek"
+    ]
+  }
+}
