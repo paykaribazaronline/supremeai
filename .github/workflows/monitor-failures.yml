@@ -17,6 +17,7 @@ jobs:
   check-failures:
     name: Check For Failed Workflows
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       should_retry: ${{ steps.check.outputs.should_retry }}
       failed_runs: ${{ steps.check.outputs.failed_runs }}
@@ -39,15 +40,22 @@ jobs:
           echo "Conclusion: $CONCLUSION"
           
           if [ "$CONCLUSION" == "failure" ] || [ "$CONCLUSION" == "cancelled" ]; then
-            # Check recent runs to see if we're in a retry chain
-            RECENT_FAILED=$(gh api \
-              "repos/${{ github.repository }}/actions/workflows/supreme_pipeline.yml/runs?per_page=5" | \
-              jq -r --arg current_id "$TRIGGERED_RUN_ID" \
-                '[.workflow_runs[] | select(.id != ($current_id | tonumber) and .status == "completed")] | .[0].conclusion // empty' )
-            
-            echo "Most recent previous run conclusion: ${RECENT_FAILED:-none}"
-            
-            if [ "$RECENT_FAILED" == "failure" ] || [ "$RECENT_FAILED" == "cancelled" ]; then
+            # Get workflow runs with proper pagination and filtering
+            RECENT_RUNS=$(gh api \
+              "repos/${{ github.repository }}/actions/runs?workflow=SupremeAI_Master_Pipeline&per_page=10" \
+              -q '.workflow_runs | sort_by(.created_at) | reverse')
+
+            # Find the most recent completed run before the current one
+            PREVIOUS_RUN=$(echo "$RECENT_RUNS" | jq -r --arg current_id "$TRIGGERED_RUN_ID" \
+              '[.[] | select(.id != ($current_id | tonumber) and .status == "completed")] | .[0]')
+
+            PREVIOUS_CONCLUSION=$(echo "$PREVIOUS_RUN" | jq -r '.conclusion // empty')
+            PREVIOUS_ID=$(echo "$PREVIOUS_RUN" | jq -r '.id // empty')
+
+            echo "Previous run ID: $PREVIOUS_ID"
+            echo "Previous conclusion: $PREVIOUS_CONCLUSION"
+
+            if [ "$PREVIOUS_CONCLUSION" == "failure" ] || [ "$PREVIOUS_CONCLUSION" == "cancelled" ]; then
               echo "Previous run also failed. Already retrying. Not retrying again to avoid infinite loop."
               echo "should_retry=false" >> $GITHUB_OUTPUT
               echo "failed_runs=0" >> $GITHUB_OUTPUT
@@ -68,6 +76,18 @@ jobs:
     if: needs.check-failures.outputs.should_retry == 'true'
     runs-on: ubuntu-latest
     steps:
+      - name: Check retry count
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RETRY_COUNT=$(gh api \
+            "repos/${{ github.repository }}/actions/runs?workflow=SupremeAI_Master_Pipeline&per_page=20" | \
+            jq '[.workflow_runs[] | select(.conclusion == "failure")] | length')
+
+          if [ "$RETRY_COUNT" -ge 3 ]; then
+            echo "Too many retries. Aborting."
+            exit 1
+          fi
       - name: Retry SupremeAI Master Pipeline
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
