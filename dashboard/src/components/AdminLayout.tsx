@@ -41,7 +41,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => {
 
   useEffect(() => {
     // Connect to the WebSocket server
-    const socket = new SockJS('https://supremeai-lhlwyikwlq-uc.a.run.app/ws/simulator'); // Your backend WebSocket URL
+    const socket = new SockJS(import.meta.env.VITE_WS_URL || 'wss://supremeai-lhlwyikwlq-uc.a.run.app/ws/simulator'); // Your backend WebSocket URL
     const stompClient = new Client({
       webSocketFactory: () => socket,
       reconnectDelay: 5000,
