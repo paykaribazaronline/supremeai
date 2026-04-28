@@ -47,9 +47,9 @@ public class OllamaProvider implements AIProvider {
             @Value("${ai.providers.ollama.model:llama3.1:8b}") String model,
             @Value("${ai.providers.ollama.endpoint:http://localhost:11434/api/generate}") String baseUrl) {
         this.httpClient = new OkHttpClient.Builder()
-                .callTimeout(Duration.ofSeconds(60))
-                .readTimeout(Duration.ofSeconds(60))
-                .writeTimeout(Duration.ofSeconds(60))
+                .callTimeout(Duration.ofSeconds(180))
+                .readTimeout(Duration.ofSeconds(180))
+                .writeTimeout(Duration.ofSeconds(180))
                 .build();
         this.objectMapper = new ObjectMapper();
         this.model = model;
@@ -106,13 +106,14 @@ public class OllamaProvider implements AIProvider {
             OllamaOptions options
     ) {}
 
-    record OllamaOptions(
-            @JsonProperty("num_ctx") int numCtx,
-            float temperature,
-            @JsonProperty("top_p") float topP,
-            @JsonProperty("num_batch") int numBatch,
-            @JsonProperty("num_thread") int numThread
-    ) {}
+     record OllamaOptions(
+             @JsonProperty("num_ctx") int numCtx,
+             float temperature,
+             @JsonProperty("top_p") float topP,
+             @JsonProperty("num_batch") int numBatch,
+             @JsonProperty("num_thread") int numThread,
+             @JsonProperty("num_gpu") int numGpu
+     ) {}
 
     record OllamaResponse(
             String response,
