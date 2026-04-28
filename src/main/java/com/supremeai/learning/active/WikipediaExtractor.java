@@ -105,7 +105,7 @@ public class WikipediaExtractor implements SiteExtractor {
             if (response != null) {
                 JsonNode root = new com.fasterxml.jackson.databind.ObjectMapper().readTree(response);
                 JsonNode extract = root.path("extract");
-                return extract.isTextual() ? extract.asText("") : "";
+                return extract.isTextual() ? extract.textValue() : "";
             }
         } catch (Exception e) {
             log.debug("Failed to fetch Wikipedia summary for {}: {}", title, e.getMessage());
