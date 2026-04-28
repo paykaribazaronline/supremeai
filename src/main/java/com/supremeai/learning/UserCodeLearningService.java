@@ -404,15 +404,19 @@ public class UserCodeLearningService {
      */
     public void recordFailure(String errorSignature, String failedCode) {
         try {
+            if (failedCode == null) failedCode = "";
+            
             SystemLearning pattern = new SystemLearning();
             String patternId = "error_" + System.currentTimeMillis();
             pattern.setId(patternId);
             pattern.setLearningType("ERROR_PATTERN");
             pattern.setCategory("ERROR");
-            pattern.setContent("Error: " + errorSignature + "\nCode: " + failedCode.substring(0, Math.min(200, failedCode.length())));
+            pattern.setTopic("VS Code Extension");
+            pattern.setSources(List.of("vscode-extension"));
+            pattern.setContent("Error: " + errorSignature + 
+                "\nCode: " + failedCode.substring(0, Math.min(200, failedCode.length())));
             pattern.setConfidenceScore(0.5);
             pattern.setLearnedAt(java.time.LocalDateTime.now());
-            pattern.setSource("vscode-extension");
             pattern.setMetadata(Map.of(
                 "errorSignature", errorSignature,
                 "failedCode", failedCode.substring(0, Math.min(500, failedCode.length()))
@@ -422,16 +426,7 @@ public class UserCodeLearningService {
             patternCache.put(patternId, pattern);
             
             if (firestore != null) {
-                Map<String, Object> data = new HashMap<>();
-                data.put("id", pattern.getId());
-                data.put("learningType", pattern.getLearningType());
-                data.put("category", pattern.getCategory());
-                data.put("content", pattern.getContent());
-                data.put("confidenceScore", pattern.getConfidenceScore());
-                data.put("learnedAt", pattern.getLearnedAt().toString());
-                data.put("source", pattern.getSource());
-                data.put("metadata", pattern.getMetadata());
-                
+                Map<String, Object> data = systemLearningToMap(pattern);
                 firestore.collection(systemLearningCollection)
                         .add(data)
                         .thenAccept(documentReference -> 
