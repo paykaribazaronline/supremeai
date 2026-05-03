@@ -3,8 +3,8 @@ plugins {
     // Trigger CI/CD Pipeline
     id("application")
     id("jacoco")
-    id("org.springframework.boot") version "3.2.3"
-    id("io.spring.dependency-management") version "1.1.4"
+    id("org.springframework.boot") version "3.3.4"
+    id("io.spring.dependency-management") version "1.1.7"
 }
 
 group = "com.supremeai"
@@ -64,9 +64,9 @@ dependencies {
     implementation("org.jsoup:jsoup:1.17.1")
 
     // Logging - STRUCTURED LOGGING
-    implementation("org.slf4j:slf4j-api:2.0.12")
-    implementation("ch.qos.logback:logback-classic:1.4.14")
-    implementation("ch.qos.logback:logback-core:1.4.14")
+    implementation("org.slf4j:slf4j-api:2.0.16")
+    implementation("ch.qos.logback:logback-classic:1.5.8")
+    implementation("ch.qos.logback:logback-core:1.5.8")
 
     // JWT Authentication
     implementation("io.jsonwebtoken:jjwt-api:0.12.5")
