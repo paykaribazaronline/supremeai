@@ -2,24 +2,31 @@
 // UNIFIED ADMIN DASHBOARD - Single Source of Truth Contract
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Layout, Menu, Card, Statistic, Row, Col, Alert, Badge, Space, Tabs, Empty, Button, Modal, Input, message, Avatar, Dropdown, Typography, Divider } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
+import { Layout, Menu, Card, Statistic, Row, Col, Alert, Badge, Space, Tabs, Empty, Button, Modal, Input, message, Avatar, Dropdown, Typography, Divider, Collapse, FloatButton } from 'antd';
+import { SearchOutlined, MessageOutlined, CloseOutlined } from '@ant-design/icons';
 import { 
     BulbOutlined, LogoutOutlined, UserOutlined, BellOutlined,
     DashboardOutlined, ApiOutlined, CloudServerOutlined, RobotOutlined,
     TeamOutlined, SettingOutlined, CheckCircleOutlined, WarningOutlined,
-    BugOutlined, NodeIndexOutlined, MenuFoldOutlined, MenuUnfoldOutlined
+    BugOutlined, NodeIndexOutlined, MenuFoldOutlined, MenuUnfoldOutlined,
+    RocketOutlined, SafetyOutlined, DollarOutlined, AuditOutlined,
+    SyncOutlined, GlobalOutlined, DesktopOutlined, HistoryOutlined
 } from '@ant-design/icons';
 import { authUtils } from '../lib/authUtils';
 import PhasesOverview from '../components/PhasesOverview';
 import AIAgentsDashboard from '../components/AIAgentsDashboard';
 import ExploitationDashboard from '../components/ExploitationDashboard';
+import ChatWithAI from '../components/ChatWithAI';
+import SystemLearningDashboard from '../components/SystemLearningDashboard';
+import RequirementsDashboard from '../components/RequirementsDashboard';
+import AdminOCRCard from '../components/AdminOCRCard';
 import { notification } from 'antd';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
 const { TextArea, Title } = Typography;
 const { Header, Content, Sider } = Layout;
+const { Panel } = Collapse;
 
 interface DashboardStats {
     activeAIAgents: number;
@@ -61,17 +68,34 @@ interface DashboardContract {
 }
 
 const AdminDashboardUnified: React.FC = () => {
-    const [collapsed, setCollapsed] = useState(false);
+    const [collapsed, setCollapsed] = useState(true);
     const [selectedKey, setSelectedKey] = useState('overview');
     const [contract, setContract] = useState<DashboardContract | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [chatVisible, setChatVisible] = useState(false);
+    const [notifications, setNotifications] = useState<Record<string, number>>({
+        'ai-agents': 3,
+        'exploitation-techniques': 1,
+        'phases': 0,
+        'git-ops': 2
+    });
 
     // Suggestion modal state
     const [suggestionOpen, setSuggestionOpen] = useState(false);
     const [suggestionText, setSuggestionText] = useState('');
     const [suggestionLoading, setSuggestionLoading] = useState(false);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key.toLowerCase() === 'c' && (e.target as HTMLElement).tagName !== 'INPUT' && (e.target as HTMLElement).tagName !== 'TEXTAREA') {
+                setChatVisible(prev => !prev);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     useEffect(() => {
         fetchContract();
@@ -425,6 +449,11 @@ const AdminDashboardUnified: React.FC = () => {
                         mode="inline"
                         selectedKeys={[selectedKey]}
                         onSelect={(e) => {
+                            // Scroll to section instead of selecting tab
+                            const element = document.getElementById(e.key);
+                            if (element) {
+                                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
                             setSelectedKey(e.key);
                             setSearchQuery('');
                         }}
@@ -550,7 +579,7 @@ const AdminDashboardUnified: React.FC = () => {
                 </Header>
 
                 {/* CONTENT */}
-                <Content style={{ margin: '28px 32px', paddingBottom: '40px' }}>
+                <Content style={{ margin: '28px 32px', paddingBottom: '40px', overflowY: 'auto' }}>
                     {/* Stats Row - Modern gradient cards */}
                     <Row gutter={[20, 20]} style={{ marginBottom: '28px' }}>
                         <Col xs={24} sm={12} md={6}>
@@ -657,165 +686,168 @@ const AdminDashboardUnified: React.FC = () => {
                         </Col>
                     </Row>
 
-                    {/* Selected Component Panel */}
-                    <Card
-                        style={{ 
-                            borderRadius: '16px',
-                            border: 'none',
-                            boxShadow: '0 4px 20px -5px rgba(0, 0, 0, 0.08)',
-                        }}
-                        title={
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                {selectedComponent && (
-                                    <div style={{
-                                        width: '40px',
-                                        height: '40px',
-                                        borderRadius: '12px',
-                                        background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '18px',
-                                        color: 'white',
-                                    }}>
-                                        {selectedComponent.icon}
-                                    </div>
-                                )}
-                                <div>
-                                    <div style={{ fontWeight: 700, fontSize: '18px', color: '#111827' }}>
-                                        {selectedComponent ? selectedComponent.label : 'Welcome'}
-                                    </div>
-                                    {selectedComponent && (
-                                        <div style={{ fontSize: '13px', color: '#6B7280' }}>
-                                            {selectedComponent.category} Module
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        }
-                        extra={
-                            <Space size="middle">
-                                {selectedComponent && (
-                                    <Badge
-                                        status={selectedComponent.enabled ? 'success' : 'error'}
-                                        text={selectedComponent.enabled ? 'Enabled' : 'Disabled'}
-                                        style={{ fontWeight: 500 }}
-                                    />
-                                )}
-                                <Button
-                                    type="primary"
-                                    icon={<BulbOutlined />}
-                                    onClick={() => setSuggestionOpen(true)}
-                                    style={{ 
-                                        background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
-                                        border: 'none',
-                                        borderRadius: '10px',
-                                        height: '40px',
-                                        fontWeight: 500,
-                                        boxShadow: '0 4px 15px -5px rgba(124, 58, 237, 0.4)',
-                                    }}
+                    <Row gutter={[24, 24]}>
+                        <Col lg={chatVisible ? 16 : 24} md={24} style={{ transition: 'all 0.3s' }}>
+                            <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                                {/* Unified Cards - All in one scrollable page */}
+
+                                <Card
+                                    id="requirements"
+                                    title={
+                                        <Space>
+                                            <Badge count={notifications['requirements'] || 2} offset={[10, 0]} color="#f5222d">
+                                                <CheckCircleOutlined style={{ color: '#10B981' }} />
+                                            </Badge>
+                                            <span>Requirements Approval</span>
+                                        </Space>
+                                    }
+                                    extra={<Button size="small" type="primary" ghost>Approve All</Button>}
+                                    style={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
                                 >
-                                    Suggest Changes
-                                </Button>
-                            </Space>
-                        }
-                    >
-                        {selectedComponent ? (
-                            <div>
-                                {/* Render real component for known keys */}
-                                {selectedKey === 'phases' ? (
-                                    <PhasesOverview />
-                                ) : selectedKey === 'ai-agents' ? (
+                                    <RequirementsDashboard />
+                                </Card>
+
+                                <Card
+                                    id="ocr"
+                                    title={
+                                        <Space>
+                                            <DesktopOutlined style={{ color: '#eb2f96' }} />
+                                            <span>Bengali OCR Processing</span>
+                                        </Space>
+                                    }
+                                    style={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
+                                >
+                                    <AdminOCRCard />
+                                </Card>
+
+                                <Card
+                                    id="ai-agents"
+                                    title={
+                                        <Space>
+                                            <Badge count={notifications['ai-agents']} offset={[10, 0]} color="#ff4d4f">
+                                                <RobotOutlined style={{ color: '#7C3AED' }} />
+                                            </Badge>
+                                            <span>AI Agents Management</span>
+                                        </Space>
+                                    }
+                                    extra={<Button size="small" type="primary" ghost icon={<SyncOutlined />}>Rotate All</Button>}
+                                    style={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
+                                >
                                     <AIAgentsDashboard />
-                                ) : selectedKey === 'exploitation-techniques' ? (
+                                </Card>
+
+                                <Card
+                                    id="phases"
+                                    title={
+                                        <Space>
+                                            <Badge count={notifications['phases']} offset={[10, 0]}>
+                                                <NodeIndexOutlined style={{ color: '#3B82F6' }} />
+                                            </Badge>
+                                            <span>Project Phases Overview</span>
+                                        </Space>
+                                    }
+                                    style={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
+                                >
+                                    <PhasesOverview />
+                                </Card>
+
+                                <Card
+                                    id="exploitation-techniques"
+                                    title={
+                                        <Space>
+                                            <Badge count={notifications['exploitation-techniques']} offset={[10, 0]}>
+                                                <BugOutlined style={{ color: '#EF4444' }} />
+                                            </Badge>
+                                            <span>Exploitation & Security</span>
+                                        </Space>
+                                    }
+                                    style={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
+                                >
                                     <ExploitationDashboard />
-                                ) : (
-                                    <>
-                                        <p>
-                                            <strong>Category:</strong> {selectedComponent.category}
-                                        </p>
-                                        <p>
-                                            <strong>Configuration:</strong>
-                                        </p>
-                                        <pre style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
-                                            {JSON.stringify(selectedComponent.config, null, 2)}
-                                        </pre>
+                                </Card>
 
-                                        {/* Placeholder for actual component render */}
-                                        <div
-                                            style={{
-                                                marginTop: '20px',
-                                                padding: '20px',
-                                                background: '#fafafa',
-                                                textAlign: 'center',
-                                                borderRadius: '4px',
-                                            }}
-                                        >
-                                            <p style={{ color: '#999' }}>
-                                                {selectedComponent.label} component placeholder
-                                            </p>
-                                            <p style={{ fontSize: '12px', color: '#ccc' }}>
-                                                Endpoint: {selectedComponent.config?.endpoint || 'N/A'}
-                                            </p>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        ) : (
-                            <Empty description="No component selected" />
-                        )}
-                    </Card>
+                                <Card
+                                    id="system-learning"
+                                    title={
+                                        <Space>
+                                            <BulbOutlined style={{ color: '#F59E0B' }} />
+                                            <span>System Learning Intelligence</span>
+                                        </Space>
+                                    }
+                                    style={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
+                                >
+                                    <SystemLearningDashboard />
+                                </Card>
 
-                    {/* Available Endpoints - From contract */}
-                    <Card 
-                        title={
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                {/* API Endpoints Section */}
+                                <Card
+                                    id="api-endpoints"
+                                    title={<Space><ApiOutlined style={{ color: '#10B981' }} /><span>API Endpoints Console</span></Space>}
+                                    style={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
+                                >
+                                    <Tabs
+                                        size="large"
+                                        items={Object.entries(contract.apiEndpoints).map(([category, endpoints]) => ({
+                                            key: category,
+                                            label: <span style={{ fontWeight: 600, textTransform: 'uppercase' }}>{category}</span>,
+                                            children: (
+                                                <pre style={{
+                                                    background: '#F8FAFC',
+                                                    padding: '20px',
+                                                    borderRadius: '12px',
+                                                    border: '1px solid #E5E7EB',
+                                                    overflow: 'auto',
+                                                    maxHeight: '400px',
+                                                    fontSize: '13px',
+                                                    fontFamily: 'JetBrains Mono, monospace',
+                                                }}>
+                                                    {JSON.stringify(endpoints, null, 2)}
+                                                </pre>
+                                            ),
+                                        }))}
+                                    />
+                                </Card>
+                            </Space>
+                        </Col>
+
+                        {/* Inline Chat Panel */}
+                        {chatVisible && (
+                            <Col lg={8} md={24}>
                                 <div style={{
-                                    width: '36px',
-                                    height: '36px',
-                                    borderRadius: '10px',
-                                    background: 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)',
+                                    position: 'sticky',
+                                    top: '20px',
+                                    height: 'calc(100vh - 150px)',
                                     display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: 'white',
-                                    fontSize: '16px',
+                                    flexDirection: 'column'
                                 }}>
-                                    📡
+                                    <Card
+                                        title={
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <Space><MessageOutlined /><span>ChatAI Assistant</span></Space>
+                                                <Button type="text" icon={<CloseOutlined />} onClick={() => setChatVisible(false)} />
+                                            </div>
+                                        }
+                                        bodyStyle={{ flex: 1, padding: 0, overflow: 'hidden' }}
+                                        style={{ height: '100%', borderRadius: '16px', display: 'flex', flexDirection: 'column' }}
+                                    >
+                                        <ChatWithAI />
+                                    </Card>
                                 </div>
-                                <span style={{ fontWeight: 700, fontSize: '16px' }}>API Endpoints</span>
-                            </div>
-                        }
-                        style={{ 
-                            marginTop: '28px',
-                            borderRadius: '16px',
-                            border: 'none',
-                            boxShadow: '0 4px 20px -5px rgba(0, 0, 0, 0.08)',
-                        }}
-                    >
-                        <Tabs
-                            size="large"
-                            items={Object.entries(contract.apiEndpoints).map(([category, endpoints]) => ({
-                                key: category,
-                                label: <span style={{ fontWeight: 600, textTransform: 'uppercase' }}>{category}</span>,
-                                children: (
-                                    <pre style={{ 
-                                        background: '#F8FAFC', 
-                                        padding: '20px', 
-                                        borderRadius: '12px',
-                                        border: '1px solid #E5E7EB',
-                                        overflow: 'auto',
-                                        maxHeight: '400px',
-                                        fontSize: '13px',
-                                        fontFamily: 'JetBrains Mono, monospace',
-                                    }}>
-                                        {JSON.stringify(endpoints, null, 2)}
-                                    </pre>
-                                ),
-                            }))}
-                        />
-                    </Card>
+                            </Col>
+                        )}
+                    </Row>
                 </Content>
+
+                {/* Floating Action Button for Chat */}
+                {!chatVisible && (
+                    <FloatButton
+                        icon={<MessageOutlined />}
+                        type="primary"
+                        onClick={() => setChatVisible(true)}
+                        style={{ right: 24, bottom: 24, width: 60, height: 60 }}
+                        tooltip={<div>Open ChatAI (C)</div>}
+                    />
+                )}
             </Layout>
 
             {/* Suggestion Modal */}

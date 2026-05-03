@@ -1,10 +1,17 @@
 package com.supremeai.selfhealing;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import reactor.core.publisher.Mono;
 
-import java.util.concurrent.Callable;
+import com.supremeai.service.AIReasoningService;
+import com.supremeai.service.SelfHealingService;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class SelfHealingServiceTest {
 
