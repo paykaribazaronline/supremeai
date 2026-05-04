@@ -42,16 +42,7 @@ public class CacheConfig {
      * - 10 minute TTL
      * - Fast in-memory access for frequently requested data
      */
-    @Bean
-    public CaffeineCache l1Cache() {
-        return new CaffeineCache("l1-cache",
-            Caffeine.newBuilder()
-                .maximumSize(l1MaxSize)
-                .expireAfterWrite(Duration.ofMinutes(l1ExpireAfterWriteMinutes))
-                .recordStats()
-                .build()
-        );
-    }
+
 
     /**
      * L1 Cache Manager for local caching

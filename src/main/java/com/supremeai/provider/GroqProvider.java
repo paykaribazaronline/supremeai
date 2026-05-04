@@ -1,27 +1,20 @@
 package com.supremeai.provider;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.*;
+import org.springframework.stereotype.Component;
 
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-public class GroqProvider implements AIProvider {
+/**
+ * Groq Provider implementation using shared HTTP client and ObjectMapper.
+ * Extends AbstractHttpProvider for optimized performance.
+ */
+@Component
+public class GroqProvider extends AbstractHttpProvider {
     private static final String API_URL = "https://api.groq.com/openai/v1/chat/completions";
-    private final String apiKey;
-    private final OkHttpClient httpClient;
-    private final ObjectMapper objectMapper;
 
     public GroqProvider(String apiKey) {
-        if (apiKey == null || apiKey.isEmpty()) {
-            throw new IllegalArgumentException("Groq API key must be provided.");
-        }
-        this.apiKey = apiKey;
-        this.httpClient = new OkHttpClient();
-        this.objectMapper = new ObjectMapper();
+        super(apiKey, API_URL, "mixtral-8x7b-32768");
     }
 
     @Override
@@ -38,42 +31,29 @@ public class GroqProvider implements AIProvider {
     }
 
     @Override
-    public Mono<String> generate(String prompt) {
-        return Mono.fromCallable(() -> {
-            try {
-                Map<String, Object> requestBody = Map.of(
-                        "messages", List.of(Map.of("role", "user", "content", prompt)),
-                        "model", "mixtral-8x7b-32768"
-                );
+    protected Map<String, Object> createRequestBody(String prompt) {
+        return Map.of(
+                "messages", List.of(Map.of("role", "user", "content", prompt)),
+                "model", "mixtral-8x7b-32768"
+        );
+    }
 
-                String jsonBody = objectMapper.writeValueAsString(requestBody);
+    @Override
+    protected String extractResponse(String responseBody) throws Exception {
+        Map<String, Object> responseMap = objectMapper.readValue(responseBody,
+                new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
+        if (choices != null && !choices.isEmpty()) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+            return (String) message.get("content");
+        }
+        return "No response from Groq.";
+    }
 
-                Request request = new Request.Builder()
-                        .url(API_URL)
-                        .addHeader("Authorization", "Bearer " + apiKey)
-                        .addHeader("Content-Type", "application/json")
-                        .post(RequestBody.create(jsonBody, MediaType.get("application/json")))
-                        .build();
-
-                try (Response response = httpClient.newCall(request).execute()) {
-                    if (!response.isSuccessful()) {
-                        throw new IOException("Unexpected code " + response);
-                    }
-
-                    Map<String, Object> responseMap = objectMapper.readValue(response.body().string(), new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
-                    @SuppressWarnings("unchecked")
-                    List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
-                    if (choices != null && !choices.isEmpty()) {
-                        @SuppressWarnings("unchecked")
-                        Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-                        return (String) message.get("content");
-                    }
-                    return "No response from Groq.";
-                }
-            } catch (IOException e) {
-                // In a real app, you'd have more robust error handling
-                throw new RuntimeException("Failed to call Groq API", e);
-            }
-        }).subscribeOn(Schedulers.boundedElastic());
+    @Override
+    protected void addAuthHeaders(okhttp3.Request.Builder builder) {
+        builder.addHeader("Authorization", "Bearer " + apiKey);
     }
 }

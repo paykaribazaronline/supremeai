@@ -1,27 +1,20 @@
 package com.supremeai.provider;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.*;
+import org.springframework.stereotype.Component;
 
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-public class AnthropicProvider implements AIProvider {
+/**
+ * Anthropic Provider implementation using shared HTTP client and ObjectMapper.
+ * Extends AbstractHttpProvider for optimized performance.
+ */
+@Component
+public class AnthropicProvider extends AbstractHttpProvider {
     private static final String API_URL = "https://api.anthropic.com/v1/messages";
-    private final String apiKey;
-    private final OkHttpClient httpClient;
-    private final ObjectMapper objectMapper;
 
     public AnthropicProvider(String apiKey) {
-        if (apiKey == null || apiKey.isEmpty()) {
-            throw new IllegalArgumentException("Anthropic API key must be provided.");
-        }
-        this.apiKey = apiKey;
-        this.httpClient = new OkHttpClient();
-        this.objectMapper = new ObjectMapper();
+        super(apiKey, API_URL, "claude-3-sonnet-20240229");
     }
 
     @Override
@@ -38,41 +31,34 @@ public class AnthropicProvider implements AIProvider {
     }
 
     @Override
-    public Mono<String> generate(String prompt) {
-        return Mono.fromCallable(() -> {
-            try {
-                Map<String, Object> requestBody = Map.of(
-                        "messages", List.of(Map.of("role", "user", "content", prompt)),
-                        "model", "claude-3-sonnet-20240229",
-                        "max_tokens", 1024
-                );
+    protected Map<String, Object> createRequestBody(String prompt) {
+        return Map.of(
+                "messages", List.of(Map.of("role", "user", "content", prompt)),
+                "model", "claude-3-sonnet-20240229",
+                "max_tokens", 1024
+        );
+    }
 
-                String jsonBody = objectMapper.writeValueAsString(requestBody);
+    @Override
+    protected String extractResponse(String responseBody) throws Exception {
+        Map<String, Object> responseMap = objectMapper.readValue(responseBody,
+                new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> content = (List<Map<String, Object>>) responseMap.get("content");
+        if (content != null && !content.isEmpty()) {
+            return (String) content.get(0).get("text");
+        }
+        return "No response from Anthropic.";
+    }
 
-                Request request = new Request.Builder()
-                        .url(API_URL)
-                        .addHeader("x-api-key", apiKey)
-                        .addHeader("anthropic-version", "2023-06-01")
-                        .addHeader("Content-Type", "application/json")
-                        .post(RequestBody.create(jsonBody, MediaType.get("application/json")))
-                        .build();
+    @Override
+    protected void addAuthHeaders(okhttp3.Request.Builder builder) {
+        builder.addHeader("x-api-key", apiKey)
+               .addHeader("anthropic-version", "2023-06-01");
+    }
 
-                try (Response response = httpClient.newCall(request).execute()) {
-                    if (!response.isSuccessful()) {
-                        throw new IOException("Unexpected code " + response + " - " + response.body().string());
-                    }
-
-                    Map<String, Object> responseMap = objectMapper.readValue(response.body().string(), new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
-                    @SuppressWarnings("unchecked")
-                    List<Map<String, Object>> content = (List<Map<String, Object>>) responseMap.get("content");
-                    if (content != null && !content.isEmpty()) {
-                        return (String) content.get(0).get("text");
-                    }
-                    return "No response from Anthropic.";
-                }
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to call Anthropic API", e);
-            }
-        }).subscribeOn(Schedulers.boundedElastic());
+    @Override
+    protected void addExtraHeaders(okhttp3.Request.Builder builder) {
+        builder.addHeader("Content-Type", "application/json");
     }
 }
