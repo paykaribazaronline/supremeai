@@ -3,5 +3,4 @@ plugins {
 }
 rootProject.name = "supremeai"
 
-// Temporarily disabled for build stability - re-enable after Kotlin 2.1 compatibility fix
-// include(":supremeai-intellij-plugin")
+// Plugin module is a standalone project with its own settings.gradle.kts
