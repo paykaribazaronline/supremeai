@@ -401,6 +401,8 @@ jobs:
           distribution: "temurin"
       - name: Setup k6
         uses: grafana/k6-action@v0.3.0
+        with:
+          filename: performance-test.js
       - name: Download JAR
         uses: actions/download-artifact@v4
         with:
@@ -782,3 +784,7 @@ jobs:
           else
             echo "All deployments successful!"
           fi
+          else
+            echo "All deployments successful!"
+          fi
+
