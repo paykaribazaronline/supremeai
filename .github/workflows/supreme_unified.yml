@@ -84,6 +84,7 @@ jobs:
               - '**/*.gradle*'
             frontend:
               - 'supremeai/**'
+              - 'dashboard/**'
               - 'supremeai/firebase.json'
               - '.github/workflows/**'
             plugin:
