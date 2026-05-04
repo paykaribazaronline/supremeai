@@ -3,14 +3,16 @@ package com.supremeai.service;
 import com.supremeai.model.*;
 import com.supremeai.repository.*;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
+import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
+@ConditionalOnProperty(name = "spring.cloud.gcp.firestore.enabled", havingValue = "true", matchIfMissing = true)
 public class ChatProcessingService {
 
     private final ChatClassifier chatClassifier;

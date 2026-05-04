@@ -86,7 +86,7 @@ object KnowledgeValidator {
      * Check for profanity
      */
     private fun containsProfanity(text: String): Boolean {
-        val profanityList = listOf(
+        val profanityList = listOf<String>(
             // Add profanity words here
         )
         
@@ -102,7 +102,7 @@ object KnowledgeValidator {
             Regex("(.)\\1{5,}"), // Repeated characters
             Regex("https?://[^\\s\"]+"), // URLs (might be legitimate)
             Regex("[A-Z]{5,}"), // All caps
-            Regex("\\$[a-zA-Z_][a-zA-Z0-9_]*"), // Variable names (might be legitimate)
+            Regex("\\$[a-zA-Z_][a-zA-Z0-9_]*") // Variable names (might be legitimate)
         )
         
         // Count spam indicators
@@ -120,16 +120,16 @@ object KnowledgeValidator {
         
         // Check for GPL contamination in proprietary code
         if (item.tags.contains("proprietary")) {
-            if (item.response.contains("GPL", RegexOption.IGNORE_CASE) ||
-                item.response.contains("General Public License", RegexOption.IGNORE_CASE)) {
+            if (item.response.contains("GPL", ignoreCase = true) ||
+                item.response.contains("General Public License", ignoreCase = true)) {
                 issues.add("GPL contamination in proprietary code")
             }
         }
         
         // Check for license headers
-        if (item.response.contains("Copyright", RegexOption.IGNORE_CASE) &&
-            !item.response.contains("Apache License", RegexOption.IGNORE_CASE) &&
-            !item.response.contains("MIT License", RegexOption.IGNORE_CASE)) {
+        if (item.response.contains("Copyright", ignoreCase = true) &&
+            !item.response.contains("Apache License", ignoreCase = true) &&
+            !item.response.contains("MIT License", ignoreCase = true)) {
             issues.add("Unknown license header detected")
         }
         

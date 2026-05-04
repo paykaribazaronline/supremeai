@@ -14,7 +14,8 @@ import org.springframework.context.annotation.ComponentScan;
     "com.supremeai.config",
     "com.supremeai.service",
     "com.supremeai.controller",
-    "com.supremeai.selfhealing"
+    "com.supremeai.selfhealing",
+    "com.supremeai.repository"
 })
 public class Application {
     public static void main(String[] args) {

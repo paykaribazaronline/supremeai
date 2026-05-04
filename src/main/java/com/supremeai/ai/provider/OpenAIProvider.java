@@ -3,6 +3,7 @@ package com.supremeai.ai.provider;
 import com.supremeai.dto.AISolution;
 import com.supremeai.dto.ProblemStatement;
 
+@SuppressWarnings("unused")
 public class OpenAIProvider implements AIProvider {
     private final String apiKey;
 

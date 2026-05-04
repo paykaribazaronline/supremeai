@@ -143,7 +143,7 @@ export class FeedbackHandler {
       const service = getSupremeAIService();
       const result = await service.sendFeedback(feedback);
       if (result.success) {
-        console.log(`[SupremeAI] Feedback sent successfully`);
+        console.log('[SupremeAI] Feedback sent successfully');
       }
     } catch (error: any) {
       console.error(`[SupremeAI] Failed to send feedback: ${error.message}`);

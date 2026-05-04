@@ -134,7 +134,6 @@ object KnowledgeSyncService {
     /**
      * Sync request
      */
-    @Serializable
     data class SyncRequest(
         val items: List<KnowledgeItem>,
         val source: String,
@@ -144,7 +143,6 @@ object KnowledgeSyncService {
     /**
      * Sync response
      */
-    @Serializable
     data class SyncResponse(
         val items: List<KnowledgeItem>,
         val total: Int,

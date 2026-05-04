@@ -6,6 +6,7 @@ import java.util.*;
  * Schema for command parameters
  * Defines what parameters a command accepts and validation rules
  */
+@SuppressWarnings("unused")
 public class CommandSchema {
     private final String commandName;
     private final Map<String, ParameterSpec> parameters;

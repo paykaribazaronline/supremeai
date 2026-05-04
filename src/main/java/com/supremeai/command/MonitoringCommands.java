@@ -12,6 +12,7 @@ import java.util.*;
  * - Quota Status
  * - Error Report
  */
+@SuppressWarnings("unused")
 public class MonitoringCommands {
     private static final Logger logger = LoggerFactory.getLogger(MonitoringCommands.class);
     

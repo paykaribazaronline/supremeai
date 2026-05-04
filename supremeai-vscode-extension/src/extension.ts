@@ -9,6 +9,9 @@ import { CodeEditHandler } from './handlers/CodeEditHandler';
 import { ErrorHandler } from './handlers/ErrorHandler';
 import { FeedbackHandler } from './handlers/FeedbackHandler';
 import { SupremeAIConfig } from './types';
+import { SupremeAISidebarProvider } from './providers/SupremeAISidebarProvider';
+import { SupremeAIActivityProvider } from './providers/SupremeAIActivityProvider';
+import { SupremeAIChatProvider } from './providers/SupremeAIChatProvider';
 
 let supremeAIService: SupremeAIService;
 let codeEditHandler: CodeEditHandler;
@@ -41,6 +44,12 @@ export function activate(context: vscode.ExtensionContext) {
   codeEditHandler.register();
   errorHandler.register();
   feedbackHandler.register();
+
+  // Register sidebar views
+  registerSidebarViews(context);
+
+  // Register chat provider
+  registerChatProvider(context);
 
   // Register commands
   registerCommands(context);
@@ -140,7 +149,7 @@ function registerStatusBar(context: vscode.ExtensionContext): void {
     vscode.StatusBarAlignment.Right,
     100
   );
-  
+
   statusBarItem.text = '$(circuit-board) SupremeAI';
   statusBarItem.tooltip = 'SupremeAI Real-Time Learning Active';
   statusBarItem.command = 'supremeai.forceLearn';
@@ -156,6 +165,35 @@ function registerStatusBar(context: vscode.ExtensionContext): void {
   }, 30000);
 
   context.subscriptions.push(statusBarItem);
+}
+
+function registerSidebarViews(context: vscode.ExtensionContext): void {
+  // Dashboard Webview Provider
+  const dashboardProvider = new SupremeAISidebarProvider('supremeaiDashboard');
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider('supremeaiDashboard', dashboardProvider)
+  );
+
+  // Activity Tree Provider
+  const activityProvider = new SupremeAIActivityProvider();
+  context.subscriptions.push(
+    vscode.window.registerTreeDataProvider('supremeaiActivity', activityProvider)
+  );
+
+  // Refresh activity every 30 seconds
+  setInterval(() => {
+    activityProvider.refresh();
+  }, 30000);
+
+  console.log('[SupremeAI] Sidebar views registered');
+}
+
+function registerChatProvider(context: vscode.ExtensionContext): void {
+  const chatProvider = new SupremeAIChatProvider(context);
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider('supremeaiChat', chatProvider)
+  );
+  console.log('[SupremeAI] Chat provider registered');
 }
 
 export function deactivate(): void {

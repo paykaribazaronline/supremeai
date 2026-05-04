@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -121,7 +120,6 @@ public class AutonomousVotingService {
         decision.setProviderVotes(votes);
         
         long successCount = votes.stream().filter(ProviderVote::isSuccess).count();
-        long totalCount = votes.size();
         
         if (successCount == 0) {
             decision.setStrength("ERROR");

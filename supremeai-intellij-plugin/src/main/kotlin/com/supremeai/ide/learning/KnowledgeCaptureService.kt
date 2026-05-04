@@ -1,4 +1,4 @@
-spackage com.supremeai.ide.learning
+package com.supremeai.ide.learning
 
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -76,7 +76,7 @@ class KnowledgeCaptureService(private val project: Project) {
             
             // Notify listeners
             KnowledgeCaptureEventBus.publish(
-                KnowledgeCapturedEvent(knowledgeItem)
+                KnowledgeEvent.KnowledgeCapturedEvent(knowledgeItem)
             )
         } else {
             // Store rejected items for review
@@ -244,24 +244,24 @@ class KnowledgeCaptureService(private val project: Project) {
         tags.add(context.language)
         
         // Detect framework
-        if (code.contains("android", RegexOption.IGNORE_CASE)) {
+        if (code.contains("android", ignoreCase = true)) {
             tags.add("android")
         }
-        if (code.contains("compose", RegexOption.IGNORE_CASE)) {
+        if (code.contains("compose", ignoreCase = true)) {
             tags.add("jetpack-compose")
         }
-        if (code.contains("viewmodel", RegexOption.IGNORE_CASE)) {
+        if (code.contains("viewmodel", ignoreCase = true)) {
             tags.add("viewmodel")
         }
         
         // Detect common patterns
-        if (code.contains("interface", RegexOption.IGNORE_CASE)) {
+        if (code.contains("interface", ignoreCase = true)) {
             tags.add("interface")
         }
-        if (code.contains("class", RegexOption.IGNORE_CASE)) {
+        if (code.contains("class", ignoreCase = true)) {
             tags.add("class")
         }
-        if (code.contains("fun ", RegexOption.IGNORE_CASE)) {
+        if (code.contains("fun ", ignoreCase = true)) {
             tags.add("function")
         }
         
@@ -294,21 +294,3 @@ data class UserFeedback(
     val rating: Int? = null,
     val comments: String? = null
 )
-
-/**
- * Knowledge types
- */
-enum class KnowledgeType {
-    CODE_SUGGESTION,
-    BUG_FIX,
-    EXPLANATION,
-    REFACTORING,
-    OPTIMIZATION
-}
-
-/**
- * Complexity levels
- */
-enum class Complexity {
-    LOW, MEDIUM, HIGH
-}

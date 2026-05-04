@@ -89,9 +89,9 @@ object SecurityAnalyzer {
             }
             
             // Check for additional warnings
-            if (line.contains("TODO", RegexOption.IGNORE_CASE) ||
-                line.contains("FIXME", RegexOption.IGNORE_CASE) ||
-                line.contains("HACK", RegexOption.IGNORE_CASE)) {
+            if (line.contains("TODO", ignoreCase = true) ||
+                line.contains("FIXME", ignoreCase = true) ||
+                line.contains("HACK", ignoreCase = true)) {
                 warnings.add("Line ${lineNumber + 1}: Contains TODO/FIXME/HACK comment")
             }
             

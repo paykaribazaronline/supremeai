@@ -5,9 +5,16 @@ import com.supremeai.ai.client.OpenAIClient;
 import com.supremeai.dto.AmbiguityScore;
 import com.supremeai.dto.ClarificationResponse;
 import com.supremeai.dto.UserRequest;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.supremeai.ai.client.GeminiClient;
+import com.supremeai.ai.client.OpenAIClient;
+import com.supremeai.dto.AmbiguityScore;
+import com.supremeai.dto.UserRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -61,10 +68,23 @@ public class AutonomousQuestioning {
                 "Analyze ambiguity of this request: %s. Return confidence (0-1) and unclear areas as JSON: {\"confidence\": 0.8, \"unclearAreas\": [\"area1\"]}",
                 request.getDescription()
             );
-            String response = geminiClient.analyze(prompt);
-            double confidence = 0.5;
-            List<String> unclearAreas = new ArrayList<>();
-            return AmbiguityScore.builder()
+             String response = geminiClient.analyze(prompt);
+             double confidence = 0.5;
+             List<String> unclearAreas = new ArrayList<>();
+             try {
+                 ObjectMapper mapper = new ObjectMapper();
+                 JsonNode result = mapper.readTree(response);
+                 confidence = result.get("confidence").asDouble(0.5);
+                 JsonNode areas = result.get("unclearAreas");
+                 if (areas != null && areas.isArray()) {
+                     for (JsonNode area : areas) {
+                         unclearAreas.add(area.asText());
+                     }
+                 }
+             } catch (Exception e) {
+                 log.warn("Failed to parse ambiguity response, using defaults", e);
+             }
+             return AmbiguityScore.builder()
                     .confidence(confidence)
                     .unclearAreas(unclearAreas)
                     .build();

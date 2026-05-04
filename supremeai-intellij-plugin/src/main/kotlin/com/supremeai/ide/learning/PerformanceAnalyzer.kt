@@ -83,15 +83,15 @@ object PerformanceAnalyzer {
             }
             
             // Check for additional suggestions
-            if (line.contains("ArrayList()", RegexOption.IGNORE_CASE)) {
+            if (line.contains("ArrayList()", ignoreCase = true)) {
                 suggestions.add("Consider specifying initial capacity for ArrayList")
             }
             
-            if (line.contains("HashMap()", RegexOption.IGNORE_CASE)) {
+            if (line.contains("HashMap()", ignoreCase = true)) {
                 suggestions.add("Consider specifying initial capacity for HashMap")
             }
             
-            if (line.contains("LinkedList", RegexOption.IGNORE_CASE)) {
+            if (line.contains("LinkedList", ignoreCase = true)) {
                 suggestions.add("Consider if ArrayList would be more efficient than LinkedList")
             }
         }
