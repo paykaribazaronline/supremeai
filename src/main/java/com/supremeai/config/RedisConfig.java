@@ -62,19 +62,4 @@ public class RedisConfig {
         return template;
     }
 
-    @Bean
-    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
-        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(60))
-                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
-                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
-                .disableCachingNullValues();
-
-        return RedisCacheManager.builder(connectionFactory)
-                .cacheDefaults(config)
-                .withCacheConfiguration("ai_responses", config.entryTtl(Duration.ofMinutes(30)))
-                .withCacheConfiguration("user_sessions", config.entryTtl(Duration.ofHours(24)))
-                .withCacheConfiguration("api_keys", config.entryTtl(Duration.ofMinutes(5)))
-                .build();
-    }
 }
