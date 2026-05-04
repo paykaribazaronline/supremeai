@@ -35,8 +35,8 @@ dependencies {
 kotlin {
     jvmToolchain(21)
     compilerOptions {
-        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_20)
-        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_20)
+        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_1)
+        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_1)
         freeCompilerArgs.addAll(
             "-Xsuppress-version-warnings",
             "-Xallow-kotlin-package",

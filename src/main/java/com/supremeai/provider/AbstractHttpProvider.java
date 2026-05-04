@@ -19,7 +19,17 @@ public abstract class AbstractHttpProvider implements AIProvider {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
+    /**
+     * Optimized OkHttpClient with connection pooling and HTTP/2 support.
+     * 
+     * Features:
+     * - Connection pooling (max 100 connections)
+     * - HTTP/2 support for multiplexed requests
+     * - Connection keep-alive
+     * - Retry on connection failure
+     */
     protected static final OkHttpClient sharedHttpClient = new OkHttpClient.Builder()
+            .connectionPool(new okhttp3.ConnectionPool(100, 5, TimeUnit.MINUTES))
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(120, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)

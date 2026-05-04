@@ -35,7 +35,6 @@ build/
 # Other large or unnecessary folders
 supremeai-intellij-plugin/
 supremeai-vscode-extension/
-supremeai/
 docs/
 docs_new/
 colab/

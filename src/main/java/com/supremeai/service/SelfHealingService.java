@@ -11,6 +11,11 @@ public class SelfHealingService {
 
     @Autowired
     private AIReasoningService reasoningService;
+    
+    @Autowired
+    public void setReasoningService(AIReasoningService reasoningService) {
+        this.reasoningService = reasoningService;
+    }
 
     /**
      * Execute a task with retry and log reasoning on failure.

@@ -301,9 +301,28 @@ public class SimulatorController {
      */
     @GetMapping("/admin/usage")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<java.util.List<Map<String, Object>>> getAllUsage(Authentication auth) {
-        // TODO: Implement admin usage aggregation via SimulatorService
-        return ResponseEntity.ok(java.util.List.of());
+    public ResponseEntity<Map<String, Object>> getAllUsage(Authentication auth) {
+        // Aggregate usage from deployment service registry
+        java.util.Map<String, com.supremeai.service.SimulatorDeploymentService.DeploymentRecord> deployments =
+            simulatorService.getAllDeployments();
+
+        java.util.List<Map<String, Object>> usageList = deployments.values().stream()
+            .map(record -> {
+                Map<String, Object> entry = new HashMap<>();
+                entry.put("appId", record.getAppId());
+                entry.put("deviceType", record.getDeviceType());
+                entry.put("previewUrl", record.getPreviewUrl());
+                entry.put("status", record.getStatus().name());
+                entry.put("deployedAt", record.getDeployedAt());
+                return entry;
+            })
+            .toList();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("totalDeployments", usageList.size());
+        response.put("deployments", usageList);
+
+        return ResponseEntity.ok(response);
     }
 
     /**

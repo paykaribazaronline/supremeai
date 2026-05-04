@@ -1,40 +1,130 @@
 package com.supremeai.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Scheduled;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
+import java.time.Instant;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Proactive Alerting Service for system health and performance monitoring.
+ * Alerting service for circuit breaker trips and high error rates.
+ * Integrates with monitoring systems for real-time notifications.
  */
+@Slf4j
 @Service
 public class AlertingService {
 
-    private static final Logger log = LoggerFactory.getLogger(AlertingService.class);
+    private final MeterRegistry meterRegistry;
+    private final Counter circuitBreakerTrips;
+    private final Counter highErrorRateAlerts;
+    private final Timer alertProcessingTimer;
+    
+    // Track recent alerts to avoid spam
+    private final ConcurrentHashMap<String, Instant> recentAlerts = new ConcurrentHashMap<>();
+    
+    @Value("${alerting.circuit-breaker.enabled:true}")
+    private boolean circuitBreakerAlertingEnabled;
+    
+    @Value("${alerting.error-rate.threshold:0.05}")
+    private double errorRateThreshold;
+    
+    @Value("${alerting.cooldown.minutes:5}")
+    private long alertCooldownMinutes;
 
-    private final Map<String, Integer> failureThresholds = new ConcurrentHashMap<>();
-    private static final int CRITICAL_THRESHOLD = 5;
+    public AlertingService(MeterRegistry meterRegistry) {
+        this.meterRegistry = meterRegistry;
+        this.circuitBreakerTrips = Counter.builder("alerts.circuitbreaker.trips")
+                .description("Number of circuit breaker trip alerts")
+                .register(meterRegistry);
+        this.highErrorRateAlerts = Counter.builder("alerts.errorrate.high")
+                .description("Number of high error rate alerts")
+                .register(meterRegistry);
+        this.alertProcessingTimer = Timer.builder("alerts.processing.duration")
+                .description("Time taken to process alerts")
+                .register(meterRegistry);
+    }
 
-    public void recordFailure(String system) {
-        int count = failureThresholds.merge(system, 1, Integer::sum);
-        if (count >= CRITICAL_THRESHOLD) {
-            sendCriticalAlert(system, count);
-            failureThresholds.put(system, 0); // Reset after alert
+    /**
+     * Send alert for circuit breaker trip.
+     */
+    public void sendCircuitBreakerAlert(String provider, String state, int failureCount) {
+        if (!circuitBreakerAlertingEnabled) {
+            return;
+        }
+        
+        String alertKey = "cb-" + provider + "-" + state;
+        if (shouldSendAlert(alertKey)) {
+            log.warn("CIRCUIT BREAKER ALERT: Provider {} is in {} state (failures: {})", 
+                    provider, state, failureCount);
+            
+            circuitBreakerTrips.increment();
+            recordAlert(alertKey);
+            
+            // In production, integrate with:
+            // - Slack webhook
+            // - PagerDuty
+            // - Email notifications
+            // - Opsgenie
         }
     }
 
-    private void sendCriticalAlert(String system, int failures) {
-        log.error("!!! CRITICAL ALERT: System {} has failed {} times consecutively !!!", system, failures);
-        // Integrate with PagerDuty, Slack, or Email here
+    /**
+     * Send alert for high error rate.
+     */
+    public void sendHighErrorRateAlert(String endpoint, double errorRate, int totalRequests) {
+        if (errorRate < errorRateThreshold) {
+            return;
+        }
+        
+        String alertKey = "errorrate-" + endpoint;
+        if (shouldSendAlert(alertKey)) {
+            log.error("HIGH ERROR RATE ALERT: Endpoint {} has error rate {}% ({} requests)", 
+                    endpoint, String.format("%.2f", errorRate * 100), totalRequests);
+            
+            highErrorRateAlerts.increment();
+            recordAlert(alertKey);
+        }
     }
 
-    @Scheduled(fixedRate = 60000) // Check every minute
-    public void monitorSystemHealth() {
-        // Log monitoring status
-        log.debug("Proactive monitoring active...");
+    /**
+     * Check if alert should be sent based on cooldown.
+     */
+    private boolean shouldSendAlert(String alertKey) {
+        Instant lastAlert = recentAlerts.get(alertKey);
+        if (lastAlert == null) {
+            return true;
+        }
+        
+        return Instant.now().minusSeconds(alertCooldownMinutes * 60).isAfter(lastAlert);
+    }
+
+    /**
+     * Record alert timestamp.
+     */
+    private void recordAlert(String alertKey) {
+        recentAlerts.put(alertKey, Instant.now());
+    }
+
+    /**
+     * Get current alert statistics.
+     */
+    public AlertStats getAlertStats() {
+        return AlertStats.builder()
+                .circuitBreakerTrips((long) circuitBreakerTrips.count())
+                .highErrorRateAlerts((long) highErrorRateAlerts.count())
+                .recentAlertCount(recentAlerts.size())
+                .build();
+    }
+
+    @lombok.Builder
+    @lombok.Data
+    public static class AlertStats {
+        private long circuitBreakerTrips;
+        private long highErrorRateAlerts;
+        private int recentAlertCount;
     }
 }

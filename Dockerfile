@@ -1,39 +1,42 @@
 # Multi-stage Docker build for SupremeAI Backend
-# Stage 1: Build the JAR with Gradle
-FROM eclipse-temurin:21-jdk-alpine AS builder
+FROM eclipse-temurin:21-jdk AS builder
 
 WORKDIR /app
 
-# Copy Gradle files first for cached dependencies
+# Copy gradle files
 COPY gradle ./gradle
 COPY gradlew .
 COPY build.gradle.kts .
 COPY settings.gradle.kts .
+
+# Download dependencies (cache layer)
+RUN ./gradlew dependencies --no-daemon || true
+
+# Copy source
 COPY src ./src
 
-# Build the application JAR (skip tests for faster build)
+# Debug: list files to verify they are present
+RUN find src -maxdepth 3
+
+# Build the application JAR
 RUN chmod +x gradlew && ./gradlew bootJar -x test --no-daemon
 
-# Stage 2: Create runtime image
-FROM eclipse-temurin:21-jre-alpine
+# Stage 2: Runtime
+FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-# Copy the built JAR from builder stage
+# Copy the built JAR
 COPY --from=builder /app/build/libs/app.jar app.jar
 
-# Create non-root user for security
-RUN addgroup -g 1001 -S supremeai && adduser -u 1001 -S supremeai -G supremeai
+# Create non-root user
+RUN groupadd -r supremeai && useradd -r -g supremeai supremeai
 USER supremeai
 
-# Expose the port the app runs on
-EXPOSE 8080
-
-# Set environment variables for Cloud Run
 ENV PORT=8080
 ENV SPRING_PROFILES_ACTIVE=cloud
-ENV SERVER_PORT=8080
-ENV JAVA_OPTS="-Xms256m -Xmx2g -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError"
+ENV JAVA_OPTS="-Xms512m -Xmx2g -XX:+UseG1GC"
 
-# Run the jar file with necessary opens for reflection
-ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS --add-opens java.base/java.time.chrono=ALL-UNNAMED --add-opens java.base/java.time=ALL-UNNAMED -jar /app/app.jar"]
+EXPOSE 8080
+
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar app.jar"]

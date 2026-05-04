@@ -1,142 +1,150 @@
 
 # SupremeAI - Quick Start Checklist
 
+## Stack: Spring Boot 3 (Java 21) + React/TypeScript + Flutter + Firebase/Firestore
+
+---
+
 ## Immediate Actions (This Week)
 
 ### Day 1-2: Project Setup
 - [ ] Create new branch: `feature/major-restructure`
-- [ ] Create folder structure as per Phase 1
-- [ ] Move existing files to appropriate folders
-- [ ] Add `__init__.py` to all packages
-- [ ] Create `.env.example` file
-- [ ] Update `.gitignore` (add .env, __pycache__, *.db)
+- [ ] Review folder structure as per AGENTS.md
+- [ ] Ensure all packages have proper `package com.supremeai.*` declarations
+- [ ] Create `.env.example` file with all required env vars
+- [ ] Update `.gitignore` (add .env, build/, *.class, node_modules/)
 
-### Day 3-4: Database
-- [ ] Install SQLAlchemy: `pip install sqlalchemy`
-- [ ] Create database models (users, api_keys, agents, tasks, knowledge, repos, plans, conversations)
-- [ ] Create database connection module
-- [ ] Add Alembic for migrations
-- [ ] Create initial migration
+### Day 3-4: Database / Firestore
+- [ ] Verify Firestore collections: `users`, `api_keys`, `agents`, `tasks`, `knowledge`, `simulator_profiles`
+- [ ] Check Firestore security rules in `database.rules.json`
+- [ ] Verify `UserSimulatorProfileRepository` Firestore integration works end-to-end
+- [ ] Test Firestore connection: `./gradlew bootRun` and call `GET /api/simulator/profile`
 
-### Day 5-7: Core Modules
-- [ ] Implement `AgentPool` class
-- [ ] Implement `PerformanceTracker` class
-- [ ] Implement `APIKeyManager` class
-- [ ] Implement `IntentAnalyzer` class
-- [ ] Add basic error handling
+### Day 5-7: Core Modules Verification
+- [ ] Verify `AgentOrchestrationHub.java` is wired correctly
+- [ ] Verify `ApiKeyRotationService.java` rotation logic
+- [ ] Verify `DataLifecycleService.java` scheduler triggers
+- [ ] Run full test suite: `./gradlew test`
+
+---
 
 ## Next Week: Integration
 
-### Day 8-10: GitHub
-- [ ] Create GitHub App registration
-- [ ] Implement `RepoManager` class
-- [ ] Add webhook handler
-- [ ] Test push/pull operations
+### Day 8-10: GitHub Integration
+- [ ] Verify `GitHubWebhookController` handles push events
+- [ ] Test dual-repo push logic (main repo vs user repos)
+- [ ] Verify trust-tier based access in service layer
 
 ### Day 11-12: Testing
-- [ ] Install pytest: `pip install pytest pytest-cov`
-- [ ] Write tests for AgentPool
-- [ ] Write tests for APIKeyManager
-- [ ] Write tests for IntentAnalyzer
-- [ ] Achieve 80% coverage
+- [ ] Run: `./gradlew jacocoTestReport`
+- [ ] Check coverage report at `build/reports/jacoco/test/html/index.html`
+- [ ] Add tests for any service below 10% coverage (JaCoCo minimum enforced)
+- [ ] Target: `./gradlew test` — all green
 
 ### Day 13-14: CI/CD
-- [ ] Update `.github/workflows/ci.yml`
-- [ ] Add linting (flake8)
-- [ ] Add type checking (mypy)
-- [ ] Test pipeline
-
-## Week 3: Enhancement
-- [ ] Implement learning system (web scraper)
-- [ ] Add knowledge base queries
-- [ ] Create admin dashboard skeleton
-- [ ] Add user authentication
-
-## Week 4: Polish
-- [ ] Code review
-- [ ] Documentation update
-- [ ] Merge to main
-- [ ] Deploy test version
+- [ ] Verify `.github/workflows/` pipelines run on push
+- [ ] Check `cloudbuild.yaml` for Cloud Build config
+- [ ] Verify Docker build: `docker build -t supremeai .`
 
 ---
 
-## File Creation Checklist
+## Week 3: Dashboard & Frontend
 
-### Must Create:
-- [ ] `src/__init__.py`
-- [ ] `src/config/settings.py`
-- [ ] `src/config/constants.py`
-- [ ] `src/core/orchestrator.py`
-- [ ] `src/core/intent_analyzer.py`
-- [ ] `src/core/plan_manager.py`
-- [ ] `src/agents/__init__.py`
-- [ ] `src/agents/agent_pool.py`
-- [ ] `src/agents/performance_tracker.py`
-- [ ] `src/api/__init__.py`
-- [ ] `src/api/key_manager.py`
-- [ ] `src/api/key_validator.py`
-- [ ] `src/api/rotation_strategy.py`
-- [ ] `src/learning/__init__.py`
-- [ ] `src/learning/knowledge_base.py`
-- [ ] `src/learning/web_scraper.py`
-- [ ] `src/storage/__init__.py`
-- [ ] `src/storage/database.py`
-- [ ] `src/storage/data_lifecycle.py`
-- [ ] `src/github/__init__.py`
-- [ ] `src/github/repo_manager.py`
-- [ ] `src/github/push_verifier.py`
-- [ ] `src/utils/logger.py`
-- [ ] `tests/test_orchestrator.py`
-- [ ] `tests/test_key_manager.py`
-- [ ] `tests/test_intent_analyzer.py`
-- [ ] `.env.example`
-- [ ] `requirements-dev.txt`
+### React Dashboard (`dashboard/`)
+- [ ] Run: `cd dashboard && npm install && npm run dev`
+- [ ] Verify `SimulatorDashboard.tsx` loads at `/simulator`
+- [ ] Add `SimulatorDashboard` route in `AdminLayout.tsx` or main router
+- [ ] Run type-check: `npm run type-check`
 
-### Must Update:
-- [ ] `src/main.py` (refactor to use new structure)
-- [ ] `README.md` (add setup instructions)
-- [ ] `.github/workflows/ci.yml`
-- [ ] `requirements.txt`
-
-### Must Delete (if exists):
-- [ ] Old test files (replace with new)
-- [ ] Hardcoded config (move to .env)
+### Flutter Admin App (`supremeai/`)
+- [ ] Run: `cd supremeai && flutter pub get && flutter run`
+- [ ] Verify feature parity with React dashboard (AGENTS.md requirement)
 
 ---
 
-## Commands to Run
+## Week 4: Polish & Deploy
+
+### Pre-Production Checklist
+- [ ] Code review all new services (DataLifecycleService, PlanCompatibilityService, etc.)
+- [ ] Verify no hardcoded secrets (grep for API keys in code)
+- [ ] Run: `./gradlew clean build -x test` — must succeed
+- [ ] Update `README.md` with setup instructions
+
+### Deployment
+- [ ] Deploy to staging: `gcloud run deploy supremeai-staging`
+- [ ] Run smoke tests against staging
+- [ ] Merge to main and deploy production
+
+---
+
+## Build Commands Reference
 
 ```bash
-# Setup
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
-cp .env.example .env
-# Edit .env with your actual keys
+# Backend (Java 21 / Spring Boot 3)
+./gradlew bootRun                    # Start dev server
+./gradlew clean build -x test        # Build (skip tests)
+./gradlew test                       # Run all tests
+./gradlew jacocoTestReport           # Coverage report
 
-# Database
-alembic init alembic
-alembic revision --autogenerate -m "Initial migration"
-alembic upgrade head
+# Dashboard (Vite/React)
+cd dashboard && npm install
+npm run dev                          # Dev server
+npm run build                        # Production build
+npm run type-check                   # TypeScript check
 
-# Tests
-pytest --cov=src --cov-report=html
+# VS Code Extension
+cd supremeai-vscode-extension && npm install
+npm run compile                      # Compile extension
+npm run lint                         # Lint check
 
-# Lint
-flake8 src/
-mypy src/
+# Flutter
+cd supremeai && flutter pub get
+flutter run                          # Run on device/emulator
+flutter build apk                    # Android build
+```
 
-# Run
-python src/main.py
+---
+
+## Environment Variables Required
+
+```properties
+# Firebase / Firestore
+FIREBASE_PROJECT_ID=
+FIREBASE_SERVICE_ACCOUNT_KEY=  # JSON string or path
+
+# AI Providers
+OPENAI_API_KEY=
+GEMINI_API_KEY=
+ANTHROPIC_API_KEY=
+
+# Security
+API_ENCRYPTION_KEY=             # 32-char AES key
+JWT_SECRET=
+
+# Simulator
+SIMULATOR_PREVIEW_DOMAIN=       # e.g., simulator.your-domain.com
+SIMULATOR_PREVIEW_SCHEME=https
+
+# Optional
+REDIS_HOST=localhost
+REDIS_PORT=6379
+PORT=8080
 ```
 
 ---
 
 ## Success Criteria
-- [ ] All 21 plans have corresponding modules
-- [ ] Database schema matches requirements
-- [ ] Tests pass with 80%+ coverage
-- [ ] CI/CD pipeline green
-- [ ] No hardcoded secrets
-- [ ] Documentation complete
+
+- [ ] All 22 plans have corresponding service modules
+- [ ] Firestore collections match schema in SupremeAI_Simulator_Controller_Plan.md
+- [ ] Tests pass: `./gradlew test` green
+- [ ] JaCoCo coverage >= 10% (enforced minimum)
+- [ ] No hardcoded secrets in codebase
+- [ ] React dashboard loads with SimulatorDashboard panel
+- [ ] Flutter app feature parity with web dashboard
+- [ ] CI/CD pipeline green on GitHub Actions
+
+---
+
+**Last updated:** 2026-05-04  
+**Stack:** Java 21 / Spring Boot 3 / React+TypeScript / Flutter / Firebase Firestore
