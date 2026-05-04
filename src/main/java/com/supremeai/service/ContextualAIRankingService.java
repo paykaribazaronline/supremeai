@@ -170,6 +170,13 @@ public class ContextualAIRankingService {
     }
 
     /**
+     * Clear all performance tracking data. Used for testing.
+     */
+    void clearPerformanceData() {
+        performanceTracker.clear();
+    }
+
+    /**
      * Calculate recency score (higher if used recently for this task).
      */
     private double calculateRecencyScore(long lastUsed) {

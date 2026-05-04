@@ -15,10 +15,12 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.PostConstruct;
+import org.springframework.context.annotation.Profile;
 
 /**
  * Service to manage global system configuration with local caching for performance.
  */
+@Profile("!local")
 @Service
 public class ConfigService {
 

@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api/orchestrate")
 public class AgentOrchestrationController {
 
-    @Autowired
+    @Autowired(required = false)
     private AdaptiveAgentOrchestrator orchestrator;
 
     @Autowired
@@ -26,6 +26,11 @@ public class AgentOrchestrationController {
         if (requirement == null || requirement.trim().isEmpty()) {
             return Mono.just(ResponseEntity.badRequest()
                 .body(Map.of("error", "Requirement is required")));
+        }
+
+        if (orchestrator == null) {
+            return Mono.just(ResponseEntity.status(503)
+                .body(Map.of("error", "Orchestrator unavailable in local mode. Set up Firestore credentials.")));
         }
 
         try {
@@ -50,6 +55,11 @@ public class AgentOrchestrationController {
         if (requirement == null || requirement.trim().isEmpty()) {
             return Mono.just(ResponseEntity.badRequest()
                 .body(Map.of("error", "Requirement is required")));
+        }
+
+        if (orchestrator == null) {
+            return Mono.just(ResponseEntity.status(503)
+                .body(Map.of("error", "Orchestrator unavailable in local mode. Set up Firestore credentials.")));
         }
 
         try {
