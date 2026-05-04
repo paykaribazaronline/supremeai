@@ -4,6 +4,10 @@
   "description": "Real-time code analysis, learning, and AI assistance with SupremeAI Core Engine",
   "version": "6.0.0",
   "publisher": "supremeai",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/supremeai.git"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -55,6 +59,16 @@
           "default": "https://supremeai-lhlwyikwlq-uc.a.run.app",
           "description": "SupremeAI Backend API URL"
         },
+        "supremeai.codegeex4.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable CodeGeeX4 AI code assistance"
+        },
+        "supremeai.codegeex4.model": {
+          "type": "string",
+          "default": "codegeex-4",
+          "description": "CodeGeeX4 model to use (codegeex-4 or codegeex-4-lite)"
+        },
         "supremeai.enableRealTimeLearning": {
           "type": "boolean",
           "default": true,
@@ -66,10 +80,35 @@
           "description": "Automatically report errors to SupremeAI for learning"
         }
       }
-    }
-  },
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "supremeai-sidebar",
+          "title": "SupremeAI",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "supremeai-sidebar": [
+        {
+          "id": "supremeaiDashboard",
+          "name": "Dashboard"
+        },
+        {
+          "id": "supremeaiActivity",
+          "name": "Activity"
+        },
+        {
+          "id": "supremeaiChat",
+          "name": "Chat"
+        }
+      ]
+     }
+    },
+    "scripts": {
+      "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src --ext ts"

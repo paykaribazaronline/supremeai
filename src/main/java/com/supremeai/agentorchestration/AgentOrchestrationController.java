@@ -104,7 +104,6 @@ public class AgentOrchestrationController {
             return Mono.just(ResponseEntity.badRequest()
                 .body(Map.of("error", "Context is required")));
         }
-        @SuppressWarnings("unchecked")
         Map<String, String> decisions = (Map<String, String>) (Map<?, ?>) context;
         Map<String, Object> result = codeGenerationService.generateFromContext(decisions);
         return Mono.just(ResponseEntity.ok((Object) result));

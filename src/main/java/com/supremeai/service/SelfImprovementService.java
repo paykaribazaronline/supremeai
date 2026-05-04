@@ -4,6 +4,7 @@ import com.supremeai.model.SystemLearning;
 import com.supremeai.repository.SystemLearningRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,7 @@ import java.util.concurrent.TimeUnit;
  * This service makes SupremeAI get better AUTOMATICALLY every single hour.
  */
 @Service
+@ConditionalOnProperty(name = "spring.cloud.gcp.firestore.enabled", havingValue = "true", matchIfMissing = true)
 public class SelfImprovementService {
 
     private static final Logger logger = LoggerFactory.getLogger(SelfImprovementService.class);

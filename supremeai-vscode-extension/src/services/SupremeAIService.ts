@@ -11,7 +11,11 @@ import {
   SupremeAIConfig,
   CodeEdit,
   ErrorReport,
-  SuggestionFeedback 
+  SuggestionFeedback,
+  ChatMessage,
+  ChatRequest,
+  ChatResponse,
+  CodeAnalysis
 } from '../types';
 
 export class SupremeAIService {
@@ -156,6 +160,108 @@ export class SupremeAIService {
       console.error(`[SupremeAI] Failed to send analysis: ${error.message}`);
       return { success: false, message: error.message };
     }
+  }
+
+  /**
+   * Send chat message
+   * POST /api/chat/message
+   */
+  async sendChatMessage(request: ChatRequest): Promise<ChatResponse> {
+    try {
+      const response = await this.client.post<ChatResponse>('/api/chat/message', {
+        ...request,
+        sessionId: this.sessionId,
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error(`[SupremeAI] Chat error: ${error.message}`);
+      return {
+        success: false,
+        message: error.message,
+        response: this.generateFallbackResponse(request.message),
+        sessionId: this.sessionId,
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  /**
+   * Stream chat response
+   * POST /api/chat/stream
+   */
+  async streamChatResponse(request: ChatRequest): Promise<ReadableStream> {
+    try {
+      const response = await this.client.post('/api/chat/stream', request, {
+        responseType: 'stream'
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error(`[SupremeAI] Stream error: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Get chat history
+   * GET /api/chat/history
+   */
+  async getChatHistory(sessionId?: string): Promise<ChatMessage[]> {
+    try {
+      const response = await this.client.get('/api/chat/history', {
+        params: { sessionId: sessionId || this.sessionId }
+      });
+      return response.data.messages || [];
+    } catch (error: any) {
+      console.error(`[SupremeAI] Failed to get chat history: ${error.message}`);
+      return [];
+    }
+  }
+
+  /**
+   * Clear chat history
+   * DELETE /api/chat/history
+   */
+  async clearChatHistory(sessionId?: string): Promise<boolean> {
+    try {
+      await this.client.delete('/api/chat/history', {
+        data: { sessionId: sessionId || this.sessionId }
+      });
+      return true;
+    } catch (error: any) {
+      console.error(`[SupremeAI] Failed to clear chat history: ${error.message}`);
+      return false;
+    }
+  }
+
+  /**
+   * Generate fallback response when backend is unavailable
+   */
+  private generateFallbackResponse(message: string): string {
+    const lowerMsg = message.toLowerCase();
+    
+    if (lowerMsg.includes('hello') || lowerMsg.includes('hi') || lowerMsg.includes('hey')) {
+      return 'Hello! I\'m your SupremeAI assistant. How can I help you with your code today?';
+    }
+    
+    if (lowerMsg.includes('bug') || lowerMsg.includes('error') || lowerMsg.includes('fix')) {
+      return 'I can help you debug! Please share the error message or the problematic code, and I\'ll analyze it for you.';
+    }
+    
+    if (lowerMsg.includes('refactor') || lowerMsg.includes('improve') || lowerMsg.includes('optimize')) {
+      return 'I can help refactor your code! Please share the code you\'d like to improve, and I\'ll suggest optimizations.';
+    }
+    
+    if (lowerMsg.includes('explain') || lowerMsg.includes('understand')) {
+      return 'I can explain code concepts! Please share the code or concept you\'d like me to explain.';
+    }
+
+    return 'I\'m here to help with your coding needs! You can ask me to:\n' +
+      '• Explain code\n' +
+      '• Fix bugs\n' +
+      '• Refactor code\n' +
+      '• Review code\n' +
+      '• Answer programming questions\n\n' +
+      'Please share your code or question, and I\'ll do my best to help!';
   }
 
   /**

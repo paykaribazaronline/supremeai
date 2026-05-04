@@ -8,6 +8,7 @@ import com.supremeai.security.ApiKeyRotationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * - Provider health tracking (avoids recently failed providers)
  */
 @Service
+@ConditionalOnProperty(name = "spring.cloud.gcp.firestore.enabled", havingValue = "true", matchIfMissing = true)
 public class UsageOptimizationService {
 
     private static final Logger log = LoggerFactory.getLogger(UsageOptimizationService.class);

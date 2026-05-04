@@ -13,8 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
-import reactor.core.publisher.Flux;
 
 import java.util.*;
 
@@ -25,22 +23,7 @@ public class AdaptiveAgentOrchestrator {
     private static final Logger logger = LoggerFactory.getLogger(AdaptiveAgentOrchestrator.class);
 
     @Autowired
-    private RequirementAnalyzerAI requirementAnalyzer;
-
-    @Autowired
     private AIProviderFactory providerFactory;
-
-    @Autowired
-    private com.supremeai.agent.DiOSAgent diOSAgent;
-
-    @Autowired
-    private com.supremeai.agent.EWebAgent eWebAgent;
-
-    @Autowired
-    private com.supremeai.agent.FDesktopAgent fDesktopAgent;
-
-    @Autowired
-    private com.supremeai.agent.GPublishAgent gPublishAgent;
 
     @Autowired
     private TranslationService translationService;
@@ -179,7 +162,7 @@ public class AdaptiveAgentOrchestrator {
 
             enhancedLearningService.learnFromAppGeneration(
                     requirement,
-                    (String) additionalMetrics.get("platform"),
+                    additionalMetrics != null ? (String) additionalMetrics.get("platform") : null,
                     buildSuccess,
                     apkPath,
                     buildMetrics,

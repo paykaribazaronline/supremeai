@@ -7,8 +7,15 @@ import com.intellij.ui.content.ContentFactory
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextField
 import java.awt.BorderLayout
+import java.awt.Color
+import java.awt.Component
+import java.awt.FlowLayout
+import java.awt.Font
+import java.awt.GridLayout
 import java.net.HttpURLConnection
 import java.net.URI
+import java.text.SimpleDateFormat
+import java.util.*
 import javax.swing.*
 import javax.swing.border.EmptyBorder
 import javax.swing.table.DefaultTableModel
@@ -16,25 +23,48 @@ import kotlin.concurrent.thread
 
 class SupremeAIToolWindowFactory : ToolWindowFactory {
     companion object {
-        private var chatPanel: SupremeAIChatPanel? = null
+        var chatPanel: SupremeAIChatPanel? = null
+            private set
+        var dashboardPanel: SupremeAIDashboardPanel? = null
+            private set
+        var activityPanel: SupremeAIActivityPanel? = null
+            private set
         
         fun sendToChat(message: String) {
             chatPanel?.addExternalMessage(message)
+        }
+        
+        fun refreshDashboard() {
+            dashboardPanel?.refresh()
+        }
+        
+        fun refreshActivity() {
+            activityPanel?.refresh()
         }
     }
 
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val contentFactory = ContentFactory.getInstance()
 
-        val panel = SupremeAIChatPanel()
-        chatPanel = panel
-        val chatContent = contentFactory.createContent(panel.getContent(), "Chat", false)
+        // Dashboard Tab
+        val dashboardContent = contentFactory.createContent(SupremeAIDashboardPanel(project).getContent(), "Dashboard", false)
+        dashboardContent.icon = null // Can set icon here
+        toolWindow.contentManager.addContent(dashboardContent)
+
+        // Chat Tab
+        val chatContent = contentFactory.createContent(SupremeAIChatPanel().getContent(), "Chat", false)
         toolWindow.contentManager.addContent(chatContent)
 
+        // Activity Tab
+        val activityContent = contentFactory.createContent(SupremeAIActivityPanel().getContent(), "Activity", false)
+        toolWindow.contentManager.addContent(activityContent)
+
+        // Orchestration Tab
         val orchestrationPanel = SupremeAIOrchestrationPanel()
         val orchestrationContent = contentFactory.createContent(orchestrationPanel.getContent(), "Orchestration", false)
         toolWindow.contentManager.addContent(orchestrationContent)
 
+        // Settings Tab
         val settingsPanel = SupremeAISettingsPanel()
         val settingsContent = contentFactory.createContent(settingsPanel.getContent(), "Settings", false)
         toolWindow.contentManager.addContent(settingsContent)
@@ -389,6 +419,270 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                 } catch (e: Exception) {
                     SwingUtilities.invokeLater {
                         statusLabel.text = "Error: ${e.message}"
+                    }
+                }
+            }
+        }
+
+         fun getContent(): JPanel = panel
+    }
+
+    // Dashboard Panel
+    class SupremeAIDashboardPanel(private val project: Project) {
+        private val panel = JPanel(BorderLayout())
+        private val learningCountLabel = JLabel("0")
+        private val editCountLabel = JLabel("0")
+        private val errorCountLabel = JLabel("0")
+        private val feedbackCountLabel = JLabel("0")
+        private val recentActivityArea = JTextArea()
+        private val statusLabel = JLabel("● Loading...")
+        private val refreshTimeLabel = JLabel("")
+
+        init {
+            setupUI()
+            refresh()
+            // Auto-refresh every 30 seconds
+            javax.swing.Timer(30000) {
+                SwingUtilities.invokeLater { refresh() }
+            }.start()
+        }
+
+        private fun setupUI() {
+            panel.border = EmptyBorder(15, 15, 15, 15)
+            panel.layout = BorderLayout()
+
+            // Header
+            val header = JPanel(BorderLayout())
+            val titlePanel = JPanel()
+            titlePanel.layout = BoxLayout(titlePanel, BoxLayout.Y_AXIS)
+            titlePanel.add(JLabel("SupremeAI Dashboard").apply { font = font.deriveFont(java.awt.Font.BOLD, 18f) })
+            titlePanel.add(Box.createVerticalStrut(5))
+            titlePanel.add(JLabel("Real-time Learning Analytics").apply { foreground = Color.GRAY })
+            header.add(titlePanel, BorderLayout.WEST)
+            
+            val headerRight = JPanel(FlowLayout(FlowLayout.RIGHT))
+            statusLabel.font = statusLabel.font.deriveFont(java.awt.Font.BOLD, 12f)
+            headerRight.add(statusLabel)
+            headerRight.add(Box.createHorizontalStrut(10))
+            headerRight.add(refreshTimeLabel)
+            header.add(headerRight, BorderLayout.EAST)
+            panel.add(header, BorderLayout.NORTH)
+
+            // Stats Grid
+            val statsPanel = JPanel(GridLayout(2, 2, 10, 10))
+            statsPanel.border = EmptyBorder(10, 0, 10, 0)
+
+            statsPanel.add(createStatCard("Patterns Learned", learningCountLabel, Color(76, 175, 80)))
+            statsPanel.add(createStatCard("Code Edits", editCountLabel, Color(33, 150, 243)))
+            statsPanel.add(createStatCard("Errors Reported", errorCountLabel, Color(244, 67, 54)))
+            statsPanel.add(createStatCard("Feedback Given", feedbackCountLabel, Color(156, 39, 176)))
+
+            panel.add(statsPanel, BorderLayout.CENTER)
+
+            // Recent Activity
+            val activityPanel = JPanel(BorderLayout())
+            activityPanel.border = EmptyBorder(10, 0, 0, 0)
+            activityPanel.add(JLabel("Recent Activity").apply { 
+                font = font.deriveFont(java.awt.Font.BOLD, 14f)
+                border = EmptyBorder(0, 0, 5, 0)
+            }, BorderLayout.NORTH)
+
+            recentActivityArea.isEditable = false
+            recentActivityArea.font = Font("Monospaced", Font.PLAIN, 11)
+            recentActivityArea.lineWrap = true
+            recentActivityArea.wrapStyleWord = true
+            activityPanel.add(JBScrollPane(recentActivityArea), BorderLayout.CENTER)
+
+            panel.add(activityPanel, BorderLayout.SOUTH)
+        }
+
+        private fun createStatCard(title: String, valueLabel: JLabel, color: Color): JPanel {
+            val card = JPanel(BorderLayout())
+            card.border = BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color(224, 224, 224)),
+                EmptyBorder(15, 15, 15, 15)
+            )
+            card.background = Color.WHITE
+
+            val titleLabel = JLabel(title)
+            titleLabel.foreground = Color.GRAY
+            titleLabel.font = titleLabel.font.deriveFont(11f)
+            card.add(titleLabel, BorderLayout.NORTH)
+
+            valueLabel.font = valueLabel.font.deriveFont(java.awt.Font.BOLD, 28f)
+            valueLabel.foreground = color
+            valueLabel.horizontalAlignment = SwingConstants.RIGHT
+            card.add(valueLabel, BorderLayout.CENTER)
+
+            return card
+        }
+
+        fun refresh() {
+            thread {
+                try {
+                    val settings = SupremeAISettings.getInstance()
+                    val endpoint = settings.apiEndpoint.takeIf { it.isNotBlank() }
+                        ?: "https://supremeai-a.web.app"
+
+                    val url = URI("$endpoint/api/knowledge/stats").toURL()
+                    val conn = url.openConnection() as HttpURLConnection
+                    conn.requestMethod = "GET"
+                    conn.connectTimeout = 5000
+                    conn.readTimeout = 5000
+
+                    val responseCode = conn.responseCode
+                    if (responseCode == 200) {
+                        val response = conn.inputStream.bufferedReader().use { it.readText() }
+                        val gson = com.google.gson.Gson()
+                        val json = gson.fromJson(response, com.google.gson.JsonObject::class.java)
+
+                        SwingUtilities.invokeLater {
+                            learningCountLabel.text = json.getAsJsonPrimitive("learningCount")?.asString ?: "0"
+                            editCountLabel.text = json.getAsJsonPrimitive("editCount")?.asString ?: "0"
+                            errorCountLabel.text = json.getAsJsonPrimitive("errorCount")?.asString ?: "0"
+                            feedbackCountLabel.text = json.getAsJsonPrimitive("feedbackCount")?.asString ?: "0"
+
+                            // Update recent activity
+                            val activities = json.getAsJsonArray("recentActivity")
+                            val activityText = StringBuilder()
+                            if (activities != null) {
+                                for (i in 0 until minOf(activities.size(), 10)) {
+                                    val act = activities[i].asJsonObject
+                                    val time = act.getAsJsonPrimitive("timestamp")?.asString ?: ""
+                                    val msg = act.getAsJsonPrimitive("message")?.asString ?: ""
+                                    val type = act.getAsJsonPrimitive("type")?.asString ?: ""
+                                    val icon = when(type) {
+                                        "CODE_EDIT" -> "✏️"
+                                        "ERROR_REPORT" -> "❌"
+                                        "SUGGESTION_FEEDBACK" -> "👍"
+                                        else -> "ℹ️"
+                                    }
+                                    activityText.append("$icon $msg ($time)\n")
+                                }
+                            }
+                            if (activityText.isEmpty()) {
+                                activityText.append("No recent activity\n")
+                            }
+                            recentActivityArea.text = activityText.toString()
+
+                            statusLabel.text = "● Backend: Online"
+                            statusLabel.foreground = Color.GREEN
+                            refreshTimeLabel.text = "Updated: ${SimpleDateFormat("HH:mm:ss").format(Date())}"
+                        }
+                    } else {
+                        SwingUtilities.invokeLater {
+                            statusLabel.text = "● Backend: Error"
+                            statusLabel.foreground = Color.ORANGE
+                        }
+                    }
+                } catch (e: Exception) {
+                    SwingUtilities.invokeLater {
+                        statusLabel.text = "● Backend: Offline"
+                        statusLabel.foreground = Color.RED
+                        recentActivityArea.text = "Cannot connect to backend\n${e.message}"
+                    }
+                }
+            }
+        }
+
+        fun getContent(): JPanel = panel
+    }
+
+    // Activity Panel
+    class SupremeAIActivityPanel {
+        private val panel = JPanel(BorderLayout())
+        private val tableModel = DefaultTableModel(arrayOf("Time", "Type", "Message"), 0)
+        private val table = JTable(tableModel)
+        private val statusLabel = JLabel("Loading...")
+        private val clearBtn = JButton("Clear History")
+
+        init {
+            setupUI()
+            refresh()
+        }
+
+        private fun setupUI() {
+            panel.border = EmptyBorder(15, 15, 15, 15)
+
+            // Toolbar
+            val toolbar = JPanel(FlowLayout(FlowLayout.LEFT))
+            toolbar.add(JLabel("Activity Log").apply { font = font.deriveFont(java.awt.Font.BOLD, 14f) })
+            toolbar.add(Box.createHorizontalStrut(10))
+            clearBtn.addActionListener { clearHistory() }
+            toolbar.add(clearBtn)
+            toolbar.add(Box.createHorizontalGlue())
+            toolbar.add(statusLabel)
+            panel.add(toolbar, BorderLayout.NORTH)
+
+            // Table
+            table.fillsViewportHeight = true
+            table.rowHeight = 22
+            tableModel.addRow(arrayOf("Just now", "INFO", "Activity log initialized"))
+            panel.add(JBScrollPane(table), BorderLayout.CENTER)
+        }
+
+        private fun clearHistory() {
+            val settings = SupremeAISettings.getInstance()
+            thread {
+                try {
+                    val endpoint = settings.apiEndpoint.takeIf { it.isNotBlank() }
+                        ?: "https://supremeai-a.web.app"
+                    val url = URI("$endpoint/api/knowledge/clear").toURL()
+                    val conn = url.openConnection() as HttpURLConnection
+                    conn.requestMethod = "POST"
+                    conn.doOutput = true
+                    conn.connectTimeout = 5000
+
+                    if (conn.responseCode == 200) {
+                        SwingUtilities.invokeLater {
+                            tableModel.rowCount = 0
+                            tableModel.addRow(arrayOf(SimpleDateFormat("HH:mm:ss").format(Date()), "INFO", "History cleared"))
+                            statusLabel.text = "History cleared"
+                        }
+                    }
+                } catch (e: Exception) {
+                    SwingUtilities.invokeLater {
+                        statusLabel.text = "Clear failed: ${e.message}"
+                    }
+                }
+            }
+        }
+
+        fun refresh() {
+            thread {
+                try {
+                    val settings = SupremeAISettings.getInstance()
+                    val endpoint = settings.apiEndpoint.takeIf { it.isNotBlank() }
+                        ?: "https://supremeai-a.web.app"
+
+                    val url = URI("$endpoint/api/knowledge/history").toURL()
+                    val conn = url.openConnection() as HttpURLConnection
+                    conn.requestMethod = "GET"
+                    conn.connectTimeout = 5000
+
+                    if (conn.responseCode == 200) {
+                        val response = conn.inputStream.bufferedReader().use { it.readText() }
+                        val gson = com.google.gson.Gson()
+                        val json = gson.fromJson(response, com.google.gson.JsonObject::class.java)
+                        val items = json.getAsJsonArray("items")
+
+                        SwingUtilities.invokeLater {
+                            tableModel.rowCount = 0
+                            if (items != null) {
+                                for (i in 0 until items.size()) {
+                                    val item = items[i].asJsonObject
+                                    val time = item.getAsJsonPrimitive("timestamp")?.asString?.substring(11, 19) ?: ""
+                                    val type = item.getAsJsonPrimitive("type")?.asString ?: ""
+                                    val msg = item.getAsJsonPrimitive("message")?.asString ?: ""
+                                    tableModel.addRow(arrayOf(time, type, msg))
+                                }
+                            }
+                            statusLabel.text = "Loaded ${tableModel.rowCount} items"
+                        }
+                    }
+                } catch (e: Exception) {
+                    SwingUtilities.invokeLater {
+                        statusLabel.text = "Load failed: ${e.message}"
                     }
                 }
             }

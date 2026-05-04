@@ -65,10 +65,10 @@ public class DataRefreshCommands {
                     
                     logger.info("🔄 Refreshing GitHub data: {}/{}", owner, repo);
                     
-                    // Call the service to fetch fresh data
-                    Map<String, Object> data = dataService.getCollectedData("github:" + owner + "/" + repo);
-                    
-                    logger.info("✅ GitHub data refreshed");
+                     // Call the service to fetch fresh data
+                     Map<String, Object> data = dataService.getCollectedData("github:" + owner + "/" + repo);
+                     
+                     logger.info("✅ GitHub data refreshed, keys: {}", data != null ? data.keySet() : "null");
                     
                     // Return pending for async
                     String jobId = UUID.randomUUID().toString();
@@ -127,10 +127,10 @@ public class DataRefreshCommands {
                     
                     logger.info("🔄 Refreshing Vercel status: {}", projectId);
                     
-                    // Call the service
-                    Map<String, Object> data = dataService.getCollectedData("vercel:" + projectId);
-                    
-                    logger.info("✅ Vercel data refreshed");
+                     // Call the service
+                     Map<String, Object> data = dataService.getCollectedData("vercel:" + projectId);
+                     
+                     logger.info("✅ Vercel data refreshed, keys: {}", data != null ? data.keySet() : "null");
                     
                     String jobId = UUID.randomUUID().toString();
                     return CommandResult.pending("refresh-vercel", jobId);
@@ -184,10 +184,10 @@ public class DataRefreshCommands {
                 try {
                     logger.info("🔄 Refreshing Firebase metrics");
                     
-                    // Call the service
-                    Map<String, Object> data = dataService.getCollectedData("firebase");
-                    
-                    logger.info("✅ Firebase data refreshed");
+                     // Call the service
+                     Map<String, Object> data = dataService.getCollectedData("firebase");
+                     
+                     logger.info("✅ Firebase data refreshed, keys: {}", data != null ? data.keySet() : "null");
                     
                     String jobId = UUID.randomUUID().toString();
                     return CommandResult.pending("refresh-firebase", jobId);

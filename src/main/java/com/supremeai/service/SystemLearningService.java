@@ -5,7 +5,9 @@ import com.supremeai.repository.SystemLearningRepository;
 import com.supremeai.util.IdUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -15,6 +17,7 @@ import java.util.List;
  * Service for managing system learning with Redis caching.
  */
 @Service
+@ConditionalOnProperty(name = "spring.cloud.gcp.firestore.enabled", havingValue = "true", matchIfMissing = true)
 public class SystemLearningService {
 
     private final SystemLearningRepository repository;

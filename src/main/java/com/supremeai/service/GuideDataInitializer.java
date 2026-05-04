@@ -5,7 +5,9 @@ import com.supremeai.repository.UserGuideRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+
 import reactor.core.publisher.Flux;
 
 import jakarta.annotation.PostConstruct;
@@ -18,6 +20,7 @@ import java.util.Map;
  * Populates Firestore with Bangla and English guides on first startup.
  */
 @Component
+@ConditionalOnProperty(name = "spring.cloud.gcp.firestore.enabled", havingValue = "true", matchIfMissing = true)
 public class GuideDataInitializer {
 
     private static final Logger log = LoggerFactory.getLogger(GuideDataInitializer.class);
