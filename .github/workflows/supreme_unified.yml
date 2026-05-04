@@ -382,7 +382,7 @@ jobs:
 
   performance-test:
     name: Performance Testing
-    needs: [java-build-and-test]
+    needs: [java-build-and-test, changes]
     if: >-
       ${{
         (github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
@@ -399,6 +399,11 @@ jobs:
           distribution: "temurin"
       - name: Setup k6
         uses: grafana/setup-k6@v1
+      - name: Download JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: java-backend-jar
+          path: .
       - name: Run Performance Tests
         run: |
           echo "Running performance tests..."
@@ -427,7 +432,7 @@ jobs:
           }
           EOF
           
-          ./gradlew bootRun &
+          java -jar app.jar &
           APP_PID=$!
           
           for i in {1..30}; do
