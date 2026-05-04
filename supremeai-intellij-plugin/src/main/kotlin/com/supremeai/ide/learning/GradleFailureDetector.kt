@@ -15,11 +15,11 @@ class GradleFailureDetector : ExternalSystemTaskNotificationListenerAdapter() {
     private val logger = Logger.getInstance(GradleFailureDetector::class.java)
 
     override fun onFailure(id: ExternalSystemTaskId, e: Exception) {
-        logger.warn("Gradle external system task failed: ${id.projectPath}", e)
+        val project = id.findProject()
+        val projectPath = project?.basePath ?: "unknown"
+        logger.warn("Gradle external system task failed: $projectPath", e)
 
-        val project = ProjectManager.getInstance().openProjects
-            .firstOrNull { it.basePath == id.projectPath }
-            ?: return
+        if (project == null) return
 
         SupremeAILearningClient.sendErrorToBrain(
             project,
@@ -31,7 +31,8 @@ class GradleFailureDetector : ExternalSystemTaskNotificationListenerAdapter() {
 
     override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
         if (!stdOut && text.contains("FAIL", ignoreCase = true)) {
-            logger.info("Gradle stderr for ${id.projectPath}: ${text.take(500)}")
+            val projectPath = id.findProject()?.basePath ?: "unknown"
+            logger.info("Gradle stderr for $projectPath: ${text.take(500)}")
         }
     }
 

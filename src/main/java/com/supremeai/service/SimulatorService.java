@@ -135,8 +135,15 @@ public class SimulatorService {
                 session.setState(UserSimulatorProfile.SessionState.ACTIVE);
 
                 profile.setCurrentSession(session);
+                // Get the actual preview URL for the active app
+                String previewUrl = profile.getInstalledApps().stream()
+                    .filter(a -> a.getAppId().equals(appId))
+                    .map(InstalledApp::getDeployedUrl)
+                    .findFirst()
+                    .orElse(deploymentService.deployToSimulator(appId, "PIXEL_6"));
+
                 return profileRepository.save(profile)
-                    .map(savedProfile -> new SessionStartResult(sessionId, websocketUrl, "PREVIEW_URL", UserSimulatorProfile.SessionState.ACTIVE, java.time.LocalDateTime.now()));
+                    .map(savedProfile -> new SessionStartResult(sessionId, websocketUrl, previewUrl, UserSimulatorProfile.SessionState.ACTIVE, java.time.LocalDateTime.now()));
             });
     }
 
@@ -149,8 +156,14 @@ public class SimulatorService {
             .then();
     }
 
-    public Mono<SessionStatusResult> getSessionStatus(String userId) {
-        return profileRepository.findByUserId(userId)
+    /**
+     * Get all active simulator deployments for admin view.
+     */
+    public java.util.Map<String, SimulatorDeploymentService.DeploymentRecord> getAllDeployments() {
+        return deploymentService.getAllDeployments();
+    }
+
+    public Mono<SessionStatusResult> getSessionStatus(String userId) {        return profileRepository.findByUserId(userId)
             .map(profile -> {
                 UserSimulatorProfile.ActiveSession session = profile.getCurrentSession();
                 return new SessionStatusResult(

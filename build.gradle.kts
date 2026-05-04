@@ -59,6 +59,8 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.17.0")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.0")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.0")
+    // Jackson Afterburner module for optimized JSON serialization (20-30% faster)
+    implementation("com.fasterxml.jackson.module:jackson-module-afterburner:2.17.0")
 
     // HTML Parsing
     implementation("org.jsoup:jsoup:1.17.1")
@@ -78,7 +80,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("jakarta.servlet:jakarta.servlet-api:6.0.0")
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    // Removed spring-boot-starter-webflux - conflicts with servlet stack causing non-web startup
+    implementation("org.springframework.boot:spring-boot-starter-webflux")  // Required for WebClient in SimulatorDeploymentService
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-websocket")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -108,8 +110,7 @@ dependencies {
     // Distributed Tracing - OpenTelemetry (using stable versions)
     implementation("io.opentelemetry:opentelemetry-api:1.36.0")
     implementation("io.opentelemetry:opentelemetry-sdk:1.36.0")
-    // Note: opentelemetry-exporter-jaeger moved, using basic exporter instead
-    // implementation("io.opentelemetry:opentelemetry-exporter-jaeger:1.36.0")
+    implementation("io.opentelemetry:opentelemetry-exporter-otlp:1.36.0")
     
     // Redis caching
     implementation("org.springframework.boot:spring-boot-starter-data-redis")

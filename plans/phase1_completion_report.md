@@ -171,16 +171,16 @@ BUILD SUCCESSFUL in 15s
 - ✅ Structured logging
 - ✅ Recency-aware scoring
 
-### Original Week 2-4 (Deferred to Phase 2)
+### Original Week 2-4 (Deferred to Phase 2 — NOW RESOLVED)
 
-- [ ] Database layer (SQLite/PostgreSQL) - Phase 2
-- [ ] Monitoring system setup - Phase 2
-- [ ] CI/CD pipeline (beyond basics) - Phase 2
-- [ ] Browser access control - Phase 2
-- [ ] 5-tier storage architecture - Phase 2
-- [ ] Auto-expiry scheduler - Phase 2
-- [ ] Chat history analysis - Phase 2
-- [ ] Agent performance tracking - Phase 2
+- [x] Database layer (Firestore) — Phase 2 ✅
+- [x] Monitoring system setup — Phase 2 ✅
+- [x] CI/CD pipeline (beyond basics) — Phase 2 ✅
+- [x] Browser access control — Phase 2 ✅
+- [x] 5-tier storage architecture — Phase 3 ✅
+- [x] Auto-expiry scheduler — Phase 4 ✅ (`DataLifecycleService.java`)
+- [ ] Chat history analysis — Phase 4 (pending)
+- [x] Agent performance tracking — Phase 3 ✅
 
 ---
 
