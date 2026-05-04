@@ -182,12 +182,61 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                                 chatArea.append("AI: Parse error: ${e.message?.replace("\r", "")?.trim() ?: "Unknown parse error"}\n")
                             }
                         }
-                    } else {
-                        val errorResponse = conn.errorStream?.bufferedReader()?.use { it.readText() } ?: "No error details"
-                        SwingUtilities.invokeLater {
-                            chatArea.append("AI: [Error $responseCode] $errorResponse\n")
-                        }
-                    }
+                     } else {
+                         val errorResponse = conn.errorStream?.bufferedReader()?.use { it.readText() } ?: "No error details"
+                         SwingUtilities.invokeLater {
+                             when (responseCode) {
+                                 401 -> {
+                                     val settings = SupremeAISettings.getInstance()
+                                     val apiKeyConfigured = settings.apiKey.trim().isNotBlank()
+                                     val endpointConfigured = settings.apiEndpoint.trim().isNotBlank()
+
+                                     val authMessage = buildString {
+                                         append("AI: 🔐 Authentication Required\n")
+                                         append("To chat with SupremeAI, you need to configure your credentials:\n")
+                                         if (!apiKeyConfigured) {
+                                             append("• API Key is not configured\n")
+                                         }
+                                         if (!endpointConfigured) {
+                                             append("• API Endpoint is not configured (using default)\n")
+                                         }
+                                         append("\nPlease go to the Settings tab to configure these options.\n")
+                                         append("Once configured, try sending your message again.\n")
+                                     }
+                                     chatArea.append(authMessage)
+
+                                     // Auto-focus settings tab
+                                     try {
+                                         val toolWindowManager = com.intellij.openapi.wm.ToolWindowManager.getInstance(com.intellij.openapi.project.ProjectManager.getInstance().defaultProject)
+                                         val toolWindow = toolWindowManager.getToolWindow("SupremeAI")
+                                         if (toolWindow != null) {
+                                             toolWindow.contentManager.setSelectedContent(toolWindow.contentManager.contents.find { it.tabName == "Settings" })
+                                             toolWindow.show()
+                                         }
+                                     } catch (e: Exception) {
+                                         // Ignore if we can't switch tabs
+                                     }
+                                 }
+                                 403 -> {
+                                     chatArea.append("AI: 🚫 Access Denied\n")
+                                     chatArea.append("You don't have permission to access this feature.\n")
+                                     chatArea.append("Please contact your administrator or check your account permissions.\n")
+                                 }
+                                 429 -> {
+                                     chatArea.append("AI: ⏱️ Rate Limited\n")
+                                     chatArea.append("Too many requests. Please wait a moment before trying again.\n")
+                                 }
+                                 500, 502, 503, 504 -> {
+                                     chatArea.append("AI: 🚨 Server Error\n")
+                                     chatArea.append("The SupremeAI service is currently experiencing issues.\n")
+                                     chatArea.append("Please try again in a few minutes.\n")
+                                 }
+                                 else -> {
+                                     chatArea.append("AI: [Error $responseCode] $errorResponse\n")
+                                 }
+                             }
+                         }
+                     }
                 } catch (e: Exception) {
                     SwingUtilities.invokeLater {
                         chatArea.append("AI: [Offline] Connection failed: ${e.message}\n")
@@ -209,11 +258,16 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                     conn.readTimeout = 5000
                     conn.requestMethod = "GET"
                     val responseCode = conn.responseCode
-                    // 200 is success, 401 means server is up but needs auth (which is fine for a status check)
-                    if (responseCode == 200 || responseCode == 401) {
+                    // 200 is success, 401 means server is up but needs auth
+                    if (responseCode == 200) {
                         SwingUtilities.invokeLater {
                             statusLabel.text = "● Backend: Online"
                             statusLabel.foreground = java.awt.Color.GREEN
+                        }
+                    } else if (responseCode == 401) {
+                        SwingUtilities.invokeLater {
+                            statusLabel.text = "● Backend: Online (Auth Required)"
+                            statusLabel.foreground = java.awt.Color.ORANGE
                         }
                     } else {
                         SwingUtilities.invokeLater {

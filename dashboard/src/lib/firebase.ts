@@ -87,10 +87,10 @@ export async function firebaseSignIn(
       password,
     );
 
-    // Check admin role via Firebase custom claims
+    // Check admin role via Firebase custom claims (case-insensitive)
     const idTokenResult = await getIdTokenResult(cred.user);
     const role = idTokenResult.claims['role'] as string | undefined;
-    if (role !== 'admin') {
+    if (role?.toLowerCase() !== 'admin') {
       await signOut(firebaseAuth);
       throw new Error('Access denied: You do not have admin privileges.');
     }

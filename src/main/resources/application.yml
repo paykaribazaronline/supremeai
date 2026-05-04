@@ -59,6 +59,16 @@ supremeai:
     groq: ${GROQ_API_KEY:}
     custom-supreme-ai: ${CUSTOM_SUPREME_AI_KEY:}
 
+# Rate limiting configuration
+rate-limit:
+  enabled: true
+  distributed: true
+  window-seconds: 60
+  authenticated-requests-per-minute: 100
+  anonymous-requests-per-minute: 10
+  admin-requests-per-minute: 1000
+  ai-provider-requests-per-minute: 50
+
 logging:
   level:
     com.supremeai: DEBUG

@@ -5,12 +5,16 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import javax.sql.DataSource;
 
 /**
  * HikariCP configuration for Firestore connection pooling.
  * Optimized for high-concurrency scenarios with maxPoolSize=100, minIdle=20.
+ * 
+ * This bean is only created when a datasource URL is configured.
+ * For Firestore-only deployments, this config is not needed.
  */
 @Configuration
 public class HikariCPConfig {
@@ -33,7 +37,7 @@ public class HikariCPConfig {
     @Value("${spring.datasource.hikari.leak-detection-threshold:60000}")
     private long leakDetectionThreshold;
 
-    @Value("${spring.datasource.url}")
+    @Value("${spring.datasource.url:}")
     private String jdbcUrl;
 
     @Value("${spring.datasource.username:sa}")
@@ -48,10 +52,15 @@ public class HikariCPConfig {
     /**
      * Configure HikariCP DataSource with optimized settings for Firestore.
      *
-     * @return configured HikariDataSource
+     * @return configured HikariDataSource or null if no URL provided
      */
     @Bean
     public DataSource hikariDataSource() {
+        // If no JDBC URL is provided, don't create the bean (Firestore-only mode)
+        if (jdbcUrl == null || jdbcUrl.trim().isEmpty()) {
+            return null;
+        }
+        
         HikariConfig config = new HikariConfig();
         
         // JDBC connection settings
@@ -73,7 +82,7 @@ public class HikariCPConfig {
         config.setLeakDetectionThreshold(leakDetectionThreshold);
         
         // Performance optimizations
-        config.setPoolName("FirestoreHikariPool");
+        config.setPoolName("SupremeAIHikariPool");
         config.setRegisterMbeans(true);
         
         // Connection testing

@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping({"/api/status", "/api/health"})
+@RequestMapping("/api/status")
 public class ServerStatusController {
 
     @GetMapping
