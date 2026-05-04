@@ -526,7 +526,7 @@ jobs:
         with:
           credentials_json: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}"
       - name: Setup GCloud
-        uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@v3
       - name: Build and Push Container
         run: |
           BUILD_ID=$(gcloud builds submit --tag us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai --async --format="value(id)")
@@ -577,7 +577,7 @@ jobs:
         with:
           credentials_json: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}"
       - name: Setup GCloud
-        uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@v3
       - name: Deploy Canary Version
         run: |
           gcloud run deploy supremeai-canary \
