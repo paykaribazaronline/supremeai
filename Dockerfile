@@ -26,6 +26,9 @@ FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
+# Create logs directory for logback
+RUN mkdir -p logs && chmod 777 logs
+
 # Copy the built JAR
 COPY --from=builder /app/build/libs/app.jar app.jar
 
