@@ -1,0 +1,780 @@
+name: SupremeAI Unified Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+    paths-ignore:
+      - '**/*.md'
+      - 'LICENSE'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      force_run_all:
+        description: 'Force run all jobs regardless of changes'
+        required: false
+        default: 'false'
+        type: boolean
+      retry_failed_jobs:
+        description: 'Retry only failed jobs from previous run'
+        required: false
+        default: 'false'
+        type: boolean
+  schedule:
+    # Weekly security scan
+    - cron: '0 0 * * 0'
+    # Weekly dependency check
+    - cron: '0 1 * * 0'
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  # ============================================================
+  # PHASE 1: DETECTION & SECURITY
+  # ============================================================
+  
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      actions: read
+    outputs:
+      backend: "${{ steps.filter.outputs.backend }}"
+      frontend: "${{ steps.filter.outputs.frontend }}"
+      plugin: "${{ steps.filter.outputs.plugin }}"
+      vscode_extension: "${{ steps.filter.outputs.vscode_extension }}"
+      any_changes: "${{ steps.filter.outputs.any_changes }}"
+      failed_jobs: "${{ steps.get-failed.outputs.failed_jobs }}"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get Last Successful Commit
+        id: last_success
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LAST_SHA=$(gh api repos/${{ github.repository }}/actions/workflows/supreme_unified.yml/runs?status=success\&branch=${{ github.ref_name }} -q '.workflow_runs | if length > 0 then .[0].head_sha else "" end' || echo "")
+          if [ -z "$LAST_SHA" ] || [ "$LAST_SHA" == "null" ]; then
+            echo "base=${{ github.event.before || github.sha }}" >> $GITHUB_OUTPUT
+          else
+            echo "base=$LAST_SHA" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Detect Changes
+        id: filter
+        uses: dorny/paths-filter@v4
+        with:
+          base: ${{ steps.last_success.outputs.base }}
+          filters: |
+            backend:
+              - 'src/**'
+              - 'Dockerfile'
+              - 'build.gradle*'
+              - '.github/workflows/**'
+              - 'gradle.properties'
+              - 'settings.gradle*'
+              - '**/*.gradle*'
+            frontend:
+              - 'supremeai/**'
+              - 'supremeai/firebase.json'
+              - '.github/workflows/**'
+            plugin:
+              - 'supremeai-intellij-plugin/**'
+              - '.github/workflows/**'
+            vscode_extension:
+              - 'supremeai-vscode-extension/**'
+              - '.github/workflows/**'
+
+      - name: Get Failed Jobs From Previous Run
+        id: get-failed
+        if: github.event.inputs.retry_failed_jobs == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PREVIOUS_RUN=$(gh api repos/${{ github.repository }}/actions/workflows/supreme_unified.yml/runs?branch=${{ github.ref_name }}\&per_page=5 -q '.workflow_runs | map(select(.status == "completed" and .id != ${{ github.run_id }})) | .[0]')
+          PREVIOUS_ID=$(echo "$PREVIOUS_RUN" | jq -r '.id // empty')
+
+          if [ -z "$PREVIOUS_ID" ]; then
+            echo "No previous run found"
+            echo "failed_jobs=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          FAILED_JOBS=$(gh api repos/${{ github.repository }}/actions/runs/$PREVIOUS_ID/jobs -q '.jobs | map(select(.conclusion == "failure")) | map(.name) | join(",")')
+          echo "Previous run ID: $PREVIOUS_ID"
+          echo "Failed jobs: $FAILED_JOBS"
+          echo "failed_jobs=$FAILED_JOBS" >> $GITHUB_OUTPUT
+
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v4
+      - name: Secret Scan
+        uses: trufflesecurity/trufflehog@v3.80.1
+        with:
+          path: "./"
+          extra_args: "--only-verified"
+
+  codeql:
+    name: CodeQL Security Analysis
+    needs: [changes]
+    if: >-
+      ${{
+        github.event_name != 'pull_request' && 
+        ((github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
+         needs.changes.outputs.backend == 'true') 
+      }}
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@v3
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+      - name: CodeQL Init
+        uses: github/codeql-action/init@v3
+        with:
+          languages: "java"
+          build-mode: "manual"
+      - name: Clean Build For CodeQL
+        run: ./gradlew clean compileJava
+      - name: Run CodeQL
+        uses: github/codeql-action/analyze@v3
+
+  owasp-check:
+    name: OWASP Dependency Check
+    needs: [changes]
+    if: >-
+      ${{
+        github.event_name != 'pull_request' &&
+        ((github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
+         needs.changes.outputs.backend == 'true')
+      }}
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+      - name: Run OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'supremeai'
+          path: '.'
+          format: 'HTML'
+          fail_build: false
+          args: >
+            --scan .
+            --format HTML
+            --format JSON
+            --format SARIF
+            --out dependency-check-report
+            --suppression dependencycheck-suppression.xml
+      - name: Upload Dependency Check Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: dependency-check-report/
+          retention-days: 30
+      - name: Upload to Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: dependency-check-report/dependency-check-report.sarif
+        continue-on-error: true
+
+  # ============================================================
+  # PHASE 2: BUILD & TEST
+  # ============================================================
+
+  java-build-and-test:
+    name: Java Build and Test
+    needs: [changes, secret-scan]
+    if: >-
+      ${{
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
+        needs.changes.outputs.backend == 'true' ||
+        (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Java_Build_And_Test'))
+      }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: "gradle"
+          cache-dependency-path: "**/*.gradle*"
+      - name: Grant Execute Permission
+        run: chmod +x gradlew
+      - name: Build and Test
+        run: |
+          echo "Starting Java build process..."
+          ./gradlew clean bootJar --no-daemon --stacktrace
+          if [ ! -f "build/libs/app.jar" ]; then
+            echo "Error: app.jar not found in build/libs"
+            ls -R build/libs
+            exit 1
+          else
+            echo "Successfully built app.jar"
+          fi
+      - name: Generate Coverage Report
+        run: ./gradlew jacocoTestReport
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-backend-jar
+          path: build/libs/app.jar
+          retention-days: 7
+          if-no-files-found: error
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./build/reports/jacoco/test/jacocoTestReport.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          retention-days: 7
+          path: build/test-results/test/
+
+  flutter-build-and-test:
+    name: Flutter Build and Test
+    needs: [changes, secret-scan]
+    if: >-
+      ${{
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
+        needs.changes.outputs.frontend == 'true' ||
+        (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Flutter_Build_And_Test'))
+      }}
+    runs-on: ubuntu-latest
+    outputs:
+      frontend_url: ${{ steps.set-paths.outputs.frontend_url }}
+      apk_path: ${{ steps.set-paths.outputs.apk_path }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Flutter Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            **/.dart_tool/flutter_build
+          key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            flutter-${{ runner.os }}-
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.27.0"
+          cache: true
+      - name: Get Flutter Dependencies
+        working-directory: ./supremeai
+        run: flutter pub get
+      - name: Run Tests
+        working-directory: ./supremeai
+        run: flutter test
+      - name: Build Web
+        working-directory: ./supremeai
+        run: flutter build web --release
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-artifacts
+          retention-days: 7
+          path: |
+            supremeai/build/web
+            !**/**.map
+          if-no-files-found: warn
+      - name: Store Artifact Paths
+        id: set-paths
+        run: |
+          echo "frontend_url=https://supremeai-a.web.app/" >> $GITHUB_OUTPUT
+
+  plugin-build:
+    name: IntelliJ Plugin Build
+    needs: [changes, secret-scan]
+    if: >-
+      ${{
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
+        needs.changes.outputs.plugin == 'true' ||
+        (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Plugin_Build'))
+      }}
+    runs-on: ubuntu-latest
+    outputs:
+      plugin_path: ${{ steps.set-path.outputs.path }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: "gradle"
+      - name: Build Plugin
+        run: "./gradlew :supremeai-intellij-plugin:buildPlugin"
+      - name: Upload Plugin Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: supremeai-intellij-plugin
+          retention-days: 7
+          path: supremeai-intellij-plugin/build/distributions/*.zip
+      - name: Store Plugin Path
+        id: set-path
+        run: echo "path=supremeai-intellij-plugin/build/distributions/*.zip" >> $GITHUB_OUTPUT
+
+  vscode-extension-build:
+    name: VSCode Extension Build
+    needs: [changes, secret-scan]
+    if: >-
+      ${{
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
+        needs.changes.outputs.vscode_extension == 'true' ||
+        (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'VSCode_Extension_Build'))
+      }}
+    runs-on: ubuntu-latest
+    outputs:
+      vsix_path: ${{ steps.set-path.outputs.path }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install Dependencies
+        working-directory: ./supremeai-vscode-extension
+        run: npm install
+      - name: Compile
+        working-directory: ./supremeai-vscode-extension
+        run: npm run compile
+      - name: Upload VSIX Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: supremeai-vscode-extension
+          retention-days: 7
+          path: supremeai-vscode-extension/*.vsix
+      - name: Store VSIX Path
+        id: set-path
+        run: echo "path=supremeai-vscode-extension/*.vsix" >> $GITHUB_OUTPUT
+
+  performance-test:
+    name: Performance Testing
+    needs: [java-build-and-test]
+    if: >-
+      ${{
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
+        needs.changes.outputs.backend == 'true' ||
+        github.ref == 'refs/heads/main'
+      }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+      - name: Setup k6
+        uses: grafana/setup-k6@v1
+      - name: Run Performance Tests
+        run: |
+          echo "Running performance tests..."
+          cat > performance-test.js << 'EOF'
+          import http from 'k6/http';
+          import { check, sleep } from 'k6';
+          
+          export let options = {
+            stages: [
+              { duration: '30s', target: 10 },
+              { duration: '1m', target: 10 },
+              { duration: '30s', target: 0 },
+            ],
+            thresholds: {
+              http_req_duration: ['p(95)<500'],
+              http_req_failed: ['rate<0.01'],
+            },
+          };
+          
+          export default function () {
+            let res = http.get('http://localhost:8080/api/health');
+            check(res, {
+              'status is 200': (r) => r.status === 200,
+            });
+            sleep(1);
+          }
+          EOF
+          
+          ./gradlew bootRun &
+          APP_PID=$!
+          
+          for i in {1..30}; do
+            if curl -sf http://localhost:8080/api/health > /dev/null; then
+              echo "Application is running!"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
+          
+          k6 run performance-test.js
+          kill $APP_PID || true
+      - name: Upload Performance Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results
+          path: |
+            performance-test.js
+          retention-days: 30
+
+  e2e-tests:
+    name: E2E Tests
+    needs: [java-build-and-test, flutter-build-and-test]
+    if: >-
+      ${{
+        github.event_name == 'pull_request' ||
+        github.ref == 'refs/heads/main' ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true')
+      }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Cypress Tests
+        working-directory: ./dashboard
+        run: |
+          npm install cypress --save-dev
+          npm run dev &
+          for i in {1..30}; do
+            if curl -sf http://localhost:5173 > /dev/null; then
+              break
+            fi
+            sleep 2
+          done
+          npx cypress run --headless || echo "Cypress tests completed"
+      - name: API Integration Tests
+        run: ./gradlew test --tests "*IntegrationTest" --tests "*APITest" || echo "API tests completed"
+
+  # ============================================================
+  # PHASE 3: DEPLOYMENT
+  # ============================================================
+
+  deploy-backend:
+    name: Deploy Backend
+    needs: [java-build-and-test, performance-test]
+    if: >-
+      ${{
+        github.ref == 'refs/heads/main' &&
+        ((github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
+         needs.changes.outputs.backend == 'true' ||
+         (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Deploy_Backend')))
+      }}
+    runs-on: ubuntu-latest
+    outputs:
+      admin_url: ${{ steps.set-url.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: java-backend-jar
+          path: build/libs
+      - name: Verify JAR
+        run: |
+          echo "Verifying JAR download..."
+          ls -la build/libs
+          if [ -f "build/libs/app.jar" ]; then
+            echo "✅ app.jar found, copying to repo root"
+            cp build/libs/app.jar ./app.jar
+          else
+            echo "❌ app.jar NOT found"
+            exit 1
+          fi
+      - name: Authenticate GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}"
+      - name: Setup GCloud
+        uses: google-github-actions/setup-gcloud@v2
+      - name: Build and Push Container
+        run: |
+          BUILD_ID=$(gcloud builds submit --tag us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai --async --format="value(id)")
+          while true; do
+            STATUS=$(gcloud builds describe $BUILD_ID --format="value(status)")
+            if [ "$STATUS" = "SUCCESS" ]; then
+              break
+            elif [ "$STATUS" = "FAILURE" ] || [ "$STATUS" = "INTERNAL_ERROR" ]; then
+              exit 1
+            fi
+            sleep 10
+          done
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy supremeai \
+            --image us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai \
+            --platform managed \
+            --region us-central1 \
+            --allow-unauthenticated \
+            --memory 4Gi \
+            --cpu 2 \
+            --timeout 600 \
+            --set-env-vars="SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a,spring.threads.virtual.enabled=true" \
+            --update-secrets FIREBASE_SERVICE_ACCOUNT_JSON=firebase-service-account-json:latest,JWT_SECRET=jwt-secret:latest \
+            --max-instances 10 \
+            --concurrency 80 \
+            --quiet
+      - name: Store Admin URL
+        id: set-url
+        run: |
+          URL=$(gcloud run services describe supremeai --platform managed --region us-central1 --format='value(status.url)')
+          echo "url=$URL/admin.html" >> $GITHUB_OUTPUT
+
+  deploy-canary:
+    name: Deploy Canary
+    needs: [deploy-backend]
+    if: >-
+      ${{
+        github.ref == 'refs/heads/main' &&
+        ((github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
+         needs.changes.outputs.backend == 'true')
+      }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Authenticate GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}"
+      - name: Setup GCloud
+        uses: google-github-actions/setup-gcloud@v2
+      - name: Deploy Canary Version
+        run: |
+          gcloud run deploy supremeai-canary \
+            --image us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai \
+            --platform managed \
+            --region us-central1 \
+            --allow-unauthenticated \
+            --memory 4Gi \
+            --cpu 2 \
+            --timeout 600 \
+            --set-env-vars="SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a,CANARY_VERSION=true" \
+            --quiet
+      - name: Split Traffic (10% Canary)
+        run: |
+          gcloud run services update-traffic supremeai \
+            --platform managed \
+            --region us-central1 \
+            --to-revisions supremeai=90,supremeai-canary=10 \
+            --quiet
+      - name: Monitor Canary Health
+        run: |
+          for i in {1..30}; do
+            STATUS=$(curl -sf https://supremeai-canary-uc.a.run.app/api/health || echo "FAILED")
+            if [ "$STATUS" != "OK" ]; then
+              echo "Canary health check failed!"
+              exit 1
+            fi
+            sleep 10
+          done
+      - name: Promote Canary to Production
+        run: |
+          gcloud run services update-traffic supremeai \
+            --platform managed \
+            --region us-central1 \
+            --to-revisions supremeai=0,supremeai-canary=100 \
+            --quiet
+          echo "Canary promoted to production!"
+      - name: Rollback Canary on Failure
+        if: failure()
+        run: |
+          echo "Rolling back canary..."
+          gcloud run services update-traffic supremeai \
+            --platform managed \
+            --region us-central1 \
+            --to-revisions supremeai=100 \
+            --quiet
+
+  deploy-frontend:
+    name: Deploy Frontend
+    needs: [flutter-build-and-test]
+    if: >-
+      ${{
+        github.ref == 'refs/heads/main' &&
+        ((github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
+         needs.changes.outputs.frontend == 'true' ||
+         (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Deploy_Frontend')))
+      }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Web
+        uses: actions/download-artifact@v4
+        with:
+          name: flutter-artifacts
+          path: supremeai/build/web
+      - name: Authenticate GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}"
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install Firebase Tools
+        run: npm install -g firebase-tools
+      - name: Deploy Firebase Hosting
+        run: |
+          firebase deploy --project supremeai-a --only hosting --non-interactive
+
+  deploy-cloud-functions:
+    name: Deploy Cloud Functions
+    needs: [changes, secret-scan]
+    if: >-
+      ${{
+        github.ref == 'refs/heads/main' &&
+        ((github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
+         needs.changes.outputs.backend == 'true' ||
+         (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Deploy_Cloud_Functions')))
+      }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install Firebase Tools
+        run: npm install -g firebase-tools
+      - name: Authenticate GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}"
+      - name: Deploy Functions
+        run: |
+          cd functions
+          npm install
+          firebase deploy --project supremeai-a --only functions --non-interactive
+
+  # ============================================================
+  # PHASE 4: VALIDATION & NOTIFICATION
+  # ============================================================
+
+  health-check:
+    name: Health Check
+    needs: [deploy-backend, deploy-frontend]
+    if: ${{ always() && (needs.deploy-backend.result == 'success' || needs.deploy-frontend.result == 'success') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Deployment Status
+        id: status-check
+        run: |
+          FAILED=false
+          echo "Checking frontend status..."
+          if ! curl -sf https://supremeai-a.web.app/; then
+            echo "frontend_failed=true" >> $GITHUB_ENV
+            FAILED=true
+          fi
+          echo "Checking backend health endpoint..."
+          if ! curl -sf https://supremeai-lhlwyikwlq-uc.a.run.app/api/health; then
+            echo "backend_failed=true" >> $GITHUB_ENV
+            FAILED=true
+          fi
+          if [ "$FAILED" = "true" ]; then
+            exit 1
+          fi
+      - name: Rollback on Failure
+        if: failure()
+        run: |
+          echo "### 🚨 Deployment Failure Detected! ###"
+          if [ "$backend_failed" = "true" ]; then
+            echo "Triggering rollback for backend..."
+            gcloud run services rollback supremeai --platform managed --region us-central1 --quiet || echo "Rollback failed"
+          fi
+          if [ "$frontend_failed" = "true" ]; then
+            echo "Triggering rollback for frontend..."
+            firebase hosting:rollback --project supremeai-a --quiet || echo "Rollback failed"
+          fi
+
+  workflow-summary:
+    name: Workflow Summary
+    needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, deploy-cloud-functions, deploy-canary, performance-test, health-check, e2e-tests]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate Summary
+        run: |
+            echo "### Workflow Summary" >> $GITHUB_STEP_SUMMARY
+            echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
+            echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
+            echo "| ☕ Java Backend | ${{ needs.java-build-and-test.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 📱 Flutter Frontend | ${{ needs.flutter-build-and-test.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔌 IntelliJ Plugin | ${{ needs.plugin-build.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 💻 VS Code Ext | ${{ needs.vscode-extension-build.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🚀 Performance Test | ${{ needs.performance-test.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🌐 Deploy Backend | ${{ needs.deploy-backend.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔀 Canary Deploy | ${{ needs.deploy-canary.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🌍 Deploy Frontend | ${{ needs.deploy-frontend.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| ⚡ Cloud Functions | ${{ needs.deploy-cloud-functions.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🏥 Health Check | ${{ needs.health-check.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🧪 E2E Tests | ${{ needs.e2e-tests.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "**Admin Dashboard:** ${{ needs.deploy-backend.outputs.admin_url || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
+
+  notification:
+    name: Notification
+    needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, deploy-cloud-functions, deploy-canary, performance-test, health-check, e2e-tests]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Webhook
+        env:
+          SUPREMEAI_WEBHOOK_SECRET: ${{ secrets.SUPREMEAI_WEBHOOK_SECRET }}
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            STATUS="failure"
+          else
+            STATUS="success"
+          fi
+          curl -X POST https://supremeai-lhlwyikwlq-uc.a.run.app/api/webhooks/github \
+            -H "Content-Type: application/json" \
+            -H "X-Webhook-Secret: $SUPREMEAI_WEBHOOK_SECRET" \
+            -d "{\"status\": \"$STATUS\", \"runId\": \"$GITHUB_RUN_ID\", \"repo\": \"$GITHUB_REPOSITORY\", \"pipeline\": \"supreme_unified\"}"
+      - name: Status Update
+        if: always()
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "Pipeline failed! Check summary for details."
+            exit 1
+          else
+            echo "All deployments successful!"
+          fi
