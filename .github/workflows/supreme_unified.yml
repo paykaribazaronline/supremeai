@@ -335,9 +335,7 @@ jobs:
           cache: "gradle"
       - name: Build Plugin
         working-directory: ./supremeai-intellij-plugin
-        run: |
-          chmod +x gradlew
-          ./gradlew buildPlugin
+        run: "./gradlew buildPlugin"
       - name: Upload Plugin Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -401,8 +399,6 @@ jobs:
           distribution: "temurin"
       - name: Setup k6
         uses: grafana/k6-action@v0.3.0
-        with:
-          filename: performance-test.js
       - name: Download JAR
         uses: actions/download-artifact@v4
         with:
@@ -781,9 +777,6 @@ jobs:
           if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
             echo "Pipeline failed! Check summary for details."
             exit 1
-          else
-            echo "All deployments successful!"
-          fi
           else
             echo "All deployments successful!"
           fi
