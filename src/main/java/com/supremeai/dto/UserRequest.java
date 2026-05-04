@@ -1,8 +1,19 @@
 package com.supremeai.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 public class UserRequest {
+    @NotBlank(message = "Description is required")
+    @Size(min = 1, max = 500, message = "Description must be between 1 and 500 characters")
     private String description;
+
+    @NotNull(message = "Language preference is required")
     private LanguagePreference languagePreference;
+
+    @NotBlank(message = "User ID is required")
+    @Size(min = 1, max = 255, message = "User ID must be between 1 and 255 characters")
     private String userId;
 
     // Getters

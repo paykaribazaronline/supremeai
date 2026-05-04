@@ -76,18 +76,7 @@ public class CacheConfig {
      * - 30 minute TTL
      * - Shared across all instances
      * - JSON serialization for complex objects
+     *
+     * Note: RedisCacheManager is now provided by RedisConfig.
      */
-    @Bean
-    public RedisCacheManager redisCacheManager(RedisConnectionFactory redisConnectionFactory) {
-        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-            .entryTtl(Duration.ofMinutes(l2ExpireAfterWriteMinutes))
-            .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(
-                new GenericJackson2JsonRedisSerializer()))
-            .disableCachingNullValues();
-
-        return RedisCacheManager.builder(redisConnectionFactory)
-            .cacheDefaults(config)
-            .transactionAware()
-            .build();
-    }
 }

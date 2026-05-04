@@ -8,6 +8,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
+import java.time.Duration;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -31,12 +33,8 @@ class ResponseCacheServiceTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        responseCacheService = new ResponseCacheService();
-        java.lang.reflect.Field field = ResponseCacheService.class.getDeclaredField("redisTemplate");
-        field.setAccessible(true);
-        field.set(responseCacheService, redisTemplate);
-        responseCacheService.init();
-
+        responseCacheService = new ResponseCacheService(redisTemplate);
+        responseCacheService.init();  // Initialize the cache
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
     }
 
@@ -52,7 +50,8 @@ class ResponseCacheServiceTest {
 
     @Test
     void getBackfillsLocalCacheFromRedis() {
-        when(valueOperations.get(startsWith("ai_resp:"))).thenReturn("redis-response");
+        ResponseCacheService.CacheEntry cacheEntry = new ResponseCacheService.CacheEntry("redis-response", Duration.ofMinutes(30));
+        when(valueOperations.get(startsWith("cache:ai-responses:"))).thenReturn(cacheEntry);
 
         assertEquals("redis-response", responseCacheService.get("prompt"));
         assertEquals("redis-response", responseCacheService.get("prompt"));

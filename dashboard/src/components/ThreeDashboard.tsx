@@ -241,7 +241,7 @@ const ThreeDashboard: React.FC = () => {
      */
     const connectWebSocket = () => {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//localhost:8080/ws/visualization`;
+        const wsUrl = import.meta.env.VITE_VISUALIZATION_WS_URL || `${protocol}${window.location.host}/ws/visualization`;
 
         try {
             const ws = new WebSocket(wsUrl);
