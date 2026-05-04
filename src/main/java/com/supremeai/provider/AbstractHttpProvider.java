@@ -1,9 +1,11 @@
-package com.supremeai.provider;
+eadpackage com.supremeai.provider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -15,6 +17,7 @@ import java.util.concurrent.TimeUnit;
  * Base HTTP provider implementation
  * Eliminates 90% duplicate code across all REST API providers
  */
+@Component
 public abstract class AbstractHttpProvider implements AIProvider {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
@@ -36,7 +39,8 @@ public abstract class AbstractHttpProvider implements AIProvider {
             .retryOnConnectionFailure(true)
             .build();
 
-    protected static final ObjectMapper sharedObjectMapper = new ObjectMapper();
+    @Autowired
+    protected ObjectMapper objectMapper;
 
     protected final String apiKey;
     protected final String baseUrl;
@@ -95,9 +99,9 @@ public abstract class AbstractHttpProvider implements AIProvider {
      */
     protected okhttp3.Request buildRequest(Map<String, Object> body) throws Exception {
         okhttp3.Request.Builder builder = new okhttp3.Request.Builder()
-                .url(baseUrl)
+                .url(getRequestUrl())
                 .post(okhttp3.RequestBody.create(
-                        sharedObjectMapper.writeValueAsString(body),
+                        objectMapper.writeValueAsString(body),
                         okhttp3.MediaType.get("application/json")
                 ));
 
@@ -105,6 +109,13 @@ public abstract class AbstractHttpProvider implements AIProvider {
         addExtraHeaders(builder);
 
         return builder.build();
+    }
+
+    /**
+     * Get the request URL - can be overridden by providers that need custom URL building
+     */
+    protected String getRequestUrl() {
+        return baseUrl;
     }
 
     /**
