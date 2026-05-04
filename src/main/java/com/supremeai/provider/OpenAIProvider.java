@@ -1,8 +1,9 @@
 package com.supremeai.provider;
 
+
+import org.springframework.stereotype.Component;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;

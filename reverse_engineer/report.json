@@ -1,0 +1,43 @@
+{
+  "observation": {
+    "url": "https://www.wikipedia.org",
+    "framework": "Plain JS",
+    "js_bundles": [
+      "portal/wikipedia.org/assets/js/gt-ie9-507b16b6be.js",
+      "portal/wikipedia.org/assets/js/index-a9b103e1fc.js"
+    ],
+    "page_length": 90362
+  },
+  "auth": {
+    "url": "https://www.wikipedia.org",
+    "auth_type": "unknown",
+    "login_forms": [],
+    "jwt_tokens_found": 0,
+    "oauth_detected": false,
+    "cookies": []
+  },
+  "endpoints": [],
+  "payload_schema": {
+    "endpoint": "/api/generate",
+    "method": "POST",
+    "required_fields": [
+      "prompt",
+      "language",
+      "max_tokens"
+    ],
+    "optional_fields": [],
+    "response_schema": {},
+    "type": "text_generation"
+  },
+  "connector_file": "www.wikipedia.org_connector.py",
+  "validation": {
+    "syntax": true,
+    "structure": true,
+    "authentication": true,
+    "errors": [],
+    "warnings": [
+      "No credentials provided for auth test"
+    ],
+    "passed": true
+  }
+}

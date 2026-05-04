@@ -1,7 +1,7 @@
 // AdminLogs.tsx - System Activity Logs Page
 
 import React, { useState, useEffect } from 'react';
-import { Layout, Card, Table, Tag, Button, Space, message, Spin, Alert, Input, Select } from 'antd';
+import { Layout, Card, Table, Tag, Button, Space, message, Spin, Alert, Input, Select, Typography } from 'antd';
 import { FileTextOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons';
 import AdminLayout from '../components/AdminLayout';
 import { authUtils } from '../lib/authUtils';
@@ -93,7 +93,7 @@ const AdminLogs: React.FC = () => {
       <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-            <Title level={2} style={{ margin: 0 }}>System Activity Logs</Title>
+            <Typography.Title level={2} style={{ margin: 0 }}>System Activity Logs</Typography.Title>
             <Space>
               <Input.Search
                 placeholder="Search logs..."

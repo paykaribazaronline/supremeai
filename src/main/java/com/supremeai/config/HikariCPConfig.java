@@ -33,14 +33,32 @@ public class HikariCPConfig {
     @Value("${spring.datasource.hikari.leak-detection-threshold:60000}")
     private long leakDetectionThreshold;
 
+    @Value("${spring.datasource.url}")
+    private String jdbcUrl;
+
+    @Value("${spring.datasource.username:sa}")
+    private String username;
+
+    @Value("${spring.datasource.password:}")
+    private String password;
+
+    @Value("${spring.datasource.driver-class-name:org.h2.Driver}")
+    private String driverClassName;
+
     /**
      * Configure HikariCP DataSource with optimized settings for Firestore.
-     * 
+     *
      * @return configured HikariDataSource
      */
     @Bean
     public DataSource hikariDataSource() {
         HikariConfig config = new HikariConfig();
+        
+        // JDBC connection settings
+        config.setJdbcUrl(jdbcUrl);
+        config.setUsername(username);
+        config.setPassword(password);
+        config.setDriverClassName(driverClassName);
         
         // Connection pool sizing
         config.setMaximumPoolSize(maximumPoolSize);

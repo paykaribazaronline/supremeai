@@ -5,7 +5,6 @@ import com.supremeai.model.SystemLearning;
 import com.supremeai.repository.SystemLearningRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import reactor.core.publisher.Mono;
@@ -21,7 +20,6 @@ import java.util.concurrent.TimeUnit;
  * Analyzes every interaction for: intent, emotion, frustration, satisfaction, unstated requirements
  */
 @Service
-@ConditionalOnProperty(name = "spring.cloud.gcp.firestore.enabled", havingValue = "true", matchIfMissing = true)
 public class HumanUnderstandingService {
 
     private static final Logger logger = LoggerFactory.getLogger(HumanUnderstandingService.class);

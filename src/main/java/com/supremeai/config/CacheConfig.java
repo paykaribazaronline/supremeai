@@ -1,10 +1,12 @@
 package com.supremeai.config;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.Cache;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -16,10 +18,10 @@ import java.util.Arrays;
 
 /**
  * Multi-tier caching configuration for SupremeAI.
- * 
+ *
  * L1: Caffeine (local, in-memory) - 10k entries, 10min TTL
  * L2: Redis (distributed) - 30min TTL
- * 
+ *
  * Provides fast local caching with distributed consistency.
  */
 @Configuration
@@ -46,6 +48,7 @@ public class CacheConfig {
      * L1 Cache Manager for local caching
      */
     @Bean
+    @Primary
     public CaffeineCacheManager cacheManager() {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager();
         cacheManager.setCaffeine(Caffeine.newBuilder()
@@ -54,6 +57,18 @@ public class CacheConfig {
             .recordStats());
         cacheManager.setCacheNames(Arrays.asList("prompts", "patterns", "responses", "providers"));
         return cacheManager;
+    }
+
+    /**
+     * Raw Caffeine Cache bean for direct cache invalidation operations.
+     */
+    @Bean
+    public Cache<String, Object> l1Cache() {
+        return Caffeine.newBuilder()
+            .maximumSize(l1MaxSize)
+            .expireAfterWrite(Duration.ofMinutes(l1ExpireAfterWriteMinutes))
+            .recordStats()
+            .build();
     }
 
     /**

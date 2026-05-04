@@ -211,7 +211,7 @@ const SystemMetrics: React.FC<SystemMetricsProps> = ({ stompClient }) => {
                 </Col>
             </Row>
 
-            <Card title="Live User Quota Usage" icon={<GlobalOutlined />}>
+             <Card title="Live User Quota Usage" extra={<GlobalOutlined />}>
                 <Table 
                     dataSource={userQuotas} 
                     columns={quotaColumns} 

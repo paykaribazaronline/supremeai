@@ -23,6 +23,9 @@ export const authUtils = {
     Cookies.remove(AUTH_TOKEN_KEY);
     Cookies.remove(FIREBASE_USER_KEY);
   },
+  clearToken(): void {
+    Cookies.remove(AUTH_TOKEN_KEY);
+  },
   getAuthHeaders(): Record<string, string> {
     const token = authUtils.getToken();
     return token ? { 'Authorization': `Bearer ${token}` } : {};

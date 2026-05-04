@@ -5,7 +5,6 @@ import com.supremeai.intelligence.voting.CouncilVotingSystem;
 import com.supremeai.provider.AIProviderType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -16,7 +15,6 @@ import java.util.List;
  * Ensures nothing is considered "Done" until it actually compiles and passes tests in CI/CD.
  */
 @Service
-@ConditionalOnProperty(name = "spring.cloud.gcp.firestore.enabled", havingValue = "true", matchIfMissing = true)
 public class InfiniteAutoHealer {
 
     private static final Logger log = LoggerFactory.getLogger(InfiniteAutoHealer.class);
