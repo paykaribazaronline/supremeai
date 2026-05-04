@@ -413,7 +413,7 @@ jobs:
              --memory 4Gi \
              --cpu 2 \
              --timeout 600 \
-             --set-env-vars="SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a,spring.threads.virtual.enabled=true,GROQ_API_KEY=${GROQ_API_KEY_DEPLOYMENT_MONITOR:-${{ secrets.GROQ_API_KEY_DEPLOYMENT_MONITOR }}}" \
+             --set-env-vars="SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a,spring.threads.virtual.enabled=true" \
              --update-secrets FIREBASE_SERVICE_ACCOUNT_JSON=firebase-service-account-json:latest,JWT_SECRET=jwt-secret:latest,GROQ_API_KEY=groq-api-key:latest \
              --max-instances 10 \
              --concurrency 80 \
