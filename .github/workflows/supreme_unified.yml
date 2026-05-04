@@ -230,7 +230,7 @@ jobs:
       - name: Build and Test
         run: |
           echo "Starting Java build process..."
-          ./gradlew clean bootJar --no-daemon --stacktrace
+          ./gradlew clean build jacocoTestReport --no-daemon --stacktrace
           if [ ! -f "build/libs/app.jar" ]; then
             echo "Error: app.jar not found in build/libs"
             ls -R build/libs
@@ -238,8 +238,6 @@ jobs:
           else
             echo "Successfully built app.jar"
           fi
-      - name: Generate Coverage Report
-        run: ./gradlew jacocoTestReport
       - name: Upload JAR
         uses: actions/upload-artifact@v4
         with:
