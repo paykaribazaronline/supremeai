@@ -558,6 +558,7 @@ jobs:
         run: |
           URL=$(gcloud run services describe supremeai --platform managed --region us-central1 --format='value(status.url)')
           echo "url=$URL/admin.html" >> $GITHUB_OUTPUT
+          echo "backend_url=$URL" >> $GITHUB_OUTPUT
 
   deploy-canary:
     name: Deploy Canary
@@ -598,8 +599,9 @@ jobs:
             --quiet
       - name: Monitor Canary Health
         run: |
+          BACKEND_URL="${{ needs.deploy-backend.outputs.backend_url }}"
           for i in {1..30}; do
-            STATUS=$(curl -sf https://supremeai-canary-uc.a.run.app/api/health || echo "FAILED")
+            STATUS=$(curl -sf "${BACKEND_URL}/api/health" || echo "FAILED")
             if [ "$STATUS" != "OK" ]; then
               echo "Canary health check failed!"
               exit 1
@@ -699,13 +701,14 @@ jobs:
         id: status-check
         run: |
           FAILED=false
+          BACKEND_URL="${{ needs.deploy-backend.outputs.backend_url }}"
           echo "Checking frontend status..."
           if ! curl -sf https://supremeai-a.web.app/; then
             echo "frontend_failed=true" >> $GITHUB_ENV
             FAILED=true
           fi
           echo "Checking backend health endpoint..."
-          if ! curl -sf https://supremeai-lhlwyikwlq-uc.a.run.app/api/health; then
+          if ! curl -sf "${BACKEND_URL}/api/health"; then
             echo "backend_failed=true" >> $GITHUB_ENV
             FAILED=true
           fi
