@@ -2,6 +2,7 @@ package com.supremeai.provider;
 
 
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +19,11 @@ public class DeepSeekProvider extends AbstractHttpProvider {
     private static final String API_URL = "https://api.deepseek.com/v1/chat/completions";
     private final String model;
 
-    public DeepSeekProvider(String apiKey) {
+    public DeepSeekProvider() {
+        this("", "deepseek-coder");
+    }
+
+    public DeepSeekProvider(@Value("${deepseek.api-key:}") String apiKey) {
         this(apiKey, "deepseek-coder");
     }
 

@@ -1,5 +1,7 @@
 package com.supremeai.provider;
 
+import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.List;
 import java.util.Map;
 
@@ -7,10 +9,15 @@ import java.util.Map;
  * Gemini Provider implementation using shared HTTP client and ObjectMapper.
  * Extends AbstractHttpProvider for optimized performance.
  */
+@Component
 public class GeminiProvider extends AbstractHttpProvider {
     private static final String API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
-    public GeminiProvider(String apiKey) {
+    public GeminiProvider() {
+        this("");
+    }
+
+    public GeminiProvider(@Value("${gemini.api-key:}") String apiKey) {
         super(apiKey, API_URL, "gemini-1.5-flash");
     }
 

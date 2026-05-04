@@ -3,6 +3,7 @@ package com.supremeai.provider;
 
 
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.List;
 import java.util.Map;
 
@@ -14,7 +15,7 @@ import java.util.Map;
 public class AnthropicProvider extends AbstractHttpProvider {
     private static final String API_URL = "https://api.anthropic.com/v1/messages";
 
-    public AnthropicProvider(String apiKey) {
+    public AnthropicProvider(@Value("${anthropic.api-key:}") String apiKey) {
         super(apiKey, API_URL, "claude-3-sonnet-20240229");
     }
 

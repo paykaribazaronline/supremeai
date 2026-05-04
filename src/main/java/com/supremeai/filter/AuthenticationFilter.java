@@ -48,6 +48,14 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         
+        // Skip if already authenticated (e.g., by JwtAuthFilter for backend JWT tokens)
+        if (SecurityContextHolder.getContext().getAuthentication() != null &&
+            SecurityContextHolder.getContext().getAuthentication().isAuthenticated()) {
+            logger.debug("User already authenticated, skipping Firebase token verification");
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
         String authHeader = request.getHeader("Authorization");
         String idToken = null;
         
@@ -81,12 +89,14 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                 new UsernamePasswordAuthenticationToken(uid, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(auth);
             
-            logger.debug("Authenticated user: " + uid);
+            logger.debug("Authenticated user via Firebase ID token: " + uid);
             filterChain.doFilter(request, response);
             
         } catch (FirebaseAuthException e) {
-            logger.warn("Firebase token verification failed: " + e.getMessage());
-            sendUnauthorized(response, "Invalid or expired authentication token");
+            // Firebase ID token validation failed - this could be a backend JWT or invalid token.
+            // If there's a token but it's not a valid Firebase ID token, let JwtAuthFilter handle it.
+            logger.debug("Firebase ID token verification failed, allowing JwtAuthFilter to try: " + e.getMessage());
+            filterChain.doFilter(request, response);
         }
     }
     

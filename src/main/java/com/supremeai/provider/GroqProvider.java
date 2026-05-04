@@ -3,6 +3,7 @@ package com.supremeai.provider;
 
 
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.List;
 import java.util.Map;
 
@@ -14,7 +15,11 @@ import java.util.Map;
 public class GroqProvider extends AbstractHttpProvider {
     private static final String API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
-    public GroqProvider(String apiKey) {
+    public GroqProvider() {
+        this("");
+    }
+
+    public GroqProvider(@Value("${groq.api-key:}") String apiKey) {
         super(apiKey, API_URL, "mixtral-8x7b-32768");
     }
 

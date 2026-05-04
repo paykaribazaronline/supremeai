@@ -3,6 +3,7 @@ package com.supremeai.provider;
 
 
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.List;
 import java.util.Map;
 
@@ -15,7 +16,11 @@ public class MistralProvider extends AbstractHttpProvider {
     private static final String API_URL = "https://api.mistral.ai/v1/chat/completions";
     private final String model;
 
-    public MistralProvider(String apiKey) {
+    public MistralProvider() {
+        this("", "mistral-large-latest");
+    }
+
+    public MistralProvider(@Value("${mistral.api-key:}") String apiKey) {
         this(apiKey, "mistral-large-latest");
     }
 

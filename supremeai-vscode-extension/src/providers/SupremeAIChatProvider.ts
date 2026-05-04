@@ -99,7 +99,7 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
         const selectedText = document.getText(selection);
         const fullText = document.getText();
         
-        codeContext = `\n\n--- Code Context ---\n` +
+        codeContext = '\n\n--- Code Context ---\n' +
           `Language: ${document.languageId}\n` +
           `File: ${document.fileName}\n` +
           (selectedText ? `Selected: ${selectedText}\n` : '') +

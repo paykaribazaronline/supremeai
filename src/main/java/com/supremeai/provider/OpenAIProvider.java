@@ -2,6 +2,7 @@ package com.supremeai.provider;
 
 
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 
@@ -16,7 +17,11 @@ import java.util.Map;
 public class OpenAIProvider extends AbstractHttpProvider {
     private static final String API_URL = "https://api.openai.com/v1/chat/completions";
 
-    public OpenAIProvider(String apiKey) {
+    public OpenAIProvider() {
+        this("");
+    }
+
+    public OpenAIProvider(@Value("${openai.api-key:}") String apiKey) {
         super(apiKey, API_URL, "gpt-3.5-turbo");
     }
 

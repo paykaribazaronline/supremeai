@@ -2,6 +2,8 @@ package com.supremeai.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
@@ -16,6 +18,7 @@ import java.util.List;
 public class CorsConfig {
 
     @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE) // Run before all other filters to handle OPTIONS preflight
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         // Allow all origins for local dev (VS Code extension, React dev servers)
