@@ -401,8 +401,9 @@ jobs:
              fi
              sleep 10
            done
-       - name: Deploy_To_Cloud_Run
-         run: |
+
+      - name: Deploy_To_Cloud_Run
+        run: |
            echo "Starting Cloud Run deployment..."
            gcloud run deploy supremeai \
              --image us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai \
@@ -463,35 +464,36 @@ jobs:
           echo "Starting Firebase hosting deployment..."
           firebase deploy --project supremeai-a --only hosting --non-interactive
           echo "Firebase hosting deployment completed successfully."
-        working-directory: ./supremeai
+      - name: Set_Working_Directory
+        run: echo "WORK_DIR=./supremeai" >> $GITHUB_ENV
 
-   workflow-summary:
-     name: Workflow_Summary
-     needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, deploy-cloud-functions, health-check]
-     if: always()
-     runs-on: ubuntu-latest
-     steps:
-       - name: Generate_Summary
-         run: |
-           echo "### Workflow Summary" >> $GITHUB_STEP_SUMMARY
-           echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
-           echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
-           echo "| ☕ Java Backend | ${{ needs.java-build-and-test.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-           echo "| 📱 Flutter Frontend | ${{ needs.flutter-build-and-test.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-           echo "| 🔌 IntelliJ Plugin | ${{ needs.plugin-build.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-           echo "| 💻 VS Code Ext | ${{ needs.vscode-extension-build.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-           echo "| ☁️ Deploy Backend | ${{ needs.deploy-backend.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-           echo "| 🌍 Deploy Frontend | ${{ needs.deploy-frontend.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-           echo "| ⚡ Cloud Functions | ${{ needs.deploy-cloud-functions.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-           echo "| 🏥 Health Check | ${{ needs.health-check.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-           echo "**Admin Dashboard:** ${{ needs.deploy-backend.outputs.admin_url || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
+  workflow-summary:
+    name: Workflow_Summary
+    needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, deploy-cloud-functions, health-check]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate_Summary
+        run: |
+            echo "### Workflow Summary" >> $GITHUB_STEP_SUMMARY
+            echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
+            echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
+            echo "| ☕ Java Backend | ${{ needs.java-build-and-test.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 📱 Flutter Frontend | ${{ needs.flutter-build-and-test.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔌 IntelliJ Plugin | ${{ needs.plugin-build.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 💻 VS Code Ext | ${{ needs.vscode-extension-build.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| ☁️ Deploy Backend | ${{ needs.deploy-backend.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🌍 Deploy Frontend | ${{ needs.deploy-frontend.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| ⚡ Cloud Functions | ${{ needs.deploy-cloud-functions.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🏥 Health Check | ${{ needs.health-check.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "**Admin Dashboard:** ${{ needs.deploy-backend.outputs.admin_url || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
 
-   health-check:
-     name: Health_Check
-     needs: [deploy-backend, deploy-frontend]
-     if: ${{ always() && (needs.deploy-backend.result == 'success' || needs.deploy-frontend.result == 'success') }}
-     runs-on: ubuntu-latest
-     steps:
+  health-check:
+    name: Health_Check
+    needs: [deploy-backend, deploy-frontend]
+    if: ${{ always() && (needs.deploy-backend.result == 'success' || needs.deploy-frontend.result == 'success') }}
+    runs-on: ubuntu-latest
+    steps:
        - name: Check_Deployment_Status
          id: status-check
          run: |
@@ -525,18 +527,18 @@ jobs:
            fi
            echo "Rollback initiated. Check logs for details."
 
-   deploy-cloud-functions:
-     name: Deploy_Cloud_Functions
-     needs: [changes, secret-scan]
-     if: >-
+  deploy-cloud-functions:
+    name: Deploy_Cloud_Functions
+    needs: [changes, secret-scan]
+    if: >-
        ${{
          github.ref == 'refs/heads/main' &&
          ((github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
           needs.changes.outputs.backend == 'true' ||
           (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Deploy_Cloud_Functions')))
        }}
-     runs-on: ubuntu-latest
-     steps:
+    runs-on: ubuntu-latest
+    steps:
        - uses: actions/checkout@v4
        - name: Setup_Node
          uses: actions/setup-node@v4
@@ -561,9 +563,9 @@ jobs:
            firebase deploy --project supremeai-a --only functions --non-interactive
          working-directory: ./functions
 
-   notify:
-     name: Notification
-     needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, deploy-cloud-functions, health-check]
+  notify:
+    name: Notification
+    needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, deploy-cloud-functions, health-check]
     if: always()
     runs-on: ubuntu-latest
     steps:
