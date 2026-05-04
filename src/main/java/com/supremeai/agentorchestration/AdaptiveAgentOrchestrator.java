@@ -11,12 +11,14 @@ import com.supremeai.model.UserLanguagePreference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
 
 import java.util.*;
 
+@Profile("!local")
 @Service
 public class AdaptiveAgentOrchestrator {
 
@@ -158,35 +160,6 @@ public class AdaptiveAgentOrchestrator {
         result.setStatus("COMPLETED");
         result.setMode(detectedMode);
 
-        // Capture app generation learning
-        if (enhancedLearningService != null) {
-            Map<String, Object> buildMetrics = new HashMap<>();
-            buildMetrics.put("platform", detectedPlatform);
-            buildMetrics.put("decisionsCount", decisions != null ? decisions.size() : 0);
-            buildMetrics.put("processingTimeMs", completed.getTime() - started.getTime());
-            buildMetrics.put("hasImage", imageUrl != null && !imageUrl.isEmpty());
-
-            enhancedLearningService.learnFromAppGeneration(
-                    requirement,
-                    detectedPlatform,
-                    true, // Assume success for now - will be updated by build process
-                    null,
-                    buildMetrics,
-                    "AdaptiveAgentOrchestrator"
-            ).subscribe(); // Fire and forget
-
-            // If image is provided, also capture multimodal learning
-            if (imageUrl != null && !imageUrl.isEmpty()) {
-                enhancedLearningService.learnFromMultimodalInteraction(
-                        requirement,
-                        imageUrl,
-                        null, // Generated code will be set later
-                        "AdaptiveAgentOrchestrator",
-                        0.5 // Initial score, will be updated
-                ).subscribe(); // Fire and forget
-            }
-        }
-
         return result;
     }
 
@@ -197,148 +170,160 @@ public class AdaptiveAgentOrchestrator {
                                   String apkPath, Map<String, Object> additionalMetrics) {
         if (enhancedLearningService != null) {
             Map<String, Object> buildMetrics = new HashMap<>();
+            buildMetrics.put("appType", appType);
+            buildMetrics.put("buildSuccess", buildSuccess);
+            buildMetrics.put("apkPath", apkPath);
             if (additionalMetrics != null) {
                 buildMetrics.putAll(additionalMetrics);
             }
-            buildMetrics.put("platform", appType);
 
             enhancedLearningService.learnFromAppGeneration(
                     requirement,
-                    appType,
+                    (String) additionalMetrics.get("platform"),
                     buildSuccess,
                     apkPath,
                     buildMetrics,
                     "AdaptiveAgentOrchestrator"
-            ).subscribe(); // Fire and forget
-
-            logger.info("Recorded build result: type={}, success={}, apkPath={}", appType, buildSuccess, apkPath);
+            ).subscribe();
         }
     }
 
-    /**
-     * Generate questions using AI based on the requirement.
-     * প্ল্যাটফর্ম অনুযায়ী উপযুক্ত এজেন্ট নির্বাচন করে প্রশ্ন তৈরি করে
-     */
     private List<Question> generateQuestionsAI(String requirement) {
-        // প্ল্যাটফর্ম সনাক্তকরণ
-        String platform = detectPlatform(requirement);
-
-        // প্ল্যাটফর্ম অনুযায়ী এজেন্ট নির্বাচন
-        switch (platform.toLowerCase()) {
-            case "ios":
-                return diOSAgent.analyzeIOSRequirements(requirement);
-            case "desktop":
-                return fDesktopAgent.analyzeDesktopRequirements(requirement);
-            case "web":
-                return eWebAgent.analyzeWebRequirements(requirement);
-            default:
-                // ডিফল্ট হিসেবে মূল প্রয়োজনীয়তা বিশ্লেষক ব্যবহার
-                return requirementAnalyzer.analyze(requirement);
-        }
-    }
-
-    /**
-     * প্রয়োজনীয়তা থেকে প্ল্যাটফর্ম সনাক্ত করে
-     */
-    private String detectPlatform(String requirement) {
-        String lowerReq = requirement.toLowerCase();
-
-        if (lowerReq.contains("ios") || lowerReq.contains("iphone") || lowerReq.contains("ipad")) {
-            return "ios";
-        } else if (lowerReq.contains("desktop") || lowerReq.contains("windows") || 
-                   lowerReq.contains("mac") || lowerReq.contains("linux")) {
-            return "desktop";
-        } else if (lowerReq.contains("web") || lowerReq.contains("website") || 
-                   lowerReq.contains("browser")) {
-            return "web";
-        } else if (lowerReq.contains("android")) {
-            return "android";
-        }
-
-        // ডিফল্ট প্ল্যাটফর্ম
-        return "web";
-    }
-
-    private List<Question> generateQuestions(String requirement) {
         List<Question> questions = new ArrayList<>();
-        questions.add(new Question("architecture", "What architecture style? (monolith, microservices, serverless)", "HIGH"));
-        questions.add(new Question("database", "Which database? (PostgreSQL, MySQL, MongoDB, DynamoDB)", "CRITICAL"));
-        questions.add(new Question("apiStyle", "API style? (REST, GraphQL, gRPC)", "MEDIUM"));
-        questions.add(new Question("authType", "Authentication type? (JWT, OAuth2, Session)", "HIGH"));
-        questions.add(new Question("frontend", "Frontend framework? (React, Vue, Angular, None)", "MEDIUM"));
-        questions.add(new Question("deployment", "Deployment target? (AWS, GCP, Azure, On-prem)", "MEDIUM"));
+        try {
+            AIProvider provider = providerFactory.getProvider("groq");
+            String prompt = String.format(
+                    "Analyze this app requirement and generate 5 key questions to clarify the app's features, target platform, and user needs:\n\nRequirement: %s\n\nFormat as JSON array of objects with 'key', 'text', and 'priority' fields.",
+                    requirement
+            );
+            String response = provider.generate(prompt).block();
+            List<Map<String, Object>> parsed = new ObjectMapper().readValue(
+                    response, new TypeReference<List<Map<String, Object>>>() {}
+            );
+            for (Map<String, Object> q : parsed) {
+                questions.add(new Question(
+                        (String) q.get("key"),
+                        (String) q.get("text"),
+                        ((Number) q.getOrDefault("priority", 1)).intValue()
+                ));
+            }
+        } catch (Exception e) {
+            logger.error("Failed to generate questions with AI", e);
+            questions = getDefaultQuestions();
+        }
         return questions;
     }
 
-    /**
-     * Auto-answer questions for taste phase (simulates admin).
-     * In production, admin would answer via UI.
-     */
+    private List<Question> getDefaultQuestions() {
+        return Arrays.asList(
+                new Question("platform", "What platform should the app target? (web, mobile, desktop)", 1),
+                new Question("features", "What are the core features needed?", 1),
+                new Question("users", "Who are the target users?", 2),
+                new Question("design", "Any specific design preferences or style?", 3),
+                new Question("timeline", "What is the expected timeline?", 2)
+        );
+    }
+
     private Map<String, String> autoAnswerQuestions(List<Question> questions) {
-        Map<String, String> answers = new LinkedHashMap<>();
-        // Default sensible answers for demo
+        Map<String, String> answers = new HashMap<>();
         for (Question q : questions) {
-            String key = q.getKey();
-            switch (key) {
-                case "architecture": answers.put(key, "monolith"); break;
-                case "database": answers.put(key, "PostgreSQL"); break;
-                case "apiStyle": answers.put(key, "REST"); break;
-                case "authType": answers.put(key, "JWT"); break;
-                case "frontend": answers.put(key, "React"); break;
-                case "deployment": answers.put(key, "GCP"); break;
-                default: answers.put(key, "default");
-            }
+            answers.put(q.getKey(), "auto-answered");
         }
         return answers;
     }
 
     private List<VotingDecision> buildDirectDecisions(Map<String, String> answers) {
         List<VotingDecision> decisions = new ArrayList<>();
-        for (Map.Entry<String, String> entry : answers.entrySet()) {
-            VotingDecision decision = new VotingDecision();
-            decision.setDecisionKey(entry.getKey());
-            decision.setProposedAnswer(entry.getValue());
-            decision.setAiConsensus(entry.getValue());
-            decision.setConfidence(1.0);
-            decision.setStrength("DIRECT");
-            decision.setProviderVotes(List.of());
-            decisions.add(decision);
-        }
+        decisions.add(new VotingDecision("platform", "web", 0.9));
+        decisions.add(new VotingDecision("framework", "React", 0.8));
         return decisions;
     }
 
     private Map<String, Object> buildGenerationContext(List<VotingDecision> decisions) {
-        Map<String, Object> ctx = new LinkedHashMap<>();
+        Map<String, Object> context = new HashMap<>();
         for (VotingDecision d : decisions) {
-            ctx.put(d.getDecisionKey(), d.getAiConsensus());
+            context.put(d.getDecisionKey(), d.getDecisionValue());
         }
-        // Add defaults
-        ctx.putIfAbsent("javaVersion", "17");
-        ctx.putIfAbsent("springBootVersion", "3.2.3");
-        ctx.putIfAbsent("includeTests", true);
-        ctx.putIfAbsent("includeDocker", true);
-        return ctx;
+        return context;
     }
 
-    /**
-     * ডায়নামিকভাবে মোড সনাক্ত করে
-     */
-    private String detectMode(String requirement) {
-        String lowerReq = requirement.toLowerCase();
-        
-        if (lowerReq.contains("architect") || lowerReq.contains("design") || lowerReq.contains("structure")) {
-            return "architect";
-        } else if (lowerReq.contains("debug") || lowerReq.contains("fix") || lowerReq.contains("error") || lowerReq.contains("issue")) {
-            return "debug";
-        } else if (lowerReq.contains("review") || lowerReq.contains("audit") || lowerReq.contains("analyze")) {
-            return "review";
-        } else if (lowerReq.contains("ask") || lowerReq.contains("what") || lowerReq.contains("how") || lowerReq.contains("explain")) {
-            return "ask";
-        } else if (lowerReq.contains("orchestrate") || lowerReq.contains("manage") || lowerReq.contains("coordinate")) {
-            return "orchestrator";
-        } else {
-            // Default mode for general tasks
-            return "code";
+    private String detectPlatform(String requirement) {
+        String req = requirement.toLowerCase();
+        if (req.contains("mobile") || req.contains("android") || req.contains("ios")) {
+            return "mobile";
+        } else if (req.contains("desktop") || req.contains("windows") || req.contains("mac")) {
+            return "desktop";
         }
+        return "web";
+    }
+
+    private String detectMode(String requirement) {
+        String req = requirement.toLowerCase();
+        if (req.contains("fullstack") || req.contains("complete") || req.contains("end-to-end")) {
+            return "fullstack";
+        }
+        return "standard";
+    }
+
+    // Inner classes for context objects
+    public static class OrchesResultContext {
+        private Map<String, Object> context;
+        private Date startedAt;
+        private Date completedAt;
+        private String status;
+        private String mode;
+
+        public OrchesResultContext(Map<String, Object> context) {
+            this.context = context;
+        }
+
+        public Map<String, Object> getContext() { return context; }
+        public void setContext(Map<String, Object> context) { this.context = context; }
+        public Date getStartedAt() { return startedAt; }
+        public void setStartedAt(Date startedAt) { this.startedAt = startedAt; }
+        public Date getCompletedAt() { return completedAt; }
+        public void setCompletedAt(Date completedAt) { this.completedAt = completedAt; }
+        public String getStatus() { return status; }
+        public void setStatus(String status) { this.status = status; }
+        public String getMode() { return mode; }
+        public void setMode(String mode) { this.mode = mode; }
+    }
+
+    public static class Question {
+        private String key;
+        private String text;
+        private int priority;
+
+        public Question(String key, String text, int priority) {
+            this.key = key;
+            this.text = text;
+            this.priority = priority;
+        }
+
+        public String getKey() { return key; }
+        public void setKey(String key) { this.key = key; }
+        public String getText() { return text; }
+        public void setText(String text) { this.text = text; }
+        public int getPriority() { return priority; }
+        public void setPriority(int priority) { this.priority = priority; }
+    }
+
+    public static class VotingDecision {
+        private String decisionKey;
+        private String decisionValue;
+        private double confidence;
+
+        public VotingDecision(String decisionKey, String decisionValue, double confidence) {
+            this.decisionKey = decisionKey;
+            this.decisionValue = decisionValue;
+            this.confidence = confidence;
+        }
+
+        public String getDecisionKey() { return decisionKey; }
+        public void setDecisionKey(String decisionKey) { this.decisionKey = decisionKey; }
+        public String getDecisionValue() { return decisionValue; }
+        public void setDecisionValue(String decisionValue) { this.decisionValue = decisionValue; }
+        public double getConfidence() { return confidence; }
+        public void setConfidence(double confidence) { this.confidence = confidence; }
     }
 }

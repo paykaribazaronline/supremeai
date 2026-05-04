@@ -1,21 +1,15 @@
 package com.supremeai.agentorchestration;
 
 import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
-/**
- * Result of orchestration - contains full context for code generation.
- */
 public class OrchesResultContext {
     private Map<String, Object> context;
     private Date startedAt;
     private Date completedAt;
     private String status;
     private String mode;
-
-    public OrchesResultContext() {}
+    private Map<String, Object> generationContext;
 
     public OrchesResultContext(Map<String, Object> context) {
         this.context = context;
@@ -31,23 +25,6 @@ public class OrchesResultContext {
     public void setStatus(String status) { this.status = status; }
     public String getMode() { return mode; }
     public void setMode(String mode) { this.mode = mode; }
-
-    // Helper methods
-    @SuppressWarnings("unchecked")
-    public String getDecision(String key) {
-        var decisions = (List<VotingDecision>) context.get("decisions");
-        if (decisions != null) {
-            for (VotingDecision d : decisions) {
-                if (d.getDecisionKey().equals(key)) {
-                    return d.getAiConsensus();
-                }
-            }
-        }
-        return null;
-    }
-
-    @SuppressWarnings("unchecked")
-    public Map<String, Object> getGenerationContext() {
-        return (Map<String, Object>) context.get("generationContext");
-    }
+    public Map<String, Object> getGenerationContext() { return generationContext; }
+    public void setGenerationContext(Map<String, Object> generationContext) { this.generationContext = generationContext; }
 }
