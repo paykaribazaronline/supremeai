@@ -4,6 +4,7 @@ import com.supremeai.model.Agent;
 import com.supremeai.repository.AgentRepository;
 import com.supremeai.util.IdUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.context.annotation.Profile;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -12,6 +13,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/ai-agents")
+@Profile("!local")
 public class AIAgentsController {
 
     private final AgentRepository agentRepository;
