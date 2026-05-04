@@ -105,8 +105,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-               DropdownButtonFormField<String>(
-                 initialValue: _shareMode,
+DropdownButtonFormField<String>(
+                  value: _shareMode,
                 items: const [
                   DropdownMenuItem(
                       value: 'manual', child: Text('Manual share')),
