@@ -1,7 +1,5 @@
 package com.supremeai.provider;
 
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Map;
 
@@ -10,7 +8,6 @@ import java.util.Map;
  * Extends AbstractHttpProvider for optimized performance.
  * Connects to local Ollama server (localhost:11434) for free, offline AI inference.
  */
-@Component
 public class OllamaProvider extends AbstractHttpProvider {
     private static final String API_URL = "http://localhost:11434/v1/chat/completions";
     private final String modelName;
