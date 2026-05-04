@@ -31,27 +31,30 @@ public class SecurityConfig {
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
                 // Public endpoints - specific routes only (not wildcards for security)
                 .requestMatchers(
-                    "/",
-                    "/login",
-                    "/login.html",
-                    "/admin",
-                    "/admin.html",
-                    "/customer",
-                    "/customer.html",
-                    "/android-generator.html",
-                    "/*.js",
-                    "/*.css",
-                    "/*.svg",
-                    "/api/auth/firebase-login",
-                    "/api/auth/register",
-                    "/api/auth/forgot-password",
-                    "/api/auth/validate-token",
-                    "/api/health",
-                    "/api/status",
-                    "/ws/**",
-                    "/error",
-                    "/api/v1/chat/completions"
-                ).permitAll()
+                   "/",
+                   "/login",
+                   "/login.html",
+                   "/admin",
+                   "/admin.html",
+                   "/customer",
+                   "/customer.html",
+                   "/android-generator.html",
+                   "/*.js",
+                   "/*.css",
+                   "/*.svg",
+                   "/api/auth/firebase-login",
+                   "/api/auth/register",
+                   "/api/auth/forgot-password",
+                   "/api/auth/validate-token",
+                   "/api/health",
+                   "/api/status",
+                   "/api/config/firebase",
+                   "/api/config/public",
+                   "/__/firebase/**",
+                   "/ws/**",
+                   "/error",
+                   "/api/v1/chat/completions"
+               ).permitAll()
                 .requestMatchers("/api/debug/**").hasRole("ADMIN")
                 .requestMatchers("/api/security/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")

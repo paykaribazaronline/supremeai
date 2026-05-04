@@ -345,11 +345,12 @@ const HeadlessBrowserDashboard: React.FC = () => {
     ];
 
     const quotaUsagePercent =
-        browserStats &&
-        Math.round(
+        browserStats && browserStats.quotaLimit > 0
+        ? Math.round(
             ((browserStats.quotaLimit - browserStats.quotaRemaining) / browserStats.quotaLimit) *
             100
-        );
+          )
+        : 0;
 
     return (
         <div style={{ padding: '20px' }}>

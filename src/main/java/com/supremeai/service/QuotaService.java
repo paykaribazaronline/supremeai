@@ -4,7 +4,6 @@ import com.supremeai.model.UserApiKey;
 import com.supremeai.repository.UserApiKeyRepository;
 import com.supremeai.cost.QuotaManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -15,7 +14,6 @@ import java.time.LocalDateTime;
  * Service for managing API key quotas and usage tracking.
  */
 @Service
-@ConditionalOnProperty(name = "spring.cloud.gcp.firestore.enabled", havingValue = "true", matchIfMissing = true)
 public class QuotaService {
 
     @Autowired

@@ -27,8 +27,7 @@ export const supremeTheme: ThemeConfig = {
       padding: 24,
       paddingLG: 32,
       boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
-      boxShadowHover: '0 10px 40px -10px rgba(0, 0, 0, 0.15)',
-    },
+          },
     Button: {
       borderRadius: 10,
       controlHeight: 44,

@@ -8,6 +8,21 @@ import {
   RocketOutlined, CheckCircleOutlined, LoadingOutlined
 } from '@ant-design/icons';
 
+interface Pattern {
+  name: string;
+  actions: string[];
+  frequency: number;
+  confidence: string;
+  category: string;
+}
+
+interface Stats {
+  patternsLearned: number;
+  totalExecutions: number;
+  successRate: number;
+  avgConfidence: number;
+}
+
 /**
  * SystemLearningDashboard
  * 
@@ -17,11 +32,11 @@ import {
  * 3. Learning statistics and success rates
  */
 export default function SystemLearningDashboard() {
-  const [patterns, setPatterns] = useState([]);
-  const [stats, setStats] = useState(null);
+  const [patterns, setPatterns] = useState<Pattern[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(false);
   const [executing, setExecuting] = useState(false);
-  const [selectedPattern, setSelectedPattern] = useState(null);
+  const [selectedPattern, setSelectedPattern] = useState<Pattern | null>(null);
   const [executeDrawer, setExecuteDrawer] = useState(false);
   const [form] = Form.useForm();
 
@@ -43,7 +58,7 @@ export default function SystemLearningDashboard() {
       if (data.success && data.patterns) {
         setPatterns(data.patterns);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Failed to fetch patterns:', error);
     }
   };
@@ -55,18 +70,19 @@ export default function SystemLearningDashboard() {
       if (data.success) {
         setStats(data);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Failed to fetch stats:', error);
     }
   };
 
-  const handleExecutePattern = (pattern) => {
+  const handleExecutePattern = (pattern: any) => {
     setSelectedPattern(pattern);
     setExecuteDrawer(true);
     form.resetFields();
   };
 
-  const onExecute = async (values) => {
+  const onExecute = async (values: any) => {
+    if (!selectedPattern) return;
     setExecuting(true);
     try {
       const response = await fetch('/api/teach/execute', {
@@ -90,8 +106,8 @@ export default function SystemLearningDashboard() {
       } else {
         message.error(data.error || 'Execution failed');
       }
-    } catch (error) {
-      message.error('Failed to execute pattern: ' + error.message);
+    } catch (error: unknown) {
+      message.error('Failed to execute pattern: ' + (error as Error).message);
     } finally {
       setExecuting(false);
     }
@@ -102,16 +118,16 @@ export default function SystemLearningDashboard() {
       title: 'Pattern',
       dataIndex: 'name',
       key: 'name',
-      render: (text) => <strong>{text}</strong>,
+      render: (text: string) => <strong>{text}</strong>,
       width: 200
     },
     {
       title: 'Sequence',
       dataIndex: 'actions',
       key: 'actions',
-      render: (actions) => (
+      render: (actions: string[]) => (
         <Space size="small" wrap>
-          {actions.map((a, i) => (
+          {actions.map((a: string, i: number) => (
             <Tag key={i} color="blue" style={{ fontSize: '11px' }}>
               {a}
             </Tag>
@@ -123,14 +139,14 @@ export default function SystemLearningDashboard() {
       title: 'Used',
       dataIndex: 'frequency',
       key: 'frequency',
-      render: (freq) => <Badge count={freq} color="blue" />,
+      render: (freq: number) => <Badge count={freq} color="blue" />,
       width: 80
     },
     {
       title: 'Confidence',
       dataIndex: 'confidence',
       key: 'confidence',
-      render: (conf) => {
+      render: (conf: string) => {
         const value = parseFloat(conf);
         const color = value > 80 ? 'green' : value > 60 ? 'orange' : 'red';
         return (
@@ -144,7 +160,7 @@ export default function SystemLearningDashboard() {
     {
       title: 'Action',
       key: 'action',
-      render: (_, record) => (
+      render: (_: any, record: Pattern) => (
         <Button
           type="primary"
           size="small"

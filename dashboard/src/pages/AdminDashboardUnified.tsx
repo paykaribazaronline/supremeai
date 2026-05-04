@@ -24,7 +24,7 @@ import { notification } from 'antd';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
-const { TextArea, Title } = Typography;
+const { Title } = Typography;
 const { Header, Content, Sider } = Layout;
 const { Panel } = Collapse;
 
@@ -270,7 +270,7 @@ const AdminDashboardUnified: React.FC = () => {
         {
             key: 'dashboard',
             label: '📊 Dashboard & Analytics',
-            type: 'group',
+            type: 'group' as const,
             children: contract.navigation
                 .filter(i => ['overview', 'metrics', 'analytics', 'quota', 'cost'].includes(i.key))
                 .map(item => ({
@@ -284,7 +284,7 @@ const AdminDashboardUnified: React.FC = () => {
         {
             key: 'ai',
             label: '🤖 AI Systems',
-            type: 'group',
+            type: 'group' as const,
             children: contract.navigation
                 .filter(i => ['ai-agents', 'providers', 'ml-intelligence', 'ai-models'].includes(i.key))
                 .map(item => ({
@@ -298,7 +298,7 @@ const AdminDashboardUnified: React.FC = () => {
         {
             key: 'learning',
             label: '📚 Knowledge & Learning',
-            type: 'group',
+            type: 'group' as const,
             children: contract.navigation
                 .filter(i => ['learning', 'system-learning', 'teaching', 'research'].includes(i.key))
                 .map(item => ({
@@ -312,7 +312,7 @@ const AdminDashboardUnified: React.FC = () => {
         {
             key: 'operations',
             label: '⚙️ Operations',
-            type: 'group',
+            type: 'group' as const,
             children: contract.navigation
                 .filter(i => ['git-ops', 'deployment', 'vpn', 'headless-browser', 'exploitation-techniques'].includes(i.key))
                 .map(item => ({
@@ -326,7 +326,7 @@ const AdminDashboardUnified: React.FC = () => {
         {
             key: 'health',
             label: '🛡️ System Health',
-            type: 'group',
+            type: 'group' as const,
             children: contract.navigation
                 .filter(i => ['resilience', 'autofix', 'self-healing', 'audit'].includes(i.key))
                 .map(item => ({
@@ -340,7 +340,7 @@ const AdminDashboardUnified: React.FC = () => {
         {
             key: 'admin',
             label: '👥 Administration',
-            type: 'group',
+            type: 'group' as const,
             children: contract.navigation
                 .filter(i => ['user-management', 'api-keys', 'notifications', 'settings', 'phases'].includes(i.key))
                 .map(item => ({
@@ -360,14 +360,14 @@ const AdminDashboardUnified: React.FC = () => {
     const selectedComponent = contract.components.find((c) => c.key === selectedKey);
 
     const handleLogout = () => {
-        authUtils.clearToken();
+        authUtils.clearAuth();
         window.location.reload();
     };
 
     const userDropdownItems = [
         { key: 'profile', label: 'Profile', icon: <UserOutlined /> },
         { key: 'settings', label: 'Settings', icon: <SettingOutlined /> },
-        { type: 'divider' },
+        { type: 'divider' as const },
         { key: 'logout', label: 'Logout', icon: <LogoutOutlined />, onClick: handleLogout },
     ];
 
@@ -439,7 +439,6 @@ const AdminDashboardUnified: React.FC = () => {
                                 color: 'white',
                                 marginBottom: '8px',
                             }}
-                            placeholderStyle={{ color: 'rgba(255,255,255,0.4)' }}
                             allowClear
                         />
                     )}
@@ -919,7 +918,7 @@ const AdminDashboardUnified: React.FC = () => {
                     Describe the change you want on the <strong>{selectedComponent?.label || selectedKey}</strong> tab.
                     Click <strong>Save</strong> to store it for later, or <strong>Do Now</strong> to let the AI apply it immediately.
                 </p>
-                <TextArea
+                <Input.TextArea
                     rows={6}
                     placeholder="e.g. Add a toggle to disable new user registrations from this tab..."
                     value={suggestionText}

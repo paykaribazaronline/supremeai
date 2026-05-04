@@ -20,7 +20,7 @@ import java.util.Map;
  * Populates Firestore with Bangla and English guides on first startup.
  */
 @Component
-@ConditionalOnProperty(name = "spring.cloud.gcp.firestore.enabled", havingValue = "true", matchIfMissing = true)
+
 public class GuideDataInitializer {
 
     private static final Logger log = LoggerFactory.getLogger(GuideDataInitializer.class);

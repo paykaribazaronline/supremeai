@@ -1,0 +1,80 @@
+# MCP Server Configuration - Plan 24
+# Following Ruflo's pattern for MCP integration
+
+server:
+  name: "supremeai-core"
+  version: "1.0.0"
+  description: "SupremeAI MCP Server - Exposes agents as MCP tools"
+  
+  # Standard MCP endpoints
+  endpoints:
+    tools:
+      list: "/mcp/tools/list"
+      call: "/mcp/tools/call"
+    resources:
+      list: "/mcp/resources/list"
+      read: "/mcp/resources/read"
+    prompts:
+      list: "/mcp/prompts/list"
+      get: "/mcp/prompts/get"
+  
+  # Exposed tools (SupremeAI agents)
+  tools:
+    - name: "reverse_engineer"
+      description: "Reverse engineer any website and generate API connector (Plan 23)"
+      inputSchema:
+        type: "object"
+        properties:
+          url:
+            type: "string"
+            description: "Target website URL"
+          credentials:
+            type: "object"
+            description: "Optional login credentials"
+            properties:
+              email: { type: "string" }
+              password: { type: "string" }
+        required: ["url"]
+      
+    - name: "dynamic_agent"
+      description: "Execute task with dynamic AI agent selection (Plan 1)"
+      inputSchema:
+        type: "object"
+        properties:
+          task:
+            type: "string"
+            description: "Task to execute"
+          language:
+            type: "string"
+            description: "Language code (en, bn, etc.)"
+        required: ["task"]
+      
+    - name: "swarm_coordinator"
+      description: "Coordinate multi-agent swarm (Plan 24)"
+      inputSchema:
+        type: "object"
+        properties:
+          task: { type: "string" }
+          topology:
+            type: "string"
+            enum: ["HIERARCHICAL", "MESH", "RING", "STAR"]
+          agent_count: { type: "integer", default: 3 }
+        required: ["task"]
+  
+  # Resources (data/context)
+  resources:
+    - uri: "supremeai://plans/23"
+      name: "Plan 23 - Reverse Engineering Guide"
+      mimeType: "text/markdown"
+    - uri: "supremeai://plans/24"
+      name: "Plan 24 - AI Agent Ecosystem"
+      mimeType: "text/markdown"
+  
+  # Prompts (templates)
+  prompts:
+    - name: "reverse_engineer_prompt"
+      description: "Template for reverse engineering request"
+      arguments:
+        - name: "url"
+          description: "Website URL to analyze"
+          required: true
