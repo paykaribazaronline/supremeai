@@ -3,6 +3,7 @@ package com.supremeai.provider;
 
 
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.List;
 import java.util.Map;
 
@@ -14,7 +15,11 @@ import java.util.Map;
 public class HuggingFaceProvider extends AbstractHttpProvider {
     private static final String API_URL = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta";
 
-    public HuggingFaceProvider(String apiKey) {
+    public HuggingFaceProvider() {
+        this("");
+    }
+
+    public HuggingFaceProvider(@Value("${huggingface.api-key:}") String apiKey) {
         super(apiKey, API_URL, "zephyr-7b-beta");
     }
 

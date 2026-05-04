@@ -31,6 +31,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                      HttpServletResponse response, 
                                      FilterChain chain) throws ServletException, IOException {
         
+        // Skip JWT validation if another filter (e.g., AuthenticationFilter) already authenticated the user
+        // This allows Firebase ID tokens to be used directly by the static admin panel
+        if (SecurityContextHolder.getContext().getAuthentication() != null &&
+            SecurityContextHolder.getContext().getAuthentication().isAuthenticated()) {
+            logger.debug("User already authenticated by previous filter, skipping JWT validation");
+            chain.doFilter(request, response);
+            return;
+        }
+        
         String token = extractToken(request);
         
         try {

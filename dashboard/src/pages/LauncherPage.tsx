@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Button, Input, Select, Badge, Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui';
-import { Launcher } from './Launcher';
+import { Card, Button, Input, Select, Badge, Tabs } from 'antd';
+
 
 /**
  * Launcher Page - Plan 24 Week 13-14
@@ -10,52 +10,49 @@ export const LauncherPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('marketplace');
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">App Launcher</h1>
-        <p className="text-gray-600 mt-2">
+    <div style={{ padding: 24, maxWidth: 1152, margin: "0 auto" }}>
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontSize: 24, fontWeight: "bold" }}>App Launcher</h1>
+        <p style={{ color: "#6b7280", marginTop: 8 }}>
           One-click installer for AI models, agents, and tools (Pinokio-style)
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-6">
-          <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
-          <TabsTrigger value="installed">Installed</TabsTrigger>
-          <TabsTrigger value="skills">SKILL.md</TabsTrigger>
-        </TabsList>
+      <Tabs activeKey={activeTab} onChange={setActiveTab}>
+        <Tabs.TabPane tab="Marketplace" key="marketplace">
+          <div style={{ padding: 24 }}>
+            <h2 style={{ fontSize: 20, fontWeight: "bold" }}>App Launcher</h2>
+            <p style={{ color: "#6b7280" }}>Launch and manage your generated applications here.</p>
+          </div>
+        </Tabs.TabPane>
 
-        <TabsContent value="marketplace">
-          <Launcher />
-        </TabsContent>
-
-        <TabsContent value="installed">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="p-4">
-              <h3 className="font-semibold mb-2">Dynamic AI Agent</h3>
-              <p className="text-sm text-gray-600 mb-4">
+        <Tabs.TabPane tab="Installed" key="installed">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 16 }}>
+            <Card style={{ padding: 16 }}>
+              <h3 style={{ fontWeight: 600, marginBottom: 8 }}>Dynamic AI Agent</h3>
+              <p style={{ fontSize: 12, color: "#6b7280", marginBottom: 16 }}>
                 Plan 1 - Multi-agent orchestration system
               </p>
-              <Badge variant="success">Running</Badge>
+              <Badge color="success">Running</Badge>
             </Card>
-            <Card className="p-4">
-              <h3 className="font-semibold mb-2">Reverse Engineer</h3>
-              <p className="text-sm text-gray-600 mb-4">
+            <Card style={{ padding: 16 }}>
+              <h3 style={{ fontWeight: 600, marginBottom: 8 }}>Reverse Engineer</h3>
+              <p style={{ fontSize: 12, color: "#6b7280", marginBottom: 16 }}>
                 Plan 23 - Website to API connector generator
               </p>
-              <Button size="sm">Launch</Button>
+              <Button size="small">Launch</Button>
             </Card>
           </div>
-        </TabsContent>
+        </Tabs.TabPane>
 
-        <TabsContent value="skills">
-          <Card className="p-6">
-            <h3 className="font-semibold mb-4">SKILL.md Standards</h3>
-            <p className="text-sm text-gray-600 mb-4">
+        <Tabs.TabPane tab="skills" key="skills">
+          <Card style={{ padding: 24 }}>
+            <h3 style={{ fontWeight: 600, marginBottom: 16 }}>SKILL.md Standards</h3>
+            <p style={{ fontSize: 12, color: "#6b7280", marginBottom: 16 }}>
               AI agents can auto-discover and use SupremeAI apps via SKILL.md files
             </p>
-            <div className="bg-gray-50 p-4 rounded-md">
-              <pre className="text-xs overflow-x-auto">
+            <div style={{ backgroundColor: "#f9fafb", padding: 16, borderRadius: 8 }}>
+              <pre style={{ fontSize: 10, overflowX: "auto" }}>
 {`---
 name: supremeai-reverse-engineer
 description: Reverse engineer any website
@@ -74,7 +71,7 @@ author: SupremeAI Team
               </pre>
             </div>
           </Card>
-        </TabsContent>
+        </Tabs.TabPane>
       </Tabs>
     </div>
   );

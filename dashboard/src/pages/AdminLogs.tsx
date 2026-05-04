@@ -89,7 +89,7 @@ const AdminLogs: React.FC = () => {
   ];
 
   return (
-    <AdminLayout>
+    <AdminLayout title="System Activity Logs">
       <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>

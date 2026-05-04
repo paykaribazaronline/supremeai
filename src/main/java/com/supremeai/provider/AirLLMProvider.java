@@ -2,6 +2,7 @@ package com.supremeai.provider;
 
 
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.List;
 import java.util.Map;
 
@@ -16,7 +17,9 @@ public class AirLLMProvider extends AbstractHttpProvider {
     private final String endpoint;
     private final String model;
 
-    public AirLLMProvider(String endpoint, String apiKey, String model) {
+    public AirLLMProvider(@Value("${airllm.endpoint:}") String endpoint,
+                          @Value("${airllm.api-key:}") String apiKey,
+                          @Value("${airllm.model:}") String model) {
         super(apiKey, endpoint != null && !endpoint.isEmpty() ? endpoint : DEFAULT_ENDPOINT,
                 model != null && !model.isEmpty() ? model : "mistralai/Mistral-7B-Instruct-v0.3");
         this.endpoint = endpoint != null && !endpoint.isEmpty() ? endpoint : DEFAULT_ENDPOINT;

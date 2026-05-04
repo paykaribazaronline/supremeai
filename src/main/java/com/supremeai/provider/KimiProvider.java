@@ -3,6 +3,7 @@ package com.supremeai.provider;
 
 
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.List;
 import java.util.Map;
 
@@ -15,7 +16,11 @@ public class KimiProvider extends AbstractHttpProvider {
     private static final String API_URL = "https://api.moonshot.cn/v1/chat/completions";
     private final String model;
 
-    public KimiProvider(String apiKey) {
+    public KimiProvider() {
+        this("", "moonshot-v1-128k");
+    }
+
+    public KimiProvider(@Value("${kimi.api-key:}") String apiKey) {
         this(apiKey, "moonshot-v1-128k");
     }
 

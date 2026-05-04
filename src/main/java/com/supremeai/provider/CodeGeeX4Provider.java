@@ -3,6 +3,7 @@ package com.supremeai.provider;
 
 
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.List;
 import java.util.Map;
 
@@ -22,7 +23,11 @@ public class CodeGeeX4Provider extends AbstractHttpProvider {
      * Constructor with default model (codegeex-4)
      * Use this for cloud API access
      */
-    public CodeGeeX4Provider(String apiKey) {
+    public CodeGeeX4Provider() {
+        this("", "codegeex-4");
+    }
+
+    public CodeGeeX4Provider(@Value("${codex4.api-key:}") String apiKey) {
         this(apiKey, "codegeex-4");
     }
 

@@ -3,6 +3,7 @@ package com.supremeai.provider;
 
 
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +22,11 @@ public class StepFunProvider extends AbstractHttpProvider {
      * Constructor with default model (step-3.5-flash)
      * Use this for free tier access
      */
-    public StepFunProvider(String apiKey) {
+    public StepFunProvider() {
+        this("");
+    }
+
+    public StepFunProvider(@Value("${stepfun.api-key:}") String apiKey) {
         this(apiKey, "step-3.5-flash");
     }
 
