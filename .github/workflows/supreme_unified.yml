@@ -142,7 +142,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Validate Gradle Wrapper
-        uses: gradle/actions/wrapper-validation@v3
+        uses: gradle/actions/wrapper-validation@v6
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
