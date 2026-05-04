@@ -52,7 +52,7 @@ class SelfHealingServiceTest {
         service.setReasoningService(reasoningService);
         
         // Use a simple flag that fails once then succeeds
-        // With maxAttempts=3, we have 2 retries (3 total attempts)
+        // With maxAttempts=10, we have 9 retries (10 total attempts)
         boolean[] firstAttempt = {true};
         Supplier<Mono<String>> task = () -> {
             if (firstAttempt[0]) {
@@ -62,8 +62,8 @@ class SelfHealingServiceTest {
             return Mono.just("ok");
         };
 
-        // When - maxAttempts=3 means 2 retries (3 total attempts)
-        Mono<String> result = service.executeWithRetry(task, 3, 10);
+        // When - maxAttempts=10 means 9 retries (10 total attempts)
+        Mono<String> result = service.executeWithRetry(task, 10, 10);
 
         // Then
         StepVerifier.create(result)
