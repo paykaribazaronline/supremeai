@@ -469,7 +469,7 @@ jobs:
 
   workflow-summary:
     name: Workflow_Summary
-    needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, deploy-cloud-functions, health-check]
+    needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, deploy-cloud-functions, deploy-canary, performance-test, health-check]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -482,7 +482,9 @@ jobs:
             echo "| 📱 Flutter Frontend | ${{ needs.flutter-build-and-test.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
             echo "| 🔌 IntelliJ Plugin | ${{ needs.plugin-build.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
             echo "| 💻 VS Code Ext | ${{ needs.vscode-extension-build.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-            echo "| 🌐 Deploy Backend | ${{ needs.deploy-backend.result || .Skipped. }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🚀 Performance Test | ${{ needs.performance-test.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🌐 Deploy Backend | ${{ needs.deploy-backend.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔀 Canary Deploy | ${{ needs.deploy-canary.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
             echo "| 🌍 Deploy Frontend | ${{ needs.deploy-frontend.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
             echo "| ⚡ Cloud Functions | ${{ needs.deploy-cloud-functions.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
             echo "| 🏥 Health Check | ${{ needs.health-check.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
