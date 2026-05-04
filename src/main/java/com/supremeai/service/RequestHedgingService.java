@@ -63,7 +63,7 @@ public class RequestHedgingService {
         // Return first completed response
         try {
             if (hedgedFuture != null) {
-                return CompletableFuture.anyOf(primaryFuture, hedgedFuture)
+                return (T) CompletableFuture.anyOf(primaryFuture, hedgedFuture)
                     .get(timeoutMs, TimeUnit.MILLISECONDS);
             } else {
                 return primaryFuture.get(timeoutMs, TimeUnit.MILLISECONDS);
@@ -88,6 +88,7 @@ public class RequestHedgingService {
     /**
      * Execute async request with hedging.
      */
+    @SuppressWarnings("unchecked")
     public <T> CompletableFuture<T> executeWithHedgingAsync(
             List<Supplier<CompletableFuture<T>>> providers, 
             long timeoutMs) {

@@ -1,12 +1,14 @@
-// AdminProjects.tsx - Project Management Page
+ // AdminProjects.tsx - Project Management Page
 
 import React, { useState, useEffect } from 'react';
-import { Layout, Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Spin, Alert } from 'antd';
-import { FolderOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Layout, Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Spin, Alert, Steps, Progress, Typography, Row, Col, Statistic } from 'antd';
+import { FolderOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, RocketOutlined, CloudServerOutlined, CodeOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import AdminLayout from '../components/AdminLayout';
 import { authUtils } from '../lib/authUtils';
 
 const { Option } = Select;
+const { Title, Paragraph } = Typography;
+const { Step } = Steps;
 
 interface Project {
   id: string;
@@ -18,6 +20,14 @@ interface Project {
   updatedAt: string;
 }
 
+interface GenerationForm {
+  name: string;
+  description: string;
+  platform: string;
+  database: string;
+  useAI?: boolean;
+}
+
 const AdminProjects: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
@@ -25,6 +35,18 @@ const AdminProjects: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [form] = Form.useForm();
+  
+  // App Generation State
+  const [generationForm, setGenerationForm] = useState<GenerationForm>({
+    name: '',
+    description: '',
+    platform: 'fullstack',
+    database: 'PostgreSQL'
+  });
+  const [generationStatus, setGenerationStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle');
+  const [generationStep, setGenerationStep] = useState(0);
+  const [generationProgress, setGenerationProgress] = useState(0);
+  const [generationResult, setGenerationResult] = useState<any>(null);
 
   const fetchProjects = async () => {
     setLoading(true);
@@ -96,6 +118,80 @@ const AdminProjects: React.FC = () => {
       fetchProjects();
     } catch (err) {
       message.error(err instanceof Error ? err.message : 'Failed to delete');
+    }
+  };
+
+  const handleGenerateApp = async () => {
+    setGenerationStatus('generating');
+    setGenerationStep(0);
+    
+    try {
+      // Step 1: Analyze requirements
+      setGenerationStep(1);
+      setGenerationProgress(25);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Step 2: Design architecture
+      setGenerationStep(2);
+      setGenerationProgress(50);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Step 3: Generate code
+      setGenerationStep(3);
+      setGenerationProgress(75);
+      
+      // Call generation API
+      const token = authUtils.getToken();
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: generationForm.name,
+          description: generationForm.description,
+          platform: generationForm.platform,
+          database: generationForm.database,
+          type: 'project',
+          useAI: generationForm.useAI || false,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Generation failed');
+      }
+      
+      const result = await response.json();
+      
+      // Step 4: Complete
+      setGenerationStep(4);
+      setGenerationProgress(100);
+      setGenerationStatus('success');
+      setGenerationResult(result);
+      
+      // Create project entry
+      const projectResponse = await fetch('/api/projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: generationForm.name,
+          description: generationForm.description,
+          status: 'ACTIVE',
+        }),
+      });
+      
+      if (projectResponse.ok) {
+        fetchProjects();
+      }
+      
+      message.success('App generated successfully!');
+    } catch (err) {
+      setGenerationStatus('error');
+      message.error(err instanceof Error ? err.message : 'Generation failed');
     }
   };
 
@@ -195,6 +291,139 @@ const AdminProjects: React.FC = () => {
             scroll={{ x: 1000 }}
           />
         )}
+      </Card>
+
+      {/* App Generation Card */}
+      <Card title={<><RocketOutlined /> Generate New App</>} style={{ marginTop: 24 }}>
+        <Row gutter={24}>
+          <Col xs={24} lg={12}>
+            <Title level={4}>App Requirements</Title>
+            <Paragraph>Describe the app you want to generate. The AI will analyze your requirements and create a full-stack application.</Paragraph>
+            
+            <Form layout="vertical" onFinish={handleGenerateApp}>
+              <Form.Item label="App Name" required>
+                <Input 
+                  placeholder="My Awesome App"
+                  value={generationForm.name}
+                  onChange={e => setGenerationForm({...generationForm, name: e.target.value})}
+                />
+              </Form.Item>
+              
+              <Form.Item label="Description" required>
+                <Input.TextArea 
+                  rows={4}
+                  placeholder="Describe your app's purpose and main features..."
+                  value={generationForm.description}
+                  onChange={e => setGenerationForm({...generationForm, description: e.target.value})}
+                />
+              </Form.Item>
+              
+              <Form.Item label="Target Platform" required>
+                <Select
+                  placeholder="Select platform"
+                  value={generationForm.platform}
+                  onChange={val => setGenerationForm({...generationForm, platform: val})}
+                >
+                  <Option value="web">Web Application (React)</Option>
+                  <Option value="android">Android App (Kotlin)</Option>
+                  <Option value="ios">iOS App (SwiftUI)</Option>
+                  <Option value="desktop">Desktop App (JavaFX)</Option>
+                  <Option value="fullstack">Full-Stack Web App (Backend + Frontend)</Option>
+                </Select>
+              </Form.Item>
+              
+              <Form.Item>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input
+                    type="checkbox"
+                    checked={generationForm.useAI || false}
+                    onChange={e => setGenerationForm({...generationForm, useAI: e.target.checked})}
+                  />
+                  <span>Use AI-Powered Generation (OpenAI/Gemini)</span>
+                </label>
+                <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                  Enable to generate custom entities and AI-optimized code structure
+                </div>
+              </Form.Item>
+              
+              <Form.Item label="Database Preference">
+                <Select
+                  placeholder="Select database"
+                  value={generationForm.database}
+                  onChange={val => setGenerationForm({...generationForm, database: val})}
+                >
+                  <Option value="PostgreSQL">PostgreSQL</Option>
+                  <Option value="MySQL">MySQL</Option>
+                  <Option value="MongoDB">MongoDB</Option>
+                </Select>
+              </Form.Item>
+              
+              <Form.Item>
+                <Button 
+                  type="primary" 
+                  htmlType="submit"
+                  icon={<RocketOutlined />}
+                  loading={generationStatus === 'generating'}
+                  size="large"
+                  block
+                  onClick={handleGenerateApp}
+                >
+                  {generationStatus === 'generating' ? 'Generating...' : 'Generate App'}
+                </Button>
+              </Form.Item>
+            </Form>
+          </Col>
+          
+          <Col xs={24} lg={12}>
+            {generationStatus !== 'idle' && (
+              <>
+                <Title level={4}>Generation Progress</Title>
+                
+                <Steps
+                  current={generationStep}
+                  direction="vertical"
+                  items={[
+                    { title: 'Analyzing Requirements', icon: <CodeOutlined /> },
+                    { title: 'Designing Architecture', icon: <CloudServerOutlined /> },
+                    { title: 'Generating Code', icon: <RocketOutlined /> },
+                    { title: 'Build Complete', icon: <CheckCircleOutlined /> },
+                  ]}
+                />
+                
+                <div style={{ marginTop: 24 }}>
+                  <Progress 
+                    percent={generationProgress} 
+                    status={generationStatus === 'error' ? 'exception' : 'active'}
+                    strokeColor={{
+                      '0%': '#108ee9',
+                      '100%': '#87d068',
+                    }}
+                  />
+                </div>
+                
+                {generationStatus === 'success' && generationResult && (
+                  <Alert
+                    message="App Generated Successfully!"
+                    description={`Your ${generationForm.platform} app has been generated with ${generationResult.fileCount || 0} files.`}
+                    type="success"
+                    showIcon
+                    style={{ marginTop: 16 }}
+                  />
+                )}
+                
+                {generationStatus === 'error' && (
+                  <Alert
+                    message="Generation Failed"
+                    description="There was an error generating your app. Please try again."
+                    type="error"
+                    showIcon
+                    style={{ marginTop: 16 }}
+                  />
+                )}
+              </>
+            )}
+          </Col>
+        </Row>
       </Card>
 
       <Modal

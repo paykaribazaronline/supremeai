@@ -80,12 +80,12 @@ public class ReactiveStreamService {
     public <T, R> Flux<R> processWithErrorHandling(
             List<T> items,
             Function<T, Mono<R>> processor,
-            Function<Throwable, R> errorHandler) {
+            Function<Throwable, ? extends R> errorHandler) {
         
         return Flux.fromIterable(items)
             .flatMap(item -> 
                 processor.apply(item)
-                    .onErrorResume(errorHandler::apply)
+                    .onErrorResume(e -> Mono.just(errorHandler.apply(e)))
             )
             .subscribeOn(Schedulers.boundedElastic());
     }

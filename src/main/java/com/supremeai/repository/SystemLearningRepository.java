@@ -9,4 +9,5 @@ import reactor.core.publisher.Flux;
 public interface SystemLearningRepository extends FirestoreReactiveRepository<SystemLearning> {
     Flux<SystemLearning> findByCategory(String category);
     // Note: Firestore does not support 'After' predicate. Use custom query or filter in service.
+    Flux<SystemLearning> findByConfidenceScoreGreaterThanEqual(double confidenceScore);
 }

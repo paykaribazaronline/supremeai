@@ -6,6 +6,8 @@ import { FileTextOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/ic
 import AdminLayout from '../components/AdminLayout';
 import { authUtils } from '../lib/authUtils';
 
+const { Option } = Select;
+
 interface ActivityLog {
   id?: string;
   user: string;
@@ -29,15 +31,16 @@ const AdminLogs: React.FC = () => {
     setError(null);
     try {
       const token = authUtils.getToken();
-      // Use admin/control/history endpoint which returns recent activity logs (up to 100)
-      const response = await fetch('/api/admin/control/history', {
-        headers: { 'Authorization': `Bearer ${token}` },
+      const response = await fetch('/api/logs?severity=' + severityFilter, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
       if (!response.ok) throw new Error('Failed to fetch logs');
-      const data: ActivityLog[] = await response.json();
+      const data = await response.json();
       setLogs(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load logs');
+      setError(err instanceof Error ? err.message : 'Failed to fetch logs');
     } finally {
       setLoading(false);
     }
@@ -45,105 +48,85 @@ const AdminLogs: React.FC = () => {
 
   useEffect(() => {
     fetchLogs();
-  }, []);
-
-  const filteredLogs = logs.filter((log) => {
-    const matchesSearch = !searchText || 
-      log.action?.toLowerCase().includes(searchText.toLowerCase()) ||
-      log.user?.toLowerCase().includes(searchText.toLowerCase()) ||
-      log.details?.toLowerCase().includes(searchText.toLowerCase());
-    const matchesSeverity = !severityFilter || log.severity === severityFilter;
-    return matchesSearch && matchesSeverity;
-  });
-
-  const severityColors: Record<string, string> = {
-    INFO: 'blue',
-    WARN: 'orange',
-    ERROR: 'red',
-    DEBUG: 'default',
-  };
+  }, [severityFilter]);
 
   const columns = [
     {
-      title: 'Time',
+      title: 'Timestamp',
       dataIndex: 'timestamp',
       key: 'timestamp',
-      render: (ts: string) => new Date(ts).toLocaleString(),
       width: 180,
     },
     {
       title: 'User',
       dataIndex: 'user',
       key: 'user',
-      width: 120,
-      render: (user: string) => user ? user.substring(0, 12) + (user.length > 12 ? '...' : '') : '-',
     },
     {
       title: 'Action',
       dataIndex: 'action',
       key: 'action',
-      width: 180,
     },
     {
       title: 'Category',
       dataIndex: 'category',
       key: 'category',
-      render: (cat: string) => <Tag>{cat}</Tag>,
     },
     {
       title: 'Severity',
       dataIndex: 'severity',
       key: 'severity',
-      render: (sev: string) => <Tag color={severityColors[sev] || 'default'}>{sev}</Tag>,
+      render: (severity: string) => {
+        const color = severity === 'ERROR' ? 'red' : severity === 'WARN' ? 'orange' : 'blue';
+        return <Tag color={color}>{severity}</Tag>;
+      },
     },
     {
-      title: 'Details',
-      dataIndex: 'details',
-      key: 'details',
-      ellipsis: true,
+      title: 'Outcome',
+      dataIndex: 'outcome',
+      key: 'outcome',
     },
   ];
 
   return (
-    <AdminLayout title="Activity Logs">
-      <Card>
-        <div style={{ marginBottom: 16, display: 'flex', gap: 12 }}>
-          <Input
-            placeholder="Search logs..."
-            prefix={<SearchOutlined />}
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            style={{ width: 300 }}
-          />
-          <Select
-            placeholder="Filter by severity"
-            allowClear
-            value={severityFilter || undefined}
-            onChange={(val) => setSeverityFilter(val || '')}
-            style={{ width: 180 }}
-          >
-            <Option value="INFO">Info</Option>
-            <Option value="WARN">Warning</Option>
-            <Option value="ERROR">Error</Option>
-            <Option value="DEBUG">Debug</Option>
-          </Select>
-          <Button icon={<ReloadOutlined />} onClick={fetchLogs}>Refresh</Button>
-        </div>
+    <AdminLayout>
+      <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
+        <Card>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+            <Title level={2} style={{ margin: 0 }}>System Activity Logs</Title>
+            <Space>
+              <Input.Search
+                placeholder="Search logs..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                style={{ width: 300 }}
+              />
+              <Select
+                value={severityFilter || undefined}
+                onChange={(val) => setSeverityFilter(val || '')}
+                style={{ width: 180 }}
+              >
+                <Option value="INFO">Info</Option>
+                <Option value="WARN">Warning</Option>
+                <Option value="ERROR">Error</Option>
+                <Option value="DEBUG">Debug</Option>
+              </Select>
+              <Button icon={<ReloadOutlined />} onClick={fetchLogs}>Refresh</Button>
+            </Space>
+          </div>
 
-        {loading && <Spin style={{ display: 'block', margin: '20px auto' }} />}
-        {error && <Alert type="error" message={error} action={<Button onClick={fetchLogs}>Retry</Button>} />}
-
-        {!loading && !error && (
+          {loading && <Spin style={{ display: 'block', margin: '20px auto' }} />}
+          {error && <Alert type="error" message={error} action={<Button onClick={fetchLogs}>Retry</Button>} />}
+          
           <Table
             columns={columns}
-            dataSource={filteredLogs}
+            dataSource={logs}
             rowKey="id"
+            loading={loading}
             pagination={{ pageSize: 20 }}
-            scroll={{ x: 1000 }}
-            size="middle"
           />
-        )}
-      </Card>
+        </Card>
+      </div>
     </AdminLayout>
   );
 };

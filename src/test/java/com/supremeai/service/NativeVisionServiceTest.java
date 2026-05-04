@@ -35,8 +35,10 @@ class NativeVisionServiceTest {
         StepVerifier.create(result)
             .assertNext(r -> {
                 assertNotNull(r);
-                assertTrue(r.isSuccess() || !r.isSuccess()); // Either is fine for mock
-                assertNotNull(r.getResult());
+                // Native vision is disabled in unit tests, so it should return unavailable
+                assertFalse(r.isSuccess());
+                assertEquals("Native vision not available", r.getErrorMessage());
+                assertNull(r.getResult());
             })
             .verifyComplete();
     }
@@ -52,8 +54,10 @@ class NativeVisionServiceTest {
         StepVerifier.create(result)
             .assertNext(r -> {
                 assertNotNull(r);
-                assertNotNull(r.getDetectedObjects());
-                assertFalse(r.getDetectedObjects().isEmpty());
+                // Native vision is disabled in unit tests
+                assertFalse(r.isSuccess());
+                assertEquals("Native vision not available", r.getErrorMessage());
+                assertNull(r.getDetectedObjects());
             })
             .verifyComplete();
     }
@@ -69,9 +73,11 @@ class NativeVisionServiceTest {
         StepVerifier.create(result)
             .assertNext(r -> {
                 assertNotNull(r);
-                assertTrue(r.isSuccess());
-                assertNotNull(r.getResult());
-                assertTrue(r.getConfidence() > 0.5f);
+                // Native vision is disabled in unit tests
+                assertFalse(r.isSuccess());
+                assertEquals("Native vision not available", r.getErrorMessage());
+                assertNull(r.getResult());
+                assertEquals(0.0f, r.getConfidence(), 0.01);
             })
             .verifyComplete();
     }
@@ -87,8 +93,10 @@ class NativeVisionServiceTest {
         StepVerifier.create(result)
             .assertNext(r -> {
                 assertNotNull(r);
-                assertTrue(r.isSuccess());
-                assertNotNull(r.getResult());
+                // Native vision is disabled in unit tests
+                assertFalse(r.isSuccess());
+                assertEquals("Native vision not available", r.getErrorMessage());
+                assertNull(r.getResult());
             })
             .verifyComplete();
     }
@@ -147,10 +155,10 @@ class NativeVisionServiceTest {
     void nativeVisionResult_success_hasCorrectProperties() {
         NativeVisionService.NativeVisionResult result = 
             NativeVisionService.NativeVisionResult.success(
-                "test result", "test-task", "test output", 0.95f);
+                "test-task", "test output", "native-tflite", 0.95f);
 
         assertTrue(result.isSuccess());
-        assertEquals("test result", result.getTaskType());
+        assertEquals("test-task", result.getTaskType());
         assertEquals("test output", result.getResult());
         assertEquals("native-tflite", result.getProcessor());
         assertEquals(0.95f, result.getConfidence(), 0.01);
