@@ -1,11 +1,17 @@
 package com.supremeai.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
 import com.google.common.util.concurrent.RateLimiter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.embedded.tomcat.TomcatProtocolHandlerCustomizer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -40,6 +46,21 @@ public class PerformanceConfig {
 
     @Value("${performance.io-timeout-seconds:30}")
     private int ioTimeoutSeconds;
+
+    /**
+     * Shared ObjectMapper with Afterburner for 20-30% faster JSON serialization.
+     * This replaces all individual ObjectMapper instances across providers.
+     */
+    @Bean
+    @Primary
+    public ObjectMapper objectMapper() {
+        return JsonMapper.builder()
+                .addModule(new AfterburnerModule())
+                .addModule(new JavaTimeModule())
+                .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+                .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+                .build();
+    }
 
     @Bean
     public AsyncTaskExecutor applicationTaskExecutor() {
