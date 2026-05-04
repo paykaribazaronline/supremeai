@@ -185,14 +185,8 @@ jobs:
           project: 'supremeai'
           path: '.'
           format: 'HTML'
-          fail_build: false
-          args: >
-            --scan .
-            --format HTML
-            --format JSON
-            --format SARIF
-            --out dependency-check-report
-            --suppression dependencycheck-suppression.xml
+          out: 'dependency-check-report'
+          args: '--format JSON --format SARIF --suppression .github/dependencycheck-suppression.xml'
       - name: Upload Dependency Check Report
         uses: actions/upload-artifact@v4
         with:
