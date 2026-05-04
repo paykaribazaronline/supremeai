@@ -1,4 +1,4 @@
-eadpackage com.supremeai.provider;
+package com.supremeai.provider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
@@ -76,7 +76,7 @@ public abstract class AbstractHttpProvider implements AIProvider {
     /**
      * Each provider implements their specific response extraction
      */
-    protected abstract String extractResponse(String responseBody);
+    protected abstract String extractResponse(String responseBody) throws Exception;
 
     /**
      * Common HTTP request execution

@@ -64,7 +64,6 @@ public class GeminiProvider extends AbstractHttpProvider {
         // Gemini uses query parameter for API key
     }
 
-    @Override
     protected String buildUrl() {
         return API_URL + "?key=" + apiKey;
     }
