@@ -334,7 +334,8 @@ jobs:
           distribution: "temurin"
           cache: "gradle"
       - name: Build Plugin
-        run: "./gradlew :supremeai-intellij-plugin:buildPlugin"
+        working-directory: ./supremeai-intellij-plugin
+        run: "./gradlew buildPlugin"
       - name: Upload Plugin Artifact
         uses: actions/upload-artifact@v4
         with:
