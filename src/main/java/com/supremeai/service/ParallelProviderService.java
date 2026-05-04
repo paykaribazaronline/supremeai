@@ -24,10 +24,11 @@ public class ParallelProviderService {
      * Execute request across multiple providers in parallel.
      * Returns first successful response.
      */
+    @SuppressWarnings("unchecked")
     public <T> T executeParallelFirstSuccess(
             Map<String, ? extends CompletionStage<T>> providerRequests) {
         
-        CompletableFuture<T> anyOf = CompletableFuture.anyOf(
+        CompletableFuture<Object> anyOf = CompletableFuture.anyOf(
             providerRequests.values().toArray(CompletableFuture[]::new)
         );
         
@@ -113,12 +114,13 @@ public class ParallelProviderService {
     /**
      * Execute with timeout and fallback.
      */
+    @SuppressWarnings("unchecked")
     public <T> T executeParallelWithTimeout(
             Map<String, ? extends CompletionStage<T>> providerRequests,
             long timeoutMs,
             T fallback) {
         
-        CompletableFuture<T> anyOf = CompletableFuture.anyOf(
+        CompletableFuture<Object> anyOf = CompletableFuture.anyOf(
             providerRequests.values().toArray(CompletableFuture[]::new)
         );
         

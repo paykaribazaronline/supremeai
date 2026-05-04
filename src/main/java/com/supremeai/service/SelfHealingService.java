@@ -22,15 +22,15 @@ public class SelfHealingService {
      */
     public <T> Mono<T> executeWithRetry(Supplier<Mono<T>> taskSupplier, int maxAttempts, long initialBackoff) {
         return taskSupplier.get()
-            .doOnError(e -> reasoningService.logReasoning(
-                "RETRY_" + System.currentTimeMillis(),
-                "Execution Attempt Failed",
-                "Attempt failed with: " + e.getMessage(),
-                "SelfHealingService"
-            ))
             .retryWhen(reactor.util.retry.Retry.backoff(maxAttempts - 1, Duration.ofMillis(initialBackoff))
                 .doBeforeRetry(signal -> log.warn("Retrying due to: {}", signal.failure().getMessage())))
             .onErrorResume(e -> {
+                reasoningService.logReasoning(
+                    "RETRY_" + System.currentTimeMillis(),
+                    "Execution Attempt Failed",
+                    "Attempt failed with: " + e.getMessage(),
+                    "SelfHealingService"
+                );
                 handleWorkflowFailure("MAIN_SYSTEM", "TASK_" + System.currentTimeMillis(), e.getMessage());
                 return Mono.error(e);
             });

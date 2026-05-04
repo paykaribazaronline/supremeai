@@ -42,11 +42,12 @@ public class HealthController implements HealthIndicator {
         }
         
         // Check circuit breakers
-        Map<String, String> circuitBreakerStates = new HashMap<>();
-        for (CircuitBreaker cb : circuitBreakerRegistry.getAllCircuitBreakers()) {
-            circuitBreakerStates.put(cb.getName(), cb.getState().name());
+        Map<String, String> circuitBreakers = new HashMap<>();
+        for (String name : circuitBreakerRegistry.getAllCircuitBreakers().keySet()) {
+            CircuitBreaker cb = circuitBreakerRegistry.circuitBreaker(name);
+            circuitBreakers.put(name, cb.getState().name());
         }
-        details.put("circuitBreakers", circuitBreakerStates);
+        details.put("circuitBreakers", circuitBreakers);
         
         return Health.up().withDetails(details).build();
     }
@@ -67,9 +68,9 @@ public class HealthController implements HealthIndicator {
         
         // Circuit breaker states
         Map<String, String> cbStates = new HashMap<>();
-        for (CircuitBreaker cb : circuitBreakerRegistry.getAllCircuitBreakers()) {
-            cbStates.put(cb.getName(), cb.getState().name());
-        }
+        circuitBreakerRegistry.getAllCircuitBreakers().forEach((name, cb) -> 
+            cbStates.put(name, cb.getState().name())
+        );
         health.put("circuitBreakers", cbStates);
         
         return health;

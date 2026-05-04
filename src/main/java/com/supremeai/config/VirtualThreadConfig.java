@@ -20,6 +20,13 @@ public class VirtualThreadConfig {
     private static final Logger log = LoggerFactory.getLogger(VirtualThreadConfig.class);
 
     /**
+     * Static method to get virtual thread executor for direct access.
+     */
+    public static ExecutorService getVirtualThreadExecutor() {
+        return Executors.newVirtualThreadPerTaskExecutor();
+    }
+
+    /**
      * Virtual thread executor for async operations.
      * Can handle 10k+ concurrent tasks efficiently.
      */

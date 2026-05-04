@@ -107,4 +107,46 @@ public class SystemLearning {
     public void setSeverity(String severity) { this.severity = severity; }
     public List<String> getSolutions() { return solutions; }
     public void setSolutions(List<String> solutions) { this.solutions = solutions; }
+
+    // Additional fields for enhanced learning
+    private String title;
+    private Double confidence;
+    private Long version;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private String learnedFrom;
+    private LocalDateTime lastUsed;
+    private Long useCount;
+    private Long successCount;
+    private Long failureCount;
+    private String lastFeedback;
+    private Boolean obsolete;
+    private Boolean critical;
+
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public Double getConfidence() { return confidence; }
+    public void setConfidence(Double confidence) { this.confidence = confidence; }
+    public Long getVersion() { return version; }
+    public void setVersion(Long version) { this.version = version; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public String getLearnedFrom() { return learnedFrom; }
+    public void setLearnedFrom(String learnedFrom) { this.learnedFrom = learnedFrom; }
+    public LocalDateTime getLastUsed() { return lastUsed; }
+    public void setLastUsed(LocalDateTime lastUsed) { this.lastUsed = lastUsed; }
+    public Long getUseCount() { return useCount; }
+    public void setUseCount(Long useCount) { this.useCount = useCount; }
+    public Long getSuccessCount() { return successCount; }
+    public void setSuccessCount(Long successCount) { this.successCount = successCount; }
+    public Long getFailureCount() { return failureCount; }
+    public void setFailureCount(Long failureCount) { this.failureCount = failureCount; }
+    public String getLastFeedback() { return lastFeedback; }
+    public void setLastFeedback(String lastFeedback) { this.lastFeedback = lastFeedback; }
+    public Boolean getObsolete() { return obsolete; }
+    public void setObsolete(Boolean obsolete) { this.obsolete = obsolete; }
+    public Boolean getCritical() { return critical; }
+    public void setCritical(Boolean critical) { this.critical = critical; }
 }

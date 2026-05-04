@@ -41,9 +41,7 @@ public class RedisClusterConfig {
      */
     @Bean(destroyMethod = "shutdown")
     public ClientResources lettuceClientResources() {
-        return DefaultClientResources.builder()
-                .commandTimeout(Duration.ofSeconds(30))
-                .build();
+        return DefaultClientResources.create();
     }
 
     /**

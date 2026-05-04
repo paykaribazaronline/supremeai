@@ -16,9 +16,9 @@ import java.util.function.Function;
  * Provides automatic failover and recovery for external AI providers.
  */
 @Configuration
-public class CircuitBreakerConfig {
+public class ExternalServiceResilienceConfig {
 
-    private static final Logger log = LoggerFactory.getLogger(CircuitBreakerConfig.class);
+    private static final Logger log = LoggerFactory.getLogger(ExternalServiceResilienceConfig.class);
 
     private final ConcurrentHashMap<String, CircuitBreaker> circuitBreakers = new ConcurrentHashMap<>();
 

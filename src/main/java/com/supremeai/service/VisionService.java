@@ -12,7 +12,6 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
-import com.supremeai.service.NativeVisionService.NativeVisionResult;
 /**
  * Plan 14: Vision & Image Integration (Enhanced).
  *
@@ -144,7 +143,7 @@ public class VisionService {
     /**
      * Convert native vision result to VisionAnalysisResult.
      */
-    private VisionAnalysisResult convertNativeResult(NativeVisionResult nativeResult, AnalysisType analysisType) {
+    private VisionAnalysisResult convertNativeResult(NativeVisionService.NativeVisionResult nativeResult, AnalysisType analysisType) {
         String summary = buildSummaryFromNativeResult(nativeResult, analysisType);
         return VisionAnalysisResult.success(summary, nativeResult.getProcessor());
     }
@@ -152,7 +151,7 @@ public class VisionService {
     /**
      * Build human-readable summary from native vision result.
      */
-    private String buildSummaryFromNativeResult(NativeVisionResult nativeResult, AnalysisType analysisType) {
+    private String buildSummaryFromNativeResult(NativeVisionService.NativeVisionResult nativeResult, AnalysisType analysisType) {
         StringBuilder summary = new StringBuilder();
         
         switch (analysisType) {

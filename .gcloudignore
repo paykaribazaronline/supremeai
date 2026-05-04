@@ -35,14 +35,14 @@ build/
 # Other large or unnecessary folders
 supremeai-intellij-plugin/
 supremeai-vscode-extension/
-docs/
-docs_new/
-colab/
-monitoring/
-admin/
-public/
-projects/
-dashboard/
-functions/
-command-hub/
-.kilo/
+/docs/
+/docs_new/
+/colab/
+/monitoring/
+/admin/
+/public/
+/projects/
+/dashboard/
+/functions/
+/command-hub/
+/.kilo/

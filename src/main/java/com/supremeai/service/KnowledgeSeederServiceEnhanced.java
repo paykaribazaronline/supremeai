@@ -211,7 +211,9 @@ public class KnowledgeSeederServiceEnhanced {
         
         // Fallback to repository
         cacheMisses.incrementAndGet();
-        return systemLearningRepository.findByCategoryAndConfidenceGreaterThanEqual(category, minConfidence)
+        return systemLearningRepository.findAll()
+            .filter(learning -> category == null || learning.getCategory().equals(category))
+            .filter(learning -> learning.getConfidence() >= minConfidence)
             .filter(learning -> tags == null || tags.isEmpty() || 
                 learning.getTags().stream().anyMatch(tags::contains))
             .sort((a, b) -> Double.compare(b.getConfidence(), a.getConfidence()));
@@ -225,7 +227,8 @@ public class KnowledgeSeederServiceEnhanced {
     public Mono<Map<String, Object>> getLearningStats() {
         return systemLearningRepository.count()
             .flatMap(total -> 
-                systemLearningRepository.findByConfidenceGreaterThanEqual(0.8)
+                systemLearningRepository.findAll()
+                    .filter(learning -> learning.getConfidenceScore() >= 0.8)
                     .count()
                     .map(highConfidence -> Map.<String, Object>of(
                         "totalKnowledge", total,

@@ -115,6 +115,7 @@ dependencies {
     // Redis caching
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("io.lettuce:lettuce-core:6.3.0.RELEASE")
+    implementation("org.apache.commons:commons-pool2:2.12.0")
     // Removed jedis to avoid dependency conflict and reduce footprint
 
     // Database Connection Pooling
