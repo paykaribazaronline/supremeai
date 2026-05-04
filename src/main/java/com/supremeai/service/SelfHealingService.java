@@ -21,7 +21,7 @@ public class SelfHealingService {
      * Execute a task with retry and log reasoning on failure.
      */
     public <T> Mono<T> executeWithRetry(Supplier<Mono<T>> taskSupplier, int maxAttempts, long initialBackoff) {
-        return taskSupplier.get()
+        return Mono.defer(taskSupplier)
             .retryWhen(reactor.util.retry.Retry.backoff(maxAttempts - 1, Duration.ofMillis(initialBackoff))
                 .doBeforeRetry(signal -> log.warn("Retrying due to: {}", signal.failure().getMessage())))
             .onErrorResume(e -> {
