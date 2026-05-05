@@ -336,6 +336,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
+          channel: 'stable'
           flutter-version: ${{ env.FLUTTER_VERSION }}
       - name: Install Dependencies
         working-directory: ./supremeai
