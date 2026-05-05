@@ -251,58 +251,6 @@ jobs:
           retention-days: 7
           path: build/test-results/test/
 
-  # flutter-build-and-test:
-  #   name: Flutter Build and Test
-  #   needs: [changes, secret-scan]
-  #   if: >-
-  #     ${{
-  #       (github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
-  #       needs.changes.outputs.frontend == 'true' ||
-  #       (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Flutter_Build_And_Test'))
-  #     }}
-  #    runs-on: ubuntu-latest
-  #    outputs:
-  #      frontend_url: ${{ steps.set-paths.outputs.frontend_url }}
-  #      apk_path: ${{ steps.set-paths.outputs.apk_path }}
-  #    steps:
-  #      - uses: actions/checkout@v4
-  #      - name: Setup Flutter Cache
-  #        uses: actions/cache@v4
-  #        with:
-  #          path: |
-  #            ~/.pub-cache
-  #            **/.dart_tool/flutter_build
-  #          key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
-  #          restore-keys: |
-  #            flutter-${{ runner.os }}-
-  #      - name: Setup Flutter
-  #        uses: subosito/flutter-action@v2
-  #        with:
-  #          flutter-version: "3.24.0"
-  #          cache: true
-  #      - name: Get Flutter Dependencies
-  #        working-directory: ./supremeai
-  #        run: flutter pub get
-  #      - name: Run Tests
-  #        working-directory: ./supremeai
-  #        run: flutter test
-  #      - name: Build Web
-  #        working-directory: ./supremeai
-  #        run: flutter build web --release
-  #      - name: Upload Artifacts
-  #        uses: actions/upload-artifact@v4
-  #        with:
-  #          name: flutter-artifacts
-  #          retention-days: 7
-  #          path: |
-  #            supremeai/build/web
-  #            !**/**.map
-  #          if-no-files-found: warn
-  #      - name: Store Artifact Paths
-  #        id: set-paths
-  #        run: |
-  #          echo "frontend_url=https://supremeai-a.web.app/" >> $GITHUB_OUTPUT
-
   plugin-build:
     name: IntelliJ Plugin Build
     needs: [changes, secret-scan]
@@ -373,17 +321,12 @@ jobs:
   performance-test:
     name: Performance Testing
     needs: [java-build-and-test, changes]
-    if: >-
-      ${{
-        (github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
-        needs.changes.outputs.backend == 'true' ||
-        github.ref == 'refs/heads/main'
-      }}
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true' || needs.changes.outputs.backend == 'true' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Java
-        uses: actions/setup-java@v4
+       - uses: actions/checkout@v4
+       - name: Setup Java
+         uses: actions/setup-java@v4
          with:
            java-version: "21"
            distribution: "temurin"
