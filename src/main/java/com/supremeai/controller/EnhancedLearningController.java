@@ -59,7 +59,7 @@ public class EnhancedLearningController {
         String provider = (String) payload.getOrDefault("provider", "unknown");
         double qualityScore = payload.containsKey("qualityScore") ?
                 ((Number) payload.get("qualityScore")).doubleValue() : 0.5;
-        Map<String, Object> context = (Map<String, Object>) payload.getOrDefault("context", Map.of());
+        Map<String, Object> context = (Map<String, Object>) payload.getOrDefault("context", Map.<String, Object>of());
 
         return enhancedLearningService.learnFromNLPInteraction(userInput, aiResponse, provider, qualityScore, context);
     }
@@ -90,7 +90,7 @@ public class EnhancedLearningController {
                 ((Number) payload.get("responseTimeMs")).longValue() : 0;
         boolean success = payload.containsKey("success") ?
                 (Boolean) payload.get("success") : false;
-        Map<String, Object> requestMeta = (Map<String, Object>) payload.getOrDefault("requestMeta", Map.of());
+        Map<String, Object> requestMeta = (Map<String, Object>) payload.getOrDefault("requestMeta", Map.<String, Object>of());
 
         return enhancedLearningService.learnFromAPIUsage(apiEndpoint, provider, responseTimeMs, success, requestMeta);
     }
@@ -105,7 +105,7 @@ public class EnhancedLearningController {
         boolean buildSuccess = payload.containsKey("buildSuccess") ?
                 (Boolean) payload.get("buildSuccess") : false;
         String apkPath = (String) payload.getOrDefault("apkPath", "");
-        Map<String, Object> buildMetrics = (Map<String, Object>) payload.getOrDefault("buildMetrics", Map.of());
+        Map<String, Object> buildMetrics = (Map<String, Object>) payload.getOrDefault("buildMetrics", Map.<String, Object>of());
         String agentUsed = (String) payload.getOrDefault("agentUsed", "unknown");
 
         return enhancedLearningService.learnFromAppGeneration(requirement, generatedAppType, buildSuccess, apkPath, buildMetrics, agentUsed);
@@ -117,7 +117,7 @@ public class EnhancedLearningController {
     @PostMapping("/predictive")
     public Mono<SystemLearning> recordPredictiveLearning(@RequestBody Map<String, Object> payload) {
         String patternType = (String) payload.get("patternType");
-        Map<String, Object> patternData = (Map<String, Object>) payload.getOrDefault("patternData", Map.of());
+        Map<String, Object> patternData = (Map<String, Object>) payload.getOrDefault("patternData", Map.<String, Object>of());
         double confidence = payload.containsKey("confidence") ?
                 ((Number) payload.get("confidence")).doubleValue() : 0.5;
         String basedOnLearningId = (String) payload.getOrDefault("basedOnLearningId", "");

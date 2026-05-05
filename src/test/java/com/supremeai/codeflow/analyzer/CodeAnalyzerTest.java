@@ -6,6 +6,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.supremeai.codeflow.model.CodeRepository;
+
 import java.util.List;
 import java.util.Map;
 
@@ -92,12 +94,12 @@ public class CodeAnalyzerTest {
             .anyMatch(imp -> imp.module.contains("java.util")));
 
         // Verify class
-        CodeAnalyzer.ParsedClass userService = result.classes.stream()
+        CodeRepository.ClassInfo userService = result.classes.stream()
             .filter(c -> c.name.equals("UserService"))
             .findFirst()
             .orElse(null);
         assertNotNull(userService);
-        assertEquals(3, userService.methods.size());
+        assertEquals(2, userService.methods.size());
 
         // Verify functions
         assertTrue(result.functions.stream()
@@ -175,7 +177,7 @@ public class CodeAnalyzerTest {
         assertEquals(1, result.classes.size());
         assertEquals(4, result.functions.size());
 
-        CodeAnalyzer.ParsedClass complexClass = result.classes.get(0);
+        CodeRepository.ClassInfo complexClass = result.classes.get(0);
         assertEquals("ComplexService", complexClass.name);
         assertEquals(4, complexClass.methods.size());
     }

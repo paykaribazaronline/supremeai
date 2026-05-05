@@ -236,6 +236,7 @@ public class AppGenerationController {
             Map<String, Object> result = codeGenerationService.generateFromContext(decisions);
             
             // Limit preview to first few files
+            @SuppressWarnings("unchecked")
             Map<String, String> files = (Map<String, String>) result.get("files");
             if (files != null && files.size() > 3) {
                 Map<String, String> previewFiles = new HashMap<>();

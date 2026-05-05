@@ -120,16 +120,16 @@ public class AuthenticationController {
                                 establishSession(savedUser, httpRequest);
                             })
                             .map(savedUser -> {
-                                // Generate JWT token for the user
+                                // Generate JWT tokens (30m access, 7d refresh)
                                 String userRole = savedUser.getTier() == UserTier.ADMIN ? "ADMIN" : "USER";
-                                String token = jwtUtil.generateToken(savedUser.getFirebaseUid(), userRole);
-                                String refreshToken = jwtUtil.generateToken(savedUser.getFirebaseUid(), userRole);
+                                String accessToken = jwtUtil.generateAccessToken(savedUser.getFirebaseUid(), userRole);
+                                String refreshToken = jwtUtil.generateRefreshToken(savedUser.getFirebaseUid(), userRole);
 
-                                Map<String, Object> response = new HashMap<>();
-                                response.put("status", "success");
-                                response.put("isNewUser", isNewUser);
-                                response.put("token", token);
-                                response.put("refreshToken", refreshToken);
+                                 Map<String, Object> response = new HashMap<>();
+                                 response.put("status", "success");
+                                 response.put("isNewUser", isNewUser);
+                                 response.put("token", accessToken);
+                                 response.put("refreshToken", refreshToken);
                                 response.put("user", Map.of(
                                     "id", savedUser.getFirebaseUid(),
                                     "username", savedUser.getDisplayName(),
@@ -348,6 +348,34 @@ public class AuthenticationController {
         }
         SecurityContextHolder.clearContext();
         return Mono.just(Map.of("status", "success"));
+    }
+
+    /**
+     * Refresh access token using a valid refresh token.
+     */
+    @PostMapping("/refresh")
+    public Mono<Map<String, Object>> refresh(@RequestBody Map<String, String> request) {
+        String refreshToken = request.get("refreshToken");
+        if (refreshToken == null || refreshToken.trim().isEmpty()) {
+            return Mono.just(Map.of("status", "error", "message", "Refresh token is required"));
+        }
+
+        try {
+            // Validate refresh token (expiry is checked in validateToken)
+            jwtUtil.validateToken(refreshToken);
+            String username = jwtUtil.getUsername(refreshToken);
+            String role = jwtUtil.getRole(refreshToken);
+
+            // Generate new access token
+            String newAccessToken = jwtUtil.generateAccessToken(username, role);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("token", newAccessToken);
+            return Mono.just(response);
+        } catch (Exception e) {
+            return Mono.just(Map.of("status", "error", "message", "Invalid or expired refresh token"));
+        }
     }
 
     private void establishSession(User user, HttpServletRequest request) {

@@ -212,6 +212,7 @@ public class APIKeyController {
     @DeleteMapping("/bulk")
     public ResponseEntity<Map<String, Object>> bulkDeleteKeys(@RequestBody Map<String, Object> body) {
         String userId = getCurrentUserId();
+        @SuppressWarnings("unchecked")
         List<String> keyIds = (List<String>) body.get("keyIds");
         if (keyIds == null || keyIds.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "No key IDs provided"));
@@ -253,6 +254,7 @@ public class APIKeyController {
     @PostMapping("/bulk/regenerate")
     public ResponseEntity<Map<String, Object>> bulkRegenerateKeys(@RequestBody Map<String, Object> body) {
         String userId = getCurrentUserId();
+        @SuppressWarnings("unchecked")
         List<String> keyIds = (List<String>) body.get("keyIds");
         if (keyIds == null || keyIds.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "No key IDs provided"));

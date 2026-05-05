@@ -125,6 +125,10 @@ export async function firebaseSignIn(
       refreshToken: string;
       user: Record<string, unknown>;
     };
+
+    // Store tokens for later refresh
+    localStorage.setItem('supremeai_token', data.token);
+    localStorage.setItem('supremeai_refresh_token', data.refreshToken);
     return data;
   } catch (error: unknown) {
     if (error instanceof FirebaseError) {
@@ -132,6 +136,31 @@ export async function firebaseSignIn(
     }
     throw error;
   }
+}
+
+/**
+ * Refresh the access token using the stored refresh token.
+ */
+export async function refreshAccessToken(): Promise<string> {
+  const refreshToken = localStorage.getItem('supremeai_refresh_token');
+  if (!refreshToken) {
+    throw new Error('No refresh token available');
+  }
+
+  const resp = await fetch('/api/auth/refresh', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken }),
+  });
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({})) as Record<string, string>;
+    throw new Error(err['message'] ?? 'Token refresh failed');
+  }
+
+  const data = await resp.json() as { token: string };
+  localStorage.setItem('supremeai_token', data.token);
+  return data.token;
 }
 
 /**

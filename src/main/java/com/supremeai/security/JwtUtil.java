@@ -17,7 +17,9 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    private static final long TOKEN_TTL_MS = 1000L * 60 * 60 * 10;
+    private static final long ACCESS_TOKEN_TTL_MS = 1000L * 60 * 30; // 30 minutes
+    private static final long REFRESH_TOKEN_TTL_MS = 1000L * 60 * 60 * 24 * 7; // 7 days
+    private static final long TOKEN_TTL_MS = ACCESS_TOKEN_TTL_MS; // Default for backward compatibility
 
     @Value("${JWT_SECRET}")
     private String secret;
@@ -65,7 +67,22 @@ public class JwtUtil {
         return true;
     }
 
+    public String generateAccessToken(String username, String role) {
+        return generateToken(username, role, ACCESS_TOKEN_TTL_MS);
+    }
+
+    public String generateRefreshToken(String username, String role) {
+        return generateToken(username, role, REFRESH_TOKEN_TTL_MS);
+    }
+
+    /**
+     * Backward-compatible method: generates access token (30m TTL).
+     */
     public String generateToken(String username, String role) {
+        return generateAccessToken(username, role);
+    }
+
+    private String generateToken(String username, String role, long ttlMs) {
         if (role == null || role.isBlank()) {
             throw new IllegalArgumentException("Role is mandatory for token generation");
         }
@@ -74,7 +91,7 @@ public class JwtUtil {
                 .subject(username)
                 .issuer(issuer)
                 .issuedAt(issuedAt)
-                .expiration(new Date(issuedAt.getTime() + TOKEN_TTL_MS))
+                .expiration(new Date(issuedAt.getTime() + ttlMs))
                 .claim("role", normalizeRole(role))
                 .signWith(getSigningKey())
                 .compact();

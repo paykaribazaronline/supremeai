@@ -436,20 +436,21 @@ public class CodeAnalyzer {
             return null;
         }
         
-        return CodeRepository.FunctionInfo.builder()
-            .name(name)
-            .line(line + 1)
-            .endLine(line + 10) // Estimate
-            .parameters(new ArrayList<>())
-            .returnType("void")
-            .complexity(1)
-            .cyclomaticComplexity(1)
-            .cognitiveComplexity(1)
-            .calledFunctions(new ArrayList<>())
-            .isPublic(!funcDef.contains("private"))
-            .isStatic(funcDef.contains("static"))
-            .isAsync(funcDef.contains("async"))
-            .build();
+         return CodeRepository.FunctionInfo.builder()
+             .name(name)
+             .line(line + 1)
+             .endLine(line + 10) // Estimate
+             .parameters(new ArrayList<>())
+             .returnType("void")
+             .complexity(1)
+             .cyclomaticComplexity(1)
+             .cognitiveComplexity(1)
+             .calledFunctions(new ArrayList<>())
+             .isPublic(!funcDef.contains("private"))
+             .isStatic(funcDef.contains("static"))
+             .isAsync(funcDef.contains("async"))
+             .modifiers(extractModifiers(funcDef))
+             .build();
     }
     
     /**
@@ -485,6 +486,23 @@ public class CodeAnalyzer {
             return matcher.group(1);
         }
         return null;
+    }
+
+    /**
+     * Extract modifiers from function definition
+     */
+    private List<String> extractModifiers(String funcDef) {
+        List<String> modifiers = new ArrayList<>();
+        if (funcDef.contains("public")) modifiers.add("public");
+        if (funcDef.contains("private")) modifiers.add("private");
+        if (funcDef.contains("protected")) modifiers.add("protected");
+        if (funcDef.contains("static")) modifiers.add("static");
+        if (funcDef.contains("final")) modifiers.add("final");
+        if (funcDef.contains("abstract")) modifiers.add("abstract");
+        if (funcDef.contains("synchronized")) modifiers.add("synchronized");
+        if (funcDef.contains("native")) modifiers.add("native");
+        if (funcDef.contains("strictfp")) modifiers.add("strictfp");
+        return modifiers;
     }
     
     /**
@@ -602,10 +620,10 @@ public class CodeAnalyzer {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ParseResult {
-        private String language;
-        private List<CodeRepository.FunctionInfo> functions;
-        private List<CodeRepository.ClassInfo> classes;
-        private List<CodeRepository.ImportInfo> imports;
+        public String language;
+        public List<CodeRepository.FunctionInfo> functions;
+        public List<CodeRepository.ClassInfo> classes;
+        public List<CodeRepository.ImportInfo> imports;
         
         public String json() {
             try {
@@ -629,12 +647,20 @@ public class CodeAnalyzer {
                 .build();
         }
         
+        logger.debug("Parsing code with language: {}", language);
+        logger.debug("Code length: {}", code.length());
+        
         TreeSitterParseResult result;
         if (JS_LIKE_EXTENSIONS.contains("." + language) || "javascript".equals(language) || "typescript".equals(language)) {
+            logger.debug("Using Acorn parser for JS/TS");
             result = parseWithAcorn(code);
         } else {
+            logger.debug("Using regex parser for {}", language);
             result = parseWithRegex(code, language);
         }
+        
+        logger.debug("Parse result - functions: {}, classes: {}, imports: {}", 
+            result.getFunctions().size(), result.getClasses().size(), result.getImports().size());
         
         return ParseResult.builder()
             .language(language)
@@ -643,23 +669,16 @@ public class CodeAnalyzer {
             .imports(result.getImports())
             .build();
     }
-    
-    /**
-     * Public parse method for code snippets with auto-detection
-     */
-    public ParseResult parse(String code) {
-        return parse(code, "java");
-    }
 
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ParsedClass {
-        private String name;
-        private Integer line;
-        private String type;
-        private List<CodeRepository.FunctionInfo> methods;
+        public String name;
+        public Integer line;
+        public String type;
+        public List<CodeRepository.FunctionInfo> methods;
     }
 
     @Data
@@ -667,10 +686,10 @@ public class CodeAnalyzer {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ParsedFunction {
-        private String name;
-        private Integer line;
-        private List<String> parameters;
-        private String returnType;
+        public String name;
+        public Integer line;
+        public List<String> parameters;
+        public String returnType;
     }
 
     @Data
@@ -681,12 +700,5 @@ public class CodeAnalyzer {
         private List<CodeRepository.FunctionInfo> functions;
         private List<CodeRepository.ClassInfo> classes;
         private List<CodeRepository.ImportInfo> imports;
-    }
-
-    /**
-     * Public parse method for code snippets with auto-detection
-     */
-    public ParseResult parse(String code) {
-        return parse(code, "java");
     }
 }

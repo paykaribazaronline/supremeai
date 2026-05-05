@@ -524,7 +524,7 @@ public class EnhancedLearningService {
         
         @SuppressWarnings("unchecked")
         Map<String, Map<String, Double>> byType =
-                (Map<String, Map<String, Double>>) analysis.getOrDefault("successRateByType", Map.of());
+                (Map<String, Map<String, Double>>) analysis.getOrDefault("successRateByType", Map.<String, Map<String, Double>>of());
 
         byType.forEach((type, typeMetrics) -> {
             double rate = typeMetrics.get("successRate");
@@ -536,7 +536,7 @@ public class EnhancedLearningService {
         });
         
         // Provider recommendations
-        Map<String, Long> providerUsage = (Map<String, Long>) analysis.getOrDefault("providerUsage", Map.of());
+        Map<String, Long> providerUsage = (Map<String, Long>) analysis.getOrDefault("providerUsage", Map.<String, Long>of());
         providerUsage.entrySet().stream()
                 .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
                 .limit(3)

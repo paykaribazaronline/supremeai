@@ -140,19 +140,20 @@ public class CodeRepository {
     @AllArgsConstructor
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class FunctionInfo {
-        private String name;
-        private Integer line;
-        private Integer endLine;
-        private List<String> parameters;
-        private String returnType;
-        private Integer complexity;
-        private Integer cyclomaticComplexity;
-        private Integer cognitiveComplexity;
-        private List<String> calledFunctions;
-        private Boolean isPublic;
-        private Boolean isPrivate;
-        private Boolean isStatic;
-        private Boolean isAsync;
+        public String name;
+        public Integer line;
+        public Integer endLine;
+        public List<String> parameters;
+        public String returnType;
+        public Integer complexity;
+        public Integer cyclomaticComplexity;
+        public Integer cognitiveComplexity;
+        public List<String> calledFunctions;
+        public Boolean isPublic;
+        public Boolean isPrivate;
+        public Boolean isStatic;
+        public Boolean isAsync;
+        public List<String> modifiers;
     }
     
     @Data
@@ -161,16 +162,16 @@ public class CodeRepository {
     @AllArgsConstructor
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class ClassInfo {
-        private String name;
-        private Integer line;
-        private String type; // CLASS, INTERFACE, ENUM, ABSTRACT_CLASS
-        private List<String> extendsClasses;
-        private List<String> implementsInterfaces;
-        private List<FunctionInfo> methods;
-        private List<String> fields;
-        private Integer complexity;
-        private Boolean isAbstract;
-        private Boolean isFinal;
+        public String name;
+        public Integer line;
+        public String type; // CLASS, INTERFACE, ENUM, ABSTRACT_CLASS
+        public List<String> extendsClasses;
+        public List<String> implementsInterfaces;
+        public List<FunctionInfo> methods;
+        public List<String> fields;
+        public Integer complexity;
+        public Boolean isAbstract;
+        public Boolean isFinal;
     }
     
     @Data
@@ -179,10 +180,10 @@ public class CodeRepository {
     @AllArgsConstructor
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class ImportInfo {
-        private String module;
-        private String alias;
-        private Boolean isUsed;
-        private Integer line;
+        public String module;
+        public String alias;
+        public Boolean isUsed;
+        public Integer line;
     }
     
     @Data
