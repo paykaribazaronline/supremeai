@@ -239,7 +239,7 @@ public class CodeFlowService {
      * Calculate health score and grade
      */
     private void calculateHealthMetrics(CodeRepository repo) {
-        HealthScoreResult result = healthScorer.calculateScore(repo);
+        com.supremeai.codeflow.analyzer.HealthScorer.HealthScoreResult result = healthScorer.calculateScore(repo);
         repo.setHealthScore(result.getScore());
         repo.setHealthGrade(result.getGrade());
         
