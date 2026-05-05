@@ -89,7 +89,7 @@ public class CommandResult {
     
     @Override
     public String toString() {
-        return String.format("[%s] %s - Status: %s (%.0fms)", 
+        return String.format("[%s] %s - Status: %s (%dms)",
             commandName, executedBy, status, executionTimeMs);
     }
 }
