@@ -89,9 +89,12 @@ public class AuthenticationController {
                             if ("ADMIN".equals(roleClaim) || Boolean.TRUE.equals(adminClaim)) {
                                 tier = UserTier.ADMIN;
                             }
+                            // SECURITY FIX: Safe email splitting with null check
                             String displayName = (name != null && !name.trim().isEmpty())
                                 ? name.trim()
-                                : email.split("@")[0];
+                                : (email != null && email.contains("@")) 
+                                    ? email.split("@")[0] 
+                                    : "User";
                             user.setFirebaseUid(uid);
                             user.setEmail(email);
                             user.setDisplayName(displayName);

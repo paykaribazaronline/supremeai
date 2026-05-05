@@ -18,10 +18,10 @@ public class OpenAIProvider extends AbstractHttpProvider {
     private static final String API_URL = "https://api.openai.com/v1/chat/completions";
 
     public OpenAIProvider() {
-        this("");
+        super("", API_URL, "gpt-3.5-turbo");
     }
 
-    public OpenAIProvider(@Value("${openai.api-key:}") String apiKey) {
+    public OpenAIProvider(String apiKey) {
         super(apiKey, API_URL, "gpt-3.5-turbo");
     }
 

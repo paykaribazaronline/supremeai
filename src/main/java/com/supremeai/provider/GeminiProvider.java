@@ -14,10 +14,10 @@ public class GeminiProvider extends AbstractHttpProvider {
     private static final String API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
     public GeminiProvider() {
-        this("");
+        super("", API_URL, "gemini-1.5-flash");
     }
 
-    public GeminiProvider(@Value("${gemini.api-key:}") String apiKey) {
+    public GeminiProvider(String apiKey) {
         super(apiKey, API_URL, "gemini-1.5-flash");
     }
 

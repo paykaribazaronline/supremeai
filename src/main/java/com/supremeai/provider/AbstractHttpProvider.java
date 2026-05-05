@@ -17,7 +17,6 @@ import java.util.concurrent.TimeUnit;
  * Base HTTP provider implementation
  * Eliminates 90% duplicate code across all REST API providers
  */
-@Component
 public abstract class AbstractHttpProvider implements AIProvider {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
@@ -39,17 +38,29 @@ public abstract class AbstractHttpProvider implements AIProvider {
             .retryOnConnectionFailure(true)
             .build();
 
-    @Autowired
-    protected ObjectMapper objectMapper;
+    // SECURITY FIX: ObjectMapper is now provided via constructor injection
+    // This ensures proper initialization and testability
+    protected final ObjectMapper objectMapper;
 
     protected final String apiKey;
     protected final String baseUrl;
     protected final String defaultModel;
 
+    // Constructor for subclasses to call
     protected AbstractHttpProvider(String apiKey, String baseUrl, String defaultModel) {
         this.apiKey = apiKey;
         this.baseUrl = baseUrl;
         this.defaultModel = defaultModel;
+        // Initialize ObjectMapper with default instance
+        this.objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+    }
+    
+    // Constructor with ObjectMapper for dependency injection
+    protected AbstractHttpProvider(String apiKey, String baseUrl, String defaultModel, ObjectMapper objectMapper) {
+        this.apiKey = apiKey;
+        this.baseUrl = baseUrl;
+        this.defaultModel = defaultModel;
+        this.objectMapper = objectMapper != null ? objectMapper : new com.fasterxml.jackson.databind.ObjectMapper();
     }
 
     /**
