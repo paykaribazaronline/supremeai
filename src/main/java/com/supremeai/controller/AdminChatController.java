@@ -40,11 +40,11 @@ public class AdminChatController {
     public Mono<ResponseEntity<Map<String, Object>>> getHistory(
             @RequestParam(required = false) String user_id,
             @RequestParam(defaultValue = "100") int limit) {
-        List<Map<String, Object>> history = chatProcessingService.getChatHistory(user_id, limit);
-        return Mono.just(ResponseEntity.ok(Map.of(
-            "success", true,
-            "chat_history", history
-        )));
+        return chatProcessingService.getChatHistory(user_id, limit)
+            .map(history -> ResponseEntity.ok(Map.of(
+                "success", true,
+                "chat_history", history
+            )));
     }
 
     @GetMapping("/pending")

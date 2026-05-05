@@ -9,21 +9,33 @@ import {
   Auth,
   UserCredential,
   getIdTokenResult,
+  connectAuthEmulator,
 } from 'firebase/auth';
 
+// Use Firebase Hosting environment or environment variables
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'dummy-key-for-development',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || window.location.host,
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL || '',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'supremeai-a',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || '',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '123456789',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:123456789:web:abcdef',
 };
 
 // Avoid re-initialising the app during HMR
 const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
 export const firebaseAuth: Auth = getAuth(app);
+
+// Connect to Firebase Emulator in development environment
+if (import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+  try {
+    connectAuthEmulator(firebaseAuth, 'http://localhost:9099', { disableWarnings: true });
+    console.log('Firebase Auth connected to emulator');
+  } catch (err) {
+    console.log('Firebase Emulator not running, using production config');
+  }
+}
 
 /**
  * Global async error handler for unhandled promise rejections.

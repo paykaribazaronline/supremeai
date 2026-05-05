@@ -210,8 +210,11 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                                          val toolWindowManager = com.intellij.openapi.wm.ToolWindowManager.getInstance(com.intellij.openapi.project.ProjectManager.getInstance().defaultProject)
                                          val toolWindow = toolWindowManager.getToolWindow("SupremeAI")
                                          if (toolWindow != null) {
-                                             toolWindow.contentManager.setSelectedContent(toolWindow.contentManager.contents.find { it.tabName == "Settings" })
-                                             toolWindow.show()
+                                             val settingsContent = toolWindow.contentManager.contents.find { it.tabName == "Settings" }
+                                             if (settingsContent != null) {
+                                                 toolWindow.contentManager.setSelectedContent(settingsContent)
+                                                 toolWindow.show()
+                                             }
                                          }
                                      } catch (e: Exception) {
                                          // Ignore if we can't switch tabs

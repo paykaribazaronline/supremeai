@@ -22,4 +22,13 @@ public class ConfigController {
         config.put("appId", "1:565236080752:web:572bb9313db9afb355d4b5");
         return config;
     }
+
+    @GetMapping("/public")
+    public Map<String, String> getPublicConfig() {
+        Map<String, String> config = new HashMap<>();
+        config.put("version", "1.0.0");
+        config.put("environment", "production");
+        config.put("features", "admin,api,chat");
+        return config;
+    }
 }
