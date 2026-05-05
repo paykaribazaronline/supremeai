@@ -17,9 +17,19 @@ public class HealthScorer {
     private static final Logger logger = LoggerFactory.getLogger(HealthScorer.class);
     
     /**
+     * Health score result
+     */
+    @lombok.Data
+    @lombok.Builder
+    public static class HealthScoreResult {
+        private int score;
+        private String grade;
+    }
+    
+    /**
      * Calculate overall health score
      */
-    public CodeFlowService.HealthScoreResult calculateScore(CodeRepository repo) {
+    public HealthScoreResult calculateScore(CodeRepository repo) {
         int score = 100;
         
         // Deduct for security issues
@@ -45,7 +55,7 @@ public class HealthScorer {
         
         logger.info("Health score calculated: {} ({})", score, grade);
         
-        return CodeFlowService.HealthScoreResult.builder()
+        return HealthScoreResult.builder()
             .score(score)
             .grade(grade)
             .build();

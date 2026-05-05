@@ -1,10 +1,17 @@
 package com.supremeai.codeflow.service;
 
+import com.supremeai.codeflow.analyzer.CodeAnalyzer;
+import com.supremeai.codeflow.analyzer.DependencyAnalyzer;
+import com.supremeai.codeflow.analyzer.HealthScorer;
+import com.supremeai.codeflow.analyzer.PatternDetector;
+import com.supremeai.codeflow.analyzer.SecurityScanner;
 import com.supremeai.codeflow.model.CodeRepository;
 import com.supremeai.codeflow.repository.CodeFlowRepository;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
 import com.supremeai.provider.AIProviderSwitcher;
+import lombok.Data;
+import lombok.Builder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -163,11 +170,11 @@ public class CodeFlowService {
             repo.setLastAnalyzedAt(Instant.now());
             repo.setAnalysisDurationMs(System.currentTimeMillis() - startTime);
             repo.setCached(true);
-            repo.setCacheExpiresAt(Date.from(Instant.now().plusSeconds(86400))); // 24 hours
+            repo.setCacheExpiresAt(Instant.now().plusSeconds(86400)); // 24 hours
             
             repository.save(repo);
             
-            logger.info("Analysis completed for {} in {}ms", repositoryId, 
+            logger.info("Analysis completed for {} in {}ms", repositoryId,
                 System.currentTimeMillis() - startTime);
             
         } catch (Exception e) {
