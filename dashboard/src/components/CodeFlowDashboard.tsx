@@ -1218,9 +1218,8 @@ const CodeFlowDashboard: React.FC<CodeFlowDashboardProps> = ({ onClose }) => {
           >
             <div id="dependency-graph-container" style={{ width: '100%', height: 600, background: '#0a0a0c' }} />
           </Modal>
-        </Layout>
-      );
-    </div>
+        </Content>
+      </Layout>
   );
 };
 

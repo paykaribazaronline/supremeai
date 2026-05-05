@@ -782,6 +782,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Generate Summary
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
         run: |
             echo "### 🚀 SupremeAI CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
             echo "**Workflow:** \`${{ github.workflow }}\` | **Run:** #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
@@ -811,8 +813,9 @@ jobs:
             echo "**Frontend:** https://supremeai-a.web.app/" >> $GITHUB_STEP_SUMMARY
 
             # Calculate success rate
-            TOTAL_JOBS=$(echo "${{ toJSON(needs) }}" | jq 'length')
-            SUCCESS_JOBS=$(echo "${{ toJSON(needs) }}" | jq '[.[] | select(.result == "success")] | length')
+            TOTAL_JOBS=$(echo "$NEEDS_JSON" | jq 'length')
+            SUCCESS_JOBS=$(echo "$NEEDS_JSON" | jq '[.[] | select(.result == "success")] | length')
+            SUCCESS_RATE=$(( SUCCESS_JOBS * 100 / TOTAL_JOBS ))
             SUCCESS_RATE=$(( SUCCESS_JOBS * 100 / TOTAL_JOBS ))
 
             echo "## 📈 Pipeline Metrics" >> $GITHUB_STEP_SUMMARY
@@ -829,6 +832,8 @@ jobs:
     steps:
       - name: Calculate Pipeline Status
         id: status
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
         run: |
           # Check if any job failed
           FAILED_JOBS=""
@@ -837,7 +842,7 @@ jobs:
 
           # Count results
           for job in java-build-and-test flutter-build-and-test plugin-build vscode-extension-build deploy-backend deploy-frontend deploy-cloud-functions deploy-canary performance-test health-check e2e-tests; do
-            RESULT="${{ needs.$job.result }}"
+            RESULT=$(echo "$NEEDS_JSON" | jq -r ".[\"$job\"].result")
             TOTAL_COUNT=$((TOTAL_COUNT + 1))
             if [ "$RESULT" = "success" ]; then
               SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
