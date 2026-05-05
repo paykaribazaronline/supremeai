@@ -1,0 +1,98 @@
+<idea-plugin>
+    <id>com.supremeai.ide.plugin</id>
+    <name>SupremeAI Assistant</name>
+    <version>1.2.0</version>
+    <vendor email="support@supremeai.com" url="https://supremeai.com">SupremeAI</vendor>
+
+    <description><![CDATA[
+    SupremeAI Assistant for Android Studio.
+    <ul>
+      <li>Generate Android Apps from prompts</li>
+      <li>Real-time code learning and suggestions</li>
+      <li>Agent collaboration status</li>
+      <li>Fully Compatible with K2 Mode</li>
+    </ul>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+    <depends>org.jetbrains.kotlin</depends>
+    <depends>org.jetbrains.android</depends>
+
+    <extensions defaultExtensionNs="org.jetbrains.kotlin">
+        <supportsKotlinPluginMode supportsK2="true"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationService serviceImplementation="com.supremeai.ide.SupremeAISettings"/>
+
+        <toolWindow id="SupremeAI"
+                    secondary="false"
+                    icon="AllIcons.General.Information"
+                    anchor="right"
+                    factoryClass="com.supremeai.ide.SupremeAIToolWindowFactory"/>
+
+        <applicationConfigurable
+            parentId="tools"
+            instance="com.supremeai.ide.SupremeAISettingsConfigurable"
+            id="supremeai.settings"
+            displayName="SupremeAI" />
+
+        <statusBarWidgetFactory implementation="com.supremeai.ide.SupremeAIStatusBarWidgetFactory"/>
+
+        <localInspection language="kotlin"
+                         displayName="SupremeAI Patterns"
+                         groupPath="Kotlin"
+                         groupName="SupremeAI"
+                         enabledByDefault="true"
+                         level="WARNING"
+                         implementationClass="com.supremeai.ide.inspection.SupremeAIInspection"/>
+
+        <action id="SupremeAI.CodeFlowAnalysis"
+                class="com.supremeai.ide.SupremeAICodeFlowAction"
+                text="Run CodeFlow Analysis"
+                description="Run CodeFlow analysis on current project">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt shift C"/>
+        </action>
+
+        <action id="SupremeAI.ResolveError"
+                class="com.supremeai.ide.SupremeAIResolveErrorAction"
+                text="Resolve Error with AI"
+                description="Use AI to resolve selected error">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+        </action>
+
+        <!-- External System Task Listener for Gradle Build Failure Detection -->
+        <externalSystemTaskNotificationListener 
+            implementation="com.supremeai.ide.learning.GradleFailureDetector"/>
+
+        <!-- Project Component for User Code Change Learning -->
+        <projectComponent implementation="com.supremeai.ide.learning.UserCodeLearningProjectComponent"/>
+    </extensions>
+
+    <actions>
+        <group id="SupremeAI.Menu" text="SupremeAI" description="SupremeAI commands">
+            <add-to-group group-id="MainMenu" anchor="last"/>
+            <action id="com.supremeai.ide.GenerateAppAction"
+                    class="com.supremeai.ide.GenerateAppAction"
+                    text="New SupremeAI App"
+                    description="Generate a new Android app using SupremeAI">
+            </action>
+        </group>
+
+        <action id="com.supremeai.ide.AskSupremeAIAction"
+                class="com.supremeai.ide.AskSupremeAIAction"
+                text="Ask SupremeAI"
+                description="Ask SupremeAI about selected code">
+            <add-to-group group-id="EditorPopupMenu" anchor="first"/>
+        </action>
+
+        <action id="com.supremeai.ide.ExplainFileAction"
+                class="com.supremeai.ide.ExplainFileAction"
+                text="Explain with SupremeAI"
+                description="Explain file content with SupremeAI">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+        </action>
+    </actions>
+</idea-plugin>

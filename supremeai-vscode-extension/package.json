@@ -1,0 +1,194 @@
+{
+  "name": "supremeai-vscode",
+  "displayName": "SupremeAI - AI-Powered Development Assistant",
+  "description": "Real-time code analysis, learning, and AI assistance with SupremeAI Core Engine",
+  "version": "6.0.0",
+  "publisher": "supremeai",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/supremeai.git"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Machine Learning",
+    "Snippets",
+    "Other"
+  ],
+  "keywords": [
+    "AI",
+    "Code Assistant",
+    "Learning",
+    "SupremeAI",
+    "Auto-Completion",
+    "Error Detection",
+    "CodeFlow",
+    "Analysis"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:supremeai.analyzeCodeFlow",
+    "onCommand:supremeai.resolveError",
+    "onCommand:supremeai.showSecurityIssues",
+    "onCommand:supremeai.showDependencies",
+    "onCommand:supremeai.openCodeFlowDashboard",
+    "onCommand:supremeai.refreshCodeFlow"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "supremeai.acceptSuggestion",
+        "title": "SupremeAI: Accept Suggestion"
+      },
+      {
+        "command": "supremeai.rejectSuggestion",
+        "title": "SupremeAI: Reject Suggestion"
+      },
+      {
+        "command": "supremeai.sendFeedback",
+        "title": "SupremeAI: Send Feedback"
+      },
+      {
+        "command": "supremeai.reportError",
+        "title": "SupremeAI: Report Error"
+      },
+      {
+        "command": "supremeai.forceLearn",
+        "title": "SupremeAI: Force Learn from Current File"
+      },
+      {
+        "command": "supremeai.analyzeCodeFlow",
+        "title": "SupremeAI: Run CodeFlow Analysis"
+      },
+      {
+        "command": "supremeai.resolveError",
+        "title": "SupremeAI: Resolve Error with AI"
+      },
+      {
+        "command": "supremeai.showSecurityIssues",
+        "title": "SupremeAI: Show Security Issues"
+      },
+      {
+        "command": "supremeai.showDependencies",
+        "title": "SupremeAI: Show Dependency Graph"
+      },
+      {
+        "command": "supremeai.openCodeFlowDashboard",
+        "title": "SupremeAI: Open CodeFlow Dashboard"
+      },
+      {
+        "command": "supremeai.refreshCodeFlow",
+        "title": "SupremeAI: Refresh CodeFlow Analysis"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "supremeai.resolveError",
+          "when": "editorHasSelection",
+          "group": "SupremeAI"
+        },
+        {
+          "command": "supremeai.analyzeCodeFlow",
+          "group": "SupremeAI"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "supremeai.resolveError",
+          "when": "editorHasSelection"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "SupremeAI",
+      "properties": {
+        "supremeai.backendUrl": {
+          "type": "string",
+          "default": "https://supremeai-lhlwyikwlq-uc.a.run.app",
+          "description": "SupremeAI Backend API URL"
+        },
+        "supremeai.codegeex4.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable CodeGeeX4 AI code assistance"
+        },
+        "supremeai.codegeex4.model": {
+          "type": "string",
+          "default": "codegeex-4",
+          "description": "CodeGeeX4 model to use (codegeex-4 or codegeex-4-lite)"
+        },
+        "supremeai.enableRealTimeLearning": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable real-time learning from your code edits"
+        },
+        "supremeai.autoReportErrors": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically report errors to SupremeAI for learning"
+        },
+        "supremeai.enableCodeFlow": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable CodeFlow analysis features"
+        },
+        "supremeai.autoAnalyzeOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically run CodeFlow analysis on file save"
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "supremeai-sidebar",
+          "title": "SupremeAI",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "supremeai-sidebar": [
+        {
+          "id": "supremeaiDashboard",
+          "name": "Dashboard"
+        },
+        {
+          "id": "supremeaiActivity",
+          "name": "Activity"
+        },
+        {
+          "id": "supremeaiCodeFlow",
+          "name": "CodeFlow"
+        },
+        {
+          "id": "supremeaiChat",
+          "name": "Chat"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "pretest": "npm run compile",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "18.x",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "typescript": "^5.0.0",
+    "eslint": "^8.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}

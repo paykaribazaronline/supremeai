@@ -1,0 +1,132 @@
+{
+  "servers": {
+    "firebase": {
+      "name": "Firebase",
+      "type": "cloud",
+      "status": "active",
+      "projectId": "supremeai",
+      "region": "us-central1",
+      "services": {
+        "firestore": {
+          "enabled": true,
+          "status": "active"
+        },
+        "auth": {
+          "enabled": true,
+          "status": "active"
+        },
+        "storage": {
+          "enabled": true,
+          "status": "active"
+        },
+        "functions": {
+          "enabled": true,
+          "status": "active"
+        },
+        "hosting": {
+          "enabled": true,
+          "status": "active"
+        }
+      }
+    },
+    "gcloud": {
+      "name": "Google Cloud Platform",
+      "type": "cloud",
+      "status": "active",
+      "projectId": "supremeai",
+      "region": "us-central1",
+      "services": {
+        "cloudFunctions": {
+          "enabled": true,
+          "status": "active"
+        },
+        "cloudRun": {
+          "enabled": true,
+          "status": "active"
+        },
+        "bigQuery": {
+          "enabled": true,
+          "status": "active"
+        },
+        "cloudStorage": {
+          "enabled": true,
+          "status": "active"
+        }
+      }
+    },
+    "local": {
+      "name": "Local Development Server",
+      "type": "local",
+      "status": "active",
+      "url": "http://localhost:5000",
+      "services": {
+        "flask": {
+          "enabled": true,
+          "status": "active"
+        },
+        "smartChatSystem": {
+          "enabled": true,
+          "status": "active"
+        },
+        "planAnalyzer": {
+          "enabled": true,
+          "status": "active"
+        },
+        "imageProcessor": {
+          "enabled": true,
+          "status": "active"
+        }
+      }
+    },
+    "smartChatSystem": {
+      "name": "Smart Chat System",
+      "type": "service",
+      "status": "active",
+      "path": "smart_chat_system",
+      "components": {
+        "chatSystem": {
+          "enabled": true,
+          "status": "active"
+        },
+        "planAnalyzer": {
+          "enabled": true,
+          "status": "active"
+        },
+        "imageProcessor": {
+          "enabled": true,
+          "status": "active"
+        }
+      }
+    }
+  },
+  "connections": {
+    "firebaseToLocal": {
+      "source": "firebase",
+      "target": "local",
+      "status": "active",
+      "type": "api"
+    },
+    "localToFirebase": {
+      "source": "local",
+      "target": "firebase",
+      "status": "active",
+      "type": "api"
+    },
+    "gcloudToFirebase": {
+      "source": "gcloud",
+      "target": "firebase",
+      "status": "active",
+      "type": "service"
+    }
+  },
+  "monitoring": {
+    "enabled": true,
+    "interval": 30000,
+    "alertThreshold": {
+      "cpu": 80,
+      "memory": 90,
+      "disk": 90
+    },
+    "retentionDays": 7
+  }
+}

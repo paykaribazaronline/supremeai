@@ -1,0 +1,25 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest', '.']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest']
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'supremeai'
+      - '--image=us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest'
+      - '--platform=managed'
+      - '--region=us-central1'
+      - '--allow-unauthenticated'
+      - '--memory=4Gi'
+      - '--cpu=2'
+      - '--timeout=600'
+      - '--set-env-vars=SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=supremeai-a'
+      - '--update-secrets=FIREBASE_SERVICE_ACCOUNT_JSON=firebase-service-account-json:latest,JWT_SECRET=jwt-secret:latest,GROQ_API_KEY=groq-api-key:latest'
+      - '--max-instances=10'
+      - '--concurrency=80'
+      - '--quiet'
+images:
+  - 'us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest'

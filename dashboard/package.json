@@ -1,0 +1,43 @@
+{
+  "name": "supremeai-3d-dashboard",
+  "version": "6.0.0",
+  "description": "Phase 6: 3D Real-Time Visualization Dashboard for SupremeAI",
+  "main": "src/index.tsx",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^5.5.0",
+    "@stomp/stompjs": "^7.3.0",
+    "@types/js-cookie": "^3.0.6",
+    "antd": "^5.22.0",
+    "axios": "^1.15.2",
+    "chart.js": "^4.5.1",
+    "d3": "^7.8.5",
+    "firebase": "^10.14.1",
+    "i18next": "^26.0.7",
+    "i18next-browser-languagedetector": "^8.2.1",
+    "idb": "^8.0.3",
+    "js-cookie": "^3.0.5",
+    "react": "^18.2.0",
+    "react-chartjs-2": "^5.3.1",
+    "react-dom": "^18.2.0",
+    "react-i18next": "^17.0.4",
+    "react-router-dom": "^6.22.0",
+    "sockjs-client": "^1.6.1",
+    "three": "^0.157.0",
+    "typescript": "^5.3.3"
+  },
+  "devDependencies": {
+    "@types/d3": "^7.4.3",
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@types/sockjs-client": "^1.5.4",
+    "@types/three": "^0.157.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.0.8"
+  }
+}

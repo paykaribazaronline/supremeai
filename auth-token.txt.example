@@ -1,0 +1,6 @@
+# IMPORTANT: This file contains sensitive JWT tokens - DO NOT commit to git
+# This file is generated automatically by the authentication scripts
+# It contains the backend JWT token for making authenticated API calls
+
+# Example format:
+# eyJhbGciOiJIUzI4NCJ9.eyJzdWIiOiJ...

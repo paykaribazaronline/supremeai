@@ -1,0 +1,43 @@
+services:
+  supremeai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: supremeai
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - PORT=8080
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-local}
+      - AIRLLM_ENDPOINT=${AIRLLM_ENDPOINT:-https://unsymmetrical-unrepugnant-lilah.ngrok-free.dev/v1/chat/completions}
+      - AIRLLM_HEALTHCHECK_URL=${AIRLLM_HEALTHCHECK_URL:-https://unsymmetrical-unrepugnant-lilah.ngrok-free.dev/health}
+      - AIRLLM_RATE_LIMIT_PER_MINUTE=${AIRLLM_RATE_LIMIT_PER_MINUTE:-277}
+      - FIREBASE_SERVICE_ACCOUNT=${FIREBASE_SERVICE_ACCOUNT}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - SECRET_MANAGER_BACKEND=${SECRET_MANAGER_BACKEND:-env}
+      - KEY_ROTATION_ENABLED=${KEY_ROTATION_ENABLED:-true}
+      - KING_MODE_ENABLED=${KING_MODE_ENABLED:-true}
+    volumes:
+      - ./service-account.json:/app/service-account.json:ro
+    restart: unless-stopped
+    depends_on:
+      - airllm
+
+  airllm:
+    image: ${AIRLLM_IMAGE:-gcr.io/supremeai-a/airllm-sidecar:latest}
+    container_name: airllm-sidecar
+    profiles:
+      - airllm
+    ports:
+      - "8081:8081"
+    environment:
+      - MODEL=${AIRLLM_MODEL:-meta-llama/Llama-3.3-70B-Instruct}
+      - COMPRESSION=${AIRLLM_COMPRESSION:-4bit}
+      - BATCH_SIZE=${AIRLLM_BATCH_SIZE:-12}
+      - PREFETCH_LAYERS=${AIRLLM_PREFETCH_LAYERS:-4}
+      - CONTINUOUS_BATCHING=true
+      - PORT=8081
+    restart: unless-stopped

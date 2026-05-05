@@ -1,0 +1,98 @@
+groups:
+  - name: supremeai-recording
+    interval: 30s
+    rules:
+      # Request rate per endpoint
+      - record: job:http_requests:rate5m
+        expr: sum(rate(http_server_requests_seconds_count{application="supremeai"}[5m])) by (uri, method, status)
+
+      # p95 latency per endpoint
+      - record: job:http_request_duration_p95:rate5m
+        expr: >
+          histogram_quantile(0.95,
+            sum(rate(http_server_requests_seconds_bucket{application="supremeai"}[5m])) by (le, uri))
+
+      # p99 latency overall
+      - record: job:http_request_duration_p99:rate5m
+        expr: >
+          histogram_quantile(0.99,
+            sum(rate(http_server_requests_seconds_bucket{application="supremeai"}[5m])) by (le))
+
+      # 5xx error ratio
+      - record: job:http_5xx_ratio:rate5m
+        expr: >
+          sum(rate(http_server_requests_seconds_count{application="supremeai",status=~"5.."}[5m]))
+          /
+          sum(rate(http_server_requests_seconds_count{application="supremeai"}[5m]))
+
+      # JVM heap ratio
+      - record: job:jvm_heap_ratio:current
+        expr: >
+          sum(jvm_memory_used_bytes{application="supremeai",area="heap"})
+          /
+          sum(jvm_memory_max_bytes{application="supremeai",area="heap"})
+
+  - name: supremeai-alerting
+    rules:
+      - alert: SupremeAIDown
+        expr: up{job="supremeai-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "SupremeAI is down"
+          description: "Instance {{ $labels.instance }} unreachable for > 1 minute"
+
+      - alert: HighErrorRate
+        expr: job:http_5xx_ratio:rate5m > 0.05
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High 5xx error rate: {{ $value | humanizePercentage }}"
+          description: "Error rate has been above 5% for 2 minutes"
+
+      - alert: HighLatencyP99
+        expr: job:http_request_duration_p99:rate5m > 3
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "p99 latency {{ $value | humanizeDuration }} > 3s"
+          description: "p99 latency exceeds 3s for more than 3 minutes"
+
+      - alert: JvmHeapCritical
+        expr: job:jvm_heap_ratio:current > 0.9
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "JVM heap {{ $value | humanizePercentage }} — OOM risk"
+          description: "Heap has been above 90% for 2 minutes"
+
+      - alert: JvmHeapWarning
+        expr: job:jvm_heap_ratio:current > 0.75
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "JVM heap {{ $value | humanizePercentage }}"
+          description: "Heap has been above 75% for 5 minutes"
+
+      - alert: CircuitBreakerOpen
+        expr: supremeai_circuit_breaker_state{state="open"} == 1
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Circuit breaker {{ $labels.name }} OPEN"
+          description: "Downstream request failing — fallback in use"
+
+      - alert: QuotaLow
+        expr: supremeai_quota_remaining / supremeai_quota_total < 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Provider {{ $labels.provider }} quota < 10%"
+          description: "Remaining: {{ $value | humanize }}"

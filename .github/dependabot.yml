@@ -1,0 +1,67 @@
+version: 2
+updates:
+  # Backend (Gradle)
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "supremeai-team"
+    labels:
+      - "dependencies"
+      - "backend"
+    assignees:
+      - "dev-team"
+    groups:
+      backend-dependencies:
+        patterns:
+          - "*"
+
+  # VS Code Extension (npm)
+  - package-ecosystem: "npm"
+    directory: "/supremeai-vscode-extension"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "supremeai-team"
+    labels:
+      - "dependencies"
+      - "vscode-extension"
+
+  # Dashboard (npm)
+  - package-ecosystem: "npm"
+    directory: "/dashboard"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "supremeai-team"
+    labels:
+      - "dependencies"
+      - "frontend"
+
+  # Flutter (pub)
+  - package-ecosystem: "pub"
+    directory: "/supremeai"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "supremeai-team"
+    labels:
+      - "dependencies"
+      - "flutter"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "supremeai-team"
+    labels:
+      - "dependencies"
+      - "github-actions"

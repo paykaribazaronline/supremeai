@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>SupremeAI - Login</title>
+    <script src="/firebase-app-compat.js"></script>
+    <script src="/firebase-auth-compat.js"></script>
+    <script src="/js/auth-helper.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 10px;
+        }
+
+        .logo span {
+            color: #4299e1;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+            background: #f8f9ff;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(30, 60, 114, 0.4);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .login-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            color: #d32f2f;
+            background: #ffebee;
+            padding: 12px 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 14px;
+            border-left: 4px solid #d32f2f;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            color: #388e3c;
+            background: #e8f5e9;
+            padding: 12px 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 14px;
+            border-left: 4px solid #388e3c;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4299e1;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .remember-me input {
+            margin-right: 8px;
+            width: auto;
+        }
+
+        .remember-me label {
+            margin: 0;
+            font-weight: normal;
+            color: #666;
+        }
+
+        .footer-text {
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+
+        .localhost-badge {
+            display: inline-block;
+            background: #4299e1;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-top: 20px;
+            text-align: center;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <div class="logo">Supreme<span>AI</span></div>
+            <div class="subtitle">Admin Dashboard</div>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input 
+                    type="text" 
+                    id="email" 
+                    name="email" 
+                    placeholder="Enter your email"
+                    autocomplete="username"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    placeholder="Enter your password"
+                    autocomplete="current-password"
+                    required
+                >
+            </div>
+
+            <div class="remember-me">
+                <input type="checkbox" id="rememberMe" name="rememberMe">
+                <label for="rememberMe">Remember me for 30 days</label>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+            </div>
+
+            <button type="submit" class="login-button" id="loginButton">Sign In</button>
+        </form>
+
+        <div class="localhost-badge">
+            🏠 Access on current host and cloud host
+        </div>
+
+        <div class="footer-text">
+            <p>© 2026 SupremeAI - Automated App Generator</p>
+            <p>Advanced Authentication System v1.0</p>
+        </div>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const loading = document.getElementById('loading');
+        const loginButton = document.getElementById('loginButton');
+        const rememberMe = document.getElementById('rememberMe');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+
+        // Initialize AuthHelper (Firebase config already inside it)
+        AuthHelper.initFirebase();
+        
+        // Page load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Load remembered email if present
+            const savedEmail = localStorage.getItem('supremeai_remember_email');
+            if (savedEmail) {
+                emailInput.value = savedEmail;
+                rememberMe.checked = true;
+                passwordInput.focus();
+            }
+        
+            // Check if already logged in - but don't redirect here (handled in form submit)
+        });
+
+        // Form submit handler
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearMessages();
+            
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            if (!email || !password) {
+                showError('Please enter both email and password');
+                return;
+            }
+
+            try {
+                loading.classList.add('show');
+                loginButton.disabled = true;
+
+                // 1. FIREBASE AUTHENTICATION
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const idToken = await userCredential.user.getIdToken();
+
+                // 2. EXCHANGE FIREBASE TOKEN FOR SERVER JWT (to establish backend session)
+                const response = await fetch('/api/auth/firebase-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idToken })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Server authentication failed');
+                }
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    // Set authenticated flag for AuthHelper
+                    localStorage.setItem('supremeai_firebase_authenticated', 'true');
+
+                    // Store the server-issued token (if AuthHelper needs it, though it usually pulls from Firebase)
+                    if (data.token) {
+                        localStorage.setItem('supremeai_token', data.token);
+                    }
+
+                    // Store user info from server (which includes role/tier)
+                    AuthHelper.setUser({
+                        uid: data.user.id,
+                        email: data.user.email,
+                        username: data.user.username,
+                        role: data.user.role,
+                        tier: data.user.tier
+                    });
+
+                    // Remember email if checkbox is checked
+                    if (rememberMe.checked) {
+                        localStorage.setItem('supremeai_remember_email', email);
+                    } else {
+                        localStorage.removeItem('supremeai_remember_email');
+                    }
+
+                    showSuccess('✅ Login successful! Redirecting...');
+                    // Redirect immediately
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const redirect = urlParams.get('redirect') || '/admin.html';
+                    window.location.href = redirect;
+                } else {
+                    throw new Error(data.message || 'Authentication failed');
+                }
+
+            } catch (error) {
+                console.error('Login error:', error);
+                let errorMsg = 'Login failed';
+                if (error.code) {
+                    switch (error.code) {
+                        case 'auth/user-not-found':
+                        case 'auth/wrong-password':
+                        case 'auth/invalid-credential':
+                            errorMsg = '❌ Invalid email or password';
+                            break;
+                        case 'auth/invalid-email':
+                            errorMsg = '❌ Invalid email format';
+                            break;
+                        case 'auth/too-many-requests':
+                            errorMsg = '❌ Too many attempts. Try again later';
+                            break;
+                        case 'auth/network-request-failed':
+                            errorMsg = '❌ Network error. Check your connection';
+                            break;
+                        case 'auth/user-disabled':
+                            errorMsg = '❌ Account disabled';
+                            break;
+                        default:
+                            errorMsg = '❌ ' + error.message;
+                    }
+                } else {
+                    errorMsg = '❌ ' + error.message;
+                }
+                showError(errorMsg);
+                loginButton.disabled = false;
+            } finally {
+                loading.classList.remove('show');
+            }
+        });
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+        }
+
+        function showSuccess(message) {
+            successMessage.textContent = message;
+            successMessage.classList.add('show');
+        }
+
+        function clearMessages() {
+            errorMessage.classList.remove('show');
+            successMessage.classList.remove('show');
+        }
+    </script>
+</body>
+</html>

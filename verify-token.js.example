@@ -1,0 +1,23 @@
+// Verify JWT token (for debugging)
+// IMPORTANT: This file contains sensitive data - DO NOT commit to git
+
+const jwt = require('jsonwebtoken');
+const fs = require('fs');
+
+// SET YOUR JWT SECRET HERE (must match backend JWT secret)
+// For local development, use the same secret as in your backend config
+const secret = 'YOUR_JWT_SECRET_KEY_HERE_MINIMUM_32_CHARS';
+
+// You can read token from file or paste it here
+// const token = fs.readFileSync('./auth-token.txt', 'utf8').trim();
+const token = 'YOUR_JWT_TOKEN_HERE';
+
+try {
+  const decoded = jwt.verify(token, secret);
+  console.log('Token is valid. Claims:', decoded);
+} catch (err) {
+  console.error('Invalid token:', err.message);
+  // Try to decode without verification
+  const decoded = jwt.decode(token);
+  console.log('Decoded (no verify):', decoded);
+}

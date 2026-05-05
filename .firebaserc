@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "supremeai-a"
+  },
+  "targets": {
+    "supremeai-a": {
+      "hosting": {
+        "main-dashboard": [
+          "supremeai-a"
+        ]
+      }
+    }
+  }
+}

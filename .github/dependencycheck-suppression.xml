@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+    <!--
+        Add false-positive CVE suppressions here.
+        Example:
+        <suppress>
+            <notes>False positive - test dependency only</notes>
+            <gav regex="true">^org\.example:test-lib:.*$</gav>
+            <cve>CVE-2000-0000</cve>
+        </suppress>
+    -->
+</suppressions>
