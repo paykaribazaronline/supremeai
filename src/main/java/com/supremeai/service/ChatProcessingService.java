@@ -198,34 +198,25 @@ public class ChatProcessingService {
         return items;
     }
 
-    public List<Map<String, Object>> getRules(boolean activeOnly) {
-        List<ChatRule> rules;
-        if (activeOnly) {
-            rules = chatRuleRepository.findByActive(true).collectList().block();
-        } else {
-            rules = chatRuleRepository.findAll().collectList().block();
-        }
-        return convertEntityList(rules);
+    public Mono<List<Map<String, Object>>> getRules(boolean activeOnly) {
+        return (activeOnly 
+            ? chatRuleRepository.findByActive(true).collectList()
+            : chatRuleRepository.findAll().collectList())
+            .map(this::convertEntityList);
     }
 
-    public List<Map<String, Object>> getPlans(boolean activeOnly) {
-        List<ChatPlan> plans;
-        if (activeOnly) {
-            plans = chatPlanRepository.findByActive(true).collectList().block();
-        } else {
-            plans = chatPlanRepository.findAll().collectList().block();
-        }
-        return convertEntityList(plans);
+    public Mono<List<Map<String, Object>>> getPlans(boolean activeOnly) {
+        return (activeOnly 
+            ? chatPlanRepository.findByActive(true).collectList()
+            : chatPlanRepository.findAll().collectList())
+            .map(this::convertEntityList);
     }
 
-    public List<Map<String, Object>> getCommands(boolean activeOnly) {
-        List<ChatCommand> commands;
-        if (activeOnly) {
-            commands = chatCommandRepository.findByActive(true).collectList().block();
-        } else {
-            commands = chatCommandRepository.findAll().collectList().block();
-        }
-        return convertEntityList(commands);
+    public Mono<List<Map<String, Object>>> getCommands(boolean activeOnly) {
+        return (activeOnly 
+            ? chatCommandRepository.findByActive(true).collectList()
+            : chatCommandRepository.findAll().collectList())
+            .map(this::convertEntityList);
     }
 
     private <T> List<Map<String, Object>> convertEntityList(List<T> entities) {
@@ -263,38 +254,21 @@ public class ChatProcessingService {
         return list;
     }
 
-    public List<Map<String, Object>> getChatHistory(String userId, int limit) {
-        List<ChatMessage> chats;
-        if (userId != null) {
-            chats = chatHistoryRepository.findAll()
+    public Mono<List<Map<String, Object>>> getChatHistory(String userId, int limit) {
+        return (userId != null 
+            ? chatHistoryRepository.findAll()
                 .filter(msg -> msg.getUserId() != null && msg.getUserId().equals(userId))
                 .collectList()
-                .block();
-        } else {
-            chats = chatHistoryRepository.findAll().collectList().block();
-        }
-        if (chats == null) return Collections.emptyList();
-
-        chats.sort((a, b) -> b.getTimestamp().compareTo(a.getTimestamp()));
-        List<Map<String, Object>> result = new ArrayList<>();
-        for (ChatMessage chat : chats.subList(0, Math.min(limit, chats.size()))) {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", chat.getId());
-            map.put("user_id", chat.getUserId());
-            map.put("message", chat.getContent());
-            map.put("is_admin", chat.isAdmin());
-            map.put("timestamp", chat.getTimestamp() != null ? chat.getTimestamp().toString() : null);
-            result.add(map);
-        }
-        return result;
+            : chatHistoryRepository.findAll().collectList())
+            .map(this::convertChatMessageList);
     }
 
-    public Map<String, Object> getItemById(String itemType, String itemId) {
+    public Mono<Map<String, Object>> getItemById(String itemType, String itemId) {
         return switch (itemType) {
-            case "rule" -> chatRuleRepository.findById(itemId).map(this::entityToMap).block();
-            case "plan" -> chatPlanRepository.findById(itemId).map(this::entityToMap).block();
-            case "command" -> chatCommandRepository.findById(itemId).map(this::entityToMap).block();
-            default -> null;
+            case "rule" -> chatRuleRepository.findById(itemId).map(this::entityToMap);
+            case "plan" -> chatPlanRepository.findById(itemId).map(this::entityToMap);
+            case "command" -> chatCommandRepository.findById(itemId).map(this::entityToMap);
+            default -> Mono.empty();
         };
     }
 
@@ -328,30 +302,43 @@ public class ChatProcessingService {
         return map;
     }
 
-    public List<Map<String, Object>> getConfirmationHistory(String itemId, String chatId) {
-        List<ChatConfirmation> confirmations;
-        if (itemId != null) {
-            confirmations = chatConfirmationRepository.findByItemId(itemId).collectList().block();
-        } else if (chatId != null) {
-            confirmations = chatConfirmationRepository.findByChatId(chatId).collectList().block();
-        } else {
-            confirmations = chatConfirmationRepository.findAll().collectList().block();
-        }
-        if (confirmations == null) return Collections.emptyList();
-
-        List<Map<String, Object>> result = new ArrayList<>();
-        for (ChatConfirmation c : confirmations) {
+    private List<Map<String, Object>> convertChatMessageList(List<ChatMessage> messages) {
+        List<Map<String, Object>> list = new ArrayList<>();
+        if (messages == null) return list;
+        for (ChatMessage msg : messages) {
             Map<String, Object> map = new HashMap<>();
-            map.put("id", c.getId());
-            map.put("chat_id", c.getChatId());
-            map.put("item_type", c.getItemType());
-            map.put("item_id", c.getItemId());
-            map.put("confirmed", c.isConfirmed());
-            map.put("confirmed_by", c.getConfirmedBy());
-            map.put("confirmed_at", c.getConfirmedAt() != null ? c.getConfirmedAt().toString() : null);
-            result.add(map);
+            map.put("id", msg.getId());
+            map.put("user_id", msg.getUserId());
+            map.put("content", msg.getContent());
+            map.put("role", msg.getRole());
+            map.put("created_at", msg.getTimestamp() != null ? msg.getTimestamp().toString() : null);
+            list.add(map);
         }
-        return result;
+        return list;
+    }
+
+    private List<Map<String, Object>> convertConfirmationList(List<ChatConfirmation> confirmations) {
+        List<Map<String, Object>> list = new ArrayList<>();
+        if (confirmations == null) return list;
+        for (ChatConfirmation conf : confirmations) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", conf.getId());
+            map.put("item_id", conf.getItemId());
+            map.put("chat_id", conf.getChatId());
+            map.put("confirmed_by", conf.getConfirmedBy());
+            map.put("confirmed_at", conf.getConfirmedAt() != null ? conf.getConfirmedAt().toString() : null);
+            list.add(map);
+        }
+        return list;
+    }
+
+    public Mono<List<Map<String, Object>>> getConfirmationHistory(String itemId, String chatId) {
+        return (itemId != null 
+            ? chatConfirmationRepository.findByItemId(itemId).collectList()
+            : chatId != null 
+                ? chatConfirmationRepository.findByChatId(chatId).collectList()
+                : chatConfirmationRepository.findAll().collectList())
+            .map(this::convertConfirmationList);
     }
 
     private String generateId(String prefix) {

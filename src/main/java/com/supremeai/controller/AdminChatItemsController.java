@@ -45,11 +45,11 @@ public class AdminChatItemsController {
     public Mono<ResponseEntity<Map<String, Object>>> getHistory(
             @RequestParam(required = false) String user_id,
             @RequestParam(defaultValue = "100") int limit) {
-        List<Map<String, Object>> history = chatProcessingService.getChatHistory(user_id, limit);
-        return Mono.just(ResponseEntity.ok(Map.of(
-            "success", true,
-            "chat_history", history
-        )));
+        return chatProcessingService.getChatHistory(user_id, limit)
+            .map(history -> ResponseEntity.ok(Map.of(
+                "success", true,
+                "chat_history", history
+            )));
     }
 
     // Get pending confirmations
@@ -87,81 +87,75 @@ public class AdminChatItemsController {
     @GetMapping("/rules")
     public Mono<ResponseEntity<Map<String, Object>>> getRules(
             @RequestParam(defaultValue = "true") boolean active_only) {
-        List<Map<String, Object>> rules = chatProcessingService.getRules(active_only);
-        return Mono.just(ResponseEntity.ok(Map.of(
-            "success", true,
-            "rules", rules
-        )));
+        return chatProcessingService.getRules(active_only)
+            .map(rules -> ResponseEntity.ok(Map.of(
+                "success", true,
+                "rules", rules
+            )));
     }
 
     // Get single rule
     @GetMapping("/rules/{id}")
     public Mono<ResponseEntity<Map<String, Object>>> getRule(@PathVariable String id) {
-        Map<String, Object> rule = chatProcessingService.getItemById("rule", id);
-        if (rule != null) {
-            return Mono.just(ResponseEntity.ok(Map.of(
+        return chatProcessingService.getItemById("rule", id)
+            .map(rule -> ResponseEntity.ok(Map.of(
                 "success", true,
                 "item", rule
-            )));
-        }
-        return Mono.just(ResponseEntity.status(404).body(Map.of(
-            "success", false,
-            "message", "Rule not found"
-        )));
+            )))
+            .switchIfEmpty(Mono.just(ResponseEntity.status(404).body(Map.of(
+                "success", false,
+                "message", "Rule not found"
+            ))));
     }
 
     // Get all plans (admin)
     @GetMapping("/plans")
     public Mono<ResponseEntity<Map<String, Object>>> getPlans(
             @RequestParam(defaultValue = "true") boolean active_only) {
-        List<Map<String, Object>> plans = chatProcessingService.getPlans(active_only);
-        return Mono.just(ResponseEntity.ok(Map.of(
-            "success", true,
-            "plans", plans
-        )));
+        return chatProcessingService.getPlans(active_only)
+            .map(plans -> ResponseEntity.ok(Map.of(
+                "success", true,
+                "plans", plans
+            )));
     }
 
     // Get single plan
     @GetMapping("/plans/{id}")
     public Mono<ResponseEntity<Map<String, Object>>> getPlan(@PathVariable String id) {
-        Map<String, Object> plan = chatProcessingService.getItemById("plan", id);
-        if (plan != null) {
-            return Mono.just(ResponseEntity.ok(Map.of(
+        return chatProcessingService.getItemById("plan", id)
+            .map(plan -> ResponseEntity.ok(Map.of(
                 "success", true,
                 "item", plan
-            )));
-        }
-        return Mono.just(ResponseEntity.status(404).body(Map.of(
-            "success", false,
-            "message", "Plan not found"
-        )));
+            )))
+            .switchIfEmpty(Mono.just(ResponseEntity.status(404).body(Map.of(
+                "success", false,
+                "message", "Plan not found"
+            ))));
     }
 
     // Get all commands (admin)
     @GetMapping("/commands")
     public Mono<ResponseEntity<Map<String, Object>>> getCommands(
             @RequestParam(defaultValue = "true") boolean active_only) {
-        List<Map<String, Object>> commands = chatProcessingService.getCommands(active_only);
-        return Mono.just(ResponseEntity.ok(Map.of(
-            "success", true,
-            "commands", commands
-        )));
+        return chatProcessingService.getCommands(active_only)
+            .map(commands -> ResponseEntity.ok(Map.of(
+                "success", true,
+                "commands", commands
+            )));
     }
 
     // Get single command
     @GetMapping("/commands/{id}")
     public Mono<ResponseEntity<Map<String, Object>>> getCommand(@PathVariable String id) {
-        Map<String, Object> command = chatProcessingService.getItemById("command", id);
-        if (command != null) {
-            return Mono.just(ResponseEntity.ok(Map.of(
+        return chatProcessingService.getItemById("command", id)
+            .map(command -> ResponseEntity.ok(Map.of(
                 "success", true,
                 "item", command
-            )));
-        }
-        return Mono.just(ResponseEntity.status(404).body(Map.of(
-            "success", false,
-            "message", "Command not found"
-        )));
+            )))
+            .switchIfEmpty(Mono.just(ResponseEntity.status(404).body(Map.of(
+                "success", false,
+                "message", "Command not found"
+            ))));
     }
 
     // Get confirmation history
@@ -169,10 +163,10 @@ public class AdminChatItemsController {
     public Mono<ResponseEntity<Map<String, Object>>> getConfirmations(
             @RequestParam(required = false) String item_id,
             @RequestParam(required = false) String chat_id) {
-        List<Map<String, Object>> history = chatProcessingService.getConfirmationHistory(item_id, chat_id);
-        return Mono.just(ResponseEntity.ok(Map.of(
-            "success", true,
-            "confirmations", history
-        )));
+        return chatProcessingService.getConfirmationHistory(item_id, chat_id)
+            .map(history -> ResponseEntity.ok(Map.of(
+                "success", true,
+                "confirmations", history
+            )));
     }
 }

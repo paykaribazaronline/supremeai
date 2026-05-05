@@ -5,10 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <title>SupremeAI - User Login</title>
-    <script defer src="/__/firebase/10.7.1/firebase-app-compat.js"></script>
-    <script defer src="/__/firebase/10.7.1/firebase-auth-compat.js"></script>
-    <script defer src="/__/firebase/10.7.1/firebase-firestore-compat.js"></script>
-    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "firebase/": "/__/firebase/10.7.1/"
+        }
+    }
+    </script>
+    <script type="module" src="/__/firebase/init.js?useEmulator=true"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -90,13 +94,17 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from 'firebase/app';
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, connectAuthEmulator } from 'firebase/auth';
+        import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+
         // Initialize all variables at the top to avoid ReferenceError
         let auth = null;
         let db = null;
         let firebaseReady = false;
         let isLogin = true;
-        
+
         const errorEl = document.getElementById('error');
         const loadingEl = document.getElementById('loading');
         const btn = document.getElementById('btn');
@@ -132,60 +140,50 @@
             hideError();
         });
 
-        function initFirebase() {
+        // Initialize Firebase as soon as the page loads
+        async function initializeFirebase() {
             try {
-                // Check if Firebase SDK is loaded
-                if (typeof firebase === 'undefined') {
-                    console.warn('Firebase SDK not loaded yet');
-                    return false;
+                // Firebase config from Firebase Hosting environment
+                const firebaseConfig = {
+                    apiKey: "AIzaSyDummy-Key-For-Firebase-Hosting",
+                    authDomain: location.host,
+                    projectId: location.hostname.replace('.web.app', '').replace('.firebaseapp.com', ''),
+                    storageBucket: undefined,
+                    messagingSenderId: "123456789",
+                    appId: "1:123456789:web:abcdef"
+                };
+
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                // Connect to Firebase Emulator if running in development
+                if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+                    try {
+                        connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+                        connectFirestoreEmulator(db, 'localhost', 8080);
+                        console.log('Connected to Firebase Emulator');
+                    } catch (emulatorErr) {
+                        console.log('Firebase Emulator not running, using production config');
+                    }
                 }
-                
-                // Check if already initialized
-                if (firebase.apps && firebase.apps.length > 0) {
-                    console.log('Firebase already initialized');
-                }
-                
-                // Initialize Firebase services
-                auth = firebase.auth();
-                db = firebase.firestore();
+
                 firebaseReady = true;
                 btn.disabled = false;
                 console.log('Firebase initialized successfully');
-                return true;
             } catch (err) {
                 console.error('Firebase initialization error:', err);
-                showError('Failed to initialize authentication system');
-                return false;
+                showError('Failed to initialize authentication system. Please refresh the page.');
+                btn.disabled = true;
             }
         }
 
-        // Initialize Firebase as soon as the page loads
-        // Use DOMContentLoaded to ensure all elements are available
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM loaded, checking Firebase...');
-            
-            // Try to initialize immediately
-            if (!initFirebase()) {
-                // If Firebase SDK isn't loaded yet, wait for it
-                const maxAttempts = 20; // 10 seconds max
-                let attempts = 0;
-                
-                const checkFirebase = setInterval(() => {
-                    attempts++;
-                    console.log(`Checking Firebase (${attempts}/${maxAttempts})...`);
-                    
-                    if (initFirebase()) {
-                        clearInterval(checkFirebase);
-                        console.log('Firebase initialized after polling');
-                    } else if (attempts >= maxAttempts) {
-                        clearInterval(checkFirebase);
-                        console.error('Firebase failed to load after', maxAttempts, 'attempts');
-                        showError('Authentication system failed to load. Please refresh the page.');
-                        btn.disabled = true;
-                    }
-                }, 500);
-            }
-        });
+        // Initialize immediately when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeFirebase);
+        } else {
+            initializeFirebase();
+        }
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -215,35 +213,33 @@
             setLoading(true);
             
             try {
-                let user;
+                let userCredential;
                 if (isLogin) {
                     // Sign in
                     console.log('Attempting login for:', email);
-                    const cred = await auth.signInWithEmailAndPassword(email, password);
-                    user = cred.user;
-                    console.log('Login successful for user:', user.uid);
+                    userCredential = await signInWithEmailAndPassword(auth, email, password);
+                    console.log('Login successful for user:', userCredential.user.uid);
                 } else {
                     // Sign up
                     console.log('Attempting signup for:', email);
-                    const cred = await auth.createUserWithEmailAndPassword(email, password);
-                    user = cred.user;
+                    userCredential = await createUserWithEmailAndPassword(auth, email, password);
                     
                     if (displayName) {
-                        await user.updateProfile({ displayName: displayName });
+                        await userCredential.user.updateProfile({ displayName: displayName });
                         console.log('Profile updated with display name:', displayName);
                     }
-                    console.log('Signup successful for user:', user.uid);
+                    console.log('Signup successful for user:', userCredential.user.uid);
                 }
 
-                const uid = user.uid;
-                const token = await user.getIdToken();
+                const uid = userCredential.user.uid;
+                const token = await userCredential.user.getIdToken();
                 
                 // Store user info in sessionStorage
                 sessionStorage.setItem('supremeai_token', token);
                 sessionStorage.setItem('supremeai_user', JSON.stringify({
-                    email: user.email,
+                    email: userCredential.user.email,
                     uid: uid,
-                    displayName: user.displayName || displayName || email.split('@')[0]
+                    displayName: userCredential.user.displayName || displayName || email.split('@')[0]
                 }));
                 
                 console.log('User data stored, redirecting...');

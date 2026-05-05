@@ -8,8 +8,6 @@ import LoginPage from './pages/LoginPage';
 import OnboardingWizard from './components/OnboardingWizard';
 import i18n from './i18n/conf';
 
-// Initialize i18n
-
 // Lazy load admin pages for code splitting
 const AdminDashboardUnified = lazy(() => import('./pages/AdminDashboardUnified'));
 const AdminUsers = lazy(() => import('./pages/AdminUsers'));

@@ -21,25 +21,23 @@ public class AdminRuleController {
     @GetMapping
     public Mono<ResponseEntity<Map<String, Object>>> getRules(
             @RequestParam(defaultValue = "true") boolean active_only) {
-        List<Map<String, Object>> rules = chatProcessingService.getRules(active_only);
-        return Mono.just(ResponseEntity.ok(Map.of(
-            "success", true,
-            "rules", rules
-        )));
+        return chatProcessingService.getRules(active_only)
+            .map(rules -> ResponseEntity.ok(Map.of(
+                "success", true,
+                "rules", rules
+            )));
     }
 
     @GetMapping("/{id}")
     public Mono<ResponseEntity<Map<String, Object>>> getRule(@PathVariable String id) {
-        Map<String, Object> rule = chatProcessingService.getItemById("rule", id);
-        if (rule != null) {
-            return Mono.just(ResponseEntity.ok(Map.of(
+        return chatProcessingService.getItemById("rule", id)
+            .map(rule -> ResponseEntity.ok(Map.of(
                 "success", true,
                 "item", rule
-            )));
-        }
-        return Mono.just(ResponseEntity.status(404).body(Map.of(
-            "success", false,
-            "message", "Rule not found"
-        )));
+            )))
+            .switchIfEmpty(Mono.just(ResponseEntity.status(404).body(Map.of(
+                "success", false,
+                "message", "Rule not found"
+            ))));
     }
 }
