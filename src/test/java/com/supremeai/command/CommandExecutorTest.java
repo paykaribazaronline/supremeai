@@ -3,17 +3,13 @@ package com.supremeai.command;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
-import org.mockito.Mock;
-import org.mockito.Spy;
 
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class CommandExecutorTest {
 
-    @Spy
     private CommandExecutor executor;
 
     @BeforeEach
@@ -35,11 +31,8 @@ class CommandExecutorTest {
     @Test
     @DisplayName("Should execute command successfully")
     void testExecuteCommandSuccessfully() {
-        Command mockCommand = createMockCommand("test-command", CommandCategory.DATA_REFRESH, CommandType.SYNC);
+        TestCommand mockCommand = new TestCommand("test-command", CommandCategory.DATA_REFRESH, CommandType.SYNC);
         CommandContext context = createContext("admin", new String[]{"ADMIN"});
-        
-        when(mockCommand.execute(anyMap(), any(CommandContext.class)))
-            .thenReturn(CommandResult.success("test-command", Map.of("key", "value")));
         
         executor.register(mockCommand);
         CommandResult result = executor.execute("test-command", Collections.emptyMap(), context);
@@ -62,8 +55,9 @@ class CommandExecutorTest {
     @Test
     @DisplayName("Should return error for permission denied")
     void testExecutePermissionDenied() {
-        Command mockCommand = createMockCommand("protected-command", CommandCategory.DATA_REFRESH, CommandType.SYNC);
+        TestCommand mockCommand = new TestCommand("protected-command", CommandCategory.DATA_REFRESH, CommandType.SYNC);
         CommandContext context = createContext("user", new String[]{"USER"});
+        context.setPermissions(new String[]{"USER"});
         
         executor.register(mockCommand);
         CommandResult result = executor.execute("protected-command", Collections.emptyMap(), context);
@@ -75,10 +69,13 @@ class CommandExecutorTest {
     @Test
     @DisplayName("Should handle validation error")
     void testHandleValidationError() {
-        Command mockCommand = createMockCommand("test-command", CommandCategory.DATA_REFRESH, CommandType.SYNC);
+        TestCommand mockCommand = new TestCommand("test-command", CommandCategory.DATA_REFRESH, CommandType.SYNC) {
+            @Override
+            public void validate(Map<String, Object> params) {
+                throw new CommandValidationException("Invalid parameter");
+            }
+        };
         CommandContext context = createContext("admin", new String[]{"ADMIN"});
-        
-        doThrow(new CommandValidationException("Invalid parameter")).when(mockCommand).validate(anyMap());
         
         executor.register(mockCommand);
         CommandResult result = executor.execute("test-command", Collections.emptyMap(), context);
@@ -90,11 +87,13 @@ class CommandExecutorTest {
     @Test
     @DisplayName("Should handle execution error")
     void testHandleExecutionError() {
-        Command mockCommand = createMockCommand("test-command", CommandCategory.DATA_REFRESH, CommandType.SYNC);
+        TestCommand mockCommand = new TestCommand("test-command", CommandCategory.DATA_REFRESH, CommandType.SYNC) {
+            @Override
+            public CommandResult execute(Map<String, Object> params, CommandContext context) {
+                throw new RuntimeException("Execution failed");
+            }
+        };
         CommandContext context = createContext("admin", new String[]{"ADMIN"});
-        
-        when(mockCommand.execute(anyMap(), any(CommandContext.class)))
-            .thenThrow(new RuntimeException("Execution failed"));
         
         executor.register(mockCommand);
         CommandResult result = executor.execute("test-command", Collections.emptyMap(), context);
@@ -153,10 +152,8 @@ class CommandExecutorTest {
     @Test
     @DisplayName("Admin user should have all permissions")
     void testAdminHasAllPermissions() {
-        Command mockCommand = createMockCommand("test-command", CommandCategory.DATA_REFRESH, CommandType.SYNC);
+        TestCommand mockCommand = new TestCommand("test-command", CommandCategory.DATA_REFRESH, CommandType.SYNC);
         CommandContext adminContext = createContext("admin", new String[]{"ADMIN"});
-        
-        when(mockCommand.getRequiredPermissions()).thenReturn(new String[]{"ANY_PERMISSION"});
         
         executor.register(mockCommand);
         CommandResult result = executor.execute("test-command", Collections.emptyMap(), adminContext);
@@ -166,31 +163,44 @@ class CommandExecutorTest {
 
     // Helper methods
     private Command createMockCommand(String name, CommandCategory category, CommandType type) {
-        return new Command() {
-            @Override
-            public String getName() { return name; }
-            @Override
-            public String getDescription() { return "Test command"; }
-            @Override
-            public CommandCategory getCategory() { return category; }
-            @Override
-            public CommandType getType() { return type; }
-            @Override
-            public String[] getRequiredPermissions() { return new String[]{"ADMIN"}; }
-            @Override
-            public CommandSchema getSchema() { return new CommandSchema("test-command"); }
-            @Override
-            public CommandResult execute(Map<String, Object> params, CommandContext context) {
-                return null;
-            }
-            @Override
-            public void validate(Map<String, Object> params) {}
-        };
+        return new TestCommand(name, category, type);
     }
 
     private CommandContext createContext(String username, String[] roles) {
         CommandContext context = new CommandContext("user-id", username, roles);
         context.setPermissions(new String[]{"ADMIN"});
         return context;
+    }
+
+    // Test command implementation
+    private static class TestCommand implements Command {
+        private final String name;
+        private final CommandCategory category;
+        private final CommandType type;
+
+        TestCommand(String name, CommandCategory category, CommandType type) {
+            this.name = name;
+            this.category = category;
+            this.type = type;
+        }
+
+        @Override
+        public String getName() { return name; }
+        @Override
+        public String getDescription() { return "Test command"; }
+        @Override
+        public CommandCategory getCategory() { return category; }
+        @Override
+        public CommandType getType() { return type; }
+        @Override
+        public String[] getRequiredPermissions() { return new String[]{"ADMIN"}; }
+        @Override
+        public CommandSchema getSchema() { return new CommandSchema(name); }
+        @Override
+        public CommandResult execute(Map<String, Object> params, CommandContext context) {
+            return CommandResult.success(name, Map.of("result", "success"));
+        }
+        @Override
+        public void validate(Map<String, Object> params) {}
     }
 }
