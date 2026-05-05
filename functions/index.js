@@ -13,7 +13,11 @@ const authenticate = async (req, res, next) => {
     // 1. Allow Java backend to bypass if correct system secret is provided
     const apiKey = req.get('x-api-key') || (req.body && req.body.apiKey) || (req.query && req.query.apiKey);
     const systemSecret = functions.config().system && functions.config().system.secret;
-    if (systemSecret && apiKey && apiKey === systemSecret) {
+    
+    // SECURITY FIX: Only allow bypass if system secret is configured AND matches
+    // Do NOT allow bypass if systemSecret is undefined/null/empty
+    if (systemSecret && systemSecret.trim() !== '' && apiKey && apiKey === systemSecret) {
+        console.log('Java backend authenticated via system secret');
         return next();
     }
     
@@ -26,7 +30,8 @@ const authenticate = async (req, res, next) => {
     try {
         const idToken = authHeader.split('Bearer ')[1];
         const decodedToken = await admin.auth().verifyIdToken(idToken);
-        if (decodedToken.admin !== true) {
+        // SECURITY FIX: Check admin claim more robustly
+        if (decodedToken.admin !== true && decodedToken.admin !== 'true') {
             return res.status(403).json({ error: "Forbidden: Admin access required" });
         }
         req.user = decodedToken;

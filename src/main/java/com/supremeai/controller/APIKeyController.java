@@ -104,13 +104,24 @@ public class APIKeyController {
     public Mono<ResponseEntity<Map<String, Object>>> addKey(@RequestBody Map<String, Object> body) {
         String userId = getCurrentUserId();
 
+        // Validate required fields
+        String provider = (String) body.get("provider");
+        String label = (String) body.get("label");
+        String plainApiKey = (String) body.get("apiKey");
+        
+        if (provider == null || provider.trim().isEmpty()) {
+            return Mono.just(ResponseEntity.badRequest().body(Map.of("error", "Provider is required")));
+        }
+        if (plainApiKey == null || plainApiKey.trim().isEmpty()) {
+            return Mono.just(ResponseEntity.badRequest().body(Map.of("error", "API key is required")));
+        }
+
         UserApiKey key = new UserApiKey();
         key.setUserId(userId);
-        key.setProvider((String) body.get("provider"));
-        key.setLabel((String) body.get("label"));
+        key.setProvider(provider);
+        key.setLabel(label);
 
         // Encrypt API key before storing
-        String plainApiKey = (String) body.get("apiKey");
         key.setApiKey(encryptionService.encrypt(plainApiKey));
 
         key.setBaseUrl((String) body.get("baseUrl"));

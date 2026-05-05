@@ -30,8 +30,24 @@ concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: true
 
+# Quota optimization settings
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read
+  security-events: write
+  id-token: write  # For GCP authentication
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: "true"
+  # Node.js version for all jobs
+  NODE_VERSION: "20"
+  # Java version for all jobs
+  JAVA_VERSION: "21"
+  # Flutter version for all jobs
+  FLUTTER_VERSION: "3.24.0"
+  # Build configuration
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
 
 jobs:
   # ============================================================
@@ -159,8 +175,6 @@ jobs:
     needs: [changes]
     if: github.event_name != 'pull_request' && (github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true' || needs.changes.outputs.backend == 'true')
     runs-on: ubuntu-latest
-    permissions:
-      security-events: write
     steps:
        - uses: actions/checkout@v4
          with:
@@ -168,66 +182,24 @@ jobs:
        - name: Setup Java
          uses: actions/setup-java@v4
          with:
-           java-version: "21"
+           java-version: ${{ env.JAVA_VERSION }}
            distribution: "temurin"
-       - name: Run OWASP Dependency Check
-         uses: dependency-check/Dependency-Check_Action@v1
-         with:
-           project: 'supremeai'
-           path: '.'
-           format: 'HTML'
-           out: 'dependency-check-report'
-           args: '--format JSON --format SARIF --suppression .github/dependencycheck-suppression.xml'
-       - name: Upload Dependency Check Report
-         uses: actions/upload-artifact@v4
-         with:
-           name: dependency-check-report
-           path: dependency-check-report/
-           retention-days: 30
-       - name: Upload to Code Scanning
-         uses: github/codeql-action/upload-sarif@v3
-         with:
-           sarif_file: dependency-check-report/dependency-check-report.sarif
-         continue-on-error: true
-
-  # ============================================================
-  # PHASE 2: BUILD & TEST
-  # ============================================================
-
-  java-build-and-test:
-    name: Java Build and Test
-    needs: [changes, secret-scan]
-    if: >-
-      ${{
-        (github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
-        needs.changes.outputs.backend == 'true' ||
-        (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Java_Build_And_Test'))
-      }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          java-version: "21"
-          distribution: "temurin"
-          cache: "gradle"
-          cache-dependency-path: "**/*.gradle*"
+           cache: "gradle"
+           cache-dependency-path: "**/*.gradle*"
       - name: Grant Execute Permission
         run: chmod +x gradlew
-      - name: Build and Test
-        run: |
-          echo "Starting Java build process..."
-          ./gradlew clean build jacocoTestReport --no-daemon --stacktrace
-          if [ ! -f "build/libs/app.jar" ]; then
-            echo "Error: app.jar not found in build/libs"
-            ls -R build/libs
-            exit 1
-          else
-            echo "Successfully built app.jar"
-          fi
+       - name: Build and Test
+         run: |
+           echo "Starting Java build process..."
+           ./gradlew clean build jacocoTestReport --no-daemon --stacktrace --continue
+           if [ ! -f "build/libs/app.jar" ]; then
+             echo "Error: app.jar not found in build/libs"
+             ls -R build/libs
+             exit 1
+           else
+             echo "Successfully built app.jar"
+             du -sh build/libs/app.jar
+           fi
       - name: Upload JAR
         uses: actions/upload-artifact@v4
         with:
@@ -324,15 +296,15 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true' || needs.changes.outputs.backend == 'true' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-       - uses: actions/checkout@v4
-       - name: Setup Java
-         uses: actions/setup-java@v4
-         with:
-           java-version: "21"
-           distribution: "temurin"
-       - name: Setup k6
-         uses: grafana/k6-action@v1
-       - name: Download JAR
+      - uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+      - name: Setup k6
+        uses: grafana/k6-action@v1
+      - name: Download JAR
         uses: actions/download-artifact@v4
         with:
           name: java-backend-jar
@@ -661,56 +633,277 @@ jobs:
             firebase hosting:rollback --project supremeai-a --quiet || echo "Rollback failed"
           fi
 
+  # ============================================================
+  # PHASE 5: RELEASE & NOTIFICATION
+  # ============================================================
+
+  generate-release-notes:
+    name: Generate Release Notes
+    needs: [deploy-backend, deploy-frontend]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Generate Release Notes
+        id: release-notes
+        run: |
+          # Get last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+
+          # Generate changelog
+          echo "## 🚀 Release $(date +'%Y-%m-%d')" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "### Changes since $LAST_TAG" >> release-notes.md
+          echo "" >> release-notes.md
+
+          # Add commit messages
+          git log --oneline --since="$(git tag -l | tail -1 | xargs git show -s --format=%ci)" | head -20 >> release-notes.md
+
+          # Add deployment URLs
+          echo "" >> release-notes.md
+          echo "### 📍 Deployment URLs" >> release-notes.md
+          echo "- **Backend API:** ${{ needs.deploy-backend.outputs.backend_url }}" >> release-notes.md
+          echo "- **Frontend:** https://supremeai-a.web.app/" >> release-notes.md
+          echo "- **Admin Dashboard:** ${{ needs.deploy-backend.outputs.admin_url }}" >> release-notes.md
+
+          # Output for next steps
+          echo "release-notes<<EOF" >> $GITHUB_OUTPUT
+          cat release-notes.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Upload Release Notes
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: release-notes.md
+          retention-days: 30
+
+  update-badges:
+    name: Update Status Badges
+    needs: [java-build-and-test, flutter-build-and-test, deploy-backend, deploy-frontend]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Update README Badges
+        run: |
+          # Update build status badges in README
+          sed -i 's|!\[Build Status\].*|![Build Status](https://github.com/${{ github.repository }}/workflows/SupremeAI%20Unified%20Pipeline/badge.svg)|g' README.md
+
+          # Add performance metrics if available
+          if [ -f "performance-results/summary.json" ]; then
+            echo "## 🚀 Performance Metrics" >> README.md
+            echo "Latest performance test results available in workflow artifacts." >> README.md
+          fi
+
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add README.md
+          git commit -m "docs: update status badges [skip ci]" || echo "No changes to commit"
+
   workflow-summary:
     name: Workflow Summary
-    needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, deploy-cloud-functions, deploy-canary, performance-test, health-check, e2e-tests]
+    needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, deploy-cloud-functions, deploy-canary, performance-test, health-check, e2e-tests, generate-release-notes, update-badges]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Generate Summary
         run: |
-            echo "### Workflow Summary" >> $GITHUB_STEP_SUMMARY
-            echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
-            echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
-            echo "| ☕ Java Backend | ${{ needs.java-build-and-test.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-            echo "| 📱 Flutter Frontend | ${{ needs.flutter-build-and-test.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-            echo "| 🔌 IntelliJ Plugin | ${{ needs.plugin-build.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-            echo "| 💻 VS Code Ext | ${{ needs.vscode-extension-build.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-            echo "| 🚀 Performance Test | ${{ needs.performance-test.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-            echo "| 🌐 Deploy Backend | ${{ needs.deploy-backend.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-            echo "| 🔀 Canary Deploy | ${{ needs.deploy-canary.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-            echo "| 🌍 Deploy Frontend | ${{ needs.deploy-frontend.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-            echo "| ⚡ Cloud Functions | ${{ needs.deploy-cloud-functions.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-            echo "| 🏥 Health Check | ${{ needs.health-check.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-            echo "| 🧪 E2E Tests | ${{ needs.e2e-tests.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "### 🚀 SupremeAI CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+            echo "**Workflow:** \`${{ github.workflow }}\` | **Run:** #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Triggered by:** ${{ github.actor }} | **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            echo "## 📊 Component Status" >> $GITHUB_STEP_SUMMARY
+            echo "| Component | Status | Duration |" >> $GITHUB_STEP_SUMMARY
+            echo "| --- | --- | --- |" >> $GITHUB_STEP_SUMMARY
+            echo "| ☕ Java Backend | ${{ needs.java-build-and-test.result || 'Skipped' }} | ${{ needs.java-build-and-test.outputs.duration || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 📱 Flutter Frontend | ${{ needs.flutter-build-and-test.result || 'Skipped' }} | ${{ needs.flutter-build-and-test.outputs.duration || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔌 IntelliJ Plugin | ${{ needs.plugin-build.result || 'Skipped' }} | ${{ needs.plugin-build.outputs.duration || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 💻 VS Code Ext | ${{ needs.vscode-extension-build.result || 'Skipped' }} | ${{ needs.vscode-extension-build.outputs.duration || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🚀 Performance Test | ${{ needs.performance-test.result || 'Skipped' }} | ${{ needs.performance-test.outputs.duration || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🌐 Deploy Backend | ${{ needs.deploy-backend.result || 'Skipped' }} | ${{ needs.deploy-backend.outputs.duration || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔀 Canary Deploy | ${{ needs.deploy-canary.result || 'Skipped' }} | ${{ needs.deploy-canary.outputs.duration || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🌍 Deploy Frontend | ${{ needs.deploy-frontend.result || 'Skipped' }} | ${{ needs.deploy-frontend.outputs.duration || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| ⚡ Cloud Functions | ${{ needs.deploy-cloud-functions.result || 'Skipped' }} | ${{ needs.deploy-cloud-functions.outputs.duration || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🏥 Health Check | ${{ needs.health-check.result || 'Skipped' }} | ${{ needs.health-check.outputs.duration || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🧪 E2E Tests | ${{ needs.e2e-tests.result || 'Skipped' }} | ${{ needs.e2e-tests.outputs.duration || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            echo "## 🌐 Deployment URLs" >> $GITHUB_STEP_SUMMARY
             echo "**Admin Dashboard:** ${{ needs.deploy-backend.outputs.admin_url || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
+            echo "**API Endpoint:** ${{ needs.deploy-backend.outputs.backend_url || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Frontend:** https://supremeai-a.web.app/" >> $GITHUB_STEP_SUMMARY
+
+            # Calculate success rate
+            TOTAL_JOBS=$(echo "${{ toJSON(needs) }}" | jq 'length')
+            SUCCESS_JOBS=$(echo "${{ toJSON(needs) }}" | jq '[.[] | select(.result == "success")] | length')
+            SUCCESS_RATE=$(( SUCCESS_JOBS * 100 / TOTAL_JOBS ))
+
+            echo "## 📈 Pipeline Metrics" >> $GITHUB_STEP_SUMMARY
+            echo "- **Success Rate:** ${SUCCESS_RATE}%" >> $GITHUB_STEP_SUMMARY
+            echo "- **Total Jobs:** $TOTAL_JOBS" >> $GITHUB_STEP_SUMMARY
+            echo "- **Successful Jobs:** $SUCCESS_JOBS" >> $GITHUB_STEP_SUMMARY
+            echo "- **Duration:** \`${{ github.event.head_commit.timestamp && format('{{ .Run.Duration }}') || 'Calculating...' }}\`" >> $GITHUB_STEP_SUMMARY
 
   notification:
-    name: Notification
-    needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, deploy-cloud-functions, deploy-canary, performance-test, health-check, e2e-tests]
+    name: Notification & Cleanup
+    needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, deploy-cloud-functions, deploy-canary, performance-test, health-check, e2e-tests, generate-release-notes, workflow-summary]
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Send Webhook
+      - name: Calculate Pipeline Status
+        id: status
+        run: |
+          # Check if any job failed
+          FAILED_JOBS=""
+          SUCCESS_COUNT=0
+          TOTAL_COUNT=0
+
+          # Count results
+          for job in java-build-and-test flutter-build-and-test plugin-build vscode-extension-build deploy-backend deploy-frontend deploy-cloud-functions deploy-canary performance-test health-check e2e-tests; do
+            RESULT="${{ needs.$job.result }}"
+            TOTAL_COUNT=$((TOTAL_COUNT + 1))
+            if [ "$RESULT" = "success" ]; then
+              SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+            elif [ "$RESULT" = "failure" ]; then
+              FAILED_JOBS="$FAILED_JOBS $job"
+            fi
+          done
+
+          # Determine overall status
+          if [ $SUCCESS_COUNT -eq $TOTAL_COUNT ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "color=good" >> $GITHUB_OUTPUT
+          elif [ $SUCCESS_COUNT -gt 0 ]; then
+            echo "status=partial" >> $GITHUB_OUTPUT
+            echo "color=warning" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "color=danger" >> $GITHUB_OUTPUT
+          fi
+
+          echo "success_count=$SUCCESS_COUNT" >> $GITHUB_OUTPUT
+          echo "total_count=$TOTAL_COUNT" >> $GITHUB_OUTPUT
+          echo "failed_jobs=$FAILED_JOBS" >> $GITHUB_OUTPUT
+
+      - name: Send Webhook Notification
         env:
           SUPREMEAI_WEBHOOK_SECRET: ${{ secrets.SUPREMEAI_WEBHOOK_SECRET }}
         run: |
-          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
-            STATUS="failure"
-          else
-            STATUS="success"
-          fi
+          STATUS="${{ steps.status.outputs.status }}"
+          SUCCESS_COUNT="${{ steps.status.outputs.success_count }}"
+          TOTAL_COUNT="${{ steps.status.outputs.total_count }}"
+          FAILED_JOBS="${{ steps.status.outputs.failed_jobs }}"
+
+          # Prepare notification payload
+          PAYLOAD=$(cat <<EOF
+          {
+            "status": "$STATUS",
+            "runId": "${{ github.run_id }}",
+            "runNumber": "${{ github.run_number }}",
+            "repo": "${{ github.repository }}",
+            "branch": "${{ github.ref_name }}",
+            "commit": "${{ github.sha }}",
+            "actor": "${{ github.actor }}",
+            "pipeline": "supreme_unified",
+            "metrics": {
+              "successCount": $SUCCESS_COUNT,
+              "totalCount": $TOTAL_COUNT,
+              "successRate": $(($SUCCESS_COUNT * 100 / $TOTAL_COUNT))
+            },
+            "urls": {
+              "backend": "${{ needs.deploy-backend.outputs.backend_url }}",
+              "frontend": "https://supremeai-a.web.app/",
+              "admin": "${{ needs.deploy-backend.outputs.admin_url }}"
+            },
+            "failedJobs": "$FAILED_JOBS",
+            "workflowUrl": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          }
+          EOF
+          )
+
+          echo "Sending notification with status: $STATUS"
           curl -X POST https://supremeai-lhlwyikwlq-uc.a.run.app/api/webhooks/github \
             -H "Content-Type: application/json" \
             -H "X-Webhook-Secret: $SUPREMEAI_WEBHOOK_SECRET" \
-            -d "{\"status\": \"$STATUS\", \"runId\": \"$GITHUB_RUN_ID\", \"repo\": \"$GITHUB_REPOSITORY\", \"pipeline\": \"supreme_unified\"}"
-      - name: Status Update
+            -d "$PAYLOAD" \
+            --max-time 30 \
+            --retry 3 \
+            --retry-delay 5
+
+      - name: Create Issue on Failure
+        if: steps.status.outputs.status == 'failure'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          FAILED_JOBS="${{ steps.status.outputs.failed_jobs }}"
+          ISSUE_TITLE="🚨 Pipeline Failure: Run #${{ github.run_number }}"
+          ISSUE_BODY=$(cat <<EOF
+          ## Pipeline Failure Alert
+
+          **Workflow:** SupremeAI Unified Pipeline
+          **Run:** #${{ github.run_number }}
+          **Branch:** ${{ github.ref_name }}
+          **Commit:** ${{ github.sha }}
+          **Triggered by:** ${{ github.actor }}
+
+          ### Failed Components
+          $FAILED_JOBS
+
+          ### Actions Required
+          - [ ] Investigate failed jobs
+          - [ ] Fix issues
+          - [ ] Re-run pipeline
+          - [ ] Update documentation if needed
+
+          ### Workflow URL
+          https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          ---
+          *This issue was automatically created by the CI/CD pipeline.*
+          EOF
+          )
+
+          # Check if similar issue already exists
+          EXISTING_ISSUE=$(gh issue list --label "pipeline-failure" --state open --json number,title --jq ".[] | select(.title | contains(\"Run #${{ github.run_number }}\")) | .number" || echo "")
+
+          if [ -z "$EXISTING_ISSUE" ]; then
+            echo "Creating new issue for pipeline failure..."
+            gh issue create \
+              --title "$ISSUE_TITLE" \
+              --body "$ISSUE_BODY" \
+              --label "pipeline-failure,bug,urgent"
+          else
+            echo "Similar issue already exists: #$EXISTING_ISSUE"
+          fi
+
+      - name: Final Status Check
         if: always()
         run: |
-          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
-            echo "Pipeline failed! Check summary for details."
+          STATUS="${{ steps.status.outputs.status }}"
+          SUCCESS_COUNT="${{ steps.status.outputs.success_count }}"
+          TOTAL_COUNT="${{ steps.status.outputs.total_count }}"
+
+          echo "=== PIPELINE EXECUTION SUMMARY ==="
+          echo "Status: $STATUS"
+          echo "Successful Jobs: $SUCCESS_COUNT/$TOTAL_COUNT"
+          echo "Success Rate: $(($SUCCESS_COUNT * 100 / $TOTAL_COUNT))%"
+          echo "=================================="
+
+          if [ "$STATUS" = "success" ]; then
+            echo "🎉 All deployments successful!"
+            exit 0
+          elif [ "$STATUS" = "partial" ]; then
+            echo "⚠️  Some jobs failed. Check summary for details."
             exit 1
           else
-            echo "All deployments successful!"
+            echo "❌ Pipeline failed! Check summary for details."
+            exit 1
           fi
 

@@ -94,4 +94,29 @@ public class ProviderConfig {
     public GeminiProvider geminiProvider() {
         return new GeminiProvider(geminiApiKey);
     }
+
+    @Bean
+    public OpenAIProvider openAIProvider() {
+        return new OpenAIProvider(openaiApiKey);
+    }
+
+    @Bean
+    public GroqProvider groqProvider() {
+        return new GroqProvider(groqApiKey);
+    }
+
+    @Bean
+    public AnthropicProvider anthropicProvider() {
+        return new AnthropicProvider(anthropicApiKey);
+    }
+
+    @Bean
+    public DeepSeekProvider deepSeekProvider() {
+        return new DeepSeekProvider(deepseekApiKey);
+    }
+
+    @Bean
+    public MistralProvider mistralProvider() {
+        return new MistralProvider(mistralApiKey);
+    }
 }
