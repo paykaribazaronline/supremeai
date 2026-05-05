@@ -175,6 +175,42 @@ jobs:
     needs: [changes]
     if: github.event_name != 'pull_request' && (github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true' || needs.changes.outputs.backend == 'true')
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+       - uses: actions/checkout@v4
+         with:
+           fetch-depth: 0
+       - name: Setup Java
+         uses: actions/setup-java@v4
+         with:
+           java-version: ${{ env.JAVA_VERSION }}
+           distribution: "temurin"
+       - name: Run OWASP Dependency Check
+         uses: dependency-check/Dependency-Check_Action@v1
+         with:
+           project: 'supremeai'
+           path: '.'
+           format: 'HTML'
+           out: 'dependency-check-report'
+           args: '--format JSON --format SARIF --suppression .github/dependencycheck-suppression.xml'
+       - name: Upload Dependency Check Report
+         uses: actions/upload-artifact@v4
+         with:
+           name: dependency-check-report
+           path: dependency-check-report/
+           retention-days: 30
+       - name: Upload to Code Scanning
+         uses: github/codeql-action/upload-sarif@v3
+         with:
+           sarif_file: dependency-check-report/dependency-check-report.sarif
+         continue-on-error: true
+
+  java-build-and-test:
+    name: Java Build and Test
+    needs: [changes, secret-scan]
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true' || needs.changes.outputs.backend == 'true' || github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Java Build and Test')
+    runs-on: ubuntu-latest
     steps:
        - uses: actions/checkout@v4
          with:
@@ -186,8 +222,8 @@ jobs:
            distribution: "temurin"
            cache: "gradle"
            cache-dependency-path: "**/*.gradle*"
-      - name: Grant Execute Permission
-        run: chmod +x gradlew
+       - name: Grant Execute Permission
+         run: chmod +x gradlew
        - name: Build and Test
          run: |
            echo "Starting Java build process..."
@@ -200,28 +236,28 @@ jobs:
              echo "Successfully built app.jar"
              du -sh build/libs/app.jar
            fi
-      - name: Upload JAR
-        uses: actions/upload-artifact@v4
-        with:
-          name: java-backend-jar
-          path: build/libs/app.jar
-          retention-days: 7
-          if-no-files-found: error
-      - name: Upload Coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./build/reports/jacoco/test/jacocoTestReport.xml
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
-      - name: Upload Test Results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          retention-days: 7
-          path: build/test-results/test/
+       - name: Upload JAR
+         uses: actions/upload-artifact@v4
+         with:
+           name: java-backend-jar
+           path: build/libs/app.jar
+           retention-days: 7
+           if-no-files-found: error
+       - name: Upload Coverage to Codecov
+         uses: codecov/codecov-action@v4
+         with:
+           token: ${{ secrets.CODECOV_TOKEN }}
+           files: ./build/reports/jacoco/test/jacocoTestReport.xml
+           flags: unittests
+           name: codecov-umbrella
+           fail_ci_if_error: false
+       - name: Upload Test Results
+         if: always()
+         uses: actions/upload-artifact@v4
+         with:
+           name: test-results
+           retention-days: 7
+           path: build/test-results/test/
 
   plugin-build:
     name: IntelliJ Plugin Build
@@ -230,7 +266,7 @@ jobs:
       ${{
         (github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
         needs.changes.outputs.plugin == 'true' ||
-        (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Plugin_Build'))
+        (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'IntelliJ Plugin Build'))
       }}
     runs-on: ubuntu-latest
     outputs:
@@ -263,7 +299,7 @@ jobs:
       ${{
         (github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
         needs.changes.outputs.vscode_extension == 'true' ||
-        (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'VSCode_Extension_Build'))
+        (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'VSCode Extension Build'))
       }}
     runs-on: ubuntu-latest
     outputs:
@@ -289,6 +325,37 @@ jobs:
       - name: Store VSIX Path
         id: set-path
         run: echo "path=supremeai-vscode-extension/*.vsix" >> $GITHUB_OUTPUT
+
+  flutter-build-and-test:
+    name: Flutter Build and Test
+    needs: [changes, secret-scan]
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true' || needs.changes.outputs.frontend == 'true' || github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Flutter Build and Test')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+      - name: Install Dependencies
+        working-directory: ./supremeai
+        run: flutter pub get
+      - name: Analyze
+        working-directory: ./supremeai
+        run: flutter analyze
+      - name: Test
+        working-directory: ./supremeai
+        run: flutter test
+      - name: Build Web
+        working-directory: ./supremeai
+        run: flutter build web --release
+      - name: Upload Flutter Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-artifacts
+          path: supremeai/build/web/
+          retention-days: 7
+          if-no-files-found: error
 
   performance-test:
     name: Performance Testing
@@ -402,7 +469,7 @@ jobs:
         github.ref == 'refs/heads/main' &&
         ((github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
          needs.changes.outputs.backend == 'true' ||
-         (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Deploy_Backend')))
+          (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Deploy Backend')))
       }}
     runs-on: ubuntu-latest
     outputs:
@@ -539,7 +606,7 @@ jobs:
         github.ref == 'refs/heads/main' &&
         ((github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
          needs.changes.outputs.frontend == 'true' ||
-         (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Deploy_Frontend')))
+          (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Deploy Frontend')))
       }}
     runs-on: ubuntu-latest
     steps:
@@ -571,7 +638,7 @@ jobs:
         github.ref == 'refs/heads/main' &&
         ((github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
          needs.changes.outputs.backend == 'true' ||
-         (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Deploy_Cloud_Functions')))
+          (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Deploy Cloud Functions')))
       }}
     runs-on: ubuntu-latest
     steps:
@@ -686,6 +753,8 @@ jobs:
     needs: [java-build-and-test, flutter-build-and-test, deploy-backend, deploy-frontend]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
