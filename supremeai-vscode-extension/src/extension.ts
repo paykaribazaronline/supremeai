@@ -8,6 +8,7 @@ import { SupremeAIService, getSupremeAIService, setSupremeAIService } from './se
 import { CodeEditHandler } from './handlers/CodeEditHandler';
 import { ErrorHandler } from './handlers/ErrorHandler';
 import { FeedbackHandler } from './handlers/FeedbackHandler';
+import { CodeFlowHandler, setCodeFlowHandler } from './handlers/CodeFlowHandler';
 import { SupremeAIConfig } from './types';
 import { SupremeAISidebarProvider } from './providers/SupremeAISidebarProvider';
 import { SupremeAIActivityProvider } from './providers/SupremeAIActivityProvider';
@@ -17,6 +18,7 @@ let supremeAIService: SupremeAIService;
 let codeEditHandler: CodeEditHandler;
 let errorHandler: ErrorHandler;
 let feedbackHandler: FeedbackHandler;
+let codeFlowHandler: CodeFlowHandler;
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('[SupremeAI] VS Code Extension activating...');
@@ -39,11 +41,14 @@ export function activate(context: vscode.ExtensionContext) {
   codeEditHandler = new CodeEditHandler(context);
   errorHandler = new ErrorHandler(context);
   feedbackHandler = new FeedbackHandler(context);
+  codeFlowHandler = new CodeFlowHandler(context);
+  setCodeFlowHandler(codeFlowHandler);
 
   // Register handlers
   codeEditHandler.register();
   errorHandler.register();
   feedbackHandler.register();
+  codeFlowHandler.register();
 
   // Register sidebar views
   registerSidebarViews(context);
@@ -79,123 +84,85 @@ function registerCommands(context: vscode.ExtensionContext): void {
       return;
     }
 
-    const filePath = editor.document.uri.fsPath;
-    const code = editor.document.getText();
-    
-    vscode.window.withProgress(
-      {
-        location: vscode.ProgressLocation.Notification,
-        title: 'SupremeAI Learning',
-        cancellable: false,
-      },
-      async (progress) => {
-        progress.report({ increment: 0, message: 'Analyzing code...' });
-        
-        const service = getSupremeAIService();
-        const result = await service.sendCodeAnalysis(filePath, code, editor.document.languageId);
-        
-        progress.report({ increment: 100, message: 'Complete!' });
-        
-        if (result.success) {
-          vscode.window.showInformationMessage('✅ Code analysis sent to SupremeAI learning engine');
-        } else {
-          vscode.window.showErrorMessage(`❌ Learning failed: ${result.message}`);
-        }
-      }
-    );
-  });
+    const document = editor.document;
+    const code = document.getText();
+    const language = document.languageId;
 
-  // Report error manually
-  const reportErrorCommand = vscode.commands.registerCommand('supremeai.reportError', async () => {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) {
-      return;
-    }
-
-    const selection = editor.selection;
-    const lineNumber = selection.start.line + 1;
-    const errorMessage = await vscode.window.showInputBox({
-      prompt: 'Enter error message',
-      placeHolder: 'e.g., TypeError: Cannot read property...',
-    });
-
-    if (errorMessage) {
-      await errorHandler.reportManualError(
-        editor.document.uri.fsPath,
-        lineNumber,
-        errorMessage,
-        'compilation'
-      );
-      vscode.window.showInformationMessage('✅ Error reported to SupremeAI');
+    try {
+      await supremeAIService.sendCodeAnalysis(document.fileName, code, language);
+      vscode.window.showInformationMessage('Code analysis sent for learning');
+    } catch (error: any) {
+      vscode.window.showErrorMessage(`Failed to send code analysis: ${error.message}`);
     }
   });
 
-  // Send feedback command
-  const sendFeedbackCommand = vscode.commands.registerCommand('supremeai.sendFeedback', async () => {
-    await feedbackHandler['showFeedbackDialog']();
+  // CodeFlow analysis
+  const analyzeCodeFlowCommand = vscode.commands.registerCommand('supremeai.analyzeCodeFlow', () => {
+    codeFlowHandler.analyzeCodeFlow();
+  });
+
+  // Resolve error
+  const resolveErrorCommand = vscode.commands.registerCommand('supremeai.resolveError', () => {
+    codeFlowHandler.resolveError();
+  });
+
+  // Show security issues
+  const showSecurityIssuesCommand = vscode.commands.registerCommand('supremeai.showSecurityIssues', () => {
+    codeFlowHandler.showSecurityIssues();
+  });
+
+  // Show dependencies
+  const showDependenciesCommand = vscode.commands.registerCommand('supremeai.showDependencies', () => {
+    codeFlowHandler.showDependencies();
+  });
+
+  // Open CodeFlow dashboard
+  const openCodeFlowDashboardCommand = vscode.commands.registerCommand('supremeai.openCodeFlowDashboard', () => {
+    codeFlowHandler.openCodeFlowDashboard();
+  });
+
+  // Refresh CodeFlow analysis
+  const refreshCodeFlowCommand = vscode.commands.registerCommand('supremeai.refreshCodeFlow', () => {
+    codeFlowHandler.refreshAnalysis();
   });
 
   context.subscriptions.push(
     forceLearnCommand,
-    reportErrorCommand,
-    sendFeedbackCommand
+    analyzeCodeFlowCommand,
+    resolveErrorCommand,
+    showSecurityIssuesCommand,
+    showDependenciesCommand,
+    openCodeFlowDashboardCommand,
+    refreshCodeFlowCommand
   );
-
-  console.log('[SupremeAI] Commands registered');
-}
-
-function registerStatusBar(context: vscode.ExtensionContext): void {
-  const statusBarItem = vscode.window.createStatusBarItem(
-    vscode.StatusBarAlignment.Right,
-    100
-  );
-
-  statusBarItem.text = '$(circuit-board) SupremeAI';
-  statusBarItem.tooltip = 'SupremeAI Real-Time Learning Active';
-  statusBarItem.command = 'supremeai.forceLearn';
-  statusBarItem.show();
-
-  // Update status periodically
-  setInterval(async () => {
-    const service = getSupremeAIService();
-    const stats = await service.getLearningStats();
-    if (stats) {
-      statusBarItem.tooltip = `SupremeAI: ${stats.learningCount ?? 0} patterns learned`;
-    }
-  }, 30000);
-
-  context.subscriptions.push(statusBarItem);
 }
 
 function registerSidebarViews(context: vscode.ExtensionContext): void {
-  // Dashboard Webview Provider
-  const dashboardProvider = new SupremeAISidebarProvider('supremeaiDashboard');
+  const sidebarProvider = new SupremeAISidebarProvider(context);
+  const activityProvider = new SupremeAIActivityProvider(context);
+
   context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider('supremeaiDashboard', dashboardProvider)
+    vscode.window.registerWebviewViewProvider('supremeai.sidebar', sidebarProvider),
+    vscode.window.registerWebviewViewProvider('supremeai.activity', activityProvider)
   );
-
-  // Activity Tree Provider
-  const activityProvider = new SupremeAIActivityProvider();
-  context.subscriptions.push(
-    vscode.window.registerTreeDataProvider('supremeaiActivity', activityProvider)
-  );
-
-  // Refresh activity every 30 seconds
-  setInterval(() => {
-    activityProvider.refresh();
-  }, 30000);
-
-  console.log('[SupremeAI] Sidebar views registered');
 }
 
 function registerChatProvider(context: vscode.ExtensionContext): void {
   const chatProvider = new SupremeAIChatProvider(context);
   context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider('supremeaiChat', chatProvider)
+    vscode.window.registerWebviewViewProvider('supremeai.chat', chatProvider)
   );
-  console.log('[SupremeAI] Chat provider registered');
 }
 
-export function deactivate(): void {
+function registerStatusBar(context: vscode.ExtensionContext): void {
+  const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+  statusBarItem.text = '$(brain) SupremeAI';
+  statusBarItem.tooltip = 'SupremeAI Assistant';
+  statusBarItem.command = 'supremeai.forceLearn';
+  statusBarItem.show();
+  context.subscriptions.push(statusBarItem);
+}
+
+export function deactivate() {
   console.log('[SupremeAI] VS Code Extension deactivating...');
 }

@@ -48,6 +48,21 @@
                          level="WARNING"
                          implementationClass="com.supremeai.ide.inspection.SupremeAIInspection"/>
 
+        <action id="SupremeAI.CodeFlowAnalysis"
+                class="com.supremeai.ide.SupremeAICodeFlowAction"
+                text="Run CodeFlow Analysis"
+                description="Run CodeFlow analysis on current project">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt shift C"/>
+        </action>
+
+        <action id="SupremeAI.ResolveError"
+                class="com.supremeai.ide.SupremeAIResolveErrorAction"
+                text="Resolve Error with AI"
+                description="Use AI to resolve selected error">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+        </action>
+
         <!-- External System Task Listener for Gradle Build Failure Detection -->
         <externalSystemTaskNotificationListener 
             implementation="com.supremeai.ide.learning.GradleFailureDetector"/>

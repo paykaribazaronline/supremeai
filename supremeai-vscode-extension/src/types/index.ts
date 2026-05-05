@@ -99,6 +99,155 @@ export interface ChatRequest {
   };
 }
 
+// CodeFlow Types
+export interface CodeFlowAnalysis {
+  repositoryId: string;
+  repositoryUrl?: string;
+  files: CodeFlowFile[];
+  dependencies: DependencyGraph;
+  patterns: PatternDetection[];
+  securityIssues: SecurityIssue[];
+  healthScore: HealthScore;
+  analysisTimestamp: string;
+  status: 'pending' | 'analyzing' | 'completed' | 'failed';
+}
+
+export interface CodeFlowFile {
+  path: string;
+  language: string;
+  size: number;
+  lastModified: string;
+  functions: CodeFlowFunction[];
+  classes: CodeFlowClass[];
+  imports: string[];
+  exports: string[];
+  complexity: number;
+  linesOfCode: number;
+}
+
+export interface CodeFlowFunction {
+  name: string;
+  line: number;
+  args: string[];
+  returnType: string;
+  complexity: number;
+  calls: string[];
+  calledBy: string[];
+}
+
+export interface CodeFlowClass {
+  name: string;
+  line: number;
+  methods: string[];
+  properties: string[];
+  extends?: string;
+  implements?: string[];
+}
+
+export interface DependencyGraph {
+  nodes: DependencyNode[];
+  edges: DependencyEdge[];
+}
+
+export interface DependencyNode {
+  id: string;
+  label: string;
+  type: 'file' | 'function' | 'class' | 'module';
+  file?: string;
+  metrics?: {
+    complexity: number;
+    linesOfCode: number;
+    dependencies: number;
+  };
+}
+
+export interface DependencyEdge {
+  source: string;
+  target: string;
+  type: 'imports' | 'calls' | 'extends' | 'implements';
+  weight?: number;
+}
+
+export interface PatternDetection {
+  type: 'singleton' | 'factory' | 'observer' | 'react_hooks' | 'god_object' | 'circular_dependency';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  file: string;
+  line: number;
+  description: string;
+  suggestion: string;
+}
+
+export interface SecurityIssue {
+  type: 'hardcoded_secret' | 'eval_usage' | 'sql_injection' | 'debug_statement' | 'unsafe_import';
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  file: string;
+  line: number;
+  code: string;
+  description: string;
+  fix: string;
+  cwe?: string;
+}
+
+export interface HealthScore {
+  score: number;
+  grade: 'A' | 'B' | 'C' | 'D' | 'F';
+  breakdown: {
+    security: number;
+    maintainability: number;
+    complexity: number;
+    documentation: number;
+    testing: number;
+  };
+  details: string[];
+}
+
+export interface CodeFlowAnalysisRequest {
+  repositoryUrl?: string;
+  files?: Array<{
+    path: string;
+    content: string;
+  }>;
+  options?: {
+    includePatterns: boolean;
+    includeSecurity: boolean;
+    includeDependencies: boolean;
+    depth: number;
+  };
+}
+
+export interface CodeFlowAnalysisResponse {
+  success: boolean;
+  analysisId: string;
+  data: CodeFlowAnalysis;
+  message: string;
+}
+
+export interface ErrorResolutionRequest {
+  errorType: string;
+  errorMessage: string;
+  stackTrace?: string;
+  filePath?: string;
+  codeSnippet?: string;
+  context: string;
+}
+
+export interface ErrorResolutionResponse {
+  success: boolean;
+  rootCause: string;
+  affectedFiles: string[];
+  blastRadius: string[];
+  suggestedFixes: SuggestedFix[];
+  confidence: number;
+}
+
+export interface SuggestedFix {
+  description: string;
+  code: string;
+  explanation: string;
+  impact: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+}
+
 export interface ChatResponse {
   success: boolean;
   message: string;
