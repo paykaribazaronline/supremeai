@@ -372,7 +372,7 @@ jobs:
       - name: Setup k6
         uses: grafana/k6-action@v1
       - name: Download JAR
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: java-backend-jar
           path: .
@@ -477,7 +477,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Download JAR
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: java-backend-jar
           path: build/libs
@@ -612,7 +612,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Download Web
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: flutter-artifacts
           path: supremeai/build/web
