@@ -1,4 +1,5 @@
 package com.supremeai.codeflow.service;
+import com.supremeai.codeflow.analyzer.CodeAnalyzer;
 
 import com.supremeai.codeflow.model.CodeRepository;
 import com.supremeai.codeflow.repository.CodeFlowRepository;
@@ -9,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import lombok.Data;
+import lombok.Builder;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;

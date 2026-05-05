@@ -139,11 +139,11 @@ public class PatternDetector {
      */
     private boolean isSingleton(CodeRepository.ClassInfo clazz, CodeRepository.CodeFile file) {
         // Check for private constructor and static instance
-        boolean hasPrivateConstructor = file.getFunctions().stream()
-            .anyMatch(f -> f.getName().equals(clazz.getName()) && f.getIsPrivate());
+        boolean hasPrivateConstructor = file.getFunctions() != null && file.getFunctions().stream()
+            .anyMatch(f -> f.getName().equals(clazz.getName()) && f.getIsPrivate() != null && f.getIsPrivate());
         
-        boolean hasStaticInstance = file.getContent() != null && 
-            file.getContent().contains("static") && 
+        boolean hasStaticInstance = file.getContent() != null &&
+            file.getContent().contains("static") &&
             file.getContent().contains(clazz.getName());
         
         return hasPrivateConstructor && hasStaticInstance;
@@ -154,14 +154,14 @@ public class PatternDetector {
      */
     private boolean isFactory(CodeRepository.ClassInfo clazz, CodeRepository.CodeFile file) {
         // Check for create/instance methods returning different types
-        boolean hasCreateMethods = clazz.getMethods().stream()
-            .anyMatch(m -> m.getName().matches("(create|make|build|newInstance).*") &&
-                !m.getReturnType().equals("void"));
+        boolean hasCreateMethods = clazz.getMethods() != null && clazz.getMethods().stream()
+            .anyMatch(m -> m.getName() != null && m.getName().matches("(create|make|build|newInstance).*") &&
+                m.getReturnType() != null && !m.getReturnType().equals("void"));
         
         // Check for interface/abstract class return types
-        boolean returnsAbstraction = clazz.getMethods().stream()
-            .anyMatch(m -> m.getReturnType() != null && 
-                (m.getReturnType().contains("Interface") || 
+        boolean returnsAbstraction = clazz.getMethods() != null && clazz.getMethods().stream()
+            .anyMatch(m -> m.getReturnType() != null &&
+                (m.getReturnType().contains("Interface") ||
                  m.getReturnType().contains("Abstract")));
         
         return hasCreateMethods || returnsAbstraction;
@@ -171,11 +171,11 @@ public class PatternDetector {
      * Detect Observer pattern
      */
     private boolean isObserver(CodeRepository.ClassInfo clazz, CodeRepository.CodeFile file) {
-        boolean hasSubscribe = clazz.getMethods().stream()
-            .anyMatch(m -> m.getName().matches("(subscribe|register|attach|addListener).*"));
+        boolean hasSubscribe = clazz.getMethods() != null && clazz.getMethods().stream()
+            .anyMatch(m -> m.getName() != null && m.getName().matches("(subscribe|register|attach|addListener).*"));
         
-        boolean hasNotify = clazz.getMethods().stream()
-            .anyMatch(m -> m.getName().matches("(notify|publish|emit|broadcast).*"));
+        boolean hasNotify = clazz.getMethods() != null && clazz.getMethods().stream()
+            .anyMatch(m -> m.getName() != null && m.getName().matches("(notify|publish|emit|broadcast).*"));
         
         return hasSubscribe && hasNotify;
     }
@@ -233,11 +233,12 @@ public class PatternDetector {
      * Detect Repository pattern
      */
     private boolean isRepository(CodeRepository.ClassInfo clazz, CodeRepository.CodeFile file) {
-        boolean hasRepoName = clazz.getName().toLowerCase().contains("repository") ||
-            clazz.getName().toLowerCase().contains("dao");
+        boolean hasRepoName = clazz.getName() != null &&
+            (clazz.getName().toLowerCase().contains("repository") ||
+            clazz.getName().toLowerCase().contains("dao"));
         
-        boolean hasCrudMethods = clazz.getMethods().stream()
-            .anyMatch(m -> m.getName().matches("(save|find|delete|update|create|get|list).*"));
+        boolean hasCrudMethods = clazz.getMethods() != null && clazz.getMethods().stream()
+            .anyMatch(m -> m.getName() != null && m.getName().matches("(save|find|delete|update|create|get|list).*"));
         
         return hasRepoName || hasCrudMethods;
     }
@@ -269,9 +270,9 @@ public class PatternDetector {
      * Detect God object anti-pattern
      */
     private boolean isGodObject(CodeRepository.ClassInfo clazz) {
-        int methodCount = clazz.getMethods().size();
-        int fieldCount = clazz.getFields().size();
-        int totalComplexity = clazz.getComplexity();
+        int methodCount = clazz.getMethods() != null ? clazz.getMethods().size() : 0;
+        int fieldCount = clazz.getFields() != null ? clazz.getFields().size() : 0;
+        int totalComplexity = clazz.getComplexity() != null ? clazz.getComplexity() : 0;
         
         // God object has too many methods, fields, and high complexity
         return methodCount > 20 || fieldCount > 20 || totalComplexity > 50;
