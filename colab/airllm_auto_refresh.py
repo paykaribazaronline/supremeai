@@ -2,7 +2,7 @@
 """Automatically refresh SupremeAI AirLLM endpoint from Colab/ngrok runtime.
 
 Usage:
-   export SUPREMEAI_BASE_URL="https://supremeai-lhlwyikwlq-uc.a.run.app"
+   export SUPREMEAI_BASE_URL="https://ide-api.supremeai.google.com"
   export SUPREMEAI_SETUP_TOKEN="<your setup token>"
   export AIRLLM_PUBLIC_URL="https://xxxxx.ngrok-free.dev"
   python colab/airllm_auto_refresh.py

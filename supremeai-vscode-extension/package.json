@@ -107,7 +107,7 @@
       "properties": {
         "supremeai.backendUrl": {
           "type": "string",
-          "default": "https://supremeai-lhlwyikwlq-uc.a.run.app",
+          "default": "https://ide-api.supremeai.google.com",
           "description": "SupremeAI Backend API URL"
         },
         "supremeai.codegeex4.enabled": {

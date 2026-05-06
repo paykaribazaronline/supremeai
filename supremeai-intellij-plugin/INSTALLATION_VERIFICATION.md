@@ -312,7 +312,7 @@ ERROR - SupremeAIMetricsService - Connection failed
 - **Dashboard:** `https://supremeai-a.web.app`
 - **API Base:** `https://supremeai-a.web.app/api/`
 - **WebSocket:** `wss://supremeai-a.web.app/ws-supreme`
-- **Learning API:** `https://supremeai-lhlwyikwlq-uc.a.run.app/api/knowledge/failure`
+- **Learning API:** `https://ide-api.supremeai.google.com/api/knowledge/failure`
 
 ### Default Settings
 ```

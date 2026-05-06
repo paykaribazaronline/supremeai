@@ -58,7 +58,7 @@ DEFAULT_DATASET: Dict[str, Any] = {
                     },
                     "api_gateway": {
                         "components": ["Cloud Run", "Java Spring Boot", "20 AI Agents"],
-                        "endpoint": "https://supremeai-lhlwyikwlq-uc.a.run.app/api/",
+                        "endpoint": "https://ide-api.supremeai.google.com/api/",
                     },
                     "data_layer": {
                         "components": [
@@ -191,12 +191,12 @@ DEFAULT_DATASET: Dict[str, Any] = {
             "endpoints": [
                 {
                     "name": "API Health",
-                    "url": "https://supremeai-lhlwyikwlq-uc.a.run.app/api/health",
+                    "url": "https://ide-api.supremeai.google.com/api/health",
                     "expected": {"status": "UP"},
                 },
                 {
                     "name": "Agent Status",
-                    "url": "https://supremeai-lhlwyikwlq-uc.a.run.app/api/agents/status",
+                    "url": "https://ide-api.supremeai.google.com/api/agents/status",
                     "expected": {"agents": 20, "status": "OPERATIONAL"},
                 },
                 {
@@ -206,7 +206,7 @@ DEFAULT_DATASET: Dict[str, Any] = {
                 },
                 {
                     "name": "Metrics",
-                    "url": "https://supremeai-lhlwyikwlq-uc.a.run.app/api/metrics/health",
+                    "url": "https://ide-api.supremeai.google.com/api/metrics/health",
                     "expected": "CPU/Memory stats",
                 },
             ],

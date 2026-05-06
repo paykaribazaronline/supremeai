@@ -245,7 +245,7 @@ The CLI reads configuration from:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `SUPREMEAI_API_URL` | Base API URL | `https://supremeai-lhlwyikwlq-uc.a.run.app/api` |
+| `SUPREMEAI_API_URL` | Base API URL | `https://ide-api.supremeai.google.com/api` |
 | `SUPREMEAI_TOKEN_PATH` | Token storage location | `~/.supremeai_token` |
 
 ### Token Storage
@@ -343,12 +343,12 @@ If you prefer direct API calls:
 TOKEN=$(cat ~/.supremeai_token)
 
 # Trigger learning improvement
-curl -X POST "https://supremeai-lhlwyikwlq-uc.a.run.app/api/system-learning/improve" \
+curl -X POST "https://ide-api.supremeai.google.com/api/system-learning/improve" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json"
 
 # Get learning stats
-curl "https://supremeai-lhlwyikwlq-uc.a.run.app/api/system-learning/stats" \
+curl "https://ide-api.supremeai.google.com/api/system-learning/stats" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -386,7 +386,7 @@ sudo chmod +x /usr/local/bin/supremeai
 Test connectivity:
 
 ```bash
-curl https://supremeai-lhlwyikwlq-uc.a.run.app/api/health
+curl https://ide-api.supremeai.google.com/api/health
 ```
 
 If offline, switch to local:

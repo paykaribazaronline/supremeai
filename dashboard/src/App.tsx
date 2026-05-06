@@ -7,6 +7,7 @@ import { authUtils } from './lib/authUtils';
 import LoginPage from './pages/LoginPage';
 import OnboardingWizard from './components/OnboardingWizard';
 import i18n from './i18n/conf';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy load admin pages for code splitting
 const AdminDashboardUnified = lazy(() => import('./pages/AdminDashboardUnified'));
@@ -65,67 +66,69 @@ const App: React.FC = () => {
                         {showOnboarding && (
                             <OnboardingWizard onComplete={handleOnboardingComplete} />
                         )}
-                        <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-                            <Spin size="large" tip="Loading..." />
-                        </div>}>
-                            <Router>
-                                <Routes>
-                                    {/* Admin Panel Unified Dashboard - Default Route */}
-                                    <Route path="/admin" element={<AdminDashboardUnified />} />
+                        <ErrorBoundary>
+                            <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                                <Spin size="large" tip="Loading..." />
+                            </div>}>
+                                <Router>
+                                    <Routes>
+                                        {/* Admin Panel Unified Dashboard - Default Route */}
+                                        <Route path="/admin" element={<AdminDashboardUnified />} />
 
-                                    {/* Admin Panel Sub-routes - Single URL Rule */}
-                                    <Route path="/admin/users" element={<AdminUsers />} />
-                                    <Route path="/admin/settings" element={<AdminSettings />} />
-                                    <Route path="/admin/projects" element={<AdminProjects />} />
-                                    <Route path="/admin/providers" element={<AdminProviders />} />
-                                    <Route path="/admin/apikeys" element={<AdminAPIKeys />} />
-                                    <Route path="/admin/logs" element={<AdminLogs />} />
-                                    <Route path="/admin/notifications" element={<AdminNotifications />} />
-                                    <Route path="/admin/backup" element={<AdminBackup />} />
-                                    <Route path="/admin/reports" element={<AdminReports />} />
-                                    <Route path="/admin/monitoring" element={<AdminMonitoring />} />
-                                    <Route path="/admin/performance" element={<AdminPerformance />} />
-                                    <Route path="/admin/ocr" element={<AdminOCR />} />
-                                    <Route path="/admin/console" element={<Navigate to="/admin" replace />} />
+                                        {/* Admin Panel Sub-routes - Single URL Rule */}
+                                        <Route path="/admin/users" element={<AdminUsers />} />
+                                        <Route path="/admin/settings" element={<AdminSettings />} />
+                                        <Route path="/admin/projects" element={<AdminProjects />} />
+                                        <Route path="/admin/providers" element={<AdminProviders />} />
+                                        <Route path="/admin/apikeys" element={<AdminAPIKeys />} />
+                                        <Route path="/admin/logs" element={<AdminLogs />} />
+                                        <Route path="/admin/notifications" element={<AdminNotifications />} />
+                                        <Route path="/admin/backup" element={<AdminBackup />} />
+                                        <Route path="/admin/reports" element={<AdminReports />} />
+                                        <Route path="/admin/monitoring" element={<AdminMonitoring />} />
+                                        <Route path="/admin/performance" element={<AdminPerformance />} />
+                                        <Route path="/admin/ocr" element={<AdminOCR />} />
+                                        <Route path="/admin/console" element={<Navigate to="/admin" replace />} />
 
-                                    {/* Existing admin features moved under /admin */}
-                                    <Route path="/admin/chat" element={<ChatWithAI />} />
-                                    <Route path="/admin/progress" element={<ProgressMonitor />} />
-                                    <Route path="/admin/kingmode" element={<KingModePanel />} />
-                                    <Route path="/admin/audit" element={<AuditLog />} />
-                                    <Route path="/admin/tutorials" element={<VideoTutorials />} />
-                                    <Route path="/admin/3d" element={<ThreeDashboard />} />
+                                        {/* Existing admin features moved under /admin */}
+                                        <Route path="/admin/chat" element={<ChatWithAI />} />
+                                        <Route path="/admin/progress" element={<ProgressMonitor />} />
+                                        <Route path="/admin/kingmode" element={<KingModePanel />} />
+                                        <Route path="/admin/audit" element={<AuditLog />} />
+                                        <Route path="/admin/tutorials" element={<VideoTutorials />} />
+                                        <Route path="/admin/3d" element={<ThreeDashboard />} />
 
-                                    {/* Legacy route redirects for backward compatibility */}
-                                    <Route path="/admin.html" element={<Navigate to="/admin" replace />} />
-                                    <Route path="/admin-dashboard.html" element={<Navigate to="/admin" replace />} />
-                                    <Route path="/admin-users.html" element={<Navigate to="/admin/users" replace />} />
-                                    <Route path="/admin-settings.html" element={<Navigate to="/admin/settings" replace />} />
-                                    <Route path="/admin-projects.html" element={<Navigate to="/admin/projects" replace />} />
-                                    <Route path="/admin-providers.html" element={<Navigate to="/admin/providers" replace />} />
-                                    <Route path="/admin-apikeys.html" element={<Navigate to="/admin/apikeys" replace />} />
-                                    <Route path="/admin-logs.html" element={<Navigate to="/admin/logs" replace />} />
-                                    <Route path="/admin-notifications.html" element={<Navigate to="/admin/notifications" replace />} />
-                                    <Route path="/admin-backup.html" element={<Navigate to="/admin/backup" replace />} />
-                                    <Route path="/admin-reports.html" element={<Navigate to="/admin/reports" replace />} />
-                                    <Route path="/monitoring-dashboard.html" element={<Navigate to="/admin/monitoring" replace />} />
-                                    <Route path="/performance-dashboard.html" element={<Navigate to="/admin/performance" replace />} />
-                                    <Route path="/bengali-ocr.html" element={<Navigate to="/admin/ocr" replace />} />
-                                    <Route path="/admin-console.html" element={<Navigate to="/admin" replace />} />
+                                        {/* Legacy route redirects for backward compatibility */}
+                                        <Route path="/admin.html" element={<Navigate to="/admin" replace />} />
+                                        <Route path="/admin-dashboard.html" element={<Navigate to="/admin" replace />} />
+                                        <Route path="/admin-users.html" element={<Navigate to="/admin/users" replace />} />
+                                        <Route path="/admin-settings.html" element={<Navigate to="/admin/settings" replace />} />
+                                        <Route path="/admin-projects.html" element={<Navigate to="/admin/projects" replace />} />
+                                        <Route path="/admin-providers.html" element={<Navigate to="/admin/providers" replace />} />
+                                        <Route path="/admin-apikeys.html" element={<Navigate to="/admin/apikeys" replace />} />
+                                        <Route path="/admin-logs.html" element={<Navigate to="/admin/logs" replace />} />
+                                        <Route path="/admin-notifications.html" element={<Navigate to="/admin/notifications" replace />} />
+                                        <Route path="/admin-backup.html" element={<Navigate to="/admin/backup" replace />} />
+                                        <Route path="/admin-reports.html" element={<Navigate to="/admin/reports" replace />} />
+                                        <Route path="/monitoring-dashboard.html" element={<Navigate to="/admin/monitoring" replace />} />
+                                        <Route path="/performance-dashboard.html" element={<Navigate to="/admin/performance" replace />} />
+                                        <Route path="/bengali-ocr.html" element={<Navigate to="/admin/ocr" replace />} />
+                                        <Route path="/admin-console.html" element={<Navigate to="/admin" replace />} />
 
-                                    {/* Legacy root redirects */}
-                                    <Route path="/chat" element={<Navigate to="/admin/chat" replace />} />
-                                    <Route path="/progress" element={<Navigate to="/admin/progress" replace />} />
-                                    <Route path="/kingmode" element={<Navigate to="/admin/kingmode" replace />} />
-                                    <Route path="/audit" element={<Navigate to="/admin/audit" replace />} />
-                                    <Route path="/tutorials" element={<Navigate to="/admin/tutorials" replace />} />
-                                    <Route path="/dashboard/3d" element={<Navigate to="/admin/3d" replace />} />
+                                        {/* Legacy root redirects */}
+                                        <Route path="/chat" element={<Navigate to="/admin/chat" replace />} />
+                                        <Route path="/progress" element={<Navigate to="/admin/progress" replace />} />
+                                        <Route path="/kingmode" element={<Navigate to="/admin/kingmode" replace />} />
+                                        <Route path="/audit" element={<Navigate to="/admin/audit" replace />} />
+                                        <Route path="/tutorials" element={<Navigate to="/admin/tutorials" replace />} />
+                                        <Route path="/dashboard/3d" element={<Navigate to="/admin/3d" replace />} />
 
-                                    {/* Catch-all redirect to admin */}
-                                    <Route path="*" element={<Navigate to="/admin" replace />} />
-                                </Routes>
-                            </Router>
-                        </Suspense>
+                                        {/* Catch-all redirect to admin */}
+                                        <Route path="*" element={<Navigate to="/admin" replace />} />
+                                    </Routes>
+                                </Router>
+                            </Suspense>
+                        </ErrorBoundary>
                     </>
                 )}
             </div>

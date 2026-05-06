@@ -27,10 +27,7 @@ const AdminMonitoring: React.FC = () => {
   const fetchMetrics = async () => {
     setError(null);
     try {
-      const token = authUtils.getToken();
-      const response = await fetch('/api/metrics/resources', {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
+      const response = await authUtils.fetchWithAuth('/api/metrics/resources');
       if (!response.ok) throw new Error('Failed to fetch metrics');
       const data: ResourceMetrics = await response.json();
       setMetrics(data);

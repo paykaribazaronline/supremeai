@@ -6,6 +6,7 @@ import { Layout, Card, Table, Button, Space, Tag, Modal, Form, Input, Select, me
 import { UserOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
 import AdminLayout from '../components/AdminLayout';
 import { authUtils } from '../lib/authUtils';
+import { getUserRoleColor } from '../constants/userRoles';
 
 const { Option } = Select;
 
@@ -28,15 +29,14 @@ const AdminUsers: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [form] = Form.useForm();
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     setLoading(true);
     setError(null);
     try {
-      const token = authUtils.getToken();
-      const response = await fetch('/api/accounts', {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
+      const response = await authUtils.fetchWithAuth('/api/accounts');
       if (!response.ok) throw new Error('Failed to fetch users');
       const data: User[] = await response.json();
       setUsers(data);
@@ -51,87 +51,89 @@ const AdminUsers: React.FC = () => {
     fetchUsers();
   }, []);
 
-  const handleEdit = (user: User) => {
-    setEditingUser(user);
-    form.setFieldsValue({
-      email: user.email,
-      displayName: user.displayName || '',
-      tier: user.tier?.toLowerCase() || 'free',
-    });
-    setModalVisible(true);
-  };
 
-  const handleAdd = () => {
-    setEditingUser(null);
-    form.resetFields();
-    setModalVisible(true);
-  };
-
-  const handleSubmit = async (values: any) => {
-    try {
-      const token = authUtils.getToken();
-      // For now, only tier update is supported via backend.
-      // Creation would require POST /api/accounts/create - exists.
-      if (editingUser) {
-        // Update tier if changed
-        if (values.tier !== editingUser.tier.toLowerCase()) {
-          const tierUpper = values.tier.toUpperCase();
-          const resp = await fetch(`/api/accounts/${editingUser.uid}/tier`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-            },
-            body: JSON.stringify({ tier: tierUpper }),
-          });
-          if (!resp.ok) throw new Error('Failed to update tier');
-          message.success('User updated successfully');
-        } else {
-          message.success('No changes');
-        }
-      } else {
-        // Create new user
-        const { email, password, displayName, tier } = values;
-        if (!password) {
-          message.error('Password is required for new user');
-          return;
-        }
-        const resp = await fetch('/api/accounts/create', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify({ email, password, displayName, tier: tier.toUpperCase() }),
-        });
-        if (!resp.ok) {
-          const err = await resp.json();
-          throw new Error(err.error || 'Failed to create user');
-        }
-        message.success('User created successfully');
-      }
-      setModalVisible(false);
+    const handleAdd = () => {
+      setEditingUser(null);
       form.resetFields();
-      fetchUsers();
-    } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Operation failed');
-    }
-  };
+      setModalVisible(true);
+    };
 
-  const handleDeactivate = async (uid: string) => {
-    try {
-      const token = authUtils.getToken();
-      const resp = await fetch(`/api/accounts/${uid}/deactivate`, {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${token}` },
+    const handleEdit = (user: User) => {
+      setEditingUser(user);
+      form.setFieldsValue({
+        email: user.email,
+        displayName: user.displayName || '',
+        tier: user.tier?.toLowerCase() || 'free',
       });
-      if (!resp.ok) throw new Error('Failed to deactivate user');
-      message.success('User deactivated');
-      fetchUsers();
-    } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to deactivate');
-    }
-  };
+      setModalVisible(true);
+    };
+
+    const handleSubmit = async (values: any) => {
+     setSubmitLoading(true);
+     try {
+       // For now, only tier update is supported via backend.
+       // Creation would require POST /api/accounts/create - exists.
+       if (editingUser) {
+         // Update tier if changed
+         if (values.tier !== editingUser.tier.toLowerCase()) {
+           const tierUpper = values.tier.toUpperCase();
+           const resp = await authUtils.fetchWithAuth(`/api/accounts/${editingUser.uid}/tier`, {
+             method: 'PUT',
+             headers: {
+               'Content-Type': 'application/json',
+             },
+             body: JSON.stringify({ tier: tierUpper }),
+           });
+           if (!resp.ok) throw new Error('Failed to update tier');
+           message.success('User updated successfully');
+         } else {
+           message.success('No changes');
+         }
+       } else {
+         // Create new user
+         const { email, password, displayName, tier } = values;
+         if (!password) {
+           message.error('Password is required for new user');
+           return;
+         }
+         const resp = await authUtils.fetchWithAuth('/api/accounts/create', {
+           method: 'POST',
+           headers: {
+             'Content-Type': 'application/json',
+           },
+           body: JSON.stringify({ email, password, displayName, tier: tier.toUpperCase() }),
+         });
+         if (!resp.ok) {
+           const err = await resp.json();
+           throw new Error(err.error || 'Failed to create user');
+         }
+         message.success('User created successfully');
+       }
+       setModalVisible(false);
+       form.resetFields();
+       fetchUsers();
+     } catch (err) {
+       message.error(err instanceof Error ? err.message : 'Operation failed');
+     } finally {
+       setSubmitLoading(false);
+     }
+   };
+
+   const handleDeactivate = async (uid: string) => {
+     setDeletingUserId(uid);
+     try {
+       const resp = await authUtils.fetchWithAuth(`/api/accounts/${uid}/deactivate`, {
+         method: 'PUT',
+       });
+       if (!resp.ok) throw new Error('Failed to deactivate user');
+       message.success('User deactivated');
+       fetchUsers();
+     } catch (err) {
+       message.error(err instanceof Error ? err.message : 'Failed to deactivate');
+     } finally {
+       setDeletingUserId(null);
+     }
+   };
 
   const columns = [
     {
@@ -151,10 +153,7 @@ const AdminUsers: React.FC = () => {
       key: 'role',
       render: (_: any, record: User) => {
         const role = record.tier?.toUpperCase() || 'USER';
-        const color =
-          role === 'ADMIN' ? 'red' :
-          role === 'PRO' ? 'blue' :
-          role === 'ENTERPRISE' ? 'purple' : 'default';
+        const color = getUserRoleColor(role);
         return <Tag color={color}>{role}</Tag>;
       },
     },
@@ -182,27 +181,28 @@ const AdminUsers: React.FC = () => {
       key: 'lastLoginAt',
       render: (date: string | null) => (date ? new Date(date).toLocaleString() : 'Never'),
     },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_: any, record: User) => (
-        <Space>
-          <Button size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
-            Edit
-          </Button>
-          {record.isActive && (
-            <Button
-              size="small"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() => handleDeactivate(record.uid)}
-            >
-              Deactivate
-            </Button>
-          )}
-        </Space>
-      ),
-    },
+     {
+       title: 'Actions',
+       key: 'actions',
+       render: (_: any, record: User) => (
+         <Space>
+           <Button size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
+             Edit
+           </Button>
+           {record.isActive && (
+             <Button
+               size="small"
+               danger
+               icon={<DeleteOutlined />}
+               loading={deletingUserId === record.uid}
+               onClick={() => handleDeactivate(record.uid)}
+             >
+               Deactivate
+             </Button>
+           )}
+         </Space>
+       ),
+     },
   ];
 
   return (
@@ -279,14 +279,14 @@ const AdminUsers: React.FC = () => {
             </Select>
           </Form.Item>
 
-          <Form.Item style={{ marginTop: 24 }}>
-            <Space>
-              <Button type="primary" htmlType="submit">
-                {editingUser ? 'Update' : 'Create'}
-              </Button>
-              <Button onClick={() => setModalVisible(false)}>Cancel</Button>
-            </Space>
-          </Form.Item>
+           <Form.Item style={{ marginTop: 24 }}>
+             <Space>
+               <Button type="primary" htmlType="submit" loading={submitLoading}>
+                 {editingUser ? 'Update' : 'Create'}
+               </Button>
+               <Button onClick={() => setModalVisible(false)}>Cancel</Button>
+             </Space>
+           </Form.Item>
         </Form>
       </Modal>
     </AdminLayout>

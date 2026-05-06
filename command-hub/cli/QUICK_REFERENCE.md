@@ -78,7 +78,7 @@ supremeai dev lint                # Lint code
 
 ```bash
 # Environment variables
-export SUPREMEAI_API_URL="https://supremeai-lhlwyikwlq-uc.a.run.app/api"
+export SUPREMEAI_API_URL="https://ide-api.supremeai.google.com/api"
 
 # Token file location
 ~/.supremeai_token   (Unix)

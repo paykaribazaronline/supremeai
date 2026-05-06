@@ -350,19 +350,15 @@ public class CodeAnalyzer {
         return deadCode;
     }
     
-    /**
-     * Get import pattern for language
-     */
     private Pattern getImportPattern(String language) {
         switch (language) {
             case "python":
-                return Pattern.compile("^\\s*(import\\s+[\\w.]+|from\\s+[\\w.]+\\s+import)", 
-                    Pattern.MULTILINE);
+                return Pattern.compile("^\\s*(import\\s+[\\w.]+|from\\s+[\\w.]+\\s+import)", Pattern.MULTILINE);
             case "javascript":
             case "typescript":
                 return Pattern.compile("import\\s+.*?from\\s+['\"][^'\"]+['\"]|require\\s*\\(");
             case "java":
-                return Pattern.compile("^\\s*import\\s+[\\w.*]+;", Pattern.MULTILINE);
+                return Pattern.compile("^\\s*import\\s+(?:static\\s+)?[\\w.*]+;", Pattern.MULTILINE);
             case "go":
                 return Pattern.compile("^\\s*import\\s+\\(", Pattern.MULTILINE);
             default:
@@ -370,9 +366,6 @@ public class CodeAnalyzer {
         }
     }
     
-    /**
-     * Get function pattern for language
-     */
     private Pattern getFunctionPattern(String language) {
         switch (language) {
             case "python":
@@ -380,22 +373,21 @@ public class CodeAnalyzer {
             case "javascript":
             case "typescript":
                 return Pattern.compile(
-                    "(?:function\\s+(\\w+)|const\\s+(\\w+)\\s*=\\s*(?:async\\s+)?\\([^)]*\\)\\s*=>|async\\s+function\\s+(\\w+))",
+                    "(?:function\\s+(\\w+)|(?:const|let|var)\\s+(\\w+)\\s*=\\s*(?:async\\s+)?(?:\\([^)]*\\)|\\w+)\\s*=>|async\\s+function\\s+(\\w+)|(\\w+(?:\\.\\w+)*)\\s*\\([^)]*\\))",
                     Pattern.MULTILINE);
             case "java":
+                // matches method definitions and avoids keywords like if, for, while, switch, catch
                 return Pattern.compile(
-                    "(public|private|protected)?\\s*(static)?\\s*\\w+\\s+(\\w+)\\s*\\([^)]*\\)",
+                    "^(?:\\s*(?:public|private|protected|static|final|abstract|synchronized|native|strictfp|default)\\s+)*" +
+                    "(?:[\\w<>\\[\\]\\?,\\s]+\\s+)?(\\w+)\\s*\\([^)]*\\)\\s*(?:throws\\s+[\\w,\\s]+)?\\s*\\{",
                     Pattern.MULTILINE);
             case "go":
-                return Pattern.compile("^\\s*func\\s+(\\w+)\\s*\\([^)]*\\)", Pattern.MULTILINE);
+                return Pattern.compile("^\\s*func\\s+(?:\\([^)]+\\)\\s+)?(\\w+)\\s*\\([^)]*\\)", Pattern.MULTILINE);
             default:
                 return Pattern.compile(".");
         }
     }
     
-    /**
-     * Get class pattern for language
-     */
     private Pattern getClassPattern(String language) {
         switch (language) {
             case "python":
@@ -405,7 +397,7 @@ public class CodeAnalyzer {
                 return Pattern.compile("class\\s+(\\w+)", Pattern.MULTILINE);
             case "java":
                 return Pattern.compile(
-                    "(public|private|protected)?\\s*(abstract|final)?\\s*class\\s+(\\w+)",
+                    "(?:public|private|protected)?\\s*(?:abstract|final|sealed|non-sealed|strictfp)?\\s*(?:class|interface|enum|record)\\s+(\\w+)",
                     Pattern.MULTILINE);
             case "go":
                 return Pattern.compile("type\\s+(\\w+)\\s+struct", Pattern.MULTILINE);
@@ -414,32 +406,26 @@ public class CodeAnalyzer {
         }
     }
     
-    /**
-     * Parse import statement
-     */
     private CodeRepository.ImportInfo parseImport(String importStmt, String language) {
         String module = importStmt.replaceAll("[\\s;]", "");
         return CodeRepository.ImportInfo.builder()
             .module(module)
             .alias(null)
-            .isUsed(true) // Will be checked later
+            .isUsed(true)
             .line(0)
             .build();
     }
     
-    /**
-     * Parse function definition
-     */
     private CodeRepository.FunctionInfo parseFunction(String funcDef, int line, String language) {
         String name = extractFunctionName(funcDef, language);
-        if (name == null || name.isEmpty()) {
+        if (name == null || name.isEmpty() || isKeyword(name)) {
             return null;
         }
         
          return CodeRepository.FunctionInfo.builder()
              .name(name)
              .line(line + 1)
-             .endLine(line + 10) // Estimate
+             .endLine(line + 10)
              .parameters(new ArrayList<>())
              .returnType("void")
              .complexity(1)
@@ -453,9 +439,6 @@ public class CodeAnalyzer {
              .build();
     }
     
-    /**
-     * Parse class definition
-     */
     private CodeRepository.ClassInfo parseClass(String classDef, int line, String language) {
         String name = extractClassName(classDef, language);
         if (name == null || name.isEmpty()) {
@@ -476,14 +459,19 @@ public class CodeAnalyzer {
             .build();
     }
     
-    /**
-     * Extract function name
-     */
+    private boolean isKeyword(String word) {
+        return Set.of("if", "for", "while", "switch", "catch", "try", "return", "else", "throw", "new").contains(word);
+    }
+
     private String extractFunctionName(String funcDef, String language) {
-        Pattern namePattern = Pattern.compile("(\\w+)\\s*\\(");
-        Matcher matcher = namePattern.matcher(funcDef);
-        if (matcher.find()) {
-            return matcher.group(1);
+        Pattern p = getFunctionPattern(language);
+        Matcher m = p.matcher(funcDef);
+        if (m.find()) {
+            for (int i = 1; i <= m.groupCount(); i++) {
+                if (m.group(i) != null && !m.group(i).isEmpty()) {
+                    return m.group(i);
+                }
+            }
         }
         return null;
     }

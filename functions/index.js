@@ -69,7 +69,7 @@ exports.processRequirement = functions.https.onRequest(withAuth(async (req, res)
         }
         
         // Call Java backend to classify
-        const backendUrl = (functions.config().backend && functions.config().backend.url) || 'https://supremeai-a.web.app';
+        const backendUrl = (functions.config().backend && functions.config().backend.url) || 'https://ide-api.supremeai.google.com';
         const classificationUrl = `${backendUrl}/classify`;
         const classifyResponse = await axios.post(classificationUrl, { description });
         const size = classifyResponse.data.size; // SMALL, MEDIUM, or BIG
@@ -156,7 +156,7 @@ exports.approveRequirement = functions.https.onRequest(withAuth(async (req, res)
             const { projectId, description } = req_doc.data();
             
             // Call Java backend orchestrator
-            const backendUrl = (functions.config().backend && functions.config().backend.url) || 'https://supremeai-a.web.app';
+            const backendUrl = (functions.config().backend && functions.config().backend.url) || 'https://ide-api.supremeai.google.com';
             const orchestrateUrl = `${backendUrl}/orchestrate`;
             await axios.post(orchestrateUrl, {
                 projectId,

@@ -217,7 +217,7 @@ function shouldWakeSystem(analysis) {
  * Wake up the Cloud Run service by sending a health check request
  */
 async function wakeSystem(runId, analysis) {
-    const backendUrl = "https://supremeai-lhlwyikwlq-uc.a.run.app";
+    const backendUrl = "https://ide-api.supremeai.google.com";
 
     try {
         console.log(`Waking system for run ${runId}...`);
@@ -334,7 +334,7 @@ async function sendDeploymentNotification(analysis, needsWakeUp) {
  */
 exports.monitorSystemHealth = functions.pubsub.schedule('*/5 * * * *').onRun(async (context) => {
     try {
-        const backendUrl = "https://supremeai-lhlwyikwlq-uc.a.run.app";
+        const backendUrl = "https://ide-api.supremeai.google.com";
         const healthResponse = await axios.get(`${backendUrl}/api/health`, {
             timeout: 10000
         }).catch(() => null);

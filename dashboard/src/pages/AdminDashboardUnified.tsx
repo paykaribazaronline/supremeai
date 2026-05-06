@@ -202,10 +202,7 @@ const AdminDashboardUnified: React.FC = () => {
 
     const fetchContract = async () => {
         try {
-            const token = authUtils.getToken();
-            const response = await fetch('/api/admin/dashboard/contract', {
-                headers: { 'Authorization': `Bearer ${token}` },
-            });
+            const response = await authUtils.fetchWithAuth('/api/admin/dashboard/contract');
 
             if (!response.ok) {
                 if (response.status === 401 || response.status === 403) {
@@ -242,11 +239,10 @@ const AdminDashboardUnified: React.FC = () => {
                 suggestion: suggestionText.trim(),
                 applyNow,
             };
-            const res = await fetch('/api/admin/suggestions', {
+            const res = await authUtils.fetchWithAuth('/api/admin/suggestions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify(payload),
             });

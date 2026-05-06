@@ -43,7 +43,7 @@ Open VS Code Settings (Ctrl+,) and search for `supremeai`:
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `supremeai.backendUrl` | string | `https://supremeai-lhlwyikwlq-uc.a.run.app` | SupremeAI Backend API URL |
+| `supremeai.backendUrl` | string | `https://ide-api.supremeai.google.com` | SupremeAI Backend API URL |
 | `supremeai.enableRealTimeLearning` | boolean | `true` | Enable sending code edits for learning |
 | `supremeai.autoReportErrors` | boolean | `true` | Auto-report errors to backend |
 
@@ -154,10 +154,10 @@ npm run lint     # Run ESLint
 
 ```bash
 # Test backend health
-curl https://supremeai-lhlwyikwlq-uc.a.run.app/actuator/health
+curl https://ide-api.supremeai.google.com/actuator/health
 
 # Send test learning event
-curl -X POST https://supremeai-lhlwyikwlq-uc.a.run.app/api/knowledge/learn \
+curl -X POST https://ide-api.supremeai.google.com/api/knowledge/learn \
   -H "Content-Type: application/json" \
   -d '{
     "type": "CODE_EDIT",

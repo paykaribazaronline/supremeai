@@ -587,7 +587,7 @@ PERFORMANCE_KNOWLEDGE_DOCS = {
             "  },\n"
             "};\n\n"
             "export default function () {\n"
-            "  const res = http.get('https://supremeai-lhlwyikwlq-uc.a.run.app/api/health');\n"
+            "  const res = http.get('https://ide-api.supremeai.google.com/api/health');\n"
             "  check(res, { 'status 200': (r) => r.status === 200 });\n"
             "  sleep(1);\n"
             "}"

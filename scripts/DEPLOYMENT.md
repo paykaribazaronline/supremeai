@@ -137,9 +137,9 @@ Use the correct Artifact Registry path: `us-central1-docker.pkg.dev/supremeai-a/
 
 | Service | URL |
 |---------|-----|
-| **Backend API** | `https://supremeai-lhlwyikwlq-uc.a.run.app` |
-| **Admin Dashboard** | `https://supremeai-lhlwyikwlq-uc.a.run.app/admin.html` |
-| **Health Check** | `https://supremeai-lhlwyikwlq-uc.a.run.app/actuator/health` |
+| **Backend API** | `https://ide-api.supremeai.google.com` |
+| **Admin Dashboard** | `https://ide-api.supremeai.google.com/admin.html` |
+| **Health Check** | `https://ide-api.supremeai.google.com/actuator/health` |
 
 > **Note:** The Cloud Run URL hash (`lhlwyikwlq`) is stable for the lifetime of the service. If the service is deleted and recreated, the URL will change. Update references accordingly.
 

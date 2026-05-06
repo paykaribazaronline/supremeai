@@ -1,184 +1,47 @@
 {
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  },
-  "database": {
-    "rules": "database.rules.json"
-  },
-  "functions": {
-    "source": "functions",
-    "ignore": [
-      "node_modules",
-      ".git",
-      "firebase-debug.log",
-      "firebase-debug.*.log"
-    ]
-  },
   "hosting": {
-    "public": "public",
+    "public": "out",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
     ],
-     "rewrites": [
-       {
-         "source": "/api/**",
-         "run": {
-           "serviceId": "supremeai",
-           "region": "us-central1"
-         }
-       },
-       {
-         "source": "/ws/**",
-         "run": {
-           "serviceId": "supremeai",
-           "region": "us-central1"
-         }
-       },
-       {
-         "source": "/admin",
-         "destination": "/admin/index.html"
-       },
-       {
-         "source": "/admin/**",
-         "destination": "/admin/index.html"
-       },
-       {
-         "source": "/android-generator.html",
-         "run": {
-           "serviceId": "supremeai",
-           "region": "us-central1"
-         }
-       },
-       {
-         "source": "/customer.html",
-         "run": {
-           "serviceId": "supremeai",
-           "region": "us-central1"
-         }
-       }
-     ],
-    "redirects": [
+    "rewrites": [
       {
-        "source": "/admin.html",
-        "destination": "/admin",
-        "type": 301
+        "source": "/api/**",
+        "run": {
+          "serviceId": "gitingest",
+          "region": "us-central1"
+        }
       },
       {
-        "source": "/admin-dashboard.html",
-        "destination": "/admin",
-        "type": 301
-      },
-      {
-        "source": "/admin-users.html",
-        "destination": "/admin/users",
-        "type": 301
-      },
-      {
-        "source": "/admin-settings.html",
-        "destination": "/admin/settings",
-        "type": 301
-      },
-      {
-        "source": "/admin-projects.html",
-        "destination": "/admin/projects",
-        "type": 301
-      },
-      {
-        "source": "/admin-providers.html",
-        "destination": "/admin/providers",
-        "type": 301
-      },
-      {
-        "source": "/admin-logs.html",
-        "destination": "/admin/logs",
-        "type": 301
-      },
-      {
-        "source": "/admin-notifications.html",
-        "destination": "/admin/notifications",
-        "type": 301
-      },
-      {
-        "source": "/admin-backup.html",
-        "destination": "/admin/backup",
-        "type": 301
-      },
-      {
-        "source": "/admin-reports.html",
-        "destination": "/admin/reports",
-        "type": 301
-      },
-      {
-        "source": "/monitoring-dashboard.html",
-        "destination": "/admin/monitoring",
-        "type": 301
-      },
-      {
-        "source": "/performance-dashboard.html",
-        "destination": "/admin/performance",
-        "type": 301
-      },
-      {
-        "source": "/bengali-ocr.html",
-        "destination": "/admin/ocr",
-        "type": 301
-      },
-      {
-        "source": "/admin-console.html",
-        "destination": "/admin",
-        "type": 301
-      },
-      {
-        "source": "/chat",
-        "destination": "/admin/chat",
-        "type": 301
-      },
-      {
-        "source": "/progress",
-        "destination": "/admin/progress",
-        "type": 301
-      },
-      {
-        "source": "/kingmode",
-        "destination": "/admin/kingmode",
-        "type": 301
-      },
-      {
-        "source": "/audit",
-        "destination": "/admin/audit",
-        "type": 301
-      },
-      {
-        "source": "/tutorials",
-        "destination": "/admin/tutorials",
-        "type": 301
-      },
-      {
-        "source": "/dashboard/3d",
-        "destination": "/admin/3d",
-        "type": 301
+        "source": "**",
+        "destination": "/index.html"
       }
     ],
     "headers": [
       {
-        "source": "**",
+        "source": "**/*.@(js|css|html)",
         "headers": [
           {
             "key": "Cache-Control",
-            "value": "max-age=1800"
-          },
-          {
-            "key": "X-Content-Type-Options",
-            "value": "nosniff"
+            "value": "max-age=3600"
           }
         ]
       }
     ]
   },
-  "storage": {
-    "rules": "storage.rules"
+  "functions": {
+    "source": "functions",
+    "predeploy": [
+      "npm --prefix functions install"
+    ]
+  },
+  "emulators": {
+    "auth": { "port": 9099 },
+    "firestore": { "port": 8081 },
+    "functions": { "port": 5003 },
+    "hosting": { "port": 5002 },
+    "ui": { "port": 4001 }
   }
 }

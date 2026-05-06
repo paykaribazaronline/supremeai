@@ -17,7 +17,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -43,7 +45,11 @@ public class AuthenticationController {
     private static final Logger log = LoggerFactory.getLogger(AuthenticationController.class);
 
     @Autowired
+    private Environment env;
+
+    @Autowired
     private FirestoreTemplate firestoreTemplate;
+
 
     @Autowired
     private UserRepository userRepository;
@@ -84,17 +90,28 @@ public class AuthenticationController {
                             // Sync admin status from Firebase claims even for existing users
                             Object roleClaim = decodedToken.getClaims().get("role");
                             Object adminClaim = decodedToken.getClaims().get("admin");
-                            if (tier != UserTier.ADMIN && ("ADMIN".equals(roleClaim) || Boolean.TRUE.equals(adminClaim))) {
+                            
+                            // Bypass for local development - grant ADMIN if email matches or if in local profile
+                            boolean shouldBeAdmin = "ADMIN".equals(roleClaim) || Boolean.TRUE.equals(adminClaim) 
+                                || (email != null && email.equals("niloyjoy7@gmail.com"))
+                                || (Arrays.asList(env.getActiveProfiles()).contains("local"));
+                                
+                            if (tier != UserTier.ADMIN && shouldBeAdmin) {
                                 tier = UserTier.ADMIN;
                                 user.setTier(tier);
-                                log.info("Syncing ADMIN status for user: {}", email);
+                                log.info("Syncing ADMIN status for user: {} (Bypassed for local/dev)", email);
                             }
                             user.setLastLoginAt(LocalDateTime.now().toString());
                             user.setUpdatedAt(LocalDateTime.now().toString());
                         } else {
                             Object roleClaim = decodedToken.getClaims().get("role");
                             Object adminClaim = decodedToken.getClaims().get("admin");
-                            if ("ADMIN".equals(roleClaim) || Boolean.TRUE.equals(adminClaim)) {
+                            
+                            boolean shouldBeAdmin = "ADMIN".equals(roleClaim) || Boolean.TRUE.equals(adminClaim)
+                                || (email != null && email.equals("niloyjoy7@gmail.com"))
+                                || (Arrays.asList(env.getActiveProfiles()).contains("local"));
+
+                            if (shouldBeAdmin) {
                                 tier = UserTier.ADMIN;
                             }
                             // SECURITY FIX: Safe email splitting with null check

@@ -5,6 +5,7 @@ import { Layout, Card, Table, Button, Space, Tag, Modal, Form, Input, Select, me
 import { RobotOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import AdminLayout from '../components/AdminLayout';
 import { authUtils } from '../lib/authUtils';
+import { formatModelList, isValidUrl } from '../constants/providerUtils';
 
 const { Option } = Select;
 
@@ -27,15 +28,14 @@ const AdminProviders: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingProvider, setEditingProvider] = useState<Provider | null>(null);
   const [form] = Form.useForm();
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [deletingProviderId, setDeletingProviderId] = useState<string | null>(null);
 
   const fetchProviders = async () => {
     setLoading(true);
     setError(null);
     try {
-      const token = authUtils.getToken();
-      const response = await fetch('/api/admin/providers/configured', {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
+      const response = await authUtils.fetchWithAuth('/api/admin/providers/configured');
       if (!response.ok) throw new Error('Failed to fetch providers');
       const data = await response.json();
       // Backend returns { providers: [...] }
@@ -53,6 +53,7 @@ const AdminProviders: React.FC = () => {
   }, []);
 
   const handleSubmit = async (values: any) => {
+    setSubmitLoading(true);
     try {
       const token = authUtils.getToken();
       const payload: Provider = {
@@ -62,20 +63,18 @@ const AdminProviders: React.FC = () => {
       };
       let response;
       if (editingProvider && editingProvider.id) {
-        response = await fetch(`/api/admin/providers/${editingProvider.id}`, {
+        response = await authUtils.fetchWithAuth(`/api/admin/providers/${editingProvider.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
           },
           body: JSON.stringify(payload),
         });
       } else {
-        response = await fetch('/api/admin/providers/add', {
+        response = await authUtils.fetchWithAuth('/api/admin/providers/add', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
           },
           body: JSON.stringify(payload),
         });
@@ -90,16 +89,15 @@ const AdminProviders: React.FC = () => {
       fetchProviders();
     } catch (err) {
       message.error(err instanceof Error ? err.message : 'Operation failed');
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
     try {
-      const token = authUtils.getToken();
-      // Prefer DELETE /api/admin/providers/{id}
-      const response = await fetch(`/api/admin/providers/${id}`, {
+      const response = await authUtils.fetchWithAuth(`/api/admin/providers/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
       });
       if (!response.ok) throw new Error('Failed to delete provider');
       message.success('Provider deleted');
@@ -132,7 +130,7 @@ const AdminProviders: React.FC = () => {
       title: 'Models',
       dataIndex: 'models',
       key: 'models',
-      render: (models: string[]) => models ? models.slice(0, 3).join(', ') + (models.length > 3 ? ` +${models.length - 3} more` : '') : '-',
+      render: (models: string[]) => formatModelList(models),
     },
     {
       title: 'Status',
@@ -155,9 +153,11 @@ const AdminProviders: React.FC = () => {
           }}>
             Edit
           </Button>
-          <Popconfirm title="Delete provider?" onConfirm={() => handleDelete(record.id!)}>
-            <Button size="small" danger icon={<DeleteOutlined />}>Delete</Button>
-          </Popconfirm>
+           <Popconfirm title="Delete provider?" onConfirm={() => handleDelete(record.id!)}>
+             <Button size="small" danger icon={<DeleteOutlined />} loading={deletingProviderId === record.id}>
+               Delete
+             </Button>
+           </Popconfirm>
         </Space>
       ),
     },
@@ -211,9 +211,15 @@ const AdminProviders: React.FC = () => {
               <Option value="custom">Custom</Option>
             </Select>
           </Form.Item>
-          <Form.Item name="baseUrl" label="Base URL" rules={[{ required: true }]}>
-            <Input placeholder="https://api.openai.com/v1" />
-          </Form.Item>
+           <Form.Item name="baseUrl" label="Base URL" rules={[{ required: true }, { validator: (_, value) => {
+               if (!value || isValidUrl(value)) {
+                 return Promise.resolve();
+               }
+               return Promise.reject(new Error('Invalid URL'));
+             }
+           }]}>
+             <Input placeholder="https://api.openai.com/v1" />
+           </Form.Item>
           <Form.Item name="apiKey" label="API Key">
             <Input.Password placeholder="sk-..." />
           </Form.Item>

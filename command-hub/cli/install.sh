@@ -33,7 +33,7 @@ echo "   supremeai admin mode <mode>     - Set admin mode (AUTO/WAIT/FORCE_STOP)
 echo "   supremeai metrics cache         - View cache statistics"
 echo ""
 echo "🔗 Configuration:"
-echo "   API URL: https://supremeai-lhlwyikwlq-uc.a.run.app/api"
+echo "   API URL: https://ide-api.supremeai.google.com/api"
 echo "   Token: ~/.supremeai_token"
 echo ""
 echo "📖 Run 'supremeai list' to see all available commands"

@@ -28,7 +28,7 @@ http://localhost:8080/admin.html
 #### URL 2: Production Backend (Cloud Run)
 
 ```
-https://supremeai-lhlwyikwlq-uc.a.run.app/admin.html
+https://ide-api.supremeai.google.com/admin.html
 ```
 
 Admin saves BOTH URLs:
@@ -44,9 +44,9 @@ All other URLs are accessible FROM these 2 admin URLs:
 |---------|---------------------|
 | Customer Panel | `https://supremeai-a.web.app` |
 | Admin Dashboard (Local) | `http://localhost:8080/admin.html` |
-| Admin Dashboard (Prod) | `https://supremeai-lhlwyikwlq-uc.a.run.app/admin.html` |
+| Admin Dashboard (Prod) | `https://ide-api.supremeai.google.com/admin.html` |
 | API Endpoints (Local) | `http://localhost:8080/api/*` |
-| API Endpoints (Prod) | `https://supremeai-lhlwyikwlq-uc.a.run.app/api/*` |
+| API Endpoints (Prod) | `https://ide-api.supremeai.google.com/api/*` |
 | Firebase Hosting | `https://supremeai-a.web.app` (rewrites `/api/**` to Cloud Run) |
 
 ## Implementation Rules
@@ -93,7 +93,7 @@ This allows `https://supremeai-a.web.app/api/*` to forward to Cloud Run backend.
 
 #### Production
 
-- Cloud Run: `https://supremeai-lhlwyikwlq-uc.a.run.app`
+- Cloud Run: `https://ide-api.supremeai.google.com`
 - Firebase rewrites route `/api/**` to Cloud Run
 
 ### 4. Code Examples
@@ -109,7 +109,7 @@ fetch('/actuator/health')    // Works everywhere
 
 ```javascript
 fetch('http://localhost:8080/api/chat/message')  // Breaks on production
-fetch('https://supremeai-lhlwyikwlq-uc.a.run.app/api/health')  // Breaks on localhost
+fetch('https://ide-api.supremeai.google.com/api/health')  // Breaks on localhost
 ```
 
 ## Files That Need URL Fixes
@@ -162,12 +162,12 @@ All files with hard-coded URLs must be updated to use relative paths or env vars
 The admin panel (`admin.html`) includes **QUICK LINKS** menu section with buttons:
 
 - **🖥️ Admin (Localhost)** → Opens `http://localhost:8080/admin.html` in new tab
-- **☁️ Admin (Production)** → Opens `https://supremeai-lhlwyikwlq-uc.a.run.app/admin.html` in new tab
+- **☁️ Admin (Production)** → Opens `https://ide-api.supremeai.google.com/admin.html` in new tab
 - **🏪 Customer Panel** → Opens `https://supremeai-a.web.app` in new tab
 
 ## Deployment Notes
 
 1. **Local**: Run backend on `localhost:8080`, access via `http://localhost:8080/admin.html`
-2. **Production Backend**: Deployed to Cloud Run, access via `https://supremeai-lhlwyikwlq-uc.a.run.app/admin.html`
+2. **Production Backend**: Deployed to Cloud Run, access via `https://ide-api.supremeai.google.com/admin.html`
 3. **Customer Frontend**: Deployed to Firebase, access via `https://supremeai-a.web.app`
 4. All URLs route to same features, just different entry points

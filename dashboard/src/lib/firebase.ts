@@ -28,12 +28,12 @@ const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseCon
 export const firebaseAuth: Auth = getAuth(app);
 
 // Connect to Firebase Emulator in development environment
-if (import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+if (import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true') {
   try {
     connectAuthEmulator(firebaseAuth, 'http://localhost:9099', { disableWarnings: true });
     console.log('Firebase Auth connected to emulator');
   } catch (err) {
-    console.log('Firebase Emulator not running, using production config');
+    console.log('Firebase Emulator connection error:', err);
   }
 }
 
@@ -99,12 +99,16 @@ export async function firebaseSignIn(
       password,
     );
 
-    // Check admin role via Firebase custom claims (case-insensitive)
     const idTokenResult = await getIdTokenResult(cred.user);
-    const role = idTokenResult.claims['role'] as string | undefined;
-    if (role?.toLowerCase() !== 'admin') {
-      await signOut(firebaseAuth);
-      throw new Error('Access denied: You do not have admin privileges.');
+    
+    // In emulator mode, bypass admin role verification
+    if (import.meta.env.VITE_USE_FIREBASE_EMULATOR !== 'true') {
+      // Check admin role via Firebase custom claims (case-insensitive)
+      const role = idTokenResult.claims['role'] as string | undefined;
+      if (role?.toLowerCase() !== 'admin') {
+        await signOut(firebaseAuth);
+        throw new Error('Access denied: You do not have admin privileges.');
+      }
     }
 
     const idToken = idTokenResult.token;

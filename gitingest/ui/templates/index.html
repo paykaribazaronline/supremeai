@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+
+{% block title %}Gitingest - LLM-Friendly Repo Digests{% endblock %}
+
+{% block content %}
+<!-- Animated Title -->
+<div class="text-center mb-12">
+    <h1 class="text-5xl font-bold mb-4 relative inline-block">
+        <span class="relative z-10">Gitingest</span>
+        <!-- Sparkle SVGs -->
+        <svg class="sparkle absolute -top-4 -right-8 w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 001.664.89l3.292-1.07c.921-.3.921-1.603 0-1.902l-3.292-1.07a1 1 0 00-1.664-.89L9.049 2.927z"/>
+        </svg>
+        <svg class="sparkle sparkle-delay-1 absolute -bottom-2 -left-6 w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 001.664.89l3.292-1.07c.921-.3.921-1.603 0-1.902l-3.292-1.07a1 1 0 00-1.664-.89L9.049 2.927z"/>
+        </svg>
+        <svg class="sparkle sparkle-delay-2 absolute top-0 -left-10 w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 001.664.89l3.292-1.07c.921-.3.921-1.603 0-1.902l-3.292-1.07a1 1 0 00-1.664-.89L9.049 2.927z"/>
+        </svg>
+    </h1>
+    <p class="text-xl text-[#666]">Convert any Git repo into LLM-friendly text</p>
+</div>
+
+<!-- URL Input Form -->
+<div class="max-w-3xl mx-auto mb-8">
+    <form id="ingest-form" class="mb-6">
+        <div class="shadow-offset mb-4">
+            <input 
+                type="text" 
+                id="repo-url"
+                name="url"
+                placeholder="Paste GitHub URL or replace 'hub' with 'ingest'..."
+                value="{{ prepopulated_url or '' }}"
+                class="w-full px-6 py-4 text-lg border-4 border-zinc-900 rounded-lg bg-[#fff4da] focus:outline-none focus:ring-2 focus:ring-[#FCA847] relative z-10"
+            >
+        </div>
+        
+        <div class="flex gap-4">
+            <button 
+                type="submit"
+                id="ingest-btn"
+                class="px-8 py-3 bg-[#FCA847] text-zinc-900 font-bold border-4 border-zinc-900 rounded-md btn-primary"
+            >
+                Ingest
+            </button>
+            
+            <!-- Private Repo Checkbox -->
+            <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="private-checkbox" class="w-5 h-5">
+                <span class="text-sm">Private repo</span>
+            </label>
+        </div>
+        
+        <!-- PAT Input (hidden by default) -->
+        <div id="pat-input-container" class="hidden mt-4">
+            <input 
+                type="password" 
+                id="github-pat"
+                name="github_pat"
+                placeholder="GitHub PAT (ghp_...)"
+                class="w-full px-4 py-3 border-4 border-zinc-900 rounded bg-[#fff4da]"
+            >
+        </div>
+        
+        <!-- Options Row -->
+        <div class="mt-6 p-4 bg-white border-4 border-zinc-900 rounded-lg">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Pattern Type -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Pattern Type</label>
+                    <select id="pattern-type" name="pattern_type" class="w-full px-3 py-2 border-2 border-zinc-900 rounded bg-[#fff4da]">
+                        <option value="exclude">Exclude</option>
+                        <option value="include">Include</option>
+                    </select>
+                </div>
+                
+                <!-- Patterns -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Patterns (comma-separated)</label>
+                    <input 
+                        type="text" 
+                        id="patterns"
+                        name="patterns"
+                        placeholder="*.md, docs/*"
+                        class="w-full px-3 py-2 border-2 border-zinc-900 rounded bg-[#fff4da]"
+                    >
+                </div>
+                
+                <!-- Max File Size -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium mb-2">
+                        Max File Size: <span id="file-size-label">100 KB</span>
+                    </label>
+                    <input 
+                        type="range" 
+                        id="max-file-size" 
+                        name="max_file_size_kb"
+                        min="1" 
+                        max="512000" 
+                        value="100" 
+                        class="w-full"
+                    >
+                </div>
+            </div>
+        </div>
+    </form>
+    
+    <!-- Example Repos -->
+    <div class="flex flex-wrap gap-2 justify-center text-sm">
+        <span class="text-[#666]">Try:</span>
+        <a href="#" onclick="setUrl('https://github.com/fastapi/fastapi')" class="text-[#FCA847] hover:underline">fastapi/fastapi</a>
+        <a href="#" onclick="setUrl('https://github.com/pallets/flask')" class="text-[#FCA847] hover:underline">pallets/flask</a>
+        <a href="#" onclick="setUrl('https://github.com/django/django')" class="text-[#FCA847] hover:underline">django/django</a>
+    </div>
+</div>
+
+<!-- Loading Spinner (hidden initially) -->
+<div id="loading-section" class="hidden text-center py-12">
+    <div class="inline-block w-12 h-12 border-4 border-[#FCA847] border-t-transparent rounded-full animate-spin"></div>
+    <p class="mt-4 text-lg text-gray-600">Ingesting repository...</p>
+</div>
+
+<!-- Error Section (hidden initially) -->
+<div id="error-section" class="hidden max-w-3xl mx-auto mb-8">
+    <div class="p-4 bg-red-50 border-4 border-red-500 rounded-lg">
+        <p id="error-message" class="text-red-700"></p>
+    </div>
+</div>
+
+<!-- Results Section (hidden initially) -->
+<div id="results-section" class="hidden max-w-5xl mx-auto">
+    <!-- Summary -->
+    <div class="mb-6 p-6 bg-white border-4 border-zinc-900 rounded-lg">
+        <h2 class="text-2xl font-bold mb-4">Summary</h2>
+        <pre id="summary-content" class="whitespace-pre-wrap text-[#666] text-sm bg-[#FFFDF8] p-4 rounded border-2 border-gray-200"></pre>
+    </div>
+
+    <!-- Tree (clickable) -->
+    <div class="mb-6 p-6 bg-white border-4 border-zinc-900 rounded-lg">
+        <h2 class="text-2xl font-bold mb-4">Directory Tree</h2>
+        <div class="flex gap-2 mb-4">
+            <button id="copy-tree-btn" class="px-4 py-2 bg-[#E8F0FE] text-sm font-bold border-2 border-zinc-900 rounded hover:bg-blue-100">
+                Copy Tree
+            </button>
+            <span id="tree-copy-confirm" class="hidden text-sm text-green-600 self-center">Copied!</span>
+        </div>
+        <pre id="tree-content" class="text-sm overflow-x-auto bg-[#FFFDF8] p-4 rounded border-2 border-gray-200 cursor-pointer"></pre>
+        <p class="text-xs text-[#666] mt-2">Click any file to add it to exclude patterns</p>
+    </div>
+
+    <!-- File Contents -->
+    <div class="p-6 bg-white border-4 border-zinc-900 rounded-lg">
+        <h2 class="text-2xl font-bold mb-4">File Contents</h2>
+        <div id="content-sections"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Set URL from example links
+function setUrl(url) {
+    document.getElementById('repo-url').value = url;
+}
+
+// Toggle PAT input
+document.getElementById('private-checkbox').addEventListener('change', function() {
+    const container = document.getElementById('pat-input-container');
+    container.classList.toggle('hidden', !this.checked);
+});
+
+// File size slider
+document.getElementById('max-file-size').addEventListener('input', function() {
+    const value = parseInt(this.value);
+    let label;
+    if (value >= 1024) {
+        label = (value / 1024).toFixed(0) + ' MB';
+    } else {
+        label = value + ' KB';
+    }
+    document.getElementById('file-size-label').textContent = label;
+});
+
+// Form submission
+document.getElementById('ingest-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    // Get form data
+    const url = document.getElementById('repo-url').value.trim();
+    if (!url) {
+        alert('Please enter a repository URL');
+        return;
+    }
+    
+    const patternType = document.getElementById('pattern-type').value;
+    const patterns = document.getElementById('patterns').value.trim();
+    const maxFileSize = document.getElementById('max-file-size').value;
+    const githubPat = document.getElementById('github-pat').value.trim();
+    
+    // Hide previous results/errors
+    document.getElementById('results-section').classList.add('hidden');
+    document.getElementById('error-section').classList.add('hidden');
+    
+    // Show loading
+    document.getElementById('loading-section').classList.remove('hidden');
+    document.getElementById('ingest-btn').disabled = true;
+    
+    try {
+        // Build request
+        const requestData = {
+            url: url,
+            pattern_type: patternType,
+        };
+        if (patterns) requestData.patterns = patterns;
+        if (maxFileSize) requestData.max_file_size_kb = parseInt(maxFileSize);
+        if (githubPat) requestData.github_pat = githubPat;
+        
+        // Make API call
+        const response = await fetch('/api/ingest', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData),
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || error.error || 'Ingestion failed');
+        }
+        
+        const data = await response.json();
+        
+        // Display results
+        displayResults(data);
+        
+    } catch (error) {
+        // Show error
+        document.getElementById('error-section').classList.remove('hidden');
+        document.getElementById('error-message').textContent = error.message;
+    } finally {
+        // Hide loading
+        document.getElementById('loading-section').classList.add('hidden');
+        document.getElementById('ingest-btn').disabled = false;
+    }
+});
+
+function displayResults(data) {
+    // Show results section
+    document.getElementById('results-section').classList.remove('hidden');
+    
+    // Summary
+    document.getElementById('summary-content').textContent = data.summary;
+    
+    // Tree (make clickable)
+    const treeEl = document.getElementById('tree-content');
+    treeEl.innerHTML = '';
+    const lines = data.tree.split('\n');
+    lines.forEach(line => {
+        const div = document.createElement('div');
+        div.className = 'hover:bg-yellow-50 px-1 py-0.5 cursor-pointer';
+        div.textContent = line;
+        div.onclick = function() {
+            // Strike through and add to exclude
+            this.style.textDecoration = 'line-through';
+            this.style.color = '#999';
+            const filename = line.trim();
+            const currentPatterns = document.getElementById('patterns').value;
+            const newPattern = currentPatterns ? currentPatterns + ', ' + filename : filename;
+            document.getElementById('patterns').value = newPattern;
+            document.getElementById('pattern-type').value = 'exclude';
+        };
+        treeEl.appendChild(div);
+    });
+    
+    // Copy tree button
+    document.getElementById('copy-tree-btn').onclick = function() {
+        navigator.clipboard.writeText(data.tree).then(() => {
+            const confirm = document.getElementById('tree-copy-confirm');
+            confirm.classList.remove('hidden');
+            setTimeout(() => confirm.classList.add('hidden'), 2000);
+        });
+    };
+    
+    // Content sections
+    const contentSections = document.getElementById('content-sections');
+    contentSections.innerHTML = '';
+    
+    // Parse content (split by === markers)
+    const parts = data.content.split(/=+/);
+    let currentFile = null;
+    let currentContent = '';
+    
+    parts.forEach(part => {
+        part = part.trim();
+        if (!part) return;
+        
+        if (part.startsWith('File: ')) {
+            // Save previous file if exists
+            if (currentFile) {
+                addFileSection(contentSections, currentFile, currentContent);
+            }
+            currentFile = part.substring(6).trim();
+            currentContent = '';
+        } else {
+            currentContent += part + '\n';
+        }
+    });
+    
+    // Add last file
+    if (currentFile) {
+        addFileSection(contentSections, currentFile, currentContent);
+    }
+}
+
+function addFileSection(container, filename, content) {
+    const section = document.createElement('div');
+    section.className = 'mb-6 border-2 border-gray-200 rounded-lg overflow-hidden';
+    
+    section.innerHTML = `
+        <div class="bg-[#E8F0FE] px-4 py-2 flex justify-between items-center border-b-2 border-gray-200">
+            <span class="font-mono text-sm font-bold">${filename}</span>
+            <button class="copy-btn px-3 py-1 bg-[#FCA847] text-xs font-bold border-2 border-zinc-900 rounded hover:translate-x-0.5 hover:translate-y-0.5 transition-transform">
+                Copy
+            </button>
+        </div>
+        <pre class="p-4 text-xs overflow-x-auto bg-[#FFFDF8] max-h-96 overflow-y-auto"><code>${escapeHtml(content)}</code></pre>
+    `;
+    
+    // Add copy functionality
+    section.querySelector('.copy-btn').onclick = function() {
+        navigator.clipboard.writeText(content).then(() => {
+            this.textContent = 'Copied!';
+            this.classList.add('bg-green-400');
+            setTimeout(() => {
+                this.textContent = 'Copy';
+                this.classList.remove('bg-green-400');
+            }, 2000);
+        });
+    };
+    
+    container.appendChild(section);
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+{% endblock %}

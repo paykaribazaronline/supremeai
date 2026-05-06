@@ -1656,7 +1656,7 @@ object KnowledgeSyncService {
         encodeDefaults = true
     }
     
-    private const val SYNC_API_URL = "https://supremeai-lhlwyikwlq-uc.a.run.app/api/knowledge/sync"
+    private const val SYNC_API_URL = "https://ide-api.supremeai.google.com/api/knowledge/sync"
     private const val SYNC_BATCH_SIZE = 10
     
     /**
