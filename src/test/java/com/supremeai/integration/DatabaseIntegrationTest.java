@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@Disabled("Integration tests require proper infrastructure setup")
+
 public class DatabaseIntegrationTest {
 
     @Autowired

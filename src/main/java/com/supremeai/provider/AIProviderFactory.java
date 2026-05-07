@@ -138,7 +138,7 @@ public class AIProviderFactory {
      */
     public AIProvider getDefaultProvider() {
         // Preferred providers in order (free tier first)
-        String[] preferredProviders = {"codegeex4", "stepfun", "groq", "deepseek", "ollama", "gpt4", "claude", "gemini", "mistral"};
+        String[] preferredProviders = {"gemini", "codegeex4", "stepfun", "groq", "deepseek", "ollama", "gpt4", "claude", "mistral"};
 
         // Try preferred providers first
         for (String providerName : preferredProviders) {

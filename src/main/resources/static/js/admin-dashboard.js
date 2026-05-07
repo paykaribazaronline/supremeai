@@ -7,33 +7,39 @@ class DashboardCharts {
 
     initCharts() {
         if (typeof Chart !== 'undefined') {
-            this.charts.agentPerf = new Chart(document.getElementById('agentChart'), {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'X-Builder',
-                        data: [],
-                        borderColor: '#4CAF50'
-                    }, {
-                        label: 'Z-Architect',
-                        data: [],
-                        borderColor: '#2196F3'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    animation: { duration: 0 }
-                }
-            });
+            const agentChartEl = document.getElementById('agentChart');
+            if (agentChartEl) {
+                this.charts.agentPerf = new Chart(agentChartEl, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'X-Builder',
+                            data: [],
+                            borderColor: '#4CAF50'
+                        }, {
+                            label: 'Z-Architect',
+                            data: [],
+                            borderColor: '#2196F3'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        animation: { duration: 0 }
+                    }
+                });
+            }
         }
 
         if (typeof Gauge !== 'undefined') {
-            this.charts.cpuGauge = new Gauge(document.getElementById('cpuGauge'), {
-                max: 100,
-                value: 0,
-                label: 'CPU %'
-            });
+            const cpuGaugeEl = document.getElementById('cpuGauge');
+            if (cpuGaugeEl) {
+                this.charts.cpuGauge = new Gauge(cpuGaugeEl, {
+                    max: 100,
+                    value: 0,
+                    label: 'CPU %'
+                });
+            }
         }
     }
 
@@ -136,7 +142,4 @@ class DashboardCharts {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Always connect WebSocket for live dashboard data
-    new DashboardCharts();
-});
+// DashboardCharts initialization is now managed by initPlatform() in admin.html

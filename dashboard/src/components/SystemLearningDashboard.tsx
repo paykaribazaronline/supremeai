@@ -7,6 +7,7 @@ import {
   RobotOutlined as BrainOutlined, PlayCircleOutlined, HistoryOutlined,
   RocketOutlined, CheckCircleOutlined, LoadingOutlined
 } from '@ant-design/icons';
+import { authUtils } from '../lib/authUtils';
 
 interface Pattern {
   name: string;
@@ -53,7 +54,7 @@ export default function SystemLearningDashboard() {
 
   const fetchPatterns = async () => {
     try {
-      const response = await fetch('/api/teach/patterns?sortBy=frequency');
+      const response = await authUtils.fetchWithAuth('/api/teach/patterns?sortBy=frequency');
       const data = await response.json();
       if (data.success && data.patterns) {
         setPatterns(data.patterns);
@@ -65,7 +66,7 @@ export default function SystemLearningDashboard() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/teach/stats');
+      const response = await authUtils.fetchWithAuth('/api/teach/stats');
       const data = await response.json();
       if (data.success) {
         setStats(data);

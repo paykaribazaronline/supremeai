@@ -1,5 +1,4 @@
-# Simple Dockerfile for pre-built JAR
-FROM eclipse-temurin:17-jdk-jammy
+FROM eclipse-temurin:21-jdk-jammy
 
 # Install git if needed
 RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
@@ -8,7 +7,7 @@ RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 # Copy the pre-built JAR
-COPY build/libs/supremeai-3.0-Phase1.jar app.jar
+COPY build/libs/app.jar app.jar
 
 # Expose port
 EXPOSE 8080

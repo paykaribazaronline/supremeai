@@ -56,16 +56,30 @@ public class MCPClientManager {
         }
         
         List<Map<String, Object>> listTools() {
-            // TODO: Implement actual MCP protocol call
+            try {
+                org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+                Map<String, Object> response = restTemplate.postForObject(url + "/tools/list", Collections.emptyMap(), Map.class);
+                if (response != null && response.containsKey("tools")) {
+                    return (List<Map<String, Object>>) response.get("tools");
+                }
+            } catch (Exception e) {
+                // ignore
+            }
             return Collections.emptyList();
         }
         
         Object callTool(String toolName, Map<String, Object> args) {
-            // TODO: Implement actual MCP protocol call
-            Map<String, Object> result = new HashMap<>();
-            result.put("status", "success");
-            result.put("message", "Tool " + toolName + " executed via " + name);
-            return result;
+            try {
+                org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+                Map<String, Object> request = new HashMap<>();
+                request.put("name", toolName);
+                request.put("arguments", args);
+                return restTemplate.postForObject(url + "/tools/call", request, Map.class);
+            } catch (Exception e) {
+                Map<String, Object> result = new HashMap<>();
+                result.put("error", e.getMessage());
+                return result;
+            }
         }
     }
 }

@@ -50,3 +50,24 @@ This is a monorepo featuring a multi-agent system for automated app generation.
 
 - **Commit Prefixes**: Use `feat:`, `fix:`, `docs:`, or `Cleanup:` prefixes for commit messages.
 - **PRs**: Follow the template in `.github/pull_request_template.md`. Ensure tests pass before submitting.
+
+## বাংলা ভাষা সমর্থ্যা (Bengali Localization Support)
+
+### আন্তর্জালিকরণ (Internationalization)
+
+- **ফাইলগুলো**: `dashboard/src/i18n/bn.json`, `supremeai/assets/i18n/bn.json`
+- **VS Code এক্সটেনশন**: `supremeai-vscode-extension/package.nls.bn.json`
+- **ভাষা কীগুলো**: `en` (ইংরেজি), `bn` (বাংলা)
+
+### বাংলা যোগ করার নিয়মাবলী
+
+1. **ইউজার ইন্টারফেস**: যেকোনো ইউজার-ফেসিং টেক্স্টের জন্য `bn.json` এ বাংলা যোগ করুন
+2. **এরর মেসেজ**: সব এরর মেসেজের বাংলা অনুবাদ যোগ করুন
+3. **ডকুমেন্টেশন**: নয়, শুধুমানে ইংরেজিতেই রাখুন
+4. **কমмент**: বাংলায় কমмент করা যায় (বিশেশ করে Java/Spring Boot ফাইলে)
+
+### ভাষা সনাক্তকরণ
+
+- ব্যবহারকারীর ব্রাউজার/সিস্টেম ভাষা অনুযায়ী স্বয়ংক্রিয়ভাবে বাংলা দেখানো হবে
+- `UserLanguagePreferenceService` ভাষা পছন্দ সংরক্ষণ করে
+- API রেসপন্সেও ভাষা অনুযায়ী বাংলা উপযোগী হবে

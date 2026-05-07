@@ -1,80 +1,50 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { Result, Button, Typography } from 'antd';
-import { ReloadOutlined } from '@ant-design/icons';
-
-const { Paragraph, Text } = Typography;
+import { Result, Button } from 'antd';
 
 interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
+  children?: ReactNode;
 }
 
 interface State {
   hasError: boolean;
-  error: Error | null;
-  errorInfo: ErrorInfo | null;
+  error?: Error;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      hasError: false,
-      error: null,
-      errorInfo: null,
-    };
-  }
+class ErrorBoundary extends Component<Props, State> {
+  public state: State = {
+    hasError: false
+  };
 
   public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error, errorInfo: null };
+    return { hasError: true, error };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error:', error, errorInfo);
-    this.setState({
-      error,
-      errorInfo,
-    });
   }
-
-  private handleReload = () => {
-    window.location.reload();
-  };
 
   public render() {
     if (this.state.hasError) {
-      if (this.props.fallback) {
-        return this.props.fallback;
-      }
-
       return (
-        <div style={{ padding: '50px', display: 'flex', justifyContent: 'center', minHeight: '100vh', alignItems: 'center' }}>
+        <div style={{ padding: '40px', background: '#fff', borderRadius: '12px', margin: '20px' }}>
           <Result
             status="error"
-            title="Something went wrong"
-            subTitle="The application encountered an unexpected error."
+            title="Dashboard Component Crashed"
+            subTitle={this.state.error?.message || "An unexpected error occurred while rendering this component."}
             extra={[
-              <Button type="primary" key="console" onClick={this.handleReload} icon={<ReloadOutlined />}>
-                Reload Page
-              </Button>
+              <Button type="primary" key="reload" onClick={() => window.location.reload()}>
+                Reload Dashboard
+              </Button>,
+              <Button key="reset" onClick={() => this.setState({ hasError: false })}>
+                Try Again
+              </Button>,
             ]}
-          >
-            <div className="desc">
-              <Paragraph>
-                <Text strong style={{ fontSize: 16 }}>
-                  Error details:
-                </Text>
-              </Paragraph>
-              <Paragraph style={{ background: '#f5f5f5', padding: '10px', borderRadius: '4px', fontFamily: 'monospace' }}>
-                <Text type="danger">{this.state.error?.toString()}</Text>
-              </Paragraph>
-            </div>
-          </Result>
+          />
         </div>
       );
     }
 
-    return this.props.children;
+    return this.children;
   }
 }
 

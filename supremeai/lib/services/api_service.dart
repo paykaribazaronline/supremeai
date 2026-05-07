@@ -20,7 +20,7 @@ class ApiService {
     return _token;
   }
 
-  Future<Map<String, dynamic>> loginWithFirebase(String idToken) async {
+  Future<Map<String, dynamic>> firebaseLogin(String idToken) async {
     try {
       final response = await client.post(
         Uri.parse('$_baseUrl/api/auth/firebase-login'),

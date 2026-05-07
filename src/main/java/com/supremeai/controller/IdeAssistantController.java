@@ -1,10 +1,8 @@
 package com.supremeai.controller;
 
-import com.supremeai.ai.provider.GeminiProvider;
-import com.supremeai.dto.AISolution;
-import com.supremeai.dto.ProblemStatement;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
@@ -14,36 +12,26 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class IdeAssistantController {
 
-    private final GeminiProvider geminiProvider;
+    private final com.supremeai.provider.AIProviderFactory providerFactory;
 
-    public IdeAssistantController(@org.springframework.beans.factory.annotation.Qualifier("legacyGeminiProvider") GeminiProvider geminiProvider) {
-        this.geminiProvider = geminiProvider;
+    public IdeAssistantController(com.supremeai.provider.AIProviderFactory providerFactory) {
+        this.providerFactory = providerFactory;
     }
 
     @PostMapping("/ask")
-    public Mono<ResponseEntity<Map<String, String>>> askAssistant(@RequestBody Map<String, String> request) {
-        String prompt = request.get("prompt");
-        String context = request.get("context"); // e.g., current file content
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public Mono<ResponseEntity<Map<String, String>>> askAssistant(@jakarta.validation.Valid @RequestBody com.supremeai.dto.IdeAssistantRequest request) {
+        String prompt = request.getPrompt();
+        String context = request.getContext();
 
-        if (prompt == null || prompt.trim().isEmpty()) {
-            return Mono.just(ResponseEntity.badRequest().body(Map.of("error", "Prompt is required")));
-        }
-
-        ProblemStatement problem = ProblemStatement.builder()
-                .description(prompt)
-                .context(context)
-                .requiredOutputType("Markdown")
-                .build();
-
-        // Normally we'd do this non-blocking using WebClient inside the provider, 
-        // but since we used Java 11 HttpClient synchronously in GeminiProvider, 
-        // we wrap it in a blocking call handler (or just run it directly for now).
+        // Use new AIProvider interface
         return Mono.fromCallable(() -> {
-            AISolution solution = geminiProvider.solve(problem);
+            com.supremeai.provider.AIProvider provider = providerFactory.getProvider(request.getProvider());
+            String response = provider.generate(prompt).block();
             return ResponseEntity.ok(Map.of(
-                    "response", solution.getSolutionContent(),
-                    "code", solution.getGeneratedCode() != null ? solution.getGeneratedCode() : "",
-                    "provider", solution.getProviderId()
+                    "response", response != null ? response : "",
+                    "code", "",
+                    "provider", provider.getName()
             ));
         }).onErrorResume(e -> Mono.just(ResponseEntity.status(500).body(Map.of("error", e.getMessage()))));
     }

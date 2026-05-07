@@ -68,7 +68,7 @@ const PhasesOverview: React.FC = () => {
         setLoading(true);
         setError(null);
         try {
-            const overviewRes = await fetch('/api/v1/agents/all-phases', { headers: authHeaders() });
+            const overviewRes = await authUtils.fetchWithAuth('/api/v1/agents/all-phases');
             if (!overviewRes.ok) throw new Error('Failed to load phases overview');
             const overview: AllPhasesResponse = await overviewRes.json();
             setAllPhases(overview);
@@ -85,7 +85,7 @@ const PhasesOverview: React.FC = () => {
 
             const detailResults = await Promise.allSettled(
                 Object.entries(detailEndpoints).map(async ([phase, url]) => {
-                    const res = await fetch(url, { headers: authHeaders() });
+                    const res = await authUtils.fetchWithAuth(url);
                     const data: PhaseDetail = res.ok ? await res.json() : {};
                     return { phase: parseInt(phase), data };
                 })

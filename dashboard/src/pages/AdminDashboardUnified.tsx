@@ -23,49 +23,14 @@ import AdminOCRCard from '../components/AdminOCRCard';
 import { notification } from 'antd';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import ProjectGenerator from '../components/ProjectGenerator';
+import CollaborationBadge from '../components/CollaborationBadge';
+import { ApiResponse, DashboardContract } from '../types';
 
 const { Title } = Typography;
 const { Header, Content, Sider } = Layout;
 const { Panel } = Collapse;
 
-interface DashboardStats {
-    activeAIAgents: number;
-    runningTasks: number;
-    completedTasks: number;
-    systemHealthStatus?: 'healthy' | 'warning' | 'critical';
-    systemHealthScore: number;
-    systemHealthReason?: string;
-    successRate: number;
-}
-
-interface ComponentDef {
-    key: string;
-    label: string;
-    icon: string;
-    category: string;
-    enabled: boolean;
-    config: Record<string, any>;
-}
-
-interface NavigationItem {
-    key: string;
-    label: string;
-    icon: string;
-    description: string;
-    enabled: boolean;
-}
-
-interface DashboardContract {
-    contractVersion: string;
-    title: string;
-    description: string;
-    entryPath: string;
-    language: string;
-    stats: DashboardStats;
-    navigation: NavigationItem[];
-    components: ComponentDef[];
-    apiEndpoints: Record<string, any>;
-}
 
 const AdminDashboardUnified: React.FC = () => {
     const [collapsed, setCollapsed] = useState(true);
@@ -202,11 +167,11 @@ const AdminDashboardUnified: React.FC = () => {
 
     const fetchContract = async () => {
         try {
-            const response = await authUtils.fetchWithAuth('/api/admin/dashboard/contract');
+            const resp = await authUtils.fetchWithAuth('/api/admin/dashboard/contract');
 
-            if (!response.ok) {
-                if (response.status === 401 || response.status === 403) {
-                    console.error("Unauthorized to access admin dashboard contract. Status:", response.status);
+            if (!resp.ok) {
+                if (resp.status === 401 || resp.status === 403) {
+                    console.error("Unauthorized to access admin dashboard contract. Status:", resp.status);
                     authUtils.clearAuth();
                     window.location.href = '/admin'; // Redirect to login
                     return;
@@ -214,8 +179,12 @@ const AdminDashboardUnified: React.FC = () => {
                 throw new Error('Failed to fetch contract');
             }
 
-            const data: DashboardContract = await response.json();
-            setContract(data);
+            const response = await resp.json() as ApiResponse<DashboardContract>;
+            if (!response.success || !response.data) {
+                throw new Error(response.error || 'Failed to parse platform contract');
+            }
+            
+            setContract(response.data);
             setError(null);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load dashboard');
@@ -261,6 +230,125 @@ const AdminDashboardUnified: React.FC = () => {
         }
     };
 
+    // Build grouped menu from contract navigation
+    const menuGroups = useMemo(() => {
+        if (!contract) return [];
+        return [
+            {
+                key: 'dashboard',
+                label: '📊 Dashboard & Analytics',
+                type: 'group' as const,
+                children: contract.navigation
+                    .filter(i => ['overview', 'metrics', 'analytics', 'quota', 'cost'].includes(i.key))
+                    .map(item => ({
+                        key: item.key,
+                        icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
+                        label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
+                        title: item.description,
+                        disabled: !item.enabled,
+                    }))
+            },
+            {
+                key: 'ai',
+                label: '🤖 AI Systems',
+                type: 'group' as const,
+                children: contract.navigation
+                    .filter(i => ['ai-agents', 'providers', 'ml-intelligence', 'ai-models'].includes(i.key))
+                    .map(item => ({
+                        key: item.key,
+                        icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
+                        label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
+                        title: item.description,
+                        disabled: !item.enabled,
+                    }))
+            },
+            {
+                key: 'learning',
+                label: '📚 Knowledge & Learning',
+                type: 'group' as const,
+                children: contract.navigation
+                    .filter(i => ['learning', 'system-learning', 'teaching', 'research'].includes(i.key))
+                    .map(item => ({
+                        key: item.key,
+                        icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
+                        label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
+                        title: item.description,
+                        disabled: !item.enabled,
+                    }))
+            },
+            {
+                key: 'operations',
+                label: '⚙️ Operations',
+                type: 'group' as const,
+                children: contract.navigation
+                    .filter(i => ['git-ops', 'deployment', 'vpn', 'headless-browser', 'exploitation-techniques'].includes(i.key))
+                    .map(item => ({
+                        key: item.key,
+                        icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
+                        label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
+                        title: item.description,
+                        disabled: !item.enabled,
+                    }))
+            },
+            {
+                key: 'health',
+                label: '🛡️ System Health',
+                type: 'group' as const,
+                children: contract.navigation
+                    .filter(i => ['resilience', 'autofix', 'self-healing', 'audit'].includes(i.key))
+                    .map(item => ({
+                        key: item.key,
+                        icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
+                        label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
+                        title: item.description,
+                        disabled: !item.enabled,
+                    }))
+            },
+            {
+                key: 'admin',
+                label: '👥 Administration',
+                type: 'group' as const,
+                children: contract.navigation
+                    .filter(i => ['user-management', 'api-keys', 'notifications', 'settings', 'phases'].includes(i.key))
+                    .map(item => ({
+                        key: item.key,
+                        icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
+                        label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
+                        title: item.description,
+                        disabled: !item.enabled,
+                    }))
+            },
+        ];
+    }, [contract]);
+
+    // Filter out empty groups
+    const menuItems = useMemo(() => menuGroups.filter(group => group.children.length > 0), [menuGroups]);
+
+    const filteredMenuItems = useMemo(() => {
+        if (!contract) return [];
+        if (!searchQuery.trim()) return menuItems;
+        
+        // Filter menu when searching
+        const query = searchQuery.toLowerCase();
+        const flatItems = contract.navigation.filter(i => 
+            i.label.toLowerCase().includes(query) ||
+            i.key.toLowerCase().includes(query) ||
+            i.description?.toLowerCase().includes(query)
+        ).map(item => ({
+            key: item.key,
+            icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
+            label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
+            title: item.description,
+            disabled: !item.enabled,
+        }));
+        
+        return flatItems.length > 0 ? flatItems : [{
+            key: 'no-results',
+            label: <span style={{ color: 'rgba(255,255,255,0.4)' }}>No results found</span>,
+            disabled: true
+        }];
+    }, [searchQuery, menuItems, contract]);
+
     if (loading) {
         return <div style={{ padding: '50px', textAlign: 'center' }}>Loading unified dashboard...</div>;
     }
@@ -268,97 +356,6 @@ const AdminDashboardUnified: React.FC = () => {
     if (error || !contract) {
         return <Alert type="error" message={error || 'Failed to load dashboard'} />;
     }
-
-    // Build grouped menu from contract navigation
-    const menuGroups = [
-        {
-            key: 'dashboard',
-            label: '📊 Dashboard & Analytics',
-            type: 'group' as const,
-            children: contract.navigation
-                .filter(i => ['overview', 'metrics', 'analytics', 'quota', 'cost'].includes(i.key))
-                .map(item => ({
-                    key: item.key,
-                    icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
-                    label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
-                    title: item.description,
-                    disabled: !item.enabled,
-                }))
-        },
-        {
-            key: 'ai',
-            label: '🤖 AI Systems',
-            type: 'group' as const,
-            children: contract.navigation
-                .filter(i => ['ai-agents', 'providers', 'ml-intelligence', 'ai-models'].includes(i.key))
-                .map(item => ({
-                    key: item.key,
-                    icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
-                    label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
-                    title: item.description,
-                    disabled: !item.enabled,
-                }))
-        },
-        {
-            key: 'learning',
-            label: '📚 Knowledge & Learning',
-            type: 'group' as const,
-            children: contract.navigation
-                .filter(i => ['learning', 'system-learning', 'teaching', 'research'].includes(i.key))
-                .map(item => ({
-                    key: item.key,
-                    icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
-                    label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
-                    title: item.description,
-                    disabled: !item.enabled,
-                }))
-        },
-        {
-            key: 'operations',
-            label: '⚙️ Operations',
-            type: 'group' as const,
-            children: contract.navigation
-                .filter(i => ['git-ops', 'deployment', 'vpn', 'headless-browser', 'exploitation-techniques'].includes(i.key))
-                .map(item => ({
-                    key: item.key,
-                    icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
-                    label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
-                    title: item.description,
-                    disabled: !item.enabled,
-                }))
-        },
-        {
-            key: 'health',
-            label: '🛡️ System Health',
-            type: 'group' as const,
-            children: contract.navigation
-                .filter(i => ['resilience', 'autofix', 'self-healing', 'audit'].includes(i.key))
-                .map(item => ({
-                    key: item.key,
-                    icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
-                    label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
-                    title: item.description,
-                    disabled: !item.enabled,
-                }))
-        },
-        {
-            key: 'admin',
-            label: '👥 Administration',
-            type: 'group' as const,
-            children: contract.navigation
-                .filter(i => ['user-management', 'api-keys', 'notifications', 'settings', 'phases'].includes(i.key))
-                .map(item => ({
-                    key: item.key,
-                    icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
-                    label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
-                    title: item.description,
-                    disabled: !item.enabled,
-                }))
-        },
-    ];
-
-    // Filter out empty groups
-    const menuItems = menuGroups.filter(group => group.children.length > 0);
 
     // Get selected component from contract
     const selectedComponent = contract.components.find((c) => c.key === selectedKey);
@@ -422,8 +419,16 @@ const AdminDashboardUnified: React.FC = () => {
                                 icon={<RobotOutlined style={{ fontSize: '22px' }} />}
                             />
                             <div>
-                                <div style={{ color: '#fff', fontWeight: 700, fontSize: '18px' }}>SupremeAI</div>
-                                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px' }}>Admin Console</div>
+                                <div style={{ color: '#fff', fontWeight: 700, fontSize: '20px' }}>
+                                    <span style={{ color: '#4285F4' }}>G</span>
+                                    <span style={{ color: '#EA4335' }}>o</span>
+                                    <span style={{ color: '#FBBC05' }}>o</span>
+                                    <span style={{ color: '#4285F4' }}>g</span>
+                                    <span style={{ color: '#34A853' }}>l</span>
+                                    <span style={{ color: '#EA4335' }}>e</span>
+                                    <span style={{ marginLeft: '8px' }}>SupremeAI Studio</span>
+                                </div>
+                                <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '11px', fontWeight: 500, letterSpacing: '1px' }}>ENTERPRISE AI STUDIO</div>
                             </div>
                         </div>
                     )}
@@ -460,29 +465,7 @@ const AdminDashboardUnified: React.FC = () => {
                             setSelectedKey(e.key);
                             setSearchQuery('');
                         }}
-                        items={useMemo(() => {
-                            if (!searchQuery.trim()) return menuItems;
-                            
-                            // Filter menu when searching
-                            const query = searchQuery.toLowerCase();
-                            const flatItems = contract.navigation.filter(i => 
-                                i.label.toLowerCase().includes(query) ||
-                                i.key.toLowerCase().includes(query) ||
-                                i.description?.toLowerCase().includes(query)
-                            ).map(item => ({
-                                key: item.key,
-                                icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
-                                label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
-                                title: item.description,
-                                disabled: !item.enabled,
-                            }));
-                            
-                            return flatItems.length > 0 ? flatItems : [{
-                                key: 'no-results',
-                                label: <span style={{ color: 'rgba(255,255,255,0.4)' }}>No results found</span>,
-                                disabled: true
-                            }];
-                        }, [searchQuery, menuItems, contract])}
+                        items={filteredMenuItems}
                         style={{ 
                             background: 'transparent',
                             borderRight: 'none',
@@ -529,6 +512,10 @@ const AdminDashboardUnified: React.FC = () => {
                                     text={<span style={{ fontWeight: 500 }}>System {contract.stats.systemHealthStatus}</span>}
                                 />
                             )}
+
+                            <Divider type="vertical" style={{ height: '32px' }} />
+                            <CollaborationBadge />
+                            <Divider type="vertical" style={{ height: '32px' }} />
                             
                             <Button 
                                 type="text" 

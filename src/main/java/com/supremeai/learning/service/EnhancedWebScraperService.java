@@ -1,6 +1,6 @@
 package com.supremeai.learning.service;
 
-import com.supremeai.learning.ContentSanitizerService;
+import com.supremeai.learning.service.EnhancedContentSanitizerService;
 import com.supremeai.learning.knowledge.SolutionMemory;
 import com.supremeai.learning.active.SourceAuthority;
 import org.jsoup.Jsoup;
@@ -39,17 +39,22 @@ public class EnhancedWebScraperService {
     private static final Logger log = LoggerFactory.getLogger(EnhancedWebScraperService.class);
 
     @Autowired(required = false)
-    private ContentSanitizerService sanitizer;
+    private EnhancedContentSanitizerService sanitizer;
 
-    // Rate limiting configuration
-    @Value("${scraper.rate.limit.requests:10}")
-    private int rateLimitRequests;
+    @Autowired
+    private com.supremeai.service.ConfigService configService;
 
-    @Value("${scraper.rate.limit.window:60}")
-    private int rateLimitWindowSeconds;
+    private int getRateLimitRequests() {
+        return configService.getSetting("scraper_rate_limit_requests", 10);
+    }
 
-    @Value("${scraper.cache.ttl.minutes:30}")
-    private int cacheTtlMinutes;
+    private int getRateLimitWindowSeconds() {
+        return configService.getSetting("scraper_rate_limit_window", 60);
+    }
+
+    private int getCacheTtlMinutes() {
+        return configService.getSetting("scraper_cache_ttl", 30);
+    }
 
     // Rate limiting per domain
     private final Map<String, Semaphore> domainLimiters = new ConcurrentHashMap<>();
@@ -61,18 +66,8 @@ public class EnhancedWebScraperService {
     // Content quality cache
     private final Map<String, Double> qualityScoreCache = new ConcurrentHashMap<>();
 
-    // Source authority weights
-    private static final Map<String, Double> SOURCE_AUTHORITIES = new HashMap<>();
-    static {
-        SOURCE_AUTHORITIES.put("github.com", 0.90);
-        SOURCE_AUTHORITIES.put("stackoverflow.com", 0.85);
-        SOURCE_AUTHORITIES.put("wikipedia.org", 0.80);
-        SOURCE_AUTHORITIES.put("medium.com", 0.75);
-        SOURCE_AUTHORITIES.put("dev.to", 0.70);
-        SOURCE_AUTHORITIES.put("docs.spring.io", 0.90);
-        SOURCE_AUTHORITIES.put("developer.android.com", 0.90);
-        SOURCE_AUTHORITIES.put("kotlinlang.org", 0.85);
-        SOURCE_AUTHORITIES.put("react.dev", 0.85);
+    private double getSourceAuthority(String domain) {
+        return configService.getThreshold("auth_" + domain, 0.50);
     }
 
     // Technology detection patterns
@@ -107,7 +102,7 @@ public class EnhancedWebScraperService {
         try {
             // Extract domain for source authority
             String domain = extractDomain(url);
-            double authority = SOURCE_AUTHORITIES.getOrDefault(domain, 0.50);
+            double authority = getSourceAuthority(domain);
 
             // Scrape with proper headers
             Document doc = Jsoup.connect(url)
@@ -185,7 +180,7 @@ public class EnhancedWebScraperService {
         candidate.setSourceAuthority(scraped.getSourceAuthority());
 
         // Apply sanitization
-        if (sanitizer.sanitizeAndValidate(candidate, scraped.getDomain())) {
+        if (sanitizer.sanitizeAndValidate(candidate, scraped.getDomain()).isValid()) {
             return candidate;
         } else {
             log.warn("[Sanitizer] Dropped solution from {} (failed validation)", 
@@ -200,7 +195,7 @@ public class EnhancedWebScraperService {
     private boolean checkRateLimit(String url) {
         String domain = extractDomain(url);
         Semaphore limiter = domainLimiters.computeIfAbsent(
-                domain, k -> new Semaphore(rateLimitRequests)
+                domain, k -> new Semaphore(getRateLimitRequests())
         );
 
         Queue<Long> timestamps = requestTimestamps.computeIfAbsent(
@@ -209,14 +204,14 @@ public class EnhancedWebScraperService {
 
         // Clean old timestamps
         long now = System.currentTimeMillis();
-        long windowStart = now - TimeUnit.SECONDS.toMillis(rateLimitWindowSeconds);
+        long windowStart = now - TimeUnit.SECONDS.toMillis(getRateLimitWindowSeconds());
 
         while (!timestamps.isEmpty() && timestamps.peek() < windowStart) {
             timestamps.poll();
         }
 
         // Check if under limit
-        if (timestamps.size() < rateLimitRequests && limiter.tryAcquire()) {
+        if (timestamps.size() < getRateLimitRequests() && limiter.tryAcquire()) {
             timestamps.offer(now);
             return true;
         }
@@ -228,11 +223,12 @@ public class EnhancedWebScraperService {
      * Extract domain from URL.
      */
     private String extractDomain(String url) {
+        if (url == null || !url.contains("://")) return "unknown";
         try {
             String domain = url.replaceAll("^https?://", "")
                     .replaceAll("/.*$", "")
-                    .replaceAll("www\\.", "");
-            return domain.split("/")[0];
+                    .replaceAll("^www\\.", "");
+            return domain.isEmpty() ? "unknown" : domain;
         } catch (Exception e) {
             return "unknown";
         }
@@ -372,7 +368,7 @@ public class EnhancedWebScraperService {
 
         // Clean old request timestamps
         long now = System.currentTimeMillis();
-        long windowStart = now - TimeUnit.SECONDS.toMillis(rateLimitWindowSeconds);
+        long windowStart = now - TimeUnit.SECONDS.toMillis(getRateLimitWindowSeconds());
 
         requestTimestamps.forEach((domain, timestamps) -> {
             while (!timestamps.isEmpty() && timestamps.peek() < windowStart) {
@@ -381,7 +377,7 @@ public class EnhancedWebScraperService {
         });
 
         // Clean old content hashes (older than cache TTL)
-        LocalDateTime cutoff = LocalDateTime.now().minusMinutes(cacheTtlMinutes);
+        LocalDateTime cutoff = LocalDateTime.now().minusMinutes(getCacheTtlMinutes());
         contentHashCache.entrySet().removeIf(entry -> {
             // Simple heuristic: remove old entries
             return entry.getKey().hashCode() < cutoff.hashCode();

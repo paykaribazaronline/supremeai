@@ -25,6 +25,10 @@ interface SystemConfig {
   tierQuotas?: Record<string, number>;
   tierMaxApis?: Record<string, number>;
   tierMaxSimulatorInstalls?: Record<string, number>;
+  timeouts?: Record<string, number>;
+  thresholds?: Record<string, number>;
+  settings?: Record<string, any>;
+  collections?: Record<string, string>;
 }
 
 const AdminSettings: React.FC = () => {
@@ -45,17 +49,7 @@ const AdminSettings: React.FC = () => {
       if (!response.ok) throw new Error('Failed to load configuration');
       const data: SystemConfig = await response.json();
       setConfig(data);
-      form.setFieldsValue({
-        activeModel: data.activeModel,
-        smallModel: data.smallModel,
-        maintenanceMode: data.maintenanceMode,
-        fullAuthority: data.fullAuthority,
-        shareMode: data.shareMode,
-        enableExternalDirectory: data.enableExternalDirectory,
-        emailNotifications: data.emailNotifications,
-        smsAlerts: data.smsAlerts,
-        systemMessage: data.systemMessage,
-      });
+      form.setFieldsValue(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load settings');
     } finally {
@@ -93,16 +87,14 @@ const AdminSettings: React.FC = () => {
     }
   };
 
-  const handleQuotaUpdate = async (tier: string, field: 'tierQuotas' | 'tierMaxApis' | 'tierMaxSimulatorInstalls', value: number) => {
+  const updateMapValue = async (field: keyof SystemConfig, key: string, value: any) => {
     try {
       const token = authUtils.getToken();
-      // PATCH endpoint expects path param for tier and query param for limit
-      // Actually endpoint: PATCH /api/admin/config/quotas/{tier}?limit=...
-      // That updates only tierQuotas. For other maps, we might need custom endpoint or PUT full config.
-      // For simplicity, we'll update via full config PUT for now (backend merges)
       const newConfig = { ...config };
-      if (!newConfig[field]) newConfig[field] = {};
-      newConfig[field] = { ...(newConfig[field] as Record<string, number>), [tier]: value };
+      const map = { ...(newConfig[field] as Record<string, any>) };
+      map[key] = value;
+      (newConfig as any)[field] = map;
+      
       const response = await fetch('/api/admin/config', {
         method: 'PUT',
         headers: {
@@ -111,12 +103,41 @@ const AdminSettings: React.FC = () => {
         },
         body: JSON.stringify(newConfig),
       });
-      if (!response.ok) throw new Error('Failed to update quota');
-      message.success(`Quota for ${tier} updated to ${value}`);
+      if (!response.ok) throw new Error('Failed to update value');
+      message.success(`Updated ${key} successfully`);
       fetchConfig();
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to update quota');
+      message.error(err instanceof Error ? err.message : 'Failed to update value');
     }
+  };
+
+  const renderMapEditor = (field: keyof SystemConfig, title: string) => {
+    const data = Object.entries(config[field] || {}).map(([key, value]) => ({
+      key,
+      value,
+    }));
+
+    const columns = [
+      { title: 'Key', dataIndex: 'key', key: 'key' },
+      { 
+        title: 'Value', 
+        dataIndex: 'value', 
+        key: 'value',
+        render: (text: any, record: any) => (
+          <Input 
+            defaultValue={text}
+            onBlur={(e) => updateMapValue(field, record.key, e.target.value)}
+            onPressEnter={(e) => updateMapValue(field, record.key, (e.target as any).value)}
+          />
+        )
+      }
+    ];
+
+    return (
+      <Card title={title} size="small" style={{ marginBottom: 16 }}>
+        <Table dataSource={data} columns={columns} pagination={false} size="small" rowKey="key" />
+      </Card>
+    );
   };
 
   const quotaColumns = [
@@ -127,19 +148,14 @@ const AdminSettings: React.FC = () => {
       render: (tier: string) => <Tag color="blue">{tier}</Tag>,
     },
     {
-      title: 'Monthly Quota (installs/calls)',
+      title: 'Monthly Quota',
       dataIndex: 'quota',
       key: 'quota',
       render: (quota: number, record: any) => (
         <Input
           type="number"
           defaultValue={quota}
-          onPressEnter={(e) => {
-            handleQuotaUpdate(record.tier, 'tierQuotas', Number(e.currentTarget.value));
-          }}
-          onBlur={(e) => {
-            handleQuotaUpdate(record.tier, 'tierQuotas', Number(e.currentTarget.value));
-          }}
+          onBlur={(e) => updateMapValue('tierQuotas', record.tier, Number(e.target.value))}
           style={{ width: 120 }}
         />
       ),
@@ -152,12 +168,7 @@ const AdminSettings: React.FC = () => {
         <Input
           type="number"
           defaultValue={maxApis}
-          onPressEnter={(e) => {
-            handleQuotaUpdate(record.tier, 'tierMaxApis', Number(e.currentTarget.value));
-          }}
-          onBlur={(e) => {
-            handleQuotaUpdate(record.tier, 'tierMaxApis', Number(e.currentTarget.value));
-          }}
+          onBlur={(e) => updateMapValue('tierMaxApis', record.tier, Number(e.target.value))}
           style={{ width: 100 }}
         />
       ),
@@ -252,23 +263,15 @@ const AdminSettings: React.FC = () => {
       ),
     },
     {
-      key: 'advanced',
-      label: 'Advanced',
+      key: 'engine',
+      label: <><FileTextOutlined /> Engine Settings</>,
       children: (
-        <Card style={{ marginTop: 16 }}>
-          <h3>API Keys Management</h3>
-          <p>Manage OpenAI, Anthropic, and Google AI API keys.</p>
-          <Alert
-            message="API keys are currently stored securely in the backend."
-            type="info"
-            style={{ marginBottom: 16 }}
-          />
-          <Button type="primary">Manage API Keys (Coming Soon)</Button>
-
-          <h3 style={{ marginTop: 24 }}>Log Retention Policy</h3>
-          <p>Configure how long activity logs, error logs, and audit trails are retained.</p>
-          <Button>Configure Retention (Coming Soon)</Button>
-        </Card>
+        <div style={{ marginTop: 16 }}>
+          {renderMapEditor('timeouts', 'System Timeouts (ms)')}
+          {renderMapEditor('thresholds', 'Logic Thresholds (0.0 - 1.0)')}
+          {renderMapEditor('settings', 'Generic System Settings')}
+          {renderMapEditor('collections', 'Database Collections')}
+        </div>
       ),
     },
   ];

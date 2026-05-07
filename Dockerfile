@@ -27,7 +27,7 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 # Create logs directory for logback
-RUN mkdir -p logs && chmod 777 logs
+RUN mkdir -p logs && chmod 755 logs
 
 # Copy the built JAR
 COPY --from=builder /app/build/libs/app.jar app.jar
@@ -38,7 +38,7 @@ USER supremeai
 
 ENV PORT=8080
 ENV SPRING_PROFILES_ACTIVE=cloud
-ENV JAVA_OPTS="-Xms512m -Xmx2g -XX:+UseG1GC"
+ENV JAVA_OPTS="-Xms512m -Xmx2g -XX:+UseG1GC --enable-preview"
 
 EXPOSE 8080
 

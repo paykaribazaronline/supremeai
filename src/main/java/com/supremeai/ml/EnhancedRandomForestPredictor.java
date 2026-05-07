@@ -196,19 +196,24 @@ public class EnhancedRandomForestPredictor {
             // Calculate baseline accuracy
             int correct = 0;
             for (int i = 0; i < features.length; i++) {
-                int prediction = predictWithFeatures(features[i]);
-                if (prediction == labels[i]) correct++;
+                if (predictWithFeatures(features[i]) == labels[i]) correct++;
             }
             double baselineAccuracy = (double) correct / features.length;
 
-            // Permute feature f and recalculate
+            // Permute only feature f
             double[][] permutedFeatures = copyArray(features);
-            Collections.shuffle(Arrays.asList(permutedFeatures), rand); // Simple permutation
+            List<Double> columnValues = new ArrayList<>();
+            for (int i = 0; i < features.length; i++) {
+                columnValues.add(features[i][f]);
+            }
+            Collections.shuffle(columnValues, rand);
+            for (int i = 0; i < features.length; i++) {
+                permutedFeatures[i][f] = columnValues.get(i);
+            }
 
             correct = 0;
             for (int i = 0; i < permutedFeatures.length; i++) {
-                int prediction = predictWithFeatures(permutedFeatures[i]);
-                if (prediction == labels[i]) correct++;
+                if (predictWithFeatures(permutedFeatures[i]) == labels[i]) correct++;
             }
             double permutedAccuracy = (double) correct / permutedFeatures.length;
 

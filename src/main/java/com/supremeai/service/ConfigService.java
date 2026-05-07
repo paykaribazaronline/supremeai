@@ -2,24 +2,84 @@ package com.supremeai.service;
 
 import com.supremeai.model.SystemConfig;
 import com.supremeai.model.UserTier;
+import com.supremeai.repository.SystemConfigRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.ListenerRegistration;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Service to manage global system configuration with local caching for performance.
- * This version is simplified for local development without Firestore dependency.
+ * Service to manage global system configuration with Firestore persistence and local caching.
  */
 @Service
 public class ConfigService {
 
+    private static final Logger logger = LoggerFactory.getLogger(ConfigService.class);
+    private static final String DOCUMENT_ID = "global_settings";
+
+    @Autowired
+    private SystemConfigRepository systemConfigRepository;
+
+    @Autowired
+    private Firestore firestore;
+
     private SystemConfig cachedConfig;
+    private ListenerRegistration listenerRegistration;
+    private final Executor listenerExecutor = Executors.newSingleThreadExecutor();
 
     public ConfigService() {
-        // Initialize with default configuration
+        // Initial fallback, will be refreshed from Firestore
         this.cachedConfig = createDefaultConfig();
+    }
+
+    @PostConstruct
+    public void init() {
+        // 1. Initial refresh
+        refreshCache().subscribe(
+            config -> logger.info("System configuration initialized: v{}", config.getVersion()),
+            error -> logger.error("Failed to initialize system configuration", error)
+        );
+
+        // 2. Setup real-time listener
+        try {
+            this.listenerRegistration = firestore.collection("system_configs")
+                    .document(DOCUMENT_ID)
+                    .addSnapshotListener(listenerExecutor, (snapshot, error) -> {
+                        if (error != null) {
+                            logger.error("Firestore listener error for system_configs", error);
+                            return;
+                        }
+
+                        if (snapshot != null && snapshot.exists()) {
+                            SystemConfig newConfig = snapshot.toObject(SystemConfig.class);
+                            if (newConfig != null) {
+                                this.cachedConfig = newConfig;
+                                logger.info("System configuration updated in real-time: v{}", newConfig.getVersion());
+                            }
+                        }
+                    });
+            logger.info("Real-time configuration listener attached to document: {}", DOCUMENT_ID);
+        } catch (Exception e) {
+            logger.error("Failed to setup real-time configuration listener", e);
+        }
+    }
+
+    @PreDestroy
+    public void cleanup() {
+        if (listenerRegistration != null) {
+            listenerRegistration.remove();
+        }
     }
 
     private SystemConfig createDefaultConfig() {
@@ -44,15 +104,45 @@ public class ConfigService {
         config.getTierMaxSimulatorInstalls().put(UserTier.BASIC.name(), 10);
         config.getTierMaxSimulatorInstalls().put(UserTier.PRO.name(), 50);
         config.getTierMaxSimulatorInstalls().put(UserTier.ADMIN.name(), 50);
-        
+
+        // Seed dynamic timeouts
+        config.getTimeouts().put("voting_timeout", 15000L);
+        config.getTimeouts().put("cache_duration", 300000L);
+        config.getTimeouts().put("scraper_cache_ttl", 30L);
+
+        // Seed dynamic thresholds
+        config.getThresholds().put("consensus", 0.6);
+        config.getThresholds().put("min_clarity", 0.6);
+        config.getThresholds().put("auth_github.com", 0.90);
+        config.getThresholds().put("auth_stackoverflow.com", 0.85);
+
+        // Seed generic settings
+        config.getSettings().put("max_retries", 2);
+        config.getSettings().put("min_prompt_length", 10);
+        config.getSettings().put("min_code_requirement_length", 20);
+        config.getSettings().put("max_recent_logs", 1000);
+        config.getSettings().put("scraper_rate_limit_requests", 10);
+        config.getSettings().put("scraper_rate_limit_window", 60);
+
         return config;
     }
 
     /**
-     * Refreshes the local cache (no-op for local, returns current config).
+     * Refreshes the local cache from Firestore.
      */
     public Mono<SystemConfig> refreshCache() {
-        return Mono.just(cachedConfig);
+        return systemConfigRepository.findById("global_settings")
+                .map(config -> {
+                    this.cachedConfig = config;
+                    return config;
+                })
+                .switchIfEmpty(Mono.defer(() -> {
+                    SystemConfig def = createDefaultConfig();
+                    return systemConfigRepository.save(def).map(saved -> {
+                        this.cachedConfig = saved;
+                        return saved;
+                    });
+                }));
     }
 
     /**
@@ -92,15 +182,19 @@ public class ConfigService {
     }
 
     /**
-     * Update configuration (in-memory for local).
+     * Update configuration in Firestore.
      */
     public Mono<SystemConfig> updateConfig(SystemConfig newConfig, String actorUserId, String ipAddress) {
         SystemConfig previous = getConfig();
         newConfig.setId("global_settings");
         Long currentVersion = previous.getVersion() == null ? 1L : previous.getVersion();
         newConfig.setVersion(currentVersion + 1L);
-        this.cachedConfig = newConfig;
-        return Mono.just(newConfig);
+        
+        return systemConfigRepository.save(newConfig)
+                .map(saved -> {
+                    this.cachedConfig = saved;
+                    return saved;
+                });
     }
 
     /**
@@ -112,5 +206,30 @@ public class ConfigService {
         quotas.put(tier.name(), limit);
         current.setTierQuotas(quotas);
         return updateConfig(current, "system", "unknown");
+    }
+
+    // --- Helper methods for dynamic settings ---
+
+    public String getCollectionName(String key, String defaultVal) {
+        return getConfig().getCollections().getOrDefault(key, defaultVal);
+    }
+
+    public long getTimeout(String key, long defaultVal) {
+        return getConfig().getTimeouts().getOrDefault(key, defaultVal);
+    }
+
+    public double getThreshold(String key, double defaultVal) {
+        return getConfig().getThresholds().getOrDefault(key, defaultVal);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T getSetting(String key, T defaultVal) {
+        Object val = getConfig().getSettings().get(key);
+        if (val == null) return defaultVal;
+        try {
+            return (T) val;
+        } catch (Exception e) {
+            return defaultVal;
+        }
     }
 }

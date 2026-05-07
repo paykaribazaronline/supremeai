@@ -38,6 +38,9 @@ public class UnifiedSecretsService {
     private AwsSecretsService awsSecretsService;
 
     @Autowired
+    private FirebaseSecretsService firebaseSecretsService;
+
+    @Autowired
     private EncryptionService encryptionService;
 
     @Value("${secrets.cache.enabled:true}")
@@ -64,7 +67,28 @@ public class UnifiedSecretsService {
             }
         }
 
-        // Try Vault first
+        // Try Firebase first (as requested by user)
+        if (firebaseSecretsService != null) {
+            // Map common keys to Firebase structure if needed
+            String firebaseKey = mapToFirebaseKey(secretKey);
+            return firebaseSecretsService.getSecret(firebaseKey)
+                .flatMap(value -> {
+                    if (value != null && !value.isEmpty()) {
+                        log.debug("Retrieved secret from Firebase for key: {}", secretKey);
+                        return cacheAndReturn(secretKey, value);
+                    }
+                    return tryVault(secretKey);
+                })
+                .switchIfEmpty(tryVault(secretKey));
+        }
+
+        return tryVault(secretKey);
+    }
+
+    /**
+     * Try to retrieve secret from HashiCorp Vault.
+     */
+    private Mono<String> tryVault(String secretKey) {
         if (vaultSecretsService != null) {
             return vaultSecretsService.getSecret(secretKey)
                 .flatMap(value -> {
@@ -76,9 +100,26 @@ public class UnifiedSecretsService {
                 })
                 .switchIfEmpty(tryAwsSecrets(secretKey));
         }
-
-        // Fall back to AWS Secrets Manager
         return tryAwsSecrets(secretKey);
+    }
+
+    /**
+     * Maps common secret keys to Firebase provider structure.
+     * e.g., GEMINI_API_KEY -> gemini.apiKey
+     */
+    private String mapToFirebaseKey(String secretKey) {
+        String key = secretKey.toLowerCase();
+        if (key.contains("gemini") && key.contains("key")) return "gemini.apiKey";
+        if (key.contains("openai") && key.contains("key")) return "openai.apiKey";
+        if (key.contains("groq") && key.contains("key")) return "groq.apiKey";
+        if (key.contains("anthropic") && key.contains("key")) return "anthropic.apiKey";
+        if (key.contains("deepseek") && key.contains("key")) return "deepseek.apiKey";
+        
+        // Fallback: if it contains a dot, assume it's already in provider.key format
+        if (secretKey.contains(".")) return secretKey;
+        
+        // Otherwise try to guess (e.g. GEMINI -> gemini.apiKey)
+        return secretKey.toLowerCase() + ".apiKey";
     }
 
     /**
@@ -193,6 +234,13 @@ public class UnifiedSecretsService {
                 health.put("aws", awsHealth != null && awsHealth);
             } else {
                 health.put("aws", false);
+            }
+
+            if (firebaseSecretsService != null) {
+                Boolean firebaseHealth = firebaseSecretsService.healthCheck().block();
+                health.put("firebase", firebaseHealth != null && firebaseHealth);
+            } else {
+                health.put("firebase", false);
             }
 
             health.put("environment", true); // Environment variables always available

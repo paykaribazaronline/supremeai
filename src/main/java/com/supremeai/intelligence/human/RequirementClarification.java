@@ -26,7 +26,7 @@ public class RequirementClarification {
             sb.append((i + 1)).append(". ").append(options.get(i).getOptionText()).append("\n");
             sb.append("   [Hint: ").append(options.get(i).getHint()).append("]\n\n");
         }
-        sb.append("Please reply with the number (e.g., '1') or tell me in your own words.");
+        sb.append("Please reply with the number");
         return sb.toString();
     }
 }

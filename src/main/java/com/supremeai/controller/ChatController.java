@@ -10,6 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import jakarta.validation.Valid;
+import com.supremeai.dto.ChatRequest;
+import com.supremeai.dto.FeedbackRequest;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -37,9 +41,9 @@ public class ChatController {
 
     @PostMapping("/send")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'AGENT_MANAGER')")
-    public Mono<ResponseEntity<Object>> sendMessage(@RequestBody Map<String, Object> request) {
-        String message = (String) request.get("message");
-        Boolean skipValidation = (Boolean) request.getOrDefault("skipValidation", false);
+    public Mono<ResponseEntity<Object>> sendMessage(@Valid @RequestBody ChatRequest request) {
+        String message = request.getMessage();
+        boolean skipValidation = request.isSkipValidation();
 
         if (message == null || message.trim().isEmpty()) {
             return Mono.just(ResponseEntity.badRequest().body(Map.of("error", "Message is required")));
@@ -111,6 +115,7 @@ public class ChatController {
     }
 
     @GetMapping("/history")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public Mono<ResponseEntity<Object>> getHistory(
             @RequestParam(required = false) String agent,
             @RequestParam(defaultValue = "50") int limit) {
@@ -123,17 +128,17 @@ public class ChatController {
 
     @PostMapping("/feedback")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'AGENT_MANAGER')")
-    public Mono<ResponseEntity<Object>> submitFeedback(@RequestBody Map<String, Object> request) {
-        String messageId = (String) request.get("messageId");
-        Boolean helpful = (Boolean) request.get("helpful");
-        String userMessage = (String) request.getOrDefault("userMessage", "");
-        String aiResponse = (String) request.getOrDefault("aiResponse", "");
+    public Mono<ResponseEntity<Object>> submitFeedback(@Valid @RequestBody FeedbackRequest request) {
+        String messageId = request.getMessageId();
+        boolean helpful = request.isHelpful();
+        String userMessage = request.getUserMessage();
+        String aiResponse = request.getAiResponse();
 
         logger.info("Received feedback for message: {}, helpful: {}", messageId, helpful);
 
         // Capture learning from feedback - this is valuable for NLP improvement
         if (enhancedLearningService != null && userMessage != null && aiResponse != null) {
-            double qualityScore = helpful != null && helpful ? 1.0 : 0.3;
+            double qualityScore = helpful ? 1.0 : 0.3;
             enhancedLearningService.learnFromNLPInteraction(
                     userMessage,
                     aiResponse,

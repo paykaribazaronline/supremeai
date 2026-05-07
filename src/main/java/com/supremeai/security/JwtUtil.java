@@ -7,6 +7,7 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -26,6 +27,13 @@ public class JwtUtil {
 
     @Value("${JWT_ISSUER:supremeai}")
     private String issuer;
+
+    @PostConstruct
+    public void validateSecret() {
+        if (secret == null || secret.length() < 32) {
+            throw new IllegalStateException("JWT_SECRET must be at least 32 characters for HS256 algorithm");
+        }
+    }
 
     private SecretKey getSigningKey() {
         byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);

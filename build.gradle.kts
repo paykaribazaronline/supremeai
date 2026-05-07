@@ -55,25 +55,25 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     // JSON Processing - all three Jackson artifacts must be same version to avoid NoSuchMethodError
-    implementation("com.fasterxml.jackson.core:jackson-core:2.17.0")
-    implementation("com.fasterxml.jackson.core:jackson-annotations:2.17.0")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.0")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.0")
+    implementation("com.fasterxml.jackson.core:jackson-core:2.18.1")
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.18.1")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.1")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.1")
     // Jackson Afterburner module for optimized JSON serialization (20-30% faster)
-    implementation("com.fasterxml.jackson.module:jackson-module-afterburner:2.17.0")
+    implementation("com.fasterxml.jackson.module:jackson-module-afterburner:2.18.1")
 
     // HTML Parsing
-    implementation("org.jsoup:jsoup:1.17.1")
+    implementation("org.jsoup:jsoup:1.18.1")
 
     // Logging - STRUCTURED LOGGING
     implementation("org.slf4j:slf4j-api:2.0.16")
-    implementation("ch.qos.logback:logback-classic:1.5.8")
-    implementation("ch.qos.logback:logback-core:1.5.8")
+    implementation("ch.qos.logback:logback-classic:1.5.12")
+    implementation("ch.qos.logback:logback-core:1.5.12")
 
     // JWT Authentication
-    implementation("io.jsonwebtoken:jjwt-api:0.12.5")
-    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.5")
-    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5")
+    implementation("io.jsonwebtoken:jjwt-api:0.12.6")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 
     // Configuration Management - EXTERNALIZED CONFIG
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
@@ -91,6 +91,7 @@ dependencies {
 
     // Database
     runtimeOnly("com.h2database:h2")
+    runtimeOnly("org.postgresql:postgresql:42.7.3")
 
     // Resilience & Error Handling
     implementation("io.github.resilience4j:resilience4j-core:2.1.0")
@@ -139,7 +140,14 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("io.projectreactor:reactor-test")
+    // Jakarta Validation API for DTO validation tests (managed by Spring Boot BOM)
+    testImplementation("jakarta.validation:jakarta.validation-api")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    // Testcontainers for integration testing with Firestore emulator
+    testImplementation("org.testcontainers:testcontainers:1.19.8")
+    testImplementation("org.testcontainers:junit-jupiter:1.19.8")
+    testImplementation("com.google.cloud:google-cloud-bigquery")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
 }
 
 // Configure UTF-8 encoding for all compilation tasks

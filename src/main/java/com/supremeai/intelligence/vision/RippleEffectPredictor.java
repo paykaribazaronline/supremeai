@@ -19,9 +19,11 @@ public class RippleEffectPredictor {
         
         RippleWarning warning = new RippleWarning(filePath);
 
+        String lowerPath = filePath != null ? filePath.toLowerCase() : "";
+
         // Example 1: Developer changes a database column in a Spring Boot Entity
-        if (filePath.endsWith("Entity.java") || filePath.endsWith("Model.java")) {
-            if (newCode.contains("@Column") && !oldCode.equals(newCode)) {
+        if (lowerPath.endsWith("entity.java") || lowerPath.endsWith("model.java")) {
+            if (newCode != null && oldCode != null && newCode.contains("@Column") && !oldCode.equals(newCode)) {
                 warning.addAffectedArea("Database Schema", "You might need to write a Flyway/Liquibase migration for this column change.");
                 warning.addAffectedArea("DTOs", "Did you update the corresponding ResponseDTO and RequestDTO?");
                 warning.addAffectedArea("Frontend Models", "Warning: The React/Angular frontend might crash if it expects the old JSON structure.");
@@ -29,7 +31,7 @@ public class RippleEffectPredictor {
         }
 
         // Example 2: Developer changes an Interface signature
-        if (filePath.endsWith("Service.java") && oldCode.contains("interface") && !oldCode.equals(newCode)) {
+        if (lowerPath.endsWith("service.java") && oldCode != null && oldCode.contains("interface") && !oldCode.equals(newCode)) {
             warning.addAffectedArea("Implementations", "All classes implementing this service will break.");
             warning.addAffectedArea("Unit Tests", "Mock objects in your test files will fail compilation.");
         }

@@ -24,19 +24,12 @@ public class AnthropicProvider extends AbstractHttpProvider {
         return "anthropic";
     }
 
-    @Override
-    public Map<String, Object> getCapabilities() {
-        return Map.of(
-                "name", "Anthropic",
-                "models", new String[]{"claude-3-opus-20240229", "claude-3-sonnet-20240229"}
-        );
-    }
 
     @Override
     protected Map<String, Object> createRequestBody(String prompt) {
         return Map.of(
                 "messages", List.of(Map.of("role", "user", "content", prompt)),
-                "model", "claude-3-sonnet-20240229",
+                "model", getModel(),
                 "max_tokens", 1024
         );
     }

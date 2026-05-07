@@ -30,19 +30,12 @@ public class OpenAIProvider extends AbstractHttpProvider {
         return "openai";
     }
 
-    @Override
-    public Map<String, Object> getCapabilities() {
-        return Map.of(
-                "name", "OpenAI",
-                "models", new String[]{"gpt-4", "gpt-3.5-turbo"}
-        );
-    }
 
     @Override
     protected Map<String, Object> createRequestBody(String prompt) {
         return Map.of(
                 "messages", List.of(Map.of("role", "user", "content", prompt)),
-                "model", "gpt-3.5-turbo"
+                "model", getModel()
         );
     }
 

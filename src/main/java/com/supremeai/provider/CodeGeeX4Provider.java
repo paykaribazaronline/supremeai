@@ -86,6 +86,9 @@ public class CodeGeeX4Provider extends AbstractHttpProvider {
 
     @Override
     protected String extractResponse(String responseBody) throws Exception {
+        if (responseBody == null || responseBody.isBlank()) {
+            return "No response from CodeGeeX4.";
+        }
         Map<String, Object> responseMap = objectMapper.readValue(responseBody,
                 new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
         

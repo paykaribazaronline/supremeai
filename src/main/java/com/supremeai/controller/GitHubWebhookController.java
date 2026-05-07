@@ -28,12 +28,15 @@ public class GitHubWebhookController {
     @PostMapping("/workflow")
     public ResponseEntity<String> handleWorkflowEvent(@RequestBody Map<String, Object> payload) {
         String action = (String) payload.get("action");
+        @SuppressWarnings("unchecked")
         Map<String, Object> workflowJob = (Map<String, Object>) payload.get("workflow_job");
 
         if (workflowJob != null && "completed".equals(action)) {
             String conclusion = (String) workflowJob.get("conclusion");
             String workflowName = (String) workflowJob.get("workflow_name");
-            String repo = (String) ((Map<String, Object>) payload.get("repository")).get("full_name");
+            @SuppressWarnings("unchecked")
+            Map<String, Object> repoMap = (Map<String, Object>) payload.get("repository");
+            String repo = repoMap != null ? (String) repoMap.get("full_name") : "unknown";
             String workflowId = String.valueOf(workflowJob.get("id"));
 
             // Broadcast WebSocket notification to admin dashboard
@@ -79,12 +82,14 @@ public class GitHubWebhookController {
                 Map<String, Object> analysisPayload = new HashMap<>();
 
                 // Extract relevant info
+                @SuppressWarnings("unchecked")
                 Map<String, Object> workflowJob = (Map<String, Object>) payload.get("workflow_job");
                 if (workflowJob != null) {
                     analysisPayload.put("runId", workflowJob.get("id"));
                     analysisPayload.put("workflowName", workflowJob.get("workflow_name"));
                 }
 
+                @SuppressWarnings("unchecked")
                 Map<String, Object> repository = (Map<String, Object>) payload.get("repository");
                 if (repository != null) {
                     analysisPayload.put("author", repository.get("owner"));

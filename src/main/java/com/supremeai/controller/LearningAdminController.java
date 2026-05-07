@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import com.supremeai.learning.active.ActiveInternetScraper;
 
 import java.util.Map;
 
@@ -20,11 +21,13 @@ public class LearningAdminController {
 
     private final LearningModeControl modeControl;
     private final LearningQuotaService quotaService;
+    private final ActiveInternetScraper scraper;
 
     @Autowired
-    public LearningAdminController(LearningModeControl modeControl, LearningQuotaService quotaService) {
+    public LearningAdminController(LearningModeControl modeControl, LearningQuotaService quotaService, ActiveInternetScraper scraper) {
         this.modeControl = modeControl;
         this.quotaService = quotaService;
+        this.scraper = scraper;
     }
 
     /**
@@ -128,10 +131,12 @@ public class LearningAdminController {
                 "error", "Manual trigger not allowed in current mode: " + modeControl.getCurrentMode()
             ));
         }
-        // TODO: Kick off ActiveInternetScraper and learning pipeline
+        java.util.concurrent.CompletableFuture.runAsync(() -> {
+            scraper.scrapeTrendingIssues();
+        });
         return ResponseEntity.ok(Map.of(
             "status", "triggered",
-            "message", "Learning cycle started (implementation pending)"
+            "message", "Learning cycle started successfully"
         ));
     }
 

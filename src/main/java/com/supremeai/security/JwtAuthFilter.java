@@ -25,6 +25,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Override
+    protected boolean shouldNotFilterAsyncDispatch() {
+        return false;
+    }
     
     @Override
     protected void doFilterInternal(HttpServletRequest request, 

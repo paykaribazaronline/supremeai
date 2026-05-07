@@ -3,6 +3,7 @@ package com.supremeai.config;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -49,49 +50,50 @@ public class HikariCPConfig {
     @Value("${spring.datasource.driver-class-name:org.h2.Driver}")
     private String driverClassName;
 
-    /**
-     * Configure HikariCP DataSource with optimized settings for Firestore.
-     *
-     * @return configured HikariDataSource or null if no URL provided
-     */
-    @Bean
-    public DataSource hikariDataSource() {
-        // If no JDBC URL is provided, don't create the bean (Firestore-only mode)
-        if (jdbcUrl == null || jdbcUrl.trim().isEmpty()) {
-            return null;
-        }
-        
-        HikariConfig config = new HikariConfig();
-        
-        // JDBC connection settings
-        config.setJdbcUrl(jdbcUrl);
-        config.setUsername(username);
-        config.setPassword(password);
-        config.setDriverClassName(driverClassName);
-        
-        // Connection pool sizing
-        config.setMaximumPoolSize(maximumPoolSize);
-        config.setMinimumIdle(minimumIdle);
-        
-        // Connection timeouts
-        config.setConnectionTimeout(connectionTimeout);
-        config.setIdleTimeout(idleTimeout);
-        config.setMaxLifetime(maxLifetime);
-        
-        // Leak detection
-        config.setLeakDetectionThreshold(leakDetectionThreshold);
-        
-        // Performance optimizations
-        config.setPoolName("SupremeAIHikariPool");
-        config.setRegisterMbeans(true);
-        
-        // Connection testing
-        config.setConnectionTestQuery("SELECT 1");
-        config.setValidationTimeout(5000);
-        
-        // Fail fast on startup
-        config.setInitializationFailTimeout(1);
-        
-        return new HikariDataSource(config);
-    }
+     /**
+      * Configure HikariCP DataSource with optimized settings for Firestore.
+      *
+      * @return configured HikariDataSource or null if no URL provided
+      */
+     @Bean
+     @ConditionalOnProperty(name = "spring.datasource.url", matchIfMissing = false)
+     public DataSource hikariDataSource() {
+         // If no JDBC URL is provided, don't create the bean (Firestore-only mode)
+         if (jdbcUrl == null || jdbcUrl.trim().isEmpty()) {
+             return null;
+         }
+         
+         HikariConfig config = new HikariConfig();
+         
+         // JDBC connection settings
+         config.setJdbcUrl(jdbcUrl);
+         config.setUsername(username);
+         config.setPassword(password);
+         config.setDriverClassName(driverClassName);
+         
+         // Connection pool sizing
+         config.setMaximumPoolSize(maximumPoolSize);
+         config.setMinimumIdle(minimumIdle);
+         
+         // Connection timeouts
+         config.setConnectionTimeout(connectionTimeout);
+         config.setIdleTimeout(idleTimeout);
+         config.setMaxLifetime(maxLifetime);
+         
+         // Leak detection
+         config.setLeakDetectionThreshold(leakDetectionThreshold);
+         
+         // Performance optimizations
+         config.setPoolName("SupremeAIHikariPool");
+         config.setRegisterMbeans(true);
+         
+         // Connection testing
+         config.setConnectionTestQuery("SELECT 1");
+         config.setValidationTimeout(5000);
+         
+         // Fail fast on startup
+         config.setInitializationFailTimeout(1);
+         
+         return new HikariDataSource(config);
+     }
 }

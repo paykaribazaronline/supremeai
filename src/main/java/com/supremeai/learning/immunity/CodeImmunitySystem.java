@@ -28,9 +28,18 @@ public class CodeImmunitySystem {
     private Firestore firestore;
 
     public CodeImmunitySystem() {
-        // Initial generic toxic patterns (e.g., hardcoded passwords, obvious infinite loops)
-        learnToxicPattern("password\\s*=\\s*['\\\"][^'\\\"]+['\\\"]");
-        learnToxicPattern("while\\s*\\(\\s*true\\s*\\)\\s*\\{\\s*\\}");
+        // Initial generic toxic patterns (regex-based)
+        learnToxicRegex("password\\s*=\\s*['\\\"][^'\\\"]+['\\\"]");
+        learnToxicRegex("while\\s*\\(\\s*true\\s*\\)\\s*\\{.*\\}");
+    }
+
+    /**
+     * Learn a new toxic pattern as a raw regex.
+     */
+    public void learnToxicRegex(String regex) {
+        toxicCodePatterns.add(Pattern.compile(regex, Pattern.CASE_INSENSITIVE));
+        log.info("[Immunity System] Learned new regex-based antibody: {}", regex);
+        persistPatternsAsync();
     }
 
     /**
@@ -102,11 +111,14 @@ public class CodeImmunitySystem {
      * we extract the snippet and add it to our immunity list.
      */
     public void learnToxicPattern(String badCodeSnippet) {
-        // Simple exact match for learning, but could be converted to regex
+        // Simple exact match for learning
         String escapedPattern = Pattern.quote(badCodeSnippet.trim());
         toxicCodePatterns.add(Pattern.compile(escapedPattern));
         log.info("[Immunity System] Developed new antibody against toxic code snippet!");
+        persistPatternsAsync();
+    }
 
+    private void persistPatternsAsync() {
         // Persist to Firestore asynchronously (fire-and-forget)
         new Thread(() -> {
             try {
@@ -121,6 +133,7 @@ public class CodeImmunitySystem {
      * Before returning AI-generated code to the user, we pass it through the immune system.
      */
     public boolean isCodeInfected(String aiGeneratedCode) {
+        if (aiGeneratedCode == null) return false;
         for (Pattern toxicPattern : toxicCodePatterns) {
             if (toxicPattern.matcher(aiGeneratedCode).find()) {
                 log.error("[Immunity System] THREAT DETECTED! AI generated known toxic code. Blocking...");

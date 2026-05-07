@@ -59,6 +59,7 @@ const App: React.FC = () => {
     return (
         <ConfigProvider theme={supremeTheme}>
             <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+                <ErrorBoundary>
                 {!authed ? (
                     <LoginPage onLoginSuccess={handleLoginSuccess} />
                 ) : (
@@ -131,6 +132,7 @@ const App: React.FC = () => {
                         </ErrorBoundary>
                     </>
                 )}
+                </ErrorBoundary>
             </div>
         </ConfigProvider>
     );

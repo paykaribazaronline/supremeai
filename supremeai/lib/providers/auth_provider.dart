@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../services/api_service.dart';
 
 enum AuthStatus { authenticated, unauthenticated, guest, authenticating }
@@ -91,6 +92,61 @@ class AuthProvider with ChangeNotifier {
       }
     } catch (e) {
       _errorMessage = 'Login failed. Please check your credentials.';
+      _status = AuthStatus.unauthenticated;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> loginWithGoogle() async {
+    _status = AuthStatus.authenticating;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final googleSignIn = GoogleSignIn(
+        scopes: ['email', 'profile', 'openid'],
+      );
+      final googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        _status = AuthStatus.unauthenticated;
+        notifyListeners();
+        return false;
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final idToken = googleAuth.idToken;
+
+      if (idToken == null) {
+        _errorMessage = 'Failed to get ID token from Google.';
+        _status = AuthStatus.unauthenticated;
+        notifyListeners();
+        return false;
+      }
+
+      // Exchange ID token with backend
+      final result = await _apiService.firebaseLogin(idToken);
+
+      if (result['success'] == true) {
+        final data = result['data'] as Map<String, dynamic>;
+        _token = data['token'];
+        _user = data['user'] as Map<String, dynamic>?;
+        _status = AuthStatus.authenticated;
+        notifyListeners();
+
+        final prefs = await SharedPreferences.getInstance();
+        if (_token != null) {
+          await prefs.setString('auth_token', _token!);
+        }
+        return true;
+      } else {
+        _errorMessage = result['error'] ?? 'Google Sign-In failed on server.';
+        _status = AuthStatus.unauthenticated;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = 'Google Sign-In failed: ${e.toString()}';
       _status = AuthStatus.unauthenticated;
       notifyListeners();
       return false;

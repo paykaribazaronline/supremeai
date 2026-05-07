@@ -59,7 +59,7 @@ public class DeveloperDNA {
         }
 
         // 2. Explanation Style
-        if (explanationScore > 70) {
+        if (explanationScore > 55) {
             injection.append("- The user prefers detailed explanations. Break down the logic step-by-step.\n");
         } else if (explanationScore < 30) {
             injection.append("- The user is an expert who hates chatting. Output ONLY the raw code. NO explanations.\n");

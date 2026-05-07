@@ -1,6 +1,6 @@
 package com.supremeai.learning.active;
 
-import com.supremeai.learning.ContentSanitizerService;
+import com.supremeai.learning.service.EnhancedContentSanitizerService;
 import com.supremeai.learning.knowledge.SolutionMemory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +30,7 @@ public class ActiveInternetScraper {
     private static final Logger log = LoggerFactory.getLogger(ActiveInternetScraper.class);
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
-    private final ContentSanitizerService sanitizer;
+    private final EnhancedContentSanitizerService sanitizer;
 
     @Value("${learning.scraper.wikipedia.limit:5}")
     private int wikiLimit;
@@ -38,7 +38,7 @@ public class ActiveInternetScraper {
     @Value("${learning.scraper.stackoverflow.limit:3}")
     private int soLimit;
 
-    public ActiveInternetScraper(ContentSanitizerService sanitizer) {
+    public ActiveInternetScraper(EnhancedContentSanitizerService sanitizer) {
         this.restTemplate = new RestTemplate();
         this.objectMapper = new ObjectMapper();
         this.sanitizer = sanitizer;
@@ -191,7 +191,7 @@ public class ActiveInternetScraper {
         // Could also be used in GlobalKnowledgeBase merging logic
 
         // Sanitize before returning
-        if (sanitizer.sanitizeAndValidate(candidate, issue.getSource())) {
+        if (sanitizer.sanitizeAndValidate(candidate, issue.getSource()).isValid()) {
             return candidate;
         } else {
             log.warn("[Sanitizer] Dropped solution from {} (failed validation)", issue.getSource());

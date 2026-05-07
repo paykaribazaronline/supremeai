@@ -9,7 +9,9 @@ import com.supremeai.model.UserTier;
 import com.supremeai.repository.ActivityLogRepository;
 import com.supremeai.repository.UserRepository;
 import com.supremeai.security.JwtUtil;
+import com.supremeai.security.BruteForceProtectionService;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.core.env.Environment;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +27,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import reactor.core.publisher.Mono;
+import com.supremeai.response.ApiResponse;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -49,6 +52,21 @@ public class AuthenticationControllerTest {
     @Mock
     private JwtUtil jwtUtil;
 
+    @Mock
+    private Environment env;
+
+    @Mock
+    private com.google.cloud.spring.data.firestore.FirestoreTemplate firestoreTemplate;
+
+    @Mock
+    private com.supremeai.service.AuthenticationService authenticationService;
+
+    @Mock
+    private com.supremeai.service.ConfigService configService;
+
+    @Mock
+    private com.supremeai.security.BruteForceProtectionService bruteForceProtectionService;
+
     private MockedStatic<FirebaseAuth> firebaseAuthMock;
     private FirebaseAuth firebaseAuth;
     private AutoCloseable closeable;
@@ -60,6 +78,9 @@ public class AuthenticationControllerTest {
         firebaseAuth = mock(FirebaseAuth.class);
         firebaseAuthMock.when(FirebaseAuth::getInstance).thenReturn(firebaseAuth);
         when(jwtUtil.generateToken(anyString(), anyString())).thenReturn("mock-jwt-token");
+        when(jwtUtil.generateAccessToken(anyString(), anyString())).thenReturn("mock-access-token");
+        when(jwtUtil.generateRefreshToken(anyString(), anyString())).thenReturn("mock-refresh-token");
+        when(env.getActiveProfiles()).thenReturn(new String[]{"test"});
         SecurityContextHolder.clearContext();
     }
 
@@ -88,24 +109,28 @@ public class AuthenticationControllerTest {
 
         User existingUser = new User(uid, email, name);
         existingUser.setTier(UserTier.FREE);
-        when(userRepository.findByFirebaseUid(uid)).thenReturn(Mono.just(existingUser));
-        when(userRepository.save(any(User.class))).thenReturn(Mono.just(existingUser));
-        when(activityLogRepository.save(any(ActivityLog.class))).thenReturn(Mono.empty());
+        
+        Map<String, Object> mockData = new HashMap<>();
+        mockData.put("user", existingUser);
+        mockData.put("isNewUser", false);
+        mockData.put("status", "success");
+        
+        when(authenticationService.firebaseLogin(eq(idToken), anyString())).thenReturn(Mono.just(mockData));
 
         Map<String, String> loginRequest = Map.of("idToken", idToken);
         MockHttpServletRequest httpRequest = new MockHttpServletRequest();
 
-        Map<String, Object> response = authenticationController.firebaseLogin(loginRequest, httpRequest).block();
+        ApiResponse<Map<String, Object>> response = authenticationController.firebaseLogin(loginRequest, httpRequest).block();
 
-        assertEquals("success", response.get("status"));
-        assertEquals(false, response.get("isNewUser"));
+        assertNotNull(response);
+        Map<String, Object> responseData = response.data();
+        assertEquals("success", responseData.get("status"));
+        assertEquals(false, responseData.get("isNewUser"));
         @SuppressWarnings("unchecked")
-        Map<String, Object> userMap = (Map<String, Object>) response.get("user");
+        Map<String, Object> userMap = (Map<String, Object>) responseData.get("user");
         assertEquals(name, userMap.get("username"));
         assertEquals(email, userMap.get("email"));
 
-        verify(userRepository).findByFirebaseUid(uid);
-        verify(userRepository).save(any(User.class));
         assertNotNull(SecurityContextHolder.getContext().getAuthentication());
         assertNotNull(httpRequest.getSession(false));
     }
@@ -123,21 +148,23 @@ public class AuthenticationControllerTest {
 
         when(firebaseAuth.verifyIdToken(idToken)).thenReturn(token);
 
-        when(userRepository.findByFirebaseUid(uid)).thenReturn(Mono.empty());
         User newUser = new User(uid, email, "new");
-        when(userRepository.save(any(User.class))).thenReturn(Mono.just(newUser));
-        when(activityLogRepository.save(any(ActivityLog.class))).thenReturn(Mono.empty());
+        Map<String, Object> mockData = new HashMap<>();
+        mockData.put("user", newUser);
+        mockData.put("isNewUser", true);
+        mockData.put("status", "success");
+        
+        when(authenticationService.firebaseLogin(eq(idToken), anyString())).thenReturn(Mono.just(mockData));
 
         Map<String, String> loginRequest = Map.of("idToken", idToken);
         MockHttpServletRequest httpRequest = new MockHttpServletRequest();
 
-        Map<String, Object> response = authenticationController.firebaseLogin(loginRequest, httpRequest).block();
+        ApiResponse<Map<String, Object>> response = authenticationController.firebaseLogin(loginRequest, httpRequest).block();
 
-        assertEquals("success", response.get("status"));
-        assertEquals(true, response.get("isNewUser"));
-
-        verify(userRepository).findByFirebaseUid(uid);
-        verify(userRepository).save(any(User.class));
+        assertNotNull(response);
+        Map<String, Object> responseData = response.data();
+        assertEquals("success", responseData.get("status"));
+        assertEquals(true, responseData.get("isNewUser"));
     }
 
     @Test
@@ -157,17 +184,22 @@ public class AuthenticationControllerTest {
 
         User adminUser = new User(uid, email, "admin");
         adminUser.setTier(UserTier.ADMIN);
-        when(userRepository.findByFirebaseUid(uid)).thenReturn(Mono.just(adminUser));
-        when(userRepository.save(any(User.class))).thenReturn(Mono.just(adminUser));
-        when(activityLogRepository.save(any(ActivityLog.class))).thenReturn(Mono.empty());
+        Map<String, Object> mockData = new HashMap<>();
+        mockData.put("user", adminUser);
+        mockData.put("isNewUser", false);
+        mockData.put("status", "success");
+        
+        when(authenticationService.firebaseLogin(eq(idToken), anyString())).thenReturn(Mono.just(mockData));
 
         Map<String, String> loginRequest = Map.of("idToken", idToken);
         MockHttpServletRequest httpRequest = new MockHttpServletRequest();
 
-        Map<String, Object> response = authenticationController.firebaseLogin(loginRequest, httpRequest).block();
+        ApiResponse<Map<String, Object>> response = authenticationController.firebaseLogin(loginRequest, httpRequest).block();
 
+        assertNotNull(response);
+        Map<String, Object> responseData = response.data();
         @SuppressWarnings("unchecked")
-        Map<String, Object> userMap = (Map<String, Object>) response.get("user");
+        Map<String, Object> userMap = (Map<String, Object>) responseData.get("user");
         assertEquals("admin", userMap.get("role"));
         assertEquals("ADMIN", userMap.get("tier"));
     }
@@ -175,15 +207,17 @@ public class AuthenticationControllerTest {
     @Test
     void testFirebaseLogin_Failure_InvalidToken() throws Exception {
         String idToken = "invalid-token";
-        when(firebaseAuth.verifyIdToken(idToken)).thenThrow(mock(FirebaseAuthException.class));
+        when(authenticationService.firebaseLogin(eq(idToken), anyString()))
+            .thenReturn(Mono.error(new RuntimeException("Authentication failed")));
 
         Map<String, String> loginRequest = Map.of("idToken", idToken);
         MockHttpServletRequest httpRequest = new MockHttpServletRequest();
 
-        Map<String, Object> response = authenticationController.firebaseLogin(loginRequest, httpRequest).block();
+        ApiResponse<Map<String, Object>> response = authenticationController.firebaseLogin(loginRequest, httpRequest).block();
 
-        assertEquals("error", response.get("status"));
-        assertTrue(response.get("message").toString().contains("Authentication failed"));
+        assertNotNull(response);
+        assertFalse(response.success());
+        assertTrue(response.error().contains("Authentication failed"));
     }
 
     @Test
@@ -203,14 +237,12 @@ public class AuthenticationControllerTest {
         httpRequest.setSession(session);
         SecurityContextHolder.setContext(context);
 
-        when(userRepository.findByFirebaseUid(uid)).thenReturn(Mono.just(user));
-        when(activityLogRepository.save(any(ActivityLog.class))).thenReturn(Mono.empty());
+        ApiResponse<String> response = authenticationController.logout(httpRequest).block();
 
-        Map<String, Object> response = authenticationController.logout(httpRequest).block();
-
-        assertEquals("success", response.get("status"));
+        assertNotNull(response);
+        assertTrue(response.success());
+        assertEquals("Logged out", response.data());
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         assertTrue(session.isInvalid());
-        verify(activityLogRepository).save(any(ActivityLog.class));
     }
 }

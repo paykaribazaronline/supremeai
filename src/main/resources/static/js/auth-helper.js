@@ -4,7 +4,7 @@
  * Centralizes Firebase initialization and token management.
  */
 
-const AuthHelper = {
+window.AuthHelper = {
     firebaseConfig: null, // Dynamically loaded from backend or injected config
 
     /**
@@ -61,6 +61,9 @@ const AuthHelper = {
         // Load config dynamically
         this.firebaseConfig = await this.loadFirebaseConfig();
         window.firebase.initializeApp(this.firebaseConfig);
+        
+        // Connect to emulators only if explicitly requested or if backend says so
+        // (Removed hardcoded localhost check to support Cloud Firebase on local dev)
         return window.firebase;
     },
 
@@ -73,7 +76,7 @@ const AuthHelper = {
     async initializeAuth(redirectToLoginIfNotAuth = true) {
         if (this._authPromise) return this._authPromise;
 
-        this.initFirebase();
+        await this.initFirebase();
 
         this._authPromise = new Promise((resolve) => {
             const fb = window.firebase;
@@ -236,24 +239,8 @@ const AuthHelper = {
 /**
  * On page load, check authentication
  */
-document.addEventListener('DOMContentLoaded', () => {
-    // Check if we are on a page that needs auth (not login.html)
-    if (!window.location.pathname.includes('login.html')) {
-        AuthHelper.initializeAuth(true).then((ok) => {
-            if (!ok) return;
-            AuthHelper.displayUserInfo('userAvatar', 'userName');
-            AuthHelper.applyPermissionVisibility();
-
-            const logoutBtn = document.querySelector('[data-action="logout"]');
-            if (logoutBtn) {
-                logoutBtn.onclick = (e) => {
-                    e.preventDefault();
-                    AuthHelper.logout();
-                };
-            }
-        });
-    }
-});
+// Auth initialization is now handled explicitly by each page to avoid race conditions.
+// See admin.html for implementation.
 
 /**
  * Global helper for API calls

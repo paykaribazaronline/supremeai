@@ -1,6 +1,5 @@
 package com.supremeai.ai;
 
-import com.supremeai.ai.provider.AIProvider;
 import com.supremeai.dto.AISolution;
 import com.supremeai.dto.ProblemStatement;
 import com.supremeai.dto.VotingResult;
@@ -17,10 +16,19 @@ public class AIVotingSystem {
 
     private static final Logger log = LoggerFactory.getLogger(AIVotingSystem.class);
 
-    private final List<AIProvider> providers;
+    /**
+     * Contract for synchronous AI providers that participate in voting.
+     * This replaces the legacy com.supremeai.ai.provider.AIProvider interface.
+     */
+    public interface SyncAIProvider {
+        String getId();
+        AISolution solve(ProblemStatement problem);
+    }
+
+    private final List<SyncAIProvider> providers;
     private final ExecutorService executorService;
 
-    public AIVotingSystem(List<AIProvider> providers, @org.springframework.beans.factory.annotation.Qualifier("aiProviderExecutor") ExecutorService executorService) {
+    public AIVotingSystem(List<SyncAIProvider> providers, @org.springframework.beans.factory.annotation.Qualifier("aiProviderExecutor") ExecutorService executorService) {
         this.providers = providers;
         this.executorService = executorService;
     }

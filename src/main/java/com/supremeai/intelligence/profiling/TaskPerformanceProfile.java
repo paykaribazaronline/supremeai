@@ -27,14 +27,13 @@ public class TaskPerformanceProfile {
      * Score combines high success rate and low latency (speed).
      */
     public double calculateOverallScore() {
+        if (totalAttempts == 0 || successCount == 0) return 0.0;
+        
         double successRate = getSuccessRate();
         long avgSpeed = getAverageSpeedMs();
-
-        // Prevent division by zero if speed is incredibly fast (0ms)
+        
         if (avgSpeed <= 0) avgSpeed = 1;
 
-        // Weight: 70% Success Rate, 30% Speed
-        // (1000.0 / avgSpeed) normalizes speed. Faster speed = higher number.
         return (successRate * 0.70) + ((1000.0 / avgSpeed) * 0.30);
     }
 }

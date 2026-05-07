@@ -26,6 +26,13 @@ public class SystemConfig {
     // Maximum number of apps user can have installed in simulator simultaneously
     private Map<String, Integer> tierMaxSimulatorInstalls = new HashMap<>();
 
+    // Generic configuration maps to replace hardcoded values
+    private Map<String, Object> settings = new HashMap<>();
+    private Map<String, String> collections = new HashMap<>();
+    private Map<String, Long> timeouts = new HashMap<>();
+    private Map<String, Double> thresholds = new HashMap<>();
+    private Map<String, Object> uiMetadata = new HashMap<>();
+
     // General AI Settings
     private String activeModel = "gpt-4o";
     private String smallModel = "google/gemini-1.5-flash";
@@ -43,6 +50,7 @@ public class SystemConfig {
     private String systemMessage = "You are SupremeAI, an expert software architect and assistant.";
     private Map<String, String> permissions = new HashMap<>();
     private Map<String, Map<String, Object>> providers = new HashMap<>();
+    private java.util.List<String> adminEmails = new java.util.ArrayList<>();
 
     public SystemConfig() {
         // Default quotas as a fallback
@@ -76,6 +84,34 @@ public class SystemConfig {
         permissions.put("task", "allow");
         permissions.put("websearch", "allow");
         permissions.put("external_directory", "deny");
+
+        // Initialize collections
+        collections.put("repositories", "codeflow/repositories");
+        collections.put("configs", "system_configs");
+        collections.put("memories", "solution-memories");
+        collections.put("learning", "system-learning");
+        collections.put("knowledge", "database-knowledge");
+
+        // Initialize timeouts (in milliseconds)
+        timeouts.put("voting_timeout", 15000L);
+        timeouts.put("cache_duration", 300000L);
+        timeouts.put("api_timeout", 30000L);
+        timeouts.put("io_timeout", 30000L);
+        timeouts.put("simulator_deployment", 120000L);
+        timeouts.put("simulator_session", 1800000L);
+
+        // Initialize thresholds
+        thresholds.put("consensus", 0.60);
+        thresholds.put("min_clarity", 0.6);
+        thresholds.put("idea_detection", 20.0);
+        thresholds.put("retrain_threshold", 0.05);
+
+        // Initialize settings
+        settings.put("max_retries", 3);
+        settings.put("initial_backoff_ms", 500);
+        settings.put("backoff_multiplier", 2.0);
+        settings.put("max_recent_logs", 1000);
+        settings.put("cache_ttl_minutes", 30);
     }
 
     // Getters and Setters
@@ -90,6 +126,21 @@ public class SystemConfig {
 
     public Map<String, Integer> getTierMaxSimulatorInstalls() { return tierMaxSimulatorInstalls; }
     public void setTierMaxSimulatorInstalls(Map<String, Integer> tierMaxSimulatorInstalls) { this.tierMaxSimulatorInstalls = tierMaxSimulatorInstalls; }
+
+    public Map<String, Object> getSettings() { return settings; }
+    public void setSettings(Map<String, Object> settings) { this.settings = settings; }
+
+    public Map<String, String> getCollections() { return collections; }
+    public void setCollections(Map<String, String> collections) { this.collections = collections; }
+
+    public Map<String, Long> getTimeouts() { return timeouts; }
+    public void setTimeouts(Map<String, Long> timeouts) { this.timeouts = timeouts; }
+
+    public Map<String, Double> getThresholds() { return thresholds; }
+    public void setThresholds(Map<String, Double> thresholds) { this.thresholds = thresholds; }
+
+    public Map<String, Object> getUiMetadata() { return uiMetadata; }
+    public void setUiMetadata(Map<String, Object> uiMetadata) { this.uiMetadata = uiMetadata; }
 
     public String getActiveModel() { return activeModel; }
     public void setActiveModel(String activeModel) { this.activeModel = activeModel; }
@@ -139,6 +190,9 @@ public class SystemConfig {
     public Map<String, Map<String, Object>> getProviders() { return providers; }
     public void setProviders(Map<String, Map<String, Object>> providers) { this.providers = providers; }
 
+    public java.util.List<String> getAdminEmails() { return adminEmails; }
+    public void setAdminEmails(java.util.List<String> adminEmails) { this.adminEmails = adminEmails; }
+
     /**
      * Helper to get quota for a specific tier
      */
@@ -158,5 +212,25 @@ public class SystemConfig {
      */
     public int getMaxSimulatorInstallsForTier(UserTier tier) {
         return tierMaxSimulatorInstalls.getOrDefault(tier.name(), 0);
+    }
+
+    /**
+     * Helper to get a secret value for a specific provider.
+     * Expects the secret to be stored in the 'providers' map under providerName -> secretKey.
+     * 
+     * @param providerName The name of the AI provider (e.g., "openai", "gemini")
+     * @param secretKey The key for the secret (e.g., "apiKey")
+     * @return The secret value, or null if not found
+     */
+    public String getProviderSecret(String providerName, String secretKey) {
+        if (providers == null || !providers.containsKey(providerName)) {
+            return null;
+        }
+        Map<String, Object> providerData = providers.get(providerName);
+        if (providerData != null && providerData.containsKey(secretKey)) {
+            Object value = providerData.get(secretKey);
+            return value != null ? value.toString() : null;
+        }
+        return null;
     }
 }

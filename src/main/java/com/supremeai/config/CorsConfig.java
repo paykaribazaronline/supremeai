@@ -8,6 +8,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -21,8 +22,9 @@ public class CorsConfig {
     @Order(Ordered.HIGHEST_PRECEDENCE) // Run before all other filters to handle OPTIONS preflight
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        // Allow all origins for local dev (VS Code extension, React dev servers)
-        config.setAllowedOriginPatterns(List.of("*"));
+        // Allow specific origins for production, use env variable for configuration
+        String allowedOrigins = System.getenv().getOrDefault("CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173");
+        config.setAllowedOriginPatterns(Arrays.asList(allowedOrigins.split(",")));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of(

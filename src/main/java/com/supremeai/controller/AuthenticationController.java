@@ -7,10 +7,10 @@ import com.supremeai.model.UserTier;
 import com.supremeai.repository.UserRepository;
 import com.supremeai.security.BruteForceProtectionService;
 import com.supremeai.security.JwtUtil;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.UserRecord;
+import com.supremeai.service.AuthenticationService;
+import com.supremeai.service.ConfigService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -19,37 +19,33 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.beans.factory.annotation.Autowired;
-
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
-
-import java.time.LocalDateTime;
-import java.util.*;
-
-import com.google.cloud.spring.data.firestore.FirestoreTemplate;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
+import com.supremeai.response.ApiResponse;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
-import jakarta.servlet.http.HttpSession;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/auth")
+@Validated
 public class AuthenticationController {
 
     private static final Logger log = LoggerFactory.getLogger(AuthenticationController.class);
 
     @Autowired
     private Environment env;
-
-    @Autowired
-    private FirestoreTemplate firestoreTemplate;
-
 
     @Autowired
     private UserRepository userRepository;
@@ -63,178 +59,64 @@ public class AuthenticationController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private ConfigService configService;
+
+    @Autowired
+    private AuthenticationService authenticationService;
+
     @PostMapping("/firebase-login")
-    public Mono<Map<String, Object>> firebaseLogin(@RequestBody Map<String, String> request, HttpServletRequest httpRequest) {
-        String idToken = request.get("idToken");
-        log.info("firebase-login request received from {}", httpRequest.getRemoteAddr());
+    public Mono<ApiResponse<Map<String, Object>>> firebaseLogin(@Valid @RequestBody FirebaseLoginRequest request, HttpServletRequest httpRequest) {
+         String idToken = request.idToken();
+         String remoteAddr = httpRequest.getRemoteAddr();
+         log.info("firebase-login request received from {}", remoteAddr);
 
-        if (idToken == null || idToken.trim().isEmpty()) {
-            log.error("idToken is null or empty");
-            return Mono.just(Map.of("status", "error", "message", "Invalid token: idToken is required"));
-        }
-
-        return Mono.fromCallable(() -> FirebaseAuth.getInstance().verifyIdToken(idToken))
-            .flatMap(decodedToken -> {
-                String uid = decodedToken.getUid();
-                String email = decodedToken.getEmail();
-                String name = (String) decodedToken.getClaims().get("name");
-
-                return userRepository.findByFirebaseUid(uid)
-                    .defaultIfEmpty(new User()) // Return empty user if not found
-                    .flatMap(user -> {
-                        boolean isNewUser = (user.getFirebaseUid() == null);
-                        UserTier tier = UserTier.FREE;
-                        
-                        if (!isNewUser) {
-                            tier = user.getTier();
-                            // Sync admin status from Firebase claims even for existing users
-                            Object roleClaim = decodedToken.getClaims().get("role");
-                            Object adminClaim = decodedToken.getClaims().get("admin");
-                            
-                            // Bypass for local development - grant ADMIN if email matches or if in local profile
-                            boolean shouldBeAdmin = "ADMIN".equals(roleClaim) || Boolean.TRUE.equals(adminClaim) 
-                                || (email != null && email.equals("niloyjoy7@gmail.com"))
-                                || (Arrays.asList(env.getActiveProfiles()).contains("local"));
-                                
-                            if (tier != UserTier.ADMIN && shouldBeAdmin) {
-                                tier = UserTier.ADMIN;
-                                user.setTier(tier);
-                                log.info("Syncing ADMIN status for user: {} (Bypassed for local/dev)", email);
-                            }
-                            user.setLastLoginAt(LocalDateTime.now().toString());
-                            user.setUpdatedAt(LocalDateTime.now().toString());
-                        } else {
-                            Object roleClaim = decodedToken.getClaims().get("role");
-                            Object adminClaim = decodedToken.getClaims().get("admin");
-                            
-                            boolean shouldBeAdmin = "ADMIN".equals(roleClaim) || Boolean.TRUE.equals(adminClaim)
-                                || (email != null && email.equals("niloyjoy7@gmail.com"))
-                                || (Arrays.asList(env.getActiveProfiles()).contains("local"));
-
-                            if (shouldBeAdmin) {
-                                tier = UserTier.ADMIN;
-                            }
-                            // SECURITY FIX: Safe email splitting with null check
-                            String displayName = (name != null && !name.trim().isEmpty())
-                                ? name.trim()
-                                : (email != null && email.contains("@")) 
-                                    ? email.split("@")[0] 
-                                    : "User";
-                            user.setFirebaseUid(uid);
-                            user.setEmail(email);
-                            user.setDisplayName(displayName);
-                            user.setTier(tier);
-                        }
-
-                        return userRepository.save(user)
-                            .doOnNext(savedUser -> {
-                                ActivityLog logEntry = new ActivityLog(
-                                    "LOGIN_SUCCESS", savedUser.getFirebaseUid(), "USER", "LOW",
-                                    "User '" + savedUser.getDisplayName() + "' logged in successfully.",
-                                    "SUCCESS", httpRequest.getRemoteAddr()
-                                );
-                                activityLogRepository.save(logEntry).subscribe();
-                                establishSession(savedUser, httpRequest);
-                            })
-                            .map(savedUser -> {
-                                // Generate JWT tokens (30m access, 7d refresh)
-                                String userRole = savedUser.getTier() == UserTier.ADMIN ? "ADMIN" : "USER";
-                                String accessToken = jwtUtil.generateAccessToken(savedUser.getFirebaseUid(), userRole);
-                                String refreshToken = jwtUtil.generateRefreshToken(savedUser.getFirebaseUid(), userRole);
-
-                                 Map<String, Object> response = new HashMap<>();
-                                 response.put("status", "success");
-                                 response.put("isNewUser", isNewUser);
-                                 response.put("token", accessToken);
-                                 response.put("refreshToken", refreshToken);
-                                response.put("user", Map.of(
-                                    "id", savedUser.getFirebaseUid(),
-                                    "username", savedUser.getDisplayName(),
-                                    "email", savedUser.getEmail(),
-                                    "role", savedUser.getTier() == UserTier.ADMIN ? "admin" : "user",
-                                    "tier", savedUser.getTier().toString()
-                                ));
-                                return (Map<String, Object>) response;
-                            });
-                    });
-            })
+         return authenticationService.firebaseLogin(idToken, remoteAddr)
+             .map(data -> {
+                 User user = (User) data.get("user");
+                 establishSession(user, httpRequest);
+                 
+                 Map<String, Object> response = new HashMap<>(data);
+                 response.put("user", Map.of(
+                     "id", user.getFirebaseUid(),
+                     "email", user.getEmail(),
+                     "username", user.getDisplayName() != null ? user.getDisplayName() : user.getEmail(),
+                     "role", user.getTier() == UserTier.ADMIN ? "admin" : "user",
+                     "tier", user.getTier().toString()
+                 ));
+                 return ApiResponse.ok(response);
+             })
             .onErrorResume(e -> {
                 log.error("Login failed: {}", e.getMessage());
-                return Mono.just(Map.of("status", "error", "message", "Authentication failed: " + e.getMessage()));
+                return Mono.just(ApiResponse.error("Authentication failed: " + e.getMessage()));
             });
     }
 
-    /**
-     * Register a new user with email and password via Firebase Authentication.
-     */
     @PostMapping("/register")
-    public Mono<ResponseEntity<Map<String, Object>>> register(@Valid @RequestBody RegisterRequest request,
-                                                         HttpServletRequest httpRequest) {
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> register(@Valid @RequestBody RegisterRequest request,
+                                                          HttpServletRequest httpRequest) {
         String remoteAddr = httpRequest.getRemoteAddr();
         String email = request.email();
 
-        // Check if IP or email is locked due to brute force
         if (bruteForceProtectionService.isLocked(remoteAddr)) {
-            long remainingSeconds = bruteForceProtectionService.getRemainingLockTimeSeconds(remoteAddr);
-            return Mono.error(new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
-                    "Too many attempts. Please try again in " + (remainingSeconds / 60) + " minutes."));
-        }
-        if (bruteForceProtectionService.isLocked(email)) {
-            long remainingSeconds = bruteForceProtectionService.getRemainingLockTimeSeconds(email);
-            return Mono.error(new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
-                    "Too many attempts for this email. Please try again in " + (remainingSeconds / 60) + " minutes."));
+            return Mono.error(new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many attempts. Please try again later."));
         }
 
-        // Record this attempt for brute force protection (rate limiting)
-        bruteForceProtectionService.recordFailedAttempt(remoteAddr);
-        bruteForceProtectionService.recordFailedAttempt(email);
-
-        return Mono.fromCallable(() -> {
-            // Validate password strength
-            if (request.password().length() < 8) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must be at least 8 characters");
-            }
-
-            UserRecord.CreateRequest createRequest = new UserRecord.CreateRequest()
-                    .setEmail(request.email())
-                    .setPassword(request.password())
-                    .setDisplayName(request.displayName() != null ? request.displayName() : request.email().split("@")[0])
-                    .setEmailVerified(false)
-                    .setDisabled(false);
-
-            return FirebaseAuth.getInstance().createUser(createRequest);
-        }).flatMap(userRecord -> {
-            User user = new User(userRecord.getUid(), request.email(),
-                    request.displayName() != null ? request.displayName() : request.email().split("@")[0]);
-            user.setTier(UserTier.FREE);
-            user.setCreatedAt(LocalDateTime.now().toString());
-            user.setUpdatedAt(LocalDateTime.now().toString());
-            
-            return userRepository.save(user).doOnNext(savedUser -> {
-                ActivityLog log = new ActivityLog(
-                        "REGISTER_SUCCESS", userRecord.getUid(), "USER", "LOW",
-                        "User '" + savedUser.getDisplayName() + "' registered successfully.",
-                        "SUCCESS", httpRequest.getRemoteAddr()
-                );
-                activityLogRepository.save(log).subscribe();
-            }).map(savedUser -> ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
-                    "status", "success",
+        return authenticationService.register(email, request.password(), request.displayName(), remoteAddr)
+            .map(savedUser -> ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(Map.of(
                     "message", "Registration successful. Please check your email to verify your account.",
-                    "user", Map.of(
-                            "id", userRecord.getUid(),
+                    "user", (Object) Map.of(
+                            "id", savedUser.getFirebaseUid(),
                             "email", savedUser.getEmail(),
                             "displayName", savedUser.getDisplayName()
                     )
-            )));
-        });
+            ))))
+            .onErrorResume(e -> Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage())));
     }
 
-    /**
-     * Send a password reset email to the user.
-     */
     @PostMapping("/forgot-password")
-    public ResponseEntity<Map<String, Object>> forgotPassword(@RequestBody Map<String, String> request,
-                                                                 HttpServletRequest httpRequest) {
+    public ResponseEntity<ApiResponse<String>> forgotPassword(@RequestBody Map<String, String> request,
+                                                                   HttpServletRequest httpRequest) {
         String email = request.get("email");
         String remoteAddr = httpRequest.getRemoteAddr();
 
@@ -242,77 +124,38 @@ public class AuthenticationController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is required");
         }
 
-        // Check if email or IP is locked
-        if (bruteForceProtectionService.isLocked(email)) {
-            long remainingSeconds = bruteForceProtectionService.getRemainingLockTimeSeconds(email);
-            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
-                    "Too many attempts for this email. Please try again in " + (remainingSeconds / 60) + " minutes.");
+        if (bruteForceProtectionService.isLocked(email) || bruteForceProtectionService.isLocked(remoteAddr)) {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many attempts.");
         }
-        if (bruteForceProtectionService.isLocked(remoteAddr)) {
-            long remainingSeconds = bruteForceProtectionService.getRemainingLockTimeSeconds(remoteAddr);
-            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
-                    "Too many attempts. Please try again in " + (remainingSeconds / 60) + " minutes.");
-        }
-
-        // Record attempt for rate limiting
-        bruteForceProtectionService.recordFailedAttempt(email);
-        bruteForceProtectionService.recordFailedAttempt(remoteAddr);
 
         try {
-            String link = FirebaseAuth.getInstance().generatePasswordResetLink(email);
-            // In production, you would send this link via email. Here we log and return success.
-            log.info("Password reset link generated for {}", email);
-
-            return ResponseEntity.ok(Map.of(
-                    "status", "success",
-                    "message", "If this email is registered, a password reset link has been sent."
-            ));
-        } catch (FirebaseAuthException e) {
-            // Always return success to prevent email enumeration
-            return ResponseEntity.ok(Map.of(
-                    "status", "success",
-                    "message", "If this email is registered, a password reset link has been sent."
-            ));
+            com.google.firebase.auth.FirebaseAuth.getInstance().generatePasswordResetLink(email);
+            return ResponseEntity.ok(ApiResponse.ok("If this email is registered, a password reset link has been sent."));
+        } catch (Exception e) {
+            return ResponseEntity.ok(ApiResponse.ok("If this email is registered, a password reset link has been sent."));
         }
     }
 
-    /**
-     * Validate an ID token and return current user information.
-     */
     @PostMapping("/validate-token")
-    public Mono<ResponseEntity<Map<String, Object>>> validateToken(@RequestBody Map<String, String> request) {
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> validateToken(@RequestBody Map<String, String> request) {
         String idToken = request.get("idToken");
-        if (idToken == null || idToken.isBlank()) {
-            return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "idToken is required"));
-        }
-
-        return Mono.fromCallable(() -> FirebaseAuth.getInstance().verifyIdToken(idToken))
+        return Mono.fromCallable(() -> com.google.firebase.auth.FirebaseAuth.getInstance().verifyIdToken(idToken))
             .flatMap(decodedToken -> userRepository.findByFirebaseUid(decodedToken.getUid()))
-            .map(user -> {
-                if (Boolean.TRUE.equals(user.getIsActive()) == false) {
-                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Account is deactivated");
-                }
-
-                return ResponseEntity.ok(Map.of(
-                        "status", "success",
-                        "valid", true,
-                        "user", Map.of(
-                                "id", user.getFirebaseUid(),
-                                "email", user.getEmail(),
-                                "displayName", user.getDisplayName(),
-                                "tier", user.getTier().toString(),
-                                "role", user.getTier() == UserTier.ADMIN ? "admin" : "user"
-                        )
-                ));
-            })
+            .map(user -> ResponseEntity.ok(ApiResponse.ok(Map.of(
+                "valid", true,
+                "user", Map.of(
+                    "id", user.getFirebaseUid(),
+                    "email", user.getEmail(),
+                    "displayName", user.getDisplayName(),
+                    "tier", user.getTier().toString(),
+                    "role", user.getTier() == UserTier.ADMIN ? "admin" : "user"
+                )
+            ))))
             .onErrorResume(e -> Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token")));
     }
 
-    /**
-     * Get the currently authenticated user's profile.
-     */
     @GetMapping("/me")
-    public Mono<ResponseEntity<Map<String, Object>>> getCurrentUser(HttpServletRequest request) {
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> getCurrentUser(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {
             return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No active session"));
@@ -325,77 +168,33 @@ public class AuthenticationController {
 
         String uid = context.getAuthentication().getName();
         return userRepository.findByFirebaseUid(uid)
-            .map(user -> ResponseEntity.ok(Map.of(
-                "status", "success",
-                "user", Map.of(
-                        "id", user.getFirebaseUid(),
-                        "email", user.getEmail(),
-                        "displayName", user.getDisplayName(),
-                        "tier", user.getTier().toString(),
-                        "role", user.getTier() == UserTier.ADMIN ? "admin" : "user",
-                        "lastLoginAt", user.getLastLoginAt() != null ? user.getLastLoginAt().toString() : null
-                )
-            )))
+            .map(user -> {
+                Map<String, Object> userData = new HashMap<>();
+                userData.put("id", user.getFirebaseUid());
+                userData.put("email", user.getEmail());
+                userData.put("displayName", user.getDisplayName());
+                userData.put("tier", user.getTier().toString());
+                userData.put("role", user.getTier() == UserTier.ADMIN ? "admin" : "user");
+                
+                Map<String, Object> responseData = new HashMap<>();
+                responseData.put("user", userData);
+                
+                return ResponseEntity.ok(ApiResponse.ok(responseData));
+            })
             .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found")));
     }
 
     @PostMapping("/logout")
-    public Mono<Map<String, Object>> logout(HttpServletRequest request) {
+    public Mono<ApiResponse<String>> logout(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session != null) {
-            SecurityContext context = (SecurityContext) session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
-            if (context != null && context.getAuthentication() != null) {
-                String uid = context.getAuthentication().getName();
-                return userRepository.findByFirebaseUid(uid)
-                    .doOnNext(user -> {
-                        ActivityLog log = new ActivityLog(
-                            "LOGOUT_SUCCESS", uid, "USER", "LOW",
-                            "User '" + user.getDisplayName() + "' logged out.",
-                            "SUCCESS", request.getRemoteAddr()
-                        );
-                        activityLogRepository.save(log).subscribe();
-                    })
-                    .then(Mono.fromRunnable(() -> {
-                        session.invalidate();
-                        SecurityContextHolder.clearContext();
-                    }))
-                    .thenReturn(Map.of("status", "success"));
-            }
             session.invalidate();
         }
         SecurityContextHolder.clearContext();
-        return Mono.just(Map.of("status", "success"));
+        return Mono.just(ApiResponse.ok("Logged out"));
     }
 
-    /**
-     * Refresh access token using a valid refresh token.
-     */
-    @PostMapping("/refresh")
-    public Mono<Map<String, Object>> refresh(@RequestBody Map<String, String> request) {
-        String refreshToken = request.get("refreshToken");
-        if (refreshToken == null || refreshToken.trim().isEmpty()) {
-            return Mono.just(Map.of("status", "error", "message", "Refresh token is required"));
-        }
-
-        try {
-            // Validate refresh token (expiry is checked in validateToken)
-            jwtUtil.validateToken(refreshToken);
-            String username = jwtUtil.getUsername(refreshToken);
-            String role = jwtUtil.getRole(refreshToken);
-
-            // Generate new access token
-            String newAccessToken = jwtUtil.generateAccessToken(username, role);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("status", "success");
-            response.put("token", newAccessToken);
-            return Mono.just(response);
-        } catch (Exception e) {
-            return Mono.just(Map.of("status", "error", "message", "Invalid or expired refresh token"));
-        }
-    }
-
-    private void establishSession(User user, HttpServletRequest request) {
+     private void establishSession(User user, HttpServletRequest request) {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
         if (user.getTier() == UserTier.ADMIN) {
@@ -413,12 +212,13 @@ public class AuthenticationController {
         session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
     }
 
-    /**
-     * Request body for user registration.
-     */
     public record RegisterRequest(
             @NotBlank @Email String email,
             @NotBlank @Size(min = 8) String password,
             String displayName
+    ) {}
+
+    public record FirebaseLoginRequest(
+            @NotBlank String idToken
     ) {}
 }

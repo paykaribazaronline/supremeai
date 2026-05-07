@@ -22,8 +22,8 @@ public class VotingTopicGenerator {
             return new VotingTopic(
                 topicId,
                 "ARCHITECTURE",
-                "Code involves altering existing database tables: \n" + codeSnippet,
-                "Does this database migration script look safe for production? Will it lock the tables or drop existing data?"
+                "Code involves altering existing database tables: \n" + (codeSnippet != null ? codeSnippet : "null"),
+                "Does this database migration script look safe for production? Will it lock the tables or drop existing data? Check for Flyway/Liquibase compatibility."
             );
         }
         

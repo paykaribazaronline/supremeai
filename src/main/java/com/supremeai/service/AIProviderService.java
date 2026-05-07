@@ -64,5 +64,6 @@ public class AIProviderService {
     public void addKey(String provider, String key) {
         providerKeys.computeIfAbsent(provider, k -> new ArrayList<>()).add(key);
         currentKeyIndex.putIfAbsent(provider, 0);
+        exhaustedKeys.putIfAbsent(provider, new HashSet<>());
     }
 }

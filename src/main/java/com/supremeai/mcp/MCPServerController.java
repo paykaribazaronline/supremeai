@@ -82,13 +82,17 @@ public class MCPServerController {
         return pythonBridge.callReverseEngineer(url, credentials);
     }
     
+    @Autowired
+    private com.supremeai.agentorchestration.AdaptiveAgentOrchestrator orchestrator;
+
     private Map<String, Object> executeDynamicAgent(Map<String, Object> args) {
         Map<String, Object> response = new HashMap<>();
         String task = (String) args.get("task");
         
-        // TODO: Call Plan 1 Dynamic AI Agent
-        response.put("status", "success");
+        com.supremeai.agentorchestration.OrchesResultContext result = orchestrator.orchestrate(task);
+        response.put("status", result.getStatus());
         response.put("result", "Executed: " + task);
+        response.put("details", result.getContext());
         return response;
     }
     

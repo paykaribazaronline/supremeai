@@ -57,12 +57,10 @@ const Teaching: React.FC = () => {
         setError(null);
 
         try {
-            const token = authUtils.getToken();
-            const res = await fetch(currentTab.endpoint, {
+            const res = await authUtils.fetchWithAuth(currentTab.endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
                 body: JSON.stringify(formData),
             });

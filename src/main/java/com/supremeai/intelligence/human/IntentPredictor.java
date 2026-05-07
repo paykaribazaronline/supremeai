@@ -19,7 +19,7 @@ public class IntentPredictor {
             return "Are you trying to create a POST endpoint to save an entity to the database? I can generate the Controller, Service, and Repository layers for you in 1 second.";
         }
         
-        if (currentCode.contains("interface") && currentCode.contains("extends JpaRepository")) {
+        if (currentCode.contains("interface") && currentCode.contains("extends JpaRepository") && partialPrompt.toLowerCase().contains("service")) {
             return "I noticed you created a Repository. Should I generate the matching Service class and basic CRUD operations?";
         }
         

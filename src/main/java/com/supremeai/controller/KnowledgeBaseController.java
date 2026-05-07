@@ -85,8 +85,7 @@ public class KnowledgeBaseController {
     @GetMapping("/stats")
     @PreAuthorize("hasRole('ADMIN')")
     public KnowledgeStats getStats() {
-        // Could expand to compute real stats from Firestore
-        return new KnowledgeStats("TODO: implement stats");
+        return new KnowledgeStats("Total solutions: " + globalKnowledgeBase.countSolutions());
     }
 
     // DTOs

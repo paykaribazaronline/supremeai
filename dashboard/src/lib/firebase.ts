@@ -11,6 +11,8 @@ import {
   getIdTokenResult,
   connectAuthEmulator,
 } from 'firebase/auth';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 
 // Use Firebase Hosting environment or environment variables
 const firebaseConfig = {
@@ -26,16 +28,22 @@ const firebaseConfig = {
 // Avoid re-initialising the app during HMR
 const app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
 export const firebaseAuth: Auth = getAuth(app);
+export const firestore = getFirestore(app);
+export const functions = getFunctions(app);
 
-// Connect to Firebase Emulator in development environment
-if (import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true') {
+// Connect to Firebase Emulator - DISABLED for Cloud Mode
+/*
+if (import.meta.env.VITE_USE_EMULATOR === 'true' || import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true') {
   try {
     connectAuthEmulator(firebaseAuth, 'http://localhost:9099', { disableWarnings: true });
-    console.log('Firebase Auth connected to emulator');
+    connectFirestoreEmulator(firestore, 'localhost', 8081);
+    connectFunctionsEmulator(functions, 'localhost', 5001);
+    console.log('🚀 Firebase Emulators (Auth, Firestore, Functions) connected');
   } catch (err) {
-    console.log('Firebase Emulator connection error:', err);
+    console.error('⚠️ Firebase Emulator connection error:', err);
   }
 }
+*/
 
 /**
  * Global async error handler for unhandled promise rejections.
@@ -89,9 +97,9 @@ function getFirebaseErrorMessage(code: string | undefined): string {
  * Returns the backend JWT string, or throws on failure.
  */
 export async function firebaseSignIn(
-  email: string,
-  password: string,
-): Promise<{ token: string; refreshToken: string; user: Record<string, unknown> }> {
+   email: string,
+   password: string,
+): Promise<{ token: string; refreshToken: string; user: import('../types').AuthUser }> {
   try {
     const cred: UserCredential = await signInWithEmailAndPassword(
       firebaseAuth,
@@ -124,11 +132,21 @@ export async function firebaseSignIn(
       throw new Error(err['message'] ?? 'Firebase token exchange failed');
     }
 
-    const data = await resp.json() as {
-      token: string;
-      refreshToken: string;
-      user: Record<string, unknown>;
-    };
+const response = await resp.json() as {
+       success: boolean;
+       data: {
+         token: string;
+         refreshToken: string;
+         user: import('../types').AuthUser;
+       };
+       error?: string;
+     };
+ 
+    if (!response.success || !response.data) {
+      throw new Error(response.error ?? 'Authentication failed');
+    }
+ 
+    const data = response.data;
 
     // Store tokens for later refresh
     localStorage.setItem('supremeai_token', data.token);
@@ -162,7 +180,17 @@ export async function refreshAccessToken(): Promise<string> {
     throw new Error(err['message'] ?? 'Token refresh failed');
   }
 
-  const data = await resp.json() as { token: string };
+  const response = await resp.json() as { 
+    success: boolean;
+    data: { token: string };
+    error?: string;
+  };
+  
+  if (!response.success || !response.data) {
+    throw new Error(response.error ?? 'Token refresh failed');
+  }
+
+  const data = response.data;
   localStorage.setItem('supremeai_token', data.token);
   return data.token;
 }

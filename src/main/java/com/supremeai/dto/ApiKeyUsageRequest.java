@@ -1,10 +1,21 @@
 package com.supremeai.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+
 public class ApiKeyUsageRequest {
+    @NotBlank(message = "Start date is required")
     private String startDate;
+
+    @NotBlank(message = "End date is required")
     private String endDate;
+
+    @NotBlank(message = "Provider is required")
     private String provider;
 
+    // Getters and Setters
     public String getStartDate() {
         return startDate;
     }

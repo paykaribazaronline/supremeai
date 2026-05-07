@@ -1,7 +1,6 @@
 package com.supremeai.controller;
 
 import com.supremeai.service.CodeGenerationService;
-import com.supremeai.service.CodeGenerationServiceEnhanced;
 import com.supremeai.generation.FullStackCodeGenerator;
 import com.supremeai.generation.MultiPlatformGenerator;
 import com.supremeai.model.EntityDefinition;
@@ -11,6 +10,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
+import com.supremeai.dto.AppGenerationRequest;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,7 +24,7 @@ import java.util.Map;
  * Handles requests to generate applications based on user requirements.
  */
 @RestController
-@RequestMapping("/api/generate")
+@RequestMapping({"/api/generate", "/api/teaching/create-app"})
 public class AppGenerationController {
     
     private static final Logger logger = LoggerFactory.getLogger(AppGenerationController.class);
@@ -36,23 +38,16 @@ public class AppGenerationController {
     @Autowired
     private MultiPlatformGenerator multiPlatformGenerator;
     
-    @Autowired
-    private CodeGenerationServiceEnhanced codeGenerationServiceEnhanced;
-    
-    /**
-     * Generate application from requirements.
-     * POST /api/generate
-     * Body: { "name": "App Name", "description": "App description", "platform": "fullstack", "database": "PostgreSQL" }
-     */
     @PostMapping
-    public ResponseEntity<Map<String, Object>> generateApp(@RequestBody Map<String, Object> request) {
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<Map<String, Object>> generateApp(@Valid @RequestBody AppGenerationRequest request) {
         try {
-            String name = (String) request.getOrDefault("name", "GeneratedApp");
-            String description = (String) request.getOrDefault("description", "");
-            String platform = (String) request.getOrDefault("platform", "fullstack");
-            String database = (String) request.getOrDefault("database", "PostgreSQL");
-            String type = (String) request.getOrDefault("type", "project");
-            boolean useAI = (Boolean) request.getOrDefault("useAI", false);
+            String name = request.getName();
+            String description = request.getDescription();
+            String platform = request.getPlatform();
+            String database = request.getDatabase();
+            String type = request.getType();
+            boolean useAI = request.isUseAI();
             
             logger.info("Generating app: {} (platform: {}, database: {}, AI: {})", name, platform, database, useAI);
             
@@ -68,8 +63,9 @@ public class AppGenerationController {
             
             // Use enhanced AI-powered generation if requested
             if (useAI) {
-                List<EntityDefinition> entities = parseEntitiesFromRequest(request);
-                result = codeGenerationServiceEnhanced.generateAppWithAI(
+                List<EntityDefinition> entities = request.getEntities();
+                if (entities == null) entities = new ArrayList<>();
+                result = codeGenerationService.generateAppWithAI(
                     name, description, entities, database, "JWT"
                 );
             } else {

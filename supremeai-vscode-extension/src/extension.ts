@@ -5,6 +5,7 @@
 
 import * as vscode from 'vscode';
 import { SupremeAIService, getSupremeAIService, setSupremeAIService } from './services/SupremeAIService';
+import { AuthService } from './services/AuthService';
 import { CodeEditHandler } from './handlers/CodeEditHandler';
 import { ErrorHandler } from './handlers/ErrorHandler';
 import { FeedbackHandler } from './handlers/FeedbackHandler';
@@ -36,6 +37,9 @@ export function activate(context: vscode.ExtensionContext) {
   // Initialize SupremeAI Service
   supremeAIService = new SupremeAIService(supremeConfig);
   setSupremeAIService(supremeAIService);
+
+  // Initialize Auth Service
+  AuthService.getInstance(supremeConfig);
 
   // Initialize Handlers
   codeEditHandler = new CodeEditHandler(context);
@@ -129,6 +133,16 @@ function registerCommands(context: vscode.ExtensionContext): void {
     codeFlowHandler.refreshAnalysis();
   });
 
+  // Login
+  const loginCommand = vscode.commands.registerCommand('supremeai.login', async () => {
+    await AuthService.getInstance().login();
+  });
+
+  // Logout
+  const logoutCommand = vscode.commands.registerCommand('supremeai.logout', async () => {
+    await AuthService.getInstance().logout();
+  });
+
   context.subscriptions.push(
     forceLearnCommand,
     analyzeCodeFlowCommand,
@@ -136,7 +150,9 @@ function registerCommands(context: vscode.ExtensionContext): void {
     showSecurityIssuesCommand,
     showDependenciesCommand,
     openCodeFlowDashboardCommand,
-    refreshCodeFlowCommand
+    refreshCodeFlowCommand,
+    loginCommand,
+    logoutCommand
   );
 }
 

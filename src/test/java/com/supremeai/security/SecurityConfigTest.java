@@ -15,7 +15,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Disabled("Integration test requires proper infrastructure setup")
 public class SecurityConfigTest {
 
     @Autowired

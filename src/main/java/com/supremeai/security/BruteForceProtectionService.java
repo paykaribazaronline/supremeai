@@ -18,11 +18,15 @@ public class BruteForceProtectionService {
 
     private static final Logger log = LoggerFactory.getLogger(BruteForceProtectionService.class);
 
+    /**
+     * Default max failed attempts before lockout.
+     * Can be overridden via bruteforce.max-attempts property.
+     */
     @Value("${bruteforce.max-attempts:5}")
-    private int maxAttempts;
+    private int maxAttempts = 5;
 
     @Value("${bruteforce.lock-duration-minutes:15}")
-    private int lockDurationMinutes;
+    private int lockDurationMinutes = 15;
 
     // In-memory store: key = email or IP, value = AttemptRecord
     private final Map<String, AttemptRecord> attemptsCache = new ConcurrentHashMap<>();

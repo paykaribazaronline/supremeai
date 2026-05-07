@@ -13,6 +13,8 @@ import java.lang.management.OperatingSystemMXBean;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.supremeai.response.ApiResponse;
+
 @RestController
 @RequestMapping("/api/metrics")
 public class SystemMetricsController {
@@ -24,7 +26,7 @@ public class SystemMetricsController {
     private RedisConnectionFactory redisConnectionFactory;
 
     @GetMapping("/resources")
-    public ResponseEntity<Map<String, Object>> getResourceMetrics() {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getResourceMetrics() {
         Map<String, Object> metrics = new HashMap<>();
         
         // Memory Metrics
@@ -67,6 +69,6 @@ public class SystemMetricsController {
         // Time
         metrics.put("timestamp", System.currentTimeMillis());
         
-        return ResponseEntity.ok(metrics);
+        return ResponseEntity.ok(ApiResponse.ok(metrics));
     }
 }

@@ -1,10 +1,12 @@
 package com.supremeai.config;
 
+import com.supremeai.security.ratelimit.RateLimiter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -19,35 +21,30 @@ import java.util.Map;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class RateLimiterFilter extends OncePerRequestFilter {
 
     private final RateLimitProperties rateLimitProperties;
-    private final DistributedRateLimiter distributedRateLimiter;
+    private final RateLimiter rateLimiter;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        // Skip rate limiting if disabled
         if (!rateLimitProperties.isEnabled()) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Determine rate limit based on user role and endpoint
         String path = request.getRequestURI();
         int limit = determineRateLimit(path, request);
         String key = buildRateLimitKey(request, path);
 
-        boolean allowed;
-        if (rateLimitProperties.isDistributed()) {
-            allowed = distributedRateLimiter.tryAcquire(key, limit, rateLimitProperties.getWindowSeconds());
-        } else {
-            // Fallback to simple in-memory rate limiting (not recommended for production)
-            allowed = tryAcquireInMemory(key, limit);
-        }
-
-        if (!allowed) {
+        if (!rateLimiter.tryAcquire(key, limit, rateLimitProperties.getWindowSeconds())) {
+            String clientIp = request.getRemoteAddr();
+            String userAgent = request.getHeader("User-Agent");
+            log.warn("Rate limit exceeded for key: {} on path: {}. Limit: {}. Client IP: {}, User-Agent: {}", 
+                key, path, limit, clientIp, userAgent);
             response.setStatus(429);
             response.setContentType("application/json");
             response.getWriter().write(
@@ -56,9 +53,11 @@ public class RateLimiterFilter extends OncePerRequestFilter {
             return;
         }
 
-        // Add rate limit headers to response
-        addRateLimitHeaders(response, key);
+        if (log.isDebugEnabled()) {
+            log.debug("Request allowed for key: {} on path: {}", key, path);
+        }
 
+        addRateLimitHeaders(response, key);
         filterChain.doFilter(request, response);
     }
 
@@ -107,24 +106,14 @@ public class RateLimiterFilter extends OncePerRequestFilter {
     }
 
     /**
-     * Simple in-memory rate limiter (fallback when Redis is unavailable).
-     * WARNING: Not suitable for distributed environments.
-     */
-    private boolean tryAcquireInMemory(String key, int limit) {
-        // This is a simplified implementation - in production, use a proper in-memory cache
-        // with TTL like Caffeine or Guava Cache
-        return true; // Allow all requests when using in-memory fallback
-    }
-
-    /**
      * Add rate limit information to response headers.
      */
     private void addRateLimitHeaders(HttpServletResponse response, String key) {
         try {
-            Map<String, Object> status = distributedRateLimiter.getStatus(key);
+            Map<String, Object> status = rateLimiter.getStatus(key);
             response.setHeader("X-RateLimit-Limit", rateLimitProperties.getAuthenticatedRequestsPerMinute() + "");
-            response.setHeader("X-RateLimit-Remaining", String.valueOf(status.getOrDefault("tokens", 0)));
-            response.setHeader("X-RateLimit-Reset", String.valueOf(status.getOrDefault("last_refill", 0)));
+            response.setHeader("X-RateLimit-Remaining", String.valueOf(status.getOrDefault("tokens", status.getOrDefault("count", 0))));
+            response.setHeader("X-RateLimit-Reset", String.valueOf(status.getOrDefault("last_refill", status.getOrDefault("window_start", 0))));
         } catch (Exception e) {
             // Silently fail - headers are informational only
         }

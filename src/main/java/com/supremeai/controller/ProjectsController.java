@@ -6,10 +6,16 @@ import com.supremeai.util.IdUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import jakarta.validation.Valid;
+import com.supremeai.dto.ProjectCreateRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
+
+import com.supremeai.response.ApiResponse;
+import java.util.List;
 
 /**
  * Project management endpoints.
@@ -30,20 +36,15 @@ public class ProjectsController {
      * Regular users only see their own projects. Admins see all projects.
      */
     @GetMapping
-    public Flux<ExistingProject> getAllProjects() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || auth.getName() == null) {
-            throw new IllegalStateException("Not authenticated");
-        }
-        
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public Mono<ApiResponse<List<ExistingProject>>> getAllProjects(Authentication auth) {
         boolean isAdmin = auth.getAuthorities().stream()
             .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         
         if (isAdmin) {
-            return projectRepository.findAll();
+            return projectRepository.findAll().collectList().map(ApiResponse::ok);
         } else {
-            // Regular user can only see their own projects
-            return projectRepository.findByOwnerId(auth.getName());
+            return projectRepository.findByOwnerId(auth.getName()).collectList().map(ApiResponse::ok);
         }
     }
 
@@ -52,21 +53,9 @@ public class ProjectsController {
      * Only the owner themselves or admins can view projects for a specific owner.
      */
     @GetMapping("/owner/{ownerId}")
-    public Flux<ExistingProject> getByOwner(@PathVariable String ownerId) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || auth.getName() == null) {
-            throw new IllegalStateException("Not authenticated");
-        }
-        
-        boolean isAdmin = auth.getAuthorities().stream()
-            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        
-        // Only allow access if requesting user is admin or the owner themselves
-        if (!isAdmin && !auth.getName().equals(ownerId)) {
-            throw new IllegalStateException("Access denied: You can only view your own projects");
-        }
-        
-        return projectRepository.findByOwnerId(ownerId);
+    @PreAuthorize("hasRole('ADMIN') or #ownerId == authentication.name")
+    public Mono<ApiResponse<List<ExistingProject>>> getByOwner(@PathVariable String ownerId) {
+        return projectRepository.findByOwnerId(ownerId).collectList().map(ApiResponse::ok);
     }
 
     /**
@@ -74,16 +63,14 @@ public class ProjectsController {
      * The project owner is automatically set to the current authenticated user.
      */
     @PostMapping
-    public Mono<ExistingProject> createProject(@RequestBody ExistingProject project) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || auth.getName() == null) {
-            throw new IllegalStateException("Not authenticated");
-        }
-        
-        // Set the owner to the current authenticated user
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public Mono<ApiResponse<ExistingProject>> createProject(@Valid @RequestBody ProjectCreateRequest request, Authentication auth) {
+        ExistingProject project = new ExistingProject();
+        project.setName(request.getName());
+        project.setDescription(request.getDescription());
         project.setOwnerId(auth.getName());
-        project.setId(IdUtils.ensureId(project.getId()));
-        return projectRepository.save(project);
+        project.setId(IdUtils.ensureId(UUID.randomUUID().toString()));
+        return projectRepository.save(project).map(ApiResponse::ok);
     }
 
     /**
@@ -91,10 +78,10 @@ public class ProjectsController {
      * Only the project owner or admins can update a project.
      */
     @PutMapping("/{id}/status")
-    public Mono<ExistingProject> updateProjectStatus(@PathVariable String id, @RequestParam String status) {
+    public Mono<ApiResponse<ExistingProject>> updateProjectStatus(@PathVariable String id, @RequestParam String status) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getName() == null) {
-            throw new IllegalStateException("Not authenticated");
+            return Mono.just(ApiResponse.error("Not authenticated"));
         }
         
         return projectRepository.findById(id)
@@ -104,12 +91,14 @@ public class ProjectsController {
                     
                     // Only owner or admin can update
                     if (!isAdmin && !project.getOwnerId().equals(auth.getName())) {
-                        throw new IllegalStateException("Access denied: You can only modify your own projects");
+                        return Mono.error(new IllegalStateException("Access denied: You can only modify your own projects"));
                     }
                     
                     project.setStatus(status);
                     return projectRepository.save(project);
-                });
+                })
+                .map(ApiResponse::ok)
+                .onErrorResume(e -> Mono.just(ApiResponse.error(e.getMessage())));
     }
 
     /**
@@ -117,10 +106,10 @@ public class ProjectsController {
      * Only the project owner or admins can delete a project.
      */
     @DeleteMapping("/{id}")
-    public Mono<Void> deleteProject(@PathVariable String id) {
+    public Mono<ApiResponse<String>> deleteProject(@PathVariable String id) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getName() == null) {
-            throw new IllegalStateException("Not authenticated");
+            return Mono.just(ApiResponse.error("Not authenticated"));
         }
         
         return projectRepository.findById(id)
@@ -130,10 +119,11 @@ public class ProjectsController {
                     
                     // Only owner or admin can delete
                     if (!isAdmin && !project.getOwnerId().equals(auth.getName())) {
-                        throw new IllegalStateException("Access denied: You can only delete your own projects");
+                        return Mono.error(new IllegalStateException("Access denied: You can only delete your own projects"));
                     }
                     
-                    return projectRepository.deleteById(id);
-                });
+                    return projectRepository.deleteById(id).thenReturn(ApiResponse.ok("Project deleted"));
+                })
+                .onErrorResume(e -> Mono.just(ApiResponse.error(e.getMessage())));
     }
 }

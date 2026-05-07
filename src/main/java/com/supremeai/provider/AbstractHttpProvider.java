@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -41,6 +42,9 @@ public abstract class AbstractHttpProvider implements AIProvider {
     // SECURITY FIX: ObjectMapper is now provided via constructor injection
     // This ensures proper initialization and testability
     protected final ObjectMapper objectMapper;
+
+    @Autowired
+    protected com.supremeai.service.ProviderMetadataService providerMetadataService;
 
     protected final String apiKey;
     protected final String baseUrl;
@@ -126,7 +130,20 @@ public abstract class AbstractHttpProvider implements AIProvider {
      * Get the request URL - can be overridden by providers that need custom URL building
      */
     protected String getRequestUrl() {
+        if (providerMetadataService != null) {
+            return providerMetadataService.getBaseUrl(getName(), baseUrl);
+        }
         return baseUrl;
+    }
+
+    /**
+     * Get the default model - can be overridden or dynamically fetched
+     */
+    protected String getModel() {
+        if (providerMetadataService != null) {
+            return providerMetadataService.getDefaultModel(getName(), defaultModel);
+        }
+        return defaultModel;
     }
 
     /**
@@ -143,6 +160,17 @@ public abstract class AbstractHttpProvider implements AIProvider {
 
     @Override
     public Map<String, Object> getCapabilities() {
+        if (providerMetadataService != null) {
+            com.supremeai.model.APIProvider meta = providerMetadataService.getMetadata(getName());
+            if (meta != null) {
+                return Map.of(
+                    "name", meta.getName() != null ? meta.getName() : getName(),
+                    "models", meta.getModels() != null ? meta.getModels() : List.of(defaultModel),
+                    "type", "remote",
+                    "url", meta.getBaseUrl() != null ? meta.getBaseUrl() : baseUrl
+                );
+            }
+        }
         return Map.of(
                 "model", defaultModel,
                 "type", "remote",

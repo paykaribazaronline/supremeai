@@ -11,12 +11,15 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.cors.CorsConfigurationSource;
 
-/**
- * Security configuration with enhanced security headers.
- * Implements defense-in-depth with CSP, HSTS, XSS protection, and frame options.
- */
+import java.util.List;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -31,22 +34,26 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // CSRF disabled for stateless JWT authentication
-            .sessionManagement(session -> 
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+             .csrf(csrf -> csrf
+                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                 .ignoringRequestMatchers("/api/auth/**", "/api/health/**")
+             )
+             .sessionManagement(session -> 
+                 session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             // Security headers configuration
-            .headers(headers -> headers
-                .contentSecurityPolicy(csp -> csp
-                    .policyDirectives("default-src 'self'; " +
-                        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://trusted.cdn.com; " +
-                        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-                        "img-src 'self' data: https:; " +
-                        "font-src 'self' https://fonts.gstatic.com; " +
-                        "connect-src 'self' wss: https://api.supremeai.com; " +
-                        "frame-ancestors 'none'; " +
-                        "base-uri 'self'; " +
-                        "form-action 'self'")
-                )
+                 .headers(headers -> headers
+                 .contentSecurityPolicy(csp -> csp
+                     .policyDirectives("default-src 'self'; " +
+                         "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://trusted.cdn.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+                         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+                         "img-src 'self' data: https:; " +
+                         "font-src 'self' https://fonts.gstatic.com; " +
+                         "connect-src 'self' wss: https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.googleapis.com https://*.firebaseio.com https://api.supremeai.com http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:*; " +
+                         "frame-ancestors 'none'; " +
+                         "base-uri 'self'; " +
+                         "form-action 'self'")
+                 )
                 .httpStrictTransportSecurity(hsts -> hsts
                     .maxAgeInSeconds(31536000) // 1 year
                     .includeSubDomains(true)
@@ -59,11 +66,9 @@ public class SecurityConfig {
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
                 // Public endpoints - specific routes only (not wildcards for security)
                 .requestMatchers(
-                   "/",
+                    "/",
                     "/login",
                     "/login.html",
-                    "/admin",
-                    "/admin.html",
                     "/customer",
                     "/customer.html",
                     "/android-generator.html",
@@ -81,12 +86,21 @@ public class SecurityConfig {
                     "/__/firebase/**",
                     "/ws/**",
                     "/error",
-                    "/api/v1/chat/completions"
+                    "/api/v1/chat/completions",
+                    "/api/ext/**"
                 ).permitAll()
+                .requestMatchers("/admin", "/admin.html").hasRole("ADMIN")
                  .requestMatchers("/api/debug/**").hasRole("ADMIN")
                  .requestMatchers("/api/security/**").hasRole("ADMIN")
                  .requestMatchers("/api/admin/**").hasRole("ADMIN")
                  .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                 .requestMatchers("/api/v1/agents/**").hasRole("ADMIN")
+                 .requestMatchers("/api/v1/optimization/**").hasRole("ADMIN")
+                 .requestMatchers("/api/v1/phase6/**").hasRole("ADMIN")
+                 .requestMatchers("/api/phase7/**").hasRole("ADMIN")
+                 .requestMatchers("/api/v1/agents/phase8/**").hasRole("ADMIN")
+                 .requestMatchers("/api/v1/agents/phase9/**").hasRole("ADMIN")
+                 .requestMatchers("/api/v1/agents/phase10/**").hasRole("ADMIN")
                  .anyRequest().authenticated())
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((req, res, ex2) -> {
@@ -99,9 +113,32 @@ public class SecurityConfig {
                     res.setContentType("application/json");
                     res.getWriter().write("{\"error\":\"Forbidden\",\"message\":\"Access denied\"}");
                 }))
-            .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+.addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class)
+             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+         
+         return http.build();
+     }
+
+    /**
+     * CORS configuration for API endpoints.
+     * Allows localhost development and production domains.
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(List.of(
+            "http://localhost:*",
+            "http://127.0.0.1:*",
+            "https://*.supremeai.com",
+            "https://supremeai.com"
+        ));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
         
-        return http.build();
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", configuration);
+        return source;
     }
 }

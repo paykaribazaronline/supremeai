@@ -26,6 +26,9 @@ public class HumanPreferenceProfiler {
      * to update the user's "DNA", including their native language.
      */
     public void learnFromInteraction(String userId, String prompt, String acceptedCode, boolean askedForExplanation) {
+        if (prompt == null || prompt.trim().isEmpty()) {
+            return;
+        }
         DeveloperDNA dna = getProfile(userId);
         
         // 1. Detect Local Language

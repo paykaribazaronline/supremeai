@@ -1,5 +1,8 @@
 package com.supremeai.controller;
 
+import com.supremeai.response.ApiResponse;
+import java.util.Map;
+
 import com.supremeai.model.UserGuide;
 import com.supremeai.repository.UserGuideRepository;
 import org.springframework.http.ResponseEntity;
@@ -22,17 +25,17 @@ public class AdminGuideController extends BaseAdminController<UserGuide, String>
     }
 
     @GetMapping
-    public Mono<ResponseEntity<Object>> getAllGuides() {
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> getAllGuides() {
         return wrapList(repository.findAll(), "guides");
     }
 
     @PostMapping
-    public Mono<ResponseEntity<Object>> saveGuide(@RequestBody UserGuide guide) {
-        return wrapSave(repository.save(guide), "guide", guide);
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> saveGuide(@RequestBody UserGuide guide) {
+        return wrapSave(repository.save(guide), "guide");
     }
 
     @DeleteMapping("/{id}")
-    public Mono<ResponseEntity<Object>> deleteGuide(@PathVariable String id) {
+    public Mono<ResponseEntity<ApiResponse<String>>> deleteGuide(@PathVariable String id) {
         return wrapDelete(repository.deleteById(id), "Guide deleted successfully");
     }
 }

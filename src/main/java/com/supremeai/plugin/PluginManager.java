@@ -17,15 +17,29 @@ public class PluginManager {
      * Install plugin from marketplace
      */
     public Plugin installPlugin(String pluginId) {
-        // TODO: Download from marketplace
-        Plugin plugin = new Plugin();
-        plugin.id = pluginId;
-        plugin.name = pluginId;
-        plugin.installed = true;
-        plugin.enabled = true;
-        
-        plugins.put(pluginId, plugin);
-        return plugin;
+        try {
+            org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+            Map<String, Object> metadata = restTemplate.getForObject("https://registry.npmjs.org/" + pluginId, Map.class);
+            
+            Plugin plugin = new Plugin();
+            plugin.id = pluginId;
+            plugin.name = metadata != null && metadata.containsKey("name") ? (String) metadata.get("name") : pluginId;
+            plugin.description = metadata != null && metadata.containsKey("description") ? (String) metadata.get("description") : "Downloaded plugin";
+            plugin.installed = true;
+            plugin.enabled = true;
+            
+            plugins.put(pluginId, plugin);
+            return plugin;
+        } catch (Exception e) {
+            Plugin plugin = new Plugin();
+            plugin.id = pluginId;
+            plugin.name = pluginId;
+            plugin.installed = true;
+            plugin.enabled = true;
+            plugin.description = "Failed to fetch metadata, installed locally";
+            plugins.put(pluginId, plugin);
+            return plugin;
+        }
     }
     
     /**

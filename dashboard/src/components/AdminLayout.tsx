@@ -157,12 +157,30 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => {
               />
               {location.pathname === '/admin' ? (
                 <span style={{ color: 'white', fontSize: '18px', fontWeight: 700 }}>
-                  SupremeAI Admin
+                  <span style={{ color: '#4285F4' }}>S</span>
+                  <span style={{ color: '#EA4335' }}>u</span>
+                  <span style={{ color: '#FBBC05' }}>p</span>
+                  <span style={{ color: '#34A853' }}>r</span>
+                  <span style={{ color: '#4285F4' }}>e</span>
+                  <span style={{ color: '#EA4335' }}>m</span>
+                  <span style={{ color: '#FBBC05' }}>e</span>
+                  <span style={{ color: '#34A853' }}>A</span>
+                  <span style={{ color: '#4285F4' }}>I</span>
+                  <span style={{ fontSize: '12px', marginLeft: '5px', opacity: 0.8 }}>by Google</span>
                 </span>
               ) : (
                 <Link to="/admin" style={{ color: 'white', textDecoration: 'none' }}>
                   <span style={{ color: 'white', fontSize: '18px', fontWeight: 700 }}>
-                    SupremeAI Admin
+                    <span style={{ color: '#4285F4' }}>S</span>
+                    <span style={{ color: '#EA4335' }}>u</span>
+                    <span style={{ color: '#FBBC05' }}>p</span>
+                    <span style={{ color: '#34A853' }}>r</span>
+                    <span style={{ color: '#4285F4' }}>e</span>
+                    <span style={{ color: '#EA4335' }}>m</span>
+                    <span style={{ color: '#FBBC05' }}>e</span>
+                    <span style={{ color: '#34A853' }}>A</span>
+                    <span style={{ color: '#4285F4' }}>I</span>
+                    <span style={{ fontSize: '10px', marginLeft: '5px', opacity: 0.7 }}>by Google</span>
                   </span>
                 </Link>
               )}

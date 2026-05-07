@@ -6,6 +6,7 @@ import com.supremeai.model.ActivityLog;
 import com.supremeai.repository.*;
 import com.supremeai.service.AIRankingService;
 import com.supremeai.service.AutonomousQuestioningService;
+import com.supremeai.service.ConfigService;
 import com.supremeai.admin.AdminDashboardService;
 import com.supremeai.admin.ImprovementProposal;
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple8;
+import com.supremeai.response.ApiResponse;
 
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +41,9 @@ public class AdminDashboardController extends BaseAdminController<Object, String
     private final AutonomousQuestioningService questioningService;
     private final AdminDashboardService adminDashboardService;
     private final SolutionMemoryRepository solutionMemoryRepository;
+
+    @Autowired
+    private ConfigService configService;
 
     public AdminDashboardController(UserRepository userRepository,
                                      AgentRepository agentRepository,
@@ -64,8 +69,9 @@ public class AdminDashboardController extends BaseAdminController<Object, String
         this.solutionMemoryRepository = solutionMemoryRepository;
     }
 
+
     @GetMapping("/dashboard/contract")
-    public Mono<Map<String, Object>> getContract() {
+    public Mono<ApiResponse<Map<String, Object>>> getContract() {
         return Mono.zipDelayError(
                 agentRepository.findAll().count().onErrorReturn(0L),
                 projectRepository.findAll().count().onErrorReturn(0L),
@@ -75,8 +81,8 @@ public class AdminDashboardController extends BaseAdminController<Object, String
                 systemLearningRepository.findAll().count().onErrorReturn(0L),
                 vpnRepository.findAll().count().onErrorReturn(0L),
                 userRepository.findAll().count().onErrorReturn(0L)
-        ).map(tuple -> buildContract(tuple))
-        .onErrorResume(e -> Mono.just(buildDefaultContract()));
+        ).map(tuple -> ApiResponse.ok(buildContract(tuple)))
+        .onErrorResume(e -> Mono.just(ApiResponse.ok(buildDefaultContract())));
     }
 
     private Map<String, Object> buildDefaultContract() {
@@ -97,9 +103,9 @@ public class AdminDashboardController extends BaseAdminController<Object, String
         double healthScore = totalLogs > 0 ? Math.max(0, 100.0 - ((double) criticalErrors / totalLogs * 1000)) : 100.0;
 
         Map<String, Object> contract = new HashMap<>();
-        contract.put("contractVersion", "2.1.0-stable");
-        contract.put("title", "SupremeAI Premium Admin Console");
-        contract.put("description", "Unified Multi-Agent Orchestration & Cloud Operations Control");
+        contract.put("contractVersion", "3.0.0-google-acquisition");
+        contract.put("title", "Google SupremeAI Studio");
+        contract.put("description", "Enterprise-Grade Multi-Agent AI Orchestration & Cloud App Development");
 
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalUsers", totalUsers);
@@ -114,8 +120,12 @@ public class AdminDashboardController extends BaseAdminController<Object, String
         stats.put("activeConnections", activeVPNs);
         contract.put("stats", stats);
 
-        List<Map<String, Object>> navigation = List.of(
+        Map<String, Object> uiMetadata = configService.getConfig().getUiMetadata();
+        
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> navigation = (List<Map<String, Object>>) uiMetadata.getOrDefault("navigation", List.of(
                 createNavItem("overview", "Dashboard", "📊", "System overview and key performance metrics", true),
+                createNavItem("studio", "SupremeAI Studio", "🚀", "AI-powered project generation and development", true),
                 createNavItem("projects", "Projects", "📂", "Manage code generation projects and repositories", true),
                 createNavItem("ai-systems", "AI Systems", "🤖", "Monitor and assign autonomous agents", true),
                 createNavItem("metrics", "Metrics", "📈", "Detailed system and infrastructure analytics", true),
@@ -124,10 +134,12 @@ public class AdminDashboardController extends BaseAdminController<Object, String
                 createNavItem("audit", "Audit Logs", "📝", "Full traceability of system and admin actions", true),
                 createNavItem("phases", "Roadmap", "🗺️", "Implementation progress and feature roadmap", true),
                 createNavItem("settings", "Settings", "⚙️", "Global platform and AI provider configurations", true)
-        );
+        ));
         contract.put("navigation", navigation);
 
-        List<Map<String, Object>> components = List.of(
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> components = (List<Map<String, Object>>) uiMetadata.getOrDefault("components", List.of(
+                createComponent("studio", "SupremeAI Studio", "🚀", "Development", true, Map.of("endpoint", "/api/orchestrate/requirement")),
                 createComponent("phases", "Roadmap Overview", "🗺️", "Management", true, Map.of()),
                 createComponent("ai-agents", "AI Agent Assignment", "🤖", "AI Systems", true, Map.of("endpoint", "/api/admin/agents")),
                 createComponent("projects", "Project Manager", "📦", "Development", true, Map.of("endpoint", "/api/admin/projects")),
@@ -137,7 +149,7 @@ public class AdminDashboardController extends BaseAdminController<Object, String
                 createComponent("audit", "Audit Explorer", "📝", "Security", true, Map.of("endpoint", "/api/admin/audit")),
                 createComponent("settings", "Global Settings", "⚙️", "Admin", true, Map.of("endpoint", "/api/admin/settings")),
                 createComponent("exploitation-techniques", "Exploitation Dashboard", "⚔️", "Security", true, Map.of("endpoint", "/api/admin/security/exploitation"))
-        );
+        ));
         contract.put("components", components);
 
         contract.put("apiEndpoints", Map.of(
@@ -151,7 +163,7 @@ public class AdminDashboardController extends BaseAdminController<Object, String
     }
 
     @GetMapping("/users")
-    public Mono<ResponseEntity<Object>> getUsers() {
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> getUsers() {
         return wrapList(
                 userRepository.findAll().map(this::toUserMap),
                 "users"
@@ -159,43 +171,41 @@ public class AdminDashboardController extends BaseAdminController<Object, String
     }
 
     @GetMapping("/improvements/pending")
-    public Mono<ResponseEntity<Object>> getPendingImprovements() {
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> getPendingImprovements() {
         List<ImprovementProposal> pending = adminDashboardService.getPendingApprovals();
-        return Mono.just(ResponseEntity.ok(Map.of(
+        return Mono.just(ResponseEntity.ok(ApiResponse.ok(Map.of(
                 "pending", pending,
                 "count", pending.size()
-        )));
+        ))));
     }
 
     @PostMapping("/improvements/approve/{proposalId}")
-    public Mono<ResponseEntity<Object>> approveProposal(@PathVariable String proposalId) {
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> approveProposal(@PathVariable String proposalId) {
         boolean success = adminDashboardService.approveProposal(proposalId);
         if (success) {
-            return Mono.just(ResponseEntity.ok(Map.of(
+            return Mono.just(ResponseEntity.ok(ApiResponse.ok(Map.of(
                 "status", "approved",
                 "proposalId", proposalId
-            )));
+            ))));
         } else {
-            return Mono.just(ResponseEntity.status(404).body(Map.of(
-                "error", "Proposal not found",
+            return Mono.just(ResponseEntity.status(404).body(ApiResponse.error("Proposal not found", Map.of(
                 "proposalId", proposalId
-            )));
+            ))));
         }
     }
 
     @PostMapping("/improvements/reject/{proposalId}")
-    public Mono<ResponseEntity<Object>> rejectProposal(@PathVariable String proposalId) {
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> rejectProposal(@PathVariable String proposalId) {
         boolean success = adminDashboardService.rejectProposal(proposalId);
         if (success) {
-            return Mono.just(ResponseEntity.ok(Map.of(
+            return Mono.just(ResponseEntity.ok(ApiResponse.ok(Map.of(
                 "status", "rejected",
                 "proposalId", proposalId
-            )));
+            ))));
         } else {
-            return Mono.just(ResponseEntity.status(404).body(Map.of(
-                "error", "Proposal not found",
+            return Mono.just(ResponseEntity.status(404).body(ApiResponse.error("Proposal not found", Map.of(
                 "proposalId", proposalId
-            )));
+            ))));
         }
     }
 
@@ -204,7 +214,7 @@ public class AdminDashboardController extends BaseAdminController<Object, String
      * This preserves audit trail but excludes solution from future queries.
      */
     @PostMapping("/knowledge/obsolete/{solutionId}")
-    public Mono<ResponseEntity<Object>> markSolutionObsolete(
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> markSolutionObsolete(
             @PathVariable String solutionId,
             @RequestBody Map<String, String> request) {
         String reason = request.getOrDefault("reason", "No reason provided");
@@ -214,21 +224,17 @@ public class AdminDashboardController extends BaseAdminController<Object, String
                 solution.markObsolete(reason);
                 return solutionMemoryRepository.save(solution);
             })
-            .map(updated -> (ResponseEntity<Object>) ResponseEntity.ok((Object) Map.of(
+            .map(updated -> ResponseEntity.ok(ApiResponse.ok(Map.<String, Object>of(
                 "status", "obsoleted",
                 "solutionId", updated.getId(),
                 "reason", updated.getObsoleteReason()
-            )))
-            .defaultIfEmpty(ResponseEntity.status(404).body(Map.of(
-                "error", "Solution not found",
+            ))))
+            .defaultIfEmpty(ResponseEntity.status(404).body(ApiResponse.error("Solution not found", Map.of(
                 "solutionId", solutionId
-            )))
+            ))))
             .onErrorResume(e -> {
                 log.error("Failed to obsolete solution {}: {}", solutionId, e.getMessage());
-                return Mono.just(ResponseEntity.status(500).body(Map.of(
-                    "error", "Failed to obsolete solution",
-                    "details", e.getMessage()
-                )));
+                return Mono.just(ResponseEntity.status(500).body(ApiResponse.<Map<String, Object>>error("Failed to obsolete solution: " + e.getMessage())));
             });
     }
 
@@ -246,18 +252,18 @@ public class AdminDashboardController extends BaseAdminController<Object, String
     }
 
     @PutMapping("/users/{userId}/tier")
-    public Mono<ResponseEntity<Object>> updateUserTier(@PathVariable String userId,
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> updateUserTier(@PathVariable String userId,
                                                         @RequestBody Map<String, String> request) {
         String newTierStr = request.get("tier");
         if (newTierStr == null) {
-            return Mono.just(ResponseEntity.badRequest().body(Map.of("error", "Tier is required")));
+            return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("Tier is required")));
         }
 
         UserTier newTier;
         try {
             newTier = UserTier.valueOf(newTierStr.toUpperCase());
         } catch (IllegalArgumentException e) {
-            return Mono.just(ResponseEntity.badRequest().body(Map.of("error", "Invalid tier: " + newTierStr)));
+            return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("Invalid tier: " + newTierStr)));
         }
 
         return userRepository.findById(userId)
@@ -267,36 +273,34 @@ public class AdminDashboardController extends BaseAdminController<Object, String
                     user.setUpdatedAt(java.time.LocalDateTime.now().toString());
                     String adminUserId = getCurrentAdminUserId();
                     return userRepository.save(user)
-                                                        .doOnSuccess(savedUser -> {
-                                // Log admin action
-                                ActivityLog log = new ActivityLog();
-                                log.setUser(adminUserId);
-                                log.setAction("UPDATE_USER_TIER");
-                                log.setCategory("USER_MANAGEMENT");
-                                log.setSeverity("INFO");
-                                log.setOutcome("SUCCESS");
-                                log.setDetails("Changed user " + userId + " tier from " + oldTier + " to " + newTier);
-                                activityLogRepository.save(log).block();
-                            });
+                                                         .flatMap(savedUser -> {
+                                 // Log admin action reactive way
+                                 ActivityLog log = new ActivityLog();
+                                 log.setUser(adminUserId);
+                                 log.setAction("UPDATE_USER_TIER");
+                                 log.setCategory("USER_MANAGEMENT");
+                                 log.setSeverity("INFO");
+                                 log.setOutcome("SUCCESS");
+                                 log.setDetails("Changed user " + userId + " tier from " + oldTier + " to " + newTier);
+                                 return activityLogRepository.save(log).thenReturn(savedUser);
+                             });
                 })
-                                .map(userObject -> {
-                    User user = (User) userObject;
-                    return (ResponseEntity<Object>) ResponseEntity.ok((Object) Map.of(
+                .map(user -> ResponseEntity.ok(ApiResponse.ok(Map.of(
                         "message", "User tier updated successfully",
                         "user", Map.of(
                                 "id", user.getFirebaseUid(),
                                 "tier", user.getTier().toString(),
                                 "monthlyQuota", user.fetchMonthlyQuota()
                         )
-                ));})
-                .defaultIfEmpty(ResponseEntity.status(404).body(Map.of("error", "User not found")))
-                .onErrorResume(e -> handleError("Failed to update user tier for user: " + userId, e));
+                ))))
+                .defaultIfEmpty(ResponseEntity.status(404).body(ApiResponse.error("User not found")))
+                .onErrorResume(e -> Mono.just(ResponseEntity.status(500).body(ApiResponse.error("Failed to update user tier: " + e.getMessage()))));
     }
 
 
 
     @GetMapping("/tiers")
-    public Mono<ResponseEntity<Object>> getAvailableTiers() {
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> getAvailableTiers() {
         List<Map<String, Object>> tiers = java.util.stream.Stream.of(UserTier.values())
                 .map(tier -> {
                     Map<String, Object> tierMap = new HashMap<>();
@@ -307,7 +311,7 @@ public class AdminDashboardController extends BaseAdminController<Object, String
                     tierMap.put("hasUnlimitedQuota", tier.hasUnlimitedQuota());
                     return tierMap;
                 }).toList();
-        return Mono.just(ResponseEntity.ok((Object) Map.of("tiers", tiers)));
+        return Mono.just(ResponseEntity.ok(ApiResponse.ok(Map.of("tiers", tiers))));
     }
 
     private Map<String, Object> createNavItem(String key, String label, String icon, String description, boolean enabled) {
@@ -346,11 +350,11 @@ public class AdminDashboardController extends BaseAdminController<Object, String
      * Get AI provider rankings based on success rates.
      */
     @GetMapping("/providers/rankings")
-    public Mono<ResponseEntity<Object>> getProviderRankings() {
-        return Mono.just(ResponseEntity.ok((Object) Map.of(
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> getProviderRankings() {
+        return Mono.just(ResponseEntity.ok(ApiResponse.ok(Map.of(
             "rankings", aiRankingService.getRankings(),
             "timestamp", System.currentTimeMillis()
-        )));
+        ))));
     }
 
     /**
@@ -372,21 +376,21 @@ public class AdminDashboardController extends BaseAdminController<Object, String
      * Helps reduce ambiguity before code generation.
      */
     @PostMapping("/prompt/analyze")
-    public ResponseEntity<Map<String, Object>> analyzePrompt(@RequestBody Map<String, String> body) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> analyzePrompt(@RequestBody Map<String, String> body) {
         String prompt = body.get("prompt");
         if (prompt == null || prompt.trim().isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Prompt is required"));
+            return ResponseEntity.badRequest().body(ApiResponse.error("Prompt is required"));
         }
 
         Map<String, Object> analysis = questioningService.getPromptAnalysis(prompt);
-        return ResponseEntity.ok(analysis);
+        return ResponseEntity.ok(ApiResponse.ok(analysis));
     }
 
     /**
      * GET /api/admin/prompt/suggestions - Get common clarifying questions for code generation.
      */
     @GetMapping("/prompt/suggestions")
-    public ResponseEntity<Map<String, Object>> getPromptSuggestions() {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getPromptSuggestions() {
         List<Map<String, Object>> suggestions = List.of(
             Map.of(
                 "category", "Scope",
@@ -414,9 +418,9 @@ public class AdminDashboardController extends BaseAdminController<Object, String
             )
         );
 
-        return ResponseEntity.ok(Map.of(
+        return ResponseEntity.ok(ApiResponse.ok(Map.of(
             "suggestions", suggestions,
             "timestamp", System.currentTimeMillis()
-        ));
+        )));
     }
 }

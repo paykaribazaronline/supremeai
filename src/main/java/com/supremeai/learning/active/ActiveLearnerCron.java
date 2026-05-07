@@ -23,18 +23,29 @@ public class ActiveLearnerCron {
 
     @Scheduled(cron = "0 0 2 * * *")
     public void nightlyInternetLearning() {
-        log.info("[Active Learning] Waking up at 2 AM...");
-        List<ScrapedIssue> trendingIssues = scraper.scrapeTrendingIssues();
-
-        for (ScrapedIssue issue : trendingIssues) {
-            knowledgeBase.recordSuccessWithPermission(
-                issue.getTitle(),
-                issue.getSolution(),
-                "InternetScraper(" + issue.getSource() + ")",
-                100, 
-                0.9
-            );
+        try {
+            log.info("[Active Learning] Waking up at 2 AM...");
+            List<ScrapedIssue> trendingIssues = scraper.scrapeTrendingIssues();
+            if (trendingIssues == null) {
+                log.warn("[Active Learning] Scraper returned no trending issues.");
+                return;
+            }
+            for (ScrapedIssue issue : trendingIssues) {
+                try {
+                    knowledgeBase.recordSuccessWithPermission(
+                        issue.getTitle(),
+                        issue.getSolution(),
+                        "InternetScraper(" + issue.getSource() + ")",
+                        100, 
+                        0.9
+                    );
+                } catch (Exception e) {
+                    log.error("[Active Learning] Failed to record issue {}: {}", issue.getTitle(), e.getMessage());
+                }
+            }
+            log.info("[Active Learning] Finished learning.");
+        } catch (Exception e) {
+            log.error("[Active Learning] Critical error in nightly job: {}", e.getMessage());
         }
-        log.info("[Active Learning] Finished learning.");
     }
 }

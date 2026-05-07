@@ -33,7 +33,9 @@ public class InfiniteAutoHealer {
      * if it fails -> feeds logs back to AI -> writes new code -> repeat until SUCCESS.
      */
     public String developUntilPerfection(String taskCategory, String userPrompt) {
-
+        if (taskCategory == null) {
+            throw new NullPointerException("taskCategory cannot be null");
+        }
         log.info("\n[Auto-Healer] Starting development loop for: {}", taskCategory);
 
         String currentCode = "";

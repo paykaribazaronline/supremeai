@@ -31,6 +31,10 @@ public class CouncilVotingSystem {
 
         // 1. System intelligently figures out WHAT to ask the council
         VotingTopic topic = topicGenerator.generateTopicForMajorChange(changeType, codeSnippet);
+        if (topic == null) {
+            log.error("[Council Voting] Failed to generate voting topic for: {}", changeType);
+            return false;
+        }
         log.info("[Council Voting] Formulated Question: {}", topic.getQuestionToAsk());
 
         int approveCount = 0;

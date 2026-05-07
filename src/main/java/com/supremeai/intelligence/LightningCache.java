@@ -15,13 +15,15 @@ public class LightningCache {
      * If the exact same code file is uploaded, we don't analyze it again.
      */
     public String getCachedAnalysis(String codeHash) {
+        if (codeHash == null) return null;
         return l1MemoryCache.get(codeHash);
     }
 
     public void cacheResult(String codeHash, String result) {
+        if (codeHash == null || result == null) return;
         // Keep cache size manageable (e.g., evict old entries if > 10,000)
-        if (l1MemoryCache.size() > 10000) {
-            l1MemoryCache.clear(); // Simplified eviction. Real world uses LRU.
+        if (l1MemoryCache.size() >= 10000) {
+            l1MemoryCache.clear();
         }
         l1MemoryCache.put(codeHash, result);
     }

@@ -26,13 +26,21 @@ public class SkillEngine {
      */
     private Skill parseSkillMd(String content) {
         Skill skill = new Skill();
+        boolean parsingTriggers = false;
         for (String line : content.split("\n")) {
-            if (line.startsWith("name:")) {
-                skill.setName(line.replace("name:", "").trim());
-            } else if (line.startsWith("description:")) {
-                skill.setDescription(line.replace("description:", "").trim());
-            } else if (line.startsWith("## Triggers")) {
-                // TODO: Parse triggers
+            String trimmed = line.trim();
+            if (trimmed.startsWith("name:")) {
+                skill.setName(trimmed.replace("name:", "").trim());
+                parsingTriggers = false;
+            } else if (trimmed.startsWith("description:")) {
+                skill.setDescription(trimmed.replace("description:", "").trim());
+                parsingTriggers = false;
+            } else if (trimmed.startsWith("## Triggers")) {
+                parsingTriggers = true;
+            } else if (parsingTriggers && trimmed.startsWith("-")) {
+                skill.getTriggers().add(trimmed.substring(1).trim());
+            } else if (parsingTriggers && trimmed.startsWith("##")) {
+                parsingTriggers = false;
             }
         }
         return skill;
@@ -61,8 +69,15 @@ public class SkillEngine {
         public void setName(String name) { this.name = name; }
         public String getDescription() { return description; }
         public void setDescription(String description) { this.description = description; }
+        public List<String> getTriggers() { return triggers; }
+        
         public boolean matches(String input) {
-            return input.toLowerCase().contains(name.toLowerCase());
+            String lowerInput = input.toLowerCase();
+            if (name != null && lowerInput.contains(name.toLowerCase())) return true;
+            for (String t : triggers) {
+                if (lowerInput.contains(t.toLowerCase())) return true;
+            }
+            return false;
         }
     }
 }

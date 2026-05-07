@@ -50,8 +50,12 @@ public class SystemAutoDetectService {
         "ollama"     // local fallback
     };
 
-    // Cache duration (5 minutes)
-    private static final long CACHE_DURATION_MS = 5 * 60 * 1000;
+    @Autowired
+    private ConfigService configService;
+
+    private long getCacheDurationMs() {
+        return configService.getTimeout("cache_duration", 300000L);
+    }
 
     // Cached healthy provider
     private volatile AIProvider cachedProvider = null;
@@ -76,7 +80,7 @@ public class SystemAutoDetectService {
                     if (provider != null && isHealthy(provider)) {
                         logger.info("Auto-detected provider: {}", name);
                         cachedProvider = provider;
-                        cacheExpiry = now + CACHE_DURATION_MS;
+                        cacheExpiry = now + getCacheDurationMs();
                         return provider;
                     }
                 } catch (Exception e) {

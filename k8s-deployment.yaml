@@ -35,7 +35,7 @@ spec:
               topologyKey: kubernetes.io/hostname
       containers:
       - name: supremeai
-        image: gcr.io/supremeai-a/supremeai:latest
+        image: us-central1-docker.pkg.dev/supremeai-a/supremeai-repo/supremeai:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
@@ -54,6 +54,13 @@ spec:
             secretKeyRef:
               name: supremeai-secrets
               key: jwt-secret
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supremeai-secrets
+              key: gemini-api-key
+        - name: SPRING_PROFILES_ACTIVE
+          value: "cloud,production"
         resources:
           requests:
             cpu: 500m

@@ -5,6 +5,7 @@
 
 import * as vscode from 'vscode';
 import axios, { AxiosInstance } from 'axios';
+import { AuthService } from './AuthService';
 import { 
    LearningUpload, 
    LearningResponse, 
@@ -44,8 +45,15 @@ export class SupremeAIService {
       },
     });
 
-    // Request interceptor for logging
+    // Request interceptor for logging and auth
     this.client.interceptors.request.use((request) => {
+      const authService = AuthService.getInstance();
+      if (authService && authService.isAuthenticated()) {
+        const token = authService.getToken();
+        if (token) {
+          request.headers['Authorization'] = `Bearer ${token}`;
+        }
+      }
       console.log(`[SupremeAI] Sending ${request.method?.toUpperCase()} to ${request.url}`);
       return request;
     });

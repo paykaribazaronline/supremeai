@@ -15,6 +15,9 @@ public class RequirementAnalyzer {
      * it generates a Clarification object instead of guessing and writing wrong code.
      */
     public RequirementClarification analyzeRequirement(String userPrompt) {
+        if (userPrompt == null || userPrompt.isEmpty()) {
+            return null;
+        }
         String lowerPrompt = userPrompt.toLowerCase();
 
         // SCENARIO 1: Extremely vague requirement about UI/Auth

@@ -10,6 +10,9 @@ import reactor.core.publisher.Mono;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.supremeai.response.ApiResponse;
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/ai-agents")
 public class AIAgentsController {
@@ -21,41 +24,42 @@ public class AIAgentsController {
     }
 
     @GetMapping
-    public Flux<Agent> getAllAgents() {
-        return agentRepository.findAll();
+    public Mono<ApiResponse<List<Agent>>> getAllAgents() {
+        return agentRepository.findAll().collectList().map(ApiResponse::ok);
     }
 
     @GetMapping("/stats")
-    public Mono<Map<String, Object>> getAgentStats() {
+    public Mono<ApiResponse<Map<String, Object>>> getAgentStats() {
         return agentRepository.findAll().collectList().map(agents -> {
             Map<String, Object> stats = new HashMap<>();
             stats.put("totalAgents", agents.size());
             stats.put("activeAgents", agents.stream().filter(a -> "ACTIVE".equals(a.getStatus())).count());
             stats.put("idleAgents", agents.stream().filter(a -> "IDLE".equals(a.getStatus())).count());
-            return stats;
+            return ApiResponse.ok(stats);
         });
     }
 
     @PostMapping
-    public Mono<Agent> createAgent(@RequestBody Agent agent) {
+    public Mono<ApiResponse<Agent>> createAgent(@RequestBody Agent agent) {
         agent.setId(IdUtils.ensureId(agent.getId()));
         if (agent.getStatus() == null) {
             agent.setStatus("IDLE");
         }
-        return agentRepository.save(agent);
+        return agentRepository.save(agent).map(ApiResponse::ok);
     }
 
     @PutMapping("/{id}/status")
-    public Mono<Agent> updateAgentStatus(@PathVariable String id, @RequestParam String status) {
+    public Mono<ApiResponse<Agent>> updateAgentStatus(@PathVariable String id, @RequestParam String status) {
         return agentRepository.findById(id)
                 .flatMap(agent -> {
                     agent.setStatus(status);
                     return agentRepository.save(agent);
-                });
+                })
+                .map(ApiResponse::ok);
     }
 
     @DeleteMapping("/{id}")
-    public Mono<Void> removeAgent(@PathVariable String id) {
-        return agentRepository.deleteById(id);
+    public Mono<ApiResponse<String>> removeAgent(@PathVariable String id) {
+        return agentRepository.deleteById(id).thenReturn(ApiResponse.ok("Agent removed"));
     }
 }

@@ -2,12 +2,14 @@ package com.supremeai.ai.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.supremeai.security.UnifiedSecretsService;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
@@ -19,13 +21,14 @@ public class GeminiClientImpl implements GeminiClient {
     private static final Logger log = LoggerFactory.getLogger(GeminiClientImpl.class);
     private final OkHttpClient httpClient;
     private final ObjectMapper objectMapper;
-    private final String apiKey;
     private final String model;
+    private final UnifiedSecretsService secretsService;
 
+    @Autowired
     public GeminiClientImpl(
-            @Value("${supremeai.providers.gemini:${GEMINI_API_KEY:}}") String apiKey,
+            UnifiedSecretsService secretsService,
             @Value("${gemini.model:gemini-1.5-pro}") String model) {
-        this.apiKey = apiKey;
+        this.secretsService = secretsService;
         this.model = model;
         this.httpClient = new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)
@@ -34,12 +37,18 @@ public class GeminiClientImpl implements GeminiClient {
         this.objectMapper = new ObjectMapper();
     }
 
+    private String getApiKey() {
+        String key = secretsService.getSecret("GEMINI_API_KEY").block();
+        return key != null ? key : "";
+    }
+
     @Override
     public String generateQuestions(String prompt) {
         try {
+            String currentApiKey = getApiKey();
             String url = String.format(
                     "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s",
-                    model, apiKey);
+                    model, currentApiKey);
             
             String jsonBody = String.format(
                     "{\"contents\":[{\"parts\":[{\"text\":\"%s\"}]}]}",

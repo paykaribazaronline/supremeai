@@ -13,7 +13,12 @@ public class AIReasoningService {
 
     private static final Logger log = LoggerFactory.getLogger(AIReasoningService.class);
     private final Queue<ReasoningLog> recentLogs = new ConcurrentLinkedQueue<>();
-    private static final int MAX_RECENT_LOGS = 1000;
+    @org.springframework.beans.factory.annotation.Autowired
+    private ConfigService configService;
+
+    private int getMaxRecentLogs() {
+        return configService.getSetting("max_recent_logs", 1000);
+    }
 
     public void logReasoning(String taskId, String decision, String reason, String modelName) {
         ReasoningLog reasoningLog = ReasoningLog.builder()
@@ -27,7 +32,7 @@ public class AIReasoningService {
                 .build();
 
         recentLogs.add(reasoningLog);
-        if (recentLogs.size() > MAX_RECENT_LOGS) {
+        if (recentLogs.size() > getMaxRecentLogs()) {
             recentLogs.poll();
         }
         

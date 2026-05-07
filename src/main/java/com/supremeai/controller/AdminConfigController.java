@@ -39,8 +39,34 @@ public class AdminConfigController {
             @RequestBody SystemConfig config,
             Authentication authentication,
             HttpServletRequest request) {
+        validateConfig(config);
         String actor = authentication != null ? authentication.getName() : "unknown";
         return configService.updateConfig(config, actor, request.getRemoteAddr());
+    }
+
+    private void validateConfig(SystemConfig config) {
+        if (config.getThresholds() != null) {
+            for (Map.Entry<String, Double> entry : config.getThresholds().entrySet()) {
+                Double val = entry.getValue();
+                if (val != null && (val < 0.0 || val > 1.0)) {
+                    throw new IllegalArgumentException("Threshold '" + entry.getKey() + "' must be between 0.0 and 1.0");
+                }
+            }
+        }
+        if (config.getTimeouts() != null) {
+            for (Map.Entry<String, Long> entry : config.getTimeouts().entrySet()) {
+                Long val = entry.getValue();
+                if (val != null && val < 0) {
+                    throw new IllegalArgumentException("Timeout '" + entry.getKey() + "' cannot be negative");
+                }
+            }
+        }
+        if (config.getSettings() != null) {
+            Object maxLogs = config.getSettings().get("max_recent_logs");
+            if (maxLogs instanceof Number && ((Number) maxLogs).intValue() > 10000) {
+                throw new IllegalArgumentException("max_recent_logs cannot exceed 10000");
+            }
+        }
     }
 
     /**

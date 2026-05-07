@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
+import 'settings_provider.dart';
 
 enum OrchestrationErrorType {
   network,
@@ -164,55 +166,83 @@ class OrchestrationProvider with ChangeNotifier {
     _error = null;
   }
 
-  Future<void> orchestrateRequirement(String requirement, String token) async {
+  Future<void> orchestrateRequirement(String requirement, String token, {String? geminiKey}) async {
     _isLoading = true;
     _clearError();
     notifyListeners();
 
-    // If offline, queue the operation
-    if (!_isOnline) {
-      await _queueOfflineOperation({
-        'type': 'orchestrate',
-        'requirement': requirement,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-      _error = OrchestrationError(
-        message:
-            'You are currently offline. Your request has been queued and will be processed when connection is restored.',
-        type: OrchestrationErrorType.network,
-      );
-      _isLoading = false;
-      notifyListeners();
-      return;
-    }
+    // Try backend first
+    if (_isOnline) {
+      try {
+        final response = await http
+            .post(
+              Uri.parse('$_baseUrl/api/orchestrate/requirement'),
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer $token',
+              },
+              body: json.encode({'requirement': requirement}),
+            )
+            .timeout(const Duration(seconds: 20));
 
-    try {
-      final response = await http
-          .post(
-            Uri.parse('$_baseUrl/api/orchestrate/requirement'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-            body: json.encode({'requirement': requirement}),
-          )
-          .timeout(
-            const Duration(seconds: 30),
-            onTimeout: () => throw TimeoutException('Request timed out'),
-          );
-
-      if (response.statusCode == 200) {
-        _lastResult = json.decode(response.body);
-        await _cacheResult(_lastResult!);
-      } else {
-        _error = OrchestrationError.fromStatusCode(response.statusCode);
+        if (response.statusCode == 200) {
+          _lastResult = json.decode(response.body);
+          await _cacheResult(_lastResult!);
+          _isLoading = false;
+          notifyListeners();
+          return;
+        }
+      } catch (e) {
+        print('[SupremeAI] Backend orchestration failed, trying native Gemini: $e');
       }
-    } catch (e) {
-      _error = OrchestrationError.fromException(e);
-    } finally {
-      _isLoading = false;
-      notifyListeners();
     }
+
+    // Native Gemini Fallback (if offline or backend failed)
+    if (geminiKey != null && geminiKey.isNotEmpty) {
+      try {
+        final model = GenerativeModel(model: 'gemini-1.5-pro', apiKey: geminiKey);
+        final prompt = 'As an AI Orchestrator for SupremeAI, analyze this requirement and provide a structured JSON response with "tasks", "priority", and "estimatedComplexity": $requirement';
+        final content = [Content.text(prompt)];
+        final response = await model.generateContent(content);
+        
+        if (response.text != null) {
+          // Try to extract JSON from response
+          final jsonStr = _extractJson(response.text!);
+          _lastResult = json.decode(jsonStr);
+          _isLoading = false;
+          notifyListeners();
+          return;
+        }
+      } catch (e) {
+        _error = OrchestrationError(message: 'Native Gemini failed: $e', type: OrchestrationErrorType.unknown);
+      }
+    }
+
+    if (!_isOnline) {
+        await _queueOfflineOperation({
+          'type': 'orchestrate',
+          'requirement': requirement,
+          'timestamp': DateTime.now().toIso8601String(),
+        });
+        _error = OrchestrationError(
+          message: 'You are offline and no AI key configured. Request queued.',
+          type: OrchestrationErrorType.network,
+        );
+    } else {
+        _error = OrchestrationError(message: 'Orchestration failed on both backend and native AI.', type: OrchestrationErrorType.serverError);
+    }
+    
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  String _extractJson(String text) {
+    final start = text.indexOf('{');
+    final end = text.lastIndexOf('}');
+    if (start != -1 && end != -1) {
+      return text.substring(start, end + 1);
+    }
+    return '{}';
   }
 
   Future<void> generateProject(String token) async {

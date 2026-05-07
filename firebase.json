@@ -1,6 +1,10 @@
 {
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
   "hosting": {
-    "public": "out",
+    "public": "public",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -10,7 +14,7 @@
       {
         "source": "/api/**",
         "run": {
-          "serviceId": "gitingest",
+          "serviceId": "supremeai-backend",
           "region": "us-central1"
         }
       },

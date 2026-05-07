@@ -1,5 +1,7 @@
 package com.supremeai.controller;
 
+import com.supremeai.response.ApiResponse;
+
 import com.supremeai.model.APIProvider;
 import com.supremeai.model.ActivityLog;
 import com.supremeai.repository.ProviderRepository;
@@ -12,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.LocalDateTime;
 import java.util.Map;
 
 @RestController
@@ -41,98 +42,98 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
     }
 
         @GetMapping("/configured")
-    public Mono<ResponseEntity<Object>> getConfiguredProviders() {
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> getConfiguredProviders() {
         return wrapList(providerRepository.findAll(), "providers");
     }
 
     @PostMapping("/add")
-    public Mono<ResponseEntity<Object>> addProvider(@RequestBody APIProvider provider) {
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> addProvider(@RequestBody APIProvider provider) {
         return updateProvider(provider);
     }
 
     @PutMapping("/{id}")
-    public Mono<ResponseEntity<Object>> updateProviderById(@PathVariable String id, @RequestBody APIProvider provider) {
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> updateProviderById(@PathVariable String id, @RequestBody APIProvider provider) {
         provider.setId(id);
         return updateProvider(provider);
     }
 
     @PostMapping("/remove")
-    public Mono<ResponseEntity<Object>> removeProvider(@RequestBody Map<String, String> payload) {
+    public Mono<ResponseEntity<ApiResponse<String>>> removeProvider(@RequestBody Map<String, String> payload) {
         String providerId = payload.get("providerId");
         if (providerId == null) {
-            return Mono.just(ResponseEntity.badRequest().body(Map.of("error", "providerId is required")));
+            return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("providerId is required")));
         }
-        return deleteProvider(providerId);
+        return deleteProvider(providerId).map(re -> {
+            boolean success = re.getBody() != null && re.getBody().success();
+            String error = (re.getBody() != null) ? re.getBody().error() : "Unknown error";
+            return ResponseEntity.status(re.getStatusCode()).body(success ? ApiResponse.ok("Provider removed") : ApiResponse.error(error));
+        });
     }
 
     @PostMapping("/test-key")
-    public Mono<ResponseEntity<Object>> testProviderKey(@RequestBody Map<String, String> payload) {
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> testProviderKey(@RequestBody Map<String, String> payload) {
         String name = payload.get("name");
         String apiKey = payload.get("apiKey");
 
         if (name == null || apiKey == null) {
-            return Mono.just(ResponseEntity.badRequest().body(Map.of("error", "name and apiKey are required")));
+            return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("name and apiKey are required")));
         }
 
         try {
             com.supremeai.provider.AIProvider provider = aiProviderFactory.getProvider(name, apiKey);
             return provider.generate("test")
-                    .map(response -> ResponseEntity.ok((Object) Map.of(
-                            "success", true,
+                    .map(response -> ResponseEntity.ok(ApiResponse.ok(Map.<String, Object>of(
                             "message", "Key validated successfully",
                             "response", response
-                    )))
-                    .onErrorResume(e -> Mono.just(ResponseEntity.status(401).body(Map.of(
-                            "success", false,
-                            "error", "Invalid key or provider error: " + e.getMessage()
-                    ))));
+                    ))))
+                    .onErrorResume(e -> Mono.just(ResponseEntity.status(401).body(ApiResponse.<Map<String, Object>>error("Invalid key or provider error: " + e.getMessage()))));
         } catch (Exception e) {
-            return Mono.just(ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "error", "Unsupported provider or configuration error: " + e.getMessage()
-            )));
+            return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("Unsupported provider or configuration error: " + e.getMessage())));
         }
     }
 
     @PostMapping
-    public Mono<ResponseEntity<Object>> updateProvider(@RequestBody APIProvider provider) {
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> updateProvider(@RequestBody APIProvider provider) {
+        String adminUserId = getCurrentAdminUserId();
         return providerRepository.save(provider)
-                .map(saved -> {
-// Log admin action
-                                ActivityLog log = new ActivityLog();
-                                log.setUser(getCurrentAdminUserId());
-                                log.setAction("UPDATE_PROVIDER");
+                .flatMap(saved -> {
+                    // Log admin action reactive way
+                    ActivityLog log = new ActivityLog();
+                    log.setUser(adminUserId);
+                    log.setAction("UPDATE_PROVIDER");
                     log.setCategory("PROVIDER_MANAGEMENT");
                     log.setSeverity("INFO");
                     log.setOutcome("SUCCESS");
                     log.setDetails("Updated provider: " + saved.getId() + " (" + saved.getName() + ")");
-                    activityLogRepository.save(log).block();
                     
-                    return (ResponseEntity<Object>) ResponseEntity.ok((Object) Map.of(
-                        "message", "Provider updated successfully",
-                        "provider", saved
-                    ));
+                    return activityLogRepository.save(log)
+                            .thenReturn(ResponseEntity.ok(ApiResponse.ok(Map.of(
+                                "message", "Provider updated successfully",
+                                "provider", saved
+                            ))));
                 });
     }
 
     @DeleteMapping("/{id}")
-    public Mono<ResponseEntity<Object>> deleteProvider(@PathVariable String id) {
+    public Mono<ResponseEntity<ApiResponse<String>>> deleteProvider(@PathVariable String id) {
+        String adminUserId = getCurrentAdminUserId();
         return providerRepository.findById(id)
                 .flatMap(provider -> {
                     String providerName = provider.getName();
-                    return wrapDelete(providerRepository.deleteById(id), "Provider deleted")
-                            .doOnSuccess(aVoid -> {
-                                // Log admin action
+                    return providerRepository.deleteById(id)
+                            .then(Mono.fromCallable(() -> {
                                 ActivityLog log = new ActivityLog();
-                                log.setUser(getCurrentAdminUserId());
+                                log.setUser(adminUserId);
                                 log.setAction("DELETE_PROVIDER");
                                 log.setCategory("PROVIDER_MANAGEMENT");
-                                log.setSeverity("WARN"); // Deleting providers is notable
+                                log.setSeverity("WARN");
                                 log.setOutcome("SUCCESS");
                                 log.setDetails("Deleted provider: " + id + " (" + providerName + ")");
-                                activityLogRepository.save(log).block();
-                            });
+                                return log;
+                            }))
+                            .flatMap(activityLogRepository::save)
+                            .thenReturn(ResponseEntity.ok(ApiResponse.ok("Provider deleted")));
                 })
-                .defaultIfEmpty(ResponseEntity.status(404).body((Object) Map.of("error", "Provider not found")));
+                .defaultIfEmpty(ResponseEntity.status(404).body(ApiResponse.<String>error("Provider not found")));
     }
 }

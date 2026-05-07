@@ -28,11 +28,11 @@ public enum SourceAuthority {
     public static SourceAuthority fromSourceName(String sourceName) {
         if (sourceName == null) return FORUMS;
         String lower = sourceName.toLowerCase();
-        if (lower.contains("official") || lower.contains("documentation")) return OFFICIAL_DOCS;
+        if (lower.contains("official") || lower.contains("documentation") || lower.contains("docs.") || lower.contains("developer.")) return OFFICIAL_DOCS;
         if (lower.contains("github") || lower.contains("gitlab")) return GITHUB;
-        if (lower.contains("stackoverflow") || lower.contains("stack exchange")) return STACK_OVERFLOW;
+        if (lower.contains("stackoverflow") || lower.contains("stackexchange") || lower.contains("stack exchange")) return STACK_OVERFLOW;
         if (lower.contains("wikipedia")) return WIKIPEDIA;
-        if (lower.contains("blog")) return BLOGS;
+        if (lower.contains("blog") || lower.contains("medium.com") || lower.contains("wordpress.com")) return BLOGS;
         return FORUMS;
     }
 }

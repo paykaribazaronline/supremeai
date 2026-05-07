@@ -43,9 +43,9 @@ class ResponseCacheServiceTest {
         doThrow(new RuntimeException("redis unavailable"))
             .when(valueOperations).set(any(), any(), anyLong(), any());
 
-        responseCacheService.put("prompt", "response");
+        responseCacheService.putAiResponse("prompt", "response");
 
-        assertEquals("response", responseCacheService.get("prompt"));
+        assertEquals("response", responseCacheService.getAiResponse("prompt"));
     }
 
     @Test
@@ -53,24 +53,24 @@ class ResponseCacheServiceTest {
         ResponseCacheService.CacheEntry cacheEntry = new ResponseCacheService.CacheEntry("redis-response", Duration.ofMinutes(30));
         when(valueOperations.get(startsWith("cache:ai-responses:"))).thenReturn(cacheEntry);
 
-        assertEquals("redis-response", responseCacheService.get("prompt"));
-        assertEquals("redis-response", responseCacheService.get("prompt"));
+        assertEquals("redis-response", responseCacheService.getAiResponse("prompt"));
+        assertEquals("redis-response", responseCacheService.getAiResponse("prompt"));
     }
 
     @Test
     void clearRemovesLocalEntriesAndStatsRemainAccessible() {
-        responseCacheService.put("prompt", "response");
+        responseCacheService.putAiResponse("prompt", "response");
         responseCacheService.clear();
 
-        assertNull(responseCacheService.get("prompt"));
+        assertNull(responseCacheService.getAiResponse("prompt"));
         assertNotNull(responseCacheService.getStats());
     }
 
     @Test
     void getStatsReflectsCacheAccess() {
-        responseCacheService.put("prompt", "response");
-        responseCacheService.get("prompt");
-        responseCacheService.get("missing");
+        responseCacheService.putAiResponse("prompt", "response");
+        responseCacheService.getAiResponse("prompt");
+        responseCacheService.getAiResponse("missing");
 
         ResponseCacheService.CacheStats stats = responseCacheService.getStats();
 

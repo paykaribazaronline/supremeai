@@ -24,6 +24,9 @@ public class ParallelCodeAnalyzer {
      * we chunk the code and analyze it in PARALLEL.
      */
     public AnalysisResult analyzeMassiveCode(String fullCode) {
+        if (fullCode == null || fullCode.isBlank()) {
+            return new AnalysisResult();
+        }
         long startTime = System.nanoTime();
 
         // 1. Chunk the code into manageable pieces (e.g., by classes/methods or 500 lines)

@@ -17,4 +17,12 @@ public class VotingTopic {
     public String getCategory() { return category; }
     public String getContext() { return context; }
     public String getQuestionToAsk() { return questionToAsk; }
+
+    @Override
+    public String toString() {
+        return "VotingTopic{" +
+               "id='" + topicId + '\'' +
+               ", category='" + category + '\'' +
+               '}';
+    }
 }

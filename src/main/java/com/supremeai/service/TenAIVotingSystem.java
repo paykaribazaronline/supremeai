@@ -54,9 +54,20 @@ public class TenAIVotingSystem {
     private final ExecutorService executor;
     private final Map<String, ModelPerformanceTracker> performanceTrackers;
 
-    private static final int DEFAULT_TIMEOUT_MS = 15000;
-    private static final int MAX_RETRIES = 2;
-    private static final double CONFIDENCE_THRESHOLD = 0.6;
+    @Autowired
+    private ConfigService configService;
+
+    private int getTimeoutMs() {
+        return (int) configService.getTimeout("voting_timeout", 15000L);
+    }
+
+    private int getMaxRetries() {
+        return configService.getSetting("max_retries", 2);
+    }
+
+    private double getConfidenceThreshold() {
+        return configService.getThreshold("consensus", 0.6);
+    }
 
     public TenAIVotingSystem() {
         this.executor = Executors.newFixedThreadPool(20);
@@ -139,7 +150,7 @@ public class TenAIVotingSystem {
             if (selfHealingService != null) {
                 response = selfHealingService.executeWithRetry(
                     () -> provider.generate(prompt),
-                    MAX_RETRIES,
+                    getMaxRetries(),
                     250L
                 ).block();
             } else {

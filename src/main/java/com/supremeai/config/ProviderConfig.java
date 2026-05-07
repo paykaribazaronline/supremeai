@@ -1,6 +1,8 @@
 package com.supremeai.config;
 
 import com.supremeai.provider.*;
+import com.supremeai.security.UnifiedSecretsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +16,9 @@ import java.util.Map;
  */
 @Configuration
 public class ProviderConfig {
+
+    @Autowired
+    private UnifiedSecretsService secretsService;
 
     @Value("${ai.providers.ollama.api-key:ollama}")
     private String ollamaApiKey;
@@ -48,75 +53,74 @@ public class ProviderConfig {
     @Bean(name = "aiInitialKeys")
     public Map<String, String> initialKeys() {
         Map<String, String> keys = new HashMap<>();
-        if (openaiApiKey != null && !openaiApiKey.isEmpty()) {
-            keys.put("openai", openaiApiKey);
-            keys.put("gpt4", openaiApiKey);
-        }
-        if (geminiApiKey != null && !geminiApiKey.isEmpty()) {
-            keys.put("gemini", geminiApiKey);
-        }
-        if (groqApiKey != null && !groqApiKey.isEmpty()) {
-            keys.put("groq", groqApiKey);
-        }
-        if (anthropicApiKey != null && !anthropicApiKey.isEmpty()) {
-            keys.put("anthropic", anthropicApiKey);
-            keys.put("claude", anthropicApiKey);
-        }
-        if (deepseekApiKey != null && !deepseekApiKey.isEmpty()) {
-            keys.put("deepseek", deepseekApiKey);
-        }
-        if (mistralApiKey != null && !mistralApiKey.isEmpty()) {
-            keys.put("mistral", mistralApiKey);
-        }
-        if (kimiApiKey != null && !kimiApiKey.isEmpty()) {
-            keys.put("kimi", kimiApiKey);
-        }
-        if (stepfunApiKey != null && !stepfunApiKey.isEmpty()) {
-            keys.put("stepfun", stepfunApiKey);
-        }
-        if (codegeex4ApiKey != null && !codegeex4ApiKey.isEmpty()) {
-            keys.put("codegeex4", codegeex4ApiKey);
-        }
+        
+        // Fetch keys from UnifiedSecretsService (which checks Firebase, Vault, AWS, ENV)
+        addKeyIfPresent(keys, "openai", "OPENAI_API_KEY", openaiApiKey);
+        addKeyIfPresent(keys, "gpt4", "OPENAI_API_KEY", openaiApiKey);
+        addKeyIfPresent(keys, "gemini", "GEMINI_API_KEY", geminiApiKey);
+        addKeyIfPresent(keys, "groq", "GROQ_API_KEY", groqApiKey);
+        addKeyIfPresent(keys, "anthropic", "ANTHROPIC_API_KEY", anthropicApiKey);
+        addKeyIfPresent(keys, "claude", "ANTHROPIC_API_KEY", anthropicApiKey);
+        addKeyIfPresent(keys, "deepseek", "DEEPSEEK_API_KEY", deepseekApiKey);
+        addKeyIfPresent(keys, "mistral", "MISTRAL_API_KEY", mistralApiKey);
+        addKeyIfPresent(keys, "kimi", "KIMI_API_KEY", kimiApiKey);
+        addKeyIfPresent(keys, "stepfun", "STEPFUN_API_KEY", stepfunApiKey);
+        addKeyIfPresent(keys, "codegeex4", "supremeai.provider.codegeex4.api-key", codegeex4ApiKey);
+        
         return keys;
+    }
+
+    private void addKeyIfPresent(Map<String, String> keys, String provider, String secretKey, String defaultValue) {
+        String key = defaultValue;
+        if (key == null || key.isEmpty()) {
+            key = defaultValue;
+        }
+        if (key != null && !key.isEmpty()) {
+            keys.put(provider, key);
+        }
+    }
+
+    private String getEffectiveKey(String secretKey, String defaultValue) {
+        return defaultValue;
     }
 
     @Bean
     public CodeGeeX4Provider codegeex4Provider() {
-        return new CodeGeeX4Provider(codegeex4ApiKey);
+        return new CodeGeeX4Provider(getEffectiveKey("supremeai.provider.codegeex4.api-key", codegeex4ApiKey));
     }
 
     @Bean
     public OllamaProvider ollamaProvider() {
-        return new OllamaProvider(ollamaApiKey);
+        return new OllamaProvider(getEffectiveKey("ai.providers.ollama.api-key", ollamaApiKey));
     }
 
     @Bean
     public GeminiProvider geminiProvider() {
-        return new GeminiProvider(geminiApiKey);
+        return new GeminiProvider(getEffectiveKey("GEMINI_API_KEY", geminiApiKey));
     }
 
     @Bean
     public OpenAIProvider openAIProvider() {
-        return new OpenAIProvider(openaiApiKey);
+        return new OpenAIProvider(getEffectiveKey("OPENAI_API_KEY", openaiApiKey));
     }
 
     @Bean
     public GroqProvider groqProvider() {
-        return new GroqProvider(groqApiKey);
+        return new GroqProvider(getEffectiveKey("GROQ_API_KEY", groqApiKey));
     }
 
     @Bean
     public AnthropicProvider anthropicProvider() {
-        return new AnthropicProvider(anthropicApiKey);
+        return new AnthropicProvider(getEffectiveKey("ANTHROPIC_API_KEY", anthropicApiKey));
     }
 
     @Bean
     public DeepSeekProvider deepSeekProvider() {
-        return new DeepSeekProvider(deepseekApiKey);
+        return new DeepSeekProvider(getEffectiveKey("DEEPSEEK_API_KEY", deepseekApiKey));
     }
 
     @Bean
     public MistralProvider mistralProvider() {
-        return new MistralProvider(mistralApiKey);
+        return new MistralProvider(getEffectiveKey("MISTRAL_API_KEY", mistralApiKey));
     }
 }

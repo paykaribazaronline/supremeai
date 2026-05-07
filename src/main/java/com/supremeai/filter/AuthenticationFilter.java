@@ -43,6 +43,11 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected boolean shouldNotFilterAsyncDispatch() {
+        return false;
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
@@ -63,8 +68,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         }
         
         if (idToken == null || idToken.trim().isEmpty()) {
-            logger.warn("Missing or invalid Authorization header for request: " + request.getRequestURI());
-            sendUnauthorized(response, "Missing authentication token");
+            logger.debug("No authentication token found in header, continuing filter chain");
+            filterChain.doFilter(request, response);
             return;
         }
         

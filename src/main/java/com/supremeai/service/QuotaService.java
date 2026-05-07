@@ -22,14 +22,19 @@ public class QuotaService {
     @Autowired
     private QuotaManager quotaManager;
 
-    private static final long DEFAULT_MONTHLY_QUOTA = 1000L;
+    @Autowired
+    private ConfigService configService;
+
+    private long getMonthlyQuota() {
+        return configService.getSetting("default_monthly_quota", 1000L);
+    }
 
     /**
      * Check if an API key has quota remaining for the current month
      */
     public Mono<Boolean> hasQuotaRemaining(String apiKey) {
         return userApiKeyRepository.findByApiKey(apiKey)
-            .map(api -> "active".equals(api.getStatus()) && api.getRequestCount() < DEFAULT_MONTHLY_QUOTA)
+            .map(api -> "active".equals(api.getStatus()) && api.getRequestCount() < getMonthlyQuota())
             .defaultIfEmpty(false);
     }
 
@@ -43,7 +48,7 @@ public class QuotaService {
                 if (!"active".equals(api.getStatus())) {
                     return Mono.just(false);
                 }
-                if (api.getRequestCount() < DEFAULT_MONTHLY_QUOTA) {
+                if (api.getRequestCount() < getMonthlyQuota()) {
                     api.setRequestCount(api.getRequestCount() + 1);
                     api.setLastUsed(LocalDateTime.now());
                     return userApiKeyRepository.save(api).map(saved -> true);
@@ -63,7 +68,7 @@ public class QuotaService {
                 if (!"active".equals(api.getStatus())) {
                     return Mono.error(new IllegalArgumentException("Inactive API key"));
                 }
-                if (api.getRequestCount() >= DEFAULT_MONTHLY_QUOTA) {
+                if (api.getRequestCount() >= getMonthlyQuota()) {
                     return Mono.error(new RuntimeException("Quota exceeded"));
                 }
                 api.setRequestCount(api.getRequestCount() + 1);
@@ -85,7 +90,7 @@ public class QuotaService {
      * Get monthly quota for an API key
      */
     public Long getMonthlyQuota(String apiKey) {
-        return DEFAULT_MONTHLY_QUOTA;
+        return getMonthlyQuota();
     }
 
     /**
@@ -132,9 +137,9 @@ public class QuotaService {
         return userApiKeyRepository.findByApiKey(apiKey)
             .map(api -> new ApiUsageStats(
                 api.getRequestCount(),
-                DEFAULT_MONTHLY_QUOTA,
+                getMonthlyQuota(),
                 api.getLastUsed(),
-                api.getRequestCount() < DEFAULT_MONTHLY_QUOTA
+                api.getRequestCount() < getMonthlyQuota()
             ));
     }
 

@@ -2,7 +2,7 @@ package com.supremeai.model;
 
 import com.google.cloud.firestore.annotation.DocumentId;
 import com.google.cloud.spring.data.firestore.Document;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Document(collectionName = "activity_logs")
 public class ActivityLog {
@@ -17,12 +17,12 @@ public class ActivityLog {
      
     private String details;
      
-    private LocalDateTime timestamp;
+    private Date timestamp;
     private String ip;
     private String outcome; // success, failure, pending
 
     public ActivityLog() {
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = new Date();
     }
 
     public ActivityLog(String action, String user, String category, String severity, String details, String outcome, String ip) {
@@ -49,8 +49,8 @@ public class ActivityLog {
     public void setSeverity(String severity) { this.severity = severity; }
     public String getDetails() { return details; }
     public void setDetails(String details) { this.details = details; }
-    public LocalDateTime getTimestamp() { return timestamp; }
-    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+    public Date getTimestamp() { return timestamp; }
+    public void setTimestamp(Date timestamp) { this.timestamp = timestamp; }
     public String getIp() { return ip; }
     public void setIp(String ip) { this.ip = ip; }
     public String getOutcome() { return outcome; }

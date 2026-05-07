@@ -21,12 +21,23 @@ public class AutonomousQuestioningEngine {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     // Minimum thresholds for different request types
-    private static final int MIN_PROMPT_LENGTH = 10;
-    private static final int MIN_CODE_REQUIREMENT_LENGTH = 20;
-    private static final double MIN_CLARITY_SCORE = 0.6;
-
     @Autowired
     private com.supremeai.provider.AIProviderFactory providerFactory;
+
+    @Autowired
+    private ConfigService configService;
+
+    private int getMinPromptLength() {
+        return configService.getSetting("min_prompt_length", 10);
+    }
+
+    private int getMinCodeRequirementLength() {
+        return configService.getSetting("min_code_requirement_length", 20);
+    }
+
+    private double getMinClarityScore() {
+        return configService.getThreshold("min_clarity", 0.6);
+    }
 
     /**
      * Validate user input and generate clarifying questions if needed
@@ -36,7 +47,7 @@ public class AutonomousQuestioningEngine {
 
         List<String> questions = new ArrayList<>();
         double clarityScore = calculateClarityScore(userInput, requestType);
-        boolean isComplete = clarityScore >= MIN_CLARITY_SCORE;
+        boolean isComplete = clarityScore >= getMinClarityScore();
 
         // Check for missing critical information
         questions.addAll(checkMissingInformation(userInput, requestType));
@@ -104,7 +115,7 @@ public class AutonomousQuestioningEngine {
                 if (!hasOutputSpecification(lowerInput)) {
                     questions.add("What should the code output or accomplish? Please specify the expected behavior.");
                 }
-                if (input.length() < MIN_CODE_REQUIREMENT_LENGTH) {
+                if (input.length() < getMinCodeRequirementLength()) {
                     questions.add("Could you provide more details about the requirements? The current description seems incomplete.");
                 }
                 break;
@@ -137,7 +148,7 @@ public class AutonomousQuestioningEngine {
                 break;
 
             case GENERAL_AI:
-                if (input.length() < MIN_PROMPT_LENGTH) {
+                if (input.length() < getMinPromptLength()) {
                     questions.add("Could you elaborate on your request? The input seems too brief.");
                 }
                 break;
@@ -217,8 +228,8 @@ public class AutonomousQuestioningEngine {
 
     private int getMinLengthForType(RequestType type) {
         switch (type) {
-            case CODE_GENERATION: return MIN_CODE_REQUIREMENT_LENGTH;
-            default: return MIN_PROMPT_LENGTH;
+            case CODE_GENERATION: return getMinCodeRequirementLength();
+            default: return getMinPromptLength();
         }
     }
 

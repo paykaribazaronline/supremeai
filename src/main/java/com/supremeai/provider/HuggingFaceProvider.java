@@ -46,6 +46,9 @@ public class HuggingFaceProvider extends AbstractHttpProvider {
 
     @Override
     protected String extractResponse(String responseBody) throws Exception {
+        if (responseBody == null || responseBody.isBlank()) {
+            return "No response from HuggingFace.";
+        }
         // HuggingFace returns an array of objects
         List<?> list = objectMapper.readValue(responseBody, List.class);
         if (list != null && !list.isEmpty()) {

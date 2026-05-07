@@ -1,5 +1,6 @@
 package com.supremeai.provider;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
 import java.util.List;
@@ -13,12 +14,28 @@ import java.util.Map;
 public class GeminiProvider extends AbstractHttpProvider {
     private static final String API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
+    @Autowired
+    private com.supremeai.security.SecretManagerService secretManagerService;
+
     public GeminiProvider() {
-        super("", API_URL, "gemini-1.5-flash");
+        super("", API_URL, "gemini-1.5-pro");
     }
 
     public GeminiProvider(String apiKey) {
-        super(apiKey, API_URL, "gemini-1.5-flash");
+        super(apiKey, API_URL, "gemini-1.5-pro");
+    }
+
+    @Override
+    protected String getRequestUrl() {
+        String key = apiKey;
+        if (key == null || key.isBlank()) {
+            if (secretManagerService != null) {
+                key = secretManagerService.getSecret("GEMINI_API_KEY");
+            } else {
+                key = System.getenv("GEMINI_API_KEY");
+            }
+        }
+        return super.getRequestUrl() + "?key=" + key;
     }
 
     @Override
@@ -45,6 +62,9 @@ public class GeminiProvider extends AbstractHttpProvider {
 
     @Override
     protected String extractResponse(String responseBody) throws Exception {
+        if (responseBody == null || responseBody.isBlank()) {
+            return "No response from Gemini.";
+        }
         Map<String, Object> responseMap = objectMapper.readValue(responseBody,
                 new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
         @SuppressWarnings("unchecked")
@@ -66,9 +86,5 @@ public class GeminiProvider extends AbstractHttpProvider {
     @Override
     protected void addAuthHeaders(okhttp3.Request.Builder builder) {
         // Gemini uses query parameter for API key
-    }
-
-    protected String buildUrl() {
-        return API_URL + "?key=" + apiKey;
     }
 }

@@ -6,7 +6,11 @@ import 'providers/orchestration_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/dashboard/home_screen.dart';
 
-void main() {
+import 'services/localization_service.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await LocalizationService.load('bn'); // Default to Bengali
   runApp(
     MultiProvider(
       providers: [
