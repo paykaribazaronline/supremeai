@@ -30,6 +30,7 @@ const KingModePanel = lazy(() => import('./components/KingModePanel'));
 const AuditLog = lazy(() => import('./components/AuditLog'));
 const ThreeDashboard = lazy(() => import('./components/ThreeDashboard'));
 const VideoTutorials = lazy(() => import('./components/VideoTutorials'));
+const BrowserActivityDashboard = lazy(() => import('./components/BrowserActivityDashboard'));
 
 const App: React.FC = () => {
     const [authed, setAuthed] = useState<boolean>(authUtils.isAuthenticated());
@@ -89,13 +90,14 @@ const App: React.FC = () => {
                                         <Route path="/admin/ocr" element={<AdminOCR />} />
                                         <Route path="/admin/console" element={<Navigate to="/admin" replace />} />
 
-                                        {/* Existing admin features moved under /admin */}
-                                        <Route path="/admin/chat" element={<ChatWithAI />} />
-                                        <Route path="/admin/progress" element={<ProgressMonitor />} />
-                                        <Route path="/admin/kingmode" element={<KingModePanel />} />
-                                        <Route path="/admin/audit" element={<AuditLog />} />
-                                        <Route path="/admin/tutorials" element={<VideoTutorials />} />
-                                        <Route path="/admin/3d" element={<ThreeDashboard />} />
+{/* Existing admin features moved under /admin */}
+                                         <Route path="/admin/chat" element={<ChatWithAI />} />
+                                         <Route path="/admin/progress" element={<ProgressMonitor />} />
+                                         <Route path="/admin/kingmode" element={<KingModePanel />} />
+                                         <Route path="/admin/audit" element={<AuditLog />} />
+                                         <Route path="/admin/tutorials" element={<VideoTutorials />} />
+                                         <Route path="/admin/3d" element={<ThreeDashboard />} />
+                                         <Route path="/admin/browser" element={<BrowserActivityDashboard />} />
 
                                         {/* Legacy route redirects for backward compatibility */}
                                         <Route path="/admin.html" element={<Navigate to="/admin" replace />} />
@@ -114,13 +116,14 @@ const App: React.FC = () => {
                                         <Route path="/bengali-ocr.html" element={<Navigate to="/admin/ocr" replace />} />
                                         <Route path="/admin-console.html" element={<Navigate to="/admin" replace />} />
 
-                                        {/* Legacy root redirects */}
-                                        <Route path="/chat" element={<Navigate to="/admin/chat" replace />} />
-                                        <Route path="/progress" element={<Navigate to="/admin/progress" replace />} />
-                                        <Route path="/kingmode" element={<Navigate to="/admin/kingmode" replace />} />
-                                        <Route path="/audit" element={<Navigate to="/admin/audit" replace />} />
-                                        <Route path="/tutorials" element={<Navigate to="/admin/tutorials" replace />} />
-                                        <Route path="/dashboard/3d" element={<Navigate to="/admin/3d" replace />} />
+{/* Legacy root redirects */}
+                                         <Route path="/chat" element={<Navigate to="/admin/chat" replace />} />
+                                         <Route path="/progress" element={<Navigate to="/admin/progress" replace />} />
+                                         <Route path="/kingmode" element={<Navigate to="/admin/kingmode" replace />} />
+                                         <Route path="/audit" element={<Navigate to="/admin/audit" replace />} />
+                                         <Route path="/tutorials" element={<Navigate to="/admin/tutorials" replace />} />
+                                         <Route path="/dashboard/3d" element={<Navigate to="/admin/3d" replace />} />
+                                         <Route path="/browser" element={<Navigate to="/admin/browser" replace />} />
 
                                         {/* Catch-all redirect to admin */}
                                         <Route path="*" element={<Navigate to="/admin" replace />} />

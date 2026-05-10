@@ -19,6 +19,7 @@ public class PluginManager {
     public Plugin installPlugin(String pluginId) {
         try {
             org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+            @SuppressWarnings("unchecked")
             Map<String, Object> metadata = restTemplate.getForObject("https://registry.npmjs.org/" + pluginId, Map.class);
             
             Plugin plugin = new Plugin();

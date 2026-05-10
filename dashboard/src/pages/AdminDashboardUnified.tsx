@@ -31,7 +31,8 @@ import {
     ArrowUpOutlined,
     CheckCircleFilled,
     SafetyCertificateOutlined,
-    ThunderboltOutlined
+    ThunderboltOutlined,
+    ChromeOutlined
 } from '@ant-design/icons';
 import { authUtils } from '../lib/authUtils';
 import PhasesOverview from '../components/PhasesOverview';
@@ -54,6 +55,7 @@ import SystemHealthMatrix from '../components/SystemHealthMatrix';
 import OperationalAnalytics from '../components/OperationalAnalytics';
 import AuditLog from '../components/AuditLog';
 import NeuralNetworkFlow from '../components/NeuralNetworkFlow';
+import BrowserActivityDashboard from '../components/BrowserActivityDashboard';
 import { notification } from 'antd';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
@@ -212,7 +214,7 @@ const AdminDashboardUnified: React.FC = () => {
                 type: 'group' as const,
                 children: [
                     ...contract.navigation
-                        .filter(i => ['requirements', 'ocr', 'exploitation-techniques', 'phases', 'vpn', 'audit'].includes(i.key))
+                        .filter(i => ['requirements', 'ocr', 'exploitation-techniques', 'phases', 'vpn', 'audit', 'browser-activity'].includes(i.key))
                         .map(item => ({
                             key: item.key,
                             icon: item.icon,
@@ -455,6 +457,7 @@ const AdminDashboardUnified: React.FC = () => {
                                 {selectedKey === 'config' && <AdminConfigMatrix />}
                                 {selectedKey === 'vpn' && <VPNManagement />}
                                 {selectedKey === 'audit' && <AuditLog />}
+                                {selectedKey === 'browser-activity' && <BrowserActivityDashboard />}
                                 
                                 {selectedKey === 'api-endpoints' && contract.apiEndpoints && (
                                     <div className="space-y-6 p-2">

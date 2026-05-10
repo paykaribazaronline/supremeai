@@ -39,7 +39,9 @@ public class ApiTestingController {
 
             org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
             if (request.getHeaders() != null) {
-                request.getHeaders().forEach(headers::add);
+                @SuppressWarnings("unchecked")
+                Map<String, String> headerMap = (Map<String, String>) request.getHeaders();
+                headerMap.forEach(headers::add);
             }
 
             org.springframework.http.HttpEntity<String> entity =
@@ -55,7 +57,7 @@ public class ApiTestingController {
             long duration = System.currentTimeMillis() - startTime;
 
             return ResponseEntity.ok(ApiTestResult.builder()
-                    .status(response.getStatusCodeValue())
+                    .status(response.getStatusCode().value())
                     .responseBody(response.getBody())
                     .responseTimeMs(duration)
                     .headers(response.getHeaders().toSingleValueMap())
