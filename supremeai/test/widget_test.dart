@@ -8,12 +8,19 @@ import 'package:supremeai/providers/settings_provider.dart';
 import 'package:supremeai/providers/orchestration_provider.dart';
 import 'package:supremeai/screens/login_screen.dart';
 import 'package:supremeai/screens/dashboard/home_screen.dart';
+import 'package:supremeai/services/localization_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+    LocalizationService.setMockData({
+      'app': {'title': 'SupremeAI'},
+      'btn': {'login': 'Login'},
+      'nav': {'dashboard': 'Dashboard'},
+      'onboarding': {'rate_limiting_desc': 'Test Description'}
+    });
   });
 
   Widget createTestApp() {
@@ -32,8 +39,8 @@ void main() {
     await tester.pumpWidget(createTestApp());
 
     expect(find.byType(LoginScreen), findsOneWidget);
-    expect(find.text('SupremeAI'), findsOneWidget);
-    expect(find.text('লগইন করুন'), findsOneWidget);
+    expect(find.text('app.title'.tr()), findsOneWidget);
+    expect(find.text('btn.login'.tr()), findsOneWidget);
   });
 
   testWidgets('Clicking Guest Mode navigates to HomeScreen',
@@ -44,12 +51,13 @@ void main() {
     expect(find.byType(LoginScreen), findsOneWidget);
 
     // Click Guest Mode
-    await tester.tap(find.text('গেস্ট হিসেবে ব্যবহার করুন (Guest Mode)'));
+    final guestModeText = '${'nav.dashboard'.tr()} (Guest Mode)';
+    await tester.tap(find.text(guestModeText));
     await tester.pump();
     await tester.pumpAndSettle();
 
     // Verify we are on Home Page
     expect(find.byType(HomeScreen), findsOneWidget);
-    expect(find.text('SupremeAI'), findsOneWidget);
+    expect(find.text('app.title'.tr()), findsOneWidget);
   });
 }

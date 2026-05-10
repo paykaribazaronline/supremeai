@@ -19,6 +19,9 @@ public class AgentOrchestrationController {
     @Autowired
     private CodeGenerationService codeGenerationService;
 
+    @Autowired
+    private com.supremeai.agent.GPublishAgent publishAgent;
+
     @PostMapping("/requirement")
     public Mono<ResponseEntity<Object>> orchestrate(@RequestBody Map<String, Object> request) {
         String requirement = (String) request.get("requirement");
@@ -129,8 +132,6 @@ public class AgentOrchestrationController {
         }
 
         try {
-            com.supremeai.agent.GPublishAgent publishAgent = 
-                new com.supremeai.agent.GPublishAgent();
             Map<String, String> plan = publishAgent.createPublishingPlan(platform, config);
 
             Map<String, Object> response = new java.util.LinkedHashMap<>();

@@ -14,7 +14,7 @@ class ApiKeysScreen extends StatefulWidget {
 class _ApiKeysScreenState extends State<ApiKeysScreen> {
   List<Map<String, dynamic>> _apiKeys = [];
   bool _isLoading = true;
-  String? _apiKey;
+
   static const String _baseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'https://supremeai-a.web.app',
@@ -70,10 +70,8 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
       );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          _apiKey = data['apiKey'];
-        });
+
+
         _loadApiKeys();
       }
     } catch (e) {

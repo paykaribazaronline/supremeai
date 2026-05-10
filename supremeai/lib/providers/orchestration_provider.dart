@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
-import 'settings_provider.dart';
+
 
 enum OrchestrationErrorType {
   network,
@@ -193,7 +193,7 @@ class OrchestrationProvider with ChangeNotifier {
           return;
         }
       } catch (e) {
-        print('[SupremeAI] Backend orchestration failed, trying native Gemini: $e');
+        debugPrint('[SupremeAI] Backend orchestration failed, trying native Gemini: $e');
       }
     }
 

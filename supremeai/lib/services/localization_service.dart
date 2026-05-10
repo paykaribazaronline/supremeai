@@ -29,6 +29,10 @@ class LocalizationService {
   }
 
   static String get currentLocale => _currentLocale;
+
+  static void setMockData(Map<String, dynamic> data) {
+    _localizedStrings = data;
+  }
 }
 
 // Extension to make translation easier in widgets

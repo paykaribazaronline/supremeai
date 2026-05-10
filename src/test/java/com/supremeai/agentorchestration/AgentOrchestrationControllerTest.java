@@ -30,6 +30,9 @@ class AgentOrchestrationControllerTest {
     @Mock
     private CodeGenerationService codeGenerationService;
 
+    @Mock
+    private com.supremeai.agent.GPublishAgent publishAgent;
+
     private AgentOrchestrationController controller;
 
     @BeforeEach
@@ -46,6 +49,10 @@ class AgentOrchestrationControllerTest {
             field = AgentOrchestrationController.class.getDeclaredField("codeGenerationService");
             field.setAccessible(true);
             field.set(controller, codeGenerationService);
+            
+            field = AgentOrchestrationController.class.getDeclaredField("publishAgent");
+            field.setAccessible(true);
+            field.set(controller, publishAgent);
         } catch (Exception e) {
             throw new RuntimeException("Failed to inject mocks", e);
         }
@@ -110,6 +117,7 @@ class AgentOrchestrationControllerTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void orchestrate_shouldReturnCompletedStatus_whenSuccessful() {
         // Arrange
         Map<String, Object> request = Map.of("requirement", "Build a web app");
@@ -315,38 +323,39 @@ class AgentOrchestrationControllerTest {
         request.put("platform", "android");
         request.put("config", new HashMap<String, String>());
 
-        // We need to test GPublishAgent indirectly
-        // Since GPublishAgent is instantiated inside the method,
-        // we'll test that the method completes successfully
+        Map<String, String> mockPlan = Map.of("platform", "Android", "store", "Google Play Store");
+        when(publishAgent.createPublishingPlan(eq("android"), anyMap())).thenReturn(mockPlan);
         
         // Act
         Mono<ResponseEntity<Object>> result = controller.createPublishingPlan(request);
 
-        // Assert - should not throw and should return a response
-        // Note: This will actually create a GPublishAgent instance - if it fails, test will fail
+        // Assert
         StepVerifier.create(result)
                 .consumeNextWith(response -> {
                     assertEquals(200, response.getStatusCode().value());
                     Map<String, Object> body = (Map<String, Object>) response.getBody();
                     assertEquals("SUCCESS", body.get("status"));
                     assertEquals("android", body.get("platform"));
-                    assertTrue(body.containsKey("publishingPlan"));
+                    assertEquals(mockPlan, body.get("publishingPlan"));
                 })
                 .verifyComplete();
     }
 
     @Test
     void createPublishingPlan_shouldHandleException_andReturn500() {
-        // This test would require mocking GPublishAgent but it's created inside the method.
-        // For now, we verify that valid input works (covered in previous test)
-        // In a more comprehensive test, we might refactor to make GPublishAgent injectable
-        
+        // Arrange
         Map<String, Object> request = Map.of("platform", "web");
+        when(publishAgent.createPublishingPlan(anyString(), anyMap())).thenThrow(new RuntimeException("Agent failure"));
         
-        // Act & Assert - should not throw unexpected exceptions
+        // Act
         Mono<ResponseEntity<Object>> result = controller.createPublishingPlan(request);
+        
+        // Assert
         StepVerifier.create(result)
-                .expectNextCount(1)
+                .consumeNextWith(response -> {
+                    assertEquals(500, response.getStatusCode().value());
+                    assertTrue(response.getBody().toString().contains("Publishing plan creation failed"));
+                })
                 .verifyComplete();
     }
 }

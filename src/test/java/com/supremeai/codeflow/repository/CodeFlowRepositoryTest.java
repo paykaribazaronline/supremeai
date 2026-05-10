@@ -276,12 +276,13 @@ class CodeFlowRepositoryTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void updateHealthScore_shouldUpdateScoreAndGrade() throws ExecutionException, InterruptedException {
         com.google.cloud.firestore.CollectionReference mockColl = mock(com.google.cloud.firestore.CollectionReference.class);
 
         when(mockFirestore.collection("codeflow/repositories")).thenReturn(mockColl);
         when(mockColl.document("hlt-1")).thenReturn(mockDocRef);
-        when(mockDocRef.update(anyMap())).thenReturn(mock(ApiFuture.class));
+        when(mockDocRef.update(anyMap())).thenReturn((ApiFuture) mock(ApiFuture.class));
 
         repository.updateHealthScore("hlt-1", 85, "B");
 
