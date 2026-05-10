@@ -40,6 +40,9 @@ class ProvidersControllerTest {
     @Mock
     private AIProviderFactory aiProviderFactory;
 
+    @Mock
+    private com.supremeai.service.AIProviderDiscoveryService discoveryService;
+
     private ProvidersController controller;
 
     @BeforeEach
@@ -47,6 +50,7 @@ class ProvidersControllerTest {
         controller = new ProvidersController(providerRepository);
         org.springframework.test.util.ReflectionTestUtils.setField(controller, "activityLogRepository", activityLogRepository);
         org.springframework.test.util.ReflectionTestUtils.setField(controller, "aiProviderFactory", aiProviderFactory);
+        org.springframework.test.util.ReflectionTestUtils.setField(controller, "discoveryService", discoveryService);
         SecurityContextHolder.clearContext();
     }
 
@@ -209,13 +213,13 @@ class ProvidersControllerTest {
     }
 
     @Test
-    void testProviderKey_shouldReturnBadRequest_whenUnsupportedProvider() {
-        when(aiProviderFactory.getProvider("UnknownAI", "sk-test"))
-                .thenThrow(new RuntimeException("Unsupported provider"));
+    void testProviderKey_shouldReturnUnauthorized_whenUnsupportedProvider() {
+        when(discoveryService.validateKey("UnknownAI", "sk-test"))
+                .thenReturn(Mono.just(false));
 
         StepVerifier.create(controller.testProviderKey(Map.of("name", "UnknownAI", "apiKey", "sk-test")))
                 .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+                    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
                     return true;
                 })
                 .verifyComplete();
