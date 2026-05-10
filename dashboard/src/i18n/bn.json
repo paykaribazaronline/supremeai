@@ -179,5 +179,53 @@
   "crawl_pulse": {
     "title": "ক্রল পাল্স - রিয়েল-টাইম ডিসকভারি ফিড",
     "discovered": "আবিষ্কার করা হয়েছে"
+  },
+  "browser": {
+    "activity": {
+      "title": "ব্রাউজার অ্যাক্টিভিটি মনিটর",
+      "status": "স্ট্যাটাস",
+      "pages_visited": "ভিজিট করা পেজ",
+      "session_duration": "সেশন সময়",
+      "current_url": "বর্তমান URL",
+      "start_browsing": "ব্রাউজিং শুরু করুন",
+      "pause_browser": "ব্রাউজার পাস করুন",
+      "stop_all": "সব কার্যক্রম বন্ধ করুন",
+      "auth_required": "প্রমাণীকরণ প্রয়োজন",
+      "auth_required_desc": "এখানে প্রমাণীকরণ প্রয়োজন: {url}",
+      "browser_paused": "ব্রাউজার বিরতি নেয়",
+      "enter_credentials": "শংক লিখুন",
+      "save_resume": "সংরক্ষণ করুন এবং চালিয়ে যান",
+      "skip_auth": "প্রমাণীকরণ এড়িয়ে যান",
+      "website": "ওয়েবসাইট",
+      "username": "ব্যবহারকারীর নাম / ইমেল",
+      "password": "পাসওয়ার্ড",
+      "selectors_optional": "লগইন ফর্ম সিলেক্টর (ঐচ্ছিক)",
+      "selector_username": "ব্যবহারকারীর ইনপুট সিলেক্টর",
+      "selector_password": "পাসওয়ার্ড ইনপুট সিলেক্টর",
+      "selector_submit": "সাবমিট বাটন সিলেক্টর",
+      "recent_activity": "সাম্প্রতিক কার্যক্রম",
+      "stored_credentials": " সংরক্ষিত শংক",
+      "no_credentials": "কোন সংরক্ষিত শংক নেই",
+      "delete": "মুছে ফেলুন",
+      "auto_surf": "অটো-সার্ফ",
+      "paused_for_auth": "প্রমাণীকরণের জন্য বিরতি",
+      "active": "সক্রিয়",
+      "stopped": "বন্ধ"
+    },
+    "urls": {
+      "allowed": "অনুমোদিত URLs",
+      "denied": "নিষেধitted URLs",
+      "requests": "অনুমতির অনুরোধ",
+      "add": "URL যোগ করুন",
+      "edit": "URL সম্পাদনা করুন",
+      "pattern": "প্যাটার্ন",
+      "reason": "কারণ",
+      "approve": "অনুমোদন করুন",
+      "deny": "অস্বীকার করুন",
+      "system_learning": "সিস্টেম লার্নিং",
+      "knowledge_nodes": "জ্ঞান নোড",
+      "auto_learn": "অটো-লার্ন",
+      "monitor_desc": "সিস্টেমের ইন্টারনেট ব্রাউজিং নিরীক্ষণ করুন। URL অনুমতি নির্ধারণ করে যে সিস্টেম কোন ঠিকানায় পার করতে পারে। সিস্টেম ব্রাউজিং প্যাটার্ন শিখে এবং জ্ঞান ভাণ্ডার আপডেট করে।"
+    }
   }
 }
