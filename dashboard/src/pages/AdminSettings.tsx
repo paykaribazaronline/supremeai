@@ -194,7 +194,7 @@ const AdminSettings: React.FC = () => {
               <Input placeholder="e.g., gpt-4o" />
             </Form.Item>
             <Form.Item name="smallModel" label="Small/Fast Model">
-              <Input placeholder="e.g., google/gemini-1.5-flash" />
+              <Input placeholder="e.g., supremeai/1.5-flash" />
             </Form.Item>
             <Form.Item name="systemMessage" label="System Prompt">
               <TextArea rows={4} placeholder="You are SupremeAI..." />

@@ -8,9 +8,9 @@ interface ChatMessage {
 }
 
 function App() {
-  const [code, setCode] = useState('// Welcome to SupremeAI Studio\n\nfunction helloWorld() {\n  console.log("Hello Google!");\n}\n');
+  const [code, setCode] = useState('// Welcome to SupremeAI Studio\n\nfunction helloWorld() {\n  console.log("Hello SupremeAI!");\n}\n');
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { id: '1', sender: 'ai', text: "Hello! I'm Gemini, your AI pair programmer. How can I help you build with SupremeAI today?" }
+    { id: '1', sender: 'ai', text: "Hello! I'm SupremeAI, your AI pair programmer. How can I help you build today?" }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -41,7 +41,7 @@ function App() {
          setCode(data.code);
       }
     } catch (err: any) {
-      setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'ai', text: 'Error connecting to Gemini API.' }]);
+      setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'ai', text: 'Error connecting to SupremeAI API.' }]);
     } finally {
       setLoading(false);
     }
@@ -69,7 +69,7 @@ function App() {
           <button className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors" title="Search">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           </button>
-          <button className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors bg-purple-900/50" title="Gemini AI">
+          <button className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors bg-purple-900/50" title="SupremeAI AI">
             <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
           </button>
         </div>
@@ -104,7 +104,7 @@ function App() {
         {/* AI Assistant Sidebar */}
         <div className="w-80 flex-shrink-0 bg-slate-950 border-l border-slate-800 flex flex-col">
           <div className="h-10 flex items-center px-4 border-b border-slate-800 font-medium text-sm text-slate-200">
-            Gemini Assistant
+            SupremeAI Assistant
           </div>
           <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-4">
             {messages.map(msg => (
@@ -113,13 +113,13 @@ function App() {
               </div>
             ))}
             {loading && (
-              <div className="text-xs text-slate-500 animate-pulse">Gemini is typing...</div>
+              <div className="text-xs text-slate-500 animate-pulse">SupremeAI is typing...</div>
             )}
           </div>
           <div className="p-4 border-t border-slate-800">
             <input 
               type="text" 
-              placeholder="Ask Gemini..." 
+              placeholder="Ask SupremeAI..." 
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSend()}
@@ -132,7 +132,7 @@ function App() {
       {/* Status Bar */}
       <div className="h-6 flex-shrink-0 bg-blue-600 flex items-center px-4 text-xs font-medium text-white justify-between">
         <div className="flex items-center gap-4">
-          <span>Google Cloud Run: Connected</span>
+          <span>SupremeAI Cloud Run: Connected</span>
           <span>SupremeAI Engine Active</span>
         </div>
         <div className="flex items-center gap-4">

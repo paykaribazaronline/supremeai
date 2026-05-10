@@ -91,7 +91,7 @@ const AdminTips: React.FC<AdminTipsProps> = () => {
         {
             title: 'What are AI Models?',
             description:
-                'AI Models are the "brains" of your system. Different models are good at different things. For example: GPT-4 is great for complex reasoning, Claude is good for writing, Gemini is good for understanding images. You can use multiple models together!',
+                'AI Models are the "brains" of your system. Different models are good at different things. For example: GPT-4 is great for complex reasoning, Claude is good for writing, SupremeAI is good for understanding images. You can use multiple models together!',
             category: 'AI Models & Search',
             difficulty: 'beginner',
         },

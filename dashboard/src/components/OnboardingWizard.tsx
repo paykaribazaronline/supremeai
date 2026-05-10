@@ -54,7 +54,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
           </Row>
           <Paragraph style={{ marginTop: 16 }}>
             {t('onboarding.agents_voting', 'Agents use ')}
-            <Text strong>consensus voting</Text> {t('onboarding.across', 'across multiple AI providers (OpenAI, Anthropic, Gemini, etc.) for better decisions.')}
+            <Text strong>consensus voting</Text> {t('onboarding.across', 'across multiple AI providers (OpenAI, Anthropic, SupremeAI, etc.) for better decisions.')}
           </Paragraph>
         </div>
       ),

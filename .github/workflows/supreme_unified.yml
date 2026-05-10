@@ -4,6 +4,10 @@
 
 name: 🚀 SupremeAI Unified Pipeline
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [main, master, develop]
@@ -57,7 +61,7 @@ jobs:
       mobile: ${{ steps.filter.outputs.mobile }}
       functions: ${{ steps.filter.outputs.functions }}
       extensions: ${{ steps.filter.outputs.extensions }}
-      any_changes: ${{ steps.filter.outputs.any_changes }}
+      any_changes: ${{ steps.filter.outputs.backend == 'true' || steps.filter.outputs.dashboard == 'true' || steps.filter.outputs.mobile == 'true' || steps.filter.outputs.functions == 'true' }}
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -183,11 +187,17 @@ jobs:
           flutter pub get
           flutter build web --release --base-href /mobile/
           
-      - name: 📦 Archive Build Artifact
+      - name: 🤖 Build Android APK
+        working-directory: supremeai
+        run: flutter build apk --release
+          
+      - name: 📦 Archive Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: mobile-web-dist
-          path: supremeai/build/web
+          name: mobile-dist
+          path: |
+            supremeai/build/web
+            supremeai/build/app/outputs/flutter-apk/*.apk
 
   cloud-functions:
     name: ⚡ Cloud Functions
@@ -210,6 +220,49 @@ jobs:
         run: |
           npm ci
           npm run lint || echo "Linting skipped or failed"
+
+  ide-extensions:
+    name: 🔌 IDE Extensions
+    needs: [initialize, security-scan]
+    if: needs.initialize.outputs.extensions == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: 🟢 Setup Node.js (VS Code)
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: supremeai-vscode-extension/package-lock.json
+          
+      - name: 🔨 Build VS Code Extension
+        working-directory: supremeai-vscode-extension
+        run: |
+          npm ci
+          npm run compile
+          npx vsce package -o supremeai-vscode.vsix
+          
+      - name: ☕ Setup Java (IntelliJ)
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          
+      - name: 🔨 Build IntelliJ Plugin
+        working-directory: supremeai-intellij-plugin
+        run: |
+          chmod +x gradlew
+          ./gradlew buildPlugin --no-daemon
+        
+      - name: 📦 Archive Extensions
+        uses: actions/upload-artifact@v4
+        with:
+          name: ide-extensions
+          path: |
+            supremeai-vscode-extension/*.vsix
+            supremeai-intellij-plugin/build/distributions/*.zip
 
   # --------------------------------------------------------------------------------
   # 🚀 PHASE 3: DEPLOYMENT (Main/Master Only)
@@ -240,9 +293,9 @@ jobs:
         
       - name: 🐳 Build & Push Container
         run: |
-          # Use the JAR from artifact for the container build
+          # Use the pre-built JAR and the optimized Dockerfile.prod for zero-redundancy
           mv *.jar app.jar
-          gcloud builds submit --tag us-central1-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/supremeai-repo/backend --quiet
+          gcloud builds submit --tag us-central1-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/supremeai-repo/backend --dockerfile Dockerfile.prod --quiet
           
       - name: 🚀 Deploy to Cloud Run
         run: |
@@ -271,11 +324,16 @@ jobs:
           name: dashboard-dist
           path: public/admin
           
-      - name: 📥 Download Mobile Web
+      - name: 📥 Download Mobile Dist
         uses: actions/download-artifact@v4
         with:
-          name: mobile-web-dist
-          path: public/mobile
+          name: mobile-dist
+          path: temp_mobile
+          
+      - name: 📂 Move Mobile Web to Public
+        run: |
+          mkdir -p public/mobile
+          cp -r temp_mobile/web/* public/mobile/
           
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
@@ -317,3 +375,26 @@ jobs:
           cd functions
           npm ci
           firebase deploy --project ${{ env.GCP_PROJECT_ID }} --only functions --non-interactive
+
+  status-report:
+    name: 📊 Pipeline Status Report
+    needs: [deploy-backend, deploy-frontend, deploy-functions, ide-extensions]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📝 Generate Summary
+        run: |
+          echo "### 🚀 Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Status | Artifacts |" >> $GITHUB_STEP_SUMMARY
+          echo "| :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend | ${{ needs.deploy-backend.result }} | `backend-jar` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | ${{ needs.deploy-frontend.result }} | `dashboard-dist` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Mobile App | Success | `mobile-dist` (Web & APK) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Functions | ${{ needs.deploy-functions.result }} | - |" >> $GITHUB_STEP_SUMMARY
+          echo "| IDE Plugins | ${{ needs.ide-extensions.result }} | `ide-extensions` (VSIX & ZIP) |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### 📥 Download Instructions" >> $GITHUB_STEP_SUMMARY
+          echo "You can download the latest builds from the **Actions > Artifacts** section of this run." >> $GITHUB_STEP_SUMMARY
+          echo "1. **Mobile APK**: Look for `mobile-dist`." >> $GITHUB_STEP_SUMMARY
+          echo "2. **VS Code Extension**: Look for `ide-extensions` (`.vsix`)." >> $GITHUB_STEP_SUMMARY
+          echo "3. **IntelliJ Plugin**: Look for `ide-extensions` (`.zip`)." >> $GITHUB_STEP_SUMMARY

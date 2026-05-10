@@ -6,8 +6,8 @@ class SupremeAISettings {
   const SupremeAISettings({
     this.apiEndpoint = 'https://supremeai-a.web.app',
     this.apiKey = '',
-    this.model = 'google/gemini-1.5-pro',
-    this.smallModel = 'google/gemini-1.5-flash',
+    this.model = 'supremeai/1.5-pro',
+    this.smallModel = 'supremeai/1.5-flash',
     this.version = 1,
     this.fullAuthority = false,
     this.permissions = const {
@@ -65,8 +65,8 @@ class SupremeAISettings {
       apiKey: json['apiKey'] as String? ?? '',
       model: json['activeModel'] as String? ??
           json['model'] as String? ??
-          'google/gemini-1.5-pro',
-      smallModel: json['smallModel'] as String? ?? 'google/gemini-1.5-flash',
+          'supremeai/1.5-pro',
+      smallModel: json['smallModel'] as String? ?? 'supremeai/1.5-flash',
       version: (json['version'] as num?)?.toInt() ?? 1,
       fullAuthority: json['fullAuthority'] as bool? ?? false,
       permissions: rawPermissions.map(

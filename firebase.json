@@ -44,10 +44,7 @@
     ]
   },
   "functions": {
-    "source": "functions",
-    "predeploy": [
-      "npm --prefix functions install"
-    ]
+    "source": "functions"
   },
   "emulators": {
     "auth": { "port": 9099 },

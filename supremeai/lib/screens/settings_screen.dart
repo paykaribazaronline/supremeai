@@ -93,7 +93,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 controller: _modelController,
                 decoration: const InputDecoration(
                   labelText: 'Primary model',
-                  hintText: 'google/gemini-1.5-pro',
+                  hintText: 'supremeai/gemini-1.5-pro',
                 ),
               ),
               const SizedBox(height: 12),
@@ -101,7 +101,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 controller: _smallModelController,
                 decoration: const InputDecoration(
                   labelText: 'Small model',
-                  hintText: 'google/gemini-1.5-flash',
+                  hintText: 'supremeai/gemini-1.5-flash',
                 ),
               ),
               const SizedBox(height: 12),

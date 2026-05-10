@@ -339,7 +339,7 @@ const AdminProjects: React.FC = () => {
                     checked={generationForm.useAI || false}
                     onChange={e => setGenerationForm({...generationForm, useAI: e.target.checked})}
                   />
-                  <span>Use AI-Powered Generation (OpenAI/Gemini)</span>
+                  <span>Use AI-Powered Generation (SupremeAI)</span>
                 </label>
                 <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
                   Enable to generate custom entities and AI-optimized code structure

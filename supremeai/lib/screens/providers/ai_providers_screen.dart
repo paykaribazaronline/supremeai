@@ -7,7 +7,7 @@ class AiProvidersScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final providers = [
       {'name': 'OpenAI', 'status': 'Online', 'model': 'gpt-4-turbo'},
-      {'name': 'Google Gemini', 'status': 'Online', 'model': 'gemini-1.5-pro'},
+      {'name': 'SupremeAI Pro', 'status': 'Online', 'model': 'supremeai-1.5-pro'},
       {'name': 'Anthropic', 'status': 'Online', 'model': 'claude-3-opus'},
       {'name': 'Groq', 'status': 'Online', 'model': 'llama3-70b-8192'},
     ];

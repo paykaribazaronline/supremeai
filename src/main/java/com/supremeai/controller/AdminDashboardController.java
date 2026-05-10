@@ -119,8 +119,8 @@ public AdminDashboardController(UserRepository userRepository,
         double healthScore = totalLogs > 0 ? Math.max(0, 100.0 - ((double) criticalErrors / totalLogs * 1000)) : 100.0;
 
         Map<String, Object> contract = new HashMap<>();
-        contract.put("contractVersion", "3.1.0-google-acquisition");
-        contract.put("title", "Google SupremeAI Studio");
+        contract.put("contractVersion", "3.1.0-supremeai");
+        contract.put("title", "SupremeAI Studio");
         contract.put("description", "Enterprise-Grade Multi-Agent AI Orchestration & Cloud App Development");
 
         Map<String, Object> stats = new HashMap<>();
