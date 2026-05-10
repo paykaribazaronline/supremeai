@@ -35,7 +35,7 @@ env:
   # Tool Versions
   JAVA_VERSION: '21'
   NODE_VERSION: '20'
-  FLUTTER_VERSION: '3.24.0'
+  FLUTTER_VERSION: '3.27.0'
   
   # Project IDs & Regions
   GCP_PROJECT_ID: 'supremeai-a'
@@ -120,12 +120,12 @@ jobs:
       - name: 🔨 Build & Test
         run: ./gradlew clean build jacocoTestReport --no-daemon
         
-      - name: 📊 Upload Test Results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-test-reports
-          path: build/reports/tests/test
+#      - name: 📊 Upload Test Results
+#        if: always()
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: backend-test-reports
+#          path: build/reports/tests/test
           
       - name: 📦 Archive Build Artifact
         uses: actions/upload-artifact@v4
