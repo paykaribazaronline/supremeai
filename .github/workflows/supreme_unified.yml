@@ -25,6 +25,8 @@ on:
     - cron: '0 0 * * 0'
     # Weekly dependency check
     - cron: '0 1 * * 0'
+    # Daily CodeFlow analysis at 2 AM
+    - cron: '0 2 * * *'
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
@@ -128,7 +130,115 @@ jobs:
           FAILED_JOBS=$(gh api repos/${{ github.repository }}/actions/runs/$PREVIOUS_ID/jobs -q '.jobs | map(select(.conclusion == "failure")) | map(.name) | join(",")')
           echo "Previous run ID: $PREVIOUS_ID"
           echo "Failed jobs: $FAILED_JOBS"
-          echo "failed_jobs=$FAILED_JOBS" >> $GITHUB_OUTPUT
+      echo "failed_jobs=$FAILED_JOBS" >> $GITHUB_OUTPUT
+
+  codeflow-analysis:
+    name: CodeFlow Repository Analysis
+    needs: [changes]
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.any_changes == 'true' || github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Run CodeFlow Analyzer
+        id: codeflow
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUPREMEAI_API_URL: ${{ secrets.SUPREMEAI_API_URL }}
+          SUPREMEAI_API_KEY: ${{ secrets.SUPREMEAI_API_KEY }}
+        run: |
+          #!/bin/bash
+          set -e
+          echo "::group::CodeFlow Analysis"
+          REPO_OWNER="${GITHUB_REPOSITORY_OWNER}"
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
+          REPO_URL="https://github.com/${GITHUB_REPOSITORY}.git"
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          COMMIT_SHA="${GITHUB_SHA}"
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          REPORT_DIR=".github/codeflow-reports"
+          mkdir -p "${REPORT_DIR}"
+          if [ -f "dashboard/src/lib/codeflow-analyzer.js" ]; then
+            node dashboard/src/lib/codeflow-analyzer.js --repo "${REPO_URL}" --output "${REPORT_DIR}" --format svg,json --styles compact,row,minimal,hero,detailed 2>&1 || echo "Analyzer script issue"
+          fi
+          TOTAL_FILES=$(find . -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.tsx" -o -name "*.jsx" -o -name "*.java" -o -name "*.go" -o -name "*.rs" -o -name "*.rb" -o -name "*.c" -o -name "*.cpp" -o -name "*.h" \) ! -path "*/node_modules/*" ! -path "*/.git/*" ! -path "*/dist/*" ! -path "*/build/*" | wc -l)
+          TOTAL_LINES=$(find . -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.tsx" -o -name "*.jsx" -o -name "*.java" -o -name "*.go" -o -name "*.rs" -o -name "*.rb" -o -name "*.c" -o -name "*.cpp" -o -name "*.h" \) ! -path "*/node_modules/*" ! -path "*/.git/*" ! -path "*/dist/*" ! -path "*/build/*" -exec cat {} \; | wc -l)
+          SECURITY_CRITICAL=0; SECURITY_HIGH=0; SECURITY_MEDIUM=0; HEALTH_SCORE=100
+          if grep -r "eval(" . --include="*.js" --include="*.ts" 2>/dev/null | grep -v node_modules | grep -v ".git" | head -5; then SECURITY_CRITICAL=$((SECURITY_CRITICAL + 1)); fi
+          HEALTH_SCORE=$((HEALTH_SCORE - SECURITY_CRITICAL * 15 - SECURITY_HIGH * 8))
+          [ $HEALTH_SCORE -lt 0 ] && HEALTH_SCORE=0
+          if [ $HEALTH_SCORE -ge 90 ]; then HEALTH_GRADE="A"; HEALTH_COLOR="#52c41a"
+          elif [ $HEALTH_SCORE -ge 80 ]; then HEALTH_GRADE="B"; HEALTH_COLOR="#1890ff"
+          elif [ $HEALTH_SCORE -ge 70 ]; then HEALTH_GRADE="C"; HEALTH_COLOR="#faad14"
+          else HEALTH_GRADE="F"; HEALTH_COLOR="#ff4d4f"; fi
+          echo "Health Score: ${HEALTH_SCORE} (${HEALTH_GRADE})"
+          cat > "${REPORT_DIR}/health-badge.svg" << EOF
+          <svg xmlns="http://www.w3.org/2000/svg" width="110" height="20">
+            <g><rect width="110" height="20" rx="3" fill="#555"/><rect x="60" width="50" height="20" rx="3" fill="${HEALTH_COLOR}"/></g>
+            <g fill="#fff" text-anchor="middle" font-family="Verdana" font-size="11">
+              <text x="30" y="14">Health</text><text x="85" y="14">${HEALTH_SCORE}</text>
+            </g>
+          </svg>
+          EOF
+          cat > "${REPORT_DIR}/analysis-report.json" << EOF
+          {"repository":"${GITHUB_REPOSITORY}","branch":"${BRANCH}","commit":"${COMMIT_SHA}","timestamp":"$(date -u +"%Y-%m-%dT%H:%M:%SZ")","metrics":{"healthScore":${HEALTH_SCORE},"healthGrade":"${HEALTH_GRADE}","totalFiles":${TOTAL_FILES},"totalLines":${TOTAL_LINES},"security":{"critical":${SECURITY_CRITICAL}}}}
+          EOF
+          echo "health_score=${HEALTH_SCORE}" >> $GITHUB_OUTPUT
+          echo "health_grade=${HEALTH_GRADE}" >> $GITHUB_OUTPUT
+          echo "report_dir=${REPORT_DIR}" >> $GITHUB_OUTPUT
+          echo "::endgroup::"
+
+      - name: Commit and Push Reports
+        if: github.event_name != 'pull_request' && always()
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .github/codeflow-reports/ || true
+          if ! git diff --cached --quiet; then
+            git commit -m "docs: update CodeFlow analysis reports [skip ci]" || true
+            git push origin HEAD:${GITHUB_REF#refs/heads/} || true
+          fi
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const healthScore = '${{ steps.codeflow.outputs.health_score }}';
+            const healthGrade = '${{ steps.codeflow.outputs.health_grade }}';
+            const body = `## 🔍 CodeFlow Analysis Report\n\n### Health Score: **${healthScore}/100** (${healthGrade})\n\n*Automated by SupremeAI CodeFlow*`;
+            const { data: comments } = await github.rest.issues.listComments({ owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number });
+            const existingComment = comments.find(c => c.body.includes('CodeFlow Analysis Report'));
+            if (existingComment) { await github.rest.issues.updateComment({ owner: context.repo.owner, repo: context.repo.repo, comment_id: existingComment.id, body: body }); }
+            else { await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number, body: body }); }
+
+      - name: Upload Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeflow-reports-${{ github.sha }}
+          path: .github/codeflow-reports/
+          retention-days: 7
 
   secret-scan:
     name: Secret Scanning
@@ -660,6 +770,22 @@ jobs:
           npm install
           firebase deploy --project supremeai-a --only functions --non-interactive
 
+  deploy-codeflow-reports:
+    name: Deploy CodeFlow Reports
+    needs: [codeflow-analysis]
+    if: github.ref == 'refs/heads/main' && always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Deploy to Firebase
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          projectId: supremeai-a
+          target: codeflow-reports
+
   # ============================================================
   # PHASE 4: VALIDATION & NOTIFICATION
   # ============================================================
@@ -777,7 +903,7 @@ jobs:
 
   workflow-summary:
     name: Workflow Summary
-    needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, deploy-cloud-functions, deploy-canary, performance-test, health-check, e2e-tests, generate-release-notes, update-badges]
+    needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, deploy-cloud-functions, deploy-canary, performance-test, health-check, e2e-tests, generate-release-notes, update-badges, codeflow-analysis]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -792,12 +918,13 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
 
             echo "## 📊 Component Status" >> $GITHUB_STEP_SUMMARY
-            echo "| Component | Status | Duration |" >> $GITHUB_STEP_SUMMARY
-            echo "| --- | --- | --- |" >> $GITHUB_STEP_SUMMARY
-            echo "| ☕ Java Backend | ${{ needs.java-build-and-test.result || 'Skipped' }} | ${{ needs.java-build-and-test.outputs.duration || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
-            echo "| 📱 Flutter Frontend | ${{ needs.flutter-build-and-test.result || 'Skipped' }} | ${{ needs.flutter-build-and-test.outputs.duration || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
-            echo "| 🔌 IntelliJ Plugin | ${{ needs.plugin-build.result || 'Skipped' }} | ${{ needs.plugin-build.outputs.duration || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
-            echo "| 💻 VS Code Ext | ${{ needs.vscode-extension-build.result || 'Skipped' }} | ${{ needs.vscode-extension-build.outputs.duration || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
+            echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
+            echo "| ☕ Java Backend | ${{ needs.java-build-and-test.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 📱 Flutter Frontend | ${{ needs.flutter-build-and-test.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔌 IntelliJ Plugin | ${{ needs.plugin-build.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 💻 VS Code Ext | ${{ needs.vscode-extension-build.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔍 CodeFlow Analysis | ${{ needs.codeflow-analysis.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
             echo "| 🚀 Performance Test | ${{ needs.performance-test.result || 'Skipped' }} | ${{ needs.performance-test.outputs.duration || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
             echo "| 🌐 Deploy Backend | ${{ needs.deploy-backend.result || 'Skipped' }} | ${{ needs.deploy-backend.outputs.duration || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
             echo "| 🔀 Canary Deploy | ${{ needs.deploy-canary.result || 'Skipped' }} | ${{ needs.deploy-canary.outputs.duration || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
@@ -826,7 +953,7 @@ jobs:
 
   notification:
     name: Notification & Cleanup
-    needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, deploy-cloud-functions, deploy-canary, performance-test, health-check, e2e-tests, generate-release-notes, workflow-summary]
+    needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, deploy-cloud-functions, deploy-canary, performance-test, health-check, e2e-tests, generate-release-notes, workflow-summary, codeflow-analysis]
     if: always()
     runs-on: ubuntu-latest
     steps:
