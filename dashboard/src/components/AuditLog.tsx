@@ -1,7 +1,8 @@
-﻿// AuditLog.tsx — Audit trail, activity log, and security events
+// AuditLog.tsx — Audit trail, activity log, and security events
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Tag, Space, Input, Select, DatePicker, Button, Empty, Row, Col, Statistic, Badge } from 'antd';
 import { ReloadOutlined, SearchOutlined, FileProtectOutlined, WarningOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { fetchWithAuth } from '../lib/authUtils';
 
 const { RangePicker } = DatePicker;
 
@@ -34,11 +35,9 @@ const AuditLog: React.FC = () => {
     const fetchAuditLog = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('authToken');
-            const headers = { 'Authorization': `Bearer ${token}` };
             const [activityRes, summaryRes] = await Promise.all([
-                fetch('/api/activity/summary', { headers }),
-                fetch('/api/admin/control/history', { headers }),
+                fetchWithAuth('/api/activity/summary'),
+                fetchWithAuth('/api/admin/control/history'),
             ]);
 
             if (activityRes.ok) {

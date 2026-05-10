@@ -1,7 +1,7 @@
 package com.supremeai.provider;
 
 import com.supremeai.service.AIProviderService;
-import com.supremeai.service.AIRankingService;
+import com.supremeai.service.ContextualAIRankingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -17,7 +17,7 @@ class AIProviderFactoryEnhancedTest {
 
     private AIProviderFactory factory;
     private AIProviderService mockService;
-    private AIRankingService mockRankingService;
+    private ContextualAIRankingService mockRankingService;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -29,14 +29,15 @@ class AIProviderFactoryEnhancedTest {
             return "test-key-for-" + provider;
         });
 
-        mockRankingService = Mockito.mock(AIRankingService.class);
+        mockRankingService = Mockito.mock(ContextualAIRankingService.class);
 
         setField(factory, "aiProviderService", mockService);
-        setField(factory, "aiRankingService", mockRankingService);
+        setField(factory, "contextualRankingService", mockRankingService);
         setField(factory, "airllmEndpoint", "https://airllm.test/v1/chat/completions");
         setField(factory, "airllmModel", "mistralai/Mistral-7B-Instruct-v0.3");
 
         // Pre-populate health cache to avoid real network calls
+        @SuppressWarnings("unchecked")
         Map<String, Boolean> healthCache = (Map<String, Boolean>) getField(factory, "providerHealthCache");
         for (String p : factory.getSupportedProviders()) {
             healthCache.put(p, true);
@@ -247,7 +248,7 @@ class AIProviderFactoryEnhancedTest {
 
     @Test
     void getBestProviderForTask_withEmptyRankings_shouldFallBackToDefault() {
-        when(mockRankingService.getRankings()).thenReturn(List.of());
+        when(mockRankingService.getRankingsForTask(any())).thenReturn(List.of());
 
         AIProvider provider = factory.getBestProviderForTask("code_generation");
         assertNotNull(provider);
@@ -255,7 +256,7 @@ class AIProviderFactoryEnhancedTest {
 
     @Test
     void getBestProviderForTask_withNullRankings_shouldFallBackToDefault() {
-        when(mockRankingService.getRankings()).thenReturn(null);
+        when(mockRankingService.getRankingsForTask(any())).thenReturn(null);
 
         AIProvider provider = factory.getBestProviderForTask("code_generation");
         assertNotNull(provider);
@@ -263,7 +264,7 @@ class AIProviderFactoryEnhancedTest {
 
     @Test
     void getBestProviderForTask_withRankingException_shouldFallBackToDefault() {
-        when(mockRankingService.getRankings()).thenThrow(new RuntimeException("Ranking error"));
+        when(mockRankingService.getRankingsForTask(any())).thenThrow(new RuntimeException("Ranking error"));
 
         AIProvider provider = factory.getBestProviderForTask("code_generation");
         assertNotNull(provider);

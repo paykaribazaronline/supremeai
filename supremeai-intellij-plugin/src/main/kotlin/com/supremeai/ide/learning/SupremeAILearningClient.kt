@@ -1,6 +1,7 @@
 package com.supremeai.ide.learning
 
 import com.intellij.openapi.project.Project
+import com.supremeai.ide.SupremeAISettings
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.CloseableHttpClient
@@ -13,8 +14,14 @@ import org.apache.http.impl.client.HttpClients
 class SupremeAILearningClient {
 
     companion object {
-        private const val BACKEND_URL = "https://supremeai-565236080752.us-central1.run.app/api/v1/learning"
-        private const val PLUGIN_SECRET_KEY = "supreme-ai-intellij-secret" 
+        private val apiEndpoint: String
+            get() = SupremeAISettings.getInstance().apiEndpoint.trim().removeSuffix("/")
+
+        private val BACKEND_URL: String
+            get() = "$apiEndpoint/api/v1/learning"
+        
+        private val pluginApiKey: String
+            get() = SupremeAISettings.getInstance().apiKey.takeIf { it.isNotEmpty() } ?: "supreme-ai-intellij-secret"
 
         /**
          * Send error from Android Studio to backend for learning
@@ -24,7 +31,7 @@ class SupremeAILearningClient {
                 val client: CloseableHttpClient = HttpClients.createDefault()
                 val post = HttpPost("$BACKEND_URL/error")
                 post.setHeader("Content-Type", "application/json")
-                post.setHeader("X-API-Key", PLUGIN_SECRET_KEY)
+                post.setHeader("X-API-Key", pluginApiKey)
 
                 val jsonPayload = String.format(
                     "{\"errorType\": \"%s\", \"errorMessage\": \"%s\", \"severity\": \"ERROR\", \"filePath\": \"IDE\", \"codeSnippet\": \"%s\"}",
@@ -49,7 +56,7 @@ class SupremeAILearningClient {
                 val client: CloseableHttpClient = HttpClients.createDefault()
                 val post = HttpPost(BACKEND_URL)
                 post.setHeader("Content-Type", "application/json")
-                post.setHeader("X-API-Key", PLUGIN_SECRET_KEY)
+                post.setHeader("X-API-Key", pluginApiKey)
 
                 val jsonPayload = String.format(
                     "{\"type\": \"SUCCESS\", \"category\": \"BUILD_SUCCESS\", \"content\": \"%s\", \"context\": {\"ide\": \"Android Studio\"}}",
@@ -83,7 +90,7 @@ class SupremeAILearningClient {
                 val client: CloseableHttpClient = HttpClients.createDefault()
                 val post = HttpPost("$BACKEND_URL/code-edit")
                 post.setHeader("Content-Type", "application/json")
-                post.setHeader("X-API-Key", PLUGIN_SECRET_KEY)
+                post.setHeader("X-API-Key", pluginApiKey)
 
                 // Match backend LearningEvent DTO
                 val escapedOriginal = originalCode.replace("\"", "\\\"").replace("\n", "\\n")

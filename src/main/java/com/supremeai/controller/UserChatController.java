@@ -2,7 +2,7 @@ package com.supremeai.controller;
 
 import com.supremeai.service.ChatProcessingService;
 import com.supremeai.service.AutonomousQuestioningEngine;
-import com.supremeai.service.TenAIVotingSystem;
+import com.supremeai.service.MultiAIVotingService;
 import com.supremeai.service.MultiAIConsensusService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,16 +21,16 @@ public class UserChatController {
 
     private final ChatProcessingService chatProcessingService;
     private final AutonomousQuestioningEngine questioningEngine;
-    private final TenAIVotingSystem votingSystem;
-    private final MultiAIConsensusService consensusService;
+    private final MultiAIVotingService votingService;
+    private final MultiAIVotingService consensusService;
 
     public UserChatController(ChatProcessingService chatProcessingService,
-                             AutonomousQuestioningEngine questioningEngine,
-                             TenAIVotingSystem votingSystem,
-                             MultiAIConsensusService consensusService) {
+                              AutonomousQuestioningEngine questioningEngine,
+                              MultiAIVotingService votingService,
+                              MultiAIVotingService consensusService) {
         this.chatProcessingService = chatProcessingService;
         this.questioningEngine = questioningEngine;
-        this.votingSystem = votingSystem;
+        this.votingService = votingService;
         this.consensusService = consensusService;
     }
 
@@ -72,7 +72,7 @@ public class UserChatController {
             logger.info("Getting AI response for user message: {}", message);
             
             // Use 10-AI voting system (existing ChatController logic)
-            var votingResult = votingSystem.executeVoting(message, null, 15000L);
+            var votingResult = votingService.executeEnsembleVoting(message, null, 15000L);
             
             String bestResponse = votingResult.getBestResponse();
             Double confidence = votingResult.getAverageConfidence();
@@ -94,7 +94,7 @@ public class UserChatController {
             logger.error("AI voting failed, falling back to consensus: {}", e.getMessage());
             
             // Fallback to simpler consensus
-            return consensusService.askAllAIs(message, 
+            return consensusService.askConsensus(message, 
                     Arrays.asList("groq", "deepseek", "claude", "openai", "ollama"), 10000L)
                 .map(res -> {
                     Map<String, Object> fallback = new HashMap<>();

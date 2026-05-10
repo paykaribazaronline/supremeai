@@ -2,10 +2,22 @@ import { AuthUser } from '../types';
 
 const AUTH_TOKEN_KEY = 'supremeai_token';
 const FIREBASE_USER_KEY = 'supremeai_user';
+// Legacy key used by older components — kept for backward-compat migration only
+const LEGACY_TOKEN_KEY = 'authToken';
 
 export const authUtils = {
   getToken(): string | null {
-    return localStorage.getItem(AUTH_TOKEN_KEY) || sessionStorage.getItem(AUTH_TOKEN_KEY) || null;
+    const token = localStorage.getItem(AUTH_TOKEN_KEY) || sessionStorage.getItem(AUTH_TOKEN_KEY);
+    if (token) return token;
+    // Auto-migrate legacy key to canonical key on first access
+    const legacyToken = localStorage.getItem(LEGACY_TOKEN_KEY) || sessionStorage.getItem(LEGACY_TOKEN_KEY);
+    if (legacyToken) {
+      localStorage.setItem(AUTH_TOKEN_KEY, legacyToken);
+      localStorage.removeItem(LEGACY_TOKEN_KEY);
+      sessionStorage.removeItem(LEGACY_TOKEN_KEY);
+      return legacyToken;
+    }
+    return null;
   },
   setToken(token: string): void {
     localStorage.setItem(AUTH_TOKEN_KEY, token);
@@ -32,12 +44,16 @@ export const authUtils = {
     localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(FIREBASE_USER_KEY);
     localStorage.removeItem('supremeai_refresh_token');
+    localStorage.removeItem(LEGACY_TOKEN_KEY);
     sessionStorage.removeItem(AUTH_TOKEN_KEY);
     sessionStorage.removeItem(FIREBASE_USER_KEY);
+    sessionStorage.removeItem(LEGACY_TOKEN_KEY);
   },
   clearToken(): void {
     localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(LEGACY_TOKEN_KEY);
     sessionStorage.removeItem(AUTH_TOKEN_KEY);
+    sessionStorage.removeItem(LEGACY_TOKEN_KEY);
   },
   getAuthHeaders(): Record<string, string> {
     const token = authUtils.getToken();
@@ -72,4 +88,6 @@ export const authUtils = {
     return response;
   }
 };
+export const fetchWithAuth = authUtils.fetchWithAuth;
+export const getAuthHeaders = authUtils.getAuthHeaders;
 export default authUtils;

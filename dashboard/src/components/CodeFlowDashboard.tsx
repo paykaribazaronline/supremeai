@@ -1,16 +1,13 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Layout, Card, Row, Col, Statistic, Progress, Button, Spin, Alert, Tabs, Badge, Tag, Tooltip, Modal, List, Typography, Space, Divider } from 'antd';
-import { 
-  ShareAltOutlined, 
-  BugOutlined, 
-  SecurityScanOutlined, 
-  ThunderboltOutlined,
+import React, { useState, useEffect, useCallback } from 'react';
+import { Layout, Card, Row, Col, Statistic, Progress, Button, Spin, Alert, Tabs, Badge, Tag, Tooltip, Modal, List, Typography, Space } from 'antd';
+import {
+  BugOutlined,
+  SecurityScanOutlined,
   EyeOutlined,
   DownloadOutlined,
   ReloadOutlined,
   WarningOutlined,
   CheckCircleOutlined,
-  CloseCircleOutlined,
   InfoCircleOutlined,
   NodeIndexOutlined,
   BranchesOutlined,
@@ -24,8 +21,8 @@ import * as d3 from 'd3';
 import { useNavigate } from 'react-router-dom';
 import { authUtils } from '../lib/authUtils';
 
-const { Header, Content, Sider } = Layout;
-const { TabPane } = Tabs;
+const { Header, Content } = Layout;
+
 const { Text, Title, Paragraph } = Typography;
 
 interface CodeFlowDashboardProps {
@@ -157,7 +154,7 @@ const CodeFlowDashboard: React.FC<CodeFlowDashboardProps> = ({ onClose }) => {
   const [ownerId, setOwnerId] = useState('');
   const [activeTab, setActiveTab] = useState('1');
   const [viewMode, setViewMode] = useState<'list' | 'graph'>('list');
-  const [svgRef, setSvgRef] = useState<SVGSVGElement | null>(null);
+  const [, setSvgRef] = useState<SVGSVGElement | null>(null);
   const [graphModalVisible, setGraphModalVisible] = useState(false);
   const [selectedGraphRepo, setSelectedGraphRepo] = useState<RepositoryAnalysis | null>(null);
   const navigate = useNavigate();
@@ -341,7 +338,7 @@ const CodeFlowDashboard: React.FC<CodeFlowDashboardProps> = ({ onClose }) => {
       .attr('viewBox', [0, 0, width, height]);
 
     // Create force simulation
-    const simulation = d3.forceSimulation(graph.nodes)
+    const simulation = d3.forceSimulation(graph.nodes as any)
       .force('link', d3.forceLink(graph.edges)
         .id((d: any) => d.id)
         .distance(100))
@@ -372,7 +369,7 @@ const CodeFlowDashboard: React.FC<CodeFlowDashboardProps> = ({ onClose }) => {
       })
       .attr('stroke', '#fff')
       .attr('stroke-width', 2)
-      .call(d3.drag()
+      .call(d3.drag<any, any>()
         .on('start', (event: any, d: any) => {
           if (!event.active) simulation.alphaTarget(0.3).restart();
           d.fx = d.x;

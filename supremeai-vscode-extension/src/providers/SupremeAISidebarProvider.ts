@@ -5,14 +5,14 @@
 import * as vscode from 'vscode';
 import { getSupremeAIService } from '../services/SupremeAIService';
 
-export class SupremeAISidebarProvider {
-  private readonly viewId: string;
+export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
   private webview: vscode.WebviewView | null = null;
   private updateTimer: NodeJS.Timeout | null = null;
 
-  constructor(viewId: string) {
-    this.viewId = viewId;
-  }
+  constructor(
+    private readonly _extensionUri: vscode.Uri,
+    private readonly _viewId: string
+  ) {}
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
@@ -23,12 +23,20 @@ export class SupremeAISidebarProvider {
 
     webviewView.webview.options = {
       enableScripts: true,
-      localResourceRoots: []
+      localResourceRoots: [this._extensionUri]
     };
 
     this.setupWebviewMessageListener(webviewView);
+    
+    // Set initial loading state to avoid blank screen
+    webviewView.webview.html = this.getLoadingHTML();
+    
     this.updateContent(webviewView);
     this.startPeriodicUpdates();
+  }
+
+  private getLoadingHTML(): string {
+    return `<!DOCTYPE html><html><body style="display:flex;justify-content:center;align-items:center;height:100vh;color:var(--vscode-descriptionForeground);font-family:sans-serif;"><div>🚀 Loading SupremeAI...</div></body></html>`;
   }
 
   private setupWebviewMessageListener(webviewView: vscode.WebviewView): void {

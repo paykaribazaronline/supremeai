@@ -67,7 +67,7 @@ public class RedisRateLimiter implements RateLimiter {
                     String.valueOf(Instant.now().getEpochSecond())
             );
 
-            Long result = redisTemplate.execute(script, keys, args.toArray(new String[0]));
+            Long result = redisTemplate.execute(script, keys, (Object[]) args.toArray(new String[0]));
             return result != null && result == 1L;
         } catch (Exception e) {
             log.error("Redis rate limit error for {}: {}", key, e.getMessage());

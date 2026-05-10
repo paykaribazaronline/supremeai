@@ -1,5 +1,8 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$SCRIPT_DIR"
+
 # SupremeAI Auto Deploy Script
 # This script automates the deployment process for Firebase Functions and Local Server
 
@@ -23,21 +26,21 @@ fi
 # Deploy Firebase Functions
 echo ""
 echo "📦 Deploying Firebase Functions..."
-cd functions
+cd "$PROJECT_ROOT/functions"
 echo "📥 Installing dependencies..."
 npm install
 echo "🚀 Deploying functions..."
 firebase deploy --only functions
-cd ..
+cd "$PROJECT_ROOT"
 
 # Install Python dependencies for local server
 echo ""
 echo "🐍 Setting up Local Server..."
-cd smart_chat_system
+cd "$PROJECT_ROOT/smart_chat_system"
 echo "📥 Installing Python dependencies..."
 pip install -r requirements.txt
 echo "✅ Local server setup complete!"
-cd ..
+cd "$PROJECT_ROOT"
 
 echo ""
 echo "✅ Deployment complete!"

@@ -536,6 +536,7 @@ public class EnhancedLearningService {
         });
         
         // Provider recommendations
+        @SuppressWarnings("unchecked")
         Map<String, Long> providerUsage = (Map<String, Long>) analysis.getOrDefault("providerUsage", Map.<String, Long>of());
         providerUsage.entrySet().stream()
                 .sorted(Map.Entry.<String, Long>comparingByValue().reversed())

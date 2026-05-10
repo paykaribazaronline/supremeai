@@ -14,8 +14,7 @@ import java.util.Map;
 public class GeminiProvider extends AbstractHttpProvider {
     private static final String API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
-    @Autowired
-    private com.supremeai.security.SecretManagerService secretManagerService;
+
 
     public GeminiProvider() {
         super("", API_URL, "gemini-1.5-pro");
@@ -29,11 +28,7 @@ public class GeminiProvider extends AbstractHttpProvider {
     protected String getRequestUrl() {
         String key = apiKey;
         if (key == null || key.isBlank()) {
-            if (secretManagerService != null) {
-                key = secretManagerService.getSecret("GEMINI_API_KEY");
-            } else {
-                key = System.getenv("GEMINI_API_KEY");
-            }
+            key = System.getenv("GEMINI_API_KEY");
         }
         return super.getRequestUrl() + "?key=" + key;
     }

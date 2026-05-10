@@ -117,7 +117,7 @@ public class AuthenticationControllerTest {
         
         when(authenticationService.firebaseLogin(eq(idToken), anyString())).thenReturn(Mono.just(mockData));
 
-        Map<String, String> loginRequest = Map.of("idToken", idToken);
+        AuthenticationController.FirebaseLoginRequest loginRequest = new AuthenticationController.FirebaseLoginRequest(idToken);
         MockHttpServletRequest httpRequest = new MockHttpServletRequest();
 
         ApiResponse<Map<String, Object>> response = authenticationController.firebaseLogin(loginRequest, httpRequest).block();
@@ -156,7 +156,7 @@ public class AuthenticationControllerTest {
         
         when(authenticationService.firebaseLogin(eq(idToken), anyString())).thenReturn(Mono.just(mockData));
 
-        Map<String, String> loginRequest = Map.of("idToken", idToken);
+        AuthenticationController.FirebaseLoginRequest loginRequest = new AuthenticationController.FirebaseLoginRequest(idToken);
         MockHttpServletRequest httpRequest = new MockHttpServletRequest();
 
         ApiResponse<Map<String, Object>> response = authenticationController.firebaseLogin(loginRequest, httpRequest).block();
@@ -191,7 +191,7 @@ public class AuthenticationControllerTest {
         
         when(authenticationService.firebaseLogin(eq(idToken), anyString())).thenReturn(Mono.just(mockData));
 
-        Map<String, String> loginRequest = Map.of("idToken", idToken);
+        AuthenticationController.FirebaseLoginRequest loginRequest = new AuthenticationController.FirebaseLoginRequest(idToken);
         MockHttpServletRequest httpRequest = new MockHttpServletRequest();
 
         ApiResponse<Map<String, Object>> response = authenticationController.firebaseLogin(loginRequest, httpRequest).block();
@@ -210,7 +210,7 @@ public class AuthenticationControllerTest {
         when(authenticationService.firebaseLogin(eq(idToken), anyString()))
             .thenReturn(Mono.error(new RuntimeException("Authentication failed")));
 
-        Map<String, String> loginRequest = Map.of("idToken", idToken);
+        AuthenticationController.FirebaseLoginRequest loginRequest = new AuthenticationController.FirebaseLoginRequest(idToken);
         MockHttpServletRequest httpRequest = new MockHttpServletRequest();
 
         ApiResponse<Map<String, Object>> response = authenticationController.firebaseLogin(loginRequest, httpRequest).block();

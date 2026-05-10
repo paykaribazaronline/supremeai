@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 
 import jakarta.annotation.PostConstruct;
 
@@ -19,7 +18,6 @@ import jakarta.annotation.PostConstruct;
  * - Reduces debugging time for configuration issues
  */
 @Configuration
-@PropertySource("classpath:application.yml")
 public class AppConfig {
     
     private static final Logger log = LoggerFactory.getLogger(AppConfig.class);
@@ -64,11 +62,10 @@ public class AppConfig {
         log.info("  Configuration Validation Complete - All Checks Passed!");
         log.info("==================================================");
     }
-    
     private void validateRedisConfig() {
         if (redisHost == null || redisHost.trim().isEmpty()) {
             throw new IllegalStateException(
-                "Redis host is not configured. Please set spring.data.redis.host in application.yml");
+                "Redis host is not configured. Please set spring.data.redis.host in application.properties (or application-local.properties)");
         }
         
         if (redisPort <= 0 || redisPort > 65535) {

@@ -4,6 +4,9 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$SCRIPT_DIR"
+
 echo "=========================================="
 echo "SupremeAI Pipeline Fix Scripts"
 echo "=========================================="
@@ -11,7 +14,7 @@ echo ""
 
 # Fix 1: Regenerate IntelliJ Plugin Gradle Wrapper
 echo "[1/5] Fixing IntelliJ Plugin Gradle Wrapper..."
-cd /home/nazifarabbu/OneDrive/supremeai/supremeai-intellij-plugin
+cd "$PROJECT_ROOT/supremeai-intellij-plugin"
 if [ ! -f "gradlew" ] || [ ! -f "gradle/wrapper/gradle-wrapper.jar" ]; then
     echo "  → Removing incomplete wrapper files..."
     rm -f gradlew gradlew.bat
@@ -27,7 +30,7 @@ echo ""
 
 # Fix 2: Create ESLint config for VS Code Extension
 echo "[2/5] Creating ESLint config for VS Code Extension..."
-cd /home/nazifarabbu/OneDrive/supremeai/supremeai-vscode-extension
+cd "$PROJECT_ROOT/supremeai-vscode-extension"
 if [ ! -f ".eslintrc.json" ]; then
     cat > .eslintrc.json << 'EOF'
 {
@@ -57,7 +60,7 @@ echo ""
 
 # Fix 3: Create tsconfig.json for VS Code Extension if missing
 echo "[3/5] Checking TypeScript config for VS Code Extension..."
-cd /home/nazifarabbu/OneDrive/supremeai/supremeai-vscode-extension
+cd "$PROJECT_ROOT/supremeai-vscode-extension"
 if [ ! -f "tsconfig.json" ]; then
     cat > tsconfig.json << 'EOF'
 {
@@ -85,10 +88,9 @@ echo ""
 
 # Fix 4: Install missing gradle wrapper jar for main project
 echo "[4/5] Verifying main Gradle wrapper..."
-cd /home/nazifarabbu/OneDrive/supremeai
+cd "$PROJECT_ROOT"
 if [ ! -f "gradle/wrapper/gradle-wrapper.jar" ]; then
     echo "  → Downloading gradle-wrapper.jar..."
-    # Use the gradle wrapper task to generate it
     ./gradlew --version 2>&1 | head -5 || true
     echo "  ✅ Gradle wrapper verified"
 else
@@ -98,9 +100,8 @@ echo ""
 
 # Fix 5: Create npm scripts for Firebase Functions
 echo "[5/5] Updating Firebase Functions package.json..."
-cd /home/nazifarabbu/OneDrive/supremeai/functions
-if ! grep -q '"build"' package.json; then
-    # Create a backup and update
+cd "$PROJECT_ROOT/functions"
+if ! grep -q '"build"' package.json 2>/dev/null; then
     cp package.json package.json.backup
     node -e "
     const fs = require('fs');

@@ -1,6 +1,7 @@
 package com.supremeai.controller;
 
 import com.supremeai.response.ApiResponse;
+import com.supremeai.service.AIProviderDiscoveryService;
 
 import com.supremeai.model.APIProvider;
 import com.supremeai.model.ActivityLog;
@@ -25,6 +26,9 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
     
     @Autowired
     private ActivityLogRepository activityLogRepository;
+
+    @Autowired
+    private AIProviderDiscoveryService discoveryService;
 
     @Autowired
     private com.supremeai.provider.AIProviderFactory aiProviderFactory;
@@ -79,17 +83,28 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
             return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("name and apiKey are required")));
         }
 
-        try {
-            com.supremeai.provider.AIProvider provider = aiProviderFactory.getProvider(name, apiKey);
-            return provider.generate("test")
-                    .map(response -> ResponseEntity.ok(ApiResponse.ok(Map.<String, Object>of(
-                            "message", "Key validated successfully",
-                            "response", response
-                    ))))
-                    .onErrorResume(e -> Mono.just(ResponseEntity.status(401).body(ApiResponse.<Map<String, Object>>error("Invalid key or provider error: " + e.getMessage()))));
-        } catch (Exception e) {
-            return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("Unsupported provider or configuration error: " + e.getMessage())));
-        }
+        return discoveryService.validateKey(name, apiKey)
+                .map(valid -> {
+                    if (valid) {
+                        return ResponseEntity.ok(ApiResponse.ok(Map.<String, Object>of("message", "Key validated successfully", "valid", true)));
+                    } else {
+                        return ResponseEntity.status(401).body(ApiResponse.<Map<String, Object>>error("Invalid key or provider error"));
+                    }
+                });
+    }
+
+    @GetMapping("/discover")
+    public Mono<ResponseEntity<ApiResponse<java.util.List<Map<String, Object>>>>> discoverModels(@RequestParam(required = false) String query) {
+        return discoveryService.discoverModels(query)
+                .collectList()
+                .map(list -> ResponseEntity.ok(ApiResponse.ok(list)));
+    }
+
+    @GetMapping("/scan")
+    public Mono<ResponseEntity<ApiResponse<java.util.List<Map<String, Object>>>>> scanDeployments() {
+        return discoveryService.scanDeployments()
+                .collectList()
+                .map(list -> ResponseEntity.ok(ApiResponse.ok(list)));
     }
 
     @PostMapping

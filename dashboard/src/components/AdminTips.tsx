@@ -2,14 +2,9 @@
 
 import React, { useState } from 'react';
 import {
-    Card,
-    Collapse,
     Alert,
     Button,
-    Modal,
     Space,
-    Row,
-    Col,
     Tag,
     Tooltip,
     Drawer,
@@ -20,7 +15,6 @@ import {
     QuestionCircleOutlined,
     BulbOutlined as LightbulbOutlined,
     BookOutlined,
-    PlayCircleOutlined,
     CheckCircleOutlined,
 } from '@ant-design/icons';
 
@@ -36,7 +30,7 @@ interface AdminTipsProps {
     section?: string;
 }
 
-const AdminTips: React.FC<AdminTipsProps> = ({ section }) => {
+const AdminTips: React.FC<AdminTipsProps> = () => {
     const [showTips, setShowTips] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 

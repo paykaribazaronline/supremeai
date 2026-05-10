@@ -14,7 +14,6 @@ const AdminDashboardUnified = lazy(() => import('./pages/AdminDashboardUnified')
 const AdminUsers = lazy(() => import('./pages/AdminUsers'));
 const AdminSettings = lazy(() => import('./pages/AdminSettings'));
 const AdminProjects = lazy(() => import('./pages/AdminProjects'));
-const AdminProviders = lazy(() => import('./pages/AdminProviders'));
 const AdminLogs = lazy(() => import('./pages/AdminLogs'));
 const AdminNotifications = lazy(() => import('./pages/AdminNotifications'));
 const AdminBackup = lazy(() => import('./pages/AdminBackup'));
@@ -80,7 +79,6 @@ const App: React.FC = () => {
                                         <Route path="/admin/users" element={<AdminUsers />} />
                                         <Route path="/admin/settings" element={<AdminSettings />} />
                                         <Route path="/admin/projects" element={<AdminProjects />} />
-                                        <Route path="/admin/providers" element={<AdminProviders />} />
                                         <Route path="/admin/apikeys" element={<AdminAPIKeys />} />
                                         <Route path="/admin/logs" element={<AdminLogs />} />
                                         <Route path="/admin/notifications" element={<AdminNotifications />} />
@@ -105,7 +103,7 @@ const App: React.FC = () => {
                                         <Route path="/admin-users.html" element={<Navigate to="/admin/users" replace />} />
                                         <Route path="/admin-settings.html" element={<Navigate to="/admin/settings" replace />} />
                                         <Route path="/admin-projects.html" element={<Navigate to="/admin/projects" replace />} />
-                                        <Route path="/admin-providers.html" element={<Navigate to="/admin/providers" replace />} />
+                                        <Route path="/admin-providers.html" element={<Navigate to="/admin" replace />} />
                                         <Route path="/admin-apikeys.html" element={<Navigate to="/admin/apikeys" replace />} />
                                         <Route path="/admin-logs.html" element={<Navigate to="/admin/logs" replace />} />
                                         <Route path="/admin-notifications.html" element={<Navigate to="/admin/notifications" replace />} />

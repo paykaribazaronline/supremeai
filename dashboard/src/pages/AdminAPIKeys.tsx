@@ -2,12 +2,12 @@
 
 import React from 'react';
 import AdminLayout from '../components/AdminLayout';
-import APIKeysManager from '../components/APIKeysManager';
+import APIManagement from '../components/APIManagement';
 
 const AdminAPIKeys: React.FC = () => {
   return (
     <AdminLayout title="API Keys & Model Discovery">
-      <APIKeysManager />
+      <APIManagement />
     </AdminLayout>
   );
 };

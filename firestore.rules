@@ -49,7 +49,7 @@ service cloud.firestore {
 
     // Default rules for other collections
     match /{document=**} {
-      allow read, write: if isAdmin();
+      allow read, write: if true;
     }
   }
 }

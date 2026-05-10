@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping({"/api/v1/agents", "/api/v1", "/api"})
+@RequestMapping("/api/v1/agents")
 public class AgentsV1Controller {
 
     @Autowired

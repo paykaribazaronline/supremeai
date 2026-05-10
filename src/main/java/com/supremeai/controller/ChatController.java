@@ -1,7 +1,7 @@
 package com.supremeai.controller;
 
 import com.supremeai.service.AutonomousQuestioningEngine;
-import com.supremeai.service.TenAIVotingSystem;
+import com.supremeai.service.MultiAIVotingService;
 import com.supremeai.service.MultiAIConsensusService;
 import com.supremeai.service.EnhancedLearningService;
 import org.slf4j.Logger;
@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
 import jakarta.validation.Valid;
 import com.supremeai.dto.ChatRequest;
 import com.supremeai.dto.FeedbackRequest;
@@ -28,16 +27,19 @@ public class ChatController {
     private static final Logger logger = LoggerFactory.getLogger(ChatController.class);
 
     @Autowired(required = false)
-    private MultiAIConsensusService consensusService;
+    private MultiAIVotingService consensusService;
 
     @Autowired
     private AutonomousQuestioningEngine questioningEngine;
 
     @Autowired
-    private TenAIVotingSystem votingSystem;
+    private MultiAIVotingService votingService;
 
     @Autowired(required = false)
     private EnhancedLearningService enhancedLearningService;
+
+    @Autowired
+    private com.supremeai.service.ChatIntelligenceService intelligenceService;
 
     @PostMapping("/send")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'AGENT_MANAGER')")
@@ -66,7 +68,7 @@ public class ChatController {
 
         // S4: 10-AI Voting System - Execute voting across models
         try {
-            var votingResult = votingSystem.executeVoting(message, null, 15000L);
+            var votingResult = votingService.executeEnsembleVoting(message, null, 15000L);
 
             String bestResponse = votingResult.getBestResponse();
             Double confidence = votingResult.getAverageConfidence();
@@ -80,8 +82,18 @@ public class ChatController {
             response.put("timestamp", java.time.Instant.now().toString());
 
             // ডায়নামিকভাবে মোড সনাক্ত করা
-            String mode = detectMode(message);
-            response.put("mode", mode);
+            var intent = intelligenceService.classifyIntent(message);
+            response.put("mode", intent.name().toLowerCase());
+            response.put("intent", intent.name());
+
+            // Autonomous intelligence handling (rules/plans)
+            intelligenceService.handleIntelligence(
+                request.getAgentId() != null ? request.getAgentId() : "default",
+                message, 
+                intent, 
+                "ADMIN", // Defaulting to ADMIN for now as it's the Command Center
+                confidence
+            ).subscribe();
 
             // Capture NLP learning from this interaction
             if (enhancedLearningService != null) {
@@ -101,7 +113,7 @@ public class ChatController {
             // Fallback to simpler consensus if voting fails
             if (consensusService != null) {
                 // Use multiple providers (not just google) for better fallback resilience
-                return consensusService.askAllAIs(message, 
+                return consensusService.askConsensus(message, 
                     java.util.Arrays.asList("groq", "deepseek", "claude", "openai", "ollama"), 10000L)
                     .map(res -> ResponseEntity.ok(Map.of(
                         "message", res.getConsensusAnswer(),

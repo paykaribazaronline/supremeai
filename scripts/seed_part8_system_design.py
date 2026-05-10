@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
 """
-Part 8 — System Design
-Seeds SupremeAI Firebase with deep knowledge about:
-  • Distributed systems fundamentals (CAP theorem, consistency models)
-  • Scalability patterns (horizontal/vertical, stateless design, sharding)
-  • Message queues and event streaming (Kafka, Pub/Sub, RabbitMQ patterns)
-  • Event Sourcing and CQRS
-  • API design (REST, GraphQL, gRPC, WebSockets)
-  • Resilience patterns (retry, circuit breaker, bulkhead, timeout)
-  • System design case studies (URL shortener, notification system, feed)
+Part 8 — System Design Core Knowledge
+Seeds SupremeAI Firebase with comprehensive system design knowledge:
+  • Distributed systems (CAP theorem, consistency models)
+  • Scalability patterns (horizontal/vertical, sharding, caching)
+  • Resilience (circuit breaker, retry, bulkhead, timeout)
+  • API design (REST, GraphQL, gRPC)
+  • Event-driven architecture (Kafka, Pub/Sub, SQS patterns)
+  • Observability (logs, metrics, traces, alerting)
 
-Collections written:
-  • system_learning      (SystemLearning model records)
-  • system_design_knowledge (rich topic documents)
+Collections:
+  • system_learning      (SystemLearning records)
+  • system_design_knowledge (topic documents)
 
 Run:
   pip install firebase-admin

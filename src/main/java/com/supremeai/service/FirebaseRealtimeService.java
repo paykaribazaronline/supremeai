@@ -28,6 +28,7 @@ public class FirebaseRealtimeService {
             DatabaseReference ref = FirebaseDatabase.getInstance().getReference(path);
             ref.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
+                @SuppressWarnings("unchecked")
                 public void onDataChange(DataSnapshot snapshot) {
                     if (snapshot.exists()) {
                         Object value = snapshot.getValue();

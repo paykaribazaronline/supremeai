@@ -24,15 +24,15 @@ public class SelfImprovementService {
     private static final Logger logger = LoggerFactory.getLogger(SelfImprovementService.class);
 
     private final SystemLearningRepository learningRepository;
-    private final MultiAIConsensusService consensusService;
+    private final MultiAIVotingService votingService;
 
     private long totalLearningEntries = 0;
     private LocalDateTime lastImprovement = LocalDateTime.now();
 
     public SelfImprovementService(SystemLearningRepository learningRepository,
-                                   MultiAIConsensusService consensusService) {
+                                    MultiAIVotingService votingService) {
         this.learningRepository = learningRepository;
-        this.consensusService = consensusService;
+        this.votingService = votingService;
     }
 
     /**
@@ -77,7 +77,7 @@ public class SelfImprovementService {
                 .toList();
 
         // Run analysis using AI consensus
-        consensusService.askAllAIs(
+        votingService.askConsensus(
                 "Analyze these user interactions and suggest 3 concrete improvements to the system: " + prompts,
                 java.util.List.of("groq", "ollama"),
                 30000

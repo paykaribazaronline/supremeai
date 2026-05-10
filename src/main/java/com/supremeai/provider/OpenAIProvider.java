@@ -1,11 +1,7 @@
 package com.supremeai.provider;
 
-
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
-import okhttp3.MediaType;
-import okhttp3.RequestBody;
-
 import java.util.List;
 import java.util.Map;
 
@@ -16,13 +12,19 @@ import java.util.Map;
 @Component
 public class OpenAIProvider extends AbstractHttpProvider {
     private static final String API_URL = "https://api.openai.com/v1/chat/completions";
+    private static final String DEFAULT_MODEL = "gpt-3.5-turbo";
+    private static final List<String> SUPPORTED_MODELS = List.of(
+        "gpt-4",
+        "gpt-4-turbo-preview",
+        "gpt-3.5-turbo"
+    );
 
     public OpenAIProvider() {
-        super("", API_URL, "gpt-3.5-turbo");
+        super("", API_URL, DEFAULT_MODEL);
     }
 
     public OpenAIProvider(String apiKey) {
-        super(apiKey, API_URL, "gpt-3.5-turbo");
+        super(apiKey, API_URL, DEFAULT_MODEL);
     }
 
     @Override
@@ -30,6 +32,18 @@ public class OpenAIProvider extends AbstractHttpProvider {
         return "openai";
     }
 
+    @Override
+    public Map<String, Object> getCapabilities() {
+        if (providerMetadataService != null) {
+            return super.getCapabilities();
+        }
+        return Map.of(
+            "name", "OpenAI",
+            "models", SUPPORTED_MODELS,
+            "type", "remote",
+            "url", baseUrl
+        );
+    }
 
     @Override
     protected Map<String, Object> createRequestBody(String prompt) {
@@ -41,7 +55,7 @@ public class OpenAIProvider extends AbstractHttpProvider {
 
     @Override
     protected String extractResponse(String responseBody) throws Exception {
-        Map<String, Object> responseMap = objectMapper.readValue(responseBody, 
+        Map<String, Object> responseMap = objectMapper.readValue(responseBody,
             new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");

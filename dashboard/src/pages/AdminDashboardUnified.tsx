@@ -1,16 +1,37 @@
-// AdminDashboardUnified.tsx - MODERN PREMIUM REDESIGN
+// AdminDashboardUnified.tsx - ULTRA-DENSE DARK COMMAND CENTER
 // UNIFIED ADMIN DASHBOARD - Single Source of Truth Contract
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Layout, Menu, Card, Statistic, Row, Col, Alert, Badge, Space, Tabs, Empty, Button, Modal, Input, message, Avatar, Dropdown, Typography, Divider, Collapse, FloatButton } from 'antd';
-import { SearchOutlined, MessageOutlined, CloseOutlined } from '@ant-design/icons';
+import { useState, useEffect, useMemo } from 'react';
+import { Layout, Menu, Alert, Badge, Space, Tabs, Button, Modal, Input, message, Avatar, Dropdown, Typography, Divider, FloatButton, Progress, Tag, Tooltip, List } from 'antd';
 import { 
-    BulbOutlined, LogoutOutlined, UserOutlined, BellOutlined,
-    DashboardOutlined, ApiOutlined, CloudServerOutlined, RobotOutlined,
-    TeamOutlined, SettingOutlined, CheckCircleOutlined, WarningOutlined,
-    BugOutlined, NodeIndexOutlined, MenuFoldOutlined, MenuUnfoldOutlined,
-    RocketOutlined, SafetyOutlined, DollarOutlined, AuditOutlined,
-    SyncOutlined, GlobalOutlined, DesktopOutlined, HistoryOutlined
+    RobotOutlined, 
+    DashboardOutlined, 
+    CheckCircleOutlined, 
+    SyncOutlined, 
+    DesktopOutlined, 
+    BulbOutlined, 
+    BugOutlined, 
+    NodeIndexOutlined, 
+    ApiOutlined, 
+    MenuUnfoldOutlined, 
+    MenuFoldOutlined, 
+    SearchOutlined, 
+    BellOutlined, 
+    UserOutlined, 
+    SettingOutlined, 
+    LogoutOutlined,
+    GlobalOutlined,
+    DatabaseOutlined,
+    RocketOutlined,
+    ClockCircleOutlined,
+    CloudServerOutlined,
+    InfoCircleOutlined,
+    HistoryOutlined,
+    MessageOutlined,
+    ArrowUpOutlined,
+    CheckCircleFilled,
+    SafetyCertificateOutlined,
+    ThunderboltOutlined
 } from '@ant-design/icons';
 import { authUtils } from '../lib/authUtils';
 import PhasesOverview from '../components/PhasesOverview';
@@ -20,37 +41,58 @@ import ChatWithAI from '../components/ChatWithAI';
 import SystemLearningDashboard from '../components/SystemLearningDashboard';
 import RequirementsDashboard from '../components/RequirementsDashboard';
 import AdminOCRCard from '../components/AdminOCRCard';
+import APIManagement from '../components/APIManagement';
+import AdminProtocolMatrix from '../components/AdminProtocolMatrix';
+import AdminHistoryMatrix from '../components/AdminHistoryMatrix';
+import AdminConfigMatrix from '../components/AdminConfigMatrix';
+import VPNManagement from '../components/VPNManagement';
+import TelemetryBar from '../components/TelemetryBar';
+import GlassKPICard from '../components/GlassKPICard';
+import NeuralTerminal, { LogEntry } from '../components/NeuralTerminal';
+import ResourceGauges from '../components/ResourceGauges';
+import SystemHealthMatrix from '../components/SystemHealthMatrix';
+import OperationalAnalytics from '../components/OperationalAnalytics';
+import AuditLog from '../components/AuditLog';
+import NeuralNetworkFlow from '../components/NeuralNetworkFlow';
 import { notification } from 'antd';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import ProjectGenerator from '../components/ProjectGenerator';
-import CollaborationBadge from '../components/CollaborationBadge';
+import { 
+  Chart as ChartJS, 
+  ArcElement, 
+  Tooltip as ChartTooltip, 
+  Legend, 
+  CategoryScale, 
+  LinearScale, 
+  BarElement,
+  PointElement,
+  LineElement,
+  Filler
+} from 'chart.js';
 import { ApiResponse, DashboardContract } from '../types';
 
-const { Title } = Typography;
-const { Header, Content, Sider } = Layout;
-const { Panel } = Collapse;
+// Register ChartJS
+ChartJS.register(
+  ArcElement, 
+  ChartTooltip, 
+  Legend, 
+  CategoryScale, 
+  LinearScale, 
+  BarElement,
+  PointElement,
+  LineElement,
+  Filler
+);
 
+const { Header, Content, Sider } = Layout;
 
 const AdminDashboardUnified: React.FC = () => {
-    const [collapsed, setCollapsed] = useState(true);
     const [selectedKey, setSelectedKey] = useState('overview');
     const [contract, setContract] = useState<DashboardContract | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [searchQuery, setSearchQuery] = useState('');
     const [chatVisible, setChatVisible] = useState(false);
-    const [notifications, setNotifications] = useState<Record<string, number>>({
-        'ai-agents': 3,
-        'exploitation-techniques': 1,
-        'phases': 0,
-        'git-ops': 2
-    });
-
-    // Suggestion modal state
-    const [suggestionOpen, setSuggestionOpen] = useState(false);
-    const [suggestionText, setSuggestionText] = useState('');
-    const [suggestionLoading, setSuggestionLoading] = useState(false);
+    const [liveStream, setLiveStream] = useState<LogEntry[]>([]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -64,128 +106,67 @@ const AdminDashboardUnified: React.FC = () => {
 
     useEffect(() => {
         fetchContract();
-        // Refresh every 30 seconds
         const interval = setInterval(fetchContract, 30000);
         
-        // WebSocket connection for real-time notifications
         const connectWebSocket = () => {
           try {
-            // Use relative URL to work with both dev and prod (same origin)
             const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws'}://${window.location.host}/ws`;
             const socket = new SockJS(wsUrl);
             const stompClient = new Client({
               webSocketFactory: () => socket,
               reconnectDelay: 5000,
               onConnect: () => {
-                console.log("[SupremeAI] WebSocket connected for notifications");
-                
-                // Subscribe to notifications topic
                 stompClient.subscribe('/topic/notifications', (message) => {
                   const data = JSON.parse(message.body);
-                  console.log("[SupremeAI] Notification received:", data);
+                  const newLog: LogEntry = {
+                    id: Math.random().toString(36).substr(2, 9),
+                    timestamp: new Date().toLocaleTimeString(),
+                    level: data.level || 'INFO',
+                    source: data.source || 'SYSTEM',
+                    message: data.message || JSON.stringify(data)
+                  };
+                  setLiveStream(prev => [newLog, ...prev].slice(0, 100));
                   
                   if (data.type === 'GITHUB_PIPELINE') {
                     if (data.status === 'success') {
-                      notification.success({
-                        message: '🚀 Deployment Successful',
-                        description: data.message || 'Pipeline completed successfully',
-                        duration: 5,
-                        placement: 'topRight',
-                      });
-                    } else if (data.status === 'failure' || data.status === 'error') {
-                      notification.error({
-                        message: '🚨 Deployment Failed',
-                        description: data.message || 'Pipeline failed',
-                        duration: 0, // Persistent until user dismisses
-                        placement: 'topRight',
-                      });
-                    } else {
-                      notification.info({
-                        message: '📋 Pipeline Update',
-                        description: data.message,
-                        duration: 4,
-                        placement: 'topRight',
-                      });
+                      notification.success({ message: '🚀 Deployment Successful', description: data.message });
+                    } else if (data.status === 'failure') {
+                      notification.error({ message: '🚨 Deployment Failed', description: data.message });
                     }
-                  } else if (data.type === 'SYSTEM_ALERT') {
-                    const level = data.status;
-                    if (level === 'error' || level === 'critical') {
-                      notification.error({
-                        message: '⚠️ System Alert',
-                        description: data.message,
-                        duration: 0,
-                        placement: 'topRight',
-                      });
-                    } else if (level === 'warning') {
-                      notification.warning({
-                        message: '⚡ System Warning',
-                        description: data.message,
-                        duration: 6,
-                        placement: 'topRight',
-                      });
-                    } else {
-                      notification.info({
-                        message: 'ℹ️ System Info',
-                        description: data.message,
-                        duration: 4,
-                        placement: 'topRight',
-                      });
-                    }
-                  } else if (data.type === 'LEARNING_UPDATE') {
-                    notification.success({
-                      message: '🧠 SupremeAI Learning Update',
-                      description: data.message || 'New patterns learned from your edits',
-                      duration: 4,
-                      placement: 'topRight',
-                    });
                   }
                 });
-              },
-              onStompError: (frame) => {
-                console.error('WebSocket error:', frame);
-                // Silent reconnect will happen automatically
-              },
-              onWebSocketError: (event) => {
-                console.error('WebSocket connection error:', event);
               }
             });
-            
             stompClient.activate();
             return () => stompClient.deactivate();
           } catch (err) {
-            console.error("Failed to connect WebSocket:", err);
+            console.error("WebSocket connection error", err);
           }
         };
         
         const cleanup = connectWebSocket();
-        
         return () => {
           clearInterval(interval);
           if (cleanup) cleanup();
         };
-      }, []);
+    }, []);
 
     const fetchContract = async () => {
         try {
             const resp = await authUtils.fetchWithAuth('/api/admin/dashboard/contract');
-
             if (!resp.ok) {
                 if (resp.status === 401 || resp.status === 403) {
-                    console.error("Unauthorized to access admin dashboard contract. Status:", resp.status);
                     authUtils.clearAuth();
-                    window.location.href = '/admin'; // Redirect to login
+                    window.location.href = '/admin';
                     return;
                 }
                 throw new Error('Failed to fetch contract');
             }
-
             const response = await resp.json() as ApiResponse<DashboardContract>;
-            if (!response.success || !response.data) {
-                throw new Error(response.error || 'Failed to parse platform contract');
+            if (response.success && response.data) {
+                setContract(response.data);
+                setError(null);
             }
-            
-            setContract(response.data);
-            setError(null);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load dashboard');
         } finally {
@@ -193,732 +174,333 @@ const AdminDashboardUnified: React.FC = () => {
         }
     };
 
-    const submitSuggestion = async (applyNow: boolean) => {
-        if (!suggestionText.trim()) {
-            message.warning('Please enter a suggestion before submitting.');
-            return;
-        }
-        setSuggestionLoading(true);
-        try {
-            const token = authUtils.getToken();
-            const selectedNav = contract?.navigation.find(n => n.key === selectedKey);
-            const payload = {
-                tabKey: selectedKey,
-                tabLabel: selectedNav?.label || selectedKey,
-                suggestion: suggestionText.trim(),
-                applyNow,
-            };
-            const res = await authUtils.fetchWithAuth('/api/admin/suggestions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload),
-            });
-            if (!res.ok) throw new Error('Failed to submit suggestion');
-            message.success(
-                applyNow
-                    ? '🤖 Applying your suggestion now — the system will process it shortly.'
-                    : '💾 Suggestion saved. The system will review it.'
-            );
-            setSuggestionText('');
-            setSuggestionOpen(false);
-        } catch (err) {
-            message.error('Failed to submit suggestion. Please try again.');
-        } finally {
-            setSuggestionLoading(false);
-        }
-    };
-
-    // Build grouped menu from contract navigation
-    const menuGroups = useMemo(() => {
-        if (!contract) return [];
-        return [
-            {
-                key: 'dashboard',
-                label: '📊 Dashboard & Analytics',
-                type: 'group' as const,
-                children: contract.navigation
-                    .filter(i => ['overview', 'metrics', 'analytics', 'quota', 'cost'].includes(i.key))
-                    .map(item => ({
-                        key: item.key,
-                        icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
-                        label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
-                        title: item.description,
-                        disabled: !item.enabled,
-                    }))
-            },
-            {
-                key: 'ai',
-                label: '🤖 AI Systems',
-                type: 'group' as const,
-                children: contract.navigation
-                    .filter(i => ['ai-agents', 'providers', 'ml-intelligence', 'ai-models'].includes(i.key))
-                    .map(item => ({
-                        key: item.key,
-                        icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
-                        label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
-                        title: item.description,
-                        disabled: !item.enabled,
-                    }))
-            },
-            {
-                key: 'learning',
-                label: '📚 Knowledge & Learning',
-                type: 'group' as const,
-                children: contract.navigation
-                    .filter(i => ['learning', 'system-learning', 'teaching', 'research'].includes(i.key))
-                    .map(item => ({
-                        key: item.key,
-                        icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
-                        label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
-                        title: item.description,
-                        disabled: !item.enabled,
-                    }))
-            },
-            {
-                key: 'operations',
-                label: '⚙️ Operations',
-                type: 'group' as const,
-                children: contract.navigation
-                    .filter(i => ['git-ops', 'deployment', 'vpn', 'headless-browser', 'exploitation-techniques'].includes(i.key))
-                    .map(item => ({
-                        key: item.key,
-                        icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
-                        label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
-                        title: item.description,
-                        disabled: !item.enabled,
-                    }))
-            },
-            {
-                key: 'health',
-                label: '🛡️ System Health',
-                type: 'group' as const,
-                children: contract.navigation
-                    .filter(i => ['resilience', 'autofix', 'self-healing', 'audit'].includes(i.key))
-                    .map(item => ({
-                        key: item.key,
-                        icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
-                        label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
-                        title: item.description,
-                        disabled: !item.enabled,
-                    }))
-            },
-            {
-                key: 'admin',
-                label: '👥 Administration',
-                type: 'group' as const,
-                children: contract.navigation
-                    .filter(i => ['user-management', 'api-keys', 'notifications', 'settings', 'phases'].includes(i.key))
-                    .map(item => ({
-                        key: item.key,
-                        icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
-                        label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
-                        title: item.description,
-                        disabled: !item.enabled,
-                    }))
-            },
-        ];
-    }, [contract]);
-
-    // Filter out empty groups
-    const menuItems = useMemo(() => menuGroups.filter(group => group.children.length > 0), [menuGroups]);
-
-    const filteredMenuItems = useMemo(() => {
-        if (!contract) return [];
-        if (!searchQuery.trim()) return menuItems;
-        
-        // Filter menu when searching
-        const query = searchQuery.toLowerCase();
-        const flatItems = contract.navigation.filter(i => 
-            i.label.toLowerCase().includes(query) ||
-            i.key.toLowerCase().includes(query) ||
-            i.description?.toLowerCase().includes(query)
-        ).map(item => ({
-            key: item.key,
-            icon: <span style={{ fontSize: '16px' }}>{item.icon}</span>,
-            label: <span style={{ fontWeight: 500 }}>{item.label}</span>,
-            title: item.description,
-            disabled: !item.enabled,
-        }));
-        
-        return flatItems.length > 0 ? flatItems : [{
-            key: 'no-results',
-            label: <span style={{ color: 'rgba(255,255,255,0.4)' }}>No results found</span>,
-            disabled: true
-        }];
-    }, [searchQuery, menuItems, contract]);
-
-    if (loading) {
-        return <div style={{ padding: '50px', textAlign: 'center' }}>Loading unified dashboard...</div>;
-    }
-
-    if (error || !contract) {
-        return <Alert type="error" message={error || 'Failed to load dashboard'} />;
-    }
-
-    // Get selected component from contract
-    const selectedComponent = contract.components.find((c) => c.key === selectedKey);
-
     const handleLogout = () => {
         authUtils.clearAuth();
         window.location.reload();
     };
 
-    const userDropdownItems = [
-        { key: 'profile', label: 'Profile', icon: <UserOutlined /> },
-        { key: 'settings', label: 'Settings', icon: <SettingOutlined /> },
-        { type: 'divider' as const },
-        { key: 'logout', label: 'Logout', icon: <LogoutOutlined />, onClick: handleLogout },
-    ];
+    const menuGroups = useMemo(() => {
+        if (!contract) return [];
+        return [
+            {
+                key: 'dashboard',
+                label: 'STATS',
+                type: 'group' as const,
+                children: contract.navigation
+                    .filter(i => ['overview', 'metrics', 'analytics'].includes(i.key))
+                    .map(item => ({
+                        key: item.key,
+                        icon: item.icon,
+                        label: <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>,
+                    }))
+            },
+            {
+                key: 'ai',
+                label: 'INTELLIGENCE',
+                type: 'group' as const,
+                children: contract.navigation
+                    .filter(i => ['ai-agents', 'providers', 'system-learning', 'ai-systems'].includes(i.key))
+                    .map(item => ({
+                        key: item.key === 'ai-systems' ? 'ai-agents' : item.key,
+                        icon: item.icon,
+                        label: <span className="text-[9px] font-bold uppercase tracking-[0.1em]">{item.label}</span>,
+                    }))
+            },
+            {
+                key: 'ops',
+                label: 'OPERATIONS',
+                type: 'group' as const,
+                children: [
+                    ...contract.navigation
+                        .filter(i => ['requirements', 'ocr', 'exploitation-techniques', 'phases', 'vpn', 'audit'].includes(i.key))
+                        .map(item => ({
+                            key: item.key,
+                            icon: item.icon,
+                            label: <span className="text-[9px] font-bold uppercase tracking-[0.1em]">{item.label}</span>,
+                        })),
+                    { key: 'rules', icon: <SafetyCertificateOutlined />, label: <span className="text-[9px] font-bold uppercase tracking-[0.1em]">Rules</span> },
+                    { key: 'history', icon: <HistoryOutlined />, label: <span className="text-[9px] font-bold uppercase tracking-[0.1em]">History</span> },
+                    { key: 'config', icon: <SettingOutlined />, label: <span className="text-[9px] font-bold uppercase tracking-[0.1em]">Config</span> }
+                ]
+            }
+        ];
+    }, [contract]);
+
+    if (loading) return (
+        <div className="h-screen bg-[#050505] flex flex-col items-center justify-center font-mono">
+            <div className="w-16 h-16 border-t-2 border-emerald-500 rounded-full animate-spin mb-4"></div>
+            <div className="text-[10px] text-emerald-500 uppercase tracking-[0.3em] animate-pulse">INIT_COMMAND_CENTER</div>
+        </div>
+    );
+
+    if (error || !contract) return <Alert message="System Offline" description={error} type="error" showIcon />;
+
+    const stats = contract.stats;
 
     return (
-        <Layout style={{ minHeight: '100vh', background: '#F8FAFC' }}>
-            {/* SIDEBAR - Modern premium design */}
+        <Layout className="min-h-screen bg-[#050505] text-white">
+            {/* Sidebar Navigation */}
             <Sider
-                collapsible
-                collapsed={collapsed}
-                onCollapse={setCollapsed}
-                width={280}
-                collapsedWidth={80}
-                style={{ 
-                    background: '#0F172A',
-                    borderRight: '1px solid rgba(255,255,255,0.05)',
-                    boxShadow: '2px 0 10px rgba(0,0,0,0.1)',
+                breakpoint="lg"
+                collapsedWidth="64"
+                onBreakpoint={(broken) => {
+                    console.log('Breakpoint broken:', broken);
                 }}
+                className="bg-[#080808] border-r border-white/5 h-screen sticky top-0"
+                width={260}
             >
-                <div
-                    style={{
-                        height: '80px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '0 20px',
-                        borderBottom: '1px solid rgba(255,255,255,0.05)',
-                    }}
-                >
-                    {collapsed ? (
-                        <Avatar 
-                            size={44} 
-                            style={{ 
-                                background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
-                                fontWeight: 700,
-                                fontSize: '18px',
-                            }}
-                        >
-                            AI
-                        </Avatar>
-                    ) : (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <Avatar 
-                                size={44} 
-                                style={{ 
-                                    background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
-                                    fontWeight: 700,
-                                }}
-                                icon={<RobotOutlined style={{ fontSize: '22px' }} />}
-                            />
-                            <div>
-                                <div style={{ color: '#fff', fontWeight: 700, fontSize: '20px' }}>
-                                    <span style={{ color: '#4285F4' }}>G</span>
-                                    <span style={{ color: '#EA4335' }}>o</span>
-                                    <span style={{ color: '#FBBC05' }}>o</span>
-                                    <span style={{ color: '#4285F4' }}>g</span>
-                                    <span style={{ color: '#34A853' }}>l</span>
-                                    <span style={{ color: '#EA4335' }}>e</span>
-                                    <span style={{ marginLeft: '8px' }}>SupremeAI Studio</span>
-                                </div>
-                                <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '11px', fontWeight: 500, letterSpacing: '1px' }}>ENTERPRISE AI STUDIO</div>
-                            </div>
-                        </div>
-                    )}
+                <div className="h-16 flex items-center justify-center border-b border-white/5 mb-4">
+                    <Avatar 
+                        size={32} 
+                        className="bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 font-black text-[12px]"
+                    >S</Avatar>
                 </div>
-
-                <div style={{ padding: '12px 12px' }}>
-                    {!collapsed && (
-                        <Input
-                            prefix={<SearchOutlined style={{ color: 'rgba(255,255,255,0.4)' }} />}
-                            placeholder="Search tabs..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            style={{
-                                background: 'rgba(255,255,255,0.05)',
-                                border: '1px solid rgba(255,255,255,0.1)',
-                                borderRadius: '10px',
-                                color: 'white',
-                                marginBottom: '8px',
-                            }}
-                            allowClear
-                        />
-                    )}
-                    
-                    <Menu
-                        theme="dark"
-                        mode="inline"
-                        selectedKeys={[selectedKey]}
-                        onSelect={(e) => {
-                            // Scroll to section instead of selecting tab
-                            const element = document.getElementById(e.key);
-                            if (element) {
-                                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }
-                            setSelectedKey(e.key);
-                            setSearchQuery('');
-                        }}
-                        items={filteredMenuItems}
-                        style={{ 
-                            background: 'transparent',
-                            borderRight: 'none',
-                        }}
-                    />
+                <Menu
+                    theme="dark"
+                    mode="inline"
+                    selectedKeys={[selectedKey]}
+                    onClick={({ key }) => setSelectedKey(key)}
+                    className="bg-transparent border-none"
+                    items={menuGroups}
+                />
+                <div className="flex flex-col items-center gap-4 mt-auto pb-4">
+                    <Tooltip title="Logout" placement="right">
+                        <Button type="text" icon={<LogoutOutlined />} onClick={handleLogout} className="text-white/20 hover:text-red-500" />
+                    </Tooltip>
                 </div>
             </Sider>
 
-            <Layout>
-                {/* HEADER - Modern premium design */}
-                <Header style={{ 
-                    background: '#FFFFFF', 
-                    padding: '0 32px', 
-                    borderBottom: '1px solid #E5E7EB',
-                    height: '72px',
-                    lineHeight: '72px',
-                    boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
-                }}>
-                    <div style={{ 
-                        display: 'flex', 
-                        justifyContent: 'space-between', 
-                        alignItems: 'center',
-                        height: '100%',
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                            <Button 
-                                type="text" 
-                                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-                                onClick={() => setCollapsed(!collapsed)}
-                                style={{ fontSize: '18px', width: '44px', height: '44px', borderRadius: '10px' }}
-                            />
-                            <div>
-                                <Title level={4} style={{ margin: 0, fontWeight: 700 }}>{contract.title}</Title>
-                                <div style={{ color: '#6B7280', fontSize: '13px', marginTop: '-4px' }}>
-                                    Intelligent Platform Management
-                                </div>
+            <Layout className="bg-transparent flex flex-col flex-1">
+                <Header className="bg-black/90 backdrop-blur-2xl border-b border-white/5 h-16 px-6 flex items-center justify-between sticky top-0 z-50">
+                    <div className="flex items-center gap-6">
+                        <div className="hidden lg:flex flex-col gap-0.5 min-w-[200px]">
+                            <span className="text-[12px] font-black uppercase tracking-[0.2em] text-white">SupremeAI Command Center</span>
+                            <span className="text-[9px] font-black text-yellow-400 uppercase tracking-[0.3em]">MASTER_OPERATIONAL_AUTHORITY</span>
+                        </div>
+                        <div className="flex lg:hidden items-center gap-2">
+                             <Avatar size={32} className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">S</Avatar>
+                             <span className="text-[10px] font-black uppercase tracking-widest text-white">Command</span>
+                        </div>
+                        <div className="h-8 w-[1px] bg-white/10 mx-2"></div>
+                        <div className="hidden md:flex items-center gap-4">
+                            <div className="flex flex-col">
+                                <span className="text-[9px] text-cyan-400 uppercase font-black tracking-widest">CAPACITY</span>
+                                <span className="text-[12px] text-white font-mono font-bold">{stats.activeConnections || 0} NODES_ACTIVE</span>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] text-white font-black uppercase tracking-tighter">SERVER_UPTIME</span>
+                                <span className="text-[14px] text-yellow-400 font-mono font-bold">{stats.serverUptime || '00:00:00'}</span>
                             </div>
                         </div>
-                        
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                            {contract.stats.systemHealthStatus && (
-                                <Badge
-                                    status={contract.stats.systemHealthStatus === 'healthy' ? 'success' : contract.stats.systemHealthStatus === 'warning' ? 'warning' : 'error'}
-                                    text={<span style={{ fontWeight: 500 }}>System {contract.stats.systemHealthStatus}</span>}
-                                />
-                            )}
-
-                            <Divider type="vertical" style={{ height: '32px' }} />
-                            <CollaborationBadge />
-                            <Divider type="vertical" style={{ height: '32px' }} />
-                            
-                            <Button 
-                                type="text" 
-                                icon={<BellOutlined style={{ fontSize: '20px', color: '#6B7280' }} />}
-                                style={{ width: '44px', height: '44px', borderRadius: '10px' }}
-                            />
-                            
-                            <Badge
-                                count={`v${contract.contractVersion}`}
-                                style={{ 
-                                    backgroundColor: '#7C3AED',
-                                    fontWeight: 600,
-                                    padding: '0 12px',
-                                    borderRadius: '20px',
-                                    height: '28px',
-                                    lineHeight: '28px',
-                                }}
-                            />
-                            
-                            <Divider type="vertical" style={{ height: '32px' }} />
-                            
-                            <Dropdown menu={{ items: userDropdownItems }} placement="bottomRight">
-                                <div style={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    gap: '12px', 
-                                    cursor: 'pointer',
-                                    padding: '6px 12px',
-                                    borderRadius: '12px',
-                                    transition: 'all 0.2s',
-                                }}
-                                onMouseEnter={(e) => e.currentTarget.style.background = '#F3F4F6'}
-                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                                >
-                                    <Avatar 
-                                        size={36} 
-                                        style={{ 
-                                            background: 'linear-gradient(135deg, #10B981 0%, #34D399 100%)',
-                                            fontWeight: 600,
-                                        }}
-                                        icon={<UserOutlined />}
-                                    />
-                                    <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontWeight: 600, color: '#111827' }}>Admin</div>
-                                        <div style={{ fontSize: '12px', color: '#6B7280' }}>Administrator</div>
-                                    </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-4">
+                        <div className="hidden lg:flex items-center gap-4 bg-white/10 border border-white/20 rounded-lg px-4 py-2">
+                            <div className="flex flex-col">
+                                <div className="flex items-center gap-2">
+                                    <DatabaseOutlined className={`text-[12px] ${stats.databaseConnected ? 'text-emerald-500' : 'text-red-500'}`} />
+                                    <span className="text-[10px] font-black uppercase text-white">DB: {stats.databaseConnected ? 'ONLINE' : 'OFFLINE'}</span>
                                 </div>
-                            </Dropdown>
+                                <span className="text-[9px] text-cyan-400 font-mono font-bold text-left">{stats.databaseConnected ? 'SYNC_OPTIMAL' : 'RECONNECTING...'}</span>
+                            </div>
+                            <div className="w-[1px] h-8 bg-white/20"></div>
+                            <div className="flex flex-col">
+                                <div className="flex items-center gap-2">
+                                    <CloudServerOutlined className={`text-[12px] ${stats.backendConnected ? 'text-emerald-500' : 'text-red-500'}`} />
+                                    <span className="text-[10px] font-black uppercase text-white">SRV: {stats.backendConnected ? 'ACTIVE' : 'INACTIVE'}</span>
+                                </div>
+                                <span className="text-[9px] text-yellow-400 font-mono font-bold text-left">UPTIME_LIVE</span>
+                            </div>
+                        </div>
+                        <div className="h-6 w-[1px] bg-white/5 mx-1"></div>
+                        <div className="flex items-center gap-2 px-2 py-1 bg-white/[0.03] border border-white/10 rounded-full hover:bg-white/10 transition-all cursor-pointer">
+                            <Avatar size={28} className="bg-white text-black border-2 border-white font-bold text-[12px]">AD</Avatar>
+                            <span className="hidden sm:inline-block text-[12px] font-black uppercase tracking-tighter text-white mr-1">ADMIN_USER</span>
                         </div>
                     </div>
                 </Header>
 
-                {/* CONTENT */}
-                <Content style={{ margin: '28px 32px', paddingBottom: '40px', overflowY: 'auto' }}>
-                    {/* Stats Row - Modern gradient cards */}
-                    <Row gutter={[20, 20]} style={{ marginBottom: '28px' }}>
-                        <Col xs={24} sm={12} md={6}>
-                            <Card 
-                                style={{ 
-                                    borderRadius: '16px',
-                                    border: 'none',
-                                    background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
-                                    boxShadow: '0 10px 40px -10px rgba(124, 58, 237, 0.3)',
-                                    transition: 'all 0.3s ease',
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(-4px)';
-                                    e.currentTarget.style.boxShadow = '0 20px 60px -15px rgba(124, 58, 237, 0.4)';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(0)';
-                                    e.currentTarget.style.boxShadow = '0 10px 40px -10px rgba(124, 58, 237, 0.3)';
-                                }}
-                            >
-                                <Statistic
-                                    title={<span style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500, fontSize: '13px' }}>Active AI Agents</span>}
-                                    value={contract.stats.activeAIAgents}
-                                    prefix={<RobotOutlined style={{ color: 'rgba(255,255,255,0.9)', fontSize: '22px' }} />}
-                                    valueStyle={{ color: '#FFFFFF', fontWeight: 700, fontSize: '32px' }}
-                                />
-                            </Card>
-                        </Col>
-                        <Col xs={24} sm={12} md={6}>
-                            <Card 
-                                style={{ 
-                                    borderRadius: '16px',
-                                    border: 'none',
-                                    background: 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)',
-                                    boxShadow: '0 10px 40px -10px rgba(59, 130, 246, 0.3)',
-                                    transition: 'all 0.3s ease',
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(-4px)';
-                                    e.currentTarget.style.boxShadow = '0 20px 60px -15px rgba(59, 130, 246, 0.4)';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(0)';
-                                    e.currentTarget.style.boxShadow = '0 10px 40px -10px rgba(59, 130, 246, 0.3)';
-                                }}
-                            >
-                                <Statistic
-                                    title={<span style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500, fontSize: '13px' }}>Running Tasks</span>}
-                                    value={contract.stats.runningTasks}
-                                    valueStyle={{ color: '#FFFFFF', fontWeight: 700, fontSize: '32px' }}
-                                />
-                            </Card>
-                        </Col>
-                        <Col xs={24} sm={12} md={6}>
-                            <Card 
-                                style={{ 
-                                    borderRadius: '16px',
-                                    border: 'none',
-                                    background: 'linear-gradient(135deg, #10B981 0%, #34D399 100%)',
-                                    boxShadow: '0 10px 40px -10px rgba(16, 185, 129, 0.3)',
-                                    transition: 'all 0.3s ease',
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(-4px)';
-                                    e.currentTarget.style.boxShadow = '0 20px 60px -15px rgba(16, 185, 129, 0.4)';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(0)';
-                                    e.currentTarget.style.boxShadow = '0 10px 40px -10px rgba(16, 185, 129, 0.3)';
-                                }}
-                            >
-                                <Statistic
-                                    title={<span style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500, fontSize: '13px' }}>Completed Tasks</span>}
-                                    value={contract.stats.completedTasks}
-                                    valueStyle={{ color: '#FFFFFF', fontWeight: 700, fontSize: '32px' }}
-                                />
-                            </Card>
-                        </Col>
-                        <Col xs={24} sm={12} md={6}>
-                            <Card 
-                                style={{ 
-                                    borderRadius: '16px',
-                                    border: 'none',
-                                    background: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)',
-                                    boxShadow: '0 10px 40px -10px rgba(245, 158, 11, 0.3)',
-                                    transition: 'all 0.3s ease',
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(-4px)';
-                                    e.currentTarget.style.boxShadow = '0 20px 60px -15px rgba(245, 158, 11, 0.4)';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(0)';
-                                    e.currentTarget.style.boxShadow = '0 10px 40px -10px rgba(245, 158, 11, 0.3)';
-                                }}
-                            >
-                                <Statistic
-                                    title={<span style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500, fontSize: '13px' }}>Success Rate</span>}
-                                    value={contract.stats.successRate}
-                                    suffix={<span style={{ fontSize: '20px' }}>%</span>}
-                                    valueStyle={{ color: '#FFFFFF', fontWeight: 700, fontSize: '32px' }}
-                                />
-                            </Card>
-                        </Col>
-                    </Row>
-
-                    <Row gutter={[24, 24]}>
-                        <Col lg={chatVisible ? 16 : 24} md={24} style={{ transition: 'all 0.3s' }}>
-                            <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                                {/* Unified Cards - All in one scrollable page */}
-
-                                <Card
-                                    id="requirements"
-                                    title={
-                                        <Space>
-                                            <Badge count={notifications['requirements'] || 2} offset={[10, 0]} color="#f5222d">
-                                                <CheckCircleOutlined style={{ color: '#10B981' }} />
-                                            </Badge>
-                                            <span>Requirements Approval</span>
-                                        </Space>
-                                    }
-                                    extra={<Button size="small" type="primary" ghost>Approve All</Button>}
-                                    style={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
-                                >
-                                    <RequirementsDashboard />
-                                </Card>
-
-                                <Card
-                                    id="ocr"
-                                    title={
-                                        <Space>
-                                            <DesktopOutlined style={{ color: '#eb2f96' }} />
-                                            <span>Bengali OCR Processing</span>
-                                        </Space>
-                                    }
-                                    style={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
-                                >
-                                    <AdminOCRCard />
-                                </Card>
-
-                                <Card
-                                    id="ai-agents"
-                                    title={
-                                        <Space>
-                                            <Badge count={notifications['ai-agents']} offset={[10, 0]} color="#ff4d4f">
-                                                <RobotOutlined style={{ color: '#7C3AED' }} />
-                                            </Badge>
-                                            <span>AI Agents Management</span>
-                                        </Space>
-                                    }
-                                    extra={<Button size="small" type="primary" ghost icon={<SyncOutlined />}>Rotate All</Button>}
-                                    style={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
-                                >
-                                    <AIAgentsDashboard />
-                                </Card>
-
-                                <Card
-                                    id="phases"
-                                    title={
-                                        <Space>
-                                            <Badge count={notifications['phases']} offset={[10, 0]}>
-                                                <NodeIndexOutlined style={{ color: '#3B82F6' }} />
-                                            </Badge>
-                                            <span>Project Phases Overview</span>
-                                        </Space>
-                                    }
-                                    style={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
-                                >
-                                    <PhasesOverview />
-                                </Card>
-
-                                <Card
-                                    id="exploitation-techniques"
-                                    title={
-                                        <Space>
-                                            <Badge count={notifications['exploitation-techniques']} offset={[10, 0]}>
-                                                <BugOutlined style={{ color: '#EF4444' }} />
-                                            </Badge>
-                                            <span>Exploitation & Security</span>
-                                        </Space>
-                                    }
-                                    style={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
-                                >
-                                    <ExploitationDashboard />
-                                </Card>
-
-                                <Card
-                                    id="system-learning"
-                                    title={
-                                        <Space>
-                                            <BulbOutlined style={{ color: '#F59E0B' }} />
-                                            <span>System Learning Intelligence</span>
-                                        </Space>
-                                    }
-                                    style={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
-                                >
-                                    <SystemLearningDashboard />
-                                </Card>
-
-                                {/* API Endpoints Section */}
-                                <Card
-                                    id="api-endpoints"
-                                    title={<Space><ApiOutlined style={{ color: '#10B981' }} /><span>API Endpoints Console</span></Space>}
-                                    style={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
-                                >
-                                    <Tabs
-                                        size="large"
-                                        items={Object.entries(contract.apiEndpoints).map(([category, endpoints]) => ({
-                                            key: category,
-                                            label: <span style={{ fontWeight: 600, textTransform: 'uppercase' }}>{category}</span>,
-                                            children: (
-                                                <pre style={{
-                                                    background: '#F8FAFC',
-                                                    padding: '20px',
-                                                    borderRadius: '12px',
-                                                    border: '1px solid #E5E7EB',
-                                                    overflow: 'auto',
-                                                    maxHeight: '400px',
-                                                    fontSize: '13px',
-                                                    fontFamily: 'JetBrains Mono, monospace',
-                                                }}>
-                                                    {JSON.stringify(endpoints, null, 2)}
-                                                </pre>
-                                            ),
-                                        }))}
-                                    />
-                                </Card>
-                            </Space>
-                        </Col>
-
-                        {/* Inline Chat Panel */}
-                        {chatVisible && (
-                            <Col lg={8} md={24}>
-                                <div style={{
-                                    position: 'sticky',
-                                    top: '20px',
-                                    height: 'calc(100vh - 150px)',
-                                    display: 'flex',
-                                    flexDirection: 'column'
-                                }}>
-                                    <Card
-                                        title={
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <Space><MessageOutlined /><span>ChatAI Assistant</span></Space>
-                                                <Button type="text" icon={<CloseOutlined />} onClick={() => setChatVisible(false)} />
-                                            </div>
-                                        }
-                                        bodyStyle={{ flex: 1, padding: 0, overflow: 'hidden' }}
-                                        style={{ height: '100%', borderRadius: '16px', display: 'flex', flexDirection: 'column' }}
-                                    >
-                                        <ChatWithAI />
-                                    </Card>
+                <Content className="p-6 overflow-y-auto min-h-[calc(100vh-64px)] bg-[#0c0c0c]">
+                    {selectedKey === 'overview' ? (
+                        <div className="flex flex-col gap-6 max-w-[1800px] mx-auto animate-fade-in h-full">
+                            {/* Header Section / Sub-Navigation */}
+                            <div className="flex items-center justify-between px-2">
+                                <div className="flex flex-col">
+                                    <h2 className="text-2xl font-black uppercase tracking-[0.1em] text-white m-0">COMMAND_CENTER</h2>
+                                    <span className="text-[11px] text-yellow-400 uppercase tracking-[0.3em] font-bold">SYSTEM_STATUS: NOMINAL // ALL_SYSTEMS_FUNCTIONAL</span>
                                 </div>
-                            </Col>
-                        )}
-                    </Row>
+                                <div className="flex items-center gap-4 bg-white/10 border border-white/20 rounded-full px-6 py-2">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                                        <span className="text-[11px] font-black text-emerald-500 uppercase tracking-widest">LIVE_TELEMETRY</span>
+                                    </div>
+                                    <Divider type="vertical" className="bg-white/20" />
+                                    <span className="text-[11px] font-black text-white">{new Date().toLocaleTimeString()}</span>
+                                </div>
+                            </div>
+
+                            {/* Main Visualization Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 min-h-[400px]">
+                                {/* Top Left: Telemetry (Analytics) */}
+                                <div className="col-span-1 md:col-span-4 glass-card p-0 overflow-hidden relative group">
+                                    <div className="absolute top-4 left-6 z-10">
+                                        <span className="text-[12px] font-black text-white uppercase tracking-widest bg-black px-2">ANALYTICS_STREAM</span>
+                                    </div>
+                                    <OperationalAnalytics />
+                                </div>
+
+                                {/* Top Center: Neural Flow */}
+                                <div className="col-span-1 md:col-span-5 relative">
+                                    <NeuralNetworkFlow />
+                                </div>
+
+                                {/* Top Right: Neural Terminal */}
+                                <div className="col-span-1 md:col-span-3 flex flex-col min-h-[300px]">
+                                    <NeuralTerminal logs={liveStream} />
+                                </div>
+                            </div>
+
+                            {/* KPI Matrix Row */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                <GlassKPICard 
+                                    label="Neural Flux"
+                                    value={stats.activeUsers || 1240}
+                                    subValue="Requests / Sec"
+                                    icon={<ThunderboltOutlined />}
+                                    color="#10b981"
+                                    trend="up"
+                                    change="+12.5%"
+                                />
+                                <GlassKPICard 
+                                    label="Brain Capacity"
+                                    value="84.2GB"
+                                    subValue="Synced Data"
+                                    icon={<DatabaseOutlined />}
+                                    color="#a855f7"
+                                    trend="neutral"
+                                    change="Stable"
+                                />
+                                <GlassKPICard 
+                                    label="System Latency"
+                                    value={`${stats.latency || 24}ms`}
+                                    subValue="Edge Response"
+                                    icon={<GlobalOutlined />}
+                                    color="#3b82f6"
+                                    trend="up"
+                                    change="-4ms"
+                                />
+                                <GlassKPICard 
+                                    label="Success Rate"
+                                    value={`${stats.successRate || 99.9}%`}
+                                    subValue="Task Integrity"
+                                    icon={<CheckCircleOutlined />}
+                                    color="#f59e0b"
+                                    trend="neutral"
+                                    change="+0.02%"
+                                />
+                            </div>
+
+                            {/* Bottom Health & Resource Section */}
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                                <div className="col-span-1 lg:col-span-8 glass-card p-6">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <div className="flex flex-col">
+                                            <span className="text-[12px] font-black text-white uppercase tracking-widest">GLOBAL_NODE_HEALTH_MATRIX</span>
+                                            <span className="text-[10px] text-yellow-400 font-bold uppercase tracking-[0.2em]">CLUSTER_HEALTH_DISTRIBUTION // ACTIVE</span>
+                                        </div>
+                                        <Button type="link" size="small" className="text-[10px] uppercase font-bold text-cyan-400">View Node Details</Button>
+                                    </div>
+                                    <SystemHealthMatrix nodes={contract?.stats.systemHealthNodes || []} />
+                                </div>
+                                <div className="col-span-1 lg:col-span-4 glass-card p-6">
+                                    <div className="mb-6">
+                                        <span className="text-[12px] font-black text-white uppercase tracking-widest">RESOURCE_ALLOCATION</span>
+                                    </div>
+                                    <ResourceGauges />
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-6 max-w-[1600px] mx-auto animate-fade-in">
+                            {/* Module Header */}
+                            <div className="glass-card px-6 py-4 flex items-center justify-between border-l-4 border-emerald-500">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-emerald-500 shadow-xl">
+                                        {selectedKey.includes('ai') ? <RobotOutlined /> : <RocketOutlined />}
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <h1 className="text-sm font-black uppercase tracking-widest text-white">{selectedKey.replace('-', ' ')}</h1>
+                                        <p className="text-[9px] font-bold text-white/30 uppercase tracking-wider">Subsystem Active // Resource Allocation Optimal</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-emerald-500/5 border border-emerald-500/10 px-3 py-1.5 rounded-lg flex items-center gap-3">
+                                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                                        <span className="text-[10px] font-black text-emerald-500 uppercase tracking-tighter">Sync Verified</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Module Content */}
+                            <div className="glass-card p-4 min-h-[600px] relative">
+                                {selectedKey === 'ai-agents' && <AIAgentsDashboard />}
+                                {selectedKey === 'system-learning' && <SystemLearningDashboard />}
+                                {selectedKey === 'requirements' && <RequirementsDashboard />}
+                                {selectedKey === 'ocr' && <AdminOCRCard />}
+                                {selectedKey === 'exploitation-techniques' && <ExploitationDashboard />}
+                                {selectedKey === 'phases' && <PhasesOverview />}
+                                {selectedKey === 'providers' && <APIManagement />}
+                                {selectedKey === 'rules' && <AdminProtocolMatrix />}
+                                {selectedKey === 'history' && <AdminHistoryMatrix />}
+                                {selectedKey === 'config' && <AdminConfigMatrix />}
+                                {selectedKey === 'vpn' && <VPNManagement />}
+                                {selectedKey === 'audit' && <AuditLog />}
+                                
+                                {selectedKey === 'api-endpoints' && contract.apiEndpoints && (
+                                    <div className="space-y-6 p-2">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[11px] font-black uppercase tracking-widest text-white/60">System API Registry</span>
+                                            <Tag color="cyan" className="m-0 text-[9px] font-black border-0 rounded-lg px-3 py-1 bg-cyan-400/10 text-cyan-400">v3.4.0-STABLE</Tag>
+                                        </div>
+                                        <Tabs
+                                            size="small"
+                                            className="dark-tabs"
+                                            items={Object.entries(contract.apiEndpoints).map(([cat, end]) => ({
+                                                key: cat,
+                                                label: cat,
+                                                children: (
+                                                    <div className="bg-black/20 rounded-xl border border-white/5 overflow-hidden">
+                                                        <div className="px-4 py-2 bg-white/[0.02] border-b border-white/5 flex items-center justify-between">
+                                                            <span className="text-[10px] font-mono text-white/30 uppercase">{cat}_SCHEMA_V1</span>
+                                                            <Button type="link" size="small" className="text-[10px] p-0 font-bold uppercase h-auto">Copy Definition</Button>
+                                                        </div>
+                                                        <pre className="p-6 font-mono text-[11px] text-cyan-400/80 overflow-auto max-h-[500px] custom-scrollbar selection:bg-cyan-400/30">
+                                                            {JSON.stringify(end, null, 2)}
+                                                        </pre>
+                                                    </div>
+                                                )
+                                            }))}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </Content>
 
-                {/* Floating Action Button for Chat */}
-                {!chatVisible && (
-                    <FloatButton
-                        icon={<MessageOutlined />}
-                        type="primary"
-                        onClick={() => setChatVisible(true)}
-                        style={{ right: 24, bottom: 24, width: 60, height: 60 }}
-                        tooltip={<div>Open ChatAI (C)</div>}
-                    />
-                )}
+                <Modal
+                    title={<span className="text-white text-[14px] font-black uppercase tracking-widest">Neural Link Chat</span>}
+                    open={chatVisible}
+                    onCancel={() => setChatVisible(false)}
+                    footer={null}
+                    width={800}
+                    className="dark-modal"
+                    styles={{ body: { padding: 0, backgroundColor: '#050505' } }}
+                    centered
+                >
+                    <ChatWithAI />
+                </Modal>
             </Layout>
-
-            {/* Suggestion Modal */}
-            <Modal
-                title={
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '12px',
-                            background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}>
-                            <BulbOutlined style={{ color: 'white', fontSize: '20px' }} />
-                        </div>
-                        <div>
-                            <div style={{ fontWeight: 700, fontSize: '18px' }}>Suggest Changes</div>
-                            {selectedComponent && (
-                                <div style={{ fontSize: '13px', color: '#6B7280' }}>
-                                    for {selectedComponent.label}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                }
-                open={suggestionOpen}
-                onCancel={() => { setSuggestionOpen(false); setSuggestionText(''); }}
-                footer={[
-                    <Button 
-                        key="cancel" 
-                        onClick={() => { setSuggestionOpen(false); setSuggestionText(''); }}
-                        style={{ borderRadius: '10px', height: '44px', fontWeight: 500 }}
-                    >
-                        Cancel
-                    </Button>,
-                    <Button
-                        key="save"
-                        loading={suggestionLoading}
-                        onClick={() => submitSuggestion(false)}
-                        style={{ borderRadius: '10px', height: '44px', fontWeight: 500 }}
-                    >
-                        💾 Save Suggestion
-                    </Button>,
-                    <Button
-                        key="apply"
-                        type="primary"
-                        loading={suggestionLoading}
-                        onClick={() => submitSuggestion(true)}
-                        style={{ 
-                            background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
-                            border: 'none',
-                            borderRadius: '10px',
-                            height: '44px',
-                            fontWeight: 600,
-                            boxShadow: '0 4px 15px -5px rgba(124, 58, 237, 0.4)',
-                        }}
-                    >
-                        🤖 Apply Immediately
-                    </Button>,
-                ]}
-                width={650}
-                centered
-                style={{ top: 20 }}
-                bodyStyle={{ padding: '24px 32px' }}
-            >
-                <p style={{ color: '#666', marginBottom: '12px' }}>
-                    Describe the change you want on the <strong>{selectedComponent?.label || selectedKey}</strong> tab.
-                    Click <strong>Save</strong> to store it for later, or <strong>Do Now</strong> to let the AI apply it immediately.
-                </p>
-                <Input.TextArea
-                    rows={6}
-                    placeholder="e.g. Add a toggle to disable new user registrations from this tab..."
-                    value={suggestionText}
-                    onChange={e => setSuggestionText(e.target.value)}
-                    maxLength={2000}
-                    showCount
-                    autoFocus
-                />
-            </Modal>
         </Layout>
     );
 };

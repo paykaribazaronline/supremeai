@@ -35,43 +35,63 @@ public class ProjectsController {
      * GET /api/projects - Get all projects.
      * Regular users only see their own projects. Admins see all projects.
      */
-    @GetMapping
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public Mono<ApiResponse<List<ExistingProject>>> getAllProjects(Authentication auth) {
-        boolean isAdmin = auth.getAuthorities().stream()
-            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        
-        if (isAdmin) {
-            return projectRepository.findAll().collectList().map(ApiResponse::ok);
-        } else {
-            return projectRepository.findByOwnerId(auth.getName()).collectList().map(ApiResponse::ok);
-        }
-    }
+     @GetMapping
+     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+     public Mono<ApiResponse<List<ExistingProject>>> getAllProjects(Authentication auth) {
+         if (auth == null || auth.getName() == null) {
+             return Mono.just(ApiResponse.error("Not authenticated"));
+         }
+         
+         boolean isAdmin = auth.getAuthorities().stream()
+             .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+         
+         if (isAdmin) {
+             return projectRepository.findAll().collectList().map(ApiResponse::ok);
+         } else {
+             return projectRepository.findByOwnerId(auth.getName()).collectList().map(ApiResponse::ok);
+         }
+     }
 
     /**
      * GET /api/projects/owner/{ownerId} - Get projects by owner.
      * Only the owner themselves or admins can view projects for a specific owner.
      */
-    @GetMapping("/owner/{ownerId}")
-    @PreAuthorize("hasRole('ADMIN') or #ownerId == authentication.name")
-    public Mono<ApiResponse<List<ExistingProject>>> getByOwner(@PathVariable String ownerId) {
-        return projectRepository.findByOwnerId(ownerId).collectList().map(ApiResponse::ok);
-    }
+     @GetMapping("/owner/{ownerId}")
+     @PreAuthorize("hasRole('ADMIN') or #ownerId == authentication.name")
+     public Mono<ApiResponse<List<ExistingProject>>> getByOwner(@PathVariable String ownerId) {
+         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+         if (auth == null || auth.getName() == null) {
+             return Mono.just(ApiResponse.error("Not authenticated"));
+         }
+         
+         boolean isAdmin = auth.getAuthorities().stream()
+             .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+         
+         if (!isAdmin && !ownerId.equals(auth.getName())) {
+             return Mono.just(ApiResponse.error("Access denied: You can only view your own projects"));
+         }
+         
+         return projectRepository.findByOwnerId(ownerId).collectList().map(ApiResponse::ok);
+     }
 
     /**
      * POST /api/projects - Create a new project.
      * The project owner is automatically set to the current authenticated user.
      */
-    @PostMapping
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public Mono<ApiResponse<ExistingProject>> createProject(@Valid @RequestBody ProjectCreateRequest request, Authentication auth) {
-        ExistingProject project = new ExistingProject();
-        project.setName(request.getName());
-        project.setDescription(request.getDescription());
-        project.setOwnerId(auth.getName());
-        project.setId(IdUtils.ensureId(UUID.randomUUID().toString()));
-        return projectRepository.save(project).map(ApiResponse::ok);
-    }
+     @PostMapping
+     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+     public Mono<ApiResponse<ExistingProject>> createProject(@Valid @RequestBody ProjectCreateRequest request, Authentication auth) {
+         if (auth == null || auth.getName() == null) {
+             return Mono.just(ApiResponse.error("Not authenticated"));
+         }
+         
+         ExistingProject project = new ExistingProject();
+         project.setName(request.getName());
+         project.setDescription(request.getDescription());
+         project.setOwnerId(auth.getName());
+         project.setId(IdUtils.ensureId(UUID.randomUUID().toString()));
+         return projectRepository.save(project).map(ApiResponse::ok);
+     }
 
     /**
      * PUT /api/projects/{id}/status - Update project status.

@@ -53,16 +53,24 @@ class AnthropicProviderTest {
         assertNotNull(caps);
         assertEquals("Anthropic", caps.get("name"));
         assertNotNull(caps.get("models"));
+        // Accept either List or array
+        Object modelsObj = caps.get("models");
+        assertTrue(modelsObj instanceof java.util.List || modelsObj instanceof String[]);
     }
 
     @Test
     void getCapabilities_shouldIncludeClaudeModels() {
         Map<String, Object> caps = provider.getCapabilities();
-        String[] models = (String[]) caps.get("models");
+        Object modelsObj = caps.get("models");
 
-        assertTrue(models.length >= 2);
-        assertTrue(java.util.Arrays.asList(models).contains("claude-3-opus-20240229"));
-        assertTrue(java.util.Arrays.asList(models).contains("claude-3-sonnet-20240229"));
+        @SuppressWarnings("unchecked")
+        java.util.List<String> models = (modelsObj instanceof java.util.List)
+            ? (java.util.List<String>) modelsObj
+            : java.util.Arrays.asList((String[]) modelsObj);
+
+        assertTrue(models.size() >= 2);
+        assertTrue(models.contains("claude-3-opus-20240229"));
+        assertTrue(models.contains("claude-3-sonnet-20240229"));
     }
 
     @Test

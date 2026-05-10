@@ -53,39 +53,39 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
         val contentFactory = ContentFactory.getInstance()
 
         // Dashboard Tab
-        val dashboardContent = contentFactory.createContent(SupremeAIDashboardPanel(project).getContent() as JComponent, "Dashboard", false)
+        val dashboardContent = contentFactory.createContent(SupremeAIDashboardPanel(project).getContent() as JComponent, SupremeAIBundle.message("tab.dashboard"), false)
         dashboardContent.icon = null // Can set icon here
         toolWindow.contentManager.addContent(dashboardContent)
 
         // Chat Tab
-        val chatContent = contentFactory.createContent(SupremeAIChatPanel().getContent() as JComponent, "Chat", false)
+        val chatContent = contentFactory.createContent(SupremeAIChatPanel(project).getContent() as JComponent, SupremeAIBundle.message("tab.chat"), false)
         toolWindow.contentManager.addContent(chatContent)
 
         // Activity Tab
-        val activityContent = contentFactory.createContent(SupremeAIActivityPanel().getContent() as JComponent, "Activity", false)
+        val activityContent = contentFactory.createContent(SupremeAIActivityPanel().getContent() as JComponent, SupremeAIBundle.message("tab.activity"), false)
         toolWindow.contentManager.addContent(activityContent)
 
         // CodeFlow Tab
-        val codeFlowContent = contentFactory.createContent(SupremeAICodeFlowPanel(project).getContent() as JComponent, "CodeFlow", false)
+        val codeFlowContent = contentFactory.createContent(SupremeAICodeFlowPanel(project).getContent() as JComponent, SupremeAIBundle.message("tab.codeflow"), false)
         toolWindow.contentManager.addContent(codeFlowContent)
 
         // Orchestration Tab
         val orchestrationPanel = SupremeAIOrchestrationPanel()
-        val orchestrationContent = contentFactory.createContent(orchestrationPanel.getContent() as JComponent, "Orchestration", false)
+        val orchestrationContent = contentFactory.createContent(orchestrationPanel.getContent() as JComponent, SupremeAIBundle.message("tab.orchestration"), false)
         toolWindow.contentManager.addContent(orchestrationContent)
 
         // Settings Tab
         val settingsPanel = SupremeAISettingsPanel()
-        val settingsContent = contentFactory.createContent(settingsPanel.getContent() as JComponent, "Settings", false)
+        val settingsContent = contentFactory.createContent(settingsPanel.getContent() as JComponent, SupremeAIBundle.message("tab.settings"), false)
         toolWindow.contentManager.addContent(settingsContent)
     }
 
-    class SupremeAIChatPanel {
+    class SupremeAIChatPanel(private val project: Project) {
         private val panel = JPanel(BorderLayout())
         private val chatArea = JTextArea()
         private val inputField = JBTextField()
-        private val statusLabel = JLabel("● Backend: Connecting...")
-        private val modeLabel = JLabel("Mode: Code")
+        private val statusLabel = JLabel(SupremeAIBundle.message("status.connecting"))
+        private val modeLabel = JLabel(SupremeAIBundle.message("label.mode", "Code"))
 
         init {
             setupUI()
@@ -98,7 +98,7 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
             // Header
             val header = JPanel(BorderLayout())
             val leftHeader = JPanel(java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 0))
-            leftHeader.add(JLabel("SupremeAI Assistant"))
+            leftHeader.add(JLabel(SupremeAIBundle.message("label.assistant.title")))
             modeLabel.border = EmptyBorder(0, 10, 0, 0)
             modeLabel.foreground = java.awt.Color.GRAY
             leftHeader.add(modeLabel)
@@ -117,7 +117,7 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
             // Input Area
             val inputPanel = JPanel(BorderLayout())
             inputPanel.add(inputField, BorderLayout.CENTER)
-            val sendBtn = JButton("Send")
+            val sendBtn = JButton(SupremeAIBundle.message("button.send"))
             sendBtn.addActionListener { sendMessage() }
             inputPanel.add(sendBtn, BorderLayout.EAST)
             panel.add(inputPanel, BorderLayout.SOUTH)
@@ -130,12 +130,12 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                 try {
                     Thread.sleep(1000)
                     SwingUtilities.invokeLater {
-                        statusLabel.text = "● Backend: Connected"
+                        statusLabel.text = SupremeAIBundle.message("status.connected")
                         statusLabel.foreground = Color(0x00cc66)
                     }
                 } catch (e: Exception) {
                     SwingUtilities.invokeLater {
-                        statusLabel.text = "● Backend: Disconnected"
+                        statusLabel.text = SupremeAIBundle.message("status.disconnected")
                         statusLabel.foreground = Color.RED
                     }
                 }
@@ -187,11 +187,11 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                                             json.has("content") && json.get("content").isJsonPrimitive -> json.get("content").asString
                                             json.has("reply") && json.get("reply").isJsonPrimitive -> json.get("reply").asString
                                             json.has("answer") && json.get("answer").isJsonPrimitive -> json.get("answer").asString
-                                            else -> "Response received (no valid message field found)"
+                                            else -> "Response received"
                                         }
                                     }
                                     jsonElement.isJsonPrimitive -> jsonElement.asString
-                                    else -> "Response received (unsupported JSON format)"
+                                    else -> "Response received"
                                 }
                                 
                                 val detectedMode = if (jsonElement.isJsonObject) {
@@ -201,12 +201,12 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                                 SwingUtilities.invokeLater {
                                     chatArea.append("AI: ${aiMessage.replace("\r", "").trim()}\n")
                                     detectedMode?.let { 
-                                        modeLabel.text = "Mode: ${it.replaceFirstChar { c -> c.uppercase() }}"
+                                        modeLabel.text = SupremeAIBundle.message("label.mode", it.replaceFirstChar { c -> c.uppercase() })
                                         modeLabel.foreground = java.awt.Color.BLUE
                                     }
                                 }
                                 } catch (e: Exception) {
-                                    chatArea.append("AI: Parse error: ${e.message?.replace("\r", "")?.trim() ?: "Unknown parse error"}\n")
+                                    chatArea.append(SupremeAIBundle.message("chat.parse.error", e.message?.replace("\r", "")?.trim() ?: "Unknown"))
                             }
                         }
                      } else {
@@ -219,25 +219,24 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                                     val endpointConfigured = settings.apiEndpoint.trim().isNotBlank()
 
                                     val authMessage = buildString {
-                                        append("AI: 🔐 Authentication Required\n")
-                                        append("To chat with SupremeAI, you need to configure your credentials:\n")
+                                        append("AI: ${SupremeAIBundle.message("chat.auth.required")}\n")
+                                        append("${SupremeAIBundle.message("chat.auth.needed")}\n")
                                         if (!apiKeyConfigured) {
-                                            append("• API Key is not configured\n")
+                                            append("${SupremeAIBundle.message("chat.no.api.key")}\n")
                                         }
                                         if (!endpointConfigured) {
-                                            append("• API Endpoint is not configured (using default)\n")
+                                            append("${SupremeAIBundle.message("chat.no.endpoint")}\n")
                                         }
-                                        append("\nPlease go to the Settings tab to configure these options.\n")
-                                        append("Once configured, try sending your message again.\n")
+                                        append("\n${SupremeAIBundle.message("chat.config.instruction")}\n")
                                     }
                                     chatArea.append(authMessage)
 
                                     // Auto-focus settings tab
                                     try {
-                                        val toolWindowManager = com.intellij.openapi.wm.ToolWindowManager.getInstance(com.intellij.openapi.project.ProjectManager.getInstance().defaultProject)
+                                        val toolWindowManager = com.intellij.openapi.wm.ToolWindowManager.getInstance(project)
                                         val toolWindow = toolWindowManager.getToolWindow("SupremeAI")
                                         if (toolWindow != null) {
-                                            val settingsContent = toolWindow.contentManager.contents.find { it.tabName == "Settings" }
+                                            val settingsContent = toolWindow.contentManager.contents.find { it.tabName == SupremeAIBundle.message("tab.settings") }
                                             if (settingsContent != null) {
                                                 toolWindow.contentManager.setSelectedContent(settingsContent)
                                                 toolWindow.show()
@@ -248,28 +247,26 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
                                     }
                                 }
                                 403 -> {
-                                    chatArea.append("AI: 🚫 Access Denied\n")
-                                    chatArea.append("You don't have permission to access this feature.\n")
-                                    chatArea.append("Please contact your administrator or check your account permissions.\n")
+                                    chatArea.append("AI: ${SupremeAIBundle.message("chat.access.denied")}\n")
+                                    chatArea.append("${SupremeAIBundle.message("chat.access.denied.desc")}\n")
                                 }
                                 429 -> {
-                                    chatArea.append("AI: ⏱️ Rate Limited\n")
-                                    chatArea.append("Too many requests. Please wait a moment before trying again.\n")
+                                    chatArea.append("AI: ${SupremeAIBundle.message("chat.rate.limited")}\n")
+                                    chatArea.append("${SupremeAIBundle.message("chat.rate.limited.desc")}\n")
                                 }
                                 500, 502, 503, 504 -> {
-                                    chatArea.append("AI: 🚨 Server Error\n")
-                                    chatArea.append("The SupremeAI service is currently experiencing issues.\n")
-                                    chatArea.append("Please try again in a few minutes.\n")
+                                    chatArea.append("AI: ${SupremeAIBundle.message("chat.server.error")}\n")
+                                    chatArea.append("${SupremeAIBundle.message("chat.server.error.desc")}\n")
                                 }
                                 else -> {
-                                    chatArea.append("AI: [Error $responseCode] $errorResponse\n")
+                                    chatArea.append(SupremeAIBundle.message("chat.unknown.error", responseCode, errorResponse))
                                 }
                             }
                         }
                     }
                 } catch (e: Exception) {
                     SwingUtilities.invokeLater {
-                        chatArea.append("AI: [Offline] Connection failed: ${e.message}\n")
+                        chatArea.append(SupremeAIBundle.message("chat.offline", e.message ?: "Unknown"))
                     }
                 }
             }
@@ -286,7 +283,7 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
 
     class SupremeAIDashboardPanel(private val project: Project) {
         private val panel = JPanel(BorderLayout())
-        private val statusLabel = JLabel("Status: Loading...")
+        private val statusLabel = JLabel(SupremeAIBundle.message("status.loading"))
 
         init {
             setupUI()
@@ -297,7 +294,7 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
             
             // Header
             val header = JPanel(BorderLayout())
-            header.add(JLabel("SupremeAI Dashboard").apply { font = font.deriveFont(Font.BOLD, 16f) }, BorderLayout.WEST)
+            header.add(JLabel(SupremeAIBundle.message("label.dashboard.title")).apply { font = font.deriveFont(Font.BOLD, 16f) }, BorderLayout.WEST)
             header.add(statusLabel, BorderLayout.EAST)
             panel.add(header, BorderLayout.NORTH)
 
@@ -305,10 +302,10 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
             val statsPanel = JPanel(GridLayout(2, 2, 10, 10))
             statsPanel.border = EmptyBorder(10, 0, 10, 0)
             
-            val projectsCard = createStatCard("Projects", "24", "Active")
-            val analysesCard = createStatCard("Analyses", "156", "This month")
-            val issuesCard = createStatCard("Issues Found", "23", "Critical")
-            val fixesCard = createStatCard("Fixes Applied", "89", "Auto-fixed")
+            val projectsCard = createStatCard(SupremeAIBundle.message("label.projects"), "24", SupremeAIBundle.message("label.active"))
+            val analysesCard = createStatCard(SupremeAIBundle.message("label.analyses"), "156", SupremeAIBundle.message("label.this.month"))
+            val issuesCard = createStatCard(SupremeAIBundle.message("label.issues.found"), "23", SupremeAIBundle.message("label.critical"))
+            val fixesCard = createStatCard(SupremeAIBundle.message("label.fixes.applied"), "89", SupremeAIBundle.message("label.auto.fixed"))
             
             statsPanel.add(projectsCard)
             statsPanel.add(analysesCard)
@@ -319,8 +316,8 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
 
             // Action Buttons
             val buttonPanel = JPanel(FlowLayout(FlowLayout.LEFT, 10, 10))
-            val analyzeBtn = JButton("Run Analysis")
-            val refreshBtn = JButton("Refresh")
+            val analyzeBtn = JButton(SupremeAIBundle.message("button.run.analysis"))
+            val refreshBtn = JButton(SupremeAIBundle.message("button.refresh"))
             
             analyzeBtn.addActionListener { runAnalysis() }
             refreshBtn.addActionListener { refresh() }
@@ -352,21 +349,21 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
         }
 
         private fun runAnalysis() {
-            statusLabel.text = "Status: Analyzing..."
+            statusLabel.text = SupremeAIBundle.message("status.analyzing")
             thread {
                 Thread.sleep(2000)
                 SwingUtilities.invokeLater {
-                    statusLabel.text = "Status: Analysis Complete"
+                    statusLabel.text = SupremeAIBundle.message("status.complete")
                 }
             }
         }
 
         fun refresh() {
-            statusLabel.text = "Status: Refreshing..."
+            statusLabel.text = SupremeAIBundle.message("status.refreshing")
             thread {
                 Thread.sleep(1000)
                 SwingUtilities.invokeLater {
-                    statusLabel.text = "Status: Ready"
+                    statusLabel.text = SupremeAIBundle.message("status.ready")
                 }
             }
         }
@@ -384,17 +381,15 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
         private fun setupUI() {
             panel.border = EmptyBorder(10, 10, 10, 10)
             
-            val titleLabel = JLabel("Recent Activity").apply { font = font.deriveFont(Font.BOLD, 16f) }
+            val titleLabel = JLabel(SupremeAIBundle.message("label.recent.activity")).apply { font = font.deriveFont(Font.BOLD, 16f) }
             panel.add(titleLabel, BorderLayout.NORTH)
 
             val activityArea = JTextArea()
             activityArea.isEditable = false
-            activityArea.text = """2024-01-15 10:30:22 - Analysis completed for project Alpha
-2024-01-15 09:15:45 - Security scan passed for module Beta
-2024-01-15 08:42:11 - CodeFlow analysis initiated
-2024-01-14 16:20:33 - 5 issues auto-fixed in project Gamma
-2024-01-14 14:55:21 - Learning pattern detected: Factory Method
-2024-01-14 11:30:15 - Dependency graph updated"""
+            // Simplified for now, in a real app this would load from a log service
+            activityArea.text = """2024-01-15 10:30:22 - Analysis completed
+2024-01-15 09:15:45 - Security scan passed
+2024-01-15 08:42:11 - CodeFlow analysis initiated"""
             
             panel.add(JBScrollPane(activityArea), BorderLayout.CENTER)
         }
@@ -408,7 +403,7 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
 
     class SupremeAICodeFlowPanel(private val project: Project) {
         private val panel = JPanel(BorderLayout())
-        private val statusLabel = JLabel("Status: Ready")
+        private val statusLabel = JLabel(SupremeAIBundle.message("status.ready"))
         private var currentAnalysis: Any? = null
 
         init {
@@ -420,7 +415,7 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
             
             // Header
             val header = JPanel(BorderLayout())
-            header.add(JLabel("CodeFlow Analysis").apply { font = font.deriveFont(Font.BOLD, 16f) }, BorderLayout.WEST)
+            header.add(JLabel(SupremeAIBundle.message("label.codeflow.title")).apply { font = font.deriveFont(Font.BOLD, 16f) }, BorderLayout.WEST)
             header.add(statusLabel, BorderLayout.EAST)
             panel.add(header, BorderLayout.NORTH)
 
@@ -428,27 +423,27 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
             val tabbedPane = JTabbedPane()
             
             // Overview Tab
-            tabbedPane.addTab("Overview", createOverviewPanel())
+            tabbedPane.addTab(SupremeAIBundle.message("label.overview"), createOverviewPanel())
             
             // Dependencies Tab
-            tabbedPane.addTab("Dependencies", createDependenciesPanel())
+            tabbedPane.addTab(SupremeAIBundle.message("label.dependencies"), createDependenciesPanel())
             
             // Security Tab
-            tabbedPane.addTab("Security", createSecurityPanel())
+            tabbedPane.addTab(SupremeAIBundle.message("label.security"), createSecurityPanel())
             
             // Patterns Tab
-            tabbedPane.addTab("Patterns", createPatternsPanel())
+            tabbedPane.addTab(SupremeAIBundle.message("label.patterns"), createPatternsPanel())
             
             // Health Tab
-            tabbedPane.addTab("Health Score", createHealthPanel())
+            tabbedPane.addTab(SupremeAIBundle.message("label.health.score"), createHealthPanel())
             
             panel.add(tabbedPane, BorderLayout.CENTER)
 
             // Action Buttons
             val buttonPanel = JPanel(FlowLayout(FlowLayout.LEFT, 10, 10))
-            val analyzeBtn = JButton("Run Analysis")
-            val refreshBtn = JButton("Refresh")
-            val exportBtn = JButton("Export Report")
+            val analyzeBtn = JButton(SupremeAIBundle.message("button.run.analysis"))
+            val refreshBtn = JButton(SupremeAIBundle.message("button.refresh"))
+            val exportBtn = JButton(SupremeAIBundle.message("button.export"))
             
             analyzeBtn.addActionListener { runAnalysis() }
             refreshBtn.addActionListener { refreshAnalysis() }
@@ -466,18 +461,17 @@ class SupremeAIToolWindowFactory : ToolWindowFactory {
             
             val textArea = JTextArea()
             textArea.isEditable = false
-            textArea.text = """CodeFlow Analysis Overview
-
-Repository: ${project.name}
-Files Analyzed: 0
-Lines of Code: 0
-Functions: 0
-Classes: 0
-
-Analysis Status: Not Started
-Last Analysis: Never
-
-Click "Run Analysis" to begin."""
+            textArea.text = buildString {
+                append(SupremeAIBundle.message("label.overview")).append("\n\n")
+                append("Repository: ").append(project.name).append("\n")
+                append(SupremeAIBundle.message("label.files.analyzed", 0)).append("\n")
+                append(SupremeAIBundle.message("label.lines.code", 0)).append("\n")
+                append(SupremeAIBundle.message("label.functions", 0)).append("\n")
+                append(SupremeAIBundle.message("label.classes", 0)).append("\n\n")
+                append(SupremeAIBundle.message("label.analysis.status", SupremeAIBundle.message("label.analysis.not.started"))).append("\n")
+                append(SupremeAIBundle.message("label.last.analysis", SupremeAIBundle.message("label.analysis.never"))).append("\n\n")
+                append(SupremeAIBundle.message("label.analysis.instruction"))
+            }
             
             panel.add(JBScrollPane(textArea), BorderLayout.CENTER)
             return panel
@@ -533,21 +527,21 @@ Click "Run Analysis" to begin."""
             healthPanel.layout = BoxLayout(healthPanel, BoxLayout.Y_AXIS)
             healthPanel.border = EmptyBorder(20, 20, 20, 20)
             
-            val scoreLabel = JLabel("Health Score: --")
+            val scoreLabel = JLabel("${SupremeAIBundle.message("label.health.score")}: --")
             scoreLabel.font = scoreLabel.font.deriveFont(Font.BOLD, 48f)
             scoreLabel.alignmentX = Component.CENTER_ALIGNMENT
             healthPanel.add(scoreLabel)
             
             healthPanel.add(Box.createVerticalStrut(20))
             
-            val gradeLabel = JLabel("Grade: --")
+            val gradeLabel = JLabel("${SupremeAIBundle.message("label.grade")}: --")
             gradeLabel.font = gradeLabel.font.deriveFont(Font.BOLD, 24f)
             gradeLabel.alignmentX = Component.CENTER_ALIGNMENT
             healthPanel.add(gradeLabel)
             
             healthPanel.add(Box.createVerticalStrut(40))
             
-            val breakdownLabel = JLabel("Breakdown:")
+            val breakdownLabel = JLabel(SupremeAIBundle.message("label.breakdown"))
             breakdownLabel.font = breakdownLabel.font.deriveFont(Font.BOLD, 14f)
             breakdownLabel.alignmentX = Component.CENTER_ALIGNMENT
             healthPanel.add(breakdownLabel)
@@ -556,7 +550,13 @@ Click "Run Analysis" to begin."""
             
             val detailsArea = JTextArea()
             detailsArea.isEditable = false
-            detailsArea.text = "Security: --\nMaintainability: --\nComplexity: --\nDocumentation: --\nTesting: --"
+            detailsArea.text = buildString {
+                append(SupremeAIBundle.message("label.security.score", "--")).append("\n")
+                append(SupremeAIBundle.message("label.maintainability", "--")).append("\n")
+                append(SupremeAIBundle.message("label.complexity", "--")).append("\n")
+                append(SupremeAIBundle.message("label.documentation", "--")).append("\n")
+                append(SupremeAIBundle.message("label.testing", "--"))
+            }
             detailsArea.alignmentX = Component.CENTER_ALIGNMENT
             healthPanel.add(detailsArea)
             
@@ -565,33 +565,33 @@ Click "Run Analysis" to begin."""
         }
 
         fun runAnalysis() {
-            statusLabel.text = "Status: Analyzing..."
+            statusLabel.text = SupremeAIBundle.message("status.analyzing")
             thread {
                 // Simulate analysis
                 Thread.sleep(3000)
                 SwingUtilities.invokeLater {
-                    statusLabel.text = "Status: Analysis Complete"
+                    statusLabel.text = SupremeAIBundle.message("status.complete")
                     // Update panels with results
                 }
             }
         }
 
         fun refreshAnalysis() {
-            statusLabel.text = "Status: Refreshing..."
+            statusLabel.text = SupremeAIBundle.message("status.refreshing")
             thread {
                 Thread.sleep(1000)
                 SwingUtilities.invokeLater {
-                    statusLabel.text = "Status: Ready"
+                    statusLabel.text = SupremeAIBundle.message("status.ready")
                 }
             }
         }
 
         private fun exportReport() {
-            statusLabel.text = "Status: Exporting..."
+            statusLabel.text = SupremeAIBundle.message("status.exporting")
             thread {
                 Thread.sleep(1000)
                 SwingUtilities.invokeLater {
-                    statusLabel.text = "Status: Report Exported"
+                    statusLabel.text = SupremeAIBundle.message("status.exported")
                 }
             }
         }
@@ -609,40 +609,42 @@ Click "Run Analysis" to begin."""
         private fun setupUI() {
             panel.border = EmptyBorder(10, 10, 10, 10)
             
-            val titleLabel = JLabel("SupremeAI Settings").apply { font = font.deriveFont(Font.BOLD, 16f) }
+            val titleLabel = JLabel(SupremeAIBundle.message("tab.settings")).apply { font = font.deriveFont(Font.BOLD, 16f) }
             panel.add(titleLabel, BorderLayout.NORTH)
 
             val formPanel = JPanel()
             formPanel.layout = BoxLayout(formPanel, BoxLayout.Y_AXIS)
             formPanel.border = EmptyBorder(20, 20, 20, 20)
 
+            val settings = SupremeAISettings.getInstance()
+
             // API Key
-            formPanel.add(JLabel("API Key:"))
-            val apiKeyField = JPasswordField(30)
+            formPanel.add(JLabel(SupremeAIBundle.message("label.api.key")))
+            val apiKeyField = JPasswordField(settings.apiKey, 30)
             formPanel.add(apiKeyField)
             formPanel.add(Box.createVerticalStrut(10))
 
             // API Endpoint
-            formPanel.add(JLabel("API Endpoint:"))
-            val endpointField = JBTextField("https://supremeai-a.web.app", 30)
+            formPanel.add(JLabel(SupremeAIBundle.message("label.api.endpoint")))
+            val endpointField = JBTextField(settings.apiEndpoint, 30)
             formPanel.add(endpointField)
             formPanel.add(Box.createVerticalStrut(10))
 
             // Model
-            formPanel.add(JLabel("Model:"))
-            val modelCombo = JComboBox(arrayOf("gemini-pro", "gemini-flash", "gemini-ultra"))
+            formPanel.add(JLabel(SupremeAIBundle.message("label.model")))
+            val modelCombo = JComboBox(arrayOf("SupremeAI-v1 (Stable)", "SupremeAI-v1 (Flash)", "gemini-pro", "gemini-flash"))
+            modelCombo.selectedItem = settings.model
             formPanel.add(modelCombo)
             formPanel.add(Box.createVerticalStrut(20))
 
             // Save Button
-            val saveBtn = JButton("Save Settings")
+            val saveBtn = JButton(SupremeAIBundle.message("button.save"))
             saveBtn.addActionListener {
-                val settings = SupremeAISettings.getInstance()
                 settings.apiKey = String(apiKeyField.password)
                 settings.apiEndpoint = endpointField.text
                 settings.model = modelCombo.selectedItem as String
                 settings.save()
-                JOptionPane.showMessageDialog(panel, "Settings saved successfully!")
+                JOptionPane.showMessageDialog(panel, SupremeAIBundle.message("msg.settings.saved"))
             }
             formPanel.add(saveBtn)
 
@@ -662,25 +664,13 @@ Click "Run Analysis" to begin."""
         private fun setupUI() {
             panel.border = EmptyBorder(10, 10, 10, 10)
             
-            val titleLabel = JLabel("AI Orchestration").apply { font = font.deriveFont(Font.BOLD, 16f) }
+            val titleLabel = JLabel(SupremeAIBundle.message("label.orchestration.title")).apply { font = font.deriveFont(Font.BOLD, 16f) }
             panel.add(titleLabel, BorderLayout.NORTH)
 
             val textArea = JTextArea()
             textArea.isEditable = false
-            textArea.text = """AI Provider Orchestration
-
-Primary: Kimi K2.5
-Fallback: DeepSeek V3
-Backup: Together AI
-
-Status: All systems operational
-
-Active Models:
-• gemini-pro (Google)
-• claude-3-opus (Anthropic)
-• gpt-4 (OpenAI)
-
-Last Sync: 2024-01-15 10:30:00"""
+            val lastSync = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date())
+            textArea.text = SupremeAIBundle.message("label.orchestration.desc", lastSync)
             
             panel.add(JBScrollPane(textArea), BorderLayout.CENTER)
         }
@@ -688,24 +678,4 @@ Last Sync: 2024-01-15 10:30:00"""
         fun getContent(): Component = panel
     }
 
-    class SupremeAISettings {
-        var apiKey: String = ""
-        var apiEndpoint: String = "https://supremeai-a.web.app"
-        var model: String = "gemini-pro"
-
-        fun save() {
-            // Save to settings
-        }
-
-        companion object {
-            private var instance: SupremeAISettings? = null
-
-            fun getInstance(): SupremeAISettings {
-                if (instance == null) {
-                    instance = SupremeAISettings()
-                }
-                return instance!!
-            }
-        }
-    }
 }

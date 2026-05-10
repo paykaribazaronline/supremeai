@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 import { Result, Button } from 'antd';
 
 interface Props {
@@ -44,7 +44,7 @@ class ErrorBoundary extends Component<Props, State> {
       );
     }
 
-    return this.children;
+    return this.props.children;
   }
 }
 

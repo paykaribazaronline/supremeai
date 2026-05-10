@@ -26,7 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Read configuration
   const config = vscode.workspace.getConfiguration('supremeai');
-  const backendUrl = config.get<string>('backendUrl', 'https://ide-api.supremeai.google.com');
+  const backendUrl = config.get<string>('backendUrl', 'https://supremeai-a.web.app');
   
   const supremeConfig: SupremeAIConfig = {
     backendUrl,
@@ -157,16 +157,12 @@ function registerCommands(context: vscode.ExtensionContext): void {
 }
 
 function registerSidebarViews(context: vscode.ExtensionContext): void {
-    const dashboardProvider = new SupremeAISidebarProvider('supremeaiDashboard');
-    const activityProvider = new SupremeAISidebarProvider('supremeaiActivity');
-    const codeFlowProvider = new SupremeAISidebarProvider('supremeaiCodeFlow');
-    const chatProvider = new SupremeAISidebarProvider('supremeaiChat');
+    const dashboardProvider = new SupremeAISidebarProvider(context.extensionUri, 'supremeaiDashboard');
+    const codeFlowProvider = new SupremeAISidebarProvider(context.extensionUri, 'supremeaiCodeFlow');
 
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider('supremeaiDashboard', dashboardProvider),
-        vscode.window.registerWebviewViewProvider('supremeaiActivity', activityProvider),
-        vscode.window.registerWebviewViewProvider('supremeaiCodeFlow', codeFlowProvider),
-        vscode.window.registerWebviewViewProvider('supremeaiChat', chatProvider)
+        vscode.window.registerWebviewViewProvider('supremeaiCodeFlow', codeFlowProvider)
     );
 }
 
@@ -180,7 +176,7 @@ function registerChatProvider(context: vscode.ExtensionContext): void {
 function registerActivityView(context: vscode.ExtensionContext): void {
   const activityProvider = new SupremeAIActivityProvider();
   context.subscriptions.push(
-    vscode.window.registerTreeDataProvider('supremeai.activity', activityProvider)
+    vscode.window.registerTreeDataProvider('supremeaiActivity', activityProvider)
   );
 }
 

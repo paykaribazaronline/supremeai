@@ -1,8 +1,8 @@
 package com.supremeai.controller;
 
-import com.supremeai.service.AIRankingService;
+import com.supremeai.service.ContextualAIRankingService;
 import com.supremeai.service.AutonomousQuestioningEngine;
-import com.supremeai.service.TenAIVotingSystem;
+import com.supremeai.service.MultiAIVotingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,10 +28,10 @@ public class IntelligenceController {
     private AutonomousQuestioningEngine questioningEngine;
 
     @Autowired
-    private TenAIVotingSystem votingSystem;
+    private MultiAIVotingService votingService;
 
     @Autowired
-    private AIRankingService rankingService;
+    private ContextualAIRankingService rankingService;
 
     /**
      * S9: Get AI Provider Rankings (Auto-Ranking)
@@ -40,7 +40,8 @@ public class IntelligenceController {
     @GetMapping("/rankings")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'AGENT_MANAGER')")
     public ResponseEntity<?> getRankings() {
-        return ResponseEntity.ok(rankingService.getRankings());
+        Map<String, Object> stats = rankingService.getStatistics();
+        return ResponseEntity.ok(stats);
     }
 
     /**
@@ -88,12 +89,12 @@ public class IntelligenceController {
 
             List<String> models = request.getModels();
             if (models == null || models.isEmpty()) {
-                models = List.of(TenAIVotingSystem.TEN_AI_MODELS);
+                models = List.of(MultiAIVotingService.TEN_AI_MODELS);
             }
 
             long timeoutMs = request.getTimeoutMs() > 0 ? request.getTimeoutMs() : 15000;
 
-            TenAIVotingSystem.VotingResult result = votingSystem.executeVoting(
+            MultiAIVotingService.VotingResult result = votingService.executeEnsembleVoting(
                 request.getPrompt(), 
                 models, 
                 timeoutMs
@@ -106,7 +107,7 @@ public class IntelligenceController {
             response.put("verdict", result.getVerdict());
             response.put("processingTimeMs", result.getProcessingTimeMs());
             response.put("totalModelsUsed", result.getTotalModelsUsed());
-            response.put("totalModelsAvailable", TenAIVotingSystem.TEN_AI_MODELS.length);
+            response.put("totalModelsAvailable", MultiAIVotingService.TEN_AI_MODELS.length);
 
             // Add individual votes
             List<Map<String, Object>> votes = result.getAllVotes().stream()
@@ -139,8 +140,8 @@ public class IntelligenceController {
     @GetMapping("/models")
     public ResponseEntity<?> getAvailableModels() {
         Map<String, Object> response = new HashMap<>();
-        response.put("totalModels", TenAIVotingSystem.TEN_AI_MODELS.length);
-        response.put("models", TenAIVotingSystem.TEN_AI_MODELS);
+        response.put("totalModels", MultiAIVotingService.TEN_AI_MODELS.length);
+        response.put("models", MultiAIVotingService.TEN_AI_MODELS);
         response.put("description", "10 AI Models available for ensemble voting");
         return ResponseEntity.ok(response);
     }

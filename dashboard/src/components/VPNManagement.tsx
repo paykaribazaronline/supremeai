@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Modal, Form, Input, Select, Switch, Space, Tag, message, Popconfirm, Row, Col, Alert } from 'antd';
 import { PlusOutlined, DeleteOutlined, EditOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
-import { authUtils } from '../lib/authUtils';
+import { fetchWithAuth } from '../lib/authUtils';
 
 interface VPNConnection {
     id: string;
@@ -31,9 +31,7 @@ const VPNManagement: React.FC = () => {
     const fetchVPNConnections = async () => {
         setLoading(true);
         try {
-            const response = await fetch('/api/vpn/list', {
-                headers: authUtils.getAuthHeaders(),
-            });
+            const response = await fetchWithAuth('/api/vpn/list');
             if (response.ok) {
                 const data = await response.json();
                 setVpnConnections(data);
@@ -47,13 +45,8 @@ const VPNManagement: React.FC = () => {
 
     const handleSaveVPN = async (values: any) => {
         try {
-            const token = authUtils.getToken();
-            const response = await fetch(editingId ? `/api/vpn/${editingId}` : '/api/vpn/add', {
+            const response = await fetchWithAuth(editingId ? `/api/vpn/${editingId}` : '/api/vpn/add', {
                 method: editingId ? 'PUT' : 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
                 body: JSON.stringify(values),
             });
 
@@ -71,10 +64,8 @@ const VPNManagement: React.FC = () => {
 
     const handleConnectVPN = async (vpnId: string) => {
         try {
-            const token = localStorage.getItem('authToken');
-            const response = await fetch(`/api/vpn/${vpnId}/connect`, {
+            const response = await fetchWithAuth(`/api/vpn/${vpnId}/connect`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
             });
 
             if (response.ok) {
@@ -88,10 +79,8 @@ const VPNManagement: React.FC = () => {
 
     const handleDisconnectVPN = async (vpnId: string) => {
         try {
-            const token = localStorage.getItem('authToken');
-            const response = await fetch(`/api/vpn/${vpnId}/disconnect`, {
+            const response = await fetchWithAuth(`/api/vpn/${vpnId}/disconnect`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
             });
 
             if (response.ok) {

@@ -27,6 +27,23 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private JwtUtil jwtUtil;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        // Only enforce JWT auth on API routes.
+        // This keeps static UI pages (e.g. /, /login.html) publicly reachable even with invalid headers.
+        if (!path.startsWith("/api/")) {
+            return true;
+        }
+
+        // Skip JWT auth for explicitly public API endpoints.
+        return path.startsWith("/api/health") ||
+               path.startsWith("/api/status") ||
+               path.startsWith("/api/auth/") ||
+               path.startsWith("/api/ext/") ||
+               path.startsWith("/api/config/");
+    }
+
+    @Override
     protected boolean shouldNotFilterAsyncDispatch() {
         return false;
     }

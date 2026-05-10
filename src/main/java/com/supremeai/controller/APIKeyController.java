@@ -6,7 +6,7 @@ import com.supremeai.repository.UserApiKeyRepository;
 import com.supremeai.repository.ActivityLogRepository;
 import com.supremeai.security.ApiKeyRotationService;
 import com.supremeai.security.EncryptionService;
-import com.supremeai.service.AIRankingService;
+import com.supremeai.service.ContextualAIRankingService;
 import com.supremeai.dto.ApiKeyCreateRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,8 +54,8 @@ public class APIKeyController {
     @Autowired
     private ActivityLogRepository activityLogRepository;
 
-    @Autowired
-    private AIRankingService aiRankingService;
+@Autowired
+     private ContextualAIRankingService contextualRankingService;
 
     @Autowired
     private EncryptionService encryptionService;
@@ -327,12 +327,13 @@ public class APIKeyController {
                 boolean isValid = testResult.get("valid").equals(true);
                 key.setStatus(isValid ? "active" : "error");
                 
-                return userApiKeyRepository.save(key)
-                    .map(saved -> {
-                        // Record provider ranking
-                        aiRankingService.recordRequest(key.getProvider(), isValid);
-                        return ResponseEntity.ok((Object) testResult);
-                    });
+return userApiKeyRepository.save(key)
+                     .map(saved -> {
+                         // Record provider ranking
+                         contextualRankingService.recordTaskOutcome(key.getProvider(), 
+                             ContextualAIRankingService.TaskType.QUESTION_ANSWERING, isValid, 100L, isValid ? 4.0 : 1.0);
+                         return ResponseEntity.ok((Object) testResult);
+                     });
             })
             .switchIfEmpty(Mono.just(ResponseEntity.status(404).body(Map.of("error", "API key not found"))));
     }
@@ -439,23 +440,25 @@ public class APIKeyController {
             
                         String responseBody = responseEntity.getBody();
 
-                        Map<String, Object> result = new HashMap<>();
-                        int statusCode = responseEntity.getStatusCode().value();
-                        result.put("status", statusCode);
-                        result.put("statusText", responseEntity.getStatusCode().toString());
-                        result.put("headers", responseHeaders);
-                        result.put("body", responseBody != null ? tryParseJson(responseBody) : null);
+Map<String, Object> result = new HashMap<>();
+                         int statusCode = responseEntity.getStatusCode().value();
+                         result.put("status", statusCode);
+                         result.put("statusText", responseEntity.getStatusCode().toString());
+                         result.put("headers", responseHeaders);
+                         result.put("body", responseBody != null ? tryParseJson(responseBody) : null);
 
-                        // Record provider ranking
-                        boolean success = statusCode >= 200 && statusCode < 300;
-                        aiRankingService.recordRequest(key.getProvider(), success);
+                         // Record provider ranking
+                         boolean success = statusCode >= 200 && statusCode < 300;
+                         contextualRankingService.recordTaskOutcome(key.getProvider(), 
+                             ContextualAIRankingService.TaskType.QUESTION_ANSWERING, success, 100L, success ? 4.0 : 1.0);
 
-                        return ResponseEntity.ok((Object) result);
-                    } catch (Exception e) {
-                        // Record failure
-                        aiRankingService.recordRequest(key.getProvider(), false);
-                        return ResponseEntity.status(500).body((Object) Map.of("error", "Request failed: " + e.getMessage()));
-                    }
+                         return ResponseEntity.ok((Object) result);
+                     } catch (Exception e) {
+                         // Record failure
+                         contextualRankingService.recordTaskOutcome(key.getProvider(), 
+                             ContextualAIRankingService.TaskType.QUESTION_ANSWERING, false, 100L, 1.0);
+                         return ResponseEntity.status(500).body((Object) Map.of("error", "Request failed: " + e.getMessage()));
+                     }
                 });
             })
             .switchIfEmpty(Mono.just(ResponseEntity.status(404).body(Map.of("error", "API key not found"))));

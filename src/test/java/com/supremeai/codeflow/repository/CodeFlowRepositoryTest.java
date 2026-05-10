@@ -298,6 +298,7 @@ class CodeFlowRepositoryTest {
         when(mockFirestore.collection("codeflow/repositories")).thenReturn(mockColl);
         when(mockColl.count()).thenReturn(mockAggQuery);
 
+        @SuppressWarnings("unchecked")
         ApiFuture<AggregateQuerySnapshot> future = mock(ApiFuture.class);
         when(mockAggQuery.get()).thenReturn(future);
         when(future.get()).thenReturn(mockAggregateSnapshot);

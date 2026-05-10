@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-class AutonomousVotingServiceTest {
+class MultiAIVotingServiceTest {
 
     @Mock
     private AIProviderFactory providerFactory;
@@ -28,7 +28,7 @@ class AutonomousVotingServiceTest {
     @Mock
     private AIProvider provider2;
 
-    private AutonomousVotingService votingService;
+    private com.supremeai.service.MultiAIVotingService votingService;
     private ThreadPoolTaskExecutor executor;
 
     @BeforeEach
@@ -39,27 +39,27 @@ class AutonomousVotingServiceTest {
         executor.setCorePoolSize(2);
         executor.initialize();
         
-        votingService = new AutonomousVotingService(executor);
+        votingService = new com.supremeai.service.MultiAIVotingService(executor);
         
         // Inject dependencies manually or via reflection if needed
-        Field factoryField = AutonomousVotingService.class.getDeclaredField("providerFactory");
+        Field factoryField = com.supremeai.service.MultiAIVotingService.class.getDeclaredField("providerFactory");
         factoryField.setAccessible(true);
         factoryField.set(votingService, providerFactory);
         
-        Field providersField = AutonomousVotingService.class.getDeclaredField("activeProviders");
+        Field providersField = com.supremeai.service.MultiAIVotingService.class.getDeclaredField("activeProviders");
         providersField.setAccessible(true);
         providersField.set(votingService, "p1,p2");
     }
 
     @Test
-    void testConductVote_Consensus() {
+    void testConductDecisionVote_Consensus() {
         when(providerFactory.getProvider("p1")).thenReturn(provider1);
         when(providerFactory.getProvider("p2")).thenReturn(provider2);
         
         when(provider1.generate(anyString())).thenReturn(Mono.just("Agree"));
         when(provider2.generate(anyString())).thenReturn(Mono.just("Agree"));
         
-        VotingDecision decision = votingService.conductVote("Test Question", "Test Context");
+        VotingDecision decision = votingService.conductDecisionVote("Test Question", "Test Context");
         
         assertNotNull(decision);
         assertEquals("STRONG", decision.getStrength());
@@ -69,14 +69,14 @@ class AutonomousVotingServiceTest {
     }
 
     @Test
-    void testConductVote_Split() {
+    void testConductDecisionVote_Split() {
         when(providerFactory.getProvider("p1")).thenReturn(provider1);
         when(providerFactory.getProvider("p2")).thenReturn(provider2);
         
         when(provider1.generate(anyString())).thenReturn(Mono.just("Yes"));
         when(provider2.generate(anyString())).thenReturn(Mono.just("No"));
         
-        VotingDecision decision = votingService.conductVote("Test Question", "Test Context");
+        VotingDecision decision = votingService.conductDecisionVote("Test Question", "Test Context");
         
         assertNotNull(decision);
         assertEquals("WEAK", decision.getStrength());
@@ -84,10 +84,10 @@ class AutonomousVotingServiceTest {
     }
 
     @Test
-    void testConductVote_AllFail() {
+    void testConductDecisionVote_AllFail() {
         when(providerFactory.getProvider(anyString())).thenThrow(new RuntimeException("Provider failure"));
         
-        VotingDecision decision = votingService.conductVote("Test Question", "Test Context");
+        VotingDecision decision = votingService.conductDecisionVote("Test Question", "Test Context");
         
         assertEquals("ERROR", decision.getStrength());
         assertEquals(0.0, decision.getConfidence());

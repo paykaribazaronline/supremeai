@@ -107,6 +107,22 @@ public class WebSocketController {
         messagingTemplate.convertAndSend("/topic/notifications", update);
     }
 
+    /**
+     * Broadcast system event for the learning dashboard
+     */
+    public void broadcastSystemEvent(String type, String domainId, Double progress, String fact, String message) {
+        Map<String, Object> event = new HashMap<>();
+        event.put("type", type);
+        if (domainId != null) event.put("domainId", domainId);
+        if (progress != null) event.put("progress", progress);
+        if (fact != null) event.put("fact", fact);
+        if (message != null) event.put("message", message);
+        event.put("timestamp", System.currentTimeMillis());
+
+        messagingTemplate.convertAndSend("/topic/system-events", event);
+        log.debug("Broadcast system event: {} for domain {}", type, domainId);
+    }
+
     private Mono<Map<String, Object>> getDashboardData() {
         return userRepository.count().map(userCount -> {
             Map<String, Object> data = new HashMap<>();

@@ -31,9 +31,8 @@ export const firebaseAuth: Auth = getAuth(app);
 export const firestore = getFirestore(app);
 export const functions = getFunctions(app);
 
-// Connect to Firebase Emulator - DISABLED for Cloud Mode
-/*
-if (import.meta.env.VITE_USE_EMULATOR === 'true' || import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true') {
+// Connect to Firebase Emulator - Only if explicitly requested via environment variable
+if (import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true') {
   try {
     connectAuthEmulator(firebaseAuth, 'http://localhost:9099', { disableWarnings: true });
     connectFirestoreEmulator(firestore, 'localhost', 8081);
@@ -43,7 +42,6 @@ if (import.meta.env.VITE_USE_EMULATOR === 'true' || import.meta.env.VITE_USE_FIR
     console.error('⚠️ Firebase Emulator connection error:', err);
   }
 }
-*/
 
 /**
  * Global async error handler for unhandled promise rejections.

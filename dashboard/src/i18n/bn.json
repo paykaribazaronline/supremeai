@@ -147,5 +147,37 @@
     "theme": "থিম",
     "notifications": "নোটিফিকেশন",
     "save_changes": "পরিবর্তন সংরক্ষণ করুন"
+  },
+  "knowledge": {
+    "snapshot": {
+      "total_nodes": "মোট নলেজ নোড",
+      "top_domains": "শীর্ষ লার্নিং ডোমেইন",
+      "last_discovery": "শেষ আবিষ্কার",
+      "efficiency": "আবিষ্কার দক্ষতা"
+    },
+    "domains": "জ্ঞান ডোমেইন",
+    "domain_name": "ডোমেইন নাম",
+    "keywords": "কীওয়ার্ড",
+    "start_learning": "লার্নিং শুরু করুন",
+    "status": {
+      "idle": "নিষ্ক্রিয়",
+      "learning": "শিখছে",
+      "complete": "সম্পূর্ণ",
+      "paused": "বিরতি"
+    },
+    "add_domain": "ডোমেইন যোগ করুন",
+    "nodes_discovered": "নোড আবিষ্কার করা হয়েছে",
+    "register": "ডোমেইন নথিভুক্ত করুন"
+  },
+  "recommendations": {
+    "title": "সিস্টেম-সুপারিশকৃত লার্নিং টপিক",
+    "approve": "অনুমোদন করুন",
+    "decline": "অস্বীকার করুন",
+    "confidence": "confidence",
+    "reasoning": "কারণ"
+  },
+  "crawl_pulse": {
+    "title": "ক্রল পাল্স - রিয়েল-টাইম ডিসকভারি ফিড",
+    "discovered": "আবিষ্কার করা হয়েছে"
   }
 }

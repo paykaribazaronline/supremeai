@@ -14,9 +14,15 @@ import java.util.Map;
 @Component
 public class AnthropicProvider extends AbstractHttpProvider {
     private static final String API_URL = "https://api.anthropic.com/v1/messages";
+    private static final String DEFAULT_MODEL = "claude-3-sonnet-20240229";
+    private static final List<String> SUPPORTED_MODELS = List.of(
+        "claude-3-opus-20240229",
+        "claude-3-sonnet-20240229",
+        "claude-3-haiku-20240307"
+    );
 
     public AnthropicProvider(@Value("${anthropic.api-key:}") String apiKey) {
-        super(apiKey, API_URL, "claude-3-sonnet-20240229");
+        super(apiKey, API_URL, DEFAULT_MODEL);
     }
 
     @Override
@@ -24,6 +30,18 @@ public class AnthropicProvider extends AbstractHttpProvider {
         return "anthropic";
     }
 
+    @Override
+    public Map<String, Object> getCapabilities() {
+        if (providerMetadataService != null) {
+            return super.getCapabilities();
+        }
+        return Map.of(
+            "name", "Anthropic",
+            "models", SUPPORTED_MODELS,
+            "type", "remote",
+            "url", baseUrl
+        );
+    }
 
     @Override
     protected Map<String, Object> createRequestBody(String prompt) {

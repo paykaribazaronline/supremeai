@@ -2,7 +2,7 @@ package com.supremeai.model;
 
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -62,7 +62,7 @@ public class APIProviderTest {
         provider.setCurrentUsage(500.0);
         assertEquals(500.0, provider.getCurrentUsage(), 0.001);
 
-        LocalDateTime now = LocalDateTime.now();
+        Date now = new Date();
         provider.setLastCheck(now);
         assertEquals(now, provider.getLastCheck());
     }

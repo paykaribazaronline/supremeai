@@ -1,13 +1,13 @@
 package com.supremeai.provider;
 
 import com.supremeai.service.AIProviderService;
-import com.supremeai.service.AIRankingService;
-import com.supremeai.service.AIRankingService.ProviderRanking;
+import com.supremeai.service.ContextualAIRankingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Lazy;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,7 +25,8 @@ public class AIProviderFactory {
     private AIProviderService aiProviderService;
 
     @Autowired
-    private com.supremeai.service.AIRankingService aiRankingService;
+    @Lazy
+    private ContextualAIRankingService contextualRankingService;
 
     @Value("${ai.providers.airllm.endpoint:}")
     private String airllmEndpoint;
@@ -107,19 +108,24 @@ public class AIProviderFactory {
 
         // Try to get ranked providers for this task
         try {
-            List<ProviderRanking> rankings = aiRankingService.getRankings();
+            ContextualAIRankingService.TaskType rankingTaskType = ContextualAIRankingService.TaskType.QUESTION_ANSWERING;
+            try {
+                rankingTaskType = ContextualAIRankingService.TaskType.valueOf(taskType.toUpperCase());
+            } catch (IllegalArgumentException ignored) {}
+
+            List<ContextualAIRankingService.ProviderRanking> rankings = contextualRankingService.getRankingsForTask(rankingTaskType);
 
             if (rankings != null && !rankings.isEmpty()) {
                 // Try providers in order of ranking
-                for (ProviderRanking ranking : rankings) {
+                for (ContextualAIRankingService.ProviderRanking ranking : rankings) {
                     try {
-                        AIProvider provider = getProvider(ranking.getProvider());
+                        AIProvider provider = getProvider(ranking.provider);
                         if (isProviderHealthy(provider)) {
-                            logger.info("Using ranked provider {} for task {}", ranking.getProvider(), taskType);
+                            logger.info("Using ranked provider {} for task {}", ranking.provider, taskType);
                             return provider;
                         }
                     } catch (Exception e) {
-                        logger.warn("Ranked provider {} unavailable: {}", ranking.getProvider(), e.getMessage());
+                        logger.warn("Ranked provider {} unavailable: {}", ranking.provider, e.getMessage());
                     }
                 }
             }

@@ -165,7 +165,7 @@
       "properties": {
         "supremeai.backendUrl": {
           "type": "string",
-          "default": "https://ide-api.supremeai.google.com",
+          "default": "https://supremeai-a.web.app",
           "description": "SupremeAI Backend API URL",
           "description_t": {
             "default": "SupremeAI Backend API URL",
@@ -241,7 +241,8 @@
       "supremeai-sidebar": [
         {
           "id": "supremeaiDashboard",
-          "name": "Dashboard"
+          "name": "Dashboard",
+          "type": "webview"
         },
         {
           "id": "supremeaiActivity",
@@ -249,11 +250,13 @@
         },
         {
           "id": "supremeaiCodeFlow",
-          "name": "CodeFlow"
+          "name": "CodeFlow",
+          "type": "webview"
         },
         {
           "id": "supremeaiChat",
-          "name": "Chat"
+          "name": "Chat",
+          "type": "webview"
         }
       ]
     }

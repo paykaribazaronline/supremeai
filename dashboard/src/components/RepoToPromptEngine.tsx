@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
-  Card, Button, Input, Select, Row, Col, Spin, Alert, Typography, 
-  Space, Tag, Progress, Modal, Tabs, List, Divider, Tooltip, message, Statistic
+  Card, Button, Input, Select, Row, Col, Alert, Typography, 
+  Space, Tag, Progress, Tabs, Divider, message, Statistic
 } from 'antd';
 import {
-  ShareAltOutlined, DownloadOutlined, CopyOutlined, 
-  EyeOutlined, ThunderboltOutlined, BugOutlined,
-  SecurityScanOutlined, NodeIndexOutlined, BranchesOutlined,
-  RocketOutlined, AimOutlined, FileTextOutlined
+  DownloadOutlined, CopyOutlined, 
+  NodeIndexOutlined,
+  RocketOutlined, AimOutlined
 } from '@ant-design/icons';
 import RepoIngestor from '../services/repo-ingestor';
 import { filterFiles, detectLanguage, getSmartFilter, prioritizeFiles, estimateComplexity } from '../utils/repo-filter';
@@ -17,7 +16,7 @@ import CodeFlowWidget from './CodeFlowWidget';
 import './RepoToPromptEngine.css';
 
 const { TextArea } = Input;
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 
 interface RepoToPromptEngineProps {
@@ -37,8 +36,7 @@ interface AnalysisState {
 }
 
 const RepoToPromptEngine: React.FC<RepoToPromptEngineProps> = ({ 
-  onClose, 
-  defaultRepo = '' 
+   defaultRepo = '' 
 }) => {
   const [repoUrl, setRepoUrl] = useState(defaultRepo);
   const [githubToken, setGithubToken] = useState('');
@@ -138,7 +136,7 @@ const RepoToPromptEngine: React.FC<RepoToPromptEngineProps> = ({
             repoInfo.repo,
             file.path,
             githubToken || undefined
-          );
+          ) as { content: string };
 
           let parseResult;
           if (detectedLang === 'javascript' || detectedLang === 'typescript') {
@@ -252,13 +250,13 @@ const RepoToPromptEngine: React.FC<RepoToPromptEngineProps> = ({
    * Detect design patterns
    */
   const detectPatterns = (files: any[]) => {
-    const patterns = [];
+    const patterns: { patternType: string; description: string; file: string; line: number; confidence: number }[] = [];
     
     files.forEach(file => {
-      file.classes?.forEach(cls => {
+      file.classes?.forEach((cls: any) => {
         // Singleton pattern
         if (cls.name.toLowerCase().includes('singleton') ||
-            file.functions?.some(f => f.name === cls.name)) {
+            file.functions?.some((f: any) => f.name === cls.name)) {
           patterns.push({
             patternType: 'SINGLETON',
             description: 'Singleton pattern detected',
@@ -270,7 +268,7 @@ const RepoToPromptEngine: React.FC<RepoToPromptEngineProps> = ({
 
         // Factory pattern
         if (cls.name.toLowerCase().includes('factory') ||
-            cls.methods?.some(m => m.name.includes('create'))) {
+            cls.methods?.some((m: any) => m.name.includes('create'))) {
           patterns.push({
             patternType: 'FACTORY',
             description: 'Factory pattern detected',
@@ -315,7 +313,7 @@ const RepoToPromptEngine: React.FC<RepoToPromptEngineProps> = ({
    * Scan for security issues
    */
   const scanSecurity = (files: any[]) => {
-    const issues = [];
+    const issues: { type: string; severity: string; description: string; file: string; line: number; remediation: string }[] = [];
     
     files.forEach(file => {
       const content = file.content || '';
@@ -360,11 +358,11 @@ const RepoToPromptEngine: React.FC<RepoToPromptEngineProps> = ({
    * Detect dead code
    */
   const detectDeadCode = (files: any[]) => {
-    const deadCode = [];
+    const deadCode: any[] = [];
     
     files.forEach(file => {
       // Check for unused imports
-      file.imports?.forEach(imp => {
+      file.imports?.forEach((imp: any) => {
         if (!imp.isUsed) {
           deadCode.push({
             type: 'UNUSED_IMPORT',
@@ -384,14 +382,14 @@ const RepoToPromptEngine: React.FC<RepoToPromptEngineProps> = ({
    */
   const detectCircularDependencies = (files: any[]) => {
     // Simplified detection
-    const circularDeps = [];
+    const circularDeps: any[] = [];
     
     files.forEach(file => {
-      file.imports?.forEach(imp => {
+      file.imports?.forEach((imp: any) => {
         const importedFile = files.find(f => f.path === imp.module);
         if (importedFile) {
           const hasReverseImport = importedFile.imports?.some(
-            revImp => revImp.module === file.path
+            (revImp: any) => revImp.module === file.path
           );
           
           if (hasReverseImport) {

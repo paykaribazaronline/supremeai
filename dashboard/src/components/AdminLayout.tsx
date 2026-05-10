@@ -129,10 +129,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => {
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh', background: '#f5f5f5' }}>
+    <Layout style={{ minHeight: '100vh', background: '#080808' }}>
       <Header
         style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'rgba(10, 10, 10, 0.8)',
+          backdropFilter: 'blur(10px)',
           padding: '0 24px',
           display: 'flex',
           justifyContent: 'space-between',
@@ -140,7 +141,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => {
           position: 'sticky',
           top: 0,
           zIndex: 100,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+          height: '64px',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -149,41 +151,18 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => {
               <Avatar
                 size={36}
                 style={{
-                  background: 'rgba(255,255,255,0.2)',
-                  color: 'white',
-                  fontWeight: 700,
+                  background: 'rgba(16, 185, 129, 0.1)',
+                  color: '#10b981',
+                  fontWeight: 900,
+                  border: '1px solid rgba(16, 185, 129, 0.2)'
                 }}
                 icon={<RobotOutlined />}
               />
-              {location.pathname === '/admin' ? (
-                <span style={{ color: 'white', fontSize: '18px', fontWeight: 700 }}>
-                  <span style={{ color: '#4285F4' }}>S</span>
-                  <span style={{ color: '#EA4335' }}>u</span>
-                  <span style={{ color: '#FBBC05' }}>p</span>
-                  <span style={{ color: '#34A853' }}>r</span>
-                  <span style={{ color: '#4285F4' }}>e</span>
-                  <span style={{ color: '#EA4335' }}>m</span>
-                  <span style={{ color: '#FBBC05' }}>e</span>
-                  <span style={{ color: '#34A853' }}>A</span>
-                  <span style={{ color: '#4285F4' }}>I</span>
-                  <span style={{ fontSize: '12px', marginLeft: '5px', opacity: 0.8 }}>by Google</span>
-                </span>
-              ) : (
-                <Link to="/admin" style={{ color: 'white', textDecoration: 'none' }}>
-                  <span style={{ color: 'white', fontSize: '18px', fontWeight: 700 }}>
-                    <span style={{ color: '#4285F4' }}>S</span>
-                    <span style={{ color: '#EA4335' }}>u</span>
-                    <span style={{ color: '#FBBC05' }}>p</span>
-                    <span style={{ color: '#34A853' }}>r</span>
-                    <span style={{ color: '#4285F4' }}>e</span>
-                    <span style={{ color: '#EA4335' }}>m</span>
-                    <span style={{ color: '#FBBC05' }}>e</span>
-                    <span style={{ color: '#34A853' }}>A</span>
-                    <span style={{ color: '#4285F4' }}>I</span>
-                    <span style={{ fontSize: '10px', marginLeft: '5px', opacity: 0.7 }}>by Google</span>
-                  </span>
-                </Link>
-              )}
+              <span className="hidden sm:inline-block" style={{ color: 'white', fontSize: '18px', fontWeight: 900, letterSpacing: '0.05em' }}>
+                <span className="text-white">Supreme</span>
+                <span className="text-emerald-500">AI</span>
+                <span className="text-[10px] ml-2 text-white/20 font-bold uppercase tracking-widest hidden lg:inline">Core</span>
+              </span>
             </div>
           </Link>
         </div>
@@ -195,23 +174,28 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => {
               <Link
                 key={item.key}
                 to={item.key}
+                className="transition-all duration-300"
                 style={{
-                  color: isActive ? 'white' : 'rgba(255,255,255,0.85)',
+                  color: isActive ? '#10b981' : 'rgba(255,255,255,0.4)',
                   textDecoration: 'none',
-                  padding: '8px 12px',
+                  padding: '6px 12px',
                   borderRadius: '6px',
-                  background: isActive ? 'rgba(255,255,255,0.2)' : 'transparent',
+                  background: isActive ? 'rgba(16, 185, 129, 0.05)' : 'transparent',
+                  border: isActive ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid transparent',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  fontSize: '14px',
-                  fontWeight: isActive ? 600 : 400,
+                  fontSize: '12px',
+                  fontWeight: isActive ? 700 : 500,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
                   whiteSpace: 'nowrap',
-                  transition: 'all 0.2s',
                 }}
                 title={item.label}
               >
-                {item.icon}
+                {React.cloneElement(item.icon as React.ReactElement, { 
+                  style: { fontSize: '14px', color: isActive ? '#10b981' : 'inherit' } 
+                })}
                 <span>{item.label}</span>
               </Link>
             );
@@ -222,25 +206,28 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ title, children }) => {
           <Dropdown menu={{ items: userDropdownItems }} placement="bottomRight">
             <Button
               type="text"
-              style={{
-                color: 'white',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-              }}
+              className="flex items-center gap-2 px-1 sm:px-3"
+              style={{ color: 'white' }}
             >
-              <Avatar size="small" style={{ background: 'rgba(255,255,255,0.3)' }} icon={<UserOutlined />} />
-              <span>Admin</span>
+              <Avatar 
+                size="small" 
+                className="bg-emerald-500/20 text-emerald-500 border border-emerald-500/30"
+                icon={<UserOutlined />} 
+              />
+              <span className="hidden md:inline font-bold text-[12px] uppercase tracking-widest text-white/80">Admin</span>
             </Button>
           </Dropdown>
         </div>
       </Header>
 
-      <Content style={{ padding: '24px', background: '#f5f5f5' }}>
-        <div style={{ marginBottom: '16px' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: 600, color: '#333', margin: 0 }}>
-            {title}
-          </h1>
+      <Content style={{ padding: '24px', background: '#080808' }}>
+        <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="flex flex-col">
+            <h1 style={{ fontSize: '20px', fontWeight: 900, color: '#fff', margin: 0, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              {title}
+            </h1>
+            <div className="h-1 w-12 bg-emerald-500 mt-1" />
+          </div>
         </div>
         {children}
       </Content>

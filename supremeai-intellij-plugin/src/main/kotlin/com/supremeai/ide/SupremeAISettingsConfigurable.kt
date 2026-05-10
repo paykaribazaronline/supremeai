@@ -14,19 +14,19 @@ import javax.swing.JPanel
 class SupremeAISettingsConfigurable : Configurable {
 
     private val apiKeyField = JBPasswordField()
-    private val userNameLabel = JBLabel("Welcome, Developer").apply {
+    private val userNameLabel = JBLabel(SupremeAIBundle.message("welcome.message", "Developer")).apply {
         font = font.deriveFont(Font.BOLD)
     }
-    private val dashboardLink = HyperlinkLabel("Open SupremeAI Cloud Dashboard")
-    private val kimoModeField = JBCheckBox("Enable Kimo (Advanced Optimization)")
+    private val dashboardLink = HyperlinkLabel(SupremeAIBundle.message("open.dashboard"))
+    private val kimoModeField = JBCheckBox(SupremeAIBundle.message("enable.kimo"))
     
     private val modelOptions = arrayOf("SupremeAI-v1 (Stable)", "SupremeAI-v1 (Flash)", "SupremeAI-v2 (Experimental)")
     private val modelField = JComboBox(modelOptions)
     private val smallModelField = JComboBox(modelOptions)
     
-    private val fullAuthorityField = JBCheckBox("Enable full authority mode (allow all)")
+    private val fullAuthorityField = JBCheckBox(SupremeAIBundle.message("enable.full.authority"))
     private val shareModeField = JComboBox(arrayOf("manual", "auto", "disabled"))
-    private val externalDirectoryField = JBCheckBox("Allow external directory access")
+    private val externalDirectoryField = JBCheckBox(SupremeAIBundle.message("allow.external.directory"))
 
     private val settings = SupremeAISettings.getInstance()
 
@@ -48,22 +48,22 @@ class SupremeAISettingsConfigurable : Configurable {
         // In a real scenario, this would fetch the name from Firebase/Backend
         // For now, we use a placeholder or system user
         val name = System.getProperty("user.name") ?: "Developer"
-        userNameLabel.text = "Welcome, $name"
+        userNameLabel.text = SupremeAIBundle.message("welcome.message", name)
     }
 
-    override fun getDisplayName(): String = "SupremeAI"
+    override fun getDisplayName(): String = SupremeAIBundle.message("settings.display.name")
 
     override fun createComponent(): JComponent {
         return FormBuilder.createFormBuilder()
             .addComponent(userNameLabel)
             .addVerticalGap(5)
-            .addLabeledComponent("Personal API Key:", apiKeyField)
-            .addLabeledComponent("System Status:", dashboardLink)
+            .addLabeledComponent(SupremeAIBundle.message("label.api.key"), apiKeyField)
+            .addLabeledComponent(SupremeAIBundle.message("label.system.status"), dashboardLink)
             .addVerticalGap(10)
             .addComponent(kimoModeField)
-            .addLabeledComponent("Primary Model:", modelField)
-            .addLabeledComponent("Small Model:", smallModelField)
-            .addLabeledComponent("Share Mode:", shareModeField)
+            .addLabeledComponent(SupremeAIBundle.message("label.primary.model"), modelField)
+            .addLabeledComponent(SupremeAIBundle.message("label.small.model"), smallModelField)
+            .addLabeledComponent(SupremeAIBundle.message("label.share.mode"), shareModeField)
             .addComponent(fullAuthorityField)
             .addComponent(externalDirectoryField)
             .addComponentFillVertically(JPanel(), 0)

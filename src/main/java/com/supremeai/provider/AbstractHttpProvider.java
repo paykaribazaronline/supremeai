@@ -163,18 +163,24 @@ public abstract class AbstractHttpProvider implements AIProvider {
         if (providerMetadataService != null) {
             com.supremeai.model.APIProvider meta = providerMetadataService.getMetadata(getName());
             if (meta != null) {
+                java.util.List<String> models = meta.getModels();
+                String defaultModelFromMeta = (models != null && !models.isEmpty()) ? models.get(0) : defaultModel;
                 return Map.of(
                     "name", meta.getName() != null ? meta.getName() : getName(),
-                    "models", meta.getModels() != null ? meta.getModels() : List.of(defaultModel),
+                    "model", defaultModelFromMeta,
+                    "models", models != null ? models : List.of(defaultModel),
                     "type", "remote",
                     "url", meta.getBaseUrl() != null ? meta.getBaseUrl() : baseUrl
                 );
             }
         }
+        // Fallback when no metadata service: provide minimal capabilities
         return Map.of(
-                "model", defaultModel,
-                "type", "remote",
-                "url", baseUrl
+            "name", getName(),
+            "model", defaultModel,
+            "models", List.of(defaultModel),
+            "type", "remote",
+            "url", baseUrl
         );
     }
 }

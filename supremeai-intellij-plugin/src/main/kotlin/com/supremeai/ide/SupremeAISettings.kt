@@ -46,6 +46,10 @@ class SupremeAISettings : PersistentStateComponent<SupremeAISettings> {
 
     override fun loadState(state: SupremeAISettings) {
         XmlSerializerUtil.copyBean(state, this)
+        // Migration: If the endpoint is empty or still pointing to localhost, update to the new cloud default
+        if (apiEndpoint.isBlank() || apiEndpoint.contains("localhost") || apiEndpoint.contains("127.0.0.1")) {
+            apiEndpoint = "https://supremeai-a.web.app"
+        }
     }
 
     companion object {

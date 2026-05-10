@@ -20,6 +20,9 @@ public class APIProvider {
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private Date lastCheck;
 
+    private String creatorEmail;
+    private String accountEmail;
+
     private java.util.List<String> models = new java.util.ArrayList<>();
     private java.util.List<String> capabilities = new java.util.ArrayList<>();
     private java.util.List<String> languages = new java.util.ArrayList<>();
@@ -66,4 +69,10 @@ public class APIProvider {
 
     public Integer getPriority() { return priority; }
     public void setPriority(Integer priority) { this.priority = priority; }
+
+    public String getCreatorEmail() { return creatorEmail; }
+    public void setCreatorEmail(String creatorEmail) { this.creatorEmail = creatorEmail; }
+
+    public String getAccountEmail() { return accountEmail; }
+    public void setAccountEmail(String accountEmail) { this.accountEmail = accountEmail; }
 }

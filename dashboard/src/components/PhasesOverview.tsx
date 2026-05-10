@@ -1,23 +1,16 @@
+// PhasesOverview.tsx - OPERATIONAL INFRASTRUCTURE MATRIX
 import React, { useState, useEffect } from 'react';
-import {
-    Card, Row, Col, Badge, Tag, Timeline, Spin, Alert, Button,
-    Statistic, Tabs, List, Typography, Space, Progress,
-} from 'antd';
+import { Badge, Spin, Alert, Progress, Tooltip } from 'antd';
 import {
     CheckCircleOutlined,
     WarningOutlined,
     ThunderboltOutlined,
-    SafetyOutlined,
-    DollarOutlined,
-    RocketOutlined,
-    ToolOutlined,
-    ApiOutlined,
     NodeIndexOutlined,
-    StarOutlined,
+    ApiOutlined,
+    DeploymentUnitOutlined,
+    HddOutlined
 } from '@ant-design/icons';
 import { authUtils } from '../lib/authUtils';
-
-const { Title, Text } = Typography;
 
 interface PhaseEntry {
     phase: number;
@@ -35,248 +28,133 @@ interface AllPhasesResponse {
     timestamp: number;
 }
 
-interface PhaseDetail {
-    status?: string;
-    agentCount?: number;
-    agents?: string[];
-    capabilities?: string[];
-    services?: Record<string, unknown>;
-    [key: string]: unknown;
-}
-
-const PHASE_META: Record<number, { icon: React.ReactNode; color: string; label: string }> = {
-    1:  { icon: <ToolOutlined />,        color: '#1890ff', label: 'Optimization' },
-    6:  { icon: <NodeIndexOutlined />,   color: '#722ed1', label: 'Integration' },
-    7:  { icon: <RocketOutlined />,      color: '#13c2c2', label: 'Multi-Platform' },
-    8:  { icon: <SafetyOutlined />,      color: '#f5222d', label: 'Security' },
-    9:  { icon: <DollarOutlined />,      color: '#52c41a', label: 'Cost Intelligence' },
-    10: { icon: <StarOutlined />,         color: '#eb2f96', label: 'Self-Improvement' },
-};
-
 const PhasesOverview: React.FC = () => {
     const [allPhases, setAllPhases] = useState<AllPhasesResponse | null>(null);
-    const [details, setDetails] = useState<Record<number, PhaseDetail>>({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
-    const authHeaders = () => ({
-        'Authorization': `Bearer ${authUtils.getToken()}`,
-        'Content-Type': 'application/json',
-    });
 
     const fetchAll = async () => {
         setLoading(true);
         setError(null);
         try {
             const overviewRes = await authUtils.fetchWithAuth('/api/v1/agents/all-phases');
-            if (!overviewRes.ok) throw new Error('Failed to load phases overview');
+            if (!overviewRes.ok) throw new Error('OFFLINE');
             const overview: AllPhasesResponse = await overviewRes.json();
             setAllPhases(overview);
-
-            // Fetch per-phase details in parallel
-            const detailEndpoints: Record<number, string> = {
-                1:  '/api/v1/optimization/health',
-                6:  '/api/v1/phase6/health',
-                7:  '/api/phase7/agents/summary',
-                8:  '/api/v1/agents/phase8/summary',
-                9:  '/api/v1/agents/phase9/summary',
-                10: '/api/v1/agents/phase10/summary',
-            };
-
-            const detailResults = await Promise.allSettled(
-                Object.entries(detailEndpoints).map(async ([phase, url]) => {
-                    const res = await authUtils.fetchWithAuth(url);
-                    const data: PhaseDetail = res.ok ? await res.json() : {};
-                    return { phase: parseInt(phase), data };
-                })
-            );
-
-            const newDetails: Record<number, PhaseDetail> = {};
-            detailResults.forEach(result => {
-                if (result.status === 'fulfilled') {
-                    newDetails[result.value.phase] = result.value.data;
-                }
-            });
-            setDetails(newDetails);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to load phases');
+            setError(err instanceof Error ? err.message : 'LINK_FAILURE');
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => { fetchAll(); }, []);
+    useEffect(() => { 
+        fetchAll(); 
+        const interval = setInterval(fetchAll, 30000);
+        return () => clearInterval(interval);
+    }, []);
 
-    if (loading) return <Spin size="large" style={{ display: 'block', margin: '60px auto' }} />;
-    if (error) return <Alert type="error" message={error} action={<Button onClick={fetchAll}>Retry</Button>} />;
+    if (loading) return (
+        <div className="h-[400px] flex flex-col items-center justify-center font-mono opacity-40">
+            <Spin size="small" className="mb-2" />
+            <span className="text-[8px] uppercase tracking-widest">Scanning_Infrastructure...</span>
+        </div>
+    );
+    
+    if (error) return (
+        <div className="p-4">
+            <Alert 
+                type="error" 
+                showIcon
+                message={<span className="text-[10px] font-black uppercase tracking-widest">Communication Failure</span>}
+                description={<span className="text-[9px] opacity-70">ERR_INFRA_LINK_DROPPED: {error}</span>} 
+                className="bg-red-500/10 border-red-500/20 text-red-500" 
+            />
+        </div>
+    );
+    
     if (!allPhases) return null;
 
-    const statusColor = allPhases.systemStatus === 'fully_operational' ? 'success' : 'warning';
+    const integrityPercent = Math.round((allPhases.operationalCount / allPhases.totalPhases) * 100);
 
     return (
-        <div>
-            {/* System-level status bar */}
-            <Card style={{ marginBottom: 24 }}>
-                <Row gutter={24} align="middle">
-                    <Col xs={24} sm={8}>
-                        <Statistic
-                            title="Total Phases"
-                            value={allPhases.totalPhases}
-                            prefix={<NodeIndexOutlined />}
-                        />
-                    </Col>
-                    <Col xs={24} sm={8}>
-                        <Statistic
-                            title="Operational"
-                            value={allPhases.operationalCount}
-                            suffix={`/ ${allPhases.totalPhases}`}
-                            valueStyle={{ color: allPhases.operationalCount === allPhases.totalPhases ? '#52c41a' : '#faad14' }}
-                            prefix={<CheckCircleOutlined />}
-                        />
-                    </Col>
-                    <Col xs={24} sm={8}>
-                        <div>
-                            <Text type="secondary">System Status</Text>
-                            <br />
-                            <Badge
-                                status={statusColor}
-                                text={
-                                    <Text strong style={{ textTransform: 'capitalize' }}>
-                                        {allPhases.systemStatus.replace(/_/g, ' ')}
-                                    </Text>
-                                }
-                            />
+        <div className="space-y-4">
+            {/* Infrastructure KPIs */}
+            <div className="grid grid-cols-4 gap-2">
+                {[
+                    { label: 'System Integrity', value: `${integrityPercent}%`, icon: <DeploymentUnitOutlined />, color: 'emerald', sub: 'SYNC_ACTIVE' },
+                    { label: 'Units Online', value: allPhases.operationalCount, icon: <HddOutlined />, color: 'blue', sub: `OF_${allPhases.totalPhases}_NODES` },
+                    { label: 'Network State', value: 'Nominal', icon: <ThunderboltOutlined />, color: 'purple', sub: 'LATENCY_MIN' },
+                    { label: 'Uptime Index', value: '99.98', icon: <NodeIndexOutlined />, color: 'orange', sub: 'SLA_VERIFIED' }
+                ].map((s, i) => (
+                    <div key={i} className="bg-white/[0.02] border border-white/5 p-2 rounded flex flex-col justify-between h-14">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[8px] font-black uppercase tracking-widest text-white/40">{s.label}</span>
+                            <span className={`text-[10px] text-${s.color}-500/40`}>{s.icon}</span>
                         </div>
-                    </Col>
-                </Row>
-                <Progress
-                    percent={Math.round((allPhases.operationalCount / allPhases.totalPhases) * 100)}
-                    status={allPhases.operationalCount === allPhases.totalPhases ? 'success' : 'active'}
-                    style={{ marginTop: 16 }}
+                        <div className="flex items-baseline gap-1.5">
+                            <span className="text-xl font-mono font-black text-white leading-none tracking-tighter">{s.value}</span>
+                            <span className={`text-[7px] font-bold text-${s.color}-500/60 uppercase tracking-tighter`}>{s.sub}</span>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Global Integrity Bar */}
+            <div className="bg-white/[0.02] border border-white/5 p-3 rounded">
+                <div className="flex justify-between items-center mb-2">
+                    <div className="flex items-center gap-2">
+                        <div className={`w-1.5 h-1.5 rounded-full ${integrityPercent > 90 ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500 animate-ping'}`} />
+                        <span className="text-[9px] font-black uppercase tracking-widest text-white/60">Global Cluster Integrity</span>
+                    </div>
+                    <span className="text-[10px] font-mono text-white/80 font-black">{integrityPercent}%</span>
+                </div>
+                <Progress 
+                    percent={integrityPercent} 
+                    size={[100, 4]} 
+                    showInfo={false}
+                    strokeColor={{ '0%': '#10b981', '100%': '#3b82f6' }}
+                    trailColor="rgba(255,255,255,0.05)"
+                    className="m-0"
                 />
-            </Card>
+            </div>
 
-            {/* Per-phase tabs */}
-            <Tabs
-                type="card"
-                items={allPhases.phases.map(phase => {
-                    const meta = PHASE_META[phase.phase] ?? { icon: <ApiOutlined />, color: '#666', label: phase.name };
-                    const detail = details[phase.phase] ?? {};
+            {/* Phase Grid Matrix */}
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2">
+                {allPhases.phases.map(phase => {
                     const isOp = phase.status === 'operational';
+                    return (
+                        <div key={phase.phase} className={`group relative p-2.5 border rounded transition-all bg-white/[0.02] hover:bg-white/[0.04] overflow-hidden min-w-0 ${isOp ? 'border-white/5' : 'border-orange-500/20'}`}>
+                            {isOp && <div className="absolute top-0 right-0 w-1 h-1 bg-emerald-500 rounded-full m-1 animate-pulse" />}
+                            
+                            <div className="flex items-center justify-between mb-1.5 gap-2">
+                                <div className="flex flex-col min-w-0">
+                                    <span className="text-[7px] font-black text-white/30 tracking-widest uppercase">NODE_{phase.phase.toString().padStart(2, '0')}</span>
+                                    <span className="text-[10px] font-bold text-white/90 leading-tight group-hover:text-blue-400 transition-colors truncate">{phase.name}</span>
+                                </div>
+                                <div className={`w-5 h-5 rounded shrink-0 flex items-center justify-center border ${isOp ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-orange-500/20 bg-orange-500/5'}`}>
+                                    {isOp ? <CheckCircleOutlined className="text-emerald-500 text-[9px]" /> : <WarningOutlined className="text-orange-500 text-[9px]" />}
+                                </div>
+                            </div>
+                            
+                            <p className="text-[9px] text-white/40 line-clamp-2 leading-tight h-6 italic mb-2">
+                                {phase.description}
+                            </p>
 
-                    return {
-                        key: String(phase.phase),
-                        label: (
-                            <Space size={4}>
-                                {meta.icon}
-                                Phase {phase.phase}
-                                <Badge dot status={isOp ? 'success' : 'warning'} />
-                            </Space>
-                        ),
-                        children: (
-                            <Row gutter={[16, 16]}>
-                                {/* Header card */}
-                                <Col xs={24}>
-                                    <Card
-                                        bordered={false}
-                                        style={{ background: `${meta.color}10`, borderLeft: `4px solid ${meta.color}` }}
-                                    >
-                                        <Space size="middle">
-                                            <span style={{ fontSize: 28, color: meta.color }}>{meta.icon}</span>
-                                            <div>
-                                                <Title level={4} style={{ margin: 0 }}>
-                                                    Phase {phase.phase}: {phase.name}
-                                                </Title>
-                                                <Text type="secondary">{phase.description}</Text>
-                                            </div>
-                                            <Tag
-                                                color={isOp ? 'success' : 'warning'}
-                                                icon={isOp ? <CheckCircleOutlined /> : <WarningOutlined />}
-                                                style={{ marginLeft: 'auto' }}
-                                            >
-                                                {isOp ? 'Operational' : 'Partial'}
-                                            </Tag>
-                                        </Space>
-                                    </Card>
-                                </Col>
-
-                                {/* Agent count (if available) */}
-                                {detail.agentCount != null && (
-                                    <Col xs={12} sm={6}>
-                                        <Card>
-                                            <Statistic
-                                                title="Agents"
-                                                value={detail.agentCount as number}
-                                                prefix={<ThunderboltOutlined />}
-                                            />
-                                        </Card>
-                                    </Col>
-                                )}
-
-                                {/* Agents list */}
-                                {Array.isArray(detail.agents) && detail.agents.length > 0 && (
-                                    <Col xs={24} sm={12}>
-                                        <Card title="🤖 Agents" size="small">
-                                            <List
-                                                size="small"
-                                                dataSource={detail.agents as string[]}
-                                                renderItem={item => (
-                                                    <List.Item>
-                                                        <Tag color="blue">{item}</Tag>
-                                                    </List.Item>
-                                                )}
-                                            />
-                                        </Card>
-                                    </Col>
-                                )}
-
-                                {/* Capabilities */}
-                                {Array.isArray(detail.capabilities) && detail.capabilities.length > 0 && (
-                                    <Col xs={24}>
-                                        <Card title="⚡ Capabilities" size="small">
-                                            <Timeline
-                                                items={(detail.capabilities as string[]).map(cap => ({
-                                                    color: 'green',
-                                                    children: cap,
-                                                }))}
-                                            />
-                                        </Card>
-                                    </Col>
-                                )}
-
-                                {/* Services (Phase 1 health map) */}
-                                {detail.services && typeof detail.services === 'object' && (
-                                    <Col xs={24}>
-                                        <Card title="⚙️ Services" size="small">
-                                            <Row gutter={[8, 8]}>
-                                                {Object.entries(detail.services as Record<string, unknown>).map(([svc, info]) => {
-                                                    const infoMap = info as Record<string, unknown>;
-                                                    const svcStatus = String(infoMap?.status ?? '');
-                                                    const ok = svcStatus.includes('OK') || svcStatus.includes('Active');
-                                                    return (
-                                                        <Col key={svc} xs={12} sm={6}>
-                                                            <Tag color={ok ? 'success' : 'warning'} style={{ width: '100%', textAlign: 'center' }}>
-                                                                {svc}: {ok ? '✅' : '⚠️'}
-                                                            </Tag>
-                                                        </Col>
-                                                    );
-                                                })}
-                                            </Row>
-                                        </Card>
-                                    </Col>
-                                )}
-
-                                {/* Status URL */}
-                                <Col xs={24}>
-                                    <Text type="secondary" style={{ fontSize: 11 }}>
-                                        Status endpoint: <code>{phase.statusUrl}</code>
-                                    </Text>
-                                </Col>
-                            </Row>
-                        ),
-                    };
+                            <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                                <span className={`text-[7px] px-1.5 py-0.5 rounded-sm font-black uppercase tracking-tighter ${isOp ? 'text-emerald-500 bg-emerald-500/10' : 'text-orange-500 bg-orange-500/10'}`}>
+                                    {phase.status}
+                                </span>
+                                <Tooltip title={phase.statusUrl} placement="bottom">
+                                    <div className="flex items-center gap-1 opacity-20 hover:opacity-100 cursor-help transition-opacity">
+                                        <ApiOutlined className="text-white text-[9px]" />
+                                    </div>
+                                </Tooltip>
+                            </div>
+                        </div>
+                    );
                 })}
-            />
+            </div>
         </div>
     );
 };

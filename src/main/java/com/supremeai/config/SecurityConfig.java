@@ -37,7 +37,7 @@ public class SecurityConfig {
              .cors(cors -> cors.configurationSource(corsConfigurationSource()))
              .csrf(csrf -> csrf
                  .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                 .ignoringRequestMatchers("/api/auth/**", "/api/health/**")
+                 .ignoringRequestMatchers("/api/auth/**", "/api/health/**", "/api/ext/**")
              )
              .sessionManagement(session -> 
                  session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
@@ -75,6 +75,12 @@ public class SecurityConfig {
                     "/*.js",
                     "/*.css",
                     "/*.svg",
+                    "/*.json",
+                    "/*.ico",
+                    "/assets/**",
+                    "/static/**",
+                    "/manifest.json",
+                    "/sw.js",
                     "/api/auth/firebase-login",
                     "/api/auth/register",
                     "/api/auth/forgot-password",
@@ -87,9 +93,11 @@ public class SecurityConfig {
                     "/ws/**",
                     "/error",
                     "/api/v1/chat/completions",
-                    "/api/ext/**"
+                    "/api/ext/**",
+                    "/admin",
+                    "/admin/**",
+                    "/admin/index.html"
                 ).permitAll()
-                .requestMatchers("/admin", "/admin.html").hasRole("ADMIN")
                  .requestMatchers("/api/debug/**").hasRole("ADMIN")
                  .requestMatchers("/api/security/**").hasRole("ADMIN")
                  .requestMatchers("/api/admin/**").hasRole("ADMIN")

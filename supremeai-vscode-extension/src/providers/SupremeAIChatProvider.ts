@@ -38,7 +38,15 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
     }
 
     this.setupWebviewMessageListener(webviewView);
+
+    // Set initial loading state
+    webviewView.webview.html = this.getLoadingHTML();
+
     this.updateContent(webviewView);
+  }
+
+  private getLoadingHTML(): string {
+    return `<!DOCTYPE html><html><body style="display:flex;justify-content:center;align-items:center;height:100vh;color:var(--vscode-descriptionForeground);font-family:sans-serif;background:var(--vscode-sideBar-background);"><div>🤖 Initializing AI Assistant...</div></body></html>`;
   }
 
   private setupWebviewMessageListener(webviewView: vscode.WebviewView): void {
@@ -632,20 +640,28 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
   }
 
   private renderMessage(msg: ChatMessage): string {
-    const time = new Date(msg.timestamp).toLocaleTimeString();
+    let time = '';
+    try {
+      time = new Date(msg.timestamp).toLocaleTimeString();
+    } catch (e) {
+      time = new Date().toLocaleTimeString();
+    }
+    
     const isThinking = msg.thinking;
     const isError = msg.error;
+    const role = msg.role || 'assistant';
+    const content = msg.content || '';
     
     return `
-      <div class="message ${msg.role}">
-        <div class="avatar ${msg.role}-avatar">
-          ${msg.role === 'user' ? 'U' : 'AI'}
+      <div class="message ${role}">
+        <div class="avatar ${role}-avatar">
+          ${role === 'user' ? 'U' : 'AI'}
         </div>
         <div class="message-content ${isError ? 'error' : ''} ${isThinking ? 'thinking' : ''}">
-          ${msg.content}
+          ${content}
         </div>
       </div>
-      <div class="message-meta" style="margin-left: ${msg.role === 'user' ? 'auto' : '44px'}; text-align: ${msg.role === 'user' ? 'right' : 'left'};">
+      <div class="message-meta" style="margin-left: ${role === 'user' ? 'auto' : '44px'}; text-align: ${role === 'user' ? 'right' : 'left'};">
         ${time}
       </div>
     `;

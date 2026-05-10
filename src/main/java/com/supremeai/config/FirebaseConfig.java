@@ -6,6 +6,7 @@ import com.google.firebase.FirebaseOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -32,12 +33,14 @@ public class FirebaseConfig {
 
     /** 
      * FirebaseApp‑কে ইনিশিয়ালাইজ করে এবং Spring‑এ Bean হিসেবে রেজিস্টার করে। 
+     * Controlled by 'firebase.enabled' property (default true).
      */
     @Bean
+    @ConditionalOnProperty(name = "firebase.enabled", havingValue = "true", matchIfMissing = true)
     public FirebaseApp firebaseApp() throws IOException {
         log.info("Initializing Firebase Application for project: {} and database: {}", projectId, databaseUrl);
         
-        // রিসোর্স ফোল্ডারে (src/main/resources) firebase-service-account.json নামের ফাইল যদি থাকে,
+        // রিসোর্স ফোল্ডারে (src/main/resources) firebase-service-account.json নামের ফাইলodziallyতি থাকে,
         // সেটি ব্যবহার করা হবে।
         InputStream serviceAccount = getClass().getClassLoader()
                 .getResourceAsStream("firebase-service-account.json");
@@ -65,7 +68,7 @@ public class FirebaseConfig {
 
          FirebaseOptions options = builder.build();
          
-         // “DEFAULT” calls app রেজিস্টার – AuthenticationController‑এ এটাই প্রত্যাশিত
+         // "DEFAULT" calls app রেজিস্টার – AuthenticationController‑এ এটাই প্রত্যশিত
          try {
              return FirebaseApp.getInstance();
          } catch (IllegalStateException e) {

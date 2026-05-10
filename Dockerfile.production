@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-FROM gradle:8.7-jdk17 AS build
+FROM gradle:8.7-jdk21 AS build
 WORKDIR /workspace
 COPY --chown=gradle:gradle . .
 RUN chmod +x gradlew
@@ -9,7 +9,7 @@ RUN set -eux; \
     JAR_FILE=$(ls build/libs/*.jar | grep -v -- '-plain\.jar$' | head -n 1); \
     cp "$JAR_FILE" build/libs/app.jar
 
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
 RUN apt-get update \

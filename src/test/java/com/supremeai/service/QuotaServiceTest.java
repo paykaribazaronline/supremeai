@@ -3,6 +3,7 @@ package com.supremeai.service;
 import com.supremeai.cost.QuotaManager;
 import com.supremeai.model.UserApiKey;
 import com.supremeai.repository.UserApiKeyRepository;
+import com.supremeai.service.ConfigService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,6 +32,9 @@ class QuotaServiceTest {
 
     @Mock
     private QuotaManager quotaManager;
+
+    @Mock
+    private ConfigService configService;
 
     @InjectMocks
     private QuotaService quotaService;
@@ -50,6 +56,9 @@ class QuotaServiceTest {
         exhaustedApiKey = new UserApiKey("user2", "Anthropic", "Exhausted", "key-3");
         exhaustedApiKey.setStatus("active");
         exhaustedApiKey.setRequestCount(1000L);
+
+        // Mock ConfigService - lenient because not all tests use it
+        lenient().when(configService.getSetting("default_monthly_quota", 1000L)).thenReturn(1000L);
     }
 
     @Test

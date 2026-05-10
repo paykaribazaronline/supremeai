@@ -10,25 +10,18 @@ import {
     Form,
     Input,
     Modal,
-    Tag,
-    Steps,
     Alert,
     Spin,
     Space,
     Drawer,
-    Timeline,
     Badge,
     Tooltip,
     Empty,
 } from 'antd';
 import {
     GithubOutlined,
-    CheckCircleOutlined,
-    ClockCircleOutlined,
-    CloseCircleOutlined,
     RocketOutlined,
     BugOutlined,
-    PullRequestOutlined,
     FileOutlined,
     ReloadOutlined,
     DownloadOutlined,
@@ -64,7 +57,7 @@ const GitHubDashboard: React.FC = () => {
     const [commits, setCommits] = useState<Commit[]>([]);
     const [repoInfo, setRepoInfo] = useState<RepositoryInfo | null>(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('workflows');
+
     const [form] = Form.useForm();
     const [issueModalVisible, setIssueModalVisible] = useState(false);
     const [rawLogsVisible, setRawLogsVisible] = useState(false);

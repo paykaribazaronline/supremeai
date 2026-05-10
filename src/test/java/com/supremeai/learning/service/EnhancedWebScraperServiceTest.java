@@ -2,6 +2,7 @@ package com.supremeai.learning.service;
 
 import com.supremeai.learning.service.EnhancedContentSanitizerService;
 import com.supremeai.learning.knowledge.SolutionMemory;
+import com.supremeai.service.ConfigService;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -14,6 +15,8 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 /**
@@ -27,17 +30,33 @@ class EnhancedWebScraperServiceTest {
     @Mock
     private EnhancedContentSanitizerService mockSanitizer;
 
+    @Mock
+    private ConfigService mockConfigService;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         scraper = new EnhancedWebScraperService();
         // Inject sanitizer via reflection
         try {
-            java.lang.reflect.Field field = EnhancedWebScraperService.class.getDeclaredField("sanitizer");
-            field.setAccessible(true);
-            field.set(scraper, mockSanitizer);
+            java.lang.reflect.Field fieldSanitizer = EnhancedWebScraperService.class.getDeclaredField("sanitizer");
+            fieldSanitizer.setAccessible(true);
+            fieldSanitizer.set(scraper, mockSanitizer);
         } catch (Exception e) {
             fail("Failed to inject sanitizer: " + e.getMessage());
+        }
+        // Inject ConfigService via reflection
+        try {
+            java.lang.reflect.Field fieldConfig = EnhancedWebScraperService.class.getDeclaredField("configService");
+            fieldConfig.setAccessible(true);
+            fieldConfig.set(scraper, mockConfigService);
+            // Stub default settings
+            when(mockConfigService.getSetting("scraper_rate_limit_requests", 10)).thenReturn(10);
+            when(mockConfigService.getSetting("scraper_rate_limit_window", 60)).thenReturn(60);
+            when(mockConfigService.getSetting("scraper_cache_ttl", 30)).thenReturn(30);
+            when(mockConfigService.getThreshold(anyString(), anyDouble())).thenReturn(0.50);
+        } catch (Exception e) {
+            fail("Failed to inject ConfigService: " + e.getMessage());
         }
     }
 

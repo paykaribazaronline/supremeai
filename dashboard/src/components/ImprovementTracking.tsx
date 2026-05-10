@@ -1,8 +1,8 @@
 // ImprovementTracking.tsx - Track AI-Generated Improvements and Changes
 
 import React, { useState, useEffect } from 'react';
-import { Card, Tabs, Table, Tag, Timeline, Button, Modal, Form, Input, Select, message, Row, Col, Empty } from 'antd';
-import { CheckCircleOutlined, ClockCircleOutlined, RocketOutlined } from '@ant-design/icons';
+import { Card, Tabs, Table, Tag, Timeline, message, Row, Col, Empty } from 'antd';
+import { CheckCircleOutlined } from '@ant-design/icons';
 import { authUtils } from '../lib/authUtils';
 
 interface Improvement {
@@ -20,7 +20,7 @@ interface Improvement {
 const ImprovementTracking: React.FC = () => {
     const [improvements, setImprovements] = useState<Improvement[]>([]);
     const [loading, setLoading] = useState(false);
-    const [form] = Form.useForm();
+
     const [activeTab, setActiveTab] = useState('planned');
 
     useEffect(() => {

@@ -28,6 +28,9 @@ public class FirestoreLocalConfig {
 
     private static final Logger log = LoggerFactory.getLogger(FirestoreLocalConfig.class);
 
+    @org.springframework.beans.factory.annotation.Value("${spring.cloud.gcp.firestore.host:}")
+    private String emulatorHost;
+
     /** Cloud Firestore-এর আসল gRPC endpoint */
     private static final String CLOUD_FIRESTORE_ENDPOINT = "firestore.googleapis.com:443";
 
@@ -43,10 +46,17 @@ public class FirestoreLocalConfig {
 
     @Bean
     public ManagedChannel firestoreManagedChannel() {
-        // ALWAYS connect to Cloud Firestore to prevent emulator conflicts
+        if (emulatorHost != null && !emulatorHost.isEmpty()) {
+            log.info("Firestore: Connecting to EMULATOR at {}", emulatorHost);
+            return ManagedChannelBuilder.forTarget(emulatorHost)
+                    .usePlaintext()
+                    .build();
+        }
+        
         log.info("Firestore: Connecting to CLOUD FIRESTORE at {}", CLOUD_FIRESTORE_ENDPOINT);
         return ManagedChannelBuilder.forTarget(CLOUD_FIRESTORE_ENDPOINT)
-                .build(); // TLS enabled by default for cloud
+                .useTransportSecurity() // Cloud needs TLS
+                .build();
     }
 
     @Bean
