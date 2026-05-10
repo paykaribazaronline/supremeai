@@ -1,0 +1,15 @@
+{
+  "plan23": {
+    "files": 6,
+    "total": 6,
+    "status": "PASS"
+  },
+  "plan24": {
+    "files": 4,
+    "total": 4,
+    "status": "PASS"
+  },
+  "overall": "FAIL",
+  "java_compile": "FAIL",
+  "pipeline": "PASS"
+}
