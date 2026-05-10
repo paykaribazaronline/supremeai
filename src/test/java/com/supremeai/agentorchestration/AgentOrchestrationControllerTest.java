@@ -133,7 +133,9 @@ class AgentOrchestrationControllerTest {
         StepVerifier.create(result)
                 .consumeNextWith(response -> {
                     assertEquals(200, response.getStatusCode().value());
+                    @SuppressWarnings("unchecked")
                     Map<String, Object> body = (Map<String, Object>) response.getBody();
+                    assertNotNull(body);
                     assertEquals("COMPLETED", body.get("status"));
                 })
                 .verifyComplete();

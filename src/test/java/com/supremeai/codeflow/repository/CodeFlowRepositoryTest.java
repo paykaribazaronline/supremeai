@@ -282,7 +282,8 @@ class CodeFlowRepositoryTest {
 
         when(mockFirestore.collection("codeflow/repositories")).thenReturn(mockColl);
         when(mockColl.document("hlt-1")).thenReturn(mockDocRef);
-        when(mockDocRef.update(anyMap())).thenReturn((ApiFuture) mock(ApiFuture.class));
+        ApiFuture<WriteResult> mockFuture = mock(ApiFuture.class);
+        when(mockDocRef.update(anyMap())).thenReturn(mockFuture);
 
         repository.updateHealthScore("hlt-1", 85, "B");
 
