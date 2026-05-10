@@ -1,0 +1,16 @@
+{
+  "server": {
+    "host": "localhost",
+    "port": 5000,
+    "debug": false
+  },
+  "health": {
+    "enabled": true,
+    "endpoint": "/health",
+    "checkInterval": 60
+  },
+  "monitoring": {
+    "enabled": true,
+    "collectMetrics": true
+  }
+}

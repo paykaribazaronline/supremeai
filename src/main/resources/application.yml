@@ -1,0 +1,74 @@
+spring:
+  application:
+    name: supremeai
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+  datasource:
+    url: ${DATABASE_URL:jdbc:h2:mem:testdb}
+    username: ${DATABASE_USERNAME:sa}
+    password: ${DATABASE_PASSWORD:}
+    hikari:
+      maximum-pool-size: 100
+      minimum-idle: 10
+      idle-timeout: 300000
+      connection-timeout: 10000
+      max-lifetime: 1200000
+      leak-detection-threshold: 60000
+
+  # Enable actuator endpoints for Kubernetes health checks
+  cloud:
+    kubernetes:
+      enabled: true
+      readiness-probe:
+        initial-delay: 30
+      liveness-probe:
+        initial-delay: 60
+
+jwt:
+  secret: ${JWT_SECRET}
+
+# Management endpoints for K8s probes
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    defaults:
+      enabled: true
+
+supremeai:
+  providers:
+    openai: ${OPENAI_API_KEY:}
+    gemini: ${GEMINI_API_KEY:}
+    anthropic: ${ANTHROPIC_API_KEY:}
+    cohere: ${COHERE_API_KEY:}
+    perplexity: ${PERPLEXITY_API_KEY:}
+    mistral: ${MISTRAL_API_KEY:}
+    llama: ${LLAMA_API_KEY:}
+    deepseek: ${DEEPSEEK_API_KEY:}
+    grok: ${GROK_API_KEY:}
+    groq: ${GROQ_API_KEY:}
+    custom-supreme-ai: ${CUSTOM_SUPREME_AI_KEY:}
+
+# Rate limiting configuration
+rate-limit:
+  enabled: true
+  distributed: true
+  window-seconds: 60
+  authenticated-requests-per-minute: 100
+  anonymous-requests-per-minute: 10
+  admin-requests-per-minute: 1000
+  ai-provider-requests-per-minute: 50
+
+logging:
+  level:
+    com.supremeai: DEBUG
