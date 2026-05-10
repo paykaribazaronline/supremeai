@@ -107,15 +107,8 @@ export async function firebaseSignIn(
 
     const idTokenResult = await getIdTokenResult(cred.user);
     
-    // In emulator mode, bypass admin role verification
-    if (import.meta.env.VITE_USE_FIREBASE_EMULATOR !== 'true') {
-      // Check admin role via Firebase custom claims (case-insensitive)
-      const role = idTokenResult.claims['role'] as string | undefined;
-      if (role?.toLowerCase() !== 'admin') {
-        await signOut(firebaseAuth);
-        throw new Error('Access denied: You do not have admin privileges.');
-      }
-    }
+    // Role verification is handled by the backend exchange (/api/auth/firebase-login)
+    // which checks both custom claims and the admin email whitelist.
 
     const idToken = idTokenResult.token;
 
