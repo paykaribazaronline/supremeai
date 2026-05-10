@@ -61,7 +61,7 @@ jobs:
       mobile: ${{ steps.filter.outputs.mobile }}
       functions: ${{ steps.filter.outputs.functions }}
       extensions: ${{ steps.filter.outputs.extensions }}
-      any_changes: ${{ steps.filter.outputs.backend == 'true' || steps.filter.outputs.dashboard == 'true' || steps.filter.outputs.mobile == 'true' || steps.filter.outputs.functions == 'true' }}
+      any_changes: ${{ steps.filter.outputs.backend == 'true' || steps.filter.outputs.dashboard == 'true' || steps.filter.outputs.mobile == 'true' || steps.filter.outputs.functions == 'true' || steps.filter.outputs.extensions == 'true' }}
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -242,7 +242,8 @@ jobs:
         run: |
           npm ci
           npm run compile
-          npx vsce package -o supremeai-vscode.vsix
+          # Use --no-verify to skip license/readme checks if they are missing, but we copied them anyway
+          npx vsce package --out supremeai-vscode.vsix
           
       - name: ☕ Setup Java (IntelliJ)
         uses: actions/setup-java@v4
