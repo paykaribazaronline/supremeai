@@ -1,19 +1,36 @@
 steps:
   # Build the container image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/supremeai-repo/supremeai:$SHORT_SHA', '.']
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/supremeai-repo/supremeai:latest', '.']
   
   # Push the container image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/supremeai-repo/supremeai:$SHORT_SHA']
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/supremeai-repo/supremeai:latest']
   
-  # Deploy to GKE
+  # Deploy to Google Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'supremeai-backend'
+      - '--image'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/supremeai-repo/supremeai:latest'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'SPRING_PROFILES_ACTIVE=cloud'
+
+  # Deploy to GKE (Optional/Secondary)
   - name: 'gcr.io/cloud-builders/kubectl'
     args:
       - 'set'
       - 'image'
       - 'deployment/supremeai'
-      - 'supremeai=us-central1-docker.pkg.dev/$PROJECT_ID/supremeai-repo/supremeai:$SHORT_SHA'
+      - 'supremeai=us-central1-docker.pkg.dev/$PROJECT_ID/supremeai-repo/supremeai:latest'
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
       - 'CLOUDSDK_CONTAINER_CLUSTER=supremeai-cluster'
@@ -26,4 +43,4 @@ steps:
       - 'CLOUDSDK_CONTAINER_CLUSTER=supremeai-cluster'
 
 images:
-  - 'us-central1-docker.pkg.dev/$PROJECT_ID/supremeai-repo/supremeai:$SHORT_SHA'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/supremeai-repo/supremeai:latest'
