@@ -2,12 +2,12 @@ name: SupremeAI Unified Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, master]
     paths-ignore:
       - '**/*.md'
       - 'LICENSE'
   pull_request:
-    branches: [main]
+    branches: [main, master]
   workflow_dispatch:
     inputs:
       force_run_all:
@@ -67,6 +67,9 @@ jobs:
       frontend: "${{ steps.filter.outputs.frontend }}"
       plugin: "${{ steps.filter.outputs.plugin }}"
       vscode_extension: "${{ steps.filter.outputs.vscode_extension }}"
+      functions: "${{ steps.filter.outputs.functions }}"
+      command_hub: "${{ steps.filter.outputs.command_hub }}"
+      studio_client: "${{ steps.filter.outputs.studio_client }}"
       any_changes: "${{ steps.filter.outputs.any_changes }}"
       failed_jobs: "${{ steps.get-failed.outputs.failed_jobs }}"
     steps:
@@ -110,6 +113,15 @@ jobs:
               - '.github/workflows/**'
             vscode_extension:
               - 'supremeai-vscode-extension/**'
+              - '.github/workflows/**'
+            functions:
+              - 'functions/**'
+              - '.github/workflows/**'
+            command_hub:
+              - 'command-hub/**'
+              - '.github/workflows/**'
+            studio_client:
+              - 'supremeai-studio-client/**'
               - '.github/workflows/**'
 
       - name: Get Failed Jobs From Previous Run
@@ -164,8 +176,8 @@ jobs:
         id: codeflow
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SUPREMEAI_API_URL: ${{ secrets.SUPREMEAI_API_URL }}
-          SUPREMEAI_API_KEY: ${{ secrets.SUPREMEAI_API_KEY }}
+          SUPREMEAI_API_URL: ${{ secrets.SUPREMEAI_BASE_URL }}
+          SUPREMEAI_API_KEY: ${{ secrets.SUPREMEAI_SETUP_TOKEN }}
         run: |
           #!/bin/bash
           set -e
@@ -185,13 +197,17 @@ jobs:
           TOTAL_LINES=$(find . -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.tsx" -o -name "*.jsx" -o -name "*.java" -o -name "*.go" -o -name "*.rs" -o -name "*.rb" -o -name "*.c" -o -name "*.cpp" -o -name "*.h" \) ! -path "*/node_modules/*" ! -path "*/.git/*" ! -path "*/dist/*" ! -path "*/build/*" -exec cat {} \; | wc -l)
           SECURITY_CRITICAL=0; SECURITY_HIGH=0; SECURITY_MEDIUM=0; HEALTH_SCORE=100
           if grep -r "eval(" . --include="*.js" --include="*.ts" 2>/dev/null | grep -v node_modules | grep -v ".git" | head -5; then SECURITY_CRITICAL=$((SECURITY_CRITICAL + 1)); fi
-          HEALTH_SCORE=$((HEALTH_SCORE - SECURITY_CRITICAL * 15 - SECURITY_HIGH * 8))
+          if grep -r "password\s*=\s*['\"]" . --include="*.js" --include="*.ts" --include="*.py" --include="*.java" 2>/dev/null | grep -v node_modules | grep -v ".git" | grep -v test | head -5; then SECURITY_HIGH=$((SECURITY_HIGH + 1)); fi
+          HEALTH_SCORE=$((HEALTH_SCORE - SECURITY_CRITICAL * 15 - SECURITY_HIGH * 8 - SECURITY_MEDIUM * 4))
           [ $HEALTH_SCORE -lt 0 ] && HEALTH_SCORE=0
           if [ $HEALTH_SCORE -ge 90 ]; then HEALTH_GRADE="A"; HEALTH_COLOR="#52c41a"
           elif [ $HEALTH_SCORE -ge 80 ]; then HEALTH_GRADE="B"; HEALTH_COLOR="#1890ff"
           elif [ $HEALTH_SCORE -ge 70 ]; then HEALTH_GRADE="C"; HEALTH_COLOR="#faad14"
+          elif [ $HEALTH_SCORE -ge 60 ]; then HEALTH_GRADE="D"; HEALTH_COLOR="#ff7875"
           else HEALTH_GRADE="F"; HEALTH_COLOR="#ff4d4f"; fi
           echo "Health Score: ${HEALTH_SCORE} (${HEALTH_GRADE})"
+          
+          # Generate SVG badge
           cat > "${REPORT_DIR}/health-badge.svg" << EOF
           <svg xmlns="http://www.w3.org/2000/svg" width="110" height="20">
             <g><rect width="110" height="20" rx="3" fill="#555"/><rect x="60" width="50" height="20" rx="3" fill="${HEALTH_COLOR}"/></g>
@@ -200,11 +216,52 @@ jobs:
             </g>
           </svg>
           EOF
+          
+          # Generate SVG Cards
+          cat > "${REPORT_DIR}/card-compact.svg" << EOF
+          <svg xmlns="http://www.w3.org/2000/svg" width="300" height="80">
+            <rect width="300" height="80" fill="#16161a" rx="8"/>
+            <text x="15" y="25" fill="#f0f0f2" font-family="sans-serif" font-size="14" font-weight="bold">CodeFlow Analysis</text>
+            <circle cx="270" cy="40" r="15" fill="${HEALTH_COLOR}"/>
+            <text x="270" y="45" fill="white" font-family="sans-serif" font-size="12" font-weight="bold" text-anchor="middle">${HEALTH_GRADE}</text>
+            <text x="15" y="55" fill="#a3a3a3" font-family="sans-serif" font-size="12">Score: ${HEALTH_SCORE}/100</text>
+            <text x="15" y="70" fill="#666" font-family="sans-serif" font-size="10">Files: ${TOTAL_FILES} | Lines: ${TOTAL_LINES}</text>
+          </svg>
+          EOF
+          
+          cat > "${REPORT_DIR}/card-row.svg" << EOF
+          <svg xmlns="http://www.w3.org/2000/svg" width="400" height="60">
+            <rect width="400" height="60" fill="#0a0a0c" rx="6"/>
+            <text x="10" y="20" fill="#00ff9d" font-family="sans-serif" font-size="12" font-weight="bold">SupremeAI CodeFlow</text>
+            <rect x="10" y="35" width="300" height="10" fill="#262626" rx="5"/>
+            <rect x="10" y="35" width="$((HEALTH_SCORE * 3))" height="10" fill="${HEALTH_COLOR}" rx="5"/>
+            <text x="320" y="44" fill="#f0f0f2" font-family="sans-serif" font-size="12" font-weight="bold">${HEALTH_SCORE}%</text>
+          </svg>
+          EOF
+          
           cat > "${REPORT_DIR}/analysis-report.json" << EOF
-          {"repository":"${GITHUB_REPOSITORY}","branch":"${BRANCH}","commit":"${COMMIT_SHA}","timestamp":"$(date -u +"%Y-%m-%dT%H:%M:%SZ")","metrics":{"healthScore":${HEALTH_SCORE},"healthGrade":"${HEALTH_GRADE}","totalFiles":${TOTAL_FILES},"totalLines":${TOTAL_LINES},"security":{"critical":${SECURITY_CRITICAL}}}}
+          {
+            "repository":"${GITHUB_REPOSITORY}",
+            "branch":"${BRANCH}",
+            "commit":"${COMMIT_SHA}",
+            "timestamp":"$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+            "metrics":{
+              "healthScore":${HEALTH_SCORE},
+              "healthGrade":"${HEALTH_GRADE}",
+              "totalFiles":${TOTAL_FILES},
+              "totalLines":${TOTAL_LINES},
+              "security":{
+                "critical":${SECURITY_CRITICAL},
+                "high":${SECURITY_HIGH},
+                "medium":${SECURITY_MEDIUM}
+              }
+            }
+          }
           EOF
           echo "health_score=${HEALTH_SCORE}" >> $GITHUB_OUTPUT
           echo "health_grade=${HEALTH_GRADE}" >> $GITHUB_OUTPUT
+          echo "security_critical=${SECURITY_CRITICAL}" >> $GITHUB_OUTPUT
+          echo "security_high=${SECURITY_HIGH}" >> $GITHUB_OUTPUT
           echo "report_dir=${REPORT_DIR}" >> $GITHUB_OUTPUT
           echo "::endgroup::"
 
@@ -215,7 +272,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add .github/codeflow-reports/ || true
           if ! git diff --cached --quiet; then
-            git commit -m "docs: update CodeFlow analysis reports [skip ci]" || true
+            git commit -m "docs: update CodeFlow analysis reports [skip ci]" -m "Health Score: ${{ steps.codeflow.outputs.health_score }}/${{ steps.codeflow.outputs.health_grade }}" || true
             git push origin HEAD:${GITHUB_REF#refs/heads/} || true
           fi
 
@@ -226,7 +283,39 @@ jobs:
           script: |
             const healthScore = '${{ steps.codeflow.outputs.health_score }}';
             const healthGrade = '${{ steps.codeflow.outputs.health_grade }}';
-            const body = `## 🔍 CodeFlow Analysis Report\n\n### Health Score: **${healthScore}/100** (${healthGrade})\n\n*Automated by SupremeAI CodeFlow*`;
+            const securityCritical = '${{ steps.codeflow.outputs.security_critical }}';
+            const securityHigh = '${{ steps.codeflow.outputs.security_high }}';
+            
+            const badgeColor = healthGrade === 'A' ? '52c41a' : healthGrade === 'B' ? '1890ff' : healthGrade === 'C' ? 'faad14' : 'ff4d4f';
+            
+            const body = `
+            ## 🔍 CodeFlow Analysis Report
+            
+            <div align="center">
+            
+            ### Health Score: **${healthScore}/100** (${healthGrade})
+            
+            ![Health Badge](https://img.shields.io/badge/Health-${healthScore}-${badgeColor})
+            
+            </div>
+            
+            ### 📊 Metrics
+            
+            | Metric | Value |
+            |--------|-------|
+            | Health Grade | **${healthGrade}** |
+            | Health Score | **${healthScore}/100** |
+            | Security Critical | ${securityCritical || 0} |
+            | Security High | ${securityHigh || 0} |
+            
+            ### 🔒 Security Status
+            
+            ${securityCritical > 0 || securityHigh > 0 ? '⚠️ **Security issues detected!** Please review the report.' : '✅ No critical security issues found.'}
+            
+            ---
+            *Automated by SupremeAI CodeFlow*
+            `;
+            
             const { data: comments } = await github.rest.issues.listComments({ owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number });
             const existingComment = comments.find(c => c.body.includes('CodeFlow Analysis Report'));
             if (existingComment) { await github.rest.issues.updateComment({ owner: context.repo.owner, repo: context.repo.repo, comment_id: existingComment.id, body: body }); }
@@ -420,12 +509,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - name: Install Dependencies
+      - name: Build and Package
         working-directory: ./supremeai-vscode-extension
-        run: npm install
-      - name: Compile
-        working-directory: ./supremeai-vscode-extension
-        run: npm run compile
+        run: |
+          npm ci
+          npm run compile
       - name: Upload VSIX Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -435,6 +523,60 @@ jobs:
       - name: Store VSIX Path
         id: set-path
         run: echo "path=supremeai-vscode-extension/*.vsix" >> $GITHUB_OUTPUT
+
+  command-hub-check:
+    name: Command Hub CLI Check
+    needs: [changes, secret-scan]
+    if: >-
+      ${{
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
+        needs.changes.outputs.command_hub == 'true' ||
+        (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Command Hub CLI Check'))
+      }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check CLI Script
+        run: |
+          cd command-hub/cli
+          python3 -m py_compile supcmd.py
+
+  studio-client-build:
+    name: Studio Client Build
+    needs: [changes, secret-scan]
+    if: >-
+      ${{
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
+        needs.changes.outputs.studio_client == 'true' ||
+        (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Studio Client Build'))
+      }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: supremeai-studio-client/package-lock.json
+      - name: Install Dependencies
+        run: |
+          cd supremeai-studio-client
+          npm ci
+      - name: Build
+        run: |
+          cd supremeai-studio-client
+          npm run build
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: studio-client
+          path: supremeai-studio-client/dist
+          retention-days: 7
 
   flutter-build-and-test:
     name: Flutter Build and Test
@@ -748,7 +890,7 @@ jobs:
       ${{
         github.ref == 'refs/heads/main' &&
         ((github.event_name == 'workflow_dispatch' && github.event.inputs.force_run_all == 'true') ||
-         needs.changes.outputs.backend == 'true' ||
+         needs.changes.outputs.functions == 'true' ||
           (github.event.inputs.retry_failed_jobs == 'true' && contains(needs.changes.outputs.failed_jobs, 'Deploy Cloud Functions')))
       }}
     runs-on: ubuntu-latest
@@ -782,7 +924,7 @@ jobs:
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}'
           projectId: supremeai-a
           target: codeflow-reports
 
@@ -903,7 +1045,7 @@ jobs:
 
   workflow-summary:
     name: Workflow Summary
-    needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, deploy-cloud-functions, deploy-canary, performance-test, health-check, e2e-tests, generate-release-notes, update-badges, codeflow-analysis]
+    needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, command-hub-check, studio-client-build, deploy-backend, deploy-frontend, deploy-cloud-functions, deploy-canary, performance-test, health-check, e2e-tests, generate-release-notes, update-badges, codeflow-analysis]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -923,8 +1065,9 @@ jobs:
             echo "| ☕ Java Backend | ${{ needs.java-build-and-test.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
             echo "| 📱 Flutter Frontend | ${{ needs.flutter-build-and-test.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
             echo "| 🔌 IntelliJ Plugin | ${{ needs.plugin-build.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-            echo "| 💻 VS Code Ext | ${{ needs.vscode-extension-build.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
-            echo "| 🔍 CodeFlow Analysis | ${{ needs.codeflow-analysis.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🛠️  VS Code Ext | ${{ needs.vscode-extension-build.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🖥️  Studio Client | ${{ needs.studio-client-build.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🐚 Command Hub | ${{ needs.command-hub-check.result || 'Skipped' }} |" >> $GITHUB_STEP_SUMMARY
             echo "| 🚀 Performance Test | ${{ needs.performance-test.result || 'Skipped' }} | ${{ needs.performance-test.outputs.duration || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
             echo "| 🌐 Deploy Backend | ${{ needs.deploy-backend.result || 'Skipped' }} | ${{ needs.deploy-backend.outputs.duration || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
             echo "| 🔀 Canary Deploy | ${{ needs.deploy-canary.result || 'Skipped' }} | ${{ needs.deploy-canary.outputs.duration || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
@@ -953,7 +1096,7 @@ jobs:
 
   notification:
     name: Notification & Cleanup
-    needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, deploy-backend, deploy-frontend, deploy-cloud-functions, deploy-canary, performance-test, health-check, e2e-tests, generate-release-notes, workflow-summary, codeflow-analysis]
+    needs: [java-build-and-test, flutter-build-and-test, plugin-build, vscode-extension-build, command-hub-check, studio-client-build, deploy-backend, deploy-frontend, deploy-cloud-functions, deploy-canary, performance-test, health-check, e2e-tests, generate-release-notes, workflow-summary, codeflow-analysis]
     if: always()
     runs-on: ubuntu-latest
     steps:

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { authUtils } from '../lib/authUtils';
 
 const CommandPanel: React.FC = () => {
   const [command, setCommand] = useState('');
@@ -8,12 +9,11 @@ const CommandPanel: React.FC = () => {
     e.preventDefault();
     if (!command.trim()) return;
     try {
-      const token = localStorage.getItem('supremeai_token') || localStorage.getItem('authToken');
       const res = await fetch('/api/admin/command', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...authUtils.getAuthHeaders(),
         },
         body: JSON.stringify({ command }),
       });

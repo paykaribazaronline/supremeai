@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Select, Input, Button, Form, Typography, Spin, Alert, Tabs, Space } from 'antd';
 import { SendOutlined, CodeOutlined } from '@ant-design/icons';
+import { authUtils } from '../lib/authUtils';
 
 const { TextArea } = Input;
 const { Text, Title } = Typography;
@@ -41,11 +42,10 @@ const ApiTestConsole: React.FC<ApiTestConsoleProps> = ({ visible, onClose, apiKe
         setResponse(null);
 
         try {
-            const token = localStorage.getItem('authToken');
             const res = await fetch('/api/apikeys/test-request', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    ...authUtils.getAuthHeaders(),
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({

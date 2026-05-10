@@ -11,6 +11,7 @@ import {
     CloudUploadOutlined, ReloadOutlined, DesktopOutlined, CheckCircleOutlined,
     ExclamationCircleOutlined, LinkOutlined
 } from '@ant-design/icons';
+import { authUtils } from '../lib/authUtils';
 
 const { Text, Title } = Typography;
 const { Option } = Select;
@@ -54,12 +55,11 @@ interface DeviceProfile {
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 
 async function apiFetch(path: string, options?: RequestInit) {
-    const token = localStorage.getItem('authToken') || '';
     const res = await fetch(`${API_BASE}${path}`, {
         ...options,
         headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
+            ...authUtils.getAuthHeaders(),
             ...(options?.headers || {}),
         },
     });

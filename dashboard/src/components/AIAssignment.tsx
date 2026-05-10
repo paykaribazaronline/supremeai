@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Modal, Form, Select, Input, Slider, Space, Tag, message, Row, Col, Progress } from 'antd';
 import { PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { authUtils } from '../lib/authUtils';
 
 interface AIAgent {
     id: string;
@@ -39,10 +40,10 @@ const AIAssignment: React.FC = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('authToken');
+            const headers = authUtils.getAuthHeaders();
             const [agentsRes, assignmentsRes] = await Promise.all([
-                fetch('/api/ai/agents', { headers: { 'Authorization': `Bearer ${token}` } }),
-                fetch('/api/assignments', { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch('/api/ai/agents', { headers }),
+                fetch('/api/assignments', { headers }),
             ]);
 
             if (agentsRes.ok) {
@@ -62,11 +63,10 @@ const AIAssignment: React.FC = () => {
 
     const handleAssignTask = async (values: any) => {
         try {
-            const token = localStorage.getItem('authToken');
             const response = await fetch('/api/assignments/create', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    ...authUtils.getAuthHeaders(),
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(values),
