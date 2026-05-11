@@ -21,7 +21,7 @@ repositories {
 
 dependencies {
     intellijPlatform {
-        intellijIdeaCommunity("2024.3.1")
+        androidStudio("2024.2.1.11")
         bundledPlugin("com.intellij.java")
         bundledPlugin("org.jetbrains.kotlin")
         bundledPlugin("org.jetbrains.android")
@@ -53,7 +53,7 @@ intellijPlatform {
         name.set("SupremeAI Assistant")
         description.set("SupremeAI Assistant is a powerful AI-driven tool for Android Studio that helps you generate entire Android applications from natural language prompts, provides real-time code learning and context-aware suggestions, and offers K2 Mode compatibility for the latest IDE performance.")
         ideaVersion {
-            sinceBuild.set("243")
+            sinceBuild.set("242")
             untilBuild.set("253.*")
         }
         
