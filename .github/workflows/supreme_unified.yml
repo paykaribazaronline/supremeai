@@ -195,7 +195,21 @@ jobs:
       - name: 🐳 Build & Push Container
         if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name != 'pull_request'
         run: |
-          gcloud builds submit --tag us-central1-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/supremeai-repo/backend --suppress-logs --quiet .
+          BUILD_ID=$(gcloud builds submit --tag us-central1-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/supremeai-repo/backend --async --format="value(id)" --quiet .)
+          echo "Build submitted: $BUILD_ID"
+          echo "Waiting for build to complete..."
+          while true; do
+            STATUS=$(gcloud builds describe $BUILD_ID --format="value(status)")
+            echo "Current Status: $STATUS"
+            if [ "$STATUS" == "SUCCESS" ]; then
+              echo "✅ Build Succeeded!"
+              break
+            elif [ "$STATUS" == "FAILURE" ] || [ "$STATUS" == "INTERNAL_ERROR" ] || [ "$STATUS" == "TIMEOUT" ] || [ "$STATUS" == "CANCELLED" ]; then
+              echo "❌ Build Failed with status: $STATUS"
+              exit 1
+            fi
+            sleep 10
+          done
       - name: 🚀 Deploy to Cloud Run
         if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name != 'pull_request'
         run: |
