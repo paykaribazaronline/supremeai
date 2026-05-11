@@ -21,7 +21,7 @@ class SupremeAILearningClient {
             get() = "$apiEndpoint/api/v1/learning"
         
         private val pluginApiKey: String
-            get() = SupremeAISettings.getInstance().apiKey.takeIf { it.isNotEmpty() } ?: "supreme-ai-intellij-secret"
+            get() = SupremeAISettings.getInstance().apiKey.takeIf { it.isNotBlank() } ?: ""
 
         /**
          * Send error from Android Studio to backend for learning
