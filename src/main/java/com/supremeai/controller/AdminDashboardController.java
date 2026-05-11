@@ -76,17 +76,18 @@ public AdminDashboardController(UserRepository userRepository,
     public Mono<ApiResponse<Map<String, Object>>> getContract() {
         return Mono.zipDelayError(
                 Arrays.asList(
-                    agentRepository.findAll().count().onErrorReturn(0L),
-                    projectRepository.findAll().count().onErrorReturn(0L),
+                    agentRepository.count().onErrorReturn(0L),
+                    projectRepository.count().onErrorReturn(0L),
                     projectRepository.findByStatus("COMPLETED").count().onErrorReturn(0L),
-                    activityLogRepository.findAll().count().onErrorReturn(0L),
+                    activityLogRepository.count().onErrorReturn(0L),
                     activityLogRepository.findBySeverityOrderByTimestampDesc("CRITICAL").count().onErrorReturn(0L),
-                    systemLearningRepository.findAll().count().onErrorReturn(0L),
-                    vpnRepository.findAll().count().onErrorReturn(0L),
-                    userRepository.findAll().count().onErrorReturn(0L),
-                    userRepository.findAll().filter(u -> u.getIsActive() != null && u.getIsActive()).count().onErrorReturn(0L),
-                    providerRepository.findAll().count().onErrorReturn(0L),
-                    providerRepository.findAll().filter(p -> "ONLINE".equalsIgnoreCase(p.getStatus())).count().onErrorReturn(0L),
+                    systemLearningRepository.count().onErrorReturn(0L),
+                    vpnRepository.count().onErrorReturn(0L),
+                    // ইউজার স্ট্যাটিস্টিকস - সরাসরি ডেটাবেস ফিল্টার ব্যবহার করা হয়েছে
+                    userRepository.count().onErrorReturn(0L),
+                    userRepository.findByIsActive(true).count().onErrorReturn(0L),
+                    providerRepository.count().onErrorReturn(0L),
+                    providerRepository.findByStatus("ONLINE").count().onErrorReturn(0L),
                     projectRepository.findByStatus("ACTIVE").count().onErrorReturn(0L)
                 ),
                 data -> buildContract(data)

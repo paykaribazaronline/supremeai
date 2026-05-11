@@ -24,5 +24,14 @@ export default defineConfig(({ mode }) => ({
     outDir: 'dist',
     sourcemap: true,
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-antd': ['antd', '@ant-design/icons'],
+          'vendor-three': ['three', '@react-three/fiber', '@react-three/drei'],
+        },
+      },
+    },
   },
 }));

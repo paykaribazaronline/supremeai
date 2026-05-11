@@ -46,7 +46,7 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
   }
 
   private getLoadingHTML(): string {
-    return `<!DOCTYPE html><html><body style="display:flex;justify-content:center;align-items:center;height:100vh;color:var(--vscode-descriptionForeground);font-family:sans-serif;background:var(--vscode-sideBar-background);"><div>🤖 Initializing AI Assistant...</div></body></html>`;
+    return '<!DOCTYPE html><html><body style="display:flex;justify-content:center;align-items:center;height:100vh;color:var(--vscode-descriptionForeground);font-family:sans-serif;background:var(--vscode-sideBar-background);"><div>🤖 Initializing AI Assistant...</div></body></html>';
   }
 
   private setupWebviewMessageListener(webviewView: vscode.WebviewView): void {
