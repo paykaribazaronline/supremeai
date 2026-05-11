@@ -30,6 +30,9 @@ public class ProviderInitializationService {
     @Autowired
     private ProviderRepository providerRepository;
 
+    @Value("${ai.providers.ollama.endpoint:http://localhost:11434}")
+    private String ollamaEndpoint;
+
     private String determineType(String name) {
         String n = name.toUpperCase();
         if (n.contains("GEMINI")) return "GOOGLE";
@@ -82,7 +85,7 @@ public class ProviderInitializationService {
         } else if (name.contains("anthropic")) {
             provider.setBaseUrl("https://api.anthropic.com/v1/messages");
         } else if (name.contains("ollama")) {
-            provider.setBaseUrl("http://localhost:11434/v1/chat/completions");
+            provider.setBaseUrl(ollamaEndpoint + "/v1/chat/completions");
         }
     }
 

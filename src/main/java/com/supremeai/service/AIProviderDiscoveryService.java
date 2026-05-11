@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 /**
  * Service for discovering AI models from internet registries, cloud deployments, and local systems.
  * Implements the "Zero-Hardcoding" requirement for AI Provider Hub.
+ * (ইন্টারনেট রেজিস্ট্রি, ক্লাউড ডিপ্লয়মেন্ট এবং লোকাল সিস্টেম থেকে এআই মডেল খুঁজে বের করার সার্ভিস)
  */
 @Service
 public class AIProviderDiscoveryService {
@@ -29,6 +30,9 @@ public class AIProviderDiscoveryService {
 
     @Autowired
     private WebClient webClient;
+
+    @org.springframework.beans.factory.annotation.Value("${ai.providers.ollama.endpoint:http://localhost:11434}")
+    private String ollamaEndpoint;
 
     /**
      * Searches for AI models across various registries.
@@ -108,7 +112,7 @@ public class AIProviderDiscoveryService {
     public Flux<Map<String, Object>> scanDeployments() {
         // Ping localhost:11434 for Ollama
         return webClient.get()
-                .uri("http://localhost:11434/api/tags")
+                .uri(ollamaEndpoint + "/api/tags")
                 .retrieve()
                 .bodyToMono(Map.class)
                 .flatMapMany(m -> {
@@ -118,7 +122,7 @@ public class AIProviderDiscoveryService {
                                 "name", model.get("name"),
                                 "provider", "ollama",
                                 "type", "llm",
-                                "baseUrl", "http://localhost:11434"
+                                "baseUrl", ollamaEndpoint
                             ))
                             .collect(Collectors.toList()));
                 })

@@ -98,7 +98,7 @@ public class ProviderConfig {
 
     @Bean
     public OllamaProvider ollamaProvider() {
-        return new OllamaProvider(getEffectiveKey("ai.providers.ollama.api-key", ollamaApiKey));
+        return new OllamaProvider(getEffectiveKey("ai.providers.ollama.api-key", ollamaApiKey), ollamaEndpoint, "codegeex4");
     }
 
     @Bean
