@@ -168,9 +168,9 @@ jobs:
   # 🏗️ PHASE 2: BUILD & TEST
   # --------------------------------------------------------------------------------
   
-  backend-service:
-    name: ☕ Backend (Spring Boot)
-    needs: [initialize, security-scan]
+  backend-pipeline:
+    name: ☕ Backend (Build & Deploy)
+    needs: [initialize, security-scan, infrastructure-check]
     if: needs.initialize.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
@@ -184,17 +184,35 @@ jobs:
           cache: 'gradle'
       - name: 🔨 Build & Test
         run: ./gradlew clean build jacocoTestReport --no-daemon
-      - name: 📦 Archive Build Artifact
-        uses: actions/upload-artifact@v4
+      - name: 🔐 Google Auth
+        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name != 'pull_request'
+        uses: google-github-actions/auth@v2
         with:
-          name: backend-jar
-          path: build/libs/app.jar
-          retention-days: 1
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}
+      - name: 🛠️ Setup GCloud
+        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name != 'pull_request'
+        uses: google-github-actions/setup-gcloud@v2
+      - name: 🐳 Build & Push Container
+        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name != 'pull_request'
+        run: |
+          gcloud builds submit --tag us-central1-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/supremeai-repo/backend --dockerfile Dockerfile.prod --quiet
+      - name: 🚀 Deploy to Cloud Run
+        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name != 'pull_request'
+        run: |
+          gcloud run deploy supremeai-backend \
+            --image us-central1-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/supremeai-repo/backend \
+            --region ${{ env.GCP_REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --memory 2Gi \
+            --set-env-vars="SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=${{ env.GCP_PROJECT_ID }}" \
+            --update-secrets "JWT_SECRET=jwt-secret:latest,FIREBASE_SERVICE_ACCOUNT_JSON=firebase-service-account-json:latest" \
+            --quiet
 
-  dashboard-web:
-    name: ⚛️ Dashboard (React)
-    needs: [initialize, security-scan]
-    if: needs.initialize.outputs.dashboard == 'true' || github.event_name == 'workflow_dispatch'
+  frontend-pipeline:
+    name: ⚛️ Frontend & Mobile (Build & Deploy)
+    needs: [initialize, security-scan, infrastructure-check]
+    if: needs.initialize.outputs.dashboard == 'true' || needs.initialize.outputs.mobile == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout Code
@@ -205,48 +223,40 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: dashboard/package-lock.json
-      - name: 🔨 Install & Build
+      - name: 🔨 Build Dashboard
         working-directory: dashboard
         run: |
           npm ci
           npm run build
-      - name: 📦 Archive Build Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dashboard-dist
-          path: dashboard/dist
-          retention-days: 1
-
-  mobile-app:
-    name: 💙 Mobile (Flutter)
-    needs: [initialize, security-scan]
-    if: needs.initialize.outputs.mobile == 'true' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📥 Checkout Code
-        uses: actions/checkout@v4
       - name: 💙 Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
           cache: true
-      - name: 🔨 Build Web
+      - name: 🔨 Build Mobile Web
         working-directory: supremeai
         run: |
           flutter pub get
           flutter build web --release --base-href /mobile/
-      - name: 🤖 Build Android APK
+      - name: 🤖 Build Android APK (Conditional)
+        if: github.event_name != 'pull_request'
         working-directory: supremeai
         run: flutter build apk --release
-      - name: 📦 Archive Build Artifacts
-        uses: actions/upload-artifact@v4
+      - name: 🔐 Google Auth
+        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name != 'pull_request'
+        uses: google-github-actions/auth@v2
         with:
-          name: mobile-dist
-          path: |
-            supremeai/build/web
-            supremeai/build/app/outputs/flutter-apk/*.apk
-          retention-days: 1
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}
+      - name: 🚀 Deploy Firebase Hosting
+        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name != 'pull_request'
+        run: |
+          mkdir -p public/admin
+          mkdir -p public/mobile
+          cp -r dashboard/dist/* public/admin/
+          cp -r supremeai/build/web/* public/mobile/
+          npm install -g firebase-tools
+          firebase deploy --project ${{ env.GCP_PROJECT_ID }} --only hosting --non-interactive
 
   cloud-functions:
     name: ⚡ Cloud Functions Build
@@ -314,71 +324,7 @@ jobs:
   # 🚀 PHASE 3: DEPLOYMENT
   # --------------------------------------------------------------------------------
   
-  deploy-backend:
-    name: 🚀 Deploy Backend
-    needs: [backend-service, infrastructure-check]
-    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📥 Checkout Code
-        uses: actions/checkout@v4
-      - name: 📥 Download JAR
-        uses: actions/download-artifact@v4
-        with:
-          name: backend-jar
-          path: .
-      - name: 🔐 Google Auth
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}
-      - name: 🛠️ Setup GCloud
-        uses: google-github-actions/setup-gcloud@v2
-      - name: 🐳 Build & Push Container
-        run: |
-          mv app.jar app.jar
-          gcloud builds submit --tag us-central1-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/supremeai-repo/backend --dockerfile Dockerfile.prod --quiet
-      - name: 🚀 Deploy to Cloud Run
-        run: |
-          gcloud run deploy supremeai-backend \
-            --image us-central1-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/supremeai-repo/backend \
-            --region ${{ env.GCP_REGION }} \
-            --platform managed \
-            --allow-unauthenticated \
-            --memory 2Gi \
-            --set-env-vars="SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=${{ env.GCP_PROJECT_ID }}" \
-            --update-secrets "JWT_SECRET=jwt-secret:latest,FIREBASE_SERVICE_ACCOUNT_JSON=firebase-service-account-json:latest" \
-            --quiet
 
-  deploy-frontend:
-    name: 🚀 Deploy Frontend & Mobile
-    needs: [dashboard-web, mobile-app]
-    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📥 Checkout Code
-        uses: actions/checkout@v4
-      - name: 📥 Download Dashboard
-        uses: actions/download-artifact@v4
-        with:
-          name: dashboard-dist
-          path: public/admin
-      - name: 📥 Download Mobile Dist
-        uses: actions/download-artifact@v4
-        with:
-          name: mobile-dist
-          path: temp_mobile
-      - name: 📂 Move Mobile Web to Public
-        run: |
-          mkdir -p public/mobile
-          cp -r temp_mobile/supremeai/build/web/* public/mobile/
-      - name: 🔐 Google Auth
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}
-      - name: 🚀 Deploy Firebase Hosting
-        run: |
-          npm install -g firebase-tools
-          firebase deploy --project ${{ env.GCP_PROJECT_ID }} --only hosting --non-interactive
 
   deploy-functions:
     name: 🚀 Deploy Functions
@@ -408,8 +354,8 @@ jobs:
   
   health-check:
     name: 🏥 Health Check
-    needs: [deploy-backend, deploy-frontend]
-    if: always() && (needs.deploy-backend.result == 'success' || needs.deploy-frontend.result == 'success')
+    needs: [backend-pipeline, frontend-pipeline]
+    if: always() && (needs.backend-pipeline.result == 'success' || needs.frontend-pipeline.result == 'success')
     runs-on: ubuntu-latest
     steps:
       - name: Check Backend & Frontend
@@ -428,7 +374,7 @@ jobs:
 
   workflow-summary:
     name: 📊 Pipeline Summary
-    needs: [deploy-backend, deploy-frontend, deploy-functions, ide-extensions, health-check]
+    needs: [backend-pipeline, frontend-pipeline, deploy-functions, ide-extensions, health-check]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -437,8 +383,8 @@ jobs:
           echo "### 🚀 SupremeAI CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
           echo "| Component | Status | Artifacts |" >> $GITHUB_STEP_SUMMARY
           echo "| :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
-          echo "| Backend | ${{ needs.deploy-backend.result }} | `backend-jar` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Frontend | ${{ needs.deploy-frontend.result }} | `dashboard-dist` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend | ${{ needs.backend-pipeline.result }} | - |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | ${{ needs.frontend-pipeline.result }} | - |" >> $GITHUB_STEP_SUMMARY
           echo "| Functions | ${{ needs.deploy-functions.result }} | - |" >> $GITHUB_STEP_SUMMARY
           echo "| IDE Plugins | ${{ needs.ide-extensions.result }} | `ide-extensions` |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
