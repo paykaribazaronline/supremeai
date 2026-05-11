@@ -60,7 +60,9 @@ public class MCPClientManager {
                 org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
                 Map<String, Object> response = restTemplate.postForObject(url + "/tools/list", Collections.emptyMap(), Map.class);
                 if (response != null && response.containsKey("tools")) {
-                    return (List<Map<String, Object>>) response.get("tools");
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> tools = (List<Map<String, Object>>) response.get("tools");
+                    return tools;
                 }
             } catch (Exception e) {
                 // ignore

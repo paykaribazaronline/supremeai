@@ -25,7 +25,7 @@ public class TenAIVotingSystem {
 
     private static final Logger logger = LoggerFactory.getLogger(TenAIVotingSystem.class);
 
-    // The 10 AI Models for voting
+    // The AI Models for voting
     public static final String[] TEN_AI_MODELS = {
         "gpt4",      // OpenAI GPT-4
         "claude",     // Anthropic Claude
@@ -33,10 +33,10 @@ public class TenAIVotingSystem {
         "groq",       // Groq (Mixtral/Llama)
         "deepseek",   // DeepSeek Coder
         "ollama",     // Local Ollama models
-        "huggingface",// HuggingFace models
-        "airllm",     // AirLLM hosted models
+        "huggingface",// HuggingFace models (Llama-70B)
         "kimi",       // Kimi AI
-        "mistral"     // Mistral AI
+        "mistral",    // Mistral AI
+        "stepfun"     // StepFun AI
     };
 
     @Autowired
@@ -383,9 +383,9 @@ public class TenAIVotingSystem {
             case "groq": staticWeight = 0.8; break;
             case "mistral": staticWeight = 0.75; break;
             case "kimi": staticWeight = 0.7; break;
-            case "huggingface": staticWeight = 0.65; break;
-            case "airllm": staticWeight = 0.6; break;
+            case "huggingface": staticWeight = 0.8; break;
             case "ollama": staticWeight = 0.5; break;
+            case "stepfun": staticWeight = 0.65; break;
             default: staticWeight = 0.5;
         }
 

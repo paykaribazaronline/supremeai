@@ -1,142 +1,170 @@
-// App.tsx
-import React, { useState, useCallback, useEffect, lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ConfigProvider, Spin } from 'antd';
-import { supremeTheme } from './lib/theme';
-import { authUtils } from './lib/authUtils';
-import LoginPage from './pages/LoginPage';
-import OnboardingWizard from './components/OnboardingWizard';
-import i18n from './i18n/conf';
-import ErrorBoundary from './components/ErrorBoundary';
+import React, { useState, useEffect, Suspense } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, Stars, PerspectiveCamera } from '@react-three/drei';
+import { CoreEngine } from './components/CoreEngine';
+import { Activity, Cpu, Shield, Zap, Terminal as TerminalIcon, Globe } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-// Lazy load admin pages for code splitting
-const AdminDashboardUnified = lazy(() => import('./pages/AdminDashboardUnified'));
-const AdminUsers = lazy(() => import('./pages/AdminUsers'));
-const AdminSettings = lazy(() => import('./pages/AdminSettings'));
-const AdminProjects = lazy(() => import('./pages/AdminProjects'));
-const AdminLogs = lazy(() => import('./pages/AdminLogs'));
-const AdminNotifications = lazy(() => import('./pages/AdminNotifications'));
-const AdminBackup = lazy(() => import('./pages/AdminBackup'));
-const AdminReports = lazy(() => import('./pages/AdminReports'));
-const AdminMonitoring = lazy(() => import('./pages/AdminMonitoring'));
-const AdminPerformance = lazy(() => import('./pages/AdminPerformance'));
-const AdminOCR = lazy(() => import('./pages/AdminOCR'));
-const AdminAPIKeys = lazy(() => import('./pages/AdminAPIKeys'));
+interface ModelStatus {
+  id: string;
+  name: string;
+  status: 'online' | 'offline' | 'loading';
+  latency: number;
+  memory: string;
+  type: string;
+}
 
-// Existing specialty components
-const ChatWithAI = lazy(() => import('./components/ChatWithAI'));
-const ProgressMonitor = lazy(() => import('./components/ProgressMonitor'));
-const KingModePanel = lazy(() => import('./components/KingModePanel'));
-const AuditLog = lazy(() => import('./components/AuditLog'));
-const ThreeDashboard = lazy(() => import('./components/ThreeDashboard'));
-const VideoTutorials = lazy(() => import('./components/VideoTutorials'));
-const BrowserActivityDashboard = lazy(() => import('./components/BrowserActivityDashboard'));
+const models_list: ModelStatus[] = [
+  { id: 'qwen', name: 'Qwen 2.5 Coder', status: 'online', latency: 45, memory: '16GB', type: 'Expert' },
+  { id: 'llama', name: 'Llama 3.1', status: 'online', latency: 39, memory: '16GB', type: 'General' },
+  { id: 'phi', name: 'Phi 3 Mini', status: 'loading', latency: 0, memory: '4GB', type: 'Edge' },
+  { id: 'nomic', name: 'Nomic Embed', status: 'loading', latency: 0, memory: '2GB', type: 'Embedding' },
+  { id: 'deepseek', name: 'DeepSeek Coder', status: 'loading', latency: 0, memory: '8GB', type: 'Logic' },
+];
 
-const App: React.FC = () => {
-    const [authed, setAuthed] = useState<boolean>(authUtils.isAuthenticated());
-    const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
+function App() {
+  const [models, setModels] = useState<ModelStatus[]>(models_list);
+  const [activeModel, setActiveModel] = useState<string | null>(null);
+  const [logs, setLogs] = useState<string[]>([]);
 
-    useEffect(() => {
-        if (authed && !localStorage.getItem('onboarding_complete')) {
-            setShowOnboarding(true);
-        }
-    }, [authed]);
+  const fetchHealth = async () => {
+    try {
+      const response = await fetch('/telemetry/health');
+      const data = await response.json();
+      if (data.models) {
+        setModels(data.models);
+      }
+    } catch (error) {
+      console.error("Failed to fetch health metrics:", error);
+    }
+  };
 
-    const handleLoginSuccess = useCallback(() => {
-        setAuthed(true);
-        if (!localStorage.getItem('onboarding_complete')) {
-            setShowOnboarding(true);
-        }
-    }, []);
+  useEffect(() => {
+    fetchHealth();
+    const metricsInterval = setInterval(fetchHealth, 5000);
+    const logInterval = setInterval(() => {
+      const messages = [
+        "📡 System Heartbeat: OK",
+        "⚙️ Optimizing GCP Cluster us-central1",
+        "🛡️ Resilience Policy: Autonomous Failover Active",
+        "💎 Model Weights Loaded: Verified",
+        "🌐 Scaling Qwen Coder... Instance Count: 4"
+      ];
+      setLogs(prev => [messages[Math.floor(Math.random() * messages.length)], ...prev.slice(0, 5)]);
+    }, 3000);
+    return () => {
+      clearInterval(metricsInterval);
+      clearInterval(logInterval);
+    };
+  }, []);
 
-    const handleOnboardingComplete = useCallback((dontShowAgain: boolean) => {
-        setShowOnboarding(false);
-        if (dontShowAgain) {
-            localStorage.setItem('onboarding_complete', 'true');
-        }
-    }, []);
+  return (
+    <div className="app-container" style={{ height: '100vh', width: '100vw', position: 'relative' }}>
+      <div className="bg-grid"></div>
+      <div className="scanline"></div>
 
-    return (
-        <ConfigProvider theme={supremeTheme}>
-            <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-                <ErrorBoundary>
-                {!authed ? (
-                    <LoginPage onLoginSuccess={handleLoginSuccess} />
-                ) : (
-                    <>
-                        {showOnboarding && (
-                            <OnboardingWizard onComplete={handleOnboardingComplete} />
-                        )}
-                        <ErrorBoundary>
-                            <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-                                <Spin size="large" tip="Loading..." />
-                            </div>}>
-                                <Router>
-                                    <Routes>
-                                        {/* Admin Panel Unified Dashboard - Default Route */}
-                                        <Route path="/admin" element={<AdminDashboardUnified />} />
+      {/* 3D Visualizer */}
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }}>
+        <Canvas shadows dpr={[1, 2]} onError={(e) => console.error("Canvas Error:", e)}>
+          <Suspense fallback={null}>
+            <PerspectiveCamera makeDefault position={[0, 0, 8]} />
+            <ambientLight intensity={0.2} />
+            <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
+            <CoreEngine />
+            <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+            <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={0.5} />
+          </Suspense>
+        </Canvas>
+      </div>
 
-                                        {/* Admin Panel Sub-routes - Single URL Rule */}
-                                        <Route path="/admin/users" element={<AdminUsers />} />
-                                        <Route path="/admin/settings" element={<AdminSettings />} />
-                                        <Route path="/admin/projects" element={<AdminProjects />} />
-                                        <Route path="/admin/apikeys" element={<AdminAPIKeys />} />
-                                        <Route path="/admin/logs" element={<AdminLogs />} />
-                                        <Route path="/admin/notifications" element={<AdminNotifications />} />
-                                        <Route path="/admin/backup" element={<AdminBackup />} />
-                                        <Route path="/admin/reports" element={<AdminReports />} />
-                                        <Route path="/admin/monitoring" element={<AdminMonitoring />} />
-                                        <Route path="/admin/performance" element={<AdminPerformance />} />
-                                        <Route path="/admin/ocr" element={<AdminOCR />} />
-                                        <Route path="/admin/console" element={<Navigate to="/admin" replace />} />
+      {/* UI Overlay */}
+      <header style={{ position: 'absolute', top: '20px', left: '20px', display: 'flex', gap: '20px', alignItems: 'center' }}>
+        <div className="glass-panel" style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div className="pulsing" style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: 'var(--neon-blue)', boxShadow: '0 0 10px var(--neon-blue)' }}></div>
+          <h1 className="neon-text" style={{ fontSize: '1.2rem', fontWeight: 800, letterSpacing: '2px' }}>SUPREME AI COMMAND CENTER</h1>
+        </div>
+      </header>
 
-{/* Existing admin features moved under /admin */}
-                                         <Route path="/admin/chat" element={<ChatWithAI />} />
-                                         <Route path="/admin/progress" element={<ProgressMonitor />} />
-                                         <Route path="/admin/kingmode" element={<KingModePanel />} />
-                                         <Route path="/admin/audit" element={<AuditLog />} />
-                                         <Route path="/admin/tutorials" element={<VideoTutorials />} />
-                                         <Route path="/admin/3d" element={<ThreeDashboard />} />
-                                         <Route path="/admin/browser" element={<BrowserActivityDashboard />} />
-
-                                        {/* Legacy route redirects for backward compatibility */}
-                                        <Route path="/admin.html" element={<Navigate to="/admin" replace />} />
-                                        <Route path="/admin-dashboard.html" element={<Navigate to="/admin" replace />} />
-                                        <Route path="/admin-users.html" element={<Navigate to="/admin/users" replace />} />
-                                        <Route path="/admin-settings.html" element={<Navigate to="/admin/settings" replace />} />
-                                        <Route path="/admin-projects.html" element={<Navigate to="/admin/projects" replace />} />
-                                        <Route path="/admin-providers.html" element={<Navigate to="/admin" replace />} />
-                                        <Route path="/admin-apikeys.html" element={<Navigate to="/admin/apikeys" replace />} />
-                                        <Route path="/admin-logs.html" element={<Navigate to="/admin/logs" replace />} />
-                                        <Route path="/admin-notifications.html" element={<Navigate to="/admin/notifications" replace />} />
-                                        <Route path="/admin-backup.html" element={<Navigate to="/admin/backup" replace />} />
-                                        <Route path="/admin-reports.html" element={<Navigate to="/admin/reports" replace />} />
-                                        <Route path="/monitoring-dashboard.html" element={<Navigate to="/admin/monitoring" replace />} />
-                                        <Route path="/performance-dashboard.html" element={<Navigate to="/admin/performance" replace />} />
-                                        <Route path="/bengali-ocr.html" element={<Navigate to="/admin/ocr" replace />} />
-                                        <Route path="/admin-console.html" element={<Navigate to="/admin" replace />} />
-
-{/* Legacy root redirects */}
-                                         <Route path="/chat" element={<Navigate to="/admin/chat" replace />} />
-                                         <Route path="/progress" element={<Navigate to="/admin/progress" replace />} />
-                                         <Route path="/kingmode" element={<Navigate to="/admin/kingmode" replace />} />
-                                         <Route path="/audit" element={<Navigate to="/admin/audit" replace />} />
-                                         <Route path="/tutorials" element={<Navigate to="/admin/tutorials" replace />} />
-                                         <Route path="/dashboard/3d" element={<Navigate to="/admin/3d" replace />} />
-                                         <Route path="/browser" element={<Navigate to="/admin/browser" replace />} />
-
-                                        {/* Catch-all redirect to admin */}
-                                        <Route path="*" element={<Navigate to="/admin" replace />} />
-                                    </Routes>
-                                </Router>
-                            </Suspense>
-                        </ErrorBoundary>
-                    </>
-                )}
-                </ErrorBoundary>
+      {/* Model Cards */}
+      <main style={{ position: 'absolute', bottom: '40px', left: '40px', display: 'flex', gap: '20px' }}>
+        {models.map((model) => (
+          <motion.div
+            key={model.id}
+            whileHover={{ y: -10, borderColor: 'var(--neon-blue)' }}
+            onClick={() => setActiveModel(model.id)}
+            className="glass-panel"
+            style={{ 
+              width: '180px', 
+              padding: '20px', 
+              cursor: 'pointer',
+              border: activeModel === model.id ? '2px solid var(--neon-blue)' : '1px solid var(--glass-border)'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
+              <Cpu size={20} color={model.status === 'online' ? 'var(--neon-blue)' : '#555'} />
+              <span style={{ fontSize: '0.7rem', color: '#888' }}>{model.type}</span>
             </div>
-        </ConfigProvider>
-    );
-};
+            <h3 style={{ fontSize: '0.9rem', marginBottom: '10px' }}>{model.name}</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem' }}>
+                <span style={{ color: '#888' }}>Latency</span>
+                <span className="neon-text">{model.latency}ms</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem' }}>
+                <span style={{ color: '#888' }}>RAM</span>
+                <span>{model.memory}</span>
+              </div>
+            </div>
+            <div style={{ marginTop: '15px', height: '2px', width: '100%', background: '#222' }}>
+              <motion.div 
+                animate={{ width: model.status === 'online' ? '100%' : '30%' }}
+                style={{ height: '100%', background: model.status === 'online' ? 'var(--neon-blue)' : 'var(--neon-purple)' }}
+              />
+            </div>
+          </motion.div>
+        ))}
+      </main>
+
+      {/* Terminal / Logs */}
+      <aside style={{ position: 'absolute', right: '40px', bottom: '40px', width: '300px' }}>
+        <div className="glass-panel" style={{ padding: '20px', height: '250px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px', borderBottom: '1px solid #222', paddingBottom: '10px' }}>
+            <TerminalIcon size={16} color="var(--neon-blue)" />
+            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--neon-blue)' }}>LIVE TELEMETRY</span>
+          </div>
+          <div style={{ overflowY: 'hidden', flex: 1 }}>
+            {logs.map((log, i) => (
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1 - i * 0.15, x: 0 }}
+                key={i} 
+                style={{ fontSize: '0.7rem', fontFamily: 'JetBrains Mono', color: '#aaa', marginBottom: '8px' }}
+              >
+                {log}
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </aside>
+
+      {/* Global Status HUD */}
+      <div style={{ position: 'absolute', top: '20px', right: '20px', display: 'flex', gap: '15px' }}>
+        <HUDMetric icon={<Shield size={16} />} label="Security" value="MIL-SPEC" color="var(--neon-blue)" />
+        <HUDMetric icon={<Zap size={16} />} label="Response" value="ULTRALOW" color="var(--neon-purple)" />
+        <HUDMetric icon={<Globe size={16} />} label="Region" value="GCP-US" color="var(--neon-pink)" />
+      </div>
+    </div>
+  );
+}
+
+const HUDMetric = ({ icon, label, value, color }: { icon: any, label: string, value: string, color: string }) => (
+  <div className="glass-panel" style={{ padding: '10px 15px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+    <div style={{ color }}>{icon}</div>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <span style={{ fontSize: '0.6rem', color: '#888', textTransform: 'uppercase' }}>{label}</span>
+      <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>{value}</span>
+    </div>
+  </div>
+);
 
 export default App;

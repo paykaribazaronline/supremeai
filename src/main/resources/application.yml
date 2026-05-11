@@ -28,7 +28,7 @@ spring:
         initial-delay: 60
 
 jwt:
-  secret: ${JWT_SECRET}
+  secret: ${JWT_SECRET:supremeai_super_secret_key_change_in_production}
 
 # Management endpoints for K8s probes
 management:
@@ -57,7 +57,17 @@ supremeai:
     deepseek: ${DEEPSEEK_API_KEY:}
     grok: ${GROK_API_KEY:}
     groq: ${GROQ_API_KEY:}
+    supreme-cloud: ${SUPREME_CLOUD_API_KEY:}
     custom-supreme-ai: ${CUSTOM_SUPREME_AI_KEY:}
+
+ai:
+  providers:
+    ollama:
+      endpoint: ${AI_PROVIDERS_OLLAMA_ENDPOINT:http://localhost:11434}
+      api-key: ${AI_PROVIDERS_OLLAMA_API_KEY:ollama}
+    huggingface:
+      api-key: ${HUGGINGFACE_API_KEY:}
+      model: ${HUGGINGFACE_MODEL:meta-llama/Llama-3.3-70B-Instruct}
 
 # Rate limiting configuration
 rate-limit:

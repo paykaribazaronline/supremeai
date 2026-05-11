@@ -37,7 +37,7 @@ public class SecurityConfig {
              .cors(cors -> cors.configurationSource(corsConfigurationSource()))
              .csrf(csrf -> csrf
                  .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                 .ignoringRequestMatchers("/api/auth/**", "/api/health/**", "/api/ext/**", "/api/browser/**")
+                 .ignoringRequestMatchers("/api/auth/**", "/api/health/**", "/api/ext/**", "/api/browser/**", "/api/system/**")
              )
              .sessionManagement(session -> 
                  session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
@@ -89,6 +89,10 @@ public class SecurityConfig {
                     "/api/status",
                     "/api/config/firebase",
                     "/api/config/public",
+                    "/api/system/**",
+                    "/api/system/health",
+                    "/public/**",
+                    "/telemetry/**",
                     "/__/firebase/**",
                     "/ws/**",
                     "/error",

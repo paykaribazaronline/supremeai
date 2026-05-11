@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import reactor.test.StepVerifier;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,7 +25,7 @@ class HuggingFaceProviderTest {
     void setUp() throws IOException {
         mockWebServer = new MockWebServer();
         mockWebServer.start();
-        String baseUrl = mockWebServer.url("/models/HuggingFaceH4/zephyr-7b-beta").toString();
+        String baseUrl = mockWebServer.url("/models/meta-llama/Llama-3.3-70B-Instruct/v1/chat/completions").toString();
         provider = new HuggingFaceProvider("hf-test-key");
         try {
             java.lang.reflect.Field field = HuggingFaceProvider.class.getSuperclass().getDeclaredField("baseUrl");
@@ -47,43 +48,42 @@ class HuggingFaceProviderTest {
     }
 
     @Test
-    void getCapabilities_shouldReturnNameAndModels() {
+    void getCapabilities_shouldReturnNameAndModel() {
         Map<String, Object> caps = provider.getCapabilities();
 
         assertNotNull(caps);
         assertEquals("HuggingFace", caps.get("name"));
-        assertNotNull(caps.get("models"));
+        assertNotNull(caps.get("model"));
     }
 
     @Test
-    void createRequestBody_shouldUseInputsFormat() throws Exception {
+    void createRequestBody_shouldUseMessagesFormat() throws Exception {
         java.lang.reflect.Method method = HuggingFaceProvider.class.getDeclaredMethod("createRequestBody", String.class);
         method.setAccessible(true);
         @SuppressWarnings("unchecked")
         Map<String, Object> body = (Map<String, Object>) method.invoke(provider, "Hello HF");
 
         assertNotNull(body);
-        assertEquals("Hello HF", body.get("inputs"));
-        assertFalse(body.containsKey("messages"));
-        assertNotNull(body.get("parameters"));
+        assertTrue(body.containsKey("messages"));
+        assertFalse(body.containsKey("inputs"));
     }
 
     @Test
-    void createRequestBody_shouldIncludeMaxNewTokens() throws Exception {
+    void createRequestBody_shouldIncludeMaxTokens() throws Exception {
         java.lang.reflect.Method method = HuggingFaceProvider.class.getDeclaredMethod("createRequestBody", String.class);
         method.setAccessible(true);
         @SuppressWarnings("unchecked")
         Map<String, Object> body = (Map<String, Object>) method.invoke(provider, "Hello");
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> params = (Map<String, Object>) body.get("parameters");
-        assertEquals(512, params.get("max_new_tokens"));
+        assertEquals(512, body.get("max_tokens"));
     }
 
     @Test
-    void extractResponse_shouldParseArrayResponse() throws Exception {
+    void extractResponse_shouldParseChoicesResponse() throws Exception {
         String jsonResponse = objectMapper.writeValueAsString(
-                java.util.List.of(Map.of("generated_text", "Hello from HuggingFace!"))
+                Map.of("choices", List.of(
+                        Map.of("message", Map.of("content", "Hello from HuggingFace!"))
+                ))
         );
 
         java.lang.reflect.Method method = HuggingFaceProvider.class.getDeclaredMethod("extractResponse", String.class);
@@ -94,8 +94,8 @@ class HuggingFaceProviderTest {
     }
 
     @Test
-    void extractResponse_shouldReturnDefault_whenArrayEmpty() throws Exception {
-        String jsonResponse = objectMapper.writeValueAsString(java.util.List.of());
+    void extractResponse_shouldReturnDefault_whenChoicesEmpty() throws Exception {
+        String jsonResponse = objectMapper.writeValueAsString(Map.of("choices", List.of()));
 
         java.lang.reflect.Method method = HuggingFaceProvider.class.getDeclaredMethod("extractResponse", String.class);
         method.setAccessible(true);
@@ -105,11 +105,11 @@ class HuggingFaceProviderTest {
     }
 
     @Test
-    void extractResponse_shouldReturnDefault_whenGeneratedTextNull() throws Exception {
+    void extractResponse_shouldReturnDefault_whenMessageNull() throws Exception {
         java.util.Map<String, Object> responseMap = new java.util.HashMap<>();
-        responseMap.put("generated_text", null);
+        responseMap.put("content", null);
         String jsonResponse = objectMapper.writeValueAsString(
-                java.util.List.of(responseMap)
+                Map.of("choices", List.of(Map.of("message", responseMap)))
         );
 
         java.lang.reflect.Method method = HuggingFaceProvider.class.getDeclaredMethod("extractResponse", String.class);
@@ -134,7 +134,9 @@ class HuggingFaceProviderTest {
     @Test
     void httpIntegration_shouldReturnGeneratedText() throws Exception {
         String responseBody = objectMapper.writeValueAsString(
-                java.util.List.of(Map.of("generated_text", "Mocked HF response"))
+                Map.of("choices", List.of(
+                        Map.of("message", Map.of("content", "Mocked HF response"))
+                ))
         );
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)

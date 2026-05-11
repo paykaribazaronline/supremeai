@@ -22,7 +22,7 @@ public class JwtUtil {
     private static final long REFRESH_TOKEN_TTL_MS = 1000L * 60 * 60 * 24 * 7; // 7 days
     private static final long TOKEN_TTL_MS = ACCESS_TOKEN_TTL_MS; // Default for backward compatibility
 
-    @Value("${JWT_SECRET}")
+    @Value("${jwt.secret}")
     private String secret;
 
     @Value("${JWT_ISSUER:supremeai}")

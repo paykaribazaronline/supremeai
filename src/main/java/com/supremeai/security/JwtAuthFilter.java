@@ -31,7 +31,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         // Only enforce JWT auth on API routes.
         // This keeps static UI pages (e.g. /, /login.html) publicly reachable even with invalid headers.
-        if (!path.startsWith("/api/")) {
+        if (!path.startsWith("/api/") && !path.startsWith("/telemetry/")) {
             return true;
         }
 
@@ -40,6 +40,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                path.startsWith("/api/status") ||
                path.startsWith("/api/auth/") ||
                path.startsWith("/api/ext/") ||
+               path.startsWith("/api/system") ||
+               path.startsWith("/telemetry/") ||
                path.startsWith("/api/config/");
     }
 

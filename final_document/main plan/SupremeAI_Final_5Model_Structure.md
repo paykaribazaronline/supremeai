@@ -6,16 +6,16 @@
 
 # 1. Model Selection (Final 5)
 
-| # | Model | Role | Size | RAM | Why |
-|---|-------|------|------|-----|-----|
-| 1 | **Qwen 2.5 Coder 7B** | Primary Coder | 7B | ~4GB | Best code generation |
-| 2 | **Llama 3.1 8B** | General Chat | 8B | ~4.5GB | Best all-rounder |
-| 3 | **DeepSeek Coder 6.7B** | Review/Debug | 6.7B | ~4GB | Best reasoning |
-| 4 | **Phi 3 Mini** | Fast Tasks | 3.8B | ~2GB | Quick responses |
-| 5 | **Nomic Embed** | Embeddings | - | ~1GB | Search/Similarity |
+| # | Model | Role | Provider | Cost | Why |
+|---|-------|------|----------|------|-----|
+| 1 | **Qwen 2.5 Coder 7B** | Primary Coder | GCP Run | $0 (Idle) | Best code generation |
+| 2 | **Llama 3.1 8B** | General Chat | GCP Run | $0 (Idle) | Best all-rounder |
+| 3 | **DeepSeek-V4-Pro** | Review/Debug | HF Endpoint| $0 (Idle) | State-of-the-art Reasoning |
+| 4 | **Phi 3 Mini** | Fast Tasks | GCP Run | $0 (Idle) | Quick responses |
+| 5 | **Nomic Embed** | Embeddings | GCP Run | $0 (Idle) | Search/Similarity |
 
-**Total RAM Needed:** ~15.5GB (all loaded)
-**Recommended:** Load 2-3 at a time, swap as needed
+**Infrastructure Strategy:** Scale-to-Zero (Serverless GPU)
+**Deployment:** All models are hosted as independent Cloud Run services or Hugging Face Dedicated Endpoints.
 
 ---
 
@@ -182,12 +182,12 @@ PROVIDER_PRIORITY = [
 # core/router.py
 class ModelRouter:
     def __init__(self):
-        self.local_models = {
-            'qwen_coder': LocalModel('qwen2.5-coder:7b'),
-            'llama_general': LocalModel('llama3.1:8b'),
-            'deepseek_debug': LocalModel('deepseek-coder:6.7b'),
-            'phi_fast': LocalModel('phi3:mini'),
-            'nomic_embed': LocalModel('nomic-embed-text'),
+        self.cloud_models = {
+            'qwen_coder': CloudEndpoint('supreme-qwen-coder'),
+            'llama_general': CloudEndpoint('supreme-llama-general'),
+            'deepseek_pro': CloudEndpoint('supreme-deepseek-v4'),
+            'phi_fast': CloudEndpoint('supreme-phi-fast'),
+            'nomic_embed': CloudEndpoint('supreme-nomic-embed'),
         }
         self.external_clients = {
             'groq': GroqClient(),
@@ -347,12 +347,10 @@ cp .env.example .env
 # 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Pull local models (Ollama)
-ollama pull qwen2.5-coder:7b
-ollama pull llama3.1:8b
-ollama pull deepseek-coder:6.7b
-ollama pull phi3:mini
-ollama pull nomic-embed-text
+# 3. Provision Cloud Services (Scale-to-Zero)
+gcloud run deploy qwen-coder --image gcr.io/$PROJECT_ID/qwen-coder --gpu 1 --no-cpu-throttling --min-instances 0
+gcloud run deploy llama-general --image gcr.io/$PROJECT_ID/llama-general --gpu 1 --min-instances 0
+# Repeat for all 5 models
 
 # 4. Run tests
 pytest
@@ -368,22 +366,15 @@ python src/main.py
 ```
 User Request
     │
-    ├── Code Task? ──→ Qwen 2.5 Coder 7B (Local)
-    │   └── If busy ──→ DeepSeek Coder (Local)
-    │       └── If busy ──→ Groq API (External)
+    ├── External APIs (Level 1) ──→ Groq/Google/OpenAI
+    │   └── If disconnected/fail? (Level 2)
+    │       └── Trigger Cloud Run (Level 3)
+    │           ├── Code? ──→ Qwen 2.5 Coder (Cloud)
+    │           ├── Debug? ──→ DeepSeek-V4-Pro (Cloud)
+    │           ├── Chat? ──→ Llama 3.1 8B (Cloud)
+    │           └── Embed? ──→ Nomic Embed (Cloud)
     │
-    ├── General Chat? ──→ Llama 3.1 8B (Local)
-    │   └── If busy ──→ Google Gemini (External)
-    │
-    ├── Debug/Review? ──→ DeepSeek Coder (Local)
-    │   └── If busy ──→ Claude Haiku (External)
-    │
-    ├── Quick Task? ──→ Phi 3 Mini (Local)
-    │   └── If busy ──→ Mistral Tiny (External)
-    │
-    ├── Embedding? ──→ Nomic Embed (Local)
-    │
-    └── All Busy? ──→ Queue or System AI Fallback
+    └── All Fail? ──→ Notify Admin / Queue
 ```
 
 ---
