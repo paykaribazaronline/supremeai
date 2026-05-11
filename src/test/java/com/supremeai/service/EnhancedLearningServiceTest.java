@@ -51,7 +51,7 @@ class EnhancedLearningServiceTest {
 
     @Test
     void learnFromNLPInteraction_shouldCreateAndSaveLearning() {
-        when(repository.save(any(SystemLearning.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+        when(systemLearningService.addLearning(any(SystemLearning.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
 
         StepVerifier.create(enhancedLearningService.learnFromNLPInteraction(
                 "test input", "ai response", "openai", 0.8, Map.of("context", "test")))
@@ -68,7 +68,7 @@ class EnhancedLearningServiceTest {
 
     @Test
     void learnFromMultimodalInteraction_shouldCreateAndSaveLearning() {
-        when(repository.save(any(SystemLearning.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+        when(systemLearningService.addLearning(any(SystemLearning.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
 
         StepVerifier.create(enhancedLearningService.learnFromMultimodalInteraction(
                 "generate code from image", "http://example.com/image.png",
@@ -85,7 +85,7 @@ class EnhancedLearningServiceTest {
 
     @Test
     void learnFromAPIUsage_shouldCreateAndSaveLearning() {
-        when(repository.save(any(SystemLearning.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+        when(systemLearningService.addLearning(any(SystemLearning.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
 
         Map<String, Object> requestMeta = Map.of("userId", "user123");
 
@@ -103,7 +103,7 @@ class EnhancedLearningServiceTest {
 
     @Test
     void learnFromAPIUsage_withFailure_shouldSetQualityScoreToZero() {
-        when(repository.save(any(SystemLearning.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+        when(systemLearningService.addLearning(any(SystemLearning.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
 
         StepVerifier.create(enhancedLearningService.learnFromAPIUsage(
                 "/api/v1/error", "provider", 500L, false, Map.of()))
@@ -117,7 +117,7 @@ class EnhancedLearningServiceTest {
 
     @Test
     void learnFromAppGeneration_shouldCreateAndSaveLearning() {
-        when(repository.save(any(SystemLearning.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+        when(systemLearningService.addLearning(any(SystemLearning.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
 
         Map<String, Object> buildMetrics = Map.of("testPassRate", 0.95);
 
@@ -135,7 +135,7 @@ class EnhancedLearningServiceTest {
 
     @Test
     void learnFromAppGeneration_withFailure_shouldUseDefaultQualityScore() {
-        when(repository.save(any(SystemLearning.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+        when(systemLearningService.addLearning(any(SystemLearning.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
 
         StepVerifier.create(enhancedLearningService.learnFromAppGeneration(
                 "Create an app", "WEB", false, null, null, "agent-1"))
@@ -149,7 +149,7 @@ class EnhancedLearningServiceTest {
 
     @Test
     void learnPredictivePattern_shouldCreateAndSaveLearning() {
-        when(repository.save(any(SystemLearning.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+        when(systemLearningService.addLearning(any(SystemLearning.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
 
         Map<String, Object> patternData = Map.of("param1", "value1");
 
@@ -204,13 +204,13 @@ class EnhancedLearningServiceTest {
         existingLearning.setTimesApplied(3);
 
         when(repository.findById("test-id")).thenReturn(Mono.just(existingLearning));
-        when(repository.save(any(SystemLearning.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+        when(systemLearningService.addLearning(any(SystemLearning.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
 
         StepVerifier.create(enhancedLearningService.applyLearning("test-id"))
                 .expectNextMatches(learning -> learning.getTimesApplied() == 4)
                 .verifyComplete();
 
-        verify(repository).save(any(SystemLearning.class));
+        verify(systemLearningService).addLearning(any(SystemLearning.class));
     }
 
     @Test
@@ -220,7 +220,7 @@ class EnhancedLearningServiceTest {
         existingLearning.setTimesApplied(null);
 
         when(repository.findById("test-id")).thenReturn(Mono.just(existingLearning));
-        when(repository.save(any(SystemLearning.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+        when(systemLearningService.addLearning(any(SystemLearning.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
 
         StepVerifier.create(enhancedLearningService.applyLearning("test-id"))
                 .expectNextMatches(learning -> learning.getTimesApplied() == 1)
