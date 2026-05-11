@@ -8,7 +8,9 @@ group = "com.supremeai"
 version = "1.2.0"
 
 repositories {
+    google()
     mavenCentral()
+    maven("https://maven.google.com")
     maven("https://www.jetbrains.com/intellij-repository/releases")
     maven("https://cache-redirector.jetbrains.com/intellij-dependencies")
     maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/bootstrap")
@@ -19,13 +21,16 @@ repositories {
     }
 }
 
+
+
 dependencies {
     intellijPlatform {
-        androidStudio("2024.2.1.11")
+        androidStudio("2024.2.1")
         bundledPlugin("com.intellij.java")
         bundledPlugin("org.jetbrains.kotlin")
         bundledPlugin("org.jetbrains.android")
     }
+
     
     // Regular dependencies
     implementation("com.google.code.gson:gson:2.10.1")
