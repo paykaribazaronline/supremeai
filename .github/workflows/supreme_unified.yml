@@ -195,7 +195,7 @@ jobs:
       - name: 🐳 Build & Push Container
         if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name != 'pull_request'
         run: |
-          gcloud builds submit --tag us-central1-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/supremeai-repo/backend --dockerfile Dockerfile.prod --quiet
+          gcloud builds submit --tag us-central1-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/supremeai-repo/backend --quiet .
       - name: 🚀 Deploy to Cloud Run
         if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name != 'pull_request'
         run: |
