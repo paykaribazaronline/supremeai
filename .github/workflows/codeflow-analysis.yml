@@ -331,13 +331,6 @@ jobs:
               });
             }
 
-      - name: Upload Artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: codeflow-reports-${{ github.sha }}
-          path: .github/codeflow-reports/
-          retention-days: 30
 
   # Deploy to Firebase if on main branch
   deploy:
