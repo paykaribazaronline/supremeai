@@ -14,12 +14,14 @@ repositories {
     maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/bootstrap")
     intellijPlatform {
         defaultRepositories()
+        google()
+        mavenCentral()
     }
 }
 
 dependencies {
     intellijPlatform {
-        androidStudio("2024.3.2.15")
+        androidStudio("2024.3.1")
         bundledPlugin("com.intellij.java")
         bundledPlugin("org.jetbrains.kotlin")
         bundledPlugin("org.jetbrains.android")
