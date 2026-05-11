@@ -131,6 +131,20 @@ public class ConfigService {
      * Refreshes the local cache from Firestore.
      */
     public Mono<SystemConfig> refreshCache() {
+        // Diagnostic sync read
+        try {
+            logger.info("Diagnostic: Attempting sync read from Firestore...");
+            var future = firestore.collection("system_configs").document("global_settings").get();
+            var snapshot = future.get(5, java.util.concurrent.TimeUnit.SECONDS);
+            if (snapshot.exists()) {
+                logger.info("Diagnostic: Sync read SUCCEEDED. Document exists.");
+            } else {
+                logger.warn("Diagnostic: Sync read SUCCEEDED but document is missing.");
+            }
+        } catch (Exception e) {
+            logger.error("Diagnostic: Sync read FAILED", e);
+        }
+
         return systemConfigRepository.findById("global_settings")
                 .map(config -> {
                     this.cachedConfig = config;

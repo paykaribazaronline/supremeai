@@ -55,11 +55,10 @@ public class AuthenticationService {
                             Object roleClaim = claims.get("role");
                             Object adminClaim = claims.get("admin");
 
-                            boolean isAdminEmail = configService.getConfig() != null &&
-                                configService.getConfig().getAdminEmails() != null &&
-                                configService.getConfig().getAdminEmails().contains(email);
+                            boolean isAdminEmail = isAdminByEmail(email);
 
-                            boolean shouldBeAdmin = "ADMIN".equals(roleClaim) || Boolean.TRUE.equals(adminClaim)
+                            boolean shouldBeAdmin = "ADMIN".equalsIgnoreCase(String.valueOf(roleClaim))
+                                || Boolean.TRUE.equals(adminClaim)
                                 || isAdminEmail;
 
                             if (tier != UserTier.ADMIN && shouldBeAdmin) {
@@ -72,11 +71,10 @@ public class AuthenticationService {
                             Object roleClaim = claims.get("role");
                             Object adminClaim = claims.get("admin");
 
-                            boolean isAdminEmail = configService.getConfig() != null &&
-                                configService.getConfig().getAdminEmails() != null &&
-                                configService.getConfig().getAdminEmails().contains(email);
+                            boolean isAdminEmail = isAdminByEmail(email);
 
-                            boolean shouldBeAdmin = "ADMIN".equals(roleClaim) || Boolean.TRUE.equals(adminClaim)
+                            boolean shouldBeAdmin = "ADMIN".equalsIgnoreCase(String.valueOf(roleClaim))
+                                || Boolean.TRUE.equals(adminClaim)
                                 || isAdminEmail;
 
                             if (shouldBeAdmin) {
@@ -109,6 +107,28 @@ public class AuthenticationService {
                             });
                     });
             });
+    }
+
+    /**
+     * Check if a given email is an admin — first by Firebase custom claims (already done by caller),
+     * then by ConfigService admin email list, then by hardcoded fallback list.
+     * Never throws even if ConfigService is unavailable.
+     */
+    private boolean isAdminByEmail(String email) {
+        if (email == null) return false;
+        try {
+            if (configService != null && configService.getConfig() != null
+                    && configService.getConfig().getAdminEmails() != null) {
+                return configService.getConfig().getAdminEmails().contains(email);
+            }
+        } catch (Exception e) {
+            log.warn("ConfigService unavailable during admin email check: {}", e.getMessage());
+        }
+        // Hardcoded fallback: only used if ConfigService has no data
+        return Arrays.asList(
+            "niloyjoy7@gmail.com",
+            "nazifarabbu@gmail.com"
+        ).contains(email);
     }
 
     public Mono<User> register(String email, String password, String displayName, String remoteAddr) {

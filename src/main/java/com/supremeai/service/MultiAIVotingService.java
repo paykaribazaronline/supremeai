@@ -57,7 +57,7 @@ public class MultiAIVotingService {
 
     // Constants from TenAIVotingSystem
     public static final String[] TEN_AI_MODELS = {
-        "gpt4", "claude", "gemini", "groq", "deepseek", "ollama", "huggingface", "airllm", "kimi", "mistral"
+        "gpt4", "claude", "gemini", "groq", "deepseek", "ollama", "huggingface", "kimi", "mistral", "stepfun"
     };
 
     // Constants from MultiAIConsensusService
@@ -655,10 +655,10 @@ public class MultiAIVotingService {
         staticWeights.put("groq", 0.82);
         staticWeights.put("deepseek", 0.80);
         staticWeights.put("ollama", 0.75);
-        staticWeights.put("huggingface", 0.70);
-        staticWeights.put("airllm", 0.65);
+        staticWeights.put("huggingface", 0.80);
         staticWeights.put("kimi", 0.60);
         staticWeights.put("mistral", 0.75);
+        staticWeights.put("stepfun", 0.65);
 
         double contextualScore = 0.5;
         if (taskType != null) {

@@ -7,10 +7,16 @@
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Environment Variables
-export GOOGLE_APPLICATION_CREDENTIALS="$(pwd)/service-account.json"
+SA_FILE="$(pwd)/service-account.json"
+if [ -f "$SA_FILE" ]; then
+    export GOOGLE_APPLICATION_CREDENTIALS="$SA_FILE"
+else
+    echo -e "${YELLOW}[WARNING] service-account.json not found. Some cloud operations may fail.${NC}"
+fi
 
 show_menu() {
     echo -e "${BLUE}====================================================${NC}"
@@ -18,14 +24,15 @@ show_menu() {
     echo -e "${BLUE}====================================================${NC}"
     echo "1) Build IntelliJ/Android Studio Plugin"
     echo "2) Build VS Code Extension"
-    echo "3) Run Backend (Gradle bootRun)"
-    echo "4) Build Backend (skip tests)"
+    echo "3) Run Backend (Local Gradle bootRun)"
+    echo "4) Build Backend JAR (skip tests)"
     echo "5) Deploy to Firebase (Functions)"
-    echo "6) Deploy to Google Cloud (GCloud Run)"
-    echo "7) Build All Plugins (IntelliJ + VS Code)"
+    echo "6) Deploy to Google Cloud (Build & Cloud Run)"
+    echo "7) Check Cloud Run Service Status"
+    echo "8) Build All Plugins (IntelliJ + VS Code)"
     echo "0) Exit"
     echo -e "${BLUE}----------------------------------------------------${NC}"
-    echo -n "Select an option [0-7]: "
+    echo -n "Select an option [0-8]: "
 }
 
 build_intellij() {
@@ -55,15 +62,20 @@ build_vscode() {
 }
 
 run_backend() {
-    echo -e "\n${BLUE}Starting SupremeAI Backend...${NC}"
-    # Use the service account for local runs
-    export GOOGLE_APPLICATION_CREDENTIALS="$(pwd)/service-account.json"
+    echo -e "\n${BLUE}Starting SupremeAI Backend Locally...${NC}"
+    # Kill existing process on 8080 if any
+    fuser -k 8080/tcp 2>/dev/null
     ./gradlew bootRun
 }
 
 build_backend() {
     echo -e "\n${BLUE}Building Backend JAR...${NC}"
-    ./gradlew clean build -x test
+    ./gradlew clean bootJar -x test
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}[SUCCESS] JAR built at: build/libs/app.jar${NC}"
+    else
+        echo -e "${RED}[ERROR] Backend build failed.${NC}"
+    fi
 }
 
 deploy_firebase() {
@@ -74,14 +86,31 @@ deploy_firebase() {
 }
 
 deploy_gcloud() {
-    echo -e "\n${BLUE}Deploying to Google Cloud Run...${NC}"
-    # Using the project ID found in cloudbuild.yaml
-    gcloud builds submit --config cloudbuild.yaml .
+    echo -e "\n${BLUE}Deploying to Google Cloud (Build & Run)...${NC}"
+    if [ ! -f "cloudbuild.yaml" ]; then
+        echo -e "${RED}[ERROR] cloudbuild.yaml not found!${NC}"
+        return
+    fi
+    
+    # Check for project ID
+    PROJECT_ID=$(gcloud config get-value project 2>/dev/null)
+    if [ -z "$PROJECT_ID" ]; then
+        echo -e "${YELLOW}[WARNING] No default GCP project set. Please enter Project ID:${NC}"
+        read -r PROJECT_ID
+    fi
+    
+    echo -e "${BLUE}Submitting build for project: ${YELLOW}$PROJECT_ID${NC}"
+    gcloud builds submit --config cloudbuild.yaml --project "$PROJECT_ID" .
+}
+
+check_cloud_status() {
+    echo -e "\n${BLUE}Checking Cloud Run Service Status...${NC}"
+    gcloud run services list --region us-central1
 }
 
 while true; do
     show_menu
-    read choice
+    read -r choice
     case $choice in
         1) build_intellij ;;
         2) build_vscode ;;
@@ -89,10 +118,11 @@ while true; do
         4) build_backend ;;
         5) deploy_firebase ;;
         6) deploy_gcloud ;;
-        7) build_intellij; build_vscode ;;
+        7) check_cloud_status ;;
+        8) build_intellij; build_vscode ;;
         0) echo "Goodbye!"; exit 0 ;;
         *) echo -e "${RED}Invalid option!${NC}" ;;
     esac
     echo -e "\nPress Enter to return to menu..."
-    read
+    read -r
 done

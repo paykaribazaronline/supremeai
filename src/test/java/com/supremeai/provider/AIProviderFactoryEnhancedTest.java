@@ -33,8 +33,6 @@ class AIProviderFactoryEnhancedTest {
 
         setField(factory, "aiProviderService", mockService);
         setField(factory, "contextualRankingService", mockRankingService);
-        setField(factory, "airllmEndpoint", "https://airllm.test/v1/chat/completions");
-        setField(factory, "airllmModel", "mistralai/Mistral-7B-Instruct-v0.3");
 
         // Pre-populate health cache to avoid real network calls
         @SuppressWarnings("unchecked")
@@ -140,14 +138,6 @@ class AIProviderFactoryEnhancedTest {
     }
 
     @Test
-    void getProvider_airllm_shouldCreateAirLLMProvider() {
-        AIProvider provider = factory.getProvider("airllm");
-        assertNotNull(provider);
-        assertEquals("airllm", provider.getName());
-        assertTrue(provider instanceof AirLLMProvider);
-    }
-
-    @Test
     void getProvider_ollama_shouldThrowWhenNotAvailable() {
         assertThrows(IllegalStateException.class, () -> factory.getProvider("ollama"));
     }
@@ -197,10 +187,10 @@ class AIProviderFactoryEnhancedTest {
     }
 
     @Test
-    void getSupportedProviders_shouldReturnAll12() {
+    void getSupportedProviders_shouldReturnAllProviders() {
         String[] providers = factory.getSupportedProviders();
 
-        assertEquals(12, providers.length);
+        assertEquals(11, providers.length);
         assertTrue(java.util.Arrays.asList(providers).contains("gpt4"));
         assertTrue(java.util.Arrays.asList(providers).contains("claude"));
         assertTrue(java.util.Arrays.asList(providers).contains("gemini"));
@@ -208,7 +198,6 @@ class AIProviderFactoryEnhancedTest {
         assertTrue(java.util.Arrays.asList(providers).contains("deepseek"));
         assertTrue(java.util.Arrays.asList(providers).contains("ollama"));
         assertTrue(java.util.Arrays.asList(providers).contains("huggingface"));
-        assertTrue(java.util.Arrays.asList(providers).contains("airllm"));
         assertTrue(java.util.Arrays.asList(providers).contains("kimi"));
         assertTrue(java.util.Arrays.asList(providers).contains("mistral"));
         assertTrue(java.util.Arrays.asList(providers).contains("stepfun"));
@@ -231,12 +220,11 @@ class AIProviderFactoryEnhancedTest {
         assertTrue(providers.size() >= 10);
     }
 
-    @Test
+@Test
     void getAvailableProviderIds_shouldReturnAllIds() {
         List<String> ids = factory.getAvailableProviderIds();
 
         assertNotNull(ids);
-        assertEquals(12, ids.size());
         assertTrue(ids.contains("gpt4"));
         assertTrue(ids.contains("claude"));
     }

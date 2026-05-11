@@ -63,8 +63,10 @@ public class RequestHedgingService {
         // Return first completed response
         try {
             if (hedgedFuture != null) {
-                return (T) CompletableFuture.anyOf(primaryFuture, hedgedFuture)
+                @SuppressWarnings("unchecked")
+                T result = (T) CompletableFuture.anyOf(primaryFuture, hedgedFuture)
                     .get(timeoutMs, TimeUnit.MILLISECONDS);
+                return result;
             } else {
                 return primaryFuture.get(timeoutMs, TimeUnit.MILLISECONDS);
             }

@@ -42,7 +42,6 @@ public class ProviderInitializationService {
         if (n.contains("STEPFUN") || n.contains("STEP")) return "STEPFUN";
         if (n.contains("CODEGEEX")) return "CODEGEEX";
         if (n.contains("HUGGINGFACE")) return "HUGGINGFACE";
-        if (n.contains("AIRLLM")) return "AIRLLM";
         if (n.contains("OLLAMA")) return "LOCAL";
         return "GENERIC";
     }
@@ -62,7 +61,7 @@ public class ProviderInitializationService {
             provider.setModels(java.util.List.of("gpt-4", "gpt-3.5-turbo"));
             provider.setCapabilities(java.util.List.of("chat", "code"));
         } else if (name.contains("huggingface")) {
-            provider.setBaseUrl("https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta");
+            provider.setBaseUrl("https://api-inference.huggingface.co/models/meta-llama/Llama-3.3-70B-Instruct/v1/chat/completions");
             provider.setCapabilities(java.util.List.of("chat"));
         } else if (name.contains("codegeex")) {
             provider.setBaseUrl("https://open.bigmodel.cn/api/coding/paas/v4/chat/completions");
@@ -82,8 +81,6 @@ public class ProviderInitializationService {
             provider.setBaseUrl("https://api.deepseek.com/v1/chat/completions");
         } else if (name.contains("anthropic")) {
             provider.setBaseUrl("https://api.anthropic.com/v1/messages");
-        } else if (name.contains("airllm")) {
-            provider.setBaseUrl("https://airllm-default.endpoint/v1/chat/completions");
         } else if (name.contains("ollama")) {
             provider.setBaseUrl("http://localhost:11434/v1/chat/completions");
         }

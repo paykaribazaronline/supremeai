@@ -47,15 +47,26 @@ public class AIFallbackOrchestrator {
     private final Map<AIProviderType, CircuitBreaker> providerCircuitBreakers = new EnumMap<>(AIProviderType.class);
 
     private final List<AIProviderType> allProviders = Arrays.asList(
+            // Tier 1: High Performance External
             AIProviderType.GROQ_LLAMA3,
             AIProviderType.GEMINI_PRO,
-            AIProviderType.HUGGINGFACE_FREE,
             AIProviderType.ANTHROPIC_CLAUDE,
             AIProviderType.OPENAI,
             AIProviderType.DEEPSEEK,
+            
+            // Tier 2: Resilient Private Cloud
+            AIProviderType.CLOUD_QWEN,
+            AIProviderType.CLOUD_DEEPSEEK,
+            AIProviderType.CLOUD_LLAMA,
+            AIProviderType.CLOUD_PHI,
+            
+            // Other External
+            AIProviderType.HUGGINGFACE_FREE,
             AIProviderType.KIMI,
             AIProviderType.MISTRAL,
-            AIProviderType.AIRLLM,
+            AIProviderType.STEPFUN,
+            
+            // Tier 3: Last Resort Local
             AIProviderType.OLLAMA
     );
 
@@ -239,8 +250,13 @@ public class AIFallbackOrchestrator {
             case DEEPSEEK: return "DeepSeek";
             case KIMI: return "Kimi";
             case MISTRAL: return "Mistral";
-            case AIRLLM: return "AirLLM";
+            case STEPFUN: return "StepFun";
             case OLLAMA: return "Ollama";
+            case CLOUD_QWEN: return "GCP_Qwen";
+            case CLOUD_LLAMA: return "GCP_Llama";
+            case CLOUD_DEEPSEEK: return "HF_DeepSeek";
+            case CLOUD_PHI: return "GCP_Phi";
+            case CLOUD_NOMIC: return "GCP_Nomic";
             default: throw new IllegalArgumentException("Unknown AI provider: " + provider);
         }
     }
@@ -259,13 +275,18 @@ public class AIFallbackOrchestrator {
             case GROQ_LLAMA3: return "GROQ_API_KEY";
             case GEMINI_PRO: return "GEMINI_API_KEY";
             case ANTHROPIC_CLAUDE: return "ANTHROPIC_API_KEY";
-            case HUGGINGFACE_FREE: return "HF_API_KEY";
+            case HUGGINGFACE_FREE: return "HUGGINGFACE_API_KEY";
             case OPENAI: return "OPENAI_API_KEY";
             case DEEPSEEK: return "DEEPSEEK_API_KEY";
             case KIMI: return "KIMI_API_KEY";
             case MISTRAL: return "MISTRAL_API_KEY";
-            case AIRLLM: return "AIRLLM_API_KEY";
-            case OLLAMA: return null; // Ollama uses local endpoint, no API key needed
+            case STEPFUN: return "STEPFUN_API_KEY";
+            case OLLAMA: return null;
+            case CLOUD_QWEN:
+            case CLOUD_LLAMA:
+            case CLOUD_DEEPSEEK:
+            case CLOUD_PHI:
+            case CLOUD_NOMIC: return "SUPREME_CLOUD_API_KEY";
             default: return "AI_API_KEY";
         }
     }
@@ -300,7 +321,7 @@ public class AIFallbackOrchestrator {
             case DEEPSEEK: return "deepseek";
             case KIMI: return "kimi";
             case MISTRAL: return "mistral";
-            case AIRLLM: return "airllm";
+            case STEPFUN: return "stepfun";
             case OLLAMA: return "ollama";
             default: return provider.name().toLowerCase();
         }

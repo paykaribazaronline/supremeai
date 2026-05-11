@@ -1,26 +1,22 @@
 package com.supremeai.provider;
 
-
-
 import org.springframework.stereotype.Component;
-import org.springframework.beans.factory.annotation.Value;
 import java.util.List;
 import java.util.Map;
 
 /**
- * HuggingFace Provider implementation using shared HTTP client and ObjectMapper.
- * Extends AbstractHttpProvider for optimized performance.
+ * Refactored HuggingFace Provider.
+ * Now dynamic and follows MetadataService patterns.
  */
 @Component
 public class HuggingFaceProvider extends AbstractHttpProvider {
-    private static final String API_URL = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta";
 
     public HuggingFaceProvider() {
         this("");
     }
 
-    public HuggingFaceProvider(@Value("${huggingface.api-key:}") String apiKey) {
-        super(apiKey, API_URL, "zephyr-7b-beta");
+    public HuggingFaceProvider(String apiKey) {
+        super(apiKey, "https://api-inference.huggingface.co/v1/chat/completions", "meta-llama/Llama-3.3-70B-Instruct");
     }
 
     @Override
@@ -29,41 +25,36 @@ public class HuggingFaceProvider extends AbstractHttpProvider {
     }
 
     @Override
-    public Map<String, Object> getCapabilities() {
-        return Map.of(
-                "name", "HuggingFace",
-                "models", new String[]{"zephyr-7b-beta"}
-        );
-    }
-
-    @Override
     protected Map<String, Object> createRequestBody(String prompt) {
         return Map.of(
-                "inputs", prompt,
-                "parameters", Map.of("max_new_tokens", 512)
+                "model", getModel(),
+                "messages", List.of(Map.of("role", "user", "content", prompt)),
+                "max_tokens", 512
         );
     }
 
     @Override
     protected String extractResponse(String responseBody) throws Exception {
-        if (responseBody == null || responseBody.isBlank()) {
-            return "No response from HuggingFace.";
-        }
-        // HuggingFace returns an array of objects
-        List<?> list = objectMapper.readValue(responseBody, List.class);
-        if (list != null && !list.isEmpty()) {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> first = (Map<String, Object>) list.get(0);
-            String generated = (String) first.get("generated_text");
-            if (generated != null) {
-                return generated;
+        if (responseBody == null || responseBody.isBlank()) return "Empty HF response.";
+        
+        Map<String, Object> response = objectMapper.readValue(responseBody, 
+            new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+            
+        List<?> choices = (List<?>) response.get("choices");
+        if (choices != null && !choices.isEmpty()) {
+            Map<String, Object> first = (Map<String, Object>) choices.get(0);
+            Map<String, Object> message = (Map<String, Object>) first.get("message");
+            if (message != null && message.get("content") != null) {
+                return (String) message.get("content");
             }
         }
-        return "No response from HuggingFace.";
+        return "No content in HF response.";
     }
 
     @Override
     protected void addAuthHeaders(okhttp3.Request.Builder builder) {
-        builder.addHeader("Authorization", "Bearer " + apiKey);
+        if (apiKey != null && !apiKey.isBlank()) {
+            builder.addHeader("Authorization", "Bearer " + apiKey);
+        }
     }
 }

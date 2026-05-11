@@ -87,8 +87,9 @@ public class AuthenticationController {
                  return ApiResponse.ok(response);
              })
             .onErrorResume(e -> {
-                log.error("Login failed: {}", e.getMessage());
-                return Mono.just(ApiResponse.error("Authentication failed: " + e.getMessage()));
+                log.error("Login failed for request from {}: {}", remoteAddr, e.getMessage(), e);
+                String cause = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
+                return Mono.just(ApiResponse.error("Authentication failed: " + cause));
             });
     }
 

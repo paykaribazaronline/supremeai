@@ -30,7 +30,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         // Only enforce Firebase auth on API routes.
         // This keeps static UI pages (e.g. /admin.html, /login.html) publicly reachable.
-        if (!path.startsWith("/api/")) {
+        if (!path.startsWith("/api/") && !path.startsWith("/telemetry/")) {
             return true;
         }
 
@@ -40,6 +40,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                path.startsWith("/api/auth/") ||
                path.startsWith("/api/chat/") ||
                path.startsWith("/api/ext/") ||
+               path.startsWith("/api/system") ||
+               path.startsWith("/telemetry/") ||
                path.startsWith("/api/config/");
     }
 

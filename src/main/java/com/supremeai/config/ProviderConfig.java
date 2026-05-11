@@ -23,6 +23,12 @@ public class ProviderConfig {
     @Value("${ai.providers.ollama.api-key:ollama}")
     private String ollamaApiKey;
 
+    @Value("${ai.providers.ollama.endpoint:http://localhost:11434}")
+    private String ollamaEndpoint;
+
+    @Value("${HUGGINGFACE_API_KEY:}")
+    private String huggingfaceApiKey;
+
     @Value("${GEMINI_API_KEY:}")
     private String geminiApiKey;
 
@@ -66,6 +72,7 @@ public class ProviderConfig {
         addKeyIfPresent(keys, "kimi", "KIMI_API_KEY", kimiApiKey);
         addKeyIfPresent(keys, "stepfun", "STEPFUN_API_KEY", stepfunApiKey);
         addKeyIfPresent(keys, "codegeex4", "supremeai.provider.codegeex4.api-key", codegeex4ApiKey);
+        addKeyIfPresent(keys, "huggingface", "HUGGINGFACE_API_KEY", huggingfaceApiKey);
         
         return keys;
     }
@@ -122,5 +129,10 @@ public class ProviderConfig {
     @Bean
     public MistralProvider mistralProvider() {
         return new MistralProvider(getEffectiveKey("MISTRAL_API_KEY", mistralApiKey));
+    }
+
+    @Bean
+    public HuggingFaceProvider huggingFaceProvider() {
+        return new HuggingFaceProvider(getEffectiveKey("HUGGINGFACE_API_KEY", huggingfaceApiKey));
     }
 }
