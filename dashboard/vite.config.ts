@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    outDir: '../src/main/resources/static/admin',
+    outDir: 'dist',
     sourcemap: true,
     emptyOutDir: true,
   },

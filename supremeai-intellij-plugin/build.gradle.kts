@@ -21,7 +21,7 @@ repositories {
 
 dependencies {
     intellijPlatform {
-        androidStudio("2024.3.1")
+        androidStudio("2024.1.1.11") // Stable Koala release
         bundledPlugin("com.intellij.java")
         bundledPlugin("org.jetbrains.kotlin")
         bundledPlugin("org.jetbrains.android")
