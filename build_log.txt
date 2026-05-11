@@ -1,0 +1,96 @@
+
+> Task :compileJava
+/home/nazifarabbu/OneDrive/supremeai/src/main/java/com/supremeai/provider/AIProviderFactory.java:97: error: duplicate case label
+            case "huggingface":
+            ^
+/home/nazifarabbu/OneDrive/supremeai/src/main/java/com/supremeai/mcp/MCPServerController.java:60: warning: [unchecked] unchecked cast
+        Map<String, Object> args = (Map<String, Object>) request.get("arguments");
+                                                                    ^
+  required: Map<String,Object>
+  found:    Object
+/home/nazifarabbu/OneDrive/supremeai/src/main/java/com/supremeai/mcp/MCPServerController.java:79: warning: [unchecked] unchecked cast
+        Map<String, Object> credentials = (Map<String, Object>) args.get("credentials");
+                                                                        ^
+  required: Map<String,Object>
+  found:    Object
+/home/nazifarabbu/OneDrive/supremeai/src/main/java/com/supremeai/mcp/MCPClientManager.java:61: warning: [unchecked] unchecked conversion
+                Map<String, Object> response = restTemplate.postForObject(url + "/tools/list", Collections.emptyMap(), Map.class);
+                                                                         ^
+  required: Map<String,Object>
+  found:    Map
+/home/nazifarabbu/OneDrive/supremeai/src/main/java/com/supremeai/config/DistributedRateLimiter.java:95: warning: non-varargs call of varargs method with inexact argument type for last parameter;
+            Long result = redisTemplate.execute(script, keys, args.toArray(new String[0]));
+                                                                          ^
+  cast to Object for a varargs call
+  cast to Object[] for a non-varargs call and to suppress this warning
+/home/nazifarabbu/OneDrive/supremeai/src/main/java/com/supremeai/provider/HuggingFaceProvider.java:45: warning: [unchecked] unchecked cast
+            Map<String, Object> first = (Map<String, Object>) choices.get(0);
+                                                                         ^
+  required: Map<String,Object>
+  found:    CAP#1
+  where CAP#1 is a fresh type-variable:
+    CAP#1 extends Object from capture of ?
+/home/nazifarabbu/OneDrive/supremeai/src/main/java/com/supremeai/provider/HuggingFaceProvider.java:46: warning: [unchecked] unchecked cast
+            Map<String, Object> message = (Map<String, Object>) first.get("message");
+                                                                         ^
+  required: Map<String,Object>
+  found:    Object
+/home/nazifarabbu/OneDrive/supremeai/src/main/java/com/supremeai/service/AgentService.java:53: warning: [unchecked] unchecked cast
+        List<Provider> cached = (List<Provider>) redisTemplate.opsForValue().get(CACHE_KEY_PROVIDER_LIST);
+                                                                                ^
+  required: List<Provider>
+  found:    Object
+/home/nazifarabbu/OneDrive/supremeai/src/main/java/com/supremeai/service/CacheInvalidationService.java:94: warning: [deprecation] flushDb() in DefaultedRedisConnection has been deprecated
+            redisTemplate.getConnectionFactory().getConnection().flushDb();
+                                                                ^
+/home/nazifarabbu/OneDrive/supremeai/src/main/java/com/supremeai/service/FastPathAIService.java:60: warning: [deprecation] get(String) in ResponseCacheService has been deprecated
+        String cached = cacheService.get(prompt);
+                                    ^
+/home/nazifarabbu/OneDrive/supremeai/src/main/java/com/supremeai/service/FastPathAIService.java:74: warning: [deprecation] put(String,String) in ResponseCacheService has been deprecated
+                cacheService.put(prompt, response);
+                            ^
+/home/nazifarabbu/OneDrive/supremeai/src/main/java/com/supremeai/service/FastPathAIService.java:87: warning: [deprecation] put(String,String) in ResponseCacheService has been deprecated
+            cacheService.put(prompt, response);
+                        ^
+/home/nazifarabbu/OneDrive/supremeai/src/main/java/com/supremeai/service/FastPathAIService.java:103: warning: [deprecation] get(String) in ResponseCacheService has been deprecated
+        String cached = cacheService.get(prompt);
+                                    ^
+/home/nazifarabbu/OneDrive/supremeai/src/main/java/com/supremeai/service/FastPathAIService.java:120: warning: [deprecation] put(String,String) in ResponseCacheService has been deprecated
+                        cacheService.put(prompt, response);
+                                    ^
+/home/nazifarabbu/OneDrive/supremeai/src/main/java/com/supremeai/service/ResponseCacheService.java:193: warning: [deprecation] keys(byte[]) in DefaultedRedisConnection has been deprecated
+                java.util.Set<byte[]> keys = connection.keys(pattern);
+                                                       ^
+/home/nazifarabbu/OneDrive/supremeai/src/main/java/com/supremeai/service/AIProviderDiscoveryService.java:66: warning: [unchecked] unchecked cast
+                    List<Map<String, Object>> data = (List<Map<String, Object>>) m.get("data");
+                                                                                      ^
+  required: List<Map<String,Object>>
+  found:    Object
+/home/nazifarabbu/OneDrive/supremeai/src/main/java/com/supremeai/service/AIProviderDiscoveryService.java:115: warning: [unchecked] unchecked cast
+                    List<Map<String, Object>> models = (List<Map<String, Object>>) m.get("models");
+                                                                                        ^
+  required: List<Map<String,Object>>
+  found:    Object
+/home/nazifarabbu/OneDrive/supremeai/src/main/java/com/supremeai/service/SLOTrackingService.java:52: warning: [deprecation] percentile(double,TimeUnit) in Timer has been deprecated
+        double p95 = requestTimer.percentile(0.95, java.util.concurrent.TimeUnit.MILLISECONDS);
+                                 ^
+/home/nazifarabbu/OneDrive/supremeai/src/main/java/com/supremeai/service/SLOTrackingService.java:53: warning: [deprecation] percentile(double,TimeUnit) in Timer has been deprecated
+        double p99 = requestTimer.percentile(0.99, java.util.concurrent.TimeUnit.MILLISECONDS);
+                                 ^
+1 error
+18 warnings
+
+> Task :compileJava FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Compilation failed; see the compiler error output for details.
+
+* Try:
+> Run with --info option to get more log output.
+> Run with --scan to get full insights.
+
+BUILD FAILED in 17s
+1 actionable task: 1 executed

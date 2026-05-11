@@ -200,6 +200,7 @@ class AgentOrchestrationControllerTest {
         StepVerifier.create(result)
                 .consumeNextWith(response -> {
                     assertEquals(200, response.getStatusCode().value());
+                    @SuppressWarnings("unchecked")
                     Map<String, Object> body = (Map<String, Object>) response.getBody();
                     assertEquals("COMPLETED", body.get("status"));
                     assertEquals("Build a mobile app", body.get("requirement"));
@@ -237,6 +238,7 @@ class AgentOrchestrationControllerTest {
         StepVerifier.create(result)
                 .consumeNextWith(response -> {
                     assertEquals(200, response.getStatusCode().value());
+                    @SuppressWarnings("unchecked")
                     Map<String, Object> body = (Map<String, Object>) response.getBody();
                     assertEquals("UP", body.get("status"));
                     assertEquals("AdaptiveAgentOrchestrator", body.get("service"));
@@ -335,6 +337,7 @@ class AgentOrchestrationControllerTest {
         StepVerifier.create(result)
                 .consumeNextWith(response -> {
                     assertEquals(200, response.getStatusCode().value());
+                    @SuppressWarnings("unchecked")
                     Map<String, Object> body = (Map<String, Object>) response.getBody();
                     assertEquals("SUCCESS", body.get("status"));
                     assertEquals("android", body.get("platform"));

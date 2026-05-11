@@ -52,7 +52,7 @@ class HuggingFaceProviderTest {
         Map<String, Object> caps = provider.getCapabilities();
 
         assertNotNull(caps);
-        assertEquals("HuggingFace", caps.get("name"));
+        assertEquals("huggingface", caps.get("name"));
         assertNotNull(caps.get("model"));
     }
 
@@ -101,7 +101,7 @@ class HuggingFaceProviderTest {
         method.setAccessible(true);
         String result = (String) method.invoke(provider, jsonResponse);
 
-        assertEquals("No response from HuggingFace.", result);
+        assertEquals("No content in HF response.", result);
     }
 
     @Test
@@ -116,7 +116,7 @@ class HuggingFaceProviderTest {
         method.setAccessible(true);
         String result = (String) method.invoke(provider, jsonResponse);
 
-        assertEquals("No response from HuggingFace.", result);
+        assertEquals("No content in HF response.", result);
     }
 
     @Test
