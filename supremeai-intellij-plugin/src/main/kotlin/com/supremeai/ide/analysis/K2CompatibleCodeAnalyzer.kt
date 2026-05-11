@@ -6,6 +6,7 @@ import org.jetbrains.kotlin.analysis.api.symbols.KaClassSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaPropertySymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaSymbolModality
+import org.jetbrains.kotlin.analysis.api.symbols.markers.KaNamedSymbol
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.types.Variance
@@ -33,7 +34,7 @@ class K2CompatibleCodeAnalyzer {
                     qualifiedName = symbol.classId?.asFqNameString() ?: "",
                     isAbstract = symbol.modality == KaSymbolModality.ABSTRACT,
                     superTypes = symbol.superTypes.map { it.render(position = Variance.INVARIANT) },
-                    properties = symbol.combinedDeclaredMemberScope.callables
+                    properties = symbol.memberScope.callables
                         .filterIsInstance<KaPropertySymbol>()
                         .map { 
                             PropertyInfo(
@@ -44,7 +45,7 @@ class K2CompatibleCodeAnalyzer {
                             ) 
                         }
                         .toList(),
-                    functions = symbol.combinedDeclaredMemberScope.callables
+                    functions = symbol.memberScope.callables
                         .mapNotNull { it as? KaFunctionSymbol }
                         .map { 
                             FunctionInfo(
