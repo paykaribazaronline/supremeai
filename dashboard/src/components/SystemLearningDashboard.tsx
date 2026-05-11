@@ -1,7 +1,7 @@
 // SystemLearningDashboard.tsx - Recursive Knowledge Acquisition System
 import { useState, useEffect } from 'react';
-import { Table, Button, Space, Form, Input, Select, message, Progress, Modal, Card, Row, Col, List, Tag } from 'antd';
-import { PlusOutlined, CheckOutlined, CloseOutlined, SyncOutlined } from '@ant-design/icons';
+import { Table, Button, Space, Form, Input, Select, message, Progress, Modal, Card, Row, Col, List, Tag, Popconfirm, Badge } from 'antd';
+import { PlusOutlined, CheckOutlined, CloseOutlined, SyncOutlined, TagOutlined, ThunderboltOutlined, DeleteOutlined, DatabaseOutlined, BulbOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import { authUtils } from '../lib/authUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSystemWebSocket } from '../hooks/useSystemWebSocket';
