@@ -190,7 +190,7 @@ class AIProviderFactoryEnhancedTest {
     void getSupportedProviders_shouldReturnAllProviders() {
         String[] providers = factory.getSupportedProviders();
 
-        assertEquals(11, providers.length);
+        assertEquals(15, providers.length);
         assertTrue(java.util.Arrays.asList(providers).contains("gpt4"));
         assertTrue(java.util.Arrays.asList(providers).contains("claude"));
         assertTrue(java.util.Arrays.asList(providers).contains("gemini"));
@@ -202,6 +202,10 @@ class AIProviderFactoryEnhancedTest {
         assertTrue(java.util.Arrays.asList(providers).contains("mistral"));
         assertTrue(java.util.Arrays.asList(providers).contains("stepfun"));
         assertTrue(java.util.Arrays.asList(providers).contains("codegeex4"));
+        assertTrue(java.util.Arrays.asList(providers).contains("gcp_qwen"));
+        assertTrue(java.util.Arrays.asList(providers).contains("gcp_llama"));
+        assertTrue(java.util.Arrays.asList(providers).contains("gcp_phi"));
+        assertTrue(java.util.Arrays.asList(providers).contains("hf_deepseek"));
     }
 
     @Test

@@ -50,6 +50,7 @@ class CodeFlowRepositoryTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void save_shouldGenerateIdAndPersist() throws ExecutionException, InterruptedException {
         CodeRepository repo = CodeRepository.builder()
                 .name("test-repo")
@@ -59,7 +60,8 @@ class CodeFlowRepositoryTest {
         com.google.cloud.firestore.CollectionReference mockColl = mock(com.google.cloud.firestore.CollectionReference.class);
         when(mockFirestore.collection("codeflow/repositories")).thenReturn(mockColl);
         when(mockColl.document(anyString())).thenReturn(mockDocRef);
-        when(mockDocRef.set(any(CodeRepository.class))).thenReturn(mock(ApiFuture.class));
+        ApiFuture<WriteResult> mockFuture = mock(ApiFuture.class);
+        doReturn(mockFuture).when(mockDocRef).set(any(CodeRepository.class));
 
         CodeRepository saved = repository.save(repo);
 
@@ -69,6 +71,7 @@ class CodeFlowRepositoryTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void save_shouldUseExistingId_whenIdProvided() throws ExecutionException, InterruptedException {
         CodeRepository repo = CodeRepository.builder()
                 .id("existing-id")
@@ -78,7 +81,8 @@ class CodeFlowRepositoryTest {
         com.google.cloud.firestore.CollectionReference mockColl = mock(com.google.cloud.firestore.CollectionReference.class);
         when(mockFirestore.collection("codeflow/repositories")).thenReturn(mockColl);
         when(mockColl.document("existing-id")).thenReturn(mockDocRef);
-        when(mockDocRef.set(any(CodeRepository.class))).thenReturn(mock(ApiFuture.class));
+        ApiFuture<WriteResult> mockFuture = mock(ApiFuture.class);
+        doReturn(mockFuture).when(mockDocRef).set(any(CodeRepository.class));
 
         CodeRepository saved = repository.save(repo);
 
@@ -87,6 +91,7 @@ class CodeFlowRepositoryTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void findById_shouldReturnRepository_whenExists() throws ExecutionException, InterruptedException {
         CodeRepository expected = CodeRepository.builder()
                 .id("repo-1")
@@ -98,7 +103,7 @@ class CodeFlowRepositoryTest {
         when(mockColl.document("repo-1")).thenReturn(mockDocRef);
 
         ApiFuture<DocumentSnapshot> future = mock(ApiFuture.class);
-        when(mockDocRef.get()).thenReturn(future);
+        doReturn(future).when(mockDocRef).get();
         when(future.get()).thenReturn(mockDocSnapshot);
         when(mockDocSnapshot.exists()).thenReturn(true);
         when(mockDocSnapshot.toObject(CodeRepository.class)).thenReturn(expected);
@@ -112,6 +117,7 @@ class CodeFlowRepositoryTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void findById_shouldReturnEmpty_whenNotFound() throws ExecutionException, InterruptedException {
         com.google.cloud.firestore.CollectionReference mockColl = mock(com.google.cloud.firestore.CollectionReference.class);
         when(mockFirestore.collection("codeflow/repositories")).thenReturn(mockColl);
@@ -128,6 +134,7 @@ class CodeFlowRepositoryTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void findBySourceId_shouldReturnRepository_whenFound() throws ExecutionException, InterruptedException {
         CodeRepository expected = CodeRepository.builder()
                 .id("repo-2")
@@ -145,7 +152,7 @@ class CodeFlowRepositoryTest {
         when(mockQuery.limit(1)).thenReturn(mockQuery);
 
         ApiFuture<QuerySnapshot> future = mock(ApiFuture.class);
-        when(mockQuery.get()).thenReturn(future);
+        doReturn(future).when(mockQuery).get();
         when(future.get()).thenReturn(mockQuerySnapshot);
         when(mockQuerySnapshot.isEmpty()).thenReturn(false);
         when(mockQuerySnapshot.getDocuments()).thenReturn(List.of(doc));
@@ -159,6 +166,7 @@ class CodeFlowRepositoryTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void findBySourceId_shouldReturnEmpty_whenNotFound() throws ExecutionException, InterruptedException {
         com.google.cloud.firestore.CollectionReference mockColl = mock(com.google.cloud.firestore.CollectionReference.class);
         Query mockQuery = mock(Query.class);
@@ -169,7 +177,7 @@ class CodeFlowRepositoryTest {
         when(mockQuery.limit(1)).thenReturn(mockQuery);
 
         ApiFuture<QuerySnapshot> future = mock(ApiFuture.class);
-        when(mockQuery.get()).thenReturn(future);
+        doReturn(future).when(mockQuery).get();
         when(future.get()).thenReturn(mockQuerySnapshot);
         when(mockQuerySnapshot.isEmpty()).thenReturn(true);
 
@@ -179,6 +187,7 @@ class CodeFlowRepositoryTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void findByOwnerId_shouldReturnRepositories() throws ExecutionException, InterruptedException {
         CodeRepository r1 = CodeRepository.builder().id("r1").name("repo-a").build();
         CodeRepository r2 = CodeRepository.builder().id("r2").name("repo-b").build();
@@ -193,7 +202,7 @@ class CodeFlowRepositoryTest {
         when(mockColl.whereEqualTo("ownerId", "owner-1")).thenReturn(mockQuery);
 
         ApiFuture<QuerySnapshot> future = mock(ApiFuture.class);
-        when(mockQuery.get()).thenReturn(future);
+        doReturn(future).when(mockQuery).get();
         when(future.get()).thenReturn(mockQuerySnapshot);
         when(mockQuerySnapshot.getDocuments()).thenReturn(List.of(d1, d2));
         when(d1.toObject(CodeRepository.class)).thenReturn(r1);
@@ -207,6 +216,7 @@ class CodeFlowRepositoryTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void findByOwnerId_shouldReturnEmpty_whenNoneFound() throws ExecutionException, InterruptedException {
         com.google.cloud.firestore.CollectionReference mockColl = mock(com.google.cloud.firestore.CollectionReference.class);
         Query mockQuery = mock(Query.class);
@@ -216,7 +226,7 @@ class CodeFlowRepositoryTest {
         when(mockColl.whereEqualTo("ownerId", "no-owner")).thenReturn(mockQuery);
 
         ApiFuture<QuerySnapshot> future = mock(ApiFuture.class);
-        when(mockQuery.get()).thenReturn(future);
+        doReturn(future).when(mockQuery).get();
         when(future.get()).thenReturn(mockQuerySnapshot);
         when(mockQuerySnapshot.getDocuments()).thenReturn(new ArrayList<>());
 
@@ -226,6 +236,7 @@ class CodeFlowRepositoryTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void findByAnalysisStatus_shouldReturnMatchingRepositories() throws ExecutionException, InterruptedException {
         CodeRepository r = CodeRepository.builder().id("r3").name("analyzed-repo").build();
 
@@ -238,7 +249,7 @@ class CodeFlowRepositoryTest {
         when(mockColl.whereEqualTo("analysisStatus", "COMPLETED")).thenReturn(mockQuery);
 
         ApiFuture<QuerySnapshot> future = mock(ApiFuture.class);
-        when(mockQuery.get()).thenReturn(future);
+        doReturn(future).when(mockQuery).get();
         when(future.get()).thenReturn(mockQuerySnapshot);
         when(mockQuerySnapshot.getDocuments()).thenReturn(List.of(queryDoc));
         when(queryDoc.toObject(CodeRepository.class)).thenReturn(r);
@@ -250,11 +261,13 @@ class CodeFlowRepositoryTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void deleteById_shouldRemoveDocument() throws ExecutionException, InterruptedException {
         com.google.cloud.firestore.CollectionReference mockColl = mock(com.google.cloud.firestore.CollectionReference.class);
         when(mockFirestore.collection("codeflow/repositories")).thenReturn(mockColl);
         when(mockColl.document("del-1")).thenReturn(mockDocRef);
-        when(mockDocRef.delete()).thenReturn(mock(ApiFuture.class));
+        ApiFuture<Void> mockFuture = mock(ApiFuture.class);
+        doReturn(mockFuture).when(mockDocRef).delete();
 
         repository.deleteById("del-1");
 
@@ -262,13 +275,14 @@ class CodeFlowRepositoryTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void updateAnalysisStatus_shouldUpdateFields() throws ExecutionException, InterruptedException {
         com.google.cloud.firestore.CollectionReference mockColl = mock(com.google.cloud.firestore.CollectionReference.class);
 
         when(mockFirestore.collection("codeflow/repositories")).thenReturn(mockColl);
         when(mockColl.document("upd-1")).thenReturn(mockDocRef);
-        when(mockDocRef.update(eq("analysisStatus"), eq("ANALYZING"), eq("updatedAt"), any(Date.class)))
-                .thenReturn(mock(ApiFuture.class));
+        ApiFuture<WriteResult> mockFuture = mock(ApiFuture.class);
+        doReturn(mockFuture).when(mockDocRef).update(eq("analysisStatus"), eq("ANALYZING"), eq("updatedAt"), any(Date.class));
 
         repository.updateAnalysisStatus("upd-1", CodeRepository.AnalysisStatus.ANALYZING);
 
