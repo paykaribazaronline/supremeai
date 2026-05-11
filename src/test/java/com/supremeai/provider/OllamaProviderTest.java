@@ -73,7 +73,7 @@ class OllamaProviderTest {
 
     @Test
     void createRequestBody_shouldUseCustomModel() throws Exception {
-        OllamaProvider customProvider = new OllamaProvider("key", "llama3");
+        OllamaProvider customProvider = new OllamaProvider("key", "http://localhost:11434", "llama3");
         java.lang.reflect.Method method = OllamaProvider.class.getDeclaredMethod("createRequestBody", String.class);
         method.setAccessible(true);
         @SuppressWarnings("unchecked")
@@ -116,7 +116,7 @@ class OllamaProviderTest {
 
     @Test
     void constructor_withCustomModel_shouldAcceptModel() {
-        OllamaProvider p = new OllamaProvider("key", "mistral");
+        OllamaProvider p = new OllamaProvider("key", "http://localhost:11434", "mistral");
         assertEquals("ollama", p.getName());
     }
 
