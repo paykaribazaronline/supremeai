@@ -88,6 +88,32 @@ ChartJS.register(
 
 const { Header, Content, Sider } = Layout;
 
+const getIcon = (iconName: string) => {
+    switch (iconName) {
+        case 'DashboardOutlined': return <DashboardOutlined />;
+        case 'RobotOutlined': return <RobotOutlined />;
+        case 'BugOutlined': return <BugOutlined />;
+        case 'ApiOutlined': return <ApiOutlined />;
+        case 'DatabaseOutlined': return <DatabaseOutlined />;
+        case 'GlobalOutlined': return <GlobalOutlined />;
+        case 'CloudServerOutlined': return <CloudServerOutlined />;
+        case 'ThunderboltOutlined': return <ThunderboltOutlined />;
+        case 'RocketOutlined': return <RocketOutlined />;
+        case 'HistoryOutlined': return <HistoryOutlined />;
+        case 'FileTextOutlined': return <FileTextOutlined />;
+        case 'SettingOutlined': return <SettingOutlined />;
+        case 'MonitorOutlined': return <MonitorOutlined />;
+        case 'EyeOutlined': return <EyeOutlined />;
+        case 'UploadOutlined': return <UploadOutlined />;
+        case 'SafetyCertificateOutlined': return <SafetyCertificateOutlined />;
+        case 'NodeIndexOutlined': return <NodeIndexOutlined />;
+        case 'DesktopOutlined': return <DesktopOutlined />;
+        case 'ChromeOutlined': return <ChromeOutlined />;
+        case 'BarChartOutlined': return <BarChartOutlined />;
+        default: return <NodeIndexOutlined />;
+    }
+};
+
 const AdminDashboardUnified: React.FC = () => {
     const [selectedKey, setSelectedKey] = useState('overview');
     const [contract, setContract] = useState<DashboardContract | null>(null);
@@ -112,7 +138,11 @@ const AdminDashboardUnified: React.FC = () => {
         
         const connectWebSocket = () => {
           try {
-            const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws'}://${window.location.host}/ws`;
+            const wsPath = import.meta.env.VITE_WS_URL || '/ws';
+            const wsUrl = wsPath.startsWith('http') || wsPath.startsWith('ws') 
+                ? wsPath 
+                : `${window.location.protocol === 'https:' ? 'https:' : 'http'}://${window.location.host}${wsPath.startsWith('/') ? '' : '/'}${wsPath}`;
+            
             const socket = new SockJS(wsUrl);
             const stompClient = new Client({
               webSocketFactory: () => socket,
@@ -192,7 +222,7 @@ const AdminDashboardUnified: React.FC = () => {
                     .filter(i => ['overview', 'metrics', 'analytics'].includes(i.key))
                     .map(item => ({
                         key: item.key,
-                        icon: item.icon,
+                        icon: getIcon(item.icon),
                         label: <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>,
                     }))
             },
@@ -204,7 +234,7 @@ const AdminDashboardUnified: React.FC = () => {
                     .filter(i => ['ai-agents', 'providers', 'system-learning', 'ai-systems'].includes(i.key))
                     .map(item => ({
                         key: item.key === 'ai-systems' ? 'ai-agents' : item.key,
-                        icon: item.icon,
+                        icon: getIcon(item.icon),
                         label: <span className="text-[9px] font-bold uppercase tracking-[0.1em]">{item.label}</span>,
                     }))
             },
@@ -217,7 +247,7 @@ const AdminDashboardUnified: React.FC = () => {
                         .filter(i => ['requirements', 'ocr', 'exploitation-techniques', 'phases', 'vpn', 'audit', 'browser-activity'].includes(i.key))
                         .map(item => ({
                             key: item.key,
-                            icon: item.icon,
+                            icon: getIcon(item.icon),
                             label: <span className="text-[9px] font-bold uppercase tracking-[0.1em]">{item.label}</span>,
                         })),
                     { key: 'rules', icon: <SafetyCertificateOutlined />, label: <span className="text-[9px] font-bold uppercase tracking-[0.1em]">Rules</span> },

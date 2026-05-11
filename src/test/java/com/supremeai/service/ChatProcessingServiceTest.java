@@ -53,7 +53,7 @@ class ChatProcessingServiceTest {
         
         when(chatClassifier.classify(message)).thenReturn(result);
         
-        Map<String, Object> response = chatProcessingService.processMessage(userId, message, false);
+        Map<String, Object> response = chatProcessingService.processMessage(userId, message, false).block();
         
         assertEquals("normal", response.get("chat_type"));
         assertFalse((Boolean) response.get("needs_confirmation"));
@@ -73,7 +73,7 @@ class ChatProcessingServiceTest {
         when(chatClassifier.extractContent(eq(message), eq(ChatClassifier.ChatType.RULE))).thenReturn("Always be polite");
         when(chatRuleRepository.save(any())).thenReturn(Mono.just(new ChatRule()));
         
-        Map<String, Object> response = chatProcessingService.processMessage(userId, message, true);
+        Map<String, Object> response = chatProcessingService.processMessage(userId, message, true).block();
         
         assertEquals("rule", response.get("chat_type"));
         assertTrue((Boolean) response.get("needs_confirmation"));
@@ -91,14 +91,14 @@ class ChatProcessingServiceTest {
         when(chatClassifier.classify(message)).thenReturn(classResult);
         when(chatRuleRepository.save(any())).thenReturn(Mono.just(new ChatRule()));
         
-        Map<String, Object> processResponse = chatProcessingService.processMessage(userId, message, true);
+        Map<String, Object> processResponse = chatProcessingService.processMessage(userId, message, true).block();
         String itemId = (String) processResponse.get("item_id");
         
         // Now confirm it
         when(chatConfirmationRepository.save(any())).thenReturn(Mono.just(new ChatConfirmation()));
         when(chatRuleRepository.findById(itemId)).thenReturn(Mono.just(new ChatRule()));
         
-        Map<String, Object> confirmResponse = chatProcessingService.confirmItem(itemId, true, userId);
+        Map<String, Object> confirmResponse = chatProcessingService.confirmItem(itemId, true, userId).block();
         
         assertTrue((Boolean) confirmResponse.get("success"));
         assertEquals(itemId, confirmResponse.get("item_id"));

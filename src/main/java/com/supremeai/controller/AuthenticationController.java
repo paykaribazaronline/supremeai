@@ -44,26 +44,32 @@ public class AuthenticationController {
 
     private static final Logger log = LoggerFactory.getLogger(AuthenticationController.class);
 
-    @Autowired
-    private Environment env;
+    private final Environment env;
+    private final UserRepository userRepository;
+    private final ActivityLogRepository activityLogRepository;
+    private final BruteForceProtectionService bruteForceProtectionService;
+    private final JwtUtil jwtUtil;
+    private final ConfigService configService;
+    private final AuthenticationService authenticationService;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ActivityLogRepository activityLogRepository;
-
-    @Autowired
-    private BruteForceProtectionService bruteForceProtectionService;
-
-    @Autowired
-    private JwtUtil jwtUtil;
-
-    @Autowired
-    private ConfigService configService;
-
-    @Autowired
-    private AuthenticationService authenticationService;
+    public AuthenticationController(
+            Environment env,
+            UserRepository userRepository,
+            ActivityLogRepository activityLogRepository,
+            BruteForceProtectionService bruteForceProtectionService,
+            JwtUtil jwtUtil,
+            ConfigService configService,
+            AuthenticationService authenticationService
+    ) {
+        this.env = env;
+        this.userRepository = userRepository;
+        this.activityLogRepository = activityLogRepository;
+        this.bruteForceProtectionService = bruteForceProtectionService;
+        this.jwtUtil = jwtUtil;
+        this.configService = configService;
+        this.authenticationService = authenticationService;
+    }
 
     @PostMapping("/firebase-login")
     public Mono<ApiResponse<Map<String, Object>>> firebaseLogin(@Valid @RequestBody FirebaseLoginRequest request, HttpServletRequest httpRequest) {

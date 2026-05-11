@@ -25,11 +25,15 @@ public class EnhancedLearningService {
 
     private static final Logger logger = LoggerFactory.getLogger(EnhancedLearningService.class);
 
-    @Autowired
-    private SystemLearningRepository repository;
+    private final SystemLearningRepository repository;
+    private final SystemLearningService systemLearningService;
 
     @Autowired
-    private SystemLearningService systemLearningService;
+    public EnhancedLearningService(SystemLearningRepository repository,
+                                   SystemLearningService systemLearningService) {
+        this.repository = repository;
+        this.systemLearningService = systemLearningService;
+    }
 
     // Learning type constants
     public static final String LEARNING_NLP = "NLP";
@@ -79,7 +83,7 @@ public class EnhancedLearningService {
         learning.setTags(tags);
 
         logger.info("NLP Learning captured: provider={}, quality={}", provider, qualityScore);
-        return repository.save(learning);
+        return systemLearningService.addLearning(learning);
     }
 
     /**
@@ -115,7 +119,7 @@ public class EnhancedLearningService {
         learning.setTags(tags);
 
         logger.info("Multimodal Learning captured: provider={}, accuracy={}", provider, accuracyScore);
-        return repository.save(learning);
+        return systemLearningService.addLearning(learning);
     }
 
     /**
@@ -154,7 +158,7 @@ public class EnhancedLearningService {
         learning.setTags(tags);
 
         logger.info("Ecosystem Learning captured: endpoint={}, provider={}, success={}", apiEndpoint, provider, success);
-        return repository.save(learning);
+        return systemLearningService.addLearning(learning);
     }
 
     /**
@@ -201,7 +205,7 @@ public class EnhancedLearningService {
         learning.setTags(tags);
 
         logger.info("App Generation Learning captured: type={}, success={}, agent={}", generatedAppType, buildSuccess, agentUsed);
-        return repository.save(learning);
+        return systemLearningService.addLearning(learning);
     }
 
     /**
@@ -232,7 +236,7 @@ public class EnhancedLearningService {
         learning.setTags(tags);
 
         logger.info("Predictive Learning captured: pattern={}, confidence={}", patternType, confidence);
-        return repository.save(learning);
+        return systemLearningService.addLearning(learning);
     }
 
     /**
@@ -267,7 +271,7 @@ public class EnhancedLearningService {
         return repository.findById(learningId)
                 .flatMap(learning -> {
                     learning.setTimesApplied((learning.getTimesApplied() != null ? learning.getTimesApplied() : 0) + 1);
-                    return repository.save(learning);
+                    return systemLearningService.addLearning(learning);
                 });
     }
 

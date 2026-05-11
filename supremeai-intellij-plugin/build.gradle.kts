@@ -25,10 +25,9 @@ repositories {
 
 dependencies {
     intellijPlatform {
-        intellijIdeaCommunity("2024.2.1")
+        androidStudio("2024.2.1.11")
         bundledPlugin("com.intellij.java")
         bundledPlugin("org.jetbrains.kotlin")
-        bundledPlugin("org.jetbrains.android")
     }
 
     

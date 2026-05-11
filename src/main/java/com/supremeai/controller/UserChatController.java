@@ -46,79 +46,79 @@ public class UserChatController {
         }
 
         // Classify and store message
-        Map<String, Object> classificationResult = chatProcessingService.processMessage(
+        return chatProcessingService.processMessage(
             userId, message, isAdmin != null && isAdmin
-        );
+        ).flatMap(classificationResult -> {
+            // If needs admin confirmation (rule/plan/command), don't generate AI response
+            if (classificationResult.get("needs_confirmation") != null && 
+                (boolean) classificationResult.get("needs_confirmation")) {
+                String responseText = "I've detected a " + classificationResult.get("item_type") + 
+                    ": \"" + classificationResult.get("content") + "\". It has been sent for admin approval.";
+                return Mono.just(ResponseEntity.ok(Map.of(
+                    "response", responseText,
+                    "agentName", "SupremeAI Classifier",
+                    "confidence", classificationResult.get("confidence"),
+                    "message", classificationResult.get("reason"),
+                    "requires_confirmation", true,
+                    "item_id", classificationResult.get("item_id"),
+                    "item_type", classificationResult.get("item_type"),
+                    "status", "pending"
+                )));
+            }
 
-        // If needs admin confirmation (rule/plan/command), don't generate AI response
-        if (classificationResult.get("needs_confirmation") != null && 
-            (boolean) classificationResult.get("needs_confirmation")) {
-            String responseText = "I've detected a " + classificationResult.get("item_type") + 
-                ": \"" + classificationResult.get("content") + "\". It has been sent for admin approval.";
-            return Mono.just(ResponseEntity.ok(Map.of(
-                "response", responseText,
-                "agentName", "SupremeAI Classifier",
-                "confidence", classificationResult.get("confidence"),
-                "message", classificationResult.get("reason"),
-                "requires_confirmation", true,
-                "item_id", classificationResult.get("item_id"),
-                "item_type", classificationResult.get("item_type"),
-                "status", "pending"
-            )));
-        }
-
-        // For normal messages, use AI voting system to generate response
-        try {
-            logger.info("Getting AI response for user message: {}", message);
-            
-            // Use 10-AI voting system (existing ChatController logic)
-            var votingResult = votingService.executeEnsembleVoting(message, null, 15000L);
-            
-            String bestResponse = votingResult.getBestResponse();
-            Double confidence = votingResult.getAverageConfidence();
-            
-            Map<String, Object> aiResponse = new HashMap<>();
-            aiResponse.put("response", bestResponse);
-            aiResponse.put("agentName", "SupremeAI Consensus");
-            aiResponse.put("confidence", confidence);
-            aiResponse.put("message", classificationResult.get("reason"));
-            aiResponse.put("requires_confirmation", false);
-            aiResponse.put("status", "completed");
-            aiResponse.put("processingTimeMs", votingResult.getProcessingTimeMs());
-            aiResponse.put("modelsUsed", votingResult.getTotalModelsUsed());
-            aiResponse.put("chat_id", classificationResult.get("chat_id"));
-            
-            return Mono.just(ResponseEntity.ok(aiResponse));
-            
-        } catch (Exception e) {
-            logger.error("AI voting failed, falling back to consensus: {}", e.getMessage());
-            
-            // Fallback to simpler consensus
-            return consensusService.askConsensus(message, 
-                    Arrays.asList("groq", "deepseek", "claude", "openai", "ollama"), 10000L)
-                .map(res -> {
-                    Map<String, Object> fallback = new HashMap<>();
-                    fallback.put("response", res.getConsensusAnswer());
-                    fallback.put("agentName", "SupremeAI Fallback");
-                    fallback.put("confidence", res.getAverageConfidence());
-                    fallback.put("message", classificationResult.get("reason"));
-                    fallback.put("requires_confirmation", false);
-                    fallback.put("status", "completed");
-                    fallback.put("fallback", true);
-                    fallback.put("chat_id", classificationResult.get("chat_id"));
-                    return ResponseEntity.ok(fallback);
-                })
-                .onErrorResume(err -> {
-                    logger.error("All AI systems failed", err);
-                    Map<String, Object> errorResponse = new HashMap<>();
-                    errorResponse.put("response", "I'm sorry, I'm having trouble connecting to AI systems. Please try again later.");
-                    errorResponse.put("agentName", "SupremeAI Error");
-                    errorResponse.put("confidence", 0.0);
-                    errorResponse.put("status", "error");
-                    errorResponse.put("chat_id", classificationResult.get("chat_id"));
-                    return Mono.just(ResponseEntity.ok(errorResponse));
-                });
-        }
+            // For normal messages, use AI voting system to generate response
+            try {
+                logger.info("Getting AI response for user message: {}", message);
+                
+                // Use 10-AI voting system (existing ChatController logic)
+                var votingResult = votingService.executeEnsembleVoting(message, null, 15000L);
+                
+                String bestResponse = votingResult.getBestResponse();
+                Double confidence = votingResult.getAverageConfidence();
+                
+                Map<String, Object> aiResponse = new HashMap<>();
+                aiResponse.put("response", bestResponse);
+                aiResponse.put("agentName", "SupremeAI Consensus");
+                aiResponse.put("confidence", confidence);
+                aiResponse.put("message", classificationResult.get("reason"));
+                aiResponse.put("requires_confirmation", false);
+                aiResponse.put("status", "completed");
+                aiResponse.put("processingTimeMs", votingResult.getProcessingTimeMs());
+                aiResponse.put("modelsUsed", votingResult.getTotalModelsUsed());
+                aiResponse.put("chat_id", classificationResult.get("chat_id"));
+                
+                return Mono.just(ResponseEntity.ok(aiResponse));
+                
+            } catch (Exception e) {
+                logger.error("AI voting failed, falling back to consensus: {}", e.getMessage());
+                
+                // Fallback to simpler consensus
+                return consensusService.askConsensus(message, 
+                        Arrays.asList("groq", "deepseek", "claude", "openai", "ollama"), 10000L)
+                    .map(res -> {
+                        Map<String, Object> fallback = new HashMap<>();
+                        fallback.put("response", res.getConsensusAnswer());
+                        fallback.put("agentName", "SupremeAI Fallback");
+                        fallback.put("confidence", res.getAverageConfidence());
+                        fallback.put("message", classificationResult.get("reason"));
+                        fallback.put("requires_confirmation", false);
+                        fallback.put("status", "completed");
+                        fallback.put("fallback", true);
+                        fallback.put("chat_id", classificationResult.get("chat_id"));
+                        return ResponseEntity.ok(fallback);
+                    })
+                    .onErrorResume(err -> {
+                        logger.error("All AI systems failed", err);
+                        Map<String, Object> errorResponse = new HashMap<>();
+                        errorResponse.put("response", "I'm sorry, I'm having trouble connecting to AI systems. Please try again later.");
+                        errorResponse.put("agentName", "SupremeAI Error");
+                        errorResponse.put("confidence", 0.0);
+                        errorResponse.put("status", "error");
+                        errorResponse.put("chat_id", classificationResult.get("chat_id"));
+                        return Mono.just(ResponseEntity.ok(errorResponse));
+                    });
+            }
+        });
     }
 
     // Legacy endpoint for backward compatibility (maps to /api/chat/message)

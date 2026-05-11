@@ -23,11 +23,15 @@ public class PredictiveAnalysisService {
 
     private static final Logger logger = LoggerFactory.getLogger(PredictiveAnalysisService.class);
 
-    @Autowired
-    private SystemLearningRepository repository;
+    private final SystemLearningRepository repository;
+    private final EnhancedLearningService enhancedLearningService;
 
     @Autowired
-    private EnhancedLearningService enhancedLearningService;
+    public PredictiveAnalysisService(SystemLearningRepository repository,
+                                      EnhancedLearningService enhancedLearningService) {
+        this.repository = repository;
+        this.enhancedLearningService = enhancedLearningService;
+    }
 
     /**
      * Scheduled task: Analyze past learnings every hour and generate predictive patterns

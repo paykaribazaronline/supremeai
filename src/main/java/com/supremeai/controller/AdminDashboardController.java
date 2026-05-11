@@ -44,10 +44,10 @@ private final ContextualAIRankingService contextualRankingService;
     private final SolutionMemoryRepository solutionMemoryRepository;
     private static final long START_TIME = System.currentTimeMillis();
 
-    @Autowired
-    private ConfigService configService;
+    private final ConfigService configService;
 
-public AdminDashboardController(UserRepository userRepository,
+    @Autowired
+    public AdminDashboardController(UserRepository userRepository,
                                      AgentRepository agentRepository,
                                      ProjectRepository projectRepository,
                                      ProviderRepository providerRepository,
@@ -57,7 +57,8 @@ public AdminDashboardController(UserRepository userRepository,
                                      ContextualAIRankingService contextualRankingService,
                                      AutonomousQuestioningEngine questioningEngine,
                                      AdminDashboardService adminDashboardService,
-                                     SolutionMemoryRepository solutionMemoryRepository) {
+                                     SolutionMemoryRepository solutionMemoryRepository,
+                                     ConfigService configService) {
          this.userRepository = userRepository;
          this.agentRepository = agentRepository;
          this.projectRepository = projectRepository;
@@ -69,6 +70,7 @@ public AdminDashboardController(UserRepository userRepository,
          this.questioningEngine = questioningEngine;
          this.adminDashboardService = adminDashboardService;
          this.solutionMemoryRepository = solutionMemoryRepository;
+         this.configService = configService;
      }
 
 

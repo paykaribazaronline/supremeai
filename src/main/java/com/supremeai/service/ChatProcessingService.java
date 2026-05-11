@@ -37,91 +37,93 @@ public class ChatProcessingService {
         this.chatHistoryRepository = chatHistoryRepository;
     }
 
-    public Map<String, Object> processMessage(String userId, String message, boolean isAdmin) {
+    public Mono<Map<String, Object>> processMessage(String userId, String message, boolean isAdmin) {
         // Save chat message
         ChatMessage chatMsg = new ChatMessage(userId, message, isAdmin);
         chatMsg.setId(generateId("chat"));
-        chatHistoryRepository.save(chatMsg).subscribe();
+        
+        return chatHistoryRepository.save(chatMsg)
+            .flatMap(savedMsg -> {
+                String chatId = savedMsg.getId();
 
-        String chatId = chatMsg.getId();
+                // Classify message
+                ChatClassifier.ClassificationResult classification = chatClassifier.classify(message);
+                ChatClassifier.ChatType chatType = classification.getChatType();
+                double confidence = classification.getConfidence();
+                String reason = classification.getReason();
 
-        // Classify message
-        ChatClassifier.ClassificationResult classification = chatClassifier.classify(message);
-        ChatClassifier.ChatType chatType = classification.getChatType();
-        double confidence = classification.getConfidence();
-        String reason = classification.getReason();
+                Map<String, Object> result = new HashMap<>();
+                result.put("chat_id", chatId);
+                result.put("message", message);
+                result.put("chat_type", chatType.name().toLowerCase());
+                result.put("confidence", confidence);
+                result.put("reason", reason);
+                result.put("needs_confirmation", false);
+                result.put("item_id", null);
+                result.put("item_type", null);
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("chat_id", chatId);
-        result.put("message", message);
-        result.put("chat_type", chatType.name().toLowerCase());
-        result.put("confidence", confidence);
-        result.put("reason", reason);
-        result.put("needs_confirmation", false);
-        result.put("item_id", null);
-        result.put("item_type", null);
+                if (chatType != ChatClassifier.ChatType.NORMAL) {
+                    // Extract content
+                    String content = chatClassifier.extractContent(message, chatType);
 
-        if (chatType != ChatClassifier.ChatType.NORMAL) {
-            // Extract content
-            String content = chatClassifier.extractContent(message, chatType);
+                    // Save item based on type
+                    return savePendingItem(chatType, chatId, content, confidence, userId)
+                        .map(itemId -> {
+                            result.put("needs_confirmation", true);
+                            result.put("item_id", itemId);
+                            result.put("item_type", chatType.name().toLowerCase());
+                            result.put("content", content);
 
-            // Save item based on type
-            String itemId = savePendingItem(chatType, chatId, content, confidence, userId);
+                            // Track pending confirmation
+                            pendingConfirmations.put(itemId, new PendingItem(
+                                chatId, chatType.name().toLowerCase(), content, confidence, userId, isAdmin
+                            ));
+                            return result;
+                        });
+                }
 
-            result.put("needs_confirmation", true);
-            result.put("item_id", itemId);
-            result.put("item_type", chatType.name().toLowerCase());
-            result.put("content", content);
-
-            // Track pending confirmation
-            pendingConfirmations.put(itemId, new PendingItem(
-                chatId, chatType.name().toLowerCase(), content, confidence, userId, isAdmin
-            ));
-        }
-
-        return result;
+                return Mono.just(result);
+            });
     }
 
-    private String savePendingItem(ChatClassifier.ChatType chatType, String chatId, String content,
+    private Mono<String> savePendingItem(ChatClassifier.ChatType chatType, String chatId, String content,
                                     double confidence, String userId) {
         String itemId = generateId(chatType.name().toLowerCase());
 
-        switch (chatType) {
+        return switch (chatType) {
             case RULE -> {
                 ChatRule rule = new ChatRule(chatId, content, confidence, userId);
                 rule.setId(itemId);
                 rule.setCreatedAt(LocalDateTime.now());
                 rule.setActive(true);
-                chatRuleRepository.save(rule).subscribe();
+                yield chatRuleRepository.save(rule).thenReturn(itemId);
             }
             case PLAN -> {
                 ChatPlan plan = new ChatPlan(chatId, content, confidence, userId);
                 plan.setId(itemId);
                 plan.setCreatedAt(LocalDateTime.now());
                 plan.setActive(true);
-                chatPlanRepository.save(plan).subscribe();
+                yield chatPlanRepository.save(plan).thenReturn(itemId);
             }
             case COMMAND -> {
                 ChatCommand command = new ChatCommand(chatId, content, confidence, userId);
                 command.setId(itemId);
                 command.setCreatedAt(LocalDateTime.now());
                 command.setActive(true);
-                chatCommandRepository.save(command).subscribe();
+                yield chatCommandRepository.save(command).thenReturn(itemId);
             }
-        }
-
-        return itemId;
+            default -> Mono.just(itemId);
+        };
     }
 
-    public synchronized Map<String, Object> confirmItem(String itemId, boolean confirmed, String userId) {
-        Map<String, Object> response = new HashMap<>();
-
+    public Mono<Map<String, Object>> confirmItem(String itemId, boolean confirmed, String userId) {
         PendingItem pending = pendingConfirmations.get(itemId);
         if (pending == null) {
+            Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "আইটেমটি পেন্ডিং কনফার্মেশনে পাওয়া যায়নি");
             response.put("item_id", itemId);
-            return response;
+            return Mono.just(response);
         }
 
         // Save confirmation record
@@ -134,49 +136,52 @@ public class ChatProcessingService {
         );
         confirmation.setId(generateId("conf"));
         confirmation.setConfirmedAt(LocalDateTime.now());
-        chatConfirmationRepository.save(confirmation).subscribe();
+        
+        return chatConfirmationRepository.save(confirmation)
+            .flatMap(savedConf -> updateItemStatus(pending.getChatType(), itemId, confirmed)
+                .thenReturn(savedConf))
+            .map(savedConf -> {
+                // Remove from pending
+                pendingConfirmations.remove(itemId);
 
-        // Update item active status
-        updateItemStatus(pending.getChatType(), itemId, confirmed);
+                String statusMessage = confirmed
+                    ? pending.getChatType() + " সফলভাবে কনফার্ম করা হয়েছে"
+                    : pending.getChatType() + " প্রত্যাখ্যান করা হয়েছে";
 
-        // Remove from pending
-        pendingConfirmations.remove(itemId);
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", true);
+                response.put("message", statusMessage);
+                response.put("item_id", itemId);
+                response.put("item_type", pending.getChatType());
+                response.put("confirmed", confirmed);
+                response.put("confirmation_id", savedConf.getId());
 
-        String statusMessage = confirmed
-            ? pending.getChatType() + " সফলভাবে কনফার্ম করা হয়েছে"
-            : pending.getChatType() + " প্রত্যাখ্যান করা হয়েছে";
-
-        response.put("success", true);
-        response.put("message", statusMessage);
-        response.put("item_id", itemId);
-        response.put("item_type", pending.getChatType());
-        response.put("confirmed", confirmed);
-        response.put("confirmation_id", confirmation.getId());
-
-        return response;
+                return response;
+            });
     }
 
-    private void updateItemStatus(String itemType, String itemId, boolean active) {
-        switch (itemType) {
+    private Mono<Void> updateItemStatus(String itemType, String itemId, boolean active) {
+        return switch (itemType) {
             case "rule" -> chatRuleRepository.findById(itemId)
-                .doOnNext(rule -> {
+                .flatMap(rule -> {
                     rule.setActive(active);
                     rule.setUpdatedAt(LocalDateTime.now());
-                    chatRuleRepository.save(rule).subscribe();
-                }).subscribe();
+                    return chatRuleRepository.save(rule);
+                }).then();
             case "plan" -> chatPlanRepository.findById(itemId)
-                .doOnNext(plan -> {
+                .flatMap(plan -> {
                     plan.setActive(active);
                     plan.setUpdatedAt(LocalDateTime.now());
-                    chatPlanRepository.save(plan).subscribe();
-                }).subscribe();
+                    return chatPlanRepository.save(plan);
+                }).then();
             case "command" -> chatCommandRepository.findById(itemId)
-                .doOnNext(cmd -> {
+                .flatMap(cmd -> {
                     cmd.setActive(active);
                     cmd.setUpdatedAt(LocalDateTime.now());
-                    chatCommandRepository.save(cmd).subscribe();
-                }).subscribe();
-        }
+                    return chatCommandRepository.save(cmd);
+                }).then();
+            default -> Mono.empty();
+        };
     }
 
     public List<Map<String, Object>> getPendingConfirmations(String userId) {

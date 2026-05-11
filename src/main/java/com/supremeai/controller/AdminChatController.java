@@ -29,11 +29,9 @@ public class AdminChatController {
                 .body(Map.of("error", "user_id and message are required")));
         }
 
-        Map<String, Object> result = chatProcessingService.processMessage(
+        return chatProcessingService.processMessage(
             userId, message, isAdmin != null && isAdmin
-        );
-
-        return Mono.just(ResponseEntity.ok(result));
+        ).map(ResponseEntity::ok);
     }
 
     @GetMapping("/history")
@@ -68,11 +66,12 @@ public class AdminChatController {
                 .body(Map.of("error", "item_id, confirmed, and user_id are required")));
         }
 
-        Map<String, Object> result = chatProcessingService.confirmItem(itemId, confirmed, userId);
-        boolean success = (boolean) result.get("success");
-
-        return success
-            ? Mono.just(ResponseEntity.ok(result))
-            : Mono.just(ResponseEntity.badRequest().body(result));
+        return chatProcessingService.confirmItem(itemId, confirmed, userId)
+            .map(result -> {
+                boolean success = (boolean) result.get("success");
+                return success
+                    ? ResponseEntity.ok(result)
+                    : ResponseEntity.badRequest().body(result);
+            });
     }
 }
