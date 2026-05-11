@@ -8,23 +8,25 @@ import java.util.Map;
 /**
  * Ollama Provider implementation using shared HTTP client and ObjectMapper.
  * Extends AbstractHttpProvider for optimized performance.
- * Connects to local Ollama server (localhost:11434) for free, offline AI inference.
+ * Connects to local Ollama server for free, offline AI inference.
+ * (অফলাইন এআই ইনফারেন্সের জন্য লোকাল ওলামা সার্ভারের সাথে সংযোগ স্থাপন করে)
  */
 @Component
 public class OllamaProvider extends AbstractHttpProvider {
-    private static final String API_URL = "http://localhost:11434/v1/chat/completions";
+    private final String apiUrl;
     private final String modelName;
 
     public OllamaProvider() {
         this("");
     }
 
-    public OllamaProvider(@Value("${ollama.api-key:}") String apiKey) {
-        this(apiKey, "codegeex4");
+    public OllamaProvider(@Value("${ai.providers.ollama.api-key:ollama}") String apiKey) {
+        this(apiKey, "http://localhost:11434", "codegeex4");
     }
 
-    public OllamaProvider(String apiKey, String modelName) {
-        super(apiKey, API_URL, modelName != null ? modelName : "codegeex4");
+    public OllamaProvider(String apiKey, String endpoint, String modelName) {
+        super(apiKey, endpoint + "/v1/chat/completions", modelName != null ? modelName : "codegeex4");
+        this.apiUrl = endpoint;
         this.modelName = modelName != null ? modelName : "codegeex4";
     }
 
@@ -38,7 +40,7 @@ public class OllamaProvider extends AbstractHttpProvider {
         return Map.of(
                 "name", "Ollama (Local)",
                 "models", new String[]{modelName},
-                "endpoint", "http://localhost:11434",
+                "endpoint", apiUrl,
                 "offline", true,
                 "free", true
         );

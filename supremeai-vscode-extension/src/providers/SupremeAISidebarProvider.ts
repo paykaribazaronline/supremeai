@@ -36,7 +36,7 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
   }
 
   private getLoadingHTML(): string {
-    return `<!DOCTYPE html><html><body style="display:flex;justify-content:center;align-items:center;height:100vh;color:var(--vscode-descriptionForeground);font-family:sans-serif;"><div>🚀 Loading SupremeAI...</div></body></html>`;
+    return '<!DOCTYPE html><html><body style="display:flex;justify-content:center;align-items:center;height:100vh;color:var(--vscode-descriptionForeground);font-family:sans-serif;"><div>🚀 Loading SupremeAI...</div></body></html>';
   }
 
   private setupWebviewMessageListener(webviewView: vscode.WebviewView): void {
