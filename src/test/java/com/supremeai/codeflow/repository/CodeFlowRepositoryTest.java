@@ -297,7 +297,7 @@ class CodeFlowRepositoryTest {
         when(mockFirestore.collection("codeflow/repositories")).thenReturn(mockColl);
         when(mockColl.document("hlt-1")).thenReturn(mockDocRef);
         ApiFuture<WriteResult> mockFuture = mock(ApiFuture.class);
-        when(mockDocRef.update(anyMap())).thenReturn(mockFuture);
+        doReturn(mockFuture).when(mockDocRef).update(anyMap());
 
         repository.updateHealthScore("hlt-1", 85, "B");
 
@@ -307,6 +307,7 @@ class CodeFlowRepositoryTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void count_shouldReturnDocumentCount() throws ExecutionException, InterruptedException {
         com.google.cloud.firestore.CollectionReference mockColl = mock(com.google.cloud.firestore.CollectionReference.class);
         AggregateQuery mockAggQuery = mock(AggregateQuery.class);
@@ -314,9 +315,8 @@ class CodeFlowRepositoryTest {
         when(mockFirestore.collection("codeflow/repositories")).thenReturn(mockColl);
         when(mockColl.count()).thenReturn(mockAggQuery);
 
-        @SuppressWarnings("unchecked")
         ApiFuture<AggregateQuerySnapshot> future = mock(ApiFuture.class);
-        when(mockAggQuery.get()).thenReturn(future);
+        doReturn(future).when(mockAggQuery).get();
         when(future.get()).thenReturn(mockAggregateSnapshot);
         when(mockAggregateSnapshot.getCount()).thenReturn(42L);
 
