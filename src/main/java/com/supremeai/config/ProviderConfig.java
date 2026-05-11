@@ -2,6 +2,8 @@ package com.supremeai.config;
 
 import com.supremeai.provider.*;
 import com.supremeai.security.UnifiedSecretsService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +18,7 @@ import java.util.Map;
  */
 @Configuration
 public class ProviderConfig {
+    private static final Logger log = LoggerFactory.getLogger(ProviderConfig.class);
 
     @Autowired
     private UnifiedSecretsService secretsService;
@@ -88,6 +91,16 @@ public class ProviderConfig {
     }
 
     private String getEffectiveKey(String secretKey, String defaultValue) {
+        if (secretsService != null) {
+            try {
+                String value = secretsService.getSecret(secretKey).block();
+                if (value != null && !value.isEmpty()) {
+                    return value;
+                }
+            } catch (Exception e) {
+                log.warn("Failed to fetch secret from UnifiedSecretsService for key: {}. Falling back to default.", secretKey);
+            }
+        }
         return defaultValue;
     }
 
