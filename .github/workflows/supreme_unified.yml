@@ -174,7 +174,7 @@ jobs:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
       - name: 🔍 Scan for Secrets
-        uses: trufflesecurity/trufflehog@v3.82.2
+        uses: trufflesecurity/trufflehog@v3.95.3
         with:
           path: ./
           extra_args: "--only-verified"
