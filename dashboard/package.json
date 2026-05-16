@@ -13,7 +13,7 @@
     "test:coverage": "vitest --coverage"
   },
   "dependencies": {
-    "@ant-design/icons": "^5.5.0",
+    "@ant-design/icons": "^6.2.3",
     "@dataconnect/generated": "file:src/dataconnect-generated",
     "@react-three/drei": "^9.88.16",
     "@react-three/fiber": "^8.15.11",
