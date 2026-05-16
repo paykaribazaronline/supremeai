@@ -3,6 +3,7 @@ package com.supremeai.config;
 import com.supremeai.filter.AuthenticationFilter;
 import com.supremeai.security.JwtAuthFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +19,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
@@ -27,6 +30,9 @@ public class SecurityConfig {
     
     @Autowired
     private AuthenticationFilter authenticationFilter;
+    
+    @Value("${cors.allowed-origins:}")
+    private String allowedOriginsCsv;
 
     @Autowired
     private JwtAuthFilter jwtAuthFilter;
@@ -37,22 +43,25 @@ public class SecurityConfig {
              .cors(cors -> cors.configurationSource(corsConfigurationSource()))
              .csrf(csrf -> csrf
                  .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                 .ignoringRequestMatchers("/api/auth/**", "/api/health/**", "/api/ext/**", "/api/browser/**", "/api/system/**")
+                 .ignoringRequestMatchers("/api/auth/**", "/api/health/**", "/api/ext/**", "/api/browser/**", "/api/system/**", "/api/admin/**", "/api/workflows/**", "/ws/**")
              )
              .sessionManagement(session -> 
                  session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-            // Security headers configuration
-                 .headers(headers -> headers
+             // Security headers configuration
+             .headers(headers -> headers
                  .contentSecurityPolicy(csp -> csp
-                     .policyDirectives("default-src 'self'; " +
-                         "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://trusted.cdn.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+                     .policyDirectives(
+                         "default-src 'self'; " +
+                         "script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
                          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-                         "img-src 'self' data: https:; " +
+                         "img-src 'self' data: blob: https:; " +
                          "font-src 'self' https://fonts.gstatic.com; " +
-                         "connect-src 'self' wss: https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.googleapis.com https://*.firebaseio.com https://api.supremeai.com http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:*; " +
+                         "connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.googleapis.com https://*.firebaseio.com https://api.supremeai.com https://supremeai-a.web.app https://supremeai-a.firebaseapp.com https://*.run.app wss: ws://localhost:8080 ws://localhost:5173; " +
                          "frame-ancestors 'none'; " +
                          "base-uri 'self'; " +
-                         "form-action 'self'")
+                         "form-action 'self'; " +
+                         "object-src 'none'"
+                     )
                  )
                 .httpStrictTransportSecurity(hsts -> hsts
                     .maxAgeInSeconds(31536000) // 1 year
@@ -91,13 +100,18 @@ public class SecurityConfig {
                     "/api/config/public",
                     "/api/system/**",
                     "/api/system/health",
+                    "/api/v2/intelligence/**",
+                    "/api/generate/**",
                     "/public/**",
                     "/telemetry/**",
                     "/__/firebase/**",
                     "/ws/**",
                     "/error",
                     "/api/v1/chat/completions",
+                    "/api/chat/**",
+                    "/api/admin/chat/**",
                     "/api/ext/**",
+                    "/api/workflows/**",
                     "/admin",
                     "/admin/**",
                     "/admin/index.html"
@@ -125,32 +139,61 @@ public class SecurityConfig {
                     res.setContentType("application/json");
                     res.getWriter().write("{\"error\":\"Forbidden\",\"message\":\"Access denied\"}");
                 }))
-.addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class)
-             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+             .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
          
          return http.build();
      }
 
     /**
      * CORS configuration for API endpoints.
-     * Allows localhost development and production domains.
+     * Uses whitelist from application properties (cors.allowed-origins).
+     * Falls back to localhost development and production domain.
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of(
-            "http://localhost:*",
-            "http://127.0.0.1:*",
-            "https://*.supremeai.com",
-            "https://supremeai.com"
+        
+        List<String> origins;
+        if (allowedOriginsCsv != null && !allowedOriginsCsv.trim().isEmpty()) {
+            origins = Arrays.stream(allowedOriginsCsv.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList());
+        } else {
+            // Safe defaults for development and production
+            origins = Arrays.asList(
+                "http://localhost:5173",   // Dashboard dev
+                "http://localhost:3000",   // Admin/dev alternative
+                "https://supremeai-a.web.app"  // Production
+            );
+        }
+        
+        configuration.setAllowedOriginPatterns(origins);
+        
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Authorization", 
+            "Content-Type", 
+            "X-Requested-With", 
+            "Accept", 
+            "Origin", 
+            "Access-Control-Request-Method", 
+            "Access-Control-Request-Headers",
+            "X-CSRF-TOKEN",
+            "X-Firebase-Id-Token"
         ));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(Arrays.asList(
+            "Access-Control-Allow-Origin", 
+            "Access-Control-Allow-Credentials",
+            "Content-Disposition"
+        ));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", configuration);
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 }

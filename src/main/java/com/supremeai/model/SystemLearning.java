@@ -3,6 +3,7 @@ package com.supremeai.model;
 import com.google.cloud.firestore.annotation.DocumentId;
 import com.google.cloud.spring.data.firestore.Document;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +18,7 @@ public class SystemLearning {
     private List<String> sources;
     private Double confidenceScore;
     private Map<String, Object> metadata;
-    private LocalDateTime learnedAt;
+    private Date learnedAt;
     private boolean permanent;
 
     // New fields for enhanced learning
@@ -33,10 +34,10 @@ public class SystemLearning {
     // Additional fields for error tracking and system learning
     private String type;
     private String resolution;
-    private String context;
+    private Object context;
     private Integer errorCount;
     private Boolean resolved;
-    private LocalDateTime timestamp;
+    private Date timestamp;
     private String severity;
     private List<String> solutions;
 
@@ -47,7 +48,7 @@ public class SystemLearning {
         this.topic = topic;
         this.category = category;
         this.content = content;
-        this.learnedAt = LocalDateTime.now();
+        this.learnedAt = new Date();
         this.timesApplied = 0;
         this.learningType = "GENERAL";
     }
@@ -67,8 +68,8 @@ public class SystemLearning {
     public void setConfidenceScore(Double confidenceScore) { this.confidenceScore = confidenceScore; }
     public Map<String, Object> getMetadata() { return metadata; }
     public void setMetadata(Map<String, Object> metadata) { this.metadata = metadata; }
-    public LocalDateTime getLearnedAt() { return learnedAt; }
-    public void setLearnedAt(LocalDateTime learnedAt) { this.learnedAt = learnedAt; }
+    public Date getLearnedAt() { return learnedAt; }
+    public void setLearnedAt(Date learnedAt) { this.learnedAt = learnedAt; }
     public boolean isPermanent() { return permanent; }
     public void setPermanent(boolean permanent) { this.permanent = permanent; }
 
@@ -95,14 +96,14 @@ public class SystemLearning {
     public void setType(String type) { this.type = type; }
     public String getResolution() { return resolution; }
     public void setResolution(String resolution) { this.resolution = resolution; }
-    public String getContext() { return context; }
-    public void setContext(String context) { this.context = context; }
+    public Object getContext() { return context; }
+    public void setContext(Object context) { this.context = context; }
     public Integer getErrorCount() { return errorCount; }
     public void setErrorCount(Integer errorCount) { this.errorCount = errorCount; }
     public Boolean getResolved() { return resolved; }
     public void setResolved(Boolean resolved) { this.resolved = resolved; }
-    public LocalDateTime getTimestamp() { return timestamp; }
-    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+    public Date getTimestamp() { return timestamp; }
+    public void setTimestamp(Date timestamp) { this.timestamp = timestamp; }
     public String getSeverity() { return severity; }
     public void setSeverity(String severity) { this.severity = severity; }
     public List<String> getSolutions() { return solutions; }
@@ -112,10 +113,10 @@ public class SystemLearning {
     private String title;
     private Double confidence;
     private Long version;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Date createdAt;
+    private Date updatedAt;
     private String learnedFrom;
-    private LocalDateTime lastUsed;
+    private Date lastUsed;
     private Long useCount;
     private Long successCount;
     private Long failureCount;
@@ -129,14 +130,14 @@ public class SystemLearning {
     public void setConfidence(Double confidence) { this.confidence = confidence; }
     public Long getVersion() { return version; }
     public void setVersion(Long version) { this.version = version; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public Date getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
+    public Date getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(Date updatedAt) { this.updatedAt = updatedAt; }
     public String getLearnedFrom() { return learnedFrom; }
     public void setLearnedFrom(String learnedFrom) { this.learnedFrom = learnedFrom; }
-    public LocalDateTime getLastUsed() { return lastUsed; }
-    public void setLastUsed(LocalDateTime lastUsed) { this.lastUsed = lastUsed; }
+    public Date getLastUsed() { return lastUsed; }
+    public void setLastUsed(Date lastUsed) { this.lastUsed = lastUsed; }
     public Long getUseCount() { return useCount; }
     public void setUseCount(Long useCount) { this.useCount = useCount; }
     public Long getSuccessCount() { return successCount; }
@@ -150,3 +151,4 @@ public class SystemLearning {
     public Boolean getCritical() { return critical; }
     public void setCritical(Boolean critical) { this.critical = critical; }
 }
+

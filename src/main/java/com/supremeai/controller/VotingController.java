@@ -39,11 +39,11 @@ public class VotingController {
     // ===== VOTING ENDPOINTS =====
 
     @PostMapping("/vote")
-    public ResponseEntity<VotingDecision> conductVote(@RequestBody Map<String, String> request) {
+    public Mono<ResponseEntity<VotingDecision>> conductVote(@RequestBody Map<String, String> request) {
         String question = request.get("question");
         String context = request.getOrDefault("context", "");
-        VotingDecision decision = votingService.conductDecisionVote(question, context);
-        return ResponseEntity.ok(decision);
+        return votingService.conductDecisionVote(question, context)
+            .map(ResponseEntity::ok);
     }
 
     @PostMapping("/vote/consensus")

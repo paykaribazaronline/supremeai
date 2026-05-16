@@ -4,11 +4,17 @@ $ErrorActionPreference = "Stop"
 $apiUrl = "http://localhost:8080"
 $adminEmail = if ($env:SUPREMEAI_ADMIN_EMAIL) { $env:SUPREMEAI_ADMIN_EMAIL } else { "admin@supremeai.com" }
 $adminPassword = $env:SUPREMEAI_ADMIN_PASSWORD
-$firebaseApiKey = if ($env:SUPREMEAI_FIREBASE_WEB_API_KEY) { $env:SUPREMEAI_FIREBASE_WEB_API_KEY } else { "AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8" }
+$firebaseApiKey = $env:SUPREMEAI_FIREBASE_WEB_API_KEY
 
 if (-not $adminPassword) {
     Write-Host "❌ SUPREMEAI_ADMIN_PASSWORD is not set." -ForegroundColor Red
     Write-Host '   Set it first: $env:SUPREMEAI_ADMIN_PASSWORD = "<your-admin-password>"' -ForegroundColor Yellow
+    exit 1
+}
+
+if (-not $firebaseApiKey) {
+    Write-Host "❌ SUPREMEAI_FIREBASE_WEB_API_KEY is not set." -ForegroundColor Red
+    Write-Host '   Set it first: $env:SUPREMEAI_FIREBASE_WEB_API_KEY = "<your-firebase-api-key>"' -ForegroundColor Yellow
     exit 1
 }
 

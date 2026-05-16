@@ -256,7 +256,7 @@ const RepoToPromptEngine: React.FC<RepoToPromptEngineProps> = ({
       file.classes?.forEach((cls: any) => {
         // Singleton pattern
         if (cls.name.toLowerCase().includes('singleton') ||
-            file.functions?.some((f: any) => f.name === cls.name)) {
+            (Array.isArray(file.functions) && file.functions.some((f: any) => f.name === cls.name))) {
           patterns.push({
             patternType: 'SINGLETON',
             description: 'Singleton pattern detected',
@@ -268,7 +268,7 @@ const RepoToPromptEngine: React.FC<RepoToPromptEngineProps> = ({
 
         // Factory pattern
         if (cls.name.toLowerCase().includes('factory') ||
-            cls.methods?.some((m: any) => m.name.includes('create'))) {
+            (Array.isArray(cls.methods) && cls.methods.some((m: any) => m.name.includes('create')))) {
           patterns.push({
             patternType: 'FACTORY',
             description: 'Factory pattern detected',
@@ -388,7 +388,7 @@ const RepoToPromptEngine: React.FC<RepoToPromptEngineProps> = ({
       file.imports?.forEach((imp: any) => {
         const importedFile = files.find(f => f.path === imp.module);
         if (importedFile) {
-          const hasReverseImport = importedFile.imports?.some(
+          const hasReverseImport = Array.isArray(importedFile.imports) && importedFile.imports.some(
             (revImp: any) => revImp.module === file.path
           );
           

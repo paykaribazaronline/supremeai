@@ -89,9 +89,42 @@ public abstract class AbstractHttpProvider implements AIProvider {
     protected abstract Map<String, Object> createRequestBody(String prompt);
 
     /**
-     * Each provider implements their specific response extraction
+     * Each provider can override for custom response extraction.
+     * Default implementation handles OpenAI-compatible format (choices[0].message.content).
+     * Providers like Gemini or Anthropic that use different formats should override this.
      */
-    protected abstract String extractResponse(String responseBody) throws Exception;
+    protected String extractResponse(String responseBody) throws Exception {
+        return extractOpenAICompatibleResponse(responseBody, getName());
+    }
+
+    /**
+     * কমন রেসপন্স এক্সট্রাক্টর — OpenAI-compatible API ফরম্যাটের জন্য
+     * (OpenAI, DeepSeek, Groq, Mistral, HuggingFace ইত্যাদি)
+     * 
+     * রেসপন্স ফরম্যাট: { "choices": [{ "message": { "content": "..." } }] }
+     */
+    protected final String extractOpenAICompatibleResponse(String responseBody, String providerName) throws Exception {
+        if (responseBody == null || responseBody.isBlank()) {
+            return "Empty response from " + providerName + ".";
+        }
+
+        Map<String, Object> responseMap = objectMapper.readValue(responseBody,
+            new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
+
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
+        if (choices != null && !choices.isEmpty()) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+            if (message != null) {
+                Object content = message.get("content");
+                if (content instanceof String text) {
+                    return text;
+                }
+            }
+        }
+        return "No response from " + providerName + ".";
+    }
 
     /**
      * Common HTTP request execution

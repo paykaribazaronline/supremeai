@@ -9,7 +9,7 @@ import {
     ClockCircleOutlined,
     DatabaseOutlined
 } from '@ant-design/icons';
-import authUtils from '../lib/authUtils';
+import { authUtils } from '../lib/authUtils';
 
 const AdminConfigMatrix: React.FC = () => {
     const [form] = Form.useForm();
@@ -24,13 +24,16 @@ const AdminConfigMatrix: React.FC = () => {
         setLoading(true);
         try {
             const response = await authUtils.fetchWithAuth('/api/admin/config');
-            const data = await response.json();
-            form.setFieldsValue({
-                ...data.settings,
-                ...data.thresholds,
-                ...data.timeouts,
-                maintenance_mode: data.maintenanceMode
-            });
+            const result = await response.json();
+            const data = result.data;
+            if (data) {
+                form.setFieldsValue({
+                    ...data.settings,
+                    ...data.thresholds,
+                    ...data.timeouts,
+                    maintenance_mode: data.maintenanceMode
+                });
+            }
         } catch (error) {
             console.error('Failed to sync system parameters:', error);
         } finally {

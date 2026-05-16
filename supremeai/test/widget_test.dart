@@ -30,7 +30,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => OrchestrationProvider()),
       ],
-      child: const MyApp(),
+      child: const SupremeAIApp(),
     );
   }
 

@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -18,34 +20,33 @@ class AgentOrchestrationHubTest {
     }
 
     @Test
-    void executeSecurityScan_shouldCompleteWithoutError() {
-        assertDoesNotThrow(() -> hub.executeSecurityScan());
-    }
-
-    @Test
-    void optimizeSystemCosts_shouldCompleteWithoutError() {
-        assertDoesNotThrow(() -> hub.optimizeSystemCosts());
-    }
-
-    @Test
-    void manageCompliance_shouldCompleteWithoutError() {
-        assertDoesNotThrow(() -> hub.manageCompliance());
-    }
-
-    @Test
     void hub_shouldBeInstantiable() {
         assertNotNull(hub);
         assertTrue(hub instanceof AgentOrchestrationHub);
     }
 
     @Test
-    void allMethods_shouldBeNoOp_defaultImplementation() {
-        // Verify that the default implementations don't throw exceptions
-        // These are placeholder methods that will contain consolidated logic
-        assertDoesNotThrow(() -> {
-            hub.executeSecurityScan();
-            hub.optimizeSystemCosts();
-            hub.manageCompliance();
-        });
+    void executeAgent_shouldHandleKnownAgents() {
+        // The hub routes to executeAgent with agent name
+        assertNotNull(hub.executeAgent("ReverseEngineeringAgent", Map.of("url", "https://example.com")));
+    }
+
+    @Test
+    void executeAgent_shouldRejectUnknownAgent() {
+        assertThrows(RuntimeException.class, () ->
+            hub.executeAgent("UnknownAgent", Map.of("test", false)).block()
+        );
+    }
+
+    @Test
+    void executeAgent_codeGenerationWorks() {
+        var result = hub.executeAgent("CodeGenerationAgent", Map.of("requirements", "test requirements"));
+        assertNotNull(result);
+    }
+
+    @Test
+    void executeAgent_simulatorWorks() {
+        var result = hub.executeAgent("SimulatorAgent", Map.of("app_id", "test_app"));
+        assertNotNull(result);
     }
 }

@@ -26,7 +26,7 @@ public class FailoverController {
             return ResponseEntity.badRequest().body(Map.of("error", "Missing 'prompt' field"));
         }
         try {
-            String result = fallbackOrchestrator.executeWithSupremeIntelligence(taskCategory, errorSignature, prompt);
+            String result = fallbackOrchestrator.executeWithSupremeIntelligence(taskCategory, errorSignature, prompt).block();
             return ResponseEntity.ok(Map.of("status", "success", "result", result));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("status", "failed", "error", e.getMessage()));

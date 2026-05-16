@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:provider/provider.dart';
 import '../../providers/orchestration_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../settings_screen.dart';
+import '../learning/learning_screen.dart';
+import '../projects/projects_list_screen.dart';
+import '../notifications/notifications_screen.dart';
+import '../../services/localization_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,47 +19,40 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   final TextEditingController _chatController = TextEditingController();
-  final List<Map<String, dynamic>> _messages = [];
+  final List<ChatMessage> _messages = [];
 
-  void _sendMessage() {
+  void _sendMessage() async {
     if (_chatController.text.trim().isEmpty) return;
 
     final userMessage = _chatController.text.trim();
     setState(() {
-      _messages.add({'role': 'user', 'content': userMessage});
+      _messages.add(ChatMessage(
+        text: userMessage,
+        isUser: true,
+        timestamp: DateTime.now(),
+      ));
     });
     _chatController.clear();
 
-    // Auto-detect orchestration need and process
-    _processWithAI(userMessage);
-  }
-
-  Future<void> _processWithAI(String message) async {
     final orchestration = context.read<OrchestrationProvider>();
     final auth = context.read<AuthProvider>();
 
-    if (auth.token == null) return;
+    await orchestration.orchestrateRequirement(userMessage, auth.token ?? 'GUEST_MODE');
 
-    // AI automatically detects if orchestration is needed
-    await orchestration.orchestrateRequirement(message, auth.token!);
-
-    final result = orchestration.lastResult;
-    if (result != null && mounted) {
+    if (orchestration.lastResult != null && mounted) {
       setState(() {
-        if (result['status'] == 'DECIDED' || result['status'] == 'COMPLETED') {
-          final mode = result['mode'] ?? 'code';
-          _messages.add({
-            'role': 'ai',
-            'content': 'I\'ve analyzed your requirement using the **${mode.toString().toUpperCase()}** mode and created a project plan. Tap "Generate" to start building.',
-            'action': 'generate',
-            'mode': mode,
-          });
-        } else {
-          _messages.add({
-            'role': 'ai',
-            'content': result.toString(),
-          });
-        }
+        final result = orchestration.lastResult!;
+        final response = result['status'] == 'DECIDED' || result['status'] == 'COMPLETED'
+            ? 'I\'ve analyzed your requirement using ${result['mode'] ?? 'AI'} mode. Tap "Generate" to create your project.'
+            : 'Requirement analyzed. System status: ${result['status']}';
+        
+        _messages.add(ChatMessage(
+          text: response,
+          isUser: false,
+          timestamp: DateTime.now(),
+          hasAction: result['status'] == 'DECIDED' || result['status'] == 'COMPLETED',
+          result: result,
+        ));
       });
     }
   }
@@ -62,9 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _generateProject() {
     final auth = context.read<AuthProvider>();
     final orchestration = context.read<OrchestrationProvider>();
-    if (auth.token != null) {
-      orchestration.generateProject(auth.token!);
-    }
+    orchestration.generateProject(auth.token ?? 'GUEST_MODE');
   }
 
   @override
@@ -75,136 +71,215 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final orchestration = context.watch<OrchestrationProvider>();
-
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('SupremeAI'),
+        backgroundColor: Colors.black,
+        elevation: 0,
+        title: Text('SupremeAI'.tr(), style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.5, color: Colors.white)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: Icon(context.watch<AuthProvider>().isGuest ? Icons.login : Icons.logout, color: Colors.white70),
             onPressed: () => context.read<AuthProvider>().logout(),
-            tooltip: 'Logout',
           ),
         ],
       ),
-      body: _currentIndex == 0 ? _buildChatInterface(orchestration) : const SettingsScreen(),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) => setState(() => _currentIndex = index),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.chat),
-            label: 'Chat',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
+      body: IndexedStack(
+        index: _currentIndex,
+        children: [
+          _buildChatTab(),
+          const LearningScreen(),
+          const ProjectsListScreen(),
+          const NotificationsScreen(),
+          const SettingsScreen(),
         ],
+      ),
+      bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
+      ),
+      child: NavigationBarTheme(
+        data: NavigationBarThemeData(
+          indicatorColor: Colors.blueAccent.withValues(alpha: 0.1),
+          labelTextStyle: WidgetStateProperty.all(
+            const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white70),
+          ),
+        ),
+        child: NavigationBar(
+          backgroundColor: Colors.black,
+          selectedIndex: _currentIndex,
+          onDestinationSelected: (index) => setState(() => _currentIndex = index),
+          destinations: [
+            NavigationDestination(icon: const Icon(Icons.chat_bubble_outline, color: Colors.white54), selectedIcon: const Icon(Icons.chat_bubble, color: Colors.blueAccent), label: 'Chat'.tr()),
+            NavigationDestination(icon: const Icon(Icons.psychology_outlined, color: Colors.white54), selectedIcon: const Icon(Icons.psychology, color: Colors.blueAccent), label: 'Skills'.tr()),
+            NavigationDestination(icon: const Icon(Icons.hub_outlined, color: Colors.white54), selectedIcon: const Icon(Icons.hub, color: Colors.blueAccent), label: 'Automation'.tr()),
+            NavigationDestination(icon: const Icon(Icons.lightbulb_outline, color: Colors.white54), selectedIcon: const Icon(Icons.lightbulb, color: Colors.blueAccent), label: 'Insights'.tr()),
+            NavigationDestination(icon: const Icon(Icons.settings_outlined, color: Colors.white54), selectedIcon: const Icon(Icons.settings, color: Colors.blueAccent), label: 'Settings'.tr()),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildChatInterface(OrchestrationProvider orchestration) {
+  Widget _buildChatTab() {
+    final orchestration = context.watch<OrchestrationProvider>();
+    final auth = context.watch<AuthProvider>();
+    
     return Column(
       children: [
+        if (auth.isGuest) _buildGuestWarning(),
         Expanded(
           child: _messages.isEmpty
-              ? const Center(
-                  child: Text(
-                    'Describe what you want to build...\nAI will handle everything automatically.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                )
+              ? _buildEmptyState()
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: _messages.length,
-                  itemBuilder: (context, index) {
-                    final msg = _messages[index];
-                    final isUser = msg['role'] == 'user';
-                    return Align(
-                      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: isUser ? Colors.blue[100] : Colors.grey[200],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(msg['content']),
-                            if (msg['action'] == 'generate') ...[
-                              const SizedBox(height: 8),
-                              ElevatedButton.icon(
-                                onPressed: orchestration.isLoading ? null : _generateProject,
-                                icon: const Icon(Icons.rocket_launch),
-                                label: const Text('Generate Project'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.orange,
-                                  foregroundColor: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+                  itemBuilder: (context, index) => _buildMessage(_messages[index]),
                 ),
         ),
-        if (orchestration.isLoading)
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2)),
-                SizedBox(width: 8),
-                Text('AI is processing...'),
-              ],
-            ),
-          ),
-        if (orchestration.error != null)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Text(
-              'Error: ${orchestration.error}',
-              style: const TextStyle(color: Colors.red),
-            ),
-          ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _chatController,
-                  decoration: const InputDecoration(
-                    hintText: 'Enter your requirement...',
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLines: null,
-                  textInputAction: TextInputAction.send,
-                  onSubmitted: (_) => _sendMessage(),
-                ),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                onPressed: orchestration.isLoading ? null : _sendMessage,
-                icon: const Icon(Icons.send),
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
+        if (orchestration.isLoading) const LinearProgressIndicator(backgroundColor: Colors.transparent, color: Colors.blueAccent),
+        if (orchestration.error != null) _buildErrorBanner(orchestration.error!.message),
+        _buildInputArea(orchestration),
       ],
     );
   }
+
+  Widget _buildGuestWarning() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+      color: Colors.amber.withValues(alpha: 0.05),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline, size: 16, color: Colors.amberAccent),
+          const SizedBox(width: 12),
+          Expanded(child: Text('Guest Mode: Limited quota. Login to increase limits.'.tr(), style: const TextStyle(fontSize: 11, color: Colors.amberAccent, fontWeight: FontWeight.bold))),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessage(ChatMessage message) {
+    final isUser = message.isUser;
+    return Align(
+      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
+        decoration: BoxDecoration(
+          color: isUser ? Colors.blueAccent.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.03),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: isUser ? Colors.blueAccent.withValues(alpha: 0.2) : Colors.white10),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(message.text, style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.4)),
+                if (message.hasAction) ...[
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: _generateProject,
+                    icon: const Icon(Icons.rocket_launch, size: 18),
+                    label: Text('Generate Project'.tr()),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.auto_awesome, size: 64, color: Colors.blueAccent.withValues(alpha: 0.3)),
+          const SizedBox(height: 24),
+          Text('Describe what you want to build...'.tr(), style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text('AI will analyze and generate your project automatically.'.tr(), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white38, fontSize: 13)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorBanner(String error) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: Colors.redAccent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.redAccent.withValues(alpha: 0.2))),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: Colors.redAccent, size: 20),
+          const SizedBox(width: 12),
+          Expanded(child: Text(error, style: const TextStyle(color: Colors.redAccent, fontSize: 12))),
+          IconButton(onPressed: () => context.read<OrchestrationProvider>().clearError(), icon: const Icon(Icons.close, size: 16, color: Colors.redAccent)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInputArea(OrchestrationProvider orchestration) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.black,
+        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _chatController,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'Enter your requirement...'.tr(),
+                hintStyle: const TextStyle(color: Colors.white24),
+                filled: true,
+                fillColor: Colors.white.withValues(alpha: 0.03),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              ),
+              onSubmitted: (_) => _sendMessage(),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Container(
+            decoration: BoxDecoration(color: Colors.blueAccent, borderRadius: BorderRadius.circular(16)),
+            child: IconButton(
+              onPressed: orchestration.isLoading ? null : _sendMessage,
+              icon: const Icon(Icons.send, color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ChatMessage {
+  final String text;
+  final bool isUser;
+  final DateTime timestamp;
+  final bool hasAction;
+  final Map<String, dynamic>? result;
+
+  ChatMessage({required this.text, required this.isUser, required this.timestamp, this.hasAction = false, this.result});
 }

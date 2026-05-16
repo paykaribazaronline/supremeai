@@ -114,6 +114,7 @@ class CodeImmunitySystemTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void testSavePatterns_toFirestore() throws Exception {
         // Add a custom pattern
         immunity.learnToxicPattern("System.exit\\(0\\)");

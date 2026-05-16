@@ -12,8 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.time.Duration;
 import java.util.concurrent.*;
 
@@ -28,11 +28,13 @@ public class FastPathAIService {
 
     private static final Logger logger = LoggerFactory.getLogger(FastPathAIService.class);
 
-    @Autowired
-    private AIProviderFactory providerFactory;
+    private final AIProviderFactory providerFactory;
+    private final ResponseCacheService cacheService;
 
-    @Autowired
-    private ResponseCacheService cacheService;
+    public FastPathAIService(AIProviderFactory providerFactory, ResponseCacheService cacheService) {
+        this.providerFactory = providerFactory;
+        this.cacheService = cacheService;
+    }
 
     private CircuitBreaker groqCircuitBreaker;
     private final ExecutorService executor = VirtualThreadConfig.getVirtualThreadExecutor();
@@ -57,7 +59,7 @@ public class FastPathAIService {
      */
     public String generateFast(String prompt) {
         // Check cache first
-        String cached = cacheService.get(prompt);
+        String cached = cacheService.getAiResponse(prompt);
         if (cached != null) {
             logger.debug("Cache hit for prompt: {}", prompt.substring(0, Math.min(50, prompt.length())));
             return cached;
@@ -71,7 +73,7 @@ public class FastPathAIService {
                     return resolveResponse(groq.generate(prompt));
                 });
 
-                cacheService.put(prompt, response);
+                cacheService.putAiResponse(prompt, response);
                 logger.debug("Groq fast path success");
                 return response;
 
@@ -84,7 +86,7 @@ public class FastPathAIService {
         try {
             AIProvider ollama = providerFactory.getProvider("ollama");
             String response = resolveResponse(ollama.generate(prompt));
-            cacheService.put(prompt, response);
+            cacheService.putAiResponse(prompt, response);
             logger.debug("Ollama fallback success");
             return response;
 
@@ -100,7 +102,7 @@ public class FastPathAIService {
      */
     public String generateParallel(String prompt, String... providers) {
         // Check cache first
-        String cached = cacheService.get(prompt);
+        String cached = cacheService.getAiResponse(prompt);
         if (cached != null) {
             return cached;
         }
@@ -117,7 +119,7 @@ public class FastPathAIService {
                     // Complete immediately on first success
                     if (!firstResponse.isDone()) {
                         firstResponse.complete(response);
-                        cacheService.put(prompt, response);
+                        cacheService.putAiResponse(prompt, response);
                         logger.debug("First response received from: {}", providerName);
                     }
 

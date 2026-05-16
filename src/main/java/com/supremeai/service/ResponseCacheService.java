@@ -30,7 +30,7 @@ public class ResponseCacheService {
     
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public ResponseCacheService(RedisTemplate<String, Object> redisTemplate) {
+    public ResponseCacheService(@org.springframework.beans.factory.annotation.Autowired(required = false) RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
@@ -59,16 +59,18 @@ public class ResponseCacheService {
         }
         
         // Try L2 Cache (Redis)
-        try {
-            CacheEntry l2Result = (CacheEntry) redisTemplate.opsForValue().get("cache:" + cacheKey);
-            if (l2Result != null && !l2Result.isExpired()) {
-                // Backfill L1 Cache
-                exactMatchCache.put(cacheKey, l2Result);
-                l2Result.incrementHitCount();
-                return l2Result.getValue();
+        if (redisTemplate != null) {
+            try {
+                CacheEntry l2Result = (CacheEntry) redisTemplate.opsForValue().get("cache:" + cacheKey);
+                if (l2Result != null && !l2Result.isExpired()) {
+                    // Backfill L1 Cache
+                    exactMatchCache.put(cacheKey, l2Result);
+                    l2Result.incrementHitCount();
+                    return l2Result.getValue();
+                }
+            } catch (Exception e) {
+                logger.warn("Redis read failed for key {}: {}", cacheKey, e.getMessage());
             }
-        } catch (Exception e) {
-            logger.warn("Redis read failed for key {}: {}", cacheKey, e.getMessage());
         }
         
         return null;
@@ -94,15 +96,17 @@ public class ResponseCacheService {
         exactMatchCache.put(cacheKey, entry);
         
         // Put in L2 Cache (Redis)
-        try {
-            redisTemplate.opsForValue().set(
-                "cache:" + cacheKey,
-                entry,
-                ttl
-            );
-            logger.debug("Cached entry for key: {} with TTL: {} seconds", cacheKey, ttl.getSeconds());
-        } catch (Exception e) {
-            logger.warn("Redis write failed for key {}: {}", cacheKey, e.getMessage());
+        if (redisTemplate != null) {
+            try {
+                redisTemplate.opsForValue().set(
+                    "cache:" + cacheKey,
+                    entry,
+                    ttl
+                );
+                logger.debug("Cached entry for key: {} with TTL: {} seconds", cacheKey, ttl.getSeconds());
+            } catch (Exception e) {
+                logger.warn("Redis write failed for key {}: {}", cacheKey, e.getMessage());
+            }
         }
     }
 
@@ -142,11 +146,13 @@ public class ResponseCacheService {
     public void evict(String category, String key) {
         String cacheKey = buildCacheKey(category, key);
         exactMatchCache.invalidate(cacheKey);
-        try {
-            redisTemplate.delete("cache:" + cacheKey);
-            logger.debug("Evicted cache entry for key: {}", cacheKey);
-        } catch (Exception e) {
-            logger.warn("Redis delete failed for key {}: {}", cacheKey, e.getMessage());
+        if (redisTemplate != null) {
+            try {
+                redisTemplate.delete("cache:" + cacheKey);
+                logger.debug("Evicted cache entry for key: {}", cacheKey);
+            } catch (Exception e) {
+                logger.warn("Redis delete failed for key {}: {}", cacheKey, e.getMessage());
+            }
         }
     }
 
@@ -187,15 +193,29 @@ public class ResponseCacheService {
         stats.put("category", category);
         stats.put("l1Size", exactMatchCache.estimatedSize());
         
-        try {
-            Long redisSize = redisTemplate.execute((org.springframework.data.redis.core.RedisCallback<Long>) connection -> {
-                byte[] pattern = ("cache:" + category + ":*").getBytes();
-                java.util.Set<byte[]> keys = connection.keys(pattern);
-                return keys != null ? (long) keys.size() : 0L;
-            });
-            stats.put("l2Size", redisSize != null ? redisSize : 0);
-        } catch (Exception e) {
-            stats.put("l2Size", "unavailable");
+        if (redisTemplate != null) {
+            try {
+                Long redisSize = redisTemplate.execute((org.springframework.data.redis.core.RedisCallback<Long>) connection -> {
+                    long count = 0;
+                    try (var cursor = connection.keyCommands().scan(org.springframework.data.redis.core.ScanOptions.scanOptions()
+                            .match("cache:" + category + ":*")
+                            .count(1000)
+                            .build())) {
+                        while (cursor.hasNext()) {
+                            cursor.next();
+                            count++;
+                        }
+                    } catch (Exception e) {
+                        logger.warn("Redis scan failed for category {}: {}", category, e.getMessage());
+                    }
+                    return count;
+                });
+                stats.put("l2Size", redisSize != null ? redisSize : 0);
+            } catch (Exception e) {
+                stats.put("l2Size", "unavailable");
+            }
+        } else {
+            stats.put("l2Size", "disabled");
         }
         
         return stats;

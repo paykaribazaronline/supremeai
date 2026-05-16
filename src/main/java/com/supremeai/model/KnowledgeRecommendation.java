@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-@Document(collectionName = "system_learning/recommendations")
+@Document(collectionName = "knowledge_recommendations")
 public class KnowledgeRecommendation {
     @DocumentId
     private String id;

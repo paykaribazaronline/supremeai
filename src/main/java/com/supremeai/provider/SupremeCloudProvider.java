@@ -2,19 +2,22 @@ package com.supremeai.provider;
 
 import java.util.List;
 import java.util.Map;
+import reactor.core.publisher.Mono;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 /**
- * Generic SupremeCloudProvider for all GCP Cloud Run and HF Dedicated Endpoints.
- * Uses ProviderMetadataService to dynamically resolve URLs and Models.
+ * Generic SupremeCloudProvider for all GCP Cloud Run, HF Inference Endpoints, and Render deployments.
+ * Supports both OpenAI-compatible and HF Inference API formats.
  */
 public class SupremeCloudProvider extends AbstractHttpProvider {
 
     private final String providerName;
+    private final boolean isHfInference;
 
     public SupremeCloudProvider(String apiKey, String providerName, String defaultModel, String baseUrl) {
-        super(apiKey, baseUrl.endsWith("/") ? baseUrl + "api/generate" : baseUrl + "/api/generate", defaultModel);
+        super(apiKey, baseUrl, defaultModel);
         this.providerName = providerName;
+        this.isHfInference = providerName.startsWith("hf_") && baseUrl.contains("api-inference.huggingface.co");
     }
 
     @Override
@@ -23,21 +26,39 @@ public class SupremeCloudProvider extends AbstractHttpProvider {
     }
 
     @Override
+    protected String getRequestUrl() {
+        if (isHfInference) {
+            return baseUrl; // HF inference uses URL directly
+        }
+        return baseUrl.endsWith("/") ? baseUrl + "v1/chat/completions" : baseUrl + "/v1/chat/completions";
+    }
+
+    @Override
     public Map<String, Object> getCapabilities() {
         return Map.of(
             "name", providerName,
             "model", getModel(),
-            "type", "cloud-native"
+            "type", isHfInference ? "huggingface-inference" : "cloud-native"
         );
     }
 
     @Override
     protected Map<String, Object> createRequestBody(String prompt) {
+        if (isHfInference) {
+            return Map.of(
+                "inputs", prompt,
+                "parameters", Map.of(
+                    "max_new_tokens", 512,
+                    "temperature", 0.7,
+                    "return_full_text", false
+                )
+            );
+        }
         return Map.of(
-                "model", getModel(),
-                "messages", List.of(Map.of("role", "user", "content", prompt)),
-                "max_tokens", 1024,
-                "temperature", 0.7
+            "model", getModel(),
+            "messages", List.of(Map.of("role", "user", "content", prompt)),
+            "max_tokens", 1024,
+            "temperature", 0.7
         );
     }
 
@@ -45,11 +66,33 @@ public class SupremeCloudProvider extends AbstractHttpProvider {
     @SuppressWarnings("unchecked")
     protected String extractResponse(String responseBody) throws Exception {
         if (responseBody == null || responseBody.isBlank()) {
-            return "No response from cloud-native AI: " + providerName;
+            return "No response from " + providerName;
+        }
+        
+        if (isHfInference) {
+            // HF Inference API can return a List or a Map
+            Object rawResponse = responseBody.trim().startsWith("[") 
+                ? objectMapper.readValue(responseBody, new TypeReference<List<Map<String, Object>>>() {})
+                : objectMapper.readValue(responseBody, new TypeReference<Map<String, Object>>() {});
+
+            if (rawResponse instanceof List) {
+                List<Map<String, Object>> list = (List<Map<String, Object>>) rawResponse;
+                if (!list.isEmpty() && list.get(0).containsKey("generated_text")) {
+                    return (String) list.get(0).get("generated_text");
+                }
+            } else if (rawResponse instanceof Map) {
+                Map<String, Object> map = (Map<String, Object>) rawResponse;
+                if (map.containsKey("generated_text")) {
+                    return (String) map.get("generated_text");
+                }
+                if (map.containsKey("error")) {
+                    return "HF Error: " + map.get("error");
+                }
+            }
+            return "Empty HF response";
         }
         
         Map<String, Object> response = objectMapper.readValue(responseBody, new TypeReference<Map<String, Object>>() {});
-            
         List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
         if (choices != null && !choices.isEmpty()) {
             Map<String, Object> first = choices.get(0);

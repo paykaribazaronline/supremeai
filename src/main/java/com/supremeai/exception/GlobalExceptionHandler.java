@@ -1,10 +1,12 @@
 package com.supremeai.exception;
 
 import com.supremeai.response.ApiResponse;
+import io.sentry.Sentry;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolationException;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -19,8 +21,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 @ControllerAdvice
-@Slf4j
 public class GlobalExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
@@ -53,6 +55,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ApiResponse<String>> handleResponseStatusException(ResponseStatusException ex) {
+        // Report 5xx errors to Sentry
+        if (ex.getStatusCode().is5xxServerError()) {
+            Sentry.captureException(ex);
+        }
+        
         return ResponseEntity.status(ex.getStatusCode())
                 .body(ApiResponse.error(ex.getReason()));
     }
@@ -93,7 +100,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<String>> handleAllExceptions(Exception ex) {
         log.error("Unhandled exception: ", ex);
+        
+        // Capture all unhandled exceptions in Sentry
+        Sentry.captureException(ex);
+        
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("An unexpected error occurred: " + ex.getMessage()));
+                .body(ApiResponse.error("An unexpected error occurred. Our engineers have been notified."));
     }
 }

@@ -6,9 +6,10 @@ import java.time.LocalDateTime;
 @Document(collectionName = "browser_url_permissions")
 public class UrlPermission {
     private String id;
+    private String userId;
     private String url;
     private String pattern;
-    private String type; // allowed, denied
+    private String type; // allowed, denied, allowAll
     private String reason;
     private LocalDateTime createdAt;
 
@@ -26,6 +27,8 @@ public class UrlPermission {
     // Getters and Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
     public String getUrl() { return url; }
     public void setUrl(String url) { this.url = url; }
     public String getPattern() { return pattern; }

@@ -21,7 +21,7 @@ public class AgentService {
     private final AgentRepository agentRepository;
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public AgentService(AgentRepository agentRepository, RedisTemplate<String, Object> redisTemplate) {
+    public AgentService(AgentRepository agentRepository, @org.springframework.beans.factory.annotation.Autowired(required = false) RedisTemplate<String, Object> redisTemplate) {
         this.agentRepository = agentRepository;
         this.redisTemplate = redisTemplate;
     }
@@ -32,31 +32,45 @@ public class AgentService {
 
     public Mono<AgentStatus> getAgentStatus(String agentId) {
         String key = CACHE_KEY_AGENT_STATUS + agentId;
-        AgentStatus cached = (AgentStatus) redisTemplate.opsForValue().get(key);
-        if (cached != null) {
-            log.debug("Cache hit for agentId: {}", agentId);
-            return Mono.just(cached);
+        if (redisTemplate != null) {
+            Object cachedObj = redisTemplate.opsForValue().get(key);
+            if (cachedObj instanceof AgentStatus cached) {
+                log.debug("Cache hit for agentId: {}", agentId);
+                return Mono.just(cached);
+            }
         }
 
         log.debug("Cache miss, fetching from DB for agentId: {}", agentId);
         return agentRepository.findStatusById(agentId)
-                .doOnNext(status -> redisTemplate.opsForValue().set(key, status, CACHE_TTL_MINUTES, TimeUnit.MINUTES));
+                .doOnNext(status -> {
+                    if (redisTemplate != null) {
+                        redisTemplate.opsForValue().set(key, status, CACHE_TTL_MINUTES, TimeUnit.MINUTES);
+                    }
+                });
     }
 
     public Mono<Void> updateAgentStatus(String agentId, AgentStatus status) {
         log.debug("Updating agent status and evicting cache for agentId: {}", agentId);
-        redisTemplate.delete(CACHE_KEY_AGENT_STATUS + agentId);
+        if (redisTemplate != null) {
+            redisTemplate.delete(CACHE_KEY_AGENT_STATUS + agentId);
+        }
         return agentRepository.updateStatus(agentId, status);
     }
 
     public Mono<List<Provider>> getAllProviders() {
-        List<Provider> cached = (List<Provider>) redisTemplate.opsForValue().get(CACHE_KEY_PROVIDER_LIST);
-        if (cached != null) {
-            return Mono.just(cached);
+        if (redisTemplate != null) {
+            Object cachedObj = redisTemplate.opsForValue().get(CACHE_KEY_PROVIDER_LIST);
+            if (cachedObj instanceof List<?> cached) {
+                @SuppressWarnings("unchecked")
+                List<Provider> providers = (List<Provider>) cached;
+                return Mono.just(providers);
+            }
         }
         // Since findAllProviders doesn't exist in Firestore reactive repo, return empty for now
         List<Provider> providers = List.of();
-        redisTemplate.opsForValue().set(CACHE_KEY_PROVIDER_LIST, providers, CACHE_TTL_MINUTES, TimeUnit.MINUTES);
+        if (redisTemplate != null) {
+            redisTemplate.opsForValue().set(CACHE_KEY_PROVIDER_LIST, providers, CACHE_TTL_MINUTES, TimeUnit.MINUTES);
+        }
         return Mono.just(providers);
     }
 }

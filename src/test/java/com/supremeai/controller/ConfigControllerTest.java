@@ -1,14 +1,27 @@
 package com.supremeai.controller;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
+import org.springframework.test.util.ReflectionTestUtils;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class ConfigControllerTest {
 
-    private final ConfigController controller = new ConfigController();
+    private ConfigController controller;
+
+    @BeforeEach
+    void setUp() {
+        controller = new ConfigController();
+        ReflectionTestUtils.setField(controller, "apiKey", "AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8");
+        ReflectionTestUtils.setField(controller, "authDomain", "supremeai-a.firebaseapp.com");
+        ReflectionTestUtils.setField(controller, "databaseUrl", "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/");
+        ReflectionTestUtils.setField(controller, "projectId", "supremeai-a");
+        ReflectionTestUtils.setField(controller, "storageBucket", "supremeai-a.firebasestorage.app");
+        ReflectionTestUtils.setField(controller, "messagingSenderId", "565236080752");
+        ReflectionTestUtils.setField(controller, "appId", "1:565236080752:web:572bb9313db9afb355d4b5");
+    }
 
     @Test
     void getFirebaseConfig_shouldReturnAllRequiredFields() {

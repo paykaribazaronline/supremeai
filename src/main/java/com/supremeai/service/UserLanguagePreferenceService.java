@@ -18,34 +18,45 @@ public class UserLanguagePreferenceService {
     private UserLanguagePreferenceRepository repository;
 
     /**
-     * ব্যবহারকারীর ভাষা পছন্দ সংরক্ষণ করে
+     * ব্যবহারকারীর পছন্দসমূহ সংরক্ষণ করে
      */
-    public Mono<UserLanguagePreference> saveUserLanguagePreference(UserLanguagePreference preference) {
+    public Mono<UserLanguagePreference> saveUserPreference(UserLanguagePreference preference) {
         preference.updateTimestamp();
-        return repository.save(preference)
-                .doOnSuccess(saved -> logger.info("ভাষা পছন্দ সংরক্ষিত: {} for user: {}",
-                        saved.getLanguageName(), saved.getUserId()))
-                .doOnError(error -> logger.error("ভাষা পছন্দ সংরক্ষণে ব্যর্থ: {}", error.getMessage()));
+        return repository.findByUserId(preference.getUserId())
+                .flatMap(existing -> {
+                    // Update existing preference with new values
+                    existing.setLanguageCode(preference.getLanguageCode());
+                    existing.setLanguageName(preference.getLanguageName());
+                    existing.setDarkMode(preference.getDarkMode());
+                    existing.setNotificationsEnabled(preference.getNotificationsEnabled());
+                    existing.setFocusMode(preference.getFocusMode());
+                    existing.setChatFont(preference.getChatFont());
+                    existing.updateTimestamp();
+                    return repository.save(existing);
+                })
+                .switchIfEmpty(repository.save(preference))
+                .doOnSuccess(saved -> logger.info("ব্যবহারকারীর পছন্দ সংরক্ষিত: user: {}", saved.getUserId()))
+                .doOnError(error -> logger.error("পছন্দ সংরক্ষণে ব্যর্থ: {}", error.getMessage()));
     }
 
     /**
-     * ব্যবহারকারী আইডি দিয়ে ভাষা পছন্দ খুঁজে বের করে
+     * ব্যবহারকারী আইডি দিয়ে পছন্দসমূহ খুঁজে বের করে
      */
-    public Mono<UserLanguagePreference> getUserLanguagePreference(String userId) {
+    public Mono<UserLanguagePreference> getUserPreference(String userId) {
         return repository.findByUserId(userId)
                 .switchIfEmpty(Mono.defer(() -> {
-                    // ডিফল্ট ভাষা পছন্দ তৈরি করা
+                    // ডিফল্ট পছন্দ তৈরি করা
                     UserLanguagePreference defaultPreference = new UserLanguagePreference(userId, "en", "English");
                     return repository.save(defaultPreference);
                 }))
-                .doOnError(error -> logger.error("ভাষা পছন্দ পুনরুদ্ধারে ব্যর্থ: {}", error.getMessage()));
+                .doOnError(error -> logger.error("পছন্দ পুনরুদ্ধারে ব্যর্থ: {}", error.getMessage()));
     }
 
     /**
      * ব্যবহারকারীর ভাষা পছন্দ আপডেট করে
      */
     public Mono<UserLanguagePreference> updateUserLanguagePreference(String userId, String languageCode, String languageName) {
-        return getUserLanguagePreference(userId)
+        return getUserPreference(userId)
                 .flatMap(preference -> {
                     preference.setLanguageCode(languageCode);
                     preference.setLanguageName(languageName);

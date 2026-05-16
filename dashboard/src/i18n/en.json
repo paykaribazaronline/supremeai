@@ -145,5 +145,35 @@
       "auto_learn": "Auto-Learn",
       "monitor_desc": "Monitor system internet browsing. URL permissions control where the system can surf. System learns from browsing patterns and updates knowledge base."
     }
+  },
+  "admin_dashboard": {
+    "pillars": {
+      "registry": "Intelligence Registry",
+      "orchestration": "Scenario Orchestration",
+      "telemetry": "Live Telemetry",
+      "consensus": "Consensus Map",
+      "traffic": "Quota & Traffic",
+      "knowledge": "Knowledge Hub",
+      "healing": "Self-Healing Logs",
+      "learning": "Learning Hub"
+    },
+    "roles": {
+      "communication": "Communication",
+      "execution": "Task Execution",
+      "voting": "Ensemble Voting"
+    }
+  },
+  "settings": {
+    "userPreferences": "User Settings",
+    "language": "Language",
+    "languageDescription": "Choose your preferred language for the interface",
+    "appearance": "Appearance",
+    "darkMode": "Dark Mode",
+    "notifications": "Notifications",
+    "notificationsDescription": "Receive notifications about system updates and alerts",
+    "focusMode": "Focus Mode",
+    "focusModeDescription": "Minimize distractions by reducing visual noise",
+    "save": "Save Settings",
+    "about": "About"
   }
 }

@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import reactor.core.publisher.Mono;
 
 /**
  * GPublishAgent - Publish and Deploy Agent
@@ -25,6 +26,69 @@ public class GPublishAgent {
 
     @Autowired
     private AIProviderFactory providerFactory;
+
+    @Autowired
+    private com.supremeai.service.GitHubAutomationService githubAutomationService;
+
+    @Autowired
+    private com.supremeai.service.SystemWorkRuleService ruleService;
+
+    /**
+     * অটোমেটিক গিটহাব পুশ এনাবল করা আছে কিনা এবং ডিফল্ট অর্গানাইজেশন কী তা যাচাই করে
+     */
+    public Mono<Map<String, String>> getAutoPushConfig() {
+        return ruleService.getRuleByKey("GITHUB_AUTO_PUSH")
+            .flatMap(pushRule -> {
+                if (Boolean.parseBoolean(pushRule.getValue())) {
+                    return ruleService.getRuleByKey("GITHUB_ORG_NAME")
+                        .map(orgRule -> {
+                            Map<String, String> config = new HashMap<>();
+                            config.put("autoPush", "true");
+                            config.put("owner", orgRule.getValue());
+                            return config;
+                        })
+                        .onErrorResume(e -> Mono.just(Map.of("autoPush", "true", "owner", "supremeai-apps")));
+                }
+                return Mono.just(Map.of("autoPush", "false"));
+            })
+            .onErrorResume(e -> Mono.just(Map.of("autoPush", "false")));
+    }
+
+    /**
+     * জেনারেটেড কোড গিটহাবে পুশ করার জন্য এই মেথডটি ব্যবহার করা হয়
+     */
+    public Mono<Map<String, Object>> deployToGitHub(String owner, String repo, Map<String, String> files, String installationId) {
+        logger.info("গিটহাবে কোড পুশ করার চেষ্টা করা হচ্ছে: {}/{}", owner, repo);
+        
+        if (files == null || files.isEmpty()) {
+            Map<String, Object> errorResult = new HashMap<>();
+            errorResult.put("status", "FAILED");
+            errorResult.put("error", "No files provided to push");
+            return Mono.just(errorResult);
+        }
+
+        return githubAutomationService.pushGeneratedCode(owner, repo, files, installationId)
+            .flatMap(pushResult -> {
+                // After successful push, try to enable GitHub Pages for a preview
+                return githubAutomationService.enablePages(owner, repo, installationId)
+                    .map(previewUrl -> {
+                        Map<String, Object> result = new HashMap<>();
+                        result.put("status", "SUCCESS");
+                        result.put("details", pushResult);
+                        result.put("repoUrl", String.format("https://github.com/%s/%s", owner, repo));
+                        result.put("previewUrl", previewUrl);
+                        logger.info("গিটহাব ডিপ্লয়মেন্ট এবং পেজ এনাবল সফল হয়েছে: {}/{}", owner, repo);
+                        return result;
+                    });
+            })
+            .onErrorResume(e -> {
+                logger.error("গিটহাব ডিপ্লয়মেন্ট ব্যর্থ হয়েছে: {}", e.getMessage());
+                Map<String, Object> result = new HashMap<>();
+                result.put("status", "FAILED");
+                result.put("error", e.getMessage());
+                return Mono.just(result);
+            });
+    }
 
     /**
      * পাবলিশিং এবং ডিপ্লয়মেন্টের জন্য প্রয়োজনীয়তা বিশ্লেষণ করে

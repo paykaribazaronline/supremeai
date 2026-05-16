@@ -225,6 +225,7 @@ class EnhancedWebScraperServiceTest {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private Set<String> invokeDetectTechnologies(String content) {
         try {
             var method = EnhancedWebScraperService.class.getDeclaredMethod("detectTechnologies", String.class);

@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.regex.Pattern;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 /**
  * Autonomous Questioning Engine (S3)
@@ -42,34 +44,36 @@ public class AutonomousQuestioningEngine {
     /**
      * Validate user input and generate clarifying questions if needed
      */
-    public ValidationResult validateAndQuestion(String userInput, RequestType requestType) {
-        logger.info("Validating user input of type: {}", requestType);
+    public Mono<ValidationResult> validateAndQuestion(String userInput, RequestType requestType) {
+        return Mono.fromCallable(() -> {
+            logger.info("Validating user input of type: {}", requestType);
 
-        List<String> questions = new ArrayList<>();
-        double clarityScore = calculateClarityScore(userInput, requestType);
-        boolean isComplete = clarityScore >= getMinClarityScore();
+            List<String> questions = new ArrayList<>();
+            double clarityScore = calculateClarityScore(userInput, requestType);
+            boolean isComplete = clarityScore >= getMinClarityScore();
 
-        // Check for missing critical information
-        questions.addAll(checkMissingInformation(userInput, requestType));
+            // Check for missing critical information
+            questions.addAll(checkMissingInformation(userInput, requestType));
 
-        // Check for ambiguity
-        questions.addAll(checkAmbiguity(userInput));
+            // Check for ambiguity
+            questions.addAll(checkAmbiguity(userInput));
 
-        // Check for conflicting information
-        questions.addAll(checkConflicts(userInput));
-        
-        // S3 Enhancement: Check for missing context or "low-effort" prompts
-        questions.addAll(checkContextualCompleteness(userInput, requestType));
+            // Check for conflicting information
+            questions.addAll(checkConflicts(userInput));
+            
+            // S3 Enhancement: Check for missing context or "low-effort" prompts
+            questions.addAll(checkContextualCompleteness(userInput, requestType));
 
-        ValidationResult result = new ValidationResult();
-        result.setOriginalInput(userInput);
-        result.setRequestType(requestType);
-        result.setClarityScore(clarityScore);
-        result.setComplete(isComplete && questions.isEmpty());
-        result.setClarifyingQuestions(questions);
+            ValidationResult result = new ValidationResult();
+            result.setOriginalInput(userInput);
+            result.setRequestType(requestType);
+            result.setClarityScore(clarityScore);
+            result.setComplete(isComplete && questions.isEmpty());
+            result.setClarifyingQuestions(questions);
 
-        logger.info("Validation complete. Clarity: {}, Questions: {}", clarityScore, questions.size());
-        return result;
+            logger.info("Validation complete. Clarity: {}, Questions: {}", clarityScore, questions.size());
+            return result;
+        }).subscribeOn(Schedulers.boundedElastic());
     }
 
     /**

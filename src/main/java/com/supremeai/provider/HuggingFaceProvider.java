@@ -33,23 +33,7 @@ public class HuggingFaceProvider extends AbstractHttpProvider {
         );
     }
 
-    @Override
-    protected String extractResponse(String responseBody) throws Exception {
-        if (responseBody == null || responseBody.isBlank()) return "Empty HF response.";
-        
-        Map<String, Object> response = objectMapper.readValue(responseBody, 
-            new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
-            
-        List<?> choices = (List<?>) response.get("choices");
-        if (choices != null && !choices.isEmpty()) {
-            Map<String, Object> first = (Map<String, Object>) choices.get(0);
-            Map<String, Object> message = (Map<String, Object>) first.get("message");
-            if (message != null && message.get("content") != null) {
-                return (String) message.get("content");
-            }
-        }
-        return "No content in HF response.";
-    }
+    // extractResponse: AbstractHttpProvider-এর OpenAI-compatible default ব্যবহৃত হচ্ছে
 
     @Override
     protected void addAuthHeaders(okhttp3.Request.Builder builder) {

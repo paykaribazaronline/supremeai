@@ -55,7 +55,7 @@ public class DistributedRateLimiter {
             "    return 0\n" +
             "end";
 
-    public DistributedRateLimiter(RedisTemplate<String, Object> redisTemplate) {
+    public DistributedRateLimiter(@org.springframework.beans.factory.annotation.Autowired(required = false) RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
@@ -82,6 +82,10 @@ public class DistributedRateLimiter {
      * @return true if permits acquired, false if rate limit exceeded
      */
     public boolean tryAcquire(String key, int limit, int window, int permits) {
+        if (redisTemplate == null) {
+            // Fail open if Redis is disabled
+            return true;
+        }
         try {
             RedisScript<Long> script = RedisScript.of(RATE_LIMIT_SCRIPT, Long.class);
             List<String> keys = Collections.singletonList("rate_limit:" + key);
@@ -92,7 +96,7 @@ public class DistributedRateLimiter {
                     String.valueOf(permits)
             );
 
-            Long result = redisTemplate.execute(script, keys, args.toArray(new String[0]));
+            Long result = redisTemplate.execute(script, keys, (Object[]) args.toArray(new String[0]));
             boolean allowed = result != null && result == 1L;
 
             if (!allowed) {
@@ -114,6 +118,9 @@ public class DistributedRateLimiter {
      * @return Map containing tokens remaining and reset time
      */
     public Map<String, Object> getStatus(String key) {
+        if (redisTemplate == null) {
+            return Map.of("status", "disabled");
+        }
         try {
             String redisKey = "rate_limit:" + key;
             Map<Object, Object> bucket = redisTemplate.opsForHash().entries(redisKey);
@@ -136,11 +143,13 @@ public class DistributedRateLimiter {
      * @param key Unique identifier for the rate limit bucket
      */
     public void reset(String key) {
-        try {
-            redisTemplate.delete("rate_limit:" + key);
-            log.debug("Rate limit reset for key: {}", key);
-        } catch (Exception e) {
-            log.error("Error resetting rate limit for key {}: {}", key, e.getMessage());
+        if (redisTemplate != null) {
+            try {
+                redisTemplate.delete("rate_limit:" + key);
+                log.debug("Rate limit reset for key: {}", key);
+            } catch (Exception e) {
+                log.error("Error resetting rate limit for key {}: {}", key, e.getMessage());
+            }
         }
     }
 }

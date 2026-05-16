@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -33,14 +34,9 @@ class UserCodeLearningServiceTest {
     private UserCodeLearningService service;
 
     @BeforeEach
-    void setUp() throws Exception {
-        // Create service without Firestore (use in-memory fallback)
-        service = new UserCodeLearningService();
-        // Inject mocked globalKnowledgeBase using reflection
-        java.lang.reflect.Field field = UserCodeLearningService.class
-                .getDeclaredField("globalKnowledgeBase");
-        field.setAccessible(true);
-        field.set(service, globalKnowledgeBase);
+    void setUp() {
+        // Create service using constructor injection
+        service = new UserCodeLearningService(firestore, globalKnowledgeBase, "test_collection");
     }
 
     /**
@@ -59,12 +55,8 @@ class UserCodeLearningServiceTest {
         verifyNoInteractions(globalKnowledgeBase);
     }
 
-    /**
-     * Test that minor changes produce MINOR_CORRECTION type.
-     */
     @Test
     void learnFromUserEdit_minorChanges_createsMinorCorrection() throws Exception {
-        String taskId = "task2";
         String original = "x = 1\nprint(x)";
         String edited = "x = 2\nprint(x)";
         String context = "bug fix";
@@ -152,14 +144,4 @@ class UserCodeLearningServiceTest {
         assertEquals("MAJOR_REFACTOR", pattern.getLearningType());
     }
 
-    // Helper assertion methods inline (or use JUnit assertions)
-    private void assertEquals(Object expected, Object actual) {
-        if (!expected.equals(actual)) {
-            throw new AssertionError("Expected: " + expected + ", Actual: " + actual);
-        }
-    }
-
-    private void assertTrue(boolean condition, String message) {
-        if (!condition) throw new AssertionError(message);
-    }
 }

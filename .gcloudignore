@@ -11,7 +11,7 @@
 *.iml
 
 # Node.js
-node_modules/
+**/node_modules/
 npm-debug.log
 
 # Python
@@ -24,10 +24,10 @@ local.properties
 service-account.json
 
 # Build directories - Build happens in Cloud Build
-build/
-.gradle/
-.gradle-home/
-.gradle-user-home/
+**/build/
+**/.gradle/
+**/.gradle-home/
+**/.gradle-user-home/
 
 # Include the built JAR for Docker image (CI copies it to root)
 !app.jar
@@ -39,10 +39,19 @@ supremeai-vscode-extension/
 /docs_new/
 /colab/
 /monitoring/
-/admin/
-/public/
-/projects/
+/supremeai/
 /dashboard/
 /functions/
 /command-hub/
+/reverse-engineer-service/
+/reverse-engineering/
+/reverse_engineer/
+/browser-automation-tool/
+/smart_chat_system/
+/supremeai-studio-client/
+/legacy/
+/bin/
+/docs/
+/public/
+/admin/
 /.kilo/

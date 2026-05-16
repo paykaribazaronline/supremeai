@@ -1,34 +1,38 @@
 spring:
   application:
     name: supremeai
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      timeout: 2000ms
-  datasource:
-    url: ${DATABASE_URL:jdbc:h2:mem:testdb}
-    username: ${DATABASE_USERNAME:sa}
-    password: ${DATABASE_PASSWORD:}
-    hikari:
-      maximum-pool-size: 100
-      minimum-idle: 10
-      idle-timeout: 300000
-      connection-timeout: 10000
-      max-lifetime: 1200000
-      leak-detection-threshold: 60000
-
-  # Enable actuator endpoints for Kubernetes health checks
   cloud:
+    gcp:
+      project-id: ${GCP_PROJECT_ID:}
+      pubsub:
+        enabled: true
+      firestore:
+        enabled: true
     kubernetes:
       enabled: true
       readiness-probe:
         initial-delay: 30
       liveness-probe:
         initial-delay: 60
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+  datasource:
+     url: ${DATABASE_URL:jdbc:h2:mem:testdb}
+     username: ${DATABASE_USERNAME:sa}
+     password: ${DATABASE_PASSWORD:}
+     hikari:
+       maximum-pool-size: 100
+       minimum-idle: 10
+       idle-timeout: 300000
+       connection-timeout: 10000
+       max-lifetime: 1200000
+       leak-detection-threshold: 60000
 
 jwt:
-  secret: ${JWT_SECRET:supremeai_super_secret_key_change_in_production}
+  secret: ${JWT_SECRET:}
 
 # Management endpoints for K8s probes
 management:
@@ -59,11 +63,16 @@ supremeai:
     groq: ${GROQ_API_KEY:}
     supreme-cloud: ${SUPREME_CLOUD_API_KEY:}
     custom-supreme-ai: ${CUSTOM_SUPREME_AI_KEY:}
+    hf_api_key: ${HF_API_KEY:}
+    # Render endpoints (set these after deploying)
+    render_tinyllama_url: ${RENDER_TINYLLAMA_URL:}
+    render_phi3_url: ${RENDER_PHI3_URL:}
+    render_qwen_url: ${RENDER_QWEN_URL:}
 
 ai:
   providers:
     ollama:
-      endpoint: ${AI_PROVIDERS_OLLAMA_ENDPOINT:http://localhost:11434}
+      endpoint: ${AI_PROVIDERS_OLLAMA_ENDPOINT:http://127.0.0.1:11434}
       api-key: ${AI_PROVIDERS_OLLAMA_API_KEY:ollama}
     huggingface:
       api-key: ${HUGGINGFACE_API_KEY:}
@@ -82,3 +91,26 @@ rate-limit:
 logging:
   level:
     com.supremeai: DEBUG
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+  show-actuator: true
+
+sentry:
+  dsn: ${SENTRY_DSN:}
+  traces-sample-rate: 1.0
+  environment: ${SPRING_PROFILES_ACTIVE:development}
+  exception-resolver-order: -2147483647
+
+otel:
+  service:
+    name: supremeai-backend
+  exporter:
+    otlp:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://127.0.0.1:4317}
+  traces:
+    exporter: ${OTEL_TRACES_EXPORTER:otlp}

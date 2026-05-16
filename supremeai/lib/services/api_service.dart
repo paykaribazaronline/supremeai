@@ -17,6 +17,12 @@ class ApiService {
     if (_token != null) return _token;
     final prefs = await SharedPreferences.getInstance();
     _token = prefs.getString('auth_token');
+    
+    // If no token exists but user is in guest mode, return GUEST_MODE identifier
+    if (_token == null && (prefs.getBool('is_guest') ?? false)) {
+      return "GUEST_MODE";
+    }
+    
     return _token;
   }
 

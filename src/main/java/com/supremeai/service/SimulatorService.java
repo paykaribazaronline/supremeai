@@ -6,6 +6,7 @@ import com.supremeai.exception.SimulatorResourceNotFoundException;
 import com.supremeai.model.User;
 import com.supremeai.model.UserSimulatorProfile;
 import com.supremeai.model.UserSimulatorProfile.InstalledApp;
+import com.supremeai.model.GeneratedApp;
 import com.supremeai.repository.UserRepository;
 import com.supremeai.repository.UserSimulatorProfileRepository;
 import org.slf4j.Logger;
@@ -159,11 +160,12 @@ public class SimulatorService {
     /**
      * Get all active simulator deployments for admin view.
      */
-    public java.util.Map<String, SimulatorDeploymentService.DeploymentRecord> getAllDeployments() {
+    public java.util.List<com.supremeai.model.SimulatorDeploymentRecord> getAllDeployments() {
         return deploymentService.getAllDeployments();
     }
 
-    public Mono<SessionStatusResult> getSessionStatus(String userId) {        return profileRepository.findByUserId(userId)
+    public Mono<SessionStatusResult> getSessionStatus(String userId) {
+        return profileRepository.findByUserId(userId)
             .map(profile -> {
                 UserSimulatorProfile.ActiveSession session = profile.getCurrentSession();
                 return new SessionStatusResult(
@@ -175,6 +177,52 @@ public class SimulatorService {
             });
     }
 
+    /**
+     * Request DTO for updating user simulator profile.
+     */
+    public static class UpdateProfileRequest {
+        private Integer installQuota;
+        private DeviceUpdateRequest device;
+
+        public Integer getInstallQuota() { return installQuota; }
+        public void setInstallQuota(Integer installQuota) { this.installQuota = installQuota; }
+        public DeviceUpdateRequest getDevice() { return device; }
+        public void setDevice(DeviceUpdateRequest device) { this.device = device; }
+    }
+
+    @Autowired
+    private CodeGenerationService codeGenerationService;
+
+    /**
+     * Fetch generated app content by appId.
+     * Used by SimulatorRuntimeController to serve preview.
+     */
+    public Mono<GeneratedApp> getGeneratedApp(String appId) {
+        return codeGenerationService.getGeneratedApp(appId);
+    }
+
+    public static class DeviceUpdateRequest {
+        private String type;
+        private String osVersion;
+        private String screenResolution;
+        private Integer densityDpi;
+
+        public String getType() { return type; }
+        public void setType(String type) { this.type = type; }
+
+        public String getOsVersion() { return osVersion; }
+        public void setOsVersion(String osVersion) { this.osVersion = osVersion; }
+
+        public String getScreenResolution() { return screenResolution; }
+        public void setScreenResolution(String screenResolution) { this.screenResolution = screenResolution; }
+
+        public Integer getDensityDpi() { return densityDpi; }
+        public void setDensityDpi(Integer densityDpi) { this.densityDpi = densityDpi; }
+    }
+
+    /**
+     * Result of installApp operation.
+     */
     public static class SimulatorInstallResult {
         private final InstalledApp installedApp;
         private final int activeInstalls;
@@ -194,6 +242,9 @@ public class SimulatorService {
         public String getPreviewUrl() { return previewUrl; }
     }
 
+    /**
+     * Result of starting a simulator session.
+     */
     public static class SessionStartResult {
         private final String sessionId;
         private final String websocketUrl;
@@ -218,6 +269,9 @@ public class SimulatorService {
         public java.time.LocalDateTime getStartedAt() { return startedAt; }
     }
 
+    /**
+     * Current session status.
+     */
     public static class SessionStatusResult {
         private final String sessionId;
         private final String activeAppId;
@@ -236,31 +290,5 @@ public class SimulatorService {
         public String getActiveAppId() { return activeAppId; }
         public String getState() { return state; }
         public java.time.LocalDateTime getLastHeartbeat() { return lastHeartbeat; }
-    }
-
-    public static class UpdateProfileRequest {
-        private Integer installQuota;
-        private DeviceUpdateRequest device;
-
-        public Integer getInstallQuota() { return installQuota; }
-        public void setInstallQuota(Integer installQuota) { this.installQuota = installQuota; }
-        public DeviceUpdateRequest getDevice() { return device; }
-        public void setDevice(DeviceUpdateRequest device) { this.device = device; }
-    }
-
-    public static class DeviceUpdateRequest {
-        private String type;
-        private String osVersion;
-        private String screenResolution;
-        private Integer densityDpi;
-
-        public String getType() { return type; }
-        public void setType(String type) { this.type = type; }
-        public String getOsVersion() { return osVersion; }
-        public void setOsVersion(String osVersion) { this.osVersion = osVersion; }
-        public String getScreenResolution() { return screenResolution; }
-        public void setScreenResolution(String screenResolution) { this.screenResolution = screenResolution; }
-        public Integer getDensityDpi() { return densityDpi; }
-        public void setDensityDpi(Integer densityDpi) { this.densityDpi = densityDpi; }
     }
 }

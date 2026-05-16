@@ -58,11 +58,19 @@ public class MCPClientManager {
         List<Map<String, Object>> listTools() {
             try {
                 org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
-                Map<String, Object> response = restTemplate.postForObject(url + "/tools/list", Collections.emptyMap(), Map.class);
+                org.springframework.core.ParameterizedTypeReference<Map<String, Object>> typeRef = 
+                    new org.springframework.core.ParameterizedTypeReference<>() {};
+                Map<String, Object> response = restTemplate.exchange(url + "/tools/list", 
+                    org.springframework.http.HttpMethod.POST, 
+                    new org.springframework.http.HttpEntity<>(Collections.emptyMap()), 
+                    typeRef).getBody();
                 if (response != null && response.containsKey("tools")) {
-                    @SuppressWarnings("unchecked")
-                    List<Map<String, Object>> tools = (List<Map<String, Object>>) response.get("tools");
-                    return tools;
+                    Object toolsObj = response.get("tools");
+                    if (toolsObj instanceof List<?> tools) {
+                        @SuppressWarnings("unchecked")
+                        List<Map<String, Object>> castedTools = (List<Map<String, Object>>) tools;
+                        return castedTools;
+                    }
                 }
             } catch (Exception e) {
                 // ignore

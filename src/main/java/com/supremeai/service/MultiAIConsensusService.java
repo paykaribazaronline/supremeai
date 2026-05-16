@@ -228,7 +228,7 @@ public class MultiAIConsensusService {
             result.setConsensusAnswer(consensus);
             result.setConsensusPercentage(percentage);
             result.setVotes(votes);
-            result.setTimestamp(java.time.LocalDateTime.now());
+            result.setTimestamp(new java.util.Date());
             history.add(result);
             logger.info("Saved consensus vote to in-memory history (size: {})", history.size());
         } catch (Exception e) {

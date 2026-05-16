@@ -1,124 +1,126 @@
 package com.supremeai.service;
 
+import com.google.cloud.run.v2.*;
+import com.google.iam.v1.Binding;
+import com.google.iam.v1.Policy;
+import com.google.iam.v1.SetIamPolicyRequest;
+import com.supremeai.exception.SimulatorDeploymentException;
+import com.supremeai.model.SimulatorDeploymentRecord;
+import com.supremeai.repository.SimulatorDeploymentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
- * Service for deploying generated apps to a simulator preview environment.
+ * Service for deploying generated apps to Cloud Run simulator environments.
  *
- * CURRENT: Functional local/cloud preview URL generation with health checking.
- * FUTURE: Full Cloud Run deployment automation (gcloud CLI integration).
+ * Uses Cloud Run Admin API v2 for deployment.
+ * Cloud Run service name pattern: sim-{appId}-{deviceSlug}
  */
 @Service
 public class SimulatorDeploymentService {
 
     private static final Logger logger = LoggerFactory.getLogger(SimulatorDeploymentService.class);
 
-    @Value("${simulator.preview.domain:localhost:8080}")
-    private String previewDomain;
+    @Value("${spring.cloud.gcp.project-id:supremeai-a}")
+    private String projectId;
 
-    @Value("${simulator.preview.scheme:http}")
-    private String previewScheme;
+    @Value("${simulator.cloud.region:us-central1}")
+    private String region;
+
+    @Value("${simulator.cloud.run.image:}")
+    private String runtimeImage; // optional override
 
     @Value("${simulator.health.check.timeout.ms:3000}")
     private int healthCheckTimeoutMs;
 
-    // Track deployed app states in-memory; production: persist to Firestore
-    private final Map<String, DeploymentRecord> deploymentRegistry = new ConcurrentHashMap<>();
+    // Firestore deployment registry
+    @Autowired
+    private SimulatorDeploymentRepository deploymentRepository;
 
     private final WebClient webClient;
 
     public SimulatorDeploymentService() {
         this.webClient = WebClient.builder()
-            .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(512 * 1024))
-            .build();
+                .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(512 * 1024))
+                .build();
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────────
     // Public API
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────────
 
     /**
-     * Deploy a generated app to the simulator preview environment.
-     *
-     * Generates a deterministic preview URL based on appId + deviceType.
-     * In production, this will trigger a Cloud Run deployment.
-     *
-     * @param appId      ID of the generated app
-     * @param deviceType Target device profile (e.g., PIXEL_6)
-     * @return Public preview URL where the simulator can be accessed
+     * Deploy a generated app to the simulator.
      */
     public String deployToSimulator(String appId, String deviceType) {
         logger.info("[SIMULATOR_DEPLOY] Deploying app={} device={}", appId, deviceType);
 
-        // Normalize device type for URL-safe usage
-        String deviceSlug = deviceType.toLowerCase().replace("_", "-");
+        try {
+            String deviceSlug = deviceType.toLowerCase().replace("_", "-");
+            String serviceName = "sim-" + appId + "-" + deviceSlug;
+            String serviceNameClean = serviceName.replaceAll("[^a-z0-9-]", "-").toLowerCase();
 
-        // Build deterministic preview URL
-        // Pattern: {scheme}://{domain}/simulator/preview/{appId}?device={deviceSlug}
-        String previewUrl = String.format(
-            "%s://%s/simulator/preview/%s?device=%s",
-            previewScheme, previewDomain, appId, deviceSlug
-        );
+            // Deploy via Admin API
+            String serviceUrl = deployViaAdminApi(serviceNameClean, appId, deviceType);
 
-        // Register deployment record
-        DeploymentRecord record = new DeploymentRecord(appId, deviceType, previewUrl, DeploymentStatus.RUNNING);
-        deploymentRegistry.put(appId, record);
+            // Record deployment in Firestore
+            SimulatorDeploymentRecord record = new SimulatorDeploymentRecord(appId, deviceType, serviceUrl, DeploymentStatus.RUNNING.name());
+            deploymentRepository.save(record).block();
 
-        logger.info("[SIMULATOR_DEPLOY] Deployed app={} url={}", appId, previewUrl);
+            logger.info("[SIMULATOR_DEPLOY] Deployed app={} url={}", appId, serviceUrl);
+            return serviceUrl;
 
-        // FUTURE: trigger Cloud Run deployment here:
-        // gcloud run deploy "sim-{appId}-{deviceSlug}" \
-        //   --image gcr.io/PROJECT_ID/simulator-runtime \
-        //   --region us-central1 --allow-unauthenticated \
-        //   --set-env-vars APP_ID={appId},DEVICE={deviceType}
-
-        return previewUrl;
+        } catch (Exception e) {
+            logger.error("[SIMULATOR_DEPLOY] Deployment failed for app {}: {}", appId, e.getMessage(), e);
+            throw new SimulatorDeploymentException("Failed to deploy to Cloud Run: " + e.getMessage(), e);
+        }
     }
 
     /**
-     * Undeploy (remove) a simulator preview environment.
-     * Marks the deployment as stopped in the registry and logs for cleanup.
-     *
-     * @param appId App to undeploy
+     * Undeploy (remove) a simulator preview.
      */
     public void undeployFromSimulator(String appId) {
         logger.info("[SIMULATOR_DEPLOY] Undeploying app={}", appId);
 
-        DeploymentRecord record = deploymentRegistry.get(appId);
+        SimulatorDeploymentRecord record = deploymentRepository.findById(appId).block();
         if (record != null) {
-            record.setStatus(DeploymentStatus.STOPPED);
+            String deviceSlug = record.getDeviceType().toLowerCase().replace("_", "-");
+            String serviceName = "sim-" + appId + "-" + deviceSlug;
+            String serviceNameClean = serviceName.replaceAll("[^a-z0-9-]", "-").toLowerCase();
+
+            try (ServicesClient servicesClient = ServicesClient.create()) {
+                String name = ServiceName.of(projectId, region, serviceNameClean).toString();
+                servicesClient.deleteServiceAsync(name).get();
+                logger.info("[GCP] Deleted Cloud Run service: {}", serviceNameClean);
+            } catch (Exception e) {
+                logger.warn("[GCP] Failed to delete service {}: {}", serviceNameClean, e.getMessage());
+            }
+
+            record.setStatus(DeploymentStatus.STOPPED.name());
             logger.info("[SIMULATOR_DEPLOY] Marked app={} as STOPPED", appId);
+            deploymentRepository.save(record).block();
         } else {
             logger.warn("[SIMULATOR_DEPLOY] No deployment record found for app={}", appId);
         }
-
-        deploymentRegistry.remove(appId);
-
-        // FUTURE: Cloud Run cleanup:
-        // gcloud run services delete "sim-{appId}-{deviceSlug}" --region us-central1 --quiet
     }
 
     /**
-     * Checks if a simulator deployment is healthy by issuing an HTTP GET.
-     * Falls back to true if the health check times out (graceful degradation).
-     *
-     * @param previewUrl URL to check
-     * @return true if HTTP 2xx received within timeout, true on timeout (assume live)
+     * Check if the deployed URL is healthy.
      */
     public boolean isDeploymentHealthy(String previewUrl) {
         if (previewUrl == null || previewUrl.isEmpty()) {
             return false;
         }
 
-        // For local/dev environments, skip HTTP check
+        // Skip health check for localhost (dev mode)
         if (previewUrl.contains("localhost") || previewUrl.contains("127.0.0.1")) {
             logger.debug("[SIMULATOR_DEPLOY] Skipping health check for local URL: {}", previewUrl);
             return true;
@@ -127,62 +129,112 @@ public class SimulatorDeploymentService {
         try {
             String healthUrl = previewUrl.split("\\?")[0] + "/health";
             webClient.get()
-                .uri(healthUrl)
-                .retrieve()
-                .toBodilessEntity()
-                .timeout(Duration.ofMillis(healthCheckTimeoutMs))
-                .block();
+                    .uri(healthUrl)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .timeout(Duration.ofMillis(healthCheckTimeoutMs))
+                    .block();
             logger.debug("[SIMULATOR_DEPLOY] Health check passed for {}", previewUrl);
             return true;
         } catch (Exception e) {
-            // Timeout or connection refused — assume live (graceful degradation)
-            logger.warn("[SIMULATOR_DEPLOY] Health check failed for {} ({}), assuming live",
-                previewUrl, e.getMessage());
-            return true;
+            logger.warn("[SIMULATOR_DEPLOY] Health check failed for {} ({}), assuming live", previewUrl, e.getMessage());
+            return true; // assume live for graceful degradation
         }
     }
 
-    /**
-     * Get deployment status for an app.
-     */
     public DeploymentStatus getStatus(String appId) {
-        DeploymentRecord record = deploymentRegistry.get(appId);
-        return record != null ? record.getStatus() : DeploymentStatus.NOT_DEPLOYED;
+        SimulatorDeploymentRecord record = deploymentRepository.findById(appId).block();
+        if (record == null || record.getStatus() == null) {
+            return DeploymentStatus.NOT_DEPLOYED;
+        }
+        try {
+            return DeploymentStatus.valueOf(record.getStatus());
+        } catch (IllegalArgumentException e) {
+            return DeploymentStatus.ERROR;
+        }
     }
+
+    public List<SimulatorDeploymentRecord> getAllDeployments() {
+        return deploymentRepository.findAll().collectList().block();
+    }
+
+    public SimulatorDeploymentRecord getDeploymentRecord(String appId) {
+        return deploymentRepository.findById(appId).block();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Internal Implementation
+    // ─────────────────────────────────────────────────────────────────────────────
 
     /**
-     * Get all active deployments (for admin view).
+     * Deploy Cloud Run service using Admin API v2.
      */
-    public Map<String, DeploymentRecord> getAllDeployments() {
-        return Map.copyOf(deploymentRegistry);
-    }
+    private String deployViaAdminApi(String serviceNameId, String appId, String deviceType) throws Exception {
+        logger.info("[GCP] Deploying Cloud Run service: {}", serviceNameId);
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Inner Models
-    // ─────────────────────────────────────────────────────────────────────────
-
-    public enum DeploymentStatus { NOT_DEPLOYED, DEPLOYING, RUNNING, STOPPED, ERROR }
-
-    public static class DeploymentRecord {
-        private final String appId;
-        private final String deviceType;
-        private final String previewUrl;
-        private DeploymentStatus status;
-        private final java.time.LocalDateTime deployedAt;
-
-        public DeploymentRecord(String appId, String deviceType, String previewUrl, DeploymentStatus status) {
-            this.appId = appId;
-            this.deviceType = deviceType;
-            this.previewUrl = previewUrl;
-            this.status = status;
-            this.deployedAt = java.time.LocalDateTime.now();
+        String image = runtimeImage;
+        if (image == null || image.isEmpty()) {
+            image = "gcr.io/" + projectId + "/simulator-runtime:latest";
         }
 
-        public String getAppId() { return appId; }
-        public String getDeviceType() { return deviceType; }
-        public String getPreviewUrl() { return previewUrl; }
-        public DeploymentStatus getStatus() { return status; }
-        public void setStatus(DeploymentStatus status) { this.status = status; }
-        public java.time.LocalDateTime getDeployedAt() { return deployedAt; }
+        try (ServicesClient servicesClient = ServicesClient.create()) {
+            LocationName parent = LocationName.of(projectId, region);
+            String fullServiceName = ServiceName.of(projectId, region, serviceNameId).toString();
+
+            com.google.cloud.run.v2.Service serviceObj = com.google.cloud.run.v2.Service.newBuilder()
+                    .setTemplate(
+                            RevisionTemplate.newBuilder()
+                                    .addContainers(
+                                            Container.newBuilder()
+                                                    .setImage(image)
+                                                    .addEnv(EnvVar.newBuilder().setName("APP_ID").setValue(appId).build())
+                                                    .addEnv(EnvVar.newBuilder().setName("DEVICE_TYPE").setValue(deviceType).build())
+                                                    .addEnv(EnvVar.newBuilder().setName("SIMULATOR_MODE").setValue("preview").build())
+                                                    .build()
+                                    )
+                                    .build()
+                    )
+                    .build();
+
+            // Create or Update
+            com.google.cloud.run.v2.Service responseService;
+            try {
+                // Try updating first
+                UpdateServiceRequest updateRequest = UpdateServiceRequest.newBuilder()
+                        .setService(serviceObj.toBuilder().setName(fullServiceName).build())
+                        .build();
+                responseService = servicesClient.updateServiceAsync(updateRequest).get();
+            } catch (ExecutionException e) {
+                // If not found, create
+                CreateServiceRequest createRequest = CreateServiceRequest.newBuilder()
+                        .setParent(parent.toString())
+                        .setServiceId(serviceNameId)
+                        .setService(serviceObj)
+                        .build();
+                responseService = servicesClient.createServiceAsync(createRequest).get();
+                
+                // Make it publicly accessible
+                SetIamPolicyRequest iamRequest = SetIamPolicyRequest.newBuilder()
+                        .setResource(fullServiceName)
+                        .setPolicy(Policy.newBuilder()
+                                .addBindings(Binding.newBuilder()
+                                        .setRole("roles/run.invoker")
+                                        .addMembers("allUsers")
+                                        .build())
+                                .build())
+                        .build();
+                servicesClient.setIamPolicy(iamRequest);
+            }
+
+            return responseService.getUri();
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Inner Models
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    public enum DeploymentStatus {
+        NOT_DEPLOYED, DEPLOYING, RUNNING, STOPPED, ERROR
     }
 }

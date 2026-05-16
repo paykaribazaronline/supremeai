@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import javax.annotation.PostConstruct;
 import java.time.Duration;
@@ -99,6 +100,45 @@ public class RetryableAIExecutor {
         Retry retry = retryRegistry.retry(providerName);
         Supplier<T> decorated = Retry.decorateSupplier(retry, operation);
         return CircuitBreaker.decorateSupplier(circuitBreaker, decorated).get();
+    }
+
+    /**
+     * Execute an AI call with retry and exponential backoff reactively.
+     */
+    public <T> Mono<T> executeReactive(String providerName, String serviceName, Mono<T> operation) {
+        return Mono.defer(() -> {
+            // Check quota before attempting
+            if (!quotaManager.recordUsage(serviceName, "Requests", 0)) {
+                return Mono.error(new QuotaExceededException("Quota exceeded for " + serviceName));
+            }
+
+            Retry retry = retryRegistry.retry(providerName);
+            return operation
+                    .transformDeferred(io.github.resilience4j.reactor.retry.RetryOperator.of(retry))
+                    .doOnError(e -> log.warn("Retry attempt failed for {}: {}", providerName, e.getMessage()));
+        });
+    }
+
+    /**
+     * Execute an AI call with retry and a custom circuit breaker reactively.
+     */
+    public <T> Mono<T> executeWithCircuitBreakerReactive(String providerName, String serviceName,
+                                                        CircuitBreaker circuitBreaker, Mono<T> operation) {
+        return Mono.defer(() -> {
+            if (!quotaManager.recordUsage(serviceName, "Requests", 0)) {
+                return Mono.error(new QuotaExceededException("Quota exceeded for " + serviceName));
+            }
+
+            if (circuitBreaker.getState() == CircuitBreaker.State.OPEN) {
+                return Mono.error(new CircuitBreakerOpenException("Circuit breaker is OPEN for " + providerName));
+            }
+
+            Retry retry = retryRegistry.retry(providerName);
+            return operation
+                    .transformDeferred(io.github.resilience4j.reactor.retry.RetryOperator.of(retry))
+                    .transformDeferred(io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator.of(circuitBreaker))
+                    .doOnError(e -> log.warn("Reactive execution failed for {}: {}", providerName, e.getMessage()));
+        });
     }
 
     /**

@@ -7,10 +7,14 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.0",
+    "@dataconnect/generated": "file:src/dataconnect-generated",
     "@react-three/drei": "^9.88.16",
     "@react-three/fiber": "^8.15.11",
     "@stomp/stompjs": "^7.3.0",
@@ -30,18 +34,25 @@
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^18.2.0",
     "react-i18next": "^17.0.4",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^6.22.0",
     "sockjs-client": "^1.6.1",
     "three": "^0.160.0",
     "typescript": "^5.3.3"
   },
   "devDependencies": {
+    "@testing-library/dom": "^9.3.3",
+    "@testing-library/jest-dom": "^6.4.0",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/user-event": "^14.5.0",
     "@types/d3": "^7.4.3",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "@types/sockjs-client": "^1.5.4",
     "@types/three": "^0.184.1",
     "@vitejs/plugin-react": "^4.2.1",
-    "vite": "^5.0.8"
+    "jsdom": "^24.0.0",
+    "vite": "^5.0.8",
+    "vitest": "^1.3.1"
   }
 }

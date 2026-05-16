@@ -1,48 +1,76 @@
-// AdminProviders.tsx - AI Provider Management Page
-
 import React, { useState, useEffect } from 'react';
-import { Layout, Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Spin, Alert, Popconfirm } from 'antd';
-import { RobotOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { Card, message, Spin, Alert, Button, Space, Typography, Tag, Statistic, Row, Col, Input } from 'antd';
+import { ReloadOutlined, PlusOutlined, WarningOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import AdminLayout from '../components/AdminLayout';
 import { authUtils } from '../lib/authUtils';
+import { useRole } from '../contexts/RoleContext';
 
-const { Option } = Select;
+// Modular Components
+import { Provider, ProviderHealthStats as StatsType } from '../components/providers/types';
+import ProvidersTable from '../components/providers/ProvidersTable';
+import ProviderModal from '../components/providers/ProviderModal';
 
-interface Provider {
-  id?: string;
-  name: string;
-  providerType: string;
-  baseUrl: string;
-  apiKey?: string;
-  status: 'active' | 'inactive' | 'error';
-  models?: string[];
-  priority?: number;
-  createdAt?: string;
-}
+const { Title, Text } = Typography;
 
 const AdminProviders: React.FC = () => {
+  const { isGuest } = useRole();
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingProvider, setEditingProvider] = useState<Provider | null>(null);
-  const [form] = Form.useForm();
+  const [healthStats, setHealthStats] = useState<StatsType | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const groupedProviders = React.useMemo(() => {
+    let filtered = [...providers];
+
+    if (searchTerm) {
+      const lower = searchTerm.toLowerCase();
+      filtered = filtered.filter(p => 
+        (p.name?.toLowerCase() || '').includes(lower) || 
+        (p.type?.toLowerCase() || '').includes(lower) ||
+        p.models?.some(m => m.toLowerCase().includes(lower)) ||
+        (p.hints?.toLowerCase() || '').includes(lower)
+      );
+    }
+
+    const groups: Record<string, Provider[]> = {};
+    filtered.forEach(p => {
+      const primaryModel = p.models && p.models.length > 0 ? p.models[0] : 'Unassigned / Legacy';
+      if (!groups[primaryModel]) groups[primaryModel] = [];
+      groups[primaryModel].push(p);
+    });
+
+    return groups;
+  }, [providers, searchTerm]);
 
   const fetchProviders = async () => {
     setLoading(true);
     setError(null);
     try {
-      const token = authUtils.getToken();
-      const response = await fetch('/api/admin/providers/configured', {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (!response.ok) throw new Error('Failed to fetch providers');
-      const data = await response.json();
-      // Backend returns { providers: [...] }
-      const provList: Provider[] = data.providers || [];
-      setProviders(provList);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load providers');
+      const [provRes, statsRes] = await Promise.all([
+        authUtils.fetchWithAuth('/api/admin/providers/configured'),
+        authUtils.fetchWithAuth('/api/admin/providers/health-stats')
+      ]);
+
+      if (!provRes.ok) throw new Error('Failed to fetch providers');
+      const result = await provRes.json();
+      const rawData = result.data?.providers || (Array.isArray(result.data) ? result.data : []);
+
+      setProviders(rawData);
+
+      if (statsRes.ok) {
+        const stats = await statsRes.json();
+        setHealthStats(stats.data);
+      }
+    } catch (err: any) {
+      console.error('Provider fetch error:', err);
+      if (err.message?.includes('401') || err.status === 401) {
+        window.location.href = '/login';
+        return;
+      }
+      setError(err instanceof Error ? err.message : 'Failed to fetch orchestration data');
     } finally {
       setLoading(false);
     }
@@ -54,39 +82,24 @@ const AdminProviders: React.FC = () => {
 
   const handleSubmit = async (values: any) => {
     try {
-      const token = authUtils.getToken();
-      const payload: Provider = {
-        ...values,
-        status: values.status || 'active',
-        models: values.models ? values.models.split(',').map((m: string) => m.trim()) : [],
-      };
       let response;
       if (editingProvider && editingProvider.id) {
-        response = await fetch(`/api/admin/providers/${editingProvider.id}`, {
+        response = await authUtils.fetchWithAuth(`/api/admin/providers/${editingProvider.id}`, {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(values),
         });
       } else {
-        response = await fetch('/api/admin/providers/add', {
+        response = await authUtils.fetchWithAuth('/api/admin/providers/add', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(values),
         });
       }
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
         throw new Error(err.error || err.message || 'Failed to save provider');
       }
-      message.success('Provider saved successfully');
+      message.success('প্রোভাইডার কনফিগারেশন সেভ হয়েছে');
       setModalVisible(false);
-      form.resetFields();
       fetchProviders();
     } catch (err) {
       message.error(err instanceof Error ? err.message : 'Operation failed');
@@ -95,11 +108,8 @@ const AdminProviders: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      const token = authUtils.getToken();
-      // Prefer DELETE /api/admin/providers/{id}
-      const response = await fetch(`/api/admin/providers/${id}`, {
+      const response = await authUtils.fetchWithAuth(`/api/admin/providers/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
       });
       if (!response.ok) throw new Error('Failed to delete provider');
       message.success('Provider deleted');
@@ -109,134 +119,111 @@ const AdminProviders: React.FC = () => {
     }
   };
 
-  const columns = [
-    {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-      render: (text: string) => <strong>{text}</strong>,
-    },
-    {
-      title: 'Type',
-      dataIndex: 'providerType',
-      key: 'providerType',
-      render: (type: string) => <Tag color="blue">{type}</Tag>,
-    },
-    {
-      title: 'Base URL',
-      dataIndex: 'baseUrl',
-      key: 'baseUrl',
-      ellipsis: true,
-    },
-    {
-      title: 'Models',
-      dataIndex: 'models',
-      key: 'models',
-      render: (models: string[]) => models ? models.slice(0, 3).join(', ') + (models.length > 3 ? ` +${models.length - 3} more` : '') : '-',
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => {
-        const color = status === 'active' ? 'green' : status === 'error' ? 'red' : 'default';
-        return <Tag color={color}>{status.toUpperCase()}</Tag>;
-      },
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_: any, record: Provider) => (
-        <Space>
-          <Button size="small" icon={<EditOutlined />} onClick={() => {
-            setEditingProvider(record);
-            form.setFieldsValue({ ...record, models: record.models?.join(', ') });
-            setModalVisible(true);
-          }}>
-            Edit
-          </Button>
-          <Popconfirm title="Delete provider?" onConfirm={() => handleDelete(record.id!)}>
-            <Button size="small" danger icon={<DeleteOutlined />}>Delete</Button>
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
-
   return (
-    <AdminLayout title="AI Provider Management">
-      <Card>
-        <div style={{ marginBottom: 16 }}>
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => {
-            setEditingProvider(null);
-            form.resetFields();
-            setModalVisible(true);
-          }}>
-            Add Provider
-          </Button>
-          <Button icon={<ReloadOutlined />} style={{ marginLeft: 8 }} onClick={fetchProviders}>
-            Refresh
-          </Button>
-        </div>
+    <AdminLayout title="AI Orchestration Center">
+      <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+        <Col xs={24} md={18}>
+          <div className="glass-card p-6 rounded-2xl" style={{ height: '100%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+              <div>
+                <Title level={3} style={{ margin: 0 }}>System AI Providers</Title>
+                <Text type="secondary">Manage your LLM ecosystem and API endpoints</Text>
+              </div>
+              <Space>
+                <Button 
+                  icon={<ReloadOutlined />} 
+                  onClick={fetchProviders} 
+                  loading={loading}
+                >
+                  Refresh
+                </Button>
+                <Button 
+                  type="primary" 
+                  icon={<PlusOutlined />} 
+                  onClick={() => {
+                    setEditingProvider(null);
+                    setModalVisible(true);
+                  }}
+                  size="large"
+                >
+                  Add New Key / Model
+                </Button>
+              </Space>
+            </div>
 
-        {loading && <Spin style={{ display: 'block', margin: '20px auto' }} />}
-        {error && <Alert type="error" message={error} action={<Button onClick={fetchProviders}>Retry</Button>} />}
+            <Card style={{ background: '#f0f2f5', border: 'none', borderRadius: '12px', marginBottom: '24px' }}>
+              <Input 
+                placeholder="Search by Model Name, Provider or API Hints..." 
+                prefix={<ReloadOutlined rotate={90} />} 
+                size="large"
+                allowClear
+                onChange={e => setSearchTerm(e.target.value)}
+                value={searchTerm}
+                style={{ borderRadius: '8px' }}
+              />
+            </Card>
 
-        {!loading && !error && (
-          <Table
-            columns={columns}
-            dataSource={providers}
-            rowKey="id"
-            pagination={{ pageSize: 15 }}
-          />
-        )}
-      </Card>
+            {loading && providers.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '50px' }}><Spin size="large" tip="Orchestrating Providers..." /></div>
+            ) : error ? (
+              <Alert type="error" message={error} action={<Button onClick={fetchProviders}>Retry</Button>} />
+            ) : providers.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px', color: '#888' }}>
+                <p style={{ fontSize: '18px', marginBottom: '8px' }}>🔑 No API key added</p>
+                <p style={{ fontSize: '14px' }}>উপরের "Add New Key / Model" বাটনে ক্লিক করে প্রথম AI প্রোভাইডার যোগ করুন</p>
+              </div>
+            ) : (
+              <ProvidersTable
+                providers={groupedProviders}
+                loading={loading}
+                onEdit={(record) => {
+                  setEditingProvider(record);
+                  setModalVisible(true);
+                }}
+                onDelete={handleDelete}
+              />
+            )}
+          </div>
+        </Col>
 
-      <Modal
-        title={editingProvider ? 'Edit Provider' : 'Add New Provider'}
-        open={modalVisible}
-        onCancel={() => setModalVisible(false)}
-        footer={null}
-        width={500}
-      >
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
-          <Form.Item name="name" label="Provider Name" rules={[{ required: true }]}>
-            <Input placeholder="e.g., OpenAI" />
-          </Form.Item>
-          <Form.Item name="providerType" label="Type" rules={[{ required: true }]}>
-            <Select placeholder="Select type">
-              <Option value="openai">OpenAI</Option>
-              <Option value="anthropic">Anthropic</Option>
-              <Option value="google">Google AI</Option>
-              <Option value="custom">Custom</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item name="baseUrl" label="Base URL" rules={[{ required: true }]}>
-            <Input placeholder="https://api.openai.com/v1" />
-          </Form.Item>
-          <Form.Item name="apiKey" label="API Key">
-            <Input.Password placeholder="sk-..." />
-          </Form.Item>
-          <Form.Item name="models" label="Models (comma-separated)">
-            <Input placeholder="gpt-4, gpt-3.5-turbo" />
-          </Form.Item>
-          <Form.Item name="status" label="Status" initialValue="active">
-            <Select>
-              <Option value="active">Active</Option>
-              <Option value="inactive">Inactive</Option>
-              <Option value="error">Error</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item style={{ marginTop: 24 }}>
-            <Space>
-              <Button type="primary" htmlType="submit">
-                {editingProvider ? 'Update' : 'Add'}
-              </Button>
-              <Button onClick={() => setModalVisible(false)}>Cancel</Button>
+        <Col xs={24} md={6}>
+          <div className="glass-card p-6 rounded-2xl" style={{ height: '100%', background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)', color: 'white' }}>
+            <Title level={4} style={{ color: 'white', marginBottom: '20px' }}>Provider Health</Title>
+            <Space direction="vertical" style={{ width: '100%' }} size="large">
+              <Card size="small" style={{ borderRadius: '12px' }}>
+                <Statistic 
+                  title="Total Active Models" 
+                  value={Object.keys(groupedProviders).length} 
+                  prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />} 
+                />
+              </Card>
+              <Card size="small" style={{ borderRadius: '12px' }}>
+                <Statistic 
+                  title="Error Streak / Latency" 
+                  value={healthStats?.avgLatency || 0} 
+                  suffix="ms"
+                  prefix={healthStats?.dead ? <WarningOutlined style={{ color: '#ff4d4f' }} /> : <CheckCircleOutlined style={{ color: '#52c41a' }} />}
+                  valueStyle={{ color: healthStats?.dead ? '#cf1322' : '#3f8600' }}
+                />
+                {healthStats?.dead ? <Tag color="error">System is experiencing high failure rates</Tag> : <Tag color="success">System Stability: Optimal</Tag>}
+              </Card>
+              
+              <div style={{ marginTop: '20px', padding: '12px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}>
+                <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: '12px' }}>
+                  Pro-Tip: Use the "Test Key" feature in the modal to ensure 100% uptime before saving new endpoints.
+                </Text>
+              </div>
             </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
+          </div>
+        </Col>
+      </Row>
+
+      <ProviderModal
+        visible={modalVisible}
+        editingProvider={editingProvider}
+        onCancel={() => setModalVisible(false)}
+        onSubmit={handleSubmit}
+      />
     </AdminLayout>
   );
 };

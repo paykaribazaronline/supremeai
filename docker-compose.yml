@@ -24,7 +24,17 @@ services:
       - ./service-account.json:/app/service-account.json:ro
     restart: unless-stopped
     depends_on:
-      - airllm
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    container_name: supremeai-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
 
   airllm:
     image: ${AIRLLM_IMAGE:-gcr.io/supremeai-a/airllm-sidecar:latest}
@@ -41,3 +51,6 @@ services:
       - CONTINUOUS_BATCHING=true
       - PORT=8081
     restart: unless-stopped
+
+volumes:
+  redis_data:

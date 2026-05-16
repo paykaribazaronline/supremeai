@@ -2,33 +2,31 @@ package com.supremeai.config;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.FirestoreOptions;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import com.google.firebase.cloud.FirestoreClient;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.api.gax.core.CredentialsProvider;
+import com.google.api.gax.core.FixedCredentialsProvider;
+import com.google.cloud.spring.core.GcpProjectIdProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
-import com.google.cloud.spring.core.GcpProjectIdProvider;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.FirestoreOptions;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.FirebaseOptions;
-import com.google.firebase.cloud.FirestoreClient;
-import com.google.api.gax.core.CredentialsProvider;
-import com.google.api.gax.core.FixedCredentialsProvider;
-import java.util.Collections;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 
 /**
- * প্রজেক্টে Firebase এবং Firestore ব্যবহার করতে এই ক্লাসটি প্রয়োজন।
+ * Firebase এবং Firestore কনফিগারেশন ক্লাস।
+ * Firebase App应立即初始化，避免在请求处理时出现 "FirebaseApp doesn't exist" 错误。
  */
 @Configuration
 public class FirebaseConfig {
@@ -44,18 +42,20 @@ public class FirebaseConfig {
     @Value("${firebase.database.url:https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/}")
     private String databaseUrl;
 
-    /** 
-     * FirebaseApp‑কে ইনিশিয়ালাইজ করে এবং Spring‑এ Bean হিসেবে রেজিস্টার করে। 
+    /**
+     * 초기화 FirebaseApp.
+     * @Lazy(false) 재성 스프링링 이 가능되어도 도 초기화.
      */
     @Bean
     @ConditionalOnProperty(name = "firebase.enabled", havingValue = "true", matchIfMissing = true)
+    @Lazy(false)
     public FirebaseApp firebaseApp(GoogleCredentials credentials) throws IOException {
         if (!FirebaseApp.getApps().isEmpty()) {
             return FirebaseApp.getInstance();
         }
 
         log.info("Initializing Firebase Application for project: {}", projectId);
-        
+
         FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(credentials)
                 .setProjectId(projectId)
@@ -66,8 +66,19 @@ public class FirebaseConfig {
         return FirebaseApp.initializeApp(options);
     }
 
+    /**
+     * FirebaseAuth 초기화 ( firebaseApp               */
     @Bean
     @Primary
+    @Lazy(false)
+    public FirebaseAuth firebaseAuth(FirebaseApp firebaseApp) {
+        log.info("Initializing FirebaseAuth singleton");
+        return FirebaseAuth.getInstance(firebaseApp);
+    }
+
+    @Bean
+    @Primary
+    @Lazy(false)
     public Firestore firestore(FirestoreOptions firestoreOptions) {
         return firestoreOptions.getService();
     }
@@ -99,7 +110,7 @@ public class FirebaseConfig {
     }
 
     private GoogleCredentials loadCredentials() throws IOException {
-        // 1. Check for environment variable (useful for Cloud Run/Docker)
+        // 1. Env var: FIREBASE_SERVICE_ACCOUNT_JSON (JSON payload directly)
         String secretJson = System.getenv("FIREBASE_SERVICE_ACCOUNT_JSON");
         if (secretJson != null && !secretJson.isBlank()) {
             log.info("Firebase: Loading credentials from FIREBASE_SERVICE_ACCOUNT_JSON env var");

@@ -83,7 +83,7 @@ public class AdaptiveAgentOrchestrator {
 
         // Get user's language preference
         UserLanguagePreference languagePreference = languagePreferenceService
-                .getUserLanguagePreference(userId)
+                .getUserPreference(userId)
                 .block(); // Blocking for simplicity in this context
         String userLanguage = languagePreference != null ?
                 languagePreference.getLanguageName() : "English";
@@ -111,15 +111,20 @@ public class AdaptiveAgentOrchestrator {
         }
         context.put("translatedQuestions", translatedQuestions);
 
-        // Step 2: For taste phase, auto-answer questions (simulate admin)
+        // Step 2: Extract Entities from requirement using AI
+        List<com.supremeai.model.EntityDefinition> entities = extractEntitiesAI(requirement);
+        context.put("entities", entities);
+
+        // Step 3: For taste phase, auto-answer questions (simulate admin)
         Map<String, String> answers = autoAnswerQuestions(questions);
 
         // MVP mode: direct decisions for fastest response and lowest complexity.
-        List<VotingDecision> decisions = buildDirectDecisions(answers);
+        List<VotingDecision> decisions = buildDirectDecisions(requirement, answers);
         context.put("decisions", decisions);
 
         // Step 4: Build final context for code generator
         Map<String, Object> generationContext = buildGenerationContext(decisions);
+        generationContext.put("entities", entities); // Pass entities to generator
 
         // Apply behavior profile to generation context
         if (behaviorProfile != null) {
@@ -142,6 +147,39 @@ public class AdaptiveAgentOrchestrator {
         result.setMode(detectedMode);
 
         return result;
+    }
+
+    private List<com.supremeai.model.EntityDefinition> extractEntitiesAI(String requirement) {
+        try {
+            AIProvider provider = providerFactory.getProvider("groq");
+            String prompt = String.format(
+                    "Identify the core data entities (domain models) for this app requirement:\n\n" +
+                    "Requirement: %s\n\n" +
+                    "For each entity, identify fields, their types, and if they are required. " +
+                    "Format as a JSON array of objects like this: " +
+                    "[{\"name\":\"Book\", \"description\":\"Library book\", \"fields\":[{\"name\":\"title\",\"type\":\"String\",\"required\":true}]}]",
+                    requirement
+            );
+            String response = provider.generate(prompt).block();
+            
+            // Basic JSON cleaning if needed
+            if (response.contains("```json")) {
+                response = response.substring(response.indexOf("```json") + 7, response.lastIndexOf("```"));
+            } else if (response.contains("```")) {
+                response = response.substring(response.indexOf("```") + 3, response.lastIndexOf("```"));
+            }
+
+            return new ObjectMapper().readValue(
+                    response, new TypeReference<List<com.supremeai.model.EntityDefinition>>() {}
+            );
+        } catch (Exception e) {
+            logger.error("Failed to extract entities with AI", e);
+            // Fallback to a default entity if extraction fails
+            com.supremeai.model.EntityDefinition defaultEntity = new com.supremeai.model.EntityDefinition();
+            defaultEntity.setName("Item");
+            defaultEntity.setDescription("Generic item for the application");
+            return Collections.singletonList(defaultEntity);
+        }
     }
 
     /**
@@ -213,10 +251,23 @@ public class AdaptiveAgentOrchestrator {
         return answers;
     }
 
-    private List<VotingDecision> buildDirectDecisions(Map<String, String> answers) {
+    private List<VotingDecision> buildDirectDecisions(String requirement, Map<String, String> answers) {
         List<VotingDecision> decisions = new ArrayList<>();
-        decisions.add(new VotingDecision("platform", "web", 0.9));
-        decisions.add(new VotingDecision("framework", "React", 0.8));
+        
+        String platform = detectPlatform(requirement);
+        decisions.add(new VotingDecision("platform", platform, 0.95));
+        
+        String framework = "React"; // Default
+        if (platform.equals("mobile")) {
+            framework = "Flutter";
+        } else if (requirement.toLowerCase().contains("vue")) {
+            framework = "Vue";
+        }
+        
+        decisions.add(new VotingDecision("framework", framework, 0.85));
+        decisions.add(new VotingDecision("database", requirement.toLowerCase().contains("mongo") ? "MongoDB" : "PostgreSQL", 0.8));
+        decisions.add(new VotingDecision("architecture", "monolith", 0.9));
+        
         return decisions;
     }
 

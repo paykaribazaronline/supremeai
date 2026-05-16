@@ -1,6 +1,7 @@
 // APIManagement.tsx - ULTRA-DENSE PROVIDER MATRIX with INTERNET DISCOVERY
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, Select, Space, Tooltip, Popconfirm, message, List, Avatar, Badge, Spin } from 'antd';
+import { useTranslation } from 'react-i18next';
+import { Table, Button, Modal, Form, Input, Select, Space, Tooltip, Popconfirm, message, List, Avatar, Badge, Spin, Tag, Switch } from 'antd';
 import { 
     PlusOutlined, 
     DeleteOutlined, 
@@ -12,7 +13,9 @@ import {
     SearchOutlined,
     ThunderboltOutlined,
     LoadingOutlined,
-    CloseCircleOutlined
+    CloseCircleOutlined,
+    SortAscendingOutlined,
+    SortDescendingOutlined
 } from '@ant-design/icons';
 import { authUtils } from '../lib/authUtils';
 
@@ -29,18 +32,37 @@ interface APIProvider {
     apiCount?: number;
     usageLimit?: number;
     currentUsage?: number;
+    canCommunicate?: boolean;
+    canExecuteTasks?: boolean;
+    canParticipateInVoting?: boolean;
+    deploymentSource?: 'api' | 'gcloud' | 'local' | 'ollama';
+    // Auto-validation fields
+    consecutiveErrorDays?: number;
+    lastValidated?: string;
+    deadAt?: string;
+    deadReason?: string;
 }
 
 const APIManagement: React.FC = () => {
+    const { t } = useTranslation();
     const [providers, setProviders] = useState<APIProvider[]>([]);
     const [loading, setLoading] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [statusFilter, setStatusFilter] = useState<string>('all');
     const [discoveryQuery, setDiscoveryQuery] = useState('');
     const [discoveryResults, setDiscoveryResults] = useState<any[]>([]);
     const [discoveryLoading, setDiscoveryLoading] = useState(false);
     const [validating, setValidating] = useState<string | null>(null);
     const [form] = Form.useForm();
     const [editingId, setEditingId] = useState<string | null>(null);
+    
+    const [sortBy, setSortBy] = useState<keyof APIProvider | 'usagePercent'>('name');
+    const [sortOrder, setSortOrder] = useState<'ascend' | 'descend'>('ascend');
+
+    // Watch fields for real-time UI updates in modal
+    const canCommunicate = Form.useWatch('canCommunicate', form);
+    const canExecuteTasks = Form.useWatch('canExecuteTasks', form);
+    const canParticipateInVoting = Form.useWatch('canParticipateInVoting', form);
 
     useEffect(() => {
         fetchProviders();
@@ -52,7 +74,6 @@ const APIManagement: React.FC = () => {
             const response = await authUtils.fetchWithAuth('/api/admin/providers/configured');
             if (response.ok) {
                 const data = await response.json();
-                // Ensure data structure matches our interface
                 const formatted = (data.data?.providers || []).map((p: any) => ({
                     ...p,
                     apiCount: p.apiCount || (p.apiKey ? 1 : 0),
@@ -66,6 +87,36 @@ const APIManagement: React.FC = () => {
             setLoading(false);
         }
     };
+
+    const processedProviders = React.useMemo(() => {
+        let result = providers.filter(p =>
+            statusFilter === 'all' || p.status === statusFilter
+        );
+
+        if (sortBy) {
+            result.sort((a, b) => {
+                let aVal: any = (a as any)[sortBy] ?? '';
+                let bVal: any = (b as any)[sortBy] ?? '';
+
+                if (sortBy === 'usagePercent') {
+                    aVal = (a.currentUsage || 0) / (a.usageLimit || 100);
+                    bVal = (b.currentUsage || 0) / (b.usageLimit || 100);
+                }
+
+                if (typeof aVal === 'string' && typeof bVal === 'string') {
+                    return sortOrder === 'ascend' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                }
+                
+                if (typeof aVal === 'number' && typeof bVal === 'number') {
+                    return sortOrder === 'ascend' ? aVal - bVal : bVal - aVal;
+                }
+
+                return 0;
+            });
+        }
+
+        return result;
+    }, [providers, statusFilter, sortBy, sortOrder]);
 
     const handleDiscovery = async (query: string) => {
         if (!query) {
@@ -123,7 +174,7 @@ const APIManagement: React.FC = () => {
                 method,
                 body: JSON.stringify({
                     ...values,
-                    status: 'inactive', // Default to inactive until tested
+                    status: editingId ? values.status : 'inactive',
                     lastTested: new Date().toISOString()
                 }),
             });
@@ -140,6 +191,34 @@ const APIManagement: React.FC = () => {
         }
     };
 
+    const toggleRole = async (id: string, roleType: string, enabled: boolean) => {
+        try {
+            // Map frontend role type to backend capability field name
+            const capabilityMap: Record<string, string> = {
+                'communication': 'canCommunicate',
+                'execution': 'canExecuteTasks',
+                'voting': 'canParticipateInVoting'
+            };
+            
+            const fieldName = capabilityMap[roleType];
+            if (!fieldName) return;
+
+            const response = await authUtils.fetchWithAuth(`/api/admin/providers/${id}/capability`, {
+                method: 'PATCH',
+                body: JSON.stringify({ [fieldName]: enabled }),
+            });
+
+            if (response.ok) {
+                message.success(`ROLE_${roleType.toUpperCase()}_${enabled ? 'ASSIGNED' : 'REVOKED'}`);
+                fetchProviders();
+            } else {
+                throw new Error('FAILED_TO_UPDATE_CAPABILITY');
+            }
+        } catch (error) {
+            message.error('CAPABILITY_SYNC_FAILED');
+        }
+    };
+
     const columns = [
         {
             title: <span className="text-[9px] uppercase tracking-tighter opacity-50">Intelligence Provider</span>,
@@ -151,17 +230,28 @@ const APIManagement: React.FC = () => {
                         {r.status === 'active' && <div className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full animate-pulse border border-black" />}
                         {r.status === 'dead' && <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border border-black" />}
                     </div>
-                    <div className="flex flex-col leading-tight">
-                        <span className="text-[11px] font-bold text-white/90">{r.name}</span>
-                        <div className="flex items-center gap-2">
-                            <span className="text-[9px] font-mono text-white/30 uppercase tracking-tighter">{r.type}</span>
-                            {r.accountEmail && (
-                                <Tooltip title={`Owner: ${r.accountEmail}`}>
-                                    <span className="text-[8px] text-blue-400/50 italic truncate max-w-[80px]">{r.accountEmail}</span>
-                                </Tooltip>
+                        <div className="flex flex-col leading-tight">
+                            <div className="flex items-center gap-2">
+                                <span className="text-[11px] font-bold text-white/90">{r.name}</span>
+                                <Tag color={r.deploymentSource === 'gcloud' ? 'purple' : 'blue'} className="m-0 text-[7px] px-1 py-0 border-0 bg-opacity-10 leading-normal">
+                                    {r.deploymentSource?.toUpperCase() || 'API'}
+                                </Tag>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[9px] font-mono text-white/30 uppercase tracking-tighter">{r.type}</span>
+                                {r.accountEmail && (
+                                    <Tooltip title={`Owner: ${r.accountEmail}`}>
+                                        <span className="text-[8px] text-blue-400/50 italic truncate max-w-[80px]">{r.accountEmail}</span>
+                                    </Tooltip>
+                                )}
+                            </div>
+                            {/* Show validation timestamp if available */}
+                            {r.lastValidated && (
+                                <span className="text-[7px] text-white/20 font-mono">
+                                    Last check: {new Date(r.lastValidated).toLocaleDateString()}
+                                </span>
                             )}
                         </div>
-                    </div>
                 </div>
             )
         },
@@ -175,11 +265,68 @@ const APIManagement: React.FC = () => {
                         <Badge status={r.status === 'dead' ? 'error' : 'processing'} />
                     </div>
                     <div className="w-24 h-1 bg-white/5 rounded-full overflow-hidden">
-                        <div 
-                            className={`h-full ${r.status === 'limit_exceeded' ? 'bg-purple-500' : 'bg-blue-500'}`} 
+                        <div
+                            className={`h-full ${r.status === 'limit_exceeded' ? 'bg-purple-500' : 'bg-blue-500'}`}
                             style={{ width: `${Math.min(100, (r.currentUsage || 0) / (r.usageLimit || 100) * 100)}%` }}
                         />
                     </div>
+                    {/* Show error streak for error/dead providers */}
+                    {(r.status === 'error' || r.status === 'dead') && r.consecutiveErrorDays ? (
+                        <div className="flex items-center gap-2 text-[9px]">
+                            <span className={`font-mono ${r.status === 'dead' ? 'text-red-500' : 'text-orange-500'}`}>
+                                Fail streak: {r.consecutiveErrorDays}/3
+                            </span>
+                        </div>
+                    ) : null}
+                    {/* Show deadAt timestamp for dead providers */}
+                    {r.status === 'dead' && r.deadAt ? (
+                        <div className="text-[8px] text-red-400/60 font-mono">
+                            Dead: {new Date(r.deadAt).toLocaleDateString()}
+                        </div>
+                    ) : null}
+                </div>
+            )
+        },
+        {
+            title: <span className="text-[9px] uppercase tracking-tighter opacity-50">Capabilities</span>,
+            key: 'capabilities',
+            render: (_: any, r: APIProvider) => (
+                <div className="flex gap-4">
+                    <Tooltip title={t('dashboard.role_communication')}>
+                        <div className="flex flex-col items-center gap-1">
+                            <Switch 
+                                size="small" 
+                                checked={r.canCommunicate} 
+                                onChange={(checked) => toggleRole(r.id, 'communication', checked)}
+                                className="scale-75"
+                            />
+                            <span className={`text-[7px] font-black uppercase ${r.canCommunicate ? 'text-blue-400' : 'text-white/20'}`}>Comm</span>
+                        </div>
+                    </Tooltip>
+                    <Tooltip title={t('dashboard.role_execution')}>
+                        <div className="flex flex-col items-center gap-1">
+                            <Switch 
+                                size="small" 
+                                checked={r.canExecuteTasks} 
+                                onChange={(checked) => toggleRole(r.id, 'execution', checked)}
+                                className="scale-75"
+                                style={{ backgroundColor: r.canExecuteTasks ? '#10b981' : undefined }}
+                            />
+                            <span className={`text-[7px] font-black uppercase ${r.canExecuteTasks ? 'text-emerald-400' : 'text-white/20'}`}>Task</span>
+                        </div>
+                    </Tooltip>
+                    <Tooltip title={t('dashboard.role_voting')}>
+                        <div className="flex flex-col items-center gap-1">
+                            <Switch 
+                                size="small" 
+                                checked={r.canParticipateInVoting} 
+                                onChange={(checked) => toggleRole(r.id, 'voting', checked)}
+                                className="scale-75"
+                                style={{ backgroundColor: r.canParticipateInVoting ? '#a855f7' : undefined }}
+                            />
+                            <span className={`text-[7px] font-black uppercase ${r.canParticipateInVoting ? 'text-purple-400' : 'text-white/20'}`}>Vote</span>
+                        </div>
+                    </Tooltip>
                 </div>
             )
         },
@@ -204,96 +351,174 @@ const APIManagement: React.FC = () => {
             align: 'right' as const,
             render: (_: any, record: APIProvider) => (
                 <Space size={4}>
-                    <Tooltip title="Test Connection">
-                        <Button 
-                            type="text" 
-                            size="small" 
-                            className="h-6 w-6 flex items-center justify-center text-blue-500 hover:bg-blue-500/10 border border-blue-500/20"
-                            icon={validating === record.id ? <Spin indicator={<LoadingOutlined style={{ fontSize: 11 }} spin />} /> : <ExperimentOutlined style={{ fontSize: '11px' }} />}
-                            onClick={() => testKey(record.name, record.apiKey, record.id)}
-                            disabled={validating === record.id}
-                        />
-                    </Tooltip>
+                    {record.status === 'dead' ? (
+                        <Tooltip title="Revive Provider">
+                            <Button
+                                type="text"
+                                size="small"
+                                className="h-6 w-6 flex items-center justify-center text-emerald-500 hover:bg-emerald-500/10 border border-emerald-500/20"
+                                icon={<SafetyCertificateOutlined style={{ fontSize: '11px' }} />}
+                                onClick={async () => {
+                                    try {
+                                        const res = await authUtils.fetchWithAuth(`/api/admin/providers/${record.id}/revive`, {
+                                            method: 'POST',
+                                        });
+                                        if (res.ok) {
+                                            message.success('PROVIDER_REVIVED');
+                                            fetchProviders();
+                                        } else {
+                                            const data = await res.json();
+                                            message.error(data.error || 'REVIVE_FAILED');
+                                        }
+                                    } catch (e) { message.error('REVIVE_ERROR'); }
+                                }}
+                            />
+                        </Tooltip>
+                    ) : (
+                        <Tooltip title="Test Connection">
+                            <Button
+                                type="text"
+                                size="small"
+                                className="h-6 w-6 flex items-center justify-center text-blue-500 hover:bg-blue-500/10 border border-blue-500/20"
+                                icon={validating === record.id ? <Spin indicator={<LoadingOutlined style={{ fontSize: 11 }} spin />} /> : <ExperimentOutlined style={{ fontSize: '11px' }} />}
+                                onClick={() => testKey(record.name, record.apiKey, record.id)}
+                                disabled={validating === record.id}
+                            />
+                        </Tooltip>
+                    )}
                     <Tooltip title="Edit Link">
-                        <Button 
-                            type="text" 
-                            size="small" 
+                        <Button
+                            type="text"
+                            size="small"
                             className="h-6 w-6 flex items-center justify-center text-emerald-500 hover:bg-emerald-500/10 border border-emerald-500/20"
                             icon={<EditOutlined style={{ fontSize: '11px' }} />}
                             onClick={() => {
                                 setEditingId(record.id);
                                 form.setFieldsValue(record);
                                 setIsModalVisible(true);
-                            }} 
+                            }}
                         />
                     </Tooltip>
-                    <Popconfirm title="Terminate Link?" onConfirm={async () => {
-                        try {
-                            const res = await authUtils.fetchWithAuth(`/api/admin/providers/${record.id}`, { method: 'DELETE' });
-                            if (res.ok) {
-                                message.success('LINK_TERMINATED');
-                                fetchProviders();
-                            }
-                        } catch (e) { message.error('DELETE_FAILED'); }
-                    }} okText="Kill" cancelText="Abort">
-                        <Button 
-                            type="text" 
-                            size="small" 
-                            className="h-6 w-6 flex items-center justify-center text-red-500 hover:bg-red-500/10 border border-red-500/20"
-                            icon={<DeleteOutlined style={{ fontSize: '11px' }} />} 
-                        />
-                    </Popconfirm>
-                </Space>
-            )
-        }
-    ];
+                    {record.status !== 'dead' && (
+                        <Popconfirm title="Terminate Link?" onConfirm={async () => {
+                            try {
+                                const res = await authUtils.fetchWithAuth(`/api/admin/providers/${record.id}`, { method: 'DELETE' });
+                                if (res.ok) {
+                                    message.success('LINK_TERMINATED');
+                                    fetchProviders();
+                                }
+                            } catch (e) { message.error('DELETE_FAILED'); }
+                        }} okText="Kill" cancelText="Abort">
+                            <Button
+                                type="text"
+                                size="small"
+                                className="h-6 w-6 flex items-center justify-center text-red-500 hover:bg-red-500/10 border border-red-500/20"
+                                icon={<DeleteOutlined style={{ fontSize: '11px' }} />}
+                            />
+                        </Popconfirm>
+                    )}
+                 </Space>
+             )
+         }
+     ];
 
     return (
         <div className="space-y-4">
             {/* Mission Stats */}
             <div className="grid grid-cols-4 gap-3">
                 {[
-                    { label: 'Active Links', value: providers.filter(p => p.status === 'active').length, icon: <SafetyCertificateOutlined />, color: 'emerald' },
-                    { label: 'Dead Nodes', value: providers.filter(p => p.status === 'dead').length, icon: <CloseCircleOutlined />, color: 'red' },
-                    { label: 'API Density', value: providers.reduce((acc, p) => acc + (p.apiCount || 0), 0), icon: <CloudServerOutlined />, color: 'blue' },
-                    { label: 'Registry Load', value: '14.2%', icon: <ThunderboltOutlined />, color: 'amber' },
+                    { label: 'অ্যাক্টিভ লিঙ্ক', value: providers.filter(p => p.status === 'active').length, icon: <SafetyCertificateOutlined />, color: 'emerald' },
+                    { label: 'ডেড নোড', value: providers.filter(p => p.status === 'dead').length, icon: <CloseCircleOutlined />, color: 'red' },
+                    { label: 'এপিআই ডেনসিটি', value: providers.reduce((acc, p) => acc + (p.apiCount || 0), 0), icon: <CloudServerOutlined />, color: 'blue' },
+                    { label: 'রেজিস্ট্রি লোড', value: '14.2%', icon: <ThunderboltOutlined />, color: 'amber' },
                 ].map((s, i) => (
-                    <div key={i} className="bg-white/[0.02] border border-white/5 p-3 rounded-lg flex flex-col justify-between h-16 relative overflow-hidden group">
+                    <div key={i} className="bg-white/[0.02] border border-white/5 p-4 rounded-2xl flex flex-col justify-between h-20 relative overflow-hidden group backdrop-blur-md">
                         <div className="flex items-center justify-between relative z-10">
-                            <span className="text-[8px] font-black uppercase tracking-widest text-white/40">{s.label}</span>
-                            <span className={`text-[10px] text-${s.color}-500/40 group-hover:text-${s.color}-500 transition-colors`}>{s.icon}</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-white/40">{s.label}</span>
+                            <span className={`text-[12px] text-${s.color}-500/40 group-hover:text-${s.color}-500 transition-colors`}>{s.icon}</span>
                         </div>
-                        <span className="text-xl font-mono font-black text-white leading-none relative z-10">{s.value}</span>
-                        <div className={`absolute bottom-0 left-0 h-0.5 bg-${s.color}-500 w-full opacity-20`} />
+                        <span className="text-2xl font-mono font-black text-white leading-none relative z-10">{s.value}</span>
+                        <div className={`absolute bottom-0 left-0 h-1 bg-${s.color}-500 w-full opacity-20`} />
                     </div>
                 ))}
             </div>
 
             <div className="bg-white/[0.02] border border-white/5 rounded-xl overflow-hidden">
-                <div className="px-4 py-2 bg-white/[0.02] border-b border-white/5 flex items-center justify-between">
+                <div className="px-4 py-3 bg-white/[0.02] border-b border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="flex flex-col">
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/80">Intelligence Registry</span>
-                        <span className="text-[8px] text-white/20 uppercase font-bold">Trace-Accountable Provider Matrix</span>
+                        <span className="text-[11px] font-black uppercase tracking-[0.2em] text-white/80">প্রোভাইডার রেজিস্ট্রি</span>
+                        <span className="text-[8px] text-white/20 uppercase font-bold tracking-widest">Trace-Accountable Provider Matrix</span>
                     </div>
-                    <Button 
-                        size="small" 
-                        className="h-8 bg-emerald-500 text-black text-[10px] font-black uppercase border-none hover:bg-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
-                        icon={<PlusOutlined className="text-[11px]" />}
-                        onClick={() => {
-                            setEditingId(null);
-                            form.resetFields();
-                            setIsModalVisible(true);
-                            handleDiscovery(''); // Initial search
-                        }}
-                    >
-                        Establish New Link
-                    </Button>
+                    
+                    <div className="flex flex-col sm:flex-row items-center gap-4">
+                        <div className="flex items-center gap-2 bg-black/40 p-1 rounded-xl border border-white/10 h-[42px]">
+                            <span className="text-[10px] text-white/30 uppercase font-black px-2">ফিল্টার:</span>
+                            <Select
+                                size="small"
+                                className="w-36 dark-select-compact"
+                                variant="borderless"
+                                popupClassName="dark-dropdown"
+                                value={statusFilter}
+                                onChange={setStatusFilter}
+                                options={[
+                                    { label: 'সব স্ট্যাটাস', value: 'all' },
+                                    { label: 'অ্যাক্টিভ', value: 'active' },
+                                    { label: 'ইনঅ্যাক্টিভ', value: 'inactive' },
+                                    { label: 'এরর', value: 'error' },
+                                    { label: 'ডেড', value: 'dead' },
+                                    { label: 'লিমিট এক্সিড', value: 'limit_exceeded' },
+                                ]}
+                            />
+                        </div>
+
+                        <div className="flex items-center gap-2 bg-black/40 p-1 rounded-xl border border-white/10 h-[42px]">
+                            <span className="text-[10px] text-white/30 uppercase font-black px-2">সর্ট:</span>
+                            <Select
+                                size="small"
+                                className="w-36 dark-select-compact"
+                                variant="borderless"
+                                popupClassName="dark-dropdown"
+                                value={sortBy}
+                                onChange={setSortBy}
+                                options={[
+                                    { label: 'নাম', value: 'name' },
+                                    { label: 'টাইপ', value: 'type' },
+                                    { label: 'স্ট্যাটাস', value: 'status' },
+                                    { label: 'ইউসেজ', value: 'usagePercent' },
+                                    { label: 'এপিআই সংখ্যা', value: 'apiCount' },
+                                ]}
+                            />
+                            <Tooltip title={sortOrder === 'ascend' ? 'আরোহী' : 'অবরোহী'}>
+                                <Button
+                                    type="text"
+                                    size="small"
+                                    icon={sortOrder === 'ascend' ? <SortAscendingOutlined /> : <SortDescendingOutlined />}
+                                    onClick={() => setSortOrder(sortOrder === 'ascend' ? 'descend' : 'ascend')}
+                                    className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 flex items-center justify-center rounded-lg h-8 w-8"
+                                />
+                            </Tooltip>
+                        </div>
+
+                        <Button
+                            size="middle"
+                            className="h-[42px] bg-blue-600 text-white text-[11px] font-black uppercase border-none hover:bg-blue-500 shadow-lg shadow-blue-500/20 rounded-xl px-6 transition-all flex items-center gap-2"
+                            icon={<PlusOutlined className="text-[14px]" />}
+                            onClick={() => {
+                                setEditingId(null);
+                                form.resetFields();
+                                setIsModalVisible(true);
+                                handleDiscovery(''); // Initial search
+                            }}
+                        >
+                            লিঙ্ক তৈরি করুন
+                        </Button>
+                    </div>
                 </div>
-                <Table 
-                    columns={columns} 
-                    dataSource={providers} 
-                    loading={loading} 
-                    rowKey="id" 
+                <Table
+                    columns={columns}
+                    dataSource={processedProviders}
+                    loading={loading}
+                    rowKey="id"
                     size="small"
                     pagination={{ pageSize: 10, className: 'dark-pagination' }}
                     className="dense-table"
@@ -363,7 +588,7 @@ const APIManagement: React.FC = () => {
 
                     {/* Right: Configuration Form */}
                     <Form form={form} layout="vertical" onFinish={handleAction}>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-3 gap-4">
                             <Form.Item name="name" label={<span className="text-[9px] font-black text-white/40 uppercase">Model Identity</span>} rules={[{ required: true }]}>
                                 <Input className="dark-input font-mono" placeholder="gpt-4o" />
                             </Form.Item>
@@ -372,6 +597,14 @@ const APIManagement: React.FC = () => {
                                     <Select.Option value="llm">NEURAL_LANGUAGE</Select.Option>
                                     <Select.Option value="image">VISUAL_SYNTHESIS</Select.Option>
                                     <Select.Option value="voice">AUDITORY_LOGIC</Select.Option>
+                                </Select>
+                            </Form.Item>
+                            <Form.Item name="deploymentSource" label={<span className="text-[9px] font-black text-white/40 uppercase">Deployment Source</span>} initialValue="api">
+                                <Select className="dark-select">
+                                    <Select.Option value="api">PUBLIC_API</Select.Option>
+                                    <Select.Option value="gcloud">GCLOUD_DEPLOYED</Select.Option>
+                                    <Select.Option value="local">LOCAL_HOSTED</Select.Option>
+                                    <Select.Option value="ollama">OLLAMA_NODE</Select.Option>
                                 </Select>
                             </Form.Item>
                         </div>
@@ -392,6 +625,36 @@ const APIManagement: React.FC = () => {
                         <Form.Item name="models" label={<span className="text-[9px] font-black text-white/40 uppercase">Attached Capabilities</span>}>
                             <Select mode="tags" className="dark-select" placeholder="Add model identifiers..." />
                         </Form.Item>
+
+                        <div className="grid grid-cols-3 gap-2 mb-4">
+                            <Form.Item name="canCommunicate" valuePropName="checked" noStyle>
+                                <div 
+                                    className={`p-2 rounded border cursor-pointer transition-all flex flex-col items-center gap-1 ${canCommunicate ? 'bg-blue-500/20 border-blue-500/50' : 'bg-white/[0.02] border-white/5'}`} 
+                                    onClick={() => form.setFieldsValue({ canCommunicate: !canCommunicate })}
+                                >
+                                    <ThunderboltOutlined className={canCommunicate ? 'text-blue-400' : 'text-white/20'} />
+                                    <span className="text-[8px] font-black uppercase text-center leading-tight">Communication</span>
+                                </div>
+                            </Form.Item>
+                            <Form.Item name="canExecuteTasks" valuePropName="checked" noStyle>
+                                <div 
+                                    className={`p-2 rounded border cursor-pointer transition-all flex flex-col items-center gap-1 ${canExecuteTasks ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-white/[0.02] border-white/5'}`} 
+                                    onClick={() => form.setFieldsValue({ canExecuteTasks: !canExecuteTasks })}
+                                >
+                                    <CloudServerOutlined className={canExecuteTasks ? 'text-emerald-400' : 'text-white/20'} />
+                                    <span className="text-[8px] font-black uppercase text-center leading-tight">Task execution</span>
+                                </div>
+                            </Form.Item>
+                            <Form.Item name="canParticipateInVoting" valuePropName="checked" noStyle>
+                                <div 
+                                    className={`p-2 rounded border cursor-pointer transition-all flex flex-col items-center gap-1 ${canParticipateInVoting ? 'bg-purple-500/20 border-purple-500/50' : 'bg-white/[0.02] border-white/5'}`} 
+                                    onClick={() => form.setFieldsValue({ canParticipateInVoting: !canParticipateInVoting })}
+                                >
+                                    <SafetyCertificateOutlined className={canParticipateInVoting ? 'text-purple-400' : 'text-white/20'} />
+                                    <span className="text-[8px] font-black uppercase text-center leading-tight">Ensemble voting</span>
+                                </div>
+                            </Form.Item>
+                        </div>
 
                         <div className="p-3 bg-blue-500/5 border border-blue-500/10 rounded-lg flex items-center justify-between">
                             <div className="flex flex-col">

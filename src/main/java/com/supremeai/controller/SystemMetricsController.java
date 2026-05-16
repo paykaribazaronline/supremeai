@@ -1,74 +1,48 @@
 package com.supremeai.controller;
 
+import com.supremeai.response.ApiResponse;
+import com.supremeai.service.ProductionHealthMonitor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import javax.sql.DataSource;
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
-import java.lang.management.OperatingSystemMXBean;
+import reactor.core.publisher.Mono;
+
 import java.util.HashMap;
 import java.util.Map;
 
-import com.supremeai.response.ApiResponse;
-
+/**
+ * System Metrics Controller - Phase 4
+ * Provides system resource metrics for the monitoring dashboard.
+ */
 @RestController
-@RequestMapping("/api/metrics")
+@RequestMapping("/api/system/metrics")
 public class SystemMetricsController {
 
-    @Autowired(required = false)
-    private DataSource dataSource;
+    @Autowired
+    private ProductionHealthMonitor healthMonitor;
 
-    @Autowired(required = false)
-    private RedisConnectionFactory redisConnectionFactory;
-
+    /**
+     * GET /api/system/metrics/resources
+     * Get current system resource utilization.
+     */
     @GetMapping("/resources")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getResourceMetrics() {
-        Map<String, Object> metrics = new HashMap<>();
-        
-        // Memory Metrics
-        MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
-        metrics.put("memoryUsed", memoryMXBean.getHeapMemoryUsage().getUsed());
-        metrics.put("memoryMax", memoryMXBean.getHeapMemoryUsage().getMax());
-        
-        // CPU Metrics
-        OperatingSystemMXBean osMXBean = ManagementFactory.getOperatingSystemMXBean();
-        metrics.put("cpuLoad", osMXBean.getSystemLoadAverage());
-        metrics.put("availableProcessors", osMXBean.getAvailableProcessors());
-
-        // DB Pool Metrics
-        if (dataSource != null) {
-            String className = dataSource.getClass().getName();
-            metrics.put("dataSourceType", className);
+    @PreAuthorize("hasRole('ADMIN')")
+    public Mono<ApiResponse<Map<String, Object>>> getResources() {
+        return Mono.fromCallable(() -> {
+            Map<String, Object> health = healthMonitor.getHealthStatus();
+            Map<String, Object> metrics = (Map<String, Object>) health.get("metrics");
             
-            // Try to extract metrics using reflection if it's Hikari
-            if (className.contains("HikariDataSource")) {
-                try {
-                    Object pool = dataSource.getClass().getMethod("getHikariPoolMXBean").invoke(dataSource);
-                    if (pool != null) {
-                        metrics.put("dbActiveConnections", pool.getClass().getMethod("getActiveConnections").invoke(pool));
-                        metrics.put("dbIdleConnections", pool.getClass().getMethod("getIdleConnections").invoke(pool));
-                        metrics.put("dbTotalConnections", pool.getClass().getMethod("getTotalConnections").invoke(pool));
-                    }
-                } catch (Exception ignored) {}
-            }
-        }
-
-        // Redis Metrics
-        if (redisConnectionFactory != null) {
-            try {
-                metrics.put("redisStatus", redisConnectionFactory.getConnection().ping());
-            } catch (Exception e) {
-                metrics.put("redisStatus", "DOWN");
-            }
-        }
-        
-        // Time
-        metrics.put("timestamp", System.currentTimeMillis());
-        
-        return ResponseEntity.ok(ApiResponse.ok(metrics));
+            Map<String, Object> data = new HashMap<>();
+            data.put("cpuUsagePercentage", metrics.get("cpuUsage"));
+            data.put("memoryUsagePercentage", metrics.get("memoryUsage"));
+            data.put("memoryUsed", Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+            data.put("memoryMax", Runtime.getRuntime().maxMemory());
+            data.put("availableProcessors", Runtime.getRuntime().availableProcessors());
+            data.put("timestamp", System.currentTimeMillis());
+            
+            return ApiResponse.success("System metrics retrieved successfully", data);
+        });
     }
 }

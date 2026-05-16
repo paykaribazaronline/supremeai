@@ -11,6 +11,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import com.supremeai.service.ConfigService;
+import reactor.core.publisher.Mono;
 
 /**
  * Self Improvement Loop Service
@@ -25,34 +27,45 @@ public class SelfImprovementService {
 
     private final SystemLearningRepository learningRepository;
     private final MultiAIVotingService votingService;
+    private final ConfigService configService;
+    private final com.supremeai.admin.ProviderAdminService providerAdminService;
 
     private long totalLearningEntries = 0;
-    private LocalDateTime lastImprovement = LocalDateTime.now();
+    private LocalDateTime lastImprovement = LocalDateTime.now().minusHours(1); // Set to allow first run immediately if needed
+    private boolean isRunning = false;
 
     public SelfImprovementService(SystemLearningRepository learningRepository,
-                                    MultiAIVotingService votingService) {
+                                    MultiAIVotingService votingService,
+                                    ConfigService configService,
+                                    com.supremeai.admin.ProviderAdminService providerAdminService) {
         this.learningRepository = learningRepository;
         this.votingService = votingService;
+        this.configService = configService;
+        this.providerAdminService = providerAdminService;
     }
 
     /**
-     * Runs EVERY HOUR automatically
-     *
-     * This is the magic loop. Every hour the system:
-     * 1. Analyzes all user interactions from the last hour
-     * 2. Finds patterns, weaknesses, and improvements
-     * 3. Generates improvement suggestions
-     * 4. Votes on the best improvements using AI consensus
-     * 5. Permanently saves what it learned
+     * Runs periodically to check if it's time for improvement based on admin config.
      */
-    @Scheduled(fixedRate = 3600000)
+    @Scheduled(fixedDelay = 60000) // check every minute
     public void hourlyImprovementLoop() {
-        logger.info("🔄 Starting hourly self-improvement cycle...");
+        if (isRunning) {
+            return;
+        }
 
-        LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
+        long intervalMinutes = configService.getEffectiveSetting("learning_interval_minutes", 60L);
+        if (Duration.between(lastImprovement, LocalDateTime.now()).toMinutes() < intervalMinutes) {
+            return;
+        }
+
+        logger.info("🔄 Starting dynamic self-improvement cycle...");
+        isRunning = true;
+
+        LocalDateTime intervalAgo = LocalDateTime.now().minusMinutes(intervalMinutes);
+        java.util.Date intervalAgoDate = java.util.Date.from(intervalAgo.atZone(java.time.ZoneId.systemDefault()).toInstant());
 
         learningRepository.findAll()
-                .filter(entry -> entry.getLearnedAt() != null && entry.getLearnedAt().isAfter(oneHourAgo))
+                .filter(entry -> entry.getLearnedAt() != null && entry.getLearnedAt().after(intervalAgoDate))
                 .collectList()
                 .doOnNext(entries -> {
                     logger.info("📊 Analyzing {} new learning entries", entries.size());
@@ -64,10 +77,48 @@ public class SelfImprovementService {
                 })
                 .doOnSuccess(v -> {
                     lastImprovement = LocalDateTime.now();
+                    isRunning = false;
                     logger.info("✅ Self-improvement cycle completed successfully");
                 })
-                .doOnError(e -> logger.error("❌ Self-improvement cycle failed: {}", e.getMessage()))
+                .doOnError(e -> {
+                    isRunning = false;
+                    logger.error("❌ Self-improvement cycle failed: {}", e.getMessage());
+                })
                 .subscribe();
+    }
+
+    /**
+     * Ingests scraped issues into the system learning repository.
+     */
+    public void ingestScrapedIssues(java.util.List<com.supremeai.learning.active.ActiveInternetScraper.ScrapedIssue> issues) {
+        if (issues == null || issues.isEmpty()) {
+            return;
+        }
+
+        logger.info("📥 Ingesting {} scraped issues into system learning", issues.size());
+
+        for (var issue : issues) {
+            SystemLearning learning = new SystemLearning();
+            String id = "scraped_" + System.currentTimeMillis() + "_" + Math.abs(issue.getTitle().hashCode());
+            learning.setId(id);
+            learning.setTopic(issue.getTitle());
+            learning.setContent(issue.getSolution());
+            learning.setCategory("INTERNET_KNOWLEDGE");
+            learning.setLearningType("ECOSYSTEM");
+            learning.setSources(java.util.List.of(issue.getSource()));
+            learning.setConfidenceScore(issue.getRawConfidence());
+            learning.setLearnedAt(new java.util.Date());
+            learning.setPermanent(false);
+            learning.setMetadata(java.util.Map.of(
+                "source", issue.getSource(),
+                "authority", issue.getSourceAuthority()
+            ));
+
+            learningRepository.save(learning).subscribe(
+                saved -> logger.debug("✅ Saved scraped knowledge: {}", saved.getTopic()),
+                err -> logger.error("❌ Failed to save scraped knowledge: {}", err.getMessage())
+            );
+        }
     }
 
     private void analyzeAndImprove(java.util.List<SystemLearning> entries) {
@@ -76,12 +127,31 @@ public class SelfImprovementService {
                 .map(SystemLearning::getContent)
                 .toList();
 
-        // Run analysis using AI consensus
-        votingService.askConsensus(
-                "Analyze these user interactions and suggest 3 concrete improvements to the system: " + prompts,
-                java.util.List.of("groq", "ollama"),
-                30000
-        );
+        // Get active providers for voting
+        providerAdminService.getAllProviders()
+                .filter(p -> p.isActive() && p.isValidated())
+                .map(com.supremeai.model.APIProvider::getId)
+                .collectList()
+                .flatMap(activeProviders -> {
+                    if (activeProviders.size() < 2) {
+                        logger.warn("⚠️ Not enough active providers for consensus voting. Need at least 2.");
+                        return Mono.empty();
+                    }
+
+                    logger.info("🗳️ Requesting consensus from providers: {}", activeProviders);
+                    return votingService.askConsensus(
+                            "Analyze these user interactions and suggest 3 concrete improvements to the system: " + prompts,
+                            activeProviders,
+                            30000
+                    );
+                }).subscribe(
+                        result -> {
+                            if (result != null) {
+                                logger.info("🧠 AI Improvement Consensus Result: {}", result.getConsensusAnswer());
+                            }
+                        },
+                        error -> logger.error("❌ AI Consensus failed during self-improvement: {}", error.getMessage())
+                );
     }
 
     /**

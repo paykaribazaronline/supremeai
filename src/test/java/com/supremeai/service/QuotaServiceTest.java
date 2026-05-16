@@ -57,7 +57,11 @@ class QuotaServiceTest {
         exhaustedApiKey.setStatus("active");
         exhaustedApiKey.setRequestCount(1000L);
 
-        // Mock ConfigService - lenient because not all tests use it
+        // Mock ConfigService
+        com.supremeai.model.SystemConfig config = new com.supremeai.model.SystemConfig();
+        config.getTierQuotas().put("FREE", 1000L);
+        config.getTierQuotas().put("GUEST", 50L);
+        lenient().when(configService.getConfig()).thenReturn(config);
         lenient().when(configService.getSetting("default_monthly_quota", 1000L)).thenReturn(1000L);
     }
 

@@ -1,0 +1,27 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+	autocrlf = false
+[remote "origin"]
+	url = https://github.com/paykaribazaronline/supremeai.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+	vscode-merge-base = origin/main
+[branch "main"]
+	remote = origin
+	merge = refs/heads/main
+	vscode-merge-base = origin/main
+[user]
+	name = Nazif Arabbu
+	email = nazifarabbu@example.com
+[branch "torpid-fog"]
+	vscode-merge-base = origin/main
+[branch "lime-bladder"]
+	vscode-merge-base = origin/main
+[remote "system-auto"]
+	url = https://github.com/SaifulHaqueNiloy/supremeai.git
+	fetch = +refs/heads/*:refs/remotes/system-auto/*

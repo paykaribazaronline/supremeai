@@ -6,4 +6,5 @@ import reactor.core.publisher.Flux;
 
 public interface UrlPermissionRepository extends FirestoreReactiveRepository<UrlPermission> {
     Flux<UrlPermission> findByType(String type);
+    Flux<UrlPermission> findByUserIdAndType(String userId, String type);
 }

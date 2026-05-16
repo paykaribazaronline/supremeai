@@ -2,6 +2,8 @@ package com.supremeai.service;
 
 import com.supremeai.model.SystemLearning;
 import com.supremeai.repository.SystemLearningRepository;
+import com.supremeai.repository.KnowledgeDomainRepository;
+import com.supremeai.repository.KnowledgeRecommendationRepository;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,8 +32,15 @@ public class KnowledgeSeederService {
     @Autowired
     private SystemLearningRepository systemLearningRepository;
 
+    @Autowired
+    private KnowledgeDomainRepository domainRepository;
+
+    @Autowired
+    private KnowledgeRecommendationRepository recommendationRepository;
+
     @PostConstruct
     public void seedKnowledge() {
+        // Seed System Learning
         systemLearningRepository.count()
             .flatMapMany(count -> {
                 if (count == 0) {
@@ -43,9 +52,39 @@ public class KnowledgeSeederService {
                 }
             })
             .subscribe(
-                entry -> log.debug("[SEED] Saved: {}", entry.getId()),
-                error -> log.error("[SEED] Failed to seed knowledge: {}", error.getMessage()),
-                () -> log.info("[SEED] Knowledge base seed complete")
+                entry -> {},
+                error -> log.error("[SEED] Failed to seed system_learning: {}", error.getMessage()),
+                () -> log.info("[SEED] system_learning seed complete")
+            );
+
+        // Seed Knowledge Domains
+        domainRepository.count()
+            .flatMapMany(count -> {
+                if (count == 0) {
+                    log.info("[SEED] Knowledge Domains empty — seeding defaults...");
+                    return seedDomains();
+                }
+                return Flux.empty();
+            })
+            .subscribe(
+                d -> {},
+                error -> log.error("[SEED] Failed to seed domains: {}", error.getMessage()),
+                () -> log.info("[SEED] Knowledge domains seed complete")
+            );
+
+        // Seed Knowledge Recommendations
+        recommendationRepository.count()
+            .flatMapMany(count -> {
+                if (count == 0) {
+                    log.info("[SEED] Knowledge Recommendations empty — seeding defaults...");
+                    return seedRecommendations();
+                }
+                return Flux.empty();
+            })
+            .subscribe(
+                r -> {},
+                error -> log.error("[SEED] Failed to seed recommendations: {}", error.getMessage()),
+                () -> log.info("[SEED] Knowledge recommendations seed complete")
             );
     }
 
@@ -495,7 +534,7 @@ public class KnowledgeSeederService {
         s.setSuccess(true);
         s.setQualityScore(confidence);
         s.setTimesApplied(0);
-        s.setLearnedAt(LocalDateTime.now());
+        s.setLearnedAt(new java.util.Date());
         return s;
     }
 
@@ -514,5 +553,37 @@ public class KnowledgeSeederService {
 
     private SystemLearning makeBestPractice(String id, String topic, String content, List<String> tags) {
         return makeLearning(id, topic, "best_practices", content, tags, true, 0.95);
+    }
+
+    // ─── Knowledge Domains Seed ───────────────────────────────────────────────
+
+    private Flux<com.supremeai.model.KnowledgeDomain> seedDomains() {
+        List<com.supremeai.model.KnowledgeDomain> domains = List.of(
+            new com.supremeai.model.KnowledgeDomain("Java Spring Boot", List.of("java", "spring-boot", "reactive", "jpa")),
+            new com.supremeai.model.KnowledgeDomain("Cloud Security", List.of("security", "firewall", "iam", "encryption")),
+            new com.supremeai.model.KnowledgeDomain("Flutter Development", List.of("dart", "flutter", "mobile", "ui")),
+            new com.supremeai.model.KnowledgeDomain("Artificial Intelligence", List.of("llm", "prompt-engineering", "rag", "agents"))
+        );
+        return domainRepository.saveAll(domains);
+    }
+
+    // ─── Knowledge Recommendations Seed ───────────────────────────────────────
+
+    private Flux<com.supremeai.model.KnowledgeRecommendation> seedRecommendations() {
+        List<com.supremeai.model.KnowledgeRecommendation> recs = List.of(
+            new com.supremeai.model.KnowledgeRecommendation(
+                "Evolve Python Data Science Skill", 
+                "System detected high demand for NumPy and Pandas optimization patterns. Proposing deeper domain focus.",
+                0.94,
+                List.of("python", "numpy", "pandas", "optimization")
+            ),
+            new com.supremeai.model.KnowledgeRecommendation(
+                "Kubernetes Orchestration", 
+                "Detected deployment complexity in generated apps. Proposing new domain for k8s patterns.",
+                0.89,
+                List.of("kubernetes", "k8s", "docker", "devops")
+            )
+        );
+        return recommendationRepository.saveAll(recs);
     }
 }

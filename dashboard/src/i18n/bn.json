@@ -143,10 +143,17 @@
   },
   "settings": {
     "title": "সেটিংস",
+    "userPreferences": "ব্যবহারকারী সেটিংস",
     "language": "ভাষা",
-    "theme": "থিম",
+    "languageDescription": "ইন্টারফেসের জন্য আপনার পছন্দের ভাষা নির্বাচন করুন",
+    "appearance": "দৃশ্যমানতা",
+    "darkMode": "ডার্ক মোড",
     "notifications": "নোটিফিকেশন",
-    "save_changes": "পরিবর্তন সংরক্ষণ করুন"
+    "notificationsDescription": "সিস্টেম আপডেট এবং অ্যালার্টের জন্য নোটিফিকেশন পান",
+    "focusMode": "ফোকাস মোড",
+    "focusModeDescription": "দৃশ্যমান শ ¬রванием কমানো দিয়ে বিচ্ছিন্নতা কমান",
+    "save_changes": "পরিবর্তন সংরক্ষণ করুন",
+    "about": "সম্পর্কে"
   },
   "knowledge": {
     "snapshot": {
@@ -226,6 +233,23 @@
       "knowledge_nodes": "জ্ঞান নোড",
       "auto_learn": "অটো-লার্ন",
       "monitor_desc": "সিস্টেমের ইন্টারনেট ব্রাউজিং নিরীক্ষণ করুন। URL অনুমতি নির্ধারণ করে যে সিস্টেম কোন ঠিকানায় পার করতে পারে। সিস্টেম ব্রাউজিং প্যাটার্ন শিখে এবং জ্ঞান ভাণ্ডার আপডেট করে।"
+    }
+  },
+  "admin_dashboard": {
+    "pillars": {
+      "registry": "ইন্টেলিজেন্স রেজিস্ট্রি",
+      "orchestration": "সিনারিও অর্কেস্ট্রেশন",
+      "telemetry": "লাইভ টেলিমেট্রি",
+      "consensus": "কনসেনসাস ম্যাপ",
+      "traffic": "কোটা ও ট্রাফিক",
+      "knowledge": "নলেজ হাব",
+      "healing": "সেলফ-হিলিং লগ",
+      "learning": "লার্নিং হাব"
+    },
+    "roles": {
+      "communication": "কমিউনিকেশন",
+      "execution": "টাস্ক এক্সিকিউশন",
+      "voting": "এনসেম্বল ভোটিং"
     }
   }
 }

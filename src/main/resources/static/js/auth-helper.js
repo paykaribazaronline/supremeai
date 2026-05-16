@@ -1,47 +1,44 @@
 /**
- * SupremeAI Authentication Helper (Bearer token mode)
+ * SupremeAI Authentication Helper (Modular Firebase v10+)
  *
- * Centralizes Firebase initialization and token management.
+ * Centralizes Firebase initialization and token management using modern SDK.
  */
 
+import { initializeApp, getApp, getApps } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+import { 
+    getAuth, 
+    onAuthStateChanged, 
+    signOut, 
+    getIdToken 
+} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+
 window.AuthHelper = {
-    firebaseConfig: null, // Dynamically loaded from backend or injected config
+    firebaseConfig: null,
+    app: null,
+    auth: null,
 
     /**
      * Load Firebase configuration from a secure source
-     * Priority: 1) window.__FIREBASE_CONFIG__ (server-injected), 2) /api/config/firebase, 3) local dev fallback
      */
     async loadFirebaseConfig() {
-        // 1. Check for server-injected config (most secure)
         if (window.__FIREBASE_CONFIG__) {
             return window.__FIREBASE_CONFIG__;
         }
 
-        // 2. Fetch from backend config endpoint
         try {
             const response = await fetch('/api/config/firebase', {
                 credentials: 'include'
             });
             if (response.ok) {
-                const config = await response.json();
-                return config;
+                return await response.json();
             }
         } catch (e) {
             console.warn('Failed to fetch Firebase config from backend:', e.message);
         }
 
-        // 3. Local development fallback only
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            console.warn('Using local Firebase config - set up proper config for production');
-            return {
-                apiKey: "AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8",
-                authDomain: "supremeai-a.firebaseapp.com",
-                databaseURL: "https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/",
-                projectId: "supremeai-a",
-                storageBucket: "supremeai-a.firebasestorage.app",
-                messagingSenderId: "565236080752",
-                appId: "1:565236080752:web:572bb9313db9afb355d4b5"
-            };
+            console.error('Firebase configuration missing.');
+            throw new Error('Firebase config not available. Run backend server or inject config.');
         }
 
         throw new Error('Firebase configuration not available');
@@ -51,27 +48,31 @@ window.AuthHelper = {
      * Initialize Firebase if not already initialized
      */
     async initFirebase() {
-        if (!window.firebase) {
-            console.error("Firebase SDK not loaded");
-            return null;
+        if (this.app) return this.app;
+
+        try {
+            this.firebaseConfig = await this.loadFirebaseConfig();
+            
+            // Avoid re-initialization
+            if (getApps().length === 0) {
+                this.app = initializeApp(this.firebaseConfig);
+            } else {
+                this.app = getApp();
+            }
+            
+            this.auth = getAuth(this.app);
+            return this.app;
+        } catch (error) {
+            console.error("Firebase init failed:", error);
+            throw error;
         }
-        if (window.firebase.apps.length > 0) {
-            return window.firebase;
-        }
-        // Load config dynamically
-        this.firebaseConfig = await this.loadFirebaseConfig();
-        window.firebase.initializeApp(this.firebaseConfig);
-        
-        // Connect to emulators only if explicitly requested or if backend says so
-        // (Removed hardcoded localhost check to support Cloud Firebase on local dev)
-        return window.firebase;
     },
 
     _authInitialized: false,
     _authPromise: null,
 
     /**
-     * Initialize Firebase if not already initialized and wait for auth state
+     * Initialize Firebase and wait for auth state
      */
     async initializeAuth(redirectToLoginIfNotAuth = true) {
         if (this._authPromise) return this._authPromise;
@@ -79,14 +80,7 @@ window.AuthHelper = {
         await this.initFirebase();
 
         this._authPromise = new Promise((resolve) => {
-            const fb = window.firebase;
-            if (!fb) {
-                console.error("Firebase not found");
-                resolve(false);
-                return;
-            }
-
-            fb.auth().onAuthStateChanged((user) => {
+            onAuthStateChanged(this.auth, (user) => {
                 this._authInitialized = true;
                 if (user) {
                     localStorage.setItem('supremeai_firebase_authenticated', 'true');
@@ -105,14 +99,14 @@ window.AuthHelper = {
     },
 
     /**
-     * Get the current Firebase ID token, waiting for initialization if needed
+     * Get the current Firebase ID token
      */
     async getIdToken() {
         await this.initializeAuth(false);
-        const user = window.firebase?.auth()?.currentUser;
+        const user = this.auth?.currentUser;
         if (user) {
             try {
-                return await user.getIdToken();
+                return await getIdToken(user);
             } catch (e) {
                 console.error("Error getting ID token", e);
                 return null;
@@ -121,17 +115,11 @@ window.AuthHelper = {
         return null;
     },
 
-    /**
-     * Get the stored user object
-     */
     getUser() {
         const userStr = localStorage.getItem('supremeai_user');
         return userStr ? JSON.parse(userStr) : null;
     },
     
-    /**
-     * Get Authorization headers with Bearer token
-     */
     async getAuthHeader() {
         const token = await this.getIdToken();
         if (token) {
@@ -144,13 +132,11 @@ window.AuthHelper = {
         localStorage.setItem('supremeai_user', JSON.stringify(user));
     },
     
-    /**
-     * Clear all authentication data
-     */
     async logout() {
         localStorage.removeItem('supremeai_firebase_authenticated');
         localStorage.removeItem('supremeai_user');
         localStorage.removeItem('supremeai_remembered_username');
+        
         try {
             await fetch('/api/auth/logout', {
                 method: 'POST',
@@ -158,19 +144,16 @@ window.AuthHelper = {
             });
         } catch (_) {}
 
-        const fb = await this.initFirebase();
-        if (fb && fb.auth) {
-            fb.auth().signOut().catch(() => {}).finally(() => {
-                window.location.href = '/login.html';
-            });
-            return;
+        if (this.auth) {
+            try {
+                await signOut(this.auth);
+            } catch (e) {
+                console.warn("Sign out failed", e);
+            }
         }
         window.location.href = '/login.html';
     },
     
-    /**
-     * Make an authenticated API call with automatic token attach
-     */
     async apiCall(url, options = {}) {
         try {
             const authHeader = await this.getAuthHeader();
@@ -184,51 +167,38 @@ window.AuthHelper = {
             const response = await fetch(url, options);
             
             if (response.status === 401) {
-                // Potential token expiration or unauthorized
                 console.warn("401 Unauthorized - redirecting to login");
                 this.logout();
             }
             
             return response;
-            
         } catch (error) {
             console.error('API call failed:', error);
             throw error;
         }
     },
     
-    /**
-     * Display user info in the UI
-     */
     displayUserInfo(avatarElementId, usernameElementId) {
         const user = this.getUser();
-        const fbUser = window.firebase?.auth()?.currentUser;
+        const fbUser = this.auth?.currentUser;
 
         const username = user?.username || fbUser?.displayName || fbUser?.email?.split('@')[0] || 'Admin';
         const email = user?.email || fbUser?.email || '';
         
-        // Update username
         if (usernameElementId) {
             const elem = document.getElementById(usernameElementId);
-            if (elem) {
-                elem.textContent = `${username} (Admin)`;
-            }
+            if (elem) elem.textContent = `${username} (Admin)`;
         }
         
-        // Update avatar
         if (avatarElementId) {
             const elem = document.getElementById(avatarElementId);
             if (elem) {
-                const initial = username.charAt(0).toUpperCase();
-                elem.textContent = initial;
+                elem.textContent = username.charAt(0).toUpperCase();
                 elem.title = email;
             }
         }
     },
     
-    /**
-     * Show/hide UI elements based on permissions
-     */
     applyPermissionVisibility() {
         document.querySelectorAll('[data-admin-only]').forEach(el => {
             el.style.display = 'block';
@@ -236,15 +206,6 @@ window.AuthHelper = {
     }
 };
 
-/**
- * On page load, check authentication
- */
-// Auth initialization is now handled explicitly by each page to avoid race conditions.
-// See admin.html for implementation.
-
-/**
- * Global helper for API calls
- */
 window.apiCall = async (url, options = {}) => {
     return AuthHelper.apiCall(url, options);
 };

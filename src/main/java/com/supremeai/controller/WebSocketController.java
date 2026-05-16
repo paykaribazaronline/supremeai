@@ -5,12 +5,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import reactor.core.publisher.Mono;
-
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,9 +29,10 @@ public class WebSocketController {
     private UserRepository userRepository;
 
     @MessageMapping("/dashboard/subscribe")
-    @SendTo("/topic/dashboard")
-    public Map<String, Object> subscribeToDashboard() {
-        return getDashboardData().block();
+    @SendToUser("/topic/dashboard")
+    @PreAuthorize("hasRole('USER')")
+    public Mono<Map<String, Object>> subscribeToDashboard(Principal principal) {
+        return getDashboardData();
     }
 
     @Scheduled(fixedRate = 30000) // Update every 30 seconds
@@ -39,7 +42,7 @@ public class WebSocketController {
         );
     }
 
-    @Scheduled(fixedRate = 10000) // Update every 10 seconds
+    @Scheduled(fixedRate = 10000)
     public void broadcastQuotaUpdates() {
         getGlobalQuotaData().flatMap(globalData ->
             userRepository.findAll().collectList().map(users -> {
@@ -93,6 +96,52 @@ public class WebSocketController {
     }
 
     /**
+     * Broadcast analysis job progress update.
+     * Called from ProjectAnalysisService during file/agent scanning.
+     */
+    public void broadcastAnalysisProgress(String jobId, String projectName, String phase,
+                                           int filesProcessed, int totalFiles,
+                                           String currentAgent, int findingsSoFar,
+                                           String message) {
+        Map<String, Object> progress = new HashMap<>();
+        progress.put("type", "ANALYSIS_PROGRESS");
+        progress.put("jobId", jobId);
+        progress.put("projectName", projectName);
+        progress.put("phase", phase); // EXTRACTING, CHUNKING, SCANNING, FIXING, COMPLETED
+        progress.put("filesProcessed", filesProcessed);
+        progress.put("totalFiles", totalFiles);
+        progress.put("currentAgent", currentAgent);
+        progress.put("findingsSoFar", findingsSoFar);
+        progress.put("message", message);
+        progress.put("timestamp", System.currentTimeMillis());
+
+        // Send to both general analysis topic and job-specific queue for isolation
+        messagingTemplate.convertAndSend("/topic/analysis", progress);
+        messagingTemplate.convertAndSend("/topic/analysis/" + jobId, progress);
+        log.debug("[AnalysisProgress] Job {}: {} - {}/{} files, agent={}, findings={}",
+            jobId, phase, filesProcessed, totalFiles, currentAgent, findingsSoFar);
+    }
+
+    /**
+     * Broadcast analysis job completion event.
+     */
+    public void broadcastAnalysisCompletion(String jobId, String projectName, int totalFindings,
+                                             Map<String, Integer> severitySummary, long durationMs) {
+        Map<String, Object> completion = new HashMap<>();
+        completion.put("type", "ANALYSIS_COMPLETE");
+        completion.put("jobId", jobId);
+        completion.put("projectName", projectName);
+        completion.put("totalFindings", totalFindings);
+        completion.put("severitySummary", severitySummary);
+        completion.put("durationMs", durationMs);
+        completion.put("timestamp", System.currentTimeMillis());
+
+        messagingTemplate.convertAndSend("/topic/analysis", completion);
+        messagingTemplate.convertAndSend("/topic/analysis/" + jobId, completion);
+        log.info("[AnalysisComplete] Job {}: {} findings in {}ms", jobId, totalFindings, durationMs);
+    }
+
+    /**
      * Broadcast learning update (new pattern learned)
      */
     public void broadcastLearningUpdate(String patternType, int count) {
@@ -121,6 +170,26 @@ public class WebSocketController {
 
         messagingTemplate.convertAndSend("/topic/system-events", event);
         log.debug("Broadcast system event: {} for domain {}", type, domainId);
+    }
+
+    /**
+     * Broadcast app generation progress update.
+     * Called from CodeGenerationService during app creation.
+     */
+    public void broadcastAppGenProgress(String requestId, String appName, String phase,
+                                         int progressPercentage, String message) {
+        Map<String, Object> progress = new HashMap<>();
+        progress.put("type", "APP_GEN_PROGRESS");
+        progress.put("requestId", requestId);
+        progress.put("appName", appName);
+        progress.put("phase", phase); // INITIALIZING, ANALYZING, GENERATING_BACKEND, GENERATING_FRONTEND, FINALIZING, COMPLETED
+        progress.put("progress", progressPercentage);
+        progress.put("message", message);
+        progress.put("timestamp", System.currentTimeMillis());
+
+        messagingTemplate.convertAndSend("/topic/app-gen", progress);
+        messagingTemplate.convertAndSend("/topic/app-gen/" + requestId, progress);
+        log.info("[AppGenProgress] Request {}: {}% - {} - {}", requestId, progressPercentage, phase, message);
     }
 
     private Mono<Map<String, Object>> getDashboardData() {

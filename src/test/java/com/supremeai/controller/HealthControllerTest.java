@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.beans.factory.ObjectProvider;
 
 import java.util.Collections;
 import java.util.List;
@@ -23,13 +24,16 @@ import static org.mockito.Mockito.*;
 class HealthControllerTest {
 
     @Mock
+    private ObjectProvider<RedisConnectionFactory> redisConnectionFactoryProvider;
+
+    @Mock
     private RedisConnectionFactory redisConnectionFactory;
 
     @Mock
-    private CircuitBreakerRegistry circuitBreakerRegistry;
+    private RedisConnection redisConnection;
 
     @Mock
-    private RedisConnection redisConnection;
+    private CircuitBreakerRegistry circuitBreakerRegistry;
 
     @Mock
     private CircuitBreaker circuitBreaker;
@@ -38,7 +42,8 @@ class HealthControllerTest {
 
     @BeforeEach
     void setUp() {
-        controller = new HealthController(redisConnectionFactory, circuitBreakerRegistry);
+        when(redisConnectionFactoryProvider.getIfAvailable()).thenReturn(redisConnectionFactory);
+        controller = new HealthController(redisConnectionFactoryProvider, circuitBreakerRegistry);
     }
 
     @Test

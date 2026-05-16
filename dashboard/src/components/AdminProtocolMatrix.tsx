@@ -1,15 +1,12 @@
 // AdminProtocolMatrix.tsx - NEURAL GOVERNANCE PROTOCOLS
 import React, { useState, useEffect } from 'react';
-import { Table, Tag, Switch, Typography, Button, message } from 'antd';
-import { 
-    SafetyCertificateOutlined, 
-    SecurityScanOutlined,
-    EditOutlined,
-    DeleteOutlined,
-    PlusOutlined,
-    InfoCircleOutlined
-} from '@ant-design/icons';
-import authUtils from '../lib/authUtils';
+import { Table, Tag, Switch, Typography, Button, message, Modal, Form, Input, Select } from 'antd';
+import { EditOutlined, DeleteOutlined, PlusOutlined, SecurityScanOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { authUtils } from '../lib/authUtils';
+import type { UploadFile } from 'antd/es/upload/interface';
+
+const { Option } = Select;
+const { Text } = Typography;
 
 interface ProtocolRule {
     id: string;
@@ -25,6 +22,9 @@ interface ProtocolRule {
 const AdminProtocolMatrix: React.FC = () => {
     const [rules, setRules] = useState<ProtocolRule[]>([]);
     const [loading, setLoading] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [editingRule, setEditingRule] = useState<ProtocolRule | null>(null);
+    const [form] = Form.useForm();
 
     useEffect(() => {
         fetchProtocols();
@@ -36,13 +36,79 @@ const AdminProtocolMatrix: React.FC = () => {
             const response = await authUtils.fetchWithAuth('/api/admin/rules');
             const data = await response.json();
             if (data.success) {
-                setRules(data.rules);
+                setRules(data.rules || []);
             }
         } catch (error) {
             console.error('Failed to sync governance protocols:', error);
+            message.error('Failed to load protocols');
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleCreate = async (values: any) => {
+        try {
+            const payload = {
+                ...values,
+                severity: values.severity || 'medium'
+            };
+            const response = await authUtils.fetchWithAuth('/api/admin/rules', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+            if (!response.ok) throw new Error('Failed to create protocol');
+            message.success('Protocol created successfully');
+            setModalVisible(false);
+            form.resetFields();
+            fetchProtocols();
+        } catch (error) {
+            message.error('Failed to create protocol');
+        }
+    };
+
+    const handleUpdate = async (values: any) => {
+        if (!editingRule) return;
+        try {
+            const response = await authUtils.fetchWithAuth(`/api/admin/rules/${editingRule.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(values),
+            });
+            if (!response.ok) throw new Error('Failed to update protocol');
+            message.success('Protocol updated successfully');
+            setModalVisible(false);
+            setEditingRule(null);
+            form.resetFields();
+            fetchProtocols();
+        } catch (error) {
+            message.error('Failed to update protocol');
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        try {
+            const response = await authUtils.fetchWithAuth(`/api/admin/rules/${id}`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) throw new Error('Failed to delete protocol');
+            message.success('Protocol deleted successfully');
+            fetchProtocols();
+        } catch (error) {
+            message.error('Failed to delete protocol');
+        }
+    };
+
+    const openEditModal = (record: ProtocolRule) => {
+        setEditingRule(record);
+        form.setFieldsValue(record);
+        setModalVisible(true);
+    };
+
+    const openCreateModal = () => {
+        setEditingRule(null);
+        form.resetFields();
+        setModalVisible(true);
     };
 
     const columns = [
@@ -105,11 +171,32 @@ const AdminProtocolMatrix: React.FC = () => {
         {
             title: 'ACTIONS',
             key: 'actions',
-            width: 80,
-            render: () => (
+            width: 100,
+            render: (_: any, record: ProtocolRule) => (
                 <div className="flex items-center gap-2">
-                    <button className="text-white/40 hover:text-white transition-colors"><EditOutlined className="text-[10px]" /></button>
-                    <button className="text-white/40 hover:text-red-500 transition-colors"><DeleteOutlined className="text-[10px]" /></button>
+                    <button 
+                        className="text-white/40 hover:text-white transition-colors"
+                        onClick={() => openEditModal(record)}
+                        title="Edit protocol"
+                    >
+                        <EditOutlined className="text-[10px]" />
+                    </button>
+                    <button 
+                        className="text-white/40 hover:text-red-500 transition-colors"
+                        onClick={() => {
+                            Modal.confirm({
+                                title: 'Delete Protocol',
+                                content: `Are you sure you want to delete "${record.name}"? This cannot be undone.`,
+                                okText: 'Delete',
+                                okType: 'danger',
+                                cancelText: 'Cancel',
+                                onOk: () => handleDelete(record.id),
+                            });
+                        }}
+                        title="Delete protocol"
+                    >
+                        <DeleteOutlined className="text-[10px]" />
+                    </button>
                 </div>
             )
         }
@@ -127,7 +214,10 @@ const AdminProtocolMatrix: React.FC = () => {
                         <p className="text-[8px] text-white/30 uppercase tracking-widest m-0 leading-tight">Protocol Compliance & Behavioral Guardrails</p>
                     </div>
                 </div>
-                <button className="bg-white/[0.05] border border-white/10 hover:bg-white/[0.1] text-white px-3 py-1 rounded text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2">
+                 <button 
+                    className="bg-white/[0.05] border border-white/10 hover:bg-white/[0.1] text-white px-3 py-1 rounded text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2"
+                    onClick={openCreateModal}
+                >
                     <PlusOutlined /> New Protocol
                 </button>
             </div>
@@ -189,6 +279,108 @@ const AdminProtocolMatrix: React.FC = () => {
                     background: rgba(255,255,255,0.03) !important;
                 }
             `}</style>
+
+            <Modal
+                title={editingRule ? 'Edit Protocol' : 'Create New Protocol'}
+                open={modalVisible}
+                onCancel={() => {
+                    setModalVisible(false);
+                    setEditingRule(null);
+                    form.resetFields();
+                }}
+                footer={null}
+                width={600}
+            >
+                <Form
+                    form={form}
+                    layout="vertical"
+                    onFinish={editingRule ? handleUpdate : handleCreate}
+                >
+                    <Form.Item
+                        name="name"
+                        label="Protocol Name"
+                        rules={[{ required: true, message: 'Protocol name is required' }]}
+                    >
+                        <Input placeholder="e.g., SQL Injection Guardrail" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="type"
+                        label="Protocol Type"
+                        rules={[{ required: true, message: 'Type is required' }]}
+                    >
+                        <Select placeholder="Select type">
+                            <Option value="security">Security</Option>
+                            <Option value="performance">Performance</Option>
+                            <Option value="quality">Quality</Option>
+                            <Option value="compliance">Compliance</Option>
+                            <Option value="behavior">Behavior</Option>
+                        </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                        name="pattern"
+                        label="Pattern Signature"
+                        rules={[{ required: true, message: 'Pattern is required' }]}
+                    >
+                        <Input.TextArea 
+                            rows={3} 
+                            placeholder="Regex or pattern to match (e.g., \\b(?:SELECT|INSERT|UPDATE|DELETE)\\b.*?FROM)"
+                        />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="action"
+                        label="Action"
+                        rules={[{ required: true, message: 'Action is required' }]}
+                    >
+                        <Select placeholder="What action to take">
+                            <Option value="block">Block</Option>
+                            <Option value="log">Log Only</Option>
+                            <Option value="alert">Alert Admin</Option>
+                            <Option value="modify">Modify Request</Option>
+                            <Option value="quarantine">Quarantine</Option>
+                        </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                        name="severity"
+                        label="Severity"
+                        rules={[{ required: true }]}
+                    >
+                        <Select defaultValue="medium">
+                            <Option value="critical">Critical</Option>
+                            <Option value="high">High</Option>
+                            <Option value="medium">Medium</Option>
+                            <Option value="low">Low</Option>
+                        </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                        name="isActive"
+                        label="Active"
+                        valuePropName="checked"
+                    >
+                        <Switch />
+                    </Form.Item>
+
+                    <Form.Item style={{ marginTop: 24, marginBottom: 0 }}>
+                        <Button type="primary" htmlType="submit" loading={loading}>
+                            {editingRule ? 'Update Protocol' : 'Create Protocol'}
+                        </Button>
+                        <Button 
+                            style={{ marginLeft: 8 }} 
+                            onClick={() => {
+                                setModalVisible(false);
+                                setEditingRule(null);
+                                form.resetFields();
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Modal>
         </div>
     );
 };

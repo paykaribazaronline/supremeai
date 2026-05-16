@@ -185,13 +185,13 @@ public class PatternDetector {
      */
     private boolean isStrategy(CodeRepository.ClassInfo clazz, CodeRepository.CodeFile file) {
         // Check for interchangeable algorithms
-        boolean hasAlgorithmMethods = clazz.getMethods().stream()
-            .anyMatch(m -> m.getName().matches("(execute|run|process|calculate|algorithm).*") &&
-                !m.getReturnType().equals("void"));
+        boolean hasAlgorithmMethods = clazz.getMethods() != null && clazz.getMethods().stream()
+            .anyMatch(m -> m.getName() != null && m.getName().matches("(execute|run|process|calculate|algorithm).*") &&
+                m.getReturnType() != null && !m.getReturnType().equals("void"));
         
         // Check for context that uses strategy
-        boolean hasContext = file.getClasses().stream()
-            .anyMatch(c -> c.getName().contains("Context") || c.getName().contains("Strategy"));
+        boolean hasContext = file.getClasses() != null && file.getClasses().stream()
+            .anyMatch(c -> c.getName() != null && (c.getName().contains("Context") || c.getName().contains("Strategy")));
         
         return hasAlgorithmMethods || hasContext;
     }
@@ -201,14 +201,14 @@ public class PatternDetector {
      */
     private boolean isDecorator(CodeRepository.ClassInfo clazz, CodeRepository.CodeFile file) {
         // Check for wrapper that implements same interface
-        boolean hasWrapper = clazz.getImplementsInterfaces().stream()
-            .anyMatch(i -> file.getClasses().stream()
-                .anyMatch(c -> c.getImplementsInterfaces().contains(i)));
+        boolean hasWrapper = clazz.getImplementsInterfaces() != null && clazz.getImplementsInterfaces().stream()
+            .anyMatch(i -> file.getClasses() != null && file.getClasses().stream()
+                .anyMatch(c -> c.getImplementsInterfaces() != null && c.getImplementsInterfaces().contains(i)));
         
         // Check for component reference
-        boolean hasComponent = clazz.getFields().stream()
-            .anyMatch(f -> file.getClasses().stream()
-                .anyMatch(c -> c.getImplementsInterfaces().contains(f)));
+        boolean hasComponent = clazz.getFields() != null && clazz.getFields().stream()
+            .anyMatch(f -> file.getClasses() != null && file.getClasses().stream()
+                .anyMatch(c -> c.getImplementsInterfaces() != null && c.getImplementsInterfaces().contains(f)));
         
         return hasWrapper || hasComponent;
     }
@@ -218,13 +218,13 @@ public class PatternDetector {
      */
     private boolean isBuilder(CodeRepository.ClassInfo clazz, CodeRepository.CodeFile file) {
         // Check for fluent interface
-        boolean hasFluentMethods = clazz.getMethods().stream()
-            .filter(m -> !m.getReturnType().equals("void"))
+        boolean hasFluentMethods = clazz.getMethods() != null && clazz.getMethods().stream()
+            .filter(m -> m.getReturnType() != null && !m.getReturnType().equals("void"))
             .anyMatch(m -> m.getReturnType().contains(clazz.getName()));
         
         // Check for build method
-        boolean hasBuildMethod = clazz.getMethods().stream()
-            .anyMatch(m -> m.getName().equals("build"));
+        boolean hasBuildMethod = clazz.getMethods() != null && clazz.getMethods().stream()
+            .anyMatch(m -> m.getName() != null && m.getName().equals("build"));
         
         return hasFluentMethods && hasBuildMethod;
     }
@@ -247,7 +247,7 @@ public class PatternDetector {
      * Detect Service pattern
      */
     private boolean isService(CodeRepository.ClassInfo clazz, CodeRepository.CodeFile file) {
-        boolean hasServiceName = clazz.getName().toLowerCase().contains("service");
+        boolean hasServiceName = clazz.getName() != null && clazz.getName().toLowerCase().contains("service");
         boolean hasServiceAnnotation = file.getContent() != null && 
             file.getContent().contains("@Service");
         
@@ -258,7 +258,7 @@ public class PatternDetector {
      * Detect Controller pattern
      */
     private boolean isController(CodeRepository.ClassInfo clazz, CodeRepository.CodeFile file) {
-        boolean hasControllerName = clazz.getName().toLowerCase().contains("controller");
+        boolean hasControllerName = clazz.getName() != null && clazz.getName().toLowerCase().contains("controller");
         boolean hasControllerAnnotation = file.getContent() != null && 
             (file.getContent().contains("@Controller") || 
              file.getContent().contains("@RestController"));
@@ -381,13 +381,13 @@ public class PatternDetector {
     private CodeRepository.PatternDetection createPattern(
             String type, String description, CodeRepository.CodeFile file, 
             int line, int confidence) {
-        return CodeRepository.PatternDetection.builder()
-            .patternType(type)
-            .description(description)
-            .file(file != null ? file.getPath() : "cross-file")
-            .line(line)
-            .confidence(confidence)
-            .details(new HashMap<>())
-            .build();
+        CodeRepository.PatternDetection pd = new CodeRepository.PatternDetection();
+        pd.setPatternType(type);
+        pd.setDescription(description);
+        pd.setFile(file != null ? file.getPath() : "cross-file");
+        pd.setLine(line);
+        pd.setConfidence(confidence);
+        pd.setDetails(new HashMap<>());
+        return pd;
     }
 }

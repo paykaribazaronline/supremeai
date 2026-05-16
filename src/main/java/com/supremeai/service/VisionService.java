@@ -39,10 +39,10 @@ public class VisionService {
     private long maxImageSizeBytes; // 4MB default
 
     @Autowired(required = false)
-    private AIProviderService aiProviderService;
-
-    @Autowired(required = false)
     private NativeVisionService nativeVisionService;
+
+    @Autowired
+    private ConfigService configService;
 
     private final WebClient webClient = WebClient.builder().build();
 
@@ -108,19 +108,23 @@ public class VisionService {
     private Mono<VisionAnalysisResult> tryExternalVisionApis(String base64Image, AnalysisType analysisType) {
         String prompt = buildPrompt(analysisType);
 
-        // Try OpenAI GPT-4o-vision first, then Gemini, then fallback
+        // Get dynamic model names from config
+        String openAiModel = configService.getSetting("vision_openai_model", "gpt-4o-mini");
+        String geminiModel = configService.getSetting("vision_gemini_model", "gemini-1.5-flash");
+
+        // Try OpenAI Vision first, then Gemini, then fallback
         if (openAiKey != null && !openAiKey.isEmpty()) {
-            return callOpenAiVision(base64Image, prompt)
+            return callOpenAiVision(base64Image, prompt, openAiModel)
                 .onErrorResume(e -> {
                     log.warn("[VISION] OpenAI vision failed: {}, trying Gemini", e.getMessage());
-                    return callGeminiVision(base64Image, prompt);
+                    return callGeminiVision(base64Image, prompt, geminiModel);
                 })
                 .onErrorResume(e -> {
                     log.warn("[VISION] Gemini vision failed: {}, using mock", e.getMessage());
                     return Mono.just(mockAnalysis(analysisType));
                 });
         } else if (geminiKey != null && !geminiKey.isEmpty()) {
-            return callGeminiVision(base64Image, prompt)
+            return callGeminiVision(base64Image, prompt, geminiModel)
                 .onErrorResume(e -> Mono.just(mockAnalysis(analysisType)));
         } else {
             log.warn("[VISION] No vision API key configured — returning structured mock");
@@ -219,13 +223,13 @@ public class VisionService {
 
     // ─── Private API callers ──────────────────────────────────────────────────
 
-    private Mono<VisionAnalysisResult> callOpenAiVision(String base64Image, String prompt) {
+    private Mono<VisionAnalysisResult> callOpenAiVision(String base64Image, String prompt, String model) {
         return webClient.post()
             .uri("https://api.openai.com/v1/chat/completions")
             .header("Authorization", "Bearer " + openAiKey)
             .header("Content-Type", "application/json")
             .bodyValue(Map.of(
-                "model", "gpt-4o-mini",
+                "model", model,
                 "messages", List.of(Map.of(
                     "role", "user",
                     "content", List.of(
@@ -241,13 +245,21 @@ public class VisionService {
             .map(response -> {
                 @SuppressWarnings("unchecked")
                 List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
-                String text = (String) ((Map<?, ?>) ((Map<?, ?>) choices.get(0).get("message")).get("content")).toString();
-                return VisionAnalysisResult.success(text, "openai-gpt4o-mini");
+                if (choices == null || choices.isEmpty()) {
+                    return VisionAnalysisResult.error("OpenAI API returned empty choices");
+                }
+                Map<?, ?> message = (Map<?, ?>) choices.get(0).get("message");
+                if (message == null) {
+                    return VisionAnalysisResult.error("OpenAI API returned null message");
+                }
+                Object content = message.get("content");
+                String text = content != null ? content.toString() : "";
+                return VisionAnalysisResult.success(text, "openai-" + model);
             });
     }
 
-    private Mono<VisionAnalysisResult> callGeminiVision(String base64Image, String prompt) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + geminiKey;
+    private Mono<VisionAnalysisResult> callGeminiVision(String base64Image, String prompt, String model) {
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + geminiKey;
         return webClient.post()
             .uri(url)
             .header("Content-Type", "application/json")
@@ -267,8 +279,15 @@ public class VisionService {
             .map(response -> {
                 @SuppressWarnings("unchecked")
                 List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.get("candidates");
-                Object content = ((Map<?, ?>) candidates.get(0).get("content")).get("parts");
-                return VisionAnalysisResult.success(content.toString(), "gemini-1.5-flash");
+                if (candidates == null || candidates.isEmpty()) {
+                    return VisionAnalysisResult.error("Gemini API returned empty candidates");
+                }
+                Map<?, ?> content = (Map<?, ?>) candidates.get(0).get("content");
+                if (content == null) {
+                    return VisionAnalysisResult.error("Gemini API returned null content");
+                }
+                Object parts = content.get("parts");
+                return VisionAnalysisResult.success(parts != null ? parts.toString() : "", model);
             });
     }
 

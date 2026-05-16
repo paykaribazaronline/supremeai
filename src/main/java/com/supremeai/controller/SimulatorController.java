@@ -3,6 +3,7 @@ package com.supremeai.controller;
 import com.supremeai.model.UserSimulatorProfile;
 import com.supremeai.repository.UserSimulatorProfileRepository;
 import com.supremeai.service.SimulatorService;
+import com.supremeai.audit.Audited;
 import com.supremeai.exception.SimulatorConflictException;
 import com.supremeai.exception.SimulatorDeploymentException;
 import com.supremeai.exception.SimulatorQuotaExceededException;
@@ -40,14 +41,8 @@ public class SimulatorController {
     @Autowired
     private UserSimulatorProfileRepository profileRepository;
 
-    // ─────────────────────────────────────────────────────────────────────────────
     // Profile Management
-    // ─────────────────────────────────────────────────────────────────────────────
-
-    /**
-     * GET /api/simulator/profile
-     * Get current user's simulator profile (auto-creates if missing)
-     */
+    @Audited(resource = "simulator_profile", action = "READ")
     @GetMapping("/profile")
     @PreAuthorize("isAuthenticated()")
     public Mono<ResponseEntity<UserSimulatorProfile>> getProfile(Authentication auth) {
@@ -94,15 +89,8 @@ public class SimulatorController {
             .map(ResponseEntity::ok);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────────
     // Installation Management
-    // ─────────────────────────────────────────────────────────────────────────────
-
-    /**
-     * POST /api/simulator/install
-     * Install a generated app to simulator
-     * Body: { "appId": "abc-123", "deviceProfile": "PIXEL_6" }
-     */
+    @Audited(resource = "simulator_install", action = "CREATE")
     @PostMapping("/install")
     @PreAuthorize("isAuthenticated()")
     public Mono<ResponseEntity<Map<String, Object>>> installApp(
@@ -142,6 +130,7 @@ public class SimulatorController {
      * DELETE /api/simulator/install/{appId}
      * Uninstall an app from simulator
      */
+    @Audited(resource = "simulator_install", action = "DELETE")
     @DeleteMapping("/install/{appId}")
     @PreAuthorize("isAuthenticated()")
     public Mono<ResponseEntity<Map<String, Object>>> uninstallApp(
@@ -196,12 +185,7 @@ public class SimulatorController {
 
     // ─────────────────────────────────────────────────────────────────────────────
     // Session Management
-    // ─────────────────────────────────────────────────────────────────────────────
-
-    /**
-     * POST /api/simulator/session/start?appId={appId}
-     * Start simulator session for an installed app
-     */
+    @Audited(resource = "simulator_session", action = "CREATE")
     @PostMapping("/session/start")
     @PreAuthorize("isAuthenticated()")
     public Mono<ResponseEntity<Map<String, Object>>> startSession(
@@ -227,6 +211,7 @@ public class SimulatorController {
      * POST /api/simulator/session/stop
      * Stop current simulator session
      */
+    @Audited(resource = "simulator_session", action = "DELETE")
     @PostMapping("/session/stop")
     @PreAuthorize("isAuthenticated()")
     public Mono<ResponseEntity<Map<String, Object>>> stopSession(Authentication auth) {
@@ -239,6 +224,7 @@ public class SimulatorController {
      * GET /api/simulator/session/status
      * Get current session status
      */
+    @Audited(resource = "simulator_session", action = "READ")
     @GetMapping("/session/status")
     @PreAuthorize("isAuthenticated()")
     public Mono<ResponseEntity<Map<String, Object>>> getSessionStatus(Authentication auth) {
@@ -303,16 +289,16 @@ public class SimulatorController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> getAllUsage(Authentication auth) {
         // Aggregate usage from deployment service registry
-        java.util.Map<String, com.supremeai.service.SimulatorDeploymentService.DeploymentRecord> deployments =
+        java.util.List<com.supremeai.model.SimulatorDeploymentRecord> deployments =
             simulatorService.getAllDeployments();
 
-        java.util.List<Map<String, Object>> usageList = deployments.values().stream()
+        java.util.List<Map<String, Object>> usageList = deployments.stream()
             .map(record -> {
                 Map<String, Object> entry = new HashMap<>();
                 entry.put("appId", record.getAppId());
                 entry.put("deviceType", record.getDeviceType());
                 entry.put("previewUrl", record.getPreviewUrl());
-                entry.put("status", record.getStatus().name());
+                entry.put("status", record.getStatus());
                 entry.put("deployedAt", record.getDeployedAt());
                 return entry;
             })

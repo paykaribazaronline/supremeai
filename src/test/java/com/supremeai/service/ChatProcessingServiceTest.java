@@ -2,6 +2,7 @@ package com.supremeai.service;
 
 import com.supremeai.model.*;
 import com.supremeai.repository.*;
+import com.supremeai.fallback.AIFallbackOrchestrator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -31,6 +32,8 @@ class ChatProcessingServiceTest {
     private ChatConfirmationRepository chatConfirmationRepository;
     @Mock
     private ChatHistoryRepository chatHistoryRepository;
+    @Mock
+    private AIFallbackOrchestrator fallbackOrchestrator;
 
     @InjectMocks
     private ChatProcessingService chatProcessingService;
@@ -45,6 +48,7 @@ class ChatProcessingServiceTest {
     void testProcessNormalMessage() {
         String userId = "user123";
         String message = "Hello AI";
+        String aiReply = "Hello Human!";
         
         ChatClassifier.ClassificationResult result = mock(ChatClassifier.ClassificationResult.class);
         when(result.getChatType()).thenReturn(ChatClassifier.ChatType.NORMAL);
@@ -52,12 +56,15 @@ class ChatProcessingServiceTest {
         when(result.getReason()).thenReturn("Greeting");
         
         when(chatClassifier.classify(message)).thenReturn(result);
+        when(fallbackOrchestrator.executeWithSupremeIntelligence(anyString(), anyString(), anyString(), anyString()))
+            .thenReturn(aiReply);
         
         Map<String, Object> response = chatProcessingService.processMessage(userId, message, false).block();
         
         assertEquals("normal", response.get("chat_type"));
+        assertEquals(aiReply, response.get("response"));
         assertFalse((Boolean) response.get("needs_confirmation"));
-        verify(chatHistoryRepository, times(1)).save(any());
+        verify(chatHistoryRepository, times(2)).save(any());
     }
 
     @Test

@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-@Document(collectionName = "system_learning/domains")
+@Document(collectionName = "knowledge_domains")
 public class KnowledgeDomain {
     @DocumentId
     private String id;

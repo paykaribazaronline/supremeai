@@ -38,7 +38,6 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         return path.startsWith("/api/health") ||
                path.startsWith("/api/status") ||
                path.startsWith("/api/auth/") ||
-               path.startsWith("/api/chat/") ||
                path.startsWith("/api/ext/") ||
                path.startsWith("/api/system") ||
                path.startsWith("/telemetry/") ||
@@ -75,6 +74,17 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
+
+        if ("GUEST_MODE".equals(idToken)) {
+            List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+            authorities.add(new SimpleGrantedAuthority("ROLE_GUEST"));
+            UsernamePasswordAuthenticationToken auth = 
+                new UsernamePasswordAuthenticationToken("guest_user", null, authorities);
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         
         try {
             FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);

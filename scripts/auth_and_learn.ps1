@@ -12,7 +12,14 @@ if (-not $Password) {
     exit 1
 }
 
-$firebaseApiKey = if ($env:SUPREMEAI_FIREBASE_WEB_API_KEY) { $env:SUPREMEAI_FIREBASE_WEB_API_KEY } else { "AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8" }
+$firebaseApiKey = $env:SUPREMEAI_FIREBASE_WEB_API_KEY
+
+if (-not $firebaseApiKey) {
+    Write-Host "❌ SUPREMEAI_FIREBASE_WEB_API_KEY is not set." -ForegroundColor Red
+    Write-Host '   Set it: $env:SUPREMEAI_FIREBASE_WEB_API_KEY = "<your-firebase-api-key>"' -ForegroundColor Yellow
+    exit 1
+}
+
 $bootstrapUsername = (($Email -replace '@.*$','') -replace '[^a-zA-Z0-9._-]','_')
 
 Write-Host "SUPREMEAI LEARNING SYSTEM - AUTHENTICATION TEST" -ForegroundColor Green

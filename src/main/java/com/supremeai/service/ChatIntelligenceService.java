@@ -23,13 +23,17 @@ public class ChatIntelligenceService {
     @Autowired
     private ChatPlanRepository planRepository;
 
+    @Autowired
+    private com.supremeai.repository.ChatAdminActionRepository adminActionRepository;
+
     public enum Intent {
         COMMAND,
         RULE,
         PROJECT_PLAN,
         INFO_COLLECTION,
         CASUAL,
-        DEBUG
+        DEBUG,
+        ADMIN_ACTION
     }
 
     public Intent classifyIntent(String message) {
@@ -53,6 +57,10 @@ public class ChatIntelligenceService {
         
         if (lower.contains("error") || lower.contains("fix") || lower.contains("debug") || lower.contains("logs")) {
             return Intent.DEBUG;
+        }
+
+        if (lower.contains("api") || lower.contains("key") || lower.contains("website") || lower.contains("learn") || lower.contains("audit")) {
+            return Intent.ADMIN_ACTION;
         }
         
         return Intent.CASUAL;
@@ -82,7 +90,28 @@ public class ChatIntelligenceService {
             logger.info("Automatically detected and saving PROJECT_PLAN for chat {}: {}", chatId, message);
             return planRepository.save(plan).then();
         }
+
+        if (intent == Intent.ADMIN_ACTION) {
+            com.supremeai.model.ChatAdminAction action = new com.supremeai.model.ChatAdminAction();
+            action.setChatId(chatId);
+            action.setContent(message);
+            action.setConfidence(confidence);
+            action.setUserId(user);
+            action.setActionType(determineActionType(message));
+            action.setCreatedAt(LocalDateTime.now());
+            action.setActive(true);
+            logger.info("Automatically detected and saving ADMIN_ACTION for chat {}: {}", chatId, message);
+            return adminActionRepository.save(action).then();
+        }
         
         return Mono.empty();
+    }
+
+    private String determineActionType(String content) {
+        String lower = content.toLowerCase();
+        if (lower.contains("api") || lower.contains("key")) return "ADD_API";
+        if (lower.contains("website") || lower.contains("learn")) return "LEARN_WEBSITE";
+        if (lower.contains("audit") || lower.contains("security")) return "RUN_AUDIT";
+        return "GENERAL_ADMIN";
     }
 }

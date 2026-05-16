@@ -3,7 +3,8 @@ package com.supremeai.service;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -14,10 +15,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * Alerting service for circuit breaker trips and high error rates.
  * Integrates with monitoring systems for real-time notifications.
  */
-@Slf4j
 @Service
 public class AlertingService {
 
+    private static final Logger log = LoggerFactory.getLogger(AlertingService.class);
     private final MeterRegistry meterRegistry;
     private final Counter circuitBreakerTrips;
     private final Counter highErrorRateAlerts;
@@ -120,11 +121,43 @@ public class AlertingService {
                 .build();
     }
 
-    @lombok.Builder
-    @lombok.Data
     public static class AlertStats {
         private long circuitBreakerTrips;
         private long highErrorRateAlerts;
         private int recentAlertCount;
+
+        public AlertStats() {}
+
+        public AlertStats(long circuitBreakerTrips, long highErrorRateAlerts, int recentAlertCount) {
+            this.circuitBreakerTrips = circuitBreakerTrips;
+            this.highErrorRateAlerts = highErrorRateAlerts;
+            this.recentAlertCount = recentAlertCount;
+        }
+
+        public long getCircuitBreakerTrips() { return circuitBreakerTrips; }
+        public void setCircuitBreakerTrips(long circuitBreakerTrips) { this.circuitBreakerTrips = circuitBreakerTrips; }
+
+        public long getHighErrorRateAlerts() { return highErrorRateAlerts; }
+        public void setHighErrorRateAlerts(long highErrorRateAlerts) { this.highErrorRateAlerts = highErrorRateAlerts; }
+
+        public int getRecentAlertCount() { return recentAlertCount; }
+        public void setRecentAlertCount(int recentAlertCount) { this.recentAlertCount = recentAlertCount; }
+
+        public static Builder builder() { return new Builder(); }
+
+        public static class Builder {
+            private long circuitBreakerTrips;
+            private long highErrorRateAlerts;
+            private int recentAlertCount;
+
+            public Builder circuitBreakerTrips(long val) { this.circuitBreakerTrips = val; return this; }
+            public Builder highErrorRateAlerts(long val) { this.highErrorRateAlerts = val; return this; }
+            public Builder recentAlertCount(int val) { this.recentAlertCount = val; return this; }
+
+            public AlertStats build() {
+                return new AlertStats(circuitBreakerTrips, highErrorRateAlerts, recentAlertCount);
+            }
+        }
     }
 }
+

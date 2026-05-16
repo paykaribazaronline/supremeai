@@ -25,14 +25,18 @@ public class ErrorResolutionService {
     
     private static final Logger logger = LoggerFactory.getLogger(ErrorResolutionService.class);
     
-    @Autowired
-    private CodeFlowRepository repository;
-    
-    @Autowired
-    private AIProviderFactory providerFactory;
-    
-    @Autowired
-    private CodeAnalyzer codeAnalyzer;
+    private final CodeFlowRepository repository;
+    private final AIProviderFactory providerFactory;
+    private final CodeAnalyzer codeAnalyzer;
+
+    public ErrorResolutionService(
+            CodeFlowRepository repository,
+            AIProviderFactory providerFactory,
+            CodeAnalyzer codeAnalyzer) {
+        this.repository = repository;
+        this.providerFactory = providerFactory;
+        this.codeAnalyzer = codeAnalyzer;
+    }
     
     /**
      * Analyze error and generate resolution

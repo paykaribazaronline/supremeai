@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,6 +28,13 @@ public abstract class BaseAdminController<T, ID> {
     }
 
     /**
+     * Standard success wrapper for list operations (Non-Reactive/Sync).
+     */
+    protected ResponseEntity<ApiResponse<Map<String, Object>>> wrapListSync(List<T> list, String key) {
+        return ResponseEntity.ok(ApiResponse.ok(Map.of(key, (Object)list)));
+    }
+
+    /**
      * Standard success wrapper for single entity save operations.
      */
     protected <R> Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> wrapSave(Mono<R> mono, String messageKey) {
@@ -39,16 +47,25 @@ public abstract class BaseAdminController<T, ID> {
      */
     protected Mono<ResponseEntity<ApiResponse<String>>> wrapDelete(Mono<Void> mono, String successMessage) {
         return mono.then(Mono.just(ResponseEntity.ok(ApiResponse.ok(successMessage))))
-                .onErrorResume(e -> e instanceof RuntimeException 
-                    ? handleError("Failed during delete operation", e).map(re -> ResponseEntity.status(re.getStatusCode()).body(ApiResponse.error(e.getMessage())))
-                    : handleError("Failed during delete operation", e).map(re -> ResponseEntity.status(re.getStatusCode()).body(ApiResponse.error(e.getMessage()))));
+                .onErrorResume(e -> {
+                    logger.error("Failed during delete operation", e);
+                    return Mono.just(ResponseEntity.status(500).body(ApiResponse.error("Failed during delete operation: " + e.getMessage())));
+                });
     }
 
     /**
      * Generic error handler - consistent 500 responses with logging.
      */
-    protected Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> handleError(String context, Throwable e) {
+    protected <R> Mono<ResponseEntity<ApiResponse<R>>> handleError(String context, Throwable e) {
         logger.error(context, e);
         return Mono.just(ResponseEntity.status(500).body(ApiResponse.error(context + ": " + e.getMessage())));
+    }
+
+    /**
+     * Generic error handler for Non-Reactive controllers.
+     */
+    protected <R> ResponseEntity<ApiResponse<R>> handleErrorSync(String context, Throwable e) {
+        logger.error(context, e);
+        return ResponseEntity.status(500).body(ApiResponse.error(context + ": " + e.getMessage()));
     }
 }

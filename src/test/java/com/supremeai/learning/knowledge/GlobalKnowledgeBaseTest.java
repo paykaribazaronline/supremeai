@@ -1,13 +1,14 @@
 package com.supremeai.learning.knowledge;
 
+import com.supremeai.admin.AdminDashboardService;
+import com.supremeai.repository.SolutionMemoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -22,16 +23,20 @@ class GlobalKnowledgeBaseTest {
     private GlobalKnowledgeBase knowledgeBase;
 
     @Mock
-    private com.supremeai.admin.AdminDashboardService adminDashboard;
+    private AdminDashboardService adminDashboard;
+
+    @Mock
+    private SolutionMemoryRepository solutionMemoryRepository;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        knowledgeBase = new GlobalKnowledgeBase();
-        org.springframework.test.util.ReflectionTestUtils.setField(knowledgeBase, "adminDashboard", adminDashboard);
+        knowledgeBase = new GlobalKnowledgeBase(adminDashboard, solutionMemoryRepository);
         
         // Default behavior: approve immediately
         when(adminDashboard.submitImprovement(any())).thenReturn(true);
+        // Stub repository save to return Mono of saved entity (echo)
+        when(solutionMemoryRepository.save(any())).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
     }
 
     @Test

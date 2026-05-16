@@ -100,7 +100,7 @@ public class AIVotingSystem {
 
     private double calculateConfidence(Map<String, Double> scores) {
         if (scores.isEmpty()) return 0.0;
-        double max = scores.values().stream().max(Double::compare).orElse(0.0);
+        double max = scores.values().stream().max(Comparator.naturalOrder()).orElse(0.0);
         double avg = scores.values().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
         return (max + avg) / 2;
     }

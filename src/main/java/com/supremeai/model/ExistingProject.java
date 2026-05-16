@@ -13,6 +13,8 @@ public class ExistingProject {
     private String status;
     private String type;
     private String ownerId;
+    private String githubRepoUrl;
+    private String repositoryOwner;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -41,6 +43,10 @@ public class ExistingProject {
     public void setType(String type) { this.type = type; }
     public String getOwnerId() { return ownerId; }
     public void setOwnerId(String ownerId) { this.ownerId = ownerId; }
+    public String getGithubRepoUrl() { return githubRepoUrl; }
+    public void setGithubRepoUrl(String githubRepoUrl) { this.githubRepoUrl = githubRepoUrl; }
+    public String getRepositoryOwner() { return repositoryOwner; }
+    public void setRepositoryOwner(String repositoryOwner) { this.repositoryOwner = repositoryOwner; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

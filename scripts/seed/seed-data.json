@@ -1,0 +1,780 @@
+{
+  "metadata": {
+    "version": "2.0.0",
+    "generated_at": "2026-05-16T01:50:00+06:00",
+    "description": "Real-world seed data for SupremeAI — based on actual GCP Cloud Run endpoints from ai-cloud-endpoints.json",
+    "collections": [
+      "users", "user_tiers", "api_providers", "ai_agents",
+      "system_learning", "knowledge_domains", "knowledge_entries",
+      "knowledge_recommendations", "consensus_results", "provider_task_performance",
+      "workflow_definitions", "activity_logs", "reasoning_logs"
+    ]
+  },
+
+  "userTiers": [
+    {
+      "id": "FREE",
+      "description": "Free tier — basic chat access with production quota limits",
+      "defaultMonthlyQuota": 100,
+      "premium": false,
+      "unlimited": false,
+      "limits": {
+        "maxConcurrentChats": 2,
+        "maxMessagesPerSession": 20,
+        "featuresAllowed": ["chat", "history"]
+      }
+    },
+    {
+      "id": "PRO",
+      "description": "Pro tier — advanced features with higher quota",
+      "defaultMonthlyQuota": 10000,
+      "premium": true,
+      "unlimited": false,
+      "limits": {
+        "maxConcurrentChats": 10,
+        "maxMessagesPerSession": 200,
+        "featuresAllowed": ["chat", "history", "code_analysis", "workflow", "multi_agent"]
+      }
+    },
+    {
+      "id": "ADMIN",
+      "description": "Admin — full system access, unlimited usage",
+      "defaultMonthlyQuota": 0,
+      "premium": true,
+      "unlimited": true,
+      "limits": {
+        "maxConcurrentChats": 50,
+        "maxMessagesPerSession": 0,
+        "featuresAllowed": ["chat", "history", "code_analysis", "workflow", "multi_agent", "provider_mgmt", "learning_mgmt"]
+      }
+    }
+  ],
+
+  "users": [
+    {
+      "id": "admin-001",
+      "firebaseUid": "admin-001",
+      "email": "admin@supremeai.dev",
+      "displayName": "System Administrator",
+      "isAdmin": true,
+      "role": "admin",
+      "admin": true,
+      "userRole": "admin",
+      "currentUsage": 2453,
+      "monthlyQuota": 0,
+      "isActive": true,
+      "githubInstallationId": null
+    },
+    {
+      "id": "pro-001",
+      "firebaseUid": "pro-001",
+      "email": "prodev@supremeai.dev",
+      "displayName": "Pro Developer",
+      "isAdmin": false,
+      "role": "user",
+      "admin": false,
+      "userRole": "user",
+      "currentUsage": 7821,
+      "monthlyQuota": 10000,
+      "isActive": true,
+      "githubInstallationId": "gh_install_11223344"
+    },
+    {
+      "id": "free-001",
+      "firebaseUid": "free-001",
+      "email": "learner@supremeai.dev",
+      "displayName": "AI Learner",
+      "isAdmin": false,
+      "role": "user",
+      "admin": false,
+      "userRole": "user",
+      "currentUsage": 34,
+      "monthlyQuota": 100,
+      "isActive": true,
+      "githubInstallationId": null
+    }
+  ],
+
+  "apiProviders": [
+    {
+      "id": "qwen-coder",
+      "name": "SupremeAI Qwen Coder",
+      "type": "cloud_run",
+      "status": "ok",
+      "baseUrl": "https://supreme-ai-qwen-coder-565236080752.us-central1.run.app",
+      "apiKey": "PROVIDER_API_KEY_PLACEHOLDER",
+      "usageLimit": 10000.0,
+      "currentUsage": 1284.0,
+      "creatorEmail": "nazif@supremeai.dev",
+      "accountEmail": "nazif@supremeai.dev",
+      "models": ["Qwen2.5-Coder-32B-Instruct", "Qwen2.5-Coder-7B-Instruct"],
+      "capabilities": ["chat", "code_generation", "code_review", "debugging"],
+      "languages": ["en", "bn", "python", "javascript", "java", "cpp", "go"],
+      "priority": 1,
+      "canCommunicate": true,
+      "canExecuteTasks": true,
+      "canParticipateInVoting": true,
+      "deploymentSource": "GCLOUD",
+      "assignedRoles": ["COMMUNICATION", "EXECUTION", "VOTING"],
+      "consecutiveErrorDays": 0,
+      "lastLatency": 3420,
+      "lastErrorMessage": null,
+      "hints": "Primary coding agent — handles multi-language code generation and review"
+    },
+    {
+      "id": "llama-3-1",
+      "name": "SupremeAI Llama 3.1",
+      "type": "cloud_run",
+      "status": "ok",
+      "baseUrl": "https://supreme-ai-llama-3-1-565236080752.us-central1.run.app",
+      "apiKey": "PROVIDER_API_KEY_PLACEHOLDER",
+      "usageLimit": 10000.0,
+      "currentUsage": 2100.0,
+      "creatorEmail": "nazif@supremeai.dev",
+      "accountEmail": "nazif@supremeai.dev",
+      "models": ["Llama-3.1-405B-Instruct", "Llama-3.1-70B-Instruct", "Llama-3.1-8B-Instruct"],
+      "capabilities": ["chat", "reasoning", "multilingual", "bengali_nlp"],
+      "languages": ["en", "bn", "hi", "es", "fr", "ar", "zh"],
+      "priority": 2,
+      "canCommunicate": true,
+      "canExecuteTasks": true,
+      "canParticipateInVoting": true,
+      "deploymentSource": "GCLOUD",
+      "assignedRoles": ["COMMUNICATION", "VOTING"],
+      "consecutiveErrorDays": 0,
+      "lastLatency": 2890,
+      "lastErrorMessage": null,
+      "hints": "General-purpose LLM for rich task orchestration and Bengali NLP"
+    },
+    {
+      "id": "deepseek-pro",
+      "name": "SupremeAI DeepSeek Pro",
+      "type": "cloud_run",
+      "status": "ok",
+      "baseUrl": "https://supreme-ai-deepseek-pro-565236080752.us-central1.run.app",
+      "apiKey": "PROVIDER_API_KEY_PLACEHOLDER",
+      "usageLimit": 10000.0,
+      "currentUsage": 980.0,
+      "creatorEmail": "nazif@supremeai.dev",
+      "accountEmail": "nazif@supremeai.dev",
+      "models": ["deepseek-reasoner", "deepseek-chat"],
+      "capabilities": ["chat", "code_architecture", "logic_verification", "math"],
+      "languages": ["en", "bn", "python", "java"],
+      "priority": 3,
+      "canCommunicate": true,
+      "canExecuteTasks": true,
+      "canParticipateInVoting": true,
+      "deploymentSource": "GCLOUD",
+      "assignedRoles": ["COMMUNICATION", "EXECUTION", "VOTING"],
+      "consecutiveErrorDays": 0,
+      "lastLatency": 4100,
+      "lastErrorMessage": null,
+      "hints": "Professional coding and logical problem solving"
+    },
+    {
+      "id": "phi-3",
+      "name": "SupremeAI Phi-3",
+      "type": "cloud_run",
+      "status": "ok",
+      "baseUrl": "https://supreme-ai-phi-3-565236080752.us-central1.run.app",
+      "apiKey": "PROVIDER_API_KEY_PLACEHOLDER",
+      "usageLimit": 5000.0,
+      "currentUsage": 345.0,
+      "creatorEmail": "nazif@supremeai.dev",
+      "accountEmail": "nazif@supremeai.dev",
+      "models": ["phi-3-mini-4k", "phi-3-medium-4k"],
+      "capabilities": ["chat", "lightweight_reasoning", "fast_response"],
+      "languages": ["en", "bn"],
+      "priority": 4,
+      "canCommunicate": true,
+      "canExecuteTasks": false,
+      "canParticipateInVoting": true,
+      "deploymentSource": "GCLOUD",
+      "assignedRoles": ["COMMUNICATION", "VOTING"],
+      "consecutiveErrorDays": 0,
+      "lastLatency": 1800,
+      "lastErrorMessage": null,
+      "hints": "Fast lightweight responses — emergency fallback"
+    },
+    {
+      "id": "nomic-embed",
+      "name": "SupremeAI Nomic Embed",
+      "type": "cloud_run",
+      "status": "ok",
+      "baseUrl": "https://supreme-ai-nomic-embed-565236080752.us-central1.run.app",
+      "apiKey": "PROVIDER_API_KEY_PLACEHOLDER",
+      "usageLimit": 5000.0,
+      "currentUsage": 760.0,
+      "creatorEmail": "nazif@supremeai.dev",
+      "accountEmail": "nazif@supremeai.dev",
+      "models": ["nomic-embed-text-v1.5"],
+      "capabilities": ["embeddings", "similarity_search", "rag"],
+      "languages": ["en", "multi"],
+      "priority": 5,
+      "canCommunicate": false,
+      "canExecuteTasks": false,
+      "canParticipateInVoting": false,
+      "deploymentSource": "GCLOUD",
+      "assignedRoles": [],
+      "consecutiveErrorDays": 0,
+      "lastLatency": 900,
+      "lastErrorMessage": null,
+      "hints": "Text embeddings for RAG and search — not a chat provider"
+    }
+  ],
+
+  "aiAgents": [
+    {
+      "id": "agent-orchestrator",
+      "name": "SupremeAI Orchestrator",
+      "type": "orchestrator",
+      "status": "active",
+      "uptime": "99.9%",
+      "load": 25,
+      "tasks": 8453,
+      "lastActive": "2026-05-16T01:40:00+06:00"
+    },
+    {
+      "id": "agent-coder",
+      "name": "Qwen Coder Agent",
+      "type": "executor",
+      "status": "active",
+      "uptime": "98.5%",
+      "load": 60,
+      "tasks": 5231,
+      "lastActive": "2026-05-16T01:38:00+06:00"
+    },
+    {
+      "id": "agent-reasoner",
+      "name": "DeepSeek Reasoner Agent",
+      "type": "voter",
+      "status": "active",
+      "uptime": "97.8%",
+      "load": 40,
+      "tasks": 3892,
+      "lastActive": "2026-05-16T01:35:00+06:00"
+    },
+    {
+      "id": "agent-chat",
+      "name": "Llama Chat Agent",
+      "type": "communicator",
+      "status": "active",
+      "uptime": "99.2%",
+      "load": 35,
+      "tasks": 6721,
+      "lastActive": "2026-05-16T01:42:00+06:00"
+    },
+    {
+      "id": "agent-lite",
+      "name": "Phi-3 Fast Agent",
+      "type": "executor",
+      "status": "idle",
+      "uptime": "99.7%",
+      "load": 5,
+      "tasks": 1102,
+      "lastActive": "2026-05-15T22:00:00+06:00"
+    }
+  ],
+
+  "systemLearning": [
+    {
+      "id": "sl-001",
+      "topic": "Spring Boot Virtual Threads — Request Handler Pattern",
+      "category": "BACKEND_SERVICES",
+      "content": "In Spring Boot 3 with Java 21, annotate @GetMapping methods with @Suspend annotation or use runBlocking() dispatcher for Firestore reactive calls to avoid blocking virtual threads on network IO.",
+      "learningType": "PATTERN",
+      "confidenceScore": 0.95,
+      "permanent": true,
+      "timesApplied": 42,
+      "qualityScore": 0.93,
+      "success": true,
+      "tags": ["spring-boot", "virtual-threads", "firestore", "reactive"],
+      "type": "knowledge",
+      "resolution": "Configure dispatcher for reactive Firestore calls in controller methods",
+      "errorCount": 0,
+      "resolved": true,
+      "severity": "info",
+      "solutions": ["Use runBlocking(IO) for suspend methods", "Keep controllers reactive consistently", "Avoid mixing webflux and servlet stacks"]
+    },
+    {
+      "id": "sl-002",
+      "topic": "Bangla (Bengali) i18n — Language Detection",
+      "category": "LOCALIZATION",
+      "content": "Detect browser/system language via Accept-Language header. Store preference in user_preferences (Firestore). Return localized response in bn.json for all user-facing text.",
+      "learningType": "PATTERN",
+      "confidenceScore": 0.98,
+      "permanent": true,
+      "timesApplied": 158,
+      "qualityScore": 0.97,
+      "success": true,
+      "tags": ["i18n", "bangla", "bengali", "localization", "firestore"],
+      "type": "knowledge",
+      "resolution": "UserLanguagePreferenceService manages Firestore-backed language preference per user",
+      "errorCount": 0,
+      "resolved": true,
+      "severity": "info",
+      "solutions": ["Read Accept-Language header on every request", "Save to user_preferences collection", "Translate via bn.json in middleware"]
+    },
+    {
+      "id": "sl-003",
+      "topic": "AI Provider Fallback Rotation",
+      "category": "AI_ORCHESTRATION",
+      "content": "When the primary AI provider fails, automatically rotate to the next available provider in priority order. Always log the fallback event in provider_task_performance with failure reason.",
+      "learningType": "ERROR_HANDLING",
+      "confidenceScore": 0.99,
+      "permanent": true,
+      "timesApplied": 73,
+      "qualityScore": 0.98,
+      "success": true,
+      "tags": ["ai-provider", "fallback", "rotation", "resilience"],
+      "type": "error",
+      "resolution": "AIFallbackOrchestrator handles rotation with exponential backoff",
+      "errorCount": 2,
+      "resolved": true,
+      "severity": "warning",
+      "solutions": ["Check provider status before assignment", "Rotate on timeout or HTTP 5xx", "Persist fallback history to provider_task_performance"]
+    },
+    {
+      "id": "sl-004",
+      "topic": "Firestore @ServerTimestamp — Do NOT set manually",
+      "category": "BACKEND_SERVICES",
+      "content": "Fields annotated with @ServerTimestamp must never be manually set before saving to Firestore. Setting them pre-emptively causes conflict with Firestore's server-side timestamp.",
+      "learningType": "ANTIPATTERN",
+      "confidenceScore": 1.0,
+      "permanent": true,
+      "timesApplied": 12,
+      "qualityScore": 1.0,
+      "success": true,
+      "tags": ["firestore", "server-timestamp", "spring-data", "antipattern"],
+      "type": "error",
+      "resolution": "Leave @ServerTimestamp fields null; Firestore sets them automatically",
+      "errorCount": 4,
+      "resolved": true,
+      "severity": "critical",
+      "solutions": ["Remove manual timestamp init for @ServerTimestamp fields", "Verify in tests with mocked Firestore", "Do not serialize these fields to JSON responses"]
+    },
+    {
+      "id": "sl-005",
+      "topic": "Consensus Voting — Weight by Provider Capability",
+      "category": "AI_ORCHESTRATION",
+      "content": "Provider votes in AI consensus must be weighted by capability score (from capabilityScores map in APIProvider), not by provider ID order. Higher capability = higher vote weight.",
+      "learningType": "PATTERN",
+      "confidenceScore": 0.96,
+      "permanent": true,
+      "timesApplied": 28,
+      "qualityScore": 0.94,
+      "success": true,
+      "tags": ["consensus", "voting", "capability-score", "ai-orchestration"],
+      "type": "knowledge",
+      "resolution": "ConsensusOrchestrator applies weight = capability score at voting time",
+      "errorCount": 1,
+      "resolved": true,
+      "severity": "info",
+      "solutions": ["Read capabilityScores from APIProvider in Firestore", "Normalize scores before weighting votes", "Log weighted decision in reasoning_logs"]
+    }
+  ],
+
+  "knowledgeDomains": [
+    {
+      "id": "spring_boot_java",
+      "name": "Spring Boot & Java 21",
+      "keywords": ["spring-boot", "java", "virtual-threads", "webflux", "firestore", "gradle"],
+      "status": "LEARNING",
+      "depth": 4,
+      "nodesDiscovered": 28,
+      "averageConfidence": 0.91,
+      "sources": ["incident_reports", "code_reviews", "production_logs"]
+    },
+    {
+      "id": "react_typescript",
+      "name": "React & TypeScript",
+      "keywords": ["react", "typescript", "vite", "dashboard", "material-ui", "zustand"],
+      "status": "LEARNING",
+      "depth": 3,
+      "nodesDiscovered": 22,
+      "averageConfidence": 0.88,
+      "sources": ["code_reviews", "dashboard_reports"]
+    },
+    {
+      "id": "flutter_dart",
+      "name": "Flutter & Dart Mobile",
+      "keywords": ["flutter", "dart", "mobile", "firebase_auth", "riverpod", "supremeai"],
+      "status": "LEARNING",
+      "depth": 3,
+      "nodesDiscovered": 18,
+      "averageConfidence": 0.85,
+      "sources": ["flutter_codebase", "user_feedback"]
+    },
+    {
+      "id": "ai_orchestration",
+      "name": "AI Provider Orchestration",
+      "keywords": ["ai-provider", "fallback", "consensus", "voting", "rotation", "openai", "gemini"],
+      "status": "LEARNING",
+      "depth": 5,
+      "nodesDiscovered": 35,
+      "averageConfidence": 0.93,
+      "sources": ["ai_system_logs", "provider_reports", "consensus_history"]
+    },
+    {
+      "id": "devops_gcloud",
+      "name": "DevOps & GCP Deployment",
+      "keywords": ["gcloud", "cloud-run", "firebase", "terraform", "ci-cd", "docker", "monitoring"],
+      "status": "LEARNING",
+      "depth": 3,
+      "nodesDiscovered": 15,
+      "averageConfidence": 0.82,
+      "sources": ["deployment_logs", "infrastructure_code"]
+    },
+    {
+      "id": "git_reverse_engineering",
+      "name": "Git & Reverse Engineering",
+      "keywords": ["git", "reverse-engineering", "apk", "dex", "smali", "binary-analysis"],
+      "status": "IDLE",
+      "depth": 2,
+      "nodesDiscovered": 8,
+      "averageConfidence": 0.78,
+      "sources": ["reverse_engineering_module"]
+    }
+  ],
+
+  "knowledgeEntries": [
+    {
+      "id": "ke-2026-001",
+      "topic": "Spring Boot 3 + Firestore Reactive Stream",
+      "pattern": "When a Firestore reactive query blocks a virtual thread, the thread pool saturates under load",
+      "solution": "Use FirestoreReactiveRepository inside Mono/Flux chains. Avoid blocking subscribers. Configure reactor.scheduler.max_auto_create_threads for burst traffic.",
+      "sourceProvider": "qwen-coder",
+      "confidenceScore": 0.94,
+      "createdAt": "2026-05-10T14:00:00"
+    },
+    {
+      "id": "ke-2026-002",
+      "topic": "Bengali BN.json Key Mapping",
+      "pattern": "A UI label uses key 'chat.send' but bn.json only has 'send_message'",
+      "solution": "Ensure i18n keys match between template and bn.json. Run automated i18n key lint before frontend PR.",
+      "sourceProvider": "llama-3-1",
+      "confidenceScore": 0.97,
+      "createdAt": "2026-05-12T09:30:00"
+    },
+    {
+      "id": "ke-2026-003",
+      "topic": "AI Fallback Chain Latency Spikes",
+      "pattern": "Primary provider times out then fallback also times out — double latency window paralyzes user",
+      "solution": "Set per-attempt timeout at 10s. On primary fail, try fallback immediately (no retry on primary). Log both attempts in activity_logs.",
+      "sourceProvider": "deepseek-pro",
+      "confidenceScore": 0.89,
+      "createdAt": "2026-05-14T18:15:00"
+    },
+    {
+      "id": "ke-2026-004",
+      "topic": "Flutter Riverpod Provider Scope Leak",
+      "pattern": "ChatScreen async provider stays subscribed after navigation, leaking Firestore streams",
+      "solution": "Wrap provider in `ref.onDispose(() => stream.close())`. Use `autoDispose` modifier in riverpod_generator.",
+      "sourceProvider": "phi-3",
+      "confidenceScore": 0.86,
+      "createdAt": "2026-05-13T11:00:00"
+    },
+    {
+      "id": "ke-2026-005",
+      "topic": "Firestore Composite Index Missing",
+      "pattern": "Query fails with 'no matching index' error after adding a new filter field in existing collection group query",
+      "solution": "Copy the Firestore index creation URL from the error message and run it in console, or add index entry to firestore.indexes.json before deploying.",
+      "sourceProvider": "qwen-coder",
+      "confidenceScore": 0.98,
+      "createdAt": "2026-05-15T16:45:00"
+    }
+  ],
+
+  "knowledgeRecommendations": [
+    {
+      "id": "rec-2026-001",
+      "topic": "Add Llama-3.1-70B to agent-chat voting pool",
+      "reasoning": "Agent-chat currently uses only Llama-3.1-405B which is costly. 70B offers good quality at 60% cost for non-critical chats",
+      "confidence": 0.87,
+      "keywords": ["ai-optimization", "cost-reduction", "voting"],
+      "status": "PENDING",
+      "processedAt": null,
+      "sourceMetrics": {
+        "cost_per_1k_tokens": 0.85,
+        "quality_delta_vs_405b": 0.06,
+        "estimated_monthly_savings_usd": 45
+      }
+    },
+    {
+      "id": "rec-2026-002",
+      "topic": "Deprecate discharge_db.js and migrate to functions/cron",
+      "reasoning": "The root-level discharge_db Node.js script runs outside Firebase context and lacks IAM. Migrating to functions/cron/ gives it Firebase Identity and scheduling control",
+      "confidence": 0.91,
+      "keywords": ["scripts", "refactoring", "firebase-functions"],
+      "status": "APPROVED",
+      "processedAt": "2026-05-15T14:00:00",
+      "sourceMetrics": {
+        "lines_affected": 320,
+        "estimated_effort_hours": 6
+      }
+    }
+  ],
+
+  "consensusResults": [
+    {
+      "id": "cons-2026-001",
+      "question": "What is the recommended file size limit for comprehensive Brazilian Phone library changeset?",
+      "consensusAnswer": "Reduce the patch size by splitting into multiple smaller patches. The AAPCanary config mandates each patch ≤ MAX_PATCH_LINES limit to ensure review quality.",
+      "votes": [
+        {"provider": "qwen-coder", "vote": "Reduce into multiple patches", "confidence": 0.95, "latencyMs": 3200},
+        {"provider": "deepseek-pro", "vote": "Split into smaller patches", "confidence": 0.92, "latencyMs": 4100},
+        {"provider": "llama-3-1", "vote": "Split changes into multiple smaller patches", "confidence": 0.88, "latencyMs": 2900}
+      ],
+      "averageConfidence": 0.91,
+      "strength": "STRONG",
+      "consensusPercentage": 95.5,
+      "responseTimeMs": 3500,
+      "qualityScore": 0.93
+    },
+    {
+      "id": "cons-2026-002",
+      "question": "Which Spring Boot 3 database pool is recommended: HikariCP or Tomcat JDBC?",
+      "consensusAnswer": "Use HikariCP — it is the default in Spring Boot 3 and offers lower connection overhead with better virtual thread compatibility.",
+      "votes": [
+        {"provider": "qwen-coder", "vote": "HikariCP", "confidence": 0.99, "latencyMs": 2100},
+        {"provider": "deepseek-pro", "vote": "HikariCP — default in Boot 3", "confidence": 0.98, "latencyMs": 3800},
+        {"provider": "llama-3-1", "vote": "HikariCP recommended", "confidence": 0.97, "latencyMs": 2600}
+      ],
+      "averageConfidence": 0.98,
+      "strength": "STRONG",
+      "consensusPercentage": 100.0,
+      "responseTimeMs": 2833,
+      "qualityScore": 0.99
+    }
+  ],
+
+  "providerTaskPerformance": [
+    {
+      "id": "qwen-coder_CODE_GENERATION",
+      "provider": "qwen-coder",
+      "taskType": "CODE_GENERATION",
+      "successRate": 0.96,
+      "averageResponseTimeMs": 3420.0,
+      "averageQualityScore": 0.94,
+      "totalTasks": 5231,
+      "lastUsed": 1718378400000
+    },
+    {
+      "id": "qwen-coder_CODE_REVIEW",
+      "provider": "qwen-coder",
+      "taskType": "CODE_REVIEW",
+      "successRate": 0.93,
+      "averageResponseTimeMs": 3850.0,
+      "averageQualityScore": 0.91,
+      "totalTasks": 2843,
+      "lastUsed": 1718378400000
+    },
+    {
+      "id": "llama-3-1_COMMUNICATION",
+      "provider": "llama-3-1",
+      "taskType": "COMMUNICATION",
+      "successRate": 0.97,
+      "averageResponseTimeMs": 2890.0,
+      "averageQualityScore": 0.95,
+      "totalTasks": 6721,
+      "lastUsed": 1718380920000
+    },
+    {
+      "id": "llama-3-1_REASONING",
+      "provider": "llama-3-1",
+      "taskType": "REASONING",
+      "successRate": 0.95,
+      "averageResponseTimeMs": 3200.0,
+      "averageQualityScore": 0.93,
+      "totalTasks": 3012,
+      "lastUsed": 1718380920000
+    },
+    {
+      "id": "deepseek-pro_CODE_ARCHITECTURE",
+      "provider": "deepseek-pro",
+      "taskType": "CODE_ARCHITECTURE",
+      "successRate": 0.98,
+      "averageResponseTimeMs": 4100.0,
+      "averageQualityScore": 0.96,
+      "totalTasks": 1543,
+      "lastUsed": 1718384100000
+    },
+    {
+      "id": "deepseek-pro_LOGIC_VERIFICATION",
+      "provider": "deepseek-pro",
+      "taskType": "LOGIC_VERIFICATION",
+      "successRate": 0.99,
+      "averageResponseTimeMs": 3800.0,
+      "averageQualityScore": 0.97,
+      "totalTasks": 989,
+      "lastUsed": 1718384100000
+    },
+    {
+      "id": "phi-3_QUICK_RESPONSE",
+      "provider": "phi-3",
+      "taskType": "QUICK_RESPONSE",
+      "successRate": 0.94,
+      "averageResponseTimeMs": 1800.0,
+      "averageQualityScore": 0.87,
+      "totalTasks": 1102,
+      "lastUsed": 1718316000000
+    },
+    {
+      "id": "nomic-embed_EMBEDDING",
+      "provider": "nomic-embed",
+      "taskType": "EMBEDDING",
+      "successRate": 0.99,
+      "averageResponseTimeMs": 900.0,
+      "averageQualityScore": 0.95,
+      "totalTasks": 3890,
+      "lastUsed": 1718384900000
+    }
+  ],
+
+  "workflowDefinitions": [
+    {
+      "id": "wf-code-review",
+      "name": "Automated Code Review",
+      "description": "When a PR is opened, trigger AI agents to review code, post comments, and approve lane merges",
+      "trigger": "webhook",
+      "steps": [
+        {"step": 1, "action": "fetch_pr_diff", "timeoutSeconds": 30},
+        {"step": 2, "action": "agent_analyze", "agentId": "agent-coder", "timeoutSeconds": 120},
+        {"step": 3, "action": "vote_consensus", "agents": ["agent-coder", "agent-reasoner"], "timeoutSeconds": 60},
+        {"step": 4, "action": "post_review_comments", "timeoutSeconds": 30}
+      ],
+      "outputs": {"approvalRequired": true, "requiredVotes": 2}
+    },
+    {
+      "id": "wf-auto-heal",
+      "name": "Self-Healing Recovery",
+      "description": "Automatically diagnose failures via HealingEvent entries and attempt provider rotation or config reload",
+      "trigger": "scheduled",
+      "steps": [
+        {"step": 1, "action": "collect_recent_errors", "timeoutSeconds": 15},
+        {"step": 2, "action": "analyze_failure_pattern", "agentId": "agent-reasoner", "timeoutSeconds": 60},
+        {"step": 3, "action": "apply_remediation", "timeoutSeconds": 45},
+        {"step": 4, "action": "log_healing_event", "timeoutSeconds": 10}
+      ],
+      "outputs": {"maxAttempts": 3, "escalateToAdmin": true}
+    },
+    {
+      "id": "wf-daily-knowledge",
+      "name": "Daily Knowledge Learning",
+      "description": "Every 24h scheduler reviews chat sessions for new patterns and seeds them into knowledge_entries",
+      "trigger": "scheduled",
+      "steps": [
+        {"step": 1, "action": "fetch_recent_chat_sessions", "sinceHours": 24},
+        {"step": 2, "action": "extract_patterns", "agentId": "agent-chat", "timeoutSeconds": 180},
+        {"step": 3, "action": "save_to_knowledge_entries", "timeoutSeconds": 30}
+      ],
+      "outputs": {"minConfidenceToStore": 0.85, "runIntervalHours": 24}
+    }
+  ],
+
+  "activityLogs": [
+    {
+      "id": "act-20260516-001",
+      "action": "provider.healthcheck",
+      "user": "system",
+      "category": "HEALTH",
+      "severity": "info",
+      "details": "All 5 AI providers passed health check — qwen-coder: 3420ms, llama-3-1: 2890ms, deepseek-pro: 4100ms, phi-3: 1800ms, nomic-embed: 900ms",
+      "outcome": "success",
+      "ip": "internal"
+    },
+    {
+      "id": "act-20260516-002",
+      "action": "user.login",
+      "user": "prodev@supremeai.dev",
+      "category": "AUTH",
+      "severity": "info",
+      "details": "User logged in as PRO tier — currentUsage: 7821/10000",
+      "outcome": "success",
+      "ip": "192.168.1.100"
+    },
+    {
+      "id": "act-20260516-003",
+      "action": "consensus.completed",
+      "user": "system",
+      "category": "AI_ORCHESTRATION",
+      "severity": "info",
+      "details": "Consensus vote on 'HikariCP or Tomcat JDBC': STRONG consensus (100%) in favor of HikariCP — 3/3 agents agreed",
+      "outcome": "success",
+      "ip": "internal"
+    },
+    {
+      "id": "act-20260516-004",
+      "action": "knowledge.seeded",
+      "user": "system",
+      "category": "LEARNING",
+      "severity": "info",
+      "details": "5 new knowledge entries seeded from AI provider analysis (avg confidence: 0.93)",
+      "outcome": "success",
+      "ip": "internal"
+    },
+    {
+      "id": "act-20260516-005",
+      "action": "agent.fallback_triggered",
+      "user": "system",
+      "category": "RESILIENCE",
+      "severity": "warning",
+      "details": "qwen-coder timeout at 15s — rotated to llama-3-1 fallback. Latency: +2800ms overhead.",
+      "outcome": "success",
+      "ip": "internal"
+    },
+    {
+      "id": "act-20260516-006",
+      "action": "quota.warning",
+      "user": "learner@supremeai.dev",
+      "category": "QUOTA",
+      "severity": "warning",
+      "details": "FREE user 'learner' at 34/100 monthly quota — 34% used, 4 days remaining in billing period",
+      "outcome": "pending",
+      "ip": "10.0.0.55"
+    }
+  ],
+
+  "reasoningLogs": [
+    {
+      "id": "rl-20260516-001",
+      "taskId": "tsk-code-qA3f2",
+      "decision": "Selected llama-3-1 as primary communicator and qwen-coder for code execution",
+      "reason": "User query is Bengali NLP task with embedded code block. Llama-3-1 has higher Bengali confidence (0.93) while qwen-coder excels at code",
+      "modelName": "orchestrator-v2",
+      "status": "completed",
+      "timestamp": "2026-05-16T01:35:00+06:00",
+      "additionalMetadata": "{\"confidence\":0.94,\"fallbackUsed\":false,\"latencyMs\":120}"
+    },
+    {
+      "id": "rl-20260516-002",
+      "taskId": "tsk-arch-b7d1c",
+      "decision": "Selected deepseek-pro for system architecture design",
+      "reason": "Architecture task requires high-quality design document. deepseek-pro has highest code_architecture capability score (0.97)",
+      "modelName": "orchestrator-v2",
+      "status": "completed",
+      "timestamp": "2026-05-16T01:42:00+06:00",
+      "additionalMetadata": "{\"confidence\":0.98,\"fallbackUsed\":false,\"latencyMs\":85}"
+    },
+    {
+      "id": "rl-20260516-003",
+      "taskId": "tsk-chat-quick-9kLm",
+      "decision": "Selected phi-3 for quick user greeting response",
+      "reason": "Simple greeting no code involved — using lowest-latency available provider (phi-3 at 1800ms)",
+      "modelName": "orchestrator-v2",
+      "status": "completed",
+      "timestamp": "2026-05-16T01:44:00+06:00",
+      "additionalMetadata": "{\"confidence\":0.90,\"fallbackUsed\":false,\"latencyMs\":45}"
+    },
+    {
+      "id": "rl-20260516-004",
+      "taskId": "tsk-embed-XyZ12",
+      "decision": "Used nomic-embed for knowledge base vector search",
+      "reason": "RAG query requires text embedding — nomic-embed is the only embedding provider with 0.95 quality score",
+      "modelName": "orchestrator-v2",
+      "status": "completed",
+      "timestamp": "2026-05-16T01:45:00+06:00",
+      "additionalMetadata": "{\"confidence\":0.96,\"fallbackUsed\":false,\"latencyMs\":30}"
+    }
+  ]
+}

@@ -1,52 +1,64 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'providers/auth_provider.dart';
-import 'providers/settings_provider.dart';
-import 'providers/orchestration_provider.dart';
-import 'screens/login_screen.dart';
-import 'screens/dashboard/home_screen.dart';
-
-import 'services/localization_service.dart';
+import 'package:supremeai/providers/auth_provider.dart';
+import 'package:supremeai/providers/settings_provider.dart';
+import 'package:supremeai/providers/orchestration_provider.dart';
+import 'package:supremeai/theme/app_theme.dart';
+import 'package:supremeai/screens/login_screen.dart';
+import 'package:supremeai/screens/dashboard/home_screen.dart';
+import 'package:supremeai/services/localization_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await LocalizationService.load('bn'); // Default to Bengali
-  runApp(
-    MultiProvider(
+  await LocalizationService.load('bn');
+  runApp(const SupremeAIApp());
+}
+
+class SupremeAIApp extends StatelessWidget {
+  const SupremeAIApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => OrchestrationProvider()),
       ],
-      child: const MyApp(),
-    ),
-  );
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      container: true,
-      label: 'SupremeAI Application',
-      child: MaterialApp(
-        title: 'SupremeAI',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-          useMaterial3: true,
-        ),
-        home: Consumer<AuthProvider>(
-          builder: (context, auth, _) {
-            if (auth.status == AuthStatus.authenticated || auth.status == AuthStatus.guest) {
-              return const HomeScreen();
-            }
-            return const LoginScreen();
-          },
-        ),
+      child: Consumer<SettingsProvider>(
+        builder: (context, settings, _) {
+          return MaterialApp(
+            title: 'SupremeAI',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light,
+            darkTheme: AppTheme.dark,
+            themeMode: _getThemeMode(settings.settings.themeMode),
+            home: const AuthWrapper(),
+          );
+        },
       ),
     );
   }
+
+  ThemeMode _getThemeMode(String mode) {
+    switch (mode) {
+      case 'light': return ThemeMode.light;
+      case 'dark': return ThemeMode.dark;
+      default: return ThemeMode.system;
+    }
+  }
 }
 
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    
+    if (auth.status == AuthStatus.authenticated || auth.status == AuthStatus.guest) {
+      return const HomeScreen();
+    }
+    return const LoginScreen();
+  }
+}

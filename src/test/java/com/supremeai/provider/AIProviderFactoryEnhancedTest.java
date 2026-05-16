@@ -190,22 +190,28 @@ class AIProviderFactoryEnhancedTest {
     void getSupportedProviders_shouldReturnAllProviders() {
         String[] providers = factory.getSupportedProviders();
 
-        assertEquals(15, providers.length);
-        assertTrue(java.util.Arrays.asList(providers).contains("gpt4"));
-        assertTrue(java.util.Arrays.asList(providers).contains("claude"));
-        assertTrue(java.util.Arrays.asList(providers).contains("gemini"));
-        assertTrue(java.util.Arrays.asList(providers).contains("groq"));
-        assertTrue(java.util.Arrays.asList(providers).contains("deepseek"));
-        assertTrue(java.util.Arrays.asList(providers).contains("ollama"));
-        assertTrue(java.util.Arrays.asList(providers).contains("huggingface"));
-        assertTrue(java.util.Arrays.asList(providers).contains("kimi"));
-        assertTrue(java.util.Arrays.asList(providers).contains("mistral"));
-        assertTrue(java.util.Arrays.asList(providers).contains("stepfun"));
-        assertTrue(java.util.Arrays.asList(providers).contains("codegeex4"));
-        assertTrue(java.util.Arrays.asList(providers).contains("gcp_qwen"));
-        assertTrue(java.util.Arrays.asList(providers).contains("gcp_llama"));
-        assertTrue(java.util.Arrays.asList(providers).contains("gcp_phi"));
-        assertTrue(java.util.Arrays.asList(providers).contains("hf_deepseek"));
+        assertEquals(28, providers.length);
+        List<String> providerList = java.util.Arrays.asList(providers);
+        
+        // Primary
+        assertTrue(providerList.contains("gpt4"));
+        assertTrue(providerList.contains("claude"));
+        assertTrue(providerList.contains("gemini"));
+        assertTrue(providerList.contains("deepseek"));
+        
+        // GCP
+        assertTrue(providerList.contains("gcp_llama"));
+        assertTrue(providerList.contains("gcp_phi"));
+        
+        // HuggingFace
+        assertTrue(providerList.contains("hf_codellama"));
+        assertTrue(providerList.contains("hf_phi_vision"));
+        assertTrue(providerList.contains("hf_e5_large"));
+        
+        // Render
+        assertTrue(providerList.contains("render_tinyllama"));
+        assertTrue(providerList.contains("render_phi2"));
+        assertTrue(providerList.contains("render_qwen"));
     }
 
     @Test

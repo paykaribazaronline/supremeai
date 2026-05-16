@@ -4,6 +4,7 @@ public enum AIProviderType {
     // Tier 1: External APIs
     GROQ_LLAMA3,
     GEMINI_PRO,
+    GEMINI_FLASH,
     ANTHROPIC_CLAUDE,
     OPENAI,
     DEEPSEEK,

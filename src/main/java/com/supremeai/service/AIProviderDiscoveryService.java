@@ -2,9 +2,12 @@ package com.supremeai.service;
 
 import com.supremeai.model.APIProvider;
 import com.supremeai.provider.AIProviderFactory;
+import com.google.cloud.run.v2.ServicesClient;
+import com.google.cloud.run.v2.LocationName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -18,7 +21,6 @@ import java.util.stream.Collectors;
 /**
  * Service for discovering AI models from internet registries, cloud deployments, and local systems.
  * Implements the "Zero-Hardcoding" requirement for AI Provider Hub.
- * (ইন্টারনেট রেজিস্ট্রি, ক্লাউড ডিপ্লয়মেন্ট এবং লোকাল সিস্টেম থেকে এআই মডেল খুঁজে বের করার সার্ভিস)
  */
 @Service
 public class AIProviderDiscoveryService {
@@ -31,19 +33,20 @@ public class AIProviderDiscoveryService {
     @Autowired
     private WebClient webClient;
 
-    @org.springframework.beans.factory.annotation.Value("${ai.providers.ollama.endpoint:http://localhost:11434}")
+    @Value("${ai.providers.ollama.endpoint:http://localhost:11434}")
     private String ollamaEndpoint;
 
-    /**
-     * Searches for AI models across various registries.
-     * Calls actual APIs (HuggingFace, OpenRouter, etc.)
-     */
+    @Value("${gcp.project-id:supremeai-a}")
+    private String gcpProjectId;
+
+    @Value("${gcp.region:us-central1}")
+    private String gcpRegion;
+
     public Flux<Map<String, Object>> discoverModels(String query) {
         logger.info("Discovering AI models for query: {}", query);
         
         String searchQuery = (query == null || query.isEmpty()) ? "gpt" : query;
         
-        // 1. HuggingFace Discovery
         Mono<List<Map<String, Object>>> hfModels = webClient.get()
                 .uri("https://huggingface.co/api/models?search={query}&filter=text-generation&sort=downloads&direction=-1&limit=20", searchQuery)
                 .retrieve()
@@ -61,7 +64,6 @@ public class AIProviderDiscoveryService {
                 .collectList()
                 .onErrorReturn(new ArrayList<>());
 
-        // 2. OpenRouter (Static-ish but can be fetched)
         Mono<List<Map<String, Object>>> orModels = webClient.get()
                 .uri("https://openrouter.ai/api/v1/models")
                 .retrieve()
@@ -91,9 +93,6 @@ public class AIProviderDiscoveryService {
                 });
     }
 
-    /**
-     * Validates an API key for a given provider by performing a lightweight "hello world" request.
-     */
     public Mono<Boolean> validateKey(String providerName, String apiKey) {
         try {
             com.supremeai.provider.AIProvider provider = providerFactory.getProvider(providerName, apiKey);
@@ -106,17 +105,14 @@ public class AIProviderDiscoveryService {
         }
     }
 
-    /**
-     * Scans for local or cloud-deployed models (e.g. Ollama, Local endpoints).
-     */
     public Flux<Map<String, Object>> scanDeployments() {
-        // Ping localhost:11434 for Ollama
-        return webClient.get()
+        Flux<Map<String, Object>> ollamaModels = webClient.get()
                 .uri(ollamaEndpoint + "/api/tags")
                 .retrieve()
                 .bodyToMono(Map.class)
                 .flatMapMany(m -> {
                     List<Map<String, Object>> models = (List<Map<String, Object>>) m.get("models");
+                    if (models == null) return Flux.empty();
                     return Flux.fromIterable(models.stream()
                             .map(model -> Map.<String, Object>of(
                                 "name", model.get("name"),
@@ -127,6 +123,43 @@ public class AIProviderDiscoveryService {
                             .collect(Collectors.toList()));
                 })
                 .onErrorResume(e -> Flux.empty());
+
+        Flux<Map<String, Object>> cloudRunModels = Mono.fromCallable(() -> {
+            List<Map<String, Object>> result = new ArrayList<>();
+            try (ServicesClient client = ServicesClient.create()) {
+                LocationName parent = LocationName.of(gcpProjectId, gcpRegion);
+                for (com.google.cloud.run.v2.Service service : client.listServices(parent).iterateAll()) {
+                    String name = service.getName();
+                    String simpleName = name.contains("/") ? name.substring(name.lastIndexOf("/") + 1) : name;
+                    String lower = simpleName.toLowerCase();
+
+                    if (lower.contains("ai") || lower.contains("model") || lower.contains("llama") ||
+                        lower.contains("mistral") || lower.contains("gpt") || lower.contains("embed") ||
+                        lower.contains("vision")) {
+                        result.add(Map.<String, Object>of(
+                            "name", simpleName,
+                            "provider", "google-cloud",
+                            "type", "llm",
+                            "baseUrl", service.getUri(),
+                            "description", "Cloud Run Deployment: " + simpleName
+                        ));
+                    }
+                }
+            } catch (Exception e) {
+                logger.warn("Cloud Run scan failed: {}", e.getMessage());
+            }
+            return result;
+        }).flatMapMany(Flux::fromIterable);
+
+        return Flux.merge(ollamaModels, cloudRunModels);
+    }
+
+    public com.supremeai.provider.AIProvider getBestProviderForTask(String task) {
+        try {
+            return providerFactory.getProvider("google-cloud", null);
+        } catch (Exception e) {
+            logger.error("Failed to get provider for task {}: {}", task, e.getMessage());
+            return null;
+        }
     }
 }
-

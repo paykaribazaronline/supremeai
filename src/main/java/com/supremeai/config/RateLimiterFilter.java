@@ -5,8 +5,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -20,12 +20,17 @@ import java.util.Map;
  * Applies different rate limits based on user role and endpoint type.
  */
 @Component
-@RequiredArgsConstructor
-@Slf4j
 public class RateLimiterFilter extends OncePerRequestFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(RateLimiterFilter.class);
 
     private final RateLimitProperties rateLimitProperties;
     private final RateLimiter rateLimiter;
+
+    public RateLimiterFilter(RateLimitProperties rateLimitProperties, RateLimiter rateLimiter) {
+        this.rateLimitProperties = rateLimitProperties;
+        this.rateLimiter = rateLimiter;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)

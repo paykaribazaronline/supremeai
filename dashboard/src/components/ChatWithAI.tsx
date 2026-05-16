@@ -1,25 +1,19 @@
-// ChatWithAI.tsx - NEURAL LINK COMMAND INTERFACE
+// ChatWithAI.tsx - Enhanced with Multi-Chat Sessions
 import React, { useState, useRef, useEffect } from 'react';
-import { Input, Button, Space, message, Empty, Tag, List, Divider, Row, Col, Tooltip, Typography, Progress, Badge } from 'antd';
-import { 
-    SendOutlined, 
-    RobotOutlined, 
-    CheckCircleOutlined, 
-    CloseCircleOutlined, 
+import { Input, Button, Space, message, Tag, Tooltip, Modal, Badge } from 'antd';
+import {
+    SendOutlined,
+    RobotOutlined,
     CopyOutlined,
     ThunderboltOutlined,
-    ApiOutlined,
-    SafetyCertificateOutlined,
-    CloudServerOutlined,
-    CodeOutlined,
-    SyncOutlined,
     DatabaseOutlined,
-    BulbOutlined,
-    FileTextOutlined
+    PlusOutlined,
+    DeleteOutlined,
+    EditOutlined,
+    MessageOutlined
 } from '@ant-design/icons';
 import { authUtils } from '../lib/authUtils';
-
-const { Text } = Typography;
+import AISuggestionInformer from './AISuggestionInformer';
 
 interface ChatMessage {
     id: string;
@@ -32,26 +26,109 @@ interface ChatMessage {
     status?: 'pending' | 'completed' | 'error';
 }
 
-const ChatWithAI: React.FC = () => {
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
+interface ChatSession {
+    id: string;
+    name: string;
+    messages: ChatMessage[];
+    createdAt: string;
+}
+
+interface ChatWithAIProps {
+    chatFont?: string;
+}
+
+const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
+    // Session State
+    const [sessions, setSessions] = useState<ChatSession[]>([]);
+    const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+    const [isRenameModalVisible, setIsRenameModalVisible] = useState(false);
+    const [sessionToRename, setSessionToRename] = useState<ChatSession | null>(null);
+    const [newName, setNewName] = useState('');
+
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [selectedAgent, setSelectedAgent] = useState('all');
     const [agents, setAgents] = useState<any[]>([]);
-    const [knowledge, setKnowledge] = useState<{rules: any[], plans: any[]}>({ rules: [], plans: [] });
-    const [systemStatus, setSystemStatus] = useState({ status: 'UP', version: '6.0.0-PRO' });
+    const [knowledge, setKnowledge] = useState<{rules: any[], plans: any[], actions: any[]}>({ rules: [], plans: [], actions: [] });
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
+    // Load sessions from localStorage on mount
     useEffect(() => {
+        const savedSessions = localStorage.getItem('supremeai_chat_sessions');
+        if (savedSessions) {
+            try {
+                const parsed = JSON.parse(savedSessions);
+                setSessions(parsed);
+                if (parsed.length > 0) {
+                    setActiveSessionId(parsed[0].id);
+                } else {
+                    createNewSession();
+                }
+            } catch (e) {
+                console.error('Failed to parse saved sessions');
+                createNewSession();
+            }
+        } else {
+            createNewSession();
+        }
+        
         fetchAgents();
-        fetchChatHistory();
         fetchKnowledge();
-        const interval = setInterval(() => {
-            fetchChatHistory();
-            fetchKnowledge();
-        }, 15000);
-        return () => clearInterval(interval);
     }, []);
+
+    // Save sessions to localStorage whenever they change
+    useEffect(() => {
+        if (sessions.length >= 0) {
+            localStorage.setItem('supremeai_chat_sessions', JSON.stringify(sessions));
+        }
+    }, [sessions]);
+
+    const activeSession = sessions.find(s => s.id === activeSessionId);
+    const messages = activeSession?.messages || [];
+
+    const createNewSession = () => {
+        const newSession: ChatSession = {
+            id: Date.now().toString(),
+            name: 'New Chat',
+            messages: [],
+            createdAt: new Date().toISOString()
+        };
+        setSessions(prev => [newSession, ...prev]);
+        setActiveSessionId(newSession.id);
+    };
+
+    const deleteSession = (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        const filtered = sessions.filter(s => s.id !== id);
+        setSessions(filtered);
+        if (activeSessionId === id) {
+            setActiveSessionId(filtered.length > 0 ? filtered[0].id : null);
+            if (filtered.length === 0) {
+                // We'll create one in the useEffect if needed, but let's do it here for UX
+                setTimeout(() => {
+                    if (filtered.length === 0) createNewSession();
+                }, 0);
+            }
+        }
+        message.success('Chat deleted');
+    };
+
+    const handleRename = (session: ChatSession, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setSessionToRename(session);
+        setNewName(session.name);
+        setIsRenameModalVisible(true);
+    };
+
+    const saveNewName = () => {
+        if (sessionToRename && newName.trim()) {
+            setSessions(prev => prev.map(s => 
+                s.id === sessionToRename.id ? { ...s, name: newName.trim() } : s
+            ));
+            setIsRenameModalVisible(false);
+            message.success('Chat renamed');
+        }
+    };
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -63,10 +140,31 @@ const ChatWithAI: React.FC = () => {
 
     const fetchAgents = async () => {
         try {
-            const response = await authUtils.fetchWithAuth('/api/ai/agents');
+            const isAuthenticated = authUtils.isAuthenticated();
+            if (!isAuthenticated) {
+                const demoAgents = [
+                    { id: 'gpt-4o', name: 'GPT-4o', status: 'online', type: 'llm' },
+                    { id: 'claude-3', name: 'Claude 3.5', status: 'online', type: 'llm' },
+                    { id: 'phi-3', name: 'Phi-3 Mini', status: 'offline', type: 'llm' }
+                ];
+                setAgents(demoAgents);
+                return;
+            }
+
+            const response = await authUtils.fetchWithAuth('/api/admin/providers/configured');
             if (response.ok) {
-                const data = await response.json();
-                setAgents(data);
+                const result = await response.json();
+                const rawData = result.data?.providers || (Array.isArray(result.data) ? result.data : []);
+                
+                // Map providers to agent format
+                const mappedAgents = rawData.map((p: any) => ({
+                    id: p.id,
+                    name: p.name,
+                    status: p.status || 'online',
+                    type: p.type || 'llm'
+                }));
+                
+                setAgents(mappedAgents);
             }
         } catch (error) {
             console.error('Failed to fetch agents');
@@ -75,79 +173,68 @@ const ChatWithAI: React.FC = () => {
 
     const fetchKnowledge = async () => {
         try {
-            const [rulesRes, plansRes] = await Promise.all([
-                authUtils.fetchWithAuth('/api/admin/rules'),
-                authUtils.fetchWithAuth('/api/admin/plans')
-            ]);
-            if (rulesRes.ok && plansRes.ok) {
-                const rules = await rulesRes.json();
-                const plans = await plansRes.json();
-                setKnowledge({ rules: rules.slice(0, 5), plans: plans.slice(0, 5) });
+            const isAuthenticated = authUtils.isAuthenticated();
+            if (!isAuthenticated) {
+                setKnowledge({ rules: [], plans: [], actions: [] });
+                return;
             }
+
+            const [rulesRes, plansRes, actionsRes] = await Promise.all([
+                authUtils.fetchWithAuth('/api/admin/rules').catch(() => null),
+                authUtils.fetchWithAuth('/api/admin/plans').catch(() => null),
+                authUtils.fetchWithAuth('/api/admin/chat/actions/pending').catch(() => null)
+            ]);
+            const rules = rulesRes?.ok ? await rulesRes.json() : [];
+            const plans = plansRes?.ok ? await plansRes.json() : [];
+            const actions = actionsRes?.ok ? await actionsRes.json() : [];
+            setKnowledge({ 
+                rules: Array.isArray(rules) ? rules.slice(0, 5) : [], 
+                plans: Array.isArray(plans) ? plans.slice(0, 5) : [],
+                actions: Array.isArray(actions) ? actions.slice(0, 5) : []
+            });
         } catch (error) {
             console.error('Failed to fetch knowledge context');
         }
     };
 
-    const fetchChatHistory = async () => {
-        try {
-            const user = authUtils.getCurrentUser();
-            const userId = user?.uid || 'anonymous';
-            const response = await authUtils.fetchWithAuth(`/api/chat/history?user_id=${userId}&limit=50`);
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success && data.chat_history) {
-                    const historyMessages = data.chat_history.map((item: any) => ({
-                        id: item.id,
-                        sender: item.is_admin ? 'ai' : 'user',
-                        agent: item.is_admin ? 'SupremeAI' : 'Operator',
-                        content: item.message,
-                        timestamp: new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                        status: 'completed' as const,
-                        intent: item.intent || 'NORMAL'
-                    }));
-                    setMessages(historyMessages);
-                }
-            }
-        } catch (error) {
-            console.error('Failed to fetch chat history');
-        }
-    };
-
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!input.trim()) return;
+        if (!input.trim() || loading || !activeSessionId) return;
 
         const userMessage: ChatMessage = {
             id: Date.now().toString(),
             sender: 'user',
-            agent: 'Operator',
+            agent: 'You',
             content: input,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            status: 'completed'
         };
 
-        setMessages(prev => [...prev, userMessage]);
+        // Update session messages
+        let currentSessions = [...sessions];
+        const sessionIndex = currentSessions.findIndex(s => s.id === activeSessionId);
+        if (sessionIndex !== -1) {
+            currentSessions[sessionIndex].messages.push(userMessage);
+            
+            // Smart Name: If first message or default name, generate name
+            if (currentSessions[sessionIndex].messages.length === 1 || currentSessions[sessionIndex].name === 'New Chat') {
+                const words = input.split(' ');
+                currentSessions[sessionIndex].name = words.slice(0, 4).join(' ') + (words.length > 4 ? '...' : '');
+            }
+            
+            setSessions(currentSessions);
+        }
+
         const currentInput = input;
         setInput('');
         setLoading(true);
 
         try {
-            // Intelligent Intent Detection (Local Analysis before Backend)
-            let detectedIntent = 'NORMAL';
-            if (currentInput.toLowerCase().includes('rule') || currentInput.toLowerCase().includes('must') || currentInput.toLowerCase().includes('always')) {
-                detectedIntent = 'RULE';
-            } else if (currentInput.toLowerCase().includes('plan') || currentInput.toLowerCase().includes('roadmap') || currentInput.toLowerCase().includes('step')) {
-                detectedIntent = 'PROJECT_PLAN';
-            } else if (currentInput.toLowerCase().includes('run') || currentInput.toLowerCase().includes('execute') || currentInput.toLowerCase().includes('cmd')) {
-                detectedIntent = 'COMMAND';
-            }
-
             const response = await authUtils.fetchWithAuth('/api/chat/send', {
                 method: 'POST',
                 body: JSON.stringify({
                     message: currentInput,
                     agent: selectedAgent === 'all' ? null : selectedAgent,
-                    detected_intent: detectedIntent // Pass hint to backend
                 }),
             });
 
@@ -160,240 +247,281 @@ const ChatWithAI: React.FC = () => {
                     content: data.message || 'Processing optimized.',
                     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                     confidence: data.confidence ? Math.round(data.confidence * 100) : 98,
-                    intent: data.intent || detectedIntent,
+                    intent: data.intent || 'NORMAL',
                     status: 'completed',
                 };
-                setMessages((prev) => [...prev, aiMessage]);
                 
-                // If a rule or plan was captured, update the knowledge sidepanel
-                if (aiMessage.intent === 'RULE' || aiMessage.intent === 'PROJECT_PLAN') {
-                    message.success(`SYSTEM_INTEL: Captured new ${aiMessage.intent}`);
-                    fetchKnowledge();
-                }
+                setSessions(prev => prev.map(s => 
+                    s.id === activeSessionId ? { ...s, messages: [...s.messages, aiMessage] } : s
+                ));
             }
         } catch (error: any) {
-            message.error('NEURAL_LINK_ERROR: Request Timeout');
+            message.error('Request failed');
         } finally {
             setLoading(false);
         }
     };
 
-    const getIntentColor = (intent?: string) => {
-        switch (intent) {
-            case 'RULE': return '#f5222d';
-            case 'COMMAND': return '#52c41a';
-            case 'PROJECT_PLAN': return '#1890ff';
-            case 'DEBUG': return '#faad14';
-            case 'INFO_COLLECTION': return '#722ed1';
-            default: return 'rgba(255,255,255,0.2)';
-        }
-    };
-
     return (
-        <div className="flex h-[700px] bg-[#050505] font-mono text-white overflow-hidden border border-white/5 shadow-2xl rounded-xl">
-            {/* Left Column: Chat Interface */}
-            <div className="flex-1 flex flex-col border-r border-white/5 relative">
-                {/* Header / Telemetry Bar */}
-                <div className="px-4 py-3 bg-white/[0.02] border-b border-white/5 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <CodeOutlined className="text-emerald-500 text-[14px]" />
-                            <span className="text-[11px] font-black uppercase tracking-widest">Neural Link Command</span>
+        <div className="flex flex-1 h-full bg-[#050505]/40 text-white overflow-hidden border border-white/5 rounded-2xl shadow-2xl backdrop-blur-xl">
+            {/* Left Sidebar: Sessions */}
+            <div className="w-64 bg-white/[0.03] border-r border-white/10 flex flex-col">
+                <div className="p-4 border-b border-white/10">
+                    <Button 
+                        type="primary" 
+                        icon={<PlusOutlined />} 
+                        block 
+                        onClick={createNewSession}
+                        className="bg-emerald-600/90 hover:bg-emerald-500 border-none h-11 font-black uppercase tracking-widest flex items-center justify-center gap-2 rounded-xl transition-all hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]"
+                    >
+                        New Neural Session
+                    </Button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-3 space-y-1 custom-scrollbar bg-black/20">
+                    {sessions.map(s => (
+                        <div 
+                            key={s.id}
+                            onClick={() => setActiveSessionId(s.id)}
+                            className={`group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-200 ${
+                                activeSessionId === s.id 
+                                ? 'bg-gradient-to-r from-emerald-500/20 to-transparent border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]' 
+                                : 'hover:bg-white/5 border border-transparent opacity-60 hover:opacity-100'
+                            }`}
+                        >
+                            <div className="flex items-center gap-3 overflow-hidden flex-1">
+                                <div className={`w-2 h-2 rounded-full transition-all ${activeSessionId === s.id ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-white/10'}`} />
+                                <span className={`text-[12px] truncate font-bold uppercase tracking-tight ${activeSessionId === s.id ? 'text-white' : 'text-white/40'}`}>{s.name}</span>
+                            </div>
+                            <div className={`flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity`}>
+                                <Tooltip title="Rename">
+                                    <EditOutlined 
+                                        className="text-xs text-white/30 hover:text-white" 
+                                        onClick={(e) => handleRename(s, e)}
+                                    />
+                                </Tooltip>
+                                <Tooltip title="Delete">
+                                    <DeleteOutlined 
+                                        className="text-xs text-white/30 hover:text-red-500" 
+                                        onClick={(e) => deleteSession(s.id, e)}
+                                    />
+                                </Tooltip>
+                            </div>
                         </div>
-                        <div className="h-4 w-[1px] bg-white/10"></div>
-                        <div className="flex items-center gap-1.5">
-                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                            <span className="text-[9px] font-black uppercase text-emerald-500/60">Core Sync: {systemStatus.status}</span>
+                    ))}
+                </div>
+            </div>
+
+            {/* Main Column: Chat Interface */}
+            <div className="flex-1 flex flex-col relative">
+                {/* Header */}
+                <div className="px-6 py-4 bg-white/[0.01] border-b border-white/10 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-emerald-500/20 rounded-lg">
+                            <RobotOutlined className="text-emerald-500 text-lg" />
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-bold text-white mb-0">{activeSession?.name || 'Neural Chat'}</h3>
+                            <span className="text-[10px] text-emerald-500/80 uppercase tracking-widest font-bold">SupremeAI Neural Core</span>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <select 
-                            value={selectedAgent} 
+                        <select
+                            value={selectedAgent}
                             onChange={(e) => setSelectedAgent(e.target.value)}
-                            className="bg-black/40 border border-white/10 text-[9px] px-2 py-1 rounded text-white/60 uppercase font-black outline-none hover:border-emerald-500/30 transition-colors"
+                            className="bg-black/60 border border-white/10 text-[11px] px-4 py-2 rounded-lg text-white/80 outline-none hover:border-emerald-500/50 transition-all focus:ring-1 focus:ring-emerald-500/30"
                         >
-                            <option value="all">Global Matrix</option>
+                            <option value="all">Dynamic Routing (All)</option>
                             {agents.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                         </select>
-                        <span className="text-[9px] text-white/20 uppercase font-black tracking-tighter">v{systemStatus.version}</span>
                     </div>
                 </div>
 
                 {/* Chat Area */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar bg-[radial-gradient(circle_at_center,_transparent_0%,_rgba(0,0,0,0.4)_100%)]">
-                    {messages.length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center opacity-10">
-                            <RobotOutlined className="text-6xl mb-4" />
-                            <span className="text-[12px] font-black uppercase tracking-[0.5em]">Awaiting Instruction</span>
-                        </div>
-                    ) : (
-                        messages.map((msg) => (
-                            <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}>
-                                <div className={`max-w-[85%] flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'} gap-2`}>
-                                    <div className="flex items-center gap-2 px-1">
-                                        {msg.sender === 'ai' && <RobotOutlined className="text-[11px] text-emerald-500" />}
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-white/40">{msg.agent}</span>
-                                        {msg.intent && msg.intent !== 'NORMAL' && (
-                                            <Tag color={getIntentColor(msg.intent)} className="text-[8px] font-black border-none rounded-sm px-1.5 py-0 leading-tight">
-                                                {msg.intent}
-                                            </Tag>
-                                        )}
-                                        <span className="text-[8px] font-mono text-white/10">{msg.timestamp}</span>
-                                    </div>
-                                    <div className={`px-4 py-3 rounded-xl text-[12px] leading-relaxed relative glass-morphism ${
-                                        msg.sender === 'user' 
-                                        ? 'bg-blue-600/10 border border-blue-500/30 text-blue-100/90 rounded-tr-none' 
-                                        : 'bg-white/[0.04] border border-white/10 text-white/80 rounded-tl-none shadow-[0_0_20px_rgba(0,0,0,0.5)]'
-                                    }`}>
-                                        {msg.content}
-                                        {msg.sender === 'ai' && msg.confidence && (
-                                            <div className="mt-3 pt-3 border-t border-white/5 flex items-center gap-3 opacity-50">
-                                                <span className="text-[8px] font-black uppercase tracking-tighter">Confidence</span>
-                                                <div className="flex-1 h-[2px] bg-white/5 rounded-full overflow-hidden">
-                                                    <div 
-                                                        className="h-full bg-emerald-500 shadow-[0_0_8px_#10b981]" 
-                                                        style={{ width: `${msg.confidence}%` }}
-                                                    ></div>
+                <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#050505]">
+                    <div className="max-w-4xl mx-auto w-full p-6 space-y-8">
+                        {messages.length === 0 ? (
+                            <div className="h-[60vh] flex flex-col items-center justify-center text-white/20">
+                                <div className="w-20 h-20 bg-white/[0.02] rounded-3xl flex items-center justify-center mb-6 border border-white/5 shadow-2xl relative overflow-hidden group">
+                                    <div className="absolute inset-0 bg-emerald-500/5 animate-pulse" />
+                                    <MessageOutlined className="text-4xl text-emerald-500/40 relative z-10 group-hover:scale-110 transition-transform" />
+                                </div>
+                                <span className="text-[10px] font-black tracking-[0.4em] uppercase opacity-40 animate-pulse">Neural Synchronization Initiated</span>
+                            </div>
+                        ) : (
+                            messages.map((msg) => (
+                                <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
+                                    <div className={`max-w-[85%] ${msg.sender === 'user' ? 'order-2' : 'order-1'}`}>
+                                        <div className={`flex items-center gap-3 mb-2 px-1 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                            <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">
+                                                {msg.sender === 'ai' ? msg.agent : 'Authorized User'} • {msg.timestamp}
+                                            </span>
+                                            {msg.sender === 'ai' && (
+                                                <div className="flex items-center gap-1">
+                                                    <div className="w-1 h-1 rounded-full bg-emerald-500" />
+                                                    <span className="text-[8px] text-emerald-500/60 font-bold">{msg.confidence}% CONFIDENCE</span>
                                                 </div>
-                                                <span className="text-[8px] font-mono">{msg.confidence}%</span>
+                                            )}
+                                        </div>
+                                        <div className={`px-6 py-5 rounded-2xl text-[14px] leading-relaxed shadow-2xl transition-all hover:shadow-emerald-900/5 ${
+                                            msg.sender === 'user'
+                                            ? 'bg-gradient-to-br from-emerald-600/20 to-emerald-900/5 border border-emerald-500/20 text-white rounded-tr-none'
+                                            : 'bg-white/[0.03] border border-white/10 text-white/90 rounded-tl-none backdrop-blur-xl'
+                                        }`}>
+                                            {msg.content}
+                                        </div>
+                                        {msg.sender === 'ai' && (
+                                            <div className="flex gap-4 mt-3 px-1">
+                                                <button
+                                                    onClick={() => { navigator.clipboard.writeText(msg.content); message.success('Encrypted Data Copied'); }}
+                                                    className="text-[9px] text-white/20 hover:text-emerald-400 transition-all flex items-center gap-1.5 uppercase font-black tracking-wider"
+                                                >
+                                                    <CopyOutlined className="text-xs" /> Copy
+                                                </button>
                                             </div>
                                         )}
                                     </div>
-                                    {msg.sender === 'ai' && (
-                                        <div className="flex gap-3 px-1 mt-1">
-                                            <button onClick={() => { navigator.clipboard.writeText(msg.content); message.success('COPIED'); }} className="text-[8px] font-black uppercase text-white/20 hover:text-white/60 transition-colors flex items-center gap-1"><CopyOutlined /> Copy Payload</button>
-                                            <button className="text-[8px] font-black uppercase text-white/20 hover:text-white/60 transition-colors flex items-center gap-1"><CodeOutlined /> Inspect Node</button>
-                                        </div>
-                                    )}
                                 </div>
-                            </div>
-                        ))
-                    )}
-                    <div ref={messagesEndRef} />
+                            ))
+                        )}
+                        <div ref={messagesEndRef} />
+                    </div>
                 </div>
 
                 {/* Input Area */}
-                <div className="p-6 bg-white/[0.02] border-t border-white/5">
-                    <form onSubmit={handleSendMessage} className="relative">
-                        <Input
-                            placeholder="INPUT COMMAND OR DEFINE RULE..."
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            disabled={loading}
-                            className="bg-black/60 border-white/10 text-white placeholder:text-white/10 text-[12px] h-12 px-5 rounded-lg font-mono focus:border-emerald-500/40 transition-all shadow-[inset_0_1px_10px_rgba(0,0,0,0.8)]"
-                        />
-                        <button 
-                            type="submit"
-                            disabled={loading || !input.trim()}
-                            className="absolute right-3 top-3 h-6 px-4 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-500 rounded text-[10px] font-black uppercase transition-all disabled:opacity-20 flex items-center gap-2"
-                        >
-                            {loading ? <SyncOutlined spin /> : <><ThunderboltOutlined /> Run</>}
-                        </button>
-                    </form>
-                    <div className="mt-4 flex items-center justify-between opacity-40">
-                        <div className="flex gap-6">
-                            <div className="flex items-center gap-2">
-                                <ApiOutlined className="text-[12px] text-emerald-500/70" />
-                                <span className="text-[8px] font-black uppercase tracking-widest">Multi-Agent Voting</span>
+                <div className="p-6 bg-gradient-to-t from-black to-transparent border-t border-white/5 relative z-10">
+                    <div className="max-w-4xl mx-auto w-full">
+                        <form onSubmit={handleSendMessage} className="relative group">
+                            <Input
+                                placeholder="Neural Input Channel [Type your command]..."
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                disabled={loading}
+                                className="h-16 bg-white/[0.02] border-white/10 text-white placeholder:text-white/10 rounded-2xl px-6 pr-44 focus:bg-white/[0.05] focus:border-emerald-500/40 transition-all shadow-2xl backdrop-blur-sm"
+                            />
+                            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-3">
+                                <AISuggestionInformer 
+                                    context="admin_chat" 
+                                    onSelect={(val) => setInput(val)} 
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={loading || !input.trim()}
+                                    className="h-12 px-8 bg-emerald-600 hover:bg-emerald-500 disabled:bg-white/5 text-white rounded-xl font-black uppercase tracking-widest transition-all disabled:cursor-not-allowed flex items-center gap-2 shadow-[0_0_20px_rgba(5,150,105,0.3)] hover:shadow-[0_0_30px_rgba(5,150,105,0.5)] border-none"
+                                >
+                                    {loading ? <ThunderboltOutlined spin className="text-lg" /> : <SendOutlined className="text-lg" />}
+                                    <span className="hidden sm:inline">{loading ? 'PROCESSING' : 'EXECUTE'}</span>
+                                </button>
                             </div>
+                        </form>
+                        <div className="flex items-center justify-between mt-4 px-2">
                             <div className="flex items-center gap-2">
-                                <SafetyCertificateOutlined className="text-[12px] text-blue-500/70" />
-                                <span className="text-[8px] font-black uppercase tracking-widest">Autonomous Sync</span>
+                                <div className="w-1 h-1 rounded-full bg-emerald-500 animate-ping" />
+                                <span className="text-[8px] text-white/20 font-black tracking-[0.3em] uppercase">Security Level: High</span>
                             </div>
+                            <p className="text-[9px] text-white/10 font-black tracking-[0.2em] uppercase m-0">
+                                AI-Driven Autonomy System • Core v4.2 Stable
+                            </p>
                         </div>
-                        <span className="text-[8px] font-mono text-white/30 uppercase tracking-widest">Secure Terminal Session</span>
                     </div>
                 </div>
             </div>
 
-            {/* Right Column: Neural Knowledge Context */}
-            <div className="w-[320px] bg-white/[0.01] flex flex-col p-5 overflow-y-auto custom-scrollbar border-l border-white/5">
-                <div className="flex items-center gap-2 mb-6">
-                    <DatabaseOutlined className="text-emerald-500 text-[16px]" />
-                    <span className="text-[12px] font-black uppercase tracking-widest">Neural Knowledge</span>
-                </div>
-
-                <div className="space-y-8">
-                    {/* Active Rules Section */}
-                    <section>
-                        <div className="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
-                            <div className="flex items-center gap-2">
-                                <BulbOutlined className="text-red-500 text-[12px]" />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Persistent Rules</span>
+            {/* Right Column: Knowledge Context (Optimized) */}
+            <div className="w-80 bg-white/[0.01] border-l border-white/10 hidden xl:flex flex-col">
+                <div className="p-6">
+                    <div className="flex items-center gap-3 mb-8">
+                        <DatabaseOutlined className="text-emerald-500" />
+                        <h4 className="text-xs font-black text-white uppercase tracking-[0.2em] mb-0">System Context</h4>
+                    </div>
+                    
+                    {knowledge.rules && knowledge.rules.length > 0 ? (
+                        <div className="mb-8">
+                            <div className="flex items-center justify-between mb-4">
+                                <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Active Rules</span>
+                                <Badge count={knowledge.rules.length} style={{ backgroundColor: '#10b981', fontSize: '9px', fontWeight: 'bold' }} />
                             </div>
-                            <Badge count={knowledge.rules.length} overflowCount={9} style={{ backgroundColor: '#f5222d', fontSize: '8px', height: '14px', lineHeight: '14px', minWidth: '14px' }} />
-                        </div>
-                        <div className="space-y-2">
-                            {knowledge.rules.length === 0 ? (
-                                <div className="text-[9px] text-white/10 uppercase italic text-center py-4">No active constraints detected</div>
-                            ) : (
-                                knowledge.rules.map((rule, idx) => (
-                                    <div key={idx} className="p-3 bg-white/[0.02] border border-white/5 rounded-lg group hover:border-red-500/20 transition-all">
-                                        <div className="text-[10px] text-white/70 line-clamp-2 leading-relaxed font-mono">
-                                            {rule.content || rule.message}
-                                        </div>
-                                        <div className="mt-2 flex items-center justify-between opacity-30 group-hover:opacity-60 transition-opacity">
-                                            <span className="text-[7px] font-black uppercase tracking-tighter">Auto-Captured</span>
-                                            <span className="text-[7px] font-mono">CONF: {Math.round((rule.confidence || 0.9) * 100)}%</span>
-                                        </div>
+                            <div className="space-y-3">
+                                {knowledge.rules.map((r, i) => (
+                                    <div key={i} className="p-4 bg-white/[0.02] border border-white/5 rounded-xl text-[11px] text-white/60 leading-relaxed hover:bg-white/[0.04] transition-colors shadow-sm">
+                                        {r.content || r.message}
                                     </div>
-                                ))
-                            )}
-                        </div>
-                    </section>
-
-                    {/* Project Plans Section */}
-                    <section>
-                        <div className="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
-                            <div className="flex items-center gap-2">
-                                <FileTextOutlined className="text-blue-500 text-[12px]" />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Project Blueprints</span>
-                            </div>
-                            <Badge count={knowledge.plans.length} overflowCount={9} style={{ backgroundColor: '#1890ff', fontSize: '8px', height: '14px', lineHeight: '14px', minWidth: '14px' }} />
-                        </div>
-                        <div className="space-y-2">
-                            {knowledge.plans.length === 0 ? (
-                                <div className="text-[9px] text-white/10 uppercase italic text-center py-4">No strategic roadmaps defined</div>
-                            ) : (
-                                knowledge.plans.map((plan, idx) => (
-                                    <div key={idx} className="p-3 bg-white/[0.02] border border-white/5 rounded-lg group hover:border-blue-500/20 transition-all">
-                                        <div className="text-[10px] text-white/70 line-clamp-2 leading-relaxed font-mono">
-                                            {plan.content || plan.title}
-                                        </div>
-                                        <div className="mt-2 flex items-center justify-between opacity-30 group-hover:opacity-60 transition-opacity">
-                                            <span className="text-[7px] font-black uppercase tracking-tighter">Roadmap Node</span>
-                                            <div className="flex gap-1">
-                                                <div className="w-1 h-1 rounded-full bg-blue-500"></div>
-                                                <div className="w-1 h-1 rounded-full bg-blue-500/30"></div>
-                                                <div className="w-1 h-1 rounded-full bg-blue-500/30"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </section>
-
-                    {/* Operational Summary */}
-                    <section className="mt-auto pt-10 border-t border-white/5">
-                        <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 to-transparent border border-emerald-500/20">
-                            <div className="text-[9px] font-black uppercase tracking-widest text-emerald-500 mb-2">Neural Status</div>
-                            <div className="flex justify-between text-[11px] mb-1">
-                                <span className="text-white/40">Knowledge Nodes</span>
-                                <span className="text-white font-mono">1,242</span>
-                            </div>
-                            <div className="flex justify-between text-[11px] mb-1">
-                                <span className="text-white/40">Active Constraints</span>
-                                <span className="text-white font-mono">{knowledge.rules.length}</span>
-                            </div>
-                            <div className="flex justify-between text-[11px]">
-                                <span className="text-white/40">Memory Usage</span>
-                                <span className="text-white font-mono">0.04%</span>
+                                ))}
                             </div>
                         </div>
-                    </section>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center py-12 opacity-20">
+                            <DatabaseOutlined className="text-3xl mb-3" />
+                            <span className="text-[10px] uppercase font-bold tracking-widest">No Active Rules</span>
+                        </div>
+                    )}
                 </div>
             </div>
+
+            {/* Rename Modal */}
+            <Modal
+                title={<span className="text-white font-bold uppercase tracking-wider">Rename Chat Session</span>}
+                open={isRenameModalVisible}
+                onOk={saveNewName}
+                onCancel={() => setIsRenameModalVisible(false)}
+                okText="Save Changes"
+                cancelText="Cancel"
+                centered
+                className="dark-modal"
+                styles={{ body: { backgroundColor: '#0a0a0a', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px' } }}
+            >
+                <div className="py-4">
+                    <label className="block text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-3">New Session Name</label>
+                    <Input 
+                        value={newName} 
+                        onChange={(e) => setNewName(e.target.value)}
+                        className="bg-white/[0.05] border-white/10 text-white h-12 rounded-xl focus:border-emerald-500/50"
+                        placeholder="Enter a descriptive name..."
+                        onPressEnter={saveNewName}
+                        autoFocus
+                    />
+                </div>
+            </Modal>
+
+            <style>{`
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 4px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 10px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: rgba(16, 185, 129, 0.2);
+                }
+                .dark-modal .ant-modal-content {
+                    background-color: #0a0a0a;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 16px;
+                    overflow: hidden;
+                }
+                .dark-modal .ant-modal-header {
+                    background-color: #0a0a0a;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                }
+                .dark-modal .ant-modal-title {
+                    color: white;
+                }
+                .dark-modal .ant-modal-close-x {
+                    color: rgba(255, 255, 255, 0.4);
+                }
+                .dark-modal .ant-btn-primary {
+                    background-color: #059669;
+                    border: none;
+                }
+                .dark-modal .ant-btn-default {
+                    background-color: transparent;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    color: white;
+                }
+            `}</style>
         </div>
     );
 };

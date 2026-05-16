@@ -11,28 +11,28 @@ import org.springframework.http.HttpHeaders;
 @RequestMapping("/__/firebase")
 public class FirebaseEmulatorController {
 
-    @Value("${firebase.config.apiKey:AIzaSyCib1UPogwLoAshIWm9YQJB_RR0UxC07i8}")
+    @Value("${firebase.api.key:}")
     private String apiKey;
 
-    @Value("${firebase.config.authDomain:supremeai-a.firebaseapp.com}")
+    @Value("${firebase.auth.domain:supremeai-a.firebaseapp.com}")
     private String authDomain;
 
-    @Value("${firebase.config.databaseURL:https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/}")
+    @Value("${firebase.database.url:https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/}")
     private String databaseURL;
 
-    @Value("${firebase.config.projectId:supremeai-a}")
+    @Value("${firebase.project.id:supremeai-a}")
     private String projectId;
 
-    @Value("${firebase.config.storageBucket:supremeai-a.firebasestorage.app}")
+    @Value("${firebase.storage.bucket:supremeai-a.firebasestorage.app}")
     private String storageBucket;
 
-    @Value("${firebase.config.messagingSenderId:565236080752}")
+    @Value("${firebase.messaging.sender.id:565236080752}")
     private String messagingSenderId;
 
-    @Value("${firebase.config.appId:1:565236080752:web:572bb9313db9afb355d4b5}")
+    @Value("${firebase.app.id:1:565236080752:web:572bb9313db9afb355d4b5}")
     private String appId;
 
-    @Value("${firebase.config.measurementId:G-1234567890}")
+    @Value("${firebase.measurement.id:G-1234567890}")
     private String measurementId;
 
     @GetMapping("/init.js")

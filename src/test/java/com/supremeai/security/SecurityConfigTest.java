@@ -1,7 +1,6 @@
 package com.supremeai.security;
 
 import com.google.firebase.FirebaseApp;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -17,7 +16,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Disabled // Requires Firestore infrastructure - environment dependent
 public class SecurityConfigTest {
 
     @Autowired

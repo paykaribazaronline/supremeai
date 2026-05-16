@@ -1,0 +1,9 @@
+fastapi==0.110.0
+uvicorn[standard]==0.29.0
+google-cloud-firestore==2.15.0
+pydantic==2.6.3
+# Reverse engineering dependencies (from existing pipeline)
+# All stdlib, no extra packages needed for existing modules
+# If you need requests for network, add:
+# requests==2.31.0
+# beautifulsoup4==4.12.3

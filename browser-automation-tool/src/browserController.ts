@@ -42,6 +42,16 @@ export class BrowserController {
     return buffer.toString('base64');
   }
 
+  async clickAt(x: number, y: number): Promise<void> {
+    if (!this.page) throw new Error('Browser not launched');
+    await this.page.mouse.click(x, y);
+  }
+
+  async typeKey(key: string): Promise<void> {
+    if (!this.page) throw new Error('Browser not launched');
+    await this.page.keyboard.press(key);
+  }
+
   async getConsoleLogs(): Promise<any[]> {
     // Playwright does not have built-in console log collection like CDP
     // This is a simplified version
@@ -81,5 +91,10 @@ export class BrowserController {
   async getPageContent(): Promise<string> {
     if (!this.page) throw new Error('Browser not launched');
     return await this.page.content();
+  }
+
+  async getAccessibilityTree(): Promise<any> {
+    if (!this.page) throw new Error('Browser not launched');
+    return await this.page.accessibility.snapshot();
   }
 }

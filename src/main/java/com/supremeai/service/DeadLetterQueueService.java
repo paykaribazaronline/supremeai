@@ -27,7 +27,7 @@ public class DeadLetterQueueService {
     private final StringRedisTemplate redisTemplate;
     private final ScheduledExecutorService scheduler;
 
-    public DeadLetterQueueService(StringRedisTemplate redisTemplate, 
+    public DeadLetterQueueService(@org.springframework.beans.factory.annotation.Autowired(required = false) StringRedisTemplate redisTemplate, 
                                  ScheduledExecutorService scheduler) {
         this.redisTemplate = redisTemplate;
         this.scheduler = scheduler;
@@ -41,6 +41,10 @@ public class DeadLetterQueueService {
                                     String requestData, 
                                     String errorMessage,
                                     int retryCount) {
+        if (redisTemplate == null) {
+            log.warn("Redis disabled, skipping DLQ for request {}", requestId);
+            return;
+        }
         FailedRequest failedRequest = new FailedRequest(
             requestId,
             provider,
@@ -75,6 +79,9 @@ public class DeadLetterQueueService {
     public CompletableFuture<Boolean> processFailedRequest(String requestId, 
                                                            java.util.function.Supplier<Boolean> retryOperation) {
         return CompletableFuture.supplyAsync(() -> {
+            if (redisTemplate == null) {
+                return false;
+            }
             String key = DLQ_KEY_PREFIX + requestId;
             String value = redisTemplate.opsForValue().get(key);
             
@@ -121,9 +128,11 @@ public class DeadLetterQueueService {
         long delayMinutes = (long) Math.pow(2, Math.min(retryCount, 4));
         
         scheduler.schedule(() -> {
-            // Move to scheduled queue for processing
-            redisTemplate.opsForSet().add(DLQ_SCHEDULED_KEY, requestId);
-            log.debug("Scheduled retry for request {} in {} minutes", requestId, delayMinutes);
+            if (redisTemplate != null) {
+                // Move to scheduled queue for processing
+                redisTemplate.opsForSet().add(DLQ_SCHEDULED_KEY, requestId);
+                log.debug("Scheduled retry for request {} in {} minutes", requestId, delayMinutes);
+            }
         }, delayMinutes, TimeUnit.MINUTES);
     }
 
@@ -131,6 +140,9 @@ public class DeadLetterQueueService {
      * Get scheduled requests ready for retry.
      */
     public List<String> getScheduledRequests() {
+        if (redisTemplate == null) {
+            return List.of();
+        }
         return redisTemplate.opsForSet().members(DLQ_SCHEDULED_KEY)
             .stream()
             .toList();
@@ -140,7 +152,9 @@ public class DeadLetterQueueService {
      * Clear a request from the scheduled queue.
      */
     public void clearScheduledRequest(String requestId) {
-        redisTemplate.opsForSet().remove(DLQ_SCHEDULED_KEY, requestId);
+        if (redisTemplate != null) {
+            redisTemplate.opsForSet().remove(DLQ_SCHEDULED_KEY, requestId);
+        }
     }
 
     // Simple serialization (in production, use Jackson)
