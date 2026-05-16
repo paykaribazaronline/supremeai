@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -37,6 +38,19 @@ public class EncryptionService {
     private String base64Key;
 
     private SecretKey secretKey;
+
+    @PostConstruct
+    public void validateKey() {
+        if (base64Key == null || base64Key.isBlank()) {
+            String activeProfile = System.getProperty("spring.profiles.active", "");
+            if ("prod".equals(activeProfile) || "production".equals(activeProfile)) {
+                throw new IllegalStateException(
+                    "API_ENCRYPTION_KEY must be set in production! " +
+                    "Generate one with: openssl rand -base64 32"
+                );
+            }
+        }
+    }
 
     private SecretKey getSecretKey() {
         if (secretKey != null) {

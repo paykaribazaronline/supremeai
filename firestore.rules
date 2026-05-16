@@ -7,8 +7,13 @@ service cloud.firestore {
     }
     
     function isAdmin() {
-      return isAuthenticated() && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tier == 'ADMIN';
+      // Primary: Check Firebase custom claim (set by backend when user tier becomes ADMIN)
+      // Fallback: Check Firestore user document (for legacy tokens without custom claims)
+      return isAuthenticated() && (
+        (request.auth.token.admin == true) || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tier == 'ADMIN')
+      );
     }
 
     function isOwner(userId) {
@@ -47,9 +52,9 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
-    // Default rules for other collections
+    // Default deny: Secure by default
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }

@@ -1,25 +1,38 @@
 package com.supremeai.service;
 
-import com.supremeai.ai.client.OpenAIClient;
+import com.supremeai.fallback.AIFallbackOrchestrator;
+import com.supremeai.model.GeneratedApp;
 import com.supremeai.model.EntityDefinition;
 import com.supremeai.model.FieldDefinition;
+import com.supremeai.repository.GeneratedAppRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import reactor.core.publisher.Mono;
 
 @Service
 public class CodeGenerationService {
 
-    @Value("${openai.api.key:#{null}}")
-    private String openAiApiKey;
+    @Autowired
+    @org.springframework.context.annotation.Lazy
+    private AIFallbackOrchestrator aiFallbackOrchestrator;
 
-    private final OpenAIClient openAIClient;
+    @Autowired
+    private GeneratedAppRepository generatedAppRepository;
 
-    public CodeGenerationService(OpenAIClient openAIClient) {
-        this.openAIClient = openAIClient;
+    public CodeGenerationService() {
+    }
+
+    /**
+     * Retrieve a generated app by its appId.
+     * Used by SimulatorRuntimeController to serve preview.
+     */
+    public Mono<GeneratedApp> getGeneratedApp(String appId) {
+        return generatedAppRepository.findByAppId(appId);
     }
 
     /**
@@ -599,23 +612,21 @@ public class CodeGenerationService {
      * Generate entity class using AI for optimal structure
      */
     private String generateEntityWithAI(EntityDefinition entity) {
-        if (openAiApiKey != null && !openAiApiKey.isEmpty()) {
-            try {
-                String prompt = "Generate a Spring Boot JPA entity class for: " + 
-                                entity.getName() + " with fields: " + 
-                                entity.getFields().stream()
-                                    .map(f -> f.getName() + ":" + f.getType())
-                                    .collect(Collectors.joining(", ")) +
-                                ". Include proper annotations, relationships, " +
-                                "validation, and Lombok annotations.";
-                
-                String aiResponse = openAIClient.generate(prompt);
-                if (aiResponse != null && !aiResponse.isEmpty()) {
-                    return aiResponse;
-                }
-            } catch (Exception e) {
-                // Fallback to template generation
+        try {
+            String prompt = "Generate a Spring Boot JPA entity class for: " + 
+                            entity.getName() + " with fields: " + 
+                            entity.getFields().stream()
+                                .map(f -> f.getName() + ":" + f.getType())
+                                .collect(Collectors.joining(", ")) +
+                            ". Include proper annotations, relationships, " +
+                            "validation, and Lombok annotations.";
+            
+            String aiResponse = aiFallbackOrchestrator.executeWithSupremeIntelligence("CODE_GEN", "entity_gen", prompt).block();
+            if (aiResponse != null && !aiResponse.isEmpty()) {
+                return aiResponse;
             }
+        } catch (Exception e) {
+            // Fallback to template generation
         }
         
         // Fallback: Template-based generation
@@ -1121,13 +1132,36 @@ return "package com.example.generated.controller;\n\n" +
     private String generateApplicationProperties(String database) {
         return "spring.application.name=generated-app\n" +
                "server.port=8080\n\n" +
-               "spring.datasource.url=jdbc:postgresql://localhost:5432/generated_app\n" +
-               "spring.datasource.username=postgres\n" +
-               "spring.datasource.password=postgres\n" +
+               "spring.datasource.url=${DATABASE_URL:jdbc:postgresql://localhost:5432/generated_app}\n" +
+               "spring.datasource.username=${DATABASE_USERNAME:postgres}\n" +
+               "spring.datasource.password=${DATABASE_PASSWORD:change-me-in-production}\n" +
                "spring.jpa.hibernate.ddl-auto=update\n" +
                "spring.jpa.show-sql=true\n" +
                "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect\n\n" +
-               "app.jwt.secret=mySecretKey12345678901234567890123456789012\n" +
+               "app.jwt.secret=${JWT_SECRET:generate-a-secure-random-secret}\n" +
                "app.jwt.expiration=86400000\n";
+    }
+
+    /**
+     * Generate infrastructure and deployment advice for the user based on their requirements.
+     * This is a core part of our SaaS Infrastructure Concierge service.
+     */
+    public Mono<String> generateInfrastructureAdvice(String appName, String description, String techStack, String cloudPreference) {
+        String prompt = String.format(
+            "সিস্টেম অ্যাডভাইজার হিসেবে '%s' প্রজেক্টের জন্য একটি বিস্তারিত ইনফ্রাস্ট্রাকচার এবং ডেপ্লয়মেন্ট পরামর্শ দিন।\n" +
+            "বিবরণ: %s\n" +
+            "টেক স্ট্যাক: %s\n" +
+            "ক্লাউড পছন্দ: %s\n\n" +
+            "পরামর্শে নিচের বিষয়গুলো অন্তর্ভুক্ত করুন:\n" +
+            "১. কোন ডেটাবেস ব্যবহার করা উচিত এবং কেন?\n" +
+            "২. কোন ক্লাউড প্রোভাইডার (GCP, AWS, DigitalOcean ইত্যাদি) সেরা হবে?\n" +
+            "৩. CI/CD পাইপলাইন কিভাবে সেটআপ করতে হবে?\n" +
+            "৪. মেইনটেইনেন্সের জন্য কি কি টুলস প্রয়োজন?\n" +
+            "৫. আমাদের ইন-বিল্ড সিস্টেম ব্রাউজার কিভাবে তাদের সাহায্য করবে?\n\n" +
+            "পুরো পরামর্শটি সুন্দরভাবে বাংলায় লিখুন।",
+            appName, description, techStack, cloudPreference
+        );
+
+        return aiFallbackOrchestrator.executeWithSupremeIntelligence("INFRA_ADVICE", "concierge", prompt);
     }
 }

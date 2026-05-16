@@ -12,12 +12,14 @@ public class ChatClassifier {
         RULE,
         PLAN,
         COMMAND,
+        ADMIN_ACTION,
         NORMAL
     }
 
     private final List<String> rulePatterns;
     private final List<String> planPatterns;
     private final List<String> commandPatterns;
+    private final List<String> adminPatterns;
     private final double confidenceThreshold = 0.6;
     private final Map<ChatType, Double> typeWeights;
 
@@ -46,11 +48,20 @@ public class ChatClassifier {
             "send|show|display|check|verify|validate|confirm|test|examine"
         );
 
+        // Admin action patterns
+        adminPatterns = Arrays.asList(
+            "api key|add api|save api|সেভ কর|এপিআই|কী|key|apikey",
+            "learn website|save website|ওয়েবসাইট|শিখতে বল|শিখুন|জানুন|লার্ন|learn",
+            "test api|verify api|হেলথ চেক|যাচাই কর|health check|validate keys",
+            "self audit|system audit|অডিট কর|নিরাপত্তা পরীক্ষা|resilience test"
+        );
+
         // Type weights
         typeWeights = new HashMap<>();
         typeWeights.put(ChatType.RULE, 1.2);
         typeWeights.put(ChatType.PLAN, 1.1);
         typeWeights.put(ChatType.COMMAND, 1.0);
+        typeWeights.put(ChatType.ADMIN_ACTION, 1.3);
     }
 
     public ClassificationResult classify(String message) {
@@ -59,8 +70,9 @@ public class ChatClassifier {
         double ruleScore = calculateScore(messageLower, rulePatterns, ChatType.RULE);
         double planScore = calculateScore(messageLower, planPatterns, ChatType.PLAN);
         double commandScore = calculateScore(messageLower, commandPatterns, ChatType.COMMAND);
+        double adminScore = calculateScore(messageLower, adminPatterns, ChatType.ADMIN_ACTION);
 
-        double maxScore = Math.max(ruleScore, Math.max(planScore, commandScore));
+        double maxScore = Math.max(ruleScore, Math.max(planScore, Math.max(commandScore, adminScore)));
 
         if (maxScore < confidenceThreshold) {
             return new ClassificationResult(ChatType.NORMAL, 1.0 - maxScore, "এটি একটি সাধারণ চ্যাট মেসেজ");
@@ -70,6 +82,8 @@ public class ChatClassifier {
             return new ClassificationResult(ChatType.RULE, ruleScore, "এই মেসেজে রুলস বা নিয়মাবলী রয়েছে");
         } else if (maxScore == planScore) {
             return new ClassificationResult(ChatType.PLAN, planScore, "এই মেসেজে পরিকল্পনা বা প্ল্যান রয়েছে");
+        } else if (maxScore == adminScore) {
+            return new ClassificationResult(ChatType.ADMIN_ACTION, adminScore, "এই মেসেজে প্রশাসনিক নির্দেশ বা অ্যাডমিন অ্যাকশন রয়েছে");
         } else {
             return new ClassificationResult(ChatType.COMMAND, commandScore, "এই মেসেজে কমান্ড বা নির্দেশ রয়েছে");
         }
@@ -98,6 +112,9 @@ public class ChatClassifier {
                 break;
             case COMMAND:
                 pattern = "[^।.!?\n]*?(?:কর|do|execute|run|start|stop|পাঠাও|send|show)[^।.!?\n]*";
+                break;
+            case ADMIN_ACTION:
+                pattern = "[^।.!?\n]*?(?:api|key|website|learn|audit|অডিট|এপিআই|শিখুন)[^।.!?\n]*";
                 break;
             default:
                 return message;

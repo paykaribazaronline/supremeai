@@ -1,10 +1,8 @@
 package com.supremeai.controller;
 
 import com.supremeai.model.APIProvider;
-import com.supremeai.model.ActivityLog;
-import com.supremeai.provider.AIProviderFactory;
-import com.supremeai.repository.ActivityLogRepository;
-import com.supremeai.repository.ProviderRepository;
+import com.supremeai.admin.ProviderAdminService;
+import com.supremeai.service.AIProviderDiscoveryService;
 import com.supremeai.response.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,47 +30,24 @@ import static org.mockito.Mockito.*;
 class ProvidersControllerTest {
 
     @Mock
-    private ProviderRepository providerRepository;
+    private ProviderAdminService providerAdminService;
 
     @Mock
-    private ActivityLogRepository activityLogRepository;
-
-    @Mock
-    private AIProviderFactory aiProviderFactory;
-
-    @Mock
-    private com.supremeai.service.AIProviderDiscoveryService discoveryService;
+    private AIProviderDiscoveryService discoveryService;
 
     private ProvidersController controller;
 
     @BeforeEach
     void setUp() {
-        controller = new ProvidersController(providerRepository);
-        org.springframework.test.util.ReflectionTestUtils.setField(controller, "activityLogRepository", activityLogRepository);
-        org.springframework.test.util.ReflectionTestUtils.setField(controller, "aiProviderFactory", aiProviderFactory);
-        org.springframework.test.util.ReflectionTestUtils.setField(controller, "discoveryService", discoveryService);
+        controller = new ProvidersController(providerAdminService, discoveryService);
         SecurityContextHolder.clearContext();
     }
 
-    private void setAuthentication(String userId, boolean isAdmin) {
+    private void setAuthentication(String userId) {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         Authentication auth = mock(Authentication.class);
         lenient().when(auth.getName()).thenReturn(userId);
-        if (isAdmin) {
-            lenient().doReturn(List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))).when(auth).getAuthorities();
-        } else {
-            lenient().doReturn(List.of(new SimpleGrantedAuthority("ROLE_USER"))).when(auth).getAuthorities();
-        }
-        context.setAuthentication(auth);
-        SecurityContextHolder.setContext(context);
-    }
-
-
-
-    private void setAdminAuthentication(String adminId) {
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        Authentication auth = mock(Authentication.class);
-        when(auth.getName()).thenReturn(adminId);
+        lenient().doReturn(List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))).when(auth).getAuthorities();
         context.setAuthentication(auth);
         SecurityContextHolder.setContext(context);
     }
@@ -82,13 +57,13 @@ class ProvidersControllerTest {
         APIProvider p1 = new APIProvider("prov-1", "OpenAI", "llm", "active");
         APIProvider p2 = new APIProvider("prov-2", "Anthropic", "llm", "active");
 
-        when(providerRepository.findAll()).thenReturn(Flux.just(p1, p2));
+        when(providerAdminService.getAllProviders()).thenReturn(Flux.just(p1, p2));
 
         StepVerifier.create(controller.getConfiguredProviders())
                 .expectNextMatches(response -> {
                     assertEquals(HttpStatus.OK, response.getStatusCode());
                     assertTrue(response.getBody().success());
-                    Map<String, Object> data = response.getBody().data();
+                    Map<String, Object> data = (Map<String, Object>) response.getBody().data();
                     List<?> providers = (List<?>) data.get("providers");
                     assertEquals(2, providers.size());
                     return true;
@@ -97,29 +72,12 @@ class ProvidersControllerTest {
     }
 
     @Test
-    void getConfiguredProviders_shouldReturnEmptyList_whenNone() {
-        when(providerRepository.findAll()).thenReturn(Flux.empty());
-
-        StepVerifier.create(controller.getConfiguredProviders())
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.OK, response.getStatusCode());
-                    Map<String, Object> data = response.getBody().data();
-                    List<?> providers = (List<?>) data.get("providers");
-                    assertTrue(providers.isEmpty());
-                    return true;
-                })
-                .verifyComplete();
-    }
-
-    @Test
-    void addProvider_shouldSaveAndReturnProvider() {
-        setAuthentication("admin", true);
-
+    void addProvider_shouldDelegateToService() {
+        setAuthentication("admin");
         APIProvider input = new APIProvider(null, "New Provider", "llm", "active");
         APIProvider saved = new APIProvider("prov-new", "New Provider", "llm", "active");
 
-        when(providerRepository.save(any(APIProvider.class))).thenReturn(Mono.just(saved));
-        when(activityLogRepository.save(any(ActivityLog.class))).thenReturn(Mono.just(new ActivityLog()));
+        when(providerAdminService.addProvider(eq(input), anyString())).thenReturn(Mono.just(saved));
 
         StepVerifier.create(controller.addProvider(input))
                 .expectNextMatches(response -> {
@@ -128,17 +86,17 @@ class ProvidersControllerTest {
                     return true;
                 })
                 .verifyComplete();
+        
+        verify(providerAdminService).addProvider(eq(input), anyString());
     }
 
     @Test
-    void updateProviderById_shouldSetIdAndSave() {
-        setAuthentication("admin", true);
-
+    void updateProviderById_shouldDelegateToService() {
+        setAuthentication("admin");
         APIProvider input = new APIProvider(null, "Updated Provider", "llm", "active");
         APIProvider saved = new APIProvider("prov-1", "Updated Provider", "llm", "active");
 
-        when(providerRepository.save(any(APIProvider.class))).thenReturn(Mono.just(saved));
-        when(activityLogRepository.save(any(ActivityLog.class))).thenReturn(Mono.just(new ActivityLog()));
+        when(providerAdminService.updateProvider(eq("prov-1"), eq(input), anyString())).thenReturn(Mono.just(saved));
 
         StepVerifier.create(controller.updateProviderById("prov-1", input))
                 .expectNextMatches(response -> {
@@ -147,81 +105,50 @@ class ProvidersControllerTest {
                     return true;
                 })
                 .verifyComplete();
+
+        verify(providerAdminService).updateProvider(eq("prov-1"), eq(input), anyString());
     }
 
     @Test
-    void removeProvider_shouldDeleteAndReturnSuccess() {
-        setAuthentication("admin", true);
-
-        APIProvider existing = new APIProvider("prov-1", "OpenAI", "llm", "active");
-
-        when(providerRepository.findById("prov-1")).thenReturn(Mono.just(existing));
-        when(providerRepository.deleteById("prov-1")).thenReturn(Mono.empty());
-        when(activityLogRepository.save(any(ActivityLog.class))).thenReturn(Mono.just(new ActivityLog()));
+    void removeProvider_shouldDelegateToService() {
+        setAuthentication("admin");
+        when(providerAdminService.deleteProvider(eq("prov-1"), anyString())).thenReturn(Mono.empty());
 
         StepVerifier.create(controller.removeProvider(Map.of("providerId", "prov-1")))
                 .expectNextMatches(response -> {
                     assertTrue(response.getStatusCode().is2xxSuccessful());
-                    assertTrue(response.getBody().success());
-                    assertEquals("Provider removed", response.getBody().data());
                     return true;
                 })
                 .verifyComplete();
+
+        verify(providerAdminService).deleteProvider(eq("prov-1"), anyString());
     }
 
     @Test
-    void removeProvider_shouldReturnBadRequest_whenProviderIdMissing() {
-        StepVerifier.create(controller.removeProvider(Map.of()))
+    void testProviderKey_shouldDelegateToService() {
+        when(providerAdminService.validateKey("OpenAI", "sk-test")).thenReturn(Mono.just(true));
+
+        StepVerifier.create(controller.testProviderKey(Map.of("name", "OpenAI", "apiKey", "sk-test")))
                 .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+                    assertEquals(HttpStatus.OK, response.getStatusCode());
                     return true;
                 })
                 .verifyComplete();
+
+        verify(providerAdminService).validateKey("OpenAI", "sk-test");
     }
 
     @Test
-    void removeProvider_shouldHandleNotFound() {
-        setAuthentication("admin", true);
-        when(providerRepository.findById("missing")).thenReturn(Mono.empty());
+    void discoverModels_shouldDelegateToDiscoveryService() {
+        when(discoveryService.discoverModels(any())).thenReturn(Flux.empty());
 
-        StepVerifier.create(controller.removeProvider(Map.of("providerId", "missing")))
+        StepVerifier.create(controller.discoverModels("test"))
                 .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+                    assertEquals(HttpStatus.OK, response.getStatusCode());
                     return true;
                 })
                 .verifyComplete();
-    }
 
-    @Test
-    void testProviderKey_shouldReturnBadRequest_whenNameMissing() {
-        StepVerifier.create(controller.testProviderKey(Map.of("apiKey", "sk-test")))
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-                    return true;
-                })
-                .verifyComplete();
-    }
-
-    @Test
-    void testProviderKey_shouldReturnBadRequest_whenApiKeyMissing() {
-        StepVerifier.create(controller.testProviderKey(Map.of("name", "OpenAI")))
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-                    return true;
-                })
-                .verifyComplete();
-    }
-
-    @Test
-    void testProviderKey_shouldReturnUnauthorized_whenUnsupportedProvider() {
-        when(discoveryService.validateKey("UnknownAI", "sk-test"))
-                .thenReturn(Mono.just(false));
-
-        StepVerifier.create(controller.testProviderKey(Map.of("name", "UnknownAI", "apiKey", "sk-test")))
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-                    return true;
-                })
-                .verifyComplete();
+        verify(discoveryService).discoverModels("test");
     }
 }

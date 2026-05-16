@@ -17,6 +17,9 @@ public class AgentOrchestrationController {
     private AdaptiveAgentOrchestrator orchestrator;
 
     @Autowired
+    private com.supremeai.service.AppOrchestrationService orchestrationService;
+
+    @Autowired
     private CodeGenerationService codeGenerationService;
 
     @Autowired
@@ -60,34 +63,13 @@ public class AgentOrchestrationController {
                 .body(Map.of("error", "Requirement is required")));
         }
 
-        if (orchestrator == null) {
-            return Mono.just(ResponseEntity.status(503)
-                .body(Map.of("error", "Orchestrator unavailable in local mode. Set up Firestore credentials.")));
-        }
+        @SuppressWarnings("unchecked")
+        Map<String, String> githubConfig = (Map<String, String>) request.get("githubConfig");
 
-        try {
-            // Step 1: Orchestrate to get decisions
-            OrchesResultContext orchestrationResult = orchestrator.orchestrate(requirement);
-            Map<String, Object> generationContext = orchestrationResult.getGenerationContext();
-            
-            // Step 2: Generate code using the context (cast to Map<String, String>)
-            @SuppressWarnings("unchecked")
-            Map<String, String> decisions = (Map<String, String>) (Map<?, ?>) generationContext;
-            Map<String, Object> codeResult = codeGenerationService.generateFromContext(decisions);
-            
-            // Step 3: Combine response
-            Map<String, Object> combined = new java.util.LinkedHashMap<>();
-            combined.put("status", "COMPLETED");
-            combined.put("requirement", requirement);
-            combined.put("decisions", orchestrationResult.getContext().get("decisions"));
-            combined.put("generationContext", generationContext);
-            combined.put("generatedApp", codeResult);
-            
-            return Mono.just(ResponseEntity.ok((Object) combined));
-        } catch (Exception e) {
-            return Mono.just(ResponseEntity.status(500)
-                .body(Map.of("error", "Orchestration+Generation failed: " + e.getMessage())));
-        }
+        return orchestrationService.runFullPipeline(requirement, githubConfig)
+            .map(result -> ResponseEntity.ok((Object) result))
+            .onErrorResume(e -> Mono.just(ResponseEntity.status(500)
+                .body(Map.of("error", "Full pipeline failed: " + e.getMessage()))));
     }
 
     @GetMapping("/health")

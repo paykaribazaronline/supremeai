@@ -35,7 +35,6 @@ class AuthProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       _token = prefs.getString('auth_token');
-      final isGuestMode = prefs.getBool('is_guest') ?? false;
 
       if (_token != null) {
         // Fetch user profile from backend
@@ -49,14 +48,13 @@ class AuthProvider with ChangeNotifier {
           _token = null;
           _status = AuthStatus.unauthenticated;
         }
-      } else if (isGuestMode) {
-        _status = AuthStatus.guest;
       } else {
-        _status = AuthStatus.unauthenticated;
+        // Default to guest mode instead of unauthenticated
+        _status = AuthStatus.guest;
       }
     } catch (e) {
       _errorMessage = 'Failed to check authentication status.';
-      _status = AuthStatus.unauthenticated;
+      _status = AuthStatus.guest; // Default to guest even on error
     }
     notifyListeners();
   }

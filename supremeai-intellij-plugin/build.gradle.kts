@@ -1,7 +1,8 @@
 plugins {
-    id("java")
-    id("org.jetbrains.kotlin.jvm") version "2.1.10"
-    id("org.jetbrains.intellij.platform") version "2.2.0"
+    java
+    org.jetbrains.kotlin.jvm version "2.1.10"
+    org.jetbrains.intellij.platform version "2.2.0"
+   kotlin("plugin.serialization") version "2.1.10"
 }
 
 group = "com.supremeai"
@@ -30,12 +31,42 @@ dependencies {
         bundledPlugin("org.jetbrains.kotlin")
     }
 
+    // Regular dependencies
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("org.springframework:spring-messaging:6.1.10")
+    implementation("org.springframework:spring-websocket:6.1.10")
+    implementation("org.glassfish.tyrus.bundles:tyrus-standalone-client:1.21")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
+    // Firebase Data Connect dependencies for generated code
+    implementation(platform("com.google.firebase:firebase-bom:34.12.0"))
+    implementation("com.google.firebase:firebase-dataconnect")
+    implementation("com.google.firebase:firebase-auth")
+}
+
+    // Regular dependencies
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("org.springframework:spring-messaging:6.1.10")
+    implementation("org.springframework:spring-websocket:6.1.10")
+    implementation("org.glassfish.tyrus.bundles:tyrus-standalone-client:1.21")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
+    // Firebase Data Connect dependencies for generated code
+    implementation("com.google.firebase:firebase-dataconnect-ktx:1.0.0")
+    implementation("com.google.firebase:firebase-dataconnect-generated-annotations:1.0.0")
+}
+
     
     // Regular dependencies
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("org.springframework:spring-messaging:6.1.10")
     implementation("org.springframework:spring-websocket:6.1.10")
     implementation("org.glassfish.tyrus.bundles:tyrus-standalone-client:1.21")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 }
 
 kotlin {
@@ -47,7 +78,8 @@ kotlin {
             "-Xsuppress-version-warnings",
             "-Xallow-kotlin-package",
             "-Xcontext-receivers",
-            "-opt-in=org.jetbrains.kotlin.analysis.api.KaExperimentalApi"
+            "-opt-in=org.jetbrains.kotlin.analysis.api.KaExperimentalApi",
+            "-Xbackend-threads=8"
         )
     }
 }

@@ -53,19 +53,7 @@ public class OpenAIProvider extends AbstractHttpProvider {
         );
     }
 
-    @Override
-    protected String extractResponse(String responseBody) throws Exception {
-        Map<String, Object> responseMap = objectMapper.readValue(responseBody,
-            new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
-        if (choices != null && !choices.isEmpty()) {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-            return (String) message.get("content");
-        }
-        return "No response from OpenAI.";
-    }
+    // extractResponse: AbstractHttpProvider-এর OpenAI-compatible default ব্যবহৃত হচ্ছে
 
     @Override
     protected void addAuthHeaders(okhttp3.Request.Builder builder) {

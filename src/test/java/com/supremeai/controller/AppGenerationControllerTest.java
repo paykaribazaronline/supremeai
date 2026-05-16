@@ -1,18 +1,26 @@
 package com.supremeai.controller;
 
-import com.supremeai.dto.AppGenerationRequest;
+import com.supremeai.service.CodeGenerationService;
 import com.supremeai.generation.FullStackCodeGenerator;
 import com.supremeai.generation.MultiPlatformGenerator;
-import com.supremeai.service.CodeGenerationService;
+import com.supremeai.model.EntityDefinition;
+import com.supremeai.model.FieldDefinition;
+import com.supremeai.model.GeneratedApp;
+import com.supremeai.repository.GeneratedAppRepository;
+import com.supremeai.response.ApiResponse;
+import com.supremeai.dto.AppGenerationRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+import reactor.test.StepVerifier;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -30,209 +38,338 @@ class AppGenerationControllerTest {
     @Mock
     private MultiPlatformGenerator multiPlatformGenerator;
 
+    @Mock
+    private GeneratedAppRepository generatedAppRepository;
+
+    @Mock
+    private Authentication authentication;
+
     private AppGenerationController controller;
 
     @BeforeEach
     void setUp() {
         controller = new AppGenerationController();
-        // Use reflection to set private fields
+        setField(controller, "codeGenerationService", codeGenerationService);
+        setField(controller, "fullStackCodeGenerator", fullStackCodeGenerator);
+        setField(controller, "multiPlatformGenerator", multiPlatformGenerator);
+        setField(controller, "generatedAppRepository", generatedAppRepository);
+    }
+
+    private void setField(Object target, String fieldName, Object value) {
         try {
-            java.lang.reflect.Field codeGenField = AppGenerationController.class.getDeclaredField("codeGenerationService");
-            codeGenField.setAccessible(true);
-            codeGenField.set(controller, codeGenerationService);
-
-            java.lang.reflect.Field fullStackField = AppGenerationController.class.getDeclaredField("fullStackCodeGenerator");
-            fullStackField.setAccessible(true);
-            fullStackField.set(controller, fullStackCodeGenerator);
-
-            java.lang.reflect.Field multiPlatformField = AppGenerationController.class.getDeclaredField("multiPlatformGenerator");
-            multiPlatformField.setAccessible(true);
-            multiPlatformField.set(controller, multiPlatformGenerator);
+            java.lang.reflect.Field field = AppGenerationController.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(target, value);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    // ==================== generateApp - AI-Enabled Tests ====================
+
     @Test
-    void generateApp_shouldUseAIServiceWhenUseAIEnabled() {
-        // Given
+    void generateApp_WithAIEnabled_ReturnsGeneratedApp() {
         AppGenerationRequest request = new AppGenerationRequest();
-        request.setName("TestApp");
-        request.setDescription("A test application");
+        request.setName("My AI App");
+        request.setDescription("An AI powered app");
         request.setPlatform("fullstack");
-        request.setDatabase("postgresql");
+        request.setDatabase("PostgreSQL");
+        request.setType("web");
+        request.setUseAI(true);
+        request.setEntities(new ArrayList<>());
+
+        when(authentication.getName()).thenReturn("user-123");
+
+        Map<String, Object> mockResult = new HashMap<>();
+        mockResult.put("files", Map.of("app.js", "const app = {}"));
+        mockResult.put("fileCount", 5);
+
+        when(codeGenerationService.generateAppWithAI(anyString(), anyString(), anyList(), anyString(), anyString()))
+                .thenReturn(mockResult);
+        when(generatedAppRepository.save(any(GeneratedApp.class)))
+                .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+
+        Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> result =
+                controller.generateApp(request, authentication);
+
+        StepVerifier.create(result)
+                .expectNextMatches(response -> {
+                    assertEquals(200, response.getStatusCode().value());
+                    assertTrue(response.getBody().isSuccess());
+                    assertEquals("My AI App", response.getBody().data().get("name"));
+                    assertEquals("GENERATED", response.getBody().data().get("status"));
+                    return true;
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void generateApp_WithAIAndEntities_GeneratesWithEntities() {
+        AppGenerationRequest request = new AppGenerationRequest();
+        request.setName("E-Commerce App");
+        request.setDescription("An e-commerce platform");
+        request.setPlatform("fullstack");
+        request.setDatabase("PostgreSQL");
+        request.setType("web");
         request.setUseAI(true);
 
-        Map<String, Object> serviceResult = new HashMap<>();
-        serviceResult.put("appName", "TestApp");
-        serviceResult.put("files", new HashMap<String, String>());
-        serviceResult.put("fileCount", 10);
-        serviceResult.put("entities", 1);
+        EntityDefinition productEntity = new EntityDefinition();
+        productEntity.setName("Product");
+        productEntity.setDescription("A product entity");
 
-        when(codeGenerationService.generateAppWithAI(
-                eq("TestApp"), eq("A test application"), anyList(), eq("postgresql"), eq("JWT")
-        )).thenReturn(serviceResult);
+        FieldDefinition nameField = new FieldDefinition();
+        nameField.setName("name");
+        nameField.setType("string");
+        nameField.setRequired(true);
+        productEntity.setFields(List.of(nameField));
 
-        // When
-        ResponseEntity<Map<String, Object>> response = controller.generateApp(request);
+        request.setEntities(List.of(productEntity));
 
-        // Then
-        assertEquals(200, response.getStatusCode().value());
-        Map<String, Object> result = response.getBody();
-        assertNotNull(result);
-        assertEquals("TestApp", result.get("name"));
-        assertEquals("GENERATED", result.get("status"));
-        assertEquals("A test application", result.get("description"));
-        assertEquals("fullstack", result.get("platform"));
+        when(authentication.getName()).thenReturn("user-456");
+
+        Map<String, Object> mockResult = new HashMap<>();
+        mockResult.put("files", Map.of("app.js", "// E-commerce app"));
+        mockResult.put("fileCount", 10);
+
+        when(codeGenerationService.generateAppWithAI(anyString(), anyString(), anyList(), anyString(), anyString()))
+                .thenReturn(mockResult);
+        when(generatedAppRepository.save(any(GeneratedApp.class)))
+                .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+
+        Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> result =
+                controller.generateApp(request, authentication);
+
+        StepVerifier.create(result)
+                .expectNextMatches(response -> {
+                    assertEquals(200, response.getStatusCode().value());
+                    assertEquals("E-Commerce App", response.getBody().data().get("name"));
+                    assertTrue(response.getBody().data().containsKey("appId"));
+                    return true;
+                })
+                .verifyComplete();
 
         verify(codeGenerationService).generateAppWithAI(
-                eq("TestApp"), eq("A test application"), anyList(), eq("postgresql"), eq("JWT")
+                eq("E-Commerce App"), eq("An e-commerce platform"),
+                eq(List.of(productEntity)), eq("PostgreSQL"), eq("JWT")
         );
-        verify(codeGenerationService, never()).generateFromContext(any());
-        verify(multiPlatformGenerator, never()).generateForPlatform(anyString(), anyString());
     }
 
-    @Test
-    void generateApp_shouldUseFullStackGeneratorForFullstackPlatform() {
-        // Given
-        AppGenerationRequest request = new AppGenerationRequest();
-        request.setName("FullStackApp");
-        request.setDescription("Full stack application");
-        request.setPlatform("fullstack");
-        request.setDatabase("mysql");
-        request.setUseAI(false);
-
-        Map<String, Object> expectedResult = new HashMap<>();
-        expectedResult.put("files", new HashMap<String, String>());
-        expectedResult.put("decisions", new HashMap<String, String>());
-
-        when(codeGenerationService.generateFromContext(anyMap())).thenReturn(expectedResult);
-
-        // When
-        ResponseEntity<Map<String, Object>> response = controller.generateApp(request);
-
-        // Then
-        assertEquals(200, response.getStatusCode().value());
-        verify(codeGenerationService).generateFromContext(anyMap());
-        verify(multiPlatformGenerator, never()).generateForPlatform(anyString(), anyString());
-    }
+    // ==================== generateApp - Platform-Specific Tests ====================
 
     @Test
-    void generateApp_shouldUseMultiPlatformGeneratorForAndroid() {
-        // Given
+    void generateApp_WebPlatform_GeneratesWebApp() {
         AppGenerationRequest request = new AppGenerationRequest();
-        request.setName("AndroidApp");
-        request.setDescription("Android application");
-        request.setPlatform("android");
+        request.setName("Web App");
+        request.setDescription("A web application");
+        request.setPlatform("web");
+        request.setDatabase("PostgreSQL");
+        request.setType("web");
         request.setUseAI(false);
+
+        when(authentication.getName()).thenReturn("user-789");
 
         Map<String, String> platformResult = new HashMap<>();
-        platformResult.put("code", "Generated Android code");
-        platformResult.put("structure", "Android project structure");
+        platformResult.put("main", "// React app code");
+        platformResult.put("files", "3");
 
-        when(multiPlatformGenerator.generateForPlatform("Android application", "android"))
+        when(multiPlatformGenerator.generateForPlatform(anyString(), eq("web")))
                 .thenReturn(platformResult);
+        when(generatedAppRepository.save(any(GeneratedApp.class)))
+                .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
 
-        // When
-        ResponseEntity<Map<String, Object>> response = controller.generateApp(request);
+        Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> result =
+                controller.generateApp(request, authentication);
 
-        // Then
-        assertEquals(200, response.getStatusCode().value());
-        Map<String, Object> result = response.getBody();
-        assertNotNull(result);
-        assertEquals("Generated Android code", result.get("code"));
-        assertEquals("Android project structure", result.get("structure"));
-        assertNotNull(result.get("decisions"));
-
-        verify(multiPlatformGenerator).generateForPlatform("Android application", "android");
-        verify(codeGenerationService, never()).generateFromContext(anyMap());
+        StepVerifier.create(result)
+                .expectNextMatches(response -> {
+                    assertEquals(200, response.getStatusCode().value());
+                    assertTrue(response.getBody().success());
+                    return true;
+                })
+                .verifyComplete();
     }
 
     @Test
-    void generateApp_shouldHandleExceptionsGracefully() {
-        // Given
+    void generateApp_AndroidPlatform_GeneratesAndroidApp() {
         AppGenerationRequest request = new AppGenerationRequest();
-        request.setName("FailingApp");
+        request.setName("Android App");
+        request.setPlatform("android");
+        request.setDatabase("SQLite");
+        request.setType("mobile");
+        request.setUseAI(false);
+
+        when(authentication.getName()).thenReturn("user-android");
+
+        Map<String, String> platformResult = new HashMap<>();
+        platformResult.put("main", "// Android code");
+
+        when(multiPlatformGenerator.generateForPlatform(anyString(), eq("android")))
+                .thenReturn(platformResult);
+        when(generatedAppRepository.save(any(GeneratedApp.class)))
+                .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+
+        Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> result =
+                controller.generateApp(request, authentication);
+
+        StepVerifier.create(result)
+                .expectNextMatches(response -> {
+                    assertEquals(200, response.getStatusCode().value());
+                    return true;
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void generateApp_DefaultPlatform_UsesFullStack() {
+        AppGenerationRequest request = new AppGenerationRequest();
+        request.setName("Default App");
+        request.setPlatform("unknown");
+        request.setDatabase("PostgreSQL");
+        request.setType("web");
+        request.setUseAI(false);
+
+        when(authentication.getName()).thenReturn("user-default");
+
+        Map<String, Object> mockResult = new HashMap<>();
+        mockResult.put("files", Map.of("app.js", "// Full stack app"));
+
+        when(codeGenerationService.generateFromContext(anyMap()))
+                .thenReturn(mockResult);
+        when(generatedAppRepository.save(any(GeneratedApp.class)))
+                .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+
+        Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> result =
+                controller.generateApp(request, authentication);
+
+        StepVerifier.create(result)
+                .expectNextMatches(response -> {
+                    assertEquals(200, response.getStatusCode().value());
+                    return true;
+                })
+                .verifyComplete();
+    }
+
+    // ==================== generateApp - Anonymous User Tests ====================
+
+    @Test
+    void generateApp_NullAuthentication_UsesAnonymous() {
+        AppGenerationRequest request = new AppGenerationRequest();
+        request.setName("Anonymous App");
+        request.setPlatform("fullstack");
+        request.setDatabase("PostgreSQL");
+        request.setType("web");
+        request.setUseAI(false);
+
+        Map<String, Object> mockResult = new HashMap<>();
+        mockResult.put("files", Map.of());
+
+        when(codeGenerationService.generateFromContext(anyMap()))
+                .thenReturn(mockResult);
+        when(generatedAppRepository.save(any(GeneratedApp.class)))
+                .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+
+        Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> result =
+                controller.generateApp(request, null);
+
+        StepVerifier.create(result)
+                .expectNextMatches(response -> {
+                    assertEquals(200, response.getStatusCode().value());
+                    return true;
+                })
+                .verifyComplete();
+    }
+
+    // ==================== generateApp - Error Tests ====================
+
+    @Test
+    void generateApp_ServiceError_ReturnsInternalServerError() {
+        AppGenerationRequest request = new AppGenerationRequest();
+        request.setName("Failing App");
+        request.setPlatform("fullstack");
+        request.setDatabase("PostgreSQL");
+        request.setType("web");
+        request.setUseAI(false);
+
+        when(authentication.getName()).thenReturn("user-error");
 
         when(codeGenerationService.generateFromContext(anyMap()))
                 .thenThrow(new RuntimeException("Generation failed"));
 
-        // When
-        ResponseEntity<Map<String, Object>> response = controller.generateApp(request);
+        Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> result =
+                controller.generateApp(request, authentication);
 
-        // Then
-        assertEquals(500, response.getStatusCode().value());
-        Map<String, Object> result = response.getBody();
-        assertNotNull(result);
-        assertEquals("ERROR", result.get("status"));
-        assertTrue(result.get("message").toString().contains("Generation failed"));
+        StepVerifier.create(result)
+                .expectNextMatches(response -> {
+                    assertEquals(500, response.getStatusCode().value());
+                    assertTrue(response.getBody().get("error").toString().contains("failed"));
+                    return true;
+                })
+                .verifyComplete();
+    }
+
+    // ==================== previewGeneration Tests ====================
+
+    @Test
+    void previewGeneration_ReturnsPreviewFiles() {
+        Map<String, Object> request = Map.of("platform", "fullstack");
+
+        Map<String, Object> mockResult = new HashMap<>();
+        mockResult.put("files", Map.of(
+                "app.js", "// Main app",
+                "index.html", "<html></html>",
+                "style.css", "body {}",
+                "server.js", "// Server"
+        ));
+
+        when(codeGenerationService.generateFromContext(anyMap())).thenReturn(mockResult);
+
+        Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> result =
+                controller.previewGeneration(request);
+
+        StepVerifier.create(result)
+                .expectNextMatches(response -> {
+                    assertEquals(200, response.getStatusCode().value());
+                    Map<String, Object> body = response.getBody().data();
+                    assertTrue((Boolean) body.get("preview"));
+                    assertEquals(3, body.get("files")); // Limited to 3
+                    assertEquals(4, body.get("totalFiles"));
+                    return true;
+                })
+                .verifyComplete();
     }
 
     @Test
-    void health_shouldReturnServiceHealth() {
-        // When
-        ResponseEntity<Map<String, String>> response = controller.health();
-
-        // Then
-        assertEquals(200, response.getStatusCode().value());
-        Map<String, String> health = response.getBody();
-        assertNotNull(health);
-        assertEquals("UP", health.get("status"));
-        assertEquals("AppGenerationService", health.get("service"));
-    }
-
-    @Test
-    void previewGeneration_shouldReturnLimitedFilePreview() {
-        // Given
-        Map<String, Object> request = new HashMap<>();
-        request.put("platform", "fullstack");
-
-        Map<String, String> fullFiles = new HashMap<>();
-        fullFiles.put("pom.xml", "<xml>POM content</xml>");
-        fullFiles.put("src/main/java/App.java", "public class App {}");
-        fullFiles.put("src/main/resources/app.properties", "app.settings=value");
-        fullFiles.put("Dockerfile", "FROM java:8");
-        fullFiles.put("README.md", "# README");
-
-        Map<String, Object> serviceResult = new HashMap<>();
-        serviceResult.put("files", fullFiles);
-        serviceResult.put("decisions", new HashMap<String, String>());
-
-        when(codeGenerationService.generateFromContext(anyMap())).thenReturn(serviceResult);
-
-        // When
-        ResponseEntity<Map<String, Object>> response = controller.previewGeneration(request);
-
-        // Then
-        assertEquals(200, response.getStatusCode().value());
-        Map<String, Object> result = response.getBody();
-        assertNotNull(result);
-        assertEquals(true, result.get("preview"));
-        assertEquals(5, result.get("totalFiles"));
-
-        @SuppressWarnings("unchecked")
-        Map<String, String> previewFiles = (Map<String, String>) result.get("files");
-        assertNotNull(previewFiles);
-        assertTrue(previewFiles.size() <= 3); // Should be limited to 3 files
-    }
-
-    @Test
-    void previewGeneration_shouldHandleExceptions() {
-        // Given
-        Map<String, Object> request = new HashMap<>();
-        request.put("platform", "fullstack");
+    void previewGeneration_WithError_ReturnsError() {
+        Map<String, Object> request = Map.of("platform", "web");
 
         when(codeGenerationService.generateFromContext(anyMap()))
                 .thenThrow(new RuntimeException("Preview failed"));
 
-        // When
-        ResponseEntity<Map<String, Object>> response = controller.previewGeneration(request);
+        Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> result =
+                controller.previewGeneration(request);
 
-        // Then
-        assertEquals(500, response.getStatusCode().value());
-        Map<String, Object> result = response.getBody();
-        assertNotNull(result);
-        assertEquals("ERROR", result.get("status"));
-        assertTrue(result.get("message").toString().contains("Preview failed"));
+        StepVerifier.create(result)
+                .expectNextMatches(response -> {
+                    assertEquals(500, response.getStatusCode().value());
+                    return true;
+                })
+                .verifyComplete();
+    }
+
+    // ==================== health Endpoint Tests ====================
+
+    @Test
+    void health_ReturnsUpStatus() {
+        Mono<ResponseEntity<ApiResponse<Map<String, String>>>> result = controller.health();
+
+        StepVerifier.create(result)
+                .expectNextMatches(response -> {
+                    assertEquals(200, response.getStatusCode().value());
+                    Map<String, String> body = response.getBody().data();
+                    assertEquals("UP", body.get("status"));
+                    assertEquals("AppGenerationService", body.get("service"));
+                    return true;
+                })
+                .verifyComplete();
     }
 }

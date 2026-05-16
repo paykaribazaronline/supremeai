@@ -1,24 +1,35 @@
 package com.supremeai.admin;
 
+import com.supremeai.model.ImprovementProposal;
+import com.supremeai.repository.ImprovementProposalRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
 public class AdminDashboardService {
 
     private static final Logger log = LoggerFactory.getLogger(AdminDashboardService.class);
-    // Simulating database storage for admin notifications
-    private final List<String> autoPilotNotifications = new ArrayList<>();
-    private final Map<String, ImprovementProposal> pendingApprovals = new ConcurrentHashMap<>();
+    
+    private final ImprovementProposalRepository proposalRepository;
+    
+    // AutoPilot notifications can remain in memory or be moved to ActivityLog if needed
+    private final List<String> autoPilotNotifications = new CopyOnWriteArrayList<>();
 
     // Auto Pilot Toggle
     private boolean isAutoPilotEnabled = false;
+
+    @Autowired
+    public AdminDashboardService(ImprovementProposalRepository proposalRepository) {
+        this.proposalRepository = proposalRepository;
+    }
 
     public void setAutoPilot(boolean enabled) {
         this.isAutoPilotEnabled = enabled;
@@ -33,53 +44,55 @@ public class AdminDashboardService {
      * Called by learning modules (KnowledgeBase, ImmunitySystem, etc.)
      * when they want to update themselves.
      */
-    public boolean submitImprovement(ImprovementProposal proposal) {
+    public Mono<Boolean> submitImprovement(ImprovementProposal proposal) {
         if (isAutoPilotEnabled) {
-            // Auto Pilot is ON! Approve immediately and just send a notification.
+            // Auto Pilot is ON! Approve immediately and save.
             proposal.approve();
-            String notification = String.format("Auto-Pilot Action: Learned and applied [%s] - %s",
-                                                proposal.getCategory(), proposal.getTitle());
-            autoPilotNotifications.add(notification);
-            log.info("[Admin Dashboard] {}", notification);
-
-            return true; // Tells the caller it's safe to apply the learning
+            return proposalRepository.save(proposal)
+                    .map(saved -> {
+                        String notification = String.format("Auto-Pilot Action: Learned and applied [%s] - %s",
+                                                            saved.getCategory(), saved.getTitle());
+                        autoPilotNotifications.add(notification);
+                        log.info("[Admin Dashboard] {}", notification);
+                        return true;
+                    });
         } else {
             // Auto Pilot is OFF. Hold for admin permission.
-            pendingApprovals.put(proposal.getProposalId(), proposal);
-            log.info("[Admin Dashboard] New Permission Request: {}. Waiting for Admin approval.", proposal.getTitle());
-
-            return false; // Tells the caller to WAIT. Do not apply yet.
+            return proposalRepository.save(proposal)
+                    .map(saved -> {
+                        log.info("[Admin Dashboard] New Permission Request: {}. Waiting for Admin approval.", saved.getTitle());
+                        return false; // Tells the caller to WAIT.
+                    });
         }
     }
 
     /**
      * Admin clicks "Approve" on the dashboard.
      */
-    public boolean approveProposal(String proposalId) {
-        ImprovementProposal proposal = pendingApprovals.remove(proposalId);
-        if (proposal != null) {
-            proposal.approve();
-            log.info("[Admin Dashboard] Admin manually APPROVED: {}", proposal.getTitle());
-            // In a real system, you would trigger an Event here to notify the specific module to apply the payload
-            return true;
-        }
-        return false;
+    public Mono<Boolean> approveProposal(String proposalId) {
+        return proposalRepository.findById(proposalId)
+                .flatMap(proposal -> {
+                    proposal.approve();
+                    return proposalRepository.save(proposal)
+                            .map(saved -> {
+                                log.info("[Admin Dashboard] Admin manually APPROVED: {}", saved.getTitle());
+                                return true;
+                            });
+                })
+                .defaultIfEmpty(false);
     }
 
     /**
      * Admin clicks "Reject" on the dashboard.
      */
-    public boolean rejectProposal(String proposalId) {
-        ImprovementProposal proposal = pendingApprovals.remove(proposalId);
-        if (proposal != null) {
-            log.info("[Admin Dashboard] Admin REJECTED: {}", proposal.getTitle());
-            return true;
-        }
-        return false;
+    public Mono<Boolean> rejectProposal(String proposalId) {
+        return proposalRepository.deleteById(proposalId)
+                .then(Mono.just(true))
+                .onErrorReturn(false);
     }
 
-    public List<ImprovementProposal> getPendingApprovals() {
-        return new ArrayList<>(pendingApprovals.values());
+    public Flux<ImprovementProposal> getPendingApprovals() {
+        return proposalRepository.findByIsApproved(false);
     }
 
     public List<String> getAutoPilotNotifications() {

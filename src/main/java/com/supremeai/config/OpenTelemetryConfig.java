@@ -35,9 +35,12 @@ public class OpenTelemetryConfig {
      */
     @Bean
     public OpenTelemetry openTelemetry() {
+        // Validate endpoint
+        String endpoint = (otlpEndpoint == null || otlpEndpoint.isBlank()) ? "http://localhost:4317" : otlpEndpoint;
+        
         // Create OTLP exporter
         SpanExporter spanExporter = OtlpGrpcSpanExporter.builder()
-                .setEndpoint(otlpEndpoint)
+                .setEndpoint(endpoint)
                 .setTimeout(Duration.ofSeconds(10))
                 .build();
 

@@ -48,6 +48,7 @@ public class SLOTrackingService {
     /**
      * Get SLO status.
      */
+    @SuppressWarnings("deprecation")
     public SLOStatus getStatus() {
         double p95 = requestTimer.percentile(0.95, java.util.concurrent.TimeUnit.MILLISECONDS);
         double p99 = requestTimer.percentile(0.99, java.util.concurrent.TimeUnit.MILLISECONDS);

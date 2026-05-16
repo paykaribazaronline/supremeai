@@ -44,6 +44,15 @@ public class EnhancedLearningService {
     public static final String LEARNING_SELF_HEALING = "SELF_HEALING";
 
     /**
+     * Simplified learning from interaction, used by ChatProcessingService
+     */
+    public Mono<SystemLearning> learnFromInteraction(String userId, String userInput, String aiResponse) {
+        Map<String, Object> context = new HashMap<>();
+        context.put("userId", userId);
+        return learnFromNLPInteraction(userInput, aiResponse, "system_orchestrator", 0.8, context);
+    }
+
+    /**
      * NLP Learning: Learn from user interactions to improve natural language understanding
      */
     public Mono<SystemLearning> learnFromNLPInteraction(String userInput, String aiResponse,
@@ -69,7 +78,7 @@ public class EnhancedLearningService {
         learning.setSuccess(qualityScore > 0.7);
         learning.setQualityScore(qualityScore);
         learning.setRelatedProvider(provider);
-        learning.setLearnedAt(LocalDateTime.now());
+        learning.setLearnedAt(new java.util.Date());
         learning.setTimesApplied(0);
 
         List<String> tags = new ArrayList<>();
@@ -112,7 +121,7 @@ public class EnhancedLearningService {
         learning.setSuccess(accuracyScore > 0.75);
         learning.setQualityScore(accuracyScore);
         learning.setRelatedProvider(provider);
-        learning.setLearnedAt(LocalDateTime.now());
+        learning.setLearnedAt(new java.util.Date());
         learning.setTimesApplied(0);
 
         List<String> tags = Arrays.asList("multimodal", "vision", "image_to_code", provider.toLowerCase());
@@ -148,7 +157,7 @@ public class EnhancedLearningService {
         learning.setSuccess(success);
         learning.setQualityScore(success ? 1.0 : 0.0);
         learning.setRelatedProvider(provider);
-        learning.setLearnedAt(LocalDateTime.now());
+        learning.setLearnedAt(new java.util.Date());
         learning.setTimesApplied(0);
 
         List<String> tags = new ArrayList<>();
@@ -194,7 +203,7 @@ public class EnhancedLearningService {
         learning.setSuccess(buildSuccess);
         learning.setQualityScore(qualityScore);
         learning.setRelatedProvider(agentUsed);
-        learning.setLearnedAt(LocalDateTime.now());
+        learning.setLearnedAt(new java.util.Date());
         learning.setTimesApplied(0);
 
         List<String> tags = new ArrayList<>();
@@ -229,7 +238,7 @@ public class EnhancedLearningService {
         learning.setSuccess(true);
         learning.setConfidenceScore(confidence);
         learning.setQualityScore(confidence);
-        learning.setLearnedAt(LocalDateTime.now());
+        learning.setLearnedAt(new java.util.Date());
         learning.setTimesApplied(0);
 
         List<String> tags = Arrays.asList("predictive", patternType.toLowerCase(), "pattern_matching");
@@ -279,36 +288,38 @@ public class EnhancedLearningService {
      * Get learning statistics
      */
     public Mono<Map<String, Object>> getLearningStats() {
-        List<SystemLearning> allLearnings = repository.findAll().collectList().block();
+        return repository.findAll().collectList()
+                .map(allLearnings -> {
+                    Map<String, Object> stats = new HashMap<>();
+                    if (allLearnings == null) {
+                        stats.put("total", 0);
+                        return stats;
+                    }
 
-        Map<String, Object> stats = new HashMap<>();
-        if (allLearnings == null) {
-            stats.put("total", 0);
-            return Mono.just(stats);
-        }
+                    Map<String, Long> byType = allLearnings.stream()
+                            .collect(Collectors.groupingBy(l -> l.getLearningType() != null ? l.getLearningType() : "UNKNOWN",
+                                    Collectors.counting()));
 
-        Map<String, Long> byType = allLearnings.stream()
-                .collect(Collectors.groupingBy(l -> l.getLearningType() != null ? l.getLearningType() : "UNKNOWN",
-                        Collectors.counting()));
+                    long totalSuccess = allLearnings.stream()
+                            .filter(l -> l.getSuccess() != null && l.getSuccess())
+                            .count();
 
-        long totalSuccess = allLearnings.stream()
-                .filter(l -> l.getSuccess() != null && l.getSuccess())
-                .count();
+                    double avgQuality = allLearnings.stream()
+                            .filter(l -> l.getQualityScore() != null)
+                            .mapToDouble(SystemLearning::getQualityScore)
+                            .average()
+                            .orElse(0.0);
 
-        double avgQuality = allLearnings.stream()
-                .filter(l -> l.getQualityScore() != null)
-                .mapToDouble(SystemLearning::getQualityScore)
-                .average()
-                .orElse(0.0);
+                    stats.put("total", allLearnings.size());
+                    stats.put("byType", byType);
+                    stats.put("successCount", totalSuccess);
+                    stats.put("failureCount", allLearnings.size() - totalSuccess);
+                    stats.put("averageQuality", avgQuality);
+                    stats.put("successRate", allLearnings.size() > 0 ? (double) totalSuccess / allLearnings.size() : 0.0);
 
-        stats.put("total", allLearnings.size());
-        stats.put("byType", byType);
-        stats.put("successCount", totalSuccess);
-        stats.put("failureCount", allLearnings.size() - totalSuccess);
-        stats.put("averageQuality", avgQuality);
-        stats.put("successRate", allLearnings.size() > 0 ? (double) totalSuccess / allLearnings.size() : 0.0);
-
-        return Mono.just(stats);
+                    return stats;
+                })
+                .defaultIfEmpty(Map.of("total", 0));
     }
 
     /**
@@ -348,7 +359,7 @@ public class EnhancedLearningService {
                     summary.put("improvementsIdentified", opportunities.size());
                     summary.put("optimizationsApplied", optimization.get("applied"));
                     summary.put("recommendationsGenerated", recommendations.size());
-                    summary.put("improvementCycle", LocalDateTime.now().toString());
+                    summary.put("improvementCycle", new java.util.Date().toString());
                     
                     result.put("summary", summary);
                     result.put("success", true);
@@ -502,9 +513,11 @@ public class EnhancedLearningService {
         });
         
         // Prune obsolete entries (older than 6 months, never applied)
-        LocalDateTime sixMonthsAgo = LocalDateTime.now().minusMonths(6);
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.MONTH, -6);
+        Date sixMonthsAgo = cal.getTime();
         long obsolete = learnings.stream()
-                .filter(l -> l.getLearnedAt() != null && l.getLearnedAt().isBefore(sixMonthsAgo))
+                .filter(l -> l.getLearnedAt() != null && l.getLearnedAt().before(sixMonthsAgo))
                 .filter(l -> l.getTimesApplied() == null || l.getTimesApplied() < 1)
                 .count();
         
@@ -515,7 +528,7 @@ public class EnhancedLearningService {
         optimization.put("actions", actions);
         optimization.put("applied", applied);
         optimization.put("obsolete", obsolete);
-        optimization.put("optimizedAt", LocalDateTime.now().toString());
+        optimization.put("optimizedAt", new java.util.Date().toString());
         
         return optimization;
     }

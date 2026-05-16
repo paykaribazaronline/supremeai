@@ -61,7 +61,7 @@ public class AIProviderSwitcher {
 
         // ফলব্যাক অর্কেস্ট্রেটর ব্যবহার করা
         logger.info("Using fallback orchestrator for task: {}", taskCategory);
-        return fallbackOrchestrator.executeWithSupremeIntelligence(taskCategory, "provider_switch", prompt, userId);
+        return resolveResponse(fallbackOrchestrator.executeWithSupremeIntelligence(taskCategory, "provider_switch", prompt, userId));
     }
 
     /**
@@ -83,7 +83,7 @@ public class AIProviderSwitcher {
             recordProviderPerformance(providerName, taskCategory, false, 0);
 
             // ফলব্যাক অর্কেস্ট্রেটর ব্যবহার করা
-            return fallbackOrchestrator.executeWithSupremeIntelligence(taskCategory, "provider_error:" + providerName, prompt, userId);
+            return resolveResponse(fallbackOrchestrator.executeWithSupremeIntelligence(taskCategory, "provider_error:" + providerName, prompt, userId));
         }
     }
 

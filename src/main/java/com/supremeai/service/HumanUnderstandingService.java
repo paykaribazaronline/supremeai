@@ -26,12 +26,15 @@ public class HumanUnderstandingService {
 
     private final SystemLearningRepository learningRepository;
     private final MultiAIConsensusService consensusService;
+    private final ConfigService configService;
     private final ExecutorService executor = VirtualThreadConfig.getVirtualThreadExecutor();
 
     public HumanUnderstandingService(SystemLearningRepository learningRepository,
-                                     MultiAIConsensusService consensusService) {
+                                     MultiAIConsensusService consensusService,
+                                     ConfigService configService) {
         this.learningRepository = learningRepository;
         this.consensusService = consensusService;
+        this.configService = configService;
     }
 
     /**
@@ -41,7 +44,9 @@ public class HumanUnderstandingService {
     public void analyzeHumanFactors(String userMessage, String aiResponse) {
         executor.submit(() -> {
             try {
-                // Extract human dimensions from every interaction
+                // Get analysis provider from config or use defaults
+                String preferredProvider = configService.getEffectiveSetting("analysis_provider", "groq");
+                
                 Mono<com.supremeai.model.ConsensusResult> analysisMono = consensusService.askAllAIs("""
                     Analyze this human-AI interaction and extract ONLY these values:
                     
@@ -57,8 +62,8 @@ public class HumanUnderstandingService {
                       "improvement": "one thing we should do better next time"
                     }
                     """.formatted(userMessage, aiResponse),
-                    java.util.List.of("groq"),
-                    10000
+                    java.util.List.of(preferredProvider),
+                    15000
                 );
                 var analysis = analysisMono.block();
                 if (analysis == null) {

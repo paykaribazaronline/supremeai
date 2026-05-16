@@ -21,7 +21,7 @@ class VPNRepositoryTest {
 
     @Test
     void save_shouldPersistConnection() {
-        VPNConnection vpn = new VPNConnection("vpn-1", "US East", "us-east-1", "connected");
+        VPNConnection vpn = new VPNConnection("vpn-1", "US East", "us-east-1", 8080, "connected");
         when(repository.save(vpn)).thenReturn(Mono.just(vpn));
 
         StepVerifier.create(repository.save(vpn))
@@ -31,7 +31,7 @@ class VPNRepositoryTest {
 
     @Test
     void findById_shouldReturnConnection_whenExists() {
-        VPNConnection vpn = new VPNConnection("vpn-2", "EU West", "eu-west-1", "disconnected");
+        VPNConnection vpn = new VPNConnection("vpn-2", "EU West", "eu-west-1", 8080, "disconnected");
         when(repository.findById("vpn-2")).thenReturn(Mono.just(vpn));
 
         StepVerifier.create(repository.findById("vpn-2"))
@@ -41,8 +41,8 @@ class VPNRepositoryTest {
 
     @Test
     void findAll_shouldReturnAllConnections() {
-        VPNConnection v1 = new VPNConnection("vpn-3", "Asia", "ap-south-1", "connected");
-        VPNConnection v2 = new VPNConnection("vpn-4", "Europe", "eu-central-1", "connected");
+        VPNConnection v1 = new VPNConnection("vpn-3", "Asia", "ap-south-1", 8080, "connected");
+        VPNConnection v2 = new VPNConnection("vpn-4", "Europe", "eu-central-1", 8080, "connected");
 
         when(repository.findAll()).thenReturn(Flux.fromIterable(List.of(v1, v2)));
 

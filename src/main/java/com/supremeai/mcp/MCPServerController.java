@@ -54,10 +54,12 @@ public class MCPServerController {
     /**
      * MCP tools/call - Execute a tool
      */
+    @SuppressWarnings("unchecked")
     @PostMapping(value = "/tools/call", consumes = "application/json", produces = "application/json")
     public Map<String, Object> callTool(@RequestBody Map<String, Object> request) {
         String toolName = (String) request.get("name");
         Map<String, Object> args = (Map<String, Object>) request.get("arguments");
+
         
         Map<String, Object> response = new HashMap<>();
         
@@ -74,9 +76,11 @@ public class MCPServerController {
     @Autowired
     private PythonBridge pythonBridge;
     
+    @SuppressWarnings("unchecked")
     private Map<String, Object> executeReverseEngineer(Map<String, Object> args) {
         String url = (String) args.get("url");
         Map<String, Object> credentials = (Map<String, Object>) args.get("credentials");
+
         
         // Call Python reverse_engineer
         return pythonBridge.callReverseEngineer(url, credentials);

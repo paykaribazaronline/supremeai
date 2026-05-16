@@ -3,12 +3,19 @@ package com.supremeai.model;
 import com.google.cloud.spring.data.firestore.Document;
 import java.time.LocalDateTime;
 
-@Document(collectionName = "user_language_preferences")
+@Document(collectionName = "user_preferences")
 public class UserLanguagePreference {
     private String id;
     private String userId;
-    private String languageCode; // ISO 639-1 কোড, যেমন 'en', 'bn', 'es', 'fr'
-    private String languageName; // ভাষার নাম, যেমন 'English', 'Bengali', 'Spanish', 'French'
+    private String languageCode; // ISO 639-1 কোড, যেমন 'en', 'bn'
+    private String languageName; // ভাষার নাম, যেমন 'English', 'Bengali'
+    
+    // New Preference Fields
+    private Boolean darkMode = true;
+    private Boolean notificationsEnabled = true;
+    private Boolean focusMode = false;
+    private String chatFont = "font-mono";
+    
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -32,6 +39,19 @@ public class UserLanguagePreference {
     public void setLanguageCode(String languageCode) { this.languageCode = languageCode; }
     public String getLanguageName() { return languageName; }
     public void setLanguageName(String languageName) { this.languageName = languageName; }
+    
+    public Boolean getDarkMode() { return darkMode; }
+    public void setDarkMode(Boolean darkMode) { this.darkMode = darkMode; }
+    
+    public Boolean getNotificationsEnabled() { return notificationsEnabled; }
+    public void setNotificationsEnabled(Boolean notificationsEnabled) { this.notificationsEnabled = notificationsEnabled; }
+    
+    public Boolean getFocusMode() { return focusMode; }
+    public void setFocusMode(Boolean focusMode) { this.focusMode = focusMode; }
+    
+    public String getChatFont() { return chatFont; }
+    public void setChatFont(String chatFont) { this.chatFont = chatFont; }
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

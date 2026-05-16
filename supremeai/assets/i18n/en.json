@@ -97,5 +97,71 @@
   "video_tutorials_desc": "Learn how to use SupremeAI with these step-by-step video guides.",
   "no_tutorials_available": "No tutorials available yet.",
   "watch_now": "Watch Now",
-  "duration": "Duration"
+  "duration": "Duration",
+  "project": {
+    "create": "Create Project",
+    "name": "Project Name",
+    "description": "Project Description",
+    "status": "Status",
+    "progress": "Progress",
+    "actions": "Actions",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View"
+  },
+  "agent": {
+    "name": "Agent Name",
+    "status": "Status",
+    "model": "Model",
+    "provider": "Provider",
+    "performance": "Performance",
+    "assign": "Assign",
+    "configure": "Configure"
+  },
+  "chat": {
+    "type_message": "Type a message...",
+    "send": "Send",
+    "received": "Received",
+    "typing": "Typing..."
+  },
+  "api_keys": {
+    "title": "API Key Management",
+    "add_key": "Add Key",
+    "edit_key": "Edit Key",
+    "provider": "Provider",
+    "key": "API Key",
+    "expires": "Expires",
+    "test": "Test",
+    "delete": "Delete"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "notifications": "Notifications",
+    "save_changes": "Save Changes"
+  },
+  "alerts": {
+    "title": "System Alerts",
+    "rate_limit": "API Rate Limit Hit",
+    "quota_exceeded": "API quota exceeded for the current hour.",
+    "slow_response": "Slow Response Time",
+    "high_latency": "Backend latency higher than 500ms."
+  },
+  "projects": {
+    "title": "Projects List",
+    "reverse_engineer": "Reverse Engineer",
+    "data_extraction": "Data Extraction",
+    "automation": "Automation",
+    "security_audit": "Security Audit",
+    "target_website": "Target Website",
+    "select_neural_task": "Select Neural Task",
+    "custom_ai_instructions": "Custom AI Instructions",
+    "smart_suggestions": "Smart Suggestions",
+    "alternative_detected": "Alternative Detected",
+    "direct_api_available": "Direct API available for this target. Use official connector to save 40% compute cost.",
+    "use": "Use",
+    "automation_job_submitting": "Automation Job Submitting...",
+    "initiate_neural_task": "INITIATE NEURAL TASK"
+  }
 }

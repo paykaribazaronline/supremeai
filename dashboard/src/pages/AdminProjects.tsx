@@ -1,32 +1,18 @@
- // AdminProjects.tsx - Project Management Page
+// AdminProjects.tsx - Project Management Page (Modularized)
 
 import React, { useState, useEffect } from 'react';
-import { Layout, Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Spin, Alert, Steps, Progress, Typography, Row, Col, Statistic } from 'antd';
-import { FolderOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, RocketOutlined, CloudServerOutlined, CodeOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { Card, message, Spin, Alert } from 'antd';
 import AdminLayout from '../components/AdminLayout';
 import { authUtils } from '../lib/authUtils';
 
-const { Option } = Select;
-const { Title, Paragraph } = Typography;
-const { Step } = Steps;
-
-interface Project {
-  id: string;
-  name: string;
-  description?: string;
-  ownerId: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface GenerationForm {
-  name: string;
-  description: string;
-  platform: string;
-  database: string;
-  useAI?: boolean;
-}
+// Import Modular Components
+import { Project, GenerationForm, GenerationStatus, ProjectSortField } from '../components/projects/types';
+import ProjectTable from '../components/projects/ProjectTable';
+import ProjectModal from '../components/projects/ProjectModal';
+import AppGenerationCard from '../components/projects/AppGenerationCard';
+import ProjectActionToolbar from '../components/projects/ProjectActionToolbar';
+import InfrastructureAdviceModal from '../components/projects/InfrastructureAdviceModal';
+import { useSystemWebSocket } from '../hooks/useSystemWebSocket';
 
 const AdminProjects: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -34,33 +20,88 @@ const AdminProjects: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
-  const [form] = Form.useForm();
   
+  // Search and Sort State
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<ProjectSortField | null>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'ascend' | 'descend'>('descend');
+
   // App Generation State
   const [generationForm, setGenerationForm] = useState<GenerationForm>({
     name: '',
     description: '',
     platform: 'fullstack',
-    database: 'PostgreSQL'
+    database: 'PostgreSQL',
+    useAI: true
   });
-  const [generationStatus, setGenerationStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle');
+  const [generationStatus, setGenerationStatus] = useState<GenerationStatus>('idle');
   const [generationStep, setGenerationStep] = useState(0);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generationResult, setGenerationResult] = useState<any>(null);
+
+  // WebSocket for Real-time Pipeline Progress
+  const { messages } = useSystemWebSocket(['/topic/pipeline/progress']);
+
+  useEffect(() => {
+    const pipelineMsg = messages['/topic/pipeline/progress'];
+    if (pipelineMsg) {
+      if (pipelineMsg.step !== undefined) setGenerationStep(pipelineMsg.step);
+      if (pipelineMsg.progress !== undefined) setGenerationProgress(pipelineMsg.progress);
+      if (pipelineMsg.message) {
+        // Optional: show toast or log message
+        console.log(`Pipeline: ${pipelineMsg.message}`);
+      }
+    }
+  }, [messages]);
+
+  // Infrastructure Advice State
+  const [adviceVisible, setAdviceVisible] = useState(false);
+  const [adviceLoading, setAdviceLoading] = useState(false);
+  const [infrastructureAdvice, setInfrastructureAdvice] = useState<string | null>(null);
+
+  const processedProjects = React.useMemo(() => {
+    let result = projects.filter(p => {
+      if (!searchTerm) return true;
+      const term = searchTerm.toLowerCase();
+      return p.name.toLowerCase().includes(term) || 
+             (p.description && p.description.toLowerCase().includes(term)) ||
+             p.id.toLowerCase().includes(term);
+    });
+
+    if (sortBy) {
+      result.sort((a, b) => {
+        const aVal = (a as any)[sortBy] ?? '';
+        const bVal = (b as any)[sortBy] ?? '';
+
+        if (sortBy === 'createdAt') {
+          return sortOrder === 'ascend' 
+            ? new Date(aVal).getTime() - new Date(bVal).getTime()
+            : new Date(bVal).getTime() - new Date(aVal).getTime();
+        }
+
+        if (typeof aVal === 'string' && typeof bVal === 'string') {
+          return sortOrder === 'ascend' 
+            ? aVal.localeCompare(bVal) 
+            : bVal.localeCompare(aVal);
+        }
+        return 0;
+      });
+    }
+
+    return result;
+  }, [projects, sortBy, sortOrder, searchTerm]);
 
   const fetchProjects = async () => {
     setLoading(true);
     setError(null);
     try {
-      const token = authUtils.getToken();
-      const response = await fetch('/api/projects', {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
+      const response = await authUtils.fetchWithAuth('/api/projects');
       if (!response.ok) throw new Error('Failed to fetch projects');
-      const data: Project[] = await response.json();
-      setProjects(data);
+      const result = await response.json();
+      setProjects(result.data || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load projects');
+      message.error('Error fetching projects');
     } finally {
       setLoading(false);
     }
@@ -70,33 +111,31 @@ const AdminProjects: React.FC = () => {
     fetchProjects();
   }, []);
 
-  const handleCreate = async (values: any) => {
+  const handleCreateOrUpdate = async (values: any) => {
     try {
-      const token = authUtils.getToken();
-      const response = await fetch('/api/projects', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
+      const isEdit = !!editingProject;
+      const url = isEdit ? `/api/projects/${editingProject.id}` : '/api/projects';
+      const method = isEdit ? 'PUT' : 'POST';
+      
+      const response = await authUtils.fetchWithAuth(url, {
+        method,
         body: JSON.stringify(values),
       });
-      if (!response.ok) throw new Error('Failed to create project');
-      message.success('Project created');
+      
+      if (!response.ok) throw new Error(`Failed to ${isEdit ? 'update' : 'create'} project`);
+      
+      message.success(`Project ${isEdit ? 'updated' : 'created'} successfully`);
       setModalVisible(false);
-      form.resetFields();
       fetchProjects();
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to create');
+      message.error(err instanceof Error ? err.message : 'Operation failed');
     }
   };
 
   const handleUpdateStatus = async (id: string, status: string) => {
     try {
-      const token = authUtils.getToken();
-      const response = await fetch(`/api/projects/${id}/status?status=${encodeURIComponent(status)}`, {
+      const response = await authUtils.fetchWithAuth(`/api/projects/${id}/status?status=${encodeURIComponent(status)}`, {
         method: 'PUT',
-        headers: { 'Authorization': `Bearer ${token}` },
       });
       if (!response.ok) throw new Error('Failed to update status');
       message.success('Status updated');
@@ -108,10 +147,8 @@ const AdminProjects: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      const token = authUtils.getToken();
-      const response = await fetch(`/api/projects/${id}`, {
+      const response = await authUtils.fetchWithAuth(`/api/projects/${id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
       });
       if (!response.ok) throw new Error('Failed to delete project');
       message.success('Project deleted');
@@ -122,344 +159,153 @@ const AdminProjects: React.FC = () => {
   };
 
   const handleGenerateApp = async () => {
+    if (!generationForm.name || !generationForm.description) {
+      message.warning('Please provide both name and description');
+      return;
+    }
+
     setGenerationStatus('generating');
     setGenerationStep(0);
+    setGenerationProgress(5);
     
     try {
-      // Step 1: Analyze requirements
-      setGenerationStep(1);
-      setGenerationProgress(25);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Step 2: Design architecture
-      setGenerationStep(2);
-      setGenerationProgress(50);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Step 3: Generate code
-      setGenerationStep(3);
-      setGenerationProgress(75);
-      
-      // Call generation API
-      const token = authUtils.getToken();
-      const response = await fetch('/api/generate', {
+      // Direct API Call to trigger the Backend Pipeline
+      const response = await authUtils.fetchWithAuth('/api/generate', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
         body: JSON.stringify({
-          name: generationForm.name,
-          description: generationForm.description,
-          platform: generationForm.platform,
-          database: generationForm.database,
+          ...generationForm,
           type: 'project',
-          useAI: generationForm.useAI || false,
         }),
       });
       
-      if (!response.ok) {
-        throw new Error('Generation failed');
-      }
+      if (!response.ok) throw new Error('Generation engine failed to start');
       
       const result = await response.json();
       
-      // Step 4: Complete
-      setGenerationStep(4);
-      setGenerationProgress(100);
-      setGenerationStatus('success');
-      setGenerationResult(result);
-      
-      // Create project entry
-      const projectResponse = await fetch('/api/projects', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: generationForm.name,
-          description: generationForm.description,
-          status: 'ACTIVE',
-        }),
-      });
-      
-      if (projectResponse.ok) {
+      // If the API returns immediately (ACCEPTED), the progress will be handled by WebSocket
+      // If it returns the final result, we update the UI
+      if (result.status === 'GENERATED' || result.status === 'COMPLETED') {
+        setGenerationStep(4);
+        setGenerationProgress(100);
+        setGenerationStatus('success');
+        setGenerationResult(result);
         fetchProjects();
+        message.success('Application generation pipeline completed successfully');
+      } else {
+        // Pipeline is running in background, WebSocket will handle updates
+        setGenerationResult(result);
+        message.info('AI Agents have started the synthesis pipeline...');
       }
-      
-      message.success('App generated successfully!');
     } catch (err) {
       setGenerationStatus('error');
-      message.error(err instanceof Error ? err.message : 'Generation failed');
+      message.error(err instanceof Error ? err.message : 'Generation pipeline failed');
     }
   };
 
-  const columns = [
-    {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
-      render: (desc: string) => desc || '-',
-    },
-    {
-      title: 'Owner',
-      dataIndex: 'ownerId',
-      key: 'ownerId',
-      render: (owner: string) => <span>{owner.substring(0, 8)}...</span>,
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => {
-        let color = 'default';
-        if (status === 'ACTIVE') color = 'green';
-        else if (status === 'PAUSED') color = 'orange';
-        else if (status === 'COMPLETED') color = 'blue';
-        else if (status === 'FAILED') color = 'red';
-        return <Tag color={color}>{status}</Tag>;
-      },
-    },
-    {
-      title: 'Created',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      render: (date: string) => new Date(date).toLocaleDateString(),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_: any, record: Project) => (
-        <Space>
-          <Button size="small" icon={<EditOutlined />} onClick={() => {
-            setEditingProject(record);
-            form.setFieldsValue(record);
-            setModalVisible(true);
-          }}>
-            Edit
-          </Button>
-          <Select
-            size="small"
-            value={record.status}
-            style={{ width: 100 }}
-            onChange={(val) => handleUpdateStatus(record.id, val)}
-          >
-            <Option value="ACTIVE">Active</Option>
-            <Option value="PAUSED">Paused</Option>
-            <Option value="COMPLETED">Completed</Option>
-            <Option value="FAILED">Failed</Option>
-          </Select>
-          <Button size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)}>
-            Delete
-          </Button>
-        </Space>
-      ),
-    },
-  ];
+  const handleGetInfrastructureAdvice = async () => {
+    if (!generationForm.name || !generationForm.description) {
+      message.warning('Please provide both name and description first');
+      return;
+    }
+
+    setAdviceVisible(true);
+    setAdviceLoading(true);
+    setInfrastructureAdvice(null);
+
+    try {
+      const response = await authUtils.fetchWithAuth('/api/admin/infra/advice', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: generationForm.name,
+          description: generationForm.description,
+          techStack: generationForm.platform // platform maps to techStack in this context
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch infrastructure advice');
+      
+      const result = await response.json();
+      setInfrastructureAdvice(result.data);
+    } catch (err) {
+      message.error(err instanceof Error ? err.message : 'Concierge service error');
+      setAdviceVisible(false);
+    } finally {
+      setAdviceLoading(false);
+    }
+  };
 
   return (
-    <AdminLayout title="Project Management">
-      <Card>
-        <div style={{ marginBottom: 16 }}>
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => {
+    <AdminLayout title="System Orchestrator: Projects">
+      <Card className="glass-card">
+        <ProjectActionToolbar 
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          onNewProject={() => {
             setEditingProject(null);
-            form.resetFields();
             setModalVisible(true);
-          }}>
-            New Project
-          </Button>
-          <Button icon={<ReloadOutlined />} style={{ marginLeft: 8 }} onClick={fetchProjects}>
-            Refresh
-          </Button>
-        </div>
+          }}
+          onRefresh={fetchProjects}
+          loading={loading}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          sortOrder={sortOrder}
+          setSortOrder={setSortOrder}
+        />
 
-        {loading && <Spin style={{ display: 'block', margin: '20px auto' }} />}
-        {error && <Alert type="error" message={error} action={<Button onClick={fetchProjects}>Retry</Button>} />}
+        {error && (
+          <Alert 
+            type="error" 
+            message="System Sync Error" 
+            description={error} 
+            showIcon 
+            style={{ marginBottom: 16 }}
+            action={<button onClick={fetchProjects} className="retry-btn">Retry Sync</button>} 
+          />
+        )}
 
-        {!loading && !error && (
-          <Table
-            columns={columns}
-            dataSource={projects}
-            rowKey="id"
-            pagination={{ pageSize: 15 }}
-            scroll={{ x: 1000 }}
+        {loading && !projects.length ? (
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <Spin size="large" tip="Synchronizing Project Vault..." />
+          </div>
+        ) : (
+          <ProjectTable 
+            projects={processedProjects}
+            loading={loading}
+            onEdit={(project) => {
+              setEditingProject(project);
+              setModalVisible(true);
+            }}
+            onDelete={handleDelete}
+            onUpdateStatus={handleUpdateStatus}
           />
         )}
       </Card>
 
-      {/* App Generation Card */}
-      <Card title={<><RocketOutlined /> Generate New App</>} style={{ marginTop: 24 }}>
-        <Row gutter={24}>
-          <Col xs={24} lg={12}>
-            <Title level={4}>App Requirements</Title>
-            <Paragraph>Describe the app you want to generate. The AI will analyze your requirements and create a full-stack application.</Paragraph>
-            
-            <Form layout="vertical" onFinish={handleGenerateApp}>
-              <Form.Item label="App Name" required>
-                <Input 
-                  placeholder="My Awesome App"
-                  value={generationForm.name}
-                  onChange={e => setGenerationForm({...generationForm, name: e.target.value})}
-                />
-              </Form.Item>
-              
-              <Form.Item label="Description" required>
-                <Input.TextArea 
-                  rows={4}
-                  placeholder="Describe your app's purpose and main features..."
-                  value={generationForm.description}
-                  onChange={e => setGenerationForm({...generationForm, description: e.target.value})}
-                />
-              </Form.Item>
-              
-              <Form.Item label="Target Platform" required>
-                <Select
-                  placeholder="Select platform"
-                  value={generationForm.platform}
-                  onChange={val => setGenerationForm({...generationForm, platform: val})}
-                >
-                  <Option value="web">Web Application (React)</Option>
-                  <Option value="android">Android App (Kotlin)</Option>
-                  <Option value="ios">iOS App (SwiftUI)</Option>
-                  <Option value="desktop">Desktop App (JavaFX)</Option>
-                  <Option value="fullstack">Full-Stack Web App (Backend + Frontend)</Option>
-                </Select>
-              </Form.Item>
-              
-              <Form.Item>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <input
-                    type="checkbox"
-                    checked={generationForm.useAI || false}
-                    onChange={e => setGenerationForm({...generationForm, useAI: e.target.checked})}
-                  />
-                  <span>Use AI-Powered Generation (SupremeAI)</span>
-                </label>
-                <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                  Enable to generate custom entities and AI-optimized code structure
-                </div>
-              </Form.Item>
-              
-              <Form.Item label="Database Preference">
-                <Select
-                  placeholder="Select database"
-                  value={generationForm.database}
-                  onChange={val => setGenerationForm({...generationForm, database: val})}
-                >
-                  <Option value="PostgreSQL">PostgreSQL</Option>
-                  <Option value="MySQL">MySQL</Option>
-                  <Option value="MongoDB">MongoDB</Option>
-                </Select>
-              </Form.Item>
-              
-              <Form.Item>
-                <Button 
-                  type="primary" 
-                  htmlType="submit"
-                  icon={<RocketOutlined />}
-                  loading={generationStatus === 'generating'}
-                  size="large"
-                  block
-                  onClick={handleGenerateApp}
-                >
-                  {generationStatus === 'generating' ? 'Generating...' : 'Generate App'}
-                </Button>
-              </Form.Item>
-            </Form>
-          </Col>
-          
-          <Col xs={24} lg={12}>
-            {generationStatus !== 'idle' && (
-              <>
-                <Title level={4}>Generation Progress</Title>
-                
-                <Steps
-                  current={generationStep}
-                  direction="vertical"
-                  items={[
-                    { title: 'Analyzing Requirements', icon: <CodeOutlined /> },
-                    { title: 'Designing Architecture', icon: <CloudServerOutlined /> },
-                    { title: 'Generating Code', icon: <RocketOutlined /> },
-                    { title: 'Build Complete', icon: <CheckCircleOutlined /> },
-                  ]}
-                />
-                
-                <div style={{ marginTop: 24 }}>
-                  <Progress 
-                    percent={generationProgress} 
-                    status={generationStatus === 'error' ? 'exception' : 'active'}
-                    strokeColor={{
-                      '0%': '#108ee9',
-                      '100%': '#87d068',
-                    }}
-                  />
-                </div>
-                
-                {generationStatus === 'success' && generationResult && (
-                  <Alert
-                    message="App Generated Successfully!"
-                    description={`Your ${generationForm.platform} app has been generated with ${generationResult.fileCount || 0} files.`}
-                    type="success"
-                    showIcon
-                    style={{ marginTop: 16 }}
-                  />
-                )}
-                
-                {generationStatus === 'error' && (
-                  <Alert
-                    message="Generation Failed"
-                    description="There was an error generating your app. Please try again."
-                    type="error"
-                    showIcon
-                    style={{ marginTop: 16 }}
-                  />
-                )}
-              </>
-            )}
-          </Col>
-        </Row>
-      </Card>
+      <AppGenerationCard 
+        generationForm={generationForm}
+        setGenerationForm={setGenerationForm}
+        generationStatus={generationStatus}
+        generationStep={generationStep}
+        generationProgress={generationProgress}
+        generationResult={generationResult}
+        onGenerate={handleGenerateApp}
+        onGetAdvice={handleGetInfrastructureAdvice}
+      />
 
-      <Modal
-        title={editingProject ? 'Edit Project' : 'Create New Project'}
-        open={modalVisible}
+      <InfrastructureAdviceModal 
+        visible={adviceVisible}
+        onCancel={() => setAdviceVisible(false)}
+        advice={infrastructureAdvice}
+        loading={adviceLoading}
+        projectName={generationForm.name || "New Project"}
+      />
+
+      <ProjectModal 
+        visible={modalVisible}
+        editingProject={editingProject}
         onCancel={() => setModalVisible(false)}
-        footer={null}
-        width={500}
-      >
-        <Form form={form} layout="vertical" onFinish={handleCreate}>
-          <Form.Item name="name" label="Project Name" rules={[{ required: true }]}>
-            <Input placeholder="My AI Project" />
-          </Form.Item>
-          <Form.Item name="description" label="Description">
-            <Input.TextArea rows={3} placeholder="Brief description..." />
-          </Form.Item>
-          {editingProject && (
-            <Form.Item name="status" label="Status">
-              <Select>
-                <Option value="ACTIVE">Active</Option>
-                <Option value="PAUSED">Paused</Option>
-                <Option value="COMPLETED">Completed</Option>
-                <Option value="FAILED">Failed</Option>
-              </Select>
-            </Form.Item>
-          )}
-          <Form.Item style={{ marginTop: 24 }}>
-            <Space>
-              <Button type="primary" htmlType="submit">
-                {editingProject ? 'Update' : 'Create'}
-              </Button>
-              <Button onClick={() => setModalVisible(false)}>Cancel</Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
+        onSubmit={handleCreateOrUpdate}
+      />
     </AdminLayout>
   );
 };

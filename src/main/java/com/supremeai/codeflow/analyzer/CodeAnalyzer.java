@@ -3,10 +3,6 @@ package com.supremeai.codeflow.analyzer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.supremeai.codeflow.model.CodeRepository;
-import lombok.Data;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -96,9 +92,9 @@ public class CodeAnalyzer {
         if (LANGUAGE_GRAMMARS.containsKey(language)) {
             try {
                 TreeSitterParseResult result = parseWithTreeSitter(content, language);
-                functions = result.functions;
-                classes = result.classes;
-                imports = result.imports;
+                functions = result.getFunctions();
+                classes = result.getClasses();
+                imports = result.getImports();
                 parsedWithTreeSitter = true;
                 logger.debug("Parsed {} with Tree-sitter", relativePath);
             } catch (Exception e) {
@@ -110,9 +106,9 @@ public class CodeAnalyzer {
         if (!parsedWithTreeSitter && JS_LIKE_EXTENSIONS.contains(extension)) {
             try {
                 TreeSitterParseResult result = parseWithAcorn(content);
-                functions = result.functions;
-                classes = result.classes;
-                imports = result.imports;
+                functions = result.getFunctions();
+                classes = result.getClasses();
+                imports = result.getImports();
                 parsedWithTreeSitter = true;
                 logger.debug("Parsed {} with Acorn", relativePath);
             } catch (Exception e) {
@@ -123,9 +119,9 @@ public class CodeAnalyzer {
         // Final fallback to regex heuristics
         if (!parsedWithTreeSitter) {
             TreeSitterParseResult result = parseWithRegex(content, language);
-            functions = result.functions;
-            classes = result.classes;
-            imports = result.imports;
+            functions = result.getFunctions();
+            classes = result.getClasses();
+            imports = result.getImports();
             logger.debug("Parsed {} with regex heuristics", relativePath);
         }
         
@@ -151,22 +147,22 @@ public class CodeAnalyzer {
         // Calculate complexity
         int complexity = calculateComplexity(functions, classes);
         
-        return CodeRepository.CodeFile.builder()
-            .path(relativePath)
-            .name(file.getFileName().toString())
-            .extension(extension)
-            .language(language)
-            .size((int) Files.size(file))
-            .linesOfCode(countLinesOfCode(content))
-            .complexity(complexity)
-            .functions(functions)
-            .classes(classes)
-            .imports(imports)
-            .callReferences(callReferences)
-            .securityIssues(new ArrayList<>())
-            .hasEmbeddedScript(hasEmbeddedScript)
-            .contentHash(Integer.toHexString(content.hashCode()))
-            .build();
+        CodeRepository.CodeFile codeFile = new CodeRepository.CodeFile();
+        codeFile.setPath(relativePath);
+        codeFile.setName(file.getFileName().toString());
+        codeFile.setExtension(extension);
+        codeFile.setLanguage(language);
+        codeFile.setSize((int) Files.size(file));
+        codeFile.setLinesOfCode(countLinesOfCode(content));
+        codeFile.setComplexity(complexity);
+        codeFile.setFunctions(functions);
+        codeFile.setClasses(classes);
+        codeFile.setImports(imports);
+        codeFile.setCallReferences(callReferences);
+        codeFile.setSecurityIssues(new ArrayList<>());
+        codeFile.setHasEmbeddedScript(hasEmbeddedScript);
+        codeFile.setContentHash(Integer.toHexString(content.hashCode()));
+        return codeFile;
     }
     
     /**
@@ -244,12 +240,12 @@ public class CodeAnalyzer {
                     Matcher matcher = pattern.matcher(content);
                     while (matcher.find()) {
                         int line = countNewlines(content.substring(0, matcher.start())) + 1;
-                        references.add(CodeRepository.CallReference.builder()
-                            .fromFunction(caller.getName())
-                            .toFunction(callee.getName())
-                            .line(line)
-                            .type("DIRECT")
-                            .build());
+                        CodeRepository.CallReference ref = new CodeRepository.CallReference();
+                        ref.setFromFunction(caller.getName());
+                        ref.setToFunction(callee.getName());
+                        ref.setLine(line);
+                        ref.setType("DIRECT");
+                        references.add(ref);
                     }
                 }
             }
@@ -270,7 +266,7 @@ public class CodeAnalyzer {
         while (matcher.find()) {
             String scriptContent = matcher.group(1);
             TreeSitterParseResult result = parseWithRegex(scriptContent, "javascript");
-            functions.addAll(result.functions);
+            functions.addAll(result.getFunctions());
         }
         
         return functions;
@@ -320,13 +316,13 @@ public class CodeAnalyzer {
             if (!calledFunctions.contains(func) && !func.contains("main") && 
                 !func.contains("Main") && !func.contains("test")) {
                 String[] parts = func.split(":");
-                deadCode.add(CodeRepository.DeadCode.builder()
-                    .type("UNUSED_FUNCTION")
-                    .file(parts[0])
-                    .name(parts.length > 1 ? parts[1] : "unknown")
-                    .line(0)
-                    .isExported(false)
-                    .build());
+                CodeRepository.DeadCode dc = new CodeRepository.DeadCode();
+                dc.setType("UNUSED_FUNCTION");
+                dc.setFile(parts[0]);
+                dc.setName(parts.length > 1 ? parts[1] : "unknown");
+                dc.setLine(0);
+                dc.setIsExported(false);
+                deadCode.add(dc);
             }
         }
         
@@ -334,14 +330,14 @@ public class CodeAnalyzer {
         for (CodeRepository.CodeFile file : files) {
             if (file.getImports() != null) {
                 for (CodeRepository.ImportInfo imp : file.getImports()) {
-                    if (!imp.getIsUsed()) {
-                        deadCode.add(CodeRepository.DeadCode.builder()
-                            .type("UNUSED_IMPORT")
-                            .file(file.getPath())
-                            .name(imp.getModule())
-                            .line(imp.getLine())
-                            .isExported(false)
-                            .build());
+                    if (imp.getIsUsed() != null && !imp.getIsUsed()) {
+                        CodeRepository.DeadCode dc = new CodeRepository.DeadCode();
+                        dc.setType("UNUSED_IMPORT");
+                        dc.setFile(file.getPath());
+                        dc.setName(imp.getModule());
+                        dc.setLine(imp.getLine());
+                        dc.setIsExported(false);
+                        deadCode.add(dc);
                     }
                 }
             }
@@ -376,7 +372,6 @@ public class CodeAnalyzer {
                     "(?:function\\s+(\\w+)|(?:const|let|var)\\s+(\\w+)\\s*=\\s*(?:async\\s+)?(?:\\([^)]*\\)|\\w+)\\s*=>|async\\s+function\\s+(\\w+)|(\\w+(?:\\.\\w+)*)\\s*\\([^)]*\\))",
                     Pattern.MULTILINE);
             case "java":
-                // matches method definitions and avoids keywords like if, for, while, switch, catch
                 return Pattern.compile(
                     "^(?:\\s*(?:public|private|protected|static|final|abstract|synchronized|native|strictfp|default)\\s+)*" +
                     "(?:[\\w<>\\[\\]\\?,\\s]+\\s+)?(\\w+)\\s*\\([^)]*\\)\\s*(?:throws\\s+[\\w,\\s]+)?\\s*\\{",
@@ -408,12 +403,11 @@ public class CodeAnalyzer {
     
     private CodeRepository.ImportInfo parseImport(String importStmt, String language) {
         String module = importStmt.replaceAll("[\\s;]", "");
-        return CodeRepository.ImportInfo.builder()
-            .module(module)
-            .alias(null)
-            .isUsed(true)
-            .line(0)
-            .build();
+        CodeRepository.ImportInfo imp = new CodeRepository.ImportInfo();
+        imp.setModule(module);
+        imp.setIsUsed(true);
+        imp.setLine(0);
+        return imp;
     }
     
     private CodeRepository.FunctionInfo parseFunction(String funcDef, int line, String language) {
@@ -422,21 +416,21 @@ public class CodeAnalyzer {
             return null;
         }
         
-         return CodeRepository.FunctionInfo.builder()
-             .name(name)
-             .line(line + 1)
-             .endLine(line + 10)
-             .parameters(new ArrayList<>())
-             .returnType("void")
-             .complexity(1)
-             .cyclomaticComplexity(1)
-             .cognitiveComplexity(1)
-             .calledFunctions(new ArrayList<>())
-             .isPublic(!funcDef.contains("private"))
-             .isStatic(funcDef.contains("static"))
-             .isAsync(funcDef.contains("async"))
-             .modifiers(extractModifiers(funcDef))
-             .build();
+         CodeRepository.FunctionInfo func = new CodeRepository.FunctionInfo();
+         func.setName(name);
+         func.setLine(line + 1);
+         func.setEndLine(line + 10);
+         func.setParameters(new ArrayList<>());
+         func.setReturnType("void");
+         func.setComplexity(1);
+         func.setCyclomaticComplexity(1);
+         func.setCognitiveComplexity(1);
+         func.setCalledFunctions(new ArrayList<>());
+         func.setIsPublic(!funcDef.contains("private"));
+         func.setIsStatic(funcDef.contains("static"));
+         func.setIsAsync(funcDef.contains("async"));
+         func.setModifiers(extractModifiers(funcDef));
+         return func;
     }
     
     private CodeRepository.ClassInfo parseClass(String classDef, int line, String language) {
@@ -445,18 +439,18 @@ public class CodeAnalyzer {
             return null;
         }
         
-        return CodeRepository.ClassInfo.builder()
-            .name(name)
-            .line(line + 1)
-            .type("CLASS")
-            .extendsClasses(new ArrayList<>())
-            .implementsInterfaces(new ArrayList<>())
-            .methods(new ArrayList<>())
-            .fields(new ArrayList<>())
-            .complexity(1)
-            .isAbstract(classDef.contains("abstract") || classDef.contains("interface"))
-            .isFinal(classDef.contains("final"))
-            .build();
+        CodeRepository.ClassInfo clazz = new CodeRepository.ClassInfo();
+        clazz.setName(name);
+        clazz.setLine(line + 1);
+        clazz.setType("CLASS");
+        clazz.setExtendsClasses(new ArrayList<>());
+        clazz.setImplementsInterfaces(new ArrayList<>());
+        clazz.setMethods(new ArrayList<>());
+        clazz.setFields(new ArrayList<>());
+        clazz.setComplexity(1);
+        clazz.setIsAbstract(classDef.contains("abstract") || classDef.contains("interface"));
+        clazz.setIsFinal(classDef.contains("final"));
+        return clazz;
     }
     
     private boolean isKeyword(String word) {
@@ -476,9 +470,6 @@ public class CodeAnalyzer {
         return null;
     }
 
-    /**
-     * Extract modifiers from function definition
-     */
     private List<String> extractModifiers(String funcDef) {
         List<String> modifiers = new ArrayList<>();
         if (funcDef.contains("public")) modifiers.add("public");
@@ -493,9 +484,6 @@ public class CodeAnalyzer {
         return modifiers;
     }
     
-    /**
-     * Extract class name
-     */
     private String extractClassName(String classDef, String language) {
         Pattern namePattern = Pattern.compile("class\\s+(\\w+)");
         Matcher matcher = namePattern.matcher(classDef);
@@ -505,9 +493,6 @@ public class CodeAnalyzer {
         return null;
     }
     
-    /**
-     * Calculate complexity
-     */
     private int calculateComplexity(List<CodeRepository.FunctionInfo> functions,
                                     List<CodeRepository.ClassInfo> classes) {
         int complexity = 0;
@@ -516,9 +501,6 @@ public class CodeAnalyzer {
         return Math.min(complexity, 100);
     }
     
-    /**
-     * Count lines of code (excluding blank lines and comments)
-     */
     private int countLinesOfCode(String content) {
         String[] lines = content.split("\\n");
         int count = 0;
@@ -532,16 +514,10 @@ public class CodeAnalyzer {
         return count;
     }
     
-    /**
-     * Count newlines
-     */
     private int countNewlines(String text) {
         return (int) text.chars().filter(ch -> ch == '\n').count();
     }
     
-    /**
-     * Check if file is a code file
-     */
     private boolean isCodeFile(Path file) {
         String fileName = file.getFileName().toString().toLowerCase();
         return fileName.endsWith(".py") || fileName.endsWith(".js") || 
@@ -553,9 +529,6 @@ public class CodeAnalyzer {
                fileName.endsWith(".html") || fileName.endsWith(".md");
     }
     
-    /**
-     * Check if file should be ignored
-     */
     private boolean isIgnored(Path file) {
         String path = file.toString().toLowerCase();
         return path.contains("node_modules") || path.contains(".git") ||
@@ -565,17 +538,11 @@ public class CodeAnalyzer {
                path.contains(".min.js");
     }
     
-    /**
-     * Get file extension
-     */
     private String getFileExtension(String fileName) {
         int dotIndex = fileName.lastIndexOf('.');
         return (dotIndex == -1) ? "" : fileName.substring(dotIndex + 1).toLowerCase();
     }
     
-    /**
-     * Detect language from extension and content
-     */
     private String detectLanguage(String extension, String content) {
         switch (extension) {
             case "py": return "python";
@@ -597,22 +564,31 @@ public class CodeAnalyzer {
         }
     }
     
-    /**
-     * Tree-sitter parse result container
-     */
-    /**
-     * Public parse result - returned by parse() method
-     */
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
     public static class ParseResult {
         public String language;
         public List<CodeRepository.FunctionInfo> functions;
         public List<CodeRepository.ClassInfo> classes;
         public List<CodeRepository.ImportInfo> imports;
         
+        public ParseResult() {}
+
+        public static ParseResultBuilder builder() { return new ParseResultBuilder(); }
+        public static class ParseResultBuilder {
+            private String language;
+            private List<CodeRepository.FunctionInfo> functions;
+            private List<CodeRepository.ClassInfo> classes;
+            private List<CodeRepository.ImportInfo> imports;
+            public ParseResultBuilder language(String l) { this.language = l; return this; }
+            public ParseResultBuilder functions(List<CodeRepository.FunctionInfo> f) { this.functions = f; return this; }
+            public ParseResultBuilder classes(List<CodeRepository.ClassInfo> c) { this.classes = c; return this; }
+            public ParseResultBuilder imports(List<CodeRepository.ImportInfo> i) { this.imports = i; return this; }
+            public ParseResult build() {
+                ParseResult pr = new ParseResult();
+                pr.language = this.language; pr.functions = this.functions; pr.classes = this.classes; pr.imports = this.imports;
+                return pr;
+            }
+        }
+
         public String json() {
             try {
                 return new ObjectMapper().writeValueAsString(this);
@@ -622,9 +598,6 @@ public class CodeAnalyzer {
         }
     }
     
-    /**
-     * Public parse method for code snippets
-     */
     public ParseResult parse(String code, String language) {
         if (code == null || code.trim().isEmpty()) {
             return ParseResult.builder()
@@ -635,20 +608,12 @@ public class CodeAnalyzer {
                 .build();
         }
         
-        logger.debug("Parsing code with language: {}", language);
-        logger.debug("Code length: {}", code.length());
-        
         TreeSitterParseResult result;
         if (JS_LIKE_EXTENSIONS.contains("." + language) || "javascript".equals(language) || "typescript".equals(language)) {
-            logger.debug("Using Acorn parser for JS/TS");
             result = parseWithAcorn(code);
         } else {
-            logger.debug("Using regex parser for {}", language);
             result = parseWithRegex(code, language);
         }
-        
-        logger.debug("Parse result - functions: {}, classes: {}, imports: {}", 
-            result.getFunctions().size(), result.getClasses().size(), result.getImports().size());
         
         return ParseResult.builder()
             .language(language)
@@ -658,35 +623,16 @@ public class CodeAnalyzer {
             .build();
     }
 
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class ParsedClass {
-        public String name;
-        public Integer line;
-        public String type;
-        public List<CodeRepository.FunctionInfo> methods;
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class ParsedFunction {
-        public String name;
-        public Integer line;
-        public List<String> parameters;
-        public String returnType;
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
     private static class TreeSitterParseResult {
         private List<CodeRepository.FunctionInfo> functions;
         private List<CodeRepository.ClassInfo> classes;
         private List<CodeRepository.ImportInfo> imports;
+
+        public TreeSitterParseResult(List<CodeRepository.FunctionInfo> f, List<CodeRepository.ClassInfo> c, List<CodeRepository.ImportInfo> i) {
+            this.functions = f; this.classes = c; this.imports = i;
+        }
+        public List<CodeRepository.FunctionInfo> getFunctions() { return functions; }
+        public List<CodeRepository.ClassInfo> getClasses() { return classes; }
+        public List<CodeRepository.ImportInfo> getImports() { return imports; }
     }
 }

@@ -11,4 +11,5 @@ public interface UserRepository extends FirestoreReactiveRepository<User> {
     Mono<User> findByEmail(String email);
     Mono<User> findByFirebaseUid(String firebaseUid);
     Flux<User> findByIsActive(boolean isActive);
+    Mono<Void> deleteByFirebaseUid(String firebaseUid);
 }

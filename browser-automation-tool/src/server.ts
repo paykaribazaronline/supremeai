@@ -54,6 +54,28 @@ app.post('/fill', async (req, res) => {
   }
 });
 
+app.post('/click-at', async (req, res) => {
+  try {
+    const { x, y } = req.body;
+    await bc.clickAt(x, y);
+    res.json({ success: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ error: message });
+  }
+});
+
+app.post('/type-key', async (req, res) => {
+  try {
+    const { key } = req.body;
+    await bc.typeKey(key);
+    res.json({ success: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ error: message });
+  }
+});
+
 app.get('/screenshot', async (req, res) => {
   console.log('Screenshot request received');
   try {
@@ -101,6 +123,16 @@ app.get('/content', async (req, res) => {
   try {
     const content = await bc.getPageContent();
     res.json({ content });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ error: message });
+  }
+});
+
+app.get('/accessibility', async (req, res) => {
+  try {
+    const tree = await bc.getAccessibilityTree();
+    res.json({ tree });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     res.status(500).json({ error: message });

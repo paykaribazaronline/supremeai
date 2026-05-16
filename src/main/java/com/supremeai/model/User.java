@@ -12,6 +12,8 @@ import java.time.Instant;
 public class User {
 
     @DocumentId
+    private String id;
+
     private String firebaseUid;
 
     private String email;
@@ -20,9 +22,12 @@ public class User {
 
     private UserTier tier = UserTier.FREE;
 
-    // Legacy Firestore fields (used by some documents that store isAdmin/role instead of tier)
+    // Legacy Firestore fields compatibility
     private Boolean isAdmin;
     private String role;
+    private Boolean admin;
+    private String userRole; // Handle the warning seen in logs
+    private String username; // Handle the warning seen in logs
 
     private Long currentUsage = 0L;
 
@@ -37,9 +42,9 @@ public class User {
 
     private Boolean isActive = true;
 
-    // Additional fields to handle legacy Firestore documents
-    private Boolean admin;
     private Long monthlyQuota;
+
+    private String githubInstallationId;
 
     // Constructors
     public User() {
@@ -48,6 +53,7 @@ public class User {
     }
 
     public User(String firebaseUid, String email, String displayName) {
+        this.id = firebaseUid;
         this.firebaseUid = firebaseUid;
         this.email = email;
         this.displayName = displayName;
@@ -56,6 +62,9 @@ public class User {
     }
 
     // Getters and Setters
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+
     public String getFirebaseUid() { return firebaseUid; }
     public void setFirebaseUid(String firebaseUid) { this.firebaseUid = firebaseUid; }
 
@@ -66,9 +75,8 @@ public class User {
     public void setDisplayName(String displayName) { this.displayName = displayName; }
 
     public UserTier getTier() {
-        // If tier is explicitly set, use it; otherwise derive from legacy Firestore fields
         if (tier != null && tier != UserTier.FREE) return tier;
-        if (Boolean.TRUE.equals(isAdmin) || "admin".equalsIgnoreCase(role)) return UserTier.ADMIN;
+        if (Boolean.TRUE.equals(isAdmin) || Boolean.TRUE.equals(admin) || "admin".equalsIgnoreCase(role) || "admin".equalsIgnoreCase(userRole)) return UserTier.ADMIN;
         return tier != null ? tier : UserTier.FREE;
     }
     public void setTier(UserTier tier) { this.tier = tier; }
@@ -78,6 +86,12 @@ public class User {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+
+    public String getUserRole() { return userRole; }
+    public void setUserRole(String userRole) { this.userRole = userRole; }
+
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
 
     public Long getCurrentUsage() { return currentUsage; }
     public void setCurrentUsage(Long currentUsage) { this.currentUsage = currentUsage; }
@@ -94,17 +108,12 @@ public class User {
     public String getLastLoginAt() { return convertDateObjToString(lastLoginAt); }
     public void setLastLoginAt(Object lastLoginAt) { this.lastLoginAt = convertToIsoString(lastLoginAt); }
 
-    /**
-     * Converts any date representation to ISO-8601 string for consistent storage.
-     * Supports: String (already ISO), LocalDateTime, Firestore Timestamp, Map (legacy Firestore format).
-     */
     private String convertToIsoString(Object obj) {
         if (obj == null) return null;
         if (obj instanceof String) return (String) obj;
         if (obj instanceof LocalDateTime) return ((LocalDateTime) obj).toString();
         if (obj instanceof Timestamp) return ((Timestamp) obj).toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().toString();
         if (obj instanceof java.util.Map) {
-            // Handle Firestore Map representation of Timestamp: {seconds: X, nanoseconds: Y}
             try {
                 java.util.Map<?, ?> map = (java.util.Map<?, ?>) obj;
                 Object seconds = map.get("seconds");
@@ -115,27 +124,23 @@ public class User {
                         ZoneId.systemDefault()
                     ).toString();
                 }
-            } catch (Exception e) {
-                // Fall through to null return
-            }
-            return null; // Cannot convert this Map format
+            } catch (Exception e) {}
+            return null;
         }
-        return null; // Unsupported type
+        return null;
     }
 
-    /**
-     * Getter conversion - ensures we always return ISO string or null.
-     * Since setters normalize to ISO strings, this mostly handles legacy loaded data.
-     */
     private String convertDateObjToString(Object obj) {
         if (obj == null) return null;
         if (obj instanceof String) return (String) obj;
-        // Legacy Map or Timestamp - convert on the fly
         return convertToIsoString(obj);
     }
 
     public Boolean getIsActive() { return isActive; }
     public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+
+    public String getGithubInstallationId() { return githubInstallationId; }
+    public void setGithubInstallationId(String githubInstallationId) { this.githubInstallationId = githubInstallationId; }
 
     @Exclude
     public boolean isSystemAdmin() {
@@ -158,7 +163,6 @@ public class User {
         return this.currentUsage < fetchMonthlyQuota();
     }
 
-    // Test compatibility methods
     @Exclude
     public boolean isAdmin() {
         return isSystemAdmin();
@@ -174,7 +178,6 @@ public class User {
         return checkQuotaRemaining();
     }
 
-    // Getters and setters for additional fields
     public Boolean getAdmin() { return admin; }
     public void setAdmin(Boolean admin) { this.admin = admin; }
 }

@@ -7,14 +7,8 @@ import com.supremeai.dto.ClarificationResponse;
 import com.supremeai.dto.UserRequest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.supremeai.ai.client.GeminiClient;
-import com.supremeai.ai.client.OpenAIClient;
-import com.supremeai.dto.AmbiguityScore;
-import com.supremeai.dto.UserRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +23,6 @@ public class AutonomousQuestioning {
     private final GeminiClient geminiClient;
     private final OpenAIClient openAIClient;
 
-    @Autowired
     public AutonomousQuestioning(GeminiClient geminiClient, OpenAIClient openAIClient) {
         this.geminiClient = geminiClient;
         this.openAIClient = openAIClient;

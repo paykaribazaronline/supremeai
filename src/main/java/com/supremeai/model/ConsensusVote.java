@@ -1,6 +1,6 @@
 package com.supremeai.model;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 // Plain POJO for taste phase - will be persisted to Firebase via custom logic
@@ -11,7 +11,7 @@ public class ConsensusVote {
     private Double consensusPercentage;
     private String consensusStrength;
     private List<ProviderVote> votes;
-    private LocalDateTime timestamp;
+    private Date timestamp;
 
     public ConsensusVote() {}
 
@@ -22,7 +22,7 @@ public class ConsensusVote {
         this.consensusPercentage = consensusPercentage;
         this.consensusStrength = consensusStrength;
         this.votes = votes;
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = new Date();
     }
 
     // Getters and Setters
@@ -38,6 +38,6 @@ public class ConsensusVote {
     public void setConsensusStrength(String consensusStrength) { this.consensusStrength = consensusStrength; }
     public List<ProviderVote> getVotes() { return votes; }
     public void setVotes(List<ProviderVote> votes) { this.votes = votes; }
-    public LocalDateTime getTimestamp() { return timestamp; }
-    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+    public Date getTimestamp() { return timestamp; }
+    public void setTimestamp(Date timestamp) { this.timestamp = timestamp; }
 }

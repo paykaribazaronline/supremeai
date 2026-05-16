@@ -20,7 +20,7 @@ import java.util.*;
  */
 @RestController
 @RequestMapping("/api/commands")
-@CrossOrigin(origins = "*", maxAge = 3600)
+@CrossOrigin(origins = "${app.cors.allowed-origins:http://localhost:3000,http://localhost:3001}", maxAge = 3600)
 public class CommandHubController {
     private static final Logger logger = LoggerFactory.getLogger(CommandController.class);
     
@@ -234,20 +234,35 @@ public class CommandHubController {
     // ==================== Helper Methods ====================
     
     private CommandContext createContextFromRequest(String authToken) {
-        // Parse auth token and extract user info
-        String userId = "system-user";
-        String username = "admin";
-        String role = "ADMIN";
-        String sourceIp = "127.0.0.1";
-        String sourceApp = "api";
+        String userId = "anonymous-user";
+        String username = "user";
+        String role = "USER";
+        String sourceIp = "unknown";
+        
+        if (authToken != null && !authToken.isEmpty()) {
+            // In production, validate the JWT token and extract user info
+            // For local development, accept a simple token format
+            if (authToken.startsWith("Bearer ")) {
+                authToken = authToken.substring(7);
+            }
+            // For development: allow "dev-admin-token" as admin access
+            if ("dev-admin-token".equals(authToken)) {
+                userId = "dev-admin";
+                username = "admin";
+                role = "ADMIN";
+            } else if (!authToken.isEmpty()) {
+                // For valid tokens, decode and extract info
+                // This would be replaced with proper JWT validation
+                userId = "user-" + authToken.hashCode();
+            }
+        }
         
         CommandContext context = new CommandContext(
             userId, username, authToken, role
         );
         
-        // Set additional info
         context.setSourceIp(sourceIp);
-        context.setSourceApp(sourceApp);
+        context.setSourceApp("api");
         
         return context;
     }

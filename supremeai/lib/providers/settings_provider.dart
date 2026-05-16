@@ -20,6 +20,7 @@ class SupremeAISettings {
     },
     this.shareMode = 'manual',
     this.enableExternalDirectory = false,
+    this.themeMode = 'system',
   });
 
   final String apiEndpoint;
@@ -31,6 +32,7 @@ class SupremeAISettings {
   final Map<String, String> permissions;
   final String shareMode;
   final bool enableExternalDirectory;
+  final String themeMode;
 
   SupremeAISettings copyWith({
     String? apiEndpoint,
@@ -42,6 +44,7 @@ class SupremeAISettings {
     Map<String, String>? permissions,
     String? shareMode,
     bool? enableExternalDirectory,
+    String? themeMode,
   }) {
     return SupremeAISettings(
       apiEndpoint: apiEndpoint ?? this.apiEndpoint,
@@ -54,6 +57,7 @@ class SupremeAISettings {
       shareMode: shareMode ?? this.shareMode,
       enableExternalDirectory:
           enableExternalDirectory ?? this.enableExternalDirectory,
+      themeMode: themeMode ?? this.themeMode,
     );
   }
 
@@ -75,6 +79,7 @@ class SupremeAISettings {
       shareMode: json['shareMode'] as String? ?? 'manual',
       enableExternalDirectory:
           json['enableExternalDirectory'] as bool? ?? false,
+      themeMode: json['themeMode'] as String? ?? 'system',
     );
   }
 
@@ -87,6 +92,7 @@ class SupremeAISettings {
       'permissions': permissions,
       'shareMode': shareMode,
       'enableExternalDirectory': enableExternalDirectory,
+      'themeMode': themeMode,
     };
   }
 }

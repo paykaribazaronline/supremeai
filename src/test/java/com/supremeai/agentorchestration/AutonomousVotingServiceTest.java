@@ -1,13 +1,16 @@
 package com.supremeai.agentorchestration;
 
+import com.supremeai.model.APIProvider;
 import com.supremeai.model.ProviderVote;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
+import com.supremeai.repository.ProviderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Field;
@@ -21,6 +24,9 @@ class MultiAIVotingServiceTest {
 
     @Mock
     private AIProviderFactory providerFactory;
+
+    @Mock
+    private ProviderRepository providerRepository;
 
     @Mock
     private AIProvider provider1;
@@ -41,14 +47,19 @@ class MultiAIVotingServiceTest {
         
         votingService = new com.supremeai.service.MultiAIVotingService(executor);
         
-        // Inject dependencies manually or via reflection if needed
-        Field factoryField = com.supremeai.service.MultiAIVotingService.class.getDeclaredField("providerFactory");
-        factoryField.setAccessible(true);
-        factoryField.set(votingService, providerFactory);
+        // Inject dependencies manually
+        setField(votingService, "providerFactory", providerFactory);
+        setField(votingService, "providerRepository", providerRepository);
+        setField(votingService, "activeProviders", "p1,p2");
         
-        Field providersField = com.supremeai.service.MultiAIVotingService.class.getDeclaredField("activeProviders");
-        providersField.setAccessible(true);
-        providersField.set(votingService, "p1,p2");
+        // Default mock for repository
+        when(providerRepository.findAll()).thenReturn(Flux.empty());
+    }
+
+    private void setField(Object target, String fieldName, Object value) throws Exception {
+        Field field = com.supremeai.service.MultiAIVotingService.class.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(target, value);
     }
 
     @Test
@@ -85,6 +96,11 @@ class MultiAIVotingServiceTest {
 
     @Test
     void testConductDecisionVote_AllFail() {
+        // Mock provider list to ensure we don't return early
+        APIProvider p1 = new APIProvider("p1", "p1", "type", "active");
+        p1.setCanParticipateInVoting(true);
+        when(providerRepository.findAll()).thenReturn(Flux.just(p1));
+        
         when(providerFactory.getProvider(anyString())).thenThrow(new RuntimeException("Provider failure"));
         
         VotingDecision decision = votingService.conductDecisionVote("Test Question", "Test Context");
@@ -94,3 +110,4 @@ class MultiAIVotingServiceTest {
         assertTrue(decision.getAiConsensus().contains("failed"));
     }
 }
+

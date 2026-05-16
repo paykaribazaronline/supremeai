@@ -28,21 +28,24 @@ public class GuideDataInitializer {
     @Autowired
     private UserGuideRepository userGuideRepository;
 
-    @PostConstruct
+    @org.springframework.context.event.EventListener(org.springframework.boot.context.event.ApplicationReadyEvent.class)
     public void initialize() {
-        // Check if guides already exist
+        log.info("[GUIDE] Checking for sample guides in background...");
+        
+        // Check if guides already exist - use boundedElastic for non-blocking I/O
         userGuideRepository.count()
+            .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
             .flatMapMany(count -> {
                 if (count == 0) {
-                    log.info("No guides found. Initializing sample video guides...");
+                    log.info("[GUIDE] No guides found. Initializing sample video guides...");
                     return createSampleGuides();
                 }
                 return Flux.empty();
             })
             .subscribe(
-                guide -> log.debug("Initialized guide: {}", guide.getId()),
-                error -> log.error("Failed to initialize sample guides: {}", error.getMessage()),
-                () -> log.info("Sample video guides initialization process completed")
+                guide -> log.debug("[GUIDE] Initialized guide: {}", guide.getId()),
+                error -> log.error("[GUIDE] Failed to initialize sample guides: {}", error.getMessage()),
+                () -> log.info("[GUIDE] Sample video guides initialization completed")
             );
     }
 

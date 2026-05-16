@@ -1,23 +1,30 @@
 package com.supremeai.controller;
 
 import com.supremeai.service.CodeGenerationService;
+import com.supremeai.service.AppOrchestrationService;
 import com.supremeai.generation.FullStackCodeGenerator;
 import com.supremeai.generation.MultiPlatformGenerator;
+import com.supremeai.model.GeneratedApp;
 import com.supremeai.model.EntityDefinition;
 import com.supremeai.model.FieldDefinition;
+import com.supremeai.repository.GeneratedAppRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import com.supremeai.dto.AppGenerationRequest;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+import com.supremeai.response.ApiResponse;
+import java.util.UUID;
 
 /**
  * Controller for app generation endpoints.
@@ -37,84 +44,195 @@ public class AppGenerationController {
     
     @Autowired
     private MultiPlatformGenerator multiPlatformGenerator;
-    
+
+    @Autowired
+    private GeneratedAppRepository generatedAppRepository;
+
+    @Autowired
+    private AppOrchestrationService appOrchestrationService;
+
+    @Autowired
+    private WebSocketController webSocketController;
+
     @PostMapping
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<Map<String, Object>> generateApp(@Valid @RequestBody AppGenerationRequest request) {
-        try {
-            String name = request.getName();
-            String description = request.getDescription();
-            String platform = request.getPlatform();
-            String database = request.getDatabase();
-            String type = request.getType();
-            boolean useAI = request.isUseAI();
-            
-            logger.info("Generating app: {} (platform: {}, database: {}, AI: {})", name, platform, database, useAI);
-            
-            Map<String, String> decisions = new HashMap<>();
-            decisions.put("architecture", "monolith");
-            decisions.put("database", database);
-            decisions.put("apiStyle", "REST");
-            decisions.put("authType", "JWT");
-            decisions.put("frontend", "React");
-            decisions.put("deployment", "GCP");
-            
-            Map<String, Object> result;
-            
-            // Use enhanced AI-powered generation if requested
-            if (useAI) {
-                List<EntityDefinition> entities = request.getEntities();
-                if (entities == null) entities = new ArrayList<>();
-                result = codeGenerationService.generateAppWithAI(
-                    name, description, entities, database, "JWT"
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'GUEST')")
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> generateApp(
+            @Valid @RequestBody AppGenerationRequest request,
+            Authentication auth) {
+        
+        String requestId = UUID.randomUUID().toString();
+        String name = request.getName();
+        String userId = auth != null ? auth.getName() : "anonymous";
+        String description = request.getDescription();
+        String platform = request.getPlatform();
+        boolean useAI = request.isUseAI();
+
+        logger.info("App generation request received [{}]: {} (useAI: {}) by user {}", 
+            requestId, name, useAI, userId);
+
+        if (useAI && "project".equals(request.getType())) {
+            // Trigger the Full Orchestration Pipeline (AI + Code + GitHub)
+            appOrchestrationService.runFullPipeline(description != null ? description : name, null)
+                .flatMap(result -> {
+                    // Save to repository for persistence/preview
+                    String appId = UUID.randomUUID().toString();
+                    GeneratedApp generatedApp = new GeneratedApp(appId, userId, platform, "React");
+                    generatedApp.setHtmlContent(buildPreviewHtml(name, platform, description, result));
+                    generatedApp.setStatus("GENERATED");
+                    generatedApp.setRequestId(requestId);
+                    
+                    if (result.get("generatedApp") instanceof Map) {
+                        Map<String, Object> genApp = (Map<String, Object>) result.get("generatedApp");
+                        if (genApp.containsKey("files")) {
+                            generatedApp.setSourceFiles((Map<String, String>) genApp.get("files"));
+                        }
+                    }
+                    
+                    return generatedAppRepository.save(generatedApp).thenReturn(result);
+                })
+                .subscribeOn(Schedulers.boundedElastic())
+                .subscribe(
+                    res -> logger.info("Orchestration pipeline completed for {}", requestId),
+                    err -> logger.error("Orchestration pipeline failed for " + requestId, err)
                 );
-            } else {
-                // Use appropriate generator based on platform
-                switch (platform.toLowerCase()) {
-                    case "fullstack":
-                        result = codeGenerationService.generateFromContext(decisions);
-                        break;
-                        
-                    case "web":
-                    case "android":
-                    case "ios":
-                    case "desktop":
-                        Map<String, String> platformResult = multiPlatformGenerator.generateForPlatform(
-                            description != null && !description.isEmpty() ? description : name, 
-                            platform
-                        );
-                        result = new HashMap<>(platformResult);
-                        result.put("decisions", decisions);
-                        break;
-                        
-                    default:
-                        // Default to fullstack generation
-                        result = codeGenerationService.generateFromContext(decisions);
-                        break;
-                }
-            }
+
+            Map<String, Object> acceptedResponse = new HashMap<>();
+            acceptedResponse.put("requestId", requestId);
+            acceptedResponse.put("status", "ACCEPTED");
+            acceptedResponse.put("message", "Full AI orchestration pipeline started");
             
-            // Add metadata
-            result.put("name", name);
-            result.put("description", description);
-            result.put("platform", platform);
-            result.put("type", type);
-            result.put("status", "GENERATED");
-            result.put("message", "App generated successfully");
-            
-            logger.info("App generation completed: {} ({} files)", name, result.getOrDefault("fileCount", 0));
-            
-            return ResponseEntity.ok(result);
-            
-        } catch (Exception e) {
-            logger.error("App generation failed", e);
-            Map<String, Object> error = new HashMap<>();
-            error.put("status", "ERROR");
-            error.put("message", "App generation failed: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(error);
+            return Mono.just(ResponseEntity.accepted().body(ApiResponse.ok(acceptedResponse)));
         }
+        
+        // Fallback to legacy/direct generation logic
+        Mono.fromCallable(() -> {
+            try {
+                String database = request.getDatabase();
+                String type = request.getType();
+
+                webSocketController.broadcastAppGenProgress(requestId, name, "INITIALIZING", 5, "Initializing generation engine...");
+
+                Map<String, String> decisions = new HashMap<>();
+                decisions.put("architecture", "monolith");
+                decisions.put("database", database);
+                decisions.put("apiStyle", "REST");
+                decisions.put("authType", "JWT");
+                decisions.put("frontend", "React");
+                decisions.put("deployment", "GCP");
+                
+                webSocketController.broadcastAppGenProgress(requestId, name, "ANALYZING", 15, "Analyzing requirements and entities...");
+                
+                Map<String, Object> result;
+                
+                // Use enhanced AI-powered generation if requested (legacy path)
+                if (useAI) {
+                    List<EntityDefinition> entities = request.getEntities();
+                    if (entities == null) entities = new ArrayList<>();
+                    result = codeGenerationService.generateAppWithAI(name, description, entities, database, "JWT");
+                } else {
+                    webSocketController.broadcastAppGenProgress(requestId, name, "GENERATING_CORE", 30, "Generating core application structure...");
+                    
+                    switch (platform.toLowerCase()) {
+                        case "fullstack":
+                            result = codeGenerationService.generateFromContext(decisions);
+                            break;
+                        case "web":
+                        case "android":
+                        case "ios":
+                        case "desktop":
+                            Map<String, String> platformResult = multiPlatformGenerator.generateForPlatform(
+                                description != null && !description.isEmpty() ? description : name, platform);
+                            result = new HashMap<>(platformResult);
+                            result.put("decisions", decisions);
+                            break;
+                        default:
+                            result = codeGenerationService.generateFromContext(decisions);
+                            break;
+                    }
+                }
+                
+                webSocketController.broadcastAppGenProgress(requestId, name, "FINALIZING", 80, "Finalizing files and preparing preview...");
+
+                result.put("name", name);
+                result.put("description", description);
+                result.put("platform", platform);
+                result.put("type", type);
+                result.put("status", "GENERATED");
+                result.put("requestId", requestId);
+
+                String appId = UUID.randomUUID().toString();
+                GeneratedApp generatedApp = new GeneratedApp(appId, userId, platform, "React");
+                generatedApp.setHtmlContent(buildPreviewHtml(name, platform, description, result));
+                generatedApp.setStatus("GENERATED");
+                generatedApp.setRequestId(requestId);
+                
+                if (result.containsKey("files")) {
+                    generatedApp.setSourceFiles((Map<String, String>) result.get("files"));
+                }
+                
+                generatedAppRepository.save(generatedApp).subscribe();
+                result.put("appId", appId);
+                
+                webSocketController.broadcastAppGenProgress(requestId, name, "COMPLETED", 100, "Generation completed successfully!");
+                return result;
+            } catch (Exception e) {
+                logger.error("Async app generation failed for request " + requestId, e);
+                webSocketController.broadcastAppGenProgress(requestId, name, "FAILED", 0, "Error: " + e.getMessage());
+                throw new RuntimeException(e);
+            }
+        })
+        .subscribeOn(Schedulers.boundedElastic())
+        .subscribe(); 
+
+        Map<String, Object> acceptedResponse = new HashMap<>();
+        acceptedResponse.put("requestId", requestId);
+        acceptedResponse.put("status", "ACCEPTED");
+        acceptedResponse.put("message", "App generation started in background");
+        
+        return Mono.just(ResponseEntity.accepted().body(ApiResponse.ok(acceptedResponse)));
     }
-    
+
+
+    private String buildPreviewHtml(String name, String platform, String description, Map<String, Object> result) {
+        StringBuilder htmlBuilder = new StringBuilder();
+        htmlBuilder.append("<!DOCTYPE html><html><head><title>").append(name).append(" - Preview</title>");
+        htmlBuilder.append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">");
+        htmlBuilder.append("<style>");
+        htmlBuilder.append("body { font-family: 'Inter', system-ui, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }");
+        htmlBuilder.append(".container { background: white; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); padding: 40px; max-width: 800px; width: 100%; }");
+        htmlBuilder.append("h1 { color: #1a73e8; margin-top: 0; }");
+        htmlBuilder.append(".badge { background: #e8f0fe; color: #1a73e8; padding: 4px 12px; border-radius: 20px; font-size: 14px; font-weight: 500; }");
+        htmlBuilder.append(".file-list { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }");
+        htmlBuilder.append(".file-item { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #f9f9f9; }");
+        htmlBuilder.append(".file-icon { margin-right: 12px; color: #5f6368; }");
+        htmlBuilder.append("</style></head><body>");
+        htmlBuilder.append("<div class='container'>");
+        htmlBuilder.append("<div style='display:flex; justify-content:space-between; align-items:center'>");
+        htmlBuilder.append("<h1>").append(name).append("</h1>");
+        htmlBuilder.append("<span class='badge'>").append(platform).append("</span>");
+        htmlBuilder.append("</div>");
+        htmlBuilder.append("<p style='color: #5f6368'>").append(description != null ? description : "AI-generated application build.").append("</p>");
+        
+        htmlBuilder.append("<div class='file-list'><h3>Generated Blueprint Files</h3>");
+        if (result.containsKey("files")) {
+            Map<String, String> files = (Map<String, String>) result.get("files");
+            files.keySet().stream().limit(10).forEach(fileName -> {
+                htmlBuilder.append("<div class='file-item'><span class='file-icon'>📄</span>").append(fileName).append("</div>");
+            });
+            if (files.size() > 10) {
+                htmlBuilder.append("<p style='color:#999; margin-left:26px'>... and ").append(files.size() - 10).append(" more files</p>");
+            }
+        }
+        htmlBuilder.append("</div>");
+        
+        htmlBuilder.append("<div style='margin-top: 40px; padding: 20px; background: #fff8e1; border-radius: 8px; border-left: 4px solid #ffc107;'>");
+        htmlBuilder.append("<strong>Pro Tip:</strong> Use the SupremeAI Dashboard to deploy this code directly to Google Cloud or Firebase.");
+        htmlBuilder.append("</div>");
+        
+        htmlBuilder.append("</div></body></html>");
+        return htmlBuilder.toString();
+    }
+
     /**
      * Parse entity definitions from request
      */
@@ -206,19 +324,42 @@ public class AppGenerationController {
      * Health check endpoint.
      */
     @GetMapping("/health")
-    public ResponseEntity<Map<String, String>> health() {
+    public Mono<ResponseEntity<ApiResponse<Map<String, String>>>> health() {
         Map<String, String> health = new HashMap<>();
         health.put("status", "UP");
         health.put("service", "AppGenerationService");
-        return ResponseEntity.ok(health);
+        return Mono.just(ResponseEntity.ok(ApiResponse.ok(health)));
     }
     
+    /**
+     * Infrastructure advice endpoint - provides AI-powered deployment guidance.
+     */
+    @PostMapping("/infrastructure-advice")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'GUEST')")
+    public Mono<ResponseEntity<ApiResponse<String>>> getInfrastructureAdvice(
+            @RequestBody Map<String, String> request) {
+        
+        String appName = request.getOrDefault("appName", "My App");
+        String description = request.getOrDefault("description", "");
+        String techStack = request.getOrDefault("techStack", "Full Stack Spring Boot/React");
+        String cloudPreference = request.getOrDefault("cloudPreference", "GCP");
+
+        logger.info("Generating infrastructure advice for app: {}", appName);
+
+        return codeGenerationService.generateInfrastructureAdvice(appName, description, techStack, cloudPreference)
+                .map(advice -> ResponseEntity.ok(ApiResponse.ok(advice)))
+                .onErrorResume(e -> {
+                    logger.error("Failed to generate infrastructure advice", e);
+                    return Mono.just(ResponseEntity.internalServerError().body(ApiResponse.error("Failed to generate infrastructure advice: " + e.getMessage())));
+                });
+    }
+
     /**
      * Preview generation - returns sample output without creating files.
      */
     @PostMapping("/preview")
-    public ResponseEntity<Map<String, Object>> previewGeneration(@RequestBody Map<String, Object> request) {
-        try {
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> previewGeneration(@RequestBody Map<String, Object> request) {
+        return Mono.fromCallable(() -> {
             String platform = (String) request.getOrDefault("platform", "fullstack");
             
             Map<String, String> decisions = new HashMap<>();
@@ -246,14 +387,12 @@ public class AppGenerationController {
                 result.put("totalFiles", files.size());
             }
             
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(ApiResponse.ok(result));
             
-        } catch (Exception e) {
+        }).subscribeOn(Schedulers.boundedElastic())
+        .onErrorResume(e -> {
             logger.error("Preview generation failed", e);
-            Map<String, Object> error = new HashMap<>();
-            error.put("status", "ERROR");
-            error.put("message", "Preview generation failed: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(error);
-        }
+            return Mono.just(ResponseEntity.internalServerError().body(ApiResponse.error("Preview generation failed: " + e.getMessage())));
+        });
     }
 }

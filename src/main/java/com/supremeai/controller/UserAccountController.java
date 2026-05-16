@@ -3,17 +3,20 @@ package com.supremeai.controller;
 import com.supremeai.model.User;
 import com.supremeai.model.UserTier;
 import com.supremeai.service.UserAccountService;
+import com.supremeai.response.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * REST API for user account management.
@@ -39,73 +42,67 @@ public class UserAccountController {
      */
     @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> createAccount(@RequestBody Map<String, String> body) {
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> createAccount(@RequestBody Map<String, String> body) {
         String email = body.get("email");
         String password = body.get("password");
         String displayName = body.get("displayName");
         String tierStr = body.getOrDefault("tier", "FREE");
 
         if (email == null || password == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "email and password are required"));
+            return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("email and password are required")));
         }
 
-        if (password.length() < 6) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Password must be at least 6 characters (Firebase requirement)"));
+        if (password.length() < 8) {
+            return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("Password must be at least 8 characters")));
+        }
+        if (!password.matches(".*[A-Z].*")) {
+            return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("Password must contain at least one uppercase letter")));
+        }
+        if (!password.matches(".*[a-z].*")) {
+            return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("Password must contain at least one lowercase letter")));
+        }
+        if (!password.matches(".*\\d.*")) {
+            return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("Password must contain at least one digit")));
         }
 
         try {
             UserTier tier = UserTier.valueOf(tierStr.toUpperCase());
-            User user = userAccountService.createAccount(email, password, displayName, tier);
-
-            Map<String, Object> response = new LinkedHashMap<>();
-            response.put("status", "success");
-            response.put("uid", user.getFirebaseUid());
-            response.put("email", user.getEmail());
-            response.put("displayName", user.getDisplayName());
-            response.put("tier", user.getTier().toString());
-            return ResponseEntity.ok(response);
+            return userAccountService.createAccount(email, password, displayName, tier)
+                    .map(user -> {
+                        Map<String, Object> response = new LinkedHashMap<>();
+                        response.put("uid", user.getFirebaseUid());
+                        response.put("email", user.getEmail());
+                        response.put("displayName", user.getDisplayName());
+                        response.put("tier", user.getTier().toString());
+                        return ResponseEntity.ok(ApiResponse.ok(response));
+                    })
+                    .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().body(ApiResponse.error(e.getMessage()))));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid tier: " + tierStr));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+            return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("Invalid tier: " + tierStr)));
         }
     }
 
     /**
      * POST /api/accounts/bulk-create - Create accounts from a Firestore collection
      * containing pre-saved email/password credentials.
-     *
-     * Body: { "collectionName": "pre_saved_credentials" }
-     *
-     * The collection should have documents with:
-     *   - email (required)
-     *   - password (required)
-     *   - displayName (optional)
-     *   - tier (optional, defaults to FREE)
      */
     @PostMapping("/bulk-create")
     @PreAuthorize("hasRole('ADMIN')")
-    public CompletableFuture<ResponseEntity<Map<String, Object>>> bulkCreate(@RequestBody Map<String, String> body) {
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> bulkCreate(@RequestBody Map<String, String> body) {
         String collectionName = body.get("collectionName");
 
         if (collectionName == null || collectionName.isBlank()) {
-            return CompletableFuture.completedFuture(
-                ResponseEntity.badRequest().body(Map.of("error", "collectionName is required")));
+            return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("collectionName is required")));
         }
 
-        try {
-            return userAccountService.createAccountsFromCollection(collectionName)
-                    .thenApply(ResponseEntity::ok)
-                    .exceptionally(ex -> {
-                        if (ex.getCause() instanceof IllegalStateException) {
-                            return ResponseEntity.status(503).body(Map.of("error", ex.getCause().getMessage()));
-                        }
-                        return ResponseEntity.internalServerError().body(Map.of("error", ex.getMessage()));
-                    });
-        } catch (Exception e) {
-            return CompletableFuture.completedFuture(
-                ResponseEntity.internalServerError().body(Map.of("error", e.getMessage())));
-        }
+        return userAccountService.createAccountsFromCollection(collectionName)
+                .map(summary -> ResponseEntity.ok(ApiResponse.ok(summary)))
+                .onErrorResume(ex -> {
+                    if (ex instanceof IllegalStateException) {
+                        return Mono.just(ResponseEntity.status(503).body(ApiResponse.error(ex.getMessage())));
+                    }
+                    return Mono.just(ResponseEntity.internalServerError().body(ApiResponse.error(ex.getMessage())));
+                });
     }
 
     /**
@@ -113,97 +110,88 @@ public class UserAccountController {
      */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<Map<String, Object>>> listUsers() {
-        List<User> users = userAccountService.listAllUsers();
-        if (users == null) users = Collections.emptyList();
-
-        List<Map<String, Object>> result = new ArrayList<>();
-        for (User u : users) {
-            Map<String, Object> map = new LinkedHashMap<>();
-            map.put("uid", u.getFirebaseUid());
-            map.put("email", u.getEmail());
-            map.put("displayName", u.getDisplayName());
-            map.put("tier", u.getTier().toString());
-            map.put("isActive", u.getIsActive());
-            map.put("currentUsage", u.getCurrentUsage());
-            map.put("monthlyQuota", u.fetchMonthlyQuota());
-            map.put("createdAt", u.getCreatedAt() != null ? u.getCreatedAt().toString() : null);
-            map.put("lastLoginAt", u.getLastLoginAt() != null ? u.getLastLoginAt().toString() : null);
-            result.add(map);
-        }
-
-        return ResponseEntity.ok(result);
+    public Mono<ResponseEntity<ApiResponse<List<Map<String, Object>>>>> listUsers() {
+        return userAccountService.listAllUsers()
+                .map(u -> {
+                    Map<String, Object> map = new LinkedHashMap<>();
+                    map.put("uid", u.getFirebaseUid());
+                    map.put("email", u.getEmail());
+                    map.put("displayName", u.getDisplayName());
+                    map.put("tier", u.getTier().toString());
+                    map.put("isActive", u.getIsActive());
+                    map.put("currentUsage", u.getCurrentUsage());
+                    map.put("monthlyQuota", u.fetchMonthlyQuota());
+                    map.put("createdAt", u.getCreatedAt());
+                    map.put("lastLoginAt", u.getLastLoginAt());
+                    return map;
+                })
+                .collectList()
+                .map(list -> ResponseEntity.ok(ApiResponse.ok(list)));
     }
 
     /**
      * GET /api/accounts/{uid} - Get details for a specific user.
-     * Accessible by ADMIN or the user themselves.
      */
     @GetMapping("/{uid}")
-    public ResponseEntity<Map<String, Object>> getUser(@PathVariable String uid) {
-        // Get current authenticated user
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || auth.getName() == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not authenticated");
-        }
-        
-        String currentUid = auth.getName();
-        boolean isAdmin = auth.getAuthorities().stream()
-            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        
-        // Only allow users to view their own data or admins to view any user
-        if (!isAdmin && !currentUid.equals(uid)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: You can only view your own profile");
-        }
-        
-        User user = userAccountService.getUser(uid);
-        if (user == null) {
-            return ResponseEntity.status(404).body(Map.of("error", "User not found"));
-        }
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> getUser(@PathVariable String uid) {
+        return ReactiveSecurityContextHolder.getContext()
+                .map(SecurityContext::getAuthentication)
+                .flatMap(auth -> {
+                    if (auth == null || auth.getName() == null) {
+                        return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not authenticated"));
+                    }
 
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("uid", user.getFirebaseUid());
-        response.put("email", user.getEmail());
-        response.put("displayName", user.getDisplayName());
-        response.put("tier", user.getTier().toString());
-        response.put("isActive", user.getIsActive());
-        response.put("currentUsage", user.getCurrentUsage());
-        response.put("monthlyQuota", user.fetchMonthlyQuota());
-        response.put("hasQuotaRemaining", user.checkQuotaRemaining());
-        response.put("createdAt", user.getCreatedAt() != null ? user.getCreatedAt().toString() : null);
-        response.put("lastLoginAt", user.getLastLoginAt() != null ? user.getLastLoginAt().toString() : null);
+                    String currentUid = auth.getName();
+                    boolean isAdmin = auth.getAuthorities().stream()
+                            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
-        return ResponseEntity.ok(response);
+                    if (!isAdmin && !currentUid.equals(uid)) {
+                        return Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: You can only view your own profile"));
+                    }
+
+                    return userAccountService.getUser(uid)
+                            .map(user -> {
+                                Map<String, Object> response = new LinkedHashMap<>();
+                                response.put("uid", user.getFirebaseUid());
+                                response.put("email", user.getEmail());
+                                response.put("displayName", user.getDisplayName());
+                                response.put("tier", user.getTier().toString());
+                                response.put("isActive", user.getIsActive());
+                                response.put("currentUsage", user.getCurrentUsage());
+                                response.put("monthlyQuota", user.fetchMonthlyQuota());
+                                response.put("hasQuotaRemaining", user.checkQuotaRemaining());
+                                response.put("createdAt", user.getCreatedAt());
+                                response.put("lastLoginAt", user.getLastLoginAt());
+                                return ResponseEntity.ok(ApiResponse.ok(response));
+                            })
+                            .switchIfEmpty(Mono.just(ResponseEntity.status(404).body(ApiResponse.error("User not found"))));
+                });
     }
 
     /**
      * PUT /api/accounts/{uid}/tier - Update a user's tier (admin only).
-     * Body: { "tier": "PRO" }
      */
     @PutMapping("/{uid}/tier")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> updateTier(
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> updateTier(
             @PathVariable String uid,
             @RequestBody Map<String, String> body) {
         String tierStr = body.get("tier");
         if (tierStr == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "tier is required"));
+            return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("tier is required")));
         }
 
         try {
             UserTier tier = UserTier.valueOf(tierStr.toUpperCase());
-            User user = userAccountService.updateUserTier(uid, tier);
-
-            return ResponseEntity.ok(Map.of(
-                    "status", "success",
-                    "uid", user.getFirebaseUid(),
-                    "tier", user.getTier().toString(),
-                    "monthlyQuota", user.fetchMonthlyQuota()
-            ));
+            return userAccountService.updateUserTier(uid, tier)
+                    .map(user -> ResponseEntity.ok(ApiResponse.ok(Map.<String, Object>of(
+                            "uid", user.getFirebaseUid(),
+                            "tier", user.getTier().toString(),
+                            "monthlyQuota", user.fetchMonthlyQuota()
+                    ))))
+                    .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().body(ApiResponse.error(e.getMessage()))));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid tier: " + tierStr));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+            return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("Invalid tier: " + tierStr)));
         }
     }
 
@@ -212,16 +200,52 @@ public class UserAccountController {
      */
     @PutMapping("/{uid}/deactivate")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> deactivateUser(@PathVariable String uid) {
-        try {
-            User user = userAccountService.deactivateUser(uid);
-            return ResponseEntity.ok(Map.of(
-                    "status", "success",
-                    "uid", user.getFirebaseUid(),
-                    "isActive", user.getIsActive()
-            ));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
-        }
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> deactivateUser(@PathVariable String uid) {
+        return userAccountService.deactivateUser(uid)
+                .map(user -> ResponseEntity.ok(ApiResponse.ok(Map.<String, Object>of(
+                        "uid", user.getFirebaseUid(),
+                        "isActive", user.getIsActive()
+                ))))
+                .onErrorResume(e -> {
+                    if (e instanceof IllegalArgumentException) {
+                        return Mono.just(ResponseEntity.status(404).body(ApiResponse.error(e.getMessage())));
+                    }
+                    return Mono.just(ResponseEntity.internalServerError().body(ApiResponse.error(e.getMessage())));
+                });
+    }
+
+    /**
+     * PUT /api/accounts/{uid}/reactivate - Reactivate a user account (admin only).
+     */
+    @PutMapping("/{uid}/reactivate")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> reactivateUser(@PathVariable String uid) {
+        return userAccountService.reactivateUser(uid)
+                .map(user -> ResponseEntity.ok(ApiResponse.ok(Map.<String, Object>of(
+                        "uid", user.getFirebaseUid(),
+                        "isActive", user.getIsActive()
+                ))))
+                .onErrorResume(e -> {
+                    if (e instanceof IllegalArgumentException) {
+                        return Mono.just(ResponseEntity.status(404).body(ApiResponse.error(e.getMessage())));
+                    }
+                    return Mono.just(ResponseEntity.internalServerError().body(ApiResponse.error(e.getMessage())));
+                });
+    }
+
+    /**
+     * DELETE /api/accounts/{uid} - Permanently delete a user account (admin only).
+     */
+    @DeleteMapping("/{uid}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Mono<ResponseEntity<ApiResponse<String>>> deleteUser(@PathVariable String uid) {
+        return userAccountService.deleteUser(uid)
+                .thenReturn(ResponseEntity.ok(ApiResponse.ok("User deleted successfully")))
+                .onErrorResume(e -> {
+                    if (e instanceof IllegalArgumentException) {
+                        return Mono.just(ResponseEntity.status(404).body(ApiResponse.error(e.getMessage())));
+                    }
+                    return Mono.just(ResponseEntity.internalServerError().body(ApiResponse.error(e.getMessage())));
+                });
     }
 }

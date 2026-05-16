@@ -2,6 +2,8 @@ package com.supremeai.service;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseToken;
+import com.google.firebase.auth.UserRecord;
+import com.supremeai.model.ActivityLog;
 import com.supremeai.model.User;
 import com.supremeai.model.UserTier;
 import com.supremeai.repository.ActivityLogRepository;
@@ -49,11 +51,32 @@ class AuthenticationServiceTest {
     }
 
     @Test
+    void testRegister_Success() {
+        try (MockedStatic<FirebaseAuth> firebaseAuthMock = mockStatic(FirebaseAuth.class)) {
+            FirebaseAuth authInstance = mock(FirebaseAuth.class);
+            firebaseAuthMock.when(FirebaseAuth::getInstance).thenReturn(authInstance);
+
+            UserRecord userRecord = mock(UserRecord.class);
+            when(userRecord.getUid()).thenReturn("new-uid");
+            
+            try {
+                when(authInstance.createUser(any(UserRecord.CreateRequest.class))).thenReturn(userRecord);
+            } catch (Exception e) {}
+
+            User user = new User("new-uid", "new@example.com", "New User");
+            when(userRepository.save(any())).thenReturn(Mono.just(user));
+            when(activityLogRepository.save(any())).thenReturn(Mono.just(new ActivityLog()));
+
+            Mono<User> result = authenticationService.register("new@example.com", "password123", "New User", "127.0.0.1");
+
+            StepVerifier.create(result)
+                .expectNextMatches(u -> u.getFirebaseUid().equals("new-uid") && u.getEmail().equals("new@example.com"))
+                .verifyComplete();
+        }
+    }
+
+    @Test
     void testFirebaseLogin_Success() {
-        // Since FirebaseAuth.getInstance() is static, we'd need mockito-inline to mock it.
-        // For now, let's assume we can't easily mock static Firebase in this environment 
-        // without adding dependencies, but we can structure the test for logic if we mock the static call.
-        
         try (MockedStatic<FirebaseAuth> firebaseAuthMock = mockStatic(FirebaseAuth.class)) {
             FirebaseAuth authInstance = mock(FirebaseAuth.class);
             firebaseAuthMock.when(FirebaseAuth::getInstance).thenReturn(authInstance);

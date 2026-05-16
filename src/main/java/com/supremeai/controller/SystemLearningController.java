@@ -23,21 +23,24 @@ public class SystemLearningController {
 
     private final SystemLearningService service;
     private final EnhancedLearningService enhancedService;
+    private final com.supremeai.service.CyberSecuritySkillService cyberSkillService;
 
     public SystemLearningController(SystemLearningService service,
-                                     EnhancedLearningService enhancedService) {
+                                     EnhancedLearningService enhancedService,
+                                     com.supremeai.service.CyberSecuritySkillService cyberSkillService) {
         this.service = service;
         this.enhancedService = enhancedService;
+        this.cyberSkillService = cyberSkillService;
     }
 
     @GetMapping
-    public List<SystemLearning> getAllLearning() {
-        return service.getAllLearningSync();
+    public Flux<SystemLearning> getAllLearning() {
+        return service.getAllLearning();
     }
 
     @GetMapping("/category/{category}")
-    public List<SystemLearning> getByCategory(@PathVariable String category) {
-        return service.getByCategorySync(category);
+    public Flux<SystemLearning> getByCategory(@PathVariable String category) {
+        return service.getByCategory(category);
     }
 
     @PostMapping
@@ -102,5 +105,30 @@ public class SystemLearningController {
     @PostMapping("/improve")
     public Mono<Map<String, Object>> improveLearning() {
         return enhancedService.improveSystemLearning();
+    }
+
+    /**
+     * Trigger autonomous research on a specific cybersecurity topic.
+     * System learns hacking techniques to strengthen its own defense.
+     */
+    @PostMapping("/cyber-research")
+    public Mono<Map<String, Object>> triggerCyberResearch(@RequestParam String topic) {
+        return cyberSkillService.initiateLearningCycle(topic);
+    }
+
+    /**
+     * Get the current status of learned hacking skills and active protections.
+     */
+    @GetMapping("/cyber-status")
+    public Mono<Map<String, Object>> getCyberStatus() {
+        return Mono.zip(
+            cyberSkillService.getLearnedSkills().collectList(),
+            cyberSkillService.getActiveProtections().collectList(),
+            cyberSkillService.runSelfAudit()
+        ).map(tuple -> Map.of(
+            "skills", tuple.getT1(),
+            "protections", tuple.getT2(),
+            "lastAudit", tuple.getT3()
+        ));
     }
 }

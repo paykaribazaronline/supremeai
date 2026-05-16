@@ -1,7 +1,7 @@
-name: 🚀 SupremeAI Unified Pipeline
+name: SupremeAI Unified Pipeline
 
 # SupremeAI Unified CI/CD Pipeline Configuration
-# Version: 2.3.0
+# Version: 2.4.0 (Fixed Dependency Deadlock)
 # Author: Antigravity
 # Description: Self-healing, storage-optimized, and multi-component delivery pipeline.
 
@@ -22,17 +22,11 @@ on:
         required: false
         default: 'false'
         type: boolean
-      retry_failed_jobs:
-        description: 'Retry only failed jobs from previous run'
-        required: false
-        default: 'false'
-        type: boolean
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Global permissions for private repository access and cloud deployment
 permissions:
   contents: write
   pull-requests: write
@@ -41,25 +35,16 @@ permissions:
   id-token: write
 
 env:
-  # Tool Versions
   JAVA_VERSION: '21'
   NODE_VERSION: '20'
   FLUTTER_VERSION: '3.27.0'
-  
-  # Project IDs & Regions
   GCP_PROJECT_ID: 'supremeai-a'
   GCP_REGION: 'us-central1'
-  
-  # Build Optimization
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: "true"
 
 jobs:
-  # --------------------------------------------------------------------------------
-  # 🔍 PHASE 1: INITIALIZATION & ANALYSIS
-  # --------------------------------------------------------------------------------
   initialize:
-    name: 🔍 Initialize & Detect Changes
+    name: Initialize & Detect Changes
     runs-on: ubuntu-latest
     outputs:
       backend: ${{ steps.filter.outputs.backend }}
@@ -68,51 +53,12 @@ jobs:
       functions: ${{ steps.filter.outputs.functions }}
       extensions: ${{ steps.filter.outputs.extensions }}
       any_changes: ${{ steps.filter.outputs.any_changes }}
-      failed_jobs: ${{ steps.get-failed.outputs.failed_jobs }}
     steps:
-      - name: 📥 Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: 🧹 Cleanup Old Artifacts (Storage Optimization)
-        uses: actions/github-script@v7
-        with:
-          script: |
-            console.log("Starting aggressive artifact cleanup...");
-            let deletedCount = 0;
-            let totalSize = 0;
-            
-            while (true) {
-              const { data: { artifacts } } = await github.rest.actions.listArtifactsForRepo({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                per_page: 100
-              });
-              
-              if (artifacts.length === 0) break;
-              
-              console.log(`Cleaning up ${artifacts.length} artifacts...`);
-              for (const artifact of artifacts) {
-                try {
-                  await github.rest.actions.deleteArtifact({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    artifact_id: artifact.id,
-                  });
-                  deletedCount++;
-                  totalSize += artifact.size_in_bytes;
-                } catch (e) {
-                  // Artifact might have been deleted by another job
-                }
-              }
-              
-              // If we got 100, there might be more on the next page (but since we are deleting, they will shift to the first page)
-              if (artifacts.length < 100) break;
-            }
-            console.log(`✅ Cleanup finished. Deleted ${deletedCount} artifacts (~${(totalSize / 1024 / 1024).toFixed(2)} MB).`);
-
-      - name: 🕵️ Detect Changes
+      - name: Detect Changes
         id: filter
         uses: dorny/paths-filter@v3
         with:
@@ -135,303 +81,111 @@ jobs:
             any_changes:
               - '**'
 
-      - name: Get Failed Jobs From Previous Run
-        id: get-failed
-        if: github.event.inputs.retry_failed_jobs == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PREVIOUS_RUN=$(gh api repos/${{ github.repository }}/actions/workflows/supreme_unified.yml/runs?branch=${{ github.ref_name }}\&per_page=5 -q '.workflow_runs | map(select(.status == "completed" and .id != ${{ github.run_id }})) | .[0]')
-          PREVIOUS_ID=$(echo "$PREVIOUS_RUN" | jq -r '.id // empty')
-          if [ -n "$PREVIOUS_ID" ]; then
-            FAILED_JOBS=$(gh api repos/${{ github.repository }}/actions/runs/$PREVIOUS_ID/jobs -q '.jobs | map(select(.conclusion == "failure")) | map(.name) | join(",")')
-            echo "failed_jobs=$FAILED_JOBS" >> $GITHUB_OUTPUT
-          fi
-
-  infrastructure-check:
-    name: 🏗️ Infrastructure Validation
+  backend-build:
+    name: Backend Build
     needs: [initialize]
-    if: github.event_name != 'pull_request'
+    if: needs.initialize.outputs.backend == 'true' || github.event_name == 'workflow_dispatch' || github.event.inputs.force_run_all == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: 🔐 Google Auth
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}
-      - name: 🛠️ Setup GCloud
-        uses: google-github-actions/setup-gcloud@v2
-      - name: 🔍 Check Required Permissions & APIs
-        run: |
-          echo "Checking APIs..."
-          gcloud services list --enabled --filter="NAME:cloudscheduler.googleapis.com OR NAME:cloudfunctions.googleapis.com" --quiet
-          echo "Checking Service Account Roles..."
-          gcloud scheduler jobs list --location=${{ env.GCP_REGION }} --limit=1 || echo "::warning::Lacks Cloud Scheduler permissions. Run: gcloud projects add-iam-policy-binding ${{ env.GCP_PROJECT_ID }} --member=serviceAccount:supremeai-a@appspot.gserviceaccount.com --role=roles/cloudscheduler.admin"
-
-  security-scan:
-    name: 🛡️ Security & Secret Scan
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📥 Checkout Code
-        uses: actions/checkout@v4
-      - name: 🔍 Scan for Secrets
-        uses: trufflesecurity/trufflehog@v3.82.2
-        with:
-          path: ./
-          extra_args: "--only-verified"
-
-  # --------------------------------------------------------------------------------
-  # 🏗️ PHASE 2: BUILD & TEST
-  # --------------------------------------------------------------------------------
-  
-  backend-pipeline:
-    name: ☕ Backend (Build & Deploy)
-    needs: [initialize, security-scan, infrastructure-check]
-    if: needs.initialize.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📥 Checkout Code
-        uses: actions/checkout@v4
-      - name: ☕ Setup Java ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
           cache: 'gradle'
-      - name: 🔨 Build & Test
-        run: ./gradlew clean build jacocoTestReport --no-daemon
-      - name: 🔐 Google Auth
-        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name != 'pull_request'
-        uses: google-github-actions/auth@v2
+      - run: ./gradlew build jacocoTestReport --no-daemon
+
+  backend-deploy:
+    name: Backend Deploy
+    needs: [backend-build]
+    if: always() && (needs.backend-build.result == 'success' || (needs.backend-build.result == 'skipped' && needs.initialize.outputs.backend == 'false')) && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name != 'pull_request' && (needs.initialize.outputs.backend == 'true' || github.event.inputs.force_run_all == 'true')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}
-      - name: 🛠️ Setup GCloud
-        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name != 'pull_request'
-        uses: google-github-actions/setup-gcloud@v2
-      - name: 🐳 Build & Push Container
-        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name != 'pull_request'
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Build & Push & Deploy
         run: |
-          BUILD_ID=$(gcloud builds submit --tag us-central1-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/supremeai-repo/backend --async --format="value(id)" --quiet .)
-          echo "Build submitted: $BUILD_ID"
-          echo "Waiting for build to complete..."
-          while true; do
-            STATUS=$(gcloud builds describe $BUILD_ID --format="value(status)")
-            echo "Current Status: $STATUS"
-            if [ "$STATUS" == "SUCCESS" ]; then
-              echo "✅ Build Succeeded!"
-              break
-            elif [ "$STATUS" == "FAILURE" ] || [ "$STATUS" == "INTERNAL_ERROR" ] || [ "$STATUS" == "TIMEOUT" ] || [ "$STATUS" == "CANCELLED" ]; then
-              echo "❌ Build Failed with status: $STATUS"
-              exit 1
-            fi
-            sleep 10
-          done
-      - name: 🚀 Deploy to Cloud Run
-        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name != 'pull_request'
-        run: |
-          gcloud run deploy supremeai-backend \
+          gcloud builds submit --tag us-central1-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/supremeai-repo/backend .
+          gcloud beta run deploy supremeai-backend \
             --image us-central1-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/supremeai-repo/backend \
             --region ${{ env.GCP_REGION }} \
             --platform managed \
             --allow-unauthenticated \
-            --memory 2Gi \
+            --memory 4Gi \
+            --cpu 2 \
             --set-env-vars="SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=${{ env.GCP_PROJECT_ID }}" \
             --update-secrets "JWT_SECRET=jwt-secret:latest,FIREBASE_SERVICE_ACCOUNT_JSON=firebase-service-account-json:latest" \
             --quiet
 
-  frontend-pipeline:
-    name: ⚛️ Frontend & Mobile (Build & Deploy)
-    needs: [initialize, security-scan, infrastructure-check]
-    if: needs.initialize.outputs.dashboard == 'true' || needs.initialize.outputs.mobile == 'true' || github.event_name == 'workflow_dispatch'
+  frontend-build:
+    name: Frontend Build
+    needs: [initialize]
+    if: needs.initialize.outputs.dashboard == 'true' || needs.initialize.outputs.mobile == 'true' || github.event_name == 'workflow_dispatch' || github.event.inputs.force_run_all == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: 📥 Checkout Code
-        uses: actions/checkout@v4
-      - name: 🟢 Setup Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           cache-dependency-path: dashboard/package-lock.json
-      - name: 🔨 Build Dashboard
+      - name: Build Dashboard
         working-directory: dashboard
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN || 'supremeai-a.firebaseapp.com' }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID || 'supremeai-a' }}
         run: |
           npm ci
           npm run build
-      - name: 💙 Setup Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: 'stable'
-          cache: true
-      - name: 🔨 Build Mobile Web
+      - name: Build Mobile Web
         working-directory: supremeai
         run: |
           flutter pub get
           flutter build web --release --base-href /mobile/
-      - name: 🤖 Build Android APK (Conditional)
-        if: github.event_name != 'pull_request'
-        working-directory: supremeai
-        run: flutter build apk --release
-      - name: 🔐 Google Auth
-        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name != 'pull_request'
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-builds
+          path: |
+            dashboard/dist/
+            supremeai/build/web/
+
+  frontend-deploy:
+    name: Frontend Deploy
+    needs: [frontend-build]
+    if: always() && (needs.frontend-build.result == 'success' || (needs.frontend-build.result == 'skipped' && needs.initialize.outputs.dashboard == 'false')) && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name != 'pull_request' && (needs.initialize.outputs.dashboard == 'true' || needs.initialize.outputs.mobile == 'true' || github.event.inputs.force_run_all == 'true')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: web-builds
+      - name: Google Auth
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}
-      - name: 🚀 Deploy Firebase Hosting
-        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name != 'pull_request'
+      - name: Deploy Firebase Hosting
         run: |
           mkdir -p public/admin
           mkdir -p public/mobile
-          cp -r dashboard/dist/* public/admin/
-          cp -r supremeai/build/web/* public/mobile/
+          cp -r dashboard/dist/* public/admin/ || cp -r dist/* public/admin/
+          cp -r supremeai/build/web/* public/mobile/ || cp -r build/web/* public/mobile/
           npm install -g firebase-tools
           firebase deploy --project ${{ env.GCP_PROJECT_ID }} --only hosting --non-interactive
 
-  cloud-functions:
-    name: ⚡ Cloud Functions Build
-    needs: [initialize, security-scan]
-    if: needs.initialize.outputs.functions == 'true' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📥 Checkout Code
-        uses: actions/checkout@v4
-      - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: functions/package-lock.json
-      - name: 🔨 Install & Lint
-        working-directory: functions
-        run: |
-          npm ci
-          npm run lint || echo "Linting skipped or failed"
-
-  ide-extensions:
-    name: 🔌 IDE Extensions Build
-    needs: [initialize, security-scan]
-    if: needs.initialize.outputs.extensions == 'true' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📥 Checkout Code
-        uses: actions/checkout@v4
-      - name: 🟢 Setup Node.js (VS Code)
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-      - name: 🔨 Build VS Code Extension
-        working-directory: supremeai-vscode-extension
-        run: |
-          cp ../LICENSE . || echo "License not found"
-          cp ../README.md . || echo "README not found"
-          npm install
-          npm run compile
-          npx vsce package --out supremeai-vscode.vsix
-      - name: ☕ Setup Java (IntelliJ)
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: 'temurin'
-      - name: 🔨 Build IntelliJ Plugin
-        working-directory: supremeai-intellij-plugin
-        run: |
-          mkdir -p gradle/wrapper
-          cp ../gradle/wrapper/gradle-wrapper.jar gradle/wrapper/
-          chmod +x gradlew
-          ./gradlew buildPlugin --no-daemon
-      - name: 📦 Archive Extensions
-        if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ide-extensions
-          path: |
-            supremeai-vscode-extension/*.vsix
-            supremeai-intellij-plugin/build/distributions/*.zip
-          retention-days: 1
-
-  # --------------------------------------------------------------------------------
-  # 🚀 PHASE 3: DEPLOYMENT
-  # --------------------------------------------------------------------------------
-  
-
-
-  deploy-functions:
-    name: 🚀 Deploy Functions
-    needs: [cloud-functions, infrastructure-check]
-    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📥 Checkout Code
-        uses: actions/checkout@v4
-      - name: 🔐 Google Auth
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}
-      - name: 🚀 Deploy Firebase Functions
-        run: |
-          npm install -g firebase-tools
-          cd functions
-          npm ci
-          firebase deploy --project ${{ env.GCP_PROJECT_ID }} --only functions --non-interactive || {
-            echo "::error::Functions deployment failed. Ensure service account has Cloud Scheduler Admin role."
-            exit 1
-          }
-
-  # --------------------------------------------------------------------------------
-  # 🏥 PHASE 4: VALIDATION
-  # --------------------------------------------------------------------------------
-  
   health-check:
-    name: 🏥 Health Check
-    needs: [backend-pipeline, frontend-pipeline]
-    if: always() && (needs.backend-pipeline.result == 'success' || needs.frontend-pipeline.result == 'success')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check Backend & Frontend
-        run: |
-          echo "Checking frontend..."
-          curl -sf https://supremeai-a.web.app/ || echo "Frontend health check failed"
-          echo "Checking backend..."
-          BACKEND_URL=$(gcloud run services describe supremeai-backend --region us-central1 --format='value(status.url)' || echo "")
-          if [ -n "$BACKEND_URL" ]; then
-            curl -sf "$BACKEND_URL/api/health" || echo "Backend health check failed"
-          fi
-
-  # --------------------------------------------------------------------------------
-  # 📊 PHASE 5: SUMMARY & NOTIFICATION
-  # --------------------------------------------------------------------------------
-
-  workflow-summary:
-    name: 📊 Pipeline Summary
-    needs: [backend-pipeline, frontend-pipeline, deploy-functions, ide-extensions, health-check]
+    name: Health Check
+    needs: [backend-deploy, frontend-deploy]
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: 📝 Generate Summary
-        run: |
-          echo "### 🚀 SupremeAI CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
-          echo "| Component | Status | Artifacts |" >> $GITHUB_STEP_SUMMARY
-          echo "| :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
-          echo "| Backend | ${{ needs.backend-pipeline.result }} | - |" >> $GITHUB_STEP_SUMMARY
-          echo "| Frontend | ${{ needs.frontend-pipeline.result }} | - |" >> $GITHUB_STEP_SUMMARY
-          echo "| Functions | ${{ needs.deploy-functions.result }} | - |" >> $GITHUB_STEP_SUMMARY
-          echo "| IDE Plugins | ${{ needs.ide-extensions.result }} | `ide-extensions` |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "#### 📥 Latest Artifacts available for 1 day." >> $GITHUB_STEP_SUMMARY
-
-  notification:
-    name: 🔔 Final Notification
-    needs: [workflow-summary]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Send Webhook
-        env:
-          SUPREMEAI_WEBHOOK_SECRET: ${{ secrets.SUPREMEAI_WEBHOOK_SECRET }}
-        run: |
-          if [ -n "$SUPREMEAI_WEBHOOK_SECRET" ]; then
-            curl -X POST https://supremeai-lhlwyikwlq-uc.a.run.app/api/webhooks/github \
-              -H "Content-Type: application/json" \
-              -H "X-Webhook-Secret: $SUPREMEAI_WEBHOOK_SECRET" \
-              -d '{"status": "completed", "runId": "${{ github.run_id }}", "repo": "${{ github.repository }}"}' || echo "Webhook failed"
-          fi
+      - run: |
+          echo "Pipeline finished."

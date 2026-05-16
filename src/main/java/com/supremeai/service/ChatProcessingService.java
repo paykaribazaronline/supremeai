@@ -2,9 +2,15 @@ package com.supremeai.service;
 
 import com.supremeai.model.*;
 import com.supremeai.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Service;
 
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+import com.supremeai.fallback.AIFallbackOrchestrator;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -13,33 +19,61 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class ChatProcessingService {
 
+    private static final Logger log = LoggerFactory.getLogger(ChatProcessingService.class);
+
     private final ChatClassifier chatClassifier;
     private final ChatRuleRepository chatRuleRepository;
     private final ChatPlanRepository chatPlanRepository;
     private final ChatCommandRepository chatCommandRepository;
     private final ChatConfirmationRepository chatConfirmationRepository;
     private final ChatHistoryRepository chatHistoryRepository;
+    private final ChatAdminActionRepository chatAdminActionRepository;
+    private final AIFallbackOrchestrator fallbackOrchestrator;
+    
+    private final AIProviderService aiProviderService;
+    private final com.supremeai.service.browser.BrowserService browserService;
+    private final AdminProviderValidationService validationService;
+    private final CyberSecuritySkillService cyberSecuritySkillService;
+    private final EnhancedLearningService enhancedLearningService;
 
     // In-memory pending confirmations (like Flask)
     private final Map<String, PendingItem> pendingConfirmations = new ConcurrentHashMap<>();
-
     public ChatProcessingService(ChatClassifier chatClassifier,
                                  ChatRuleRepository chatRuleRepository,
                                  ChatPlanRepository chatPlanRepository,
                                  ChatCommandRepository chatCommandRepository,
                                  ChatConfirmationRepository chatConfirmationRepository,
-                                 ChatHistoryRepository chatHistoryRepository) {
+                                 ChatHistoryRepository chatHistoryRepository,
+                                 ChatAdminActionRepository chatAdminActionRepository,
+                                 AIFallbackOrchestrator fallbackOrchestrator,
+                                 AIProviderService aiProviderService,
+                                 com.supremeai.service.browser.BrowserService browserService,
+                                 AdminProviderValidationService validationService,
+                                 CyberSecuritySkillService cyberSecuritySkillService,
+                                 EnhancedLearningService enhancedLearningService) {
         this.chatClassifier = chatClassifier;
         this.chatRuleRepository = chatRuleRepository;
         this.chatPlanRepository = chatPlanRepository;
         this.chatCommandRepository = chatCommandRepository;
         this.chatConfirmationRepository = chatConfirmationRepository;
         this.chatHistoryRepository = chatHistoryRepository;
+        this.chatAdminActionRepository = chatAdminActionRepository;
+        this.fallbackOrchestrator = fallbackOrchestrator;
+        this.aiProviderService = aiProviderService;
+        this.browserService = browserService;
+        this.validationService = validationService;
+        this.cyberSecuritySkillService = cyberSecuritySkillService;
+        this.enhancedLearningService = enhancedLearningService;
     }
 
     public Mono<Map<String, Object>> processMessage(String userId, String message, boolean isAdmin) {
+        // Sanitize user input to prevent XSS
+        String sanitizedMessage = Jsoup.clean(message, Safelist.basic()
+                .addTags("br", "p", "strong", "em", "code")
+                .addProtocols("a", "href", "https"));
+        
         // Save chat message
-        ChatMessage chatMsg = new ChatMessage(userId, message, isAdmin);
+        ChatMessage chatMsg = new ChatMessage(userId, sanitizedMessage, isAdmin);
         chatMsg.setId(generateId("chat"));
         
         return chatHistoryRepository.save(chatMsg)
@@ -82,7 +116,31 @@ public class ChatProcessingService {
                         });
                 }
 
-                return Mono.just(result);
+                return fallbackOrchestrator.executeWithSupremeIntelligence(
+                            "chat", "casual_chat", message, userId
+                        )
+                .onErrorResume(e -> Mono.just("আমি দুঃখিত, এই মুহূর্তে আমি উত্তর দিতে পারছি না। (AI Error: " + e.getMessage() + ")"))
+                .subscribeOn(Schedulers.boundedElastic())
+                .flatMap(aiResponse -> {
+                    ChatMessage aiMsg = new ChatMessage();
+                    aiMsg.setId(generateId("chat_ai"));
+                    aiMsg.setUserId(userId);
+                    aiMsg.setContent(aiResponse);
+                    aiMsg.setRole("ai");
+                    aiMsg.setTimestamp(LocalDateTime.now());
+                    
+                    result.put("response", aiResponse);
+
+                    // Trigger Autonomous Learning
+                    enhancedLearningService.learnFromInteraction(userId, message, aiResponse)
+                        .subscribeOn(Schedulers.parallel())
+                        .subscribe(
+                            v -> log.info("💡 Interaction learned for user: {}", userId),
+                            e -> log.error("⚠️ Failed to learn from interaction: {}", e.getMessage())
+                        );
+
+                    return chatHistoryRepository.save(aiMsg).thenReturn(result);
+                });
             });
     }
 
@@ -112,8 +170,25 @@ public class ChatProcessingService {
                 command.setActive(true);
                 yield chatCommandRepository.save(command).thenReturn(itemId);
             }
+            case ADMIN_ACTION -> {
+                String actionType = determineAdminActionType(content);
+                ChatAdminAction action = new ChatAdminAction(chatId, actionType, content, confidence, userId);
+                action.setId(itemId);
+                action.setCreatedAt(LocalDateTime.now());
+                action.setActive(true);
+                yield chatAdminActionRepository.save(action).thenReturn(itemId);
+            }
             default -> Mono.just(itemId);
         };
+    }
+
+    private String determineAdminActionType(String content) {
+        String lower = content.toLowerCase();
+        if (lower.contains("api") || lower.contains("key")) return "ADD_API";
+        if (lower.contains("website") || lower.contains("learn")) return "LEARN_WEBSITE";
+        if (lower.contains("test") || lower.contains("health")) return "TEST_API";
+        if (lower.contains("audit") || lower.contains("security")) return "RUN_AUDIT";
+        return "GENERAL_ADMIN";
     }
 
     public Mono<Map<String, Object>> confirmItem(String itemId, boolean confirmed, String userId) {
@@ -180,6 +255,32 @@ public class ChatProcessingService {
                     cmd.setUpdatedAt(LocalDateTime.now());
                     return chatCommandRepository.save(cmd);
                 }).then();
+            case "admin_action" -> chatAdminActionRepository.findById(itemId)
+                .flatMap(action -> {
+                    action.setActive(active);
+                    action.setUpdatedAt(LocalDateTime.now());
+                    return chatAdminActionRepository.save(action)
+                        .flatMap(saved -> active ? executeAdminAction(saved) : Mono.empty());
+                }).then();
+            default -> Mono.empty();
+        };
+    }
+
+    private Mono<Void> executeAdminAction(ChatAdminAction action) {
+        return switch (action.getActionType()) {
+            case "ADD_API" -> Mono.fromRunnable(() -> {
+                log.info("ADD_API action: stub implementation - provider creation disabled in this build");
+                // TODO: implement provider persistence
+            }).then();
+            case "LEARN_WEBSITE" -> Mono.fromRunnable(() -> {
+                log.info("LEARN_WEBSITE action: stub - browser learning disabled");
+            }).then();
+            case "TEST_API" -> Mono.fromRunnable(() -> {
+                log.info("TEST_API action: stub - provider validation disabled");
+            }).then();
+            case "RUN_AUDIT" -> Mono.fromRunnable(() -> {
+                log.info("RUN_AUDIT action: stub - security audit disabled");
+            }).then();
             default -> Mono.empty();
         };
     }
@@ -261,10 +362,10 @@ public class ChatProcessingService {
 
     public Mono<List<Map<String, Object>>> getChatHistory(String userId, int limit) {
         return (userId != null 
-            ? chatHistoryRepository.findAll()
-                .filter(msg -> msg.getUserId() != null && msg.getUserId().equals(userId))
-                .collectList()
-            : chatHistoryRepository.findAll().collectList())
+            ? chatHistoryRepository.findByUserId(userId)
+            : chatHistoryRepository.findAll())
+            .take(limit)
+            .collectList()
             .map(this::convertChatMessageList);
     }
 
