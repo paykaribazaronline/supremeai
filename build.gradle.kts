@@ -48,22 +48,20 @@ dependencies {
     implementation("com.google.cloud:google-cloud-bigquery")
     implementation("com.google.cloud:google-cloud-run:0.43.0") // Or managed by BOM if available, but let's just add it
 
-    implementation("software.amazon.awssdk:secretsmanager:2.25.36")
-    implementation("software.amazon.awssdk:regions:2.25.36")
-    implementation("com.azure:azure-identity:1.12.2")
-    implementation("com.azure:azure-security-keyvault-secrets:4.8.2")
+    // Removed software.amazon.awssdk and com.azure to reduce JAR size (~40MB saving)
+    // Consolidated cloud secrets to Google Cloud Secret Manager
 
     // HTTP Client for AI APIs
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
-    // JSON Processing - all three Jackson artifacts must be same version to avoid NoSuchMethodError
-    implementation("com.fasterxml.jackson.core:jackson-core:2.18.1")
-    implementation("com.fasterxml.jackson.core:jackson-annotations:2.18.1")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.1")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.1")
-    // Jackson Afterburner module for optimized JSON serialization (20-30% faster)
-    implementation("com.fasterxml.jackson.module:jackson-module-afterburner:2.18.1")
+    // JSON Processing - Consolidated Jackson artifacts
+    val jacksonVersion = "2.18.1"
+    implementation("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
+    implementation("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
+    implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
+    implementation("com.fasterxml.jackson.module:jackson-module-afterburner:$jacksonVersion")
 
     // HTML Parsing
     implementation("org.jsoup:jsoup:1.18.1")
@@ -83,20 +81,20 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("jakarta.servlet:jakarta.servlet-api:6.0.0")
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.boot:spring-boot-starter-webflux")  // Required for WebClient in SimulatorDeploymentService
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-websocket")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    // Removed spring-boot-starter-data-jpa to avoid conflict with Firestore reactive repositories
 
-    // Spring Cloud GCP - Firestore
+    // Spring Cloud GCP - Firestore & Secret Manager
     implementation("com.google.cloud:spring-cloud-gcp-starter-data-firestore")
+    implementation("com.google.cloud:google-cloud-secretmanager")
 
-    // Google Cloud Pub/Sub client (managed by BOM)
+    // Google Cloud Pub/Sub client
     implementation("com.google.cloud:google-cloud-pubsub")
 
     // Database
-    runtimeOnly("com.h2database:h2")
+    testImplementation("com.h2database:h2") // Moved to test to reduce production JAR size
     runtimeOnly("org.postgresql:postgresql:42.7.3")
 
     // Resilience & Error Handling
@@ -108,7 +106,7 @@ dependencies {
     // Rate Limiting
     implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:7.6.0")
 
-    // AOP - required for @Aspect (KingModeAuditAspect)
+    // AOP
     implementation("org.springframework.boot:spring-boot-starter-aop")
 
     // Metrics & Monitoring
@@ -122,7 +120,7 @@ dependencies {
     implementation("io.sentry:sentry-spring-boot-starter-jakarta:7.14.0")
     implementation("io.sentry:sentry-logback:7.14.0")
 
-    // Distributed Tracing - OpenTelemetry (using stable versions)
+    // Distributed Tracing - OpenTelemetry
     implementation("io.opentelemetry:opentelemetry-api:1.36.0")
     implementation("io.opentelemetry:opentelemetry-sdk:1.36.0")
     implementation("io.opentelemetry:opentelemetry-exporter-otlp:1.36.0")
@@ -131,7 +129,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("io.lettuce:lettuce-core:6.3.0.RELEASE")
     implementation("org.apache.commons:commons-pool2:2.12.0")
-    // Removed jedis to avoid dependency conflict and reduce footprint
 
     // Database Connection Pooling
     implementation("com.zaxxer:HikariCP:5.1.0")
@@ -139,14 +136,14 @@ dependencies {
     // Caching
     implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
 
-    // Lombok - annotation processing for getters/builders
+    // Lombok
     implementation("org.projectlombok:lombok")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
     testCompileOnly("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")
 
-    // Testing - ENHANCED
+    // Testing
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.mockito:mockito-core:5.7.0")
@@ -154,10 +151,8 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("io.projectreactor:reactor-test")
-    // Jakarta Validation API for DTO validation tests (managed by Spring Boot BOM)
     testImplementation("jakarta.validation:jakarta.validation-api")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    // Testcontainers for integration testing with Firestore emulator
     testImplementation("org.testcontainers:testcontainers:1.19.8")
     testImplementation("org.testcontainers:junit-jupiter:1.19.8")
     testImplementation("com.google.cloud:google-cloud-bigquery")

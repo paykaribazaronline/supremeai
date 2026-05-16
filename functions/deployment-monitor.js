@@ -1,6 +1,8 @@
 // functions/deployment-monitor.js - AI-Powered Deployment Monitor
 // Uses Groq AI to analyze GitHub changes and wake system if needed
 
+const { onSchedule } = require("firebase-functions/v2/scheduler");
+const { onRequest } = require("firebase-functions/v2/https");
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const axios = require("axios");
@@ -18,7 +20,7 @@ const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
  * HTTP trigger: Analyze deployment changes with AI
  * Endpoint: https://region-supremeai.cloudfunctions.net/analyzeDeployment
  */
-exports.analyzeDeployment = functions.https.onRequest(async (req, res) => {
+exports.analyzeDeployment = onRequest(async (req, res) => {
     try {
         const { commitMessage, changedFiles, author, branch, runId } = req.body;
 
@@ -332,7 +334,7 @@ async function sendDeploymentNotification(analysis, needsWakeUp) {
  * Scheduled trigger: Periodic system health check with AI analysis
  * Runs every 5 minutes
  */
-exports.monitorSystemHealth = functions.pubsub.schedule('*/5 * * * *').onRun(async (context) => {
+exports.monitorSystemHealth = onSchedule('*/5 * * * *', async (event) => {
     try {
         const backendUrl = "https://ide-api.supremeai.google.com";
         const healthResponse = await axios.get(`${backendUrl}/api/health`, {

@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -13,29 +12,21 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Unified secrets management service that integrates with multiple secret providers.
- * Provides a fallback mechanism and caching for improved performance.
+ * Unified secrets management service that integrates with GCP and Firebase.
+ * Optimized for reduced build size and cloud-native stability.
  * 
  * Priority order:
- * 1. HashiCorp Vault (if enabled)
- * 2. AWS Secrets Manager (if enabled)
- * 3. Environment variables (fallback)
- * 4. EncryptionService (for encrypted values)
- * 
- * Configuration:
- * - secrets.cache.enabled: Enable secret caching (default: true)
- * - secrets.cache.ttl.minutes: Cache TTL in minutes (default: 30)
+ * 1. GCP Secret Manager (Native)
+ * 2. Firebase Secrets (App context)
+ * 3. Environment variables (Local/Container fallback)
  */
 @Service
 public class UnifiedSecretsService {
 
     private static final Logger log = LoggerFactory.getLogger(UnifiedSecretsService.class);
 
-    @Autowired(required = false)
-    private VaultSecretsService vaultSecretsService;
-
-    @Autowired(required = false)
-    private AwsSecretsService awsSecretsService;
+    @Autowired
+    private SecretManagerService secretManagerService;
 
     @Autowired
     private FirebaseSecretsService firebaseSecretsService;
@@ -67,9 +58,24 @@ public class UnifiedSecretsService {
             }
         }
 
-        // Try Firebase first (as requested by user)
+        // Try GCP Secret Manager first (Core Production Provider)
+        return Mono.fromCallable(() -> secretManagerService.getSecret(secretKey))
+            .flatMap(value -> {
+                if (value != null && !value.isEmpty()) {
+                    log.debug("Retrieved secret from GCP Secret Manager for key: {}", secretKey);
+                    return cacheAndReturn(secretKey, value);
+                }
+                return tryFirebase(secretKey);
+            })
+            .onErrorResume(e -> tryFirebase(secretKey))
+            .switchIfEmpty(tryFirebase(secretKey));
+    }
+
+    /**
+     * Try to retrieve secret from Firebase.
+     */
+    private Mono<String> tryFirebase(String secretKey) {
         if (firebaseSecretsService != null) {
-            // Map common keys to Firebase structure if needed
             String firebaseKey = mapToFirebaseKey(secretKey);
             return firebaseSecretsService.getSecret(firebaseKey)
                 .flatMap(value -> {
@@ -77,30 +83,11 @@ public class UnifiedSecretsService {
                         log.debug("Retrieved secret from Firebase for key: {}", secretKey);
                         return cacheAndReturn(secretKey, value);
                     }
-                    return tryVault(secretKey);
+                    return tryEnvironmentVariable(secretKey);
                 })
-                .switchIfEmpty(tryVault(secretKey));
+                .switchIfEmpty(tryEnvironmentVariable(secretKey));
         }
-
-        return tryVault(secretKey);
-    }
-
-    /**
-     * Try to retrieve secret from HashiCorp Vault.
-     */
-    private Mono<String> tryVault(String secretKey) {
-        if (vaultSecretsService != null) {
-            return vaultSecretsService.getSecret(secretKey)
-                .flatMap(value -> {
-                    if (value != null && !value.isEmpty()) {
-                        log.debug("Retrieved secret from Vault for key: {}", secretKey);
-                        return cacheAndReturn(secretKey, value);
-                    }
-                    return tryAwsSecrets(secretKey);
-                })
-                .switchIfEmpty(tryAwsSecrets(secretKey));
-        }
-        return tryAwsSecrets(secretKey);
+        return tryEnvironmentVariable(secretKey);
     }
 
     /**
@@ -123,30 +110,10 @@ public class UnifiedSecretsService {
     }
 
     /**
-     * Try to retrieve secret from AWS Secrets Manager.
-     */
-    private Mono<String> tryAwsSecrets(String secretKey) {
-        if (awsSecretsService != null) {
-            return awsSecretsService.getSecret(secretKey)
-                .flatMap(value -> {
-                    if (value != null && !value.isEmpty()) {
-                        log.debug("Retrieved secret from AWS Secrets Manager for key: {}", secretKey);
-                        return cacheAndReturn(secretKey, value);
-                    }
-                    return tryEnvironmentVariable(secretKey);
-                })
-                .switchIfEmpty(tryEnvironmentVariable(secretKey));
-        }
-
-        // Fall back to environment variables
-        return tryEnvironmentVariable(secretKey);
-    }
-
-    /**
      * Try to retrieve secret from environment variables.
      */
     private Mono<String> tryEnvironmentVariable(String secretKey) {
-        String envValue = System.getenv(secretKey.toUpperCase());
+        String envValue = System.getenv(secretKey.toUpperCase().replace(".", "_").replace("-", "_"));
         if (envValue != null && !envValue.isEmpty()) {
             log.debug("Retrieved secret from environment variable for key: {}", secretKey);
             return cacheAndReturn(secretKey, envValue);
@@ -168,14 +135,12 @@ public class UnifiedSecretsService {
 
     /**
      * Retrieve multiple secrets at once.
-     * 
-     * @param secretKeys Array of secret keys to retrieve
-     * @return Map of secret keys to values
      */
     public Mono<Map<String, String>> getSecrets(String... secretKeys) {
         return Mono.fromCallable(() -> {
             Map<String, String> secrets = new HashMap<>();
             for (String key : secretKeys) {
+                // blocking for simplicity in the list retrieval context
                 String value = getSecret(key).block();
                 if (value != null) {
                     secrets.put(key, value);
@@ -187,9 +152,6 @@ public class UnifiedSecretsService {
 
     /**
      * Encrypt a value using the EncryptionService.
-     * 
-     * @param value The value to encrypt
-     * @return The encrypted value
      */
     public String encrypt(String value) {
         return encryptionService.encrypt(value);
@@ -197,9 +159,6 @@ public class UnifiedSecretsService {
 
     /**
      * Decrypt a value using the EncryptionService.
-     * 
-     * @param encryptedValue The encrypted value
-     * @return The decrypted value
      */
     public String decrypt(String encryptedValue) {
         return encryptionService.decrypt(encryptedValue);
@@ -214,28 +173,16 @@ public class UnifiedSecretsService {
     }
 
     /**
-     * Check the health of all secret providers.
-     * 
-     * @return Map of provider names to health status
+     * Check the health of available secret providers.
      */
     public Mono<Map<String, Boolean>> healthCheck() {
         return Mono.fromCallable(() -> {
             Map<String, Boolean> health = new HashMap<>();
 
-            if (vaultSecretsService != null) {
-                Boolean vaultHealth = vaultSecretsService.healthCheck().block();
-                health.put("vault", vaultHealth != null && vaultHealth);
-            } else {
-                health.put("vault", false);
-            }
+            // GCP Secret Manager Check
+            health.put("gcp_secret_manager", secretManagerService != null);
 
-            if (awsSecretsService != null) {
-                Boolean awsHealth = awsSecretsService.healthCheck().block();
-                health.put("aws", awsHealth != null && awsHealth);
-            } else {
-                health.put("aws", false);
-            }
-
+            // Firebase Check
             if (firebaseSecretsService != null) {
                 Boolean firebaseHealth = firebaseSecretsService.healthCheck().block();
                 health.put("firebase", firebaseHealth != null && firebaseHealth);
@@ -243,8 +190,7 @@ public class UnifiedSecretsService {
                 health.put("firebase", false);
             }
 
-            health.put("environment", true); // Environment variables always available
-
+            health.put("environment", true);
             return health;
         });
     }
@@ -266,3 +212,4 @@ public class UnifiedSecretsService {
         }
     }
 }
+

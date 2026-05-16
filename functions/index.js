@@ -1,6 +1,9 @@
 // functions/index.js - Firebase Cloud Functions for AI System
 // Deploy with: firebase deploy --only functions
 
+const { onSchedule } = require("firebase-functions/v2/scheduler");
+const { onRequest } = require("firebase-functions/v2/https");
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const axios = require("axios");
@@ -60,7 +63,7 @@ exports.collectHealthMetrics = systemHealth.collectHealthMetrics;
  * HTTP trigger: Process new requirement from admin
  * Endpoint: https://region-supremeai.cloudfunctions.net/processRequirement
  */
-exports.processRequirement = functions.https.onRequest(withAuth(async (req, res) => {
+exports.processRequirement = onRequest(withAuth(async (req, res) => {
     try {
         const { projectId, description } = req.body;
         
@@ -135,7 +138,7 @@ exports.processRequirement = functions.https.onRequest(withAuth(async (req, res)
  * HTTP trigger: Admin approves/rejects requirement
  * Endpoint: https://region-supremeai.cloudfunctions.net/approveRequirement
  */
-exports.approveRequirement = functions.https.onRequest(withAuth(async (req, res) => {
+exports.approveRequirement = onRequest(withAuth(async (req, res) => {
     try {
         const { requirementId, approved, notes } = req.body;
         
@@ -185,7 +188,7 @@ exports.approveRequirement = functions.https.onRequest(withAuth(async (req, res)
 /**
  * Scheduled trigger: Auto-approve MEDIUM tasks after 10 minutes
  */
-exports.autoApproveScheduled = functions.pubsub.schedule("*/1 * * * *").onRun(async (context) => {
+exports.autoApproveScheduled = onSchedule("*/1 * * * *", async (event) => {
     const now = admin.firestore.Timestamp.now();
     
     const scheduledApprovals = await db.collection("scheduled_approvals")
@@ -218,7 +221,7 @@ exports.autoApproveScheduled = functions.pubsub.schedule("*/1 * * * *").onRun(as
  * HTTP trigger: Handle quota exceeded / API errors
  * Called by Java backend on 429/403 errors
  */
-exports.rotateAgent = functions.https.onRequest(withAuth(async (req, res) => {
+exports.rotateAgent = onRequest(withAuth(async (req, res) => {
     try {
         const { agentId, reason } = req.body;
         
@@ -257,11 +260,9 @@ exports.rotateAgent = functions.https.onRequest(withAuth(async (req, res) => {
 /**
  * Firestore trigger: Save AI messages to chat history
  */
-exports.onChatMessage = functions.firestore
-    .document("projects/{projectId}/chat/{messageId}")
-    .onCreate(async (snap, context) => {
-        const { projectId } = context.params;
-        const message = snap.data();
+exports.onChatMessage = onDocumentCreated("projects/{projectId}/chat/{messageId}", async (event) => {
+        const { projectId } = event.params;
+        const message = event.data.data();
         
         // Update project's lastMessage timestamp
         await admin.firestore().collection("projects").doc(projectId).update({
@@ -294,7 +295,7 @@ exports.onChatMessage = functions.firestore
 /**
  * HTTP trigger: Update project progress
  */
-exports.updateProgress = functions.https.onRequest(withAuth(async (req, res) => {
+exports.updateProgress = onRequest(withAuth(async (req, res) => {
     try {
         const { projectId, progress, status } = req.body;
         
@@ -328,7 +329,7 @@ exports.monitorSystemHealth = deploymentMonitor.monitorSystemHealth;
  * HTTP trigger: Process Bengali OCR on uploaded images
  * Endpoint: https://region-supremeai.cloudfunctions.net/processBengaliOCR
  */
-exports.processBengaliOCR = functions.https.onRequest(withAuth(async (req, res) => {
+exports.processBengaliOCR = onRequest(withAuth(async (req, res) => {
     try {
         const { imageUrls, projectId, userId } = req.body;
 
@@ -452,7 +453,7 @@ exports.processBengaliOCR = functions.https.onRequest(withAuth(async (req, res) 
  * HTTP trigger: Get OCR results for a project
  * Endpoint: https://region-supremeai.cloudfunctions.net/getOCRResults
  */
-exports.getOCRResults = functions.https.onRequest(withAuth(async (req, res) => {
+exports.getOCRResults = onRequest(withAuth(async (req, res) => {
     try {
         const { projectId } = req.query;
 
@@ -488,7 +489,7 @@ exports.getOCRResults = functions.https.onRequest(withAuth(async (req, res) => {
  * HTTP trigger: Convert OCR results to Excel and upload
  * Endpoint: https://region-supremeai.cloudfunctions.net/exportOCRToExcel
  */
-exports.exportOCRToExcel = functions.https.onRequest(withAuth(async (req, res) => {
+exports.exportOCRToExcel = onRequest(withAuth(async (req, res) => {
     try {
         const { projectId, resultIds } = req.body;
 

@@ -1,6 +1,8 @@
 // functions/system-health.js - System Health Monitoring
 // Monitors Firebase, GCloud, and Local PC health status
 
+const { onSchedule } = require("firebase-functions/v2/scheduler");
+const { onRequest } = require("firebase-functions/v2/https");
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const axios = require("axios");
@@ -16,7 +18,7 @@ const HISTORY_RETENTION_DAYS = 7;
  * HTTP trigger: Get current system health status
  * Endpoint: https://region-supremeai.cloudfunctions.net/getSystemHealth
  */
-exports.getSystemHealth = functions.https.onRequest(async (req, res) => {
+exports.getSystemHealth = onRequest(async (req, res) => {
     try {
         const healthData = {
             timestamp: new Date().toISOString(),
@@ -306,7 +308,7 @@ async function saveHealthSnapshot(healthData) {
 /**
  * Scheduled trigger: Collect health metrics every 5 minutes
  */
-exports.collectHealthMetrics = functions.pubsub.schedule('*/5 * * * *').onRun(async (context) => {
+exports.collectHealthMetrics = onSchedule('*/5 * * * *', async (event) => {
     try {
         const healthData = {
             timestamp: new Date().toISOString(),
