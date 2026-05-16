@@ -35,6 +35,7 @@ public class ProviderInitializationService {
     private String ollamaEndpoint;
 
     private String determineType(String name) {
+        if (name == null) return "GENERIC";
         String n = name.toUpperCase();
         if (n.contains("GEMINI")) return "GOOGLE";
         if (n.contains("OPENAI") || n.contains("GPT")) return "OPENAI";
@@ -54,6 +55,7 @@ public class ProviderInitializationService {
      * Enriches a provider with default metadata if not already present.
      */
     private void enrichProviderMetadata(APIProvider provider) {
+        if (provider.getName() == null) return;
         String name = provider.getName().toLowerCase();
         
         if (name.contains("gemini")) {
@@ -62,7 +64,7 @@ public class ProviderInitializationService {
             provider.setCapabilities(java.util.List.of("chat", "reasoning", "multimodal"));
         } else if (name.contains("openai")) {
             provider.setBaseUrl("https://api.openai.com/v1/chat/completions");
-            provider.setModels(java.util.List.of("gpt-4", "gpt-3.5-turbo"));
+            provider.setModels(java.util.List.of("gpt-4o-mini", "gpt-4", "gpt-3.5-turbo"));
             provider.setCapabilities(java.util.List.of("chat", "code"));
         } else if (name.contains("huggingface")) {
             provider.setBaseUrl("https://api-inference.huggingface.co/models/meta-llama/Llama-3.3-70B-Instruct/v1/chat/completions");
@@ -92,19 +94,21 @@ public class ProviderInitializationService {
 
     @EventListener(ApplicationReadyEvent.class)
     public void syncProvidersOnStartup() {
-        log.info("Syncing AI providers from Realtime Database to Firestore...");
+        log.info("[STARTUP] Initializing AI provider synchronization in background...");
         
         realtimeService.getData("config/api_keys")
+            .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
             .flatMapMany(keysMap -> {
                 if (keysMap == null || keysMap.isEmpty()) {
-                    log.warn("No API keys found in Realtime Database at config/api_keys");
+                    log.warn("[STARTUP] No API keys found in Realtime Database at config/api_keys. Skipping key sync.");
                     return Flux.empty();
                 }
-                
                 return Flux.fromIterable(keysMap.entrySet());
             })
             .flatMap(entry -> {
                 String name = entry.getKey();
+                if (name == null) return Mono.empty();
+                
                 String key = String.valueOf(entry.getValue());
                 
                 return providerRepository.findById(name.toLowerCase())
@@ -113,18 +117,22 @@ public class ProviderInitializationService {
                         provider.setApiKey(key);
                         provider.setLastCheck(new Date());
                         
-                        // If metadata is missing, enrich it
                         if (provider.getBaseUrl() == null || provider.getBaseUrl().isBlank()) {
                             enrichProviderMetadata(provider);
                         }
                         
-                        log.info("Syncing provider: {} (Type: {})", name, provider.getType());
+                        log.debug("[STARTUP] Syncing provider key for: {}", name);
                         return providerRepository.save(provider);
+                    })
+                    .onErrorResume(e -> {
+                        log.error("[STARTUP] Failed to sync provider {}: {}", name, e.getMessage());
+                        return Mono.empty();
                     });
             })
             .collectList()
-            .doOnSuccess(list -> log.info("Successfully synced {} providers to Firestore.", list.size()))
-            .doOnError(err -> log.error("Error syncing providers: {}", err.getMessage()))
-            .subscribe();
+            .subscribe(
+                list -> log.info("[STARTUP] Provider key sync complete. Total providers updated: {}", list.size()),
+                err -> log.error("[STARTUP] Critical error during provider key synchronization: {}", err.getMessage())
+            );
     }
 }

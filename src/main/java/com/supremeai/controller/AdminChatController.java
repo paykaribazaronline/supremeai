@@ -2,6 +2,7 @@ package com.supremeai.controller;
 
 import com.supremeai.service.ChatProcessingService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -10,6 +11,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/chat")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminChatController {
 
     private final ChatProcessingService chatProcessingService;
@@ -45,7 +47,7 @@ public class AdminChatController {
             )));
     }
 
-    @GetMapping("/pending")
+    @GetMapping({"/pending", "/actions/pending"})
     public Mono<ResponseEntity<Map<String, Object>>> getPending(
             @RequestParam(required = false) String user_id) {
         List<Map<String, Object>> pending = chatProcessingService.getPendingConfirmations(user_id);

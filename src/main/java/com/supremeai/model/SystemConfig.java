@@ -51,8 +51,29 @@ public class SystemConfig {
     private Map<String, String> permissions = new HashMap<>();
     private Map<String, Map<String, Object>> providers = new HashMap<>();
     private java.util.List<String> adminEmails = new java.util.ArrayList<>();
+    private boolean autonomousLearningEnabled = true;
+    private boolean autonomousAuditEnabled = true;
+
+    private Map<String, Object> telegramConfig = new HashMap<>();
+    private Map<String, Object> supabaseConfig = new HashMap<>();
 
     public SystemConfig() {
+        // Default Telegram configuration
+        telegramConfig.put("enabled", false);
+        telegramConfig.put("teldriveUrl", "http://localhost:8080");
+        telegramConfig.put("apiToken", "");
+        telegramConfig.put("channelId", "");
+        telegramConfig.put("apiId", "");
+        telegramConfig.put("apiHash", "");
+        telegramConfig.put("botToken", "");
+        telegramConfig.put("status", "DISCONNECTED");
+        telegramConfig.put("storageUsed", "0 B");
+        telegramConfig.put("lastSync", "");
+
+        // Default Supabase configuration
+        supabaseConfig.put("dbUrl", "");
+        supabaseConfig.put("password", "");
+        supabaseConfig.put("status", "PENDING");
         // Default quotas as a fallback
         tierQuotas.put(UserTier.GUEST.name(), 5L);
         tierQuotas.put(UserTier.FREE.name(), 20L);
@@ -112,6 +133,8 @@ public class SystemConfig {
         settings.put("backoff_multiplier", 2.0);
         settings.put("max_recent_logs", 1000);
         settings.put("cache_ttl_minutes", 30);
+        this.autonomousLearningEnabled = true;
+        this.autonomousAuditEnabled = true;
     }
 
     // Getters and Setters
@@ -192,6 +215,18 @@ public class SystemConfig {
 
     public java.util.List<String> getAdminEmails() { return adminEmails; }
     public void setAdminEmails(java.util.List<String> adminEmails) { this.adminEmails = adminEmails; }
+
+    public boolean isAutonomousLearningEnabled() { return autonomousLearningEnabled; }
+    public void setAutonomousLearningEnabled(boolean autonomousLearningEnabled) { this.autonomousLearningEnabled = autonomousLearningEnabled; }
+
+    public boolean isAutonomousAuditEnabled() { return autonomousAuditEnabled; }
+    public void setAutonomousAuditEnabled(boolean autonomousAuditEnabled) { this.autonomousAuditEnabled = autonomousAuditEnabled; }
+
+    public Map<String, Object> getTelegramConfig() { return telegramConfig; }
+    public void setTelegramConfig(Map<String, Object> telegramConfig) { this.telegramConfig = telegramConfig; }
+
+    public Map<String, Object> getSupabaseConfig() { return supabaseConfig; }
+    public void setSupabaseConfig(Map<String, Object> supabaseConfig) { this.supabaseConfig = supabaseConfig; }
 
     /**
      * Helper to get quota for a specific tier

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
+import '../../services/localization_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -16,6 +18,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _fullAuthority = false;
   bool _externalDirectory = false;
   String _shareMode = 'manual';
+  String _themeMode = 'dark';
 
   @override
   void initState() {
@@ -34,7 +37,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _fullAuthority = settings.fullAuthority;
     _externalDirectory = settings.enableExternalDirectory;
     _shareMode = settings.shareMode;
-    setState(() {});
+    _themeMode = settings.themeMode;
   }
 
   @override
@@ -49,110 +52,154 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final provider = context.read<SettingsProvider>();
     final current = provider.settings;
 
-    provider.update(
-      current.copyWith(
-        model: _modelController.text.trim(),
-        smallModel: _smallModelController.text.trim(),
-        fullAuthority: _fullAuthority,
-        shareMode: _shareMode,
-        enableExternalDirectory: _externalDirectory,
-      ),
-    );
+    provider.update(current.copyWith(
+      model: _modelController.text.trim(),
+      smallModel: _smallModelController.text.trim(),
+      fullAuthority: _fullAuthority,
+      shareMode: _shareMode,
+      enableExternalDirectory: _externalDirectory,
+      themeMode: _themeMode,
+    ));
 
-    if (_fullAuthority) {
-      provider.setFullAuthority(true);
-    }
-
+    if (_fullAuthority) provider.setFullAuthority(true);
     final ok = await provider.saveToBackend(authToken: auth.token);
     if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(ok
-            ? 'Settings saved successfully'
-            : (provider.error ?? 'Save failed')),
-      ),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      backgroundColor: ok ? Colors.greenAccent : Colors.redAccent,
+      content: Text(ok ? 'Settings saved'.tr() : 'Save failed'.tr(), style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('SupremeAI Settings')),
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        elevation: 0,
+        title: Text('settings.title'.tr(), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5, color: Colors.white)),
+      ),
       body: Consumer<SettingsProvider>(
         builder: (context, settingsProvider, _) {
-          if (settingsProvider.isLoading &&
-              settingsProvider.settings.model.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+          if (settingsProvider.isLoading && settingsProvider.settings.model.isEmpty) {
+            return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
           }
 
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              TextField(
-                controller: _modelController,
-                decoration: const InputDecoration(
-                  labelText: 'Primary model',
-                  hintText: 'supremeai/gemini-1.5-pro',
+              _buildSection('AI Models'.tr(), [
+                _buildTextField(_modelController, 'Primary model', 'gemini-1.5-pro'),
+                const SizedBox(height: 16),
+                _buildTextField(_smallModelController, 'Small model', 'gemini-1.5-flash'),
+              ]),
+              const SizedBox(height: 24),
+              _buildSection('App Settings'.tr(), [
+                _buildDropdown('Share mode', _shareMode, ['manual', 'auto', 'disabled'], (v) => setState(() => _shareMode = v!)),
+                const SizedBox(height: 16),
+                _buildSwitchTile('Full authority mode', 'Allow all core tools without confirmation', _fullAuthority, (v) => setState(() => _fullAuthority = v)),
+                _buildSwitchTile('External directory access', 'Access directories outside workspace', _externalDirectory, (v) => setState(() => _externalDirectory = v)),
+                const SizedBox(height: 16),
+                _buildDropdown('Theme', _themeMode, ['system', 'light', 'dark'], (v) => setState(() => _themeMode = v!)),
+              ]),
+              if (settingsProvider.error != null) ...[
+                const SizedBox(height: 16),
+                Text(settingsProvider.error!, style: const TextStyle(color: Colors.redAccent, fontSize: 12)),
+              ],
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  onPressed: settingsProvider.isLoading ? null : _save,
+                  icon: const Icon(Icons.save),
+                  label: Text(settingsProvider.isLoading ? 'Saving...'.tr() : 'settings.save_changes'.tr()),
                 ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _smallModelController,
-                decoration: const InputDecoration(
-                  labelText: 'Small model',
-                  hintText: 'supremeai/gemini-1.5-flash',
-                ),
-              ),
-              const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  value: _shareMode,
-                items: const [
-                  DropdownMenuItem(
-                      value: 'manual', child: Text('Manual share')),
-                  DropdownMenuItem(value: 'auto', child: Text('Auto share')),
-                  DropdownMenuItem(
-                      value: 'disabled', child: Text('Sharing disabled')),
-                ],
-                onChanged: (value) {
-                  if (value == null) return;
-                  setState(() => _shareMode = value);
-                },
-                decoration: const InputDecoration(labelText: 'Share mode'),
-              ),
-              const SizedBox(height: 12),
-              SwitchListTile(
-                title: const Text('Full authority mode'),
-                subtitle: const Text(
-                    'Allows all core tools without extra confirmation'),
-                value: _fullAuthority,
-                onChanged: (value) => setState(() => _fullAuthority = value),
-              ),
-              SwitchListTile(
-                title: const Text('Allow external directory access'),
-                subtitle:
-                    const Text('Can access directories outside workspace'),
-                value: _externalDirectory,
-                onChanged: (value) =>
-                    setState(() => _externalDirectory = value),
-              ),
-              const SizedBox(height: 12),
-              if (settingsProvider.error != null)
-                Text(
-                  settingsProvider.error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              const SizedBox(height: 12),
-              ElevatedButton.icon(
-                onPressed: settingsProvider.isLoading ? null : _save,
-                icon: const Icon(Icons.save),
-                label: Text(
-                    settingsProvider.isLoading ? 'Saving...' : 'Save Settings'),
               ),
             ],
           );
         },
       ),
+    );
+  }
+
+  Widget _buildSection(String title, List<Widget> children) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title.toUpperCase(), style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 2)),
+          const SizedBox(height: 20),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, String hint) {
+    return TextField(
+      controller: controller,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.white38),
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.white12),
+        filled: true,
+        fillColor: Colors.black,
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white10)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.blueAccent)),
+      ),
+    );
+  }
+
+  Widget _buildDropdown(String label, String value, List<String> items, ValueChanged<String?> onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: Colors.black,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white10),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: value,
+              dropdownColor: Colors.black,
+              style: const TextStyle(color: Colors.white),
+              isExpanded: true,
+              items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+              onChanged: onChanged,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSwitchTile(String title, String subtitle, bool value, ValueChanged<bool> onChanged) {
+    return SwitchListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+      subtitle: Text(subtitle, style: const TextStyle(color: Colors.white38, fontSize: 11)),
+      value: value,
+      activeColor: Colors.blueAccent,
+      onChanged: onChanged,
     );
   }
 }

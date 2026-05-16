@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class AIRankingService {
 
-    @Autowired
+    @Autowired(required = false)
     private RedisTemplate<String, Object> redisTemplate;
 
     private static final String REDIS_KEY_PREFIX = "ai_provider_stats:";
@@ -38,10 +38,12 @@ public class AIRankingService {
     }
 
     private void persistStats(String provider, ProviderStats stats) {
-        try {
-            redisTemplate.opsForValue().set(REDIS_KEY_PREFIX + provider, stats);
-        } catch (Exception e) {
-            // Keep in-memory as fallback
+        if (redisTemplate != null) {
+            try {
+                redisTemplate.opsForValue().set(REDIS_KEY_PREFIX + provider, stats);
+            } catch (Exception e) {
+                // Keep in-memory as fallback
+            }
         }
     }
 
@@ -61,19 +63,21 @@ public class AIRankingService {
      */
     public List<ProviderRanking> getRankings() {
         // Sync with Redis if possible
-        try {
-            Set<String> keys = redisTemplate.keys(REDIS_KEY_PREFIX + "*");
-            if (keys != null) {
-                for (String key : keys) {
-                    String provider = key.replace(REDIS_KEY_PREFIX, "");
-                    ProviderStats stats = (ProviderStats) redisTemplate.opsForValue().get(key);
-                    if (stats != null) {
-                        providerStats.put(provider, stats);
+        if (redisTemplate != null) {
+            try {
+                Set<String> keys = redisTemplate.keys(REDIS_KEY_PREFIX + "*");
+                if (keys != null) {
+                    for (String key : keys) {
+                        String provider = key.replace(REDIS_KEY_PREFIX, "");
+                        ProviderStats stats = (ProviderStats) redisTemplate.opsForValue().get(key);
+                        if (stats != null) {
+                            providerStats.put(provider, stats);
+                        }
                     }
                 }
+            } catch (Exception e) {
+                // Fallback to in-memory stats
             }
-        } catch (Exception e) {
-            // Fallback to in-memory stats
         }
 
         List<ProviderRanking> rankings = new ArrayList<>();

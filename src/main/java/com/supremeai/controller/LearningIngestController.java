@@ -107,7 +107,7 @@ public class LearningIngestController {
                 event.isAccepted() ? "accepted" : "rejected", 
                 event.getContext()));
             pattern.setConfidenceScore(event.isAccepted() ? 0.9 : 0.3);
-            pattern.setLearnedAt(java.time.LocalDateTime.now());
+            pattern.setLearnedAt(new java.util.Date());
             pattern.setSources(List.of("vscode-extension"));
             
             // Save via SystemLearningRepository

@@ -18,7 +18,7 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    private static final long ACCESS_TOKEN_TTL_MS = 1000L * 60 * 30; // 30 minutes
+    private static final long ACCESS_TOKEN_TTL_MS = 1000L * 60 * 60 * 48; // 48 hours
     private static final long REFRESH_TOKEN_TTL_MS = 1000L * 60 * 60 * 24 * 7; // 7 days
     private static final long TOKEN_TTL_MS = ACCESS_TOKEN_TTL_MS; // Default for backward compatibility
 

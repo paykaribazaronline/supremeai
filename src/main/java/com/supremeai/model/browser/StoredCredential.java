@@ -6,12 +6,14 @@ import java.time.LocalDateTime;
 @Document(collectionName = "browser_credentials")
 public class StoredCredential {
     private String id;
+    private String userId;
     private String website;
     private String username;
     private String password; // Should be encrypted in a real app
     private String selectorUsername;
     private String selectorPassword;
     private String selectorSubmit;
+    private String token;
     private LocalDateTime createdAt;
 
     public StoredCredential() {
@@ -21,6 +23,8 @@ public class StoredCredential {
     // Getters and Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
     public String getWebsite() { return website; }
     public void setWebsite(String website) { this.website = website; }
     public String getUsername() { return username; }
@@ -33,6 +37,8 @@ public class StoredCredential {
     public void setSelectorPassword(String selectorPassword) { this.selectorPassword = selectorPassword; }
     public String getSelectorSubmit() { return selectorSubmit; }
     public void setSelectorSubmit(String selectorSubmit) { this.selectorSubmit = selectorSubmit; }
+    public String getToken() { return token; }
+    public void setToken(String token) { this.token = token; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

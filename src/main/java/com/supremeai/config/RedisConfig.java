@@ -1,28 +1,21 @@
 package com.supremeai.config;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.cache.RedisCacheConfiguration;
-import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
-import java.time.Duration;
-
 /**
- * Redis configuration for distributed caching and rate limiting.
- * Provides RedisTemplate and CacheManager beans for Spring Cache abstraction.
+ * Optimized Redis configuration for SupremeAI caching layer
  */
 @Configuration
-@EnableCaching
+@ConditionalOnProperty(name = "supremeai.cache.enabled", havingValue = "true", matchIfMissing = true)
 public class RedisConfig {
 
     @Value("${spring.data.redis.host:localhost}")
@@ -31,77 +24,50 @@ public class RedisConfig {
     @Value("${spring.data.redis.port:6379}")
     private int redisPort;
 
-    @Value("${spring.data.redis.timeout:2000ms}")
-    private Duration redisTimeout;
+    @Value("${spring.data.redis.password:#{null}}")
+    private String redisPassword;
 
-    /**
-     * Redis connection factory using Lettuce client.
-     */
+    @Value("${spring.data.redis.database:0}")
+    private int redisDatabase;
+
+    @Value("${spring.data.redis.timeout:5000}")
+    private int redisTimeout;
+
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(redisHost, redisPort);
-        return new LettuceConnectionFactory(config);
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
+        config.setHostName(redisHost);
+        config.setPort(redisPort);
+        if (redisPassword != null && !redisPassword.isEmpty()) {
+            config.setPassword(redisPassword);
+        }
+        config.setDatabase(redisDatabase);
+
+        org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration clientConfig = 
+            org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.builder()
+                .commandTimeout(java.time.Duration.ofMillis(redisTimeout))
+                .shutdownTimeout(java.time.Duration.ofMillis(redisTimeout))
+                .build();
+
+        LettuceConnectionFactory factory = new LettuceConnectionFactory(config, clientConfig);
+        factory.setShareNativeConnection(false);
+        return factory;
     }
 
-    /**
-     * RedisTemplate for general Redis operations.
-     * Uses String serializer for keys and JSON serializer for values.
-     */
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
+
+        // Use String serializer for keys
         template.setKeySerializer(new StringRedisSerializer());
         template.setHashKeySerializer(new StringRedisSerializer());
+
+        // Use JSON serializer for values
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
+
         template.afterPropertiesSet();
         return template;
-    }
-
-    /**
-     * CacheManager for Spring Cache abstraction.
-     * Configures default cache settings with TTL and statistics.
-     */
-    @Bean
-    public RedisCacheManager redisCacheManager(RedisConnectionFactory connectionFactory) {
-        RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(30))
-                .disableCachingNullValues()
-                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
-                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(
-                        new GenericJackson2JsonRedisSerializer()))
-                .computePrefixWith(name -> "cache:" + name + ":");
-
-        return RedisCacheManager.builder(connectionFactory)
-                .cacheDefaults(defaultConfig)
-                .withCacheConfiguration("ai-responses",
-                        defaultConfig.entryTtl(Duration.ofMinutes(30)))
-                .withCacheConfiguration("rate-limits",
-                        defaultConfig.entryTtl(Duration.ofMinutes(1)))
-                .withCacheConfiguration("user-sessions",
-                        defaultConfig.entryTtl(Duration.ofHours(2)))
-                .withCacheConfiguration("provider-health",
-                        defaultConfig.entryTtl(Duration.ofMinutes(5)))
-                .transactionAware()
-                .build();
-    }
-
-    /**
-     * CacheManager for short-lived caches (1 minute TTL).
-     * Used for rate limiting and frequently changing data.
-     */
-    @Bean
-    public CacheManager shortLivedCacheManager(RedisConnectionFactory connectionFactory) {
-        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(1))
-                .disableCachingNullValues()
-                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
-                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(
-                        new GenericJackson2JsonRedisSerializer()));
-
-        return RedisCacheManager.builder(connectionFactory)
-                .cacheDefaults(config)
-                .build();
     }
 }

@@ -65,9 +65,46 @@ This is a monorepo featuring a multi-agent system for automated app generation.
 2. **এরর মেসেজ**: সব এরর মেসেজের বাংলা অনুবাদ যোগ করুন
 3. **ডকুমেন্টেশন**: নয়, শুধুমানে ইংরেজিতেই রাখুন
 4. **কমмент**: বাংলায় কমмент করা যায় (বিশেশ করে Java/Spring Boot ফাইলে)
+5. **যোগাযোগ**: ব্যবহারকারীর সাথে সবসময় বাংলা ভাষায় কথা বলতে হবে।
 
 ### ভাষা সনাক্তকরণ
 
 - ব্যবহারকারীর ব্রাউজার/সিস্টেম ভাষা অনুযায়ী স্বয়ংক্রিয়ভাবে বাংলা দেখানো হবে
 - `UserLanguagePreferenceService` ভাষা পছন্দ সংরক্ষণ করে
 - API রেসপন্সেও ভাষা অনুযায়ী বাংলা উপযোগী হবে
+
+## AI Model Registry & Landscape (Comprehensive All-in-One)
+
+SupremeAI utilizes a dynamic registry of primary GCP models and a secondary "All-in-One" suite of free-tier models (HuggingFace/Render) to ensure 100% uptime and cost-efficiency.
+
+### 1. Primary Orchestrators (GCP/OpenAI)
+- **Gemini 1.5 Flash**: Primary Orchestrator & Multimodal Specialist (1M Context).
+- **GPT-4o-mini**: Structured Data & Logic Verification backup.
+- **DeepSeek-V4Pro**: Professional Coding & Technical Architect.
+
+### 2. Fallback & Development Suite (HuggingFace Serverless)
+- **CodeLlama-34b**: Primary fallback for code generation.
+- **Mistral-7B-v0.3**: Major chat and conversational instruction tuning.
+- **Llama-3-8B**: Specialized for Bengali language and conversational nuance.
+- **Phi-3-Vision**: Specialized endpoint for lightweight image analysis.
+- **Multilingual-E5**: High-performance embeddings for RAG tasks.
+
+### 3. Emergency & Fast Response (Render Free Tier)
+- **Phi-2 / Phi-3**: Fast response models running on Docker (Render).
+- **TinyLlama-1.1B**: Always-on emergency fallback for basic connectivity tests.
+
+## Zero-Hardcode Orchestration Policy
+
+- **Dynamic Discovery**: All AI models are fetched from the `AIProviderDiscoveryService`.
+- **Admin Control**: The dashboard must allow administrators to:
+  - Enable/Disable providers.
+  - Assign roles (Communication, Execution, Voting) dynamically.
+  - Update API endpoints and keys without code changes.
+- **Fallback Logic**: If a high-priority model fails, the system automatically rotates to the next available provider based on the dynamic config.
+
+## Development & Execution Principles
+
+- **Task Completeness**: Every time a new feature is added or a bug is solved, all related and dependent tasks (e.g., UI updates, repository methods, API documentation) must be completed to ensure the feature is fully functional.
+- **Zero-Redundancy Policy**: Always identify and remove old, deprecated, or duplicate content, whether it's in the code or documentation. Maintain a lean and clean codebase.
+- **Robust Documentation**: Maintain comprehensive documentation in the `docs/` directory using appropriate sub-folders (`architecture/`, `deployment/`, `reports/`, `guides/`, `summaries/`, `status/`, `technical/`). Always update the documentation with new changes.
+- **Workflow-First Design**: For every new feature, a detailed workflow must be added to the `docs/technical/` or relevant sub-folder. This workflow should describe how the feature functions and identify other parts of the system that need optimization or modification to make the integration robust.

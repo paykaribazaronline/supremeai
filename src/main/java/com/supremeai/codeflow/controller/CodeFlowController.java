@@ -23,8 +23,11 @@ public class CodeFlowController {
     
     private static final Logger logger = LoggerFactory.getLogger(CodeFlowController.class);
     
-    @Autowired
-    private CodeFlowService codeFlowService;
+    private final CodeFlowService codeFlowService;
+
+    public CodeFlowController(CodeFlowService codeFlowService) {
+        this.codeFlowService = codeFlowService;
+    }
     
     /**
      * Analyze a repository

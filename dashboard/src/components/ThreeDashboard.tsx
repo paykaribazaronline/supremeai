@@ -94,13 +94,17 @@ const ThreeDashboard: React.FC = () => {
         // Renderer setup with performance optimizations
         const renderer = new THREE.WebGLRenderer({ 
             antialias: true, 
-            alpha: false,
+            alpha: true,
             powerPreference: 'high-performance',
         });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        
+        const width = mountRef.current.clientWidth;
+        const height = mountRef.current.clientHeight;
+        
+        renderer.setSize(width, height);
+        renderer.setClearColor(0x000000, 0); // Transparent background
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        // Limit pixel ratio for performance on high-DPI screens
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         // Enable frustum culling
         renderer.info.autoReset = true;
@@ -129,15 +133,23 @@ const ThreeDashboard: React.FC = () => {
         gridHelper.position.y = -50;
         scene.add(gridHelper);
 
-        // Handle window resize
-        const onWindowResize = () => {
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            camera.aspect = width / height;
-            camera.updateProjectionMatrix();
-            renderer.setSize(width, height);
+        // Handle container resize
+        const resizeObserver = new ResizeObserver(() => {
+            if (!mountRef.current || !rendererRef.current || !cameraRef.current) return;
+            const w = mountRef.current.clientWidth;
+            const h = mountRef.current.clientHeight;
+            cameraRef.current.aspect = w / h;
+            cameraRef.current.updateProjectionMatrix();
+            rendererRef.current.setSize(w, h);
+        });
+        resizeObserver.observe(mountRef.current);
+        
+        return () => {
+            resizeObserver.disconnect();
+            if (mountRef.current && renderer.domElement) {
+                mountRef.current.removeChild(renderer.domElement);
+            }
         };
-        window.addEventListener('resize', onWindowResize);
 
         // Keyboard navigation for accessibility
         const onKeyDown = (e: KeyboardEvent) => {

@@ -12,6 +12,8 @@ public class Agent {
     private String type;
     private String status;
     private String uptime;
+    private int load;
+    private int tasks;
     private LocalDateTime lastActive;
 
     public Agent() {}
@@ -22,6 +24,8 @@ public class Agent {
         this.type = type;
         this.status = status;
         this.uptime = "0h";
+        this.load = 0;
+        this.tasks = 0;
         this.lastActive = LocalDateTime.now();
     }
 
@@ -36,6 +40,10 @@ public class Agent {
     public void setStatus(String status) { this.status = status; }
     public String getUptime() { return uptime; }
     public void setUptime(String uptime) { this.uptime = uptime; }
+    public int getLoad() { return load; }
+    public void setLoad(int load) { this.load = load; }
+    public int getTasks() { return tasks; }
+    public void setTasks(int tasks) { this.tasks = tasks; }
     public LocalDateTime getLastActive() { return lastActive; }
     public void setLastActive(LocalDateTime lastActive) { this.lastActive = lastActive; }
 }

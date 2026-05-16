@@ -1,0 +1,12 @@
+[branch "master"]
+	gk-last-accessed = 2026-05-16T01:48:21.378Z
+	gk-last-modified = 2026-05-16T01:48:21.378Z
+	gk-merge-base = origin/main
+[branch "torpid-fog"]
+	gk-last-accessed = 2026-05-14T21:20:08.012Z
+	gk-merge-base = origin/main
+[branch "lime-bladder"]
+	gk-last-accessed = 2026-05-14T20:59:49.024Z
+	gk-merge-base = origin/main
+[branch "main"]
+	gk-merge-base = origin/main

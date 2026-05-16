@@ -12,6 +12,8 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.LocalDateTime;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,9 +50,11 @@ public class KnowledgeSeederServiceEnhanced {
     private final AtomicLong cacheMisses = new AtomicLong(0);
     private volatile boolean cacheInitialized = false;
 
-    @PostConstruct
+    @org.springframework.context.event.EventListener(org.springframework.boot.context.event.ApplicationReadyEvent.class)
     public void seedKnowledge() {
+        log.info("[SEED] Initializing knowledge base synchronization...");
         systemLearningRepository.count()
+            .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
             .flatMapMany(count -> {
                 if (count == 0) {
                     log.info("[SEED] Firestore system_learning is empty — seeding knowledge base...");
@@ -125,10 +129,10 @@ public class KnowledgeSeederServiceEnhanced {
         learning.setCritical(isCritical);
         learning.setConfidence(confidence);
         learning.setVersion(1L);
-        learning.setCreatedAt(LocalDateTime.now());
-        learning.setUpdatedAt(LocalDateTime.now());
+        learning.setCreatedAt(new Date());
+        learning.setUpdatedAt(new Date());
         learning.setLearnedFrom("real-time");
-        learning.setLastUsed(LocalDateTime.now());
+        learning.setLastUsed(new Date());
         learning.setUseCount(1L);
 
         return systemLearningRepository.save(learning)
@@ -155,7 +159,7 @@ public class KnowledgeSeederServiceEnhanced {
         
         return systemLearningRepository.findById(id)
             .flatMap(learning -> {
-                learning.setLastUsed(LocalDateTime.now());
+                learning.setLastUsed(new Date());
                 learning.setUseCount(learning.getUseCount() + 1);
                 
                 if (success) {
@@ -178,7 +182,7 @@ public class KnowledgeSeederServiceEnhanced {
                     learning.setLastFeedback(feedback);
                 }
                 
-                learning.setUpdatedAt(LocalDateTime.now());
+                learning.setUpdatedAt(new Date());
                 return systemLearningRepository.save(learning);
             })
             .doOnSuccess(updated -> {
@@ -247,13 +251,14 @@ public class KnowledgeSeederServiceEnhanced {
      * Half-life: 693 days (as per original design)
      */
     public Mono<Void> applyRecencyDecay() {
-        LocalDateTime now = LocalDateTime.now();
+        Date now = new Date();
         double halfLifeDays = 693.0;
         
         return systemLearningRepository.findAll()
             .flatMap(learning -> {
                 if (learning.getLastUsed() != null) {
-                    long daysSinceUse = java.time.Duration.between(learning.getLastUsed(), now).toDays();
+                    long diffInMillis = now.getTime() - learning.getLastUsed().getTime();
+                    long daysSinceUse = diffInMillis / (24 * 60 * 60 * 1000);
                     if (daysSinceUse > 0) {
                         double decayFactor = Math.pow(0.5, daysSinceUse / halfLifeDays);
                         double newConfidence = learning.getConfidence() * decayFactor;
@@ -397,8 +402,8 @@ public class KnowledgeSeederServiceEnhanced {
         learning.setCritical(isCritical);
         learning.setConfidence(confidence);
         learning.setVersion(1L);
-        learning.setCreatedAt(LocalDateTime.now());
-        learning.setUpdatedAt(LocalDateTime.now());
+        learning.setCreatedAt(new Date());
+        learning.setUpdatedAt(new Date());
         return learning;
     }
 

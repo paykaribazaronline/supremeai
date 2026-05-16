@@ -1,26 +1,15 @@
 // AdminUsers.tsx - User Management Page
 // Migrated from admin-users.html to React SPA
 
-import React, { useState, useEffect } from 'react';
-import { Layout, Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Alert, Spin } from 'antd';
-import { UserOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
+import React, { useState, useEffect, useMemo } from 'react';
+import { message, Spin, Alert } from 'antd';
 import AdminLayout from '../components/AdminLayout';
 import { authUtils } from '../lib/authUtils';
-import { getUserRoleColor } from '../constants/userRoles';
-
-const { Option } = Select;
-
-interface User {
-  uid: string;
-  email: string;
-  displayName: string;
-  tier: string;
-  isActive: boolean;
-  currentUsage: number;
-  monthlyQuota: number;
-  createdAt: string | null;
-  lastLoginAt: string | null;
-}
+import { User, UserSortField } from '../components/users/types';
+import UserTable from '../components/users/UserTable';
+import UserModal from '../components/users/UserModal';
+import UserActionToolbar from '../components/users/UserActionToolbar';
+import { Form } from 'antd';
 
 const AdminUsers: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -31,15 +20,20 @@ const AdminUsers: React.FC = () => {
   const [form] = Form.useForm();
   const [submitLoading, setSubmitLoading] = useState(false);
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  
+  // Search and sort state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<UserSortField | null>(null);
+  const [sortOrder, setSortOrder] = useState<'ascend' | 'descend'>('ascend');
 
   const fetchUsers = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await authUtils.fetchWithAuth('/api/accounts');
+      const response = await authUtils.fetchWithAuth('/api/admin/users');
       if (!response.ok) throw new Error('Failed to fetch users');
-      const data: User[] = await response.json();
-      setUsers(data);
+      const result = await response.json();
+      setUsers(result.data?.users || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load users');
     } finally {
@@ -51,244 +45,161 @@ const AdminUsers: React.FC = () => {
     fetchUsers();
   }, []);
 
+  const handleAdd = () => {
+    setEditingUser(null);
+    form.resetFields();
+    setModalVisible(true);
+  };
 
-    const handleAdd = () => {
-      setEditingUser(null);
+  const handleEdit = (user: User) => {
+    setEditingUser(user);
+    form.setFieldsValue({
+      email: user.email,
+      displayName: user.displayName || '',
+      tier: user.tier?.toLowerCase() || 'free',
+    });
+    setModalVisible(true);
+  };
+
+  const handleSubmit = async (values: any) => {
+    setSubmitLoading(true);
+    try {
+      if (editingUser) {
+        if (values.tier !== editingUser.tier.toLowerCase()) {
+          const tierUpper = values.tier.toUpperCase();
+          const resp = await authUtils.fetchWithAuth(`/api/admin/users/${editingUser.uid}/tier`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tier: tierUpper }),
+          });
+          if (!resp.ok) throw new Error('Failed to update tier');
+          message.success('User tier updated successfully');
+        } else {
+          message.info('No changes detected');
+        }
+      } else {
+        const { email, password, displayName, tier } = values;
+        const resp = await authUtils.fetchWithAuth('/api/admin/users/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, displayName, tier: tier.toUpperCase() }),
+        });
+        if (!resp.ok) {
+          const err = await resp.json();
+          throw new Error(err.error || 'Failed to create user');
+        }
+        message.success('User created successfully');
+      }
+      setModalVisible(false);
       form.resetFields();
-      setModalVisible(true);
-    };
+      fetchUsers();
+    } catch (err) {
+      message.error(err instanceof Error ? err.message : 'Operation failed');
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
 
-    const handleEdit = (user: User) => {
-      setEditingUser(user);
-      form.setFieldsValue({
-        email: user.email,
-        displayName: user.displayName || '',
-        tier: user.tier?.toLowerCase() || 'free',
+  const handleDeactivate = async (uid: string) => {
+    setDeletingUserId(uid);
+    try {
+      const resp = await authUtils.fetchWithAuth(`/api/admin/users/${uid}/deactivate`, {
+        method: 'PUT',
       });
-      setModalVisible(true);
-    };
+      if (!resp.ok) throw new Error('Failed to deactivate user');
+      message.success('User deactivated');
+      fetchUsers();
+    } catch (err) {
+      message.error(err instanceof Error ? err.message : 'Failed to deactivate');
+    } finally {
+      setDeletingUserId(null);
+    }
+  };
 
-    const handleSubmit = async (values: any) => {
-     setSubmitLoading(true);
-     try {
-       // For now, only tier update is supported via backend.
-       // Creation would require POST /api/accounts/create - exists.
-       if (editingUser) {
-         // Update tier if changed
-         if (values.tier !== editingUser.tier.toLowerCase()) {
-           const tierUpper = values.tier.toUpperCase();
-           const resp = await authUtils.fetchWithAuth(`/api/accounts/${editingUser.uid}/tier`, {
-             method: 'PUT',
-             headers: {
-               'Content-Type': 'application/json',
-             },
-             body: JSON.stringify({ tier: tierUpper }),
-           });
-           if (!resp.ok) throw new Error('Failed to update tier');
-           message.success('User updated successfully');
-         } else {
-           message.success('No changes');
-         }
-       } else {
-         // Create new user
-         const { email, password, displayName, tier } = values;
-         if (!password) {
-           message.error('Password is required for new user');
-           return;
-         }
-         const resp = await authUtils.fetchWithAuth('/api/accounts/create', {
-           method: 'POST',
-           headers: {
-             'Content-Type': 'application/json',
-           },
-           body: JSON.stringify({ email, password, displayName, tier: tier.toUpperCase() }),
-         });
-         if (!resp.ok) {
-           const err = await resp.json();
-           throw new Error(err.error || 'Failed to create user');
-         }
-         message.success('User created successfully');
-       }
-       setModalVisible(false);
-       form.resetFields();
-       fetchUsers();
-     } catch (err) {
-       message.error(err instanceof Error ? err.message : 'Operation failed');
-     } finally {
-       setSubmitLoading(false);
-     }
-   };
+  const processedUsers = useMemo(() => {
+    let result = users.filter(user => {
+      if (!searchTerm) return true;
+      const term = searchTerm.toLowerCase();
+      return user.email.toLowerCase().includes(term) ||
+             (user.displayName && user.displayName.toLowerCase().includes(term));
+    });
 
-   const handleDeactivate = async (uid: string) => {
-     setDeletingUserId(uid);
-     try {
-       const resp = await authUtils.fetchWithAuth(`/api/accounts/${uid}/deactivate`, {
-         method: 'PUT',
-       });
-       if (!resp.ok) throw new Error('Failed to deactivate user');
-       message.success('User deactivated');
-       fetchUsers();
-     } catch (err) {
-       message.error(err instanceof Error ? err.message : 'Failed to deactivate');
-     } finally {
-       setDeletingUserId(null);
-     }
-   };
+    if (sortBy) {
+      result.sort((a, b) => {
+        let aVal: any = a[sortBy as keyof User] ?? '';
+        let bVal: any = b[sortBy as keyof User] ?? '';
 
-  const columns = [
-    {
-      title: 'Email',
-      dataIndex: 'email',
-      key: 'email',
-      render: (email: string) => <a>{email}</a>,
-    },
-    {
-      title: 'Display Name',
-      dataIndex: 'displayName',
-      key: 'displayName',
-      render: (name: string) => name || '-',
-    },
-    {
-      title: 'Role',
-      key: 'role',
-      render: (_: any, record: User) => {
-        const role = record.tier?.toUpperCase() || 'USER';
-        const color = getUserRoleColor(role);
-        return <Tag color={color}>{role}</Tag>;
-      },
-    },
-    {
-      title: 'Status',
-      dataIndex: 'isActive',
-      key: 'isActive',
-      render: (active: boolean) => (
-        <Tag color={active ? 'success' : 'error'}>{active ? 'Active' : 'Inactive'}</Tag>
-      ),
-    },
-    {
-      title: 'Current Usage',
-      key: 'usage',
-      render: (_: any, record: User) => {
-        const used = record.currentUsage || 0;
-        const quota = record.monthlyQuota || 0;
-        const percent = quota > 0 ? Math.round((used / quota) * 100) : 0;
-        return `${used.toLocaleString()} / ${quota.toLocaleString()} (${percent}%)`;
-      },
-    },
-    {
-      title: 'Last Login',
-      dataIndex: 'lastLoginAt',
-      key: 'lastLoginAt',
-      render: (date: string | null) => (date ? new Date(date).toLocaleString() : 'Never'),
-    },
-     {
-       title: 'Actions',
-       key: 'actions',
-       render: (_: any, record: User) => (
-         <Space>
-           <Button size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
-             Edit
-           </Button>
-           {record.isActive && (
-             <Button
-               size="small"
-               danger
-               icon={<DeleteOutlined />}
-               loading={deletingUserId === record.uid}
-               onClick={() => handleDeactivate(record.uid)}
-             >
-               Deactivate
-             </Button>
-           )}
-         </Space>
-       ),
-     },
-  ];
+        if (sortBy === 'usagePercent') {
+          aVal = (a.currentUsage || 0) / (a.monthlyQuota || 1);
+          bVal = (b.currentUsage || 0) / (b.monthlyQuota || 1);
+        } else if (sortBy === 'lastLoginAt') {
+          const aTime = aVal ? new Date(aVal as string).getTime() : 0;
+          const bTime = bVal ? new Date(bVal as string).getTime() : 0;
+          return sortOrder === 'ascend' ? aTime - bTime : bTime - aTime;
+        }
+
+        if (typeof aVal === 'string' && typeof bVal === 'string') {
+          return sortOrder === 'ascend' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        }
+        
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+          return sortOrder === 'ascend' ? aVal - bVal : bVal - aVal;
+        }
+
+        return 0;
+      });
+    }
+
+    return result;
+  }, [users, searchTerm, sortBy, sortOrder]);
 
   return (
     <AdminLayout title="User Management">
-      <Card>
-        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
-          <div>
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-              Add User
-            </Button>
-            <Button icon={<ReloadOutlined />} style={{ marginLeft: 8 }} onClick={fetchUsers}>
-              Refresh
-            </Button>
-          </div>
-        </div>
+      <div className="admin-content-fade-in">
+        <UserActionToolbar
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          sortOrder={sortOrder}
+          setSortOrder={setSortOrder}
+          onAddUser={handleAdd}
+          onRefresh={fetchUsers}
+        />
 
-        {loading && <Spin style={{ display: 'block', margin: '20px auto' }} />}
-        {error && <Alert type="error" message={error} action={<Button onClick={fetchUsers}>Retry</Button>} />}
-        
-        {!loading && !error && (
-          <Table
-            columns={columns}
-            dataSource={users}
-            rowKey="uid"
-            pagination={{ pageSize: 15 }}
-            scroll={{ x: 1200 }}
+        {error && (
+          <Alert 
+            type="error" 
+            message="Connection Error" 
+            description={error} 
+            showIcon 
+            style={{ marginBottom: 16, borderRadius: '8px' }}
           />
         )}
-      </Card>
 
-      <Modal
-        title={editingUser ? 'Edit User' : 'Add New User'}
-        open={modalVisible}
-        onCancel={() => setModalVisible(false)}
-        footer={null}
-        width={500}
-      >
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
-          <Form.Item
-            name="email"
-            label="Email"
-            rules={[{ required: true, type: 'email' }]}
-          >
-            <Input placeholder="user@example.com" disabled={!!editingUser} />
-          </Form.Item>
+        {loading && !users.length ? (
+          <div style={{ textAlign: 'center', padding: '100px' }}>
+            <Spin size="large" tip="Loading system users..." />
+          </div>
+        ) : (
+          <UserTable
+            users={processedUsers}
+            loading={loading}
+            deletingUserId={deletingUserId}
+            onEdit={handleEdit}
+            onDeactivate={handleDeactivate}
+          />
+        )}
 
-          <Form.Item
-            name="displayName"
-            label="Display Name"
-          >
-            <Input placeholder="John Doe" />
-          </Form.Item>
-
-          {!editingUser && (
-            <Form.Item
-              name="password"
-              label="Password"
-              rules={[{ required: true, min: 6 }]}
-            >
-              <Input.Password placeholder="At least 6 characters" />
-            </Form.Item>
-          )}
-
-          <Form.Item
-            name="tier"
-            label="Tier / Role"
-            rules={[{ required: true }]}
-          >
-            <Select placeholder="Select tier">
-              <Option value="free">Free</Option>
-              <Option value="pro">Pro</Option>
-              <Option value="enterprise">Enterprise</Option>
-              <Option value="admin">Admin</Option>
-            </Select>
-          </Form.Item>
-
-           <Form.Item style={{ marginTop: 24 }}>
-             <Space>
-               <Button type="primary" htmlType="submit" loading={submitLoading}>
-                 {editingUser ? 'Update' : 'Create'}
-               </Button>
-               <Button onClick={() => setModalVisible(false)}>Cancel</Button>
-             </Space>
-           </Form.Item>
-        </Form>
-      </Modal>
+        <UserModal
+          open={modalVisible}
+          editingUser={editingUser}
+          onCancel={() => setModalVisible(false)}
+          onFinish={handleSubmit}
+          loading={submitLoading}
+          form={form}
+        />
+      </div>
     </AdminLayout>
   );
 };

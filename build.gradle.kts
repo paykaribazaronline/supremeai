@@ -3,7 +3,7 @@ plugins {
     // Trigger CI/CD Pipeline
     id("application")
     id("jacoco")
-    id("org.springframework.boot") version "3.3.4"
+    id("org.springframework.boot") version "3.4.0"
     id("io.spring.dependency-management") version "1.1.7"
 }
 
@@ -39,12 +39,15 @@ dependencies {
     implementation("com.google.firebase:firebase-admin:9.2.0")
     // Firestore client provided by spring-cloud-gcp-starter-data-firestore (version managed by BOM)
     implementation("com.google.cloud:google-cloud-storage")
+    implementation("com.google.code.gson:gson:2.11.0")
 
     // Authentication & Google Cloud - SECURITY
     implementation("com.google.auth:google-auth-library-oauth2-http:1.14.0")
     implementation("com.google.cloud:google-cloud-core")
     implementation("com.google.cloud:google-cloud-secretmanager")
     implementation("com.google.cloud:google-cloud-bigquery")
+    implementation("com.google.cloud:google-cloud-run:0.43.0") // Or managed by BOM if available, but let's just add it
+
     implementation("software.amazon.awssdk:secretsmanager:2.25.36")
     implementation("software.amazon.awssdk:regions:2.25.36")
     implementation("com.azure:azure-identity:1.12.2")
@@ -89,6 +92,9 @@ dependencies {
     // Spring Cloud GCP - Firestore
     implementation("com.google.cloud:spring-cloud-gcp-starter-data-firestore")
 
+    // Google Cloud Pub/Sub client (managed by BOM)
+    implementation("com.google.cloud:google-cloud-pubsub")
+
     // Database
     runtimeOnly("com.h2database:h2")
     runtimeOnly("org.postgresql:postgresql:42.7.3")
@@ -97,6 +103,7 @@ dependencies {
     implementation("io.github.resilience4j:resilience4j-core:2.1.0")
     implementation("io.github.resilience4j:resilience4j-retry:2.1.0")
     implementation("io.github.resilience4j:resilience4j-circuitbreaker:2.1.0")
+    implementation("io.github.resilience4j:resilience4j-reactor:2.1.0")
 
     // Rate Limiting
     implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:7.6.0")
@@ -107,6 +114,13 @@ dependencies {
     // Metrics & Monitoring
     implementation("io.micrometer:micrometer-core:1.12.3")
     implementation("io.micrometer:micrometer-registry-prometheus:1.12.3")
+
+    // API Documentation - SpringDoc OpenAPI
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+
+    // Error Tracking - Sentry
+    implementation("io.sentry:sentry-spring-boot-starter-jakarta:7.14.0")
+    implementation("io.sentry:sentry-logback:7.14.0")
 
     // Distributed Tracing - OpenTelemetry (using stable versions)
     implementation("io.opentelemetry:opentelemetry-api:1.36.0")
@@ -125,12 +139,12 @@ dependencies {
     // Caching
     implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
 
-    // Lombok - Annotation Processing
     // Lombok - annotation processing for getters/builders
-    compileOnly("org.projectlombok:lombok:1.18.34")
-    annotationProcessor("org.projectlombok:lombok:1.18.34")
-    testCompileOnly("org.projectlombok:lombok:1.18.34")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.34")
+    implementation("org.projectlombok:lombok")
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
+    testCompileOnly("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
 
     // Testing - ENHANCED
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
@@ -150,14 +164,10 @@ dependencies {
     testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
 }
 
-// Configure UTF-8 encoding for all compilation tasks
+// Configure UTF-8 encoding for all compilation tasks with performance optimizations
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
-    options.compilerArgs.addAll(listOf(
-        "-Xlint:deprecation",      // Enable deprecation warnings
-        "-Xlint:unchecked",        // Enable unchecked warnings
-        "--enable-preview"         // Enable preview features for Java 21
-    ))
+    options.annotationProcessorPath = configurations.annotationProcessor.get()
 }
 
 tasks.withType<Test> {
@@ -180,8 +190,14 @@ tasks.withType<JavaExec> {
 
 tasks.test {
     useJUnitPlatform()
-    maxParallelForks =
-        (findProperty("test.maxParallelForks") as String?)?.toIntOrNull()?.coerceAtLeast(1) ?: 1
+    
+    maxParallelForks = (findProperty("test.maxParallelForks") as String?)?.toIntOrNull()?.coerceAtLeast(1) 
+        ?: Runtime.getRuntime().availableProcessors().coerceAtMost(4)
+        
+    systemProperties["junit.jupiter.execution.parallel.enabled"] = "true"
+    systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
+    systemProperties["junit.jupiter.execution.parallel.config.strategy"] = "dynamic"
+
     // Run coverage only if explicitly requested
     val runCoverage = (findProperty("runCoverage") as String?)?.toBoolean() ?: false
     if (runCoverage) {
@@ -247,8 +263,26 @@ application {
 
 tasks.bootJar {
     archiveFileName.set("app.jar")
+    // Optimize JAR creation
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    isZip64 = true
 }
 
 tasks.jar {
     enabled = false
 }
+
+// Add build performance optimizations
+tasks.withType<org.springframework.boot.gradle.tasks.bundling.BootJar> {
+    // Exclude unnecessary files to reduce JAR size
+    excludes.addAll(listOf(
+        "META-INF/*.SF",
+        "META-INF/*.DSA",
+        "META-INF/*.RSA"
+    ))
+
+    // Optimize compression
+    entryCompression = org.gradle.api.tasks.bundling.ZipEntryCompression.DEFLATED
+}
+
+// Test configuration is unified above in tasks.test

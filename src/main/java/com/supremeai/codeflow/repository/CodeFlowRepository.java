@@ -22,6 +22,7 @@ public class CodeFlowRepository {
      * Save or update a code repository analysis
      */
     public CodeRepository save(CodeRepository repository) throws ExecutionException, InterruptedException {
+        Objects.requireNonNull(repository, "Repository cannot be null");
         Firestore db = FirestoreClient.getFirestore();
         
         if (repository.getId() == null) {
@@ -38,13 +39,18 @@ public class CodeFlowRepository {
      * Find repository by ID
      */
     public Optional<CodeRepository> findById(String id) throws ExecutionException, InterruptedException {
+        if (id == null || id.isBlank()) {
+            return Optional.empty();
+        }
         Firestore db = FirestoreClient.getFirestore();
         DocumentSnapshot document = db.collection(COLLECTION_NAME).document(id).get().get();
         
         if (document.exists()) {
             CodeRepository repo = document.toObject(CodeRepository.class);
-            repo.setId(document.getId());
-            return Optional.of(repo);
+            if (repo != null) {
+                repo.setId(document.getId());
+                return Optional.of(repo);
+            }
         }
         return Optional.empty();
     }
@@ -62,8 +68,10 @@ public class CodeFlowRepository {
         if (!query.isEmpty()) {
             DocumentSnapshot doc = query.getDocuments().get(0);
             CodeRepository repo = doc.toObject(CodeRepository.class);
-            repo.setId(doc.getId());
-            return Optional.of(repo);
+            if (repo != null) {
+                repo.setId(doc.getId());
+                return Optional.of(repo);
+            }
         }
         return Optional.empty();
     }
@@ -80,9 +88,12 @@ public class CodeFlowRepository {
         return query.getDocuments().stream()
             .map(doc -> {
                 CodeRepository repo = doc.toObject(CodeRepository.class);
-                repo.setId(doc.getId());
+                if (repo != null) {
+                    repo.setId(doc.getId());
+                }
                 return repo;
             })
+            .filter(Objects::nonNull)
             .collect(Collectors.toList());
     }
     
@@ -99,9 +110,12 @@ public class CodeFlowRepository {
         return query.getDocuments().stream()
             .map(doc -> {
                 CodeRepository repo = doc.toObject(CodeRepository.class);
-                repo.setId(doc.getId());
+                if (repo != null) {
+                    repo.setId(doc.getId());
+                }
                 return repo;
             })
+            .filter(Objects::nonNull)
             .collect(Collectors.toList());
     }
     
@@ -118,9 +132,12 @@ public class CodeFlowRepository {
         return query.getDocuments().stream()
             .map(doc -> {
                 CodeRepository repo = doc.toObject(CodeRepository.class);
-                repo.setId(doc.getId());
+                if (repo != null) {
+                    repo.setId(doc.getId());
+                }
                 return repo;
             })
+            .filter(Objects::nonNull)
             .collect(Collectors.toList());
     }
     
@@ -139,12 +156,15 @@ public class CodeFlowRepository {
         return query.getDocuments().stream()
             .map(doc -> {
                 CodeRepository repo = doc.toObject(CodeRepository.class);
-                repo.setId(doc.getId());
+                if (repo != null) {
+                    repo.setId(doc.getId());
+                }
                 return repo;
             })
+            .filter(Objects::nonNull)
             .filter(repo -> repo.getSecurityIssues() != null &&
                 repo.getSecurityIssues().stream().anyMatch(issue ->
-                    issue.getSeverity().equals(severity)))
+                    issue.getSeverity() != null && issue.getSeverity().equals(severity)))
             .collect(Collectors.toList());
     }
     
@@ -152,6 +172,7 @@ public class CodeFlowRepository {
      * Delete repository
      */
     public void deleteById(String id) throws ExecutionException, InterruptedException {
+        if (id == null || id.isBlank()) return;
         Firestore db = FirestoreClient.getFirestore();
         db.collection(COLLECTION_NAME).document(id).delete().get();
     }

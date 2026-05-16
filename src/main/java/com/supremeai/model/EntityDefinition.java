@@ -9,6 +9,7 @@ import java.util.List;
 public class EntityDefinition {
     private String name;
     private String description;
+    private String tableName;
     private List<FieldDefinition> fields;
     private boolean generateRepository = true;
     private boolean generateService = true;
@@ -38,6 +39,14 @@ public class EntityDefinition {
     
     public void setDescription(String description) {
         this.description = description;
+    }
+    
+    public String getTableName() {
+        return tableName;
+    }
+    
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
     }
     
     public List<FieldDefinition> getFields() {

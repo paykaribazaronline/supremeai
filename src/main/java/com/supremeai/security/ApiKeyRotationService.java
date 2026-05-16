@@ -11,10 +11,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * Service for managing API key rotation within provider-allowed limits.
@@ -58,6 +63,9 @@ public class ApiKeyRotationService {
 
     @Autowired
     private UserApiKeyRepository userApiKeyRepository;
+
+    @Autowired
+    private com.supremeai.repository.APIHealthReportRepository healthReportRepository;
 
     @Autowired
     private EncryptionService encryptionService;
@@ -140,150 +148,137 @@ public class ApiKeyRotationService {
     }
 
     /**
-     * Find the best API key to use for a given provider and user.
+     * Find the best API key to use for a given provider and user reactively.
      * Picks the active key with the lowest usage count.
      */
-    public Optional<UserApiKey> selectBestKey(String userId, String provider) {
-        List<UserApiKey> keys = userApiKeyRepository
+    public Mono<UserApiKey> selectBestKey(String userId, String provider) {
+        return userApiKeyRepository
                 .findByUserIdAndStatus(userId, "active")
-                .collectList().block();
-
-        if (keys == null || keys.isEmpty()) return Optional.empty();
-
-        return keys.stream()
                 .filter(k -> provider.equalsIgnoreCase(k.getProvider()))
                 .filter(k -> !"error".equals(k.getStatus()))
-                .min(Comparator.comparingLong(k -> k.getRequestCount() != null ? k.getRequestCount() : 0L));
+                .sort(Comparator.comparingLong(k -> k.getRequestCount() != null ? k.getRequestCount() : 0L))
+                .next();
     }
 
     /**
      * Scheduled check (daily at 2 AM) for keys that need rotation.
-     * Marks keys as needing attention but does NOT auto-rotate them
-     * (users must manually replace keys for security).
+     * Marks keys as needing attention without blocking the thread.
      */
     @Scheduled(cron = "0 0 2 * * *")
     public void checkRotationDueKeys() {
         log.info("Running scheduled API key rotation check...");
 
-        try {
-            List<UserApiKey> allKeys = userApiKeyRepository.findAll().collectList().block();
-            if (allKeys == null || allKeys.isEmpty()) {
-                log.info("No API keys found to check.");
-                return;
-            }
-
-            int rotationDue = 0;
-            int inactive = 0;
-            int errors = 0;
-
-            for (UserApiKey key : allKeys) {
-                try {
-                    // Check if key is already inactive
+        userApiKeyRepository.findAll()
+                .flatMap(key -> {
                     if (!"active".equals(key.getStatus())) {
-                        inactive++;
-                        continue;
+                        return Mono.empty();
                     }
 
-                    // Check if key has exceeded provider max age
                     int maxDays = getRotationDaysForKey(key.getProvider());
                     LocalDateTime maxAgeDate = LocalDateTime.now().minusDays(maxDays);
-                    if (key.getAddedAt() != null && key.getAddedAt().isBefore(maxAgeDate)) {
+                    
+                    if ((key.getAddedAt() != null && key.getAddedAt().isBefore(maxAgeDate)) || key.needsRotation()) {
                         key.setStatus("rotation_due");
                         key.setRotationDueAt(LocalDateTime.now());
-                        userApiKeyRepository.save(key).block();
-                        log.warn("Key {} for provider '{}' (user {}) is past rotation age ({} days). Marked rotation_due.",
-                                key.getMaskedKey(), key.getProvider(), key.getUserId(), maxDays);
-                        rotationDue++;
-                        continue;
-                    }
-
-                    // Check if rotation was explicitly set and is now due
-                    if (key.needsRotation()) {
-                        key.setStatus("rotation_due");
-                        userApiKeyRepository.save(key).block();
-                        log.warn("Key {} for provider '{}' (user {}) has explicit rotation_due date reached.",
+                        log.warn("Key {} for provider '{}' (user {}) is due for rotation. Marked rotation_due.",
                                 key.getMaskedKey(), key.getProvider(), key.getUserId());
-                        rotationDue++;
+                        return userApiKeyRepository.save(key);
                     }
-                } catch (Exception e) {
-                    log.error("Error checking key {}: {}", key.getId(), e.getMessage());
-                    errors++;
-                }
-            }
-
-            log.info("Rotation check complete. Total keys: {}, rotation_due: {}, inactive: {}, errors: {}",
-                    allKeys.size(), rotationDue, inactive, errors);
-        } catch (Exception e) {
-            log.error("Failed to run rotation check: {}", e.getMessage(), e);
-        }
+                    return Mono.empty();
+                })
+                .doOnTerminate(() -> log.info("Rotation check completed."))
+                .subscribe();
     }
 
     /**
      * Test all active keys and mark any that fail validation.
+     * Refactored to use reactive parallel processing (concurrency 10) for performance.
      */
     @Scheduled(cron = "0 0 3 * * *")
     public void validateAllActiveKeys() {
-        log.info("Running scheduled API key validation...");
-
-        try {
-            List<UserApiKey> allKeys = userApiKeyRepository.findAll().collectList().block();
-            if (allKeys == null || allKeys.isEmpty()) return;
-
-            int valid = 0;
-            int invalid = 0;
-            int skipped = 0;
-
-            for (UserApiKey key : allKeys) {
-                if (!"active".equals(key.getStatus())) {
-                    skipped++;
-                    continue;
-                }
-
-                try {
-                    Map<String, Object> result = testApiKey(key);
-                    boolean isValid = Boolean.TRUE.equals(result.get("valid"));
-                    key.setLastTested(LocalDateTime.now());
-                    userApiKeyRepository.save(key).block();
-
-                    if (isValid) {
-                        valid++;
-                    } else {
-                        key.setStatus("error");
-                        userApiKeyRepository.save(key).block();
-                        log.warn("Key {} for provider '{}' failed validation: {}",
-                                key.getMaskedKey(), key.getProvider(), result.get("message"));
-                        invalid++;
-                    }
-                } catch (Exception e) {
-                    log.error("Validation failed for key {}: {}", key.getId(), e.getMessage());
-                    skipped++;
-                }
-            }
-
-            log.info("Key validation complete. Valid: {}, Invalid: {}, Skipped: {}", valid, invalid, skipped);
-        } catch (Exception e) {
-            log.error("Failed to validate keys: {}", e.getMessage(), e);
-        }
+        testAllKeysNow().subscribe();
     }
 
     /**
-     * Get rotation status summary for a user.
+     * Test all active keys and generate a health report.
+     * Returns a Mono that completes when the report is saved.
      */
-    public Map<String, Object> getRotationStatus(String userId) {
-        List<UserApiKey> keys = userApiKeyRepository.findByUserId(userId).collectList().block();
-        if (keys == null) keys = Collections.emptyList();
+    public Mono<Void> testAllKeysNow() {
+        log.info("Running API key validation and report generation...");
+        
+        return userApiKeyRepository.findAll().collectList()
+            .flatMap(allKeys -> {
+                if (allKeys == null || allKeys.isEmpty()) return Mono.empty();
 
-        long active = keys.stream().filter(k -> "active".equals(k.getStatus())).count();
-        long rotationDue = keys.stream().filter(k -> "rotation_due".equals(k.getStatus())).count();
-        long error = keys.stream().filter(k -> "error".equals(k.getStatus())).count();
+                List<UserApiKey> activeKeys = allKeys.stream()
+                        .filter(k -> "active".equals(k.getStatus()))
+                        .collect(Collectors.toList());
 
-        Map<String, Object> summary = new LinkedHashMap<>();
-        summary.put("totalKeys", keys.size());
-        summary.put("active", active);
-        summary.put("rotationDue", rotationDue);
-        summary.put("error", error);
-        summary.put("providerConfigs", PROVIDER_CONFIGS.keySet());
-        return summary;
+                if (activeKeys.isEmpty()) {
+                    log.info("No active keys to validate.");
+                    return Mono.empty();
+                }
+
+                int concurrency = Math.min(10, activeKeys.size());
+                AtomicInteger validCount = new AtomicInteger();
+                List<Map<String, Object>> deadDetails = Collections.synchronizedList(new ArrayList<>());
+                List<UserApiKey> rotationDue = allKeys.stream().filter(k -> "rotation_due".equals(k.getStatus())).collect(Collectors.toList());
+
+                return Flux.fromIterable(activeKeys)
+                        .flatMap(key ->
+                                Mono.fromCallable(() -> {
+                                            Map<String, Object> result = testApiKey(key);
+                                            boolean isValid = Boolean.TRUE.equals(result.get("valid"));
+                                            key.setLastTested(LocalDateTime.now());
+
+                                            if (isValid) {
+                                                validCount.incrementAndGet();
+                                            } else {
+                                                key.setStatus("error");
+                                                Map<String, Object> detail = new HashMap<>();
+                                                detail.put("id", key.getId());
+                                                detail.put("label", key.getLabel());
+                                                detail.put("provider", key.getProvider());
+                                                detail.put("error", result.get("message"));
+                                                deadDetails.add(detail);
+                                            }
+                                            return key;
+                                        })
+                                        .subscribeOn(Schedulers.boundedElastic())
+                                        .flatMap(k -> userApiKeyRepository.save(k)),
+                                concurrency)
+                        .then(Mono.defer(() -> {
+                            String reportId = "report_" + LocalDateTime.now().toString().replace(":", "-");
+                            com.supremeai.model.APIHealthReport report = new com.supremeai.model.APIHealthReport(
+                                reportId, allKeys.size(), validCount.get(), deadDetails.size(), rotationDue.size()
+                            );
+                            report.setDeadKeyDetails(deadDetails);
+                            return healthReportRepository.save(report);
+                        }))
+                        .doOnSuccess(r -> log.info("API Health Report generated: {}", r.getId()))
+                        .then();
+            });
+    }
+
+    /**
+     * Get rotation status summary for a user reactively.
+     */
+    public Mono<Map<String, Object>> getRotationStatus(String userId) {
+        return userApiKeyRepository.findByUserId(userId).collectList()
+                .map(keys -> {
+                    long active = keys.stream().filter(k -> "active".equals(k.getStatus())).count();
+                    long rotationDue = keys.stream().filter(k -> "rotation_due".equals(k.getStatus())).count();
+                    long error = keys.stream().filter(k -> "error".equals(k.getStatus())).count();
+
+                    Map<String, Object> summary = new LinkedHashMap<>();
+                    summary.put("totalKeys", keys.size());
+                    summary.put("active", active);
+                    summary.put("rotationDue", rotationDue);
+                    summary.put("error", error);
+                    summary.put("providerConfigs", PROVIDER_CONFIGS.keySet());
+                    return summary;
+                })
+                .defaultIfEmpty(Map.of("totalKeys", 0));
     }
 
     /**

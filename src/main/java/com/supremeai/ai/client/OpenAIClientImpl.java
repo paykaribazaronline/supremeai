@@ -7,7 +7,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +21,6 @@ public class OpenAIClientImpl implements OpenAIClient {
     private final String model;
     private final UnifiedSecretsService secretsService;
 
-    @Autowired
     public OpenAIClientImpl(
             UnifiedSecretsService secretsService,
             @Value("${openai.model:gpt-3.5-turbo}") String model) {

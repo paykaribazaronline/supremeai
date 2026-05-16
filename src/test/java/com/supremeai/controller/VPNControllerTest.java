@@ -35,8 +35,8 @@ class VPNControllerTest {
 
     @Test
     void getConnections_shouldReturnWrappedList() {
-        VPNConnection v1 = new VPNConnection("vpn-1", "US East", "us-east-1", "connected");
-        VPNConnection v2 = new VPNConnection("vpn-2", "EU West", "eu-west-1", "disconnected");
+        VPNConnection v1 = new VPNConnection("vpn-1", "US East", "us-east-1", 8080, "connected");
+        VPNConnection v2 = new VPNConnection("vpn-2", "EU West", "eu-west-1", 8080, "disconnected");
 
         when(vpnRepository.findAll()).thenReturn(Flux.just(v1, v2));
 
@@ -59,6 +59,7 @@ class VPNControllerTest {
         StepVerifier.create(controller.getConnections())
                 .expectNextMatches(response -> {
                     assertEquals(HttpStatus.OK, response.getStatusCode());
+                    assertTrue(response.getBody().success());
                     Map<String, Object> data = response.getBody().data();
                     List<?> connections = (List<?>) data.get("connections");
                     assertTrue(connections.isEmpty());
@@ -69,8 +70,8 @@ class VPNControllerTest {
 
     @Test
     void createConnection_shouldSaveAndReturnSuccess() {
-        VPNConnection input = new VPNConnection(null, "Asia Pacific", "ap-south-1", "connected");
-        VPNConnection saved = new VPNConnection("vpn-new", "Asia Pacific", "ap-south-1", "connected");
+        VPNConnection input = new VPNConnection(null, "Asia Pacific", "ap-south-1", 8080, "connected");
+        VPNConnection saved = new VPNConnection("vpn-new", "Asia Pacific", "ap-south-1", 8080, "connected");
 
         when(vpnRepository.save(input)).thenReturn(Mono.just(saved));
 

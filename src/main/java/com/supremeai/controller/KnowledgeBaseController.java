@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
 /**
  * REST endpoints for querying the Global Knowledge Base.
@@ -31,13 +33,10 @@ public class KnowledgeBaseController {
      */
     @GetMapping("/solution")
     @PreAuthorize("isAuthenticated()")
-    public SolutionResponse getSolution(@RequestParam("error") String errorSignature) {
-        String solution = globalKnowledgeBase.findKnownSolution(errorSignature);
-        if (solution != null) {
-            return SolutionResponse.found(solution);
-        } else {
-            return SolutionResponse.notFound();
-        }
+    public Mono<SolutionResponse> getSolution(@RequestParam("error") String errorSignature) {
+        return globalKnowledgeBase.findKnownSolution(errorSignature)
+            .map(solution -> SolutionResponse.found(solution))
+            .defaultIfEmpty(SolutionResponse.notFound());
     }
 
     /**
@@ -45,7 +44,7 @@ public class KnowledgeBaseController {
      */
     @GetMapping("/solutions")
     @PreAuthorize("isAuthenticated()")
-    public List<SolutionMemory> getAllSolutions(@RequestParam("error") String errorSignature) {
+    public Flux<SolutionMemory> getAllSolutions(@RequestParam("error") String errorSignature) {
         return globalKnowledgeBase.getSolutions(errorSignature);
     }
 
@@ -55,18 +54,14 @@ public class KnowledgeBaseController {
      */
     @PostMapping("/learn")
     @PreAuthorize("hasRole('ADMIN')")
-    public String learnSolution(@RequestBody LearnSolutionRequest request) {
-        // This will go through approval flow in GlobalKnowledgeBase
-        // We need to manually simulate the approval flow or let the service handle it
-        // For now, simply record with admin override (auto-pilot)
-        globalKnowledgeBase.recordSuccessWithPermission(
+    public Mono<String> learnSolution(@RequestBody LearnSolutionRequest request) {
+        return globalKnowledgeBase.recordSuccessWithPermission(
             request.getErrorSignature(),
             request.getResolvedCode(),
             request.getProvider(),
             request.getExecutionTimeMs(),
             request.getSecurityScore()
-        );
-        return "Solution recorded (subject to auto-pilot/approval rules)";
+        ).thenReturn("Solution recorded (subject to auto-pilot/approval rules)");
     }
 
     /**
@@ -74,9 +69,9 @@ public class KnowledgeBaseController {
      */
     @PostMapping("/failure")
     @PreAuthorize("hasRole('ADMIN')")
-    public String recordFailure(@RequestBody RecordFailureRequest request) {
-        globalKnowledgeBase.recordFailure(request.getErrorSignature(), request.getFailedCode());
-        return "Failure recorded";
+    public Mono<String> recordFailure(@RequestBody RecordFailureRequest request) {
+        return globalKnowledgeBase.recordFailure(request.getErrorSignature(), request.getFailedCode())
+            .thenReturn("Failure recorded");
     }
 
     /**
@@ -84,8 +79,9 @@ public class KnowledgeBaseController {
      */
     @GetMapping("/stats")
     @PreAuthorize("hasRole('ADMIN')")
-    public KnowledgeStats getStats() {
-        return new KnowledgeStats("Total solutions: " + globalKnowledgeBase.countSolutions());
+    public Mono<KnowledgeStats> getStats() {
+        return globalKnowledgeBase.countSolutions()
+            .map(count -> new KnowledgeStats("Total solutions: " + count));
     }
 
     // DTOs

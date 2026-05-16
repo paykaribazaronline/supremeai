@@ -16,21 +16,21 @@ public class UserLanguagePreferenceController {
     private UserLanguagePreferenceService languagePreferenceService;
 
     /**
-     * ব্যবহারকারীর ভাষা পছন্দ সংরক্ষণ করে
+     * ব্যবহারকারীর পছন্দসমূহ সংরক্ষণ করে
      */
     @PostMapping
-    public Mono<ResponseEntity<UserLanguagePreference>> saveLanguagePreference(@RequestBody UserLanguagePreference preference) {
-        return languagePreferenceService.saveUserLanguagePreference(preference)
+    public Mono<ResponseEntity<UserLanguagePreference>> saveUserPreference(@RequestBody UserLanguagePreference preference) {
+        return languagePreferenceService.saveUserPreference(preference)
                 .map(saved -> ResponseEntity.ok(saved))
                 .onErrorReturn(ResponseEntity.badRequest().build());
     }
 
     /**
-     * ব্যবহারকারী আইডি দিয়ে ভাষা পছন্দ খুঁজে বের করে
+     * ব্যবহারকারী আইডি দিয়ে পছন্দসমূহ খুঁজে বের করে
      */
     @GetMapping("/{userId}")
-    public Mono<ResponseEntity<UserLanguagePreference>> getLanguagePreference(@PathVariable String userId) {
-        return languagePreferenceService.getUserLanguagePreference(userId)
+    public Mono<ResponseEntity<UserLanguagePreference>> getUserPreference(@PathVariable String userId) {
+        return languagePreferenceService.getUserPreference(userId)
                 .map(preference -> ResponseEntity.ok(preference))
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }

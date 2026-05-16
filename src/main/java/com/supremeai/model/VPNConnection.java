@@ -9,6 +9,9 @@ public class VPNConnection {
     @DocumentId
     private String id;
     private String name;
+    private String host;
+    private int port;
+    private String username;
     private String region;
     private String status;
     private String ipAddress;
@@ -17,10 +20,11 @@ public class VPNConnection {
 
     public VPNConnection() {}
 
-    public VPNConnection(String id, String name, String region, String status) {
+    public VPNConnection(String id, String name, String host, int port, String status) {
         this.id = id;
         this.name = name;
-        this.region = region;
+        this.host = host;
+        this.port = port;
         this.status = status;
         this.connectedAt = LocalDateTime.now();
     }
@@ -30,14 +34,20 @@ public class VPNConnection {
     public void setId(String id) { this.id = id; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+    public String getHost() { return host; }
+    public void setHost(String host) { this.host = host; }
+    public int getPort() { return port; }
+    public void setPort(int port) { this.port = port; }
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
     public String getRegion() { return region; }
     public void setRegion(String region) { this.region = region; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     public String getIpAddress() { return ipAddress; }
     public void setIpAddress(String ipAddress) { this.ipAddress = ipAddress; }
-    public LocalDateTime getConnectedAt() { return connectedAt; }
-    public void setConnectedAt(LocalDateTime connectedAt) { this.connectedAt = connectedAt; }
     public String getLatency() { return latency; }
     public void setLatency(String latency) { this.latency = latency; }
+    public LocalDateTime getConnectedAt() { return connectedAt; }
+    public void setConnectedAt(LocalDateTime connectedAt) { this.connectedAt = connectedAt; }
 }

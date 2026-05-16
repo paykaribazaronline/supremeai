@@ -1,136 +1,522 @@
-// LoginPage.tsx — Simple Admin Login
-import React, { useState } from 'react';
-import { Form, Input, Button, Alert } from 'antd';
-import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import { firebaseSignIn } from '../lib/firebase';
+// LoginPage.tsx - SupremeAI Authentication Portal (Redesigned)
+import React, { useState, useEffect } from 'react';
+import { Form, Input, Button, Card, Typography, message, Space, Divider } from 'antd';
+import { UserOutlined, LockOutlined, RobotOutlined, LoginOutlined, MailOutlined, UserAddOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { authUtils } from '../lib/authUtils';
+import { useRole } from '../contexts/RoleContext';
+import { firebaseSignIn } from '../lib/firebase';
 
-interface LoginPageProps {
-  onLoginSuccess: () => void;
+const { Title, Text } = Typography;
+
+interface LoginForm {
+  email: string;
+  password: string;
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
+interface CreateUserForm {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  fullName: string;
+}
+
+const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [createUserLoading, setCreateUserLoading] = useState(false);
+  const [showRegisterForm, setShowRegisterForm] = useState(false);
+  const [form] = Form.useForm<LoginForm>();
+  const [createUserForm] = Form.useForm<CreateUserForm>();
+  const { refreshUser } = useRole();
+  const navigate = useNavigate();
 
-  const handleSubmit = async (values: { email: string; password: string }) => {
+  useEffect(() => {
+    // If user is already authenticated, redirect to home
+    if (authUtils.isAuthenticated()) {
+      navigate('/');
+    }
+  }, [navigate]);
+
+  const handleLogin = async (values: LoginForm) => {
     setLoading(true);
-    setError(null);
-
     try {
+      // ✅ Real Firebase Authentication
       const result = await firebaseSignIn(values.email, values.password);
+      
       authUtils.setToken(result.token);
       authUtils.setCurrentUser(result.user);
-      onLoginSuccess();
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Login failed';
-      setError(msg);
+
+      message.success(`স্বাগতম, ${result.user.displayName || result.user.email}!`);
+      refreshUser();
+
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1500);
+
+    } catch (error: any) {
+      message.error(error.message || 'লগইন ব্যর্থ হয়েছে!');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleCreateUser = async (values: CreateUserForm) => {
+    setCreateUserLoading(true);
+    try {
+      if (values.password !== values.confirmPassword) {
+        throw new Error('পাসওয়ার্ড মিলছে না!');
+      }
+
+      const API_BASE = import.meta.env.VITE_API_URL || '';
+      const resp = await fetch(`${API_BASE}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+          displayName: values.fullName
+        })
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.message || 'রেজিস্ট্রেশন ব্যর্থ হয়েছে!');
+      }
+
+      const result = await resp.json();
+      message.success(result.data?.message || 'অ্যাকাউন্ট তৈরি সফল! এখন লগইন করার চেষ্টা করুন।');
+      setShowRegisterForm(false);
+      createUserForm.resetFields();
+      
+      // Switch to login mode and fill email automatically
+      form.setFieldsValue({ email: values.email });
+    } catch (error: any) {
+      message.error(error.message || 'ইউজার তৈরি করতে ব্যর্থ হয়েছে!');
+    } finally {
+      setCreateUserLoading(false);
+    }
+  };
+
+  const handleGuestLogin = async () => {
+    setLoading(true);
+    try {
+      // Guest mode - limited read-only access
+      authUtils.setToken('GUEST_MODE');
+      authUtils.setCurrentUser({
+        id: 'guest',
+        uid: 'guest',
+        email: null,
+        displayName: 'Guest User',
+        username: 'guest',
+        role: 'user',
+        tier: 'guest'
+      });
+      message.success('গেস্ট মোডে প্রবেশ করা হয়েছে!');
+      refreshUser();
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1000);
+    } catch (error: any) {
+      message.error(error.message || 'গেস্ট এক্সেস ব্যর্থ হয়েছে!');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    const email = form.getFieldValue('email');
+    if (!email) {
+      message.warning('অনুগ্রহ করে আগে ইমেইল প্রদান করুন!');
+      return;
+    }
+
+    try {
+      const API_BASE = import.meta.env.VITE_API_URL || '';
+      const resp = await fetch(`${API_BASE}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      if (resp.ok) {
+        message.info('পাসওয়ার্ড রিসেট লিঙ্ক আপনার ইমেইলে পাঠানো হয়েছে (যদি ইমেইলটি রেজিস্টার্ড থাকে)।');
+      }
+    } catch (error) {
+      message.error('পাসওয়ার্ড রিসেট রিকোয়েস্ট পাঠাতে ব্যর্থ হয়েছে।');
+    }
+  };
+
+
   return (
-    <div style={{
+    <div className="login-container" style={{
       minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0a0a0c 0%, #1a1a1f 50%, #0a0a0c 100%)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(135deg, #0F172A, #1E293B, #312E81)',
+      padding: '20px',
+      position: 'relative',
+      overflow: 'hidden'
     }}>
-      <div style={{
-        width: 400,
-        padding: '40px 32px',
-        background: 'rgba(255,255,255,0.05)',
-        backdropFilter: 'blur(16px)',
-        borderRadius: 16,
-        border: '1px solid rgba(255,255,255,0.1)',
-      }}>
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <h1 style={{ color: '#fff', margin: 0, fontSize: 28, fontWeight: 700 }}>
-            Supreme<span style={{ color: '#A78BFA' }}>AI</span>
-          </h1>
-          <p style={{ color: 'rgba(255,255,255,0.5)', marginTop: 4, fontSize: 14 }}>
-            Admin Login
-          </p>
+      {/* Background Effects */}
+      <div className="bg-grid" />
+      <div className="hex-grid" />
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        style={{ width: '100%', maxWidth: '420px', zIndex: 10 }}
+      >
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            style={{
+              background: 'linear-gradient(135deg, var(--neon-blue), var(--neon-purple))',
+              padding: '20px',
+              borderRadius: '16px',
+              boxShadow: '0 0 40px rgba(0, 243, 255, 0.3)',
+              marginBottom: '24px'
+            }}
+          >
+            <RobotOutlined style={{ fontSize: '48px', color: '#000', marginBottom: '16px' }} />
+            <Title level={2} style={{ color: '#000', margin: 0, fontWeight: 900 }}>
+              SUPREME AI
+            </Title>
+            <Text style={{ color: '#000', fontSize: '14px', opacity: 0.8 }}>
+              কমান্ড সেন্টার অথেন্টিকেশন
+            </Text>
+          </motion.div>
         </div>
 
-        {error && (
-          <Alert
-            message={error}
-            type="error"
-            showIcon
-            closable
-            onClose={() => setError(null)}
-            style={{ marginBottom: 16, borderRadius: 8 }}
-          />
-        )}
-
-        <Form layout="vertical" onFinish={handleSubmit}>
-          <Form.Item
-            name="email"
-            rules={[{ required: true, message: 'Enter your email' }]}
+        {/* Main Login Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <Card
+            className="glass-panel"
+            style={{
+              background: 'rgba(8, 8, 16, 0.95)',
+              border: '1px solid rgba(0, 243, 255, 0.3)',
+              borderRadius: '20px',
+              boxShadow: `
+                0 20px 40px rgba(0, 0, 0, 0.5),
+                0 0 60px rgba(0, 243, 255, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1)
+              `,
+              overflow: 'hidden',
+              position: 'relative'
+            }}
           >
-            <Input
-              prefix={<UserOutlined style={{ color: 'rgba(255,255,255,0.4)' }} />}
-              placeholder="Email"
-              type="email"
-              size="large"
-              autoComplete="username"
-              style={{
-                height: 48,
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 10,
-                color: '#fff',
-              }}
-            />
-          </Form.Item>
+            {/* Neon top border animation */}
+            <div style={{
+              position: 'absolute',
+              top: 0, left: 0, right: 0, height: '2px',
+              background: 'linear-gradient(90deg, var(--neon-blue), var(--neon-purple))',
+              animation: 'scanline 8s linear infinite'
+            }} />
 
-          <Form.Item
-            name="password"
-            rules={[{ required: true, message: 'Enter your password' }]}
-          >
-            <Input.Password
-              prefix={<LockOutlined style={{ color: 'rgba(255,255,255,0.4)' }} />}
-              placeholder="Password"
-              size="large"
-              autoComplete="current-password"
-              style={{
-                height: 48,
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 10,
-                color: '#fff',
-              }}
-            />
-          </Form.Item>
+            <div style={{ padding: '24px' }}>
+              {/* Title */}
+              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <Text style={{ color: 'var(--text-dim)', fontSize: '14px' }}>
+                  সিস্টেম অ্যাক্সেস 위해 লগইন করুন
+                </Text>
+              </div>
 
-          <Form.Item style={{ marginBottom: 0, marginTop: 8 }}>
-            <Button
-              type="primary"
-              htmlType="submit"
-              size="large"
-              block
-              loading={loading}
-              style={{
-                height: 48,
-                background: 'linear-gradient(135deg, #7C3AED, #A855F7)',
-                border: 'none',
-                borderRadius: 10,
-                fontWeight: 600,
-                fontSize: 15,
-              }}
-            >
-              Sign In
-            </Button>
-          </Form.Item>
-        </Form>
-      </div>
+              {/* Login Form */}
+              <Form
+                form={form}
+                layout="vertical"
+                onFinish={handleLogin}
+                size="large"
+              >
+                <Form.Item
+                  name="email"
+                  rules={[
+                    { required: true, message: 'ইমেইল প্রয়োজন!' },
+                    { type: 'email', message: 'সঠিক ইমেইল ফরম্যাট দিন!' }
+                  ]}
+                >
+                  <Input
+                    prefix={<MailOutlined style={{ color: 'var(--neon-blue)' }} />}
+                    placeholder="ইমেইল অ্যাড্রেস"
+                    autoComplete="email"
+                    style={{
+                      background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      color: 'var(--text-main)',
+                      borderRadius: '8px',
+                      height: '48px'
+                    }}
+                  />
+                </Form.Item>
 
-      <style>{`
-        input::placeholder { color: rgba(255,255,255,0.35) !important; }
-      `}</style>
+                <Form.Item
+                  name="password"
+                  rules={[{ required: true, message: 'পাসওয়ার্ড প্রয়োজন!' }]}
+                >
+                  <Input.Password
+                    prefix={<LockOutlined style={{ color: 'var(--neon-blue)' }} />}
+                    placeholder="পাসওয়ার্ড"
+                    autoComplete="current-password"
+                    style={{
+                      background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      color: 'var(--text-main)',
+                      borderRadius: '8px',
+                      height: '48px'
+                    }}
+                  />
+                </Form.Item>
+
+                {/* Primary Action Buttons */}
+                <Space direction="vertical" style={{ width: '100%', gap: '12px' }}>
+                  <Button
+                    type="default"
+                    onClick={handleGuestLogin}
+                    loading={loading}
+                    icon={<RobotOutlined />}
+                    style={{
+                      flex: 1,
+                      background: 'rgba(0, 243, 255, 0.1)',
+                      border: '1px solid rgba(0, 243, 255, 0.3)',
+                      color: 'var(--neon-blue)',
+                      height: '48px',
+                      fontWeight: 600,
+                      borderRadius: '8px'
+                    }}
+                  >
+                    Continue as Guest
+                  </Button>
+
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    loading={loading}
+                    icon={<LoginOutlined />}
+                    style={{
+                      background: 'linear-gradient(135deg, var(--neon-blue), var(--neon-purple))',
+                      border: 'none',
+                      height: '48px',
+                      fontWeight: 700,
+                      fontSize: '16px',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 15px rgba(0, 243, 255, 0.3)'
+                    }}
+                    block
+                  >
+                    Login
+                  </Button>
+                </Space>
+              </Form>
+
+              {/* Forgot Password */}
+              <div style={{ textAlign: 'center', marginTop: '16px' }}>
+                <Button
+                  type="link"
+                  size="small"
+                  onClick={handleForgotPassword}
+                  style={{ color: 'var(--neon-blue)', padding: 0 }}
+                >
+                  পাসওয়ার্ড ভুলে গেছেন?
+                </Button>
+              </div>
+
+              {/* Divider */}
+              <Divider style={{ 
+                margin: '24px 0 16px 0',
+                borderColor: 'rgba(255,255,255,0.1)'
+              }}>
+                <Text style={{ color: 'var(--text-dim)', fontSize: '12px' }}>
+                  বা
+                </Text>
+              </Divider>
+
+              {/* Create Account Section */}
+              {!showRegisterForm ? (
+                <Button
+                  type="link"
+                  icon={<UserAddOutlined />}
+                  onClick={() => setShowRegisterForm(true)}
+                  style={{
+                    width: '100%',
+                    color: 'var(--text-main)',
+                    border: '1px dashed rgba(255,255,255,0.2)',
+                    borderRadius: '8px',
+                    height: '48px'
+                  }}
+                >
+                  Create New Account
+                </Button>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  style={{
+                    background: 'rgba(0, 243, 255, 0.05)',
+                    border: '1px solid rgba(0, 243, 255, 0.2)',
+                    borderRadius: '12px',
+                    padding: '20px',
+                    marginTop: '16px'
+                  }}
+                >
+                  <Form
+                    form={createUserForm}
+                    layout="vertical"
+                    onFinish={handleCreateUser}
+                    size="large"
+                  >
+                    <Form.Item
+                      name="fullName"
+                      rules={[{ required: true, message: 'পূর্ণ নাম প্রয়োজন!' }]}
+                    >
+                      <Input
+                        prefix={<UserOutlined style={{ color: 'var(--neon-blue)' }} />}
+                        placeholder="পূর্ণ নাম"
+                        style={{
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          color: 'var(--text-main)',
+                          borderRadius: '8px'
+                        }}
+                      />
+                    </Form.Item>
+
+                    <Form.Item
+                      name="email"
+                      rules={[
+                        { required: true, message: 'ইমেইল প্রয়োজন!' },
+                        { type: 'email', message: 'সঠিক ইমেইল ফরম্যাট দিন!' }
+                      ]}
+                    >
+                      <Input
+                        prefix={<MailOutlined style={{ color: 'var(--neon-blue)' }} />}
+                        placeholder="ইমেইল অ্যাড্রেস"
+                        style={{
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          color: 'var(--text-main)',
+                          borderRadius: '8px'
+                        }}
+                      />
+                    </Form.Item>
+
+                    <Form.Item
+                      name="password"
+                      rules={[
+                        { required: true, message: 'পাসওয়ার্ড প্রয়োজন!' },
+                        { min: 6, message: 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে!' }
+                      ]}
+                    >
+                      <Input.Password
+                        prefix={<LockOutlined style={{ color: 'var(--neon-blue)' }} />}
+                        placeholder="পাসওয়ার্ড (অন্তত ৬ অক্ষর)"
+                        style={{
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          color: 'var(--text-main)',
+                          borderRadius: '8px'
+                        }}
+                      />
+                    </Form.Item>
+
+                    <Form.Item
+                      name="confirmPassword"
+                      rules={[
+                        { required: true, message: 'পাসওয়ার্ড কনফার্ম করুন!' },
+                        ({ getFieldValue }) => ({
+                          validator(_, value) {
+                            if (!value || getFieldValue('password') === value) {
+                              return Promise.resolve();
+                            }
+                            return Promise.reject(new Error('পাসওয়ার্ড মিলছে না!'));
+                          },
+                        }),
+                      ]}
+                    >
+                      <Input.Password
+                        prefix={<CheckCircleOutlined style={{ color: 'var(--neon-blue)' }} />}
+                        placeholder="পাসওয়ার্ড আবার লিখুন"
+                        style={{
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          color: 'var(--text-main)',
+                          borderRadius: '8px'
+                        }}
+                      />
+                    </Form.Item>
+
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      loading={createUserLoading}
+                      icon={<UserAddOutlined />}
+                      block
+                      style={{
+                        background: 'linear-gradient(135deg, var(--success), var(--neon-blue))',
+                        border: 'none',
+                        height: '48px',
+                        fontWeight: 700,
+                        fontSize: '16px',
+                        borderRadius: '8px',
+                        marginBottom: '8px'
+                      }}
+                    >
+                      Create Account
+                    </Button>
+                    
+                    <Button
+                      type="text"
+                      onClick={() => {
+                        setShowRegisterForm(false);
+                        createUserForm.resetFields();
+                      }}
+                      style={{ padding: 0, height: 'auto' }}
+                    >
+                      Cancel
+                    </Button>
+                  </Form>
+                </motion.div>
+              )}
+
+              {/* Info Text */}
+              <div style={{ 
+                marginTop: showRegisterForm ? '12px' : '24px',
+                textAlign: 'center'
+              }}>
+                <Text style={{ 
+                  color: 'var(--text-dim)', 
+                  fontSize: '11px',
+                  lineHeight: '1.6'
+                }}>
+                 একাউন্ট তৈরি করলে আপনি SupremeAI-এর সব ফিচার ব্যবহার করতে পারবেন। 
+                  আপনার ইমেইল ভিত্তিক অ্যাক্সেস লেভেল স্বয়ংক্রিয়ভাবে নির্ধারিত হবে।
+                </Text>
+              </div>
+            </div>
+          </Card>
+        </motion.div>
+
+        {/* Footer */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          style={{ textAlign: 'center', marginTop: '24px' }}
+        >
+          <Text style={{ color: 'var(--text-dim)', fontSize: '12px' }}>
+            SupremeAI Command Center v4.2.0
+          </Text>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };

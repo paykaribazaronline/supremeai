@@ -2,92 +2,109 @@ import { AuthUser } from '../types';
 
 const AUTH_TOKEN_KEY = 'supremeai_token';
 const FIREBASE_USER_KEY = 'supremeai_user';
-// Legacy key used by older components — kept for backward-compat migration only
-const LEGACY_TOKEN_KEY = 'authToken';
 
 export const authUtils = {
   getToken(): string | null {
     const token = localStorage.getItem(AUTH_TOKEN_KEY) || sessionStorage.getItem(AUTH_TOKEN_KEY);
-    if (token) return token;
-    // Auto-migrate legacy key to canonical key on first access
-    const legacyToken = localStorage.getItem(LEGACY_TOKEN_KEY) || sessionStorage.getItem(LEGACY_TOKEN_KEY);
-    if (legacyToken) {
-      localStorage.setItem(AUTH_TOKEN_KEY, legacyToken);
-      localStorage.removeItem(LEGACY_TOKEN_KEY);
-      sessionStorage.removeItem(LEGACY_TOKEN_KEY);
-      return legacyToken;
-    }
-    return null;
+    return token || 'GUEST_MODE';
   },
-  setToken(token: string): void {
-    localStorage.setItem(AUTH_TOKEN_KEY, token);
+
+  isAdmin(): boolean {
+    const user = this.getCurrentUser();
+    return user?.role === 'admin' || user?.tier === 'admin' || user?.tier === 'ADMIN';
   },
-  getCurrentUser(): AuthUser | null {
-    const userJson = localStorage.getItem(FIREBASE_USER_KEY) || sessionStorage.getItem(FIREBASE_USER_KEY);
-    return userJson ? JSON.parse(userJson) : null;
-  },
-  setCurrentUser(user: AuthUser | Record<string, unknown> | null): void {
-    if (user) {
-      localStorage.setItem(FIREBASE_USER_KEY, JSON.stringify({ 
-          id: user.id || (user as Record<string, unknown>).uid || '', 
-          email: user.email, 
-          displayName: user.displayName || user.username || 'User',
-          role: user.role || (user as Record<string, unknown>).role || 'user',
-          tier: user.tier || (user as Record<string, unknown>).tier || 'free'
-      }));
-    } else {
-      localStorage.removeItem(FIREBASE_USER_KEY);
-      sessionStorage.removeItem(FIREBASE_USER_KEY);
-    }
-  },
-  clearAuth(): void {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    localStorage.removeItem(FIREBASE_USER_KEY);
-    localStorage.removeItem('supremeai_refresh_token');
-    localStorage.removeItem(LEGACY_TOKEN_KEY);
-    sessionStorage.removeItem(AUTH_TOKEN_KEY);
-    sessionStorage.removeItem(FIREBASE_USER_KEY);
-    sessionStorage.removeItem(LEGACY_TOKEN_KEY);
-  },
-  clearToken(): void {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    localStorage.removeItem(LEGACY_TOKEN_KEY);
-    sessionStorage.removeItem(AUTH_TOKEN_KEY);
-    sessionStorage.removeItem(LEGACY_TOKEN_KEY);
-  },
-  getAuthHeaders(): Record<string, string> {
-    const token = authUtils.getToken();
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
-  },
+
   isAuthenticated(): boolean {
-    return !!authUtils.getToken();
+    const token = this.getToken();
+    return !!token && token !== 'GUEST_MODE';
   },
-  async fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
-    const headers = new Headers(options.headers || {});
-    const token = authUtils.getToken();
-    if (token) {
-      headers.set('Authorization', `Bearer ${token}`);
+
+  isGuest(): boolean {
+    return this.getToken() === 'GUEST_MODE';
+  },
+
+  clearAuth() {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    sessionStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(FIREBASE_USER_KEY);
+    sessionStorage.removeItem(FIREBASE_USER_KEY);
+    localStorage.removeItem('supremeai_refresh_token');
+  },
+
+  async logout() {
+    try {
+      const { firebaseSignOutFn } = await import('./firebase');
+      await firebaseSignOutFn();
+    } catch (e) {
+      console.warn('Firebase logout failed', e);
     }
-    
-    const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.REACT_APP_API_URL || '';
+    this.clearAuth();
+    window.location.href = '/login';
+  },
+
+  getCurrentUser(): AuthUser | null {
+    const userStr = sessionStorage.getItem(FIREBASE_USER_KEY) || localStorage.getItem(FIREBASE_USER_KEY);
+    if (!userStr) return null;
+    try {
+      return JSON.parse(userStr);
+    } catch (e) {
+      return null;
+    }
+  },
+
+  setToken(token: string) {
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+    sessionStorage.setItem(AUTH_TOKEN_KEY, token);
+  },
+
+  setCurrentUser(user: any) {
+    const userStr = JSON.stringify(user);
+    localStorage.setItem(FIREBASE_USER_KEY, userStr);
+    sessionStorage.setItem(FIREBASE_USER_KEY, userStr);
+  },
+
+  getAuthHeaders(): HeadersInit {
+    const token = this.getToken();
+    if (token && token !== 'GUEST_MODE') {
+      return { Authorization: `Bearer ${token}` };
+    }
+    return {};
+  },
+
+  async fetchWithAuth(url: string, options: any = {}) {
+    const token = this.getToken();
+    const API_BASE = import.meta.env.VITE_API_URL || '';
     const fullUrl = url.startsWith('/') && API_BASE ? `${API_BASE}${url}` : url;
     
+    const headers = new Headers(options.headers || {});
+    if (token && token !== 'GUEST_MODE') {
+      headers.set('Authorization', `Bearer ${token}`);
+    } else {
+      // In Guest mode, we still send GUEST_MODE header to tell the backend
+      headers.set('X-Guest-Access', 'true');
+    }
+
     let response = await fetch(fullUrl, { ...options, headers });
-    
-    if (response.status === 401) {
+
+    // Handle Token Expiry
+    if (response.status === 401 && token !== 'GUEST_MODE') {
       try {
         const { refreshAccessToken } = await import('./firebase');
         const newToken = await refreshAccessToken();
         headers.set('Authorization', `Bearer ${newToken}`);
         response = await fetch(fullUrl, { ...options, headers });
       } catch (err) {
-        authUtils.clearAuth();
-        window.location.href = '/admin';
+        console.error('Session expired, logging out...');
+        this.clearAuth();
+        window.location.href = '/';
       }
     }
+    
     return response;
   }
 };
-export const fetchWithAuth = authUtils.fetchWithAuth;
-export const getAuthHeaders = authUtils.getAuthHeaders;
+
+export const fetchWithAuth = authUtils.fetchWithAuth.bind(authUtils);
+export const getAuthHeaders = authUtils.getAuthHeaders.bind(authUtils);
 export default authUtils;
+

@@ -213,14 +213,18 @@ Please provide a detailed, technical answer based on the repository context abov
    * Summarize architecture
    */
   summarizeArchitecture(parsedFiles, analysis) {
+    if (!analysis || !parsedFiles) return 'Architecture information unavailable';
+    
     const patterns = analysis.patterns || [];
-    const hasMVC = patterns.some(p => 
-      p.patternType.includes('CONTROLLER') || 
-      p.patternType.includes('MODEL') ||
-      p.patternType.includes('VIEW')
+    const hasMVC = Array.isArray(patterns) && patterns.some(p => 
+      p.patternType && (
+        p.patternType.includes('CONTROLLER') || 
+        p.patternType.includes('MODEL') ||
+        p.patternType.includes('VIEW')
+      )
     );
-    const hasLayered = patterns.some(p => p.patternType.includes('LAYERED'));
-    const hasDI = patterns.some(p => p.patternType.includes('DEPENDENCY_INJECTION'));
+    const hasLayered = Array.isArray(patterns) && patterns.some(p => p.patternType && p.patternType.includes('LAYERED'));
+    const hasDI = Array.isArray(patterns) && patterns.some(p => p.patternType && p.patternType.includes('DEPENDENCY_INJECTION'));
 
     let architecture = [];
     
@@ -513,12 +517,13 @@ Please provide a detailed, technical answer based on the repository context abov
    * Assess cohesion
    */
   assessCohesion(parsedFiles) {
+    if (!parsedFiles || parsedFiles.length === 0) return 'Unknown';
     const filesWithSinglePurpose = parsedFiles.filter(f => {
-      const funcCount = f.functions?.length || 0;
+      const funcCount = Array.isArray(f.functions) ? f.functions.length : 0;
       return funcCount > 0 && funcCount <= 5;
     }).length;
     
-    const ratio = funcCount / Math.max(parsedFiles.length, 1);
+    const ratio = filesWithSinglePurpose / Math.max(parsedFiles.length, 1);
     
     if (ratio > 0.7) return 'High';
     if (ratio > 0.4) return 'Medium';

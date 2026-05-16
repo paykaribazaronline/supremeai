@@ -8,9 +8,11 @@ import org.springframework.stereotype.Service;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Simplified Access Control.
- * Replaces API Key registration with IP-based rate limiting.
+ * @deprecated Use {@link com.supremeai.security.ratelimit.RateLimitingService} instead.
+ * This in-memory implementation is kept for backward compatibility only.
+ * The distributed Redis-based rate limiter is used when rate-limit.distributed=true.
  */
+@Deprecated
 @Service
 public class RateLimiterService {
 

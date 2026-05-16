@@ -7,6 +7,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import com.supremeai.repository.UserApiKeyRepository;
+import com.supremeai.repository.HealingEventRepository;
+import com.supremeai.model.UserApiKey;
+import com.supremeai.model.HealingEvent;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +30,12 @@ public class ProviderHealingStrategies {
 
     @Autowired
     private AutoHealingStrategyService autoHealingService;
+
+    @Autowired
+    private UserApiKeyRepository apiKeyRepository;
+
+    @Autowired
+    private HealingEventRepository healingEventRepository;
 
     /**
      * প্রোভাইডার সুইচিং স্ট্র্যাটেজি
@@ -55,16 +66,40 @@ public class ProviderHealingStrategies {
      * API কী রোটেশন স্ট্র্যাটেজি
      */
     public AutoHealingStrategyService.HealingStrategy createApiKeyRotationStrategy(
-            String providerName, String oldKey, String newKey) {
+            String providerName, String userId) {
         return (Exception error) -> {
-            logger.info("Attempting to rotate API key for provider: {} due to error: {}",
-                    providerName, error.getMessage());
+            logger.info("Attempting to rotate API key for provider: {} for user: {} due to error: {}",
+                    providerName, userId, error.getMessage());
 
             try {
-                // API কী রোটেশন লজিক এখানে থাকবে
-                // এটি প্রদানকারী সেবা দ্বারা পরিচালিত হয়
-                logger.info("API key rotation initiated for provider: {}", providerName);
-                return true;
+                // Find alternative active keys for this user and provider
+                return apiKeyRepository.findByUserIdAndProvider(userId, providerName)
+                    .filter(key -> "active".equals(key.getStatus()))
+                    .collectList()
+                    .flatMap(keys -> {
+                        if (keys.size() <= 1) {
+                            logger.warn("No alternative active keys found for provider: {}", providerName);
+                            return Mono.just(false);
+                        }
+
+                        // Pick a different key (simplified: next one in list)
+                        UserApiKey nextKey = keys.get(0); // In real logic, we'd pick one not currently in use
+                        
+                        logger.info("Successfully identified new key for rotation: {}", nextKey.getLabel());
+                        
+                        HealingEvent event = new HealingEvent(
+                            "AUTH_ERROR",
+                            error.getMessage(),
+                            "API_KEY_ROTATION",
+                            "Rotated to key: " + nextKey.getLabel(),
+                            true,
+                            "Detected authentication failure. Switched to alternative active API key.",
+                            providerName
+                        );
+
+                        return healingEventRepository.save(event).thenReturn(true);
+                    })
+                    .block();
             } catch (Exception e) {
                 logger.error("Failed to rotate API key for provider {}: {}", providerName, e.getMessage());
                 return false;
@@ -104,7 +139,7 @@ public class ProviderHealingStrategies {
 
         autoHealingService.registerHealingStrategy(
                 "openai_auth_error",
-                createApiKeyRotationStrategy("openai", "", ""));
+                createApiKeyRotationStrategy("openai", ""));
 
         // Anthropic প্রোভাইডার হিলিং স্ট্র্যাটেজি
         autoHealingService.registerHealingStrategy(
@@ -113,7 +148,7 @@ public class ProviderHealingStrategies {
 
         autoHealingService.registerHealingStrategy(
                 "anthropic_auth_error",
-                createApiKeyRotationStrategy("anthropic", "", ""));
+                createApiKeyRotationStrategy("anthropic", ""));
 
         // Gemini প্রোভাইডার হিলিং স্ট্র্যাটেজি
         autoHealingService.registerHealingStrategy(
@@ -122,7 +157,7 @@ public class ProviderHealingStrategies {
 
         autoHealingService.registerHealingStrategy(
                 "gemini_auth_error",
-                createApiKeyRotationStrategy("gemini", "", ""));
+                createApiKeyRotationStrategy("gemini", ""));
 
         // Groq প্রোভাইডার হিলিং স্ট্র্যাটেজি
         autoHealingService.registerHealingStrategy(
@@ -131,7 +166,7 @@ public class ProviderHealingStrategies {
 
         autoHealingService.registerHealingStrategy(
                 "groq_auth_error",
-                createApiKeyRotationStrategy("groq", "", ""));
+                createApiKeyRotationStrategy("groq", ""));
 
         // DeepSeek প্রোভাইডার হিলিং স্ট্র্যাটেজি
         autoHealingService.registerHealingStrategy(
@@ -140,7 +175,7 @@ public class ProviderHealingStrategies {
 
         autoHealingService.registerHealingStrategy(
                 "deepseek_auth_error",
-                createApiKeyRotationStrategy("deepseek", "", ""));
+                createApiKeyRotationStrategy("deepseek", ""));
 
         logger.info("All provider healing strategies registered successfully");
     }

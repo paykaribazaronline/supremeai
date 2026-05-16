@@ -1,6 +1,7 @@
 package com.supremeai.service;
 
 import com.supremeai.model.ReasoningLog;
+import reactor.core.publisher.Mono;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,12 @@ public class AIReasoningService {
         
         // In a real scenario, we would also save this to Firestore
         log.info("AI Reasoning Logged: [{}] because [{}]", decision, reason);
+    }
+
+    public Mono<Void> logReasoningAsync(String taskId, String decision, String reason, String modelName) {
+        return Mono.fromRunnable(() -> logReasoning(taskId, decision, reason, modelName))
+                .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                .then();
     }
 
     public List<ReasoningLog> getRecentLogs() {
