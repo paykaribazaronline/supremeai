@@ -19,7 +19,7 @@
     "@react-three/fiber": "^8.15.11",
     "@stomp/stompjs": "^7.3.0",
     "@types/js-cookie": "^3.0.6",
-    "antd": "^5.22.0",
+    "antd": "^6.4.2",
     "axios": "^1.15.2",
     "chart.js": "^4.5.1",
     "d3": "^7.8.5",
