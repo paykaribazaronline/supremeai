@@ -279,6 +279,6 @@
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",
-    "axios": "^1.6.0"
+    "axios": "^1.16.1"
   }
 }
