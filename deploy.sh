@@ -63,31 +63,32 @@ else
     log_warn "Dashboard directory not found, skipping..."
 fi
 
-# Step 3: Build Docker Images Locally
-log_info "--- Step 3: Building Images Locally ---"
-# Ensure docker is authenticated with GCR
-gcloud auth configure-docker gcr.io --quiet
+# Step 3: Build Docker Images via Cloud Build (Optimized)
+log_info "--- Step 3: Building Images via Cloud Build ---"
 
-log_info "Building Backend..."
-docker build -t "$BACKEND_IMAGE" .
-docker push "$BACKEND_IMAGE" || log_warn "Backend push failed"
+# Build Backend using a minimal staging directory to avoid large uploads
+log_info "Building Backend (Staged)..."
+STAGING_DIR="temp_build_staging"
+mkdir -p "$STAGING_DIR"
+cp app.jar "$STAGING_DIR/"
+cp Dockerfile "$STAGING_DIR/"
+gcloud builds submit "$STAGING_DIR" --tag "$BACKEND_IMAGE" --project "$PROJECT_ID" --suppress-logs || log_warn "Backend build failed"
+rm -rf "$STAGING_DIR"
 
 if [ -d "reverse-engineering" ]; then
     log_info "Building Reverse Engineering..."
     cd reverse-engineering
-    docker build -t "$REVERSE_ENG_IMAGE" .
-    docker push "$REVERSE_ENG_IMAGE" || log_warn "Rev-Eng push failed"
+    gcloud builds submit . --tag "$REVERSE_ENG_IMAGE" --project "$PROJECT_ID" --suppress-logs || log_warn "Rev-Eng build failed"
     cd ..
 fi
 
 if [ -d "simulator-runtime" ]; then
     log_info "Building Simulator..."
     cd simulator-runtime
-    docker build -t "$SIMULATOR_IMAGE" .
-    docker push "$SIMULATOR_IMAGE" || log_warn "Simulator push failed"
+    gcloud builds submit . --tag "$SIMULATOR_IMAGE" --project "$PROJECT_ID" --suppress-logs || log_warn "Simulator build failed"
     cd ..
 fi
-log_info "✅ All images built and pushed"
+log_info "✅ All images built via Cloud Build"
 
 # Step 4: Deploy to Cloud Run
 log_info "--- Step 4: Deploying to Cloud Run ---"
