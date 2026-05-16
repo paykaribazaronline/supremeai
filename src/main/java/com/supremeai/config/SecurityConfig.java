@@ -166,7 +166,9 @@ public class SecurityConfig {
             origins = Arrays.asList(
                 "http://localhost:5173",   // Dashboard dev
                 "http://localhost:3000",   // Admin/dev alternative
-                "https://supremeai-a.web.app"  // Production
+                "https://supremeai-a.web.app",  // Production
+                "https://supremeai-a.firebaseapp.com", // Firebase Alternative
+                "https://supremeai-backend-lhlwyikwlq-uc.a.run.app" // Direct Backend
             );
         }
         

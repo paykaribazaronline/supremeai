@@ -63,23 +63,31 @@ else
     log_warn "Dashboard directory not found, skipping..."
 fi
 
-# Step 3: Build Docker Images via Cloud Build
-log_info "--- Step 3: Building Images via Cloud Build ---"
-# Use --suppress-logs to avoid failure if log streaming is restricted
-gcloud builds submit --tag "$BACKEND_IMAGE" . --project "$PROJECT_ID" --suppress-logs || log_warn "Backend build failed or log streaming issues"
+# Step 3: Build Docker Images Locally
+log_info "--- Step 3: Building Images Locally ---"
+# Ensure docker is authenticated with GCR
+gcloud auth configure-docker gcr.io --quiet
+
+log_info "Building Backend..."
+docker build -t "$BACKEND_IMAGE" .
+docker push "$BACKEND_IMAGE" || log_warn "Backend push failed"
 
 if [ -d "reverse-engineering" ]; then
+    log_info "Building Reverse Engineering..."
     cd reverse-engineering
-    gcloud builds submit --tag "$REVERSE_ENG_IMAGE" . --project "$PROJECT_ID" --suppress-logs || log_warn "Rev-Eng build failed"
+    docker build -t "$REVERSE_ENG_IMAGE" .
+    docker push "$REVERSE_ENG_IMAGE" || log_warn "Rev-Eng push failed"
     cd ..
 fi
 
 if [ -d "simulator-runtime" ]; then
+    log_info "Building Simulator..."
     cd simulator-runtime
-    gcloud builds submit --tag "$SIMULATOR_IMAGE" . --project "$PROJECT_ID" --suppress-logs || log_warn "Simulator build failed"
+    docker build -t "$SIMULATOR_IMAGE" .
+    docker push "$SIMULATOR_IMAGE" || log_warn "Simulator push failed"
     cd ..
 fi
-log_info "✅ All images built (or already in registry)"
+log_info "✅ All images built and pushed"
 
 # Step 4: Deploy to Cloud Run
 log_info "--- Step 4: Deploying to Cloud Run ---"
