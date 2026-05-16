@@ -1,6 +1,8 @@
 // functions/server-connection-monitor.js - Server Connection Monitoring
 // Monitors connections between all servers and services
 
+const { onSchedule } = require("firebase-functions/v2/scheduler");
+const { onRequest } = require("firebase-functions/v2/https");
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const axios = require("axios");
@@ -12,7 +14,7 @@ const db = admin.firestore();
  * HTTP trigger: Check all server connections
  * Endpoint: https://region-supremeai.cloudfunctions.net/checkServerConnections
  */
-exports.checkServerConnections = functions.https.onRequest(async (req, res) => {
+exports.checkServerConnections = onRequest(async (req, res) => {
     try {
         const connectionData = {
             timestamp: new Date().toISOString(),
@@ -357,7 +359,7 @@ async function saveConnectionSnapshot(connectionData) {
 /**
  * Scheduled trigger: Check connections every 2 minutes
  */
-exports.monitorConnections = functions.pubsub.schedule('*/2 * * * *').onRun(async (context) => {
+exports.monitorConnections = onSchedule('*/2 * * * *', async (event) => {
     try {
         const connectionData = {
             timestamp: new Date().toISOString(),
