@@ -90,6 +90,51 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
         }
     }
 
+    /**
+     * Manually activate a provider (set status to ACTIVE)
+     * Use this to activate GCloud/real API providers that have valid keys
+     */
+    @PostMapping("/{id}/activate")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> activateProvider(@PathVariable String id) {
+        try {
+            String adminUserId = getCurrentAdminUserId();
+            APIProvider saved = providerAdminService.activateProvider(id, adminUserId).block();
+            if (saved == null) return ResponseEntity.status(404).body(ApiResponse.error("Provider not found"));
+            log.info("[API] Provider {} activated by admin {}", id, adminUserId);
+            return ResponseEntity.ok(ApiResponse.ok(Map.of(
+                "message", "Provider activated successfully",
+                "provider", (Object)saved,
+                "status", "ACTIVE"
+            )));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
+    /**
+     * Manually deactivate a provider (set status to INACTIVE)
+     * Use this to mark fake/test API keys as inactive
+     */
+    @PostMapping("/{id}/deactivate")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> deactivateProvider(
+            @PathVariable String id,
+            @RequestParam(defaultValue = "Admin requested deactivation") String reason) {
+        try {
+            String adminUserId = getCurrentAdminUserId();
+            APIProvider saved = providerAdminService.deactivateProvider(id, reason, adminUserId).block();
+            if (saved == null) return ResponseEntity.status(404).body(ApiResponse.error("Provider not found"));
+            log.info("[API] Provider {} deactivated by admin {} (reason: {})", id, adminUserId, reason);
+            return ResponseEntity.ok(ApiResponse.ok(Map.of(
+                "message", "Provider deactivated successfully",
+                "provider", (Object)saved,
+                "status", "INACTIVE",
+                "reason", reason
+            )));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<String>> deleteProvider(@PathVariable String id) {
         try {

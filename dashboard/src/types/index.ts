@@ -47,23 +47,6 @@ export interface AuthResponse {
   user: AuthUser;
 }
 
-export interface Provider {
-  id: string;
-  name: string;
-  type: string;
-  enabled: boolean;
-  config?: Record<string, any>;
-}
-
-export interface Project {
-  id: string;
-  name: string;
-  description: string;
-  status: 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface NavItem {
   key: string;
   label: string;
