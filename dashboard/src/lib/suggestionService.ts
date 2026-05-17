@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { authUtils } from './authUtils';
 
 export interface AISuggestion {
+  id: string;
   proposalId: string;
   title: string;
   description: string;

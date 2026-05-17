@@ -19,11 +19,11 @@ spring:
       ddl-auto: create-drop
     show-sql: true
 
-  # Disable Firestore for testing
+  # Enable Firestore for testing
   cloud:
     gcp:
       firestore:
-        enabled: false
+        enabled: true
 
   # Redis configuration for testing
   redis:
@@ -33,9 +33,11 @@ spring:
 
 # Firebase configuration for testing
 firebase:
-  project-id: test-project
+  enabled: true
+  project-id: supremeai-a
+  database-url: https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/
   credentials:
-    path: classpath:firebase-test-credentials.json
+    path: classpath:firebase-service-account.json
 
 # Security configuration for testing
 security:

@@ -12,7 +12,10 @@ import java.time.Instant;
 public class User {
 
     @DocumentId
-    private String id;
+    private String documentId;
+
+    @com.google.cloud.firestore.annotation.PropertyName("id")
+    private String idField;
 
     private String firebaseUid;
 
@@ -53,7 +56,7 @@ public class User {
     }
 
     public User(String firebaseUid, String email, String displayName) {
-        this.id = firebaseUid;
+        this.idField = firebaseUid;
         this.firebaseUid = firebaseUid;
         this.email = email;
         this.displayName = displayName;
@@ -62,8 +65,14 @@ public class User {
     }
 
     // Getters and Setters
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public String getDocumentId() { return documentId; }
+    public void setDocumentId(String documentId) { this.documentId = documentId; }
+
+    @com.google.cloud.firestore.annotation.PropertyName("id")
+    public String getId() { return idField; }
+
+    @com.google.cloud.firestore.annotation.PropertyName("id")
+    public void setId(String id) { this.idField = id; }
 
     public String getFirebaseUid() { return firebaseUid; }
     public void setFirebaseUid(String firebaseUid) { this.firebaseUid = firebaseUid; }

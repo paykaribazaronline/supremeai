@@ -190,6 +190,9 @@ const ProviderModal: React.FC<Props> = ({ visible, editingProvider, onCancel, on
           <Select>
             <Option value="active">Active</Option>
             <Option value="inactive">Inactive</Option>
+            <Option value="error">Error</Option>
+            <Option value="rotating">Rotating</Option>
+            <Option value="dead">Dead</Option>
           </Select>
         </Form.Item>
 

@@ -32,8 +32,11 @@ const AdminInfrastructure: React.FC = () => {
     const fetchAdvice = async () => {
         setLoading(true);
         try {
-            const data = await authUtils.fetchWithAuth('/api/admin/infrastructure/advice');
-            setAdvices(data || []);
+            const response = await authUtils.fetchWithAuth('/api/admin/infrastructure/advice');
+            if (response.ok) {
+                const result = await response.json();
+                setAdvices(result.data || []);
+            }
         } catch (error) {
             console.error('Failed to fetch infrastructure advice:', error);
         } finally {

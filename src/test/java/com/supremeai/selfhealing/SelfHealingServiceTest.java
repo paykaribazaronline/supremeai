@@ -1,5 +1,6 @@
 package com.supremeai.selfhealing;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -24,17 +25,35 @@ class SelfHealingServiceTest {
     @Mock
     private AIReasoningService reasoningService;
 
+    @Mock
+    private MeterRegistry meterRegistry;
+
     private SelfHealingService service;
+
+    private void initService() {
+        service = new SelfHealingService(meterRegistry);
+        // Inject reasoningService via reflection since it's @Autowired in the service
+        try {
+            java.lang.reflect.Field field = SelfHealingService.class.getDeclaredField("reasoningService");
+            field.setAccessible(true);
+            field.set(service, reasoningService);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Test
     void testExecuteWithRetry_SuccessOnFirstTry() {
         // Given
-        service = new SelfHealingService();
-        service.setReasoningService(reasoningService);
-        // Use lenient to avoid UnnecessaryStubbingException since doOnError won't be called on success path
+        initService();
         lenient().doNothing().when(reasoningService).logReasoning(
             anyString(), anyString(), anyString(), anyString());
         Supplier<Mono<String>> task = () -> Mono.just("success");
+        // Use lenient to avoid UnnecessaryStubbingException since doOnError won't be called on success path
+        lenient().doNothing().when(reasoningService).logReasoning(
+            anyString(), anyString(), anyString(), anyString());
+        
+        // When
 
         // When
         Mono<String> result = service.executeWithRetry(task, 3, 10);
@@ -48,8 +67,7 @@ class SelfHealingServiceTest {
     @Test
     void testExecuteWithRetry_SucceedsAfterFailure() {
         // Given
-        service = new SelfHealingService();
-        service.setReasoningService(reasoningService);
+        initService();
         
         // Use a simple flag that fails once then succeeds
         // With maxAttempts=2, we have 1 retry (2 total attempts)
@@ -74,8 +92,7 @@ class SelfHealingServiceTest {
     @Test
     void testExecuteWithRetry_ThrowsAfterMaxAttempts() {
         // Given
-        service = new SelfHealingService();
-        service.setReasoningService(reasoningService);
+        initService();
         doNothing().when(reasoningService).logReasoning(
             anyString(), anyString(), anyString(), anyString());
         

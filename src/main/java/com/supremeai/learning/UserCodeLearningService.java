@@ -198,21 +198,24 @@ public class UserCodeLearningService {
 
         String lowerContext = context.toLowerCase();
 
-        if (lowerContext.contains("error") || lowerContext.contains("fix") || lowerContext.contains("bug")) {
-            return "BUG_FIX";
-        } else if (lowerContext.contains("security") || lowerContext.contains("auth") || lowerContext.contains("permission")) {
-            return "SECURITY";
-        } else if (lowerContext.contains("performance") || lowerContext.contains("optimize") || lowerContext.contains("speed")) {
-            return "PERFORMANCE";
-        } else if (lowerContext.contains("database") || lowerContext.contains("query") || lowerContext.contains("sql")) {
-            return "DATABASE";
-        } else if (lowerContext.contains("api") || lowerContext.contains("endpoint") || lowerContext.contains("controller")) {
-            return "API";
-        } else if (lowerContext.contains("ui") || lowerContext.contains("frontend") || lowerContext.contains("component")) {
-            return "UI_UX";
-        } else {
-            return "GENERAL";
+        List<Map.Entry<String, List<String>>> categoryKeywords = List.of(
+            Map.entry("BUG_FIX", List.of("error", "fix", "bug")),
+            Map.entry("SECURITY", List.of("security", "auth", "permission")),
+            Map.entry("PERFORMANCE", List.of("performance", "optimize", "speed")),
+            Map.entry("DATABASE", List.of("database", "query", "sql")),
+            Map.entry("API", List.of("api", "endpoint", "controller")),
+            Map.entry("UI_UX", List.of("ui", "frontend", "component"))
+        );
+
+        for (Map.Entry<String, List<String>> entry : categoryKeywords) {
+            for (String keyword : entry.getValue()) {
+                if (lowerContext.contains(keyword)) {
+                    return entry.getKey();
+                }
+            }
         }
+
+        return "GENERAL";
     }
 
     /**

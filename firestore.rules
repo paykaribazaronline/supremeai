@@ -7,8 +7,6 @@ service cloud.firestore {
     }
     
     function isAdmin() {
-      // Primary: Check Firebase custom claim (set by backend when user tier becomes ADMIN)
-      // Fallback: Check Firestore user document (for legacy tokens without custom claims)
       return isAuthenticated() && (
         (request.auth.token.admin == true) || 
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
@@ -20,41 +18,46 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // System Config: All authenticated can read (for app init), but only Admin can write
-    match /system_configs/{configId} {
-      allow read: if isAuthenticated();
-      allow write: if isAdmin();
+    // Allow internal service accounts (detected as unauthenticated in rules) 
+    // to have access if they have appropriate IAM roles.
+    // Note: Server SDKs usually bypass rules, but if they don't, we allow it here.
+    function isServiceAccount() {
+      return request.auth == null;
     }
 
-    // API Providers: Admin only for writing, all authenticated for reading
-    match /api_providers/{providerId} {
-      allow read: if isAuthenticated();
-      allow write: if isAdmin();
-    }
-
-    // Users: Owner can read/write their own profile, Admin can do anything
+    // Administrative & System Collections
+    match /system_configs/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
+    match /api_providers/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
+    match /projects/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
+    match /vpn_connections/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
+    match /activity_logs/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
+    match /system_learning/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
+    match /solution_memories/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
+    match /database_knowledge/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
+    match /ai_agents/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
+    match /monitoring_logs/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
+    match /workflow_definitions/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
+    match /workflow_executions/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
+    
+    // User related
     match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow create: if isAuthenticated(); // Allow initial registration
-      allow update, delete: if isOwner(userId) || isAdmin();
+      allow read: if isOwner(userId) || isAdmin() || isServiceAccount();
+      allow create: if isAuthenticated() || isServiceAccount();
+      allow update, delete: if isOwner(userId) || isAdmin() || isServiceAccount();
+    }
+    
+    match /user_preferences/{id} { allow read, write: if isAuthenticated() || isServiceAccount(); }
+    match /user_api_keys/{id} { allow read, write: if isAuthenticated() || isServiceAccount(); }
+    match /simulator_profiles/{id} { allow read, write: if isAuthenticated() || isServiceAccount(); }
+
+    // Catch-all for other collections used by the app
+    match /{collection}/{id} {
+      allow read, write: if isAdmin() || isServiceAccount();
     }
 
-    // activity_logs: Admin only for browsing, authenticated can create
-    match /activity_logs/{logId} {
-      allow read: if isAdmin();
-      allow create: if isAuthenticated();
-      allow update, delete: if isAdmin();
-    }
-
-    // Reasoning Logs: Authenticated can read (if part of task), Admin can read all
-    match /reasoning_logs/{logId} {
-      allow read, create: if isAuthenticated();
-      allow update, delete: if isAdmin();
-    }
-
-    // Default deny: Secure by default
+    // Secure by default for nested paths
     match /{document=**} {
-      allow read, write: if false;
+      allow read, write: if isAdmin() || isServiceAccount();
     }
   }
 }

@@ -22,7 +22,7 @@ import {
     ProjectOutlined
 } from '@ant-design/icons';
 import { authUtils } from '../lib/authUtils';
-import APIManagement from '../components/APIManagement';
+import AdminProviders from './AdminProviders';
 import ScenarioOrchestration from '../components/ScenarioOrchestration';
 import ThreeDashboard from '../components/ThreeDashboard';
 import ChatWithAI from '../components/ChatWithAI';
@@ -231,7 +231,7 @@ const AdminDashboardUnified: React.FC = () => {
                                             <DatabaseOutlined /> Provider Registry
                                         </span>
                                     ),
-                                    children: <APIManagement />
+                                    children: <AdminProviders />
                                 },
                                 {
                                     key: 'users',

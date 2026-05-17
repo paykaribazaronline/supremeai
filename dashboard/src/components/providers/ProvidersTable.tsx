@@ -1,6 +1,6 @@
 import React from 'react';
 import { Table, Space, Button, Tag, Popconfirm, Typography, Collapse, Card, Empty, Badge, Tooltip } from 'antd';
-import { EditOutlined, DeleteOutlined, RobotOutlined, KeyOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined, RobotOutlined, KeyOutlined, InfoCircleOutlined, CloudServerOutlined, DesktopOutlined, SettingOutlined } from '@ant-design/icons';
 import { Provider } from './types';
 
 const { Panel } = Collapse;
@@ -8,13 +8,23 @@ const { Text, Title } = Typography;
 
 interface Props {
   providers: Record<string, Provider[]>;
+  sortedGroupKeys: string[];
+  getGroupLabel: (key: string) => string;
   loading: boolean;
   onEdit: (provider: Provider) => void;
   onDelete: (id: string) => void;
 }
 
-const ProvidersTable: React.FC<Props> = ({ providers, loading, onEdit, onDelete }) => {
-  const modelKeys = Object.keys(providers).sort();
+const ProvidersTable: React.FC<Props> = ({ providers, sortedGroupKeys, getGroupLabel, loading, onEdit, onDelete }) => {
+  const getGroupIcon = (key: string) => {
+    switch (key) {
+      case 'api': return <KeyOutlined style={{ color: '#1890ff' }} />;
+      case 'gcloud': return <CloudServerOutlined style={{ color: '#722ed1' }} />;
+      case 'local':
+      case 'ollama': return <DesktopOutlined style={{ color: '#13c2c2' }} />;
+      default: return <SettingOutlined style={{ color: '#8c8c8c' }} />;
+    }
+  };
 
   const columns = [
     {
@@ -32,10 +42,24 @@ const ProvidersTable: React.FC<Props> = ({ providers, loading, onEdit, onDelete 
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => {
-        const color = status === 'active' ? '#52c41a' : status === 'error' ? '#ff4d4f' : '#faad14';
+        const colorMap: Record<string, string> = {
+          active: '#52c41a',
+          inactive: '#faad14',
+          error: '#ff4d4f',
+          rotating: '#1890ff',
+          dead: '#000000',
+        };
+        const badgeMap: Record<string, any> = {
+          active: 'processing',
+          inactive: 'warning',
+          error: 'error',
+          rotating: 'processing',
+          dead: 'default',
+        };
+        const color = colorMap[status] || '#d9d9d9';
         const label = status ? status.toUpperCase() : 'UNKNOWN';
         return (
-          <Badge status={status === 'active' ? 'processing' : 'default'} color={color} text={<Tag color={color} style={{ borderRadius: '12px', border: 'none', color: 'white', fontWeight: 600 }}>{label}</Tag>} />
+          <Badge status={badgeMap[status] || 'default'} color={color} text={<Tag color={color} style={{ borderRadius: '12px', border: 'none', color: 'white', fontWeight: 600 }}>{label}</Tag>} />
         );
       },
     },
@@ -78,35 +102,43 @@ const ProvidersTable: React.FC<Props> = ({ providers, loading, onEdit, onDelete 
     },
   ];
 
-  if (modelKeys.length === 0 && !loading) {
+  if (sortedGroupKeys.length === 0 && !loading) {
     return <Empty description="No providers found matching your search" />;
   }
 
   return (
     <div className="providers-grouped-list" style={{ marginTop: '20px' }}>
-      <Collapse defaultActiveKey={modelKeys} ghost expandIconPosition="end">
-        {modelKeys.map(model => (
-          <Panel 
-            header={
-              <Space>
-                <RobotOutlined style={{ color: '#1890ff' }} />
-                <Title level={5} style={{ margin: 0 }}>{model}</Title>
-                <Badge count={providers[model].length} style={{ backgroundColor: '#52c41a' }} />
-              </Space>
-            } 
-            key={model}
-            style={{ marginBottom: '16px', background: 'rgba(255,255,255,0.5)', borderRadius: '12px', border: '1px solid #eee' }}
-          >
-            <Table
-              columns={columns}
-              dataSource={providers[model]}
-              rowKey="id"
-              pagination={false}
-              size="middle"
-              className="inner-provider-table"
-            />
-          </Panel>
-        ))}
+      <Collapse defaultActiveKey={sortedGroupKeys} ghost expandIconPosition="end">
+        {sortedGroupKeys.map(groupKey => {
+          const groupProviders = providers[groupKey] || [];
+          const activeCount = groupProviders.filter(p => p.status === 'active').length;
+          const inactiveCount = groupProviders.length - activeCount;
+
+          return (
+            <Panel 
+              header={
+                <Space>
+                  {getGroupIcon(groupKey)}
+                  <Title level={5} style={{ margin: 0 }}>{getGroupLabel(groupKey)}</Title>
+                  <Badge count={groupProviders.length} style={{ backgroundColor: '#52c41a' }} />
+                  {activeCount > 0 && <Tag color="success" style={{ borderRadius: '8px', marginLeft: 4 }}>{activeCount} সক্রিয়</Tag>}
+                  {inactiveCount > 0 && <Tag color="warning" style={{ borderRadius: '8px' }}>{inactiveCount} নিষ্ক্রিয়</Tag>}
+                </Space>
+              } 
+              key={groupKey}
+              style={{ marginBottom: '16px', background: 'rgba(255,255,255,0.5)', borderRadius: '12px', border: '1px solid #eee' }}
+            >
+              <Table
+                columns={columns}
+                dataSource={groupProviders}
+                rowKey="id"
+                pagination={false}
+                size="middle"
+                className="inner-provider-table"
+              />
+            </Panel>
+          );
+        })}
       </Collapse>
     </div>
   );

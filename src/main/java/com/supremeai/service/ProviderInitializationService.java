@@ -31,6 +31,9 @@ public class ProviderInitializationService {
     @Autowired
     private ProviderRepository providerRepository;
 
+    @Autowired
+    private ProviderTypeRegistry providerTypeRegistry;
+
     @Value("${ai.providers.ollama.endpoint:http://localhost:11434}")
     private String ollamaEndpoint;
 
@@ -56,40 +59,26 @@ public class ProviderInitializationService {
      */
     private void enrichProviderMetadata(APIProvider provider) {
         if (provider.getName() == null) return;
-        String name = provider.getName().toLowerCase();
-        
-        if (name.contains("gemini")) {
-            provider.setBaseUrl("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent");
-            provider.setModels(java.util.List.of("gemini-1.5-flash", "gemini-1.5-pro"));
-            provider.setCapabilities(java.util.List.of("chat", "reasoning", "multimodal"));
-        } else if (name.contains("openai")) {
-            provider.setBaseUrl("https://api.openai.com/v1/chat/completions");
-            provider.setModels(java.util.List.of("gpt-4o-mini", "gpt-4", "gpt-3.5-turbo"));
-            provider.setCapabilities(java.util.List.of("chat", "code"));
-        } else if (name.contains("huggingface")) {
-            provider.setBaseUrl("https://api-inference.huggingface.co/models/meta-llama/Llama-3.3-70B-Instruct/v1/chat/completions");
-            provider.setCapabilities(java.util.List.of("chat"));
-        } else if (name.contains("codegeex")) {
-            provider.setBaseUrl("https://open.bigmodel.cn/api/coding/paas/v4/chat/completions");
-            provider.setModels(java.util.List.of("codegeex-4", "codegeex-4-lite"));
-            provider.setCapabilities(java.util.List.of("chat", "code", "reasoning", "multimodal"));
-            provider.setLanguages(java.util.List.of("zh", "en", "multi"));
-        } else if (name.contains("stepfun")) {
-            provider.setBaseUrl("https://api.stepfun.com/v1/chat/completions");
-            provider.setModels(java.util.List.of("step-3.5-flash", "step-3.5-pro", "step-1"));
-        } else if (name.contains("kimi")) {
-            provider.setBaseUrl("https://api.moonshot.cn/v1/chat/completions");
-        } else if (name.contains("mistral")) {
-            provider.setBaseUrl("https://api.mistral.ai/v1/chat/completions");
-        } else if (name.contains("groq")) {
-            provider.setBaseUrl("https://api.groq.com/openai/v1/chat/completions");
-        } else if (name.contains("deepseek")) {
-            provider.setBaseUrl("https://api.deepseek.com/v1/chat/completions");
-        } else if (name.contains("anthropic")) {
-            provider.setBaseUrl("https://api.anthropic.com/v1/messages");
-        } else if (name.contains("ollama")) {
-            provider.setBaseUrl(ollamaEndpoint + "/v1/chat/completions");
+        if (provider.getBaseUrl() != null && !provider.getBaseUrl().isBlank()) return;
+
+        String type = provider.getType();
+        if (type != null && !type.isBlank()) {
+            com.supremeai.model.ProviderTypeConfig typeConfig = providerTypeRegistry.getTypeConfig(type);
+            if (typeConfig != null) {
+                if (provider.getBaseUrl() == null || provider.getBaseUrl().isBlank()) {
+                    provider.setBaseUrl(typeConfig.getDefaultBaseUrl());
+                }
+                if ((provider.getModels() == null || provider.getModels().isEmpty()) && typeConfig.getSupportedModels() != null) {
+                    provider.setModels(typeConfig.getSupportedModels());
+                }
+                if (provider.getCapabilities() == null || provider.getCapabilities().isEmpty()) {
+                    provider.setCapabilities(typeConfig.getCapabilities());
+                }
+                return;
+            }
         }
+
+        log.warn("No type config found for provider '{}' — admin must configure manually in dashboard", provider.getName());
     }
 
     @EventListener(ApplicationReadyEvent.class)

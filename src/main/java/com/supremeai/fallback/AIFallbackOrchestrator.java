@@ -97,7 +97,7 @@ public class AIFallbackOrchestrator {
             .switchIfEmpty(Mono.defer(() -> {
                 String expertProviderId = aiProfiler.getBestAIForTask(taskCategory);
 
-                return providerRepository.findByStatus("ACTIVE")
+                return providerRepository.findByStatus("active")
                     .filter(p -> {
                         if ("CHAT".equalsIgnoreCase(taskCategory) || "COMMUNICATION".equalsIgnoreCase(taskCategory)) {
                             return p.isCanCommunicate();

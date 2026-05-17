@@ -58,9 +58,9 @@ public class AdminProviderValidationService {
                 return;
             }
 
-            // Filter to active providers only (skip inactive/error/dead)
+            // Filter to active and rotating providers (skip inactive/error/dead)
             List<APIProvider> activeProviders = allProviders.stream()
-                    .filter(p -> "active".equalsIgnoreCase(p.getStatus()))
+                    .filter(p -> "active".equalsIgnoreCase(p.getStatus()) || "rotating".equalsIgnoreCase(p.getStatus()))
                     .collect(java.util.stream.Collectors.toList());
 
             if (activeProviders.isEmpty()) {
@@ -80,12 +80,13 @@ public class AdminProviderValidationService {
 
                                         provider.setLastValidated(new Date());
 
-                                        if (valid) {
-                                            // Reset error streak on success
-                                            provider.setConsecutiveErrorDays(0);
-                                            provider.setLastErrorDate(null);
-                                            provider.setStatus("active"); // ensure active
-                                            return Map.of(
+                                         if (valid) {
+                                             provider.setConsecutiveErrorDays(0);
+                                             provider.setLastErrorDate(null);
+                                             provider.setStatus("active");
+                                             if (provider.getDeadReason() != null) provider.setDeadReason(null);
+                                             if (provider.getDeadAt() != null) provider.setDeadAt(null);
+                                             return Map.of(
                                                     "provider", provider,
                                                     "valid", true,
                                                     "action", "none"

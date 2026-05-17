@@ -21,7 +21,19 @@ import static org.mockito.Mockito.when;
 class AdaptiveAgentOrchestratorTest {
 
     @Mock
-    private RequirementAnalyzerAI requirementAnalyzer;
+    private com.supremeai.provider.AIProviderFactory providerFactory;
+
+    @Mock
+    private com.supremeai.provider.AIProvider aiProvider;
+
+    @Mock
+    private com.supremeai.service.TranslationService translationService;
+
+    @Mock
+    private com.supremeai.service.UserLanguagePreferenceService languagePreferenceService;
+
+    @Mock
+    private com.supremeai.service.AIBehaviorProfileService behaviorProfileService;
 
     private AdaptiveAgentOrchestrator orchestrator;
 
@@ -29,20 +41,30 @@ class AdaptiveAgentOrchestratorTest {
     void testOrchestrationProducesDecisionsAndContext() {
         orchestrator = new AdaptiveAgentOrchestrator();
         
-        // Inject mock via reflection
+        // Inject mocks via reflection
         try {
-            Field raField = AdaptiveAgentOrchestrator.class.getDeclaredField("requirementAnalyzer");
-            raField.setAccessible(true);
-            raField.set(orchestrator, requirementAnalyzer);
+            setField(orchestrator, "providerFactory", providerFactory);
+            setField(orchestrator, "translationService", translationService);
+            setField(orchestrator, "languagePreferenceService", languagePreferenceService);
+            setField(orchestrator, "behaviorProfileService", behaviorProfileService);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
-        // Mock analyzer
-        when(requirementAnalyzer.analyze(anyString())).thenReturn(List.of(
-            new Question("database", "Which database?", "CRITICAL"),
-            new Question("architecture", "Style?", "HIGH")
+        // Mock providers and translations
+        when(providerFactory.getProvider("groq")).thenReturn(aiProvider);
+        when(aiProvider.generate(anyString())).thenReturn(reactor.core.publisher.Mono.just(
+            "[{\"key\":\"database\",\"text\":\"Which database?\",\"priority\":1},{\"key\":\"architecture\",\"text\":\"Style?\",\"priority\":2}]"
         ));
+        
+        when(languagePreferenceService.getUserPreference(anyString()))
+            .thenReturn(reactor.core.publisher.Mono.empty());
+            
+        when(behaviorProfileService.getProfileForProject(anyString()))
+            .thenReturn(reactor.core.publisher.Mono.empty());
+            
+        when(translationService.translateFromEnglish(anyString(), anyString()))
+            .thenAnswer(invocation -> reactor.core.publisher.Mono.just((String) invocation.getArgument(0)));
 
         // Act
         OrchesResultContext result = this.orchestrator.orchestrate("Build a REST API");
@@ -53,13 +75,19 @@ class AdaptiveAgentOrchestratorTest {
         assertNotNull(result.getCompletedAt());
 
         @SuppressWarnings("unchecked")
-        var decisions = (List<VotingDecision>) result.getContext().get("decisions");
+        var decisions = (List<com.supremeai.agentorchestration.AdaptiveAgentOrchestrator.VotingDecision>) result.getContext().get("decisions");
         assertNotNull(decisions);
-        assertEquals(2, decisions.size());
+        assertEquals(4, decisions.size()); // Decisions for platform, framework, database, architecture
 
         var genCtx = result.getGenerationContext();
         assertNotNull(genCtx);
         assertEquals("PostgreSQL", genCtx.get("database"));
         assertEquals("monolith", genCtx.get("architecture"));
+    }
+
+    private void setField(Object target, String fieldName, Object value) throws Exception {
+        java.lang.reflect.Field field = AdaptiveAgentOrchestrator.class.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(target, value);
     }
 }

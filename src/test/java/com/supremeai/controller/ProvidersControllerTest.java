@@ -59,16 +59,16 @@ class ProvidersControllerTest {
 
         when(providerAdminService.getAllProviders()).thenReturn(Flux.just(p1, p2));
 
-        StepVerifier.create(controller.getConfiguredProviders())
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.OK, response.getStatusCode());
-                    assertTrue(response.getBody().success());
-                    Map<String, Object> data = (Map<String, Object>) response.getBody().data();
-                    List<?> providers = (List<?>) data.get("providers");
-                    assertEquals(2, providers.size());
-                    return true;
-                })
-                .verifyComplete();
+        ResponseEntity<ApiResponse<Map<String, Object>>> result =
+                controller.getConfiguredProviders();
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertTrue(result.getBody().isSuccess());
+        Map<String, Object> data = (Map<String, Object>) result.getBody().getData();
+        List<?> providers = (List<?>) data.get("providers");
+        assertEquals(2, providers.size());
+
+        verify(providerAdminService).getAllProviders();
     }
 
     @Test
@@ -79,14 +79,11 @@ class ProvidersControllerTest {
 
         when(providerAdminService.addProvider(eq(input), anyString())).thenReturn(Mono.just(saved));
 
-        StepVerifier.create(controller.addProvider(input))
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.OK, response.getStatusCode());
-                    assertTrue(response.getBody().success());
-                    return true;
-                })
-                .verifyComplete();
-        
+        ResponseEntity<ApiResponse<Map<String, Object>>> result = controller.addProvider(input);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertTrue(result.getBody().isSuccess());
+
         verify(providerAdminService).addProvider(eq(input), anyString());
     }
 
@@ -98,28 +95,22 @@ class ProvidersControllerTest {
 
         when(providerAdminService.updateProvider(eq("prov-1"), eq(input), anyString())).thenReturn(Mono.just(saved));
 
-        StepVerifier.create(controller.updateProviderById("prov-1", input))
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.OK, response.getStatusCode());
-                    assertTrue(response.getBody().success());
-                    return true;
-                })
-                .verifyComplete();
+        ResponseEntity<ApiResponse<Map<String, Object>>> result = controller.updateProviderById("prov-1", input);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertTrue(result.getBody().isSuccess());
 
         verify(providerAdminService).updateProvider(eq("prov-1"), eq(input), anyString());
     }
 
     @Test
-    void removeProvider_shouldDelegateToService() {
+    void deleteProvider_shouldDelegateToService() {
         setAuthentication("admin");
         when(providerAdminService.deleteProvider(eq("prov-1"), anyString())).thenReturn(Mono.empty());
 
-        StepVerifier.create(controller.removeProvider(Map.of("providerId", "prov-1")))
-                .expectNextMatches(response -> {
-                    assertTrue(response.getStatusCode().is2xxSuccessful());
-                    return true;
-                })
-                .verifyComplete();
+        ResponseEntity<ApiResponse<String>> result = controller.deleteProvider("prov-1");
+
+        assertTrue(result.getStatusCode().is2xxSuccessful());
 
         verify(providerAdminService).deleteProvider(eq("prov-1"), anyString());
     }
@@ -128,12 +119,10 @@ class ProvidersControllerTest {
     void testProviderKey_shouldDelegateToService() {
         when(providerAdminService.validateKey("OpenAI", "sk-test")).thenReturn(Mono.just(true));
 
-        StepVerifier.create(controller.testProviderKey(Map.of("name", "OpenAI", "apiKey", "sk-test")))
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.OK, response.getStatusCode());
-                    return true;
-                })
-                .verifyComplete();
+        ResponseEntity<ApiResponse<Map<String, Object>>> result =
+                controller.testProviderKey(Map.of("name", "OpenAI", "apiKey", "sk-test"));
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
 
         verify(providerAdminService).validateKey("OpenAI", "sk-test");
     }
@@ -142,12 +131,10 @@ class ProvidersControllerTest {
     void discoverModels_shouldDelegateToDiscoveryService() {
         when(discoveryService.discoverModels(any())).thenReturn(Flux.empty());
 
-        StepVerifier.create(controller.discoverModels("test"))
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.OK, response.getStatusCode());
-                    return true;
-                })
-                .verifyComplete();
+        ResponseEntity<ApiResponse<List<Map<String, Object>>>> result =
+                controller.discoverModels("test");
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
 
         verify(discoveryService).discoverModels("test");
     }

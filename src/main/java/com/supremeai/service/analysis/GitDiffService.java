@@ -113,10 +113,10 @@ public class GitDiffService {
             String fileA = fileMatcher.group(1);
             String fileB = fileMatcher.group(2);
 
-            if (fileA.equals("/dev/null")) {
+            if (fileA.equals("/dev/null") || fileA.equals("dev/null")) {
                 lastChangeType = ChangeType.ADD;
                 lastFileName = fileB;
-            } else if (fileB.equals("/dev/null")) {
+            } else if (fileB.equals("/dev/null") || fileB.equals("dev/null")) {
                 lastChangeType = ChangeType.DELETE;
                 lastFileName = fileA;
             } else if (!fileA.equals(fileB)) {

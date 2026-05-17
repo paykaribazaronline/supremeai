@@ -24,7 +24,7 @@ public class VotingController {
     @Autowired
     private RequirementAnalyzerAI requirementAnalyzer;
 
-    @Value("${supremeai.active.providers:groq,openai,anthropic,ollama}")
+    @Value("${supremeai.active.providers:}")
     private String activeProviders;
 
     // ===== CLARIFYING QUESTIONS ENDPOINT =====
@@ -42,6 +42,9 @@ public class VotingController {
     public Mono<ResponseEntity<VotingDecision>> conductVote(@RequestBody Map<String, String> request) {
         String question = request.get("question");
         String context = request.getOrDefault("context", "");
+        if (question == null || question.trim().isEmpty()) {
+            return Mono.just(ResponseEntity.badRequest().build());
+        }
         return votingService.conductDecisionVote(question, context)
             .map(ResponseEntity::ok);
     }

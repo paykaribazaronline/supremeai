@@ -130,6 +130,23 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
         return ResponseEntity.ok(ApiResponse.ok(stats));
     }
 
+    @GetMapping("/{id}/roles")
+    public ResponseEntity<ApiResponse<List<String>>> getConfiguredRoles(@PathVariable String id) {
+        try {
+            Mono<List<APIProvider>> providersMono = providerAdminService.getAllProviders()
+                    .filter(p -> p.getId().equals(id))
+                    .collectList();
+            List<APIProvider> list = providersMono.block(java.time.Duration.ofSeconds(5));
+            if (list == null || list.isEmpty()) {
+                return ResponseEntity.status(404).body(ApiResponse.error("Provider not found"));
+            }
+            List<String> roles = providerAdminService.suggestRoles(list.get(0));
+            return ResponseEntity.ok(ApiResponse.ok(roles));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(ApiResponse.error("Failed to fetch roles: " + e.getMessage()));
+        }
+    }
+
     @PostMapping("/{id}/capability")
     public ResponseEntity<ApiResponse<Map<String, Object>>> updateCapability(
             @PathVariable String id,

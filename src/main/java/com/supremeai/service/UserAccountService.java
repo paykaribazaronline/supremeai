@@ -44,6 +44,13 @@ public class UserAccountService {
     @Autowired(required = false)
     private Firestore firestore;
 
+    @Autowired(required = false)
+    private FirebaseAuth firebaseAuth;
+
+    private FirebaseAuth getAuth() {
+        return firebaseAuth != null ? firebaseAuth : FirebaseAuth.getInstance();
+    }
+
     /**
      * Create a single Firebase Auth user account with email and password.
      * Also creates the corresponding Firestore user document.
@@ -51,7 +58,7 @@ public class UserAccountService {
     public Mono<User> createAccount(String email, String password, String displayName, UserTier tier) {
         return Mono.fromCallable(() -> {
             try {
-                return FirebaseAuth.getInstance().getUserByEmail(email);
+                return getAuth().getUserByEmail(email);
             } catch (FirebaseAuthException e) {
                 return null;
             }
@@ -73,7 +80,7 @@ public class UserAccountService {
                         .setEmailVerified(false)
                         .setDisabled(false);
 
-                UserRecord userRecord = FirebaseAuth.getInstance().createUser(request);
+                UserRecord userRecord = getAuth().createUser(request);
 
                 // Set custom claims for tier if not FREE
                 if (tier != null && tier != UserTier.FREE) {
@@ -83,7 +90,7 @@ public class UserAccountService {
                         claims.put("admin", true);
                         claims.put("role", "ADMIN");
                     }
-                    FirebaseAuth.getInstance().setCustomUserClaims(userRecord.getUid(), claims);
+                    getAuth().setCustomUserClaims(userRecord.getUid(), claims);
                 }
                 return userRecord;
             }).subscribeOn(Schedulers.boundedElastic())
@@ -188,7 +195,7 @@ public class UserAccountService {
                         claims.put("admin", true);
                         claims.put("role", "ADMIN");
                     }
-                    FirebaseAuth.getInstance().setCustomUserClaims(userId, claims);
+                    getAuth().setCustomUserClaims(userId, claims);
                 } catch (FirebaseAuthException e) {
                     log.error("Failed to update custom claims for {}: {}", userId, e.getMessage());
                 }
@@ -208,6 +215,9 @@ public class UserAccountService {
      */
     @Cacheable(value = "user_sessions", key = "#uid")
     public Mono<User> getUser(String uid) {
+        if (uid == null) {
+            return Mono.error(new NullPointerException("UID cannot be null"));
+        }
         return userRepository.findByFirebaseUid(uid);
     }
 
@@ -226,7 +236,7 @@ public class UserAccountService {
             .flatMap(user -> Mono.fromCallable(() -> {
                 try {
                     UserRecord.UpdateRequest request = new UserRecord.UpdateRequest(userId).setDisabled(true);
-                    FirebaseAuth.getInstance().updateUser(request);
+                    getAuth().updateUser(request);
                 } catch (FirebaseAuthException e) {
                     log.error("Failed to disable Firebase Auth user {}: {}", userId, e.getMessage());
                 }
@@ -249,7 +259,7 @@ public class UserAccountService {
             .flatMap(user -> Mono.fromCallable(() -> {
                 try {
                     UserRecord.UpdateRequest request = new UserRecord.UpdateRequest(userId).setDisabled(false);
-                    FirebaseAuth.getInstance().updateUser(request);
+                    getAuth().updateUser(request);
                 } catch (FirebaseAuthException e) {
                     log.error("Failed to re-enable Firebase Auth user {}: {}", userId, e.getMessage());
                 }
@@ -266,7 +276,7 @@ public class UserAccountService {
             .switchIfEmpty(Mono.error(new IllegalArgumentException("User not found: " + userId)))
             .flatMap(user -> Mono.fromCallable(() -> {
                 try {
-                    FirebaseAuth.getInstance().deleteUser(userId);
+                    getAuth().deleteUser(userId);
                     log.info("Deleted Firebase Auth account for: {}", userId);
                 } catch (FirebaseAuthException e) {
                     log.error("Failed to delete Firebase Auth user {}: {}", userId, e.getMessage());

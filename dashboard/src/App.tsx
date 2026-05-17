@@ -23,13 +23,7 @@ interface ModelStatus {
   type: string;
 }
 
-const models_list: ModelStatus[] = [
-  { id: 'qwen', name: 'Qwen 2.5 Coder', status: 'online', latency: 45, memory: '16GB', type: 'Expert' },
-  { id: 'llama', name: 'Llama 3.1', status: 'online', latency: 39, memory: '16GB', type: 'General' },
-  { id: 'phi', name: 'Phi 3 Mini', status: 'loading', latency: 0, memory: '4GB', type: 'Edge' },
-  { id: 'nomic', name: 'Nomic Embed', status: 'loading', latency: 0, memory: '2GB', type: 'Embedding' },
-  { id: 'deepseek', name: 'DeepSeek Coder', status: 'loading', latency: 0, memory: '8GB', type: 'Logic' },
-];
+const models_list: ModelStatus[] = [];
 
 const LoadingFallback = () => (
   <div className="loading-fallback">

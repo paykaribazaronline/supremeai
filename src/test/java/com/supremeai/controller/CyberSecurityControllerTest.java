@@ -16,6 +16,7 @@ import reactor.test.StepVerifier;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -31,7 +32,17 @@ class CyberSecurityControllerTest {
     @BeforeEach
     void setUp() {
         cyberSecurityController = new CyberSecurityController();
-        cyberSecurityController.cyberSecuritySkillService = cyberSecuritySkillService;
+        setField(cyberSecurityController, "cyberSecuritySkillService", cyberSecuritySkillService);
+    }
+
+    private void setField(Object target, String fieldName, Object value) {
+        try {
+            java.lang.reflect.Field field = CyberSecurityController.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(target, value);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     // ==================== getSkills Tests ====================
@@ -80,7 +91,7 @@ class CyberSecurityControllerTest {
     void getProtections_NoProtections_ReturnsEmptyFlux() {
         when(cyberSecuritySkillService.getActiveProtections()).thenReturn(Flux.empty());
 
-        Flux<Map<String, Object>> result = cyberSecurityController.getActiveProtections();
+        Flux<Map<String, Object>> result = cyberSecurityController.getProtections();
 
         StepVerifier.create(result)
                 .verifyComplete();
@@ -105,8 +116,8 @@ class CyberSecurityControllerTest {
         StepVerifier.create(result)
                 .expectNextMatches(response -> {
                     assertEquals(HttpStatus.OK, response.getStatusCode());
-                    assertTrue(response.getBody().success());
-                    assertEquals("SQL_INJECTION_abc1", response.getBody().data().get("techniqueId"));
+                    assertTrue(response.getBody().isSuccess());
+                    assertEquals("SQL_INJECTION_abc1", response.getBody().getData().get("techniqueId"));
                     return true;
                 })
                 .verifyComplete();
@@ -154,9 +165,9 @@ class CyberSecurityControllerTest {
         StepVerifier.create(result)
                 .expectNextMatches(response -> {
                     assertEquals(HttpStatus.OK, response.getStatusCode());
-                    assertTrue(response.getBody().success());
-                    assertEquals(0, response.getBody().data().get("vulnerabilitiesFound"));
-                    assertEquals(0.99, response.getBody().data().get("resilienceScore"));
+                    assertTrue(response.getBody().isSuccess());
+                    assertEquals(0, response.getBody().getData().get("vulnerabilitiesFound"));
+                    assertEquals(0.99, response.getBody().getData().get("resilienceScore"));
                     return true;
                 })
                 .verifyComplete();

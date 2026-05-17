@@ -35,25 +35,23 @@ class MultiAIVotingServiceTest {
     private AIProvider provider2;
 
     private com.supremeai.service.MultiAIVotingService votingService;
-    private ThreadPoolTaskExecutor executor;
 
     @BeforeEach
     void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
         
-        executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(2);
-        executor.initialize();
+        votingService = new com.supremeai.service.MultiAIVotingService();
         
-        votingService = new com.supremeai.service.MultiAIVotingService(executor);
-        
-        // Inject dependencies manually
+        // Inject dependencies manually via reflection
         setField(votingService, "providerFactory", providerFactory);
         setField(votingService, "providerRepository", providerRepository);
-        setField(votingService, "activeProviders", "p1,p2");
         
-        // Default mock for repository
-        when(providerRepository.findAll()).thenReturn(Flux.empty());
+        // Mock provider list for findAll
+        APIProvider ap1 = new APIProvider("p1", "p1", "type", "active");
+        ap1.setCanParticipateInVoting(true);
+        APIProvider ap2 = new APIProvider("p2", "p2", "type", "active");
+        ap2.setCanParticipateInVoting(true);
+        when(providerRepository.findAll()).thenReturn(Flux.just(ap1, ap2));
     }
 
     private void setField(Object target, String fieldName, Object value) throws Exception {
@@ -64,13 +62,13 @@ class MultiAIVotingServiceTest {
 
     @Test
     void testConductDecisionVote_Consensus() {
-        when(providerFactory.getProvider("p1")).thenReturn(provider1);
-        when(providerFactory.getProvider("p2")).thenReturn(provider2);
+        when(providerFactory.getEnforcedProvider("p1")).thenReturn(provider1);
+        when(providerFactory.getEnforcedProvider("p2")).thenReturn(provider2);
         
         when(provider1.generate(anyString())).thenReturn(Mono.just("Agree"));
         when(provider2.generate(anyString())).thenReturn(Mono.just("Agree"));
         
-        VotingDecision decision = votingService.conductDecisionVote("Test Question", "Test Context");
+        VotingDecision decision = votingService.conductDecisionVote("Test Question", "Test Context").block();
         
         assertNotNull(decision);
         assertEquals("STRONG", decision.getStrength());
@@ -81,13 +79,13 @@ class MultiAIVotingServiceTest {
 
     @Test
     void testConductDecisionVote_Split() {
-        when(providerFactory.getProvider("p1")).thenReturn(provider1);
-        when(providerFactory.getProvider("p2")).thenReturn(provider2);
+        when(providerFactory.getEnforcedProvider("p1")).thenReturn(provider1);
+        when(providerFactory.getEnforcedProvider("p2")).thenReturn(provider2);
         
         when(provider1.generate(anyString())).thenReturn(Mono.just("Yes"));
         when(provider2.generate(anyString())).thenReturn(Mono.just("No"));
         
-        VotingDecision decision = votingService.conductDecisionVote("Test Question", "Test Context");
+        VotingDecision decision = votingService.conductDecisionVote("Test Question", "Test Context").block();
         
         assertNotNull(decision);
         assertEquals("WEAK", decision.getStrength());
@@ -101,13 +99,13 @@ class MultiAIVotingServiceTest {
         p1.setCanParticipateInVoting(true);
         when(providerRepository.findAll()).thenReturn(Flux.just(p1));
         
-        when(providerFactory.getProvider(anyString())).thenThrow(new RuntimeException("Provider failure"));
+        when(providerFactory.getEnforcedProvider(anyString())).thenThrow(new RuntimeException("Provider failure"));
         
-        VotingDecision decision = votingService.conductDecisionVote("Test Question", "Test Context");
+        VotingDecision decision = votingService.conductDecisionVote("Test Question", "Test Context").block();
         
         assertEquals("ERROR", decision.getStrength());
         assertEquals(0.0, decision.getConfidence());
-        assertTrue(decision.getAiConsensus().contains("failed"));
+        assertTrue(decision.getAiConsensus().contains("ব্যর্থ হয়েছে"));
     }
 }
 

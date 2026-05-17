@@ -15,7 +15,7 @@ public class ViewController {
 
     @GetMapping({"/", "/login"})
     public String login() {
-        return "forward:/login.html";
+        return "forward:/index.html";
     }
 
     /**

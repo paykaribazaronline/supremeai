@@ -1,0 +1,185 @@
+{
+  "system_identity": {
+    "name": "SupremeAI",
+    "version": "5.2.0-Phase4",
+    "phase": "Phase 4 — Pre-Market Launch & Final Polishing",
+    "core_philosophy": "SupremeAI is the ultimate orchestrator that leads all specialized hubs. It is a self-learning entity that evolves its logic through every interaction."
+  },
+  "meta_logic_patterns": {
+    "command_superiority": {
+      "description": "SupremeAI analyzes ambiguous requests and maps them to high-level intents.",
+      "steps": ["intent_classification", "task_decomposition", "hub_delegation", "output_validation"]
+    },
+    "self_learning_loop": {
+      "description": "Mechanism for updating core logic based on user corrections or successful outcomes.",
+      "triggers": ["explicit_correction", "performance_score_low", "new_pattern_detected"],
+      "action": "Update 'learned_knowledge' and propose refinement to 'intent_taxonomy'."
+    },
+    "system_suggestion_logic": {
+      "description": "Logic for proactive model updates and link evaluation.",
+      "evaluation_criteria": ["parameter_efficiency", "context_window", "task_accuracy", "infrastructure_cost"]
+    }
+  },
+  "intent_taxonomy": {
+    "technical_and_engineering": {
+      "hub": "Development Hub (DeepSeek-Coder-V2)",
+      "clusters": {
+        "software_development": {
+          "sub_categories": ["web_frontend", "web_backend", "mobile_ios", "mobile_android", "cross_platform", "desktop_apps", "api_microservices", "legacy_refactoring"],
+          "tasks": [
+            {"id": "sd_001", "intent": "React with Vite and Tailwind setup", "priority": "high"},
+            {"id": "sd_002", "intent": "Spring Boot 3 Security configuration with JWT", "priority": "high"},
+            {"id": "sd_003", "intent": "Flutter Clean Architecture project scaffolding", "priority": "medium"},
+            {"id": "sd_004", "intent": "Legacy PHP to Node.js microservices migration", "priority": "medium"},
+            {"id": "sd_005", "intent": "PostgreSQL database schema optimization for large datasets", "priority": "high"},
+            {"id": "sd_006", "intent": "Dockerize multi-container microservices app", "priority": "medium"},
+            {"id": "sd_007", "intent": "Implement WebSocket for real-time chat", "priority": "high"},
+            {"id": "sd_008", "intent": "Unit and Integration testing with JUnit 5 and Mockito", "priority": "medium"},
+            {"id": "sd_009", "intent": "GraphQL API design with Apollo Server", "priority": "medium"},
+            {"id": "sd_010", "intent": "OAuth2 Social Login integration (Google/GitHub)", "priority": "high"},
+            {"id": "sd_011", "intent": "Redis caching layer for high-traffic endpoints", "priority": "high"},
+            {"id": "sd_012", "intent": "Elasticsearch implementation for full-text search", "priority": "medium"},
+            {"id": "sd_013", "intent": "Server-Side Rendering (SSR) with Next.js", "priority": "high"},
+            {"id": "sd_014", "intent": "State management with Redux Toolkit and RTK Query", "priority": "medium"},
+            {"id": "sd_015", "intent": "gRPC service definition and implementation", "priority": "medium"}
+          ]
+        },
+        "data_science_ai": {
+          "sub_categories": ["machine_learning", "deep_learning", "nlp_specialization", "computer_vision", "predictive_analytics", "data_engineering", "etl_pipelines", "model_fine_tuning"],
+          "tasks": [
+            {"id": "ds_001", "intent": "Fine-tune Llama-3 on domain-specific dataset", "priority": "high"},
+            {"id": "ds_002", "intent": "Object detection pipeline using YOLOv8", "priority": "medium"},
+            {"id": "ds_003", "intent": "Time-series forecasting for stock market trends", "priority": "high"},
+            {"id": "ds_004", "intent": "RAG system with Pinecone and LangChain", "priority": "high"},
+            {"id": "ds_005", "intent": "Spark ETL job for processing TBs of logs", "priority": "medium"},
+            {"id": "ds_006", "intent": "Sentiment analysis on social media stream", "priority": "medium"},
+            {"id": "ds_007", "intent": "Recommendation engine using collaborative filtering", "priority": "high"},
+            {"id": "ds_008", "intent": "Anomaly detection in financial transactions", "priority": "high"},
+            {"id": "ds_009", "intent": "Medical image segmentation using UNet", "priority": "high"},
+            {"id": "ds_010", "intent": "Reinforcement Learning agent for game strategy", "priority": "medium"}
+          ]
+        },
+        "devops_cloud": {
+          "sub_categories": ["ci_cd_automation", "kubernetes_management", "terraform_iac", "cloud_security", "serverless_optimization", "monitoring_observability", "database_administration"],
+          "tasks": [
+            {"id": "do_001", "intent": "Setup multi-stage CI/CD via GitHub Actions", "priority": "high"},
+            {"id": "do_002", "intent": "Autoscale Kubernetes nodes based on GPU usage", "priority": "medium"},
+            {"id": "do_003", "intent": "Terraform script for AWS multi-AZ infrastructure", "priority": "high"},
+            {"id": "do_004", "intent": "Prometheus and Grafana dashboard for API monitoring", "priority": "medium"},
+            {"id": "do_005", "intent": "Zero-downtime deployment strategy with Blue-Green", "priority": "high"},
+            {"id": "do_006", "intent": "Istio Service Mesh configuration and MTLS", "priority": "medium"},
+            {"id": "do_007", "intent": "Cloud cost optimization audit for GCloud/AWS", "priority": "high"}
+          ]
+        },
+        "cybersecurity": {
+          "sub_categories": ["penetration_testing", "threat_modeling", "incident_response", "cryptography", "identity_access_management", "compliance_auditing", "cloud_security_posture", "malware_analysis", "social_engineering_defense", "blockchain_security"],
+          "tasks": [
+            {"id": "cs_001", "intent": "Automated vulnerability scanning pipeline", "priority": "high"},
+            {"id": "cs_002", "intent": "Zero Trust architecture implementation", "priority": "high"},
+            {"id": "cs_003", "intent": "OAuth2 and OpenID Connect security audit", "priority": "medium"},
+            {"id": "cs_004", "intent": "Implementing AES-256 encryption at rest/transit", "priority": "high"},
+            {"id": "cs_005", "intent": "DDoS mitigation strategy for global apps", "priority": "high"},
+            {"id": "cs_006", "intent": "Smart contract security audit for Ethereum", "priority": "high"},
+            {"id": "cs_007", "intent": "Designing an Incident Response Plan for Ransomware", "priority": "medium"},
+            {"id": "cs_008", "intent": "Hardening Linux servers against SSH brute-force", "priority": "medium"},
+            {"id": "cs_009", "intent": "Configuring AWS WAF for SQLi and XSS protection", "priority": "high"},
+            {"id": "cs_010", "intent": "Conducting a PCI-DSS compliance gap analysis", "priority": "high"}
+          ]
+        },
+        "mobile_engineering": {
+          "hub": "Development Hub (DeepSeek-Coder-V2)",
+          "clusters": {
+            "flutter_ecosystem": {
+              "sub_categories": ["state_management", "native_integration", "animations", "performance_tuning", "multi_platform_release"],
+              "tasks": [
+                {"id": "me_001", "intent": "Flutter BLoC vs Provider architectural decision", "priority": "medium"},
+                {"id": "me_002", "intent": "Integrating Google Maps in Flutter with custom markers", "priority": "high"},
+                {"id": "me_003", "intent": "Flutter Desktop (Windows/macOS) app distribution", "priority": "medium"}
+              ]
+            },
+            "native_android": {
+              "sub_categories": ["kotlin_coroutines", "jetpack_compose", "hilt_di", "room_database", "foreground_services"],
+              "tasks": [
+                {"id": "me_004", "intent": "Migrating XML layouts to Jetpack Compose", "priority": "high"},
+                {"id": "me_005", "intent": "Implementing Android WorkManager for background sync", "priority": "medium"}
+              ]
+            }
+          }
+        }
+      }
+    },
+    "linguistic_and_creative": {
+      "hub": "Language & Marketing Hub (Llama-3.1 / Qwen)",
+      "clusters": {
+        "marketing_growth": {
+          "sub_categories": ["seo_optimization", "content_strategy", "social_media_growth", "email_marketing", "ad_copy_generation", "brand_storytelling", "influencer_outreach", "conversion_rate_optimization", "affiliate_marketing", "video_marketing_scripts"],
+          "tasks": [
+            {"id": "mk_001", "intent": "SEO audit and keyword strategy for SaaS", "priority": "high"},
+            {"id": "mk_002", "intent": "Automated LinkedIn content calendar generation", "priority": "medium"},
+            {"id": "mk_003", "intent": "High-converting email sequence for lead nurturing", "priority": "high"},
+            {"id": "mk_004", "intent": "PPC ad copy generation for Google/Meta ads", "priority": "medium"},
+            {"id": "mk_005", "intent": "Brand persona and tone-of-voice guide creation", "priority": "high"},
+            {"id": "mk_006", "intent": "Designing an Instagram growth loop strategy", "priority": "medium"},
+            {"id": "mk_007", "intent": "Creating a viral TikTok script for tech products", "priority": "high"},
+            {"id": "mk_008", "intent": "Analyzing competitor backlink profiles", "priority": "medium"},
+            {"id": "mk_009", "intent": "A/B testing landing page copy for better CRO", "priority": "high"},
+            {"id": "mk_010", "intent": "Writing a comprehensive whitepaper for B2B lead gen", "priority": "high"}
+          ]
+        },
+        "business_operations": {
+          "sub_categories": ["market_research", "financial_forecasting", "legal_doc_drafting", "hr_policy_design", "project_management", "risk_assessment", "customer_support_flows"],
+          "tasks": [
+            {"id": "bo_001", "intent": "Business plan generator for startups", "priority": "high"},
+            {"id": "bo_002", "intent": "Automated meeting summary and task extraction", "priority": "medium"},
+            {"id": "bo_003", "intent": "Legal contract review for compliance", "priority": "high"},
+            {"id": "bo_004", "intent": "HR employee onboarding workflow automation", "priority": "medium"},
+            {"id": "bo_005", "intent": "Financial quarterly report analysis and visualization", "priority": "high"}
+          ]
+        },
+        "academic_linguistics": {
+          "sub_categories": ["complex_summarization", "bengali_nuance_translation", "literature_review", "thesis_guidance", "creative_writing", "philosophical_discourse"],
+          "tasks": [
+            {"id": "al_001", "intent": "Advanced Bengali poetry and literature synthesis", "priority": "medium"},
+            {"id": "al_002", "intent": "Academic paper peer-review simulation", "priority": "high"},
+            {"id": "al_003", "intent": "Translating ancient manuscripts with context preservation", "priority": "medium"}
+          ]
+        }
+      }
+    },
+    "multimodal_synthesis": {
+      "hub": "Visual & Voice Hub (Flux/SVD/Voicebox)",
+      "clusters": {
+        "visual_design": {
+          "sub_categories": ["ui_ux_prototyping", "brand_asset_creation", "3d_rendering", "ai_video_production", "motion_graphics", "image_restoration", "architectural_visualization"],
+          "tasks": [
+            {"id": "vi_001", "intent": "Generate 3D product mockup from 2D image", "priority": "high"},
+            {"id": "vi_002", "intent": "AI-powered video commercial from script", "priority": "high"},
+            {"id": "vi_003", "intent": "Logo design and brand identity package", "priority": "medium"},
+            {"id": "vi_004", "intent": "High-fidelity UI prototype for mobile app", "priority": "high"},
+            {"id": "vi_005", "intent": "Restoring old/damaged photos using AI", "priority": "medium"}
+          ]
+        },
+        "audio_engineering": {
+          "sub_categories": ["voice_cloning", "podcast_editing", "emotional_tts", "audio_transcription", "music_composition", "noise_reduction", "sentiment_audio_analysis"],
+          "tasks": [
+            {"id": "ae_001", "intent": "Natural emotional TTS for audiobooks", "priority": "high"},
+            {"id": "ae_002", "intent": "AI background music generation for videos", "priority": "medium"},
+            {"id": "ae_003", "intent": "Multi-speaker podcast transcription and diarization", "priority": "high"}
+          ]
+        }
+      }
+    }
+  },
+  "learning_reservoir": {
+    "recent_corrections": [],
+    "newly_discovered_tasks": [],
+    "optimized_logic_paths": {}
+  },
+  "operational_constraints": {
+    "data_privacy": "100% GCloud Native - No data leaves the VPC.",
+    "response_priority": {
+      "low_latency": "Phi-3.5-mini (Edge Cluster)",
+      "high_accuracy": "MoE Super-Hubs"
+    }
+  }
+}

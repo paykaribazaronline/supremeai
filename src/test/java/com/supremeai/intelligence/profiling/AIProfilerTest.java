@@ -1,6 +1,6 @@
 package com.supremeai.intelligence.profiling;
 
-import com.supremeai.provider.AIProviderType;
+
 import org.junit.jupiter.api.Test;
 import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
@@ -15,35 +15,35 @@ class AIProfilerTest {
     void testRecordPerformance_newCategoryCreatesProfile() {
         AIProfiler profiler = new AIProfiler();
 
-        profiler.recordPerformance("SQL_FIX", AIProviderType.GROQ_LLAMA3, true, 150);
+        profiler.recordPerformance("SQL_FIX", "groq", true, 150);
 
-        AIProviderType best = profiler.getBestAIForTask("SQL_FIX");
+        String best = profiler.getBestAIForTask("SQL_FIX");
 
-        assertEquals(AIProviderType.GROQ_LLAMA3, best);
+        assertEquals("groq", best);
     }
 
     @Test
     void testRecordPerformance_multipleProviders() {
         AIProfiler profiler = new AIProfiler();
 
-        profiler.recordPerformance("JAVA_GENERATION", AIProviderType.GROQ_LLAMA3, true, 200);
-        profiler.recordPerformance("JAVA_GENERATION", AIProviderType.GEMINI_PRO, true, 100);
+        profiler.recordPerformance("JAVA_GENERATION", "groq", true, 200);
+        profiler.recordPerformance("JAVA_GENERATION", "gemini", true, 100);
 
-        AIProviderType best = profiler.getBestAIForTask("JAVA_GENERATION");
+        String best = profiler.getBestAIForTask("JAVA_GENERATION");
 
         // Gemini is faster -> better score
-        assertEquals(AIProviderType.GEMINI_PRO, best);
+        assertEquals("gemini", best);
     }
 
     @Test
     void testRecordPerformance_bestAIChangesOverTime() {
         AIProfiler profiler = new AIProfiler();
 
-        profiler.recordPerformance("TASK", AIProviderType.GROQ_LLAMA3, true, 300);
-        profiler.recordPerformance("TASK", AIProviderType.GEMINI_PRO, true, 200);
-        profiler.recordPerformance("TASK", AIProviderType.GROQ_LLAMA3, true, 100);  // Groq improves
+        profiler.recordPerformance("TASK", "groq", true, 300);
+        profiler.recordPerformance("TASK", "gemini", true, 200);
+        profiler.recordPerformance("TASK", "groq", true, 100);  // Groq improves
 
-        AIProviderType best = profiler.getBestAIForTask("TASK");
+        String best = profiler.getBestAIForTask("TASK");
 
         assertNotNull(best);
     }
@@ -52,21 +52,21 @@ class AIProfilerTest {
     void testGetBestAIForTask_unknownCategoryReturnsDefault() {
         AIProfiler profiler = new AIProfiler();
 
-        AIProviderType best = profiler.getBestAIForTask("UNKNOWN_TASK");
+        String best = profiler.getBestAIForTask("UNKNOWN_TASK");
 
-        assertEquals(AIProviderType.GROQ_LLAMA3, best);
+        assertEquals("groq", best);
     }
 
     @Test
     void testRecordPerformance_failureAffectsScore() {
         AIProfiler profiler = new AIProfiler();
 
-        profiler.recordPerformance("TASK", AIProviderType.GROQ_LLAMA3, false, 100);  // failure
-        profiler.recordPerformance("TASK", AIProviderType.GROQ_LLAMA3, true, 200);   // success
+        profiler.recordPerformance("TASK", "groq", false, 100);  // failure
+        profiler.recordPerformance("TASK", "groq", true, 200);   // success
 
-        AIProviderType best = profiler.getBestAIForTask("TASK");
+        String best = profiler.getBestAIForTask("TASK");
 
-        assertEquals(AIProviderType.GROQ_LLAMA3, best);
+        assertEquals("groq", best);
         // Even with 50% success, still the only provider
         assertNotNull(best);
     }
@@ -75,14 +75,14 @@ class AIProfilerTest {
     void testRecordPerformance_multipleTasksIndependent() {
         AIProfiler profiler = new AIProfiler();
 
-        profiler.recordPerformance("SQL", AIProviderType.GROQ_LLAMA3, true, 100);
-        profiler.recordPerformance("PYTHON", AIProviderType.GEMINI_PRO, true, 50);
+        profiler.recordPerformance("SQL", "groq", true, 100);
+        profiler.recordPerformance("PYTHON", "gemini", true, 50);
 
-        AIProviderType bestSQL = profiler.getBestAIForTask("SQL");
-        AIProviderType bestPython = profiler.getBestAIForTask("PYTHON");
+        String bestSQL = profiler.getBestAIForTask("SQL");
+        String bestPython = profiler.getBestAIForTask("PYTHON");
 
-        assertEquals(AIProviderType.GROQ_LLAMA3, bestSQL);
-        assertEquals(AIProviderType.GEMINI_PRO, bestPython);
+        assertEquals("groq", bestSQL);
+        assertEquals("gemini", bestPython);
     }
 
     @Test
@@ -91,16 +91,16 @@ class AIProfilerTest {
 
         // Make Groq consistently fast
         for (int i = 0; i < 10; i++) {
-            profiler.recordPerformance("TASK", AIProviderType.GROQ_LLAMA3, true, 50);
+            profiler.recordPerformance("TASK", "groq", true, 50);
         }
         // Make Gemini slower
         for (int i = 0; i < 10; i++) {
-            profiler.recordPerformance("TASK", AIProviderType.GEMINI_PRO, true, 500);
+            profiler.recordPerformance("TASK", "gemini", true, 500);
         }
 
-        AIProviderType best = profiler.getBestAIForTask("TASK");
+        String best = profiler.getBestAIForTask("TASK");
 
-        assertEquals(AIProviderType.GROQ_LLAMA3, best);
+        assertEquals("groq", best);
     }
 
     @Test
@@ -109,17 +109,17 @@ class AIProfilerTest {
 
         // Groq: 50% success, Gemini: 90% success
         for (int i = 0; i < 5; i++) {
-            profiler.recordPerformance("TASK", AIProviderType.GROQ_LLAMA3, true, 100);
-            profiler.recordPerformance("TASK", AIProviderType.GROQ_LLAMA3, false, 100);
+            profiler.recordPerformance("TASK", "groq", true, 100);
+            profiler.recordPerformance("TASK", "groq", false, 100);
         }
         for (int i = 0; i < 9; i++) {
-            profiler.recordPerformance("TASK", AIProviderType.GEMINI_PRO, true, 100);
+            profiler.recordPerformance("TASK", "gemini", true, 100);
         }
-        profiler.recordPerformance("TASK", AIProviderType.GEMINI_PRO, false, 100);
+        profiler.recordPerformance("TASK", "gemini", false, 100);
 
-        AIProviderType best = profiler.getBestAIForTask("TASK");
+        String best = profiler.getBestAIForTask("TASK");
 
-        assertEquals(AIProviderType.GEMINI_PRO, best);
+        assertEquals("gemini", best);
     }
 
     @Test
@@ -136,7 +136,7 @@ class AIProfilerTest {
         AIProfiler profiler = new AIProfiler();
 
         assertThrows(NullPointerException.class, () -> {
-            profiler.recordPerformance(null, AIProviderType.GROQ_LLAMA3, true, 100);
+            profiler.recordPerformance(null, "groq", true, 100);
         });
     }
 
@@ -145,14 +145,14 @@ class AIProfilerTest {
         AIProfiler profiler = new AIProfiler();
 
         // Both have equal score
-        profiler.recordPerformance("TASK", AIProviderType.GROQ_LLAMA3, true, 100);
-        profiler.recordPerformance("TASK", AIProviderType.GEMINI_PRO, true, 100);
+        profiler.recordPerformance("TASK", "groq", true, 100);
+        profiler.recordPerformance("TASK", "gemini", true, 100);
 
-        AIProviderType best = profiler.getBestAIForTask("TASK");
+        String best = profiler.getBestAIForTask("TASK");
 
         assertNotNull(best);
         // Should pick one of them
-        assertTrue(best == AIProviderType.GROQ_LLAMA3 || best == AIProviderType.GEMINI_PRO);
+        assertTrue(best == "groq" || best == "gemini");
     }
 
     @Test
@@ -160,10 +160,10 @@ class AIProfilerTest {
         AIProfiler profiler = new AIProfiler();
 
         // All providers have 0% success
-        profiler.recordPerformance("TASK", AIProviderType.GROQ_LLAMA3, false, 100);
-        profiler.recordPerformance("TASK", AIProviderType.GEMINI_PRO, false, 200);
+        profiler.recordPerformance("TASK", "groq", false, 100);
+        profiler.recordPerformance("TASK", "gemini", false, 200);
 
-        AIProviderType best = profiler.getBestAIForTask("TASK");
+        String best = profiler.getBestAIForTask("TASK");
 
         // With scoring, even 0% success will have score based on speed
         // Should still return something (the fastest failure)
@@ -174,12 +174,12 @@ class AIProfilerTest {
     void testRecordPerformance_zeroExecutionTime() {
         AIProfiler profiler = new AIProfiler();
 
-        profiler.recordPerformance("TASK", AIProviderType.GROQ_LLAMA3, true, 0);
+        profiler.recordPerformance("TASK", "groq", true, 0);
 
         // Should not throw
-        AIProviderType best = profiler.getBestAIForTask("TASK");
+        String best = profiler.getBestAIForTask("TASK");
 
-        assertEquals(AIProviderType.GROQ_LLAMA3, best);
+        assertEquals("groq", best);
     }
 
     @Test
@@ -187,26 +187,26 @@ class AIProfilerTest {
         AIProfiler profiler = new AIProfiler();
 
         for (int i = 0; i < 1000; i++) {
-            profiler.recordPerformance("BULK_TASK", AIProviderType.GROQ_LLAMA3, i % 2 == 0, 100 + i);
+            profiler.recordPerformance("BULK_TASK", "groq", i % 2 == 0, 100 + i);
         }
 
-        AIProviderType best = profiler.getBestAIForTask("BULK_TASK");
+        String best = profiler.getBestAIForTask("BULK_TASK");
 
-        assertEquals(AIProviderType.GROQ_LLAMA3, best);
+        assertEquals("groq", best);
     }
 
     @Test
     void testProfilePersistence_acrossMultipleRecords() {
         AIProfiler profiler = new AIProfiler();
 
-        profiler.recordPerformance("TASK1", AIProviderType.GROQ_LLAMA3, true, 100);
-        AIProviderType best1 = profiler.getBestAIForTask("TASK1");
+        profiler.recordPerformance("TASK1", "groq", true, 100);
+        String best1 = profiler.getBestAIForTask("TASK1");
 
-        profiler.recordPerformance("TASK1", AIProviderType.GEMINI_PRO, true, 50);
-        AIProviderType best2 = profiler.getBestAIForTask("TASK1");
+        profiler.recordPerformance("TASK1", "gemini", true, 50);
+        String best2 = profiler.getBestAIForTask("TASK1");
 
         assertNotEquals(best1, best2);
-        assertEquals(AIProviderType.GEMINI_PRO, best2);
+        assertEquals("gemini", best2);
     }
 
     @Test
@@ -214,7 +214,7 @@ class AIProfilerTest {
         AIProfiler profiler = new AIProfiler();
 
         assertDoesNotThrow(() -> {
-            profiler.recordPerformance("TASK", AIProviderType.GROQ_LLAMA3, true, -100);
+            profiler.recordPerformance("TASK", "groq", true, -100);
         });
     }
 }

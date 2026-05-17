@@ -145,6 +145,7 @@ public class AdaptiveAgentOrchestrator {
         result.setCompletedAt(completed);
         result.setStatus("COMPLETED");
         result.setMode(detectedMode);
+        result.setGenerationContext(generationContext);
 
         return result;
     }

@@ -96,8 +96,8 @@ class AppGenerationControllerTest {
                 .expectNextMatches(response -> {
                     assertEquals(200, response.getStatusCode().value());
                     assertTrue(response.getBody().isSuccess());
-                    assertEquals("My AI App", response.getBody().data().get("name"));
-                    assertEquals("GENERATED", response.getBody().data().get("status"));
+                    assertEquals("My AI App", response.getBody().getData().get("name"));
+                    assertEquals("GENERATED", response.getBody().getData().get("status"));
                     return true;
                 })
                 .verifyComplete();
@@ -142,8 +142,8 @@ class AppGenerationControllerTest {
         StepVerifier.create(result)
                 .expectNextMatches(response -> {
                     assertEquals(200, response.getStatusCode().value());
-                    assertEquals("E-Commerce App", response.getBody().data().get("name"));
-                    assertTrue(response.getBody().data().containsKey("appId"));
+                    assertEquals("E-Commerce App", response.getBody().getData().get("name"));
+                    assertTrue(response.getBody().getData().containsKey("appId"));
                     return true;
                 })
                 .verifyComplete();
@@ -183,7 +183,7 @@ class AppGenerationControllerTest {
         StepVerifier.create(result)
                 .expectNextMatches(response -> {
                     assertEquals(200, response.getStatusCode().value());
-                    assertTrue(response.getBody().success());
+                    assertTrue(response.getBody().isSuccess());
                     return true;
                 })
                 .verifyComplete();
@@ -301,7 +301,7 @@ class AppGenerationControllerTest {
         StepVerifier.create(result)
                 .expectNextMatches(response -> {
                     assertEquals(500, response.getStatusCode().value());
-                    assertTrue(response.getBody().get("error").toString().contains("failed"));
+                    assertTrue(response.getBody().getError().toString().contains("failed"));
                     return true;
                 })
                 .verifyComplete();
@@ -329,7 +329,7 @@ class AppGenerationControllerTest {
         StepVerifier.create(result)
                 .expectNextMatches(response -> {
                     assertEquals(200, response.getStatusCode().value());
-                    Map<String, Object> body = response.getBody().data();
+                    Map<String, Object> body = response.getBody().getData();
                     assertTrue((Boolean) body.get("preview"));
                     assertEquals(3, body.get("files")); // Limited to 3
                     assertEquals(4, body.get("totalFiles"));
@@ -365,7 +365,7 @@ class AppGenerationControllerTest {
         StepVerifier.create(result)
                 .expectNextMatches(response -> {
                     assertEquals(200, response.getStatusCode().value());
-                    Map<String, String> body = response.getBody().data();
+                    Map<String, String> body = response.getBody().getData();
                     assertEquals("UP", body.get("status"));
                     assertEquals("AppGenerationService", body.get("service"));
                     return true;

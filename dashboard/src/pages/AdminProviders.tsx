@@ -22,6 +22,19 @@ const AdminProviders: React.FC = () => {
   const [healthStats, setHealthStats] = useState<StatsType | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
+  const DEPLOYMENT_GROUPS: Record<string, { label: string; icon: string; order: number }> = {
+    api:       { label: 'API Key',       icon: '🔑', order: 1 },
+    gcloud:    { label: 'GCloud Deploy', icon: '☁️', order: 2 },
+    local:     { label: 'Local / Ollama', icon: '🖥️', order: 3 },
+    ollama:    { label: 'Local / Ollama', icon: '🖥️', order: 3 },
+  };
+
+  const getDeploymentGroup = (provider: Provider): string => {
+    const source = (provider.deploymentSource || 'api').toLowerCase();
+    if (DEPLOYMENT_GROUPS[source]) return source;
+    return 'other';
+  };
+
   const groupedProviders = React.useMemo(() => {
     let filtered = [...providers];
 
@@ -31,19 +44,44 @@ const AdminProviders: React.FC = () => {
         (p.name?.toLowerCase() || '').includes(lower) || 
         (p.type?.toLowerCase() || '').includes(lower) ||
         p.models?.some(m => m.toLowerCase().includes(lower)) ||
-        (p.hints?.toLowerCase() || '').includes(lower)
+        (p.hints?.toLowerCase() || '').includes(lower) ||
+        (p.deploymentSource?.toLowerCase() || '').includes(lower)
       );
     }
 
     const groups: Record<string, Provider[]> = {};
     filtered.forEach(p => {
-      const primaryModel = p.models && p.models.length > 0 ? p.models[0] : 'Unassigned / Legacy';
-      if (!groups[primaryModel]) groups[primaryModel] = [];
-      groups[primaryModel].push(p);
+      const groupKey = getDeploymentGroup(p);
+      if (!groups[groupKey]) groups[groupKey] = [];
+      groups[groupKey].push(p);
+    });
+
+    // Sort within each group: active first, then inactive, then error, etc.
+    const statusOrder: Record<string, number> = { active: 0, rotating: 1, inactive: 2, error: 3, dead: 4 };
+    Object.keys(groups).forEach(key => {
+      groups[key].sort((a, b) => {
+        const aOrder = statusOrder[a.status] ?? 99;
+        const bOrder = statusOrder[b.status] ?? 99;
+        if (aOrder !== bOrder) return aOrder - bOrder;
+        return (a.name || '').localeCompare(b.name || '');
+      });
     });
 
     return groups;
   }, [providers, searchTerm]);
+
+  const sortedGroupKeys = React.useMemo(() => {
+    const apiGroups = Object.keys(groupedProviders)
+      .filter(k => DEPLOYMENT_GROUPS[k])
+      .sort((a, b) => (DEPLOYMENT_GROUPS[a]?.order ?? 99) - (DEPLOYMENT_GROUPS[b]?.order ?? 99));
+    if (groupedProviders['other']) apiGroups.push('other');
+    return apiGroups;
+  }, [groupedProviders]);
+
+  const getGroupLabel = (key: string): string => {
+    if (DEPLOYMENT_GROUPS[key]) return `${DEPLOYMENT_GROUPS[key].icon} ${DEPLOYMENT_GROUPS[key].label}`;
+    return '⚙️ Other';
+  };
 
   const fetchProviders = async () => {
     setLoading(true);
@@ -175,6 +213,8 @@ const AdminProviders: React.FC = () => {
             ) : (
               <ProvidersTable
                 providers={groupedProviders}
+                sortedGroupKeys={sortedGroupKeys}
+                getGroupLabel={getGroupLabel}
                 loading={loading}
                 onEdit={(record) => {
                   setEditingProvider(record);
@@ -192,9 +232,16 @@ const AdminProviders: React.FC = () => {
             <Space direction="vertical" style={{ width: '100%' }} size="large">
               <Card size="small" style={{ borderRadius: '12px' }}>
                 <Statistic 
-                  title="Total Active Models" 
-                  value={Object.keys(groupedProviders).length} 
+                  title="Total Active Providers" 
+                  value={providers.filter(p => p.status === 'active').length} 
                   prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />} 
+                />
+              </Card>
+              <Card size="small" style={{ borderRadius: '12px' }}>
+                <Statistic 
+                  title="Deployment Groups" 
+                  value={sortedGroupKeys.length} 
+                  prefix={<CheckCircleOutlined style={{ color: '#1890ff' }} />} 
                 />
               </Card>
               <Card size="small" style={{ borderRadius: '12px' }}>

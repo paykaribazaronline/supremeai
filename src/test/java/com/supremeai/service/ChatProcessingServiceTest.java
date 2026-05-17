@@ -57,7 +57,7 @@ class ChatProcessingServiceTest {
         
         when(chatClassifier.classify(message)).thenReturn(result);
         when(fallbackOrchestrator.executeWithSupremeIntelligence(anyString(), anyString(), anyString(), anyString()))
-            .thenReturn(aiReply);
+            .thenReturn(Mono.just(aiReply));
         
         Map<String, Object> response = chatProcessingService.processMessage(userId, message, false).block();
         

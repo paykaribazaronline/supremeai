@@ -1,6 +1,5 @@
 package com.supremeai.service;
 
-import com.supremeai.ai.client.OpenAIClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,14 +14,11 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(MockitoExtension.class)
 class CodeGenerationServiceTest {
 
-    @Mock
-    private OpenAIClient openAIClient;
-
     private CodeGenerationService codeGenerationService;
 
     @BeforeEach
     void setUp() {
-        codeGenerationService = new CodeGenerationService(openAIClient);
+        codeGenerationService = new CodeGenerationService();
     }
 
     @Test

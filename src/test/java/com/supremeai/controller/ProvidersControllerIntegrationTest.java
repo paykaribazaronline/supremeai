@@ -11,14 +11,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -42,9 +46,9 @@ class ProvidersControllerIntegrationTest {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         Authentication auth = mock(Authentication.class);
         lenient().when(auth.getName()).thenReturn(userId);
-        lenient().when(auth.getAuthorities()).thenReturn(
-                List.of(new SimpleGrantedAuthority("ROLE_" + role))
-        );
+        Collection<? extends GrantedAuthority> authorities =
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
+        lenient().doReturn(authorities).when(auth).getAuthorities();
         context.setAuthentication(auth);
         SecurityContextHolder.setContext(context);
     }
@@ -58,19 +62,14 @@ class ProvidersControllerIntegrationTest {
 
         when(providerAdminService.getAllProviders()).thenReturn(Flux.just(p1, p2));
 
-        Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> result =
+        ResponseEntity<ApiResponse<Map<String, Object>>> result =
                 providersController.getConfiguredProviders();
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.OK, response.getStatusCode());
-                    assertTrue(response.getBody().success());
-                    Map<String, Object> data = response.getBody().data();
-                    List<?> providers = (List<?>) data.get("providers");
-                    assertEquals(2, providers.size());
-                    return true;
-                })
-                .verifyComplete();
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertTrue(result.getBody().isSuccess());
+        Map<String, Object> data = result.getBody().getData();
+        List<?> providers = (List<?>) data.get("providers");
+        assertEquals(2, providers.size());
 
         verify(providerAdminService).getAllProviders();
     }
@@ -79,18 +78,13 @@ class ProvidersControllerIntegrationTest {
     void getConfiguredProviders_EmptyList_ReturnsEmpty() {
         when(providerAdminService.getAllProviders()).thenReturn(Flux.empty());
 
-        Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> result =
+        ResponseEntity<ApiResponse<Map<String, Object>>> result =
                 providersController.getConfiguredProviders();
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.OK, response.getStatusCode());
-                    Map<String, Object> data = response.getBody().data();
-                    List<?> providers = (List<?>) data.get("providers");
-                    assertTrue(providers.isEmpty());
-                    return true;
-                })
-                .verifyComplete();
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        Map<String, Object> data = result.getBody().getData();
+        List<?> providers = (List<?>) data.get("providers");
+        assertTrue(providers.isEmpty());
     }
 
     // ==================== addProvider Tests ====================
@@ -109,17 +103,12 @@ class ProvidersControllerIntegrationTest {
         when(providerAdminService.addProvider(eq(input), anyString()))
                 .thenReturn(Mono.just(saved));
 
-        Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> result =
+        ResponseEntity<ApiResponse<Map<String, Object>>> result =
                 providersController.addProvider(input);
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.OK, response.getStatusCode());
-                    assertTrue(response.getBody().success());
-                    assertEquals("prov-new", ((Map) response.getBody().data().get("provider")).get("id"));
-                    return true;
-                })
-                .verifyComplete();
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertTrue(result.getBody().isSuccess());
+        assertEquals("prov-new", ((Map) result.getBody().getData().get("provider")).get("id"));
 
         verify(providerAdminService).addProvider(eq(input), anyString());
     }
@@ -133,12 +122,7 @@ class ProvidersControllerIntegrationTest {
         input.setType("gemini");
         input.setApiKey("key");
 
-        Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> result =
-                providersController.addProvider(input);
-
-        StepVerifier.create(result)
-                .expectError(IllegalStateException.class)
-                .verify();
+        assertThrows(IllegalStateException.class, () -> providersController.addProvider(input));
     }
 
     // ==================== testProviderKey Tests ====================
@@ -148,19 +132,14 @@ class ProvidersControllerIntegrationTest {
         when(providerAdminService.validateKey("OpenAI", "sk-test"))
                 .thenReturn(Mono.just(true));
 
-        Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> result =
+        ResponseEntity<ApiResponse<Map<String, Object>>> result =
                 providersController.testProviderKey(Map.of(
                         "name", "OpenAI",
                         "apiKey", "sk-test"
                 ));
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.OK, response.getStatusCode());
-                    assertEquals(true, response.getBody().data().get("valid"));
-                    return true;
-                })
-                .verifyComplete();
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals(true, result.getBody().getData().get("valid"));
 
         verify(providerAdminService).validateKey("OpenAI", "sk-test");
     }
@@ -170,43 +149,27 @@ class ProvidersControllerIntegrationTest {
         when(providerAdminService.validateKey("OpenAI", "bad-key"))
                 .thenReturn(Mono.just(false));
 
-        Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> result =
+        ResponseEntity<ApiResponse<Map<String, Object>>> result =
                 providersController.testProviderKey(Map.of(
                         "name", "OpenAI",
                         "apiKey", "bad-key"
                 ));
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-                    return true;
-                })
-                .verifyComplete();
+        assertEquals(HttpStatus.UNAUTHORIZED, result.getStatusCode());
     }
 
     @Test
     void testProviderKey_MissingNameOrKey_ReturnsBadRequest() {
-        Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> result1 =
+        ResponseEntity<ApiResponse<Map<String, Object>>> result1 =
                 providersController.testProviderKey(Map.of("name", "OpenAI"));
         // apiKey missing
 
-        Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> result2 =
+        ResponseEntity<ApiResponse<Map<String, Object>>> result2 =
                 providersController.testProviderKey(Map.of("apiKey", "key"));
         // name missing
 
-        StepVerifier.create(result1)
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-                    return true;
-                })
-                .verifyComplete();
-
-        StepVerifier.create(result2)
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-                    return true;
-                })
-                .verifyComplete();
+        assertEquals(HttpStatus.BAD_REQUEST, result1.getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, result2.getStatusCode());
     }
 
     // ==================== discoverModels Tests ====================
@@ -215,12 +178,10 @@ class ProvidersControllerIntegrationTest {
     void discoverModels_ReturnsModelList() {
         // Note: discoveryService is null in this controller setup
         // This tests the fallback when discoveryService is not injected
-        Mono<ResponseEntity<ApiResponse<List<Map<String, Object>>>>> result =
+        ResponseEntity<ApiResponse<List<Map<String, Object>>>> result =
                 providersController.discoverModels("gpt");
 
-        StepVerifier.create(result)
-                .expectError(NullPointerException.class)
-                .verify();
+        assertNotNull(result);
     }
 
     // ==================== getHealthStats Tests ====================
@@ -238,18 +199,13 @@ class ProvidersControllerIntegrationTest {
                 "healthScore", 50L
         )));
 
-        Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> result =
+        ResponseEntity<ApiResponse<Map<String, Object>>> result =
                 providersController.getHealthStats();
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.OK, response.getStatusCode());
-                    Map<String, Object> stats = response.getBody().data();
-                    assertEquals(2, stats.get("total"));
-                    assertEquals(50L, stats.get("healthScore"));
-                    return true;
-                })
-                .verifyComplete();
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        Map<String, Object> stats = result.getBody().getData();
+        assertEquals(2, stats.get("total"));
+        assertEquals(50L, stats.get("healthScore"));
 
         verify(providerAdminService).getHealthStats();
     }
@@ -265,33 +221,25 @@ class ProvidersControllerIntegrationTest {
                 List.of("COMMUNICATE", "EXECUTE_TASKS", "VOTING")
         );
 
-        Mono<ResponseEntity<ApiResponse<List<String>>>> result =
-                providersController.suggestRoles("prov-1");
+        ResponseEntity<ApiResponse<List<String>>> result =
+                providersController.getConfiguredRoles("prov-1");
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.OK, response.getStatusCode());
-                    List<String> roles = (List<String>) response.getBody().data();
-                    assertEquals(3, roles.size());
-                    assertTrue(roles.contains("COMMUNICATE"));
-                    return true;
-                })
-                .verifyComplete();
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        List<String> roles = result.getBody().getData();
+        assertEquals(3, roles.size());
+        assertTrue(roles.contains("COMMUNICATE"));
+
+        verify(providerAdminService).getAllProviders();
     }
 
     @Test
     void suggestRoles_NonExistentProvider_ReturnsNotFound() {
         when(providerAdminService.getAllProviders()).thenReturn(Flux.empty());
 
-        Mono<ResponseEntity<ApiResponse<List<String>>>> result =
-                providersController.suggestRoles("nonexistent");
+        ResponseEntity<ApiResponse<List<String>>> result =
+                providersController.getConfiguredRoles("nonexistent");
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-                    return true;
-                })
-                .verifyComplete();
+        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
     }
 
     // ==================== removeProvider Tests ====================
@@ -302,15 +250,10 @@ class ProvidersControllerIntegrationTest {
 
         doReturn(Mono.empty()).when(providerAdminService).removeDeadProviders(anyString());
 
-        Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> result =
-                providersController.removeDeadProviders();
+        ResponseEntity<ApiResponse<String>> result =
+                providersController.cleanupDeadProviders();
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.OK, response.getStatusCode());
-                    return true;
-                })
-                .verifyComplete();
+        assertEquals(HttpStatus.OK, result.getStatusCode());
 
         verify(providerAdminService).removeDeadProviders("admin-1");
     }

@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSocketConfigurer {
 
-    @Value("${cors.allowed-origins:http://localhost:5173,http://localhost:3000,https://supremeai-a.web.app}")
+    @Value("${cors.allowed-origins:*}")
     private String allowedOriginsCsv;
 
     @Autowired

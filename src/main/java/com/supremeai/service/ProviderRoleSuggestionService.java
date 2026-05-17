@@ -1,32 +1,92 @@
 package com.supremeai.service;
 
+import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.ListenerRegistration;
 import com.supremeai.model.APIProvider;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.*;
 
-/**
- * Service to suggest optimal roles for AI providers based on their
- * model characteristics, benchmarks, and historical performance.
- */
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
 @Service
 public class ProviderRoleSuggestionService {
 
-    private static final Map<String, List<String>> ROLE_KEYWORDS = Map.of(
-        "coding", List.of("coder", "code", "deepseek", "llama-3-70b", "gpt-4"),
-        "security", List.of("audit", "exploit", "security", "defense", "hacking"),
-        "reasoning", List.of("o1", "pro", "large", "opus", "r1"),
-        "fast_chat", List.of("flash", "mini", "haiku", "8b", "turbo"),
-        "multimodal", List.of("vision", "audio", "omni", "gpt-4o", "gemini")
-    );
+    private static final Logger log = LoggerFactory.getLogger(ProviderRoleSuggestionService.class);
 
-    /**
-     * Suggest roles for a given provider based on its metadata.
-     */
+    @Autowired
+    private Firestore firestore;
+
+    private final Map<String, List<String>> roleKeywordsCache = new ConcurrentHashMap<>();
+    private ListenerRegistration listenerRegistration;
+    private final Executor listenerExecutor = Executors.newSingleThreadExecutor();
+
+    @PostConstruct
+    public void init() {
+        log.info("[RoleSuggestion] Initializing with Firestore real-time listener...");
+        try {
+            listenerRegistration = firestore.collection("role_keywords")
+                    .addSnapshotListener(listenerExecutor, (snapshot, error) -> {
+                        if (error != null) {
+                            log.error("[RoleSuggestion] Firestore listener error", error);
+                            return;
+                        }
+                        if (snapshot != null) {
+                            snapshot.getDocumentChanges().forEach(change -> {
+                                try {
+                                    String role = change.getDocument().getId();
+                                    Object keywords = change.getDocument().get("keywords");
+                                    if (keywords instanceof List) {
+                                        List<String> kwList = new ArrayList<>();
+                                        for (Object k : (List<?>) keywords) {
+                                            if (k instanceof String) kwList.add(((String) k).toLowerCase());
+                                        }
+                                        switch (change.getType()) {
+                                            case ADDED, MODIFIED -> {
+                                                roleKeywordsCache.put(role.toLowerCase(), kwList);
+                                                log.info("[RoleSuggestion] Role keywords updated: {} -> {}", role, kwList);
+                                            }
+                                            case REMOVED -> {
+                                                roleKeywordsCache.remove(role.toLowerCase());
+                                                log.info("[RoleSuggestion] Role keywords removed: {}", role);
+                                            }
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    log.error("[RoleSuggestion] Error deserializing role keywords", e);
+                                }
+                            });
+                        }
+                    });
+        } catch (Exception e) {
+            log.error("[RoleSuggestion] Failed to setup listener", e);
+        }
+
+        roleKeywordsCache.put("coding", List.of("coder", "code", "deepseek", "llama-3-70b", "gpt-4"));
+        roleKeywordsCache.put("security", List.of("audit", "exploit", "security", "defense", "hacking"));
+        roleKeywordsCache.put("reasoning", List.of("o1", "pro", "large", "opus", "r1"));
+        roleKeywordsCache.put("fast_chat", List.of("flash", "mini", "haiku", "8b", "turbo"));
+        roleKeywordsCache.put("multimodal", List.of("vision", "audio", "omni", "gpt-4o", "gemini"));
+    }
+
+    @PreDestroy
+    public void cleanup() {
+        if (listenerRegistration != null) {
+            listenerRegistration.remove();
+        }
+    }
+
     public List<String> suggestRoles(APIProvider provider) {
         Set<String> suggestions = new HashSet<>();
         String name = (provider.getName() + " " + provider.getType()).toLowerCase();
 
-        for (Map.Entry<String, List<String>> entry : ROLE_KEYWORDS.entrySet()) {
+        for (Map.Entry<String, List<String>> entry : roleKeywordsCache.entrySet()) {
             for (String keyword : entry.getValue()) {
                 if (name.contains(keyword)) {
                     suggestions.add(entry.getKey());
@@ -35,7 +95,6 @@ public class ProviderRoleSuggestionService {
             }
         }
 
-        // Default role if nothing matched
         if (suggestions.isEmpty()) {
             suggestions.add("general_chat");
         }

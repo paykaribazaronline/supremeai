@@ -58,7 +58,7 @@ class AuthenticationServiceExtendedTest {
     // ==================== firebaseLogin - New User Tests ====================
 
     @Test
-    void firebaseLogin_NewUser_CreatesUserAndReturnsTokens() {
+    void firebaseLogin_NewUser_CreatesUserAndReturnsTokens() throws Exception {
         try (MockedStatic<FirebaseAuth> firebaseAuthMock = mockStatic(FirebaseAuth.class)) {
             FirebaseAuth authInstance = mock(FirebaseAuth.class);
             firebaseAuthMock.when(FirebaseAuth::getInstance).thenReturn(authInstance);
@@ -95,7 +95,7 @@ class AuthenticationServiceExtendedTest {
     }
 
     @Test
-    void firebaseLogin_NewUser_AdminEmailBecomesAdmin() {
+    void firebaseLogin_NewUser_AdminEmailBecomesAdmin() throws Exception {
         try (MockedStatic<FirebaseAuth> firebaseAuthMock = mockStatic(FirebaseAuth.class)) {
             FirebaseAuth authInstance = mock(FirebaseAuth.class);
             firebaseAuthMock.when(FirebaseAuth::getInstance).thenReturn(authInstance);
@@ -132,7 +132,7 @@ class AuthenticationServiceExtendedTest {
     // ==================== firebaseLogin - Existing User with Admin Claim Tests ====================
 
     @Test
-    void firebaseLogin_ExistingUser_AdminClaimEscalatesToAdmin() {
+    void firebaseLogin_ExistingUser_AdminClaimEscalatesToAdmin() throws Exception {
         try (MockedStatic<FirebaseAuth> firebaseAuthMock = mockStatic(FirebaseAuth.class)) {
             FirebaseAuth authInstance = mock(FirebaseAuth.class);
             firebaseAuthMock.when(FirebaseAuth::getInstance).thenReturn(authInstance);
@@ -199,7 +199,7 @@ class AuthenticationServiceExtendedTest {
     // ==================== firebaseLogin - Firebase Verify Errors ====================
 
     @Test
-    void firebaseLogin_InvalidToken_FirebaseThrowsException() {
+    void firebaseLogin_InvalidToken_FirebaseThrowsException() throws Exception {
         try (MockedStatic<FirebaseAuth> firebaseAuthMock = mockStatic(FirebaseAuth.class)) {
             FirebaseAuth authInstance = mock(FirebaseAuth.class);
             firebaseAuthMock.when(FirebaseAuth::getInstance).thenReturn(authInstance);
@@ -219,7 +219,7 @@ class AuthenticationServiceExtendedTest {
     // ==================== register Tests ====================
 
     @Test
-    void register_Success_CreatesUserAndLogsActivity() {
+    void register_Success_CreatesUserAndLogsActivity() throws Exception {
         try (MockedStatic<FirebaseAuth> firebaseAuthMock = mockStatic(FirebaseAuth.class)) {
             FirebaseAuth authInstance = mock(FirebaseAuth.class);
             firebaseAuthMock.when(FirebaseAuth::getInstance).thenReturn(authInstance);
@@ -250,7 +250,7 @@ class AuthenticationServiceExtendedTest {
     }
 
     @Test
-    void register_WithNullDisplayName_UsesEmailPrefix() {
+    void register_WithNullDisplayName_UsesEmailPrefix() throws Exception {
         try (MockedStatic<FirebaseAuth> firebaseAuthMock = mockStatic(FirebaseAuth.class)) {
             FirebaseAuth authInstance = mock(FirebaseAuth.class);
             firebaseAuthMock.when(FirebaseAuth::getInstance).thenReturn(authInstance);

@@ -21,7 +21,7 @@ public class PythonBridge {
             // Build command: python3 main.py <url> [--creds email:pass]
             List<String> command = new ArrayList<>();
             command.add("python3");
-            command.add("/home/nazifarabbu/OneDrive/supremeai/reverse_engineer/main.py");
+            command.add("/home/nazifarabbu/supremeai/reverse_engineer/main.py");
             command.add(url);
             
             if (credentials != null && !credentials.isEmpty()) {
@@ -34,7 +34,7 @@ public class PythonBridge {
             }
             
             ProcessBuilder pb = new ProcessBuilder(command);
-            pb.directory(new File("/home/nazifarabbu/OneDrive/supremeai/reverse_engineer"));
+            pb.directory(new File("/home/nazifarabbu/supremeai/reverse_engineer"));
             pb.redirectErrorStream(true);
             
             Process process = pb.start();
@@ -57,7 +57,7 @@ public class PythonBridge {
                 
                 // Try to read generated connector file
                 String connectorFile = url.replace("https://", "").replace("http://", "").replace("/", "_") + "_connector.py";
-                File file = new File("/home/nazifarabbu/OneDrive/supremeai/reverse_engineer/" + connectorFile);
+                File file = new File("/home/nazifarabbu/supremeai/reverse_engineer/" + connectorFile);
                 if (file.exists()) {
                     result.put("connector_file", connectorFile);
                 }

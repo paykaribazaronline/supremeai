@@ -56,7 +56,7 @@ public class SecurityConfig {
                          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
                          "img-src 'self' data: blob: https:; " +
                          "font-src 'self' https://fonts.gstatic.com; " +
-                         "connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.googleapis.com https://*.firebaseio.com https://api.supremeai.com https://supremeai-a.web.app https://supremeai-a.firebaseapp.com https://*.run.app wss: ws://localhost:8080 ws://localhost:5173; " +
+                         "connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.googleapis.com https://*.firebaseio.com https://*.run.app wss: ws:; " +
                          "frame-ancestors 'none'; " +
                          "base-uri 'self'; " +
                          "form-action 'self'; " +
@@ -78,6 +78,7 @@ public class SecurityConfig {
                     "/",
                     "/login",
                     "/login.html",
+                    "/index.html",
                     "/customer",
                     "/customer.html",
                     "/android-generator.html",
@@ -162,14 +163,7 @@ public class SecurityConfig {
                     .filter(s -> !s.isEmpty())
                     .collect(Collectors.toList());
         } else {
-            // Safe defaults for development and production
-            origins = Arrays.asList(
-                "http://localhost:5173",   // Dashboard dev
-                "http://localhost:3000",   // Admin/dev alternative
-                "https://supremeai-a.web.app",  // Production
-                "https://supremeai-a.firebaseapp.com", // Firebase Alternative
-                "https://supremeai-backend-lhlwyikwlq-uc.a.run.app" // Direct Backend
-            );
+            origins = List.of("*");
         }
         
         configuration.setAllowedOriginPatterns(origins);

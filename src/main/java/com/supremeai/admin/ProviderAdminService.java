@@ -77,7 +77,7 @@ public class ProviderAdminService {
                                     }
                                     provider.setConsecutiveErrorDays(0);
                                     provider.setLastValidated(new Date());
-                                    if ("dead".equals(existing.getStatus()) || "error".equals(existing.getStatus())) {
+                                    if ("dead".equals(existing.getStatus()) || "error".equals(existing.getStatus()) || "rotating".equals(existing.getStatus())) {
                                         provider.setStatus("active");
                                         provider.setDeadReason(null);
                                         provider.setDeadAt(null);
@@ -98,8 +98,8 @@ public class ProviderAdminService {
     public Mono<APIProvider> reviveProvider(String id, String adminUserId) {
         return providerRepository.findById(id)
                 .flatMap(provider -> {
-                    if (!"dead".equals(provider.getStatus()) && !"error".equals(provider.getStatus())) {
-                        return Mono.error(new IllegalStateException("Provider is not dead or in error state"));
+                    if (!"dead".equals(provider.getStatus()) && !"error".equals(provider.getStatus()) && !"rotating".equals(provider.getStatus())) {
+                        return Mono.error(new IllegalStateException("Provider is not dead, rotating, or in error state"));
                     }
                     provider.setStatus("active");
                     provider.setConsecutiveErrorDays(0);
@@ -158,13 +158,17 @@ public class ProviderAdminService {
         return providerRepository.findAll().collectList()
                 .map(list -> {
                     long active = list.stream().filter(p -> "active".equals(p.getStatus())).count();
+                    long inactive = list.stream().filter(p -> "inactive".equals(p.getStatus())).count();
                     long error = list.stream().filter(p -> "error".equals(p.getStatus())).count();
+                    long rotating = list.stream().filter(p -> "rotating".equals(p.getStatus())).count();
                     long dead = list.stream().filter(p -> "dead".equals(p.getStatus())).count();
                     
                     return Map.of(
                         "total", list.size(),
                         "active", active,
+                        "inactive", inactive,
                         "error", error,
+                        "rotating", rotating,
                         "dead", dead,
                         "healthScore", list.size() > 0 ? (active * 100 / list.size()) : 100
                     );
@@ -212,8 +216,8 @@ public class ProviderAdminService {
                         log.info("Sanitizer: Fixed null type for {}: {}", p.getName(), p.getType());
                     }
 
-                    // Reset status if in error to allow re-validation
-                    if ("error".equals(p.getStatus())) {
+                    // Reset status if in error or rotating to allow re-validation
+                    if ("error".equals(p.getStatus()) || "rotating".equals(p.getStatus())) {
                         p.setStatus("inactive");
                         changed = true;
                     }

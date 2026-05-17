@@ -1,6 +1,7 @@
 package com.supremeai.skill;
 
 import org.springframework.stereotype.Component;
+import javax.annotation.PostConstruct;
 import java.util.*;
 import java.nio.file.*;
 
@@ -13,12 +14,47 @@ public class SkillEngine {
     
     private final Map<String, Skill> skillRegistry = new HashMap<>();
     
+    @PostConstruct
+    public void init() {
+        scanSkills("/home/nazifarabbu/supremeai/.agents/skills");
+    }
+    
+    /**
+     * Scan path recursively for SKILL.md files and register them
+     */
+    public void scanSkills(String basePath) {
+        try {
+            Path path = Paths.get(basePath);
+            if (!Files.exists(path)) return;
+            
+            try (java.util.stream.Stream<Path> stream = Files.walk(path)) {
+                stream.filter(p -> p.getFileName().toString().equalsIgnoreCase("SKILL.md"))
+                      .forEach(p -> {
+                          try {
+                              String content = Files.readString(p);
+                              registerSkill(content);
+                          } catch (Exception e) {
+                              // ignore
+                          }
+                      });
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+    }
+    
+    public Map<String, Skill> getSkillRegistry() {
+        return skillRegistry;
+    }
+    
     /**
      * Register skill from SKILL.md content
      */
     public void registerSkill(String skillMdContent) {
         Skill skill = parseSkillMd(skillMdContent);
-        skillRegistry.put(skill.getName(), skill);
+        if (skill.getName() != null && !skill.getName().isEmpty()) {
+            skillRegistry.put(skill.getName(), skill);
+        }
     }
     
     /**

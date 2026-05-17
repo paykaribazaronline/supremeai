@@ -52,7 +52,7 @@ class AddReviewReviewUpsert {
     return json;
   }
 
-  AddReviewReviewUpsert({
+  const AddReviewReviewUpsert({
     required this.userId,
     required this.movieId,
   });
@@ -87,7 +87,7 @@ class AddReviewData {
     return json;
   }
 
-  AddReviewData({
+  const AddReviewData({
     required this.review_upsert,
   });
 }
@@ -130,7 +130,7 @@ class AddReviewVariables {
     return json;
   }
 
-  AddReviewVariables({
+  const AddReviewVariables({
     required this.movieId,
     required this.rating,
     required this.reviewText,

@@ -53,7 +53,9 @@ const AdminSystemWorkRules: React.FC = () => {
   const [editing, setEditing] = useState<SystemWorkRuleRow | null>(null);
   const [form] = Form.useForm();
 
-  useEffect(fetchRules, []);
+  useEffect(() => {
+    fetchRules();
+  }, []);
 
   // ─── Fetch all rules ──────────────────────────────────────────────────────
 

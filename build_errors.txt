@@ -1,0 +1,128 @@
+> Task :generateEffectiveLombokConfig UP-TO-DATE
+
+> Task :compileJava FAILED
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/EnhancedLearningService.java:81: error: incompatible types: Date cannot be converted to LocalDateTime
+        learning.setLearnedAt(new java.util.Date());
+                              ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/EnhancedLearningService.java:124: error: incompatible types: Date cannot be converted to LocalDateTime
+        learning.setLearnedAt(new java.util.Date());
+                              ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/EnhancedLearningService.java:160: error: incompatible types: Date cannot be converted to LocalDateTime
+        learning.setLearnedAt(new java.util.Date());
+                              ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/EnhancedLearningService.java:206: error: incompatible types: Date cannot be converted to LocalDateTime
+        learning.setLearnedAt(new java.util.Date());
+                              ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/EnhancedLearningService.java:241: error: incompatible types: Date cannot be converted to LocalDateTime
+        learning.setLearnedAt(new java.util.Date());
+                              ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/EnhancedLearningService.java:520: error: cannot find symbol
+                .filter(l -> l.getLearnedAt() != null && l.getLearnedAt().before(sixMonthsAgo))
+                                                                         ^
+  symbol:   method before(Date)
+  location: class LocalDateTime
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/audit/AuditLoggingAspect.java:67: error: incompatible types: Date cannot be converted to LocalDateTime
+            activityLog.setTimestamp(java.util.Date.from(Instant.now()));
+                                                        ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/learning/UserCodeLearningService.java:179: error: incompatible types: Date cannot be converted to LocalDateTime
+        pattern.setLearnedAt(new java.util.Date());
+                             ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/learning/UserCodeLearningService.java:355: error: incompatible types: Date cannot be converted to LocalDateTime
+                        pattern.setLearnedAt(new java.util.Date()); 
+                                             ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/learning/UserCodeLearningService.java:357: error: incompatible types: Date cannot be converted to LocalDateTime
+                        pattern.setLearnedAt(new java.util.Date());
+                                             ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/learning/UserCodeLearningService.java:424: error: incompatible types: Date cannot be converted to LocalDateTime
+            pattern.setLearnedAt(new java.util.Date());
+                                 ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/browser/BrowserService.java:404: error: incompatible types: Date cannot be converted to LocalDateTime
+                learning.setLearnedAt(new Date());
+                                      ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/browser/BrowserService.java:471: error: incompatible types: Date cannot be converted to LocalDateTime
+        learning.setLearnedAt(new Date());
+                              ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/browser/BrowserService.java:664: error: incompatible types: Date cannot be converted to LocalDateTime
+                            strategicLearning.setLearnedAt(new Date());
+                                                           ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/KnowledgeFeedbackService.java:80: error: incompatible types: Date cannot be converted to LocalDateTime
+        lesson.setLearnedAt(new java.util.Date());
+                            ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/LearningArchiveService.java:90: error: method toInstant in interface ChronoLocalDateTime<D> cannot be applied to given types;
+                                LocalDateTime learnedAt = l.getLearnedAt().toInstant()
+                                                                          ^
+  required: ZoneOffset
+  found:    no arguments
+  reason: actual and formal argument lists differ in length
+  where D is a type-variable:
+    D extends ChronoLocalDate declared in interface ChronoLocalDateTime
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/KnowledgeService.java:120: error: incompatible types: Date cannot be converted to LocalDateTime
+        learning.setLearnedAt(new java.util.Date());
+                              ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/KnowledgeSeederService.java:537: error: incompatible types: Date cannot be converted to LocalDateTime
+        s.setLearnedAt(new java.util.Date());
+                       ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/SystemAuditService.java:53: error: cannot find symbol
+        payload.put("timestamp", log.getTimestamp() != null ? log.getTimestamp().getTime() : System.currentTimeMillis());
+                                                                                ^
+  symbol:   method getTime()
+  location: class LocalDateTime
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/KnowledgeSeederServiceEnhanced.java:132: error: incompatible types: Date cannot be converted to LocalDateTime
+        learning.setCreatedAt(new Date());
+                              ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/KnowledgeSeederServiceEnhanced.java:133: error: incompatible types: Date cannot be converted to LocalDateTime
+        learning.setUpdatedAt(new Date());
+                              ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/KnowledgeSeederServiceEnhanced.java:135: error: incompatible types: Date cannot be converted to LocalDateTime
+        learning.setLastUsed(new Date());
+                             ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/KnowledgeSeederServiceEnhanced.java:162: error: incompatible types: Date cannot be converted to LocalDateTime
+                learning.setLastUsed(new Date());
+                                     ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/KnowledgeSeederServiceEnhanced.java:185: error: incompatible types: Date cannot be converted to LocalDateTime
+                learning.setUpdatedAt(new Date());
+                                      ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/KnowledgeSeederServiceEnhanced.java:260: error: cannot find symbol
+                    long diffInMillis = now.getTime() - learning.getLastUsed().getTime();
+                                                                              ^
+  symbol:   method getTime()
+  location: class LocalDateTime
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/KnowledgeSeederServiceEnhanced.java:405: error: incompatible types: Date cannot be converted to LocalDateTime
+        learning.setCreatedAt(new Date());
+                              ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/KnowledgeSeederServiceEnhanced.java:406: error: incompatible types: Date cannot be converted to LocalDateTime
+        learning.setUpdatedAt(new Date());
+                              ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/SelfImprovementService.java:68: error: cannot find symbol
+                .filter(entry -> entry.getLearnedAt() != null && entry.getLearnedAt().after(intervalAgoDate))
+                                                                                     ^
+  symbol:   method after(Date)
+  location: class LocalDateTime
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/SelfImprovementService.java:110: error: incompatible types: Date cannot be converted to LocalDateTime
+            learning.setLearnedAt(new java.util.Date());
+                                  ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/admin/ProviderAdminService.java:292: error: incompatible types: Date cannot be converted to LocalDateTime
+        logRecord.setTimestamp(new Date());
+                               ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/controller/LearningIngestController.java:110: error: incompatible types: Date cannot be converted to LocalDateTime
+            pattern.setLearnedAt(new java.util.Date());
+                                 ^
+Note: /home/nazifarabbu/supremeai/src/main/java/com/supremeai/controller/LearningAdminController.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: /home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/AdminDashboardFacadeService.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+31 errors
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Compilation failed; see the compiler error output for details.
+
+* Try:
+> Run with --info option to get more log output.
+> Run with --scan to get full insights.
+
+BUILD FAILED in 5s
+2 actionable tasks: 1 executed, 1 up-to-date

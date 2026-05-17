@@ -19,12 +19,25 @@ class SelfHealingServiceTest {
     @Mock
     private AIReasoningService reasoningService;
 
+    @Mock
+    private io.micrometer.core.instrument.MeterRegistry meterRegistry;
+
     private SelfHealingService selfHealingService;
 
     @BeforeEach
     void setUp() {
-        selfHealingService = new SelfHealingService();
-        selfHealingService.setReasoningService(reasoningService);
+        selfHealingService = new SelfHealingService(meterRegistry);
+        setReasoningService(selfHealingService, reasoningService);
+    }
+
+    private void setReasoningService(SelfHealingService svc, AIReasoningService service) {
+        try {
+            java.lang.reflect.Field field = SelfHealingService.class.getDeclaredField("reasoningService");
+            field.setAccessible(true);
+            field.set(svc, service);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test
@@ -106,8 +119,8 @@ class SelfHealingServiceTest {
 
     @Test
     void analyzeError_shouldReturnCorrectActionForDependencyError() {
-        SelfHealingService service = new SelfHealingService();
-        service.setReasoningService(reasoningService);
+        SelfHealingService service = new SelfHealingService(meterRegistry);
+        setReasoningService(service, reasoningService);
 
         // Use reflection to test private method
         try {
@@ -123,8 +136,8 @@ class SelfHealingServiceTest {
 
     @Test
     void analyzeError_shouldReturnCorrectActionForTestError() {
-        SelfHealingService service = new SelfHealingService();
-        service.setReasoningService(reasoningService);
+        SelfHealingService service = new SelfHealingService(meterRegistry);
+        setReasoningService(service, reasoningService);
 
         try {
             java.lang.reflect.Method method = SelfHealingService.class.getDeclaredMethod("analyzeError", String.class);
@@ -139,8 +152,8 @@ class SelfHealingServiceTest {
 
     @Test
     void analyzeError_shouldReturnCorrectActionForAuthError() {
-        SelfHealingService service = new SelfHealingService();
-        service.setReasoningService(reasoningService);
+        SelfHealingService service = new SelfHealingService(meterRegistry);
+        setReasoningService(service, reasoningService);
 
         try {
             java.lang.reflect.Method method = SelfHealingService.class.getDeclaredMethod("analyzeError", String.class);
@@ -155,8 +168,8 @@ class SelfHealingServiceTest {
 
     @Test
     void analyzeError_shouldReturnCorrectActionForQuotaError() {
-        SelfHealingService service = new SelfHealingService();
-        service.setReasoningService(reasoningService);
+        SelfHealingService service = new SelfHealingService(meterRegistry);
+        setReasoningService(service, reasoningService);
 
         try {
             java.lang.reflect.Method method = SelfHealingService.class.getDeclaredMethod("analyzeError", String.class);
@@ -171,8 +184,8 @@ class SelfHealingServiceTest {
 
     @Test
     void analyzeError_shouldReturnGeneralCheckForUnknownError() {
-        SelfHealingService service = new SelfHealingService();
-        service.setReasoningService(reasoningService);
+        SelfHealingService service = new SelfHealingService(meterRegistry);
+        setReasoningService(service, reasoningService);
 
         try {
             java.lang.reflect.Method method = SelfHealingService.class.getDeclaredMethod("analyzeError", String.class);
@@ -187,8 +200,8 @@ class SelfHealingServiceTest {
 
     @Test
     void analyzeError_shouldReturnUnknownForNullInput() {
-        SelfHealingService service = new SelfHealingService();
-        service.setReasoningService(reasoningService);
+        SelfHealingService service = new SelfHealingService(meterRegistry);
+        setReasoningService(service, reasoningService);
 
         try {
             java.lang.reflect.Method method = SelfHealingService.class.getDeclaredMethod("analyzeError", String.class);

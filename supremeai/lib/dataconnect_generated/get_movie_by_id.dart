@@ -7,8 +7,8 @@ class GetMovieByIdVariablesBuilder {
   GetMovieByIdVariablesBuilder(this._dataConnect, {required  this.id,});
   Deserializer<GetMovieByIdData> dataDeserializer = (dynamic json)  => GetMovieByIdData.fromJson(jsonDecode(json));
   Serializer<GetMovieByIdVariables> varsSerializer = (GetMovieByIdVariables vars) => jsonEncode(vars.toJson());
-  Future<QueryResult<GetMovieByIdData, GetMovieByIdVariables>> execute({QueryFetchPolicy fetchPolicy = QueryFetchPolicy.preferCache}) {
-    return ref().execute(fetchPolicy: fetchPolicy);
+  Future<QueryResult<GetMovieByIdData, GetMovieByIdVariables>> execute() {
+    return ref().execute();
   }
 
   QueryRef<GetMovieByIdData, GetMovieByIdVariables> ref() {
@@ -72,7 +72,7 @@ class GetMovieByIdMovie {
     return json;
   }
 
-  GetMovieByIdMovie({
+  const GetMovieByIdMovie({
     required this.id,
     required this.title,
     required this.imageUrl,
@@ -125,7 +125,7 @@ class GetMovieByIdMovieMetadata {
     return json;
   }
 
-  GetMovieByIdMovieMetadata({
+  const GetMovieByIdMovieMetadata({
     this.rating,
     this.releaseYear,
     this.description,
@@ -177,7 +177,7 @@ class GetMovieByIdMovieReviews {
     return json;
   }
 
-  GetMovieByIdMovieReviews({
+  const GetMovieByIdMovieReviews({
     this.reviewText,
     required this.reviewDate,
     this.rating,
@@ -218,7 +218,7 @@ class GetMovieByIdMovieReviewsUser {
     return json;
   }
 
-  GetMovieByIdMovieReviewsUser({
+  const GetMovieByIdMovieReviewsUser({
     required this.id,
     required this.username,
   });
@@ -255,7 +255,7 @@ class GetMovieByIdData {
     return json;
   }
 
-  GetMovieByIdData({
+  const GetMovieByIdData({
     this.movie,
   });
 }
@@ -290,7 +290,7 @@ class GetMovieByIdVariables {
     return json;
   }
 
-  GetMovieByIdVariables({
+  const GetMovieByIdVariables({
     required this.id,
   });
 }

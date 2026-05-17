@@ -68,8 +68,8 @@ class IntelligenceControllerTest {
         StepVerifier.create(result)
                 .expectNextMatches(response -> {
                     assertEquals(HttpStatus.OK, response.getStatusCode());
-                    assertTrue(response.getBody().success());
-                    assertEquals(3, response.getBody().data().get("totalModels"));
+                    assertTrue(response.getBody().isSuccess());
+                    assertEquals(3, response.getBody().getData().get("totalModels"));
                     return true;
                 })
                 .verifyComplete();
@@ -86,7 +86,7 @@ class IntelligenceControllerTest {
         StepVerifier.create(result)
                 .expectNextMatches(response -> {
                     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-                    assertFalse(response.getBody().success());
+                    assertFalse(response.getBody().isSuccess());
                     return true;
                 })
                 .verifyComplete();
@@ -116,8 +116,8 @@ class IntelligenceControllerTest {
         StepVerifier.create(result)
                 .expectNextMatches(response -> {
                     assertEquals(HttpStatus.OK, response.getStatusCode());
-                    assertTrue(response.getBody().success());
-                    Map<String, Object> data = response.getBody().data();
+                    assertTrue(response.getBody().isSuccess());
+                    Map<String, Object> data = response.getBody().getData();
                     assertEquals("CODE_GENERATION", data.get("requestType"));
                     assertTrue((Boolean) data.get("isComplete"));
                     assertEquals(0.85, data.get("clarityScore"));
@@ -148,7 +148,7 @@ class IntelligenceControllerTest {
         StepVerifier.create(result)
                 .expectNextMatches(response -> {
                     assertEquals(HttpStatus.OK, response.getStatusCode());
-                    Map<String, Object> data = response.getBody().data();
+                    Map<String, Object> data = response.getBody().getData();
                     assertFalse((Boolean) data.get("isComplete"));
                     assertTrue((Boolean) data.get("hasQuestions"));
                     List<String> questions = (List<String>) data.get("clarifyingQuestions");
@@ -203,7 +203,7 @@ class IntelligenceControllerTest {
         StepVerifier.create(result)
                 .expectNextMatches(response -> {
                     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-                    assertFalse(response.getBody().success());
+                    assertFalse(response.getBody().isSuccess());
                     return true;
                 })
                 .verifyComplete();
@@ -235,7 +235,7 @@ class IntelligenceControllerTest {
         StepVerifier.create(result)
                 .expectNextMatches(response -> {
                     assertEquals(HttpStatus.OK, response.getStatusCode());
-                    Map<String, Object> data = response.getBody().data();
+                    Map<String, Object> data = response.getBody().getData();
                     assertEquals("STRONG_CONSENSUS", data.get("verdict"));
                     assertEquals(0.92, data.get("averageConfidence"));
                     assertEquals("def sort_list(lst): return sorted(lst)", data.get("bestResponse"));
@@ -324,7 +324,7 @@ class IntelligenceControllerTest {
         StepVerifier.create(result)
                 .expectNextMatches(response -> {
                     assertEquals(HttpStatus.OK, response.getStatusCode());
-                    Map<String, Object> data = response.getBody().data();
+                    Map<String, Object> data = response.getBody().getData();
                     assertEquals(MultiAIVotingService.ALL_PROVIDERS.length, data.get("totalModels"));
                     assertNotNull(data.get("models"));
                     return true;
@@ -341,7 +341,7 @@ class IntelligenceControllerTest {
         StepVerifier.create(result)
                 .expectNextMatches(response -> {
                     assertEquals(HttpStatus.OK, response.getStatusCode());
-                    Map<String, Object> health = response.getBody().data();
+                    Map<String, Object> health = response.getBody().getData();
                     assertEquals("operational", health.get("s3_autonomous_questioning"));
                     assertEquals("operational", health.get("s4_ten_ai_voting"));
                     assertNotNull(health.get("timestamp"));
@@ -350,34 +350,37 @@ class IntelligenceControllerTest {
                 .verifyComplete();
     }
 
-    // ==================== parseRequestType Tests ====================
+    // ==================== parseRequestType Tests (private method – use reflection) ====================
 
     @Test
-    void parseRequestType_ValidType_ReturnsEnum() {
-        IntelligenceController controllerSpy = spy(intelligenceController);
+    void parseRequestType_ValidType_ReturnsEnum() throws Exception {
+        java.lang.reflect.Method method = IntelligenceController.class.getDeclaredMethod("parseRequestType", String.class);
+        method.setAccessible(true);
 
         AutonomousQuestioningEngine.RequestType result =
-                controllerSpy.parseRequestType("CODE_GENERATION");
+                (AutonomousQuestioningEngine.RequestType) method.invoke(intelligenceController, "CODE_GENERATION");
 
         assertEquals(AutonomousQuestioningEngine.RequestType.CODE_GENERATION, result);
     }
 
     @Test
-    void parseRequestType_Null_ReturnsDefault() {
-        IntelligenceController controllerSpy = spy(intelligenceController);
+    void parseRequestType_Null_ReturnsDefault() throws Exception {
+        java.lang.reflect.Method method = IntelligenceController.class.getDeclaredMethod("parseRequestType", String.class);
+        method.setAccessible(true);
 
         AutonomousQuestioningEngine.RequestType result =
-                controllerSpy.parseRequestType(null);
+                (AutonomousQuestioningEngine.RequestType) method.invoke(intelligenceController, (Object) null);
 
         assertEquals(AutonomousQuestioningEngine.RequestType.GENERAL_AI, result);
     }
 
     @Test
-    void parseRequestType_Invalid_ReturnsDefault() {
-        IntelligenceController controllerSpy = spy(intelligenceController);
+    void parseRequestType_Invalid_ReturnsDefault() throws Exception {
+        java.lang.reflect.Method method = IntelligenceController.class.getDeclaredMethod("parseRequestType", String.class);
+        method.setAccessible(true);
 
         AutonomousQuestioningEngine.RequestType result =
-                controllerSpy.parseRequestType("INVALID_TYPE");
+                (AutonomousQuestioningEngine.RequestType) method.invoke(intelligenceController, "INVALID_TYPE");
 
         assertEquals(AutonomousQuestioningEngine.RequestType.GENERAL_AI, result);
     }

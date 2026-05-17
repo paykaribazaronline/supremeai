@@ -353,18 +353,18 @@ Phase 3: Isolated Execution (3 weeks)
 
 ### Framework Comparison Matrix
 
-| Feature | Ruflo | Pinokio | LangChain | CrewAI | OpenHands |
-|---------|-------|---------|----------|--------|-----------|
-| **Multi-Agent** | ✅ 100+ agents | ❌ Single agent | ✅ Via LangGraph | ✅ Role-based | ✅ Delegation |
-| **MCP Support** | ✅ Native | ❌ Custom | ❌ Custom | ❌ Custom | ❌ Custom |
-| **Self-Learning** | ✅ SONA + Q-Learning | ❌ No | ❌ No | ❌ No | ❌ No |
-| **One-Click Install** | ❌ CLI/Code | ✅ Yes | ❌ Pip/Conda | ❌ Pip | ❌ Docker |
-| **SKILL.md** | ✅ Native | ✅ Native | ❌ No | ❌ No | ❌ No |
-| **Local Execution** | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
-| **Swarm Topologies** | ✅ 4 types | ❌ No | ❌ No | ❌ Limited | ❌ No |
-| **Vector Memory** | ✅ HNSW (Rust/WASM) | ❌ No | ✅ FAISS/Pinecone | ✅ Built-in | ❌ No |
-| **Plugin System** | ✅ 32 plugins | ✅ Apps | ❌ LangChain | ❌ No | ❌ No |
-| **GitHub Stars** | 40.7k | 7.3k | 131.7k | 47.7k | 62k |
+| Feature | Ruflo | Pinokio | LangChain | CrewAI | OpenHands | n8n (Ecosystem Champion) |
+|---------|-------|---------|----------|--------|-----------|--------------------------|
+| **Multi-Agent** | ✅ 100+ agents | ❌ Single agent | ✅ Via LangGraph | ✅ Role-based | ✅ Delegation | ✅ Via AI Agent Nodes |
+| **MCP Support** | ✅ Native | ❌ Custom | ❌ Custom | ❌ Custom | ❌ Custom | ❌ Custom (Via HTTP/JS) |
+| **Self-Learning** | ✅ SONA + Q-Learning | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No |
+| **One-Click Install** | ❌ CLI/Code | ✅ Yes | ❌ Pip/Conda | ❌ Pip | ❌ Docker | ✅ Yes (Docker / Cloud) |
+| **SKILL.md** | ✅ Native | ✅ Native | ❌ No | ❌ No | ❌ No | ❌ No |
+| **Local Execution** | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
+| **Swarm Topologies** | ✅ 4 types | ❌ No | ❌ No | ❌ Limited | ❌ No | ❌ No |
+| **Vector Memory** | ✅ HNSW (Rust/WASM) | ❌ No | ✅ FAISS/Pinecone | ✅ Built-in | ❌ No | ✅ Native Qdrant/Pinecone |
+| **Plugin System** | ✅ 32 plugins | ✅ Apps | ❌ LangChain | ❌ No | ❌ No | ✅ 400+ SaaS Integration Nodes |
+| **GitHub Stars** | 40.7k | 7.3k | 131.7k | 47.7k | 62k | 55.4k |
 
 ### Key Differentiators for SupremeAI
 
@@ -381,6 +381,12 @@ Phase 3: Isolated Execution (3 weeks)
    - One-click launcher (Pinokio-style)
    - MCP compatibility (Ruflo-style)
    - Skill marketplace (both)
+
+4. **Visual Workflow & SaaS Orchestration Core (n8n Integration)**
+   - Leverage self-hosted n8n as the primary visual workflow automation core
+   - Reduces custom Java/Python connector development time by utilizing n8n's 400+ pre-built SaaS integration nodes
+   - Native LangChain Advanced AI Nodes integration within n8n workflows for rapid visual agent testing and multi-agent coordination
+   - Refer to [n8n Automation Hub Integration Analysis](../../architecture/n8n_integration_analysis.md) for details.
 
 ---
 
