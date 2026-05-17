@@ -3,6 +3,8 @@ package com.supremeai.selfhealing;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
 import com.supremeai.selfhealing.AutoHealingStrategyService;
+import com.supremeai.service.ProviderTypeRegistry;
+import com.supremeai.model.ProviderTypeConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import com.supremeai.model.HealingEvent;
 import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -36,6 +39,12 @@ public class ProviderHealingStrategies {
 
     @Autowired
     private HealingEventRepository healingEventRepository;
+
+    @Autowired
+    private ProviderTypeRegistry providerTypeRegistry;
+
+    @Autowired
+    private com.supremeai.repository.ProviderRepository providerRepository;
 
     /**
      * প্রোভাইডার সুইচিং স্ট্র্যাটেজি
@@ -132,51 +141,53 @@ public class ProviderHealingStrategies {
      * সব প্রোভাইডার হিলিং স্ট্র্যাটেজি রেজিস্টার করা
      */
     public void registerAllStrategies() {
-        // OpenAI প্রোভাইডার হিলিং স্ট্র্যাটেজি
-        autoHealingService.registerHealingStrategy(
-                "openai_rate_limit",
-                createProviderSwitchingStrategy("openai", "anthropic"));
+        // Dynamically register healing strategies based on api_providers + provider_types config
+        java.util.List<com.supremeai.model.APIProvider> activeProviders = providerRepository
+                .findAll()
+                .filter(p -> p.getType() != null && !p.getType().isBlank())
+                .collectList()
+                .block();
+        if (activeProviders == null || activeProviders.isEmpty()) {
+            logger.warn("No active providers found; skipping healing strategy registration");
+            return;
+        }
+        int registered = 0;
+        for (com.supremeai.model.APIProvider p : activeProviders) {
+            String providerType = p.getType();
+            // Rate-limit strategy: fallback to alternative from provider_types extraConfig
+            com.supremeai.model.ProviderTypeConfig typeConfig = providerTypeRegistry.getTypeConfig(providerType);
+            if (typeConfig != null) {
+                String alternative = providerFallbackFromConfig(typeConfig);
+                if (alternative != null && !alternative.isBlank()) {
+                    autoHealingService.registerHealingStrategy(
+                            providerType + "_rate_limit",
+                            createProviderSwitchingStrategy(providerType, alternative));
+                    registered++;
+                }
+            }
+            // Auth-error strategy: API key rotation
+            autoHealingService.registerHealingStrategy(
+                    providerType + "_auth_error",
+                    createApiKeyRotationStrategy(providerType, ""));
+            registered++;
+        }
+        logger.info("Registered {} healing strategies for {} active providers", registered, activeProviders.size());
+    }
 
-        autoHealingService.registerHealingStrategy(
-                "openai_auth_error",
-                createApiKeyRotationStrategy("openai", ""));
-
-        // Anthropic প্রোভাইডার হিলিং স্ট্র্যাটেজি
-        autoHealingService.registerHealingStrategy(
-                "anthropic_rate_limit",
-                createProviderSwitchingStrategy("anthropic", "openai"));
-
-        autoHealingService.registerHealingStrategy(
-                "anthropic_auth_error",
-                createApiKeyRotationStrategy("anthropic", ""));
-
-        // Gemini প্রোভাইডার হিলিং স্ট্র্যাটেজি
-        autoHealingService.registerHealingStrategy(
-                "gemini_rate_limit",
-                createProviderSwitchingStrategy("gemini", "openai"));
-
-        autoHealingService.registerHealingStrategy(
-                "gemini_auth_error",
-                createApiKeyRotationStrategy("gemini", ""));
-
-        // Groq প্রোভাইডার হিলিং স্ট্র্যাটেজি
-        autoHealingService.registerHealingStrategy(
-                "groq_rate_limit",
-                createProviderSwitchingStrategy("groq", "gemini"));
-
-        autoHealingService.registerHealingStrategy(
-                "groq_auth_error",
-                createApiKeyRotationStrategy("groq", ""));
-
-        // DeepSeek প্রোভাইডার হিলিং স্ট্র্যাটেজি
-        autoHealingService.registerHealingStrategy(
-                "deepseek_rate_limit",
-                createProviderSwitchingStrategy("deepseek", "openai"));
-
-        autoHealingService.registerHealingStrategy(
-                "deepseek_auth_error",
-                createApiKeyRotationStrategy("deepseek", ""));
-
-        logger.info("All provider healing strategies registered successfully");
+    @SuppressWarnings("unchecked")
+    private String providerFallbackFromConfig(com.supremeai.model.ProviderTypeConfig typeConfig) {
+        Map<String, Object> extraConfig = typeConfig.getExtraConfig();
+        if (extraConfig == null) return null;
+        // Supports key "alternativeProvider" (string fallback) or "healingMitigation" (null → no switch)
+        if (extraConfig.containsKey("alternativeProvider")) {
+            Object val = extraConfig.get("alternativeProvider");
+            if (val instanceof String) return (String) val;
+        }
+        // Map healingMitigation "NONE" → no switch; any real provider name → use as fallback
+        Object mitigation = extraConfig.get("healingMitigation");
+        if (mitigation instanceof String && !((String) mitigation).equalsIgnoreCase("NONE")) {
+            return (String) mitigation;
+        }
+        return null;
     }
 }

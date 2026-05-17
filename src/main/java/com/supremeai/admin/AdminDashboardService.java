@@ -92,7 +92,7 @@ public class AdminDashboardService {
     }
 
     public Flux<ImprovementProposal> getPendingApprovals() {
-        return proposalRepository.findByIsApproved(false);
+        return proposalRepository.findByApproved(false);
     }
 
     public List<String> getAutoPilotNotifications() {

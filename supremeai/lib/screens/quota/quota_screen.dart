@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:ui';
 import '../../services/localization_service.dart';
 
 class QuotaScreen extends StatelessWidget {

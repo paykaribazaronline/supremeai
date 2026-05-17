@@ -43,8 +43,8 @@ class VPNControllerTest {
         StepVerifier.create(controller.getConnections())
                 .expectNextMatches(response -> {
                     assertEquals(HttpStatus.OK, response.getStatusCode());
-                    assertTrue(response.getBody().success());
-                    Map<String, Object> data = response.getBody().data();
+                    assertTrue(response.getBody().isSuccess());
+                    Map<String, Object> data = response.getBody().getData();
                     List<?> connections = (List<?>) data.get("connections");
                     assertEquals(2, connections.size());
                     return true;
@@ -59,8 +59,8 @@ class VPNControllerTest {
         StepVerifier.create(controller.getConnections())
                 .expectNextMatches(response -> {
                     assertEquals(HttpStatus.OK, response.getStatusCode());
-                    assertTrue(response.getBody().success());
-                    Map<String, Object> data = response.getBody().data();
+                    assertTrue(response.getBody().isSuccess());
+                    Map<String, Object> data = response.getBody().getData();
                     List<?> connections = (List<?>) data.get("connections");
                     assertTrue(connections.isEmpty());
                     return true;
@@ -78,7 +78,7 @@ class VPNControllerTest {
         StepVerifier.create(controller.createConnection(input))
                 .expectNextMatches(response -> {
                     assertEquals(HttpStatus.OK, response.getStatusCode());
-                    assertTrue(response.getBody().success());
+                    assertTrue(response.getBody().isSuccess());
                     return true;
                 })
                 .verifyComplete();
@@ -91,8 +91,8 @@ class VPNControllerTest {
         StepVerifier.create(controller.deleteConnection("vpn-1"))
                 .expectNextMatches(response -> {
                     assertEquals(HttpStatus.OK, response.getStatusCode());
-                    assertTrue(response.getBody().success());
-                    assertEquals("VPN connection deleted", response.getBody().data());
+                    assertTrue(response.getBody().isSuccess());
+                    assertEquals("VPN connection deleted", response.getBody().getData());
                     return true;
                 })
                 .verifyComplete();
@@ -106,7 +106,7 @@ class VPNControllerTest {
         StepVerifier.create(controller.deleteConnection("vpn-1"))
                 .expectNextMatches(response -> {
                     assertNotEquals(HttpStatus.OK, response.getStatusCode());
-                    assertFalse(response.getBody().success());
+                    assertFalse(response.getBody().isSuccess());
                     return true;
                 })
                 .verifyComplete();

@@ -9,7 +9,10 @@ import java.util.List;
 @Document(collectionName = "api_providers")
 public class APIProvider {
     @DocumentId
-    private String id;
+    private String documentId;
+
+    @com.google.cloud.firestore.annotation.PropertyName("id")
+    private String idField;
     private String name;
     private String type;
     private String modelName;
@@ -20,8 +23,7 @@ public class APIProvider {
     private Double usageLimit;
     private Double currentUsage;
     
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-    private Date lastCheck;
+    private Object lastCheck;
 
     private String creatorEmail;
     private String accountEmail;
@@ -44,8 +46,7 @@ public class APIProvider {
      */
     private java.util.Map<String, Double> capabilityScores = new java.util.HashMap<>();
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-    private java.util.Date lastBenchmarkedAt;
+    private Object lastBenchmarkedAt;
 
     /** Number of times this provider has been benchmarked */
     private Integer benchmarkCount = 0;
@@ -53,24 +54,19 @@ public class APIProvider {
     // Auto-validation tracking fields
     private Integer consecutiveErrorDays;
     
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-    private Date lastValidated;
+    private Object lastValidated;
     
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-    private Date lastErrorDate;
+    private Object lastErrorDate;
     
     private String deadReason;
     
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-    private Date deadAt;
+    private Object deadAt;
     private Long lastLatency;
     private String lastErrorMessage;
     
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-    private Date lastTested;
+    private Object lastTested;
     
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-    private Date addedAt;
+    private Object addedAt;
     private String hints;
     private java.util.Map<String, Object> config = new java.util.HashMap<>();
 
@@ -79,7 +75,7 @@ public class APIProvider {
     }
 
     public APIProvider(String id, String name, String type, String status) {
-        this.id = id;
+        this.idField = id;
         this.name = name;
         this.type = type;
         this.status = status;
@@ -87,8 +83,14 @@ public class APIProvider {
     }
 
     // Getters and Setters
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public String getDocumentId() { return documentId; }
+    public void setDocumentId(String documentId) { this.documentId = documentId; }
+
+    @com.google.cloud.firestore.annotation.PropertyName("id")
+    public String getId() { return idField != null ? idField : documentId; }
+
+    @com.google.cloud.firestore.annotation.PropertyName("id")
+    public void setId(String id) { this.idField = id; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     public String getType() { return type; }
@@ -108,8 +110,8 @@ public class APIProvider {
     public void setUsageLimit(Double usageLimit) { this.usageLimit = usageLimit; }
     public Double getCurrentUsage() { return currentUsage; }
     public void setCurrentUsage(Double currentUsage) { this.currentUsage = currentUsage; }
-    public Date getLastCheck() { return lastCheck; }
-    public void setLastCheck(Date lastCheck) { this.lastCheck = lastCheck; }
+    public Date getLastCheck() { return convertToDate(lastCheck); }
+    public void setLastCheck(Object lastCheck) { this.lastCheck = lastCheck; }
 
     public java.util.List<String> getModels() { return models; }
     public void setModels(java.util.List<String> models) { this.models = models; }
@@ -144,11 +146,11 @@ public class APIProvider {
     public Integer getConsecutiveErrorDays() { return consecutiveErrorDays; }
     public void setConsecutiveErrorDays(Integer consecutiveErrorDays) { this.consecutiveErrorDays = consecutiveErrorDays; }
 
-    public Date getLastValidated() { return lastValidated; }
-    public void setLastValidated(Date lastValidated) { this.lastValidated = lastValidated; }
+    public Date getLastValidated() { return convertToDate(lastValidated); }
+    public void setLastValidated(Object lastValidated) { this.lastValidated = lastValidated; }
 
-    public Date getLastErrorDate() { return lastErrorDate; }
-    public void setLastErrorDate(Date lastErrorDate) { this.lastErrorDate = lastErrorDate; }
+    public Date getLastErrorDate() { return convertToDate(lastErrorDate); }
+    public void setLastErrorDate(Object lastErrorDate) { this.lastErrorDate = lastErrorDate; }
 
     public String getDeadReason() { return deadReason; }
     public void setDeadReason(String deadReason) { this.deadReason = deadReason; }
@@ -156,14 +158,14 @@ public class APIProvider {
     public java.util.List<String> getAssignedRoles() { return assignedRoles; }
     public void setAssignedRoles(java.util.List<String> assignedRoles) { this.assignedRoles = assignedRoles; }
 
-    public Date getDeadAt() { return deadAt; }
-    public void setDeadAt(Date deadAt) { this.deadAt = deadAt; }
+    public Date getDeadAt() { return convertToDate(deadAt); }
+    public void setDeadAt(Object deadAt) { this.deadAt = deadAt; }
 
     public java.util.Map<String, Double> getCapabilityScores() { return capabilityScores; }
     public void setCapabilityScores(java.util.Map<String, Double> capabilityScores) { this.capabilityScores = capabilityScores; }
 
-    public java.util.Date getLastBenchmarkedAt() { return lastBenchmarkedAt; }
-    public void setLastBenchmarkedAt(java.util.Date lastBenchmarkedAt) { this.lastBenchmarkedAt = lastBenchmarkedAt; }
+    public java.util.Date getLastBenchmarkedAt() { return convertToDate(lastBenchmarkedAt); }
+    public void setLastBenchmarkedAt(Object lastBenchmarkedAt) { this.lastBenchmarkedAt = lastBenchmarkedAt; }
 
     public Integer getBenchmarkCount() { return benchmarkCount; }
     public void setBenchmarkCount(Integer benchmarkCount) { this.benchmarkCount = benchmarkCount; }
@@ -174,11 +176,11 @@ public class APIProvider {
     public String getLastErrorMessage() { return lastErrorMessage; }
     public void setLastErrorMessage(String lastErrorMessage) { this.lastErrorMessage = lastErrorMessage; }
 
-    public Date getLastTested() { return lastTested; }
-    public void setLastTested(Date lastTested) { this.lastTested = lastTested; }
+    public Date getLastTested() { return convertToDate(lastTested); }
+    public void setLastTested(Object lastTested) { this.lastTested = lastTested; }
 
-    public Date getAddedAt() { return addedAt; }
-    public void setAddedAt(Date addedAt) { this.addedAt = addedAt; }
+    public Date getAddedAt() { return convertToDate(addedAt); }
+    public void setAddedAt(Object addedAt) { this.addedAt = addedAt; }
 
     public String getHints() { return hints; }
     public void setHints(String hints) { this.hints = hints; }
@@ -200,5 +202,42 @@ public class APIProvider {
 
     public void setValidated(boolean validated) {
         this.lastValidated = validated ? new java.util.Date() : null;
+    }
+
+    private java.util.Date convertToDate(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof java.util.Date) return (java.util.Date) obj;
+        if (obj instanceof com.google.cloud.Timestamp) return ((com.google.cloud.Timestamp) obj).toDate();
+        if (obj instanceof Long) return new java.util.Date((Long) obj);
+        if (obj instanceof String) {
+            try {
+                return java.util.Date.from(java.time.Instant.parse((String) obj));
+            } catch (Exception e) {
+                try {
+                    java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+                    return sdf.parse((String) obj);
+                } catch (Exception ex) {
+                    try {
+                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+                        return sdf.parse((String) obj);
+                    } catch (Exception ex2) {
+                        return null;
+                    }
+                }
+            }
+        }
+        if (obj instanceof java.util.Map) {
+            try {
+                java.util.Map<?, ?> map = (java.util.Map<?, ?>) obj;
+                Object seconds = map.get("seconds");
+                Object nanos = map.get("nanoseconds");
+                if (seconds instanceof Number) {
+                    long sec = ((Number) seconds).longValue();
+                    int nan = (nanos instanceof Number) ? ((Number) nanos).intValue() : 0;
+                    return com.google.cloud.Timestamp.ofTimeSecondsAndNanos(sec, nan).toDate();
+                }
+            } catch (Exception e) {}
+        }
+        return null;
     }
 }

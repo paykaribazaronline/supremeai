@@ -1,24 +1,25 @@
 package com.supremeai.controller;
 
 import com.supremeai.provider.AIProviderFactory;
-import com.supremeai.provider.SupremeCloudProvider;
+import com.supremeai.repository.ProviderRepository;
+import com.supremeai.model.APIProvider;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/telemetry")
 public class SystemMonitoringController {
 
     private final AIProviderFactory providerFactory;
+    private final ProviderRepository providerRepository;
 
-    public SystemMonitoringController(AIProviderFactory providerFactory) {
+    public SystemMonitoringController(AIProviderFactory providerFactory,
+                                      ProviderRepository providerRepository) {
         this.providerFactory = providerFactory;
+        this.providerRepository = providerRepository;
     }
 
     @GetMapping("/health")
@@ -26,49 +27,26 @@ public class SystemMonitoringController {
         Map<String, Object> response = new HashMap<>();
         List<Map<String, Object>> modelStatus = new ArrayList<>();
 
-        // Logic to poll cloud run endpoints
-        String[] models = {"qwen", "llama", "phi", "nomic", "deepseek"};
-        
-        for (String modelId : models) {
-            Map<String, Object> stats = new HashMap<>();
-            stats.put("id", modelId);
-            stats.put("name", getFriendlyName(modelId));
-            
-            try {
-                // Here we would typically ping the endpoint or get last cached status
-                stats.put("status", "online"); 
-                stats.put("latency", (int) (Math.random() * 100) + 20); // Simulated live latency
-                stats.put("memory", getModelMemory(modelId));
-            } catch (Exception e) {
-                stats.put("status", "offline");
-                stats.put("latency", 0);
+        List<APIProvider> providers = providerRepository.findAll().collectList().block();
+        if (providers != null) {
+            for (APIProvider p : providers) {
+                Map<String, Object> stats = new HashMap<>();
+                stats.put("id", p.getId());
+                stats.put("name", p.getName());
+                stats.put("type", p.getType());
+                stats.put("status", p.getStatus());
+                stats.put("priority", p.getPriority());
+                stats.put("baseUrl", p.getBaseUrl());
+                stats.put("models", p.getModels());
+                stats.put("lastValidated", p.getLastValidated() != null ? p.getLastValidated().toString() : "never");
+                stats.put("consecutiveErrorDays", p.getConsecutiveErrorDays());
+                modelStatus.add(stats);
             }
-            modelStatus.add(stats);
         }
 
         response.put("models", modelStatus);
+        response.put("totalProviders", modelStatus.size());
         response.put("systemUptime", "99.98%");
-        response.put("activeRequests", (int) (Math.random() * 10));
         return response;
-    }
-
-    private String getFriendlyName(String id) {
-        return switch (id) {
-            case "qwen" -> "Qwen 2.5 Coder";
-            case "llama" -> "Llama 3.1";
-            case "phi" -> "Phi 3 Mini";
-            case "nomic" -> "Nomic Embed";
-            case "deepseek" -> "DeepSeek Coder";
-            default -> id;
-        };
-    }
-
-    private String getModelMemory(String id) {
-        return switch (id) {
-            case "qwen", "llama" -> "16GB";
-            case "deepseek" -> "8GB";
-            case "phi" -> "4GB";
-            default -> "2GB";
-        };
     }
 }

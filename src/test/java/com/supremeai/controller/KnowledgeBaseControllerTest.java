@@ -8,6 +8,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
 import java.util.List;
@@ -38,10 +40,10 @@ class KnowledgeBaseControllerTest {
     @Test
     void getSolution_whenFound_shouldReturnFoundResponse() {
         when(globalKnowledgeBase.findKnownSolution("NullPointerException at Main.java:42"))
-                .thenReturn("Add null check before obj.method()");
+                .thenReturn(Mono.just("Add null check before obj.method()"));
 
         KnowledgeBaseController.SolutionResponse response =
-                controller.getSolution("NullPointerException at Main.java:42");
+                controller.getSolution("NullPointerException at Main.java:42").block();
 
         assertTrue(response.found);
         assertEquals("Add null check before obj.method()", response.solution);
@@ -51,10 +53,10 @@ class KnowledgeBaseControllerTest {
     @Test
     void getSolution_whenNotFound_shouldReturnNotFoundResponse() {
         when(globalKnowledgeBase.findKnownSolution("UnknownError"))
-                .thenReturn(null);
+                .thenReturn(Mono.empty());
 
         KnowledgeBaseController.SolutionResponse response =
-                controller.getSolution("UnknownError");
+                controller.getSolution("UnknownError").block();
 
         assertFalse(response.found);
         assertNull(response.solution);
@@ -65,9 +67,9 @@ class KnowledgeBaseControllerTest {
     void getAllSolutions_shouldReturnAllSolutionsForError() {
         List<SolutionMemory> solutions = Arrays.asList(sampleSolution);
         when(globalKnowledgeBase.getSolutions("NullPointerException"))
-                .thenReturn(solutions);
+                .thenReturn(Flux.fromIterable(solutions));
 
-        List<SolutionMemory> result = controller.getAllSolutions("NullPointerException");
+        List<SolutionMemory> result = controller.getAllSolutions("NullPointerException").collectList().block();
 
         assertEquals(1, result.size());
         assertEquals(sampleSolution, result.get(0));
@@ -77,9 +79,9 @@ class KnowledgeBaseControllerTest {
     @Test
     void getAllSolutions_whenNoSolutions_shouldReturnEmptyList() {
         when(globalKnowledgeBase.getSolutions("UnknownError"))
-                .thenReturn(List.of());
+                .thenReturn(Flux.empty());
 
-        List<SolutionMemory> result = controller.getAllSolutions("UnknownError");
+        List<SolutionMemory> result = controller.getAllSolutions("UnknownError").collectList().block();
 
         assertTrue(result.isEmpty());
     }
@@ -94,7 +96,7 @@ class KnowledgeBaseControllerTest {
         request.setExecutionTimeMs(150L);
         request.setSecurityScore(0.95);
 
-        String result = controller.learnSolution(request);
+        String result = controller.learnSolution(request).block();
 
         assertEquals("Solution recorded (subject to auto-pilot/approval rules)", result);
         verify(globalKnowledgeBase).recordSuccessWithPermission(
@@ -108,7 +110,7 @@ class KnowledgeBaseControllerTest {
         request.setErrorSignature("FailedError");
         request.setFailedCode("failed code attempt");
 
-        String result = controller.recordFailure(request);
+        String result = controller.recordFailure(request).block();
 
         assertEquals("Failure recorded", result);
         verify(globalKnowledgeBase).recordFailure("FailedError", "failed code attempt");
@@ -116,8 +118,8 @@ class KnowledgeBaseControllerTest {
 
     @Test
     void getStats_shouldReturnKnowledgeStats() {
-        when(globalKnowledgeBase.countSolutions()).thenReturn(42L);
-        KnowledgeBaseController.KnowledgeStats stats = controller.getStats();
+        when(globalKnowledgeBase.countSolutions()).thenReturn(Mono.just(42L));
+        KnowledgeBaseController.KnowledgeStats stats = controller.getStats().block();
 
         assertEquals("Total solutions: 42", stats.note);
     }

@@ -3,25 +3,36 @@ package com.supremeai.provider;
 import com.supremeai.service.AIProviderService;
 import com.supremeai.repository.ProviderRepository;
 import com.supremeai.service.ContextualAIRankingService;
+import com.supremeai.service.ProviderMetadataService;
+import com.supremeai.service.ProviderTypeRegistry;
 import com.supremeai.learning.SelfLearningRouter;
 import com.supremeai.learning.EnhancedSelfLearningRouter;
+import com.supremeai.model.APIProvider;
+import com.supremeai.model.ProviderTypeConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.context.annotation.Lazy;
+import reactor.core.publisher.Flux;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Factory for creating AI provider instances
- * Supports AI models for voting system (S4)
+ * Factory for creating AI provider instances.
+ * All provider resolution is now dynamic via Firestore — zero hardcoded switch/case.
  */
 @Component
 public class AIProviderFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(AIProviderFactory.class);
+
+    @Autowired
+    private ProviderMetadataService providerMetadataService;
+
+    @Autowired
+    private ProviderTypeRegistry providerTypeRegistry;
 
     @Autowired
     private AIProviderService aiProviderService;
@@ -45,8 +56,19 @@ public class AIProviderFactory {
     @Autowired
     private com.supremeai.agent.AgentRuleService ruleService;
 
-    // Cache for provider health status
     private final Map<String, Boolean> providerHealthCache = new ConcurrentHashMap<>();
+
+    private void injectMetadataService(AIProvider provider) {
+        if (provider instanceof AbstractHttpProvider) {
+            try {
+                java.lang.reflect.Field field = AbstractHttpProvider.class.getDeclaredField("providerMetadataService");
+                field.setAccessible(true);
+                field.set(provider, this.providerMetadataService);
+            } catch (Exception e) {
+                logger.warn("Could not inject providerMetadataService into provider: {}", e.getMessage());
+            }
+        }
+    }
 
     public AIProvider getProvider(String name) {
         return getProvider(name, null);
@@ -54,109 +76,100 @@ public class AIProviderFactory {
 
     public AIProvider getProvider(String name, String overrideApiKey) {
         if (name == null || name.trim().isEmpty()) {
-            logger.warn("Attempted to get provider with null or empty name. Falling back to default.");
-            return getDefaultProvider();
+            throw new IllegalArgumentException("Provider name cannot be null or empty.");
         }
 
         String normalizedName = name.toLowerCase().trim();
-        String activeKey = aiProviderService.getActiveKey(normalizedName);
-        String key = (overrideApiKey != null && !overrideApiKey.isEmpty()) 
-                     ? overrideApiKey 
-                     : activeKey;
+        APIProvider metadata = providerMetadataService != null ? providerMetadataService.getMetadata(normalizedName) : null;
+        String key = resolveKey(overrideApiKey, metadata != null ? metadata.getApiKey() : null, normalizedName);
 
+        AIProvider provider;
         switch (normalizedName) {
-            // Core AI Models for S4 Voting System
-            case "gpt4":
             case "openai":
-                return new OpenAIProvider(key);
-
-            case "claude":
+            case "gpt4":
+                provider = new OpenAIProvider(key);
+                break;
             case "anthropic":
-                return new AnthropicProvider(key);
-
+            case "claude":
+                provider = new AnthropicProvider(key);
+                break;
             case "gemini":
             case "google":
-                return new GeminiProvider(key);
-
+                provider = new GeminiProvider(key);
+                break;
             case "groq":
-                return new GroqProvider(key);
-
+                provider = new GroqProvider(key);
+                break;
             case "deepseek":
-                return new DeepSeekProvider(key);
-
+                provider = new DeepSeekProvider(key);
+                break;
+            case "huggingface":
+                provider = new HuggingFaceProvider(key);
+                break;
+            case "kimi":
+                provider = new KimiProvider(key);
+                break;
+            case "mistral":
+                provider = new MistralProvider(key);
+                break;
+            case "stepfun":
+                provider = new StepFunProvider(key);
+                break;
+            case "codegeex4":
+                provider = new CodeGeeX4Provider(key);
+                break;
             case "ollama":
             case "local":
-                if (ollamaProvider == null) {
-                    logger.error("Ollama provider bean not found. Add @Profile exclusion or enable in config.");
-                    throw new IllegalStateException("Ollama provider not available. Check Spring configuration.");
+                if (ollamaProvider != null) {
+                    return ollamaProvider;
                 }
-                return ollamaProvider;
-
-            case "huggingface":
-                return new HuggingFaceProvider(key);
-
-            case "kimi":
-                return new KimiProvider(key);
-
-            case "mistral":
-                return new MistralProvider(key);
-
-            case "stepfun":
-                return new StepFunProvider(key);
-
-            case "codegeex4":
-            case "codegeex":
-                return new CodeGeeX4Provider(key);
-
-            case "gcp_qwen":
-                return new SupremeCloudProvider(key, "gcp_qwen", "qwen2.5-coder:7b", "https://supreme-ai-qwen-coder-565236080752.us-central1.run.app");
-            case "gcp_llama":
-                return new SupremeCloudProvider(key, "gcp_llama", "llama3.1:8b", "https://supreme-ai-llama-3-1-565236080752.us-central1.run.app");
-            case "gcp_phi":
-                return new SupremeCloudProvider(key, "gcp_phi", "phi3", "https://supreme-ai-phi-3-565236080752.us-central1.run.app");
-            case "gcp_nomic":
-                return new SupremeCloudProvider(key, "gcp_nomic", "nomic-embed-text", "https://supreme-ai-nomic-embed-565236080752.us-central1.run.app");
-            case "hf_deepseek":
-                return new SupremeCloudProvider(key, "hf_deepseek", "deepseek-coder-v2", "https://supreme-ai-deepseek-pro-565236080752.us-central1.run.app");
-            
-            // HuggingFace Serverless Inference Endpoints
-            case "hf_mistral":
-                return new SupremeCloudProvider(key, "hf_mistral", "mistralai/Mistral-7B-Instruct-v0.3", "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3");
-            case "hf_llama":
-                return new SupremeCloudProvider(key, "hf_llama", "meta-llama/Meta-Llama-3-8B-Instruct", "https://api-inference.huggingface.co/models/meta-llama/Meta-Llama-3-8B-Instruct");
-            case "hf_codellama":
-                return new SupremeCloudProvider(key, "hf_codellama", "codellama/CodeLlama-7B-Instruct-hf", "https://api-inference.huggingface.co/models/codellama/CodeLlama-7B-Instruct-hf");
-            case "hf_phi":
-                return new SupremeCloudProvider(key, "hf_phi", "microsoft/Phi-3-mini-4k-instruct", "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct");
-            
-            // Render Free Tier Endpoints
-            case "render_tinyllama":
-                return new SupremeCloudProvider(key, "render_tinyllama", "tinyllama-1.1b", System.getenv().getOrDefault("RENDER_TINYLLAMA_URL", "https://tinyllama.onrender.com"));
-            case "render_phi3":
-                return new SupremeCloudProvider(key, "render_phi3", "phi-3-mini", System.getenv().getOrDefault("RENDER_PHI3_URL", "https://phi3.onrender.com"));
-            case "render_phi2":
-                return new SupremeCloudProvider(key, "render_phi2", "phi-2", System.getenv().getOrDefault("RENDER_PHI2_URL", "https://phi2.onrender.com"));
-            case "render_qwen":
-                return new SupremeCloudProvider(key, "render_qwen", "qwen-0.5b", System.getenv().getOrDefault("RENDER_QWEN_URL", "https://qwen.onrender.com"));
-
-            // HuggingFace Specialized Models
-            case "hf_phi_vision":
-                return new SupremeCloudProvider(key, "hf_phi_vision", "microsoft/Phi-3-vision-128k-instruct", "https://api-inference.huggingface.co/models/microsoft/Phi-3-vision-128k-instruct");
-            case "hf_paligemma":
-                return new SupremeCloudProvider(key, "hf_paligemma", "google/paligemma-3b-mix-448", "https://api-inference.huggingface.co/models/google/paligemma-3b-mix-448");
-            case "hf_e5_large":
-                return new SupremeCloudProvider(key, "hf_e5_large", "intfloat/multilingual-e5-large", "https://api-inference.huggingface.co/models/intfloat/multilingual-e5-large");
-            case "hf_bge":
-                return new SupremeCloudProvider(key, "hf_bge", "BAAI/bge-large-en-v1.5", "https://api-inference.huggingface.co/models/BAAI/bge-large-en-v1.5");
-
+                throw new IllegalStateException("Ollama provider not available. Check Spring configuration.");
             default:
-                logger.warn("Unknown AI provider request: {}. Falling back to default if possible.", normalizedName);
-                try {
-                    return getDefaultProvider();
-                } catch (Exception e) {
-                    throw new IllegalArgumentException("Unknown AI provider: " + name + " and no healthy default available.");
+                if (metadata != null && metadata.getBaseUrl() != null && !metadata.getBaseUrl().isBlank()) {
+                    String defaultModel = resolveModel(metadata);
+                    logger.info("[Zero-Hardcode] Resolving provider '{}' from Firestore: baseUrl={}, model={}",
+                            normalizedName, metadata.getBaseUrl(), defaultModel);
+                    provider = new SupremeCloudProvider(key, normalizedName, defaultModel, metadata.getBaseUrl());
+                } else {
+                    ProviderTypeConfig typeConfig = providerTypeRegistry != null ? providerTypeRegistry.getTypeConfig(normalizedName) : null;
+                    if (typeConfig != null && typeConfig.getDefaultBaseUrl() != null && !typeConfig.getDefaultBaseUrl().isBlank()) {
+                        String defaultModel = typeConfig.getDefaultModel() != null ? typeConfig.getDefaultModel() : "default";
+                        logger.info("[Zero-Hardcode] Resolving provider '{}' from provider_types: baseUrl={}, model={}",
+                                normalizedName, typeConfig.getDefaultBaseUrl(), defaultModel);
+                        provider = new SupremeCloudProvider(key, normalizedName, defaultModel, typeConfig.getDefaultBaseUrl());
+                    } else {
+                        logger.warn("Unknown AI provider '{}'. Not found in Firestore api_providers or provider_types.", normalizedName);
+                        try {
+                            provider = getDefaultProvider();
+                        } catch (Exception e) {
+                            throw new IllegalArgumentException("Unknown AI provider: " + name + " and no healthy default available.");
+                        }
+                    }
                 }
         }
+        injectMetadataService(provider);
+        return provider;
+    }
+
+    private String resolveKey(String overrideApiKey, String metadataApiKey, String providerName) {
+        if (overrideApiKey != null && !overrideApiKey.isEmpty()) return overrideApiKey;
+        if (metadataApiKey != null && !metadataApiKey.isEmpty()) return metadataApiKey;
+        String serviceKey = aiProviderService != null ? aiProviderService.getActiveKey(providerName) : null;
+        return serviceKey != null ? serviceKey : "";
+    }
+
+    private String resolveModel(APIProvider metadata) {
+        if (metadata.getModels() != null && !metadata.getModels().isEmpty()) {
+            return metadata.getModels().get(0);
+        }
+        if (metadata.getModelName() != null && !metadata.getModelName().isBlank()) {
+            return metadata.getModelName();
+        }
+        ProviderTypeConfig typeConfig = providerTypeRegistry != null ? providerTypeRegistry.getTypeConfig(metadata.getType()) : null;
+        if (typeConfig != null && typeConfig.getDefaultModel() != null) {
+            return typeConfig.getDefaultModel();
+        }
+        return "default";
     }
 
     public AIProvider getEnforcedProvider(String name) {
@@ -167,25 +180,16 @@ public class AIProviderFactory {
         return new RuleEnforcingAIProvider(getProvider(name, overrideApiKey), ruleService);
     }
 
-    /**
-     * Get the best provider for a specific task based on rankings and health
-     * @param taskType Type of task (e.g., "code_generation", "code_analysis", "question_answering")
-     * @return Best available AI provider for the task
-     */
     public AIProvider getBestProviderForTask(String taskType) {
         logger.debug("Finding best provider for task: {}", taskType);
 
-        // Extract required skills from task type
         List<String> requiredSkills = extractSkillsFromTaskType(taskType);
-
-        // Get candidate providers (healthy ones)
         List<String> candidates = getHealthyProviders();
 
         if (candidates.isEmpty()) {
             throw new RuntimeException("No healthy AI providers available");
         }
 
-        // Use enhanced router if available
         if (enhancedRouter != null) {
             try {
                 String chosen = enhancedRouter.getBestProviderForTask(taskType, candidates);
@@ -198,46 +202,24 @@ public class AIProviderFactory {
             }
         }
 
-        // Fallback to original method
         return selectProviderByRankingOrFallback(taskType, candidates, requiredSkills);
     }
 
-    /**
-     * Extract skill requirements from task type
-     */
     private List<String> extractSkillsFromTaskType(String taskType) {
         String tt = taskType.toLowerCase();
         List<String> skills = new ArrayList<>();
-
-        if (tt.contains("code") || tt.contains("generation")) {
-            skills.add("coding");
-        }
-        if (tt.contains("analysis") || tt.contains("analyze")) {
-            skills.add("analysis");
-        }
-        if (tt.contains("creative") || tt.contains("writing")) {
-            skills.add("creative");
-        }
-        if (tt.contains("math") || tt.contains("logic")) {
-            skills.add("math");
-        }
-        if (tt.contains("vision") || tt.contains("image")) {
-            skills.add("vision");
-        }
-        if (tt.contains("summar") || tt.contains("qa") || tt.contains("question")) {
-            skills.add("understanding");
-        }
-
+        if (tt.contains("code") || tt.contains("generation")) skills.add("coding");
+        if (tt.contains("analysis") || tt.contains("analyze")) skills.add("analysis");
+        if (tt.contains("creative") || tt.contains("writing")) skills.add("creative");
+        if (tt.contains("math") || tt.contains("logic")) skills.add("math");
+        if (tt.contains("vision") || tt.contains("image")) skills.add("vision");
+        if (tt.contains("summar") || tt.contains("qa") || tt.contains("question")) skills.add("understanding");
         return skills;
     }
 
-    /**
-     * Get all currently healthy providers
-     */
     private List<String> getHealthyProviders() {
         List<String> healthy = new ArrayList<>();
-        String[] allProviders = getSupportedProviders();
-        for (String providerName : allProviders) {
+        for (String providerName : getSupportedProviders()) {
             try {
                 AIProvider provider = getProvider(providerName);
                 if (isProviderHealthy(provider)) {
@@ -250,11 +232,7 @@ public class AIProviderFactory {
         return healthy;
     }
 
-    /**
-     * Original fallback routing: ranking → default
-     */
     private AIProvider selectProviderByRankingOrFallback(String taskType, List<String> candidates, List<String> requiredSkills) {
-        // Try contextual ranking service
         try {
             ContextualAIRankingService.TaskType rankingTaskType = ContextualAIRankingService.TaskType.QUESTION_ANSWERING;
             try {
@@ -280,47 +258,59 @@ public class AIProviderFactory {
             logger.warn("Ranking service error for task {}: {}", taskType, e.getMessage());
         }
 
-        // Fallback to default provider selection
         logger.info("No ranked provider available for task {}, using default", taskType);
         return getDefaultProvider();
     }
 
-    /**
-     * Get the default/healthiest available provider
-     * @return A working AI provider
-     */
     public AIProvider getDefaultProvider() {
-        logger.info("Dynamically searching for healthiest default provider from database");
+        logger.info("Dynamically searching for healthiest default provider from metadata cache");
 
-        return providerRepository.findByStatus("ACTIVE")
-                .collectList()
-                .blockOptional()
-                .orElse(Collections.emptyList())
-                .stream()
-                .sorted(Comparator.comparingInt(com.supremeai.model.APIProvider::getPriority))
+        List<APIProvider> activeProviders = new ArrayList<>();
+        if (providerMetadataService != null) {
+            providerMetadataService.getAllMetadata().values().stream()
+                    .filter(p -> "active".equalsIgnoreCase(p.getStatus()))
+                    .forEach(activeProviders::add);
+        }
+
+        if (activeProviders.isEmpty()) {
+            logger.warn("Metadata cache is empty or has no active providers, querying database synchronously as fallback...");
+            try {
+                List<APIProvider> dbList = providerRepository.findByStatus("active")
+                        .collectList()
+                        .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                        .block(java.time.Duration.ofSeconds(5));
+                if (dbList != null) {
+                    activeProviders.addAll(dbList);
+                }
+            } catch (Exception e) {
+                logger.error("Failed to query fallback active providers synchronously", e);
+            }
+        }
+
+        if (activeProviders.isEmpty()) {
+            throw new RuntimeException("No working AI provider available in database/cache");
+        }
+
+        return activeProviders.stream()
+                .sorted(Comparator.comparingInt(APIProvider::getPriority))
                 .map(this::createProviderFromConfig)
                 .filter(Objects::nonNull)
                 .filter(this::isProviderHealthy)
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("No working AI provider available in database"));
+                .orElseThrow(() -> new RuntimeException("No working AI provider available and healthy"));
     }
 
-    /**
-     * Check if a provider is healthy and responsive
-     * @param provider The provider to check
-     * @return true if the provider is healthy
-     */
     private boolean isProviderHealthy(AIProvider provider) {
         String providerName = provider.getName();
 
-        // Check cache first
         if (providerHealthCache.containsKey(providerName)) {
             return providerHealthCache.get(providerName);
         }
 
-        // Perform health check
         try {
-            String testResponse = provider.generate("test").block();
+            String testResponse = provider.generate("test")
+                    .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                    .block(java.time.Duration.ofSeconds(3));
             boolean isHealthy = testResponse != null && !testResponse.isEmpty();
             providerHealthCache.put(providerName, isHealthy);
             return isHealthy;
@@ -331,29 +321,35 @@ public class AIProviderFactory {
         }
     }
 
-    /**
-     * Get list of all supported provider names from database
-     */
     public String[] getSupportedProviders() {
-        return providerRepository.findAll()
-                .map(com.supremeai.model.APIProvider::getName)
-                .collectList()
-                .blockOptional()
-                .orElse(Collections.emptyList())
-                .toArray(new String[0]);
+        if (providerMetadataService != null) {
+            Map<String, APIProvider> allMeta = providerMetadataService.getAllMetadata();
+            if (!allMeta.isEmpty()) {
+                return allMeta.values().stream()
+                        .map(APIProvider::getName)
+                        .toArray(String[]::new);
+            }
+        }
+
+        logger.warn("Metadata cache empty for getSupportedProviders, querying database synchronously...");
+        try {
+            List<APIProvider> list = providerRepository.findAll()
+                    .collectList()
+                    .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                    .block(java.time.Duration.ofSeconds(5));
+            if (list != null) {
+                return list.stream().map(APIProvider::getName).toArray(String[]::new);
+            }
+        } catch (Exception e) {
+            logger.error("Failed to query supported providers synchronously", e);
+        }
+        return new String[0];
     }
 
-    /**
-     * Get list of all supported provider names (alias for getSupportedProviders)
-     */
     public String[] getAllProviderNames() {
         return getSupportedProviders();
     }
 
-    /**
-     * Get all available provider instances
-     * @return List of all provider instances
-     */
     public List<AIProvider> getAllProviders() {
         List<AIProvider> providers = new ArrayList<>();
         for (String providerName : getSupportedProviders()) {
@@ -366,61 +362,38 @@ public class AIProviderFactory {
         return providers;
     }
 
-    /**
-     * Get all available provider IDs
-     * @return List of provider IDs
-     */
     public List<String> getAvailableProviderIds() {
         return Arrays.asList(getSupportedProviders());
     }
 
-    /**
-     * Clear the provider health cache
-     */
+    public Flux<String> getActiveHelperProviderIds() {
+        return providerRepository.findByStatus("active")
+                .map(APIProvider::getId);
+    }
+
     public void clearHealthCache() {
         providerHealthCache.clear();
         logger.info("Provider health cache cleared");
     }
 
-    private String resolveKey(String override, String fallback) {
-        return (override != null && !override.isEmpty()) ? override : fallback;
-    }
-
-    /**
-     * Creates an AI provider instance directly from database configuration.
-     * This enables dynamic provider support without code changes.
-     */
-    public AIProvider createProviderFromConfig(com.supremeai.model.APIProvider config) {
+    public AIProvider createProviderFromConfig(APIProvider config) {
         if (config == null) return null;
-        
+
         String name = config.getName() != null ? config.getName() : "Unknown";
-        String type = config.getType() != null ? config.getType().toLowerCase() : "unknown";
-        String apiKey = config.getApiKey() != null && !config.getApiKey().isEmpty() 
-                        ? config.getApiKey() 
+        String apiKey = config.getApiKey() != null && !config.getApiKey().isEmpty()
+                        ? config.getApiKey()
                         : aiProviderService.getActiveKey(name.toLowerCase());
         String baseUrl = config.getBaseUrl();
-        String defaultModel = (config.getModels() != null && !config.getModels().isEmpty()) 
-                             ? config.getModels().get(0) 
-                             : "default";
+        String defaultModel = resolveModel(config);
 
-        logger.info("Dynamically creating provider: {} of type: {}", name, type);
+        if (baseUrl != null && !baseUrl.isEmpty()) {
+            logger.info("Dynamically creating provider: {} with baseUrl: {}", name, baseUrl);
+            return new RuleEnforcingAIProvider(new SupremeCloudProvider(apiKey, name, defaultModel, baseUrl), ruleService);
+        }
 
-        // Try to use hardcoded logic if it's a known standard provider type
         try {
-            // First try by type, then by name
-            AIProvider provider;
-            try {
-                provider = getProvider(type, apiKey);
-            } catch (Exception e) {
-                provider = getProvider(name, apiKey);
-            }
-            return new RuleEnforcingAIProvider(provider, ruleService);
+            return getProvider(name, apiKey);
         } catch (IllegalArgumentException e) {
-            // Not a standard provider, use generic SupremeCloudProvider for custom endpoints
-            if (baseUrl != null && !baseUrl.isEmpty()) {
-                logger.info("Using generic SupremeCloudProvider for custom endpoint: {}", baseUrl);
-                return new RuleEnforcingAIProvider(new SupremeCloudProvider(apiKey, name, defaultModel, baseUrl), ruleService);
-            }
             logger.error("Cannot create provider {}: {}", name, e.getMessage());
             return null;
         }

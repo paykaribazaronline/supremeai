@@ -10,8 +10,8 @@ interface UserTableProps {
   deletingUserId: string | null;
   onEdit: (user: User) => void;
   onDeactivate: (uid: string) => void;
-  onReactivate: (uid: string) => void;
-  onDelete: (uid: string) => void;
+  onReactivate?: (uid: string) => void;
+  onDelete?: (uid: string) => void;
 }
 
 const UserTable: React.FC<UserTableProps> = ({
@@ -79,7 +79,7 @@ const UserTable: React.FC<UserTableProps> = ({
     {
       title: 'Actions',
       key: 'actions',
-      width: 150,
+      width: 180,
       render: (_: any, record: User) => (
         <Space>
           <Button 
@@ -102,7 +102,7 @@ const UserTable: React.FC<UserTableProps> = ({
               Deactivate
             </Button>
           )}
-          {!record.isActive && (
+          {!record.isActive && onReactivate && (
             <Button
               size="small"
               type="primary"
@@ -112,15 +112,17 @@ const UserTable: React.FC<UserTableProps> = ({
               Reactivate
             </Button>
           )}
-          <Button
-            size="small"
-            danger
-            type="link"
-            icon={<DeleteOutlined />}
-            onClick={() => onDelete(record.uid)}
-          >
-            Delete
-          </Button>
+          {onDelete && (
+            <Button
+              size="small"
+              danger
+              type="link"
+              icon={<DeleteOutlined />}
+              onClick={() => onDelete(record.uid)}
+            >
+              Delete
+            </Button>
+          )}
         </Space>
       ),
     },

@@ -261,7 +261,7 @@ public class AutonomousQuestioningEngine {
     }
 
     private boolean hasClearObjective(String input) {
-        String[] objectiveMarkers = {"create", "build", "generate", "make", "implement", "design", "fix", "solve"};
+        String[] objectiveMarkers = {"create", "build", "generate", "make", "implement", "design", "fix", "solve", "write"};
         for (String marker : objectiveMarkers) {
             if (input.contains(marker)) return true;
         }

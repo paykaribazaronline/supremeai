@@ -1,5 +1,6 @@
 package com.supremeai.service;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.supremeai.model.User;
 import com.supremeai.model.UserTier;
 import com.supremeai.repository.UserRepository;
@@ -25,6 +26,9 @@ class UserAccountServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private FirebaseAuth firebaseAuth;
 
     @InjectMocks
     private UserAccountService userAccountService;

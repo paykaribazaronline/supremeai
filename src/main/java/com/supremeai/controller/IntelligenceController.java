@@ -1,5 +1,7 @@
 package com.supremeai.controller;
 
+import com.supremeai.model.APIProvider;
+import com.supremeai.repository.ProviderRepository;
 import com.supremeai.response.ApiResponse;
 import com.supremeai.service.ContextualAIRankingService;
 import com.supremeai.service.AutonomousQuestioningEngine;
@@ -7,6 +9,7 @@ import com.supremeai.service.MultiAIVotingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -32,10 +35,13 @@ public class IntelligenceController {
     private AutonomousQuestioningEngine questioningEngine;
 
     @Autowired
-    private MultiAIVotingService votingService;
+    private ContextualAIRankingService rankingService;
 
     @Autowired
-    private ContextualAIRankingService rankingService;
+    private ApplicationContext applicationContext;
+
+    @Autowired
+    private ProviderRepository providerRepository;
 
     /**
      * S9: Get AI Provider Rankings (Auto-Ranking)
@@ -87,17 +93,25 @@ public class IntelligenceController {
     @PostMapping("/vote")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'AGENT_MANAGER', 'GUEST')")
     public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> executeVoting(@RequestBody VotingRequest request) {
-        logger.info("S4: Executing 10-AI voting for prompt: {}", 
+        logger.info("S4: Executing multi-AI voting for prompt: {}", 
                    request.getPrompt().substring(0, Math.min(50, request.getPrompt().length())));
 
-        List<String> models = request.getModels();
-        if (models == null || models.isEmpty()) {
-            models = List.of(MultiAIVotingService.DEFAULT_PROVIDERS);
+        Mono<List<String>> providersMono;
+        List<String> requestedModels = request.getModels();
+        if (requestedModels != null && !requestedModels.isEmpty()) {
+            providersMono = Mono.just(requestedModels);
+        } else {
+            providersMono = providerRepository.findAll()
+                    .filter(p -> "active".equalsIgnoreCase(p.getStatus()))
+                    .map(p -> p.getName().toLowerCase())
+                    .collectList();
         }
 
         long timeoutMs = request.getTimeoutMs() > 0 ? request.getTimeoutMs() : 15000;
 
-        return votingService.executeEnsembleVoting(request.getPrompt(), models, timeoutMs)
+        return providersMono.flatMap(models ->
+            applicationContext.getBean(MultiAIVotingService.class)
+                .executeEnsembleVoting(request.getPrompt(), models, timeoutMs)
             .map(result -> {
                 Map<String, Object> response = new HashMap<>();
                 response.put("prompt", result.getPrompt());
@@ -106,30 +120,27 @@ public class IntelligenceController {
                 response.put("verdict", result.getVerdict());
                 response.put("processingTimeMs", result.getProcessingTimeMs());
                 response.put("totalModelsUsed", result.getTotalModelsUsed());
-                response.put("totalModelsAvailable", MultiAIVotingService.ALL_PROVIDERS.length);
-
-                // Add individual votes
+                response.put("totalModelsAvailable", models.size());
                 List<Map<String, Object>> votes = result.getAllVotes().stream()
                     .map(vote -> {
                         Map<String, Object> voteMap = new HashMap<>();
                         voteMap.put("provider", vote.getProviderName());
                         voteMap.put("confidence", vote.getConfidence());
                         voteMap.put("timestamp", vote.getTimestamp());
-                        // Truncate response for summary
                         String resp = vote.getResponse();
                         voteMap.put("responsePreview", resp != null && resp.length() > 200 ? resp.substring(0, 200) + "..." : resp);
                         return voteMap;
                     })
                     .collect(Collectors.toList());
-
                 response.put("votes", votes);
                 return ResponseEntity.ok(ApiResponse.ok(response));
             })
             .onErrorResume(e -> {
-                logger.error("Error executing 10-AI voting", e);
+                logger.error("Error executing multi-AI voting", e);
                 return Mono.just(ResponseEntity.badRequest()
                     .body(ApiResponse.error(e.getMessage())));
-            });
+            })
+        );
     }
 
     /**
@@ -138,14 +149,17 @@ public class IntelligenceController {
      */
     @GetMapping("/models")
     public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> getAvailableModels() {
-        return Mono.fromCallable(() -> {
-            Map<String, Object> response = new HashMap<>();
-            response.put("totalModels", MultiAIVotingService.ALL_PROVIDERS.length);
-            response.put("models", MultiAIVotingService.ALL_PROVIDERS);
-            response.put("description", "Multiple AI Models available for ensemble voting - dynamic list");
-            return response;
-        })
-        .map(response -> ResponseEntity.ok(ApiResponse.ok(response)));
+        return providerRepository.findAll()
+                .filter(p -> "active".equalsIgnoreCase(p.getStatus()))
+                .map(p -> p.getName().toLowerCase())
+                .collectList()
+                .map(models -> {
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("totalModels", models.size());
+                    response.put("models", models);
+                    response.put("description", "Multiple AI Models available for ensemble voting - dynamic list");
+                    return ResponseEntity.ok(ApiResponse.ok(response));
+                });
     }
 
     /**

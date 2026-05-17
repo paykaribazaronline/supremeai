@@ -53,73 +53,7 @@ public class RouterKnowledgeInitializer {
 
     private void injectBasicKnowledge(SelfLearningRouter router) {
         if (router == null) return;
-
-        // Task type -> preferred providers with initial Q-boost
-        Map<String, List<ProviderPreference>> knowledge = Map.ofEntries(
-            Map.entry("CODE_GENERATION", List.of(
-                new ProviderPreference("deepseek", 2.0),
-                new ProviderPreference("hf_codellama", 1.8),
-                new ProviderPreference("gcp_qwen", 1.7)
-            )),
-            Map.entry("CODE_ANALYSIS", List.of(
-                new ProviderPreference("deepseek", 1.9),
-                new ProviderPreference("gemini", 1.6),
-                new ProviderPreference("gpt4", 1.5)
-            )),
-            Map.entry("CODE_REVIEW", List.of(
-                new ProviderPreference("gpt4", 1.8),
-                new ProviderPreference("claude", 1.7),
-                new ProviderPreference("deepseek", 1.6)
-            )),
-            Map.entry("MATH_REASONING", List.of(
-                new ProviderPreference("deepseek", 2.0),
-                new ProviderPreference("gpt4", 1.9),
-                new ProviderPreference("gemini", 1.7)
-            )),
-            Map.entry("CREATIVE_WRITING", List.of(
-                new ProviderPreference("gpt4", 2.0),
-                new ProviderPreference("claude", 1.9),
-                new ProviderPreference("mistral", 1.5)
-            )),
-            Map.entry("QUESTION_ANSWERING", List.of(
-                new ProviderPreference("gemini", 1.8),
-                new ProviderPreference("gpt4", 1.7),
-                new ProviderPreference("hf_llama", 1.5)
-            )),
-            Map.entry("SUMMARIZATION", List.of(
-                new ProviderPreference("gemini", 1.8),
-                new ProviderPreference("claude", 1.7),
-                new ProviderPreference("gpt4", 1.6)
-            )),
-            Map.entry("TECHNICAL_DOCS", List.of(
-                new ProviderPreference("claude", 1.9),
-                new ProviderPreference("gpt4", 1.7),
-                new ProviderPreference("deepseek", 1.6)
-            )),
-            Map.entry("DATA_ANALYSIS", List.of(
-                new ProviderPreference("gpt4", 1.8),
-                new ProviderPreference("claude", 1.6),
-                new ProviderPreference("gemini", 1.5)
-            )),
-            Map.entry("VISION_ANALYSIS", List.of(
-                new ProviderPreference("gemini", 2.0),
-                new ProviderPreference("gpt4", 1.9),
-                new ProviderPreference("claude", 1.7)
-            ))
-        );
-
-        int injected = 0;
-        for (Map.Entry<String, List<ProviderPreference>> entry : knowledge.entrySet()) {
-            String taskType = entry.getKey();
-            String state = taskType + ":" + 0; // generic signature
-
-            for (ProviderPreference pref : entry.getValue()) {
-                router.updateFromOutcome(taskType, state, pref.providerId, true, 1000L);
-                injected++;
-            }
-        }
-
-        logger.info("[ROUTER_INIT] Injected {} prior knowledge entries", injected);
+        logger.info("[ROUTER_INIT] Using runtime learning only — no hardcoded provider preferences");
     }
 
     private void injectEnhancedKnowledge(EnhancedSelfLearningRouter router) {
@@ -173,34 +107,6 @@ public class RouterKnowledgeInitializer {
      * Load benchmark data from configuration file.
      */
     public void loadBenchmarkDataFromConfig() {
-        // In production, load from YAML/JSON config
-        Map<String, Map<String, Double>> benchmarks = Map.of(
-            "CODE_GENERATION", Map.of(
-                "deepseek", 85.0,
-                "hf_codellama", 80.0,
-                "gcp_qwen", 78.0,
-                "gpt4", 75.0,
-                "gemini", 72.0
-            ),
-            "MATH_REASONING", Map.of(
-                "deepseek", 88.0,
-                "gpt4", 86.0,
-                "gemini", 82.0
-            ),
-            "CREATIVE_WRITING", Map.of(
-                "gpt4", 92.0,
-                "claude", 90.0,
-                "mistral", 85.0
-            ),
-            "VISION_ANALYSIS", Map.of(
-                "gemini", 90.0,
-                "gpt4", 88.0,
-                "claude", 85.0
-            )
-        );
-
-        for (Map.Entry<String, Map<String, Double>> entry : benchmarks.entrySet()) {
-            seedFromBenchmark(entry.getKey(), entry.getValue());
-        }
+        logger.info("[ROUTER_INIT] No hardcoded benchmarks — router learns from runtime data");
     }
 }

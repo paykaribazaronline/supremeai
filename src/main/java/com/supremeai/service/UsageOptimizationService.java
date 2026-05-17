@@ -44,39 +44,40 @@ public class UsageOptimizationService {
     private static final int CACHE_TTL_MINUTES = 30;
     private static final int MAX_CACHE_SIZE = 1000;
 
-    /**
-     * Model tiers for cost-optimized selection.
-     * Simple tasks use cheaper models; complex tasks use more capable ones.
-     */
-    private static final Map<String, ModelTier> MODEL_TIERS = Map.ofEntries(
-            // Budget tier - for simple tasks
-            Map.entry("gpt-4.1-nano", new ModelTier("budget", 0.0001)),
-            Map.entry("gpt-4.1-mini", new ModelTier("economy", 0.0003)),
-            Map.entry("llama-3.1-8b-instant", new ModelTier("budget", 0.00005)),
-            Map.entry("gemini-2.0-flash-lite", new ModelTier("budget", 0.000075)),
-            Map.entry("gemini-2.0-flash", new ModelTier("economy", 0.0001)),
-            Map.entry("claude-3-5-haiku-20241022", new ModelTier("economy", 0.0008)),
-            Map.entry("deepseek-chat", new ModelTier("economy", 0.00014)),
-            Map.entry("mistral-small-latest", new ModelTier("economy", 0.0002)),
-            // Standard tier - for moderate tasks
-            Map.entry("gpt-4o", new ModelTier("standard", 0.0025)),
-            Map.entry("gpt-4.1", new ModelTier("standard", 0.002)),
-            Map.entry("gemini-2.5-flash-preview-04-17", new ModelTier("standard", 0.00015)),
-            Map.entry("llama-3.3-70b-versatile", new ModelTier("standard", 0.0006)),
-            Map.entry("deepseek-reasoner", new ModelTier("standard", 0.00055)),
-            // Premium tier - for complex tasks
-            Map.entry("gemini-2.5-pro-preview-03-25", new ModelTier("premium", 0.00125)),
-            Map.entry("claude-sonnet-4-20250514", new ModelTier("premium", 0.003)),
-            Map.entry("claude-3-7-sonnet-20250219", new ModelTier("premium", 0.003)),
-            Map.entry("o4-mini", new ModelTier("premium", 0.0015)),
-            Map.entry("mistral-large-latest", new ModelTier("premium", 0.002)),
-            Map.entry("grok-3", new ModelTier("premium", 0.003)),
-            // Top tier - for critical/reasoning tasks
-            Map.entry("o3", new ModelTier("top", 0.015)),
-            Map.entry("grok-3-mini", new ModelTier("premium", 0.001))
-    );
+    @Autowired
+    private ProviderTypeRegistry providerTypeRegistry;
+
+    @Autowired
+    private com.supremeai.repository.ProviderRepository providerRepository;
 
     private static final String DEFAULT_TIER = "standard";
+
+    private final Map<String, ModelTier> modelTiersCache = new ConcurrentHashMap<>();
+
+    @jakarta.annotation.PostConstruct
+    public void initModelTiers() {
+        modelTiersCache.put("gpt-4.1-nano", new ModelTier("budget", 0.0001));
+        modelTiersCache.put("gpt-4.1-mini", new ModelTier("economy", 0.0003));
+        modelTiersCache.put("llama-3.1-8b-instant", new ModelTier("budget", 0.00005));
+        modelTiersCache.put("gemini-2.0-flash-lite", new ModelTier("budget", 0.000075));
+        modelTiersCache.put("gemini-2.0-flash", new ModelTier("economy", 0.0001));
+        modelTiersCache.put("claude-3-5-haiku-20241022", new ModelTier("economy", 0.0008));
+        modelTiersCache.put("deepseek-chat", new ModelTier("economy", 0.00014));
+        modelTiersCache.put("mistral-small-latest", new ModelTier("economy", 0.0002));
+        modelTiersCache.put("gpt-4o", new ModelTier("standard", 0.0025));
+        modelTiersCache.put("gpt-4.1", new ModelTier("standard", 0.002));
+        modelTiersCache.put("gemini-2.5-flash-preview-04-17", new ModelTier("standard", 0.00015));
+        modelTiersCache.put("llama-3.3-70b-versatile", new ModelTier("standard", 0.0006));
+        modelTiersCache.put("deepseek-reasoner", new ModelTier("standard", 0.00055));
+        modelTiersCache.put("gemini-2.5-pro-preview-03-25", new ModelTier("premium", 0.00125));
+        modelTiersCache.put("claude-sonnet-4-20250514", new ModelTier("premium", 0.003));
+        modelTiersCache.put("claude-3-7-sonnet-20250219", new ModelTier("premium", 0.003));
+        modelTiersCache.put("o4-mini", new ModelTier("premium", 0.0015));
+        modelTiersCache.put("mistral-large-latest", new ModelTier("premium", 0.002));
+        modelTiersCache.put("grok-3", new ModelTier("premium", 0.003));
+        modelTiersCache.put("o3", new ModelTier("top", 0.015));
+        modelTiersCache.put("grok-3-mini", new ModelTier("premium", 0.001));
+    }
 
     /**
      * Check the response cache for a previous result.
@@ -141,7 +142,7 @@ public class UsageOptimizationService {
 
                 // Find the cheapest model in the target tier that the user has a key for
                 List<Map.Entry<String, ModelTier>> candidates = new ArrayList<>();
-                for (Map.Entry<String, ModelTier> entry : MODEL_TIERS.entrySet()) {
+                for (Map.Entry<String, ModelTier> entry : modelTiersCache.entrySet()) {
                     if (entry.getValue().tier.equals(targetTier) || isHigherTier(entry.getValue().tier, targetTier)) {
                         // Check if user has a key for this model's provider
                         String modelProvider = getProviderForModel(entry.getKey());
@@ -266,11 +267,23 @@ public class UsageOptimizationService {
     }
 
     private String getProviderForModel(String modelId) {
+        try {
+            com.supremeai.model.APIProvider p = providerRepository.findAll()
+                    .filter(prov -> prov.getModels() != null && prov.getModels().stream()
+                            .anyMatch(m -> m.equalsIgnoreCase(modelId)))
+                    .blockFirst();
+            if (p != null && p.getType() != null) return p.getType();
+        } catch (Exception e) {
+            log.debug("Could not resolve provider for model {}: {}", modelId, e.getMessage());
+        }
+        com.supremeai.model.ProviderTypeConfig typeConfig = providerTypeRegistry.getTypeConfig(modelId);
+        if (typeConfig != null && typeConfig.getExtraConfig() != null) {
+            Object provider = typeConfig.getExtraConfig().get("provider");
+            if (provider instanceof String) return (String) provider;
+        }
         if (modelId.startsWith("gpt-") || modelId.startsWith("o3") || modelId.startsWith("o4")) return "openai";
         if (modelId.startsWith("gemini-")) return "google ai";
         if (modelId.startsWith("claude-")) return "anthropic";
-        if (modelId.contains("groq")) return "groq";
-        if (modelId.startsWith("llama-") && modelId.contains("versatile")) return "groq";
         if (modelId.startsWith("deepseek-")) return "deepseek";
         if (modelId.startsWith("mistral-")) return "mistral";
         if (modelId.startsWith("grok-")) return "xai";
@@ -278,16 +291,23 @@ public class UsageOptimizationService {
     }
 
     private String getDefaultModelForProvider(String provider) {
-        return switch (provider.toLowerCase()) {
-            case "openai" -> "gpt-4.1-mini";
-            case "google ai" -> "gemini-2.0-flash";
-            case "anthropic" -> "claude-3-5-haiku-20241022";
-            case "groq" -> "llama-3.1-8b-instant";
-            case "deepseek" -> "deepseek-chat";
-            case "mistral" -> "mistral-small-latest";
-            case "xai" -> "grok-3-mini";
-            default -> "gpt-4.1-mini";
-        };
+        com.supremeai.model.ProviderTypeConfig typeConfig = providerTypeRegistry.getTypeConfig(provider);
+        if (typeConfig != null && typeConfig.getDefaultModel() != null) {
+            return typeConfig.getDefaultModel();
+        }
+        try {
+            com.supremeai.model.APIProvider p = providerRepository.findAll()
+                    .filter(prov -> prov.getType() != null && prov.getType().equalsIgnoreCase(provider))
+                    .sort(java.util.Comparator.comparingInt(com.supremeai.model.APIProvider::getPriority))
+                    .blockFirst();
+            if (p != null) {
+                if (p.getModels() != null && !p.getModels().isEmpty()) return p.getModels().get(0);
+                if (p.getModelName() != null) return p.getModelName();
+            }
+        } catch (Exception e) {
+            log.debug("Could not resolve default model for provider {}: {}", provider, e.getMessage());
+        }
+        return "default";
     }
 
     // ─── Inner classes ──────────────────────────────────────────────

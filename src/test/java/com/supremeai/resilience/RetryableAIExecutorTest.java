@@ -2,7 +2,9 @@ package com.supremeai.resilience;
 
 import com.supremeai.cost.QuotaManager;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import reactor.test.StepVerifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,7 +30,13 @@ class RetryableAIExecutorTest {
     @BeforeEach
     void setUp() {
         executor = new RetryableAIExecutor();
-        executor.quotaManager = quotaManager;
+        try {
+            java.lang.reflect.Field field = RetryableAIExecutor.class.getDeclaredField("quotaManager");
+            field.setAccessible(true);
+            field.set(executor, quotaManager);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         executor.init();
     }
 
@@ -116,7 +124,9 @@ class RetryableAIExecutorTest {
 
         Mono<String> result = executor.executeReactive("test-provider", "test-service", Mono.just("Reactive Success!"));
 
-        StepVerifierUtil.verifyMono(result, "Reactive Success!");
+        StepVerifier.create(result)
+                .expectNext("Reactive Success!")
+                .verifyComplete();
     }
 
     @Test
@@ -143,7 +153,9 @@ class RetryableAIExecutorTest {
                 "test-provider", "test-service", cb, Mono.just("Reactive Success!")
         );
 
-        StepVerifierUtil.verifyMono(result, "Reactive Success!");
+        StepVerifier.create(result)
+                .expectNext("Reactive Success!")
+                .verifyComplete();
     }
 
     @Test
@@ -289,13 +301,5 @@ class RetryableAIExecutorTest {
         RetryableAIExecutor.CircuitBreakerOpenException ex =
                 new RetryableAIExecutor.CircuitBreakerOpenException("Circuit open");
         assertEquals("Circuit open", ex.getMessage());
-    }
-
-    private static class StepVerifierUtil {
-        static <T> void verifyMono(Mono<T> mono, T expected) {
-            reactor.test.StepVerifier.create(mono)
-                    .expectNext(expected)
-                    .verifyComplete();
-        }
     }
 }

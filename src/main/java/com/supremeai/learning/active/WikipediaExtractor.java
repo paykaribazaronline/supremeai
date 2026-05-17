@@ -79,16 +79,17 @@ public class WikipediaExtractor implements SiteExtractor {
         return results;
     }
 
+    private static final List<String> TECH_KEYWORDS = List.of(
+        "programming", "software", "computer", "algorithm", "data structure",
+        "web", "api", "database", "security", "network", "cloud", "ai", "machine learning",
+        "javascript", "python", "java", "kotlin", "spring", "react", "android", "ios",
+        "framework", "library", "opensource", "code", "development"
+    );
+
     private boolean isTechnologyRelated(String title) {
         if (title == null) return false;
         String lower = title.toLowerCase();
-        String[] techKeywords = {
-            "programming", "software", "computer", "algorithm", "data structure",
-            "web", "api", "database", "security", "network", "cloud", "ai", "machine learning",
-            "javascript", "python", "java", "kotlin", "spring", "react", "android", "ios",
-            "framework", "library", "opensource", "code", "development"
-        };
-        for (String keyword : techKeywords) {
+        for (String keyword : TECH_KEYWORDS) {
             if (lower.contains(keyword)) return true;
         }
         return false;

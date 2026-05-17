@@ -1,5 +1,4 @@
-import React from 'react';
-import { Card, Form, Input, Select, Button, Row, Col, Typography, Steps, Progress, Alert } from 'antd';
+import { Card, Form, Input, Select, Button, Row, Col, Typography, Steps, Progress, Alert, Space } from 'antd';
 import { RocketOutlined, CodeOutlined, CloudServerOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { GenerationForm, GenerationStatus } from './types';
 
@@ -14,7 +13,7 @@ interface AppGenerationCardProps {
   generationProgress: number;
   generationResult: any;
   onGenerate: () => void;
-  onGetAdvice: () => void;
+  onGetAdvice?: () => void;
 }
 
 const AppGenerationCard: React.FC<AppGenerationCardProps> = ({
@@ -25,7 +24,7 @@ const AppGenerationCard: React.FC<AppGenerationCardProps> = ({
   generationProgress,
   generationResult,
   onGenerate,
-  onGetAdvice
+  onGetAdvice = () => {}
 }) => {
   return (
     <Card 
