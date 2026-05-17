@@ -10,7 +10,6 @@ import FeedbackSystem from './components/FeedbackSystem';
 import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy load pages for performance optimization
-const AdminDashboardUnified = lazy(() => import('./pages/AdminDashboardUnified'));
 const ModernAdminDashboard = lazy(() => import('./pages/ModernAdminDashboard'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 
@@ -191,8 +190,6 @@ function App() {
             <Route path="/" element={<ModernAdminDashboard />} />
             {/* Legacy 3D visualizer */}
             <Route path="/visualizer" element={<MainVisualizer />} />
-            {/* Unified dashboard for comparison */}
-            <Route path="/unified" element={<AdminDashboardUnified />} />
             {/* Catch-all */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

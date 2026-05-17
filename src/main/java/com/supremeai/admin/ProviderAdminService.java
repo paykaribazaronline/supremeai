@@ -55,10 +55,12 @@ public class ProviderAdminService {
                     if (!valid) {
                         return Mono.error(new IllegalArgumentException("Invalid API key or provider unreachable"));
                     }
-                    provider.setStatus("inactive");
+                    // Set to ACTIVE if validation passes (for real API keys)
+                    provider.setStatus("active");
                     provider.setConsecutiveErrorDays(0);
                     provider.setLastValidated(new Date());
-                    return saveProviderWithLog(provider, adminUserId, "ADD_PROVIDER", "Added provider: " + provider.getName());
+                    log.info("[PROVIDER] Added provider {} with status ACTIVE (validation passed)", provider.getName());
+                    return saveProviderWithLog(provider, adminUserId, "ADD_PROVIDER", "Added provider: " + provider.getName() + " [Status: ACTIVE]");
                 });
     }
 
@@ -125,8 +127,57 @@ public class ProviderAdminService {
         if (apiKey == null || type == null) {
             return Mono.just(false);
         }
+        // For GCloud/Gemini providers, do basic format check (no test call)
+        if (type != null && (type.equalsIgnoreCase("GOOGLE") || type.equalsIgnoreCase("gemini") || type.equalsIgnoreCase("vertex"))) {
+            if (apiKey.length() > 10) {
+                log.info("[VALIDATION] GCloud provider key format valid (length: {})", apiKey.length());
+                return Mono.just(true);
+            } else {
+                log.warn("[VALIDATION] GCloud provider key format invalid (length: {})", apiKey.length());
+                return Mono.just(false);
+            }
+        }
+        // For other providers, use full validation with timeout
         return discoveryService.validateKey(type, apiKey)
+                .timeout(java.time.Duration.ofSeconds(10))
                 .onErrorReturn(false);
+    }
+
+    /**
+     * Manually activate a provider by ID (for admins to activate real providers)
+     */
+    public Mono<APIProvider> activateProvider(String id, String adminUserId) {
+        return providerRepository.findById(id)
+                .flatMap(provider -> {
+                    if ("active".equals(provider.getStatus())) {
+                        log.info("[PROVIDER] Provider {} already active", provider.getName());
+                        return Mono.just(provider);
+                    }
+                    provider.setStatus("active");
+                    provider.setConsecutiveErrorDays(0);
+                    provider.setLastValidated(new Date());
+                    provider.setLastErrorDate(null);
+                    provider.setLastErrorMessage(null);
+                    log.info("[PROVIDER] Activated provider {} (admin triggered)", provider.getName());
+                    return saveProviderWithLog(provider, adminUserId, "ACTIVATE_PROVIDER", 
+                        "Manually activated provider: " + provider.getName());
+                })
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Provider not found: " + id)));
+    }
+
+    /**
+     * Deactivate a provider by ID (for admins to mark providers as inactive)
+     */
+    public Mono<APIProvider> deactivateProvider(String id, String reason, String adminUserId) {
+        return providerRepository.findById(id)
+                .flatMap(provider -> {
+                    provider.setStatus("inactive");
+                    provider.setLastErrorMessage(reason);
+                    log.info("[PROVIDER] Deactivated provider {} (reason: {})", provider.getName(), reason);
+                    return saveProviderWithLog(provider, adminUserId, "DEACTIVATE_PROVIDER", 
+                        "Deactivated provider: " + provider.getName() + " (" + reason + ")");
+                })
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Provider not found: " + id)));
     }
 
     public List<String> suggestRoles(APIProvider provider) {

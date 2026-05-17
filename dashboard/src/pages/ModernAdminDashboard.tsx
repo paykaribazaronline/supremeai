@@ -32,7 +32,7 @@ const AdminMonitoring = lazy(() => import('./AdminMonitoring'));
 const AdminLearning = lazy(() => import('./AdminLearning'));
 const AdminSecurity = lazy(() => import('./AdminSecurity'));
 const AdminRules = lazy(() => import('./AdminRules'));
-const AdminSystemWorkRules = lazy(() => import('./AdminSystemWorkRules'));
+const AdminSystemWorkRules = lazy(() => import('../components/AdminSystemWorkRules'));
 const AdminAnalytics = lazy(() => import('./AdminAnalytics'));
 const AdminVPN = lazy(() => import('./AdminVPN'));
 const AdminBrowser = lazy(() => import('./AdminBrowser'));
