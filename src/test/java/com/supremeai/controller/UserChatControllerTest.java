@@ -92,15 +92,15 @@ class UserChatControllerTest {
         classificationResult.put("item_type", "general");
         classificationResult.put("confidence", 0.95);
 
-        ConsensusResult consensusResult = new ConsensusResult(
+        MultiAIVotingService.VotingResult votingResult = new MultiAIVotingService.VotingResult(
                 "Hello, how are you?", "I'm doing well, thank you!",
-                List.of(), 0.88, "CONSENSUS_STRONG", 85.0, 500L, 0.85
+                List.of(), 0.88, "STRONG_CONSENSUS", 500L
         );
 
         when(chatProcessingService.processMessage(anyString(), anyString(), anyBoolean()))
                 .thenReturn(Mono.just(classificationResult));
         when(votingService.executeEnsembleVoting(anyString(), any(), anyLong()))
-                .thenReturn(Mono.just(consensusResult));
+                .thenReturn(Mono.just(votingResult));
 
         Mono<ResponseEntity<Map<String, Object>>> result = userChatController.sendMessage(request);
 
@@ -133,15 +133,15 @@ class UserChatControllerTest {
         classificationResult.put("chat_id", "chat-admin");
         classificationResult.put("confidence", 0.9);
 
-        ConsensusResult consensusResult = new ConsensusResult(
+        MultiAIVotingService.VotingResult votingResult = new MultiAIVotingService.VotingResult(
                 "Generate a report", "Here is your report...",
-                List.of(), 0.9, "CONSENSUS_STRONG", 90.0, 300L, 0.9
+                List.of(), 0.9, "STRONG_CONSENSUS", 300L
         );
 
         when(chatProcessingService.processMessage(anyString(), anyString(), eq(true)))
                 .thenReturn(Mono.just(classificationResult));
         when(votingService.executeEnsembleVoting(anyString(), any(), anyLong()))
-                .thenReturn(Mono.just(consensusResult));
+                .thenReturn(Mono.just(votingResult));
 
         Mono<ResponseEntity<Map<String, Object>>> result = userChatController.sendMessage(request);
 
@@ -271,15 +271,15 @@ class UserChatControllerTest {
         classificationResult.put("reason", "legacy test");
         classificationResult.put("chat_id", "chat-legacy");
 
-        ConsensusResult consensusResult = new ConsensusResult(
+        MultiAIVotingService.VotingResult votingResult = new MultiAIVotingService.VotingResult(
                 "Hello from legacy", "Legacy response",
-                List.of(), 0.7, "CONSENSUS_MODERATE", 70.0, 1000L, 0.7
+                List.of(), 0.7, "CONSENSUS_MODERATE", 1000L
         );
 
         when(chatProcessingService.processMessage(anyString(), anyString(), anyBoolean()))
                 .thenReturn(Mono.just(classificationResult));
         when(votingService.executeEnsembleVoting(anyString(), any(), anyLong()))
-                .thenReturn(Mono.just(consensusResult));
+                .thenReturn(Mono.just(votingResult));
 
         Mono<ResponseEntity<Map<String, Object>>> result = userChatController.sendMessageLegacy(request);
 

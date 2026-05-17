@@ -101,7 +101,7 @@ class HuggingFaceProviderTest {
         method.setAccessible(true);
         String result = (String) method.invoke(provider, jsonResponse);
 
-        assertEquals("No content in HF response.", result);
+        assertEquals("No response from HuggingFace.", result);
     }
 
     @Test
@@ -116,7 +116,7 @@ class HuggingFaceProviderTest {
         method.setAccessible(true);
         String result = (String) method.invoke(provider, jsonResponse);
 
-        assertEquals("No content in HF response.", result);
+        assertEquals("No response from HuggingFace.", result);
     }
 
     @Test

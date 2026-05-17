@@ -46,7 +46,7 @@ class UpsertUserUserUpsert {
     return json;
   }
 
-  UpsertUserUserUpsert({
+  const UpsertUserUserUpsert({
     required this.id,
   });
 }
@@ -80,7 +80,7 @@ class UpsertUserData {
     return json;
   }
 
-  UpsertUserData({
+  const UpsertUserData({
     required this.user_upsert,
   });
 }
@@ -115,7 +115,7 @@ class UpsertUserVariables {
     return json;
   }
 
-  UpsertUserVariables({
+  const UpsertUserVariables({
     required this.username,
   });
 }

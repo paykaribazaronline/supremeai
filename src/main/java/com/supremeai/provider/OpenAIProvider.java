@@ -53,7 +53,10 @@ public class OpenAIProvider extends AbstractHttpProvider {
         );
     }
 
-    // extractResponse: AbstractHttpProvider-এর OpenAI-compatible default ব্যবহৃত হচ্ছে
+    @Override
+    protected String extractResponse(String responseBody) throws Exception {
+        return extractOpenAICompatibleResponse(responseBody, "OpenAI");
+    }
 
     @Override
     protected void addAuthHeaders(okhttp3.Request.Builder builder) {

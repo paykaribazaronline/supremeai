@@ -250,6 +250,14 @@
       "communication": "কমিউনিকেশন",
       "execution": "টাস্ক এক্সিকিউশন",
       "voting": "এনসেম্বল ভোটিং"
+    },
+    "deployment": {
+      "api_key": "API কী",
+      "gcloud_deploy": "GCloud ডিপ্লয়",
+      "local_ollama": "লোকাল / ওলামা",
+      "other": "অন্যান্য",
+      "active_count": "সক্রিয়",
+      "inactive_count": "নিষ্ক্রিয়"
     }
   }
 }

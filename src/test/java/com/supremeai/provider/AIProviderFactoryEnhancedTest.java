@@ -18,6 +18,7 @@ class AIProviderFactoryEnhancedTest {
     private AIProviderFactory factory;
     private AIProviderService mockService;
     private ContextualAIRankingService mockRankingService;
+    private com.supremeai.repository.ProviderRepository mockRepository;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -30,9 +31,37 @@ class AIProviderFactoryEnhancedTest {
         });
 
         mockRankingService = Mockito.mock(ContextualAIRankingService.class);
+        mockRepository = Mockito.mock(com.supremeai.repository.ProviderRepository.class);
+
+        List<com.supremeai.model.APIProvider> providers = java.util.stream.Stream.of(
+            "gpt4", "claude", "gemini", "deepseek",
+            "gcp_llama", "gcp_phi",
+            "hf_codellama", "hf_phi_vision", "hf_e5_large",
+            "render_tinyllama", "render_phi2", "render_qwen",
+            "openai", "anthropic", "groq", "huggingface", "kimi", "mistral", "stepfun", "codegeex4",
+            "codegeex", "gcp_qwen", "gcp_nomic", "hf_deepseek", "hf_mistral", "hf_llama", "hf_phi", "render_phi3"
+        ).map(name -> {
+            com.supremeai.model.APIProvider p = new com.supremeai.model.APIProvider();
+            p.setName(name);
+            p.setId(name);
+            p.setType(name);
+            p.setStatus("ACTIVE");
+            return p;
+        }).collect(java.util.stream.Collectors.toList());
+
+        when(mockRepository.findAll()).thenReturn(reactor.core.publisher.Flux.fromIterable(providers));
+        when(mockRepository.findByStatus(anyString())).thenReturn(reactor.core.publisher.Flux.fromIterable(providers));
+
+        com.supremeai.service.ProviderMetadataService mockMetadataService = Mockito.mock(com.supremeai.service.ProviderMetadataService.class);
+        com.supremeai.service.ProviderTypeRegistry mockTypeRegistry = Mockito.mock(com.supremeai.service.ProviderTypeRegistry.class);
+        when(mockMetadataService.getMetadata(anyString())).thenReturn(null);
+        when(mockTypeRegistry.getTypeConfig(anyString())).thenReturn(null);
 
         setField(factory, "aiProviderService", mockService);
         setField(factory, "contextualRankingService", mockRankingService);
+        setField(factory, "providerRepository", mockRepository);
+        setField(factory, "providerMetadataService", mockMetadataService);
+        setField(factory, "providerTypeRegistry", mockTypeRegistry);
 
         // Pre-populate health cache to avoid real network calls
         @SuppressWarnings("unchecked")
@@ -171,6 +200,7 @@ class AIProviderFactoryEnhancedTest {
 
     @Test
     void getProvider_unknownProvider_shouldThrow() {
+        when(mockRepository.findByStatus(anyString())).thenReturn(reactor.core.publisher.Flux.empty());
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> factory.getProvider("unknown-ai"));
         assertTrue(ex.getMessage().contains("Unknown AI provider"));

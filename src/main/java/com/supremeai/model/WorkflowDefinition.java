@@ -2,13 +2,11 @@ package com.supremeai.model;
 
 import com.google.cloud.firestore.annotation.DocumentId;
 import com.google.cloud.spring.data.firestore.Document;
-import org.springframework.data.annotation.Id;
 import java.util.List;
 import java.util.Map;
 
 @Document(collectionName = "workflow_definitions")
 public class WorkflowDefinition {
-    @Id
     @DocumentId
     private String id;
     private String name;

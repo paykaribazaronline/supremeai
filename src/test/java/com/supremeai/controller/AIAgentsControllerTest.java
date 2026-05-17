@@ -40,10 +40,10 @@ class AIAgentsControllerTest {
 
         StepVerifier.create(controller.getAllAgents())
                 .expectNextMatches(response -> {
-                    assertTrue(response.success());
-                    assertEquals(2, response.data().size());
-                    assertEquals("Agent One", response.data().get(0).getName());
-                    assertEquals("Agent Two", response.data().get(1).getName());
+                    assertTrue(response.isSuccess());
+                    assertEquals(2, response.getData().size());
+                    assertEquals("Agent One", response.getData().get(0).getName());
+                    assertEquals("Agent Two", response.getData().get(1).getName());
                     return true;
                 })
                 .verifyComplete();
@@ -55,8 +55,8 @@ class AIAgentsControllerTest {
 
         StepVerifier.create(controller.getAllAgents())
                 .expectNextMatches(response -> {
-                    assertTrue(response.success());
-                    assertTrue(response.data().isEmpty());
+                    assertTrue(response.isSuccess());
+                    assertTrue(response.getData().isEmpty());
                     return true;
                 })
                 .verifyComplete();
@@ -72,8 +72,8 @@ class AIAgentsControllerTest {
 
         StepVerifier.create(controller.getAgentStats())
                 .expectNextMatches(response -> {
-                    assertTrue(response.success());
-                    Map<String, Object> stats = response.data();
+                    assertTrue(response.isSuccess());
+                    Map<String, Object> stats = response.getData();
                     assertEquals(3, stats.get("totalAgents"));
                     assertEquals(2L, stats.get("activeAgents"));
                     assertEquals(1L, stats.get("idleAgents"));
@@ -88,8 +88,8 @@ class AIAgentsControllerTest {
 
         StepVerifier.create(controller.getAgentStats())
                 .expectNextMatches(response -> {
-                    assertTrue(response.success());
-                    Map<String, Object> stats = response.data();
+                    assertTrue(response.isSuccess());
+                    Map<String, Object> stats = response.getData();
                     assertEquals(0, stats.get("totalAgents"));
                     assertEquals(0L, stats.get("activeAgents"));
                     assertEquals(0L, stats.get("idleAgents"));
@@ -107,9 +107,9 @@ class AIAgentsControllerTest {
 
         StepVerifier.create(controller.createAgent(input))
                 .expectNextMatches(response -> {
-                    assertTrue(response.success());
-                    assertEquals("agent-new", response.data().getId());
-                    assertEquals("IDLE", response.data().getStatus());
+                    assertTrue(response.isSuccess());
+                    assertEquals("agent-new", response.getData().getId());
+                    assertEquals("IDLE", response.getData().getStatus());
                     return true;
                 })
                 .verifyComplete();
@@ -130,7 +130,7 @@ class AIAgentsControllerTest {
 
         StepVerifier.create(controller.createAgent(input))
                 .expectNextMatches(response -> {
-                    assertEquals("IDLE", response.data().getStatus());
+                    assertEquals("IDLE", response.getData().getStatus());
                     return true;
                 })
                 .verifyComplete();
@@ -145,8 +145,8 @@ class AIAgentsControllerTest {
 
         StepVerifier.create(controller.updateAgentStatus("agent-1", "ACTIVE"))
                 .expectNextMatches(response -> {
-                    assertTrue(response.success());
-                    assertEquals("ACTIVE", response.data().getStatus());
+                    assertTrue(response.isSuccess());
+                    assertEquals("ACTIVE", response.getData().getStatus());
                     return true;
                 })
                 .verifyComplete();
@@ -166,8 +166,8 @@ class AIAgentsControllerTest {
 
         StepVerifier.create(controller.removeAgent("agent-1"))
                 .expectNextMatches(response -> {
-                    assertTrue(response.success());
-                    assertEquals("Agent removed", response.data());
+                    assertTrue(response.isSuccess());
+                    assertEquals("Agent removed", response.getData());
                     return true;
                 })
                 .verifyComplete();

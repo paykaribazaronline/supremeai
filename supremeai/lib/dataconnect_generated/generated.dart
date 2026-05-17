@@ -1,4 +1,4 @@
-library dataconnect_generated;
+library;
 import 'package:firebase_data_connect/firebase_data_connect.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:convert';
@@ -83,18 +83,9 @@ class ExampleConnector {
 
   ExampleConnector({required this.dataConnect});
   static ExampleConnector get instance {
-    
-    CacheSettings cacheSettings = CacheSettings(
-      maxAge: Duration(milliseconds:0),
-      storage: CacheStorage.persistent,
-    );
-    
     return ExampleConnector(
         dataConnect: FirebaseDataConnect.instanceFor(
             connectorConfig: connectorConfig,
-            
-            cacheSettings: cacheSettings,
-            
             sdkType: CallerSDKType.generated));
   }
 

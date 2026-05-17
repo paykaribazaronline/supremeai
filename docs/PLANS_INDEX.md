@@ -15,6 +15,8 @@
 | `SupremeAI_Deliverables_Summary.md` | ডেলিভারেবল সারাংশ |
 | `SupremeAI_Quick_Start_Checklist.md` | দ্রুত শুরু চেকলিস্ট |
 | `SupremeAI_Simulator_Controller_Plan.md` | সিমুলেটর পরিকল্পনা |
+| `docs/architecture/supremeai_ecosystem.md` | ইকোসিস্টেম এক্সটার্নাল রেপো ইন্টিগ্রেশন ব্লুপ্রিন্ট |
+
 
 ### ২৪টি পরিকল্পনা (24 Plans)
 | নং | ফাইল | অবস্থা |

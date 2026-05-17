@@ -132,19 +132,20 @@ public class CodeChunkerService {
     }
 
     private String detectLanguage(String filename) {
-        if (filename.endsWith(".java")) return "java";
-        if (filename.endsWith(".js")) return "javascript";
-        if (filename.endsWith(".ts") || filename.endsWith(".tsx")) return "typescript";
-        if (filename.endsWith(".py")) return "python";
-        if (filename.endsWith(".go")) return "go";
-        if (filename.endsWith(".rb")) return "ruby";
-        if (filename.endsWith(".php")) return "php";
-        if (filename.endsWith(".cs")) return "csharp";
-        if (filename.endsWith(".c") || filename.endsWith(".h")) return "c";
-        if (filename.endsWith(".cpp") || filename.endsWith(".hpp")) return "cpp";
-        if (filename.endsWith(".kt")) return "kotlin";
-        if (filename.endsWith(".swift")) return "swift";
-        if (filename.endsWith(".scala")) return "scala";
+        String lower = filename.toLowerCase();
+        if (lower.endsWith(".java")) return "java";
+        if (lower.endsWith(".js")) return "javascript";
+        if (lower.endsWith(".ts") || lower.endsWith(".tsx")) return "typescript";
+        if (lower.endsWith(".py")) return "python";
+        if (lower.endsWith(".go")) return "go";
+        if (lower.endsWith(".rb")) return "ruby";
+        if (lower.endsWith(".php")) return "php";
+        if (lower.endsWith(".cs")) return "csharp";
+        if (lower.endsWith(".c") || lower.endsWith(".h")) return "c";
+        if (lower.endsWith(".cpp") || lower.endsWith(".hpp")) return "cpp";
+        if (lower.endsWith(".kt")) return "kotlin";
+        if (lower.endsWith(".swift")) return "swift";
+        if (lower.endsWith(".scala")) return "scala";
         return "unknown";
     }
 

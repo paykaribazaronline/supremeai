@@ -168,7 +168,7 @@ class MultiAIConsensusServiceTest {
         StepVerifier.create(result)
                 .assertNext(consensus -> {
                     assertEquals(question, consensus.getQuestion());
-                    assertEquals("No AI providers responded", consensus.getConsensusAnswer());
+                    assertEquals("দুঃখিত, বর্তমানে কোনো এআই প্রোভাইডার সাড়া দিচ্ছে না। অনুগ্রহ করে ড্যাশবোর্ড থেকে এপিআই কী এবং প্রোভাইডার স্ট্যাটাস চেক করুন। (System Solo-Mode Active)", consensus.getConsensusAnswer());
                     assertEquals(0, consensus.getVotes().size());
                     assertEquals(0.0, consensus.getAverageConfidence());
                     assertEquals("ERROR", consensus.getStrength());
@@ -199,7 +199,7 @@ class MultiAIConsensusServiceTest {
         StepVerifier.create(result)
                 .assertNext(consensus -> {
                     assertEquals(question, consensus.getQuestion());
-                    assertEquals("Timeout reached", consensus.getConsensusAnswer());
+                    assertEquals("দুঃখিত, অনুরোধটির উত্তর দিতে সময়সীমা অতিক্রম হয়ে গেছে।", consensus.getConsensusAnswer());
                     assertEquals(0, consensus.getVotes().size());
                     assertEquals("TIMEOUT", consensus.getStrength());
                 })
@@ -314,7 +314,7 @@ class MultiAIConsensusServiceTest {
 
             // Then
             assertEquals(question, result.getQuestion());
-            assertEquals("No AI providers responded", result.getConsensusAnswer());
+            assertEquals("দুঃখিত, বর্তমানে কোনো এআই প্রোভাইডার সাড়া দিচ্ছে না। অনুগ্রহ করে ড্যাশবোর্ড থেকে এপিআই কী এবং প্রোভাইডার স্ট্যাটাস চেক করুন। (System Solo-Mode Active)", result.getConsensusAnswer());
             assertEquals(0, result.getVotes().size());
             assertEquals(0.0, result.getAverageConfidence());
             assertEquals("ERROR", result.getStrength());

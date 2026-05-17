@@ -59,14 +59,16 @@ const AutoBrowser: React.FC = () => {
     const rawStep = stepsSoFar + 1;
 
     if (rawStep > maxSteps) {
+      const activity: ActivityLog = {
+        action: 'COMPLETE',
+        reasoning: `Mission accomplished — "${task}" has been fully executed on ${host}.`,
+        url,
+        type: 'success' as const,
+        id: `done-${Date.now()}`,
+        timestamp: Date.now()
+      };
       return {
-        activity: {
-          action: 'COMPLETE',
-          reasoning: `Mission accomplished — "${task}" has been fully executed on ${host}.`,
-          url,
-          type: 'success' as const,
-          id: `done-${Date.now()}`
-        },
+        activity,
         finished: true,
         progress: 100,
         statusText: 'Completed',
@@ -74,8 +76,7 @@ const AutoBrowser: React.FC = () => {
       };
     }
 
-    let action: ActivityLog;
-    const sequence: Record<number, () => ActivityLog> = {
+    const sequence: Record<number, () => Omit<ActivityLog, 'timestamp'>> = {
       1: () => ({
         action: 'NAVIGATE', reasoning: `Establishing secure connection to ${host}…`, url, type: 'info', id: `a1-${Date.now()}`
       }),
@@ -114,8 +115,14 @@ const AutoBrowser: React.FC = () => {
       }),
     };
 
+    const rawActivity = sequence[Math.min(rawStep, maxSteps)]();
+    const activity: ActivityLog = {
+      ...rawActivity,
+      timestamp: Date.now()
+    };
+
     return {
-      activity: sequence[Math.min(rawStep, maxSteps)](),
+      activity,
       finished: rawStep >= maxSteps,
       progress: Math.min(Math.round((rawStep / maxSteps) * 100), 100),
       statusText: rawStep >= maxSteps ? 'Completed' : `Step ${rawStep}/${maxSteps}`,

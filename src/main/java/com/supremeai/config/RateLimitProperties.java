@@ -1,13 +1,13 @@
 package com.supremeai.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 /**
  * Configuration properties for rate limiting.
  * Configurable via application.yml under 'rate-limit' prefix.
  */
-@Configuration
+@Component
 @ConfigurationProperties(prefix = "rate-limit")
 public class RateLimitProperties {
 

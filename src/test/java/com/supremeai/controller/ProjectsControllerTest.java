@@ -65,8 +65,8 @@ class ProjectsControllerTest {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         StepVerifier.create(controller.getAllProjects(auth))
                 .expectNextMatches(response -> {
-                    assertTrue(response.success());
-                    assertEquals(2, response.data().size());
+                    assertTrue(response.isSuccess());
+                    assertEquals(2, response.getData().size());
                     return true;
                 })
                 .verifyComplete();
@@ -86,9 +86,9 @@ class ProjectsControllerTest {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         StepVerifier.create(controller.getAllProjects(auth))
                 .expectNextMatches(response -> {
-                    assertTrue(response.success());
-                    assertEquals(1, response.data().size());
-                    assertEquals("user-1", response.data().get(0).getOwnerId());
+                    assertTrue(response.isSuccess());
+                    assertEquals(1, response.getData().size());
+                    assertEquals("user-1", response.getData().get(0).getOwnerId());
                     return true;
                 })
                 .verifyComplete();
@@ -104,8 +104,8 @@ class ProjectsControllerTest {
         // Since we use @PreAuthorize, we mock an empty auth or null
         StepVerifier.create(controller.getAllProjects(null))
                 .expectNextMatches(response -> {
-                    assertFalse(response.success());
-                    assertEquals("Not authenticated", response.error());
+                    assertFalse(response.isSuccess());
+                    assertEquals("Not authenticated", response.getError());
                     return true;
                 })
                 .verifyComplete();
@@ -120,8 +120,8 @@ class ProjectsControllerTest {
 
         StepVerifier.create(controller.getByOwner("user-1"))
                 .expectNextMatches(response -> {
-                    assertTrue(response.success());
-                    assertEquals(1, response.data().size());
+                    assertTrue(response.isSuccess());
+                    assertEquals(1, response.getData().size());
                     return true;
                 })
                 .verifyComplete();
@@ -136,8 +136,8 @@ class ProjectsControllerTest {
 
         StepVerifier.create(controller.getByOwner("user-1"))
                 .expectNextMatches(response -> {
-                    assertTrue(response.success());
-                    assertEquals(1, response.data().size());
+                    assertTrue(response.isSuccess());
+                    assertEquals(1, response.getData().size());
                     return true;
                 })
                 .verifyComplete();
@@ -149,8 +149,8 @@ class ProjectsControllerTest {
 
         StepVerifier.create(controller.getByOwner("user-2"))
                 .expectNextMatches(response -> {
-                    assertFalse(response.success());
-                    assertTrue(response.error().contains("Access denied"));
+                    assertFalse(response.isSuccess());
+                    assertTrue(response.getError().contains("Access denied"));
                     return true;
                 })
                 .verifyComplete();
@@ -174,8 +174,8 @@ class ProjectsControllerTest {
 
         StepVerifier.create(controller.createProject(request, auth))
                 .expectNextMatches(response -> {
-                    assertTrue(response.success());
-                    assertEquals("user-1", response.data().getOwnerId());
+                    assertTrue(response.isSuccess());
+                    assertEquals("user-1", response.getData().getOwnerId());
                     return true;
                 })
                 .verifyComplete();
@@ -192,8 +192,8 @@ class ProjectsControllerTest {
 
         StepVerifier.create(controller.createProject(request, null))
                 .expectNextMatches(response -> {
-                    assertFalse(response.success());
-                    assertEquals("Not authenticated", response.error());
+                    assertFalse(response.isSuccess());
+                    assertEquals("Not authenticated", response.getError());
                     return true;
                 })
                 .verifyComplete();
@@ -211,8 +211,8 @@ class ProjectsControllerTest {
 
         StepVerifier.create(controller.updateProjectStatus("p1", "COMPLETED"))
                 .expectNextMatches(response -> {
-                    assertTrue(response.success());
-                    assertEquals("COMPLETED", response.data().getStatus());
+                    assertTrue(response.isSuccess());
+                    assertEquals("COMPLETED", response.getData().getStatus());
                     return true;
                 })
                 .verifyComplete();
@@ -230,8 +230,8 @@ class ProjectsControllerTest {
 
         StepVerifier.create(controller.updateProjectStatus("p1", "ARCHIVED"))
                 .expectNextMatches(response -> {
-                    assertTrue(response.success());
-                    assertEquals("ARCHIVED", response.data().getStatus());
+                    assertTrue(response.isSuccess());
+                    assertEquals("ARCHIVED", response.getData().getStatus());
                     return true;
                 })
                 .verifyComplete();
@@ -247,8 +247,8 @@ class ProjectsControllerTest {
 
         StepVerifier.create(controller.updateProjectStatus("p1", "COMPLETED"))
                 .expectNextMatches(response -> {
-                    assertFalse(response.success());
-                    assertTrue(response.error().contains("Access denied"));
+                    assertFalse(response.isSuccess());
+                    assertTrue(response.getError().contains("Access denied"));
                     return true;
                 })
                 .verifyComplete();
@@ -265,8 +265,8 @@ class ProjectsControllerTest {
 
         StepVerifier.create(controller.deleteProject("p1"))
                 .expectNextMatches(response -> {
-                    assertTrue(response.success());
-                    assertEquals("Project deleted", response.data());
+                    assertTrue(response.isSuccess());
+                    assertEquals("Project deleted", response.getData());
                     return true;
                 })
                 .verifyComplete();
@@ -283,8 +283,8 @@ class ProjectsControllerTest {
 
         StepVerifier.create(controller.deleteProject("p1"))
                 .expectNextMatches(response -> {
-                    assertTrue(response.success());
-                    assertEquals("Project deleted", response.data());
+                    assertTrue(response.isSuccess());
+                    assertEquals("Project deleted", response.getData());
                     return true;
                 })
                 .verifyComplete();
@@ -300,8 +300,8 @@ class ProjectsControllerTest {
 
         StepVerifier.create(controller.deleteProject("p1"))
                 .expectNextMatches(response -> {
-                    assertFalse(response.success());
-                    assertTrue(response.error().contains("Access denied"));
+                    assertFalse(response.isSuccess());
+                    assertTrue(response.getError().contains("Access denied"));
                     return true;
                 })
                 .verifyComplete();

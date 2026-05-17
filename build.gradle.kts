@@ -3,8 +3,9 @@ plugins {
     // Trigger CI/CD Pipeline
     id("application")
     id("jacoco")
-    id("org.springframework.boot") version "3.4.0"
+    id("org.springframework.boot") version "3.5.14"
     id("io.spring.dependency-management") version "1.1.7"
+    id("io.freefair.lombok") version "8.10"
 }
 
 group = "com.supremeai"
@@ -89,12 +90,14 @@ dependencies {
     // Spring Cloud GCP - Firestore & Secret Manager
     implementation("com.google.cloud:spring-cloud-gcp-starter-data-firestore")
     implementation("com.google.cloud:google-cloud-secretmanager")
+    implementation("com.google.cloud:google-cloud-firestore")
+    implementation("io.projectreactor:reactor-core:3.5.1")
 
     // Google Cloud Pub/Sub client
     implementation("com.google.cloud:google-cloud-pubsub")
 
     // Database
-    testImplementation("com.h2database:h2") // Moved to test to reduce production JAR size
+    implementation("com.h2database:h2") // Required for runtime if DATABASE_URL defaults to H2
     runtimeOnly("org.postgresql:postgresql:42.7.3")
 
     // Resilience & Error Handling
@@ -127,7 +130,6 @@ dependencies {
     
     // Redis caching
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
-    implementation("io.lettuce:lettuce-core:6.3.0.RELEASE")
     implementation("org.apache.commons:commons-pool2:2.12.0")
 
     // Database Connection Pooling
@@ -136,13 +138,11 @@ dependencies {
     // Caching
     implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
 
-    // Lombok
-    implementation("org.projectlombok:lombok")
+    // Lombok handled by plugin, but added directly for strict annotation processing
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
     testCompileOnly("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")
-
     // Testing
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -162,7 +162,6 @@ dependencies {
 // Configure UTF-8 encoding for all compilation tasks with performance optimizations
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
-    options.annotationProcessorPath = configurations.annotationProcessor.get()
 }
 
 tasks.withType<Test> {

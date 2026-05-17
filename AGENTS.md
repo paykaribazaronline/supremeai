@@ -108,3 +108,10 @@ SupremeAI utilizes a dynamic registry of primary GCP models and a secondary "All
 - **Zero-Redundancy Policy**: Always identify and remove old, deprecated, or duplicate content, whether it's in the code or documentation. Maintain a lean and clean codebase.
 - **Robust Documentation**: Maintain comprehensive documentation in the `docs/` directory using appropriate sub-folders (`architecture/`, `deployment/`, `reports/`, `guides/`, `summaries/`, `status/`, `technical/`). Always update the documentation with new changes.
 - **Workflow-First Design**: For every new feature, a detailed workflow must be added to the `docs/technical/` or relevant sub-folder. This workflow should describe how the feature functions and identify other parts of the system that need optimization or modification to make the integration robust.
+
+## SupremeAI Command & Learning Guidelines (Testing Phase)
+
+- **Iterative Core Knowledge Refinement**: Until the final testing phase, `src/main/resources/core_knowledge.json` must be continuously updated with new logic patterns, system instructions, and domain-specific knowledge to enhance SupremeAI's command accuracy.
+- **SupremeAI as the Brain**: Every model interaction must be orchestrated by SupremeAI. No hub should act independently; SupremeAI provides the intent and validation for every task.
+- **Pre-Market Logic Consolidation**: Before going to market, SupremeAI's core logic and self-learning capabilities must be validated for 100% accuracy. Focus must be on "Command Superiority" where SupremeAI correctly identifies the best hub for any complex, ambiguous request.
+- **Self-Learning Loop**: Implement and refine the feedback loop where SupremeAI learns from user corrections and saves them into the Global Memory Hub for future orchestration.

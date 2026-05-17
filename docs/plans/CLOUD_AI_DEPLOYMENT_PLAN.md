@@ -3,15 +3,17 @@
 
 ---
 
-## 📊 1. Currently Deployed Models (GCP Cloud Run)
+## 📊 1. Currently Deployed Models & Services (GCP Cloud Run)
 
-| Provider ID | Model | Purpose | Status | URL |
+| Service / Provider ID | Model / Service | Purpose | Status | URL |
 |-------------|-------|---------|--------|-----|
 | gcp_qwen | Qwen2.5-Coder-7B | Code Generation | ✅ Active | https://supreme-ai-qwen-coder-565236080752.us-central1.run.app |
 | gcp_llama | Llama-3.1-8B | General Chat | ✅ Active | https://supreme-ai-llama-3-1-565236080752.us-central1.run.app |
 | gcp_phi | Phi-3-mini-4k | Lightweight Tasks | ✅ Active | https://supreme-ai-phi-3-565236080752.us-central1.run.app |
 | gcp_nomic | Nomic-Embed-Text | Embeddings | ✅ Active | https://supreme-ai-nomic-embed-565236080752.us-central1.run.app |
 | hf_deepseek | DeepSeek-Coder-V2 | Code Specialist | ✅ Active | https://supreme-ai-deepseek-pro-565236080752.us-central1.run.app |
+| **n8n_core** | n8n Workflow Automation | Visual Automation & APIs | ✅ Active | https://n8n-565236080752.us-central1.run.app |
+| **voice_hub** | Speech Processor & TTS | Multimodal Core (Local & Cloud Voice) | ✅ Active | Integrated (Web/Mobile & Local Engine) |
 
 ---
 

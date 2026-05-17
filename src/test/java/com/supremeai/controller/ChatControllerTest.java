@@ -18,14 +18,15 @@ import org.springframework.http.ResponseEntity;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-class ChatControllerTest {
+    @ExtendWith(MockitoExtension.class)
+    class ChatControllerTest {
 
     @Mock
     private MultiAIVotingService consensusService;
@@ -80,13 +81,11 @@ class ChatControllerTest {
         request.setMessage("");
         request.setSkipValidation(false);
 
-        Mono<ResponseEntity<Object>> result = chatController.sendMessage(request);
+        ResponseEntity<Object> result = chatController.sendMessage(request);
 
-        StepVerifier.create(result)
-                .expectNextMatches(response ->
-                        response.getStatusCode().value() == 400 &&
-                        "Message is required".equals(((Map) response.getBody()).get("error")))
-                .verifyComplete();
+        assertEquals(400, result.getStatusCode().value());
+        Map<String, Object> body = (Map<String, Object>) result.getBody();
+        assertEquals("Message is required", body.get("error"));
     }
 
     @Test
@@ -95,12 +94,9 @@ class ChatControllerTest {
         request.setMessage(null);
         request.setSkipValidation(false);
 
-        Mono<ResponseEntity<Object>> result = chatController.sendMessage(request);
+        ResponseEntity<Object> result = chatController.sendMessage(request);
 
-        StepVerifier.create(result)
-                .expectNextMatches(response ->
-                        response.getStatusCode().value() == 400)
-                .verifyComplete();
+        assertEquals(400, result.getStatusCode().value());
     }
 
     // ==================== sendMessage - Validation Tests ====================
@@ -122,17 +118,12 @@ class ChatControllerTest {
         when(questioningEngine.validateAndQuestion(anyString(), any()))
                 .thenReturn(Mono.just(validationResult));
 
-        Mono<ResponseEntity<Object>> result = chatController.sendMessage(request);
+        ResponseEntity<Object> result = chatController.sendMessage(request);
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals(200, response.getStatusCode().value());
-                    Map<String, Object> body = (Map<String, Object>) response.getBody();
-                    assertEquals("CLARIFICATION_REQUIRED", body.get("type"));
-                    assertTrue(((List) body.get("questions")).size() > 0);
-                    return true;
-                })
-                .verifyComplete();
+        assertEquals(200, result.getStatusCode().value());
+        Map<String, Object> body = (Map<String, Object>) result.getBody();
+        assertEquals("CLARIFICATION_REQUIRED", body.get("type"));
+        assertTrue(((List) body.get("questions")).size() > 0);
 
         verify(questioningEngine).validateAndQuestion(anyString(), any());
     }
@@ -148,7 +139,6 @@ class ChatControllerTest {
         AutonomousQuestioningEngine.ValidationResult validationResult =
                 new AutonomousQuestioningEngine.ValidationResult();
         validationResult.setComplete(true);
-        validationResult.setHasQuestions(false);
 
         MultiAIVotingService.VotingResult votingResult = new MultiAIVotingService.VotingResult(
                 "Explain Java streams",
@@ -164,23 +154,18 @@ class ChatControllerTest {
         when(votingService.executeEnsembleVoting(anyString(), any(), anyLong()))
                 .thenReturn(Mono.just(votingResult));
         when(intelligenceService.classifyIntent(anyString()))
-                .thenReturn(ChatIntelligenceService.ChatIntent.GENERAL);
+                .thenReturn(ChatIntelligenceService.Intent.CASUAL);
         doNothing().when(intelligenceService).handleIntelligence(anyString(), anyString(), any(), anyString(), anyDouble());
         when(enhancedLearningService.learnFromNLPInteraction(anyString(), anyString(), anyString(), anyDouble(), anyMap()))
                 .thenReturn(Mono.empty());
 
-        Mono<ResponseEntity<Object>> result = chatController.sendMessage(request);
+        ResponseEntity<Object> result = chatController.sendMessage(request);
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals(200, response.getStatusCode().value());
-                    Map<String, Object> body = (Map<String, Object>) response.getBody();
-                    assertEquals("Java streams are...", body.get("message"));
-                    assertEquals("STRONG_CONSENSUS", body.get("verdict"));
-                    assertEquals(0.85, body.get("confidence"));
-                    return true;
-                })
-                .verifyComplete();
+        assertEquals(200, result.getStatusCode().value());
+        Map<String, Object> body = (Map<String, Object>) result.getBody();
+        assertEquals("Java streams are...", body.get("message"));
+        assertEquals("STRONG_CONSENSUS", body.get("verdict"));
+        assertEquals(0.85, body.get("confidence"));
     }
 
     // ==================== sendMessage - Circuit Breaker Fallback Tests ====================
@@ -194,7 +179,6 @@ class ChatControllerTest {
         AutonomousQuestioningEngine.ValidationResult validationResult =
                 new AutonomousQuestioningEngine.ValidationResult();
         validationResult.setComplete(true);
-        validationResult.setHasQuestions(false);
 
         when(questioningEngine.validateAndQuestion(anyString(), any()))
                 .thenReturn(Mono.just(validationResult));
@@ -206,16 +190,11 @@ class ChatControllerTest {
                         List.of(), 0.8, "CONSENSUS_STRONG", 0.8, 1000L, 0.85
                 )));
 
-        Mono<ResponseEntity<Object>> result = chatController.sendMessage(request);
+        ResponseEntity<Object> result = chatController.sendMessage(request);
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    Map<String, Object> body = (Map<String, Object>) response.getBody();
-                    assertTrue((Boolean) body.get("fallback"));
-                    assertEquals("Python is a programming language", body.get("message"));
-                    return true;
-                })
-                .verifyComplete();
+        Map<String, Object> body = (Map<String, Object>) result.getBody();
+        assertTrue((Boolean) body.get("fallback"));
+        assertEquals("Python is a programming language", body.get("message"));
     }
 
     @Test
@@ -227,7 +206,6 @@ class ChatControllerTest {
         AutonomousQuestioningEngine.ValidationResult validationResult =
                 new AutonomousQuestioningEngine.ValidationResult();
         validationResult.setComplete(true);
-        validationResult.setHasQuestions(false);
 
         when(questioningEngine.validateAndQuestion(anyString(), any()))
                 .thenReturn(Mono.just(validationResult));
@@ -236,45 +214,31 @@ class ChatControllerTest {
         when(consensusService.askConsensus(anyString(), anyList(), anyLong()))
                 .thenReturn(Mono.error(new RuntimeException("Consensus also failed")));
 
-        Mono<ResponseEntity<Object>> result = chatController.sendMessage(request);
+        ResponseEntity<Object> result = chatController.sendMessage(request);
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals(503, response.getStatusCode().value());
-                    Map<String, Object> body = (Map<String, Object>) response.getBody();
-                    assertEquals("AI services temporarily unavailable", body.get("error"));
-                    return true;
-                })
-                .verifyComplete();
+        assertEquals(503, result.getStatusCode().value());
+        Map<String, Object> body = (Map<String, Object>) result.getBody();
+        assertEquals("AI services temporarily unavailable", body.get("error"));
     }
 
     // ==================== history Endpoint Tests ====================
 
     @Test
     void getHistory_ReturnsEmptyHistory() {
-        Mono<ResponseEntity<Object>> result = chatController.getHistory("default", 50);
+        ResponseEntity<Object> result = chatController.getHistory("default", 50).block();
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals(200, response.getStatusCode().value());
-                    Map<String, Object> body = (Map<String, Object>) response.getBody();
-                    assertEquals(0, ((java.util.List) body.get("messages")).size());
-                    assertEquals("default", body.get("agent"));
-                    return true;
-                })
-                .verifyComplete();
+        assertEquals(200, result.getStatusCode().value());
+        Map<String, Object> body = (Map<String, Object>) result.getBody();
+        assertEquals(0, ((java.util.List) body.get("messages")).size());
+        assertEquals("default", body.get("agent"));
     }
 
     @Test
     void getHistory_WithAgent_ReturnsAgentHistory() {
-        Mono<ResponseEntity<Object>> result = chatController.getHistory("agent-123", 10);
+        ResponseEntity<Object> result = chatController.getHistory("agent-123", 10).block();
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals("agent-123", ((Map<String, Object>) response.getBody()).get("agent"));
-                    return true;
-                })
-                .verifyComplete();
+        assertEquals(200, result.getStatusCode().value());
+        assertEquals("agent-123", ((Map<String, Object>) result.getBody()).get("agent"));
     }
 
     // ==================== feedback Endpoint Tests ====================
@@ -290,15 +254,10 @@ class ChatControllerTest {
         when(enhancedLearningService.learnFromNLPInteraction(anyString(), anyString(), anyString(), anyDouble(), anyMap()))
                 .thenReturn(Mono.empty());
 
-        Mono<ResponseEntity<Object>> result = chatController.submitFeedback(request);
+        ResponseEntity<Object> result = chatController.submitFeedback(request).block();
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals(200, response.getStatusCode().value());
-                    assertEquals("received", ((Map<String, Object>) response.getBody()).get("status"));
-                    return true;
-                })
-                .verifyComplete();
+        assertEquals(200, result.getStatusCode().value());
+        assertEquals("received", ((Map<String, Object>) result.getBody()).get("status"));
 
         verify(enhancedLearningService).learnFromNLPInteraction(
                 eq("What is Java?"), eq("Java is a programming language"),
@@ -317,14 +276,9 @@ class ChatControllerTest {
         when(enhancedLearningService.learnFromNLPInteraction(anyString(), anyString(), anyString(), anyDouble(), anyMap()))
                 .thenReturn(Mono.empty());
 
-        Mono<ResponseEntity<Object>> result = chatController.submitFeedback(request);
+        ResponseEntity<Object> result = chatController.submitFeedback(request).block();
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals(200, response.getStatusCode().value());
-                    return true;
-                })
-                .verifyComplete();
+        assertEquals(200, result.getStatusCode().value());
 
         verify(enhancedLearningService).learnFromNLPInteraction(
                 eq("How to sort?"), eq("Bad answer"),
@@ -343,29 +297,22 @@ class ChatControllerTest {
         when(enhancedLearningService.learnFromNLPInteraction(anyString(), anyString(), anyString(), anyDouble(), anyMap()))
                 .thenReturn(Mono.empty());
 
-        Mono<ResponseEntity<Object>> result = chatController.submitFeedback(request);
+        ResponseEntity<Object> result = chatController.submitFeedback(request).block();
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> response.getStatusCode().value() == 200)
-                .verifyComplete();
+        assertEquals(200, result.getStatusCode().value());
     }
 
     // ==================== health Endpoint Tests ====================
 
     @Test
     void health_ReturnsOperationalStatus() {
-        Mono<ResponseEntity<Object>> result = chatController.health();
+        ResponseEntity<Object> result = chatController.health().block();
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals(200, response.getStatusCode().value());
-                    Map<String, Object> body = (Map<String, Object>) response.getBody();
-                    assertEquals("UP", body.get("status"));
-                    assertEquals("ACTIVE", body.get("autonomous_questioning"));
-                    assertEquals("ACTIVE", body.get("voting_system"));
-                    return true;
-                })
-                .verifyComplete();
+        assertEquals(200, result.getStatusCode().value());
+        Map<String, Object> body = (Map<String, Object>) result.getBody();
+        assertEquals("UP", body.get("status"));
+        assertEquals("ACTIVE", body.get("autonomous_questioning"));
+        assertEquals("ACTIVE", body.get("voting_system"));
     }
 
     // ==================== detectMode Helper Tests ====================

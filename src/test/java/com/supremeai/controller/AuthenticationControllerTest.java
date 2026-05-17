@@ -123,7 +123,7 @@ public class AuthenticationControllerTest {
         ApiResponse<Map<String, Object>> response = authenticationController.firebaseLogin(loginRequest, httpRequest).block();
 
         assertNotNull(response);
-        Map<String, Object> responseData = response.data();
+        Map<String, Object> responseData = response.getData();
         assertEquals("success", responseData.get("status"));
         assertEquals(false, responseData.get("isNewUser"));
         @SuppressWarnings("unchecked")
@@ -162,7 +162,7 @@ public class AuthenticationControllerTest {
         ApiResponse<Map<String, Object>> response = authenticationController.firebaseLogin(loginRequest, httpRequest).block();
 
         assertNotNull(response);
-        Map<String, Object> responseData = response.data();
+        Map<String, Object> responseData = response.getData();
         assertEquals("success", responseData.get("status"));
         assertEquals(true, responseData.get("isNewUser"));
     }
@@ -197,7 +197,7 @@ public class AuthenticationControllerTest {
         ApiResponse<Map<String, Object>> response = authenticationController.firebaseLogin(loginRequest, httpRequest).block();
 
         assertNotNull(response);
-        Map<String, Object> responseData = response.data();
+        Map<String, Object> responseData = response.getData();
         @SuppressWarnings("unchecked")
         Map<String, Object> userMap = (Map<String, Object>) responseData.get("user");
         assertEquals("admin", userMap.get("role"));
@@ -216,8 +216,8 @@ public class AuthenticationControllerTest {
         ApiResponse<Map<String, Object>> response = authenticationController.firebaseLogin(loginRequest, httpRequest).block();
 
         assertNotNull(response);
-        assertFalse(response.success());
-        assertTrue(response.error().contains("Authentication failed"));
+        assertFalse(response.isSuccess());
+        assertTrue(response.getError().contains("Authentication failed"));
     }
 
     @Test
@@ -240,8 +240,8 @@ public class AuthenticationControllerTest {
         ApiResponse<String> response = authenticationController.logout(httpRequest).block();
 
         assertNotNull(response);
-        assertTrue(response.success());
-        assertEquals("Logged out", response.data());
+        assertTrue(response.isSuccess());
+        assertEquals("Logged out", response.getData());
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         assertTrue(session.isInvalid());
     }

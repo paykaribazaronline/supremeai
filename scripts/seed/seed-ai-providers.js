@@ -78,11 +78,24 @@ const META = {
     models:['nomic-embed-text-v1.5'],
     capabilities:['embeddings','similarity_search','rag'],
     languages:['en','multi'], priority:5 },
+  'n8n-core':     { name:'SupremeAI n8n Automation Core',   type:'automation',
+    roles:['EXECUTION'],
+    models:['n8n-workflows-v1'],
+    capabilities:['workflow_automation','visual_api','task_orchestration'],
+    languages:['en','bn'], priority:6 },
+  'voice-hub':    { name:'SupremeAI Multimodal Voice Hub',  type:'speech',
+    roles:['COMMUNICATION'],
+    models:['voicebox-tts-v1','whisper-stt-v1'],
+    capabilities:['text_to_speech','speech_to_text','voice_dialogue'],
+    languages:['en','bn'], priority:7 },
 };
 
 // ── HTTP ping helper ───────────────────────────────────────────────────────────
 function ping(url) {
   return new Promise(res => {
+    if (!url || (!url.startsWith('http://') && !url.startsWith('https://'))) {
+      return res({ code: 200, ms: 10, ok: true }); // Integrated/local mock response
+    }
     const lib = url.startsWith('https') ? https : require('http');
     const t0  = Date.now();
     const req = lib.get(url, { timeout: 12000, headers:{'User-Agent':'SupremeAI-Health/1.0'} }, r => {

@@ -108,11 +108,9 @@ class SystemLearningControllerTest {
 
         when(learningService.addLearning(any(SystemLearning.class))).thenReturn(Mono.just(newLearning));
 
-        Mono<SystemLearning> result = controller.addLearning(newLearning);
+        SystemLearning result = controller.addLearning(newLearning).block();
 
-        StepVerifier.create(result)
-                .expectNextMatches(l -> "New Topic".equals(l.getTopic()))
-                .verifyComplete();
+        assertEquals("New Topic", result.getTopic());
 
         verify(learningService).addLearning(any(SystemLearning.class));
     }
@@ -123,10 +121,7 @@ class SystemLearningControllerTest {
     void deleteLearning_ValidId_ReturnsMonoVoid() {
         when(learningService.deleteLearning("learn-1")).thenReturn(Mono.empty());
 
-        Mono<Void> result = controller.deleteLearning("learn-1");
-
-        StepVerifier.create(result)
-                .verifyComplete();
+        controller.deleteLearning("learn-1").block();
 
         verify(learningService).deleteLearning("learn-1");
     }
@@ -189,16 +184,10 @@ class SystemLearningControllerTest {
 
         when(enhancedService.getLearningStats()).thenReturn(Mono.just(mockStats));
 
-        Mono<ResponseEntity<Map<String, Object>>> result = controller.getStats();
+        Map<String, Object> result = controller.getStats().block();
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.OK, response.getStatusCode());
-                    assertEquals(10, response.getBody().get("total"));
-                    assertEquals(8L, response.getBody().get("successCount"));
-                    return true;
-                })
-                .verifyComplete();
+        assertEquals(10, result.get("total"));
+        assertEquals(8L, result.get("successCount"));
 
         verify(enhancedService).getLearningStats();
     }
@@ -208,15 +197,9 @@ class SystemLearningControllerTest {
         Map<String, Object> emptyStats = Map.of("total", 0);
         when(enhancedService.getLearningStats()).thenReturn(Mono.just(emptyStats));
 
-        Mono<ResponseEntity<Map<String, Object>>> result = controller.getStats();
+        Map<String, Object> result = controller.getStats().block();
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.OK, response.getStatusCode());
-                    assertEquals(0, response.getBody().get("total"));
-                    return true;
-                })
-                .verifyComplete();
+        assertEquals(0, result.get("total"));
     }
 
     // ==================== getBestPractices Tests ====================
@@ -304,16 +287,10 @@ class SystemLearningControllerTest {
 
         when(enhancedService.improveSystemLearning()).thenReturn(Mono.just(mockResult));
 
-        Mono<ResponseEntity<Map<String, Object>>> result = controller.triggerImprovement();
+        Map<String, Object> result = controller.triggerImprovement().block();
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.OK, response.getStatusCode());
-                    assertTrue((Boolean) response.getBody().get("success"));
-                    assertEquals(50, response.getBody().get("totalLearningsAnalyzed"));
-                    return true;
-                })
-                .verifyComplete();
+        assertTrue((Boolean) result.get("success"));
+        assertEquals(50, result.get("totalLearningsAnalyzed"));
 
         verify(enhancedService).improveSystemLearning();
     }
@@ -326,14 +303,9 @@ class SystemLearningControllerTest {
 
         when(enhancedService.improveSystemLearning()).thenReturn(Mono.just(mockResult));
 
-        Mono<ResponseEntity<Map<String, Object>>> result = controller.improveLearning();
+        Map<String, Object> result = controller.improveLearning().block();
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.OK, response.getStatusCode());
-                    return true;
-                })
-                .verifyComplete();
+        assertTrue((Boolean) result.get("success"));
     }
 
     // ==================== triggerCyberResearch Tests ====================
@@ -348,15 +320,9 @@ class SystemLearningControllerTest {
 
         when(cyberSkillService.initiateLearningCycle("SQL Injection")).thenReturn(Mono.just(mockInsight));
 
-        Mono<ResponseEntity<Map<String, Object>>> result = controller.triggerCyberResearch("SQL Injection");
+        Map<String, Object> result = controller.triggerCyberResearch("SQL Injection").block();
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.OK, response.getStatusCode());
-                    assertEquals("SQL_INJECTION_abc1", response.getBody().get("techniqueId"));
-                    return true;
-                })
-                .verifyComplete();
+        assertEquals("SQL_INJECTION_abc1", result.get("techniqueId"));
 
         verify(cyberSkillService).initiateLearningCycle("SQL Injection");
     }
@@ -377,18 +343,12 @@ class SystemLearningControllerTest {
         when(cyberSkillService.getActiveProtections()).thenReturn(Flux.just(protection1));
         when(cyberSkillService.runSelfAudit()).thenReturn(Mono.just(auditReport));
 
-        Mono<ResponseEntity<Map<String, Object>>> result = controller.getCyberStatus();
+        Map<String, Object> result = controller.getCyberStatus().block();
 
-        StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    assertEquals(HttpStatus.OK, response.getStatusCode());
-                    List<?> skills = (List<?>) response.getBody().get("skills");
-                    List<?> protections = (List<?>) response.getBody().get("protections");
-                    assertNotNull(response.getBody().get("lastAudit"));
-                    assertEquals(1, skills.size());
-                    assertEquals(1, protections.size());
-                    return true;
-                })
-                .verifyComplete();
+        List<?> skills = (List<?>) result.get("skills");
+        List<?> protections = (List<?>) result.get("protections");
+        assertNotNull(result.get("lastAudit"));
+        assertEquals(1, skills.size());
+        assertEquals(1, protections.size());
     }
 }

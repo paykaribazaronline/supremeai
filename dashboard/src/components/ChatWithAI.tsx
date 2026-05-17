@@ -142,12 +142,7 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
         try {
             const isAuthenticated = authUtils.isAuthenticated();
             if (!isAuthenticated) {
-                const demoAgents = [
-                    { id: 'gpt-4o', name: 'GPT-4o', status: 'online', type: 'llm' },
-                    { id: 'claude-3', name: 'Claude 3.5', status: 'online', type: 'llm' },
-                    { id: 'phi-3', name: 'Phi-3 Mini', status: 'offline', type: 'llm' }
-                ];
-                setAgents(demoAgents);
+                setAgents([]);
                 return;
             }
 
