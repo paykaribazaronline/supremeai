@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Typography, Space, Button, Progress } from 'antd';
 import { RobotOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { NeuralCore } from './NeuralElements';
-import ActivityFeed from '../ActivityFeed';
+// import ActivityFeed from '../ActivityFeed';
 import UserProfile from '../UserProfile';
 
 const { Title, Text } = Typography;
@@ -75,7 +75,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ isAdmin, setActive
             </Button>
           </motion.div>
 
-          <ActivityFeed />
+          {/* <ActivityFeed /> */}
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
