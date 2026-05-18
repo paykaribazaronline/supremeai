@@ -270,9 +270,9 @@ public class ProviderAdminService {
                         log.info("Sanitizer: Fixed null type for {}: {}", p.getName(), p.getType());
                     }
 
-                    // Reset status if in error or rotating to allow re-validation
-                    if ("error".equals(p.getStatus()) || "rotating".equals(p.getStatus())) {
-                        p.setStatus("inactive");
+                    // Reset status to active if in error, rotating, null, or inactive to allow immediate availability
+                    if (p.getStatus() == null || "inactive".equals(p.getStatus()) || "error".equals(p.getStatus()) || "rotating".equals(p.getStatus())) {
+                        p.setStatus("active");
                         changed = true;
                     }
 
@@ -298,9 +298,28 @@ public class ProviderAdminService {
 
                     // Fix apiKey if it looks like a stringified map or object (safety check)
                     if (p.getApiKey() != null && (p.getApiKey().contains("{") || p.getApiKey().contains("="))) {
-                        log.warn("Sanitizer: Detected potentially corrupted API key for {}. Clearing to allow reset.", p.getName());
-                        p.setApiKey(null);
-                        p.setStatus("inactive");
+                        log.warn("Sanitizer: Detected potentially corrupted API key format for {}. Attempting to extract real key...", p.getName());
+                        String rawKey = p.getApiKey();
+                        String extractedKey = null;
+                        if (rawKey.contains("key=")) {
+                            int idx = rawKey.indexOf("key=");
+                            int endIdx = rawKey.indexOf(",", idx);
+                            if (endIdx == -1) {
+                                endIdx = rawKey.indexOf("}", idx);
+                            }
+                            if (endIdx != -1) {
+                                extractedKey = rawKey.substring(idx + 4, endIdx).trim();
+                            }
+                        }
+                        if (extractedKey != null && !extractedKey.isEmpty()) {
+                            p.setApiKey(extractedKey);
+                            p.setStatus("active");
+                            log.info("Sanitizer: Successfully extracted and updated API key to: {} for {}", extractedKey, p.getName());
+                        } else {
+                            log.warn("Sanitizer: Could not extract key, setting placeholder for safety.");
+                            p.setApiKey("PROVIDER_API_KEY_PLACEHOLDER");
+                            p.setStatus("active");
+                        }
                         changed = true;
                     }
 
@@ -348,7 +367,7 @@ public class ProviderAdminService {
         // Check type first
         if (type != null) {
             String upperType = type.toUpperCase();
-            if (upperType.equals("GOOGLE") || upperType.equals("GEMINI") || upperType.equals("VERTEX")) {
+            if (upperType.equals("GOOGLE") || upperType.equals("GEMINI") || upperType.equals("VERTEX") || upperType.equals("CLOUD_RUN")) {
                 return "gcloud";
             }
             if (upperType.equals("LOCAL") || upperType.equals("OLLAMA")) {

@@ -33,7 +33,7 @@ check_java() {
     err "$(bn 'Java পাওয়া যায়নি! https://adoptium.net/ থেকে JDK 21 ইনস্টল করুন।' 'Java not found! Install JDK 21 from https://adoptium.net/')"
   fi
   local ver
-  ver=$(java -version 2>&1 | head -1 | grep -oP '\d+')
+  ver=$(java -version 2>&1 | head -n 1 | grep -oP '\d+' | head -n 1)
   if [[ "$ver" -lt 21 ]]; then
     err "$(bn "Java $ver পাওয়া গেছে, কিন্তু JDK 21 প্রয়োজন। https://adoptium.net/" "Java $ver found — JDK 21 is required. https://adoptium.net/")"
   fi
@@ -47,7 +47,7 @@ check_node() {
     DASHBOARD_OK=false; return
   fi
   local ver
-  ver=$(node -v | grep -oP '\d+')
+  ver=$(node -v | grep -oP '\d+' | head -n 1)
   [[ "$ver" -lt 20 ]] && warn "$(bn "Node.js $ver (প্রয়োজন 20+) — ড্যাশবোর্ড সমস্যা হতে পারে" "Node.js $ver (need 20+) — dashboard may have issues")"
   ok "$(bn "Node.js $(node -v) পাওয়া গেছে ✓" "Node.js $(node -v) found ✓")"
   DASHBOARD_OK=true
@@ -127,7 +127,6 @@ check_java
 # 2. Node.js
 hl "$(bn 'প্রয়োজনীয় সফটওয়্যার চেক...' 'Checking prerequisites...') / Node.js"
 check_node
-DASHBOARD_OK=false
 
 # 3. Firestore
 handle_firestore_creds
