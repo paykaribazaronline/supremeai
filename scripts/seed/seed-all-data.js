@@ -38,8 +38,9 @@ const { execSync } = require('child_process');
 // ── Auto-resolve GCP credentials ───────────────────────────────────────────────
 const _KEY_PATHS = [
   process.env.GOOGLE_APPLICATION_CREDENTIALS,
-  path.resolve(__dirname, '../../src/main/resources/firebase-service-account.json'),
+  path.resolve(__dirname, '../../service-account.json'),
   path.resolve(__dirname, '../service-account.json'),
+  path.resolve(__dirname, '../../src/main/resources/firebase-service-account.json'),
 ].filter(Boolean);
 
 const _KEY_PATH = _KEY_PATHS.find(p => { try { fs.statSync(p); return true; } catch { return false; } });

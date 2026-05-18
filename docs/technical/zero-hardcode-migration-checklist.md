@@ -34,7 +34,7 @@
   2. If found, create `SupremeCloudProvider` with `metadata.getBaseUrl()` and `metadata.getModels()`
   3. If not found, throw `IllegalArgumentException`
 
-**Impact:** All 26 provider types (gpt4, openai, claude, anthropic, gemini, google, groq, deepseek, ollama, huggingface, kimi, mistral, stepfun, codegeex4, gcp_qwen, gcp_llama, gcp_phi, gcp_nomic, hf_deepseek, hf_mistral, hf_llama, hf_codellama, hf_phi, render_*, hf_phi_vision, hf_paligemma, hf_e5_large, hf_bge)
+**Impact:** All 26 provider types (gpt4, openai, claude, anthropic, gemini, google, groq, deepseek, ollama, huggingface, kimi, mistral, stepfun, codegeex4, qwen-coder, llama-3-1, phi-3, nomic-embed, deepseek-pro, hf_mistral, hf_llama, hf_codellama, hf_phi, render_*, hf_phi_vision, hf_paligemma, hf_e5_large, hf_bge)
 
 ---
 
