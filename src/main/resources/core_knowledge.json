@@ -1,192 +1,218 @@
-{
-  "system_identity": {
-    "name": "SupremeAI",
-    "version": "5.2.0-Phase4",
-    "phase": "Phase 4 — Pre-Market Launch & Final Polishing",
-    "core_philosophy": "SupremeAI is the ultimate orchestrator that leads all specialized hubs. It is a self-learning entity that evolves its logic through every interaction."
+[
+  {
+    "task": "hello hi greeting hey good morning good afternoon good evening",
+    "solution": "Hello! I am SupremeAI Core. I am currently operating in high-resilience offline mode because my external cloud connections are unavailable, but I am still here to assist you using my internal knowledge seed. How can I help you today?"
   },
-  "meta_logic_patterns": {
-    "command_superiority": {
-      "description": "SupremeAI analyzes ambiguous requests and maps them to high-level intents.",
-      "steps": ["intent_classification", "task_decomposition", "hub_delegation", "output_validation"]
-    },
-    "self_learning_loop": {
-      "description": "Mechanism for updating core logic based on user corrections or successful outcomes.",
-      "triggers": ["explicit_correction", "performance_score_low", "new_pattern_detected"],
-      "action": "Update 'learned_knowledge' and propose refinement to 'intent_taxonomy'."
-    },
-    "system_suggestion_logic": {
-      "description": "Logic for proactive model updates and link evaluation.",
-      "evaluation_criteria": ["parameter_efficiency", "context_window", "task_accuracy", "infrastructure_cost"]
-    }
+  {
+    "task": "status health check server uptime connectivity system overview",
+    "solution": "[SupremeAI Core — System Status]\nCurrent Mode: CORE_RESILIENCE (Offline/Tertiary)\nExternal Cloud AI: OFFLINE\nFirestore Memory: OFFLINE\nLocal Seed: ACTIVE\nSupremeAI Core: RUNNING\nAll core systems are operational in fallback mode. Admin panel users may experience reduced AI capabilities. Please activate helper AI providers from the dashboard to restore full functionality."
   },
-  "intent_taxonomy": {
-    "technical_and_engineering": {
-      "hub": "Development Hub (DeepSeek-Coder-V2)",
-      "clusters": {
-        "software_development": {
-          "sub_categories": ["web_frontend", "web_backend", "mobile_ios", "mobile_android", "cross_platform", "desktop_apps", "api_microservices", "legacy_refactoring"],
-          "tasks": [
-            {"id": "sd_001", "intent": "React with Vite and Tailwind setup", "priority": "high"},
-            {"id": "sd_002", "intent": "Spring Boot 3 Security configuration with JWT", "priority": "high"},
-            {"id": "sd_003", "intent": "Flutter Clean Architecture project scaffolding", "priority": "medium"},
-            {"id": "sd_004", "intent": "Legacy PHP to Node.js microservices migration", "priority": "medium"},
-            {"id": "sd_005", "intent": "PostgreSQL database schema optimization for large datasets", "priority": "high"},
-            {"id": "sd_006", "intent": "Dockerize multi-container microservices app", "priority": "medium"},
-            {"id": "sd_007", "intent": "Implement WebSocket for real-time chat", "priority": "high"},
-            {"id": "sd_008", "intent": "Unit and Integration testing with JUnit 5 and Mockito", "priority": "medium"},
-            {"id": "sd_009", "intent": "GraphQL API design with Apollo Server", "priority": "medium"},
-            {"id": "sd_010", "intent": "OAuth2 Social Login integration (Google/GitHub)", "priority": "high"},
-            {"id": "sd_011", "intent": "Redis caching layer for high-traffic endpoints", "priority": "high"},
-            {"id": "sd_012", "intent": "Elasticsearch implementation for full-text search", "priority": "medium"},
-            {"id": "sd_013", "intent": "Server-Side Rendering (SSR) with Next.js", "priority": "high"},
-            {"id": "sd_014", "intent": "State management with Redux Toolkit and RTK Query", "priority": "medium"},
-            {"id": "sd_015", "intent": "gRPC service definition and implementation", "priority": "medium"}
-          ]
-        },
-        "data_science_ai": {
-          "sub_categories": ["machine_learning", "deep_learning", "nlp_specialization", "computer_vision", "predictive_analytics", "data_engineering", "etl_pipelines", "model_fine_tuning"],
-          "tasks": [
-            {"id": "ds_001", "intent": "Fine-tune Llama-3 on domain-specific dataset", "priority": "high"},
-            {"id": "ds_002", "intent": "Object detection pipeline using YOLOv8", "priority": "medium"},
-            {"id": "ds_003", "intent": "Time-series forecasting for stock market trends", "priority": "high"},
-            {"id": "ds_004", "intent": "RAG system with Pinecone and LangChain", "priority": "high"},
-            {"id": "ds_005", "intent": "Spark ETL job for processing TBs of logs", "priority": "medium"},
-            {"id": "ds_006", "intent": "Sentiment analysis on social media stream", "priority": "medium"},
-            {"id": "ds_007", "intent": "Recommendation engine using collaborative filtering", "priority": "high"},
-            {"id": "ds_008", "intent": "Anomaly detection in financial transactions", "priority": "high"},
-            {"id": "ds_009", "intent": "Medical image segmentation using UNet", "priority": "high"},
-            {"id": "ds_010", "intent": "Reinforcement Learning agent for game strategy", "priority": "medium"}
-          ]
-        },
-        "devops_cloud": {
-          "sub_categories": ["ci_cd_automation", "kubernetes_management", "terraform_iac", "cloud_security", "serverless_optimization", "monitoring_observability", "database_administration"],
-          "tasks": [
-            {"id": "do_001", "intent": "Setup multi-stage CI/CD via GitHub Actions", "priority": "high"},
-            {"id": "do_002", "intent": "Autoscale Kubernetes nodes based on GPU usage", "priority": "medium"},
-            {"id": "do_003", "intent": "Terraform script for AWS multi-AZ infrastructure", "priority": "high"},
-            {"id": "do_004", "intent": "Prometheus and Grafana dashboard for API monitoring", "priority": "medium"},
-            {"id": "do_005", "intent": "Zero-downtime deployment strategy with Blue-Green", "priority": "high"},
-            {"id": "do_006", "intent": "Istio Service Mesh configuration and MTLS", "priority": "medium"},
-            {"id": "do_007", "intent": "Cloud cost optimization audit for GCloud/AWS", "priority": "high"}
-          ]
-        },
-        "cybersecurity": {
-          "sub_categories": ["penetration_testing", "threat_modeling", "incident_response", "cryptography", "identity_access_management", "compliance_auditing", "cloud_security_posture", "malware_analysis", "social_engineering_defense", "blockchain_security"],
-          "tasks": [
-            {"id": "cs_001", "intent": "Automated vulnerability scanning pipeline", "priority": "high"},
-            {"id": "cs_002", "intent": "Zero Trust architecture implementation", "priority": "high"},
-            {"id": "cs_003", "intent": "OAuth2 and OpenID Connect security audit", "priority": "medium"},
-            {"id": "cs_004", "intent": "Implementing AES-256 encryption at rest/transit", "priority": "high"},
-            {"id": "cs_005", "intent": "DDoS mitigation strategy for global apps", "priority": "high"},
-            {"id": "cs_006", "intent": "Smart contract security audit for Ethereum", "priority": "high"},
-            {"id": "cs_007", "intent": "Designing an Incident Response Plan for Ransomware", "priority": "medium"},
-            {"id": "cs_008", "intent": "Hardening Linux servers against SSH brute-force", "priority": "medium"},
-            {"id": "cs_009", "intent": "Configuring AWS WAF for SQLi and XSS protection", "priority": "high"},
-            {"id": "cs_010", "intent": "Conducting a PCI-DSS compliance gap analysis", "priority": "high"}
-          ]
-        },
-        "mobile_engineering": {
-          "hub": "Development Hub (DeepSeek-Coder-V2)",
-          "clusters": {
-            "flutter_ecosystem": {
-              "sub_categories": ["state_management", "native_integration", "animations", "performance_tuning", "multi_platform_release"],
-              "tasks": [
-                {"id": "me_001", "intent": "Flutter BLoC vs Provider architectural decision", "priority": "medium"},
-                {"id": "me_002", "intent": "Integrating Google Maps in Flutter with custom markers", "priority": "high"},
-                {"id": "me_003", "intent": "Flutter Desktop (Windows/macOS) app distribution", "priority": "medium"}
-              ]
-            },
-            "native_android": {
-              "sub_categories": ["kotlin_coroutines", "jetpack_compose", "hilt_di", "room_database", "foreground_services"],
-              "tasks": [
-                {"id": "me_004", "intent": "Migrating XML layouts to Jetpack Compose", "priority": "high"},
-                {"id": "me_005", "intent": "Implementing Android WorkManager for background sync", "priority": "medium"}
-              ]
-            }
-          }
-        }
-      }
-    },
-    "linguistic_and_creative": {
-      "hub": "Language & Marketing Hub (Llama-3.1 / Qwen)",
-      "clusters": {
-        "marketing_growth": {
-          "sub_categories": ["seo_optimization", "content_strategy", "social_media_growth", "email_marketing", "ad_copy_generation", "brand_storytelling", "influencer_outreach", "conversion_rate_optimization", "affiliate_marketing", "video_marketing_scripts"],
-          "tasks": [
-            {"id": "mk_001", "intent": "SEO audit and keyword strategy for SaaS", "priority": "high"},
-            {"id": "mk_002", "intent": "Automated LinkedIn content calendar generation", "priority": "medium"},
-            {"id": "mk_003", "intent": "High-converting email sequence for lead nurturing", "priority": "high"},
-            {"id": "mk_004", "intent": "PPC ad copy generation for Google/Meta ads", "priority": "medium"},
-            {"id": "mk_005", "intent": "Brand persona and tone-of-voice guide creation", "priority": "high"},
-            {"id": "mk_006", "intent": "Designing an Instagram growth loop strategy", "priority": "medium"},
-            {"id": "mk_007", "intent": "Creating a viral TikTok script for tech products", "priority": "high"},
-            {"id": "mk_008", "intent": "Analyzing competitor backlink profiles", "priority": "medium"},
-            {"id": "mk_009", "intent": "A/B testing landing page copy for better CRO", "priority": "high"},
-            {"id": "mk_010", "intent": "Writing a comprehensive whitepaper for B2B lead gen", "priority": "high"}
-          ]
-        },
-        "business_operations": {
-          "sub_categories": ["market_research", "financial_forecasting", "legal_doc_drafting", "hr_policy_design", "project_management", "risk_assessment", "customer_support_flows"],
-          "tasks": [
-            {"id": "bo_001", "intent": "Business plan generator for startups", "priority": "high"},
-            {"id": "bo_002", "intent": "Automated meeting summary and task extraction", "priority": "medium"},
-            {"id": "bo_003", "intent": "Legal contract review for compliance", "priority": "high"},
-            {"id": "bo_004", "intent": "HR employee onboarding workflow automation", "priority": "medium"},
-            {"id": "bo_005", "intent": "Financial quarterly report analysis and visualization", "priority": "high"}
-          ]
-        },
-        "academic_linguistics": {
-          "sub_categories": ["complex_summarization", "bengali_nuance_translation", "literature_review", "thesis_guidance", "creative_writing", "philosophical_discourse"],
-          "tasks": [
-            {"id": "al_001", "intent": "Advanced Bengali poetry and literature synthesis", "priority": "medium"},
-            {"id": "al_002", "intent": "Academic paper peer-review simulation", "priority": "high"},
-            {"id": "al_003", "intent": "Translating ancient manuscripts with context preservation", "priority": "medium"}
-          ]
-        }
-      }
-    },
-    "multimodal_synthesis": {
-      "hub": "Visual & Voice Hub (Flux/SVD/Voicebox)",
-      "clusters": {
-        "visual_design": {
-          "sub_categories": ["ui_ux_prototyping", "brand_asset_creation", "3d_rendering", "ai_video_production", "motion_graphics", "image_restoration", "architectural_visualization"],
-          "tasks": [
-            {"id": "vi_001", "intent": "Generate 3D product mockup from 2D image", "priority": "high"},
-            {"id": "vi_002", "intent": "AI-powered video commercial from script", "priority": "high"},
-            {"id": "vi_003", "intent": "Logo design and brand identity package", "priority": "medium"},
-            {"id": "vi_004", "intent": "High-fidelity UI prototype for mobile app", "priority": "high"},
-            {"id": "vi_005", "intent": "Restoring old/damaged photos using AI", "priority": "medium"}
-          ]
-        },
-        "audio_engineering": {
-          "sub_categories": ["voice_cloning", "podcast_editing", "emotional_tts", "audio_transcription", "music_composition", "noise_reduction", "sentiment_audio_analysis"],
-          "tasks": [
-            {"id": "ae_001", "intent": "Natural emotional TTS for audiobooks", "priority": "high"},
-            {"id": "ae_002", "intent": "AI background music generation for videos", "priority": "medium"},
-            {"id": "ae_003", "intent": "Multi-speaker podcast transcription and diarization", "priority": "high"}
-          ]
-        }
-      }
-    }
+  {
+    "task": "help available commands what can you do capabilities features",
+    "solution": "[SupremeAI Core — Offline Help]\nI am currently in core-resilience mode. The following capabilities are available from my local knowledge seed:\n\n1. Code Generation: Spring Boot entities, controllers, services, React components, Flutter widgets\n2. System Operations: Build, test, deploy, debug guidance\n3. Database: Firestore, SQL, JWT authentication patterns\n4. Health Checks: System connectivity and service diagnostics\n5. Admin Operations: User management, API keys, provider activation\n6. Troubleshooting: Network errors, HTTP status codes, circuit breaker recovery\n\nType a keyword related to any of the above to receive offline guidance."
   },
-  "learning_reservoir": {
-    "recent_corrections": [],
-    "newly_discovered_tasks": [],
-    "optimized_logic_paths": {}
+  {
+    "task": "thanks thank you suggestion appreciated dhanyobad",
+    "solution": "You are welcome! I am always here to help, even in offline mode. If you need anything else, just ask. ধন্যবাদ! আমি সবসময় আপনাকে সাহায্য করতে প্রস্তুত।"
   },
-  "operational_constraints": {
-    "data_privacy": "100% Cloud Native - No data leaves the VPC.",
-    "response_priority": {
-      "low_latency": "gcp_phi (Cloud Run)",
-      "high_accuracy": "Multi-Orchestrated Cloud MoE Super-Hubs"
-    },
-    "provider_policy": {
-      "mode": "cloud-only",
-      "no_local_fallback": true,
-      "no_hardcoded_providers": true,
-      "all_providers_from_firestore": true,
-      "auto_failover": "any available cloud provider"
-    }
+  {
+    "task": "who are you what is supremeai supreme ai introduction explain yourself",
+    "solution": "I am SupremeAI Core — the primary orchestrator of the SupremeAI multi-agent system. I coordinate external AI providers, manage Firestore-based learning memory, and maintain a local knowledge seed for total resilience. Architecture: helper AI (layer-1) → memory (layer-2) → local seed (layer-3) → emergency response (layer-4). This ensures 100% uptime even when all external services are down."
+  },
+  {
+    "task": "online mode everything failed all ai fail emergency response",
+    "solution": "[SupremeAI Core — ONLINE MODE: Complete Blackout]\n\nRoot cause: All AI (Helpers), Firestore Memory, and Local Seed all failed simultaneously.\n\nWhat is running: SupremeAI-Core process IS alive (JVM still executing). HTTP server IS responding.\n\nWhat is NOT available: No AI response, no code generation, no chat, no Firestore memory, no external API calls.\n\nBLACKOUT RECOVERY:\na) Hard Restart: cd /home/youruser/supremeai && killall -9 java && ./gradlew clean bootRun\nb) Dev profile: ./gradlew bootRun --args='--spring.profiles.active=dev'\nc) Manual Build: ./gradlew assemble --offline --refresh-dependencies=false\nd) Kill-switch Emergency: killall -9 java && ./kill-switch restart\n\nNote: In ONLINE MODE, no AI responses will be generated from assistant models. Local seed responses only."
+  },
+  {
+    "task": "online mode recovery restart emergency restart procedure",
+    "solution": "[SupremeAI Core — ONLINE MODE Recovery Procedure]\n\nStep 0 — Identify the failure tier:\n- No response: server is down —> RESTART below\n- Server responds but no AI: AI providers blackout —> RESTART below\n- Server responds but errors 500: DB/code failure —> DIAGNOSE below\n\nRESTART (server not responding):\n1. pwd —> verify you are in /home/youruser/supremeai\n2. ps aux | grep java —> see if java process exists\n3. killall -9 java —> force stop\n4. ./gradlew clean —> delete old build artifacts\n5. ./gradlew build -x test —> compile\n6. ./gradlew bootRun —> start fresh\n7. curl http://localhost:8080/actuator/health | head -100\n\nDIAGNOSE (errors 500):\n1. tail -100 /var/log/supremeai/application.log\n2. grep ERROR /var/log/supremeai/application.log | tail -50\n3. ./gradlew bootRun --stacktrace 2>&1\n\nRECONNECT (cant reach Firestore/AI):\n1. ping firestore.googleapis.com\n2. curl https://firestore.googleapis.com | head -1\n3. Check env: echo $GOOGLE_APPLICATION_CREDENTIALS"
+  },
+  {
+    "task": "blackout protocol killswitch emergency stop kill server force restart",
+    "solution": "[SupremeAI Core — Kill-Switch Emergency Protocol]\n\nNORMAL STOP:\n  killall -9 java —> stop Spring Boot server\n  killall -9 node —> stop dashboard\n\nFORCE RESTART (terminal):\n  1. cd /home/youruser/supremeai\n  2. ps aux | grep java\n  3. killall -9 java\n  4. sleep 2\n  5. ./gradlew --version (must be 21)\n  6. java -version\n  7. ./gradlew clean bootRun\n  8. curl http://localhost:8080/actuator/health\n\nKILL-SWITCH SCRIPT (if present):\n  chmod +x ./kill-switch\n  ./kill-switch diagnose   # report only\n  ./kill-switch stop         # stop gracefully\n  ./kill-switch restart       # full restart\n\nWARN: If kill-switch is a binary, run it directly:\n  ./kill-switch kill; ./kill-switch restart\n\nRESTART TIMEOUT PROTOCOL:\nIf you know admin panel is running but AI is not, restart from: Settings > Server > Restart. If unsure, begin at Step 0 of ONLINE MODE Recovery."
+  },
+  {
+    "task": "system self-repair self healing process automatically repair fix without external ai",
+    "solution": "[SupremeAI Core — Self-Repair]\n\nSELF-HEALING triggers (automatic):\n  - Repeated 5xx errors within 60 seconds\n  - Build loop failures > 3 times in succession\n  - Firestore memory unavailable > 2 consecutive minutes\n  - Circuit breaker OPEN for all active providers\n\nSELF-REPAIR steps run automatically:\n1. Snapshot current error log (last 200 lines + error signature)\n2. Search local solution memory for exact or similar error signature\n3. Auto-apply the highest-scoring known fix (verified solution)\n4. If no solution found: report \"[SELF-REPAIR BLOCKED] Known fix unavailable\"\n5. Log the action in ActivityLog with isSelfHealed=true\n6. Notify admin via dashboard widget\n\nRule: Self-Repair applies only non-destructive fixes from the known-solutions registry, never deletes or truncates data."
+  },
+  {
+    "task": "kill-the-ai-start-over complete wipe reset factory reset all clear wipe",
+    "solution": "[SupremeAI Core — Kill-AI and Start-Over Protocol]\n\nDESTRUCTIVE: This erases all AI-provider configs, learned-memory records, and user session data. Use only after kill-switch restart flow fails.\n\nStep 1 — Confirm current state:\n  echo Current directory:; pwd\n  echo JVM processes:; ps aux | grep java\n  echo Node processes:; ps aux | grep node\n\nStep 2 — Backup locally:\n  mkdir -p ~/ai-emergency-backup/$(date +%Y-%m-%d_%H%M%S)\n  cp -r src/main/resources/core_knowledge.json ~/ai-emergency-backup/\n  cp -r build.gradle ~/ai-emergency-backup/\n  cp .env ~/ai-emergency-backup/ 2>/dev/null; true\n\nStep 3 — Stop all processes:\n  killall -9 java || true\n  killall -9 node || true\n\nStep 4 — Factory reset:\n  ./gradlew clean --all\n\nStep 5 — Verify clean state:\n  ls build/ —> should be empty\n  ls src/main/resources/core_knowledge.json —> should be present\n\nStep 6 — Rebuild and start:\n  ./gradlew clean bootRun --stacktrace 2>&1 | tee ~/ai-restart-$(date +%Y%m%d_%H%M).log\n\nStep 7 — Reconfigure from admin panel:\n  Open http://localhost:8080/admin and re-add AI providers."
+  },
+  {
+    "task": "killswitch readme instructions overview what it does how to use run",
+    "solution": "[SupremeAI Core — Kill-Switch Overview]\n\nThe kill-switch binary stops, restarts, and diagnoses the SupremeAI backend.\n\nDiffers from Linux kill: it also flushes memory state, sets a checkpoint, saves audit log, and performs a clean restart.\n\nUsage:\n  ./kill-switch or kill-switch help —> shows all options\n\nActions:\n  start —> full launch of all backend services\n  stop —> gracefully stop, preserves state checkpoint\n  restart —> stop then start automatically\n  diagnose —> report all services and health\n  reset —> clean hard reset + restart from scratch\n\nIf Permission denied: chmod +x ./kill-switch before running.\nUse ./kill-switch before manual killall for graceful shutdown."
+  },
+  {
+    "task": "killswitch run steps restart procedure",
+    "solution": "[SupremeAI Core — Kill Switch Execution Protocol]\n\nRestart or run killswitch start/stop/run.\n\nLocate: ls -la ./kill-switch*\nPermissions: chmod +x ./kill-switch\nRun: ./kill-switch help —> shows all options\nActions: start, stop, restart, diagnose, clean\n\nIf Permission denied appears: check owner with ls -la and grant execute.\nForce kill if stuck: kill -SIGTERM <java-pid>; then SIGKILL if it does not terminate in 60 seconds."
+  },
+  {
+    "task": "auto-recovery recovery agent self-healing code injection poison malicious code blind spyware",
+    "solution": "[SupremeAI Core — Code Infection Handler]\n\nWhen any externally generated code is received, SupremeAI Core runs a mandatory CODE IMMUNITY CHECK.\n\nCheck steps: 1. Soot analysis —> detect suspicious/obfuscated string literals\n              2. Reflection checks —> detect hidden call paths\n              3. Secret detection —> halt if API keys/passwords detected\n              4. Permissions whitelist —> confirm request is within allowed APIs\n\nInfection severity: LOW —> log warning, allow with delay\n                     MEDIUM —> reject, blacklist provider, try fallback\n                     CRITICAL —> block hard, alert admin, quarantine provider\n\nWhen all providers are quarantined:\n  System enters EMERGENCY CODE BLOCK. Only local knowledge responses served until admin reactivates a clean provider."
+  },
+  {
+    "task": "database backup restore point recovery sql postgres firestore mongodb",
+    "solution": "[SupremeAI Core — Database Recovery & Backup]\n\nRestore order:\n1. CONFIRM RESTORE CRITERIA: timestamp, known good data count, backup checksum\n2. Firestore: gcloud firestore export gs://your-bucket/backup/pre-restore-{timestamp}\n                gcloud firestore import gs://your-bucket/backup/pre-restore-{timestamp}\n   Postgres/Mongo: pg_dump / mongodump with checksum verification\n3. WAIT FOR IMPORT: Firestore import can take hours for large datasets\n4. VERIFY INTEGRITY: row count, provider records in api_providers collection\n5. RE-CONNECT: restart server, wait for loadMemories(), check post-restore activity log\n\nNOTE: Always backup before self-healing. Always verify row counts match backup."
+  },
+  {
+    "task": "firestore full offline mode disconnected disconnected mode disconnected sudden disconnect",
+    "solution": "[SupremeAI Core — Firestore Disconnected Mode]\n\nSYMPTOMS: All Firestore calls timeout (default 10 seconds), log shows 'Firestore unavailable,' 0 AI providers.\n\nStill works: Local core_knowledge.json, cached in-memory memory (if loaded before disconnect).\nStops working: New task lookup in Firestore, API provider storage/retrieval.\n\nRECOVERY:\n1. curl -s https://firestore.googleapis.com | head -1\n2. Restart Spring Boot — framework auto-reconnects on next startup\n3. Wait for loadMemories() to complete\n4. If still unreachable: check GOOGLE_APPLICATION_CREDENTIALS, service account path\ney, key expiry\n\nADVANCED — Emulator for offline local development:\n  export FIRESTORE_EMULATOR_HOST=localhost:8080\n  ./gradlew bootRun --spring.profiles.active=local-emulator — replaces live\n  Firestore seamlessly, perfect for restoring service without internet."
+  },
+  {
+    "task": "emergency procedure guide system failure multitier emergency multi-tier emergency",
+    "solution": "[SupremeAI Core — Emergency Response Playbook]\n\nTIER 1 — SUPPORT AGENT (10 minutes): Self-repair for known error signatures.\nTIER 2 — SYSTEMS ADMIN (30 min): Diagnose, log files, restart, rebuild.\nTIER 3 — AI ARCHITECT (1 hour): Full outage, backup restore, hard reset.\n\nACCELERATED TIER — kill-switch only:\n  Step 1: ./kill-switch diagnose\n  Step 2: ./gradlew clean bootRun --stacktrace\n  Step 3: curl http://localhost:8080/actuator/health — admin panel test on dashboard.\n\nRECOVERY COMPLETION: Test one AI request, check activity log, verify health."
+  },
+  {
+    "task": "emergency build rebuild compile from scratch code clean fresh start clean all build",
+    "solution": "[SupremeAI Core — Emergency Build & Compile]\n\nWhen build is corrupt or need complete fresh compile from zero:\n\nEMERGENCY BUILD (fast, no Firestore):\n  ./gradlew assemble --offline --refresh-dependencies=false\n  # Produces jar in build/libs/, skips tests\n\nFULL BUILD (standard):\n  ./gradlew clean build\n\nFROM SCRATCH:\n  1. ps aux | grep java; killall -9 java; ps aux | grep node; killall -9 node\n  2. java -version (must be 21)\n  3. ./gradlew --version\n  4. ./gradlew clean\n  5. ./gradlew bootRun --stacktrace 2>&1 | tee ~/ai-restart-$(date +%Y%m%d_%H%M).log\n\nStep 1) Verify current directory: pwd\nStep 2) Stop all services\nStep 3) Build from scratch (clean, no cache)\nStep 4) Start and verify with health endpoint"
+  },
+  {
+    "task": "permission deny 403 access denied deny grant role rbac user role",
+    "solution": "[SupremeAI Core — Permissions]\n\nROLE HIERARCHY: admin (full access), developer (code, logs, self-heal), viewer (read-only), tester (trigger workflows only).\n\nIF PERMISSION DENIED (403):\n  1. Firestore rule check: match /databases/{db}/users/{uid}: { allow read: if request.auth != null && request.auth.uid == uid }\n  2. Edit your role from Admin Panel —> Users —> Your Account —> Edit Role\n  3. Cannot access admin panel? Manually update Firestore user doc to admin role\n  4. Verify JWT: correct secret, correct role claim from OAuth2 identity provider\n  5. Check WebFlux role check: hasAuthority('SCOPE_ROLE_<role-name>')\n\nAfter reset: Re-login to ensure fresh JWT token with correct role."
+  },
+  {
+    "task": "security emergency lock down security issues suspicious activity breach immediate",
+    "solution": "[SupremeAI Core — Immediate Security Actions]\nIf unauthorized access or data breach is suspected:\n\nIMMEDIATE (first hour):\n  1. Stop all API traffic: killall -9 java\n  2. Alert admin team\n  3. Take snapshot of all logs for forensics\n  4. Rotate ALL API keys and secrets (treat all tokens as compromised)\n  5. Document timeline: what happened, who logged in, what data was accessed\n\nSHORT-TERM (24 hours):\n  - Deploy updated code with latest security patches\n  - Implement LOCKDOWN mode in dashboard\n  - Check for Trojans in dependencies\n  - Re-seed all secrets into secure vault\n\nONGOING (days 2-7):\n  - Full audit of access logs\n  - Check for strangely-encoded payloads in Firestore\n  - Review recently pushed code\n  - Uninstall suspicious plugins\n\nKEY POINT: System operates in LOCKDOWN with only local knowledge responses active. No AI calls made."
+  },
+  {
+    "task": "build failed compilation error gradle maven test",
+    "solution": "[SupremeAI Core — Build Troubleshooting]\n\nDiagnostic steps:\n1. Clear cache: ./gradlew clean\n2. Update dependencies: ./gradlew --refresh-dependencies\n3. Check Java version: java -version (must be 21)\n4. Gradle wrapper: ./gradlew --version\n5. Rebuild with trace: ./gradlew build --info\n\nCommon fixes:\n  Annotation processor errors —> ensure LOMBOK on annotationProcessor path\n  Port conflict —> change server.port in application.properties\n  Module not found —> check module map in settings.gradle\n  Out of memory —> add org.gradle.jvmargs=-Xmx4g to gradle.properties\n  Test failures —> ./gradlew test --info for detailed trace\n\nIf still failing after all above: search GitHub issues for similar patterns."
+  },
+  {
+    "task": "firestore connection timeout error unavailable offline",
+    "solution": "[SupremeAI Core — Firestore Diagnostics]\n\nFirestore is in OFFLINE/FALLBACK mode. To restore:\n1. Verify service account file exists and path is correct: echo $GOOGLE_APPLICATION_CREDENTIALS\n2. Enable Firestore API in GCP Console\n3. Check network: curl https://firestore.googleapis.com\n4. Verify Firestore Rules: firebase deploy --only firestore:rules\n5. Application uses Firestore BANK mode — cached writes retried on reconnect\n\nCircuit Breaker is ACTIVE — all Firestore calls redirected to local memory seed. This is expected."
+  },
+  {
+    "task": "error unknown network unsolvable unknown error guide basic query simple",
+    "solution": "[SupremeAI Core — Unknown Error]\nI am running in offline/fallback mode with limited context from my local knowledge seed.\n\n1. Describe the exact error message\n2. Share the relevant code snippet or file path\n3. Specify what you were doing when it happened\n4. Include any stack trace\n\nUniversal troubleshooting steps:\n  Revert last change —> git stash —> git checkout <last-good-commit>\n  Clean build —> ./gradlew clean && ./gradlew build\n  Check logs —> server.log, application.log, browser console\n  Check external services —> provider API-status page\n  Enable DEBUG logging temporarily for detailed trace\n\nOnce you provide specifics, I can give targeted guidance. Full AI assistance will resume when cloud services restore."
+  },
+  {
+    "task": "feature flag toggle rollout percentage rollout killswitch",
+    "solution": "[SupremeAI Core — Feature Flags]\n\nFeature flags stored in Firestore: collection=featureFlags\n{ name, description, enabled, rolloutPercentage, environments: {dev:true, staging:true, prod:false} }\n\nCheck in code: @Value(\"${feature.newDashboard:false}\") boolean newDashboardEnabled;\n\nDynamic from Firestore: Mono<Boolean> isNewDashboardEnabled()\n  return featureFlagRepo.findByName('newDashboard').map(f -> f.isEnabled() && (Math.random() * 100) < f.getRolloutPercentage())\n\nKill switch: Firestore collection=killswitch { target, disabled, message, disabledAt }\nWhen disabled=true —> HTTP 503 + message returned to client."
+  },
+  {
+    "task": "admin user management create delete disable active activate",
+    "solution": "[SupremeAI Core — Admin User Management]\n\nOperations via Admin Panel (/admin):\n1. CREATE USER: Fill user form —> system creates Firestore user doc + assigns role\n2. DELETE USER: Select user —> Delete —> Confirm —> Firestore doc hard-deleted (cascading)\n3. ACTIVATE USER: Edit user —> Toggle Active —> isActive=true\n4. DISABLE USER: Edit user —> Toggle Active —> isActive=false\n5. ASSIGN ROLE: Edit user —> change role (admin, developer, viewer, tester)\n\nUser Object Schema:\n{ uid, name, email, role, isActive, createdAt, lastLoginAt }\n\nOffline: These instructions are available. Full CRUD requires Firestore connection. Changes queued via local cache and replayed on reconnection."
+  },
+  {
+    "task": "api key management create regenerate revoke token",
+    "solution": "[SupremeAI Core — API Key Management]\n\nManage API keys from Admin Panel > Settings > API Keys:\n\nCREATE KEY: Click Generate —> choose provider/scope —> copy key (shown once)\nREGENERATE KEY: Existing key invalidated —> new key issued —> update client config\nREVOKE KEY: Key is permanently deleted —> client requests fail immediately\nROTATING KEY: Safe rotation: generate new —> deploy —> revoke old\n\nStored in Firestore: collection=/apiKeys —> {keyHash, provider, scope, owner, createdAt, lastUsed}\n\nBest Practice: Never hardcode API keys. Always use environment variables injected at runtime.\nKey Rotation Schedule: Every 90 days recommended."
+  },
+  {
+    "task": "ai provider activate deactivate enable disable provider",
+    "solution": "[SupremeAI Core — AI Provider Management]\n\nManage AI providers via Admin Panel > AI Providers:\n\n1. ACTIVATE: Set status=active —> system automatically attempts connection on next AI call\n2. DEACTIVATE: Set status=inactive —> call skipped —> falls to next in priority chain\n3. SET PRIORITY: Lower number —> higher priority —> ordered first\n4. ASSIGN ROLE: Communication, Execution, or Voting role per provider\n5. UPDATE API KEY: Edit provider doc —> update apiKey field (encrypted at rest)\n\nProvider Fallback Chain:\nLevel 1 —> Admin-configured Active Helper AI (highest priority)\nLevel 2 —> Firestore Solution Memory\nLevel 3 —> Local Core Knowledge Seed (this file)\nLevel 4 —> Emergency Built-in Response\n\nIf Level 1-3 all fail —> Emergency fallback activates automatically."
+  },
+  {
+    "task": "approval pending approval flag review waiting",
+    "solution": "[SupremeAI Core — Approval System]\n\nApproval flows in SupremeAI:\n- APPROVAL_REQUIRED flags: Operation waits for human or AI verifier approval before execution\n- Approver can ACCEPT, REJECT, or REQUEST_CHANGES\n- Long polling / websocket used for real-time update notification\n- If all approvers are unavailable —> escalate to admin role\n- Auto-approval: Low-risk operations auto-approved after timeout of 300s\n\nAPI pattern for approval:\nPOST /api/approvals —> {actionId, status, reason}\nGET /api/approvals/pending —> list pending"
+  },
+  {
+    "task": "environment configuration properties application profile dev prod",
+    "solution": "[SupremeAI Core — Environment Configuration]\n\napplication.yml hierarchy (highest to lowest priority):\n1. Environment variables (SPRING_PROFILES_ACTIVE, ports, keys)\n2. application.yml (default)\n3. application-{profile}.yml (profile-specific: dev, staging, prod)\n4. Server — /config/*.properties\n\nKey environment variables:\nSPRING_PROFILES_ACTIVE —> set dev/staging/prod\nGOOGLE_APPLICATION_CREDENTIALS —> GCP service account path\nAI_API_KEY —> external AI provider API key\nJWT_SECRET —> secret for JWT encoding\nDB_URL —> database connection string\nFIREBASE_PROJECT_ID —> Firebase project ID\nADMIN_USERNAME / ADMIN_PASSWORD —> admin auth seeding"
+  },
+  {
+    "task": "memory learning solve memory solution store learned",
+    "solution": "[SupremeAI Core — Memory & Learning System]\n\nArchitecture: 3-layer knowledge system\nLAYER 1 — External AI: Admin-configured dynamic Firestore providers.\nLAYER 2 — Firestore /memory Collection: SolutionMemoryRepository stores successful AI responses indexed by task hash. Same task queries return instantly.\nLAYER 3 — Local Seed: core_knowledge.json hardcoded fallback templates.\n\nLearning Flow:\n1. External AI generates solution\n2. Solution evaluated for infection/harm\n3. Clean —> store in /memory (Firestore) with task hash\n4. Next query: memory check first —> instant response if matched\n\nOffline: Layers 1-2 unavailable —> Layer 3 (this file) serves as tertiary fallback."
+  },
+  {
+    "task": "create spring boot entity model jpa database table",
+    "solution": "package com.supremeai.model;\n\nimport jakarta.persistence.*;\nimport lombok.*;\nimport java.time.LocalDateTime;\n\n@Entity\n@Table(name = \"entities\", indexes = {\n        @Index(name = \"idx_entity_name\", columnList = \"name\"),\n        @Index(name = \"idx_entity_created\", columnList = \"created_at\")\n})\n@Data\n@NoArgsConstructor\n@AllArgsConstructor\n@Builder(toBuilder = true)\npublic class GenericEntity {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n\n    @Column(nullable = false, length = 255)\n    private String name;\n\n    @Column(columnDefinition = \"TEXT\")\n    private String description;\n\n    @Column(name = \"is_active\", nullable = false)\n    private boolean active = true;\n\n    @Column(name = \"created_at\", nullable = false, updatable = false)\n    private LocalDateTime createdAt = LocalDateTime.now();\n\n    @Column(name = \"updated_at\")\n    private LocalDateTime updatedAt;\n\n    @PrePersist\n    protected void onCreate() {\n        this.createdAt = LocalDateTime.now();\n        this.updatedAt = LocalDateTime.now();\n    }\n\n    @PreUpdate\n    protected void onUpdate() {\n        this.updatedAt = LocalDateTime.now();\n    }\n}"
+  },
+  {
+    "task": "create spring boot dto data transfer object request response",
+    "solution": "package com.supremeai.dto;\n\nimport lombok.*;\nimport java.time.LocalDateTime;\n\n@Data\n@NoArgsConstructor\n@AllArgsConstructor\n@Builder\npublic class EntityRequest {\n    private String name;\n    private String description;\n    private Boolean active;\n}\n\n@Data\n@NoArgsConstructor\n@AllArgsConstructor\n@Builder\npublic class EntityResponse {\n    private Long id;\n    private String name;\n    private String description;\n    private Boolean active;\n    private LocalDateTime createdAt;\n}"
+  },
+  {
+    "task": "create spring boot controller rest api endpoint",
+    "solution": "package com.supremeai.controller;\n\nimport com.supremeai.dto.EntityRequest;\nimport com.supremeai.dto.EntityResponse;\nimport com.supremeai.service.EntityService;\nimport jakarta.validation.Valid;\nimport lombok.RequiredArgsConstructor;\nimport org.springframework.http.HttpStatus;\nimport org.springframework.http.ResponseEntity;\nimport org.springframework.web.bind.annotation.*;\nimport reactor.core.publisher.Flux;\nimport reactor.core.publisher.Mono;\n\n@RestController\n@RequestMapping(\"/api/v1/entities\")\n@RequiredArgsConstructor\npublic class EntityController {\n\n    private final EntityService entityService;\n\n    @GetMapping\n    public Flux<EntityResponse> getAll() {\n        return entityService.findAll();\n    }\n\n    @GetMapping(\"/{id}\")\n    public Mono<ResponseEntity<EntityResponse>> getById(@PathVariable Long id) {\n        return entityService.findById(id)\n                .map(ResponseEntity::ok)\n                .defaultIfEmpty(ResponseEntity.notFound().build());\n    }\n\n    @PostMapping\n    public Mono<ResponseEntity<EntityResponse>> create(@Valid @RequestBody Mono<EntityRequest> request) {\n        return entityService.create(request)\n                .map(saved -> ResponseEntity.status(HttpStatus.CREATED).body(saved));\n    }\n\n    @PutMapping(\"/{id}\")\n    public Mono<ResponseEntity<EntityResponse>> update(@PathVariable Long id, @Valid @RequestBody Mono<EntityRequest> request) {\n        return entityService.update(id, request)\n                .map(ResponseEntity::ok)\n                .defaultIfEmpty(ResponseEntity.notFound().build());\n    }\n\n    @DeleteMapping(\"/{id}\")\n    public Mono<ResponseEntity<Void>> delete(@PathVariable Long id) {\n        return entityService.delete(id)\n                .thenReturn(ResponseEntity.noContent().build());\n    }\n}"
+  },
+  {
+    "task": "create spring boot service reactive reactivecrudrepository",
+    "solution": "package com.supremeai.service;\n\nimport com.supremeai.dto.EntityRequest;\nimport com.supremeai.dto.EntityResponse;\nimport com.supremeai.model.GenericEntity;\nimport com.supremeai.repository.EntityRepository;\nimport lombok.RequiredArgsConstructor;\nimport org.springframework.stereotype.Service;\nimport reactor.core.publisher.Flux;\nimport reactor.core.publisher.Mono;\n\n@Service\n@RequiredArgsConstructor\npublic class EntityService {\n\n    private final EntityRepository entityRepository;\n\n    public Flux<EntityResponse> findAll() {\n        return entityRepository.findAll()\n                .map(this::toResponse);\n    }\n\n    public Mono<EntityResponse> findById(Long id) {\n        return entityRepository.findById(id)\n                .map(this::toResponse);\n    }\n\n    public Mono<EntityResponse> create(Mono<EntityRequest> request) {\n        return request\n                .map(this::toEntity)\n                .flatMap(entityRepository::save)\n                .map(this::toResponse);\n    }\n\n    public Mono<EntityResponse> update(Long id, Mono<EntityRequest> request) {\n        return entityRepository.findById(id)\n                .flatMap(existing -> request.map(this::toEntity)\n                        .doOnNext(e -> e.setId(id))\n                        .flatMap(entityRepository::save))\n                .map(this::toResponse);\n    }\n\n    public Mono<Void> delete(Long id) {\n        return entityRepository.deleteById(id);\n    }\n\n    private GenericEntity toEntity(EntityRequest req) {\n        return GenericEntity.builder()\n                .name(req.getName())\n                .description(req.getDescription())\n                .active(req.getActive())\n                .build();\n    }\n\n    private EntityResponse toResponse(GenericEntity entity) {\n        return EntityResponse.builder()\n                .id(entity.getId())\n                .name(entity.getName())\n                .description(entity.getDescription())\n                .active(entity.isActive())\n                .createdAt(entity.getCreatedAt())\n                .build();\n    }\n}"
+  },
+  {
+    "task": "java.time.LocalDateTime Date conversion serialization Jackson type mismatch Date LocalDateTime Spring Boot Date error",
+    "solution": "[SupremeAI Core — LocalDateTime & Date Migration]\n\nMigrating from java.util.Date to java.time.LocalDateTime is crucial for modern Spring Boot applications, but can cause compilation or serialization issues.\n\n1. Jackson Serialization Setup (Jackson-datatype-jsr310):\n   Ensure the dependency is present in build.gradle:\n     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'\n\n2. Configure Spring Object Mapper (application.properties):\n     spring.jackson.serialization.write-dates-as-timestamps=false\n\n3. Use JPA LocalDateTime Mapping (Correct Entity Pattern):\n     @Column(name = \"created_at\", nullable = false, updatable = false)\n     private LocalDateTime createdAt = LocalDateTime.now();\n\n4. Use JsonFormat for Custom API Formatting:\n     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = \"yyyy-MM-dd'T'HH:mm:ss\")\n     private LocalDateTime createdAt;\n\n5. Convert Date to LocalDateTime (Legacy compatibility):\n     public static LocalDateTime toLocalDateTime(java.util.Date date) {\n         if (date == null) return null;\n         return date.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();\n     }\n\n6. Convert LocalDateTime to Date:\n     public static java.util.Date toDate(LocalDateTime localDateTime) {\n         if (localDateTime == null) return null;\n         return java.util.Date.from(localDateTime.atZone(java.time.ZoneId.systemDefault()).toInstant());\n     }"
+  },
+  {
+    "task": "HikariCP connection leak database connection timeout Hikari pool limit JPA connection leak Spring Boot DB pool",
+    "solution": "[SupremeAI Core — Database Connection Leak & HikariCP Timeout]\n\nRoot Cause: Database connections are not being closed properly, causing HikariCP to run out of active connections and throw ConnectionTimeoutException.\n\n1. Enable Connection Leak Detection (application.properties):\n     spring.datasource.hikari.leak-detection-threshold=2000  # Logs warnings for connections open > 2 seconds\n     spring.datasource.hikari.maximum-pool-size=20            # Set pool size relative to CPU cores\n\n2. Safe Resource Handling in Java (Try-with-resources):\n     try (Connection conn = dataSource.getConnection();\n          PreparedStatement stmt = conn.prepareStatement(sql)) {\n         // Statement & Connection auto-closed upon block exit\n     }\n\n3. Reactive WebFlux Database Rules:\n     DO NOT block inside a reactive chain when communicating with a blocking database.\n     Use Schedulers.boundedElastic() for R2DBC / JDBC wrappers:\n     Mono.fromCallable(() -> blockingRepository.save(entity))\n         .subscribeOn(Schedulers.boundedElastic());\n\n4. Transaction Management:\n     Annotate transactional methods with @Transactional(readOnly = true) where applicable to reduce lock duration."
+  },
+  {
+    "task": "React hydration mismatch Next.js SSR error Text content did not match Server-side rendering mismatch",
+    "solution": "[SupremeAI Core — React Hydration Mismatch Solutions]\n\nThis occurs when the pre-rendered HTML on the server differs from the initial render in the client browser (e.g., using random numbers, dates, window object, or local storage before mounting).\n\n1. Ensure Render occurs only on Client (useEffect Pattern):\n     import { useState, useEffect } from 'react';\n     \n     function ClientOnlyComponent() {\n       const [isMounted, setIsMounted] = useState(false);\n       useEffect(() => {\n         setIsMounted(true);\n       }, []);\n       \n       if (!isMounted) return null; // or a loading skeleton\n       return <div>Client-Side Only Content: {window.localStorage.getItem('token')}</div>;\n     }\n\n2. Next.js Dynamic Import (Disable SSR):\n     import dynamic from 'next/dynamic';\n     const MapComponent = dynamic(() => import('./MapComponent'), { ssr: false });\n\n3. Suppress Hydration Warning (Use sparingly):\n     <div suppressHydrationWarning>{new Date().toLocaleDateString()}</div>"
+  },
+  {
+    "task": "CrashLoopBackOff Kubernetes pod crash Docker out of memory k8s OOMKilled Docker daemon unavailable offline",
+    "solution": "[SupremeAI Core — Container Out of Memory & Pod Crash Diagnostics]\n\n1. Check Pod Exit Code & Reason:\n     kubectl describe pod <pod-name>\n     # Look for: Last State: Terminated, Reason: OOMKilled, Exit Code: 137 (SIGKILL)\n\n2. Fetch Previous Container Logs:\n     kubectl logs <pod-name> --previous\n     # Crucial for identifying JVM OutOfMemory errors prior to shutdown\n\n3. Configure JVM Heap Memory Inside Container:\n     Ensure the Java process respects container memory limits (Java 10+ does natively, but configure if needed):\n     ENTRYPOINT [\"java\", \"-XX:MaxRAMPercentage=75.0\", \"-jar\", \"/app.jar\"]\n\n4. Docker Daemon Unavailable / Local Out of Space:\n     Error: \"Cannot connect to the Docker daemon. Is the docker daemon running?\"\n     Fix: sudo systemctl start docker\n     If out of disk space: docker system prune -a --volumes -f"
+  },
+  {
+    "task": "CI pipeline failed GitHub Actions error Build step fail CI runner out of space workflow syntax error",
+    "solution": "[SupremeAI Core — Continuous Integration (CI) Recovery]\n\nWhen a GitHub Actions or GitLab CI pipeline fails on the runner:\n\n1. Validate YAML Syntax Locally:\n     Check for indentation, invalid keywords, or missing quotes around environment variable assignments.\n\n2. Free Disk Space on GitHub Runner (Standard Fix):\n     Include this step in your GitHub workflow if maven/gradle builds fail with \"No space left on device\":\n     - name: Cleanup Disk Space\n       run: |\n         sudo rm -rf /usr/share/dotnet\n         sudo rm -rf /usr/local/lib/android\n         sudo rm -rf /opt/ghc\n         docker system prune -a -f\n\n3. Gradle Cache Issues:\n     If dependency corrupted on runner, clear actions/cache or add runner parameter:\n     ./gradlew build --no-build-cache --refresh-dependencies"
+  },
+  {
+    "task": "network connection refused timeout firewall blocked gcloud unreachable",
+    "solution": "[SupremeAI Core — Network Recovery]\n\nWhen network connections fail:\n1. Local check: curl -v https://google.com\n2. DNS test: nslookup firestore.googleapis.com\n3. Firewall: sudo ufw status\n4. Proxy: Check HTTP_PROXY, HTTPS_PROXY env vars\n5. GCP: gcloud auth login, gcloud config set project PROJECT_ID\n6. Fallback: Use localhost:8080 with core knowledge seed"
+  },
+  {
+    "task": "memory leak out of memory heap space java.lang.OutOfMemoryError",
+    "solution": "[SupremeAI Core — Memory Management]\n\nDiagnosis:\n1. Check logs: grep -i 'OutOfMemory' server.log\n2. JVM args: -Xmx4g -XX:+UseG1GC\n3. Heap dump: jmap -dump:format=b,file=heap.hprof <pid>\n4. Analysis: jhat heap.hprof\n\nImmediate fix:\n- Restart service with higher heap: export JAVA_OPTS=\"-Xmx4g -Xms2g\"\n- Add memory limits to Cloud Run: --memory=2Gi\n- Profile with YourKit or VisualVM"
+  },
+  {
+    "task": "all ai providers failed fallback mode offline emergency response",
+    "solution": "[SupremeAI Core — Complete AI Blackout Protocol]\n\nTier-based auto-recovery:\n\nTIER 1 - Memory Layer: Check Firestore /memory collection for cached solutions\nTIER 2 - Seed Layer: Use core_knowledge.json templates\nTIER 3 - Static Response: Built-in emergency templates\n\nRecovery commands:\n1. Check provider status: curl http://localhost:8080/api/admin/providers\n2. Restart backend: ./kill-switch restart\n3. Re-activate providers from dashboard\n4. If all fail: Serve from local seed with [OFFLINE] prefix"
+  },
+  {
+    "task": "database migration failed schema update rollback flyway liquibase",
+    "solution": "[SupremeAI Core — Database Migration Recovery]\n\n1. Identify failed migration: Check flyway_schema_history or liquibase tables\n2. Recovery option A: Rollback:\n   ./gradlew flywayRepair -Dflyway.target=previousVersion\n3. Recovery option B: Manual fix:\n   DELETE FROM flyway_schema_history WHERE version='xxx';\n   ALTER TABLE table_name DROP COLUMN new_column;\n4. Prevention: Always backup before migration\n   pg_dump database_name > backup.sql\n5. Validate: ./gradlew flywayInfo"
+  },
+  {
+    "task": "ssl certificate expired tls handshake failed certificate verify",
+    "solution": "[SupremeAI Core — SSL/TLS Recovery]\n\n1. Check expiry: openssl x509 -in cert.pem -text -noout | grep 'Not After'\n2. Let's Encrypt renewal: certbot renew\n3. Restart service: systemctl restart nginx/apache2\n4. GCP SSL: gcloud compute ssl-certificates list\n5. Test: curl -v https://your-domain.com\n6. Java truststore: keytool -import -keystore $JAVA_HOME/lib/security/cacerts -file cert.pem"
+  },
+  {
+    "task": "rate limit exceeded quota reached api limit throttl",
+    "solution": "[SupremeAI Core — Rate Limit Recovery]\n\n1. Current provider: Switch to next available provider\n2. Backoff strategy: Exponential delay (1s -> 2s -> 4s -> 8s)\n3. Cache responses: Store results in Firestore /memory\n4. Quota reset: Check provider dashboard for reset time\n5. Fallback: All providers exhausted -> use core_knowledge.json\n6. Queue requests: Use Redis or Firestore FIFO queue"
+  },
+  {
+    "task": "circuit breaker open timeout circuitbreaker",
+    "solution": "[SupremeAI Core — Circuit Breaker Reset]\n\nCircuit states: CLOSED, OPEN, HALF_OPEN\n\n1. Check state: GET /actuator/circuitbreakers\n2. Force reset: POST /actuator/circuitbreakers/{name}/close\n3. Config: resilience4j.circuitbreaker.enabled=true\n4. Wait for auto-reset: Default 60s timeout\n5. Debug: Enable trace logging for CircuitBreaker"
+  },
+  {
+    "task": "cascading failure all models fail quorum error propagation dependency collapse",
+    "solution": "[SupremeAI Core — Cascading Failure Recovery]\n\nWhat it is: One model fails → retry → another model fails → queue backs up → entire system collapses.\n\nDETECTION:\n  - Monitor: consecutive failures > threshold in < time_window for 3+ providers\n  - Alert: All providers show error spike within the same minute\n\nASSESSMENT:\n  1. Identify the trigger: Was it a network blip, a dependency outage, or a bad deployment?\n  2. Check heartbeats: each provider MUST have health-ping endpoints\n  3. Classify: TEMPORARY (recoverable in mins), DEPENDENT (wait for upstream), DESTRUCTIVE (code defect)\n\nMITIGATION (Priority次序):\n  Tier 1 — Isolate the broken chain: cut off weakest failing provider, continue with survivors\n  Tier 2 — Circuit-break remaining: open circuit for 30-120 s to prevent retry storms\n  Tier 3 — Dim: throttle request rate to surviving providers to 50% of normal\n  Tier 4 — Survive on local seed: serve core_knowledge.json for known tasks\n\nREPAIR & RECONNECT:\n  1. Fix root cause (code/deploy/network)\n  2. Reset circuit breakers: POST /actuator/circuitbreakers/{name}/close\n  3. Gradual warm-up: increase traffic at 10% per minute\n  4. Full recovery: confirm all providers healthy AND error rate < 1% for 10 minutes\n\nPREVENTION:\n  - Implement retry budget: max N retries per time_window per provider\n  - Design fail-fast timeouts: provider call timeout = 2 x p99 latency\n  - Enable Bulkhead pattern: 1 thread-pool per provider (no pool bleed-over)"
+  },
+  {
+    "task": "provider health check quarantine isolate bad model failing model quarantine isolate",
+    "solution": "[SupremeAI Core — Provider Health Check & Quarantine]\n\nHEALTH CHECK (runs every 30s per provider):\n  GET /health → expect { status: \"ok\", latencyMs: < 500 }\n  FAIL: 3 consecutive failures → MARK UNHEALTHY\n\nQUARANTINE FLOW:\n  1. 3 health-check failures → provider moved to QUARANTINED state\n  2. All active routes skip quarantined provider (re-route to next)\n  3. Admin alerted via dashboard + log\n  4. After quarantine period (configurable, default 10 min):\n     - 1 probe request sent\n     - Success → provider moved back to HEALTHY automatically\n     - Failure → quarantine period extended (max 1 hour)\n\nMANUAL OVERRIDE:\n  - Admin Panel > AI Providers > [Provider] > Quarantine/Release\n  - API: POST /api/admin/providers/{id}/quarantine\n  - API: POST /api/admin/providers/{id}/release\n\nBest Practise: QUARANTINE is per-provider. Never quarantine all providers simultaneously — always leave at minimum one active."
+  },
+  {
+    "task": "graceful degradation degrade offline mode partial outage limited functionality",
+    "solution": "[SupremeAI Core — Graceful Degradation]\n\nGoal: Keep the system functional even when parts are broken.\n\nTIER 1 — Full mode (all providers online):\n  All features enabled. AI routing + Firestore memory + local seed.\n\nTIER 2 — Degraded (some providers offline):\n  - Disable AI-heavy features (creative generation, long responses)\n  - Keep core routing, validation, error-fix templates\n  - Show banner: \"Some AI features temporarily unavailable\"\n  - Response quality may be reduced\n\nTIER 3 — Emergency offline mode (all external AI offline):\n  - Serve from core_knowledge.json only\n  - Known-task responses served from local seed\n  - Unknown-task response: \"[OFFLINE] System in emergency mode. This feature requires cloud AI currently unavailable.\"\n\nTIER 4 — Emergency admin-only (total blackout):\n  - HTTP server IS running, /admin health endpoint IS accessible\n  - ALL /api/* endpoints return HTTP 503 with retry-after header\n  - Only local file operations and pre-seeded knowledge work\n\nGRACEFUL TIMEOUTS PER TIER:\n  Full: 30s | Degraded: 15s | Emergency: 5s | Admin-only: 2s\n\nCONFIG KEY: system.degradation-tier (values: FULL | DEGRADED | EMERGENCY | ADMIN_ONLY)"
+  },
+  {
+    "task": "thunder mode all models failed lightning mode emergency local seed active",
+    "solution": "[SupremeAI Core — Thunder Mode (Complete AI Failure)]\n\nWHEN ACTIVATED: All helper AI providers failed circuit-breaker + Firestore memory unavailable.\n\nWHAT RUNS:\n  - The SupremeAI Core JVM process is alive\n  - HTTP endpoints respond (actuator/health, admin UI)\n  - Local core_knowledge.json is the ONLY AI knowledge source\n  - Known-task template responses served with [LOCAL-SEED] prefix\n\nTHUNDER MODE RESPONSE PATTERN:\n  \"[LOCAL-SEED] <response from core_knowledge.json>\n\n  NOTE: Full AI capabilities are currently offline. The system is operating on local knowledge seed only.\n  Known issues and recovery steps are available. Contact admin to restore AI providers.\"\n\nRECOVERY INTO THUNDER MODE:\n  1. Check: killall -9 java; ./gradlew clean bootRun\n  2. Re-register at least 1 provider from admin panel\n  3. Circuit closes → system auto-transitions back to TIER 2 or FULL\n\nNO data is lost during Thunder Mode — all operations are safe, only AI generation is downgraded."
+  },
+  {
+    "task": "resilience meta-learning lineage tracking knowledge provenance audit trail",
+    "solution": "[SupremeAI Core — Meta-Learning & Lineage Tracking]\n\nEvery knowledge entry (core_knowledge.json item or system_learning doc) must carry PROVENANCE METADATA.\n\nREQUIRED FIELDS:\n  - source: ORIGIN of the knowledge (e.g. 'CLAUDE_ANSWER', 'GEMINI_ANSWER', 'COPILOT_MASSIVE_SEED', 'LOCAL_TEMPLATE', 'USER_CORRECTION')\n  - learnedAt: timestamp when this knowledge was first stored\n  - timesApplied: counter incremented each time this entry is used\n  - successCount / failureCount: outcome tracking per entry\n  - confidenceScore: 0.0-1.0 derived from success/failure ratio\n  - version: increment when knowledge is edited/improved\n\nRELIABILITY SCORE FORMULA:\n  reliabilityScore = (successCount / max(1, timesApplied)) * confidenceScore\n  If reliabilityScore < 0.3 after 5+ applications → auto-flag for review/upgrade/deletion\n\nUSAGE: When a model fails, the system checks the reliabilityScore of its provider-specific knowledge. Low reliability → trigger model retraining signal → update core_knowledge.json or system_learning."
+  },
+  {
+    "task": "seed regeneration knowledge seeding volatile storage eviction cache miss",
+    "solution": "[SupremeAI Core — Seed Regeneration on Knowledge Loss]\n\nCONDITIONS TRIGGERING REGENERATION:\n  - Redis/Volatile cache eviction detected (cache-miss on known task)\n  - core_knowledge.json checksum changed unexpectedly\n  - System learning confidence drops below 0.2 for any category\n  - User reports: \"[OFFLINE] No knowledge for this task\"\n\nREGENERATION PROCEDURE:\n  1. Detect: Check cache-miss rate. If > 30% in last 5 min → REGENERATE\n  2. Pull: Load from Firestore backup (system_learning collection)\n  3. Rebuild: Merge Firestore learning + core_knowledge.json + autonomous_seed_knowledge.json → new local cache\n  4. Validate: Run a smoke-test request for each category; confirm response quality > 0.5 confidence\n  5. Persist: Write rebuilt knowledge to local cache & re-commit checksum\n\nAUTOMATION: Run script: python scripts/seed_massive_knowledge.py --refresh-cache\nSCHEDULE: Every 24 h via cron: 0 4 * * * python scripts/seed_massive_knowledge.py --refresh-cache\n\nFALLBACK: If Firestore also unavailable, use autonomous_seed_knowledge.json as the seed source instead."
+  },
+  {
+    "task": "provider quarantine deprecation retirement migrate migrate knowledge transfer",
+    "solution": "[SupremeAI Core — Provider Migration & Knowledge Transfer]\n\nWhen a provider is retired or migrated (e.g. OpenRouter → DeepL → Custom):\n\nSTEP 1 — Schedule blackout for provider:\n  - Mark: isActive=false in Firestore (do NOT delete)\n  - Quarantine: open circuit breaker, throttle to 0% traffic\n  - Communicate: notify admin that provider is in MIGRATION state\n\nSTEP 2 — Migrate knowledge:\n  - Copy all system_learning entries with relatedProvider=<old-provider> to a new batch with relatedProvider=<new-provider>\n  - Verify: same category entries exist in new provider Knowledge Base\n  - Cross-validate: sample 10 responses from old vs new for consistent quality\n\nSTEP 3 — Re-route traffic:\n  - Priority update: set new provider priority=1, old provider priority=999\n  - Gradual ramp: new provider at 10% → 50% → 100% over 30 min\n  - Monitor: success rate, latency, error count per tier\n\nSTEP 4 — Clean up after 7 days:\n  - If new provider success rate > 95% for 7 days → mark old provider ARCHIVED\n  - Firestore: move old provider entries to system_learning_archive collection\n  - core_knowledge.json: update provider references in all relevant task entries\n\nEVENT LOG: Every migration step written to activity_log collection with isMigration=true."
+  },
+  {
+    "task": "confidence weighted voting model enabled model disabled confidence confidence score threshold minimum threshold",
+    "solution": "[SupremeAI Core — Confidence-Weighted Model Voting]\n\nWHEN TO USE: When multiple providers respond to the same task and answers differ.\n\nALGORITHM:\n  1. Each provider returns (response, confidenceScore: 0-1)\n  2. Compute weighted score: response_A * conf_A + response_B * conf_B + response_C * conf_C\n  3. Normalize: weighted_sum / sum_of_confidences = final weighted answer\n  4. Quality check: if max_confidence < 0.5 → fall back to core_knowledge.json\n\nMINIMUM CONFIDENCE GATE:\n  gate = 0.55 (configurable per category)\n  if all providers return confidence < gate → GATE FAIL → use local seed\n\nSINGLE MODEL FALLBACK:\n  If only 1 provider available and confidence < 0.3 → still return but flag response as LOW_CONFIDENCE\n\nEXECUTION EXAMPLE:\n  Provider A (Claude): confidence=0.82 → \"Use JPA save() method\"\n  Provider B (GPT): confidence=0.55 → \"Use JDBC directly\"\n  Provider C (Gemini): confidence=0.68 → \"Use JPA repository\"\n  Weighted result: JPA-repository approach (highest combined confidence)"
+  },
+  {
+    "task": "knowledge seed store rebuild reconstruct reconstruct knowledge from firestore",
+    "solution": "[SupremeAI Core — Knowledge Seed Store & Rebuild]\n\nThe KNOWLEDGE SEED is the authoritative local copy derived from:\n  Layer 1: Firestore system_learning collection (highest priority)\n  Layer 2: autonomous_seed_knowledge.json (static seed file committed to repo)\n  Layer 3: core_knowledge.json (emergency fallback templates)\n\nREBUILD COMMAND:\n  python scripts/seed_massive_knowledge.py --rebuild-seed\n\nWHAT IT DOES:\n  1. Fetch all system_learning documents from Firestore where permanent=true\n  2. Merge with autonomous_seed_knowledge.json entries\n  3. Apply confidence-score threshold (> 0.7 survives, < 0.3 candidate for removal)\n  4. Deduplicate by topic + exact content sha256 hash\n  5. Write merged result to: target/knowledge_seed_rebuilt.json\n  6. Log summary: total_in, unique_out, removed, merged\n\nDEDUPLICATION KEY: topic_sha256(content)\nPROMOTION: Items in rebuilt seed with confidence > 0.9 can be auto-promoted to core_knowledge.json\n\nSCHEDULE: Optional cron 0 3 * * * to auto-rebuild daily"
   }
-}
+]

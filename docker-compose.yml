@@ -65,5 +65,34 @@ services:
       - PORT=8081
     restart: unless-stopped
 
+  teldrive:
+    build:
+      context: ./scripts
+      dockerfile: Dockerfile.teldrive
+    container_name: supremeai-teldrive
+    ports:
+      - "8082:8080"
+    environment:
+      - DB_DATA_SOURCE=${DB_DATA_SOURCE:-postgres://postgres:njel.com.bd123@db.knqoqjnwpgmrsezgqgpg.supabase.co:5432/postgres}
+      - JWT_SECRET=${JWT_SECRET:-903924ce71426c6fc666e3d5c3736cebec27ec07fe511f9da5fab0532581ba01}
+      - TG_APP_ID=${TG_APP_ID}
+      - TG_APP_HASH=${TG_APP_HASH}
+      - TG_BOT_TOKEN=${TG_BOT_TOKEN}
+    restart: unless-stopped
+
+  reverse-engineering:
+    build:
+      context: ./reverse-engineering
+      dockerfile: Dockerfile
+    container_name: supremeai-reveng
+    ports:
+      - "8083:8080"
+    environment:
+      - GOOGLE_CLOUD_PROJECT=${GCP_PROJECT_ID:-supremeai-a}
+      - GOOGLE_APPLICATION_CREDENTIALS=/etc/secrets/firebase-service-account.json
+    volumes:
+      - ./service-account.json:/etc/secrets/firebase-service-account.json:ro
+    restart: unless-stopped
+
 volumes:
   redis_data:

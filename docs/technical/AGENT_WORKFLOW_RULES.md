@@ -159,6 +159,12 @@ grep -rn "@RequestMapping(\"/api/path\")" src/main/java/com/supremeai/controller
 ❌ docs/ এর বাইরে documentation ফাইল রাখবেন না
 ❌ কাজ শেষে MASTER_TODO.md আপডেট না করে task complete বলবেন না
 ❌ @ConditionalOnProperty ছাড়া DataSource bean তৈরি করবেন না
+
+### 🔄 লোকাল নলেজ ও অফলাইন রেজিলিয়েন্স বৃদ্ধি (Continuous Learning Rule)
+
+- 💡 **ক্রমাগত উন্নয়ন**: প্রতিটি এআই এজেন্ট কাজ করার সময় যখনই সুযোগ পাবে, তখনই `rebuild_knowledge.py` এবং `core_knowledge.json`-এ নতুন সলিউশন, এরর রিকভারি গাইড এবং টাস্ক কিওয়ার্ড যোগ করবে।
+- 💡 **অফলাইন নিরাপত্তা**: এক্সটার্নাল এআই মডেল বা ক্লাউড সংযোগ সম্পূর্ণ ব্যর্থ হলেও যাতে সিস্টেম লোকাল নলেজ সীড থেকে নির্ভুল এবং কার্যকরী রেসপন্স দিতে পারে, সেজন্য লোকাল নলেজকে সবসময় সমৃদ্ধ ও হালনাগাদ রাখবে।
+
 ```
 
 ### ✅ নতুন Feature Pattern

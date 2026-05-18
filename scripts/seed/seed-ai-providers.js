@@ -111,7 +111,7 @@ function buildDoc([id, url], latencies) {
   const now   = new Date();
   const older = new Date(now.getTime() - 30*86400000);
   return {
-    id, name:m.name, type:m.type, status: latencies?.[id] ? 'ok' : 'degraded',
+    id, name:m.name, type:m.type, status: latencies?.[id] ? 'active' : 'degraded',
     baseUrl:url, apiKey:'PROVIDER_API_KEY_PLACEHOLDER',
     usageLimit:10000, currentUsage: Math.floor(Math.random()*2500),
     creatorEmail:'nazif@supremeai.dev', accountEmail:'nazif@supremeai.dev',

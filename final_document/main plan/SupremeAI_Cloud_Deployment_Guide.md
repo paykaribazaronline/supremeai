@@ -55,9 +55,9 @@ gcloud run deploy ai-phi-mini \
 
 | Provider Key | Service URL (Example) |
 | :--- | :--- |
-| **gcp_qwen** | https://ai-qwen-coder-xyz.a.run.app |
-| **gcp_llama** | https://ai-llama-chat-xyz.a.run.app |
-| **hf_deepseek** | https://your-hf-dedicated-endpoint-url.com |
+| **qwen-coder** | https://supreme-ai-qwen-coder-565236080752.us-central1.run.app |
+| **llama-3-1** | https://supreme-ai-llama-3-1-565236080752.us-central1.run.app |
+| **deepseek-pro** | https://supreme-ai-deepseek-pro-565236080752.us-central1.run.app |
 
 ### আপডেট করার নিয়ম:
 1.  SupremeAI Dashboard-এ যান।
