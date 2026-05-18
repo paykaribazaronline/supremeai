@@ -44,7 +44,7 @@ class RetryableAIExecutorTest {
 
     @Test
     void execute_SuccessfulOperation_ReturnsResult() {
-        when(quotaManager.recordUsage(anyString(), anyString(), anyLong())).thenReturn(true);
+        when(quotaManager.recordUsage(anyString(), anyString(), anyDouble())).thenReturn(true);
 
         String result = executor.execute("test-provider", "test-service", () -> "Success!");
 
@@ -53,7 +53,7 @@ class RetryableAIExecutorTest {
 
     @Test
     void execute_OperationThrowsException_ThrowsException() {
-        when(quotaManager.recordUsage(anyString(), anyString(), anyLong())).thenReturn(true);
+        when(quotaManager.recordUsage(anyString(), anyString(), anyDouble())).thenReturn(true);
 
         assertThrows(RuntimeException.class, () ->
                 executor.execute("test-provider", "test-service", () -> {
@@ -66,7 +66,7 @@ class RetryableAIExecutorTest {
 
     @Test
     void executeWithCircuitBreaker_SuccessfulOperation_ReturnsResult() {
-        when(quotaManager.recordUsage(anyString(), anyString(), anyLong())).thenReturn(true);
+        when(quotaManager.recordUsage(anyString(), anyString(), anyDouble())).thenReturn(true);
 
         CircuitBreakerRegistry registry = CircuitBreakerRegistry.ofDefaults();
         CircuitBreaker cb = registry.circuitBreaker("test-breaker");
@@ -80,7 +80,7 @@ class RetryableAIExecutorTest {
 
     @Test
     void executeWithCircuitBreaker_OpenCircuit_ThrowsException() {
-        when(quotaManager.recordUsage(anyString(), anyString(), anyLong())).thenReturn(true);
+        when(quotaManager.recordUsage(anyString(), anyString(), anyDouble())).thenReturn(true);
 
         CircuitBreakerConfig config = CircuitBreakerConfig.custom()
                 .failureRateThreshold(1)
@@ -106,7 +106,7 @@ class RetryableAIExecutorTest {
 
     @Test
     void executeWithCircuitBreaker_QuotaExceeded_ThrowsQuotaException() {
-        when(quotaManager.recordUsage(anyString(), anyString(), anyLong())).thenReturn(false);
+        when(quotaManager.recordUsage(anyString(), anyString(), anyDouble())).thenReturn(false);
 
         CircuitBreakerRegistry registry = CircuitBreakerRegistry.ofDefaults();
         CircuitBreaker cb = registry.circuitBreaker("test-breaker");
@@ -120,7 +120,7 @@ class RetryableAIExecutorTest {
 
     @Test
     void executeReactive_SuccessfulOperation_ReturnsMono() {
-        when(quotaManager.recordUsage(anyString(), anyString(), anyLong())).thenReturn(true);
+        when(quotaManager.recordUsage(anyString(), anyString(), anyDouble())).thenReturn(true);
 
         Mono<String> result = executor.executeReactive("test-provider", "test-service", Mono.just("Reactive Success!"));
 
@@ -131,7 +131,7 @@ class RetryableAIExecutorTest {
 
     @Test
     void executeReactive_QuotaExceeded_ReturnsErrorMono() {
-        when(quotaManager.recordUsage(anyString(), anyString(), anyLong())).thenReturn(false);
+        when(quotaManager.recordUsage(anyString(), anyString(), anyDouble())).thenReturn(false);
 
         Mono<String> result = executor.executeReactive("test-provider", "test-service", Mono.just("Should fail"));
 
@@ -144,7 +144,7 @@ class RetryableAIExecutorTest {
 
     @Test
     void executeWithCircuitBreakerReactive_SuccessfulOperation_ReturnsMono() {
-        when(quotaManager.recordUsage(anyString(), anyString(), anyLong())).thenReturn(true);
+        when(quotaManager.recordUsage(anyString(), anyString(), anyDouble())).thenReturn(true);
 
         CircuitBreakerRegistry registry = CircuitBreakerRegistry.ofDefaults();
         CircuitBreaker cb = registry.circuitBreaker("reactive-breaker");
@@ -160,7 +160,7 @@ class RetryableAIExecutorTest {
 
     @Test
     void executeWithCircuitBreakerReactive_OpenCircuit_ReturnsErrorMono() {
-        when(quotaManager.recordUsage(anyString(), anyString(), anyLong())).thenReturn(true);
+        when(quotaManager.recordUsage(anyString(), anyString(), anyDouble())).thenReturn(true);
 
         CircuitBreakerConfig config = CircuitBreakerConfig.custom()
                 .failureRateThreshold(1)

@@ -5,6 +5,7 @@ import com.supremeai.learning.knowledge.GlobalKnowledgeBase;
 import com.supremeai.learning.immunity.CodeImmunitySystem;
 import com.supremeai.intelligence.profiling.AIProfiler;
 import com.supremeai.provider.AIProviderFactory;
+import com.supremeai.provider.AIProvider;
 import com.supremeai.resilience.RetryableAIExecutor;
 import com.supremeai.security.ApiKeyRotationService;
 import com.supremeai.service.EnhancedLearningService;
@@ -88,6 +89,24 @@ public class AIFallbackOrchestrator {
         });
     }
 
+    private Mono<String> generateForProvider(String providerId, String serviceName, CircuitBreaker cb,
+                                              AIProvider provider, String prompt) {
+        return Mono.fromCallable(() ->
+                        retryExecutor.executeWithCircuitBreaker(
+                                providerId, serviceName, cb,
+                                () -> {
+                                    try {
+                                        return (String) provider.generate(prompt)
+                                                .subscribeOn(Schedulers.boundedElastic())
+                                                .block(Duration.ofSeconds(60));
+                                    } catch (Exception e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                }
+                        )
+                ).subscribeOn(Schedulers.boundedElastic());
+    }
+
     public Mono<String> executeWithSupremeIntelligence(String taskCategory, String errorSignature, String prompt) {
         return executeWithSupremeIntelligence(taskCategory, errorSignature, prompt, "system");
     }
@@ -113,7 +132,7 @@ public class AIFallbackOrchestrator {
                     })
                     .flatMap(dbProviders -> {
                         List<com.supremeai.model.APIProvider> dynamicChain = new ArrayList<>();
-                        
+
                         // Add expert provider first
                         if (expertProviderId != null) {
                             dbProviders.stream()
@@ -134,7 +153,8 @@ public class AIFallbackOrchestrator {
             }));
     }
 
-    private Mono<String> tryNextProvider(List<com.supremeai.model.APIProvider> chain, int index, String taskCategory, String errorSignature, String prompt, String userId) {
+    private Mono<String> tryNextProvider(List<com.supremeai.model.APIProvider> chain, int index,
+                                          String taskCategory, String errorSignature, String prompt, String userId) {
         if (index >= chain.size()) {
             return Mono.error(new RuntimeException("CRITICAL: All AI failed. Cannot execute task."));
         }
@@ -157,41 +177,35 @@ public class AIFallbackOrchestrator {
         long startTime = System.currentTimeMillis();
         log.info("-> Asking {} to handle task: {}", providerId, taskCategory);
 
-        return Mono.fromCallable(() -> {
-            return retryExecutor.executeWithCircuitBreaker(
-                providerId,
-                serviceName,
-                cb,
-                () -> {
-                    try {
-                        return providerFactory.createProviderFromConfig(dbProvider).generate(prompt).block();
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            );
-        }).subscribeOn(Schedulers.boundedElastic())
+        AIProvider aiProvider = providerFactory.createProviderFromConfig(dbProvider);
+        if (aiProvider == null) {
+            log.warn("Could not create provider instance for {}, skipping.", providerId);
+            return tryNextProvider(chain, index + 1, taskCategory, errorSignature, prompt, userId);
+        }
+
+        return generateForProvider(providerId, serviceName, cb, aiProvider, prompt)
             .flatMap(generatedCode -> {
                 long timeTaken = System.currentTimeMillis() - startTime;
                 recordUsage(serviceName);
 
-                if (immunitySystem.isCodeInfected(generatedCode)) {
+                boolean infected = immunitySystem.isCodeInfected(generatedCode);
+                if (infected) {
                     log.error("-> [Orchestrator] AI generated toxic/broken code! Rejecting...");
                     aiProfiler.recordPerformance(taskCategory, providerId, false, timeTaken);
                     return tryNextProvider(chain, index + 1, taskCategory, errorSignature, prompt, userId);
                 }
 
                 return knowledgeBase.recordSuccessWithPermission(errorSignature, generatedCode, providerId, timeTaken, 0.95)
-                    .then(Mono.fromRunnable(() -> aiProfiler.recordPerformance(taskCategory, providerId, true, timeTaken)))
-                    .then(Mono.defer(() -> {
-                        if (enhancedLearningService != null) {
-                            Map<String, Object> requestMeta = new HashMap<>();
-                            requestMeta.put("taskCategory", taskCategory);
-                            requestMeta.put("errorSignature", errorSignature);
-                            enhancedLearningService.learnFromAPIUsage("generateCode", providerId, timeTaken, true, requestMeta).subscribe();
-                        }
-                        return Mono.just(generatedCode);
-                    }));
+                        .then(Mono.fromRunnable(() -> aiProfiler.recordPerformance(taskCategory, providerId, true, timeTaken)))
+                        .then(Mono.defer(() -> {
+                            if (enhancedLearningService != null) {
+                                Map<String, Object> requestMeta = new HashMap<>();
+                                requestMeta.put("taskCategory", taskCategory);
+                                requestMeta.put("errorSignature", errorSignature);
+                                enhancedLearningService.learnFromAPIUsage("generateCode", providerId, timeTaken, true, requestMeta).subscribe();
+                            }
+                            return Mono.just(generatedCode);
+                        }));
             })
             .onErrorResume(e -> {
                 long timeTaken = System.currentTimeMillis() - startTime;

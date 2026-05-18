@@ -131,10 +131,14 @@ public abstract class AbstractHttpProvider implements AIProvider {
      */
     protected String executeRequest(Map<String, Object> body) throws Exception {
         okhttp3.Request request = buildRequest(body);
+        logger.info("[HTTP] Calling URL: {}", request.url());
 
         try (okhttp3.Response response = sharedHttpClient.newCall(request).execute()) {
+            logger.info("[HTTP] Response code: {} for URL: {}", response.code(), request.url());
             if (!response.isSuccessful()) {
-                throw new RuntimeException("HTTP Error: " + response.code() + " " + response.message());
+                String errBody = response.body() != null ? response.body().string() : "(empty body)";
+                logger.error("[HTTP] HTTP Error {} {} for URL: {}. Body: {}", response.code(), response.message(), request.url(), errBody);
+                throw new RuntimeException("HTTP Error: " + response.code() + " " + response.message() + " for " + request.url() + ". Body: " + errBody);
             }
 
             String responseBody = response.body().string();

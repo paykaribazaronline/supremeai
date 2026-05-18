@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { Card, Form, Input, Select, Button, Row, Col, Typography, Steps, Progress, Alert, Space } from 'antd';
 import { RocketOutlined, CodeOutlined, CloudServerOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { GenerationForm, GenerationStatus } from './types';
@@ -26,6 +27,8 @@ const AppGenerationCard: React.FC<AppGenerationCardProps> = ({
   onGenerate,
   onGetAdvice = () => {}
 }) => {
+  const [experienceLevel, setExperienceLevel] = useState<'beginner' | 'advanced'>('beginner');
+
   return (
     <Card 
       title={<><RocketOutlined style={{ marginRight: 8, color: '#1890ff' }} /> Generate New App</>} 
@@ -42,9 +45,14 @@ const AppGenerationCard: React.FC<AppGenerationCardProps> = ({
             <div style={{ marginBottom: 20, textAlign: 'center', padding: '10px', background: 'rgba(24, 144, 255, 0.05)', borderRadius: '8px' }}>
               <Text strong style={{ marginRight: 15 }}>Experience Level:</Text>
               <Select 
-                defaultValue="beginner" 
+                value={experienceLevel} 
                 style={{ width: 200 }} 
-                onChange={(val) => setGenerationForm({...generationForm, platform: val === 'beginner' ? 'fullstack' : generationForm.platform})}
+                onChange={(val) => {
+                  setExperienceLevel(val as 'beginner' | 'advanced');
+                  if (val === 'beginner') {
+                    setGenerationForm({...generationForm, platform: 'fullstack'});
+                  }
+                }}
               >
                 <Option value="beginner">I want SupremeAI to decide (Beginner)</Option>
                 <Option value="advanced">I want full control (Advanced)</Option>
@@ -68,7 +76,8 @@ const AppGenerationCard: React.FC<AppGenerationCardProps> = ({
               />
             </Form.Item>
 
-            {generationForm.platform !== 'fullstack' || (document.querySelector('.ant-select-selection-item')?.textContent?.includes('Advanced')) ? (
+            {generationForm.platform !== 'fullstack' || experienceLevel === 'advanced' ? (
+
               <>
                 <Form.Item label="Target Platform">
                   <Select

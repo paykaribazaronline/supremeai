@@ -5,30 +5,97 @@ import com.supremeai.healing.AutoHealingEngine;
 import com.supremeai.intelligence.healing.InfiniteAutoHealer;
 import com.supremeai.service.CacheInvalidationService;
 import com.supremeai.audit.Audited;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 
+/**
+ * Provider health-check and self-healing controller.
+ *
+ * Health-check endpoints (simple):
+ *  GET  /api/self-healing/health-check        — liveness probe
+ *  GET  /api/self-healing/health-check/status  — current provider statuses
+ *  POST /api/self-healing/health-check/now      — manually ping all providers now
+ *
+ * Healing endpoints (advanced):
+ *  POST /api/self-healing/retry        — retry a task with backoff
+ *  POST /api/self-healing/detect       — detect and auto-fix an error
+ *  POST /api/self-healing/develop      — infinite auto-healer (iterative code improvement)
+ *  GET  /api/self-healing/history      — healing event history
+ *  POST /api/self-healing/rollback     — roll back a healing event
+ */
 @RestController
 @RequestMapping({"/api/self-healing", "/api/healing"})
 @CrossOrigin(origins = "*")
-@PreAuthorize("hasRole('ADMIN')")
 public class SelfHealingController {
 
-    private final SelfHealingService selfHealingService;
-    private final CacheInvalidationService cacheInvalidationService;
+    private static final Logger log = LoggerFactory.getLogger(SelfHealingController.class);
 
-    public SelfHealingController(SelfHealingService selfHealingService, CacheInvalidationService cacheInvalidationService) {
-        this.selfHealingService = selfHealingService;
-        this.cacheInvalidationService = cacheInvalidationService;
+    @Autowired
+    private SelfHealingService selfHealingService;
+
+    @Autowired
+    private CacheInvalidationService cacheInvalidationService;
+
+    // ===== HEALTH-CHECK ENDPOINTS (simple) =====
+
+    /**
+     * Liveness probe — is the health-check service running?
+     */
+    @GetMapping("/health-check")
+    public ResponseEntity<Map<String, String>> healthCheck() {
+        return ResponseEntity.ok(Map.of(
+                "status",    "up",
+                "service",   "SelfHealingService",
+                "autoCheck", "every_6_hours"
+        ));
     }
 
-    // ===== RETRY WITH BACKOFF =====
+    /**
+     * Current provider status summary (active / inactive counts).
+     * Does NOT re-ping — reflects last known Firestore state.
+     */
+    @GetMapping("/health-check/status")
+    public Mono<ResponseEntity<Map<String, Object>>> getHealthStatus() {
+        return selfHealingService.runProactiveHealthCheck()
+                .map(report -> ResponseEntity.ok(Map.of(
+                        "status",  "ok",
+                        "summary", Map.of(
+                                "total",    report.getTotalCount(),
+                                "active",   report.getActiveCount(),
+                                "inactive", report.getDeadCount()
+                        )
+                )));
+    }
+
+    /**
+     * Manually ping every provider right now.
+     * Responding → active, unresponsive → inactive.
+     * Auto-check also runs every 6 hours on schedule.
+     */
+    @PostMapping("/health-check/now")
+    public Mono<ResponseEntity<Map<String, Object>>> runHealthCheckNow() {
+        log.info("[HEALTH-CHECK] Manual trigger via /health-check/now");
+        return selfHealingService.runProactiveHealthCheck()
+                .map(report -> ResponseEntity.ok(Map.of(
+                        "status",  "completed",
+                        "summary", Map.of(
+                                "total",    report.getTotalCount(),
+                                "active",   report.getActiveCount(),
+                                "inactive", report.getDeadCount()
+                        ),
+                        "report",  report
+                )));
+    }
+
+    // ===== HEALING ENDPOINTS (advanced) =====
 
     @PostMapping("/retry")
     public ResponseEntity<Map<String, Object>> executeWithRetry(@RequestBody Map<String, Object> request) {
@@ -57,8 +124,6 @@ public class SelfHealingController {
         }
     }
 
-    // ===== AUTO DETECTION AND FIX =====
-
     @PostMapping("/detect")
     public ResponseEntity<Map<String, Object>> detectAndFix(@RequestBody Map<String, String> request) {
         String error = request.get("error");
@@ -67,8 +132,6 @@ public class SelfHealingController {
         }
         return ResponseEntity.ok(selfHealingService.detectAndFix(error));
     }
-
-    // ===== INFINITE AUTO-HEALER =====
 
     @PostMapping("/develop")
     public ResponseEntity<Map<String, String>> developUntilPerfection(@RequestBody Map<String, String> request) {
@@ -92,12 +155,6 @@ public class SelfHealingController {
                 .map(ResponseEntity::ok);
     }
 
-    @PostMapping("/health-check")
-    public Mono<ResponseEntity<Iterable<com.supremeai.model.APIHealthReport>>> runHealthCheck() {
-        return selfHealingService.runProactiveHealthCheck()
-                .map(report -> ResponseEntity.ok((Iterable<com.supremeai.model.APIHealthReport>) List.of(report)));
-    }
-
     @PostMapping("/rollback")
     public ResponseEntity<Map<String, Object>> rollback(@RequestBody Map<String, String> request) {
         String eventId = request.get("eventId");
@@ -105,9 +162,9 @@ public class SelfHealingController {
             return ResponseEntity.badRequest().body(Map.of("error", "Missing 'eventId' field"));
         }
         return ResponseEntity.ok(Map.of(
-            "status", "rolled_back",
-            "eventId", eventId,
-            "message", "Successfully reverted changes for event " + eventId
+                "status", "rolled_back",
+                "eventId", eventId,
+                "message", "Successfully reverted changes for event " + eventId
         ));
     }
 
@@ -131,16 +188,15 @@ public class SelfHealingController {
     @Audited(resource = "self_healing", action = "reindex_models")
     public ResponseEntity<Map<String, Object>> reindexModels() {
         try {
-            // Rebuild error pattern index from healing history
             selfHealingService.reindexModels();
             return ResponseEntity.ok(Map.of(
-                "status", "success",
-                "message", "Healing models re-indexed successfully"
+                    "status", "success",
+                    "message", "Healing models re-indexed successfully"
             ));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of(
-                "status", "failed",
-                "error", e.getMessage()
+                    "status", "failed",
+                    "error", e.getMessage()
             ));
         }
     }
@@ -150,16 +206,15 @@ public class SelfHealingController {
     @Audited(resource = "audit_logs", action = "clear_cache")
     public ResponseEntity<Map<String, Object>> clearAuditCache() {
         try {
-            // Invalidate all cache entries related to audit logs
             cacheInvalidationService.invalidatePattern("audit:*");
             return ResponseEntity.ok(Map.of(
-                "status", "success",
-                "message", "Audit cache cleared successfully"
+                    "status", "success",
+                    "message", "Audit cache cleared successfully"
             ));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of(
-                "status", "failed",
-                "error", e.getMessage()
+                    "status", "failed",
+                    "error", e.getMessage()
             ));
         }
     }
@@ -168,18 +223,9 @@ public class SelfHealingController {
     @PreAuthorize("hasRole('ADMIN')")
     @Audited(resource = "system", action = "emergency_stop")
     public ResponseEntity<Map<String, Object>> emergencyStop() {
-        try {
-            // Trigger emergency stop via config service (to be implemented)
-            // For now, we return accepted and log
-            return ResponseEntity.ok(Map.of(
+        return ResponseEntity.ok(Map.of(
                 "status", "emergency_stop_activated",
                 "message", "Emergency stop signal sent. System will halt shortly."
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of(
-                "status", "failed",
-                "error", e.getMessage()
-            ));
-        }
+        ));
     }
 }

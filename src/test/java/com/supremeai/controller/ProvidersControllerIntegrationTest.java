@@ -1,6 +1,7 @@
 package com.supremeai.controller;
 
 import com.supremeai.admin.ProviderAdminService;
+import com.supremeai.service.AIProviderDiscoveryService;
 import com.supremeai.model.APIProvider;
 import com.supremeai.response.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,12 +34,14 @@ class ProvidersControllerIntegrationTest {
 
     @Mock
     private ProviderAdminService providerAdminService;
+    @Mock
+    private AIProviderDiscoveryService discoveryService;
 
     private com.supremeai.controller.ProvidersController providersController;
 
     @BeforeEach
     void setUp() {
-        providersController = new com.supremeai.controller.ProvidersController(providerAdminService, null);
+        providersController = new com.supremeai.controller.ProvidersController(providerAdminService, discoveryService);
         SecurityContextHolder.clearContext();
     }
 
@@ -46,6 +49,7 @@ class ProvidersControllerIntegrationTest {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         Authentication auth = mock(Authentication.class);
         lenient().when(auth.getName()).thenReturn(userId);
+        lenient().when(auth.isAuthenticated()).thenReturn(true);
         Collection<? extends GrantedAuthority> authorities =
                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
         lenient().doReturn(authorities).when(auth).getAuthorities();
@@ -100,7 +104,7 @@ class ProvidersControllerIntegrationTest {
 
         APIProvider saved = new APIProvider("prov-new", "New Provider", "gemini", "inactive");
 
-        when(providerAdminService.addProvider(eq(input), anyString()))
+        when(providerAdminService.addProvider(any(APIProvider.class), anyString()))
                 .thenReturn(Mono.just(saved));
 
         ResponseEntity<ApiResponse<Map<String, Object>>> result =
@@ -108,9 +112,10 @@ class ProvidersControllerIntegrationTest {
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertTrue(result.getBody().isSuccess());
-        assertEquals("prov-new", ((Map) result.getBody().getData().get("provider")).get("id"));
+        APIProvider resProv = (APIProvider) result.getBody().getData().get("provider");
+        assertEquals("prov-new", resProv.getId());
 
-        verify(providerAdminService).addProvider(eq(input), anyString());
+        verify(providerAdminService).addProvider(any(APIProvider.class), anyString());
     }
 
     @Test
@@ -122,7 +127,11 @@ class ProvidersControllerIntegrationTest {
         input.setType("gemini");
         input.setApiKey("key");
 
-        assertThrows(IllegalStateException.class, () -> providersController.addProvider(input));
+        ResponseEntity<ApiResponse<Map<String, Object>>> result =
+                providersController.addProvider(input);
+
+        assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
+        assertFalse(result.getBody().isSuccess());
     }
 
     // ==================== testProviderKey Tests ====================
@@ -176,12 +185,13 @@ class ProvidersControllerIntegrationTest {
 
     @Test
     void discoverModels_ReturnsModelList() {
-        // Note: discoveryService is null in this controller setup
-        // This tests the fallback when discoveryService is not injected
+        when(discoveryService.discoverModels(anyString())).thenReturn(Flux.just(Map.of("model", "gpt-4")));
         ResponseEntity<ApiResponse<List<Map<String, Object>>>> result =
                 providersController.discoverModels("gpt");
 
         assertNotNull(result);
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals(1, result.getBody().getData().size());
     }
 
     // ==================== getHealthStats Tests ====================
@@ -248,7 +258,7 @@ class ProvidersControllerIntegrationTest {
     void removeProvider_ValidRequest_Success() {
         setSecurityContext("admin-1", "ADMIN");
 
-        doReturn(Mono.empty()).when(providerAdminService).removeDeadProviders(anyString());
+        when(providerAdminService.removeDeadProviders(anyString())).thenReturn(Mono.empty());
 
         ResponseEntity<ApiResponse<String>> result =
                 providersController.cleanupDeadProviders();

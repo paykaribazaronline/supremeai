@@ -15,6 +15,9 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.Map;
 
+import jakarta.validation.Valid;
+import org.springframework.validation.annotation.Validated;
+
 /**
  * REST controller for the System Work Rules admin page.
  *
@@ -32,6 +35,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin/system-work-rules")
 @PreAuthorize("hasRole('ADMIN')")
+@Validated
 public class AdminSystemWorkRuleController {
 
     private static final Logger log = LoggerFactory.getLogger(AdminSystemWorkRuleController.class);

@@ -129,10 +129,10 @@ public class KnowledgeSeederServiceEnhanced {
         learning.setCritical(isCritical);
         learning.setConfidence(confidence);
         learning.setVersion(1L);
-        learning.setCreatedAt(new Date());
-        learning.setUpdatedAt(new Date());
+        learning.setCreatedAt(LocalDateTime.now());
+        learning.setUpdatedAt(LocalDateTime.now());
         learning.setLearnedFrom("real-time");
-        learning.setLastUsed(new Date());
+        learning.setLastUsed(LocalDateTime.now());
         learning.setUseCount(1L);
 
         return systemLearningRepository.save(learning)
@@ -159,7 +159,7 @@ public class KnowledgeSeederServiceEnhanced {
         
         return systemLearningRepository.findById(id)
             .flatMap(learning -> {
-                learning.setLastUsed(new Date());
+                 learning.setLastUsed(LocalDateTime.now());
                 learning.setUseCount(learning.getUseCount() + 1);
                 
                 if (success) {
@@ -182,7 +182,7 @@ public class KnowledgeSeederServiceEnhanced {
                     learning.setLastFeedback(feedback);
                 }
                 
-                learning.setUpdatedAt(new Date());
+                learning.setUpdatedAt(LocalDateTime.now());
                 return systemLearningRepository.save(learning);
             })
             .doOnSuccess(updated -> {
@@ -251,13 +251,17 @@ public class KnowledgeSeederServiceEnhanced {
      * Half-life: 693 days (as per original design)
      */
     public Mono<Void> applyRecencyDecay() {
-        Date now = new Date();
+        LocalDateTime now = LocalDateTime.now();
         double halfLifeDays = 693.0;
         
         return systemLearningRepository.findAll()
             .flatMap(learning -> {
                 if (learning.getLastUsed() != null) {
-                    long diffInMillis = now.getTime() - learning.getLastUsed().getTime();
+                    long nowMs   = now.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+                    long usedMs  = learning.getLastUsed()
+                                           .atZone(java.time.ZoneId.systemDefault())
+                                           .toInstant().toEpochMilli();
+                    long diffInMillis = nowMs - usedMs;
                     long daysSinceUse = diffInMillis / (24 * 60 * 60 * 1000);
                     if (daysSinceUse > 0) {
                         double decayFactor = Math.pow(0.5, daysSinceUse / halfLifeDays);
@@ -402,8 +406,8 @@ public class KnowledgeSeederServiceEnhanced {
         learning.setCritical(isCritical);
         learning.setConfidence(confidence);
         learning.setVersion(1L);
-        learning.setCreatedAt(new Date());
-        learning.setUpdatedAt(new Date());
+        learning.setCreatedAt(LocalDateTime.now());
+        learning.setUpdatedAt(LocalDateTime.now());
         return learning;
     }
 

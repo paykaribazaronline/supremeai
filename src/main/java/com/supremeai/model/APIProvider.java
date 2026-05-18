@@ -36,7 +36,7 @@ public class APIProvider {
     private boolean canCommunicate = true;
     private boolean canExecuteTasks = true;
     private boolean canParticipateInVoting = true;
-    private String deploymentSource = "API"; // API, GCLOUD, LOCAL, OLLAMA
+    private String deploymentSource = "api"; // api, gcloud, local, ollama
     private java.util.List<String> assignedRoles = new java.util.ArrayList<>();
 
     /**
@@ -189,11 +189,11 @@ public class APIProvider {
     public void setConfig(java.util.Map<String, Object> config) { this.config = config; }
 
     public boolean isActive() {
-        return "ACTIVE".equalsIgnoreCase(status);
+        return ProviderStatus.ACTIVE.equalsIgnoreCase(status);
     }
 
     public void setActive(boolean active) {
-        this.status = active ? "ACTIVE" : "INACTIVE";
+        this.status = active ? ProviderStatus.ACTIVE : ProviderStatus.INACTIVE;
     }
 
     public boolean isValidated() {

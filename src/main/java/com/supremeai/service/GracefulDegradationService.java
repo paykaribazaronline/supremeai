@@ -5,43 +5,30 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
-/**
- * Graceful degradation service for fallback to simpler models.
- * Provides fallback mechanisms when complex models fail.
- */
 @Service
 public class GracefulDegradationService {
 
     private static final Logger log = LoggerFactory.getLogger(GracefulDegradationService.class);
 
     private final CircuitBreakerRegistry circuitBreakerRegistry;
+    private final com.supremeai.repository.ProviderRepository providerRepository;
 
-    // Provider priority order (simpler to more complex)
-    private static final List<String> PROVIDER_FALLBACK_CHAIN = List.of(
-        "local",      // Local/Ollama (simplest, most reliable)
-        "groq",       // Groq (fast, good for simple tasks)
-        "openai",     // OpenAI (balanced)
-        "anthropic"   // Anthropic (most complex)
-    );
-
-    public GracefulDegradationService(CircuitBreakerRegistry circuitBreakerRegistry) {
+    public GracefulDegradationService(CircuitBreakerRegistry circuitBreakerRegistry,
+                                      com.supremeai.repository.ProviderRepository providerRepository) {
         this.circuitBreakerRegistry = circuitBreakerRegistry;
+        this.providerRepository = providerRepository;
     }
 
-    /**
-     * Execute with fallback to simpler providers.
-     * Tries providers in order of simplicity until one succeeds.
-     */
-    public <T> T executeWithFallback(String primaryProvider, 
+    public <T> T executeWithFallback(String primaryProvider,
                                       Map<String, Supplier<T>> providerSuppliers,
                                       T fallbackResponse) {
-        // Try primary provider first
         if (isProviderAvailable(primaryProvider)) {
             try {
                 return providerSuppliers.get(primaryProvider).get();
@@ -50,35 +37,30 @@ public class GracefulDegradationService {
             }
         }
 
-        // Try fallback providers in order
-        for (String fallbackProvider : PROVIDER_FALLBACK_CHAIN) {
-            if (!fallbackProvider.equals(primaryProvider) && 
-                isProviderAvailable(fallbackProvider) &&
-                providerSuppliers.containsKey(fallbackProvider)) {
+        List<String> cloudProviders = getActiveCloudProviders();
+        for (String fallbackProvider : cloudProviders) {
+            if (!fallbackProvider.equals(primaryProvider)
+                && isProviderAvailable(fallbackProvider)
+                && providerSuppliers.containsKey(fallbackProvider)) {
                 try {
-                    log.info("Falling back to provider: {}", fallbackProvider);
+                    log.info("Falling back to cloud provider: {}", fallbackProvider);
                     return providerSuppliers.get(fallbackProvider).get();
                 } catch (Exception e) {
-                    log.warn("Fallback provider {} failed", fallbackProvider, e);
+                    log.warn("Cloud fallback provider {} failed", fallbackProvider, e);
                 }
             }
         }
 
-        // Return default fallback response
-        log.warn("All providers failed, returning default fallback response");
+        log.warn("All cloud providers failed, returning default fallback response");
         return fallbackResponse;
     }
 
-    /**
-     * Execute with fallback using CompletableFuture for async operations.
-     */
     public <T> CompletableFuture<T> executeWithFallbackAsync(
             String primaryProvider,
             Map<String, Supplier<CompletableFuture<T>>> providerSuppliers,
             T fallbackResponse) {
-        
+
         return CompletableFuture.supplyAsync(() -> {
-            // Try primary provider first
             if (isProviderAvailable(primaryProvider)) {
                 try {
                     return providerSuppliers.get(primaryProvider).get().join();
@@ -87,16 +69,16 @@ public class GracefulDegradationService {
                 }
             }
 
-            // Try fallback providers in order
-            for (String fallbackProvider : PROVIDER_FALLBACK_CHAIN) {
-                if (!fallbackProvider.equals(primaryProvider) && 
-                    isProviderAvailable(fallbackProvider) &&
-                    providerSuppliers.containsKey(fallbackProvider)) {
+            List<String> cloudProviders = getActiveCloudProviders();
+            for (String fallbackProvider : cloudProviders) {
+                if (!fallbackProvider.equals(primaryProvider)
+                    && isProviderAvailable(fallbackProvider)
+                    && providerSuppliers.containsKey(fallbackProvider)) {
                     try {
-                        log.info("Falling back to provider: {}", fallbackProvider);
+                        log.info("Falling back to cloud provider: {}", fallbackProvider);
                         return providerSuppliers.get(fallbackProvider).get().join();
                     } catch (Exception e) {
-                        log.warn("Fallback provider {} failed", fallbackProvider, e);
+                        log.warn("Cloud fallback provider {} failed", fallbackProvider, e);
                     }
                 }
             }
@@ -105,23 +87,32 @@ public class GracefulDegradationService {
         });
     }
 
-    /**
-     * Check if a provider is available (circuit not open).
-     */
     private boolean isProviderAvailable(String providerName) {
         CircuitBreaker circuitBreaker = circuitBreakerRegistry.circuitBreaker(providerName);
         return circuitBreaker.getState() != CircuitBreaker.State.OPEN;
     }
 
-    /**
-     * Get the best available provider for a given complexity level.
-     */
     public String getBestAvailableProvider(String complexity) {
-        for (String provider : PROVIDER_FALLBACK_CHAIN) {
+        List<String> cloudProviders = getActiveCloudProviders();
+        for (String provider : cloudProviders) {
             if (isProviderAvailable(provider)) {
                 return provider;
             }
         }
-        return "local"; // Default to local as last resort
+        return cloudProviders.isEmpty() ? null : cloudProviders.get(0);
+    }
+
+    private List<String> getActiveCloudProviders() {
+        try {
+            return providerRepository.findByStatus("active")
+                    .filter(p -> "active".equalsIgnoreCase(p.getStatus()))
+                    .sort(java.util.Comparator.comparingInt(com.supremeai.model.APIProvider::getPriority))
+                    .map(p -> p.getName().toLowerCase())
+                    .collectList()
+                    .block(java.time.Duration.ofSeconds(3));
+        } catch (Exception e) {
+            log.error("Failed to load active cloud providers: {}", e.getMessage());
+            return java.util.Collections.emptyList();
+        }
     }
 }

@@ -1,12 +1,57 @@
 import { AuthUser } from '../types';
 
+let _inMemoryToken: string | null = null;
+let _inMemoryRefreshToken: string | null = null;
+
 const AUTH_TOKEN_KEY = 'supremeai_token';
 const FIREBASE_USER_KEY = 'supremeai_user';
+const REFRESH_TOKEN_KEY = 'supremeai_refresh_token';
+
+// Simple obfuscation to prevent plain-text inspection in browser storage
+function obfuscate(value: string): string {
+  if (!value) return '';
+  try {
+    return btoa(encodeURIComponent(value).split('').map((char, index) => {
+      return String.fromCharCode(char.charCodeAt(0) ^ (index % 5 + 42));
+    }).join(''));
+  } catch (e) {
+    return value;
+  }
+}
+
+function deobfuscate(value: string): string {
+  if (!value) return '';
+  try {
+    const decoded = atob(value);
+    return decodeURIComponent(decoded.split('').map((char, index) => {
+      return String.fromCharCode(char.charCodeAt(0) ^ (index % 5 + 42));
+    }).join(''));
+  } catch (e) {
+    return value;
+  }
+}
 
 export const authUtils = {
   getToken(): string | null {
-    const token = localStorage.getItem(AUTH_TOKEN_KEY) || sessionStorage.getItem(AUTH_TOKEN_KEY);
-    return token || 'GUEST_MODE';
+    if (_inMemoryToken) return _inMemoryToken;
+    const raw = sessionStorage.getItem(AUTH_TOKEN_KEY);
+    if (raw) {
+      const token = deobfuscate(raw);
+      _inMemoryToken = token;
+      return token;
+    }
+    return 'GUEST_MODE';
+  },
+
+  getRefreshToken(): string | null {
+    if (_inMemoryRefreshToken) return _inMemoryRefreshToken;
+    const raw = sessionStorage.getItem(REFRESH_TOKEN_KEY);
+    if (raw) {
+      const token = deobfuscate(raw);
+      _inMemoryRefreshToken = token;
+      return token;
+    }
+    return null;
   },
 
   isAdmin(): boolean {
@@ -24,11 +69,16 @@ export const authUtils = {
   },
 
   clearAuth() {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
+    _inMemoryToken = null;
+    _inMemoryRefreshToken = null;
     sessionStorage.removeItem(AUTH_TOKEN_KEY);
-    localStorage.removeItem(FIREBASE_USER_KEY);
     sessionStorage.removeItem(FIREBASE_USER_KEY);
-    localStorage.removeItem('supremeai_refresh_token');
+    sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+    
+    // Clear legacy local storage tokens for security cleanup
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(FIREBASE_USER_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
   },
 
   async logout() {
@@ -43,9 +93,10 @@ export const authUtils = {
   },
 
   getCurrentUser(): AuthUser | null {
-    const userStr = sessionStorage.getItem(FIREBASE_USER_KEY) || localStorage.getItem(FIREBASE_USER_KEY);
-    if (!userStr) return null;
+    const raw = sessionStorage.getItem(FIREBASE_USER_KEY);
+    if (!raw) return null;
     try {
+      const userStr = deobfuscate(raw);
       return JSON.parse(userStr);
     } catch (e) {
       return null;
@@ -53,14 +104,18 @@ export const authUtils = {
   },
 
   setToken(token: string) {
-    localStorage.setItem(AUTH_TOKEN_KEY, token);
-    sessionStorage.setItem(AUTH_TOKEN_KEY, token);
+    _inMemoryToken = token;
+    sessionStorage.setItem(AUTH_TOKEN_KEY, obfuscate(token));
+  },
+
+  setRefreshToken(token: string) {
+    _inMemoryRefreshToken = token;
+    sessionStorage.setItem(REFRESH_TOKEN_KEY, obfuscate(token));
   },
 
   setCurrentUser(user: any) {
     const userStr = JSON.stringify(user);
-    localStorage.setItem(FIREBASE_USER_KEY, userStr);
-    sessionStorage.setItem(FIREBASE_USER_KEY, userStr);
+    sessionStorage.setItem(FIREBASE_USER_KEY, obfuscate(userStr));
   },
 
   getAuthHeaders(): HeadersInit {

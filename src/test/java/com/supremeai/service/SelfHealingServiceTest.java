@@ -19,14 +19,11 @@ class SelfHealingServiceTest {
     @Mock
     private AIReasoningService reasoningService;
 
-    @Mock
-    private io.micrometer.core.instrument.MeterRegistry meterRegistry;
-
     private SelfHealingService selfHealingService;
 
     @BeforeEach
     void setUp() {
-        selfHealingService = new SelfHealingService(meterRegistry);
+        selfHealingService = new SelfHealingService();
         setReasoningService(selfHealingService, reasoningService);
     }
 
@@ -119,7 +116,7 @@ class SelfHealingServiceTest {
 
     @Test
     void analyzeError_shouldReturnCorrectActionForDependencyError() {
-        SelfHealingService service = new SelfHealingService(meterRegistry);
+        SelfHealingService service = new SelfHealingService();
         setReasoningService(service, reasoningService);
 
         // Use reflection to test private method
@@ -136,7 +133,7 @@ class SelfHealingServiceTest {
 
     @Test
     void analyzeError_shouldReturnCorrectActionForTestError() {
-        SelfHealingService service = new SelfHealingService(meterRegistry);
+        SelfHealingService service = new SelfHealingService();
         setReasoningService(service, reasoningService);
 
         try {
@@ -152,7 +149,7 @@ class SelfHealingServiceTest {
 
     @Test
     void analyzeError_shouldReturnCorrectActionForAuthError() {
-        SelfHealingService service = new SelfHealingService(meterRegistry);
+        SelfHealingService service = new SelfHealingService();
         setReasoningService(service, reasoningService);
 
         try {
@@ -168,7 +165,7 @@ class SelfHealingServiceTest {
 
     @Test
     void analyzeError_shouldReturnCorrectActionForQuotaError() {
-        SelfHealingService service = new SelfHealingService(meterRegistry);
+        SelfHealingService service = new SelfHealingService();
         setReasoningService(service, reasoningService);
 
         try {
@@ -184,7 +181,7 @@ class SelfHealingServiceTest {
 
     @Test
     void analyzeError_shouldReturnGeneralCheckForUnknownError() {
-        SelfHealingService service = new SelfHealingService(meterRegistry);
+        SelfHealingService service = new SelfHealingService();
         setReasoningService(service, reasoningService);
 
         try {
@@ -200,7 +197,7 @@ class SelfHealingServiceTest {
 
     @Test
     void analyzeError_shouldReturnUnknownForNullInput() {
-        SelfHealingService service = new SelfHealingService(meterRegistry);
+        SelfHealingService service = new SelfHealingService();
         setReasoningService(service, reasoningService);
 
         try {

@@ -50,7 +50,9 @@ public class SystemAuditService {
         payload.put("level", log.getSeverity() != null ? log.getSeverity().toUpperCase() : "INFO");
         payload.put("component", log.getCategory());
         payload.put("message", log.getAction() + ": " + log.getDetails());
-        payload.put("timestamp", log.getTimestamp() != null ? log.getTimestamp().getTime() : System.currentTimeMillis());
+        payload.put("timestamp", log.getTimestamp() != null
+                ? log.getTimestamp().atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+                : System.currentTimeMillis());
         payload.put("user", log.getUser());
         payload.put("outcome", log.getOutcome());
 

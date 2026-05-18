@@ -151,15 +151,24 @@ public class ProvidersController extends BaseAdminController<APIProvider, String
         String name = payload.get("name");
         String apiKey = payload.get("apiKey");
 
+        log.info("[TEST-KEY] Received test-key request: name={}, apiKeyLength={}", name, apiKey != null ? apiKey.length() : "null");
+
         if (name == null || apiKey == null) {
+            log.warn("[TEST-KEY] Rejected: missing parameters. name={}, apiKey present={}", name, apiKey != null);
             return ResponseEntity.badRequest().body(ApiResponse.error("name and apiKey are required"));
         }
 
-        Boolean valid = providerAdminService.validateKey(name, apiKey).block();
-        if (Boolean.TRUE.equals(valid)) {
-            return ResponseEntity.ok(ApiResponse.ok(Map.of("message", "Key validated successfully", "valid", true)));
-        } else {
-            return ResponseEntity.status(401).body(ApiResponse.error("Invalid key or provider error"));
+        try {
+            Boolean valid = providerAdminService.validateKey(name, apiKey).block();
+            log.info("[TEST-KEY] Validation result for name={}: {}", name, valid);
+            if (Boolean.TRUE.equals(valid)) {
+                return ResponseEntity.ok(ApiResponse.ok(Map.of("message", "Key validated successfully", "valid", true)));
+            } else {
+                return ResponseEntity.status(401).body(ApiResponse.error("Invalid key or provider unreachable"));
+            }
+        } catch (Exception e) {
+            log.error("[TEST-KEY] Unexpected error during validation for name={}: {}", name, e.toString());
+            return ResponseEntity.status(500).body(ApiResponse.error("Validation error: " + e.getMessage()));
         }
     }
 

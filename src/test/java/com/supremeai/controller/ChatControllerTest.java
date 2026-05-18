@@ -81,7 +81,7 @@ import static org.mockito.Mockito.*;
         request.setMessage("");
         request.setSkipValidation(false);
 
-        ResponseEntity<Object> result = chatController.sendMessage(request);
+        ResponseEntity<Object> result = chatController.sendMessage(request).block();
 
         assertEquals(400, result.getStatusCode().value());
         Map<String, Object> body = (Map<String, Object>) result.getBody();
@@ -94,7 +94,7 @@ import static org.mockito.Mockito.*;
         request.setMessage(null);
         request.setSkipValidation(false);
 
-        ResponseEntity<Object> result = chatController.sendMessage(request);
+        ResponseEntity<Object> result = chatController.sendMessage(request).block();
 
         assertEquals(400, result.getStatusCode().value());
     }
@@ -118,7 +118,7 @@ import static org.mockito.Mockito.*;
         when(questioningEngine.validateAndQuestion(anyString(), any()))
                 .thenReturn(Mono.just(validationResult));
 
-        ResponseEntity<Object> result = chatController.sendMessage(request);
+        ResponseEntity<Object> result = chatController.sendMessage(request).block();
 
         assertEquals(200, result.getStatusCode().value());
         Map<String, Object> body = (Map<String, Object>) result.getBody();
@@ -159,7 +159,7 @@ import static org.mockito.Mockito.*;
         when(enhancedLearningService.learnFromNLPInteraction(anyString(), anyString(), anyString(), anyDouble(), anyMap()))
                 .thenReturn(Mono.empty());
 
-        ResponseEntity<Object> result = chatController.sendMessage(request);
+        ResponseEntity<Object> result = chatController.sendMessage(request).block();
 
         assertEquals(200, result.getStatusCode().value());
         Map<String, Object> body = (Map<String, Object>) result.getBody();
@@ -190,7 +190,7 @@ import static org.mockito.Mockito.*;
                         List.of(), 0.8, "CONSENSUS_STRONG", 0.8, 1000L, 0.85
                 )));
 
-        ResponseEntity<Object> result = chatController.sendMessage(request);
+        ResponseEntity<Object> result = chatController.sendMessage(request).block();
 
         Map<String, Object> body = (Map<String, Object>) result.getBody();
         assertTrue((Boolean) body.get("fallback"));
@@ -214,7 +214,7 @@ import static org.mockito.Mockito.*;
         when(consensusService.askConsensus(anyString(), anyList(), anyLong()))
                 .thenReturn(Mono.error(new RuntimeException("Consensus also failed")));
 
-        ResponseEntity<Object> result = chatController.sendMessage(request);
+        ResponseEntity<Object> result = chatController.sendMessage(request).block();
 
         assertEquals(503, result.getStatusCode().value());
         Map<String, Object> body = (Map<String, Object>) result.getBody();

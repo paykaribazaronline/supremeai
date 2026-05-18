@@ -100,7 +100,7 @@ gcloud run deploy "$BACKEND_SERVICE" \
   --allow-unauthenticated \
   --set-env-vars="SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=$PROJECT_ID,REDIS_MOCK_ONLINE=true" \
   --cpu 2 --memory 2Gi \
-  --min-instances 1 \
+  --min-instances 0 \
   --project "$PROJECT_ID"
 
 # Reverse Engineering
@@ -109,6 +109,7 @@ gcloud run deploy "$REVERSE_ENG_SERVICE" \
   --region "$REGION" \
   --allow-unauthenticated \
   --set-env-vars="GOOGLE_CLOUD_PROJECT=$PROJECT_ID" \
+  --min-instances 0 \
   --project "$PROJECT_ID" || log_warn "Rev-Eng deploy failed"
 
 # Simulator
