@@ -2,9 +2,10 @@ package com.supremeai.service;
 
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 
 /**
@@ -72,21 +73,19 @@ public class CodeValidationService {
     /**
      * Write generated files to disk for manual inspection (taste phase).
      * Returns directory path where files were written.
+     * Uses NIO Files API with explicit UTF-8 encoding — no platform charset corruption.
      */
     public String writeToTempDirectory(Map<String, String> files, String appName) throws IOException {
-        File baseDir = new File(System.getProperty("java.io.tmpdir"), "supremeai-" + appName + "-" + System.currentTimeMillis());
-        if (!baseDir.mkdirs()) {
-            throw new IOException("Failed to create directory: " + baseDir.getAbsolutePath());
-        }
+        Path baseDir = Path.of(System.getProperty("java.io.tmpdir"),
+                "supremeai-" + appName + "-" + System.currentTimeMillis());
+        Files.createDirectories(baseDir);
 
         for (Map.Entry<String, String> entry : files.entrySet()) {
-            File outFile = new File(baseDir, entry.getKey());
-            outFile.getParentFile().mkdirs(); // create subdirectories
-            try (FileWriter writer = new FileWriter(outFile)) {
-                writer.write(entry.getValue());
-            }
+            Path outFile = baseDir.resolve(entry.getKey());
+            Files.createDirectories(outFile.getParent());
+            Files.writeString(outFile, entry.getValue(), StandardCharsets.UTF_8);
         }
 
-        return baseDir.getAbsolutePath();
+        return baseDir.toAbsolutePath().toString();
     }
 }

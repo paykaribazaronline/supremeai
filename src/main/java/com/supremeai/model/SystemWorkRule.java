@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.HashMap;
 
+import jakarta.validation.constraints.NotBlank;
+
 /**
  * SystemWorkRule — the authoritative rule set for how the SupremeAI system
  * carries out work in the real world.
@@ -30,12 +32,14 @@ public class SystemWorkRule {
      * Convention: SECTION_ACTION (e.g. LEARNING_AUTO_INTERVAL, EXECUTION_SYSTEM_INSTRUCTION,
      * PROTOCOL_SEVERITY_THRESHOLD, etc.)
      */
+    @NotBlank(message = "Rule key is required and cannot be blank")
     private String ruleKey;
 
     /**
      * Human-readable category. Used to group rules and determine the target
      * Firestore collection that may need to be synced during a conflict.
      */
+    @NotBlank(message = "Category is required and cannot be blank")
     private String category; // LEARNING, EXECUTION, PROTOCOL, SCHEDULING, APPROVAL, GENERAL
 
     /**

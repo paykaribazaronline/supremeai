@@ -1,436 +1,82 @@
-> Task :generateEffectiveLombokConfig UP-TO-DATE
-> Task :compileJava UP-TO-DATE
-> Task :processResources UP-TO-DATE
-> Task :classes UP-TO-DATE
-> Task :generateTestEffectiveLombokConfig UP-TO-DATE
-
-> Task :compileTestJava
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/agentorchestration/AutonomousVotingServiceTest.java:48: error: constructor MultiAIVotingService in class MultiAIVotingService cannot be applied to given types;
-        votingService = new com.supremeai.service.MultiAIVotingService(executor);
-                        ^
-  required: no arguments
-  found:    ThreadPoolTaskExecutor
-  reason: actual and formal argument lists differ in length
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/agentorchestration/AutonomousVotingServiceTest.java:73: error: incompatible types: Mono<VotingDecision> cannot be converted to VotingDecision
-        VotingDecision decision = votingService.conductDecisionVote("Test Question", "Test Context");
-                                                                   ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/agentorchestration/AutonomousVotingServiceTest.java:90: error: incompatible types: Mono<VotingDecision> cannot be converted to VotingDecision
-        VotingDecision decision = votingService.conductDecisionVote("Test Question", "Test Context");
-                                                                   ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/agentorchestration/AutonomousVotingServiceTest.java:106: error: incompatible types: Mono<VotingDecision> cannot be converted to VotingDecision
-        VotingDecision decision = votingService.conductDecisionVote("Test Question", "Test Context");
-                                                                   ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:18: error: incompatible types: AIProviderType cannot be converted to String
-        profiler.recordPerformance("SQL_FIX", AIProviderType.GROQ_LLAMA3, true, 150);
-                                                            ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:20: error: incompatible types: String cannot be converted to AIProviderType
-        AIProviderType best = profiler.getBestAIForTask("SQL_FIX");
-                                                       ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:29: error: incompatible types: AIProviderType cannot be converted to String
-        profiler.recordPerformance("JAVA_GENERATION", AIProviderType.GROQ_LLAMA3, true, 200);
-                                                                    ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:30: error: incompatible types: AIProviderType cannot be converted to String
-        profiler.recordPerformance("JAVA_GENERATION", AIProviderType.GEMINI_PRO, true, 100);
-                                                                    ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:32: error: incompatible types: String cannot be converted to AIProviderType
-        AIProviderType best = profiler.getBestAIForTask("JAVA_GENERATION");
-                                                       ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:42: error: incompatible types: AIProviderType cannot be converted to String
-        profiler.recordPerformance("TASK", AIProviderType.GROQ_LLAMA3, true, 300);
-                                                         ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:43: error: incompatible types: AIProviderType cannot be converted to String
-        profiler.recordPerformance("TASK", AIProviderType.GEMINI_PRO, true, 200);
-                                                         ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:44: error: incompatible types: AIProviderType cannot be converted to String
-        profiler.recordPerformance("TASK", AIProviderType.GROQ_LLAMA3, true, 100);  // Groq improves
-                                                         ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:46: error: incompatible types: String cannot be converted to AIProviderType
-        AIProviderType best = profiler.getBestAIForTask("TASK");
-                                                       ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:55: error: incompatible types: String cannot be converted to AIProviderType
-        AIProviderType best = profiler.getBestAIForTask("UNKNOWN_TASK");
-                                                       ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:64: error: incompatible types: AIProviderType cannot be converted to String
-        profiler.recordPerformance("TASK", AIProviderType.GROQ_LLAMA3, false, 100);  // failure
-                                                         ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:65: error: incompatible types: AIProviderType cannot be converted to String
-        profiler.recordPerformance("TASK", AIProviderType.GROQ_LLAMA3, true, 200);   // success
-                                                         ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:67: error: incompatible types: String cannot be converted to AIProviderType
-        AIProviderType best = profiler.getBestAIForTask("TASK");
-                                                       ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:78: error: incompatible types: AIProviderType cannot be converted to String
-        profiler.recordPerformance("SQL", AIProviderType.GROQ_LLAMA3, true, 100);
-                                                        ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:79: error: incompatible types: AIProviderType cannot be converted to String
-        profiler.recordPerformance("PYTHON", AIProviderType.GEMINI_PRO, true, 50);
-                                                           ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:81: error: incompatible types: String cannot be converted to AIProviderType
-        AIProviderType bestSQL = profiler.getBestAIForTask("SQL");
-                                                          ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:82: error: incompatible types: String cannot be converted to AIProviderType
-        AIProviderType bestPython = profiler.getBestAIForTask("PYTHON");
-                                                             ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:94: error: incompatible types: AIProviderType cannot be converted to String
-            profiler.recordPerformance("TASK", AIProviderType.GROQ_LLAMA3, true, 50);
-                                                             ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:98: error: incompatible types: AIProviderType cannot be converted to String
-            profiler.recordPerformance("TASK", AIProviderType.GEMINI_PRO, true, 500);
-                                                             ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:101: error: incompatible types: String cannot be converted to AIProviderType
-        AIProviderType best = profiler.getBestAIForTask("TASK");
-                                                       ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:112: error: incompatible types: AIProviderType cannot be converted to String
-            profiler.recordPerformance("TASK", AIProviderType.GROQ_LLAMA3, true, 100);
-                                                             ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:113: error: incompatible types: AIProviderType cannot be converted to String
-            profiler.recordPerformance("TASK", AIProviderType.GROQ_LLAMA3, false, 100);
-                                                             ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:116: error: incompatible types: AIProviderType cannot be converted to String
-            profiler.recordPerformance("TASK", AIProviderType.GEMINI_PRO, true, 100);
-                                                             ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:118: error: incompatible types: AIProviderType cannot be converted to String
-        profiler.recordPerformance("TASK", AIProviderType.GEMINI_PRO, false, 100);
-                                                         ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:120: error: incompatible types: String cannot be converted to AIProviderType
-        AIProviderType best = profiler.getBestAIForTask("TASK");
-                                                       ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:139: error: incompatible types: AIProviderType cannot be converted to String
-            profiler.recordPerformance(null, AIProviderType.GROQ_LLAMA3, true, 100);
-                                                           ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:148: error: incompatible types: AIProviderType cannot be converted to String
-        profiler.recordPerformance("TASK", AIProviderType.GROQ_LLAMA3, true, 100);
-                                                         ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:149: error: incompatible types: AIProviderType cannot be converted to String
-        profiler.recordPerformance("TASK", AIProviderType.GEMINI_PRO, true, 100);
-                                                         ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:151: error: incompatible types: String cannot be converted to AIProviderType
-        AIProviderType best = profiler.getBestAIForTask("TASK");
-                                                       ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:163: error: incompatible types: AIProviderType cannot be converted to String
-        profiler.recordPerformance("TASK", AIProviderType.GROQ_LLAMA3, false, 100);
-                                                         ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:164: error: incompatible types: AIProviderType cannot be converted to String
-        profiler.recordPerformance("TASK", AIProviderType.GEMINI_PRO, false, 200);
-                                                         ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:166: error: incompatible types: String cannot be converted to AIProviderType
-        AIProviderType best = profiler.getBestAIForTask("TASK");
-                                                       ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:177: error: incompatible types: AIProviderType cannot be converted to String
-        profiler.recordPerformance("TASK", AIProviderType.GROQ_LLAMA3, true, 0);
-                                                         ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:180: error: incompatible types: String cannot be converted to AIProviderType
-        AIProviderType best = profiler.getBestAIForTask("TASK");
-                                                       ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:190: error: incompatible types: AIProviderType cannot be converted to String
-            profiler.recordPerformance("BULK_TASK", AIProviderType.GROQ_LLAMA3, i % 2 == 0, 100 + i);
-                                                                  ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:193: error: incompatible types: String cannot be converted to AIProviderType
-        AIProviderType best = profiler.getBestAIForTask("BULK_TASK");
-                                                       ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:202: error: incompatible types: AIProviderType cannot be converted to String
-        profiler.recordPerformance("TASK1", AIProviderType.GROQ_LLAMA3, true, 100);
-                                                          ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:203: error: incompatible types: String cannot be converted to AIProviderType
-        AIProviderType best1 = profiler.getBestAIForTask("TASK1");
-                                                        ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:205: error: incompatible types: AIProviderType cannot be converted to String
-        profiler.recordPerformance("TASK1", AIProviderType.GEMINI_PRO, true, 50);
-                                                          ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:206: error: incompatible types: String cannot be converted to AIProviderType
-        AIProviderType best2 = profiler.getBestAIForTask("TASK1");
-                                                        ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/intelligence/profiling/AIProfilerTest.java:217: error: incompatible types: AIProviderType cannot be converted to String
-            profiler.recordPerformance("TASK", AIProviderType.GROQ_LLAMA3, true, -100);
-                                                             ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/learning/knowledge/GlobalKnowledgeBaseTest.java:37: error: no suitable method found for thenReturn(boolean)
-        when(adminDashboard.submitImprovement(any())).thenReturn(true);
-                                                     ^
-    method OngoingStubbing.thenReturn(Mono<Boolean>) is not applicable
-      (argument mismatch; boolean cannot be converted to Mono<Boolean>)
-    method OngoingStubbing.thenReturn(Mono<Boolean>,Mono<Boolean>...) is not applicable
-      (argument mismatch; boolean cannot be converted to Mono<Boolean>)
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/learning/knowledge/GlobalKnowledgeBaseTest.java:53: error: incompatible types: Flux<SolutionMemory> cannot be converted to List<SolutionMemory>
-        List<SolutionMemory> solutions = knowledgeBase.getSolutions(errorSig);
-                                                                   ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/learning/knowledge/GlobalKnowledgeBaseTest.java:71: error: cannot find symbol
-        assertEquals(1, knowledgeBase.getSolutions(errorSig).size());
-                                                            ^
-  symbol:   method size()
-  location: class Flux<SolutionMemory>
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/learning/knowledge/GlobalKnowledgeBaseTest.java:77: error: incompatible types: Flux<SolutionMemory> cannot be converted to List<SolutionMemory>
-        List<SolutionMemory> solutions = knowledgeBase.getSolutions(errorSig);
-                                                                   ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/learning/knowledge/GlobalKnowledgeBaseTest.java:84: error: cannot find symbol
-        assertEquals(v1.getId(), v2.getPreviousVersionId());
-                       ^
-  symbol:   method getId()
-  location: variable v1 of type SolutionMemory
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/learning/knowledge/GlobalKnowledgeBaseTest.java:94: error: cannot find symbol
-        SolutionMemory good = knowledgeBase.getSolutions(errorSig).get(0);
-                                                                  ^
-  symbol:   method get(int)
-  location: class Flux<SolutionMemory>
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/learning/knowledge/GlobalKnowledgeBaseTest.java:98: error: incompatible types: Mono<String> cannot be converted to String
-        String found = knowledgeBase.findKnownSolution(errorSig);
-                                                      ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/learning/knowledge/GlobalKnowledgeBaseTest.java:109: error: cannot find symbol
-        SolutionMemory poor = knowledgeBase.getSolutions(errorSig).get(0);
-                                                                  ^
-  symbol:   method get(int)
-  location: class Flux<SolutionMemory>
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/learning/knowledge/GlobalKnowledgeBaseTest.java:113: error: incompatible types: Mono<String> cannot be converted to String
-        String found = knowledgeBase.findKnownSolution(errorSig);
-                                                      ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/learning/knowledge/GlobalKnowledgeBaseTest.java:135: error: incompatible types: Mono<String> cannot be converted to String
-        String found = knowledgeBase.findKnownSolution(errorSig);
-                                                      ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/learning/knowledge/GlobalKnowledgeBaseTest.java:157: error: cannot find symbol
-        SolutionMemory mem = knowledgeBase.getSolutions(errorSig).get(0);
-                                                                 ^
-  symbol:   method get(int)
-  location: class Flux<SolutionMemory>
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/learning/knowledge/GlobalKnowledgeBaseTest.java:161: error: incompatible types: Flux<SolutionMemory> cannot be converted to List<SolutionMemory>
-        List<SolutionMemory> solutions = knowledgeBase.getSolutions(errorSig);
-                                                                   ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/learning/knowledge/GlobalKnowledgeBaseTest.java:164: error: cannot find symbol
-        if (updated.getId() != null && !updated.getId().equals(mem.getId())) {
-                   ^
-  symbol:   method getId()
-  location: variable updated of type SolutionMemory
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/learning/knowledge/GlobalKnowledgeBaseTest.java:164: error: cannot find symbol
-        if (updated.getId() != null && !updated.getId().equals(mem.getId())) {
-                                               ^
-  symbol:   method getId()
-  location: variable updated of type SolutionMemory
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/learning/knowledge/GlobalKnowledgeBaseTest.java:164: error: cannot find symbol
-        if (updated.getId() != null && !updated.getId().equals(mem.getId())) {
-                                                                  ^
-  symbol:   method getId()
-  location: variable mem of type SolutionMemory
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/learning/knowledge/GlobalKnowledgeBaseTest.java:180: error: incompatible types: Mono<Long> cannot be converted to long
-        long count = knowledgeBase.countSolutions();
-                                                 ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/learning/knowledge/GlobalKnowledgeBaseTest.java:186: error: incompatible types: Flux<SolutionMemory> cannot be converted to List<SolutionMemory>
-        List<SolutionMemory> solutions = knowledgeBase.getSolutions("unknown_error");
-                                                                   ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/learning/knowledge/SolutionMemoryTest.java:132: error: cannot find symbol
-        assertEquals(solution.getId(), updated.getPreviousVersionId());
-                             ^
-  symbol:   method getId()
-  location: variable solution of type SolutionMemory
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/learning/knowledge/SolutionMemoryTest.java:189: error: cannot find symbol
-        solution.setId("mem_001");
-                ^
-  symbol:   method setId(String)
-  location: variable solution of type SolutionMemory
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/learning/knowledge/SolutionMemoryTest.java:199: error: cannot find symbol
-        assertEquals("mem_001", solution.getId());
-                                        ^
-  symbol:   method getId()
-  location: variable solution of type SolutionMemory
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/repository/SolutionMemoryRepositoryTest.java:25: error: cannot find symbol
-        s1.setId("sm-1");
-          ^
-  symbol:   method setId(String)
-  location: variable s1 of type SolutionMemory
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/repository/SolutionMemoryRepositoryTest.java:27: error: cannot find symbol
-        s2.setId("sm-2");
-          ^
-  symbol:   method setId(String)
-  location: variable s2 of type SolutionMemory
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/repository/SolutionMemoryRepositoryTest.java:29: error: cannot find symbol
-        s3.setId("sm-3");
-          ^
-  symbol:   method setId(String)
-  location: variable s3 of type SolutionMemory
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/repository/SolutionMemoryRepositoryTest.java:34: error: cannot find symbol
-                .expectNextMatches(s -> "sm-1".equals(s.getId()))
-                                                       ^
-  symbol:   method getId()
-  location: variable s of type SolutionMemory
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/repository/SolutionMemoryRepositoryTest.java:41: error: cannot find symbol
-        s.setId("sm-4");
-         ^
-  symbol:   method setId(String)
-  location: variable s of type SolutionMemory
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/repository/SolutionMemoryRepositoryTest.java:52: error: cannot find symbol
-        s1.setId("sm-5");
-          ^
-  symbol:   method setId(String)
-  location: variable s1 of type SolutionMemory
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/repository/SolutionMemoryRepositoryTest.java:56: error: cannot find symbol
-        s2.setId("sm-6");
-          ^
-  symbol:   method setId(String)
-  location: variable s2 of type SolutionMemory
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/repository/SolutionMemoryRepositoryTest.java:60: error: cannot find symbol
-        s3.setId("sm-7");
-          ^
-  symbol:   method setId(String)
-  location: variable s3 of type SolutionMemory
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/repository/SolutionMemoryRepositoryTest.java:74: error: cannot find symbol
-        s.setId("sm-8");
-         ^
-  symbol:   method setId(String)
-  location: variable s of type SolutionMemory
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/repository/SolutionMemoryRepositoryTest.java:95: error: cannot find symbol
-        s.setId("sm-find");
-         ^
-  symbol:   method setId(String)
-  location: variable s of type SolutionMemory
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/selfhealing/SelfHealingServiceTest.java:32: error: constructor SelfHealingService in class SelfHealingService cannot be applied to given types;
-        service = new SelfHealingService();
-                  ^
-  required: MeterRegistry
+Starting a Gradle Daemon, 3 busy and 4 stopped Daemons could not be reused, use --status for details
+Daemon JVM discovery is an incubating feature.
+> Task :clean
+> Task :generateEffectiveLombokConfig FROM-CACHE
+> Task :compileJava
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/LearningArchiveService.java:90: error: method toInstant in interface ChronoLocalDateTime<D> cannot be applied to given types;
+                                return l.getLearnedAt().isBefore(cutoffDate);
+                                                                          ^
+  required: ZoneOffset
   found:    no arguments
   reason: actual and formal argument lists differ in length
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/selfhealing/SelfHealingServiceTest.java:33: error: cannot find symbol
-        service.setReasoningService(reasoningService);
-               ^
-  symbol:   method setReasoningService(AIReasoningService)
-  location: variable service of type SelfHealingService
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/selfhealing/SelfHealingServiceTest.java:51: error: constructor SelfHealingService in class SelfHealingService cannot be applied to given types;
-        service = new SelfHealingService();
-                  ^
-  required: MeterRegistry
-  found:    no arguments
-  reason: actual and formal argument lists differ in length
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/selfhealing/SelfHealingServiceTest.java:52: error: cannot find symbol
-        service.setReasoningService(reasoningService);
-               ^
-  symbol:   method setReasoningService(AIReasoningService)
-  location: variable service of type SelfHealingService
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/selfhealing/SelfHealingServiceTest.java:77: error: constructor SelfHealingService in class SelfHealingService cannot be applied to given types;
-        service = new SelfHealingService();
-                  ^
-  required: MeterRegistry
-  found:    no arguments
-  reason: actual and formal argument lists differ in length
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/selfhealing/SelfHealingServiceTest.java:78: error: cannot find symbol
-        service.setReasoningService(reasoningService);
-               ^
-  symbol:   method setReasoningService(AIReasoningService)
-  location: variable service of type SelfHealingService
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/model/APIProviderTest.java:66: error: incompatible types: Date cannot be converted to LocalDateTime
-        provider.setLastCheck(now);
+  where D is a type-variable:
+    D extends ChronoLocalDate declared in interface ChronoLocalDateTime
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/KnowledgeService.java:120: error: incompatible types: Date cannot be converted to LocalDateTime
+        learning.setLearnedAt(new java.util.Date());
                               ^
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/service/ChatProcessingServiceTest.java:60: error: no suitable method found for thenReturn(String)
-            .thenReturn(aiReply);
-            ^
-    method OngoingStubbing.thenReturn(Mono<String>) is not applicable
-      (argument mismatch; String cannot be converted to Mono<String>)
-    method OngoingStubbing.thenReturn(Mono<String>,Mono<String>...) is not applicable
-      (argument mismatch; String cannot be converted to Mono<String>)
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/service/SelfHealingServiceTest.java:26: error: constructor SelfHealingService in class SelfHealingService cannot be applied to given types;
-        selfHealingService = new SelfHealingService();
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/SystemAuditService.java:53: error: cannot find symbol
+        payload.put("timestamp", log.getTimestamp() != null ? log.getTimestamp().getTime() : System.currentTimeMillis());
+                                                                                ^
+  symbol:   method getTime()
+  location: class LocalDateTime
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/KnowledgeSeederServiceEnhanced.java:132: error: incompatible types: Date cannot be converted to LocalDateTime
+        learning.setCreatedAt(new Date());
+                              ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/KnowledgeSeederServiceEnhanced.java:133: error: incompatible types: Date cannot be converted to LocalDateTime
+        learning.setUpdatedAt(new Date());
+                              ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/KnowledgeSeederServiceEnhanced.java:135: error: incompatible types: Date cannot be converted to LocalDateTime
+        learning.setLastUsed(new Date());
                              ^
-  required: MeterRegistry
-  found:    no arguments
-  reason: actual and formal argument lists differ in length
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/service/SelfHealingServiceTest.java:27: error: cannot find symbol
-        selfHealingService.setReasoningService(reasoningService);
-                          ^
-  symbol:   method setReasoningService(AIReasoningService)
-  location: variable selfHealingService of type SelfHealingService
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/service/SelfHealingServiceTest.java:109: error: constructor SelfHealingService in class SelfHealingService cannot be applied to given types;
-        SelfHealingService service = new SelfHealingService();
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/KnowledgeSeederServiceEnhanced.java:162: error: incompatible types: Date cannot be converted to LocalDateTime
+                learning.setLastUsed(new Date());
                                      ^
-  required: MeterRegistry
-  found:    no arguments
-  reason: actual and formal argument lists differ in length
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/service/SelfHealingServiceTest.java:110: error: cannot find symbol
-        service.setReasoningService(reasoningService);
-               ^
-  symbol:   method setReasoningService(AIReasoningService)
-  location: variable service of type SelfHealingService
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/service/SelfHealingServiceTest.java:126: error: constructor SelfHealingService in class SelfHealingService cannot be applied to given types;
-        SelfHealingService service = new SelfHealingService();
-                                     ^
-  required: MeterRegistry
-  found:    no arguments
-  reason: actual and formal argument lists differ in length
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/service/SelfHealingServiceTest.java:127: error: cannot find symbol
-        service.setReasoningService(reasoningService);
-               ^
-  symbol:   method setReasoningService(AIReasoningService)
-  location: variable service of type SelfHealingService
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/service/SelfHealingServiceTest.java:142: error: constructor SelfHealingService in class SelfHealingService cannot be applied to given types;
-        SelfHealingService service = new SelfHealingService();
-                                     ^
-  required: MeterRegistry
-  found:    no arguments
-  reason: actual and formal argument lists differ in length
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/service/SelfHealingServiceTest.java:143: error: cannot find symbol
-        service.setReasoningService(reasoningService);
-               ^
-  symbol:   method setReasoningService(AIReasoningService)
-  location: variable service of type SelfHealingService
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/service/SelfHealingServiceTest.java:158: error: constructor SelfHealingService in class SelfHealingService cannot be applied to given types;
-        SelfHealingService service = new SelfHealingService();
-                                     ^
-  required: MeterRegistry
-  found:    no arguments
-  reason: actual and formal argument lists differ in length
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/service/SelfHealingServiceTest.java:159: error: cannot find symbol
-        service.setReasoningService(reasoningService);
-               ^
-  symbol:   method setReasoningService(AIReasoningService)
-  location: variable service of type SelfHealingService
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/service/SelfHealingServiceTest.java:174: error: constructor SelfHealingService in class SelfHealingService cannot be applied to given types;
-        SelfHealingService service = new SelfHealingService();
-                                     ^
-  required: MeterRegistry
-  found:    no arguments
-  reason: actual and formal argument lists differ in length
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/service/SelfHealingServiceTest.java:175: error: cannot find symbol
-        service.setReasoningService(reasoningService);
-               ^
-  symbol:   method setReasoningService(AIReasoningService)
-  location: variable service of type SelfHealingService
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/service/SelfHealingServiceTest.java:190: error: constructor SelfHealingService in class SelfHealingService cannot be applied to given types;
-        SelfHealingService service = new SelfHealingService();
-                                     ^
-  required: MeterRegistry
-  found:    no arguments
-  reason: actual and formal argument lists differ in length
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/service/SelfHealingServiceTest.java:191: error: cannot find symbol
-        service.setReasoningService(reasoningService);
-               ^
-  symbol:   method setReasoningService(AIReasoningService)
-  location: variable service of type SelfHealingService
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/service/CodeGenerationServiceTest.java:25: error: constructor CodeGenerationService in class CodeGenerationService cannot be applied to given types;
-        codeGenerationService = new CodeGenerationService(openAIClient);
-                                ^
-  required: no arguments
-  found:    OpenAIClient
-  reason: actual and formal argument lists differ in length
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/service/CyberSecuritySkillServiceTest.java:87: error: cannot find symbol
-        Mono<Map<String, Object>> result = cyberSecuritySkillService.initiateLearningCycle("SQL Injection");
-        ^
-  symbol:   class Mono
-  location: class CyberSecuritySkillServiceTest
-/home/nazifarabbu/supremeai/src/test/java/com/supremeai/service/CyberSecuritySkillServiceTest.java:137: error: cannot find symbol
-        Mono<Map<String, Object>> result = cyberSecuritySkillService.runSelfAudit();
-        ^
-  symbol:   class Mono
-  location: class CyberSecuritySkillServiceTest
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/KnowledgeSeederServiceEnhanced.java:185: error: incompatible types: Date cannot be converted to LocalDateTime
+                learning.setUpdatedAt(new Date());
+                                      ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/KnowledgeSeederServiceEnhanced.java:260: error: cannot find symbol
+                    long diffInMillis = now.getTime() - learning.getLastUsed().getTime();
+                                                                              ^
+  symbol:   method getTime()
+  location: class LocalDateTime
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/KnowledgeSeederServiceEnhanced.java:405: error: incompatible types: Date cannot be converted to LocalDateTime
+        learning.setCreatedAt(new Date());
+                              ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/KnowledgeSeederServiceEnhanced.java:406: error: incompatible types: Date cannot be converted to LocalDateTime
+        learning.setUpdatedAt(new Date());
+                              ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/SelfImprovementService.java:68: error: cannot find symbol
+                .filter(entry -> entry.getLearnedAt() != null && entry.getLearnedAt().after(intervalAgoDate))
+                                                                                     ^
+  symbol:   method after(Date)
+  location: class LocalDateTime
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/service/SelfImprovementService.java:110: error: incompatible types: Date cannot be converted to LocalDateTime
+            learning.setLearnedAt(new java.util.Date());
+                                  ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/admin/ProviderAdminService.java:415: error: incompatible types: Date cannot be converted to LocalDateTime
+        logRecord.setTimestamp(new Date());
+                               ^
+/home/nazifarabbu/supremeai/src/main/java/com/supremeai/controller/LearningIngestController.java:110: error: incompatible types: Date cannot be converted to LocalDateTime
+            pattern.setLearnedAt(LocalDateTime.now());
+                                 ^
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
 Note: Some input files use unchecked or unsafe operations.
 Note: Recompile with -Xlint:unchecked for details.
 Note: Some messages have been simplified; recompile with -Xdiags:verbose to get full output
-100 errors
+15 errors
 
-> Task :compileTestJava FAILED
+> Task :compileJava FAILED
 
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-Execution failed for task ':compileTestJava'.
+Execution failed for task ':compileJava'.
 > Compilation failed; see the compiler error output for details.
 
 * Try:
 > Run with --info option to get more log output.
 > Run with --scan to get full insights.
 
-BUILD FAILED in 12s
-5 actionable tasks: 1 executed, 4 up-to-date
+BUILD FAILED in 1m 26s
+3 actionable tasks: 2 executed, 1 from cache

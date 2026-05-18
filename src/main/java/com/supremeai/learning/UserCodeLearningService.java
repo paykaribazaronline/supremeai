@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -176,7 +177,7 @@ public class UserCodeLearningService {
         pattern.setContent(content.toString());
 
         // Set learnedAt
-        pattern.setLearnedAt(new java.util.Date());
+        pattern.setLearnedAt(LocalDateTime.now());
 
         // Set metadata
         Map<String, Object> metadata = new HashMap<>();
@@ -355,9 +356,9 @@ public class UserCodeLearningService {
                 if (!ts.isEmpty()) {
                     try {
                         // Simple parse for ISO-like strings or just use current date if it fails
-                        pattern.setLearnedAt(new java.util.Date()); 
+                        pattern.setLearnedAt(LocalDateTime.now()); 
                     } catch (Exception e) {
-                        pattern.setLearnedAt(new java.util.Date());
+                        pattern.setLearnedAt(LocalDateTime.now());
                     }
                 }
             }
@@ -424,7 +425,7 @@ public class UserCodeLearningService {
             pattern.setContent("Error: " + errorSignature + 
                 "\nCode: " + failedCode.substring(0, Math.min(200, failedCode.length())));
             pattern.setConfidenceScore(0.5);
-            pattern.setLearnedAt(new java.util.Date());
+            pattern.setLearnedAt(LocalDateTime.now());
             pattern.setMetadata(Map.of(
                 "errorSignature", errorSignature,
                 "failedCode", failedCode.substring(0, Math.min(500, failedCode.length()))

@@ -10,8 +10,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import lombok.Data;
 import lombok.Builder;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,11 +51,21 @@ public class ErrorResolutionService {
             CodeRepository repo = repository.findById(repositoryId)
                 .orElseThrow(() -> new RuntimeException("Repository not found"));
             
-            // Use AI to analyze the error
-            AIProvider aiProvider = providerFactory.getBestProviderForTask("error_analysis");
-            
+            // Use AI to analyze the error (provider lookup runs off the Netty loop)
+            AIProvider aiProvider = Mono.fromCallable(() ->
+                            (AIProvider) providerFactory.getBestProviderForTask("error_analysis")
+                                    .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                                    .block(java.time.Duration.ofSeconds(30))
+                    ).subscribeOn(Schedulers.boundedElastic())
+                    .block(Duration.ofSeconds(35));
+
             String prompt = buildErrorAnalysisPrompt(errorType, stackTrace, context, repo);
-            String response = aiProvider.generate(prompt).block();
+            String response = Mono.fromCallable(() ->
+                            aiProvider.generate(prompt)
+                                    .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                                    .block(java.time.Duration.ofSeconds(120))
+                    ).subscribeOn(Schedulers.boundedElastic())
+                    .block(Duration.ofSeconds(125));
             
             // Parse AI response
             CodeRepository.ErrorAnalysis analysis = parseErrorAnalysis(response, errorType, stackTrace, repo);
@@ -126,10 +139,20 @@ public class ErrorResolutionService {
             CodeRepository repo = repository.findById(repositoryId)
                 .orElseThrow(() -> new RuntimeException("Repository not found"));
             
-            AIProvider aiProvider = providerFactory.getBestProviderForTask("fix_generation");
-            
+            AIProvider aiProvider = Mono.fromCallable(() ->
+                            (AIProvider) providerFactory.getBestProviderForTask("fix_generation")
+                                    .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                                    .block(java.time.Duration.ofSeconds(30))
+                    ).subscribeOn(Schedulers.boundedElastic())
+                    .block(Duration.ofSeconds(35));
+
             String prompt = buildFixGenerationPrompt(errorType, description, repo);
-            String response = aiProvider.generate(prompt).block();
+            String response = Mono.fromCallable(() ->
+                            aiProvider.generate(prompt)
+                                    .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                                    .block(java.time.Duration.ofSeconds(120))
+                    ).subscribeOn(Schedulers.boundedElastic())
+                    .block(Duration.ofSeconds(125));
             
             // Parse fix suggestion
             CodeRepository.AISuggestion suggestion = parseFixSuggestion(response, errorType);

@@ -12,6 +12,9 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.Map;
 
+import jakarta.validation.Valid;
+import org.springframework.validation.annotation.Validated;
+
 /**
  * System learning endpoints - ADMIN only.
  * Stores AI system improvements and learnings.
@@ -19,6 +22,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/system-learning")
 @PreAuthorize("hasRole('ADMIN')")
+@Validated
 public class SystemLearningController {
 
     private final SystemLearningService service;
@@ -44,7 +48,7 @@ public class SystemLearningController {
     }
 
     @PostMapping
-    public Mono<SystemLearning> addLearning(@RequestBody SystemLearning learning) {
+    public Mono<SystemLearning> addLearning(@Valid @RequestBody SystemLearning learning) {
         return service.addLearning(learning);
     }
 

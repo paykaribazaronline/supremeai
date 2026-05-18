@@ -4,13 +4,18 @@ import com.supremeai.service.AutonomousQuestioningEngine;
 import com.supremeai.service.ContextualAIRankingService;
 import com.supremeai.service.MultiAIVotingService;
 import com.supremeai.response.ApiResponse;
+import com.supremeai.repository.ProviderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
@@ -20,6 +25,8 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 class IntelligenceControllerTest {
@@ -28,10 +35,16 @@ class IntelligenceControllerTest {
     private AutonomousQuestioningEngine questioningEngine;
 
     @Mock
-    private MultiAIVotingService votingService;
+    private ContextualAIRankingService rankingService;
 
     @Mock
-    private ContextualAIRankingService rankingService;
+    private ApplicationContext applicationContext;
+
+    @Mock
+    private ProviderRepository providerRepository;
+
+    @Mock
+    private MultiAIVotingService votingService;
 
     private IntelligenceController intelligenceController;
 
@@ -39,8 +52,11 @@ class IntelligenceControllerTest {
     void setUp() {
         intelligenceController = new IntelligenceController();
         setField(intelligenceController, "questioningEngine", questioningEngine);
-        setField(intelligenceController, "votingService", votingService);
         setField(intelligenceController, "rankingService", rankingService);
+        setField(intelligenceController, "applicationContext", applicationContext);
+        setField(intelligenceController, "providerRepository", providerRepository);
+        lenient().when(applicationContext.getBean(MultiAIVotingService.class)).thenReturn(votingService);
+        lenient().when(providerRepository.findAll()).thenReturn(Flux.empty());
     }
 
     private void setField(Object target, String fieldName, Object value) {
@@ -213,10 +229,12 @@ class IntelligenceControllerTest {
 
     @Test
     void executeVoting_SuccessfulVote_ReturnsResult() {
+        var vote1 = new com.supremeai.model.ProviderVote("gpt4", "def sort_list(lst): return sorted(lst)", 0.95, System.currentTimeMillis());
+        var vote2 = new com.supremeai.model.ProviderVote("claude", "def sort_list(lst): return sorted(lst)", 0.89, System.currentTimeMillis());
         MultiAIVotingService.VotingResult votingResult = new MultiAIVotingService.VotingResult(
                 "Write Python code",
                 "def sort_list(lst): return sorted(lst)",
-                List.of(),
+                List.of(vote1, vote2),
                 0.92,
                 "STRONG_CONSENSUS",
                 3500L
@@ -268,7 +286,7 @@ class IntelligenceControllerTest {
                 .verifyComplete();
 
         verify(votingService).executeEnsembleVoting(eq("Test prompt"),
-                eq(List.of(MultiAIVotingService.DEFAULT_PROVIDERS)), anyLong());
+                eq(List.of()), anyLong());
     }
 
     @Test
@@ -325,7 +343,7 @@ class IntelligenceControllerTest {
                 .expectNextMatches(response -> {
                     assertEquals(HttpStatus.OK, response.getStatusCode());
                     Map<String, Object> data = response.getBody().getData();
-                    assertEquals(MultiAIVotingService.ALL_PROVIDERS.length, data.get("totalModels"));
+                    assertEquals(0, data.get("totalModels"));
                     assertNotNull(data.get("models"));
                     return true;
                 })

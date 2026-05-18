@@ -186,6 +186,14 @@ const ProviderModal: React.FC<Props> = ({ visible, editingProvider, onCancel, on
           </Form.Item>
         </div>
 
+        <Form.Item name="deploymentSource" label="Deployment Group" initialValue="api" help="Determines which group this model appears in on the admin dashboard">
+          <Select>
+            <Option value="api">🔑 API Key — Regular API key providers (OpenAI, Anthropic, etc.)</Option>
+            <Option value="gcloud">☁️ GCloud Deploy — Firebase / Google Gemini / Vertex AI models</Option>
+            <Option value="local">🖥️ Local / Ollama — Self-hosted Ollama or local models</Option>
+          </Select>
+        </Form.Item>
+
         <Form.Item name="status" label="Provider Status" initialValue="active" style={{ marginTop: '16px' }}>
           <Select>
             <Option value="active">Active</Option>

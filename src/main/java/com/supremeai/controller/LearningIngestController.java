@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.time.LocalDateTime;
 
 /**
  * Learning Ingest Controller - Public endpoints for VS Code Extension
@@ -107,7 +108,7 @@ public class LearningIngestController {
                 event.isAccepted() ? "accepted" : "rejected", 
                 event.getContext()));
             pattern.setConfidenceScore(event.isAccepted() ? 0.9 : 0.3);
-            pattern.setLearnedAt(new java.util.Date());
+            pattern.setLearnedAt(LocalDateTime.now());
             pattern.setSources(List.of("vscode-extension"));
             
             // Save via SystemLearningRepository

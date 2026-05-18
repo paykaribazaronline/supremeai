@@ -176,10 +176,17 @@
     "optimized_logic_paths": {}
   },
   "operational_constraints": {
-    "data_privacy": "100% GCloud Native - No data leaves the VPC.",
+    "data_privacy": "100% Cloud Native - No data leaves the VPC.",
     "response_priority": {
-      "low_latency": "Phi-3.5-mini (Edge Cluster)",
-      "high_accuracy": "MoE Super-Hubs"
+      "low_latency": "gcp_phi (Cloud Run)",
+      "high_accuracy": "Multi-Orchestrated Cloud MoE Super-Hubs"
+    },
+    "provider_policy": {
+      "mode": "cloud-only",
+      "no_local_fallback": true,
+      "no_hardcoded_providers": true,
+      "all_providers_from_firestore": true,
+      "auto_failover": "any available cloud provider"
     }
   }
 }

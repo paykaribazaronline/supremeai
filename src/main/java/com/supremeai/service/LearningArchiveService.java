@@ -87,10 +87,7 @@ public class LearningArchiveService {
                     List<SystemLearning> toArchive = allLearnings.stream()
                             .filter(l -> {
                                 if (l.getLearnedAt() == null) return true;
-                                LocalDateTime learnedAt = l.getLearnedAt().toInstant()
-                                        .atZone(ZoneId.systemDefault())
-                                        .toLocalDateTime();
-                                return learnedAt.isBefore(cutoffDate);
+                                return l.getLearnedAt().isBefore(cutoffDate);
                             })
                             .limit(Math.max(0, allLearnings.size() - hotLimit))
                             .collect(Collectors.toList());

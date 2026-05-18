@@ -12,7 +12,7 @@ class VectorSearchServiceTest {
         List<Double> a = List.of(1.0, 2.0, 3.0);
         List<Double> b = List.of(1.0, 2.0, 3.0);
 
-        VectorSearchService service = new VectorSearchService(null, null);
+        VectorSearchService service = new VectorSearchService(null, null, null);
         double similarity = service.cosineSimilarity(a, b);
 
         assertEquals(1.0, similarity, 0.001);
@@ -23,7 +23,7 @@ class VectorSearchServiceTest {
         List<Double> a = List.of(1.0, 0.0, 0.0);
         List<Double> b = List.of(0.0, 1.0, 0.0);
 
-        VectorSearchService service = new VectorSearchService(null, null);
+        VectorSearchService service = new VectorSearchService(null, null, null);
         double similarity = service.cosineSimilarity(a, b);
 
         assertEquals(0.0, similarity, 0.001);
@@ -34,7 +34,7 @@ class VectorSearchServiceTest {
         List<Double> a = List.of(1.0, 2.0, 3.0);
         List<Double> b = List.of(-1.0, -2.0, -3.0);
 
-        VectorSearchService service = new VectorSearchService(null, null);
+        VectorSearchService service = new VectorSearchService(null, null, null);
         double similarity = service.cosineSimilarity(a, b);
 
         assertEquals(-1.0, similarity, 0.001);
@@ -42,7 +42,7 @@ class VectorSearchServiceTest {
 
     @Test
     void testCosineSimilarityEmpty() {
-        VectorSearchService service = new VectorSearchService(null, null);
+        VectorSearchService service = new VectorSearchService(null, null, null);
         double similarity = service.cosineSimilarity(List.of(), List.of());
         assertEquals(0.0, similarity, 0.001);
     }
@@ -52,7 +52,7 @@ class VectorSearchServiceTest {
         List<Double> a = List.of(1.0, 2.0);
         List<Double> b = List.of(1.0, 2.0, 3.0);
 
-        VectorSearchService service = new VectorSearchService(null, null);
+        VectorSearchService service = new VectorSearchService(null, null, null);
         double similarity = service.cosineSimilarity(a, b);
         assertEquals(0.0, similarity, 0.001);
     }

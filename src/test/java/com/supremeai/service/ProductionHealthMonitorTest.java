@@ -15,6 +15,11 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import com.supremeai.repository.MonitoringLogRepository;
+import reactor.core.publisher.Mono;
+
 @ExtendWith(MockitoExtension.class)
 class ProductionHealthMonitorTest {
 
@@ -24,10 +29,23 @@ class ProductionHealthMonitorTest {
     @Mock
     private com.supremeai.mcp.MCPClientManager mcpClientManager;
 
+    @Mock
+    private SimpMessagingTemplate messagingTemplate;
+
+    @Mock
+    private MonitoringLogRepository monitoringLogRepository;
+
     @BeforeEach
     void setUp() {
         meterRegistry = new SimpleMeterRegistry();
         healthMonitor = new ProductionHealthMonitor(meterRegistry);
+        
+        ReflectionTestUtils.setField(healthMonitor, "mcpClientManager", mcpClientManager);
+        ReflectionTestUtils.setField(healthMonitor, "messagingTemplate", messagingTemplate);
+        ReflectionTestUtils.setField(healthMonitor, "monitoringLogRepository", monitoringLogRepository);
+        
+        lenient().when(monitoringLogRepository.save(any()))
+            .thenReturn(Mono.just(new com.supremeai.model.MonitoringLog()));
     }
 
     // ==================== Record Success Tests ====================
@@ -114,7 +132,7 @@ class ProductionHealthMonitorTest {
     @Test
     void getHealthStatus_LowSuccessRate_GeneratesAlert() {
         // Simulate many failures to trigger alert
-        for (int i = 0; i < 95; i++) {
+        for (int i = 0; i < 96; i++) {
             healthMonitor.recordFailure("openai", "Error");
         }
         for (int i = 0; i < 5; i++) {
@@ -229,7 +247,7 @@ class ProductionHealthMonitorTest {
         try {
             field = ProductionHealthMonitor.class.getDeclaredField("uptimeSeconds");
             field.setAccessible(true);
-            field.set(healthMonitor, 93784L); // 1 day + 2 hours + 17 min + 44 sec
+            field.set(healthMonitor, 94664L); // 1 day + 2 hours + 17 min + 44 sec
         } catch (Exception e) {
             fail("Failed to set uptimeSeconds: " + e.getMessage());
         }

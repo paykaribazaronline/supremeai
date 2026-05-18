@@ -63,24 +63,25 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         }
         
         String authHeader = request.getHeader("Authorization");
+        String guestHeader = request.getHeader("X-Guest-Access");
         String idToken = null;
         
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             idToken = authHeader.substring(7);
         }
         
-        if (idToken == null || idToken.trim().isEmpty()) {
-            logger.debug("No authentication token found in header, continuing filter chain");
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        if ("GUEST_MODE".equals(idToken)) {
+        if ("true".equals(guestHeader) || "GUEST_MODE".equals(idToken)) {
             List<SimpleGrantedAuthority> authorities = new ArrayList<>();
             authorities.add(new SimpleGrantedAuthority("ROLE_GUEST"));
             UsernamePasswordAuthenticationToken auth = 
                 new UsernamePasswordAuthenticationToken("guest_user", null, authorities);
             SecurityContextHolder.getContext().setAuthentication(auth);
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
+        if (idToken == null || idToken.trim().isEmpty()) {
+            logger.debug("No authentication token found in header, continuing filter chain");
             filterChain.doFilter(request, response);
             return;
         }

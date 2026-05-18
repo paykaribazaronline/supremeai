@@ -19,6 +19,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Aspect
 @Component
@@ -64,7 +65,7 @@ public class AuditLoggingAspect {
                 args + (error != null ? " | error: " + error : ""),
                 outcome, ip
             );
-            activityLog.setTimestamp(java.util.Date.from(Instant.now()));
+            activityLog.setTimestamp(LocalDateTime.now());
 
             activityLogRepository.save(activityLog);
         } catch (Exception e) {

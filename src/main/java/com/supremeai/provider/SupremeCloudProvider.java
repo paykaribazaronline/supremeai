@@ -30,7 +30,9 @@ public class SupremeCloudProvider extends AbstractHttpProvider {
         if (isHfInference) {
             return baseUrl; // HF inference uses URL directly
         }
-        return baseUrl.endsWith("/") ? baseUrl + "v1/chat/completions" : baseUrl + "/v1/chat/completions";
+        String url = baseUrl.endsWith("/") ? baseUrl + "v1/chat/completions" : baseUrl + "/v1/chat/completions";
+        logger.info("[SupremeCloudProvider] getRequestUrl for {}: {}", providerName, url);
+        return url;
     }
 
     @Override
@@ -68,10 +70,10 @@ public class SupremeCloudProvider extends AbstractHttpProvider {
         if (responseBody == null || responseBody.isBlank()) {
             return "No response from " + providerName;
         }
-        
+
         if (isHfInference) {
             // HF Inference API can return a List or a Map
-            Object rawResponse = responseBody.trim().startsWith("[") 
+            Object rawResponse = responseBody.trim().startsWith("[")
                 ? objectMapper.readValue(responseBody, new TypeReference<List<Map<String, Object>>>() {})
                 : objectMapper.readValue(responseBody, new TypeReference<Map<String, Object>>() {});
 
@@ -91,7 +93,7 @@ public class SupremeCloudProvider extends AbstractHttpProvider {
             }
             return "Empty HF response";
         }
-        
+
         Map<String, Object> response = objectMapper.readValue(responseBody, new TypeReference<Map<String, Object>>() {});
         List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
         if (choices != null && !choices.isEmpty()) {

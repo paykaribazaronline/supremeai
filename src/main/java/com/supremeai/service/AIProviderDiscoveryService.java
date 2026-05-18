@@ -94,13 +94,18 @@ public class AIProviderDiscoveryService {
     }
 
     public Mono<Boolean> validateKey(String providerName, String apiKey) {
+        logger.info("[VALIDATION-DS] validateKey called: providerName={}, apiKeyLength={}", providerName, apiKey != null ? apiKey.length() : "null");
         try {
             com.supremeai.provider.AIProvider provider = providerFactory.getProvider(providerName, apiKey);
             return provider.generate("hi")
-                    .map(resp -> resp != null && !resp.isEmpty())
+                    .map(resp -> {
+                        logger.info("[VALIDATION-DS] generate response received for {}: length={}", providerName, resp != null ? resp.length() : "null");
+                        return resp != null && !resp.isEmpty();
+                    })
+                    .doOnError(e -> logger.error("[VALIDATION-DS] generate() error for {}: {}", providerName, e.toString()))
                     .onErrorReturn(false);
         } catch (Exception e) {
-            logger.error("Validation failed for {}: {}", providerName, e.getMessage());
+            logger.error("[VALIDATION-DS] validateKey EXCEPTION for {}: {}", providerName, e.getClass().getSimpleName() + ": " + e.getMessage());
             return Mono.just(false);
         }
     }

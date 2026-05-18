@@ -57,106 +57,127 @@ public class ChatController {
 
     @PostMapping("/send")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'AGENT_MANAGER', 'GUEST')")
-    public ResponseEntity<Object> sendMessage(@Valid @RequestBody ChatRequest request) {
+    public Mono<ResponseEntity<Object>> sendMessage(@Valid @RequestBody ChatRequest request) {
         String message = request.getMessage();
         boolean skipValidation = request.isSkipValidation();
 
         if (message == null || message.trim().isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Message is required"));
+            return Mono.just(ResponseEntity.badRequest().body(Map.of("error", "Message is required")));
         }
 
         logger.info("Received chat message: {}", message);
 
-        // S3: Autonomous Questioning - Validate input clarity
+        Mono<ResponseEntity<Object>> validationMono;
         if (!skipValidation) {
-            var validation = questioningEngine.validateAndQuestion(message, AutonomousQuestioningEngine.RequestType.GENERAL_AI).block();
-            if (validation != null && !validation.isComplete() && validation.hasQuestions()) {
-                Map<String, Object> response = new HashMap<>();
-                response.put("type", "CLARIFICATION_REQUIRED");
-                response.put("questions", validation.getClarifyingQuestions());
-                response.put("clarityScore", validation.getClarityScore());
-                response.put("message", "I need more information before I can give you a quality answer.");
-                return ResponseEntity.ok(response);
-            }
-        }
-
-        try {
-            // S4: 10-AI Voting System - Execute voting across models
-            var votingResult = votingService.executeEnsembleVoting(message, null, 15000L).block();
-            if (votingResult == null) {
-                return ResponseEntity.status(503).body(Map.of("error", "AI services returned no result"));
-            }
-
-            String bestResponse = votingResult.getBestResponse();
-            Double confidence = votingResult.getAverageConfidence();
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", bestResponse);
-            response.put("verdict", votingResult.getVerdict());
-            response.put("confidence", confidence);
-            response.put("modelsUsed", votingResult.getTotalModelsUsed());
-            response.put("processingTimeMs", votingResult.getProcessingTimeMs());
-            response.put("timestamp", java.time.Instant.now().toString());
-
-            // Intent classification
-            var intent = intelligenceService.classifyIntent(message);
-            response.put("mode", intent.name().toLowerCase());
-            response.put("intent", intent.name());
-
-            // Side-effects (Learning)
-            intelligenceService.handleIntelligence(
-                request.getAgentId() != null ? request.getAgentId() : "default",
-                message,
-                intent,
-                "ADMIN",
-                confidence
-            ).subscribe(
-                result -> logger.debug("Intelligence handled successfully"),
-                error -> logger.error("Error handling intelligence: {}", error.getMessage())
-            );
-
-            if (enhancedLearningService != null) {
-                enhancedLearningService.learnFromNLPInteraction(
-                    message,
-                    bestResponse,
-                    "voting_system",
-                    confidence != null ? confidence : 0.5,
-                    Map.of("modelsUsed", votingResult.getTotalModelsUsed())
-                ).subscribe(
-                    saved -> logger.info("Successfully learned from NLP interaction"),
-                    error -> logger.error("Failed to capture NLP learning: {}", error.getMessage())
-                );
-            }
-
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            logger.error("Failed to get response via voting system", e);
-            
-            CircuitBreaker.State circuitState = aiCircuitBreaker.getState();
-            if (consensusService != null && circuitState != CircuitBreaker.State.OPEN) {
-                try {
-                    var res = consensusService.askConsensus(message, 
-                        java.util.Arrays.asList("groq", "deepseek", "claude", "openai", "ollama"), 10000L).block();
-                    if (res != null) {
-                        return ResponseEntity.ok(Map.of(
-                            "message", res.getConsensusAnswer(),
-                            "confidence", res.getAverageConfidence(),
-                            "fallback", true,
-                            "circuitBreakerState", circuitState.name()
-                        ));
+            validationMono = questioningEngine.validateAndQuestion(message, AutonomousQuestioningEngine.RequestType.GENERAL_AI)
+                .flatMap(validation -> {
+                    if (validation != null && !validation.isComplete() && validation.hasQuestions()) {
+                        Map<String, Object> response = new HashMap<>();
+                        response.put("type", "CLARIFICATION_REQUIRED");
+                        response.put("questions", validation.getClarifyingQuestions());
+                        response.put("clarityScore", validation.getClarityScore());
+                        response.put("message", "I need more information before I can give you a quality answer.");
+                        return Mono.just(ResponseEntity.ok((Object) response));
                     }
-                } catch (Exception ex) {
-                    logger.error("Fallback consensus also failed", ex);
-                }
-            }
-
-            return ResponseEntity.status(503).body(Map.of(
-                "error", "AI services temporarily unavailable",
-                "circuitBreakerState", circuitState.name(),
-                "retryAfter", 60
-            ));
+                    return Mono.empty();
+                });
+        } else {
+            validationMono = Mono.empty();
         }
+
+        return validationMono
+            .switchIfEmpty(Mono.defer(() -> executeVotingAndResponse(request, message)));
     }
+
+    private Mono<ResponseEntity<Object>> executeVotingAndResponse(ChatRequest request, String message) {
+        return votingService.executeEnsembleVoting(message, null, 15000L)
+            .flatMap(votingResult -> {
+                if (votingResult == null) {
+                    return Mono.just(ResponseEntity.status(503).body((Object) Map.of("error", "AI services returned no result")));
+                }
+
+                String bestResponse = votingResult.getBestResponse();
+                Double confidence = votingResult.getAverageConfidence();
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("message", bestResponse);
+                response.put("verdict", votingResult.getVerdict());
+                response.put("confidence", confidence);
+                response.put("modelsUsed", votingResult.getTotalModelsUsed());
+                response.put("processingTimeMs", votingResult.getProcessingTimeMs());
+                response.put("timestamp", java.time.Instant.now().toString());
+
+                // Intent classification
+                var intent = intelligenceService.classifyIntent(message);
+                response.put("mode", intent.name().toLowerCase());
+                response.put("intent", intent.name());
+
+                // Side-effects (Learning) - non-blocking execution
+                intelligenceService.handleIntelligence(
+                    request.getAgentId() != null ? request.getAgentId() : "default",
+                    message,
+                    intent,
+                    "ADMIN",
+                    confidence
+                ).subscribe(
+                    result -> logger.debug("Intelligence handled successfully"),
+                    error -> logger.error("Error handling intelligence: {}", error.getMessage())
+                );
+
+                if (enhancedLearningService != null) {
+                    enhancedLearningService.learnFromNLPInteraction(
+                        message,
+                        bestResponse,
+                        "voting_system",
+                        confidence != null ? confidence : 0.5,
+                        Map.of("modelsUsed", votingResult.getTotalModelsUsed())
+                    ).subscribe(
+                        saved -> logger.info("Successfully learned from NLP interaction"),
+                        error -> logger.error("Failed to capture NLP learning: {}", error.getMessage())
+                    );
+                }
+
+                return Mono.just(ResponseEntity.ok((Object) response));
+            })
+            .onErrorResume(e -> {
+                logger.error("Failed to get response via voting system", e);
+                CircuitBreaker.State circuitState = aiCircuitBreaker.getState();
+                if (consensusService != null && circuitState != CircuitBreaker.State.OPEN) {
+                    return consensusService.askConsensus(message, 
+                        java.util.Arrays.asList("groq", "deepseek", "claude", "openai", "ollama"), 10000L)
+                        .map(res -> {
+                            if (res != null) {
+                                return ResponseEntity.ok((Object) Map.of(
+                                    "message", res.getConsensusAnswer(),
+                                    "confidence", res.getAverageConfidence(),
+                                    "fallback", true,
+                                    "circuitBreakerState", circuitState.name()
+                                ));
+                            }
+                            return ResponseEntity.status(503).body((Object) Map.of(
+                                "error", "AI services temporarily unavailable",
+                                "circuitBreakerState", circuitState.name(),
+                                "retryAfter", 60
+                            ));
+                        })
+                        .onErrorResume(ex -> {
+                            logger.error("Fallback consensus also failed", ex);
+                            return Mono.just(ResponseEntity.status(503).body((Object) Map.of(
+                                "error", "AI services temporarily unavailable",
+                                "circuitBreakerState", circuitState.name(),
+                                "retryAfter", 60
+                            )));
+                        });
+                }
+
+                return Mono.just(ResponseEntity.status(503).body((Object) Map.of(
+                    "error", "AI services temporarily unavailable",
+                    "circuitBreakerState", circuitState.name(),
+                    "retryAfter", 60
+                )));
+            });
+    }
+
 
     @GetMapping("/history")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'GUEST')")
@@ -181,7 +202,7 @@ public class ChatController {
         logger.info("Received feedback for message: {}, helpful: {}", messageId, helpful);
 
         // Capture learning from feedback - this is valuable for NLP improvement
-        if (enhancedLearningService != null && userMessage != null && aiResponse != null) {
+        if (enhancedLearningService != null && userMessage != null && aiResponse != null && messageId != null) {
             double qualityScore = helpful ? 1.0 : 0.3;
             enhancedLearningService.learnFromNLPInteraction(
                     userMessage,

@@ -113,26 +113,63 @@ public class FirebaseConfig {
         // 1. Env var: FIREBASE_SERVICE_ACCOUNT_JSON (JSON payload directly)
         String secretJson = System.getenv("FIREBASE_SERVICE_ACCOUNT_JSON");
         if (secretJson != null && !secretJson.isBlank()) {
-            log.info("Firebase: Loading credentials from FIREBASE_SERVICE_ACCOUNT_JSON env var");
-            return GoogleCredentials.fromStream(new ByteArrayInputStream(secretJson.getBytes(StandardCharsets.UTF_8)));
+            if (secretJson.contains("YOUR_PRIVATE_KEY_HERE")) {
+                log.warn("Firebase: Detected placeholder in FIREBASE_SERVICE_ACCOUNT_JSON env var. Ignoring.");
+            } else {
+                log.info("Firebase: Loading credentials from FIREBASE_SERVICE_ACCOUNT_JSON env var");
+                return GoogleCredentials.fromStream(new ByteArrayInputStream(secretJson.getBytes(StandardCharsets.UTF_8)));
+            }
         }
 
         // 2. Try primary service account file
-        InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream("firebase-service-account.json");
-        if (serviceAccount == null) {
+        byte[] credentialBytes = loadNonPlaceholderResource("firebase-service-account.json");
+        if (credentialBytes == null) {
             // 3. Try alternative service account file name
-            serviceAccount = getClass().getClassLoader().getResourceAsStream("service-account.json");
+            credentialBytes = loadNonPlaceholderResource("service-account.json");
         }
 
-        if (serviceAccount != null) {
+        if (credentialBytes != null) {
             log.info("Firebase: Loading credentials from classpath JSON file");
-            return GoogleCredentials.fromStream(serviceAccount)
+            return GoogleCredentials.fromStream(new ByteArrayInputStream(credentialBytes))
                     .createScoped(Collections.singletonList("https://www.googleapis.com/auth/cloud-platform"));
         }
 
         // 4. Fallback to Application Default Credentials
-        log.info("Firebase: Falling back to Application Default Credentials (ADC)");
-        return GoogleCredentials.getApplicationDefault()
-                .createScoped(Collections.singletonList("https://www.googleapis.com/auth/cloud-platform"));
+        try {
+            log.info("Firebase: Falling back to Application Default Credentials (ADC)");
+            return GoogleCredentials.getApplicationDefault()
+                    .createScoped(Collections.singletonList("https://www.googleapis.com/auth/cloud-platform"));
+        } catch (Exception e) {
+            log.warn("========================================================================");
+            log.warn("WARNING: No valid Google Credentials found! Firestore will NOT be able to connect.");
+            log.warn("Please configure FIREBASE_SERVICE_ACCOUNT_JSON env var or place a valid");
+            log.warn("service-account.json file in the classpath/project root.");
+            log.warn("Error message: {}", e.getMessage());
+            log.warn("========================================================================");
+
+            // Fallback to anonymous credentials to prevent app startup failure
+            return new GoogleCredentials() {
+                @Override
+                public com.google.auth.oauth2.AccessToken refreshAccessToken() throws IOException {
+                    return new com.google.auth.oauth2.AccessToken("", new java.util.Date(0));
+                }
+            };
+        }
+    }
+
+    private byte[] loadNonPlaceholderResource(String name) throws IOException {
+        InputStream stream = getClass().getClassLoader().getResourceAsStream(name);
+        if (stream == null) {
+            return null;
+        }
+        try (stream) {
+            byte[] bytes = stream.readAllBytes();
+            String content = new String(bytes, StandardCharsets.UTF_8);
+            if (content.contains("YOUR_PRIVATE_KEY_HERE") || content.contains("YOUR_PRIVATE_KEY_ID_HERE")) {
+                log.warn("Firebase: Detected placeholder in classpath file '{}'. Ignoring.", name);
+                return null;
+            }
+            return bytes;
+        }
     }
 }

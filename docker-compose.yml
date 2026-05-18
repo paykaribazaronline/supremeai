@@ -26,6 +26,19 @@ services:
     depends_on:
       - redis
 
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    container_name: supremeai-dashboard
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:8080}
+    restart: unless-stopped
+    depends_on:
+      - supremeai
+
   redis:
     image: redis:7-alpine
     container_name: supremeai-redis

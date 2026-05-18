@@ -493,18 +493,18 @@ return "package com.example.generated.controller;\n\n" +
                "    build: .\n" +
                "    ports:\n" +
                "      - \"8080:8080\"\n" +
-               "    environment:\n" +
-               "      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/generated_app\n" +
-               "      - SPRING_DATASOURCE_USERNAME=postgres\n" +
-               "      - SPRING_DATASOURCE_PASSWORD=postgres\n" +
-               "    depends_on:\n" +
-               "      - db\n\n" +
-               "  db:\n" +
-               "    image: postgres:15\n" +
-               "    environment:\n" +
-               "      - POSTGRES_DB=generated_app\n" +
-               "      - POSTGRES_USER=postgres\n" +
-               "      - POSTGRES_PASSWORD=postgres\n" +
+                "    environment:\n" +
+                "      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/generated_app\n" +
+                "      - SPRING_DATASOURCE_USERNAME=${DB_USER:postgres}\n" +
+                "      - SPRING_DATASOURCE_PASSWORD=${DB_PASS}\n" +
+                "    depends_on:\n" +
+                "      - db\n\n" +
+                "  db:\n" +
+                "    image: postgres:15\n" +
+                "    environment:\n" +
+                "      - POSTGRES_DB=generated_app\n" +
+                "      - POSTGRES_USER=${DB_USER:postgres}\n" +
+                "      - POSTGRES_PASSWORD=${DB_PASS:CHANGE-ME}\n" +
                "    ports:\n" +
                "      - \"5432:5432\"\n" +
                "    volumes:\n" +

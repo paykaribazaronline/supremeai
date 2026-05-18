@@ -54,7 +54,10 @@ const AdminSystemWorkRules: React.FC = () => {
   const [form] = Form.useForm();
 
   useEffect(() => {
-    fetchRules();
+    const init = async () => {
+      await fetchRules();
+    };
+    init();
   }, []);
 
   // ─── Fetch all rules ──────────────────────────────────────────────────────

@@ -81,6 +81,36 @@ public class ProviderInitializationService {
         log.warn("No type config found for provider '{}' — admin must configure manually in dashboard", provider.getName());
     }
 
+    /**
+     * Detect deploymentSource for a provider based on its type, name, and email.
+     * Mirrors the same logic in ProviderAdminService for consistency.
+     */
+    private String detectDeploymentSource(String type, String accountEmail, String baseUrl) {
+        if (type != null) {
+            String upperType = type.toUpperCase();
+            if (upperType.equals("GOOGLE") || upperType.equals("GEMINI") || upperType.equals("VERTEX")) {
+                return "gcloud";
+            }
+            if (upperType.equals("LOCAL") || upperType.equals("OLLAMA")) {
+                return "ollama";
+            }
+        }
+        if (baseUrl != null && !baseUrl.isBlank()) {
+            String lowerUrl = baseUrl.toLowerCase();
+            if (lowerUrl.contains("localhost") || lowerUrl.contains("127.0.0.1") || lowerUrl.contains("ollama")) {
+                return "ollama";
+            }
+        }
+        if (accountEmail != null && !accountEmail.isBlank()) {
+            String lowerEmail = accountEmail.toLowerCase();
+            if (lowerEmail.contains("@google.com") || lowerEmail.contains("@gmail.com")
+                    || lowerEmail.contains("googleapis.com") || lowerEmail.contains("firebase")) {
+                return "gcloud";
+            }
+        }
+        return "api";
+    }
+
     @EventListener(ApplicationReadyEvent.class)
     public void syncProvidersOnStartup() {
         log.info("[STARTUP] Initializing AI provider synchronization in background...");
@@ -105,11 +135,30 @@ public class ProviderInitializationService {
                     .flatMap(provider -> {
                         provider.setApiKey(key);
                         provider.setLastCheck(new Date());
-                        
+
+                        // Backfill deploymentSource for existing providers
+                        if (provider.getDeploymentSource() == null || provider.getDeploymentSource().isBlank()) {
+                            provider.setDeploymentSource(detectDeploymentSource(
+                                    provider.getType(),
+                                    provider.getAccountEmail(),
+                                    provider.getBaseUrl()
+                            ));
+                            log.info("[STARTUP BACKFILL] Set deploymentSource='{}' for provider '{}'",
+                                    provider.getDeploymentSource(), provider.getName());
+                        }
+
                         if (provider.getBaseUrl() == null || provider.getBaseUrl().isBlank()) {
                             enrichProviderMetadata(provider);
                         }
-                        
+
+                        if (provider.getModels() == null || provider.getModels().isEmpty()) {
+                            com.supremeai.model.ProviderTypeConfig typeConfig =
+                                    providerTypeRegistry.getTypeConfig(provider.getType());
+                            if (typeConfig != null && typeConfig.getSupportedModels() != null && !typeConfig.getSupportedModels().isEmpty()) {
+                                provider.setModels(typeConfig.getSupportedModels());
+                            }
+                        }
+
                         log.debug("[STARTUP] Syncing provider key for: {}", name);
                         return providerRepository.save(provider);
                     })

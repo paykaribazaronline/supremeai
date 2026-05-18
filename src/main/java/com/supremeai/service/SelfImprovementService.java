@@ -62,10 +62,9 @@ public class SelfImprovementService {
         isRunning = true;
 
         LocalDateTime intervalAgo = LocalDateTime.now().minusMinutes(intervalMinutes);
-        java.util.Date intervalAgoDate = java.util.Date.from(intervalAgo.atZone(java.time.ZoneId.systemDefault()).toInstant());
 
         learningRepository.findAll()
-                .filter(entry -> entry.getLearnedAt() != null && entry.getLearnedAt().after(intervalAgoDate))
+                .filter(entry -> entry.getLearnedAt() != null && entry.getLearnedAt().isAfter(intervalAgo))
                 .collectList()
                 .doOnNext(entries -> {
                     logger.info("📊 Analyzing {} new learning entries", entries.size());
@@ -107,7 +106,7 @@ public class SelfImprovementService {
             learning.setLearningType("ECOSYSTEM");
             learning.setSources(java.util.List.of(issue.getSource()));
             learning.setConfidenceScore(issue.getRawConfidence());
-            learning.setLearnedAt(new java.util.Date());
+            learning.setLearnedAt(LocalDateTime.now());
             learning.setPermanent(false);
             learning.setMetadata(java.util.Map.of(
                 "source", issue.getSource(),

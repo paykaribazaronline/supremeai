@@ -19,6 +19,7 @@ class AIProviderFactoryEnhancedTest {
     private AIProviderService mockService;
     private ContextualAIRankingService mockRankingService;
     private com.supremeai.repository.ProviderRepository mockRepository;
+    private com.supremeai.service.ProviderMetadataService mockMetadataService;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -46,15 +47,49 @@ class AIProviderFactoryEnhancedTest {
             p.setId(name);
             p.setType(name);
             p.setStatus("ACTIVE");
+            p.setBaseUrl("https://api." + name + ".com");
             return p;
         }).collect(java.util.stream.Collectors.toList());
 
         when(mockRepository.findAll()).thenReturn(reactor.core.publisher.Flux.fromIterable(providers));
         when(mockRepository.findByStatus(anyString())).thenReturn(reactor.core.publisher.Flux.fromIterable(providers));
 
-        com.supremeai.service.ProviderMetadataService mockMetadataService = Mockito.mock(com.supremeai.service.ProviderMetadataService.class);
+        mockMetadataService = Mockito.mock(com.supremeai.service.ProviderMetadataService.class);
         com.supremeai.service.ProviderTypeRegistry mockTypeRegistry = Mockito.mock(com.supremeai.service.ProviderTypeRegistry.class);
-        when(mockMetadataService.getMetadata(anyString())).thenReturn(null);
+        
+        List<String> validNames = List.of(
+            "gpt4", "claude", "gemini", "deepseek",
+            "gcp_llama", "gcp_phi",
+            "hf_codellama", "hf_phi_vision", "hf_e5_large",
+            "render_tinyllama", "render_phi2", "render_qwen",
+            "openai", "anthropic", "groq", "huggingface", "kimi", "mistral", "stepfun", "codegeex4",
+            "codegeex", "gcp_qwen", "gcp_nomic", "hf_deepseek", "hf_mistral", "hf_llama", "hf_phi", "render_phi3"
+        );
+
+        when(mockMetadataService.getMetadata(anyString())).thenAnswer(inv -> {
+            Object arg = inv.getArguments()[0];
+            String name = arg == null ? "" : arg.toString().toLowerCase();
+            if (!validNames.contains(name)) {
+                return null;
+            }
+            com.supremeai.model.APIProvider p = new com.supremeai.model.APIProvider();
+            p.setName(name);
+            p.setId(name);
+            p.setType(name);
+            p.setStatus("ACTIVE");
+            p.setBaseUrl("https://api." + name + ".com");
+            return p;
+        });
+        
+        when(mockMetadataService.getDefaultModel(anyString(), anyString()))
+            .thenAnswer(inv -> inv.getArgument(1));
+            
+        Map<String, com.supremeai.model.APIProvider> metaMap = new java.util.HashMap<>();
+        for (com.supremeai.model.APIProvider p : providers) {
+            metaMap.put(p.getName(), p);
+        }
+        when(mockMetadataService.getAllMetadata()).thenReturn(metaMap);
+        
         when(mockTypeRegistry.getTypeConfig(anyString())).thenReturn(null);
 
         setField(factory, "aiProviderService", mockService);
@@ -91,7 +126,7 @@ class AIProviderFactoryEnhancedTest {
         AIProvider provider = factory.getProvider("openai");
         assertNotNull(provider);
         assertEquals("openai", provider.getName());
-        assertTrue(provider instanceof OpenAIProvider);
+        assertTrue(provider instanceof SupremeCloudProvider);
     }
 
     @Test
@@ -99,7 +134,7 @@ class AIProviderFactoryEnhancedTest {
         AIProvider provider = factory.getProvider("anthropic");
         assertNotNull(provider);
         assertEquals("anthropic", provider.getName());
-        assertTrue(provider instanceof AnthropicProvider);
+        assertTrue(provider instanceof SupremeCloudProvider);
     }
 
     @Test
@@ -107,7 +142,7 @@ class AIProviderFactoryEnhancedTest {
         AIProvider provider = factory.getProvider("gemini");
         assertNotNull(provider);
         assertEquals("gemini", provider.getName());
-        assertTrue(provider instanceof GeminiProvider);
+        assertTrue(provider instanceof SupremeCloudProvider);
     }
 
     @Test
@@ -115,7 +150,7 @@ class AIProviderFactoryEnhancedTest {
         AIProvider provider = factory.getProvider("groq");
         assertNotNull(provider);
         assertEquals("groq", provider.getName());
-        assertTrue(provider instanceof GroqProvider);
+        assertTrue(provider instanceof SupremeCloudProvider);
     }
 
     @Test
@@ -123,7 +158,7 @@ class AIProviderFactoryEnhancedTest {
         AIProvider provider = factory.getProvider("deepseek");
         assertNotNull(provider);
         assertEquals("deepseek", provider.getName());
-        assertTrue(provider instanceof DeepSeekProvider);
+        assertTrue(provider instanceof SupremeCloudProvider);
     }
 
     @Test
@@ -131,7 +166,7 @@ class AIProviderFactoryEnhancedTest {
         AIProvider provider = factory.getProvider("huggingface");
         assertNotNull(provider);
         assertEquals("huggingface", provider.getName());
-        assertTrue(provider instanceof HuggingFaceProvider);
+        assertTrue(provider instanceof SupremeCloudProvider);
     }
 
     @Test
@@ -139,7 +174,7 @@ class AIProviderFactoryEnhancedTest {
         AIProvider provider = factory.getProvider("kimi");
         assertNotNull(provider);
         assertEquals("kimi", provider.getName());
-        assertTrue(provider instanceof KimiProvider);
+        assertTrue(provider instanceof SupremeCloudProvider);
     }
 
     @Test
@@ -147,7 +182,7 @@ class AIProviderFactoryEnhancedTest {
         AIProvider provider = factory.getProvider("mistral");
         assertNotNull(provider);
         assertEquals("mistral", provider.getName());
-        assertTrue(provider instanceof MistralProvider);
+        assertTrue(provider instanceof SupremeCloudProvider);
     }
 
     @Test
@@ -155,7 +190,7 @@ class AIProviderFactoryEnhancedTest {
         AIProvider provider = factory.getProvider("stepfun");
         assertNotNull(provider);
         assertEquals("stepfun", provider.getName());
-        assertTrue(provider instanceof StepFunProvider);
+        assertTrue(provider instanceof SupremeCloudProvider);
     }
 
     @Test
@@ -163,12 +198,14 @@ class AIProviderFactoryEnhancedTest {
         AIProvider provider = factory.getProvider("codegeex4");
         assertNotNull(provider);
         assertEquals("codegeex4", provider.getName());
-        assertTrue(provider instanceof CodeGeeX4Provider);
+        assertTrue(provider instanceof SupremeCloudProvider);
     }
 
     @Test
     void getProvider_ollama_shouldThrowWhenNotAvailable() {
-        assertThrows(IllegalStateException.class, () -> factory.getProvider("ollama"));
+        when(mockMetadataService.getAllMetadata()).thenReturn(java.util.Map.of());
+        when(mockRepository.findByStatus(anyString())).thenReturn(reactor.core.publisher.Flux.empty());
+        assertThrows(IllegalArgumentException.class, () -> factory.getProvider("ollama"));
     }
 
     @Test
@@ -187,8 +224,8 @@ class AIProviderFactoryEnhancedTest {
         AIProvider gpt4 = factory.getProvider("gpt4");
         AIProvider claude = factory.getProvider("claude");
 
-        assertEquals("openai", gpt4.getName());
-        assertEquals("anthropic", claude.getName());
+        assertEquals("gpt4", gpt4.getName());
+        assertEquals("claude", claude.getName());
     }
 
     @Test
@@ -200,6 +237,7 @@ class AIProviderFactoryEnhancedTest {
 
     @Test
     void getProvider_unknownProvider_shouldThrow() {
+        when(mockMetadataService.getAllMetadata()).thenReturn(java.util.Map.of());
         when(mockRepository.findByStatus(anyString())).thenReturn(reactor.core.publisher.Flux.empty());
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> factory.getProvider("unknown-ai"));
@@ -278,7 +316,7 @@ class AIProviderFactoryEnhancedTest {
     void getBestProviderForTask_withEmptyRankings_shouldFallBackToDefault() {
         when(mockRankingService.getRankingsForTask(any())).thenReturn(List.of());
 
-        AIProvider provider = factory.getBestProviderForTask("code_generation");
+        AIProvider provider = factory.getBestProviderForTask("code_generation").block();
         assertNotNull(provider);
     }
 
@@ -286,7 +324,7 @@ class AIProviderFactoryEnhancedTest {
     void getBestProviderForTask_withNullRankings_shouldFallBackToDefault() {
         when(mockRankingService.getRankingsForTask(any())).thenReturn(null);
 
-        AIProvider provider = factory.getBestProviderForTask("code_generation");
+        AIProvider provider = factory.getBestProviderForTask("code_generation").block();
         assertNotNull(provider);
     }
 
@@ -294,7 +332,7 @@ class AIProviderFactoryEnhancedTest {
     void getBestProviderForTask_withRankingException_shouldFallBackToDefault() {
         when(mockRankingService.getRankingsForTask(any())).thenThrow(new RuntimeException("Ranking error"));
 
-        AIProvider provider = factory.getBestProviderForTask("code_generation");
+        AIProvider provider = factory.getBestProviderForTask("code_generation").block();
         assertNotNull(provider);
     }
 
@@ -307,25 +345,24 @@ class AIProviderFactoryEnhancedTest {
 
     @Test
     void providersCreatedByFactory_shouldHaveCorrectNames() {
-        Map<String, Class<?>> expectedProviders = Map.of(
-                "openai", OpenAIProvider.class,
-                "claude", AnthropicProvider.class,
-                "gemini", GeminiProvider.class,
-                "groq", GroqProvider.class,
-                "deepseek", DeepSeekProvider.class,
-                "huggingface", HuggingFaceProvider.class,
-                "kimi", KimiProvider.class,
-                "mistral", MistralProvider.class,
-                "stepfun", StepFunProvider.class,
-                "codegeex4", CodeGeeX4Provider.class
+        Map<String, String> expectedProviders = Map.of(
+                "openai", "openai",
+                "claude", "claude",
+                "gemini", "gemini",
+                "groq", "groq",
+                "deepseek", "deepseek",
+                "huggingface", "huggingface",
+                "kimi", "kimi",
+                "mistral", "mistral",
+                "stepfun", "stepfun",
+                "codegeex4", "codegeex4"
         );
 
-        for (Map.Entry<String, Class<?>> entry : expectedProviders.entrySet()) {
+        for (Map.Entry<String, String> entry : expectedProviders.entrySet()) {
             AIProvider provider = factory.getProvider(entry.getKey());
-            String expectedName = entry.getKey().equals("claude") ? "anthropic" : entry.getKey();
-            assertEquals(expectedName, provider.getName(),
+            assertEquals(entry.getValue(), provider.getName(),
                     "Provider name mismatch for: " + entry.getKey());
-            assertTrue(entry.getValue().isInstance(provider),
+            assertTrue(provider instanceof SupremeCloudProvider,
                     "Provider type mismatch for: " + entry.getKey());
         }
     }

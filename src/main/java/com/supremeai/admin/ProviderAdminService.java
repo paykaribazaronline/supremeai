@@ -125,21 +125,24 @@ public class ProviderAdminService {
 
     public Mono<Boolean> validateKey(String type, String apiKey) {
         if (apiKey == null || type == null) {
+            log.warn("[VALIDATION] Rejected: apiKey is null={} or type is null={}", apiKey == null, type == null);
             return Mono.just(false);
         }
         // For GCloud/Gemini providers, do basic format check (no test call)
         if (type != null && (type.equalsIgnoreCase("GOOGLE") || type.equalsIgnoreCase("gemini") || type.equalsIgnoreCase("vertex"))) {
             if (apiKey.length() > 10) {
-                log.info("[VALIDATION] GCloud provider key format valid (length: {})", apiKey.length());
+                log.info("[VALIDATION] GCloud provider key length OK (type={}, keyLength={})", type, apiKey.length());
                 return Mono.just(true);
             } else {
-                log.warn("[VALIDATION] GCloud provider key format invalid (length: {})", apiKey.length());
+                log.warn("[VALIDATION] GCloud provider key too short (type={}, keyLength={})", type, apiKey.length());
                 return Mono.just(false);
             }
         }
         // For other providers, use full validation with timeout
+        log.info("[VALIDATION] Testing key for type={}, apiKeyLength={}", type, apiKey.length());
         return discoveryService.validateKey(type, apiKey)
                 .timeout(java.time.Duration.ofSeconds(10))
+                .doOnError(e -> log.error("[VALIDATION] Key validation FAILED for type={}, keyLength={}: {}", type, apiKey.length(), e.toString()))
                 .onErrorReturn(false);
     }
 
@@ -273,6 +276,18 @@ public class ProviderAdminService {
                         changed = true;
                     }
 
+                    // Auto-detect deploymentSource based on type and accountEmail
+                    if (p.getDeploymentSource() == null || p.getDeploymentSource().isBlank()
+                            || !isValidDeploymentSource(p.getDeploymentSource())) {
+                        String detectedSource = detectDeploymentSource(p.getType(), p.getAccountEmail(), p.getBaseUrl());
+                        if (!detectedSource.equalsIgnoreCase(p.getDeploymentSource())) {
+                            p.setDeploymentSource(detectedSource);
+                            changed = true;
+                            log.info("Sanitizer: Auto-set deploymentSource for {} from type={}, accountEmail={} -> {}",
+                                    p.getName(), p.getType(), p.getAccountEmail(), detectedSource);
+                        }
+                    }
+
                     // Fix missing models list (crucial for dashboard grouping)
                     if (p.getModels() == null || p.getModels().isEmpty()) {
                         String defaultModel = determineDefaultModel(p.getType());
@@ -325,6 +340,55 @@ public class ProviderAdminService {
         };
     }
 
+    /**
+     * Detect the correct deploymentSource for a provider based on type, account email, and base URL.
+     * Valid sources: api, gcloud, local, ollama
+     */
+    private String detectDeploymentSource(String type, String accountEmail, String baseUrl) {
+        // Check type first
+        if (type != null) {
+            String upperType = type.toUpperCase();
+            if (upperType.equals("GOOGLE") || upperType.equals("GEMINI") || upperType.equals("VERTEX")) {
+                return "gcloud";
+            }
+            if (upperType.equals("LOCAL") || upperType.equals("OLLAMA")) {
+                return "ollama";
+            }
+        }
+
+        // Check base URL for local/ollama indicators
+        if (baseUrl != null && !baseUrl.isBlank()) {
+            String lowerUrl = baseUrl.toLowerCase();
+            if (lowerUrl.contains("localhost") || lowerUrl.contains("127.0.0.1") || lowerUrl.contains("ollama")) {
+                return "ollama";
+            }
+        }
+
+        // Check account email for GCP/Firebase/Gmail accounts
+        if (accountEmail != null && !accountEmail.isBlank()) {
+            String lowerEmail = accountEmail.toLowerCase();
+            if (lowerEmail.contains("@google.com") || lowerEmail.contains("@gmail.com")
+                    || lowerEmail.contains("googleapis.com") || lowerEmail.contains("firebase")) {
+                return "gcloud";
+            }
+        }
+
+        // Default: regular API key providers
+        return "api";
+    }
+
+    /**
+     * Validate that a deploymentSource string is one of the recognized values.
+     */
+    private boolean isValidDeploymentSource(String source) {
+        return source != null && (
+                "api".equalsIgnoreCase(source) ||
+                "gcloud".equalsIgnoreCase(source) ||
+                "local".equalsIgnoreCase(source) ||
+                "ollama".equalsIgnoreCase(source)
+        );
+    }
+
     public void triggerValidation() {
         Mono.fromRunnable(adminProviderValidationService::validateAllActiveProviders)
                 .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
@@ -332,7 +396,11 @@ public class ProviderAdminService {
     }
 
     private Mono<APIProvider> saveProviderWithLog(APIProvider provider, String userId, String action, String details) {
-        return providerRepository.save(provider)
+        Mono<APIProvider> savedMono = providerRepository.save(provider);
+        if (savedMono == null) {
+            return Mono.just(provider);
+        }
+        return savedMono
                 .flatMap(saved -> logAction(userId, action, "PROVIDER_MANAGEMENT", "INFO", details).thenReturn(saved));
     }
 
@@ -344,7 +412,7 @@ public class ProviderAdminService {
         logRecord.setSeverity(severity);
         logRecord.setOutcome("SUCCESS");
         logRecord.setDetails(details);
-        logRecord.setTimestamp(new Date());
+        logRecord.setTimestamp(java.time.LocalDateTime.now());
         return activityLogRepository.save(logRecord);
     }
 }

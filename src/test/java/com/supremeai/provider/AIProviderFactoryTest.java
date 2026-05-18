@@ -12,10 +12,14 @@ import static org.mockito.Mockito.*;
  * Unit tests for AIProviderFactory.
  * Tests provider creation, key resolution, and error handling.
  */
+import com.supremeai.service.ProviderMetadataService;
+import com.supremeai.model.APIProvider;
+
 class AIProviderFactoryTest {
 
     private AIProviderFactory factory;
     private AIProviderService mockService;
+    private ProviderMetadataService mockMetadataService;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -31,10 +35,39 @@ class AIProviderFactoryTest {
         when(mockService.getActiveKey("gemini")).thenReturn("AIzaSy-test-gemini-key");
         when(mockService.getActiveKey("huggingface")).thenReturn("hf-test-huggingface-key");
         
-        // Use reflection to set the mock service
+        // Create and setup mock ProviderMetadataService
+        mockMetadataService = Mockito.mock(ProviderMetadataService.class);
+        
+        APIProvider groqMeta = new APIProvider("groq", "groq", "groq", "active");
+        groqMeta.setBaseUrl("https://api.groq.com");
+        when(mockMetadataService.getMetadata("groq")).thenReturn(groqMeta);
+        
+        APIProvider openaiMeta = new APIProvider("openai", "openai", "openai", "active");
+        openaiMeta.setBaseUrl("https://api.openai.com");
+        when(mockMetadataService.getMetadata("openai")).thenReturn(openaiMeta);
+        
+        APIProvider anthropicMeta = new APIProvider("anthropic", "anthropic", "anthropic", "active");
+        anthropicMeta.setBaseUrl("https://api.anthropic.com");
+        when(mockMetadataService.getMetadata("anthropic")).thenReturn(anthropicMeta);
+        
+        APIProvider geminiMeta = new APIProvider("gemini", "gemini", "gemini", "active");
+        geminiMeta.setBaseUrl("https://api.gemini.com");
+        when(mockMetadataService.getMetadata("gemini")).thenReturn(geminiMeta);
+        
+        APIProvider huggingfaceMeta = new APIProvider("huggingface", "huggingface", "huggingface", "active");
+        huggingfaceMeta.setBaseUrl("https://api.huggingface.com");
+        when(mockMetadataService.getMetadata("huggingface")).thenReturn(huggingfaceMeta);
+        when(mockMetadataService.getDefaultModel(anyString(), anyString()))
+            .thenAnswer(invocation -> invocation.getArgument(1));
+        
+        // Use reflection to set the mock services
         java.lang.reflect.Field field = AIProviderFactory.class.getDeclaredField("aiProviderService");
         field.setAccessible(true);
         field.set(factory, mockService);
+        
+        java.lang.reflect.Field metaField = AIProviderFactory.class.getDeclaredField("providerMetadataService");
+        metaField.setAccessible(true);
+        metaField.set(factory, mockMetadataService);
     }
 
     @Test
@@ -43,7 +76,7 @@ class AIProviderFactoryTest {
         
         assertNotNull(provider);
         assertEquals("groq", provider.getName());
-        assertTrue(provider instanceof GroqProvider);
+        assertTrue(provider instanceof SupremeCloudProvider);
     }
 
     @Test
@@ -52,7 +85,7 @@ class AIProviderFactoryTest {
         
         assertNotNull(provider);
         assertEquals("openai", provider.getName());
-        assertTrue(provider instanceof OpenAIProvider);
+        assertTrue(provider instanceof SupremeCloudProvider);
     }
 
     @Test
@@ -61,7 +94,7 @@ class AIProviderFactoryTest {
         
         assertNotNull(provider);
         assertEquals("anthropic", provider.getName());
-        assertTrue(provider instanceof AnthropicProvider);
+        assertTrue(provider instanceof SupremeCloudProvider);
     }
 
     @Test
@@ -70,7 +103,7 @@ class AIProviderFactoryTest {
         
         assertNotNull(provider);
         assertEquals("gemini", provider.getName());
-        assertTrue(provider instanceof GeminiProvider);
+        assertTrue(provider instanceof SupremeCloudProvider);
     }
 
     @Test
@@ -79,7 +112,7 @@ class AIProviderFactoryTest {
         
         assertNotNull(provider);
         assertEquals("huggingface", provider.getName());
-        assertTrue(provider instanceof HuggingFaceProvider);
+        assertTrue(provider instanceof SupremeCloudProvider);
     }
 
     @Test
@@ -129,7 +162,7 @@ class AIProviderFactoryTest {
     @Test
     void testGetOllamaProviderNotAvailable() {
         // Ollama provider is not set in cloud profile
-        assertThrows(IllegalStateException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             factory.getProvider("ollama");
         });
     }

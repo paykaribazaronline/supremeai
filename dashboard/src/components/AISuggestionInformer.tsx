@@ -1,20 +1,12 @@
 import React from 'react';
 import { Card, Button, Space, Typography, Badge, List, Avatar, Tooltip, Tag, Divider } from 'antd';
 import { BulbOutlined, CheckCircleOutlined, CloseCircleOutlined, RocketOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
+import { AISuggestion } from '../lib/suggestionService';
 
 const { Text, Title, Paragraph } = Typography;
 
-interface Suggestion {
-  id: string;
-  title: string;
-  description: string;
-  impact: 'performance' | 'security' | 'cost' | 'capability';
-  confidence: number;
-  autoExecutable: boolean;
-}
-
 interface AISuggestionInformerProps {
-  suggestions?: Suggestion[];
+  suggestions?: AISuggestion[];
   onApprove?: (id: string) => void;
   onDecline?: (id: string) => void;
   onSelect?: (id: string) => void;

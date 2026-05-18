@@ -145,9 +145,9 @@ const response = await resp.json() as {
  
     const data = response.data;
 
-    // Store tokens for later refresh
-    localStorage.setItem('supremeai_token', data.token);
-    localStorage.setItem('supremeai_refresh_token', data.refreshToken);
+    // Store tokens for later refresh in secure session-only storage
+    sessionStorage.setItem('supremeai_token', data.token);
+    sessionStorage.setItem('supremeai_refresh_token', data.refreshToken);
     return data;
   } catch (error: unknown) {
     if (error instanceof FirebaseError) {
@@ -168,7 +168,7 @@ const response = await resp.json() as {
  * Refresh the access token using the stored refresh token.
  */
 export async function refreshAccessToken(): Promise<string> {
-  const refreshToken = localStorage.getItem('supremeai_refresh_token');
+  const refreshToken = sessionStorage.getItem('supremeai_refresh_token');
   if (!refreshToken) {
     throw new Error('No refresh token available');
   }
@@ -195,7 +195,7 @@ export async function refreshAccessToken(): Promise<string> {
   }
 
   const data = response.data;
-  localStorage.setItem('supremeai_token', data.token);
+  sessionStorage.setItem('supremeai_token', data.token);
   return data.token;
 }
 

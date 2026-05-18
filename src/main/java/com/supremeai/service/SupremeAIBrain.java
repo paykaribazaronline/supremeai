@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.supremeai.fallback.AIFallbackOrchestrator;
 import com.supremeai.learning.SupremeLearningOrchestrator;
+import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
 import com.supremeai.repository.ProviderRepository;
 import com.supremeai.repository.SolutionMemoryRepository;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -144,13 +146,12 @@ public class SupremeAIBrain {
     }
 
     private Mono<String> executeWithHubOrchestration(String task, String prompt, String errorSignature, long startTime) {
-        // ── Phase 2: Intent classification via SupremeLearningOrchestrator ──
         Map<String, String> hubInfo;
         try {
             hubInfo = learningOrchestrator.identifyBestHub(prompt);
         } catch (Exception e) {
             logger.warn("[BRAIN] Orchestrator intent classification failed: {}. Using defaults.", e.getMessage());
-            hubInfo = Map.of("hub", "Language & Marketing Hub (Llama-3.1 / Qwen)", "cluster", "general");
+            hubInfo = Map.of("hub", "general", "cluster", "general");
         }
         String suggestedHub = hubInfo.get("hub");
         String suggestedCluster = hubInfo.get("cluster");
@@ -161,12 +162,12 @@ public class SupremeAIBrain {
                 .executeWithSupremeIntelligence(task, errorSignature, prompt)
                 .filter(response -> response != null && !response.isBlank())
                 .switchIfEmpty(Mono.defer(() -> {
-                    logger.info("[BRAIN] Fallback orchestrator returned empty. Routing to SupremeCore.");
-                    return providerFactory.getDefaultProvider().generate(prompt);
+                    logger.info("[BRAIN] Fallback orchestrator returned empty. Trying any available cloud provider.");
+                    return tryAnyCloudProvider(prompt);
                 }))
                 .onErrorResume(e -> {
-                    logger.warn("[BRAIN] Fallback orchestrator failed: {}. Using SupremeCore directly.", e.getMessage());
-                    return providerFactory.getDefaultProvider().generate(prompt);
+                    logger.warn("[BRAIN] Fallback orchestrator failed: {}. Trying any available cloud provider.", e.getMessage());
+                    return tryAnyCloudProvider(prompt);
                 })
                 .doOnNext(response -> {
                     long ms = System.currentTimeMillis() - startTime;
@@ -174,6 +175,24 @@ public class SupremeAIBrain {
                     logger.debug("[BRAIN] Task={} completed in {}ms", task, ms);
                 })
                 .defaultIfEmpty("[SupremeAI Core] কোনো response পাওয়া যায়নি। পরে চেষ্টা করুন।");
+    }
+
+    private Mono<String> tryAnyCloudProvider(String prompt) {
+        List<String> providers = providerFactory.getAvailableProviderIds();
+        for (String providerName : providers) {
+            try {
+                AIProvider provider = providerFactory.getProvider(providerName);
+                logger.info("[BRAIN] Trying cloud provider: {}", providerName);
+                return provider.generate(prompt)
+                    .onErrorResume(e -> {
+                        logger.warn("[BRAIN] Cloud provider {} failed: {}", providerName, e.getMessage());
+                        return Mono.empty();
+                    });
+            } catch (Exception e) {
+                logger.debug("[BRAIN] Could not create provider {}: {}", providerName, e.getMessage());
+            }
+        }
+        return Mono.just("[SupremeAI Core] সকল cloud provider বর্তমানে অনুপলব্ধ। Admin প্যানেল থেকে provider চেক করুন।");
     }
 
     // ══════════════════════════════════════════════════════════
