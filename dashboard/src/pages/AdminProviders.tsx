@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, message, Spin, Alert, Button, Space, Typography, Tag, Statistic, Row, Col, Input } from 'antd';
-import { ReloadOutlined, PlusOutlined, WarningOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { Card, message, Spin, Alert, Button, Space, Typography, Tag, Statistic, Row, Col, Input, Select } from 'antd';
+import { ReloadOutlined, PlusOutlined, WarningOutlined, CheckCircleOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import AdminLayout from '../components/AdminLayout';
 import { authUtils } from '../lib/authUtils';
 import { useRole } from '../contexts/RoleContext';
@@ -21,6 +21,10 @@ const AdminProviders: React.FC = () => {
   const [editingProvider, setEditingProvider] = useState<Provider | null>(null);
   const [healthStats, setHealthStats] = useState<StatsType | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<'activationStatus' | 'modelName'>('activationStatus');
+  const [wakeUpLoading, setWakeUpLoading] = useState(false);
+
+  type SortKey = 'activationStatus' | 'modelName';
 
   const DEPLOYMENT_GROUPS: Record<string, { label: string; icon: string; order: number }> = {
     api:       { label: 'API Key',       icon: '🔑', order: 1 },
@@ -56,19 +60,38 @@ const AdminProviders: React.FC = () => {
       groups[groupKey].push(p);
     });
 
-    // Sort within each group: active first, then inactive, then error, etc.
     const statusOrder: Record<string, number> = { active: 0, rotating: 1, inactive: 2, error: 3, dead: 4 };
-    Object.keys(groups).forEach(key => {
-      groups[key].sort((a, b) => {
+
+    const sortProviders = (a: Provider, b: Provider): number => {
+      if (sortBy === 'modelName') {
+        const aModel = (a.models?.[0] || a.name || '').toLowerCase();
+        const bModel = (b.models?.[0] || b.name || '').toLowerCase();
+        if (aModel !== bModel) return aModel.localeCompare(bModel);
+        // Secondary: activation status
         const aOrder = statusOrder[a.status] ?? 99;
         const bOrder = statusOrder[b.status] ?? 99;
         if (aOrder !== bOrder) return aOrder - bOrder;
         return (a.name || '').localeCompare(b.name || '');
-      });
+      }
+
+      // Default: activation status first, then model name, then name
+      const aOrder = statusOrder[a.status] ?? 99;
+      const bOrder = statusOrder[b.status] ?? 99;
+      if (aOrder !== bOrder) return aOrder - bOrder;
+
+      const aModel = (a.models?.[0] || '').toLowerCase();
+      const bModel = (b.models?.[0] || '').toLowerCase();
+      if (aModel !== bModel) return aModel.localeCompare(bModel);
+
+      return (a.name || '').localeCompare(b.name || '');
+    };
+
+    Object.keys(groups).forEach(key => {
+      groups[key].sort(sortProviders);
     });
 
     return groups;
-  }, [providers, searchTerm]);
+  }, [providers, searchTerm, sortBy]);
 
   const sortedGroupKeys = React.useMemo(() => {
     const apiGroups = Object.keys(groupedProviders)
@@ -144,6 +167,29 @@ const AdminProviders: React.FC = () => {
     }
   };
 
+  const handleWakeUpTest = async () => {
+    setWakeUpLoading(true);
+    setError(null);
+    try {
+      const res = await authUtils.fetchWithAuth('/api/self-healing/health-check/now', { method: 'POST' });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Health check failed');
+      }
+      const data = await res.json();
+      const summary = data?.summary;
+      message.success(`Health check complete: ${summary?.active ?? '?'} active, ${summary?.inactive ?? '?'} inactive`);
+      // Refetch providers to reflect updated statuses
+      await fetchProviders();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Health check failed';
+      message.error(msg);
+      setError(msg);
+    } finally {
+      setWakeUpLoading(false);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     try {
       const response = await authUtils.fetchWithAuth(`/api/admin/providers/${id}`, {
@@ -169,6 +215,13 @@ const AdminProviders: React.FC = () => {
               </div>
               <Space>
                 <Button 
+                  icon={<ThunderboltOutlined />} 
+                  onClick={handleWakeUpTest}
+                  loading={wakeUpLoading}
+                >
+                  Wake Up Test
+                </Button>
+                <Button 
                   icon={<ReloadOutlined />} 
                   onClick={fetchProviders} 
                   loading={loading}
@@ -190,15 +243,26 @@ const AdminProviders: React.FC = () => {
             </div>
 
             <Card style={{ background: '#f0f2f5', border: 'none', borderRadius: '12px', marginBottom: '24px' }}>
-              <Input 
-                placeholder="Search by Model Name, Provider or API Hints..." 
-                prefix={<ReloadOutlined rotate={90} />} 
-                size="large"
-                allowClear
-                onChange={e => setSearchTerm(e.target.value)}
-                value={searchTerm}
-                style={{ borderRadius: '8px' }}
-              />
+              <Space style={{ width: '100%' }} wrap>
+                <Input
+                  placeholder="Search by Model Name, Provider or API Hints..."
+                  prefix={<ReloadOutlined rotate={90} />}
+                  size="large"
+                  allowClear
+                  onChange={e => setSearchTerm(e.target.value)}
+                  value={searchTerm}
+                  style={{ borderRadius: '8px', minWidth: 320 }}
+                />
+                <Select
+                  value={sortBy}
+                  onChange={setSortBy}
+                  style={{ width: 220 }}
+                  placeholder="Sort by"
+                >
+                  <Select.Option value="activationStatus">🔄 Activation Status</Select.Option>
+                  <Select.Option value="modelName">📋 Model Name</Select.Option>
+                </Select>
+              </Space>
             </Card>
 
             {loading && providers.length === 0 ? (

@@ -12,7 +12,6 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.core.ParameterizedTypeReference;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -401,7 +400,7 @@ public class BrowserService {
                 learning.setCategory(saved.getType());
                 learning.setContent(saved.getContent());
                 learning.setConfidenceScore(saved.getConfidence());
-                learning.setLearnedAt(new Date());
+                learning.setLearnedAt(LocalDateTime.now());
                 learning.setSources(java.util.List.of(saved.getUrl()));
                 return systemLearningRepository.save(learning).thenReturn(saved);
             });
@@ -468,7 +467,7 @@ public class BrowserService {
         learning.setCategory("RESEARCH");
         learning.setContent("System learned about " + title + " from " + url);
         learning.setConfidenceScore(0.75);
-        learning.setLearnedAt(new Date());
+        learning.setLearnedAt(LocalDateTime.now());
         learning.setPermanent(false);
         learning.setLearningType("NLP");
         learning.setTags(java.util.List.of("browser", "auto-learned"));
@@ -661,7 +660,7 @@ public class BrowserService {
                             strategicLearning.setLearningType("APP_GENERATION");
                             strategicLearning.setContent(analysis.getSummary());
                             strategicLearning.setConfidenceScore(0.85);
-                            strategicLearning.setLearnedAt(new Date());
+                            strategicLearning.setLearnedAt(LocalDateTime.now());
                             strategicLearning.setTags(java.util.List.of("blueprint", "automation", "voting-logic"));
                             
                             Map<String, Object> metadata = new HashMap<>();

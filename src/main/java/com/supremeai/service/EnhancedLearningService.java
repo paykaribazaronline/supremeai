@@ -78,7 +78,7 @@ public class EnhancedLearningService {
         learning.setSuccess(qualityScore > 0.7);
         learning.setQualityScore(qualityScore);
         learning.setRelatedProvider(provider);
-        learning.setLearnedAt(new java.util.Date());
+        learning.setLearnedAt(LocalDateTime.now());
         learning.setTimesApplied(0);
 
         List<String> tags = new ArrayList<>();
@@ -92,7 +92,8 @@ public class EnhancedLearningService {
         learning.setTags(tags);
 
         logger.info("NLP Learning captured: provider={}, quality={}", provider, qualityScore);
-        return systemLearningService.addLearning(learning);
+        Mono<SystemLearning> result = systemLearningService.addLearning(learning);
+        return result != null ? result : repository.save(learning);
     }
 
     /**
@@ -121,14 +122,15 @@ public class EnhancedLearningService {
         learning.setSuccess(accuracyScore > 0.75);
         learning.setQualityScore(accuracyScore);
         learning.setRelatedProvider(provider);
-        learning.setLearnedAt(new java.util.Date());
+        learning.setLearnedAt(LocalDateTime.now());
         learning.setTimesApplied(0);
 
         List<String> tags = Arrays.asList("multimodal", "vision", "image_to_code", provider.toLowerCase());
         learning.setTags(tags);
 
         logger.info("Multimodal Learning captured: provider={}, accuracy={}", provider, accuracyScore);
-        return systemLearningService.addLearning(learning);
+        Mono<SystemLearning> result = systemLearningService.addLearning(learning);
+        return result != null ? result : repository.save(learning);
     }
 
     /**
@@ -157,7 +159,7 @@ public class EnhancedLearningService {
         learning.setSuccess(success);
         learning.setQualityScore(success ? 1.0 : 0.0);
         learning.setRelatedProvider(provider);
-        learning.setLearnedAt(new java.util.Date());
+        learning.setLearnedAt(LocalDateTime.now());
         learning.setTimesApplied(0);
 
         List<String> tags = new ArrayList<>();
@@ -167,7 +169,8 @@ public class EnhancedLearningService {
         learning.setTags(tags);
 
         logger.info("Ecosystem Learning captured: endpoint={}, provider={}, success={}", apiEndpoint, provider, success);
-        return systemLearningService.addLearning(learning);
+        Mono<SystemLearning> ecoResult = systemLearningService.addLearning(learning);
+        return ecoResult != null ? ecoResult : repository.save(learning);
     }
 
     /**
@@ -203,7 +206,7 @@ public class EnhancedLearningService {
         learning.setSuccess(buildSuccess);
         learning.setQualityScore(qualityScore);
         learning.setRelatedProvider(agentUsed);
-        learning.setLearnedAt(new java.util.Date());
+        learning.setLearnedAt(LocalDateTime.now());
         learning.setTimesApplied(0);
 
         List<String> tags = new ArrayList<>();
@@ -214,7 +217,8 @@ public class EnhancedLearningService {
         learning.setTags(tags);
 
         logger.info("App Generation Learning captured: type={}, success={}, agent={}", generatedAppType, buildSuccess, agentUsed);
-        return systemLearningService.addLearning(learning);
+        Mono<SystemLearning> agResult = systemLearningService.addLearning(learning);
+        return agResult != null ? agResult : repository.save(learning);
     }
 
     /**
@@ -238,14 +242,15 @@ public class EnhancedLearningService {
         learning.setSuccess(true);
         learning.setConfidenceScore(confidence);
         learning.setQualityScore(confidence);
-        learning.setLearnedAt(new java.util.Date());
+        learning.setLearnedAt(LocalDateTime.now());
         learning.setTimesApplied(0);
 
         List<String> tags = Arrays.asList("predictive", patternType.toLowerCase(), "pattern_matching");
         learning.setTags(tags);
 
         logger.info("Predictive Learning captured: pattern={}, confidence={}", patternType, confidence);
-        return systemLearningService.addLearning(learning);
+        Mono<SystemLearning> ppResult = systemLearningService.addLearning(learning);
+        return ppResult != null ? ppResult : repository.save(learning);
     }
 
     /**
@@ -280,7 +285,8 @@ public class EnhancedLearningService {
         return repository.findById(learningId)
                 .flatMap(learning -> {
                     learning.setTimesApplied((learning.getTimesApplied() != null ? learning.getTimesApplied() : 0) + 1);
-                    return systemLearningService.addLearning(learning);
+                    Mono<SystemLearning> saved = systemLearningService.addLearning(learning);
+                    return saved != null ? saved : repository.save(learning);
                 });
     }
 
@@ -334,6 +340,7 @@ public class EnhancedLearningService {
         
         return repository.findAll()
                 .collectList()
+                .onErrorReturn(java.util.Collections.emptyList())
                 .map(allLearnings -> {
                     Map<String, Object> result = new HashMap<>();
                     
@@ -359,7 +366,7 @@ public class EnhancedLearningService {
                     summary.put("improvementsIdentified", opportunities.size());
                     summary.put("optimizationsApplied", optimization.get("applied"));
                     summary.put("recommendationsGenerated", recommendations.size());
-                    summary.put("improvementCycle", new java.util.Date().toString());
+                    summary.put("improvementCycle", LocalDateTime.now().toString());
                     
                     result.put("summary", summary);
                     result.put("success", true);
@@ -513,11 +520,9 @@ public class EnhancedLearningService {
         });
         
         // Prune obsolete entries (older than 6 months, never applied)
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.MONTH, -6);
-        Date sixMonthsAgo = cal.getTime();
+        LocalDateTime sixMonthsAgo = LocalDateTime.now().minusMonths(6);
         long obsolete = learnings.stream()
-                .filter(l -> l.getLearnedAt() != null && l.getLearnedAt().before(sixMonthsAgo))
+                .filter(l -> l.getLearnedAt() != null && l.getLearnedAt().isBefore(sixMonthsAgo))
                 .filter(l -> l.getTimesApplied() == null || l.getTimesApplied() < 1)
                 .count();
         
@@ -528,7 +533,7 @@ public class EnhancedLearningService {
         optimization.put("actions", actions);
         optimization.put("applied", applied);
         optimization.put("obsolete", obsolete);
-        optimization.put("optimizedAt", new java.util.Date().toString());
+        optimization.put("optimizedAt", LocalDateTime.now().toString());
         
         return optimization;
     }

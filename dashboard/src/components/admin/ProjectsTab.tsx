@@ -229,6 +229,7 @@ const ProjectsTab: React.FC = () => {
         generationProgress={generationProgress}
         generationResult={generationResult}
         onGenerate={handleGenerateApp}
+        onGetAdvice={() => {}}
       />
 
       <ProjectModal 

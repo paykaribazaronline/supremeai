@@ -66,7 +66,7 @@ public class ProviderAdminServiceTest {
     void addProvider_WithValidKey_ShouldSaveAndLog() {
         APIProvider provider = new APIProvider();
         provider.setName("New Provider");
-        provider.setType("gemini");
+        provider.setType("openai");
         provider.setApiKey("valid-key");
 
         when(discoveryService.validateKey(anyString(), anyString())).thenReturn(Mono.just(true));
@@ -85,7 +85,7 @@ public class ProviderAdminServiceTest {
     void addProvider_WithInvalidKey_ShouldError() {
         APIProvider provider = new APIProvider();
         provider.setName("New Provider");
-        provider.setType("gemini");
+        provider.setType("openai");
         provider.setApiKey("invalid-key");
 
         when(discoveryService.validateKey(anyString(), anyString())).thenReturn(Mono.just(false));
@@ -175,8 +175,8 @@ public class ProviderAdminServiceTest {
 
     @Test
     void removeDeadProviders_ShouldOnlyDeleteDeadOnes() {
-        APIProvider p1 = new APIProvider(); p1.setId("1"); p1.setStatus("active");
-        APIProvider p2 = new APIProvider(); p2.setId("2"); p2.setStatus("dead");
+        APIProvider p1 = new APIProvider(); p1.setId("1"); p1.setName("Active Provider"); p1.setStatus("active");
+        APIProvider p2 = new APIProvider(); p2.setId("2"); p2.setName("Dead Provider"); p2.setStatus("dead");
 
         when(providerRepository.findAll()).thenReturn(Flux.just(p1, p2));
         when(providerRepository.deleteById("2")).thenReturn(Mono.empty());

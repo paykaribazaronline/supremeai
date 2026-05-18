@@ -1,5 +1,6 @@
 package com.supremeai.service.analysis;
 
+import com.supremeai.service.ConfigService;
 import com.supremeai.model.analysis.CodeChunk;
 import com.supremeai.repository.analysis.CodeChunkRepository;
 import org.slf4j.Logger;
@@ -20,30 +21,43 @@ public class VectorSearchService {
 
     private final CodeChunkRepository codeChunkRepository;
     private final EmbeddingService embeddingService;
+    private final ConfigService configService;
 
     @Autowired
-    public VectorSearchService(CodeChunkRepository codeChunkRepository, EmbeddingService embeddingService) {
+    public VectorSearchService(CodeChunkRepository codeChunkRepository, EmbeddingService embeddingService, ConfigService configService) {
         this.codeChunkRepository = codeChunkRepository;
         this.embeddingService = embeddingService;
+        this.configService = configService;
+    }
+
+    private boolean isMockAllowed() {
+        return "true".equalsIgnoreCase(configService.getSetting("allow_mock_fallback", "false"));
     }
 
     public Mono<Void> storeEmbeddings(String projectId, List<CodeChunkData> chunks) {
-        List<Double> dummyEmbedding = new ArrayList<>();
-        for (int i = 0; i < 768; i++) dummyEmbedding.add(0.0);
-
         List<String> contents = chunks.stream().map(CodeChunkData::getContent).collect(Collectors.toList());
         List<List<Double>> embeddings;
         try {
             embeddings = embeddingService.generateBatchEmbeddings(contents);
         } catch (Exception e) {
-            log.warn("Failed to generate embeddings, using defaults: {}", e.getMessage());
-            embeddings = new ArrayList<>();
-            for (int i = 0; i < chunks.size(); i++) {
-                embeddings.add(dummyEmbedding);
+            if (isMockAllowed()) {
+                log.warn("Failed to generate embeddings, using defaults: {}", e.getMessage());
+                List<Double> dummyEmbedding = new ArrayList<>();
+                for (int i = 0; i < 768; i++) dummyEmbedding.add(0.0);
+                embeddings = new ArrayList<>();
+                for (int i = 0; i < chunks.size(); i++) {
+                    embeddings.add(dummyEmbedding);
+                }
+            } else {
+                log.error("Failed to generate embeddings and mock fallback is disabled", e);
+                return Mono.error(new RuntimeException("Embedding generation failed: " + e.getMessage(), e));
             }
         }
 
         List<CodeChunk> codeChunks = new ArrayList<>();
+        List<Double> dummyEmbedding = new ArrayList<>();
+        for (int i = 0; i < 768; i++) dummyEmbedding.add(0.0);
+
         for (int i = 0; i < chunks.size(); i++) {
             CodeChunkData chunk = chunks.get(i);
             List<Double> embedding = i < embeddings.size() ? embeddings.get(i) : dummyEmbedding;
@@ -74,8 +88,8 @@ public class VectorSearchService {
         try {
             queryEmbedding = embeddingService.generateEmbedding(query);
         } catch (Exception e) {
-            log.warn("Failed to generate query embedding: {}", e.getMessage());
-            return List.of();
+            log.error("Failed to generate query embedding: {}", e.getMessage());
+            throw new RuntimeException("Embedding generation failed: " + e.getMessage(), e);
         }
 
         List<CodeChunk> allChunks;

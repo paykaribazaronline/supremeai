@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import java.time.LocalDateTime;
 
 import java.util.*;
 
@@ -132,11 +133,11 @@ class SystemLearningControllerTest {
     void getSystemWisdom_ReturnsHighConfidenceLearnings() {
         SystemLearning highConf1 = new SystemLearning("w1", "Wise Topic 1", "cat1", "Content 1");
         highConf1.setConfidenceScore(0.95);
-        highConf1.setLearnedAt(new Date(1700000000000L));
+        highConf1.setLearnedAt(LocalDateTime.of(2023, 11, 14, 22, 13));
 
         SystemLearning highConf2 = new SystemLearning("w2", "Wise Topic 2", "cat2", "Content 2");
         highConf2.setConfidenceScore(0.90);
-        highConf2.setLearnedAt(new Date(1600000000000L));
+        highConf2.setLearnedAt(LocalDateTime.of(2020, 8, 17, 10, 10));
 
         SystemLearning lowConf = new SystemLearning("w3", "Low Topic", "cat3", "Content 3");
         lowConf.setConfidenceScore(0.5); // Below threshold

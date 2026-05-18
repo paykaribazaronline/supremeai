@@ -77,7 +77,7 @@ public class KnowledgeFeedbackService {
         lesson.setCategory(category);
         lesson.setContent(content);
         lesson.setConfidenceScore(confidence);
-        lesson.setLearnedAt(new java.util.Date());
+        lesson.setLearnedAt(LocalDateTime.now());
         lesson.setSources(List.of("autonomous-feedback-loop"));
         lesson.setPermanent(false);
         return lesson;

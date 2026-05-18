@@ -1,25 +1,16 @@
 package com.supremeai.provider;
 
 public enum AIProviderType {
-    // Tier 1: External APIs
-    GROQ_LLAMA3,
-    GEMINI_PRO,
-    GEMINI_FLASH,
-    ANTHROPIC_CLAUDE,
-    OPENAI,
-    DEEPSEEK,
-    KIMI,
-    MISTRAL,
-    STEPFUN,
-    HUGGINGFACE_FREE,
-
-    // Tier 2: Private Cloud-Native Models (Scale-to-Zero)
     CLOUD_QWEN,
     CLOUD_LLAMA,
     CLOUD_DEEPSEEK,
     CLOUD_PHI,
     CLOUD_NOMIC,
-
-    // Tier 3: Local Fallbacks
+    CLOUD_CUSTOM,
+    GEMINI_FLASH,
+    OPENAI,
+    GROQ_LLAMA3,
+    ANTHROPIC_CLAUDE,
+    DEEPSEEK,
     OLLAMA
 }

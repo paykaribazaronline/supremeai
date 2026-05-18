@@ -25,13 +25,10 @@ class SelfHealingServiceTest {
     @Mock
     private AIReasoningService reasoningService;
 
-    @Mock
-    private MeterRegistry meterRegistry;
-
     private SelfHealingService service;
 
     private void initService() {
-        service = new SelfHealingService(meterRegistry);
+        service = new SelfHealingService();
         // Inject reasoningService via reflection since it's @Autowired in the service
         try {
             java.lang.reflect.Field field = SelfHealingService.class.getDeclaredField("reasoningService");

@@ -23,7 +23,7 @@ import org.springframework.context.annotation.Profile;
  * "UNAVAILABLE: io exception" ত্রুটি হতো এবং login ব্যর্থ হতো।
  */
 @Configuration
-@Profile({"local", "test"})
+@Profile({"local", "test", "sandbox"})
 public class FirestoreLocalConfig {
 
     private static final Logger log = LoggerFactory.getLogger(FirestoreLocalConfig.class);

@@ -117,7 +117,7 @@ public class KnowledgeService {
         learning.setContent(issue.getBody());
         learning.setLearningType("WEB_SCRAPE");
         learning.setRelatedProvider(issue.getSource());
-        learning.setLearnedAt(new java.util.Date());
+        learning.setLearnedAt(LocalDateTime.now());
         learning.setQualityScore(issue.getAuthority().getWeight());
         learning.setSuccess(true);
         learning.setTimesApplied(0);

@@ -9,7 +9,7 @@
 2. [System Architecture](#2-system-architecture)
 3. [21 Plans Overview](#3-21-plans-overview)
 4. [Detailed Plans](#4-detailed-plans)
-5. [Problem Analysis](#5-problem-analysis)
+5. [Simplified Agentic Workflow](#5-simplified-agentic-workflow)
 6. [Solutions Applied](#6-solutions-applied)
 7. [Meta-Learning Framework](#7-meta-learning-framework)
 8. [Risk Assessment](#8-risk-assessment)

@@ -23,27 +23,48 @@ public class AIProviderService {
         });
     }
 
-    public synchronized String getActiveKey(String provider) {
+    /**
+     * Return the active (non-exhausted) key for the given provider.
+     * Thread-safe: uses ConcurrentHashMap-compute with the exhausted-keys set
+     * rather than a coarse method-level lock.
+     */
+    public String getActiveKey(String provider) {
         List<String> keys = providerKeys.get(provider);
         if (keys == null || keys.isEmpty()) return null;
-        int index = currentKeyIndex.get(provider);
-        String key = keys.get(index);
-        if (exhaustedKeys.get(provider).contains(key)) {
-            return rotateKey(provider);
+        // Use ConcurrentHashMap + synchronization only on the per-provider entry's
+        // exhausted set to allow simultaneous lookups across providers.
+        Set<String> exhausted = exhaustedKeys.get(provider);
+        int idx = currentKeyIndex.getOrDefault(provider, 0);
+        String candidate = keys.get(idx);
+        if (exhausted == null || !exhausted.contains(candidate)) {
+            return candidate;
         }
-        return key;
+        // Cached index is exhausted — atomically rotate to next candidate
+        return rotateKey(provider);
     }
 
-    public synchronized String rotateKey(String provider) {
+    /**
+     * Rotate to the next key for the given provider.
+     * Thread-safe: uses {@link ConcurrentHashMap#compute} so that concurrent
+     * rotations for the same provider do not corrupt the index pointer.
+     */
+    public String rotateKey(String provider) {
         List<String> keys = providerKeys.get(provider);
         if (keys == null || keys.isEmpty()) return null;
-        int nextIndex = (currentKeyIndex.get(provider) + 1) % keys.size();
-        currentKeyIndex.put(provider, nextIndex);
-        String newKey = keys.get(nextIndex);
-        if (exhaustedKeys.get(provider).contains(newKey)) {
-            return null;
-        }
-        return newKey;
+
+        return currentKeyIndex.compute(provider, (prov, currentIdx) -> {
+            int nextIdx = (currentIdx == null ? 0 : currentIdx + 1) % keys.size();
+            String newKey = keys.get(nextIdx);
+
+            // Spin through all keys before giving up
+            int attempts = 0;
+            while (exhaustedKeys.getOrDefault(provider, Set.of()).contains(newKey)) {
+                nextIdx = (nextIdx + 1) % keys.size();
+                newKey = keys.get(nextIdx);
+                if (++attempts >= keys.size()) return currentIdx == null ? 0 : currentIdx;
+            }
+            return nextIdx;
+        }) == null ? null : keys.get(currentKeyIndex.getOrDefault(provider, 0));
     }
 
     public void markKeyAsExhausted(String provider, String key) {
