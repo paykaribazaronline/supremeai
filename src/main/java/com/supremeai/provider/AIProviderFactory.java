@@ -77,6 +77,54 @@ public class AIProviderFactory {
         logger.info("[Factory] getProvider called: name={}, normalizedName={}, overrideApiKeyLength={}", name, normalizedName, overrideApiKey != null ? overrideApiKey.length() : "null");
 
         APIProvider metadata = providerMetadataService != null ? providerMetadataService.getMetadata(normalizedName) : null;
+        
+        if (metadata == null) {
+            logger.info("[Factory] Provider '{}' not found in cache. Attempting DB query fallback...", normalizedName);
+            try {
+                APIProvider dbProvider = providerRepository.findById(name)
+                        .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                        .block(java.time.Duration.ofSeconds(2));
+                if (dbProvider != null) {
+                    metadata = dbProvider;
+                    logger.info("[Factory] Fallback found provider by ID '{}' in DB", name);
+                } else {
+                    dbProvider = providerRepository.findById(normalizedName)
+                            .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                            .block(java.time.Duration.ofSeconds(2));
+                    if (dbProvider != null) {
+                        metadata = dbProvider;
+                        logger.info("[Factory] Fallback found provider by normalized ID '{}' in DB", normalizedName);
+                    } else {
+                        List<APIProvider> allDb = providerRepository.findAll()
+                                .collectList()
+                                .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                                .block(java.time.Duration.ofSeconds(3));
+                        if (allDb != null) {
+                            for (APIProvider p : allDb) {
+                                if (p.getName() != null && p.getName().toLowerCase().trim().equals(normalizedName)) {
+                                    metadata = p;
+                                    logger.info("[Factory] Fallback found provider by Name match '{}' in DB", p.getName());
+                                    break;
+                                }
+                                if (p.getId() != null && p.getId().toLowerCase().trim().equals(normalizedName)) {
+                                    metadata = p;
+                                    logger.info("[Factory] Fallback found provider by ID match '{}' in DB", p.getId());
+                                    break;
+                                }
+                                if (p.getDocumentId() != null && p.getDocumentId().toLowerCase().trim().equals(normalizedName)) {
+                                    metadata = p;
+                                    logger.info("[Factory] Fallback found provider by Document ID match '{}' in DB", p.getDocumentId());
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("[Factory] DB query fallback failed for '{}'", normalizedName, e);
+            }
+        }
+
         logger.info("[Factory] Metadata found for '{}': {}", normalizedName, metadata != null ? "YES (baseUrl=" + metadata.getBaseUrl() + ")" : "NO");
 
         if (metadata != null && metadata.getBaseUrl() != null && !metadata.getBaseUrl().isBlank()) {

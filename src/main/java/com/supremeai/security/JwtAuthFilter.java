@@ -35,11 +35,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return true;
         }
 
-        // Skip JWT auth for explicitly public or Firebase-handled API endpoints.
         return path.startsWith("/api/health") ||
                path.startsWith("/api/status") ||
                path.startsWith("/api/auth/") ||
-               path.startsWith("/api/chat/") ||
                path.startsWith("/api/ext/") ||
                path.startsWith("/api/system") ||
                path.startsWith("/telemetry/") ||

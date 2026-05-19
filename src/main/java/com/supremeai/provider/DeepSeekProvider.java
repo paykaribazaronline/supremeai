@@ -32,6 +32,11 @@ public class DeepSeekProvider extends AbstractHttpProvider {
         this.model = model;
     }
 
+    public DeepSeekProvider(String apiKey, String baseUrl, String model) {
+        super(apiKey, baseUrl != null && !baseUrl.isEmpty() ? baseUrl : API_URL, model != null && !model.isEmpty() ? model : "deepseek-coder");
+        this.model = model != null && !model.isEmpty() ? model : "deepseek-coder";
+    }
+
     @Override
     public String getName() {
         return "deepseek";

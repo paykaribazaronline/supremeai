@@ -142,10 +142,11 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
     const service = getSupremeAIService();
     
     try {
-      // Try to use the backend chat endpoint
+      const history = this.messageHistory.filter(m => !m.thinking);
       const response = await (service as any).client.post('/api/chat/stream', {
         message,
         sessionId: service.getSessionId(),
+        messages: history,
         context: {
           source: 'vscode',
           timestamp: new Date().toISOString()

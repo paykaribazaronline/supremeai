@@ -169,3 +169,18 @@ Every AI must verify these core offline/knowledge areas are covered before claim
 ```
 
 This ensures the system ALWAYS improves its knowledge, even — especially — when external AI fails.
+
+---
+
+## 7. See Also: Continuous Knowledge Improvement Rule
+
+For the complete, mandatory knowledge improvement protocol, see:
+**`.kilocode/rules/continuous-knowledge-improvement.md`**
+
+That rule expands on this one with:
+- 15 trigger events for knowledge creation
+- Detailed entry formats for all 3 knowledge layers
+- Mandatory agent behavior rules (session start, every interaction, session end)
+- Knowledge growth targets (min 1 entry per session, 80% coverage goal)
+- Zero-AI knowledge priority areas
+- Enforcement policy: NO agent may skip knowledge improvement

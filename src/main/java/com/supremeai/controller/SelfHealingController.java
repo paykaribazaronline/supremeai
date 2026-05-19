@@ -181,6 +181,19 @@ public class SelfHealingController {
         ));
     }
 
+    // ===== PROVIDER REACTIVATION =====
+
+    /**
+     * Bulk reactivate ALL inactive/dead providers → set them to "active".
+     * Call this after a health-check has incorrectly marked providers as inactive.
+     */
+    @PostMapping("/reactivate-all")
+    public Mono<ResponseEntity<Map<String, Object>>> reactivateAll() {
+        log.info("[REACTIVATE] Manual reactivation triggered via /reactivate-all");
+        return selfHealingService.reactivateAllProviders()
+                .map(ResponseEntity::ok);
+    }
+
     // ===== ADMIN OPERATIONAL CONTROLS =====
 
     @PostMapping("/reindex")

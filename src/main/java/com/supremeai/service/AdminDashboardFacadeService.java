@@ -76,7 +76,7 @@ public class AdminDashboardFacadeService {
             userRepository.count().onErrorReturn(0L),
             userRepository.findByIsActive(true).count().onErrorReturn(0L),
             providerRepository.count().onErrorReturn(0L),
-            providerRepository.findByStatus("ONLINE").count().onErrorReturn(0L),
+            providerRepository.findByStatus("active").count().onErrorReturn(0L),
             projectRepository.findByStatus("ACTIVE").count().onErrorReturn(0L),
             telegramStorageService.checkBotStatus().cast(Object.class).onErrorReturn(Map.of("status", "OFFLINE"))
         );

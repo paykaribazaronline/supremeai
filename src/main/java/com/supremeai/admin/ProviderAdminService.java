@@ -128,17 +128,8 @@ public class ProviderAdminService {
             log.warn("[VALIDATION] Rejected: apiKey is null={} or type is null={}", apiKey == null, type == null);
             return Mono.just(false);
         }
-        // For GCloud/Gemini providers, do basic format check (no test call)
-        if (type != null && (type.equalsIgnoreCase("GOOGLE") || type.equalsIgnoreCase("gemini") || type.equalsIgnoreCase("vertex"))) {
-            if (apiKey.length() > 10) {
-                log.info("[VALIDATION] GCloud provider key length OK (type={}, keyLength={})", type, apiKey.length());
-                return Mono.just(true);
-            } else {
-                log.warn("[VALIDATION] GCloud provider key too short (type={}, keyLength={})", type, apiKey.length());
-                return Mono.just(false);
-            }
-        }
-        // For other providers, use full validation with timeout
+        // For all providers (including GCloud/Gemini), use full validation with timeout
+
         log.info("[VALIDATION] Testing key for type={}, apiKeyLength={}", type, apiKey.length());
         return discoveryService.validateKey(type, apiKey)
                 .timeout(java.time.Duration.ofSeconds(10))

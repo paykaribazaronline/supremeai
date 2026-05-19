@@ -169,18 +169,32 @@ export default function ModernAdminDashboard() {
         },
         components: {
           Layout: {
+            // Old tokens (for backward compatibility)
             colorBgHeader: 'rgba(0,0,0,0.6)',
             colorBgBody: 'transparent',
             colorBgTrigger: '#00f3ff',
+            // New tokens (suppress deprecation warnings)
+            headerBg: 'rgba(0,0,0,0.6)',
+            bodyBg: 'transparent',
+            triggerBg: '#00f3ff',
           },
           Menu: {
-            colorItemBg: 'transparent',
-            colorItemText: '#cbd5e1',
+            // Old tokens
+            colorItemText: '#ffffff',
             colorItemTextSelected: '#00f3ff',
+            colorItemBg: 'transparent',
             colorItemBgSelected: 'rgba(0, 243, 255, 0.1)',
+            // New tokens
+            itemColor: '#ffffff',
+            itemSelectedColor: '#00f3ff',
+            itemBg: 'transparent',
+            itemSelectedBg: 'rgba(0, 243, 255, 0.1)',
           },
           Progress: {
-            remainingColor: 'rgba(255,255,255,0.05)',
+            colorSuccess: '#00f3ff',
+            colorInfo: '#00f3ff',
+            // New token
+            size: 8, // replaces strokeWidth
           },
           Table: {
             colorBgContainer: 'rgba(13, 13, 18, 0.5)',

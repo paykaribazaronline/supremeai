@@ -20,8 +20,9 @@ services:
       - SECRET_MANAGER_BACKEND=${SECRET_MANAGER_BACKEND:-env}
       - KEY_ROTATION_ENABLED=${KEY_ROTATION_ENABLED:-true}
       - KING_MODE_ENABLED=${KING_MODE_ENABLED:-true}
+      - GOOGLE_APPLICATION_CREDENTIALS=/service-account.json
     volumes:
-      - ./service-account.json:/app/service-account.json:ro
+      - ./service-account.json:/service-account.json:ro
     restart: unless-stopped
     depends_on:
       - redis
@@ -30,6 +31,8 @@ services:
     build:
       context: ./dashboard
       dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL:-http://localhost:8080}
     container_name: supremeai-dashboard
     ports:
       - "5173:5173"

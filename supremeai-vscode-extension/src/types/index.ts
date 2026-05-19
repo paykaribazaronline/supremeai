@@ -90,6 +90,7 @@ export interface ChatSession {
 export interface ChatRequest {
   message: string;
   sessionId: string;
+  messages?: ChatMessage[];
   context?: {
     source: 'vscode' | 'intellij' | 'web' | 'flutter';
     language?: string;

@@ -1,0 +1,28 @@
+{
+  "entries": [
+    {
+      "task": "localhost login firebase emulator failed to fetch",
+      "solution": "[LOCAL-SEED] Use Firebase client signInWithEmailAndPassword only. Make backend /api/auth/firebase-login exchange optional with try/catch fallback to ID token. Update VITE_API_URL to Functions emulator port (5003).",
+      "confidence": 0.95,
+      "tags": ["login", "emulator", "cors", "firebase"]
+    },
+    {
+      "task": "ai providers tab empty no gcloud models",
+      "solution": "[SMART] Auto-seed Firebase + Vertex AI providers from env + known gcloud config. Return from /getConfiguredProviders function instead of requiring manual database entries.",
+      "confidence": 0.9,
+      "tags": ["providers", "gcloud", "vertex", "smart-discovery"]
+    },
+    {
+      "task": "functions emulator cors preflight blocked",
+      "solution": "[FIX] Add global allowCors wrapper in functions/index.js for all onRequest exports. Set Access-Control-Allow-Origin * and handle OPTIONS preflight.",
+      "confidence": 1.0,
+      "tags": ["cors", "emulator", "functions"]
+    },
+    {
+      "task": "admin dashboard multiple api calls failing in emulator",
+      "solution": "[RESILIENCE] Wrap fetchWithAuth in try/catch. Return 503 Response on network/CORS error instead of throwing. Prevents console spam and keeps UI stable.",
+      "confidence": 0.95,
+      "tags": ["resilience", "emulator", "fetch"]
+    }
+  ]
+}

@@ -1,6 +1,8 @@
 package com.supremeai.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import java.util.List;
+import java.util.Map;
 
 public class ChatRequest {
     @NotBlank(message = "Message is required")
@@ -9,6 +11,10 @@ public class ChatRequest {
     private boolean skipValidation = false;
     
     private String agentId;
+    
+    private String sessionId;
+    
+    private List<Map<String, Object>> messages;
 
     public ChatRequest() {}
 
@@ -35,5 +41,22 @@ public class ChatRequest {
     public void setAgentId(String agentId) {
         this.agentId = agentId;
     }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+    }
+
+    public List<Map<String, Object>> getMessages() {
+        return messages;
+    }
+
+    public void setMessages(List<Map<String, Object>> messages) {
+        this.messages = messages;
+    }
 }
+
 

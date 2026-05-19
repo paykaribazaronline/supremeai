@@ -27,6 +27,10 @@ public class OpenAIProvider extends AbstractHttpProvider {
         super(apiKey, API_URL, DEFAULT_MODEL);
     }
 
+    public OpenAIProvider(String apiKey, String baseUrl, String model) {
+        super(apiKey, baseUrl != null && !baseUrl.isEmpty() ? baseUrl : API_URL, model != null && !model.isEmpty() ? model : DEFAULT_MODEL);
+    }
+
     @Override
     public String getName() {
         return "openai";

@@ -72,6 +72,7 @@ public class SelfHealingService {
         return providerRepository.findAll()
             .flatMap(provider -> {
                 String name = provider.getName();
+                String currentStatus = provider.getStatus();
                 log.debug("[HEALTH-CHECK] Pinging {}", name);
 
                 long start = System.currentTimeMillis();
@@ -82,27 +83,44 @@ public class SelfHealingService {
                         .map(resp -> {
                             long latency = System.currentTimeMillis() - start;
                             boolean ok = resp != null && !resp.isBlank();
-                            provider.setStatus(ok ? ProviderStatus.ACTIVE : ProviderStatus.INACTIVE);
-                            provider.setLastLatency(ok ? latency : null);
+                            if (ok) {
+                                // Ping succeeded → mark as active
+                                provider.setStatus(ProviderStatus.ACTIVE);
+                                provider.setLastLatency(latency);
+                                provider.setLastErrorMessage(null);
+                                provider.setConsecutiveErrorDays(null);
+                            } else {
+                                // Empty response — record diagnostic, but DO NOT downgrade active→inactive
+                                provider.setLastLatency(latency);
+                                provider.setLastErrorMessage("Empty response from ping");
+                            }
                             provider.setLastTested(new Date());
-                            provider.setLastErrorMessage(null);
-                            provider.setConsecutiveErrorDays(null);
                             return provider;
                         })
                         .onErrorResume(e -> {
                             long latency = System.currentTimeMillis() - start;
-                            log.warn("[HEALTH-CHECK] {} is not responding: {}", name, e.getMessage());
-                            provider.setStatus(ProviderStatus.INACTIVE);
+                            log.warn("[HEALTH-CHECK] {} ping failed (status preserved={}): {}", name, currentStatus, e.getMessage());
+                            // Record diagnostic info only — DO NOT change status from active to inactive.
+                            // Many providers (GCloud, Huggingface, etc.) fail simple "ping" tests
+                            // because they need proper API formatting, not because they're broken.
                             provider.setLastLatency(latency);
                             provider.setLastTested(new Date());
-                            provider.setLastErrorMessage(e.getMessage());
+                            provider.setLastErrorMessage("Health ping failed: " + e.getMessage());
+                            // Only downgrade if provider was already in "error" state
+                            if ("error".equalsIgnoreCase(currentStatus)) {
+                                provider.setStatus(ProviderStatus.INACTIVE);
+                            }
                             return Mono.just(provider);
                         });
                 } catch (Exception e) {
-                    log.warn("[HEALTH-CHECK] {} could not be tested: {}", name, e.getMessage());
-                    provider.setStatus(ProviderStatus.INACTIVE);
+                    log.warn("[HEALTH-CHECK] {} could not be tested (status preserved={}): {}", name, currentStatus, e.getMessage());
+                    // Record diagnostic info — preserve existing status
                     provider.setLastTested(new Date());
                     provider.setLastErrorMessage("Cannot create provider instance: " + e.getMessage());
+                    // Only downgrade if already in "error" state
+                    if ("error".equalsIgnoreCase(currentStatus)) {
+                        provider.setStatus(ProviderStatus.INACTIVE);
+                    }
                     return Mono.just(provider);
                 }
             })
@@ -126,6 +144,7 @@ public class SelfHealingService {
                 APIHealthReport report = new APIHealthReport(
                         UUID.randomUUID().toString(), total, active, inactive, 0);
                 report.setDeadKeyDetails(deadDetails);
+                log.info("[HEALTH-CHECK] Complete: {} active, {} inactive of {} total", active, inactive, total);
                 return healthReportRepository.save(report).thenReturn(report);
             });
     }
@@ -261,5 +280,36 @@ public class SelfHealingService {
 
     public void reindexModels() {
         log.info("Reindexing healing models...");
+    }
+
+    /**
+     * Reactivate ALL providers: set every inactive/dead provider back to "active".
+     * Useful when the health-check has incorrectly flagged providers.
+     */
+    public Mono<Map<String, Object>> reactivateAllProviders() {
+        log.info("[REACTIVATE] Reactivating all inactive/dead providers...");
+        return providerRepository.findAll()
+            .filter(p -> !ProviderStatus.ACTIVE.equalsIgnoreCase(p.getStatus()))
+            .flatMap(provider -> {
+                String oldStatus = provider.getStatus();
+                provider.setStatus(ProviderStatus.ACTIVE);
+                provider.setConsecutiveErrorDays(null);
+                provider.setDeadReason(null);
+                provider.setDeadAt(null);
+                provider.setLastErrorMessage(null);
+                log.info("[REACTIVATE] {} : {} → active", provider.getName(), oldStatus);
+                return providerRepository.save(provider);
+            })
+            .collectList()
+            .map(reactivated -> {
+                log.info("[REACTIVATE] Done — {} providers reactivated", reactivated.size());
+                return Map.<String, Object>of(
+                    "status", "success",
+                    "reactivatedCount", reactivated.size(),
+                    "providers", reactivated.stream()
+                        .map(p -> p.getName() != null ? p.getName() : p.getId())
+                        .collect(java.util.stream.Collectors.toList())
+                );
+            });
     }
 }

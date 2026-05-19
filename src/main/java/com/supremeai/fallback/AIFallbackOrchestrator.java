@@ -118,11 +118,8 @@ public class AIFallbackOrchestrator {
 
                 return providerRepository.findByStatus("active")
                     .filter(p -> {
-                        if ("CHAT".equalsIgnoreCase(taskCategory) || "COMMUNICATION".equalsIgnoreCase(taskCategory)) {
-                            return p.isCanCommunicate();
-                        } else {
-                            return p.isCanExecuteTasks();
-                        }
+                        // Allow all active AI models in all work as requested by the user
+                        return true;
                     })
                     .sort(Comparator.comparingInt(com.supremeai.model.APIProvider::getPriority))
                     .collectList()

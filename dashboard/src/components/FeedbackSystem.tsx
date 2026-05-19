@@ -33,7 +33,7 @@ export const ConnectionIndicator: React.FC = () => {
     const checkApi = async () => {
       if (!mounted) return;
       try {
-        const response = await authUtils.fetchWithAuth('/api/health');
+        const response = await authUtils.fetchWithAuth('/healthCheck');
         if (mounted) {
           if (response.ok) setApiStatus('connected');
           else setApiStatus('error');
