@@ -1,0 +1,249 @@
+{
+  "name": "Sentiment Analysis API — Public Endpoint",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "/sentiment",
+        "method": "POST",
+        "responseMode": "onReceived",
+        "options": {
+          "responseData": {
+            "responseData": true
+          }
+        }
+      },
+      "name": "Webhook (Public API Endpoint)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": false,
+        "values": {
+          "values": [
+            {
+              "string": [
+                {
+                  "name": "text",
+                  "value": "={{ $json.body.text }}"
+                }
+              ]
+            },
+            {
+              "boolean": [
+                {
+                  "name": "has_text",
+                  "value": "={{ $json.body.text !== undefined && $json.body.text !== null }}"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.has_text }}",
+              "value2": "true"
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": ""
+          }
+        },
+        "combinator": "and"
+      },
+      "name": "Has Text?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [620, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Length validator (max 5000 chars) ──────────────────────────────\nconst text = $input.item.json.text || \"\";\nconst MAX = 5000;\nif (text.length > MAX) {\n  return [{\n    json: {\n      error: \"Field 'text' exceeds maximum length\",\n      max_length: MAX,\n      received: text.length,\n    }\n  }];\n}\nreturn $input.all();"
+      },
+      "name": "Validate Length",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [840, 220]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.ML_SERVICE_URL }}/predict",
+        "method": "POST",
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.ML_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Request-Id",
+              "value": "={{ $json[\"$webhookId\"] || $json.__workflow || null }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text",
+              "value": "={{ $json.text }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "name": "Call ML Inference",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1040, 220]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Post-process ML output ────────────────────────────────────────\nconst ml = $input.item.json;\n\nlet sentiment    = (ml.sentiment || \"unknown\").toLowerCase();\nlet confidence   = parseFloat(ml.confidence ?? 0);\nconst processedAt = ml.processed_at || new Date().toISOString();\n\n// Normalise sentiment label\nif (sentiment === \"positive\") {}\nelse if (sentiment === \"negative\") {}\nelse { sentiment = \"neutral\"; }\n\n// Clamp confidence\nconfidence = Math.max(0, Math.min(1, confidence));\n\nconst reqIp    = $hassan ? $hassan.request.ip : null;\nconst reqAt    = new Date().toISOString();\nconst tracerId = $requestId || null;\n\nreturn [{\n  json: {\n    request_ip:        reqIp,\n    tracer_id:         tracerId,\n    sentiment:         sentiment,\n    confidence:        confidence,\n    positive_score:    sentiment === \"positive\" ? confidence : 1 - confidence,\n    negative_score:    sentiment === \"negative\" ? confidence : 1 - confidence,\n    neutral_score:     sentiment === \"neutral\"  ? confidence : (1 - confidence) * 0.5,\n    processed_at:      processedAt,\n    requested_at:      reqAt,\n    model:             ml.model || \"unknown\",\n  }\n}];"
+      },
+      "name": "Post-Process Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1260, 220]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.sentiment === \"negative\" }}",
+              "value2": "={{ $json.confidence > 0.9 }}"
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": ""
+          }
+        },
+        "combinator": "and"
+      },
+      "name": "High-Confidence Negative?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1440, 220]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "create",
+        "sendTo": "={{ $json.request_ip }}",
+        "text": "ALERT — High-confidence negative sentiment detected on public sentiment API.\nSentiment: {{ $json.sentiment }}\nConfidence: {{ $json.confidence }}\nRequest IP: {{ $json.request_ip }}\nProcessed: {{ $json.processed_at }}\nTracer ID: {{ $json.tracer_id }}\n\nText preview: {{ $('Webhook (Public API Endpoint)').item.json.body.text.substring(0, 200) }}",
+        "otherOptions": {}
+      },
+      "name": "Slack Alert (High-Confidence Negative)",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [1660, 120]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "resource": "metric",
+        "name": "ml_sentiment_negative_alert",
+        "value": "={{ $json.confidence }}",
+        "options": {}
+      },
+      "name": "Incident Record",
+      "type": "n8n-nodes-base.influxDb",
+      "typeVersion": 1,
+      "position": [1660, 360]
+    },
+    {
+      "parameters": {
+        "jsCode": "// If no Slack credentials configured, pipe to no-op branch\nreturn [{\n  json: {\n    alert_sent:  false,\n    alert_reason: \"Slack not configured — skipping alert\",\n    ...$json\n  }\n}];"
+      },
+      "name": "No-Op Alert Branch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1660, 480]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build final standardised response\nconst data = $input.item.json;\n\nconst header = {\n  \"content-type\": \"application/json\",\n  \"cache-control\": \"no-store, no-cache\",\n  \"x-content-type-options\": \"nosniff\",\n  \"x-frame-options\": \"DENY\",\n  \"strict-transport-security\": \"max-age=31536000; includeSubDomains; preload\",\n};\n\nreturn [{\n  json: data,\n  headers: header\n}];"
+      },
+      "name": "Build Final Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1440, 380]
+    }
+  ],
+  "connections": {
+    "Webhook (Public API Endpoint)": {
+      "main": [[{"node": "Validate Input", "type": "main", "index": 0}]]
+    },
+    "Validate Input": {
+      "main": [[{"node": "Has Text?", "type": "main", "index": 0}]]
+    },
+    "Has Text?": {
+      "main": [
+        [{"node": "Validate Length", "type": "main", "index": 0}],
+        [{"node": "Build Final Response", "type": "main", "index": 0, "sourceOutput": 0}]
+      ]
+    },
+    "Validate Length": {
+      "main": [[{"node": "Call ML Inference", "type": "main", "index": 0}]]
+    },
+    "Call ML Inference": {
+      "main": [[{"node": "Post-Process Results", "type": "main", "index": 0}]]
+    },
+    "Post-Process Results": {
+      "main": [
+        [{"node": "High-Confidence Negative?", "type": "main", "index": 0}],
+        [{"node": "Build Final Response", "type": "main", "index": 0, "sourceOutput": 1}]
+      ]
+    },
+    "High-Confidence Negative?": {
+      "main": [
+        [{"node": "Slack Alert (High-Confidence Negative)", "type": "main", "index": 0}],
+        [{"node": "Incident Record", "type": "main", "index": 0, "sourceOutput": 1}],
+        [{"node": "Build Final Response", "type": "main", "index": 0, "sourceOutput": 2}]
+      ]
+    },
+    "Slack Alert (High-Confidence Negative)": {
+      "main": [[{"node": "Build Final Response", "type": "main", "index": 0}]]
+    },
+    "Incident Record": {
+      "main": [[{"node": "No-Op Alert Branch", "type": "main", "index": 0}]]
+    },
+    "No-Op Alert Branch": {
+      "main": [[{"node": "Build Final Response", "type": "main", "index": 0}]]
+    }
+  },
+  "active": true,
+  "settings": {},
+  "versionId": "1",
+  "id": "supremeai-sentiment-v1",
+  "tags": [
+    {"name": "production"},
+    {"name": "ml"},
+    {"name": "sentiment"},
+    {"name": "public-api"}
+  ],
+  "triggerCount": 1,
+  "staticData": null,
+  "description": "Production sentiment analysis public API. Validates input (text, max 5000 chars), calls BERT ML service, returns standardised JSON with sentiment/confidence/timestamp, and triggers alerts for high-confidence negative sentiment."
+}
