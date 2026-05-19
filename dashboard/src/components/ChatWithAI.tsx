@@ -225,11 +225,14 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
         setLoading(true);
 
         try {
+            const currentSession = sessions.find(s => s.id === activeSessionId);
+            const history = currentSession ? currentSession.messages : [];
             const response = await authUtils.fetchWithAuth('/api/chat/send', {
                 method: 'POST',
                 body: JSON.stringify({
                     message: currentInput,
                     agent: selectedAgent === 'all' ? null : selectedAgent,
+                    messages: history,
                 }),
             });
 

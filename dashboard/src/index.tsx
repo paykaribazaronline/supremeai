@@ -1,9 +1,13 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import axios from 'axios';
 import './index.css';
 import './i18n/conf'; // Initialize i18n
 import App from './App';
 import { RoleProvider } from './contexts/RoleContext';
+
+// Set global axios baseURL
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || '';
 
 // Global polyfills
 (window as any).global = window;

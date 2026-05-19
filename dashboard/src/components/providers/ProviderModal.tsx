@@ -88,7 +88,7 @@ const ProviderModal: React.FC<Props> = ({ visible, editingProvider, onCancel, on
   const handleSuggestRoles = async () => {
     if (!editingProvider?.id) return;
     try {
-      const response = await authUtils.fetchWithAuth(`/api/admin/providers/${editingProvider.id}/suggest-roles`);
+      const response = await authUtils.fetchWithAuth(`/api/admin/providers/${editingProvider.id}/roles`);
       if (response.ok) {
         const result = await response.json();
         const suggestions = result.data || [];

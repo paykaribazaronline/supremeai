@@ -13,7 +13,7 @@ const auth = admin.auth();
 
 // User credentials
 const email = 'niloyjoy7@gmail.com';
-const password = 'njel.com.bd';
+const password = '12345678';
 const displayName = 'niloyjoy7';
 
 async function setupAdmin() {
