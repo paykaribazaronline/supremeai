@@ -43,7 +43,7 @@ public class SecurityConfig {
              .cors(cors -> cors.configurationSource(corsConfigurationSource()))
              .csrf(csrf -> csrf
                  .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                 .ignoringRequestMatchers("/api/auth/**", "/api/health/**", "/api/ext/**", "/api/browser/**", "/api/system/**", "/api/admin/**", "/api/workflows/**", "/ws/**")
+                 .ignoringRequestMatchers("/api/auth/**", "/api/health/**", "/api/ext/**", "/api/browser/**", "/api/system/**", "/api/admin/**", "/api/workflows/**", "/ws/**", "/api/chat/**", "/api/self-healing/**", "/api/healing/**")
              )
              .sessionManagement(session -> 
                  session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
@@ -115,7 +115,9 @@ public class SecurityConfig {
                     "/api/workflows/**",
                     "/admin",
                     "/admin/**",
-                    "/admin/index.html"
+                    "/admin/index.html",
+                    "/api/self-healing/**",
+                    "/api/healing/**"
                 ).permitAll()
                  .requestMatchers("/api/debug/**").hasRole("ADMIN")
                  .requestMatchers("/api/security/**").hasRole("ADMIN")

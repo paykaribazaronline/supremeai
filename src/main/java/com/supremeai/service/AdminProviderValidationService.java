@@ -31,7 +31,7 @@ public class AdminProviderValidationService {
 
     private static final Logger log = LoggerFactory.getLogger(AdminProviderValidationService.class);
 
-    private static final int ERROR_THRESHOLD = 3; // Quarantine after 3 consecutive failures
+    private static final int ERROR_THRESHOLD = 3; // Quarantine after 3 consecutive failures (prevents false positives)
 
     @Autowired
     private ProviderRepository providerRepository;
@@ -108,10 +108,10 @@ public class AdminProviderValidationService {
                                                 log.error("Provider '{}' ({}) quarantined as DEAD. Reason: {}",
                                                         provider.getName(), provider.getId(), deadReason);
                                             } else {
-                                                // Mark as error but not yet dead
-                                                provider.setStatus("error");
-                                                log.warn("Provider '{}' ({}) validation failed (streak: {}/{})",
-                                                        provider.getName(), provider.getId(), newStreak, ERROR_THRESHOLD);
+                                                // DO NOT downgrade status — keep as active but track the failure streak.
+                                                // Many providers fail simple validation due to API format differences, not actual breakage.
+                                                log.warn("Provider '{}' ({}) validation failed (streak: {}/{}) — status preserved as '{}'",
+                                                        provider.getName(), provider.getId(), newStreak, ERROR_THRESHOLD, provider.getStatus());
                                             }
 
                                             return Map.of(

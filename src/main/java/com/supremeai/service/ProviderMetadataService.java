@@ -49,10 +49,32 @@ public class ProviderMetadataService {
                             snapshot.getDocumentChanges().forEach(change -> {
                                 try {
                                     APIProvider provider = change.getDocument().toObject(APIProvider.class);
-                                    if (provider != null && provider.getName() != null) {
-                                        String name = provider.getName().toLowerCase();
-                                        metadataCache.put(name, provider);
-                                        logger.info("Provider metadata updated: {}", name);
+                                    if (provider != null) {
+                                        String docId = change.getDocument().getId();
+                                        provider.setDocumentId(docId);
+                                        if (provider.getId() == null) {
+                                            provider.setId(docId);
+                                        }
+
+                                        if (change.getType() == com.google.cloud.firestore.DocumentChange.Type.REMOVED) {
+                                            if (provider.getName() != null) {
+                                                metadataCache.remove(provider.getName().toLowerCase().trim());
+                                            }
+                                            metadataCache.remove(docId.toLowerCase().trim());
+                                            if (provider.getId() != null) {
+                                                metadataCache.remove(provider.getId().toLowerCase().trim());
+                                            }
+                                            logger.info("Provider metadata removed: {}", docId);
+                                        } else {
+                                            if (provider.getName() != null) {
+                                                metadataCache.put(provider.getName().toLowerCase().trim(), provider);
+                                            }
+                                            metadataCache.put(docId.toLowerCase().trim(), provider);
+                                            if (provider.getId() != null) {
+                                                metadataCache.put(provider.getId().toLowerCase().trim(), provider);
+                                            }
+                                            logger.info("Provider metadata updated: docId={}, name={}, id={}", docId, provider.getName(), provider.getId());
+                                        }
                                     }
                                 } catch (Exception e) {
                                     logger.error("Error deserializing APIProvider from Firestore", e);

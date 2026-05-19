@@ -116,9 +116,31 @@ public class ChatProcessingService {
                         });
                 }
 
-                return fallbackOrchestrator.executeWithSupremeIntelligence(
-                            "chat", "casual_chat", message, userId
-                        )
+                return chatHistoryRepository.findByUserIdOrderByTimestampAsc(userId)
+                    .collectList()
+                    .flatMap(history -> {
+                        StringBuilder promptBuilder = new StringBuilder();
+                        promptBuilder.append("You are SupremeAI, a highly intelligent coding and development assistant. Maintain a friendly and helpful tone.\n");
+                        promptBuilder.append("Below is the conversation history. Respond appropriately to the last user message considering the context:\n\n");
+
+                        int startIdx = Math.max(0, history.size() - 5);
+                        for (int i = startIdx; i < history.size(); i++) {
+                            ChatMessage pastMsg = history.get(i);
+                            String role = pastMsg.getRole() != null ? pastMsg.getRole() : (pastMsg.isAdmin() ? "admin" : "user");
+                            promptBuilder.append(role.toUpperCase()).append(": ").append(pastMsg.getContent()).append("\n");
+                        }
+
+                        if (history.isEmpty() || !history.get(history.size() - 1).getContent().equals(message)) {
+                            promptBuilder.append("USER: ").append(message).append("\n");
+                        }
+
+                        promptBuilder.append("AI: ");
+                        String contextualPrompt = promptBuilder.toString();
+
+                        return fallbackOrchestrator.executeWithSupremeIntelligence(
+                            "chat", "casual_chat", contextualPrompt, userId
+                        );
+                    })
                 .onErrorResume(e -> Mono.just("আমি দুঃখিত, এই মুহূর্তে আমি উত্তর দিতে পারছি না। (AI Error: " + e.getMessage() + ")"))
                 .subscribeOn(Schedulers.boundedElastic())
                 .flatMap(aiResponse -> {

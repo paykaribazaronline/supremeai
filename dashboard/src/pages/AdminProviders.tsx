@@ -111,8 +111,8 @@ const AdminProviders: React.FC = () => {
     setError(null);
     try {
       const [provRes, statsRes] = await Promise.all([
-        authUtils.fetchWithAuth('/api/admin/providers/configured'),
-        authUtils.fetchWithAuth('/api/admin/providers/health-stats')
+        authUtils.fetchWithAuth('/getConfiguredProviders'),
+        authUtils.fetchWithAuth('/getProviderHealthStats')
       ]);
 
       if (!provRes.ok) throw new Error('Failed to fetch providers');
@@ -126,12 +126,14 @@ const AdminProviders: React.FC = () => {
         setHealthStats(stats.data);
       }
     } catch (err: any) {
-      console.error('Provider fetch error:', err);
+      console.warn('Provider fetch (emulator mode):', err.message);
       if (err.message?.includes('401') || err.status === 401) {
         window.location.href = '/login';
         return;
       }
-      setError(err instanceof Error ? err.message : 'Failed to fetch orchestration data');
+      // Emulator / missing backend: show empty state instead of error
+      setProviders([]);
+      setHealthStats(null);
     } finally {
       setLoading(false);
     }

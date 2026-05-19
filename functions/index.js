@@ -11,6 +11,18 @@ const axios = require("axios");
 admin.initializeApp();
 const db = admin.firestore();
 
+// ============ GLOBAL CORS (for localhost emulator + future) ============
+const allowCors = (handler) => async (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-api-key');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).send('');
+  }
+  return handler(req, res);
+};
+
 // ============ AUTHENTICATION MIDDLEWARE ============
 const authenticate = async (req, res, next) => {
     // 1. Allow Java backend to bypass if correct system secret is provided
@@ -54,8 +66,17 @@ const withAuth = (handler) => {
 // ============ SYSTEM HEALTH MONITORING ============
 
 const systemHealth = require('./system-health');
-exports.getSystemHealth = systemHealth.getSystemHealth;
-exports.collectHealthMetrics = systemHealth.collectHealthMetrics;
+exports.getSystemHealth = onRequest(allowCors(systemHealth.getSystemHealth));
+exports.collectHealthMetrics = onRequest(allowCors(systemHealth.collectHealthMetrics));
+
+// Smart AI Providers (auto-discovery from Cloud Run + env + Firestore)
+const smartProviders = require('./providers-smart');
+exports.getConfiguredProviders = smartProviders.getConfiguredProviders;
+exports.getProviderHealthStats = smartProviders.getProviderHealthStats;
+
+// Central API Router (best long-term solution)
+const apiRouter = require('./api-router');
+exports.api = require('firebase-functions').https.onRequest(apiRouter);
 
 // ============ REQUIREMENT PROCESSING ============
 

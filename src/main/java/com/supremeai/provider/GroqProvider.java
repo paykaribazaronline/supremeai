@@ -23,6 +23,10 @@ public class GroqProvider extends AbstractHttpProvider {
         super(apiKey, API_URL, "mixtral-8x7b-32768");
     }
 
+    public GroqProvider(String apiKey, String baseUrl, String model) {
+        super(apiKey, baseUrl != null && !baseUrl.isEmpty() ? baseUrl : API_URL, model != null && !model.isEmpty() ? model : "mixtral-8x7b-32768");
+    }
+
     @Override
     public String getName() {
         return "groq";
@@ -40,7 +44,7 @@ public class GroqProvider extends AbstractHttpProvider {
     protected Map<String, Object> createRequestBody(String prompt) {
         return Map.of(
                 "messages", List.of(Map.of("role", "user", "content", prompt)),
-                "model", "mixtral-8x7b-32768"
+                "model", getModel()
         );
     }
 

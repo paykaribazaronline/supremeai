@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import com.supremeai.dto.ChatRequest;
 import com.supremeai.dto.FeedbackRequest;
+import com.supremeai.repository.ChatHistoryRepository;
+import com.supremeai.model.ChatMessage;
+import java.time.LocalDateTime;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -45,6 +48,9 @@ public class ChatController {
 
     @Autowired
     private com.supremeai.service.ChatIntelligenceService intelligenceService;
+
+    @Autowired
+    private ChatHistoryRepository chatHistoryRepository;
 
     private final CircuitBreaker aiCircuitBreaker;
     private final Retry aiRetry;
@@ -246,5 +252,106 @@ public class ChatController {
             "autonomous_questioning", "ACTIVE",
             "voting_system", "ACTIVE"
         )));
+    }
+
+    @PostMapping("/message")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'AGENT_MANAGER', 'GUEST')")
+    public Mono<ResponseEntity<Object>> handleChatMessage(@Valid @RequestBody ChatRequest request) {
+        return processChatWithHistory(request);
+    }
+
+    @PostMapping("/stream")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'AGENT_MANAGER', 'GUEST')")
+    public Mono<ResponseEntity<Object>> handleChatStream(@Valid @RequestBody ChatRequest request) {
+        return processChatWithHistory(request);
+    }
+
+    private Mono<ResponseEntity<Object>> processChatWithHistory(ChatRequest request) {
+        String sessionId = request.getSessionId();
+        if (sessionId == null || sessionId.trim().isEmpty()) {
+            sessionId = "default-session";
+        }
+        
+        String finalSessionId = sessionId;
+        String userMessage = request.getMessage();
+
+        ChatMessage userMsg = new ChatMessage();
+        userMsg.setId(java.util.UUID.randomUUID().toString());
+        userMsg.setUserId(finalSessionId);
+        userMsg.setContent(userMessage);
+        userMsg.setRole("user");
+        userMsg.setTimestamp(LocalDateTime.now());
+
+        return chatHistoryRepository.save(userMsg)
+            .thenMany(chatHistoryRepository.findByUserIdOrderByTimestampAsc(finalSessionId))
+            .collectList()
+            .flatMap(history -> {
+                StringBuilder promptBuilder = new StringBuilder();
+                promptBuilder.append("You are SupremeAI, a highly intelligent coding and development assistant. Maintain a friendly and helpful tone.\n");
+                promptBuilder.append("Below is the conversation history. Respond appropriately to the last user message considering the context:\n\n");
+
+                int startIdx = Math.max(0, history.size() - 6);
+                for (int i = startIdx; i < history.size(); i++) {
+                    ChatMessage pastMsg = history.get(i);
+                    String role = pastMsg.getRole() != null ? pastMsg.getRole() : (pastMsg.isAdmin() ? "admin" : "user");
+                    promptBuilder.append(role.toUpperCase()).append(": ").append(pastMsg.getContent()).append("\n");
+                }
+
+                if (history.isEmpty() || !history.get(history.size() - 1).getContent().equals(userMessage)) {
+                    promptBuilder.append("USER: ").append(userMessage).append("\n");
+                }
+
+                promptBuilder.append("AI: ");
+                String contextualPrompt = promptBuilder.toString();
+
+                return votingService.executeEnsembleVoting(contextualPrompt, null, 15000L)
+                    .flatMap(votingResult -> {
+                        String bestResponse = (votingResult != null) ? votingResult.getBestResponse() : null;
+                        if (bestResponse == null) {
+                            return Mono.error(new RuntimeException("AI services returned no result"));
+                        }
+
+                        ChatMessage aiMsg = new ChatMessage();
+                        aiMsg.setId(java.util.UUID.randomUUID().toString());
+                        aiMsg.setUserId(finalSessionId);
+                        aiMsg.setContent(bestResponse);
+                        aiMsg.setRole("ai");
+                        aiMsg.setTimestamp(LocalDateTime.now());
+
+                        return chatHistoryRepository.save(aiMsg)
+                            .map(savedAiMsg -> {
+                                Map<String, Object> response = new HashMap<>();
+                                response.put("success", true);
+                                response.put("message", "success");
+                                response.put("response", bestResponse);
+                                response.put("sessionId", finalSessionId);
+                                response.put("timestamp", java.time.Instant.now().toString());
+                                return ResponseEntity.ok((Object) response);
+                            });
+                    });
+            })
+            .onErrorResume(e -> {
+                logger.error("Failed to process chat with history for session: {}", finalSessionId, e);
+                
+                String fallbackResponse = "আমি দুঃখিত, এই মুহূর্তে আমি উত্তর দিতে পারছি না। (AI Error: " + e.getMessage() + ")";
+                
+                ChatMessage aiMsg = new ChatMessage();
+                aiMsg.setId(java.util.UUID.randomUUID().toString());
+                aiMsg.setUserId(finalSessionId);
+                aiMsg.setContent(fallbackResponse);
+                aiMsg.setRole("ai");
+                aiMsg.setTimestamp(LocalDateTime.now());
+
+                return chatHistoryRepository.save(aiMsg)
+                    .map(savedAiMsg -> {
+                        Map<String, Object> response = new HashMap<>();
+                        response.put("success", false);
+                        response.put("message", e.getMessage());
+                        response.put("response", fallbackResponse);
+                        response.put("sessionId", finalSessionId);
+                        response.put("timestamp", java.time.Instant.now().toString());
+                        return ResponseEntity.ok((Object) response);
+                    });
+            });
     }
 }
