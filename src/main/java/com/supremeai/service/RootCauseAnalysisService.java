@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -154,9 +155,19 @@ public class RootCauseAnalysisService {
     }
 
     /**
+     * Record a failed correction attempt so the ML failure predictor learns from the miss.
+     * Called by SelfHealingService when an auto-fix suggestion dissolves into an error.
+     */
+    void recordFailedCorrection(String errorSignature, String errorMessage, String codeContext) {
+        Map<EnhancedRandomForestPredictor.FeatureType, Double> features = extractErrorFeatures(errorMessage, codeContext);
+        failurePredictor.recordFailure(errorSignature, features, true);
+        log.info("Recorded failed correction for fingerprint={} — ML predictor updated", errorSignature);
+    }
+
+    /**
      * Extract features from error for ML prediction.
      */
-    private Map<EnhancedRandomForestPredictor.FeatureType, Double> extractErrorFeatures(String errorMessage, String codeContext) {
+    Map<EnhancedRandomForestPredictor.FeatureType, Double> extractErrorFeatures(String errorMessage, String codeContext) {
         Map<EnhancedRandomForestPredictor.FeatureType, Double> features = new HashMap<>();
 
         // ERROR_FREQUENCY - how often this error occurred
@@ -379,14 +390,14 @@ public class RootCauseAnalysisService {
     /**
      * Learn from successful correction to improve future auto-fixes.
      */
-    public void recordSuccessfulCorrection(String errorSignature, String correctedCode) {
+    public Mono<Void> recordSuccessfulCorrection(String errorSignature, String correctedCode) {
         CorrectionRecord record = correctionHistory.get(errorSignature);
         if (record != null) {
             record.wasSuccessful = true;
             log.info("Recorded successful auto-correction for: {}", errorSignature);
 
             // Update Global Knowledge Base
-            globalKnowledgeBase.recordSuccessWithPermission(
+            return globalKnowledgeBase.recordSuccessWithPermission(
                 errorSignature,
                 correctedCode,
                 "RootCauseAnalysisService",
@@ -394,6 +405,7 @@ public class RootCauseAnalysisService {
                 0.9
             );
         }
+        return Mono.empty();
     }
 
     /**
@@ -406,6 +418,26 @@ public class RootCauseAnalysisService {
         stats.put("successfulCorrections", correctionHistory.values().stream()
             .filter(r -> r.wasSuccessful).count());
         return stats;
+    }
+
+    /**
+     * Get recent correction records for the admin dashboard.
+     */
+    public List<Map<String, Object>> getRecentCorrections(int limit) {
+        return correctionHistory.values().stream()
+            .sorted((a, b) -> Long.compare(b.timestamp, a.timestamp))
+            .limit(limit)
+            .map(r -> {
+                Map<String, Object> m = new HashMap<>();
+                m.put("errorSignature", r.errorSignature);
+                m.put("rootCauseId", r.rootCauseId);
+                m.put("action", r.action != null ? r.action.name() : "N/A");
+                m.put("canAutoFix", r.canAutoFix);
+                m.put("wasSuccessful", r.wasSuccessful);
+                m.put("timestamp", new java.util.Date(r.timestamp).toString());
+                return m;
+            })
+            .collect(java.util.stream.Collectors.<Map<String, Object>>toList());
     }
 
     // ── Data Classes ──────────────────────────────────────────────────────────

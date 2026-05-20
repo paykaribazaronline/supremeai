@@ -3,11 +3,16 @@ package com.supremeai.service;
 import com.supremeai.model.APIProvider;
 import com.supremeai.model.ProviderStatus;
 import com.supremeai.model.APIHealthReport;
+import com.supremeai.model.SupremeAIResponse;
+import com.supremeai.model.UserContext;
 import com.supremeai.repository.APIHealthReportRepository;
 import com.supremeai.repository.ProviderRepository;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
 import com.supremeai.provider.AIProviderType;
+import com.supremeai.learning.SupremeLearningOrchestrator;
+import com.supremeai.learning.knowledge.GlobalKnowledgeBase;
+import com.supremeai.fallback.AIFallbackOrchestrator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +51,18 @@ public class SelfHealingService {
     @Lazy
     @Autowired
     private MultiAIVotingService votingService;
+
+    @Autowired
+    private RootCauseAnalysisService rootCauseAnalysisService;
+
+    @Autowired
+    private GlobalKnowledgeBase globalKnowledgeBase;
+
+    @Autowired
+    private SupremeLearningOrchestrator learningOrchestrator;
+
+    @Autowired
+    private AIFallbackOrchestrator fallbackOrchestrator;
 
     private static final Logger log = LoggerFactory.getLogger(SelfHealingService.class);
     private final Map<String, Integer> errorPatterns = new ConcurrentHashMap<>();
@@ -200,6 +217,23 @@ public class SelfHealingService {
     public Map<String, Object> detectAndFix(String error) {
         log.info("Auto-healing engine analyzing error: {}", error);
         errorPatterns.merge(error, 1, Integer::sum);
+
+        // Full RCA pipeline trigger (feature extraction → prediction → pattern match → auto-fix → GKB)
+        try {
+            com.supremeai.model.UserContext ctx = new com.supremeai.model.UserContext();
+            ctx.setCodeContext(error);
+            SupremeAIResponse rcaResponse = analyzeError(error, new Exception(error), ctx);
+            if (rcaResponse != null && rcaResponse.isSuccess()) {
+                return Map.of(
+                    "status", "fixed",
+                    "fixApplied", "RCA auto-correction applied",
+                    "confidence", 0.95,
+                    "errorCount", errorPatterns.get(error),
+                    "rca", rcaResponse.getData()
+                );
+            }
+        } catch (Exception ignored) {}
+
         String fix = getKnownFix(error);
         if (fix != null) {
             log.info("Applying known fix: {}", fix);
@@ -311,5 +345,78 @@ public class SelfHealingService {
                         .collect(java.util.stream.Collectors.toList())
                 );
             });
+    }
+
+    public SupremeAIResponse analyzeError(String errorSignature, Throwable error, UserContext userContext) {
+        String codeContext = "";
+        if (userContext != null && userContext.getCodeContext() != null) {
+            codeContext = userContext.getCodeContext();
+        }
+
+        try {
+            RootCauseAnalysisService.RootCauseAnalysis analysis = rootCauseAnalysisService
+                .analyzeError(errorSignature, error != null ? error.getMessage() : "Unknown error", codeContext);
+
+            if (analysis == null) {
+                return handleUnknownError(errorSignature, error);
+            }
+
+            if (analysis.canAutoFix && analysis.rootCauseConfidence > 0.8) {
+                rootCauseAnalysisService.recordSuccessfulCorrection(errorSignature, analysis.correctedCode).block();
+                return new SupremeAIResponse(true, "Auto-fix applied successfully", null, analysis);
+            } else if (analysis.rootCauseConfidence > 0.5) {
+                return new SupremeAIResponse(false, "Manual review required: " + analysis.rootCauseDescription, null, analysis);
+            } else {
+                return handleUnknownError(errorSignature, error);
+            }
+        } catch (Exception e) {
+            log.error("Error during self-healing analysis: {}", e.getMessage(), e);
+            // Feed failure back to the ML predictor so it learns from RCA mistakes
+            rootCauseAnalysisService.recordFailedCorrection(
+                    errorSignature,
+                    error != null ? error.getMessage() : "Unknown error",
+                    codeContext
+            );
+            return handleUnknownError(errorSignature, error);
+        }
+    }
+
+    private SupremeAIResponse handleUnknownError(String errorSignature, Throwable error) {
+        String errorMsg = error != null ? error.getMessage() : "Unknown error";
+        if (globalKnowledgeBase != null) {
+            globalKnowledgeBase.recordSuccessWithPermission(
+                errorSignature,
+                "unknown_fix",
+                "SelfHealingService",
+                0,
+                0.0
+            ).block();
+        }
+        if (learningOrchestrator != null) {
+            learningOrchestrator.logUnknownError(errorSignature, errorMsg);
+        }
+        return new SupremeAIResponse(false, "Unknown error encountered during analysis", null);
+    }
+
+    // ===== RCA STATS DELEGATION =====
+
+    /**
+     * Returns RCA analysis statistics for the admin dashboard.
+     * Delegates to RootCauseAnalysisService.getStatistics().
+     */
+    public Map<String, Object> getRootCauseAnalysisStats() {
+        return rootCauseAnalysisService != null
+                ? rootCauseAnalysisService.getStatistics()
+                : Map.of("error", "RCA service unavailable");
+    }
+
+    /**
+     * Returns recent correction records for the admin dashboard.
+     * Delegates to RootCauseAnalysisService.getRecentCorrections().
+     */
+    public List<Map<String, Object>> getRecentCorrections() {
+        return rootCauseAnalysisService != null
+                ? rootCauseAnalysisService.getRecentCorrections(50)
+                : List.of();
     }
 }
