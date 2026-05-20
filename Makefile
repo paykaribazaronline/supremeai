@@ -30,13 +30,17 @@ deploy: build
 deploy-all: infra deploy
 
 build:
-	@echo "=== Building Backend ==="
-	@./gradlew clean build -x test
-	@echo ""
 	@echo "=== Building Dashboard ==="
 	@cd dashboard && npm ci && npm run build && cd ..
 	@rm -rf public/admin/*
+	@mkdir -p public/admin
 	@cp -r dashboard/dist/* public/admin/
+	@rm -rf src/main/resources/static/*
+	@mkdir -p src/main/resources/static
+	@cp -r dashboard/dist/* src/main/resources/static/
+	@echo ""
+	@echo "=== Building Backend ==="
+	@./gradlew clean build -x test
 	@echo "✅ Build complete"
 
 test:

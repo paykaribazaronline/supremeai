@@ -197,3 +197,6 @@ reports/
 scratch/
 public/admin/assets/
 backend_log.txt
+
+# Local gcloud config
+.gcloud/
