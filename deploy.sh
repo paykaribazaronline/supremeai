@@ -41,27 +41,34 @@ command -v gcloud >/dev/null 2>&1 || { log_error "gcloud CLI not found."; exit 1
 command -v firebase >/dev/null 2>&1 || { log_error "Firebase CLI not found."; exit 1; }
 command -v node >/dev/null 2>&1 || { log_error "Node.js not found."; exit 1; }
 
-# Step 1: Build Backend JAR
-log_info "--- Step 1: Building Spring Boot Backend ---"
-./gradlew clean build -x test
-cp build/libs/*.jar ./app.jar
-log_info "✅ Backend JAR ready"
-
-# Step 2: Build Dashboard
-log_info "--- Step 2: Building Admin Dashboard ---"
+# Step 1: Build Dashboard
+log_info "--- Step 1: Building Admin Dashboard ---"
 if [ -d "dashboard" ]; then
     cd dashboard
     [ ! -d "node_modules" ] && npm ci
     npm run build
+    
     log_info "Staging dashboard build to public/admin/..."
     rm -rf ../public/admin/*
     mkdir -p ../public/admin
     cp -r dist/* ../public/admin/
+    
+    log_info "Syncing dashboard build to Spring Boot static resources..."
+    rm -rf ../src/main/resources/static/*
+    mkdir -p ../src/main/resources/static
+    cp -r dist/* ../src/main/resources/static/
+    
     cd ..
-    log_info "✅ Dashboard staged"
+    log_info "✅ Dashboard built and staged to public/admin/ & src/main/resources/static/"
 else
     log_warn "Dashboard directory not found, skipping..."
 fi
+
+# Step 2: Build Backend JAR
+log_info "--- Step 2: Building Spring Boot Backend ---"
+./gradlew clean build -x test
+cp build/libs/*.jar ./app.jar
+log_info "✅ Backend JAR ready"
 
 # Step 3: Build Docker Images via Cloud Build (Optimized)
 log_info "--- Step 3: Building Images via Cloud Build ---"
