@@ -2,6 +2,7 @@ package com.supremeai.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -26,11 +27,14 @@ public class DataLifecycleService {
 
     private static final Logger logger = LoggerFactory.getLogger(DataLifecycleService.class);
 
-    // Default TTL in days before soft-delete
+    @Autowired(required = false)
+    private ConfigService configService;
+
+    // Default TTL in days before soft-delete (fallback value)
     @Value("${lifecycle.default.ttl.days:30}")
     private int defaultTtlDays;
 
-    // Grace period in days between soft-delete and hard-delete
+    // Grace period in days between soft-delete and hard-delete (fallback value)
     @Value("${lifecycle.grace.period.days:7}")
     private int gracePeriodDays;
 
@@ -49,7 +53,8 @@ public class DataLifecycleService {
      * @param ttlDays  Custom TTL in days; 0 = use default
      */
     public void register(String dataId, String dataType, int ttlDays) {
-        int effectiveTtl = ttlDays > 0 ? ttlDays : defaultTtlDays;
+        int defaultTtl = configService != null ? configService.getEffectiveSetting("lifecycle.default.ttl.days", defaultTtlDays) : defaultTtlDays;
+        int effectiveTtl = ttlDays > 0 ? ttlDays : defaultTtl;
         LocalDateTime expiresAt = LocalDateTime.now().plusDays(effectiveTtl);
         LifecycleEntry entry = new LifecycleEntry(dataId, dataType, expiresAt);
         registry.put(dataId, entry);
@@ -74,7 +79,8 @@ public class DataLifecycleService {
         }
         entry.setSoftDeleted(true);
         entry.setSoftDeletedAt(LocalDateTime.now());
-        entry.setHardDeleteAfter(LocalDateTime.now().plusDays(gracePeriodDays));
+        int effectiveGrace = configService != null ? configService.getEffectiveSetting("lifecycle.grace.period.days", gracePeriodDays) : gracePeriodDays;
+        entry.setHardDeleteAfter(LocalDateTime.now().plusDays(effectiveGrace));
         logger.info("[LIFECYCLE] Soft-deleted {} hardDeleteAfter={}", dataId, entry.getHardDeleteAfter());
     }
 

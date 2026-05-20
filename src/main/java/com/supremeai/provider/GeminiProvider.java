@@ -48,6 +48,42 @@ public class GeminiProvider extends AbstractHttpProvider {
 
     @Override
     protected Map<String, Object> createRequestBody(String prompt) {
+        String cleanPrompt = prompt;
+        String mimeType = null;
+        String base64Data = null;
+
+        try {
+            // Pattern to match markdown image with base64 data URL
+            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+                "(!\\[.*?\\]\\(data:(image\\/[a-zA-Z*\\-+.]+);base64,([^)]+)\\))"
+            );
+            java.util.regex.Matcher matcher = pattern.matcher(prompt);
+            if (matcher.find()) {
+                String fullMatch = matcher.group(1);
+                mimeType = matcher.group(2);
+                base64Data = matcher.group(3);
+                
+                // Replace the base64 image link with a simpler text reference in the prompt
+                cleanPrompt = prompt.replace(fullMatch, "[Attached Image]");
+            }
+        } catch (Exception e) {
+            logger.error("Failed to parse image from prompt in GeminiProvider", e);
+        }
+
+        if (base64Data != null && mimeType != null) {
+            return Map.of(
+                    "contents", List.of(
+                            Map.of("parts", List.of(
+                                    Map.of("text", cleanPrompt),
+                                    Map.of("inlineData", Map.of(
+                                            "mimeType", mimeType,
+                                            "data", base64Data
+                                    ))
+                            ))
+                    )
+            );
+        }
+
         return Map.of(
                 "contents", List.of(
                         Map.of("parts", List.of(Map.of("text", prompt)))

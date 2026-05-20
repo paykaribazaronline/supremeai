@@ -11,7 +11,7 @@ const { Title, Paragraph } = Typography;
 const AdminOCR: React.FC = () => {
   return (
     <AdminLayout title="Bengali OCR">
-      <Card>
+      <Card className="glass-card">
         <div style={{ textAlign: 'center', padding: '40px 0' }}>
           <EyeOutlined style={{ fontSize: 64, color: '#eb2f96', marginBottom: 24 }} />
           <Title level={3}>Bengali OCR Tool</Title>

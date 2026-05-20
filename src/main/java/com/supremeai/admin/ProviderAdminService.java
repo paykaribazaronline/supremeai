@@ -68,6 +68,9 @@ public class ProviderAdminService {
         return providerRepository.findById(id)
                 .flatMap(existing -> {
                     provider.setId(id);
+                    if (provider.getType() == null) {
+                        provider.setType(existing.getType());
+                    }
                     boolean keyChanged = provider.getApiKey() != null &&
                             !provider.getApiKey().equals(existing.getApiKey());
                     

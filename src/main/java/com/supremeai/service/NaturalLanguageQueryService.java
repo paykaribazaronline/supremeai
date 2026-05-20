@@ -126,8 +126,7 @@ public class NaturalLanguageQueryService {
      */
     private String enhanceWithAI(String query, int wordCount) {
         try {
-            String[] providers = activeProviders.split(",");
-            AIProvider provider = providerFactory.getProvider(providers[0].trim());
+            AIProvider provider = providerFactory.getDefaultProvider();
 
             String enhancementPrompt = String.format("""
                 Rewrite the following user request into a natural, conversational, and detailed prompt

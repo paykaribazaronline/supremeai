@@ -13,6 +13,8 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 class DiOSAgentTest {
@@ -23,12 +25,16 @@ class DiOSAgentTest {
     @Mock
     private AIProvider aiProvider;
 
+    @Mock
+    private AgentRuleService ruleService;
+
     @InjectMocks
     private DiOSAgent diosAgent;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        when(ruleService.wrapWithRules(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test

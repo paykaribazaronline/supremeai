@@ -43,7 +43,7 @@ const ProviderActionToolbar: React.FC<Props> = ({
   setSortOrder
 }) => {
   return (
-    <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-6 p-4 rounded-xl bg-white/[0.03] border border-white/10 backdrop-blur-md">
+    <div className="glass-card flex flex-col md:flex-row gap-4 justify-between items-center mb-6 p-4">
       <Space wrap className="w-full md:w-auto">
         <div className="relative group">
           <Input
@@ -89,7 +89,8 @@ const ProviderActionToolbar: React.FC<Props> = ({
           icon={<ThunderboltOutlined />} 
           onClick={onTestAll} 
           loading={testingAll}
-          className="h-10 px-4 bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/30 font-bold rounded-lg transition-all"
+          className="glass-action-button"
+          style={{ color: '#34d399', borderColor: 'rgba(52, 211, 153, 0.3)', fontWeight: 700 }}
         >
           সব টেস্ট করুন
         </Button>
@@ -99,7 +100,7 @@ const ProviderActionToolbar: React.FC<Props> = ({
             <Button 
               danger 
               icon={<DeleteOutlined />}
-              className="h-10 px-4 bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/30 font-bold rounded-lg transition-all"
+              className="cyber-danger-button"
             >
               {deadCount} ডেড কী মুছুন
             </Button>
@@ -110,14 +111,15 @@ const ProviderActionToolbar: React.FC<Props> = ({
           icon={<ReloadOutlined />} 
           onClick={onRefresh} 
           loading={loading}
-          className="h-10 w-10 flex items-center justify-center bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+          className="glass-action-button"
         />
 
         <Button 
           type="primary" 
           icon={<PlusOutlined />} 
           onClick={onAdd}
-          className="h-10 px-6 bg-blue-600 hover:bg-blue-500 border-none font-bold rounded-lg shadow-lg shadow-blue-500/20 transition-all"
+          className="cyber-button"
+          style={{ minWidth: 140 }}
         >
           নতুন প্রোভাইডার
         </Button>

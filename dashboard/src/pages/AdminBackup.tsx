@@ -92,7 +92,7 @@ const AdminBackup: React.FC = () => {
   return (
     <AdminLayout title="Backup & Restore">
       <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
-        <Card title="System Snapshot Management" extra={
+        <Card className="glass-card" title="System Snapshot Management" extra={
           <Space>
             <Button icon={<ReloadOutlined />} onClick={fetchBackups}>Refresh</Button>
             <Button type="primary" icon={<CloudUploadOutlined />} loading={triggering} onClick={handleTriggerBackup}>

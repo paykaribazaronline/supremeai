@@ -139,6 +139,28 @@ app.get('/accessibility', async (req, res) => {
   }
 });
 
+app.post('/scroll', async (req, res) => {
+  try {
+    const { direction } = req.body;
+    await bc.scroll(direction);
+    res.json({ success: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ error: message });
+  }
+});
+
+app.get('/extract-text', async (req, res) => {
+  try {
+    const selector = req.query.selector as string | undefined;
+    const text = await bc.getExtractedText(selector);
+    res.json({ text: text?.trim() ?? '', length: text?.length ?? 0 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ error: message });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Browser automation server running on port ${port}`);
 });

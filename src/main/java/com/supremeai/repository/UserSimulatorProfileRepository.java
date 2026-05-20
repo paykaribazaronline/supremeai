@@ -2,7 +2,7 @@ package com.supremeai.repository;
 
 import com.supremeai.model.UserSimulatorProfile;
 import com.supremeai.model.UserTier;
-import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import com.google.cloud.spring.data.firestore.FirestoreReactiveRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
  * Document ID: Firebase user UID
  */
 @org.springframework.stereotype.Repository
-public interface UserSimulatorProfileRepository extends ReactiveCrudRepository<UserSimulatorProfile, String> {
+public interface UserSimulatorProfileRepository extends FirestoreReactiveRepository<UserSimulatorProfile> {
 
     /**
      * Find by Firebase UID ( equivalent to findById )

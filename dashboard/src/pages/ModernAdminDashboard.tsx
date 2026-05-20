@@ -54,6 +54,9 @@ const { Text } = Typography;
 export default function ModernAdminDashboard() {
   const { isAdmin, isAuthenticated, user, refreshUser } = useRole();
   const [collapsed, setCollapsed] = useState(false);
+  const [autoHide, setAutoHide] = useState(() => {
+    return localStorage.getItem('sidebar_autohide') === 'true';
+  });
   const [activeKey, setActiveKey] = useState('dashboard');
   const [darkMode, setDarkMode] = useState(true);
   const [chatFont, setChatFont] = useState(localStorage.getItem('chatFont') || 'font-mono');
@@ -217,7 +220,16 @@ export default function ModernAdminDashboard() {
           menuItems={menuItems}
           isAdmin={isAdmin}
           isAuthenticated={isAuthenticated}
+          autoHide={autoHide}
+          setAutoHide={setAutoHide}
         />
+
+        {autoHide && collapsed && (
+          <div 
+            className="sidebar-hover-trigger"
+            onMouseEnter={() => setCollapsed(false)}
+          />
+        )}
 
         <DashboardMobileDrawer 
           open={mobileDrawerOpen}
@@ -229,7 +241,13 @@ export default function ModernAdminDashboard() {
           isAuthenticated={isAuthenticated}
         />
 
-        <Layout className="responsive-layout" style={{ background: 'transparent' }}>
+        <Layout 
+          className="responsive-layout" 
+          style={{ 
+            background: 'transparent',
+            ['--sidebar-margin' as any]: collapsed ? '0px' : '276px'
+          }}
+        >
           <DashboardHeader 
             collapsed={collapsed}
             setCollapsed={setCollapsed}

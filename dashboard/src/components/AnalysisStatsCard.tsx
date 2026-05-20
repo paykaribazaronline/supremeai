@@ -41,7 +41,7 @@ const AnalysisStatsCard: React.FC<AnalysisStatsCardProps> = ({ job }) => {
 
   return (
     <Card
-      className="glass-panel"
+      className="glass-card"
       title={
         <Space>
           <CodeOutlined style={{ color: 'var(--neon-blue)' }} />

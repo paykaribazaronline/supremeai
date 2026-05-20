@@ -305,7 +305,7 @@ const AdminBrowser: React.FC = () => {
         <BrowserHeader isAutoMode={isAutoMode} setIsAutoMode={setIsAutoMode} />
 
         <Col xs={24} lg={16}>
-          <div className="browser-container" style={{ boxShadow: '0 clamp(30px, 4vw, 60px) rgba(0,0,0,0.5)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', background: '#000', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+          <div className="glass-card browser-container" style={{ boxShadow: '0 clamp(30px, 4vw, 60px) rgba(0,0,0,0.5)', overflow: 'hidden', border: '1px solid rgba(0, 243, 255, 0.12)' }}>
             <BrowserToolbar 
               url={url}
               setUrl={setUrl}

@@ -33,7 +33,19 @@ class ChatProcessingServiceTest {
     @Mock
     private ChatHistoryRepository chatHistoryRepository;
     @Mock
+    private ChatAdminActionRepository chatAdminActionRepository;
+    @Mock
     private AIFallbackOrchestrator fallbackOrchestrator;
+    @Mock
+    private AIProviderService aiProviderService;
+    @Mock
+    private com.supremeai.service.browser.BrowserService browserService;
+    @Mock
+    private AdminProviderValidationService validationService;
+    @Mock
+    private CyberSecuritySkillService cyberSecuritySkillService;
+    @Mock
+    private EnhancedLearningService enhancedLearningService;
 
     @InjectMocks
     private ChatProcessingService chatProcessingService;
@@ -42,6 +54,8 @@ class ChatProcessingServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         when(chatHistoryRepository.save(any())).thenReturn(Mono.just(new ChatMessage()));
+        when(chatHistoryRepository.findByUserIdOrderByTimestampAsc(anyString())).thenReturn(Flux.empty());
+        when(enhancedLearningService.learnFromInteraction(anyString(), anyString(), anyString())).thenReturn(Mono.empty());
     }
 
     @Test

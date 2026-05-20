@@ -761,4 +761,8 @@ public class SupremeLearningOrchestrator {
             GAP_ANALYSIS      // Report an intelligence gap
         }
     }
+
+    public void logUnknownError(String signature, String message) {
+        log.warn("[SYSTEM_LEARNING] Unknown error logged: signature={}, message={}", signature, message);
+    }
 }

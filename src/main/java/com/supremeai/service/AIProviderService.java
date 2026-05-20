@@ -40,7 +40,11 @@ public class AIProviderService {
             return candidate;
         }
         // Cached index is exhausted — atomically rotate to next candidate
-        return rotateKey(provider);
+        String rotated = rotateKey(provider);
+        if (rotated != null && exhausted != null && exhausted.contains(rotated)) {
+            return null;
+        }
+        return rotated;
     }
 
     /**
