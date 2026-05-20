@@ -72,6 +72,24 @@
     "enableExternalDirectory": {
       "type": "boolean",
       "default": false
+    },
+    "voicebox": {
+      "type": "object",
+      "properties": {
+        "baseUrl": {
+          "type": "string",
+          "format": "uri",
+          "default": "http://localhost:17493"
+        },
+        "soloMode": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "default": {
+        "baseUrl": "http://localhost:17493",
+        "soloMode": true
+      }
     }
   },
   "required": [

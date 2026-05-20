@@ -1,6 +1,7 @@
 package com.supremeai.service.analysis;
 
-import com.supremeai.ai.client.OpenAIClient;
+import com.supremeai.provider.AIProvider;
+import com.supremeai.provider.AIProviderFactory;
 import com.supremeai.model.analysis.AnalysisFix;
 import com.supremeai.model.analysis.AnalysisFinding;
 import com.supremeai.repository.analysis.AnalysisFixRepository;
@@ -22,7 +23,7 @@ public class FixSuggestionService {
 
     private static final Logger log = LoggerFactory.getLogger(FixSuggestionService.class);
 
-    private final OpenAIClient openAIClient;
+    private final AIProviderFactory providerFactory;
     private final FixPromptTemplates fixPromptTemplates;
     private final AnalysisFixRepository fixRepository;
 
@@ -31,9 +32,9 @@ public class FixSuggestionService {
     private static final Pattern CONFIDENCE_PATTERN = Pattern.compile("CONFIDENCE:\\s*([0-9.]+)");
 
     @Autowired
-    public FixSuggestionService(OpenAIClient openAIClient, FixPromptTemplates fixPromptTemplates,
+    public FixSuggestionService(AIProviderFactory providerFactory, FixPromptTemplates fixPromptTemplates,
                                  AnalysisFixRepository fixRepository) {
-        this.openAIClient = openAIClient;
+        this.providerFactory = providerFactory;
         this.fixPromptTemplates = fixPromptTemplates;
         this.fixRepository = fixRepository;
     }
@@ -83,7 +84,16 @@ public class FixSuggestionService {
                 String prompt = template.render(context);
                 log.debug("Sending fix prompt for finding {} in file {}", finding.getId(), finding.getFile());
 
-                String response = openAIClient.generate(prompt);
+                AIProvider provider = null;
+                try {
+                    provider = providerFactory.getProvider("openai");
+                } catch (Exception ignored) {}
+                if (provider == null) {
+                    provider = providerFactory.getDefaultProvider();
+                }
+                String response = provider.generate(prompt)
+                    .subscribeOn(Schedulers.boundedElastic())
+                    .block(java.time.Duration.ofSeconds(30));
 
                 if (response == null || response.isEmpty() || response.startsWith("Failed") || response.startsWith("Error")) {
                     log.warn("LLM returned error for finding {}: {}", finding.getId(), response);

@@ -45,7 +45,7 @@ public class SystemLearning {
     private Object context;
     private Integer errorCount;
     private Boolean resolved;
-    private LocalDateTime timestamp;
+    private Object timestamp;
     private String severity;
     private List<String> solutions;
 
@@ -110,8 +110,25 @@ public class SystemLearning {
     public void setErrorCount(Integer errorCount) { this.errorCount = errorCount; }
     public Boolean getResolved() { return resolved; }
     public void setResolved(Boolean resolved) { this.resolved = resolved; }
-    public LocalDateTime getTimestamp() { return timestamp; }
-    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+    public LocalDateTime getTimestamp() {
+        if (timestamp == null) return null;
+        if (timestamp instanceof LocalDateTime) {
+            return (LocalDateTime) timestamp;
+        }
+        if (timestamp instanceof Long) {
+            return java.time.Instant.ofEpochMilli((Long) timestamp)
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toLocalDateTime();
+        }
+        if (timestamp instanceof com.google.cloud.Timestamp) {
+            com.google.cloud.Timestamp t = (com.google.cloud.Timestamp) timestamp;
+            return java.time.Instant.ofEpochSecond(t.getSeconds(), t.getNanos())
+                    .atZone(java.time.ZoneId.systemDefault())
+                    .toLocalDateTime();
+        }
+        return null;
+    }
+    public void setTimestamp(Object timestamp) { this.timestamp = timestamp; }
     public String getSeverity() { return severity; }
     public void setSeverity(String severity) { this.severity = severity; }
     public List<String> getSolutions() { return solutions; }

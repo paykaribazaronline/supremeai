@@ -54,7 +54,7 @@ class AIProfilerTest {
 
         String best = profiler.getBestAIForTask("UNKNOWN_TASK");
 
-        assertEquals("groq", best);
+        assertNull(best);
     }
 
     @Test

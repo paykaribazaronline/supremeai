@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Typography, Card, Space, Row, Col, Statistic, Spin, Alert, Button, Tag, Select, Badge, Empty } from 'antd';
+import { Layout, Typography, Card, Space, Row, Col, Statistic, Spin, Alert, Button, Tag, Select, Badge, Empty, message } from 'antd';
 import { BellOutlined, ReloadOutlined, CheckCircleOutlined, WarningOutlined, CloseCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { authUtils } from '../lib/authUtils';
 
@@ -63,12 +63,14 @@ const AdminNotifications: React.FC = () => {
           critical: items.filter((n) => n.severity === 'critical').length,
           warning: items.filter((n) => n.severity === 'warning').length,
         });
+        message.success('নোটিফিকেশন ডেটা রিফ্রেশ হয়েছে');
       } else {
         setNotifications([]);
         setStats({ total: 0, unread: 0, critical: 0, warning: 0 });
       }
     } catch (err) {
       setError('নোটিফিকেশন লোড করতে সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।');
+      message.error('নোটিফিকেশন লোড ব্যর্থ হয়েছে');
       console.error('Notifications fetch error:', err);
     } finally {
       setLoading(false);
@@ -83,6 +85,7 @@ const AdminNotifications: React.FC = () => {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n))
     );
+    message.info('নোটিফিকেশন অবস্থা আপডেট হয়েছে');
   };
 
   const getSeverityTag = (severity: string) => {

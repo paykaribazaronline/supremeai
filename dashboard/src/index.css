@@ -262,7 +262,83 @@ body {
 }
 
 /* ============================================
-   CYBER BUTTON - Fluid
+   GLASS ACTION BUTTON - Secondary Action
+   Glassmorphism Action Button for refresh/backup style actions
+   ============================================ */
+
+.glass-action-button {
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.25s ease;
+  font-family: var(--font-main);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  min-height: clamp(36px, 5vh, 48px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  font-size: var(--text-sm);
+  padding: clamp(8px, 1vw, 12px) clamp(16px, 2vw, 24px);
+}
+
+.glass-action-button:hover {
+  background: rgba(0, 243, 255, 0.05);
+  border-color: rgba(0, 243, 255, 0.3);
+  color: #00f3ff;
+  box-shadow: 0 0 12px rgba(0, 243, 255, 0.15);
+}
+
+.glass-action-button:active {
+  transform: scale(0.97);
+}
+
+/* ============================================
+   NEON CRIMSON ALERT BUTTON - High-Risk / Force Action
+   Used for auto-fix, kill session, or delete actions
+   ============================================ */
+
+.cyber-danger-button {
+  background: transparent;
+  color: #ef4444;
+  border: 1px solid #ef4444;
+  border-radius: clamp(2px, 0.25vw, 6px);
+  font-family: var(--font-main);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: clamp(1px, 0.2vw, 2px);
+  padding: clamp(8px, 1vw, 12px) clamp(16px, 2vw, 24px);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.1);
+  min-height: clamp(36px, 5vh, 48px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  font-size: var(--text-sm);
+}
+
+.cyber-danger-button:hover {
+  background: #ef4444;
+  color: #000;
+  text-shadow: none;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.6), 0 0 30px rgba(239, 68, 68, 0.2);
+  transform: translateY(-2px);
+}
+
+.cyber-danger-button:active {
+  transform: translateY(1px);
+}
+
+/* ============================================
+   NEON CYBER BUTTON - Primary Action
    ============================================ */
 
 .cyber-button {
@@ -660,10 +736,40 @@ body {
 }
 
  .responsive-layout {
-   margin-left: 0;
-   transition: margin-left 0.3s ease;
-   min-height: 100vh;
- }
+    margin-left: var(--sidebar-margin, 276px);
+    transition: margin-left 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    min-height: 100vh;
+  }
+
+/* Sidebar auto-hide invisible trigger zone */
+.sidebar-hover-trigger {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 16px;
+  z-index: 9999;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Neon Cyber-styled Switch overrides */
+.cyber-switch.ant-switch {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+.cyber-switch.ant-switch-checked {
+  background-color: rgba(0, 243, 255, 0.25) !important;
+  border-color: var(--neon-blue) !important;
+  box-shadow: 0 0 8px rgba(0, 243, 255, 0.5) !important;
+}
+.cyber-switch .ant-switch-handle::before {
+  background-color: #ffffff !important;
+}
+.cyber-switch.ant-switch-checked .ant-switch-handle::before {
+  background-color: var(--neon-blue) !important;
+  box-shadow: 0 0 6px var(--neon-blue) !important;
+}
 
 .responsive-header {
   padding: 0 var(--space-3);
@@ -731,7 +837,11 @@ body {
   }
 
   .responsive-layout {
-    margin-left: 0;
+    margin-left: 0 !important;
+  }
+
+  .sidebar-hover-trigger {
+    display: none !important;
   }
 }
 
@@ -997,6 +1107,65 @@ body {
 .ant-btn-primary {
   min-width: clamp(100px, 12vw, 140px) !important;
   padding: 0 var(--space-3) !important;
+}
+
+/* ============================================
+   NEON CYAN BORDER for inner table/provider panels
+   ============================================ */
+
+.neon-cyan-border,
+.inner-provider-table {
+  border: 1px solid rgba(0, 243, 255, 0.12) !important;
+}
+
+.neon-cyan-border .ant-table,
+.inner-provider-table.ant-table {
+  background: transparent !important;
+}
+
+.neon-cyan-border .ant-table-thead > tr > th {
+  background: rgba(0, 243, 255, 0.05) !important;
+  border-bottom: 1px solid rgba(0, 243, 255, 0.12) !important;
+  color: rgba(0, 243, 255, 0.85) !important;
+}
+
+.neon-cyan-border .ant-table-tbody > tr > td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+}
+
+.neon-cyan-border .ant-table-tbody > tr:hover > td {
+  background: rgba(0, 243, 255, 0.05) !important;
+}
+
+.neon-cyan-border .ant-table {
+  --ant-table-header-bg: rgba(0, 243, 255, 0.03);
+}
+
+/* Provider Group Panel — neon cyan border + 3D glass effect for provider ranking */
+.cyan-bordered-panel {
+  border: 1px solid rgba(0, 243, 255, 0.18) !important;
+  box-shadow:
+    0 0 clamp(10px, 1.5vw, 20px) rgba(0, 243, 255, 0.12),
+    inset 0 1px 0 rgba(0, 243, 255, 0.06),
+    0 4px 16px rgba(0, 0, 0, 0.4) !important;
+  border-radius: var(--radius-lg) !important;
+  background: rgba(13, 13, 18, 0.85) !important;
+  backdrop-filter: blur(clamp(8px, 1.5vw, 16px)) !important;
+  -webkit-backdrop-filter: blur(clamp(8px, 1.5vw, 16px)) !important;
+}
+
+.cyan-bordered-panel .ant-collapse-header {
+  color: var(--neon-blue) !important;
+  font-weight: 600 !important;
+  border-bottom: 1px solid rgba(0, 243, 255, 0.08) !important;
+}
+
+.cyan-bordered-panel:hover {
+  border-color: rgba(0, 243, 255, 0.35) !important;
+  box-shadow:
+    0 0 clamp(16px, 2vw, 28px) rgba(0, 243, 255, 0.2),
+    inset 0 1px 0 rgba(0, 243, 255, 0.1),
+    0 8px 24px rgba(0, 0, 0, 0.5) !important;
 }
 
 /* Card adjustments */

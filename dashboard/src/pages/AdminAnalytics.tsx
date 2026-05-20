@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Typography, Card, Space, Row, Col, Progress, Table, Tag, Statistic, Spin, Alert, Button } from 'antd';
+import { Layout, Typography, Card, Space, Row, Col, Progress, Table, Tag, Statistic, Spin, Alert, Button, message } from 'antd';
 import { 
   LineChartOutlined, 
   TrophyOutlined,
@@ -54,6 +54,7 @@ const AdminAnalytics: React.FC = () => {
         })).sort((a, b) => b.score - a.score);
         
         setRankings(formattedRankings);
+        message.success('এনালাইটিক্স ডেটা রিফ্রেশ হয়েছে');
       }
 
       if (contractRes.ok) {
@@ -62,6 +63,7 @@ const AdminAnalytics: React.FC = () => {
       }
     } catch (err) {
       setError('ডাটা লোড করতে সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।');
+      message.error('এনালাইটিক্স ডেটা লোড ব্যর্থ হয়েছে');
       console.error('Analytics fetch error:', err);
     } finally {
       setLoading(false);
@@ -165,7 +167,7 @@ const AdminAnalytics: React.FC = () => {
         <Col xs={24} lg={16}>
           <Card
             title={<Space><TrophyOutlined style={{ color: '#f59e0b' }} /> <span style={{ color: '#fff' }}>Provider Performance Rankings</span></Space>}
-            className="glass-card"
+            className="glass-card cyan-bordered-panel"
             bordered={false}
           >
             <Table 

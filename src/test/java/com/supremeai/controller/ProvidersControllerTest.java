@@ -47,6 +47,7 @@ class ProvidersControllerTest {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         Authentication auth = mock(Authentication.class);
         lenient().when(auth.getName()).thenReturn(userId);
+        lenient().when(auth.isAuthenticated()).thenReturn(true);
         lenient().doReturn(List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))).when(auth).getAuthorities();
         context.setAuthentication(auth);
         SecurityContextHolder.setContext(context);

@@ -126,7 +126,15 @@ const ProvidersTable: React.FC<Props> = ({ providers, sortedGroupKeys, getGroupL
                 </Space>
               } 
               key={groupKey}
-              style={{ marginBottom: '16px', background: 'rgba(255,255,255,0.5)', borderRadius: '12px', border: '1px solid #eee' }}
+              className="glass-card cyan-bordered-panel"
+              style={{ 
+                marginBottom: 16, 
+                background: 'rgba(13, 13, 18, 0.8)', 
+                border: '1px solid rgba(0, 243, 255, 0.15)', 
+                borderRadius: 12,
+                boxShadow: '0 0 clamp(10px, 1.5vw, 20px) rgba(0, 243, 255, 0.1), 0 4px 12px rgba(0, 0, 0, 0.4)',
+                backdropFilter: 'blur(12px)'
+              }}
             >
               <Table
                 columns={columns}
@@ -134,7 +142,12 @@ const ProvidersTable: React.FC<Props> = ({ providers, sortedGroupKeys, getGroupL
                 rowKey="id"
                 pagination={false}
                 size="middle"
-                className="inner-provider-table"
+                className="inner-provider-table neon-cyan-border"
+                style={{ 
+                  background: 'transparent',
+                  border: '1px solid rgba(0, 243, 255, 0.08)',
+                  borderRadius: 8
+                }}
               />
             </Panel>
           );

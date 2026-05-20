@@ -1,5 +1,5 @@
-import React from 'react';
-import { Layout, Menu, Typography } from 'antd';
+import React, { useRef, useEffect } from 'react';
+import { Layout, Menu, Typography, Switch } from 'antd';
 import { motion } from 'framer-motion';
 
 const { Sider } = Layout;
@@ -13,6 +13,8 @@ interface DashboardSidebarProps {
   menuItems: any[];
   isAdmin: boolean;
   isAuthenticated: boolean;
+  autoHide: boolean;
+  setAutoHide: (autoHide: boolean) => void;
 }
 
 const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
@@ -22,13 +24,48 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   setActiveKey,
   menuItems,
   isAdmin,
-  isAuthenticated
+  isAuthenticated,
+  autoHide,
+  setAutoHide
 }) => {
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = () => {
+    if (!autoHide) return;
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    if (collapsed) {
+      setCollapsed(false);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (!autoHide) return;
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => {
+      setCollapsed(true);
+    }, 400);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
      <Sider
        collapsible
        collapsed={collapsed}
        onCollapse={setCollapsed}
+       onMouseEnter={handleMouseEnter}
+       onMouseLeave={handleMouseLeave}
        theme="dark"
        className="glass-panel responsive-sidebar"
        width={260}
@@ -51,9 +88,9 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
          padding: '0 var(--space-3)',
          borderBottom: '1px solid rgba(255,255,255,0.05)'
        }}>
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
+         <motion.div
+           initial={{ scale: 0.8, opacity: 0 }}
+           animate={{ scale: 1, opacity: 1 }}
            style={{
              background: 'linear-gradient(135deg, var(--neon-blue), var(--neon-purple))',
              padding: 'var(--space-2) var(--space-3)',
@@ -65,23 +102,47 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
              letterSpacing: 'clamp(1px, 0.3vw, 3px)',
              fontFamily: 'JetBrains Mono, monospace'
            }}
-        >
-          {collapsed ? 'S' : 'SUPREME'}
-        </motion.div>
-      </div>
-      
-      <Menu
-        mode="inline"
-        selectedKeys={[activeKey]}
-        onClick={(e) => setActiveKey(e.key)}
-        items={menuItems}
-        theme="dark"
-        style={{ background: 'transparent', borderRight: 'none', marginTop: 24 }}
-      />
-      
+         >
+           {collapsed ? 'S' : 'SUPREME'}
+         </motion.div>
+       </div>
+       
+       <Menu
+         mode="inline"
+         selectedKeys={[activeKey]}
+         onClick={(e) => setActiveKey(e.key)}
+         items={menuItems}
+         theme="dark"
+         style={{ background: 'transparent', borderRight: 'none', marginTop: 24 }}
+       />
+       
        {!collapsed && (
          <div style={{ position: 'absolute', bottom: 'var(--space-5)', left: 'var(--space-3)', right: 'var(--space-3)' }}>
            <div style={{ padding: 'var(--space-3)', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-lg)', border: '1px solid rgba(255,255,255,0.05)' }}>
+             
+             <div style={{ 
+               display: 'flex', 
+               justifyContent: 'space-between', 
+               alignItems: 'center', 
+               marginBottom: 'var(--space-3)',
+               paddingBottom: 'var(--space-2)',
+               borderBottom: '1px solid rgba(255,255,255,0.05)'
+             }}>
+               <Text style={{ fontSize: 'var(--text-xs)', color: 'rgba(255,255,255,0.6)', letterSpacing: 0.5 }}>সাইডবার অটো-হাইড</Text>
+               <Switch 
+                 checked={autoHide} 
+                 onChange={(checked) => {
+                   setAutoHide(checked);
+                   localStorage.setItem('sidebar_autohide', checked ? 'true' : 'false');
+                   if (checked) {
+                     setCollapsed(true);
+                   }
+                 }}
+                 size="small"
+                 className="cyber-switch"
+               />
+             </div>
+
              <Text style={{ fontSize: 'var(--text-xs)', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 1 }}>অথোরাইজেশন ট্রেস</Text>
               <div style={{ display: 'flex', gap: 'var(--space-1)', marginTop: 'var(--space-3)' }}>
                 {[1,2,3,4,5,6,7,8].map(i => (
@@ -97,7 +158,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
            </div>
          </div>
        )}
-    </Sider>
+     </Sider>
   );
 };
 

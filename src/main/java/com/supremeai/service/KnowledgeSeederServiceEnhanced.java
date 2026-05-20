@@ -145,6 +145,50 @@ public class KnowledgeSeederServiceEnhanced {
                 log.error("[LEARNING] Failed to save new concept: {}", error.getMessage()));
     }
 
+    @SuppressWarnings("unchecked")
+    public Mono<String> seed(Map<String, Object> request) {
+        String id = (String) request.getOrDefault("id", "seed-" + System.currentTimeMillis());
+        SystemLearning learning = new SystemLearning();
+        learning.setId(id);
+        learning.setTitle((String) request.getOrDefault("title", "Untitled"));
+        learning.setCategory((String) request.getOrDefault("category", "general"));
+        learning.setContent((String) request.getOrDefault("content", ""));
+        learning.setTags((List<String>) request.getOrDefault("tags", List.of()));
+        learning.setCritical((Boolean) request.getOrDefault("critical", false));
+        learning.setConfidence((Double) request.getOrDefault("confidence", 0.90));
+        learning.setVersion(1L);
+        learning.setCreatedAt(LocalDateTime.now());
+        learning.setUpdatedAt(LocalDateTime.now());
+        
+        return systemLearningRepository.save(learning)
+            .doOnSuccess(saved -> {
+                knowledgeCache.put(saved.getId(), saved);
+            })
+            .map(SystemLearning::getId);
+    }
+
+    @SuppressWarnings("unchecked")
+    public Mono<Long> seedBulk(List<Map<String, Object>> foundationList) {
+        return Flux.fromIterable(foundationList)
+            .flatMap(req -> {
+                String id = (String) req.getOrDefault("id", "seed-" + System.currentTimeMillis());
+                SystemLearning learning = new SystemLearning();
+                learning.setId(id);
+                learning.setTitle((String) req.getOrDefault("title", "Untitled"));
+                learning.setCategory((String) req.getOrDefault("category", "general"));
+                learning.setContent((String) req.getOrDefault("content", ""));
+                learning.setTags((List<String>) req.getOrDefault("tags", List.of()));
+                learning.setCritical((Boolean) req.getOrDefault("critical", false));
+                learning.setConfidence((Double) req.getOrDefault("confidence", 0.90));
+                learning.setVersion(1L);
+                learning.setCreatedAt(LocalDateTime.now());
+                learning.setUpdatedAt(LocalDateTime.now());
+                return systemLearningRepository.save(learning)
+                    .doOnSuccess(saved -> knowledgeCache.put(saved.getId(), saved));
+            })
+            .count();
+    }
+
     /**
      * REAL-TIME LEARNING: Update existing knowledge based on usage feedback.
      * Increases confidence when knowledge is successfully applied.

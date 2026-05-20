@@ -1,7 +1,7 @@
 // AdminMonitoring.tsx - Real-time System Monitoring
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Layout, Card, Row, Col, Statistic, Progress, Alert, Spin, Typography, Tag, Descriptions, Button, List, Badge, Space, notification } from 'antd';
+import { Layout, Card, Row, Col, Statistic, Progress, Alert, Spin, Typography, Tag, Descriptions, Button, List, Badge, Space, notification, message } from 'antd';
 import { 
   ThunderboltOutlined, 
   HddOutlined, 
@@ -91,10 +91,12 @@ const AdminMonitoring: React.FC = () => {
         const result = await logsResp.json();
         const logData = result.data?.logs || (Array.isArray(result.data) ? result.data : []);
         setLogs(logData);
+        message.success('মনিটরিং ডেটা সিঙ্কronাইজড হয়েছে');
       }
     } catch (err) {
       console.error('[AdminMonitoring] Fetch Error:', err);
       setError(err instanceof Error ? err.message : 'Failed to load system data');
+      message.error('িমনিটরিং ডেটা লোড ব্যর্থ হয়েছে');
     } finally {
       setLoading(false);
     }
@@ -290,7 +292,7 @@ const AdminMonitoring: React.FC = () => {
             )}
           </Card>
           
-          <Card style={{ marginTop: 16 }} className="glass-card bg-blue-900-opacity">
+          <Card style={{ marginTop: 16 }} className="glass-card">
             <Title level={5} style={{ color: '#fff', fontSize: '16px' }}>Monitoring Intelligence</Title>
             <Text style={{ color: 'rgba(255,255,255,0.65)', fontSize: '13px' }}>
               The system is now tracking resource trends. Alerts are automatically triggered when CPU or Memory exceed 90% utilization. Logs are persisted to Firestore for historical analysis.

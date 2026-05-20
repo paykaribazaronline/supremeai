@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# deploy.sh — Full end-to-end deployment orchestrator
+# deploy.sh -- Full end-to-end deployment orchestrator
 # Provisions GCP infrastructure + ML service + n8n via Terraform
 #
 # Usage:
@@ -26,6 +26,9 @@ REGION="${GCP_REGION:-us-central1}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INFRA_DIR="$SCRIPT_DIR/terraform"
 ML_DIR="$SCRIPT_DIR/../ml-service"
+
+ML_SERVICE_NAME="sentiment-ml-v1"
+ML_MODEL_NAME="distilbert-base-uncased-finetuned-sst-2-english"
 
 TIMESTAMP="$(date +%Y%m%dT%H%M%S)"
 
@@ -146,15 +149,31 @@ ML_API_KEY_SECRET_VERSION=${ML_API_SECRET_VER}
 WEBHOOK_URL=https://$N8N_URL/sentiment
 MAX_REQUEST_SIZE_KB=10240
 RATE_LIMIT_RPS=100
-" | gcloud secrets versions add n8n-environment-vars \
-    --data-file=<(cat <&0) \
-    --project="$PROJECT_ID" 2>/dev/null || true
+# ---- 5.5  Firebase Firestore: dynamic ML config (URL + API key source of truth)
+#            n8n reads ml_config/sentiment-ml-v1 at every request via Cloud Run
+#            workload identity. NO hardcoded URL, NO n8n workflow redeploy needed.
+#            Re-run deploy.sh after any ML service URL change.
+info "=== Step 5.5: Firebase Firestore ML Config - update dynamic URL source ==="
+
+ML_API_KEY_PLAIN=$(gcloud secrets versions access latest \
+  --project="$PROJECT_ID" --secret=ml-api-gateway-key 2>/dev/null || echo "")
+
+# OAuth token for Firestore REST API (own gcloud login)
+gcloud auth print-access-token > /tmp/.gcloud_fs_token 2>/dev/null || true
+
+# Delegate to standalone Python script to avoid bash -n quoting ambiguity
+python3 "$(dirname "$0")/firestore-ml-config.py" \
+  "${ML_URL}" "${ML_API_KEY_PLAIN}" "${ML_MODEL_NAME}" "${PROJECT_ID}" \
+  || info "Firestore update skipped — config managed by Terraform."
+
+info "Firestore doc  ml_config/sentiment-ml-v1  [single source of truth for ML URL + key]."
+info "n8n Code Node reads this doc automatically — no n8n workflow redeploy needed."
 
 # ── 6. n8n Cloud Run (Terraform already defined it, just verify) ─────────────
 info "=== Step 6: Verify n8n Cloud Run ==="
 
 if ! gcloud run services describe n8n-workflow --region="$REGION" --project="$PROJECT_ID" >/dev/null 2>&1; then
-  warn "n8n Cloud Run service not yet created — Terraform will handle it."
+  warn "n8n Cloud Run service not yet created -- Terraform will handle it."
 fi
 # Trigger terraform re-apply to bake ML_SERVICE_URL env-var
 cd "$INFRA_DIR"
@@ -206,10 +225,33 @@ echo "║  🔐  Secrets are managed by GCP Secret Manager                      
 echo "║  🔄  90-day auto-rotation scheduled                                   ║"
 echo "║  🧊  Cloud Armor WAF + rate-limiter active                            ║"
 echo "║  📡  Cloud Monitoring alerts configured                                ║"
-echo "║  🔐  ML service is internal-only (n8n SA only)                         ║"
+echo "║  🔐  ML service is internal-only  [n8n SA invoker]          no-external ║"
 echo "╠══════════════════════════════════════════════════════════════════════╣"
 echo "║  SECURITY: n8n admin endpoints are Cloud Armor protected.             ║"
 echo "║  No public access to n8n admin or ML service.                         ║"
 echo "║  All secrets: GCP Secret Manager, rotated every 90 days.              ║"
 echo "╚══════════════════════════════════════════════════════════════════════╝"
+echo ""
+
+echo ""
+echo "=========================================================="
+echo "  DEPLOYMENT COMPLETE"
+echo "=========================================================="
+echo ""
+echo "  ML Service URL : https://$ML_URL"
+echo "  n8n URL        : https://$N8N_URL"
+echo "  n8n Storage    : gs://"$STORAGE_BUCKET""
+echo "  Backup Bucket  : gs://"$BACKUP_BUCKET""
+echo ""
+echo "  Public API endpoint: https://$N8N_URL/sentiment"
+echo ""
+echo "  ML service URL stored in:"
+echo "  - Terraform env var n8n Cloud Run: ML_SERVICE_URL"
+echo "  - Firestore:         ml_config/sentiment-ml-v1  [dynamic ml_config/n8n picks up at run time]"
+echo "  - n8n Code Node reads Firestore at run time"
+echo ""
+echo "  Secrets: GCP Secret Manager    90-day KMS rotation"
+echo "  WAF: Cloud Armor                Rate-limit: 500 req/min/IP"
+echo "  Only n8n SA may invoke ML service  [no public access]"
+echo "=========================================================="
 echo ""

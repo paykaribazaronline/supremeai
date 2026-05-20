@@ -21,8 +21,8 @@ public class MultiAIConsensusController {
     @Autowired
     private MultiAIConsensusService consensusService;
     
-    @Value("${supremeai.active.providers:groq,openai,anthropic,ollama}")
-    private String activeProviders;
+    @Autowired
+    private com.supremeai.provider.AIProviderFactory providerFactory;
 
     /**
      * POST /api/consensus/vote
@@ -33,7 +33,7 @@ public class MultiAIConsensusController {
     public Mono<ResponseEntity<Object>> voteOnQuestion(@RequestBody Map<String, Object> request) {
         String question = (String) request.get("question");
         List<String> providers = (List<String>) request.getOrDefault("providers", 
-            Arrays.asList(activeProviders.split(",")));
+            providerFactory.getAvailableProviderIds());
         
         if (question == null || question.trim().isEmpty()) {
             return Mono.just(ResponseEntity.badRequest()
@@ -76,7 +76,7 @@ public class MultiAIConsensusController {
         return Mono.just(ResponseEntity.ok((Object) Map.of(
             "status", "UP",
             "service", "MultiAIConsensusService",
-            "providers", Arrays.asList(activeProviders.split(","))
+            "providers", providerFactory.getAvailableProviderIds()
         )));
     }
 

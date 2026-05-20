@@ -188,6 +188,9 @@ s-e-t-e-n-v-.b-a-t
 s-e-t-e-n-v-.p-s-1
 *.map
 .kilo/
+# Gradle home cache (dot-variant)
+gradle_home/
+.gradle_home/
 
 # UNTRACKED JUNK
 reports/

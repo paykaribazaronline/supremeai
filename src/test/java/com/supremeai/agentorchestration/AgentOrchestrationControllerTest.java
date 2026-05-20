@@ -33,6 +33,9 @@ class AgentOrchestrationControllerTest {
     @Mock
     private com.supremeai.agent.GPublishAgent publishAgent;
 
+    @Mock
+    private com.supremeai.service.AppOrchestrationService orchestrationService;
+
     private AgentOrchestrationController controller;
 
     @BeforeEach
@@ -53,6 +56,10 @@ class AgentOrchestrationControllerTest {
             field = AgentOrchestrationController.class.getDeclaredField("publishAgent");
             field.setAccessible(true);
             field.set(controller, publishAgent);
+
+            field = AgentOrchestrationController.class.getDeclaredField("orchestrationService");
+            field.setAccessible(true);
+            field.set(controller, orchestrationService);
         } catch (Exception e) {
             throw new RuntimeException("Failed to inject mocks", e);
         }
@@ -181,17 +188,19 @@ class AgentOrchestrationControllerTest {
         // Arrange
         Map<String, Object> request = Map.of("requirement", "Build a mobile app");
 
-        OrchesResultContext orchestrationResult = new OrchesResultContext(new HashMap<>());
-        orchestrationResult.setStatus("COMPLETED");
-        
         Map<String, String> decisions = Map.of("platform", "mobile", "framework", "flutter");
         Map<String, Object> generationContext = new HashMap<>(decisions);
-        orchestrationResult.setGenerationContext(generationContext);
-        
         Map<String, Object> codeResult = Map.of("code", "generated_code");
-        
-        when(orchestrator.orchestrate(anyString())).thenReturn(orchestrationResult);
-        when(codeGenerationService.generateFromContext(anyMap())).thenReturn(codeResult);
+
+        Map<String, Object> mockPipelineResult = new HashMap<>();
+        mockPipelineResult.put("status", "COMPLETED");
+        mockPipelineResult.put("requirement", "Build a mobile app");
+        mockPipelineResult.put("decisions", decisions);
+        mockPipelineResult.put("generationContext", generationContext);
+        mockPipelineResult.put("generatedApp", codeResult);
+
+        when(orchestrationService.runFullPipeline(eq("Build a mobile app"), any()))
+                .thenReturn(Mono.just(mockPipelineResult));
 
         // Act
         Mono<ResponseEntity<Object>> result = controller.orchestrateAndGenerate(request);
@@ -215,7 +224,8 @@ class AgentOrchestrationControllerTest {
     void orchestrateAndGenerate_shouldHandleOrchestrationException() {
         // Arrange
         Map<String, Object> request = Map.of("requirement", "Build an app");
-        when(orchestrator.orchestrate(anyString())).thenThrow(new RuntimeException("Orchestration error"));
+        when(orchestrationService.runFullPipeline(eq("Build an app"), any()))
+                .thenReturn(Mono.error(new RuntimeException("Orchestration error")));
 
         // Act
         Mono<ResponseEntity<Object>> result = controller.orchestrateAndGenerate(request);

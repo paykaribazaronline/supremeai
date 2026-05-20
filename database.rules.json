@@ -60,16 +60,6 @@
       ".write": "auth != null && auth.token.admin === true"
     },
 
-    "requirements": {
-      ".read": "auth != null",
-      ".write": "auth != null && auth.token.admin === true"
-    },
-
-    "config": {
-      ".read": "auth != null",
-      ".write": "auth != null && auth.token.admin === true"
-    },
-
     "security": {
       ".read": "auth != null && auth.token.admin === true",
       ".write": "auth != null && auth.token.admin === true"

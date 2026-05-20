@@ -51,6 +51,45 @@ public class OpenAIProvider extends AbstractHttpProvider {
 
     @Override
     protected Map<String, Object> createRequestBody(String prompt) {
+        String cleanPrompt = prompt;
+        String mimeType = null;
+        String base64Data = null;
+        String dataUrl = null;
+
+        try {
+            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+                "(!\\[.*?\\]\\(data:(image\\/[a-zA-Z*\\-+.]+);base64,([^)]+)\\))"
+            );
+            java.util.regex.Matcher matcher = pattern.matcher(prompt);
+            if (matcher.find()) {
+                String fullMatch = matcher.group(1);
+                dataUrl = "data:" + matcher.group(2) + ";base64," + matcher.group(3);
+                mimeType = matcher.group(2);
+                base64Data = matcher.group(3);
+                cleanPrompt = prompt.replace(fullMatch, "[Attached Image]");
+            }
+        } catch (Exception e) {
+            logger.error("Failed to parse image from prompt in OpenAIProvider", e);
+        }
+
+        if (dataUrl != null) {
+            // Force multimodal model if image is present
+            String model = getModel();
+            if (model.startsWith("gpt-3.5")) {
+                model = "gpt-4-turbo"; // upgrade to multimodal model
+            }
+            return Map.of(
+                    "messages", List.of(Map.of(
+                            "role", "user",
+                            "content", List.of(
+                                    Map.of("type", "text", "text", cleanPrompt),
+                                    Map.of("type", "image_url", "image_url", Map.of("url", dataUrl))
+                            )
+                    )),
+                    "model", model
+            );
+        }
+
         return Map.of(
                 "messages", List.of(Map.of("role", "user", "content", prompt)),
                 "model", getModel()

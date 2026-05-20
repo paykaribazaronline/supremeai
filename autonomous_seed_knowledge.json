@@ -592,18 +592,20 @@
       "id": "SK-0031",
       "category": "QUOTA_POLICY",
       "title": "All operations have quotas",
-      "description": "Every user facing operation has explicit rate limit and quota defined. No unlimited operations.",
+      "description": "Every user facing operation has explicit rate limit and quota defined. External provider API limit errors do not stop any process (Solo-Mode fallback guarantees completion); only the authenticated user's own defense quota limit can stop the process.",
       "confidence": 0.97,
       "evidence_type": "OPERATIONS_STANDARD",
       "verification_steps": [
         "1. Every API endpoint has rate limit configured",
         "2. Quotas are enforced at entry point",
-        "3. Quota limits are published to users"
+        "3. Quota limits are published to users",
+        "4. Verify that external API rate limits trigger Solo-Mode without stopping, while exceeding user quota throws hard QuotaExceededException"
       ],
       "anti_patterns": [
         "Unlimited API endpoints",
         "Quota enforcement only at application layer",
-        "Secret quota limits not communicated to users"
+        "Secret quota limits not communicated to users",
+        "Allowing external 429s to fail a user's task"
       ],
       "applicable_scope": "ALL_USER_OPERATIONS"
     },

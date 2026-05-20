@@ -232,6 +232,31 @@ public class SelfHealingController {
         }
     }
 
+    // ===== RCA (ROOT CAUSE ANALYSIS) STATS ENDPOINTS =====
+
+    /**
+     * GET /api/self-healing/rca/stats — RCA analysis statistics for admin dashboard.
+     * Returns: total analyses, auto-fixable patterns, successful corrections, failure count.
+     */
+    @GetMapping("/rca/stats")
+    public ResponseEntity<Map<String, Object>> getRcaStats() {
+        Map<String, Object> stats = selfHealingService.getRootCauseAnalysisStats();
+        return ResponseEntity.ok(stats);
+    }
+
+    /**
+     * GET /api/self-healing/rca/corrections — recent correction records from RCA.
+     * Returns list of correction records with timestamps, success/failure flags and error signatures.
+     */
+    @GetMapping("/rca/corrections")
+    public ResponseEntity<Map<String, Object>> getRcaCorrections() {
+        List<Map<String, Object>> corrections = selfHealingService.getRecentCorrections();
+        return ResponseEntity.ok(Map.of(
+                "total", corrections.size(),
+                "corrections", corrections
+        ));
+    }
+
     @PostMapping("/emergency-stop")
     @PreAuthorize("hasRole('ADMIN')")
     @Audited(resource = "system", action = "emergency_stop")

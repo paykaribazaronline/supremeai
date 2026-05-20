@@ -101,8 +101,8 @@ function getFirebaseErrorMessage(code: string | undefined): string {
  * Returns the backend JWT string, or throws on failure.
  */
 export async function firebaseSignIn(
-   email: string,
-   password: string,
+  email: string,
+  password: string,
 ): Promise<{ token: string; refreshToken: string; user: import('../types').AuthUser }> {
   try {
     const cred: UserCredential = await signInWithEmailAndPassword(
@@ -112,7 +112,7 @@ export async function firebaseSignIn(
     );
 
     const idTokenResult = await getIdTokenResult(cred.user);
-    
+
     // Role verification is handled by the backend exchange (/api/auth/firebase-login)
     // which checks both custom claims and the admin email whitelist.
 
@@ -137,8 +137,8 @@ export async function firebaseSignIn(
         };
         if (response.success && response.data) {
           const data = response.data;
-          sessionStorage.setItem('supremeai_token', data.token);
-          sessionStorage.setItem('supremeai_refresh_token', data.refreshToken);
+          localStorage.setItem('supremeai_token', data.token);
+          localStorage.setItem('supremeai_refresh_token', data.refreshToken);
           return data;
         }
       }
@@ -149,7 +149,7 @@ export async function firebaseSignIn(
     // Fallback for localhost/emulator when backend exchange is unavailable
     const fallbackData = {
       token: idToken,
-      refreshToken: '',
+      refreshToken: 'dev-refresh-token',
       user: {
         uid: cred.user.uid,
         email: cred.user.email || '',
@@ -158,7 +158,8 @@ export async function firebaseSignIn(
         role: 'admin',
       } as any,
     };
-    sessionStorage.setItem('supremeai_token', fallbackData.token);
+    localStorage.setItem('supremeai_token', fallbackData.token);
+    localStorage.setItem('supremeai_refresh_token', fallbackData.refreshToken);
     return fallbackData;
   } catch (error: unknown) {
     if (error instanceof FirebaseError) {
@@ -179,7 +180,7 @@ export async function firebaseSignIn(
  * Refresh the access token using the stored refresh token.
  */
 export async function refreshAccessToken(): Promise<string> {
-  const refreshToken = sessionStorage.getItem('supremeai_refresh_token');
+  const refreshToken = localStorage.getItem('supremeai_refresh_token');
   if (!refreshToken) {
     throw new Error('No refresh token available');
   }
@@ -196,18 +197,18 @@ export async function refreshAccessToken(): Promise<string> {
     throw new Error(err['message'] ?? 'Token refresh failed');
   }
 
-  const response = await resp.json() as { 
+  const response = await resp.json() as {
     success: boolean;
     data: { token: string };
     error?: string;
   };
-  
+
   if (!response.success || !response.data) {
     throw new Error(response.error ?? 'Token refresh failed');
   }
 
   const data = response.data;
-  sessionStorage.setItem('supremeai_token', data.token);
+  localStorage.setItem('supremeai_token', data.token);
   return data.token;
 }
 
