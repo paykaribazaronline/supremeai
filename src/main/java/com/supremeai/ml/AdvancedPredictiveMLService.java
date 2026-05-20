@@ -3,8 +3,11 @@ package com.supremeai.ml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.scheduler.Schedulers;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -27,23 +30,33 @@ public class AdvancedPredictiveMLService {
     @Autowired
     private EnhancedRandomForestPredictor randomForestPredictor;
 
+    private final WebClient webClient;
+
+    @Value("${n8n.webhook.url:http://localhost:5678/webhook/quota-alert}")
+    private String n8nWebhookUrl;
+
+    public AdvancedPredictiveMLService(WebClient.Builder webClientBuilder) {
+        this.webClient = webClientBuilder.build();
+    }
+
     // Time-series data storage
     private final Map<String, TimeSeriesData> userQuotaHistory = new ConcurrentHashMap<>();
     private final Map<String, TimeSeriesData> systemLoadHistory = new ConcurrentHashMap<>();
     private final Map<String, TimeSeriesData> userActivityHistory = new ConcurrentHashMap<>();
 
     // Model parameters
-    private static final int AR_ORDER = 5;        // AutoRegressive order
-    private static final int I_ORDER = 1;         // Integrated order (differencing)
-    private static final int MA_ORDER = 5;        // Moving Average order
+    private static final int AR_ORDER = 5; // AutoRegressive order
+    private static final int I_ORDER = 1; // Integrated order (differencing)
+    private static final int MA_ORDER = 5; // Moving Average order
     private static final int MIN_DATA_POINTS = 30; // Minimum data for forecasting
+    private static final long INACTIVITY_THRESHOLD_MS = 1000L * 60 * 60 * 24 * 30; // 30 days
 
     /**
      * Record daily quota usage for a user.
      */
     public void recordQuotaUsage(String userId, long used, long quota) {
         TimeSeriesData data = userQuotaHistory.computeIfAbsent(userId,
-            k -> new TimeSeriesData("quota_" + userId));
+                k -> new TimeSeriesData("quota_" + userId));
 
         double ratio = quota > 0 ? (double) used / quota : 0.0;
         data.addDataPoint(System.currentTimeMillis(), ratio);
@@ -59,7 +72,7 @@ public class AdvancedPredictiveMLService {
      */
     public void recordSystemLoad(String serviceName, double load) {
         TimeSeriesData data = systemLoadHistory.computeIfAbsent(serviceName,
-            k -> new TimeSeriesData("load_" + serviceName));
+                k -> new TimeSeriesData("load_" + serviceName));
         data.addDataPoint(System.currentTimeMillis(), load);
     }
 
@@ -68,7 +81,7 @@ public class AdvancedPredictiveMLService {
      */
     public void recordUserActivity(String userId, String activityType) {
         TimeSeriesData data = userActivityHistory.computeIfAbsent(userId,
-            k -> new TimeSeriesData("activity_" + userId));
+                k -> new TimeSeriesData("activity_" + userId));
 
         // Convert activity to numeric value
         double activityValue = activityType.hashCode() % 100 / 100.0;
@@ -82,13 +95,12 @@ public class AdvancedPredictiveMLService {
         TimeSeriesData data = userQuotaHistory.get(userId);
         if (data == null || data.size() < MIN_DATA_POINTS) {
             return new QuotaPrediction(
-                userId,
-                monthlyQuota - currentUsage,
-                -1, // Unknown days remaining
-                0.0, // Low confidence
-                "Insufficient data for prediction",
-                Map.of()
-            );
+                    userId,
+                    monthlyQuota - currentUsage,
+                    -1, // Unknown days remaining
+                    0.0, // Low confidence
+                    "Insufficient data for prediction",
+                    Map.of());
         }
 
         return predictQuotaExhaustion(userId, data, monthlyQuota);
@@ -115,7 +127,8 @@ public class AdvancedPredictiveMLService {
 
         // Calculate when quota will be exhausted
         double dailyUsageRate = calculateDailyUsageRate(values);
-        long remainingQuota = monthlyQuota - (long) (dailyUsageRate * data.getLastValue() * monthlyQuota);
+        long currentUsage = (long) (data.getLastValue() * monthlyQuota);
+        long remainingQuota = Math.max(0, monthlyQuota - currentUsage);
 
         int daysUntilExhaustion = -1;
         if (dailyUsageRate > 0) {
@@ -148,13 +161,12 @@ public class AdvancedPredictiveMLService {
         metadata.put("historicalDataPoints", values.size());
 
         return new QuotaPrediction(
-            userId,
-            remainingQuota,
-            daysUntilExhaustion,
-            confidence,
-            warnings.isEmpty() ? "Quota prediction calculated" : String.join("; ", warnings),
-            metadata
-        );
+                userId,
+                remainingQuota,
+                daysUntilExhaustion,
+                confidence,
+                warnings.isEmpty() ? "Quota prediction calculated" : String.join("; ", warnings),
+                metadata);
     }
 
     /**
@@ -179,7 +191,8 @@ public class AdvancedPredictiveMLService {
         // Simplified AR fitting using Yule-Walker equations (approximation)
         double[] coefficients = new double[p];
 
-        if (values.size() <= p) return coefficients;
+        if (values.size() <= p)
+            return coefficients;
 
         // Calculate autocovariance
         for (int i = 0; i < p; i++) {
@@ -225,11 +238,10 @@ public class AdvancedPredictiveMLService {
         List<Double> forecast = new ArrayList<>(history);
 
         for (int s = 0; s < steps; s++) {
-            double prediction = forecast.get(forecast.size() - 1); // Start with last value
+            double prediction = forecast.get(forecast.size() - 1);
 
-            // AR component
-            prediction = forecast.get(forecast.size() - 1); // Start with last value
-            for (int i = 1; i < ar.length && i < forecast.size(); i++) {
+            // AR component - corrected loop to include ar[0] and use historical deltas
+            for (int i = 0; i < ar.length && (forecast.size() - 2 - i) >= 0; i++) {
                 prediction += ar[i] * (forecast.get(forecast.size() - 1 - i) - forecast.get(forecast.size() - 2 - i));
             }
 
@@ -247,7 +259,8 @@ public class AdvancedPredictiveMLService {
      * Calculate daily usage rate from time series.
      */
     private double calculateDailyUsageRate(List<Double> values) {
-        if (values.size() < 2) return 0.0;
+        if (values.size() < 2)
+            return 0.0;
 
         // Linear regression to find trend
         int n = values.size();
@@ -276,7 +289,8 @@ public class AdvancedPredictiveMLService {
      * Calculate prediction confidence.
      */
     private double calculatePredictionConfidence(List<Double> actual, List<Double> forecast) {
-        if (actual.size() < 10) return 0.3;
+        if (actual.size() < 10)
+            return 0.3;
 
         // Compare last few actual values with their "forecasts"
         int checkSize = Math.min(5, actual.size() / 2);
@@ -294,18 +308,23 @@ public class AdvancedPredictiveMLService {
      * Analyze trend in time series.
      */
     private String analyzeTrend(List<Double> values) {
-        if (values.size() < 5) return "stable";
+        if (values.size() < 5)
+            return "stable";
 
         // Compare first and last halves
         int half = values.size() / 2;
         double firstHalfAvg = values.subList(0, half).stream().mapToDouble(Double::doubleValue).average().orElse(0);
-        double secondHalfAvg = values.subList(half, values.size()).stream().mapToDouble(Double::doubleValue).average().orElse(0);
+        double secondHalfAvg = values.subList(half, values.size()).stream().mapToDouble(Double::doubleValue).average()
+                .orElse(0);
 
         double change = (secondHalfAvg - firstHalfAvg) / (firstHalfAvg + 0.01);
 
-        if (change > 0.1) return "increasing";
-        else if (change < -0.1) return "decreasing";
-        else return "stable";
+        if (change > 0.1)
+            return "increasing";
+        else if (change < -0.1)
+            return "decreasing";
+        else
+            return "stable";
     }
 
     /**
@@ -343,12 +362,35 @@ public class AdvancedPredictiveMLService {
         for (String userId : userQuotaHistory.keySet()) {
             try {
                 TimeSeriesData data = userQuotaHistory.get(userId);
-                // This would trigger alerts if quota is running low
-                log.debug("Checked predictions for user: {}", userId);
+                if (data != null && data.size() >= MIN_DATA_POINTS) {
+                    // 1. Perform high-speed prediction in-process
+                    QuotaPrediction prediction = predictQuotaExhaustion(userId, data, 1000L); // Example quota
+
+                    // 2. If critical, offload the "Action" to n8n (Execution Role)
+                    if (prediction.daysUntilExhaustion >= 0 && prediction.daysUntilExhaustion <= 3) {
+                        log.info("Offloading critical quota alert for user {} to n8n", userId);
+                        triggerN8nAlert(prediction);
+                    }
+                }
             } catch (Exception e) {
                 log.error("Error in scheduled prediction for {}: {}", userId, e.getMessage());
             }
         }
+    }
+
+    /**
+     * Sends a non-blocking POST request to the n8n webhook.
+     */
+    private void triggerN8nAlert(QuotaPrediction prediction) {
+        this.webClient.post()
+                .uri(n8nWebhookUrl)
+                .bodyValue(prediction)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .doOnError(e -> log.error("Failed to trigger n8n alert for user {}: {}",
+                        prediction.userId, e.getMessage()))
+                .subscribeOn(Schedulers.boundedElastic())
+                .subscribe(); // Fire and forget
     }
 
     /**
@@ -377,7 +419,7 @@ public class AdvancedPredictiveMLService {
         public final Map<String, Object> metadata;
 
         public QuotaPrediction(String userId, long remainingQuota, int daysUntilExhaustion,
-                               double confidence, String message, Map<String, Object> metadata) {
+                double confidence, String message, Map<String, Object> metadata) {
             this.userId = userId;
             this.remainingQuota = remainingQuota;
             this.daysUntilExhaustion = daysUntilExhaustion;
@@ -394,7 +436,7 @@ public class AdvancedPredictiveMLService {
         public final Map<String, Object> metadata;
 
         public UserActivityPrediction(String userId, String predictedActivity,
-                                      double confidence, Map<String, Object> metadata) {
+                double confidence, Map<String, Object> metadata) {
             this.userId = userId;
             this.predictedActivity = predictedActivity;
             this.confidence = confidence;
@@ -407,6 +449,7 @@ public class AdvancedPredictiveMLService {
      */
     private static class TimeSeriesData {
         String name;
+        long lastUpdatedAt;
         List<Long> timestamps = new ArrayList<>();
         List<Double> values = new ArrayList<>();
 
@@ -414,27 +457,46 @@ public class AdvancedPredictiveMLService {
             this.name = name;
         }
 
-        void addDataPoint(long timestamp, double value) {
+        synchronized void addDataPoint(long timestamp, double value) {
+            this.lastUpdatedAt = System.currentTimeMillis();
             timestamps.add(timestamp);
             values.add(value);
 
             // Keep only last 1000 points
             if (timestamps.size() > 1000) {
-                timestamps = timestamps.subList(timestamps.size() - 1000, timestamps.size());
-                values = values.subList(values.size() - 1000, values.size());
+                // Create new lists to allow the original backing arrays to be garbage collected
+                timestamps = new ArrayList<>(timestamps.subList(timestamps.size() - 1000, timestamps.size()));
+                values = new ArrayList<>(values.subList(values.size() - 1000, values.size()));
             }
         }
 
-        int size() {
+        synchronized int size() {
             return values.size();
         }
 
-        Double getLastValue() {
+        synchronized Double getLastValue() {
             return values.isEmpty() ? 0.0 : values.get(values.size() - 1);
         }
 
-        List<Double> getRecentValues(int n) {
-            return values.subList(Math.max(0, values.size() - n), values.size());
+        synchronized List<Double> getRecentValues(int n) {
+            return new ArrayList<>(values.subList(Math.max(0, values.size() - n), values.size()));
         }
+
+        synchronized boolean isInactive(long thresholdMs) {
+            return (System.currentTimeMillis() - lastUpdatedAt) > thresholdMs;
+        }
+    }
+
+    /**
+     * Cleanup task to prevent memory leaks from inactive users.
+     */
+    @Scheduled(cron = "0 0 3 * * *") // 3 AM daily
+    public void cleanupInactiveHistory() {
+        log.info("Starting cleanup of inactive ML history...");
+        long threshold = INACTIVITY_THRESHOLD_MS;
+        userQuotaHistory.entrySet().removeIf(entry -> entry.getValue().isInactive(threshold));
+        userActivityHistory.entrySet().removeIf(entry -> entry.getValue().isInactive(threshold));
+        // System load history might have different lifecycle, but same logic applies
+        log.info("ML history cleanup complete.");
     }
 }

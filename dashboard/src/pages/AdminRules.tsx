@@ -40,12 +40,7 @@ const AdminRules: React.FC = () => {
       </Title>
 
       <Card
-        style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: 12,
-          marginBottom: 24
-        }}
+        className="glass-card"
         bodyStyle={{ padding: 24 }}
       >
         <Space style={{ marginBottom: 16 }}>
@@ -60,11 +55,7 @@ const AdminRules: React.FC = () => {
       </Card>
 
       <Card
-        style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: 12
-        }}
+        className="glass-card"
         bodyStyle={{ padding: 24 }}
       >
         <Table 

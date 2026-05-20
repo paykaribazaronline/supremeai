@@ -96,6 +96,9 @@ class KnowledgeBaseControllerTest {
         request.setExecutionTimeMs(150L);
         request.setSecurityScore(0.95);
 
+        when(globalKnowledgeBase.recordSuccessWithPermission(any(), any(), any(), anyLong(), anyDouble()))
+                .thenReturn(Mono.empty());
+
         String result = controller.learnSolution(request).block();
 
         assertEquals("Solution recorded (subject to auto-pilot/approval rules)", result);
@@ -109,6 +112,9 @@ class KnowledgeBaseControllerTest {
                 new KnowledgeBaseController.RecordFailureRequest();
         request.setErrorSignature("FailedError");
         request.setFailedCode("failed code attempt");
+
+        when(globalKnowledgeBase.recordFailure(any(), any()))
+                .thenReturn(Mono.empty());
 
         String result = controller.recordFailure(request).block();
 

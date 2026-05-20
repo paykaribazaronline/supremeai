@@ -97,4 +97,25 @@ export class BrowserController {
     if (!this.page) throw new Error('Browser not launched');
     return await this.page.accessibility.snapshot();
   }
+
+  async scroll(direction: string): Promise<void> {
+    if (!this.page) throw new Error('Browser not launched');
+    const scrollAmount = direction === 'down' ? 500 : direction === 'up' ? -500 : 0;
+    if (scrollAmount !== 0) {
+      await this.page.evaluate((amount) => window.scrollBy(0, amount), scrollAmount);
+    } else if (direction === 'top') {
+      await this.page.evaluate(() => window.scrollTo(0, 0));
+    } else if (direction === 'bottom') {
+      await this.page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    }
+  }
+
+  async getExtractedText(selector?: string): Promise<string> {
+    if (!this.page) throw new Error('Browser not launched');
+    if (selector) {
+      return await this.page.$eval(selector, (el) => el.textContent || '');
+    } else {
+      return await this.page.evaluate(() => document.body.innerText || '');
+    }
+  }
 }

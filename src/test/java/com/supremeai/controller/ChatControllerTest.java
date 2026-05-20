@@ -7,6 +7,9 @@ import com.supremeai.service.MultiAIConsensusService;
 import com.supremeai.service.EnhancedLearningService;
 import com.supremeai.dto.ChatRequest;
 import com.supremeai.dto.FeedbackRequest;
+import com.supremeai.repository.ChatHistoryRepository;
+import com.supremeai.repository.ProviderRepository;
+import com.supremeai.model.ChatMessage;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.retry.Retry;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +19,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
+
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.List;
 import java.util.Map;
@@ -26,6 +33,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
     @ExtendWith(MockitoExtension.class)
+    @MockitoSettings(strictness = Strictness.LENIENT)
     class ChatControllerTest {
 
     @Mock
@@ -43,6 +51,12 @@ import static org.mockito.Mockito.*;
     @Mock
     private ChatIntelligenceService intelligenceService;
 
+    @Mock
+    private ChatHistoryRepository chatHistoryRepository;
+
+    @Mock
+    private ProviderRepository providerRepository;
+
     private ChatController chatController;
 
     @BeforeEach
@@ -54,6 +68,9 @@ import static org.mockito.Mockito.*;
         setField(chatController, "votingService", votingService);
         setField(chatController, "enhancedLearningService", enhancedLearningService);
         setField(chatController, "intelligenceService", intelligenceService);
+        setField(chatController, "chatHistoryRepository", chatHistoryRepository);
+        setField(chatController, "providerRepository", providerRepository);
+        lenient().when(providerRepository.findByStatus(anyString())).thenReturn(Flux.empty());
     }
 
     private void setField(Object target, String fieldName, Object value) {
@@ -155,7 +172,8 @@ import static org.mockito.Mockito.*;
                 .thenReturn(Mono.just(votingResult));
         when(intelligenceService.classifyIntent(anyString()))
                 .thenReturn(ChatIntelligenceService.Intent.CASUAL);
-        doNothing().when(intelligenceService).handleIntelligence(anyString(), anyString(), any(), anyString(), anyDouble());
+        when(intelligenceService.handleIntelligence(anyString(), anyString(), any(), anyString(), anyDouble()))
+                .thenReturn(Mono.empty());
         when(enhancedLearningService.learnFromNLPInteraction(anyString(), anyString(), anyString(), anyDouble(), anyMap()))
                 .thenReturn(Mono.empty());
 

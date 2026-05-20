@@ -277,8 +277,56 @@ resource "google_storage_bucket" "n8n_backup" {
 }
 
 # =============================================================================
-# 5. Secret Manager — No Hardcoded Secrets
+# 5.5 Dynamic ML Config — Firestore (single source of truth for URL + key)
+#          The n8n workflow reads ml_config/sentiment-ml-v1 at every execution
+#          using the Cloud Run workload identity token — no hardcoded URL anywhere.
+#          Use 'deploy.sh' to silently update this document when the ML URL changes.
 # =============================================================================
+
+resource "google_firestore_document" "ml_config" {
+  project    = var.project_id
+  database   = "(default)"
+  collection = "ml_config"
+  document_id = var.ml_service_name == "" ? "sentiment-ml-v1" : "${var.ml_service_name}-v1"
+
+  fields = jsonencode({
+    mlServiceUrl = {
+      stringValue = "https://${google_cloud_run_service.ml_sentiment.status[0].url}"
+    }
+    mlApiKey = {
+      stringValue = random_id.ml_api_key.hex
+    }
+    modelName = {
+      stringValue = var.ml_model_name
+    }
+    maxTextLength = {
+      integerValue = 5000
+    }
+    rateLimitRps = {
+      integerValue = 100
+    }
+    updatedAt = {
+      timestampValue = timestamp()
+    }
+  })
+
+  depends_on = [
+    google_project_service.cloudrun,
+    google_firestore_database.database,
+    google_cloud_run_service.ml_sentiment,
+  ]
+}
+
+# Firestore database (must exist before documents can be written)
+resource "google_firestore_database" "database" {
+  project       = var.project_id
+  database_id   = "(default)"
+  location_id   = var.default_region
+  type          = "NATIVE"
+
+  depends_on = [google_project_service.cloudrun]
+}
+
 
 # Core n8n encryption key (auto-generated random 32-byte key)
 resource "random_id" "n8n_encryption" {
@@ -695,6 +743,26 @@ resource "google_cloud_run_service" "n8n" {
         env {
           name  = "EXECUTIONS_PRUNE_TIMEOUT"
           value = "7d"
+        }
+
+        # ── ML service env — also stored in Firestore (ml_config/sentiment-ml-v1)
+        # These env vars are a FALLBACK. The workflow's primary ML service URL source is
+        # the Firestore document, read by the "Read ML Config from Firebase" code node
+        # using the n8n Cloud Run SA workload identity token.  Changing the URL in GCP
+        # only requires updating that Firestore document — NO n8n workflow redeploy needed.
+        env {
+          name  = "ML_SERVICE_URL"
+          value = "https://${google_cloud_run_service.ml_sentiment.status[0].url}"
+        }
+
+        env {
+          name  = "ML_API_KEY"
+          value_from {
+            secret_key_ref {
+              name = google_secret_manager_secret_version.ml_api_key.secret
+              key  = "latest"
+            }
+          }
         }
 
         env {

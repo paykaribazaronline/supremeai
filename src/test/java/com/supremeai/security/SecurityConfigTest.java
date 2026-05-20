@@ -84,6 +84,6 @@ public class SecurityConfigTest {
                 .andExpect(status().isNotFound()); // Endpoint might not exist, but should not be 401/403
 
         mockMvc.perform(get("/api/projects"))
-                .andExpect(status().isNotFound()); // Endpoint might not exist, but should not be 401/403
+                .andExpect(status().isOk()); // Endpoint exists and should be accessible (200 OK)
     }
 }

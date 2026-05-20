@@ -253,13 +253,13 @@ const AdminCodeAnalysis: React.FC<AdminCodeAnalysisProps> = ({ analysisProgress 
         {/* Header Stats */}
         <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
           <Col span={6}>
-            <Card className="glass-panel" style={{ background: 'rgba(0,243,255,0.05)' }}>
+            <Card className="glass-card" style={{ background: 'rgba(0,243,255,0.05)' }}>
               <div style={{ color: 'var(--text-dim)', fontSize: 12, marginBottom: 4 }}>Total Jobs</div>
               <div style={{ color: '#fff', fontSize: 24, fontWeight: 700 }}>{jobs.length}</div>
             </Card>
           </Col>
           <Col span={6}>
-            <Card className="glass-panel" style={{ background: 'rgba(255,152,0,0.05)' }}>
+            <Card className="glass-card" style={{ background: 'rgba(255,152,0,0.05)' }}>
               <div style={{ color: 'var(--text-dim)', fontSize: 12, marginBottom: 4 }}>Active Analysis</div>
               <div style={{ color: 'var(--neon-blue)', fontSize: 24, fontWeight: 700 }}>
                 {jobs.filter(j => j.status === 'RUNNING' || j.status === 'PENDING').length}
@@ -267,7 +267,7 @@ const AdminCodeAnalysis: React.FC<AdminCodeAnalysisProps> = ({ analysisProgress 
             </Card>
           </Col>
           <Col span={6}>
-            <Card className="glass-panel" style={{ background: 'rgba(255,0,0,0.05)' }}>
+            <Card className="glass-card" style={{ background: 'rgba(255,0,0,0.05)' }}>
               <div style={{ color: 'var(--text-dim)', fontSize: 12, marginBottom: 4 }}>Total Findings</div>
               <div style={{ color: '#ff3b30', fontSize: 24, fontWeight: 700 }}>
                 {jobs.reduce((sum, j) => sum + (j.totalFindings || 0), 0)}
@@ -275,7 +275,7 @@ const AdminCodeAnalysis: React.FC<AdminCodeAnalysisProps> = ({ analysisProgress 
             </Card>
           </Col>
           <Col span={6}>
-            <Card className="glass-panel" style={{ background: 'rgba(255,204,0,0.05)' }}>
+            <Card className="glass-card" style={{ background: 'rgba(255,204,0,0.05)' }}>
               <div style={{ color: 'var(--text-dim)', fontSize: 12, marginBottom: 4 }}>Fix Suggestions</div>
               <div style={{ color: '#ffcc00', fontSize: 24, fontWeight: 700 }}>{totalFixes}</div>
             </Card>
@@ -283,7 +283,7 @@ const AdminCodeAnalysis: React.FC<AdminCodeAnalysisProps> = ({ analysisProgress 
         </Row>
 
         {/* Phase 3 Feature Banner */}
-        <Card className="glass-panel" style={{ marginBottom: 24, background: 'rgba(0,243,255,0.03)', border: '1px solid rgba(0,243,255,0.2)' }}>
+        <Card className="glass-card" style={{ marginBottom: 24, background: 'rgba(0,243,255,0.03)', border: '1px solid rgba(0,243,255,0.2)' }}>
           <Row gutter={[16, 8]} align="middle">
             <Col span={18}>
               <Space>

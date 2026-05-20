@@ -5,6 +5,7 @@ import com.supremeai.model.ConsensusResult;
 import com.supremeai.model.ProviderVote;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
+import com.supremeai.util.FallbackConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
@@ -108,7 +109,7 @@ public class MultiAIConsensusService {
             .onErrorResume(java.util.concurrent.TimeoutException.class, e -> {
                 logger.warn("Consensus timed out for question: {}", question);
                 // We could return partial results here if needed
-                return Mono.just(new ConsensusResult(question, "দুঃখিত, অনুরোধটির উত্তর দিতে সময়সীমা অতিক্রম হয়ে গেছে।", List.of(), 0.0, "TIMEOUT", 0.0, timeoutMs, 0.0));
+                return Mono.just(new ConsensusResult(question, FallbackConstants.CONSENSUS_TIMEOUT, List.of(), 0.0, "TIMEOUT", 0.0, timeoutMs, 0.0));
             });
     }
 
@@ -168,7 +169,7 @@ public class MultiAIConsensusService {
         if (votes.isEmpty()) {
             return new ConsensusResult(
                 question,
-                "দুঃখিত, বর্তমানে কোনো এআই প্রোভাইডার সাড়া দিচ্ছে না। অনুগ্রহ করে ড্যাশবোর্ড থেকে এপিআই কী এবং প্রোভাইডার স্ট্যাটাস চেক করুন। (System Solo-Mode Active)",
+                FallbackConstants.NO_PROVIDER_RESPONSE,
                 List.of(),
                 0.0,
                 "ERROR",

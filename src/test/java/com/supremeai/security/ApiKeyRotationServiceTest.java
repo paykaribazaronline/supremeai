@@ -34,6 +34,9 @@ class ApiKeyRotationServiceTest {
     @Mock
     private EncryptionService encryptionService;
 
+    @Mock
+    private com.supremeai.service.ProviderTypeRegistry providerTypeRegistry;
+
     private ApiKeyRotationService rotationService;
 
     @BeforeEach
@@ -43,6 +46,8 @@ class ApiKeyRotationServiceTest {
         setField(rotationService, "userApiKeyRepository", userApiKeyRepository);
         setField(rotationService, "healthReportRepository", healthReportRepository);
         setField(rotationService, "encryptionService", encryptionService);
+        setField(rotationService, "providerTypeRegistry", providerTypeRegistry);
+        lenient().when(providerTypeRegistry.getAllTypes()).thenReturn(Map.of());
     }
 
     private void setField(Object target, String fieldName, Object value) {
@@ -128,14 +133,13 @@ class ApiKeyRotationServiceTest {
         key.setProvider("unknown-provider");
         key.setApiKey("some-key");
 
-        when(encryptionService.decrypt("some-key")).thenReturn("decrypted");
 
         Map<String, Object> result = rotationService.testApiKey(key);
 
         assertEquals("key-1", result.get("id"));
         assertEquals("unknown-provider", result.get("provider"));
         assertTrue((Boolean) result.get("valid"));
-        assertEquals("Unknown provider - cannot validate automatically", result.get("message"));
+        assertEquals("No test endpoint configured — skipping validation", result.get("message"));
     }
 
     @Test
@@ -144,6 +148,10 @@ class ApiKeyRotationServiceTest {
         key.setId("key-2");
         key.setProvider("openai");
         key.setApiKey("encrypted-openai-key");
+
+        com.supremeai.model.ProviderTypeConfig typeConfig = new com.supremeai.model.ProviderTypeConfig();
+        typeConfig.setExtraConfig(Map.of("testEndpoint", "http://localhost/test", "authMethod", "Bearer"));
+        when(providerTypeRegistry.getTypeConfig("openai")).thenReturn(typeConfig);
 
         when(encryptionService.decrypt("encrypted-openai-key")).thenReturn("sk-openai-test");
 
@@ -204,6 +212,7 @@ class ApiKeyRotationServiceTest {
         UserApiKey key3 = createKey("key-3", "openai", "error", 1L);
 
         when(userApiKeyRepository.findByUserId("user-1")).thenReturn(Flux.just(key1, key2, key3));
+        when(providerTypeRegistry.getAllTypes()).thenReturn(Map.of("openai", new com.supremeai.model.ProviderTypeConfig()));
 
         Mono<Map<String, Object>> result = rotationService.getRotationStatus("user-1");
 
@@ -250,9 +259,14 @@ class ApiKeyRotationServiceTest {
     @Test
     void testAllKeysNow_ActiveKeysValidated() {
         UserApiKey key1 = createKey("key-1", "openai", "active", 5L);
+        key1.setApiKey("encrypted-key-1");
         UserApiKey key2 = createKey("key-2", "openai", "active", 3L);
+        key2.setApiKey("encrypted-key-2");
 
         when(userApiKeyRepository.findAll()).thenReturn(Flux.just(key1, key2));
+        com.supremeai.model.ProviderTypeConfig typeConfig = new com.supremeai.model.ProviderTypeConfig();
+        typeConfig.setExtraConfig(Map.of("testEndpoint", "http://localhost/test", "authMethod", "Bearer"));
+        lenient().when(providerTypeRegistry.getTypeConfig("openai")).thenReturn(typeConfig);
         when(encryptionService.decrypt(anyString())).thenReturn("decrypted-key");
         when(userApiKeyRepository.save(any(UserApiKey.class)))
                 .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));

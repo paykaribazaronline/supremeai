@@ -18,6 +18,7 @@ import jakarta.validation.Valid;
 import com.supremeai.dto.ChatRequest;
 import com.supremeai.dto.FeedbackRequest;
 import com.supremeai.repository.ChatHistoryRepository;
+import com.supremeai.repository.ProviderRepository;
 import com.supremeai.model.ChatMessage;
 import java.time.LocalDateTime;
 import reactor.core.publisher.Mono;
@@ -51,6 +52,9 @@ public class ChatController {
 
     @Autowired
     private ChatHistoryRepository chatHistoryRepository;
+
+    @Autowired
+    private ProviderRepository providerRepository;
 
     private final CircuitBreaker aiCircuitBreaker;
     private final Retry aiRetry;
@@ -149,8 +153,15 @@ public class ChatController {
                 logger.error("Failed to get response via voting system", e);
                 CircuitBreaker.State circuitState = aiCircuitBreaker.getState();
                 if (consensusService != null && circuitState != CircuitBreaker.State.OPEN) {
-                    return consensusService.askConsensus(message, 
-                        java.util.Arrays.asList("groq", "deepseek", "claude", "openai", "ollama"), 10000L)
+                    return providerRepository.findByStatus("active")
+                        .map(p -> p.getName() != null ? p.getName().toLowerCase() : "")
+                        .filter(name -> !name.isEmpty())
+                        .collectList()
+                        .flatMap(activeProviders -> {
+                            List<String> listToUse = activeProviders.isEmpty() ? 
+                                java.util.Arrays.asList("gemini", "qwen-coder", "llama-3-1", "deepseek-pro") : activeProviders;
+                            return consensusService.askConsensus(message, listToUse, 10000L);
+                        })
                         .map(res -> {
                             if (res != null) {
                                 return ResponseEntity.ok((Object) Map.of(

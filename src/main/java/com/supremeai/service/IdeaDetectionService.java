@@ -2,6 +2,7 @@ package com.supremeai.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -27,11 +28,30 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 @Service
 public class IdeaDetectionService {
-
     private static final Logger logger = LoggerFactory.getLogger(IdeaDetectionService.class);
+
+    @Autowired(required = false)
+    private ConfigService configService;
 
     @Value("${idea.detection.threshold:20}")
     private int detectionThreshold;
+
+    private int getDetectionThreshold() {
+        if (configService == null) {
+            return detectionThreshold;
+        }
+        Object val = configService.getEffectiveSetting("idea.detection.threshold", detectionThreshold);
+        if (val instanceof Number) {
+            return ((Number) val).intValue();
+        } else if (val instanceof String) {
+            try {
+                return Integer.parseInt((String) val);
+            } catch (NumberFormatException e) {
+                // ignore
+            }
+        }
+        return detectionThreshold;
+    }
 
     // Keywords that signal a novel, high-value idea
     private static final List<String> INNOVATION_KEYWORDS = List.of(
@@ -103,7 +123,7 @@ public class IdeaDetectionService {
         score -= (int) questionCount * 2;
         score = Math.max(0, score);
 
-        boolean isBrilliant = score >= detectionThreshold;
+        boolean isBrilliant = score >= getDetectionThreshold();
 
         if (isBrilliant) {
             DetectedIdea idea = new DetectedIdea(
@@ -119,8 +139,8 @@ public class IdeaDetectionService {
             return IdeaAnalysisResult.brilliant(score, matchedSignals, idea.getIdeaId());
         }
 
-        logger.debug("[IDEA] Not brilliant: score={} threshold={}", score, detectionThreshold);
-        return IdeaAnalysisResult.notIdea(score, "Score below threshold (" + detectionThreshold + ")");
+        logger.debug("[IDEA] Not brilliant: score={} threshold={}", score, getDetectionThreshold());
+        return IdeaAnalysisResult.notIdea(score, "Score below threshold (" + getDetectionThreshold() + ")");
     }
 
     /**

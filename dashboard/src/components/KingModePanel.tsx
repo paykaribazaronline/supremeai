@@ -36,11 +36,6 @@ const KingModePanel: React.FC = () => {
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [error, setError] = useState<ErrorState | null>(null);
 
-    const getHeaders = () => {
-        const token = authUtils.getToken();
-        return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
-    };
-
     const handleError = (err: unknown, context: string): ErrorState => {
         if (err instanceof TypeError && err.message.includes('fetch')) {
             return {
@@ -68,8 +63,8 @@ const KingModePanel: React.FC = () => {
         setError(null);
         try {
             const [statusRes, pendingRes] = await Promise.all([
-                fetch('/api/admin/control', { headers: getHeaders() }),
-                fetch('/api/admin/control/pending', { headers: getHeaders() }),
+                authUtils.fetchWithAuth('/api/admin/control'),
+                authUtils.fetchWithAuth('/api/admin/control/pending'),
             ]);
 
             if (statusRes.ok) {
@@ -103,7 +98,11 @@ const KingModePanel: React.FC = () => {
     const changeMode = async (newMode: string) => {
         setError(null);
         try {
-            const res = await fetch('/api/admin/control/mode', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ mode: newMode }) });
+            const res = await authUtils.fetchWithAuth('/api/admin/control/mode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode: newMode })
+            });
             if (res.ok) {
                 message.success(`Mode changed to ${newMode}`);
                 fetchStatus();
@@ -122,7 +121,10 @@ const KingModePanel: React.FC = () => {
     const forceStop = async () => {
         setError(null);
         try {
-            const res = await fetch('/api/admin/control/stop', { method: 'POST', headers: getHeaders() });
+            const res = await authUtils.fetchWithAuth('/api/admin/control/stop', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
             if (res.ok) {
                 message.warning('FORCE STOP executed!');
                 fetchStatus();
@@ -139,7 +141,10 @@ const KingModePanel: React.FC = () => {
     const resumeOperations = async () => {
         setError(null);
         try {
-            const res = await fetch('/api/admin/control/resume', { method: 'POST', headers: getHeaders() });
+            const res = await authUtils.fetchWithAuth('/api/admin/control/resume', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
             if (res.ok) {
                 message.success('Operations resumed!');
                 fetchStatus();
@@ -155,7 +160,10 @@ const KingModePanel: React.FC = () => {
         setActionLoading(actionId);
         setError(null);
         try {
-            const res = await fetch(`/api/admin/control/pending/${actionId}/${decision}`, { method: 'POST', headers: getHeaders() });
+            const res = await authUtils.fetchWithAuth(`/api/admin/control/pending/${actionId}/${decision}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
             if (res.ok) {
                 message.success(`Action ${decision}d!`);
                 fetchStatus();

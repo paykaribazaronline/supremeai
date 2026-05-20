@@ -2,6 +2,7 @@ package com.supremeai.ml;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
 import java.util.Map;
@@ -18,7 +19,7 @@ class AdvancedPredictiveMLServiceTest {
 
     @BeforeEach
     void setUp() {
-        mlService = new AdvancedPredictiveMLService();
+        mlService = new AdvancedPredictiveMLService(WebClient.builder());
     }
 
     @Test

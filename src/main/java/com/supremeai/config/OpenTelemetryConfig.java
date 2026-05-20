@@ -57,9 +57,13 @@ public class OpenTelemetryConfig {
                         .build())
                 .build();
 
-        return OpenTelemetrySdk.builder()
-                .setTracerProvider(tracerProvider)
-                .buildAndRegisterGlobal();
+        try {
+            return OpenTelemetrySdk.builder()
+                    .setTracerProvider(tracerProvider)
+                    .buildAndRegisterGlobal();
+        } catch (IllegalStateException e) {
+            return io.opentelemetry.api.GlobalOpenTelemetry.get();
+        }
     }
 
     /**

@@ -21,6 +21,10 @@ public class AnthropicProvider extends AbstractHttpProvider {
         "claude-3-haiku-20240307"
     );
 
+    public AnthropicProvider() {
+        this("");
+    }
+
     public AnthropicProvider(@Value("${anthropic.api-key:}") String apiKey) {
         super(apiKey, API_URL, DEFAULT_MODEL);
     }

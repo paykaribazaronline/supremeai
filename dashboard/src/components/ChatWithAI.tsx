@@ -10,7 +10,11 @@ import {
     PlusOutlined,
     DeleteOutlined,
     EditOutlined,
-    MessageOutlined
+    MessageOutlined,
+    AudioOutlined,
+    PictureOutlined,
+    CloseCircleOutlined,
+    LoadingOutlined
 } from '@ant-design/icons';
 import { authUtils } from '../lib/authUtils';
 import AISuggestionInformer from './AISuggestionInformer';
@@ -24,6 +28,7 @@ interface ChatMessage {
     confidence?: number;
     intent?: string;
     status?: 'pending' | 'completed' | 'error';
+    image?: string;
 }
 
 interface ChatSession {
@@ -51,6 +56,113 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
     const [agents, setAgents] = useState<any[]>([]);
     const [knowledge, setKnowledge] = useState<{rules: any[], plans: any[], actions: any[]}>({ rules: [], plans: [], actions: [] });
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    // Voice & Image States
+    const [isRecording, setIsRecording] = useState(false);
+    const [recognition, setRecognition] = useState<any>(null);
+    const [attachedImage, setAttachedImage] = useState<string | null>(null);
+    const [attachedImageName, setAttachedImageName] = useState<string>('');
+
+    // Speech Recognition setup on mount
+    useEffect(() => {
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recog = new SpeechRecognition();
+            recog.continuous = true;
+            recog.interimResults = true;
+            recog.lang = 'bn-BD'; // Support Bengali by default
+
+            recog.onresult = (event: any) => {
+                let interimTranscript = '';
+                let finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                const transcription = finalTranscript || interimTranscript;
+                if (transcription.trim()) {
+                    setInput(prev => {
+                        if (prev.endsWith(' ') || prev === '') {
+                            return prev + transcription;
+                        } else {
+                            return prev + ' ' + transcription;
+                        }
+                    });
+                }
+            };
+
+            recog.onerror = (event: any) => {
+                console.error('Speech recognition error:', event.error);
+                if (event.error === 'not-allowed') {
+                    message.error('মাইক্রোফোন অ্যাক্সেসের অনুমতি নেই।');
+                } else {
+                    message.error('ভয়েস সনাক্তকরণে সমস্যা হয়েছে: ' + event.error);
+                }
+                setIsRecording(false);
+            };
+
+            recog.onend = () => {
+                setIsRecording(false);
+            };
+
+            setRecognition(recog);
+        }
+    }, []);
+
+    const toggleRecording = () => {
+        if (!recognition) {
+            message.warning('আপনার ব্রাউজার ভয়েস সনাক্তকরণ সমর্থন করে না। Google Chrome ব্যবহার করার চেষ্টা করুন।');
+            return;
+        }
+
+        if (isRecording) {
+            recognition.stop();
+            setIsRecording(false);
+            message.info('ভয়েস ইনপুট বন্ধ করা হয়েছে।');
+        } else {
+            try {
+                recognition.start();
+                setIsRecording(true);
+                message.success('ভয়েস ইনপুট সক্রিয় হয়েছে... কথা বলুন।');
+            } catch (err) {
+                console.error(err);
+                recognition.stop();
+                setIsRecording(false);
+            }
+        }
+    };
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > 4 * 1024 * 1024) {
+            message.error('ফাইলের সাইজ ৪ মেগাবাইটের কম হতে হবে।');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            if (typeof reader.result === 'string') {
+                setAttachedImage(reader.result);
+                setAttachedImageName(file.name);
+                message.success('ছবি সংযুক্ত করা হয়েছে।');
+            }
+        };
+        reader.onerror = () => {
+            message.error('ছবি প্রসেস করতে ত্রুটি হয়েছে।');
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const removeAttachedImage = () => {
+        setAttachedImage(null);
+        setAttachedImageName('');
+        message.info('সংযুক্ত ছবি মুছে ফেলা হয়েছে।');
+    };
 
     // Load sessions from localStorage on mount
     useEffect(() => {
@@ -194,13 +306,14 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
 
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!input.trim() || loading || !activeSessionId) return;
+        if ((!input.trim() && !attachedImage) || loading || !activeSessionId) return;
 
         const userMessage: ChatMessage = {
             id: Date.now().toString(),
             sender: 'user',
             agent: 'You',
             content: input,
+            image: attachedImage || undefined,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             status: 'completed'
         };
@@ -213,7 +326,7 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
             
             // Smart Name: If first message or default name, generate name
             if (currentSessions[sessionIndex].messages.length === 1 || currentSessions[sessionIndex].name === 'New Chat') {
-                const words = input.split(' ');
+                const words = input.trim() ? input.split(' ') : ['Attached Image'];
                 currentSessions[sessionIndex].name = words.slice(0, 4).join(' ') + (words.length > 4 ? '...' : '');
             }
             
@@ -221,17 +334,30 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
         }
 
         const currentInput = input;
+        const currentImage = attachedImage;
+        const currentImageName = attachedImageName;
+
         setInput('');
+        setAttachedImage(null);
+        setAttachedImageName('');
         setLoading(true);
 
         try {
             const currentSession = sessions.find(s => s.id === activeSessionId);
             const history = currentSession ? currentSession.messages : [];
+            
+            // Format message body to include image markdown if present so backend models can see it
+            const messageBody = currentImage 
+                ? `${currentInput}\n\n[সংযুক্ত ছবি: ${currentImageName}]\n![${currentImageName}](${currentImage})`
+                : currentInput;
+
             const response = await authUtils.fetchWithAuth('/api/chat/send', {
                 method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    message: currentInput,
-                    agent: selectedAgent === 'all' ? null : selectedAgent,
+                    message: messageBody,
+                    agentId: selectedAgent === 'all' ? null : selectedAgent,
+                    sessionId: activeSessionId,
                     messages: history,
                 }),
             });
@@ -257,6 +383,38 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
             message.error('Request failed');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const playVoice = async (text: string) => {
+        try {
+            const response = await authUtils.fetchWithAuth('/api/voicebox/speak', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text, profile: 'default' })
+            });
+            if (response.ok) {
+                const data = await response.json();
+                if (data && data.audio_url) {
+                    const audio = new Audio(data.audio_url);
+                    audio.play();
+                } else if (data && data.audio) {
+                    const audio = new Audio(`data:audio/wav;base64,${data.audio}`);
+                    audio.play();
+                } else {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'bn-BD';
+                    window.speechSynthesis.speak(utterance);
+                }
+            } else {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'bn-BD';
+                window.speechSynthesis.speak(utterance);
+            }
+        } catch (err) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'bn-BD';
+            window.speechSynthesis.speak(utterance);
         }
     };
 
@@ -365,15 +523,47 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                                             ? 'bg-gradient-to-br from-emerald-600/20 to-emerald-900/5 border border-emerald-500/20 text-white rounded-tr-none'
                                             : 'bg-white/[0.03] border border-white/10 text-white/90 rounded-tl-none backdrop-blur-xl'
                                         }`}>
-                                            {msg.content}
+                                            {msg.image && (
+                                                <div className="mb-4 relative rounded-xl overflow-hidden border border-white/10 group cursor-pointer max-w-sm">
+                                                    <img 
+                                                        src={msg.image} 
+                                                        alt="Attached file" 
+                                                        className="w-full h-auto object-cover max-h-60 rounded-xl transition-transform duration-300 group-hover:scale-105"
+                                                        onClick={() => {
+                                                            Modal.info({
+                                                                title: <span className="text-white font-bold uppercase tracking-wider">সংযুক্ত ছবি</span>,
+                                                                icon: null,
+                                                                width: 800,
+                                                                centered: true,
+                                                                content: (
+                                                                    <div className="flex justify-center p-2 bg-[#0c0c0c] rounded-xl border border-white/10 mt-4 overflow-hidden">
+                                                                        <img src={msg.image} alt="Preview" className="max-w-full max-h-[70vh] object-contain rounded-lg" />
+                                                                    </div>
+                                                                ),
+                                                                okText: 'বন্ধ করুন',
+                                                                styles: { body: { backgroundColor: '#0a0a0a', color: 'white' } },
+                                                                className: 'dark-modal'
+                                                            });
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
+                                            <div className="whitespace-pre-wrap">{msg.content}</div>
                                         </div>
                                         {msg.sender === 'ai' && (
                                             <div className="flex gap-4 mt-3 px-1">
                                                 <button
                                                     onClick={() => { navigator.clipboard.writeText(msg.content); message.success('Encrypted Data Copied'); }}
-                                                    className="text-[9px] text-white/20 hover:text-emerald-400 transition-all flex items-center gap-1.5 uppercase font-black tracking-wider"
+                                                    className="text-[9px] text-white/20 hover:text-emerald-400 transition-all flex items-center gap-1.5 uppercase font-black tracking-wider border-none bg-transparent cursor-pointer"
                                                 >
                                                     <CopyOutlined className="text-xs" /> Copy
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => playVoice(msg.content)}
+                                                    className="text-[9px] text-white/20 hover:text-emerald-400 transition-all flex items-center gap-1.5 uppercase font-black tracking-wider border-none bg-transparent cursor-pointer"
+                                                >
+                                                    <AudioOutlined className="text-xs" /> শুনুন (Listen)
                                                 </button>
                                             </div>
                                         )}
@@ -388,13 +578,66 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                 {/* Input Area */}
                 <div className="p-6 bg-gradient-to-t from-black to-transparent border-t border-white/5 relative z-10">
                     <div className="max-w-4xl mx-auto w-full">
+                        {/* Image Preview Container */}
+                        {attachedImage && (
+                            <div className="mb-3 p-3 bg-white/[0.03] border border-white/10 rounded-xl flex items-center justify-between animate-in fade-in slide-in-from-bottom-2 duration-200 backdrop-blur-md">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10 relative group">
+                                        <img src={attachedImage} alt="Upload preview" className="w-full h-full object-cover" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-xs font-bold text-white/80">{attachedImageName || 'ছবি.png'}</span>
+                                        <span className="text-[10px] text-emerald-500/80 uppercase tracking-widest font-black">IMAGE READY TO ATTACH</span>
+                                    </div>
+                                </div>
+                                <Button 
+                                    type="text" 
+                                    icon={<CloseCircleOutlined className="text-white/40 hover:text-red-500 text-lg transition-colors" />} 
+                                    onClick={removeAttachedImage}
+                                    className="hover:bg-white/5 border-none flex items-center justify-center"
+                                />
+                            </div>
+                        )}
                         <form onSubmit={handleSendMessage} className="relative group">
                             <Input
-                                placeholder="Neural Input Channel [Type your command]..."
+                                placeholder={isRecording ? "ভয়েস সনাক্ত করা হচ্ছে... কথা বলুন..." : "Neural Input Channel [Type your command]..."}
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 disabled={loading}
-                                className="h-16 bg-white/[0.02] border-white/10 text-white placeholder:text-white/10 rounded-2xl px-6 pr-44 focus:bg-white/[0.05] focus:border-emerald-500/40 transition-all shadow-2xl backdrop-blur-sm"
+                                className={`h-16 bg-white/[0.02] border-white/10 text-white placeholder:text-white/10 rounded-2xl px-6 pr-44 focus:bg-white/[0.05] focus:border-emerald-500/40 transition-all shadow-2xl backdrop-blur-sm ${isRecording ? 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : ''}`}
+                                prefix={
+                                    <div className="flex items-center gap-2 mr-3 border-r border-white/10 pr-3">
+                                        <input 
+                                            type="file" 
+                                            id="chat-image-upload" 
+                                            accept="image/*" 
+                                            onChange={handleImageUpload} 
+                                            className="hidden" 
+                                        />
+                                        <Tooltip title="ছবি সংযুক্ত করুন">
+                                            <button
+                                                type="button"
+                                                onClick={() => document.getElementById('chat-image-upload')?.click()}
+                                                className="p-2 hover:bg-white/5 text-white/40 hover:text-emerald-400 rounded-lg transition-all flex items-center justify-center border-none bg-transparent cursor-pointer"
+                                            >
+                                                <PictureOutlined className="text-lg" />
+                                            </button>
+                                        </Tooltip>
+                                        <Tooltip title={isRecording ? "রেকর্ডিং বন্ধ করুন" : "ভয়েস ইনপুট"}>
+                                            <button
+                                                type="button"
+                                                onClick={toggleRecording}
+                                                className={`p-2 rounded-lg transition-all flex items-center justify-center border-none cursor-pointer ${
+                                                    isRecording 
+                                                    ? 'bg-red-500/20 text-red-500 animate-pulse hover:bg-red-500/30' 
+                                                    : 'bg-transparent text-white/40 hover:text-emerald-400 hover:bg-white/5'
+                                                }`}
+                                            >
+                                                {isRecording ? <LoadingOutlined className="text-lg" /> : <AudioOutlined className="text-lg" />}
+                                            </button>
+                                        </Tooltip>
+                                    </div>
+                                }
                             />
                             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-3">
                                 <AISuggestionInformer 
@@ -403,7 +646,7 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                                 />
                                 <button
                                     type="submit"
-                                    disabled={loading || !input.trim()}
+                                    disabled={loading || (!input.trim() && !attachedImage)}
                                     className="h-12 px-8 bg-emerald-600 hover:bg-emerald-500 disabled:bg-white/5 text-white rounded-xl font-black uppercase tracking-widest transition-all disabled:cursor-not-allowed flex items-center gap-2 shadow-[0_0_20px_rgba(5,150,105,0.3)] hover:shadow-[0_0_30px_rgba(5,150,105,0.5)] border-none"
                                 >
                                     {loading ? <ThunderboltOutlined spin className="text-lg" /> : <SendOutlined className="text-lg" />}

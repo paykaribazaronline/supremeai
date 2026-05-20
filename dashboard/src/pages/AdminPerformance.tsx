@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Layout, Card, Row, Col, Statistic, Progress, Spin, Alert, Typography, 
-  Table, Tag, Space, Select, DatePicker, Button, Descriptions, Timeline 
+  Table, Tag, Space, Select, DatePicker, Button, Descriptions, Timeline, message
 } from 'antd';
 import { 
   ClusterOutlined, ThunderboltOutlined, TrophyOutlined, 
@@ -117,9 +117,9 @@ const AdminPerformance: React.FC = () => {
           averageLatency: d.averageLatency || 0,
           requestCount: d.totalTasks || 0,
           score: Math.round((d.successRate || 0) * 100),
-status: ((d.successRate || 0) > 0.9 ? 'excellent' :
-                   (d.successRate || 0) > 0.7 ? 'good' :
-                   (d.successRate || 0) > 0.5 ? 'fair' : 'poor') as 'excellent' | 'good' | 'fair' | 'poor',
+ status: ((d.successRate || 0) > 0.9 ? 'excellent' :
+                    (d.successRate || 0) > 0.7 ? 'good' :
+                    (d.successRate || 0) > 0.5 ? 'fair' : 'poor') as 'excellent' | 'good' | 'fair' | 'poor',
           avgResponseTime90: d.avgResponseTime90 || 0,
           errorRate: (1 - (d.successRate || 0)) * 100
         })).sort((a, b) => b.score - a.score);
@@ -148,9 +148,12 @@ status: ((d.successRate || 0) > 0.9 ? 'excellent' :
         setHistory(filtered);
       }
 
+      message.success('পারফরম্যান্স মেট্রিক্স রিফ্রেশ হয়েছে');
+
     } catch (err) {
       console.error('Performance fetch error:', err);
       setError('পারফরম্যান্স ডাটা লোড করতে সমস্যা হয়েছে।');
+      message.error('পারফরম্যান্স ডাটা লোড ব্যর্থ হয়েছে');
     } finally {
       setLoading(false);
     }
@@ -437,7 +440,7 @@ status: ((d.successRate || 0) > 0.9 ? 'excellent' :
           <Col xs={24} lg={12}>
             <Card 
               title={<Space><DatabaseOutlined /> সিস্টেম রিসোর্স</Space>} 
-              className="glass-card"
+              className="glass-card cyan-bordered-panel"
               bordered={false}
             >
               {metrics ? (
@@ -492,7 +495,7 @@ status: ((d.successRate || 0) > 0.9 ? 'excellent' :
           <Col xs={24} lg={12}>
             <Card 
               title={<Space><ExclamationCircleOutlined />Self-Healing System</Space>} 
-              className="glass-card"
+              className="glass-card cyan-bordered-panel"
               bordered={false}
             >
               {selfHealing ? (
@@ -537,7 +540,7 @@ status: ((d.successRate || 0) > 0.9 ? 'excellent' :
               <span style={{ color: '#fff' }}>Provider Performance Rankings</span>
             </Space>
           }
-          className="glass-card"
+          className="glass-card cyan-bordered-panel"
           bordered={false}
           style={{ marginBottom: 24 }}
         >

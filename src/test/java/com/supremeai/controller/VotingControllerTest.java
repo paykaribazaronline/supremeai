@@ -33,6 +33,9 @@ class VotingControllerTest {
     @Mock
     private com.supremeai.agentorchestration.RequirementAnalyzerAI requirementAnalyzer;
 
+    @Mock
+    private com.supremeai.provider.AIProviderFactory providerFactory;
+
     private VotingController votingController;
 
     @BeforeEach
@@ -40,7 +43,9 @@ class VotingControllerTest {
         votingController = new VotingController();
         setField(votingController, "votingService", votingService);
         setField(votingController, "requirementAnalyzer", requirementAnalyzer);
-        setField(votingController, "activeProviders", "groq,openai,anthropic,ollama");
+        setField(votingController, "providerFactory", providerFactory);
+        lenient().when(providerFactory.getAvailableProviderIds())
+                .thenReturn(List.of("groq", "openai", "anthropic", "ollama"));
     }
 
     private void setField(Object target, String fieldName, Object value) {

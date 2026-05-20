@@ -23,6 +23,78 @@
       "solution": "[RESILIENCE] Wrap fetchWithAuth in try/catch. Return 503 Response on network/CORS error instead of throwing. Prevents console spam and keeps UI stable.",
       "confidence": 0.95,
       "tags": ["resilience", "emulator", "fetch"]
+    },
+    {
+      "task": "hello hi greetings how to use",
+      "solution": "[LOCAL-SEED] SupremeAI is an AI-powered software engineering assistant. You can ask me to write, debug, or refactor code, run build/test commands, and manage deployments — all directly from the CLI.",
+      "confidence": 1.0,
+      "tags": ["greetings", "chat", "offline"]
+    },
+    {
+      "task": "hello who are you what is supremeai",
+      "solution": "[LOCAL-SEED] SupremeAI is a multi-provider AI engineering platform. It connects to multiple AI providers, manages knowledge with a self-learning loop, self-heals from errors, and runs a secure admin dashboard at http://localhost:3000/admin.",
+      "confidence": 1.0,
+      "tags": ["greetings", "identity", "offline", "docs"]
+    },
+    {
+      "task": "status health check system running",
+      "solution": "[LOCAL-SEED] 1. Run: curl http://localhost:8080/actuator/health 2. Check: http://localhost:3000/admin/dashboard 3. Green = all services healthy. Yellow = degraded. Red = down. Check backend.log for details.",
+      "confidence": 0.97,
+      "tags": ["health", "status", "offline", "monitoring"]
+    },
+    {
+      "task": "build compile gradle maven project failed errors",
+      "solution": "[LOCAL-SEED] 1. Run: ./gradlew clean compileJava 2. If still failing, search backend.log or build_errors.log for last stack trace 3. Fix the top file in the stack trace first — build errors are almost always a single missing import or deprecation 4. Re-run build",
+      "confidence": 0.95,
+      "tags": ["build", "compile", "gradle", "offline"]
+    },
+    {
+      "task": "database connection firestore timeout error connection refused",
+      "solution": "[LOCAL-SEED] 1. Check cloud functions emulator: firebase emulators:start 2. Verify GOOGLE_APPLICATION_CREDENTIALS points to valid service-account.json 3. If using service account, ensure the file is in the project root 4. Restart the application — Firestore clients need fresh context",
+      "confidence": 0.93,
+      "tags": ["database", "firestore", "connection", "offline"]
+    },
+    {
+      "task": "network dns timeout unreachable host",
+      "solution": "[LOCAL-SEED] 1. Test: curl -v <host> or nslookup <host> 2. If DNS fails: check /etc/resolv.conf 3. If host down: switch to fallback provider or offline mode 4. For GCP services, verify network egress rules and VPC firewall rules 5. Set .env FIRESTORE_EMULATOR_PORT to use local emulator instead of cloud",
+      "confidence": 0.92,
+      "tags": ["network", "dns", "timeout", "offline"]
+    },
+    {
+      "task": "unauthorized 401 access denied jwt token expired",
+      "solution": "[LOCAL-SEED] 1. Check auth-token.txt exists and is not empty 2. Get fresh token: node get-fresh-token.js or run the auth wizard 3. For admin access: set-admin-claims.js add admin role 4. Restart dev server after updating tokens",
+      "confidence": 0.95,
+      "tags": ["security", "auth", "401", "jwt", "offline"]
+    },
+    {
+      "task": "ssl certificate expiry tls handshake failed connection",
+      "solution": "[LOCAL-SEED] 1. Inspect cert: openssl s_client -connect <host>:443 -showcerts 2. Check expiry date in the certificate output 3. For Let's Encrypt, run: certbot renew 4. For Java truststore, re-import refreshed cert with keytool 5. For local dev, disable TLS validation with -Djavax.net.ssl.verifyPeer=false (dev only)",
+      "confidence": 0.90,
+      "tags": ["ssl", "tls", "certificate", "offline"]
+    },
+    {
+      "task": "api key quota exceeded rate limit 429 rotation",
+      "solution": "[LOCAL-SEED] 1. Find key file: rotation_config.json 2. Rotate: cp rotation.config{,.bak}; mv rotation.config.{next} rotation.config 3. Restart the affected provider 4. For rate-limited user queries, fallback queues requests in AIFallbackOrchestrator — not user's fault — Solo Mode takes over",
+      "confidence": 0.94,
+      "tags": ["quota", "api-key", "rate-limit", "offline", "rotation"]
+    },
+    {
+      "task": "out of memory heap space error jvm oom",
+      "solution": "[LOCAL-SEED] 1. Check heap: jcmd <pid> VM.native_memory summary 2. Increase JVM heap: add -Xmx4g to JAVA_OPTS 3. For HikariCP pool exhaustion: increase spring.datasource.hikari.maximum-pool-size 4. For Gradle daemon: add org.gradle.jvmargs=-Xmx4g to gradle.properties 5. Restart service",
+      "confidence": 0.93,
+      "tags": ["memory", "oom", "jvm", "offline"]
+    },
+    {
+      "task": "kubernetes docker container crash kill port conflict already in use",
+      "solution": "[LOCAL-SEED] 1. Find process: lsof -i :<port> or ss -lpn 'sport = :<port>' 2. Kill: kill -9 <pid> 3. If Docker: docker ps find the container, docker stop <container> 4. If port changes, update docker-compose.yml 5. Restart: docker-compose up -d",
+      "confidence": 0.96,
+      "tags": ["container", "docker", "kubernetes", "offline"]
+    },
+    {
+      "task": "all ai providers down blackout complete offline fallback mode",
+      "solution": "[LOCAL-SEED] Thunder Mode activates automatically. 1. Responses come from core_knowledge.json local seed 2. All queues drain from cached and preregistered handlers 3. Kill-switch: ./start-supremeai.sh restart 4. Admin panel stays accessible at http://localhost:3000/admin 5. Knowledge accumulates locally and syncs back when providers recover",
+      "confidence": 0.97,
+      "tags": ["zero-ai", "blackout", "thunder-mode", "offline", "resilience"]
     }
   ]
 }

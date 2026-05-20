@@ -69,17 +69,13 @@ class AuthenticationServiceExtendedTest {
             when(token.getClaims()).thenReturn(Map.of());
             when(authInstance.verifyIdToken("valid-new-token")).thenReturn(token);
 
-            UserRecord userRecord = mock(UserRecord.class);
-            when(userRecord.getUid()).thenReturn("new-uid-123");
-            when(authInstance.createUser(any(UserRecord.CreateRequest.class))).thenReturn(userRecord);
-
             when(userRepository.findByFirebaseUid("new-uid-123")).thenReturn(Mono.empty());
             when(userRepository.save(any(User.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
             when(jwtUtil.generateAccessToken(anyString(), anyString())).thenReturn("access-token-new");
             when(jwtUtil.generateRefreshToken(anyString(), anyString())).thenReturn("refresh-token-new");
-            when(configService.getConfig()).thenReturn(null);
+            lenient().when(configService.getConfig()).thenReturn(null);
 
-            when(activityLogRepository.save(any())).thenReturn(Mono.just(new com.supremeai.model.ActivityLog()));
+            lenient().when(activityLogRepository.save(any())).thenReturn(Mono.just(new com.supremeai.model.ActivityLog()));
 
             Mono<Map<String, Object>> result = authenticationService.firebaseLogin("valid-new-token", "127.0.0.1");
 
@@ -106,16 +102,12 @@ class AuthenticationServiceExtendedTest {
             when(token.getClaims()).thenReturn(Map.of());
             when(authInstance.verifyIdToken("admin-token")).thenReturn(token);
 
-            UserRecord userRecord = mock(UserRecord.class);
-            when(userRecord.getUid()).thenReturn("admin-new-uid");
-            when(authInstance.createUser(any(UserRecord.CreateRequest.class))).thenReturn(userRecord);
-
             when(userRepository.findByFirebaseUid("admin-new-uid")).thenReturn(Mono.empty());
             when(userRepository.save(any(User.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
             when(jwtUtil.generateAccessToken(anyString(), anyString())).thenReturn("admin-access-token");
             when(jwtUtil.generateRefreshToken(anyString(), anyString())).thenReturn("admin-refresh-token");
-            when(configService.getConfig()).thenReturn(null);
-            when(activityLogRepository.save(any())).thenReturn(Mono.just(new com.supremeai.model.ActivityLog()));
+            lenient().when(configService.getConfig()).thenReturn(null);
+            lenient().when(activityLogRepository.save(any())).thenReturn(Mono.just(new com.supremeai.model.ActivityLog()));
 
             Mono<Map<String, Object>> result = authenticationService.firebaseLogin("admin-token", "127.0.0.1");
 
@@ -151,8 +143,8 @@ class AuthenticationServiceExtendedTest {
             when(userRepository.save(any(User.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
             when(jwtUtil.generateAccessToken(anyString(), anyString())).thenReturn("access-token-upgraded");
             when(jwtUtil.generateRefreshToken(anyString(), anyString())).thenReturn("refresh-token-upgraded");
-            when(configService.getConfig()).thenReturn(null);
-            when(activityLogRepository.save(any())).thenReturn(Mono.just(new com.supremeai.model.ActivityLog()));
+            lenient().when(configService.getConfig()).thenReturn(null);
+            lenient().when(activityLogRepository.save(any())).thenReturn(Mono.just(new com.supremeai.model.ActivityLog()));
 
             Mono<Map<String, Object>> result = authenticationService.firebaseLogin("valid-existing-token", "127.0.0.1");
 
@@ -183,7 +175,7 @@ class AuthenticationServiceExtendedTest {
         Mono<Map<String, Object>> result = authenticationService.firebaseLogin(null, "127.0.0.1");
 
         StepVerifier.create(result)
-                .expectError(NullPointerException.class)
+                .expectError(IllegalArgumentException.class)
                 .verify();
     }
 
@@ -257,11 +249,10 @@ class AuthenticationServiceExtendedTest {
 
             UserRecord userRecord = mock(UserRecord.class);
             when(userRecord.getUid()).thenReturn("uid-null-name");
-            when(userRecord.getDisplayName()).thenReturn("registeruser");
             when(authInstance.createUser(any(UserRecord.CreateRequest.class))).thenReturn(userRecord);
 
             when(userRepository.save(any(User.class))).thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
-            when(activityLogRepository.save(any())).thenReturn(Mono.just(new com.supremeai.model.ActivityLog()));
+            lenient().when(activityLogRepository.save(any())).thenReturn(Mono.just(new com.supremeai.model.ActivityLog()));
 
             Mono<User> result = authenticationService.register(
                     "test@example.com", "SecurePass456", null, "127.0.0.1"
@@ -300,7 +291,7 @@ class AuthenticationServiceExtendedTest {
     @Test
     void isAdminByEmail_NullConfig_ReturnsFalse() {
         // Test that null config doesn't cause NPE
-        when(configService.getConfig()).thenReturn(null);
+        lenient().when(configService.getConfig()).thenReturn(null);
 
         // The actual call happens inside firebaseLogin, test the behavior
         // This is covered by integration with firebaseLogin tests

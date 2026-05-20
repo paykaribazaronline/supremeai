@@ -94,9 +94,6 @@ class ProviderAdminServiceExtendedTest {
         provider.setType("gemini");
         provider.setApiKey(null);
 
-        when(discoveryService.validateKey(anyString(), isNull()))
-                .thenReturn(Mono.just(false));
-
         StepVerifier.create(providerAdminService.addProvider(provider, "admin-1"))
                 .expectError(IllegalArgumentException.class)
                 .verify();
@@ -222,7 +219,7 @@ class ProviderAdminServiceExtendedTest {
                 .expectNextMatches(stats -> {
                     assertEquals(0, stats.get("total"));
                     assertEquals(0L, stats.get("active"));
-                    assertEquals(100, stats.get("healthScore"));
+                    assertEquals(100L, stats.get("healthScore"));
                     return true;
                 })
                 .verifyComplete();
@@ -397,7 +394,6 @@ class ProviderAdminServiceExtendedTest {
         APIProvider error = new APIProvider("prov-2", "Error", "openai", "error");
 
         when(providerRepository.findAll()).thenReturn(Flux.just(active, error));
-        when(activityLogRepository.save(any(ActivityLog.class))).thenReturn(Mono.just(new ActivityLog()));
 
         StepVerifier.create(providerAdminService.removeDeadProviders("admin-1"))
                 .verifyComplete();

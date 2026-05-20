@@ -244,7 +244,7 @@ const AdminProviders: React.FC = () => {
               </Space>
             </div>
 
-            <Card style={{ background: '#f0f2f5', border: 'none', borderRadius: '12px', marginBottom: '24px' }}>
+            <Card className="glass-card" style={{ background: 'rgba(0,0,0,0.3)', marginBottom: '24px' }}>
               <Space style={{ width: '100%' }} wrap>
                 <Input
                   placeholder="Search by Model Name, Provider or API Hints..."
@@ -296,21 +296,21 @@ const AdminProviders: React.FC = () => {
           <div className="glass-card p-6 rounded-2xl" style={{ height: '100%', background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)', color: 'white' }}>
             <Title level={4} style={{ color: 'white', marginBottom: '20px' }}>Provider Health</Title>
             <Space direction="vertical" style={{ width: '100%' }} size="large">
-              <Card size="small" style={{ borderRadius: '12px' }}>
+              <Card size="small" className="glass-card" style={{ borderRadius: '12px' }}>
                 <Statistic 
                   title="Total Active Providers" 
                   value={providers.filter(p => p.status === 'active').length} 
                   prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />} 
                 />
               </Card>
-              <Card size="small" style={{ borderRadius: '12px' }}>
+              <Card size="small" className="glass-card" style={{ borderRadius: '12px' }}>
                 <Statistic 
                   title="Deployment Groups" 
                   value={sortedGroupKeys.length} 
                   prefix={<CheckCircleOutlined style={{ color: '#1890ff' }} />} 
                 />
               </Card>
-              <Card size="small" style={{ borderRadius: '12px' }}>
+              <Card size="small" className="glass-card" style={{ borderRadius: '12px' }}>
                 <Statistic 
                   title="Error Streak / Latency" 
                   value={healthStats?.avgLatency || 0} 

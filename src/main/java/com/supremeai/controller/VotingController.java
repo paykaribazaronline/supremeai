@@ -24,8 +24,8 @@ public class VotingController {
     @Autowired
     private RequirementAnalyzerAI requirementAnalyzer;
 
-    @Value("${supremeai.active.providers:}")
-    private String activeProviders;
+    @Autowired
+    private com.supremeai.provider.AIProviderFactory providerFactory;
 
     // ===== CLARIFYING QUESTIONS ENDPOINT =====
 
@@ -54,7 +54,7 @@ public class VotingController {
     public Mono<ResponseEntity<Object>> voteOnQuestion(@RequestBody Map<String, Object> request) {
         String question = (String) request.get("question");
         List<String> providers = (List<String>) request.getOrDefault("providers",
-            Arrays.asList(activeProviders.split(",")));
+            providerFactory.getAvailableProviderIds());
 
         if (question == null || question.trim().isEmpty()) {
             return Mono.just(ResponseEntity.badRequest()
@@ -93,7 +93,7 @@ public class VotingController {
         return Mono.just(ResponseEntity.ok((Object) Map.of(
             "status", "UP",
             "service", "MultiAIVotingService",
-            "providers", Arrays.asList(activeProviders.split(","))
+            "providers", providerFactory.getAvailableProviderIds()
         )));
     }
 

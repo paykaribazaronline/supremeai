@@ -378,19 +378,13 @@ function emulatorStub(url: string, fullUrl: string): Response {
 
   // ── Smart Providers (AI models) ────────────────────────────────────────
   if (url.startsWith('/getConfiguredProviders') || url === '/api/admin/providers/configured') {
+    const rawProviders = sessionStorage.getItem('supremeai_dynamic_providers') || localStorage.getItem('supremeai_dynamic_providers');
+    const providers = rawProviders ? JSON.parse(rawProviders) : [];
     return jsonOk({
-      providers: [
-        { id: 'firebase-gemini', name: 'Firebase Gemini API', type: 'firebase', deploymentSource: 'gcloud', status: 'active', apiKeyConfigured: true, models: ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-pro-vision'], roles: ['general_chat', 'reasoning', 'multimodal', 'vision'], source: 'env' },
-        { id: 'vertex-ai', name: 'Vertex AI (Google Cloud)', type: 'vertex', deploymentSource: 'gcloud', status: 'active', apiKeyConfigured: true, models: ['gemini-1.5-pro', 'gemini-1.5-flash', 'claude-3-5-sonnet', 'text-embedding-004'], roles: ['coding', 'reasoning', 'security', 'embedding'], source: 'env' },
-        { id: 'cloudrun-deepseek-pro', name: 'DeepSeek Pro (Cloud Run)', type: 'ollama', deploymentSource: 'gcloud', status: 'active', apiKeyConfigured: false, endpoint: 'https://supreme-ai-deepseek-pro-lhlwyikwlq-uc.a.run.app', models: ['deepseek-coder-v2', 'deepseek-r1'], roles: ['coding', 'reasoning'], source: 'cloudrun' },
-        { id: 'cloudrun-llama-3-1', name: 'Llama 3.1 (Cloud Run)', type: 'ollama', deploymentSource: 'gcloud', status: 'active', apiKeyConfigured: false, endpoint: 'https://supreme-ai-llama-3-1-lhlwyikwlq-uc.a.run.app', models: ['llama-3.1-8b', 'llama-3.1-70b'], roles: ['general_chat', 'reasoning', 'coding'], source: 'cloudrun' },
-        { id: 'cloudrun-phi-3', name: 'Phi-3 (Cloud Run)', type: 'ollama', deploymentSource: 'gcloud', status: 'active', apiKeyConfigured: false, endpoint: 'https://supreme-ai-phi-3-lhlwyikwlq-uc.a.run.app', models: ['phi-3-mini', 'phi-3-medium'], roles: ['fast_chat', 'general_chat'], source: 'cloudrun' },
-        { id: 'cloudrun-qwen-coder', name: 'Qwen Coder (Cloud Run)', type: 'ollama', deploymentSource: 'gcloud', status: 'active', apiKeyConfigured: false, endpoint: 'https://supreme-ai-qwen-coder-lhlwyikwlq-uc.a.run.app', models: ['qwen-2.5-coder-7b', 'qwen-2.5-7b'], roles: ['coding', 'reasoning'], source: 'cloudrun' },
-        { id: 'cloudrun-nomic-embed', name: 'Nomic Embed (Cloud Run)', type: 'ollama', deploymentSource: 'gcloud', status: 'active', apiKeyConfigured: false, endpoint: 'https://supreme-ai-nomic-embed-lhlwyikwlq-uc.a.run.app', models: ['nomic-embed-text-v1.5'], roles: ['embedding'], source: 'cloudrun' },
-      ],
-      total: 7,
-      active: 7,
-      sources: ['env', 'cloudrun'],
+      providers,
+      total: providers.length,
+      active: providers.filter((p: any) => p.status === 'active').length,
+      sources: Array.from(new Set(providers.map((p: any) => p.source || 'custom'))),
     });
   }
 

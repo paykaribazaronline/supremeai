@@ -1,6 +1,6 @@
 package com.supremeai.service;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -10,28 +10,37 @@ import java.util.Map;
 @Service
 public class VoiceboxClientService {
 
+    @Autowired
+    private ConfigService configService;
+
     private final WebClient webClient;
 
-    public VoiceboxClientService(@Value("${voicebox.base-url:http://localhost:17493}") String baseUrl) {
-        this.webClient = WebClient.builder()
-            .baseUrl(baseUrl)
-            .build();
+    public VoiceboxClientService() {
+        this.webClient = WebClient.builder().build();
+    }
+
+    private Mono<String> getBaseUrl() {
+        return configService.getEffectiveString("voicebox.base-url", "http://localhost:17493");
     }
 
     public Mono<Map> generateSpeech(String text, String profileId) {
-        return webClient.post()
-            .uri("/generate")
-            .bodyValue(Map.of("text", text, "profile_id", profileId))
-            .retrieve()
-            .bodyToMono(Map.class);
+        return getBaseUrl().flatMap(baseUrl -> 
+            webClient.post()
+                .uri(baseUrl + "/generate")
+                .bodyValue(Map.of("text", text, "profile_id", profileId))
+                .retrieve()
+                .bodyToMono(Map.class)
+        );
     }
 
     public Mono<Map> speak(String text, String profile) {
-        return webClient.post()
-            .uri("/speak")
-            .bodyValue(Map.of("text", text, "profile", profile))
-            .retrieve()
-            .bodyToMono(Map.class);
+        return getBaseUrl().flatMap(baseUrl -> 
+            webClient.post()
+                .uri(baseUrl + "/speak")
+                .bodyValue(Map.of("text", text, "profile", profile))
+                .retrieve()
+                .bodyToMono(Map.class)
+        );
     }
 
     public Mono<Map> transcribe(byte[] audioData, String language) {
@@ -42,10 +51,12 @@ public class VoiceboxClientService {
             builder.part("language", language);
         }
 
-        return webClient.post()
-            .uri("/transcribe")
-            .body(org.springframework.web.reactive.function.BodyInserters.fromMultipartData(builder.build()))
-            .retrieve()
-            .bodyToMono(Map.class);
+        return getBaseUrl().flatMap(baseUrl -> 
+            webClient.post()
+                .uri(baseUrl + "/transcribe")
+                .body(org.springframework.web.reactive.function.BodyInserters.fromMultipartData(builder.build()))
+                .retrieve()
+                .bodyToMono(Map.class)
+        );
     }
 }

@@ -107,7 +107,7 @@ const ProviderModal: React.FC<Props> = ({ visible, editingProvider, onCancel, on
       onCancel={onCancel}
       footer={null}
       width={650}
-      className="provider-modal"
+      className="provider-modal admin-modal"
     >
       <Form form={form} layout="vertical" onFinish={onSubmit}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -157,7 +157,7 @@ const ProviderModal: React.FC<Props> = ({ visible, editingProvider, onCancel, on
 
         <Divider style={{ margin: '12px 0' }} />
 
-        <div className="api-key-section" style={{ background: '#f8f9fa', padding: '16px', borderRadius: '12px', border: '1px solid #e9ecef' }}>
+        <div className="api-key-section glass-card" style={{ padding: '16px', borderRadius: '12px' }}>
           <Form.Item 
             name="apiKey" 
             label="API Secret Key" 

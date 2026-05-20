@@ -1,283 +1,166 @@
 package com.supremeai.model;
 
-import com.google.cloud.firestore.annotation.DocumentId;
-import com.google.cloud.firestore.annotation.ServerTimestamp;
-import com.google.cloud.spring.data.firestore.Document;
+import lombok.Data;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+
+import com.google.cloud.firestore.annotation.DocumentId;
+import com.google.cloud.spring.data.firestore.Document;
 
 /**
- * User simulator profile storing quota, installed apps, device config, and session state.
- * Stored in Firestore collection: "simulator_profiles"
- * Document ID = Firebase user ID
+ * UserSimulatorProfile implements the requirements of Plan 22.
+ * It manages quotas for installed applications and tracks active simulator sessions.
  */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Document(collectionName = "simulator_profiles")
 public class UserSimulatorProfile {
 
     @DocumentId
     private String userId;
 
-    /** User's subscription tier */
-    private UserTier userTier = UserTier.FREE;
+    @Builder.Default
+    private int installQuota = 5; // Default limit as per Plan 22
 
-    /** Maximum number of apps user can have installed simultaneously */
-    private int installQuota = 5;
-
-    /** Current number of installed apps (derived from installedApps.size()) */
+    @Builder.Default
     private int activeInstalls = 0;
 
-    /** List of installed applications */
+    @Builder.Default
     private List<InstalledApp> installedApps = new ArrayList<>();
 
-    /** Device configuration for simulator */
-    private DeviceProfile device;
-
-    /** Current active session, if any */
     private ActiveSession currentSession;
 
-    /** Timestamp of last user activity */
     private LocalDateTime lastActiveAt;
 
-    /** Historical quota usage tracking */
-    private List<QuotaHistoryEntry> quotaHistory = new ArrayList<>();
+    private String activeSessionId;
 
-    /** Time profile was created */
-    @ServerTimestamp
-    private LocalDateTime createdAt;
+    @Builder.Default
+    private Map<String, Object> deviceConfig = new HashMap<>(); // Store Pixel 6, iPhone 15, etc.
 
-    /** Time profile was last updated */
-    @ServerTimestamp
-    private LocalDateTime updatedAt;
+    private long lastUsedTimestamp;
 
-    public UserSimulatorProfile() {}
+    @Builder.Default
+    private Map<String, Long> appExpiryMap = new HashMap<>(); // For the 7-day auto-cleanup policy
+
+    private LocalDateTime lastActiveTimestamp;
+
+    @Builder.Default
+    private UserTier userTier = UserTier.BASIC;
 
     public UserSimulatorProfile(String userId) {
         this.userId = userId;
         this.installQuota = 5;
         this.activeInstalls = 0;
         this.installedApps = new ArrayList<>();
-        this.device = DeviceProfile.defaultDevice();
-        this.lastActiveAt = LocalDateTime.now();
+        this.deviceConfig = new HashMap<>();
+        this.appExpiryMap = new HashMap<>();
+        this.userTier = UserTier.BASIC;
     }
 
-    // ─── Getters & Setters ──────────────────────────────────────────────────────
-
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
-
-    public UserTier getUserTier() { return userTier; }
-    public void setUserTier(UserTier userTier) { this.userTier = userTier; }
-
-    public int getInstallQuota() { return installQuota; }
-    public void setInstallQuota(int installQuota) { this.installQuota = installQuota; }
-
-    public int getActiveInstalls() { return activeInstalls; }
-    public void setActiveInstalls(int activeInstalls) { this.activeInstalls = activeInstalls; }
-
-    public List<InstalledApp> getInstalledApps() { return installedApps; }
-    public void setInstalledApps(List<InstalledApp> installedApps) { this.installedApps = installedApps; }
-
-    public DeviceProfile getDevice() { return device; }
-    public void setDevice(DeviceProfile device) { this.device = device; }
-
-    public ActiveSession getCurrentSession() { return currentSession; }
-    public void setCurrentSession(ActiveSession currentSession) { this.currentSession = currentSession; }
-
-    public LocalDateTime getLastActiveAt() { return lastActiveAt; }
-    public void setLastActiveAt(LocalDateTime lastActiveAt) { this.lastActiveAt = lastActiveAt; }
-
-    public List<QuotaHistoryEntry> getQuotaHistory() { return quotaHistory; }
-    public void setQuotaHistory(List<QuotaHistoryEntry> quotaHistory) { this.quotaHistory = quotaHistory; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-
-    // ─── Business Logic Helpers ─────────────────────────────────────────────────
+    /**
+     * Checks if the user has room for a new installation.
+     */
+    public boolean canInstall() {
+        return activeInstalls < installQuota;
+    }
 
     /**
-     * Adds an installed app entry and increments active installs
+     * Adds an installed app to the profile.
      */
     public void addInstalledApp(InstalledApp app) {
+        if (this.installedApps == null) {
+            this.installedApps = new ArrayList<>();
+        }
         this.installedApps.add(app);
         this.activeInstalls = this.installedApps.size();
-        this.lastActiveAt = LocalDateTime.now();
     }
 
     /**
-     * Removes an installed app by appId
-     * @return true if app was removed, false if not found
+     * Removes an installed app by ID.
      */
     public boolean removeInstalledApp(String appId) {
-        boolean removed = this.installedApps.removeIf(app -> app.getAppId().equals(appId));
-        if (removed) {
-            this.activeInstalls = this.installedApps.size();
-            this.lastActiveAt = LocalDateTime.now();
+        if (this.installedApps == null) {
+            return false;
         }
+        boolean removed = this.installedApps.removeIf(app -> app.getAppId().equals(appId));
+        this.activeInstalls = this.installedApps.size();
         return removed;
     }
 
     /**
-     * Checks if an app is already installed
+     * Checks if a specific app is installed in the profile.
      */
     public boolean hasAppInstalled(String appId) {
-        return this.installedApps.stream()
-            .anyMatch(app -> app.getAppId().equals(appId));
+        if (this.installedApps == null) {
+            return false;
+        }
+        return this.installedApps.stream().anyMatch(app -> app.getAppId().equals(appId));
     }
 
-    /**
-     * Gets an installed app by appId
-     */
-    public InstalledApp getInstalledApp(String appId) {
-        return this.installedApps.stream()
-            .filter(app -> app.getAppId().equals(appId))
-            .findFirst()
-            .orElse(null);
+    // ─────────────────────────────────────────────────────────────────────────
+    // Inner Models
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public enum AppStatus {
+        INSTALLED, RUNNING, ERROR
     }
 
-    /**
-     * Checks if user has remaining quota
-     */
-    public boolean hasQuotaRemaining() {
-        return this.activeInstalls < this.installQuota;
+    public enum SessionState {
+        ACTIVE, PAUSED, TERMINATED
     }
 
-    /**
-     * Returns how many install slots remain
-     */
-    public int getRemainingSlots() {
-        return Math.max(0, this.installQuota - this.activeInstalls);
-    }
-
-    /**
-     * Resets all installed apps and active count (admin operation)
-     */
-    public void resetAllInstalls() {
-        this.installedApps.clear();
-        this.activeInstalls = 0;
-        this.currentSession = null;
-        this.lastActiveAt = LocalDateTime.now();
-    }
-
-    // ─── Nested Model Classes ────────────────────────────────────────────────────
-
-    /**
-     * Represents a single installed application in the simulator
-     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class InstalledApp {
-        private String appId;              // Reference to generated app ID
-        private String appName;            // User-friendly name
-        private String version;            // Semantic version
-        private String deployedUrl;        // Preview URL (Cloud Run)
-        private LocalDateTime installedAt;
-        private int launchCount = 0;       // How many times launched
-        private LocalDateTime lastLaunchedAt;
+        private String appId;
+        private String appName;
+        private String version;
+        private String deployedUrl;
+        private LocalDateTime installedAt = LocalDateTime.now();
         private AppStatus status = AppStatus.INSTALLED;
-        private String failureReason;      // If status=ERROR
-
-        public InstalledApp() {}
+        private int launchCount = 0;
+        private LocalDateTime lastLaunchedAt;
 
         public InstalledApp(String appId, String appName, String version, String deployedUrl) {
             this.appId = appId;
             this.appName = appName;
             this.version = version;
             this.deployedUrl = deployedUrl;
-            this.installedAt = LocalDateTime.now();
-        }
-
-        public String getAppId() { return appId; }
-        public void setAppId(String appId) { this.appId = appId; }
-
-        public String getAppName() { return appName; }
-        public void setAppName(String appName) { this.appName = appName; }
-
-        public String getVersion() { return version; }
-        public void setVersion(String version) { this.version = version; }
-
-        public String getDeployedUrl() { return deployedUrl; }
-        public void setDeployedUrl(String deployedUrl) { this.deployedUrl = deployedUrl; }
-
-        public LocalDateTime getInstalledAt() { return installedAt; }
-        public void setInstalledAt(LocalDateTime installedAt) { this.installedAt = installedAt; }
-
-        public int getLaunchCount() { return launchCount; }
-        public void setLaunchCount(int launchCount) { this.launchCount = launchCount; }
-
-        public LocalDateTime getLastLaunchedAt() { return lastLaunchedAt; }
-        public void setLastLaunchedAt(LocalDateTime lastLaunchedAt) { this.lastLaunchedAt = lastLaunchedAt; }
-
-        public AppStatus getStatus() { return status; }
-        public void setStatus(AppStatus status) { this.status = status; }
-
-        public String getFailureReason() { return failureReason; }
-        public void setFailureReason(String failureReason) { this.failureReason = failureReason; }
-
-        /** Increment launch counter and update timestamp */
-        public void recordLaunch() {
-            this.launchCount++;
-            this.lastLaunchedAt = LocalDateTime.now();
-            this.status = AppStatus.RUNNING;
-        }
-
-        /** Mark app as errored during deployment/launch */
-        public void markAsFailed(String reason) {
-            this.status = AppStatus.ERROR;
-            this.failureReason = reason;
         }
     }
 
-    /**
-     * Simulator device profile (emulated device)
-     */
-    public static class DeviceProfile {
-        private DeviceType type = DeviceType.PIXEL_6;
-        private String osVersion = "Android 14";
-        private String screenResolution = "1080x2340";
-        private int densityDpi = 440;
-        private boolean hasGooglePlayServices = false;
-        private java.util.Map<String, String> customProperties = new java.util.HashMap<>();
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ActiveSession {
+        private String sessionId;
+        private String activeAppId;
+        private String sessionUrl;
+        private LocalDateTime startedAt = LocalDateTime.now();
+        private LocalDateTime lastHeartbeat = LocalDateTime.now();
+        private SessionState state = SessionState.ACTIVE;
 
-        public DeviceProfile() {}
-
-        public static DeviceProfile defaultDevice() {
-            DeviceProfile dp = new DeviceProfile();
-            dp.type = DeviceType.PIXEL_6;
-            dp.osVersion = "Android 14";
-            dp.screenResolution = "1080x2340";
-            dp.densityDpi = 440;
-            return dp;
+        public ActiveSession(String sessionId, String activeAppId, String sessionUrl) {
+            this.sessionId = sessionId;
+            this.activeAppId = activeAppId;
+            this.sessionUrl = sessionUrl;
         }
+    }
 
-        // Getters & Setters
-        public DeviceType getType() { return type; }
-        public void setType(DeviceType type) { this.type = type; }
-
-        public String getOsVersion() { return osVersion; }
-        public void setOsVersion(String osVersion) { this.osVersion = osVersion; }
-
-        public String getScreenResolution() { return screenResolution; }
-        public void setScreenResolution(String screenResolution) { this.screenResolution = screenResolution; }
-
-        public int getDensityDpi() { return densityDpi; }
-        public void setDensityDpi(int densityDpi) { this.densityDpi = densityDpi; }
-
-        public boolean isHasGooglePlayServices() { return hasGooglePlayServices; }
-        public void setHasGooglePlayServices(boolean hasGooglePlayServices) { this.hasGooglePlayServices = hasGooglePlayServices; }
-
-        public java.util.Map<String, String> getCustomProperties() { return customProperties; }
-        public void setCustomProperties(java.util.Map<String, String> customProperties) { this.customProperties = customProperties; }
-
-        /** Available device profiles (extensible) */
+    public static class DeviceProfile {
         public enum DeviceType {
-            PIXEL_6("Google Pixel 6", "Android 14", "1080x2340", 440),
-            PIXEL_7("Google Pixel 7", "Android 14", "1080x2400", 460),
-            SAMSUNG_S24("Samsung Galaxy S24", "Android 14", "1080x2340", 416),
-            IPHONE_15("iPhone 15", "iOS 17.4", "1179x2556", 460),
-            IPHONE_15_PRO("iPhone 15 Pro", "iOS 17.4", "1179x2556", 460),
-            TABLET_10("10-inch Tablet", "Android 13", "1920x1200", 224);
+            PIXEL_6("Pixel 6 (Android)", "Android 14", "1080x2340", 440),
+            IPHONE_15("iPhone 15 (iOS)", "iOS 17", "1179x2556", 460),
+            GALAXY_S23("Galaxy S23 (Android)", "Android 13", "1080x2340", 425);
 
             private final String displayName;
             private final String osVersion;
@@ -296,98 +179,5 @@ public class UserSimulatorProfile {
             public String getResolution() { return resolution; }
             public int getDensityDpi() { return densityDpi; }
         }
-    }
-
-    /**
-     * Currently active simulator session
-     */
-    public static class ActiveSession {
-        private String sessionId;
-        private String activeAppId;
-        private String sessionUrl;          // WebSocket or preview URL
-        private LocalDateTime startedAt;
-        private LocalDateTime lastHeartbeat;
-        private SessionState state = SessionState.ACTIVE;
-        private java.util.Map<String, String> metadata = new java.util.HashMap<>();
-
-        public ActiveSession() {}
-
-        public ActiveSession(String sessionId, String activeAppId, String sessionUrl) {
-            this.sessionId = sessionId;
-            this.activeAppId = activeAppId;
-            this.sessionUrl = sessionUrl;
-            this.startedAt = LocalDateTime.now();
-            this.lastHeartbeat = LocalDateTime.now();
-        }
-
-        public String getSessionId() { return sessionId; }
-        public void setSessionId(String sessionId) { this.sessionId = sessionId; }
-
-        public String getActiveAppId() { return activeAppId; }
-        public void setActiveAppId(String activeAppId) { this.activeAppId = activeAppId; }
-
-        public String getSessionUrl() { return sessionUrl; }
-        public void setSessionUrl(String sessionUrl) { this.sessionUrl = sessionUrl; }
-
-        public LocalDateTime getStartedAt() { return startedAt; }
-        public void setStartedAt(LocalDateTime startedAt) { this.startedAt = startedAt; }
-
-        public LocalDateTime getLastHeartbeat() { return lastHeartbeat; }
-        public void setLastHeartbeat(LocalDateTime lastHeartbeat) { this.lastHeartbeat = lastHeartbeat; }
-
-        public SessionState getState() { return state; }
-        public void setState(SessionState state) { this.state = state; }
-
-        public java.util.Map<String, String> getMetadata() { return metadata; }
-        public void setMetadata(java.util.Map<String, String> metadata) { this.metadata = metadata; }
-
-        public void refreshHeartbeat() {
-            this.lastHeartbeat = LocalDateTime.now();
-        }
-    }
-
-    /**
-     * Quota usage history entry
-     */
-    public static class QuotaHistoryEntry {
-        private LocalDateTime date;
-        private int installCount;
-
-        public QuotaHistoryEntry() {}
-
-        public QuotaHistoryEntry(LocalDateTime date, int installCount) {
-            this.date = date;
-            this.installCount = installCount;
-        }
-
-        public static QuotaHistoryEntry of(LocalDateTime date, int count) {
-            return new QuotaHistoryEntry(date, count);
-        }
-
-        public LocalDateTime getDate() { return date; }
-        public void setDate(LocalDateTime date) { this.date = date; }
-
-        public int getInstallCount() { return installCount; }
-        public void setInstallCount(int installCount) { this.installCount = installCount; }
-    }
-
-    /**
-     * Status of an installed application
-     */
-    public enum AppStatus {
-        INSTALLED,    // Successfully installed, not yet running
-        RUNNING,      // Currently active in simulator
-        ERROR,        // Deployment or runtime error
-        EXPIRED       // Removed due to TTL expiry
-    }
-
-    /**
-     * Session lifecycle states
-     */
-    public enum SessionState {
-        ACTIVE,   // Simulator running
-        PAUSED,   // Temporarily suspended
-        TERMINATED, // User ended session
-        EXPIRED   // Auto-terminated due to timeout
     }
 }

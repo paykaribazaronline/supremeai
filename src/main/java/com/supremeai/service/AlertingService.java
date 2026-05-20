@@ -5,6 +5,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,9 @@ public class AlertingService {
     // Track recent alerts to avoid spam
     private final ConcurrentHashMap<String, Instant> recentAlerts = new ConcurrentHashMap<>();
     
+    @Autowired(required = false)
+    private ConfigService configService;
+
     @Value("${alerting.circuit-breaker.enabled:true}")
     private boolean circuitBreakerAlertingEnabled;
     
@@ -35,6 +39,54 @@ public class AlertingService {
     
     @Value("${alerting.cooldown.minutes:5}")
     private long alertCooldownMinutes;
+
+    // Helper methods for dynamic settings with robust parsing/conversion
+    private boolean isCircuitBreakerAlertingEnabled() {
+        if (configService == null) {
+            return circuitBreakerAlertingEnabled;
+        }
+        Object val = configService.getEffectiveSetting("alerting.circuit-breaker.enabled", circuitBreakerAlertingEnabled);
+        if (val instanceof Boolean) {
+            return (Boolean) val;
+        } else if (val instanceof String) {
+            return Boolean.parseBoolean((String) val);
+        }
+        return circuitBreakerAlertingEnabled;
+    }
+
+    private double getErrorRateThreshold() {
+        if (configService == null) {
+            return errorRateThreshold;
+        }
+        Object val = configService.getEffectiveSetting("alerting.error-rate.threshold", errorRateThreshold);
+        if (val instanceof Number) {
+            return ((Number) val).doubleValue();
+        } else if (val instanceof String) {
+            try {
+                return Double.parseDouble((String) val);
+            } catch (NumberFormatException e) {
+                // ignore
+            }
+        }
+        return errorRateThreshold;
+    }
+
+    private long getAlertCooldownMinutes() {
+        if (configService == null) {
+            return alertCooldownMinutes;
+        }
+        Object val = configService.getEffectiveSetting("alerting.cooldown.minutes", alertCooldownMinutes);
+        if (val instanceof Number) {
+            return ((Number) val).longValue();
+        } else if (val instanceof String) {
+            try {
+                return Long.parseLong((String) val);
+            } catch (NumberFormatException e) {
+                // ignore
+            }
+        }
+        return alertCooldownMinutes;
+    }
 
     public AlertingService(MeterRegistry meterRegistry) {
         this.meterRegistry = meterRegistry;
@@ -53,7 +105,7 @@ public class AlertingService {
      * Send alert for circuit breaker trip.
      */
     public void sendCircuitBreakerAlert(String provider, String state, int failureCount) {
-        if (!circuitBreakerAlertingEnabled) {
+        if (!isCircuitBreakerAlertingEnabled()) {
             return;
         }
         
@@ -77,7 +129,7 @@ public class AlertingService {
      * Send alert for high error rate.
      */
     public void sendHighErrorRateAlert(String endpoint, double errorRate, int totalRequests) {
-        if (errorRate < errorRateThreshold) {
+        if (errorRate < getErrorRateThreshold()) {
             return;
         }
         
@@ -100,7 +152,7 @@ public class AlertingService {
             return true;
         }
         
-        return Instant.now().minusSeconds(alertCooldownMinutes * 60).isAfter(lastAlert);
+        return Instant.now().minusSeconds(getAlertCooldownMinutes() * 60).isAfter(lastAlert);
     }
 
     /**

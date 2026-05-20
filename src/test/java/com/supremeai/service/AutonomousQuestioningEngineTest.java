@@ -150,7 +150,7 @@ class AutonomousQuestioningEngineTest {
     void validateAndQuestion_ApiDesignComplete_ReturnsComplete() {
         Mono<AutonomousQuestioningEngine.ValidationResult> result =
                 questioningEngine.validateAndQuestion(
-                        "Design a REST API with GET /users endpoint and POST /users endpoint for creating users which requires proper path handling and returns the expected JSON format.",
+                        "Design the REST API using Node.js tech stack with GET /users endpoint and POST /users endpoint for creating users which requires proper path handling and returns the expected JSON format.",
                         AutonomousQuestioningEngine.RequestType.API_DESIGN
                 );
 
@@ -224,7 +224,7 @@ class AutonomousQuestioningEngineTest {
     void validateAndQuestion_BugFixComplete_ReturnsComplete() {
         Mono<AutonomousQuestioningEngine.ValidationResult> result =
                 questioningEngine.validateAndQuestion(
-                        "Please fix the NullPointerException at line 45 where the object reference is not set to an instance. The requirement is to resolve this error. Here is the code snippet: String s = null; System.out.println(s.length());",
+                        "Please fix the NullPointerException at line 45 where the object reference is not set to an instance. The requirement is to resolve the error. Here is the code snippet: void myFunc() { String s = null; System.out.println(s.length()); }",
                         AutonomousQuestioningEngine.RequestType.BUG_FIX
                 );
 
