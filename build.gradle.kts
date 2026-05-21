@@ -167,6 +167,10 @@ tasks.withType<JavaCompile> {
 tasks.withType<Test> {
     // Enable preview features for test execution
     jvmArgs("--enable-preview")
+    // Java 21+ module access — required by Mockito / reflection in Spring Boot context
+    jvmArgs("--add-opens", "java.base/java.time.chrono=ALL-UNNAMED")
+    jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
+    jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
     useJUnitPlatform()
 }
 
