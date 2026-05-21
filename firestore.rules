@@ -5,11 +5,11 @@ service cloud.firestore {
     function isAuthenticated() {
       return request.auth != null;
     }
-    
+
     function isAdmin() {
       return isAuthenticated() && (
-        (request.auth.token.admin == true) || 
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        (request.auth.token.admin == true) ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.tier == 'ADMIN')
       );
     }
@@ -18,46 +18,34 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Allow internal service accounts (detected as unauthenticated in rules) 
-    // to have access if they have appropriate IAM roles.
-    // Note: Server SDKs usually bypass rules, but if they don't, we allow it here.
-    function isServiceAccount() {
-      return request.auth == null;
-    }
+    // Administrative & System Collections — admin only
+    match /system_configs/{id} { allow read, write: if isAdmin(); }
+    match /api_providers/{id} { allow read, write: if isAdmin(); }
+    match /projects/{id} { allow read: if isOwner(request.auth.uid) || isAdmin(); allow create, update, delete: if isOwner(request.auth.uid) || isAdmin(); }
+    match /vpn_connections/{id} { allow read, write: if isAdmin(); }
+    match /activity_logs/{id} { allow read: if isAdmin(); allow create: if isAdmin(); }
+    match /system_learning/{id} { allow read, write: if isAdmin(); }
+    match /solution_memories/{id} { allow read, write: if isAdmin(); }
+    match /database_knowledge/{id} { allow read, write: if isAdmin(); }
+    match /ai_agents/{id} { allow read, write: if isAdmin(); }
+    match /monitoring_logs/{id} { allow read: if isAdmin(); allow create: if isAuthenticated(); }
+    match /workflow_definitions/{id} { allow read: if isAdmin(); allow create, update, delete: if isAdmin(); }
+    match /workflow_executions/{id} { allow read, write: if isAdmin(); }
 
-    // Administrative & System Collections
-    match /system_configs/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
-    match /api_providers/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
-    match /projects/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
-    match /vpn_connections/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
-    match /activity_logs/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
-    match /system_learning/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
-    match /solution_memories/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
-    match /database_knowledge/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
-    match /ai_agents/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
-    match /monitoring_logs/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
-    match /workflow_definitions/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
-    match /workflow_executions/{id} { allow read, write: if isAdmin() || isServiceAccount(); }
-    
-    // User related
+    // User-related — owner-scoped
     match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin() || isServiceAccount();
-      allow create: if isAuthenticated() || isServiceAccount();
-      allow update, delete: if isOwner(userId) || isAdmin() || isServiceAccount();
-    }
-    
-    match /user_preferences/{id} { allow read, write: if isAuthenticated() || isServiceAccount(); }
-    match /user_api_keys/{id} { allow read, write: if isAuthenticated() || isServiceAccount(); }
-    match /simulator_profiles/{id} { allow read, write: if isAuthenticated() || isServiceAccount(); }
-
-    // Catch-all for other collections used by the app
-    match /{collection}/{id} {
-      allow read, write: if isAdmin() || isServiceAccount();
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if isOwner(userId) || isAdmin();
     }
 
-    // Secure by default for nested paths
+    match /user_preferences/{id} { allow read, write: if isAuthenticated(); }
+    match /user_api_keys/{id} { allow read, write: if isAuthenticated(); }
+    match /simulator_profiles/{id} { allow read, write: if isAuthenticated(); }
+
+    // Deny everything else — secure by default
     match /{document=**} {
-      allow read, write: if isAdmin() || isServiceAccount();
+      allow read, write: if false;
     }
   }
 }

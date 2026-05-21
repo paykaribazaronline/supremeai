@@ -179,11 +179,96 @@ public class AdminProviderValidationService {
     }
 
     /**
-     * Stub method for ChatProcessingService command.
-     * Triggers validation of all providers.
+     * On-demand provider validation — usable from ChatProcessingService RUN_AUDIT command.
+     * Scans all active providers (max 10 concurrent), validates each against the discovery
+     * service, and stores updated error-streak metadata.  Returns a count summary map.
      */
-    public void testAllProviders() {
-        log.info("testAllProviders invoked (stub implementation)");
-        // In a full implementation, this would iterate providers and test them
+    public Map<String, Object> testAllProviders() {
+        log.info("testAllProviders: on-demand validation started");
+
+        List<APIProvider> allProviders;
+        try {
+            allProviders = providerRepository.findAll().collectList().block();
+        } catch (Exception e) {
+            log.error("testAllProviders: failed to fetch providers: {}", e.getMessage(), e);
+            return Map.of("status", "error", "message", e.getMessage());
+        }
+
+        if (allProviders == null || allProviders.isEmpty()) {
+            log.info("testAllProviders: no providers found");
+            return Map.of("status", "ok", "total", 0, "valid", 0, "failed", 0);
+        }
+
+        List<APIProvider> activeProviders = allProviders.stream()
+                .filter(p -> "active".equalsIgnoreCase(p.getStatus())
+                        || "rotating".equalsIgnoreCase(p.getStatus()))
+                .collect(java.util.stream.Collectors.toList());
+
+        if (activeProviders.isEmpty()) {
+            return Map.of("status", "ok", "total", 0, "valid", 0, "failed", 0,
+                    "note", "no active providers to test");
+        }
+
+        int concurrency = Math.min(10, activeProviders.size());
+        AtomicInteger validCount = new AtomicInteger(0);
+        AtomicInteger failedCount = new AtomicInteger(0);
+
+        try {
+            Flux.fromIterable(activeProviders)
+                    .flatMap(provider ->
+                            Mono.fromCallable(() -> {
+                                        boolean valid = discoveryService
+                                                .validateKey(provider.getType(), provider.getApiKey())
+                                                .onErrorReturn(false).block();
+
+                                        provider.setLastValidated(new Date());
+
+                                        if (valid) {
+                                            provider.setConsecutiveErrorDays(0);
+                                            provider.setLastErrorDate(null);
+                                            provider.setStatus("active");
+                                            if (provider.getDeadReason() != null) provider.setDeadReason(null);
+                                            if (provider.getDeadAt() != null) provider.setDeadAt(null);
+                                            validCount.incrementAndGet();
+                                        } else {
+                                            int streak = provider.getConsecutiveErrorDays() != null
+                                                    ? provider.getConsecutiveErrorDays() : 0;
+                                            provider.setConsecutiveErrorDays(streak + 1);
+                                            provider.setLastErrorDate(new Date());
+                                            if (streak + 1 >= ERROR_THRESHOLD) {
+                                                provider.setStatus("dead");
+                                                provider.setDeadAt(new Date());
+                                                provider.setDeadReason(
+                                                        "Quarantined after " + (streak + 1)
+                                                                + " consecutive validation failures");
+                                                log.error("Provider '{}' ({}) quarantined. Reason: {}",
+                                                        provider.getName(), provider.getId(),
+                                                        provider.getDeadReason());
+                                            } else {
+                                                log.warn("Provider '{}' ({}) validation failed (streak: {}/{})",
+                                                        provider.getName(), provider.getId(),
+                                                        streak + 1, ERROR_THRESHOLD);
+                                            }
+                                            failedCount.incrementAndGet();
+                                        }
+                                        return provider;
+                                    })
+                                    .subscribeOn(Schedulers.boundedElastic())
+                                    .doOnNext(p -> providerRepository.save(p).block()),
+                            concurrency)
+                    .then().block();
+        } catch (Exception e) {
+            log.error("testAllProviders: batch validation error: {}", e.getMessage(), e);
+        }
+
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("status", "completed");
+        summary.put("total", activeProviders.size());
+        summary.put("valid", validCount.get());
+        summary.put("failed", failedCount.get());
+        summary.put("note", "active providers validated; 'dead' providers skipped");
+        log.info("testAllProviders: done — total={}, valid={}, failed={}",
+                activeProviders.size(), validCount.get(), failedCount.get());
+        return summary;
     }
 }

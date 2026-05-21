@@ -44,6 +44,9 @@ public class KnowledgeSeederServiceEnhanced {
     @Autowired
     private SystemLearningRepository systemLearningRepository;
 
+    @Autowired
+    private KnowledgeSeedDataProvider knowledgeSeedDataProvider;
+
     // Real-time learning cache for fast access
     private final Map<String, SystemLearning> knowledgeCache = new ConcurrentHashMap<>();
     private final AtomicLong cacheHits = new AtomicLong(0);
@@ -73,12 +76,12 @@ public class KnowledgeSeederServiceEnhanced {
     }
 
     private Flux<SystemLearning> seedAll() {
-        return Flux.merge(
-            seedCorePlans(),
-            seedErrorSolutions(),
-            seedAiPatterns(),
-            seedBestPractices(),
-            seedLifecyclePolicies()
+        return knowledgeSeedDataProvider.provideAllSeeds()
+        // Persist each entry to Firestore and update the in-memory cache
+        .flatMap(entry -> systemLearningRepository
+                .save(entry)
+                .doOnSuccess(saved -> knowledgeCache.put(saved.getId(), saved))
+                .thenReturn(entry)
         );
     }
 
@@ -417,46 +420,4 @@ public class KnowledgeSeederServiceEnhanced {
             .block();
     }
 
-    // ─── Core Knowledge Seeders (stubs - implement as needed) ────────────────
-
-    private Flux<SystemLearning> seedCorePlans() {
-        return Flux.empty(); // Implement with actual plans
-    }
-
-    private Flux<SystemLearning> seedErrorSolutions() {
-        return Flux.empty(); // Implement with error solutions
-    }
-
-    private Flux<SystemLearning> seedAiPatterns() {
-        return Flux.empty(); // Implement with AI patterns
-    }
-
-    private Flux<SystemLearning> seedBestPractices() {
-        return Flux.empty(); // Implement with best practices
-    }
-
-    private Flux<SystemLearning> seedLifecyclePolicies() {
-        return Flux.empty(); // Implement with lifecycle policies
-    }
-
-    private SystemLearning makeLearning(String id, String title, String category,
-            String content, List<String> tags, boolean isCritical, double confidence) {
-        SystemLearning learning = new SystemLearning();
-        learning.setId(id);
-        learning.setTitle(title);
-        learning.setCategory(category);
-        learning.setContent(content);
-        learning.setTags(tags);
-        learning.setCritical(isCritical);
-        learning.setConfidence(confidence);
-        learning.setVersion(1L);
-        learning.setCreatedAt(LocalDateTime.now());
-        learning.setUpdatedAt(LocalDateTime.now());
-        return learning;
-    }
-
-    private SystemLearning makeErrorSolution(String id, String title, String content,
-            List<String> tags) {
-        return makeLearning(id, title, "error-solutions", content, tags, true, 0.90);
-    }
 }

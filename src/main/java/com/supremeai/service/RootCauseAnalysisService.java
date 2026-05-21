@@ -40,67 +40,9 @@ public class RootCauseAnalysisService {
     private static final Pattern NULL_POINTER_PATTERN = Pattern.compile("NullPointer|null");
     private static final Pattern IMPORT_PATTERN = Pattern.compile("cannot find symbol|unresolved symbol|Import.*not found");
 
-    public RootCauseAnalysisService() {
-        initializeRootCausePatterns();
-    }
-
-    /**
-     * Initialize common root cause patterns.
-     */
-    private void initializeRootCausePatterns() {
-        // Null Pointer Issues
-        rootCausePatterns.put("null_pointer", new RootCausePattern(
-            "null_pointer",
-            "Null Pointer Exception",
-            Pattern.compile("NullPointer|null"),
-            CorrectionAction.AUTO_FIX_NULL,
-            0.9
-        ));
-
-        // Missing Import/Dependency
-        rootCausePatterns.put("missing_import", new RootCausePattern(
-            "missing_import",
-            "Missing Import or Dependency",
-            IMPORT_PATTERN,
-            CorrectionAction.ADD_IMPORT,
-            0.85
-        ));
-
-        // Syntax Errors
-        rootCausePatterns.put("syntax_error", new RootCausePattern(
-            "syntax_error",
-            "Syntax Error",
-            Pattern.compile("syntax error|unexpected token|missing semicolon"),
-            CorrectionAction.FIX_SYNTAX,
-            0.95
-        ));
-
-        // Type Mismatch
-        rootCausePatterns.put("type_mismatch", new RootCausePattern(
-            "type_mismatch",
-            "Type Mismatch",
-            Pattern.compile("incompatible types|cannot be applied to|type mismatch"),
-            CorrectionAction.FIX_TYPE,
-            0.8
-        ));
-
-        // Division by Zero
-        rootCausePatterns.put("division_by_zero", new RootCausePattern(
-            "division_by_zero",
-            "Division by Zero",
-            Pattern.compile("/ 0|division by zero|ArithmeticException"),
-            CorrectionAction.ADD_ZERO_CHECK,
-            0.98
-        ));
-
-        // Array Out of Bounds
-        rootCausePatterns.put("array_out_of_bounds", new RootCausePattern(
-            "array_out_of_bounds",
-            "Array Index Out of Bounds",
-            Pattern.compile("ArrayIndexOutOfBounds|index out of range"),
-            CorrectionAction.ADD_BOUNDS_CHECK,
-            0.95
-        ));
+    @Autowired
+    public RootCauseAnalysisService(RootCausePatternProvider rootCausePatternProvider) {
+        this.rootCausePatterns.putAll(rootCausePatternProvider.providePatterns());
     }
 
     /**
@@ -469,24 +411,6 @@ public class RootCauseAnalysisService {
         }
     }
 
-    private static class RootCausePattern {
-        String id;
-        String name;
-        String description;
-        Pattern pattern;
-        CorrectionAction suggestedAction;
-        double confidence;
-
-        RootCausePattern(String id, String name, Pattern pattern, CorrectionAction action, double confidence) {
-            this.id = id;
-            this.name = name;
-            this.description = name;
-            this.pattern = pattern;
-            this.suggestedAction = action;
-            this.confidence = confidence;
-        }
-    }
-
     private static class CorrectionRecord {
         String errorSignature;
         String rootCauseId;
@@ -504,15 +428,5 @@ public class RootCauseAnalysisService {
             this.wasSuccessful = wasSuccessful;
             this.timestamp = timestamp;
         }
-    }
-
-    public enum CorrectionAction {
-        AUTO_FIX_NULL,
-        ADD_IMPORT,
-        FIX_SYNTAX,
-        FIX_TYPE,
-        ADD_ZERO_CHECK,
-        ADD_BOUNDS_CHECK,
-        MANUAL_REVIEW
     }
 }

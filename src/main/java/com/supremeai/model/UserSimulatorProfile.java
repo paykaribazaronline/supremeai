@@ -36,6 +36,10 @@ public class UserSimulatorProfile {
     @Builder.Default
     private List<InstalledApp> installedApps = new ArrayList<>();
 
+    public List<InstalledApp> getInstalledApps() {
+        return installedApps;
+    }
+
     private ActiveSession currentSession;
 
     private LocalDateTime lastActiveAt;
@@ -129,6 +133,15 @@ public class UserSimulatorProfile {
         private AppStatus status = AppStatus.INSTALLED;
         private int launchCount = 0;
         private LocalDateTime lastLaunchedAt;
+
+        public String getAppId() { return appId; }
+        public String getAppName() { return appName; }
+        public String getVersion() { return version; }
+        public String getDeployedUrl() { return deployedUrl; }
+        public LocalDateTime getInstalledAt() { return installedAt; }
+        public AppStatus getStatus() { return status; }
+        public int getLaunchCount() { return launchCount; }
+        public LocalDateTime getLastLaunchedAt() { return lastLaunchedAt; }
 
         public InstalledApp(String appId, String appName, String version, String deployedUrl) {
             this.appId = appId;

@@ -68,8 +68,9 @@ public class KnowledgeService {
     public Mono<Map<String, Object>> processLearningJob(String domainId) {
         return domainRepository.findById(domainId)
                 .flatMap(domain -> {
-                    webSocketController.broadcastSystemEvent("KNOWLEDGE_CRAWL", domainId, 0.0, null, "Starting knowledge acquisition for " + domain.getName());
-                    
+                    webSocketController.broadcastSystemEvent("KNOWLEDGE_CRAWL", domainId, 0.0, null,
+                            "Starting knowledge acquisition for " + domain.getName());
+
                     return scraper.scrapeKnowledge(domain.getName(), domain.getKeywords())
                             .subscribeOn(Schedulers.boundedElastic())
                             .index() // Add index to track progress
@@ -77,9 +78,10 @@ public class KnowledgeService {
                                 long index = tuple.getT1();
                                 var scrapedIssue = tuple.getT2();
                                 double progress = Math.min(95.0, (index + 1) * 10.0); // Simple progress calculation
-                                
-                                webSocketController.broadcastSystemEvent("KNOWLEDGE_CRAWL", domainId, progress, scrapedIssue.getTitle(), "Discovered: " + scrapedIssue.getTitle());
-                                
+
+                                webSocketController.broadcastSystemEvent("KNOWLEDGE_CRAWL", domainId, progress,
+                                        scrapedIssue.getTitle(), "Discovered: " + scrapedIssue.getTitle());
+
                                 return saveScrapedFact(domain, scrapedIssue);
                             })
                             .collectList()
@@ -87,29 +89,76 @@ public class KnowledgeService {
                                 domain.setNodesDiscovered(domain.getNodesDiscovered() + savedList.size());
                                 domain.setStatus(Status.COMPLETE);
                                 domain.setLastUpdated(LocalDateTime.now());
-                                
-                                webSocketController.broadcastSystemEvent("KNOWLEDGE_CRAWL", domainId, 100.0, null, "Acquisition complete. Discovered " + savedList.size() + " new nodes.");
-                                
+
+                                webSocketController.broadcastSystemEvent("KNOWLEDGE_CRAWL", domainId, 100.0, null,
+                                        "Acquisition complete. Discovered " + savedList.size() + " new nodes.");
+
                                 Map<String, Object> result = new HashMap<>();
                                 result.put("domainId", domainId);
                                 result.put("factsDiscovered", savedList.size());
                                 result.put("status", "complete");
-                                
+
                                 return domainRepository.save(domain).thenReturn(result);
                             })
                             .onErrorResume(e -> {
                                 logger.error("Error during learning job for domain {}", domainId, e);
                                 domain.setStatus(Status.ERROR);
-                                webSocketController.broadcastSystemEvent("KNOWLEDGE_CRAWL", domainId, null, null, "Failed: " + e.getMessage());
+                                webSocketController.broadcastSystemEvent("KNOWLEDGE_CRAWL", domainId, null, null,
+                                        "Failed: " + e.getMessage());
                                 return domainRepository.save(domain).thenReturn(Collections.emptyMap());
                             });
                 });
     }
 
     /**
+     * Process learning for multiple websites/topics.
+     * 
+     * @param topics List of topics or website names to scrape
+     * @return Mono signaling completion
+     */
+    public Mono<Void> processMultipleWebsites(List<String> topics) {
+        logger.info("[KNOWLEDGE] Initiating bulk scraping for {} topics", topics.size());
+        return Flux.fromIterable(topics)
+                .flatMap(topic -> registerDomain(topic, Arrays.asList(topic.toLowerCase().split("\\s+")))
+                        .flatMap(domain -> processLearningJob(domain.getId())))
+                .then()
+                .doOnSuccess(v -> logger.info("[KNOWLEDGE] Bulk scraping completed successfully"))
+                .doOnError(e -> logger.error("[KNOWLEDGE] Bulk scraping encountered errors: {}", e.getMessage()));
+    }
+
+    /**
+     * Get the most recent scraped learning entries for UI verification.
+     * 
+     * @param limit Number of entries to return
+     * @return Mono containing a list of recent learning entries
+     */
+    public Mono<List<SystemLearning>> getRecentScrapedLearnings(int limit) {
+        return learningRepository.findAll()
+                .filter(learning -> "WEB_SCRAPE".equals(learning.getLearningType()))
+                .sort(Comparator.comparing(SystemLearning::getLearnedAt).reversed())
+                .take(limit)
+                .collectList();
+    }
+
+    /**
+     * Purge all old web-scraped learning entries from Firestore.
+     * 
+     * @return Mono signaling completion
+     */
+    public Mono<Void> clearOldScrapedLearnings() {
+        return learningRepository.findAll()
+                .filter(learning -> "WEB_SCRAPE".equals(learning.getLearningType()))
+                .flatMap(learning -> learningRepository.deleteById(learning.getId()))
+                .then()
+                .doOnSuccess(v -> logger.info("[KNOWLEDGE] Successfully purged web-scraped entries from Firestore"))
+                .doOnError(e -> logger.error("[KNOWLEDGE] Failed to purge web-scraped entries: {}", e.getMessage()));
+    }
+
+    /**
      * Save scraped fact as a learning entry
      */
-    private Mono<SystemLearning> saveScrapedFact(KnowledgeDomain domain, com.supremeai.learning.active.ActiveInternetScraper.ScrapedIssue issue) {
+    private Mono<SystemLearning> saveScrapedFact(KnowledgeDomain domain,
+            com.supremeai.learning.active.ActiveInternetScraper.ScrapedIssue issue) {
         SystemLearning learning = new SystemLearning();
         learning.setId("kb_" + UUID.randomUUID().toString());
         learning.setTopic(issue.getTitle());
@@ -122,10 +171,11 @@ public class KnowledgeService {
         learning.setSuccess(true);
         learning.setTimesApplied(0);
         learning.setTags(domain.getKeywords());
-        
-        return learningRepository.save(learning);
-    }
 
+        return learningRepository.save(learning)
+                .doOnSuccess(saved -> logger.info("[FIREBASE_PERSIST] Knowledge saved to Firestore: ID={}, Topic={}",
+                        saved.getId(), saved.getTopic()));
+    }
 
     /**
      * Get all domains with statistics
@@ -135,29 +185,32 @@ public class KnowledgeService {
                 .collectList()
                 .map(domains -> {
                     Map<String, Object> snapshot = new HashMap<>();
-                    
+
                     int totalNodes = domains.stream()
                             .mapToInt(d -> d.getNodesDiscovered() != null ? d.getNodesDiscovered() : 0)
                             .sum();
-                    
+
                     Optional<KnowledgeDomain> lastDomain = domains.stream()
                             .max(Comparator.comparing(KnowledgeDomain::getLastUpdated));
-                    
+
                     List<String> topDomains = domains.stream()
-                            .sorted(Comparator.comparingInt((KnowledgeDomain d) -> 
-                                    d.getNodesDiscovered() != null ? d.getNodesDiscovered() : 0).reversed())
+                            .sorted(Comparator.comparingInt(
+                                    (KnowledgeDomain d) -> d.getNodesDiscovered() != null ? d.getNodesDiscovered() : 0)
+                                    .reversed())
                             .limit(3)
                             .map(KnowledgeDomain::getName)
                             .collect(Collectors.toList());
-                    
-                    double efficiency = domains.isEmpty() ? 0 : 
-                            domains.stream().mapToDouble(d -> d.getAverageConfidence() != null ? d.getAverageConfidence() : 0).average().orElse(0);
+
+                    double efficiency = domains.isEmpty() ? 0
+                            : domains.stream()
+                                    .mapToDouble(d -> d.getAverageConfidence() != null ? d.getAverageConfidence() : 0)
+                                    .average().orElse(0);
 
                     snapshot.put("totalKnowledgeNodes", totalNodes);
                     snapshot.put("topLearningDomains", topDomains);
                     snapshot.put("lastDiscoveryTime", lastDomain.map(KnowledgeDomain::getLastUpdated).orElse(null));
                     snapshot.put("discoveryEfficiency", String.format("%.1f%%", efficiency * 100));
-                    
+
                     return snapshot;
                 });
     }
@@ -171,32 +224,30 @@ public class KnowledgeService {
                 .flatMap(domains -> {
                     // Analyze gaps - domains with low node count get recommendations
                     Map<String, Object> gapAnalysis = analyzeKnowledgeGaps();
-                    
+
                     List<KnowledgeRecommendation> recommendations = new ArrayList<>();
-                    
+
                     // Generate recommendations for trending topics
                     List<String> trendingTopics = Arrays.asList(
                             "React 19 Server Components",
                             "Spring Boot Virtual Threads Optimization",
                             "AI Agent Memory Management",
                             "Quantum-Resistant Cryptography",
-                            "Edge AI Deployment Patterns"
-                    );
-                    
+                            "Edge AI Deployment Patterns");
+
                     for (int i = 0; i < Math.min(3, trendingTopics.size()); i++) {
                         String topic = trendingTopics.get(i);
                         List<String> keywords = Arrays.asList(topic.toLowerCase().split(" "));
                         double confidence = 0.75 + Math.random() * 0.15;
-                        
+
                         KnowledgeRecommendation rec = new KnowledgeRecommendation(
                                 topic,
                                 "Identified as trending technology with growing ecosystem adoption",
                                 confidence,
-                                keywords
-                        );
+                                keywords);
                         recommendations.add(rec);
                     }
-                    
+
                     return Flux.fromIterable(recommendations)
                             .flatMap(recommendationRepository::save)
                             .collectList();
@@ -217,13 +268,14 @@ public class KnowledgeService {
     /**
      * Approve a recommendation (converts to learning domain)
      */
-    public Mono<KnowledgeDomain> approveRecommendation(String recommendationId, String domainName, List<String> keywords) {
+    public Mono<KnowledgeDomain> approveRecommendation(String recommendationId, String domainName,
+            List<String> keywords) {
         return recommendationRepository.findById(recommendationId)
                 .flatMap(rec -> {
                     rec.setStatus(KnowledgeRecommendation.Status.APPROVED);
                     rec.setProcessedAt(LocalDateTime.now());
                     recommendationRepository.save(rec);
-                    
+
                     KnowledgeDomain domain = new KnowledgeDomain(domainName, keywords);
                     return domainRepository.save(domain);
                 });
