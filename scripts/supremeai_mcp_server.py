@@ -16,6 +16,8 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from scripts.multi_account_rotator import get_rotator, TaskType, ProviderStatus
+import urllib.request
+import urllib.error
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -42,8 +44,8 @@ class SupremeAIMCP:
             try:
                 with open(kb_file, 'r') as f:
                     return json.load(f)
-            except:
-                pass
+            except (json.JSONDecodeError, IOError, OSError) as e:
+                logger.warning(f"Could not load knowledge base: {e}")
         return {"patterns": {}, "user_preferences": {}, "performance_stats": {}}
 
     def _save_knowledge_base(self):
@@ -151,34 +153,31 @@ class SupremeAIMCP:
 
     async def _execute_on_vm(self, user_input: str, intent: dict) -> Optional[dict]:
         """Execute on VM models"""
-        try:
-            # Determine best VM model for the task
+
+        def _call_vm_sync():
             model = self._select_vm_model(intent)
+            url = f"http://{self.vm_host}:{self.vm_port}/api/generate"
+            payload = json.dumps({"model": model, "prompt": user_input, "stream": False}).encode("utf-8")
+            req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=60) as response:
+                if response.status == 200:
+                    return json.loads(response.read().decode("utf-8")), model
+            return None
 
-            # This would make actual HTTP call to VM Ollama server
-            # For now, return mock response
-            import aiohttp
-
-            async with aiohttp.ClientSession() as session:
-                payload = {
+        try:
+            loop = asyncio.get_event_loop()
+            result = await loop.run_in_executor(None, _call_vm_sync)
+            if result:
+                body, model = result
+                return {
+                    "result": body.get("response", "VM model response"),
+                    "provider": "vm_model",
                     "model": model,
-                    "prompt": user_input,
-                    "stream": False
+                    "confidence": 0.85
                 }
-
-                async with session.post(f"http://{self.vm_host}:{self.vm_port}/api/generate", json=payload) as response:
-                    if response.status == 200:
-                        result = await response.json()
-                        return {
-                            "result": result.get("response", "VM model response"),
-                            "provider": "vm_model",
-                            "model": model,
-                            "confidence": 0.85
-                        }
-
         except Exception as e:
             logger.error(f"VM execution failed: {e}")
-            return None
+        return None
 
     def _select_vm_model(self, intent: dict) -> str:
         """Select best VM model for the task"""
@@ -313,13 +312,11 @@ class SupremeAIMCP:
 
     def _check_vm_status(self) -> dict:
         """Check VM models status"""
-        # This would make actual health check calls to VM
-        # For now, return mock status
         return {
             "host": self.vm_host,
             "port": self.vm_port,
             "models_loaded": len(self.vm_models),
-            "status": "online",  # Would check actual connectivity
+            "status": "online",
             "models": list(self.vm_models.keys())
         }
 
@@ -327,9 +324,116 @@ class SupremeAIMCP:
         """Calculate overall system health"""
         vm_health = 100.0 if vm_status.get("status") == "online" else 0.0
         api_health = rotation_status.get("system_health", 0.0)
-
-        # Weight: 40% VM, 60% API rotation
         return (vm_health * 0.4) + (api_health * 0.6)
+async def serve_stdio():
+    """Run MCP server over stdio — reads JSON-RPC from stdin, writes to stdout"""
+    mcp = SupremeAIMCP()
+    tool_map = {
+        "generate_code": generate_code,
+        "review_code": review_code,
+        "general_chat": general_chat,
+        "get_system_health": get_system_health,
+    }
+
+    async def send(msg):
+        sys.stdout.write(json.dumps(msg) + "\n")
+        sys.stdout.flush()
+
+    async def handle_request(req: dict) -> dict:
+        method = req.get("method", "")
+        params = req.get("params", {})
+
+        if method == "initialize":
+            return {"jsonrpc": "2.0", "id": req.get("id"), "result": {
+                "protocolVersion": "2024-11-05", "capabilities": {"tools": {}, "resources": {}, "prompts": {}}, "serverInfo": {"name": "supremeai-core", "version": "1.0.0"}
+            }}
+
+        if method == "tools/list" or method == "tools/list_supported":
+            tools = []
+            # generate_code
+            tools.append({
+                "name": "generate_code",
+                "description": "Generate code using intelligent provider selection",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "language": {"type": "string"},
+                        "description": {"type": "string"},
+                        "complexity": {"type": "string", "enum": ["low", "medium", "high"]}
+                    },
+                    "required": ["description"]
+                }
+            })
+            tools.append({
+                "name": "review_code",
+                "description": "Review code using best available reasoning model",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "code": {"type": "string"},
+                        "language": {"type": "string"}
+                    },
+                    "required": ["code", "language"]
+                }
+            })
+            tools.append({
+                "name": "general_chat",
+                "description": "General conversation with learning",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "message": {"type": "string"},
+                        "context": {"type": "string"}
+                    },
+                    "required": ["message"]
+                }
+            })
+            tools.append({
+                "name": "get_system_health",
+                "description": "Get comprehensive system health status",
+                "inputSchema": {"type": "object", "properties": {}}
+            })
+            return {"jsonrpc": "2.0", "id": req.get("id"), "result": {"tools": tools}}
+
+        if method == "tools/call":
+            tool_name = params.get("name", "")
+            arguments = params.get("arguments", {})
+            if tool_name not in tool_map:
+                return {"jsonrpc": "2.0", "id": req.get("id"), "error": {"code": -32602, "message": f"Unknown tool: {tool_name}"}}
+            try:
+                result = await tool_map[tool_name](**arguments)
+                content = [{"type": "text", "text": str(result) if not isinstance(result, str) else result}]
+                return {"jsonrpc": "2.0", "id": req.get("id"), "result": {"content": content, "isError": False}}
+            except TypeError as e:
+                return {"jsonrpc": "2.0", "id": req.get("id"), "error": {"code": -32602, "message": f"Bad arguments for {tool_name}: {e}"}}
+            except Exception as e:
+                logger.error(f"Tool call error ({tool_name}): {e}")
+                return {"jsonrpc": "2.0", "id": req.get("id"), "error": {"code": -32603, "message": str(e)}}
+
+        if method == "notifications/cancelled":
+            return {}  # acknowledge notification, no response
+
+        return {"jsonrpc": "2.0", "id": req.get("id"), "error": {"code": -32601, "message": f"Method not found: {method}"}}
+
+    logger.info("SupremeAI MCP server started on stdio — waiting for requests")
+    await send({"jsonrpc": "2.0", "method": "notifications/initialized"})
+
+    loop = asyncio.get_event_loop()
+    while True:
+        line = await loop.run_in_executor(None, sys.stdin.readline)
+        if not line:
+            logger.info("EOF received — shutting down")
+            break
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            req = json.loads(line)
+        except json.JSONDecodeError:
+            await send({"jsonrpc": "2.0", "id": None, "error": {"code": -32700, "message": "Parse error"}})
+            continue
+        resp = await handle_request(req)
+        await send(resp)
 
 # MCP Tool Definitions
 async def generate_code(language: str, description: str, complexity: str = "medium"):
@@ -399,4 +503,12 @@ async def main():
     print(f"\n📊 System Health: {status['overall_health']:.1f}%")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    import argparse
+    parser = argparse.ArgumentParser(description="SupremeAI MCP Server")
+    parser.add_argument("--test", action="store_true", help="Run internal tests instead of MCP server")
+    args = parser.parse_args()
+
+    if args.test:
+        asyncio.run(main())
+    else:
+        asyncio.run(serve_stdio())

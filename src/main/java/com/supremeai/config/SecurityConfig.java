@@ -41,10 +41,10 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
              .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-             .csrf(csrf -> csrf
-                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                 .ignoringRequestMatchers("/api/auth/**", "/api/health/**", "/api/ext/**", "/api/browser/**", "/api/system/**", "/api/admin/**", "/api/workflows/**", "/ws/**", "/api/chat/**", "/api/self-healing/**", "/api/healing/**")
-             )
+              .csrf(csrf -> csrf
+                  .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                  .ignoringRequestMatchers("/api/auth/**", "/ws/**")
+              )
              .sessionManagement(session -> 
                  session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
              // Security headers configuration
@@ -71,66 +71,66 @@ public class SecurityConfig {
                 .frameOptions(frame -> frame.deny())
             )
             .authorizeHttpRequests(auth -> auth
-                // Allow static resources from common locations
+                // 1. Static resources
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
-                // Public endpoints - specific routes only (not wildcards for security)
-                .requestMatchers(
-                    "/",
-                    "/login",
-                    "/login.html",
-                    "/index.html",
-                    "/customer",
-                    "/customer.html",
-                    "/android-generator.html",
-                    "/*.js",
-                    "/*.css",
-                    "/*.svg",
-                    "/*.json",
-                    "/*.ico",
-                    "/assets/**",
-                    "/static/**",
-                    "/manifest.json",
-                    "/sw.js",
-                    "/api/auth/firebase-login",
-                    "/api/auth/register",
-                    "/api/auth/forgot-password",
-                    "/api/auth/validate-token",
-                    "/api/health",
-                    "/api/status",
-                    "/api/config/firebase",
-                    "/api/config/public",
-                    "/api/system/**",
-                    "/api/system/health",
-                    "/api/v2/intelligence/**",
-                    "/api/generate/**",
-                    "/public/**",
-                    "/telemetry/**",
-                    "/__/firebase/**",
-                    "/ws/**",
-                    "/error",
-                    "/api/v1/chat/completions",
-                    "/api/chat/**",
-                    "/api/admin/chat/**",
-                    "/api/ext/**",
-                    "/api/workflows/**",
-                    "/admin",
-                    "/admin/**",
-                    "/admin/index.html",
-                    "/api/self-healing/**",
-                    "/api/healing/**"
-                ).permitAll()
+
+                 // 2. Truly public endpoints (no auth, no sensitive data exposure)
+                 .requestMatchers(
+                     "/",
+                     "/login",
+                     "/login.html",
+                     "/index.html",
+                     "/customer",
+                     "/customer.html",
+                     "/android-generator.html",
+                     "/*.js",
+                     "/*.css",
+                     "/*.svg",
+                     "/*.json",
+                     "/*.ico",
+                     "/assets/**",
+                     "/static/**",
+                     "/manifest.json",
+                     "/sw.js",
+                     "/api/auth/firebase-login",
+                     "/api/auth/register",
+                     "/api/auth/forgot-password",
+                     "/api/auth/validate-token",
+                     "/api/health",
+                     "/api/status",
+                     "/api/config/firebase",
+                     "/api/config/public",
+                     "/public/**",
+                     "/telemetry/**",
+                     "/__/firebase/**",
+                     "/ws/**",
+                     "/error",
+                     "/api/v1/chat/completions",
+                     "/api/ext/**",
+                     "/admin",
+                     "/admin/index.html"
+                 ).permitAll()
+
+                 // 3. Admin routes — STRICTLY ADMIN only (must come BEFORE any broad wildcard)
+                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                 .requestMatchers("/api/admin/chat/**").hasRole("ADMIN")
+                 .requestMatchers("/api/self-healing/**").hasRole("ADMIN")
+                 .requestMatchers("/api/healing/**").hasRole("ADMIN")
                  .requestMatchers("/api/debug/**").hasRole("ADMIN")
                  .requestMatchers("/api/security/**").hasRole("ADMIN")
-                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                  .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                  .requestMatchers("/api/v1/agents/**").hasRole("ADMIN")
                  .requestMatchers("/api/v1/optimization/**").hasRole("ADMIN")
                  .requestMatchers("/api/v1/phase6/**").hasRole("ADMIN")
-                 .requestMatchers("/api/phase7/**").hasRole("ADMIN")
+                 .requestMatchers("/api/v1/phase7/**").hasRole("ADMIN")
                  .requestMatchers("/api/v1/agents/phase8/**").hasRole("ADMIN")
                  .requestMatchers("/api/v1/agents/phase9/**").hasRole("ADMIN")
                  .requestMatchers("/api/v1/agents/phase10/**").hasRole("ADMIN")
-                 .anyRequest().authenticated())
+                 .requestMatchers("/api/workflows/**").hasRole("ADMIN")
+                 .requestMatchers("/api/ext/**").hasRole("ADMIN")
+
+                // 4. Authenticated users — everything else requires login
+                .anyRequest().authenticated())
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((req, res, ex2) -> {
                     res.setStatus(401);
@@ -165,7 +165,12 @@ public class SecurityConfig {
                     .filter(s -> !s.isEmpty())
                     .collect(Collectors.toList());
         } else {
-            origins = List.of("*");
+            // Safe defaults for production — never use wildcard with credentials enabled
+            origins = Arrays.asList(
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "https://supremeai-a.web.app"
+            );
         }
         
         configuration.setAllowedOriginPatterns(origins);

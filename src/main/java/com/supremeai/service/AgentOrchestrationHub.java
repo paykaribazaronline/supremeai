@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -52,11 +54,26 @@ public class AgentOrchestrationHub {
     }
 
     private Mono<Map<String, Object>> executeCodeGeneration(Map<String, Object> input) {
-        String requirements = (String) input.get("requirements");
+        String requirements = (String) input.getOrDefault("requirements", input.getOrDefault("task", "Generic app"));
         String userId = (String) input.getOrDefault("userId", "system");
-        
-        // This is a stub for real code generation
-        return Mono.just(Map.of("appId", "generated_app_" + UUID.randomUUID().toString().substring(0, 8), "status", "GENERATING"));
+
+        // Delegate to CodeGenerationService; run on boundedElastic to avoid blocking the Netty event loop
+        return Mono.fromCallable(() -> {
+                Map<String, Object> context = new HashMap<>();
+                context.put("architecture", (String) input.getOrDefault("architecture", "monolith"));
+                context.put("database", (String) input.getOrDefault("database", "PostgreSQL"));
+                context.put("apiStyle", (String) input.getOrDefault("apiStyle", "REST"));
+                context.put("authType", (String) input.getOrDefault("authType", "JWT"));
+                context.put("frontend", (String) input.getOrDefault("frontend", "React"));
+                context.put("deployment", (String) input.getOrDefault("deployment", "GCP"));
+                Map<String, Object> result = codeGenerationService.generateFromContext(context);
+                result.put("appId", result.getOrDefault("appId", "gen_" + UUID.randomUUID().toString().substring(0, 8)));
+                result.put("status", "GENERATED");
+                result.put("requirements", requirements);
+                logger.info("[CodeGeneration] appId={} userId={}", result.get("appId"), userId);
+                return result;
+            })
+            .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic());
     }
 
     private Mono<Map<String, Object>> executeSimulator(Map<String, Object> input) {

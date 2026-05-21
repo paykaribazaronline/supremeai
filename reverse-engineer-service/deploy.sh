@@ -20,7 +20,7 @@ gcloud run deploy "${SERVICE_NAME}" \
   --image "${IMAGE}" \
   --region "${REGION}" \
   --platform managed \
-  --allow-unauthenticated \
+  --no-allow-unauthenticated \
   --set-env-vars "GOOGLE_APPLICATION_CREDENTIALS=/var/run/secrets/cloud.json" \
   --memory "2Gi" \
   --cpu "1"

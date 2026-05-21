@@ -675,13 +675,17 @@ public class BrowserService {
     }
 
     /**
-     * Stub method to satisfy ChatProcessingService command.
-     * Creates a background browser task and returns a task ID.
+     * Creates a background browser task and returns the task ID.
+     * Persists to Firestore via {@link BrowserTaskRepository} with status {@code active}.
      */
     public Mono<String> createTask(String description) {
-        // Simple stub implementation
-        String taskId = "task-" + UUID.randomUUID();
-        logger.info("Created browser task: {} (stub)", taskId);
-        return Mono.just(taskId);
+        BrowserTask task = new BrowserTask(description);
+        task.setStatus("active");
+        task.setProgress(0);
+        return taskRepository.save(task)
+            .map(saved -> {
+                logger.info("Created browser task: {} — goal: {}", saved.getId(), description);
+                return saved.getId();
+            });
     }
 }

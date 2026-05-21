@@ -41,36 +41,42 @@ command -v gcloud >/dev/null 2>&1 || { log_error "gcloud CLI not found."; exit 1
 command -v firebase >/dev/null 2>&1 || { log_error "Firebase CLI not found."; exit 1; }
 command -v node >/dev/null 2>&1 || { log_error "Node.js not found."; exit 1; }
 
-# Step 1: Build Dashboard
+# ─── Step 1: Build dashboard (staged to temp dir, do NOT touch source static yet) ───
 log_info "--- Step 1: Building Admin Dashboard ---"
+DASHBOARD_DIST=""
 if [ -d "dashboard" ]; then
     cd dashboard
     [ ! -d "node_modules" ] && npm ci
     npm run build
-    
-    log_info "Staging dashboard build to public/admin/..."
-    rm -rf ../public/admin/*
-    mkdir -p ../public/admin
-    cp -r dist/* ../public/admin/
-    
-    log_info "Syncing dashboard build to Spring Boot static resources..."
-    rm -rf ../src/main/resources/static/*
-    mkdir -p ../src/main/resources/static
-    cp -r dist/* ../src/main/resources/static/
-    
+    DASHBOARD_DIST="$(pwd)/dist"
     cd ..
-    log_info "✅ Dashboard built and staged to public/admin/ & src/main/resources/static/"
+    log_info "✅ Dashboard built at $DASHBOARD_DIST"
 else
     log_warn "Dashboard directory not found, skipping..."
 fi
 
-# Step 2: Build Backend JAR
+# ─── Step 2: Build backend JAR ───
 log_info "--- Step 2: Building Spring Boot Backend ---"
 ./gradlew clean build -x test
 cp build/libs/*.jar ./app.jar
 log_info "✅ Backend JAR ready"
 
-# Step 3: Build Docker Images via Cloud Build (Optimized)
+# ─── Step 3: Deploy dashboard to static locations (AFTER build, so clean does not wipe it) ───
+if [ -n "$DASHBOARD_DIST" ] && [ -d "$DASHBOARD_DIST" ]; then
+    log_info "--- Step 3a: Staging dashboard build ---"
+    mkdir -p public/admin
+    rm -rf public/admin/*
+    cp -r "$DASHBOARD_DIST"/* public/admin/
+    log_info "✅ Dashboard staged to public/admin/"
+
+    log_info "--- Step 3b: Copying dashboard to Spring Boot static resources ---"
+    mkdir -p src/main/resources/static
+    rm -rf src/main/resources/static/*
+    cp -r "$DASHBOARD_DIST"/* src/main/resources/static/
+    log_info "✅ Dashboard copied to src/main/resources/static/"
+fi
+
+# Step 4: Build Docker Images via Cloud Build (Optimized)
 log_info "--- Step 3: Building Images via Cloud Build ---"
 
 # Build Backend using a minimal staging directory to avoid large uploads
@@ -100,7 +106,7 @@ log_info "✅ All images built via Cloud Build"
 # Step 4: Deploy to Cloud Run
 log_info "--- Step 4: Deploying to Cloud Run ---"
 
-# Backend
+# Backend — public API gateway; spring-security handles endpoint-level auth
 gcloud run deploy "$BACKEND_SERVICE" \
   --image "$BACKEND_IMAGE" \
   --region "$REGION" \
@@ -110,20 +116,20 @@ gcloud run deploy "$BACKEND_SERVICE" \
   --min-instances 0 \
   --project "$PROJECT_ID"
 
-# Reverse Engineering
+# Reverse Engineering — internal microservice; no public access
 gcloud run deploy "$REVERSE_ENG_SERVICE" \
   --image "$REVERSE_ENG_IMAGE" \
   --region "$REGION" \
-  --allow-unauthenticated \
+  --no-allow-unauthenticated \
   --set-env-vars="GOOGLE_CLOUD_PROJECT=$PROJECT_ID" \
   --min-instances 0 \
   --project "$PROJECT_ID" || log_warn "Rev-Eng deploy failed"
 
-# Simulator
+# Simulator — internal microservice; no public access
 gcloud run deploy "$SIMULATOR_SERVICE" \
   --image "$SIMULATOR_IMAGE" \
   --region "$REGION" \
-  --allow-unauthenticated \
+  --no-allow-unauthenticated \
   --min-instances=0 \
   --project "$PROJECT_ID" || log_warn "Simulator deploy failed"
 

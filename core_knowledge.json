@@ -91,8 +91,44 @@
       "tags": ["container", "docker", "kubernetes", "offline"]
     },
     {
+      "task": "gradle maven missing import cannot find symbol dependency bar resolution fails",
+      "solution": "[LOCAL-SEED] 1. Run build (./gradlew compileJava or mvn compile) to get exact error line. 2. The compiler tells you the exact artifact (groupId:artifactId). 3. Run: ./gradlew dependencies > deps.txt 4. Search deps.txt for duplicate different-version entries — version conflict = fix with dependencyConstraints { force } in Gradle or <dependencyManagement><dependencies> in Maven. 5. Fix root cause only (not symptoms). 6. Re-run build.",
+      "confidence": 0.96,
+      "tags": ["build", "gradle", "maven", "dependency", "offline"]
+    },
+    {
+      "task": "spring boot bean creation exception unsatisfied dependency injection failed startup",
+      "solution": "[LOCAL-SEED] 1. Scan stack trace for 'caused by' → find which @Autowired failed. 2. Most likely: a dependency declared but not defined as @Bean or @Service. 3. For wrong scope: change @Autowired to @Lazy or refactor Bean to match consumer scope. 4. Verify @ComponentScan basePackages covers the class. 5. For circular dependency: introduce @Lazy on one side or extract shared logic to a 3rd interface.",
+      "confidence": 0.93,
+      "tags": ["spring", "bean", "autowired", "startup", "offline"]
+    },
+    {
+      "task": "class not found NoClassDefFoundError runtime dependency not on classpath",
+      "solution": "[LOCAL-SEED] 1. Confirm artifact IS in build.gradle or pom.xml (compileOnly ≠ implementation = only compile, NOT runtime). 2. Move declaration from compileOnly/testRuntimeOnly to implementation. 3. Wipe cache: ./gradlew cleanBuildCache. 4. Add to build.gradle if missing: implementation 'group:artifact:version'. 5. Non-SpringMVC builds: check jar-in-jar boot loader doesn't exclude the object-path.",
+      "confidence": 0.94,
+      "tags": ["runtime", "classpath", "classnotfound", "offline"]
+    },
+    {
+      "task": "spring boot version mismatch dependency not compatible bom row conflict",
+      "solution": "[LOCAL-SEED] 1. Identify BASE Spring Boot version from build.gradle (io.spring.dependency-management). 2. Run ./gradlew dependencies > deps.txt. 3. Search for artifacts with VERSION MISMATCH with base BOM. 4. Fix: add to dependencyManagement: 'group:artifact:{BOM_ROW_VERSION}'. 5. NEVER cross BOM rows in same build. 6. Always align new lib version to base BOM first — override only if BOM has no entry.",
+      "confidence": 0.95,
+      "tags": ["spring-boot", "bom", "version", "dependency", "offline"]
+    },
+    {
+      "task": "python pip install failed TLS certificate verify failed network error download",
+      "solution": "[LOCAL-SEED] 1. Try --upgrade pip first: python -m pip install --upgrade pip. 2. Corporate TLS: set REQUESTS_CA_BUNDLE=/path/to/ca.crt or pip --trusted-host pypi.org --trusted-host files.pythonhosted.org install <package>. 3. Corrupt cache: pip cache purge && rm -rf ~/.cache/pip. 4. Version conflict: pip install --force-reinstall <package>. 5. Use venv (python -m venv .venv && source .venv/bin/activate). 6. For older Python: python -m pip install --no-cache-dir --index-url https://pypi.org/simple <package>",
+      "confidence": 0.92,
+      "tags": ["python", "pip", "tls", "network", "offline"]
+    },
+    {
+      "task": "how to find best dependency select right library version",
+      "solution": "[LOCAL-SEED] Decision matrix for best dependency: 1. COMPATIBILITY — does it build against exact Java/Python/Node version of project? 2. SECURITY — nvd.nist.gov for CVEs: 0 CVEs = bonus. 3. MAINTENANCE — last release < 6 months = active. Last release < 24 months = stale. 4. COMMUNITY — >1000 GitHub stars or weekly npm downloads > 10K. 5. SIZE — small/atomic > monolith. 6. LICENSING — Apache2/MIT/BSD only; reject GPL/AGPL. 7. AUTO-CONFIG — config-light libraries preferred; spring-boot-starter-* auto-configure; > 10 config params = rejection flag. 8. Change log — check CHANGELOG.md for breaking changes between your target and latest. 9. BOM-ALIGNED — if artifact exists in Spring Boot or Google Cloud BOM, always use BOM row exact version.",
+      "confidence": 0.94,
+      "tags": ["dependency", "selection", "best-practice", "offline"]
+    },
+    {
       "task": "all ai providers down blackout complete offline fallback mode",
-      "solution": "[LOCAL-SEED] Thunder Mode activates automatically. 1. Responses come from core_knowledge.json local seed 2. All queues drain from cached and preregistered handlers 3. Kill-switch: ./start-supremeai.sh restart 4. Admin panel stays accessible at http://localhost:3000/admin 5. Knowledge accumulates locally and syncs back when providers recover",
+      "solution": "[LOCAL-SEED] Thunder Mode activates automatically. 1. Responses come from core_knowledge.json local seed. 2. All local queues drain from cached and preregistered handlers. 3. Kill-switch: ./start-supremeai.sh restart. 4. Admin panel stays accessible at http://localhost:3000/admin. 5. Knowledge accumulates locally and syncs back when providers recover.",
       "confidence": 0.97,
       "tags": ["zero-ai", "blackout", "thunder-mode", "offline", "resilience"]
     }
