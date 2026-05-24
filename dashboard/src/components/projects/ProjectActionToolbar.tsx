@@ -112,17 +112,21 @@ const ProjectActionToolbar: React.FC<ProjectActionToolbarProps> = ({
             type="primary" 
             icon={<PlusOutlined />} 
             onClick={onNewProject}
+            className="cyber-button"
             style={{ 
-              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', 
-              border: 'none',
+              background: 'transparent', 
+              border: '1px solid var(--neon-blue)',
+              color: 'var(--neon-blue)',
               height: '42px',
-              borderRadius: '10px',
+              borderRadius: '8px',
               fontWeight: 600,
               padding: '0 24px',
-              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+              boxShadow: '0 0 10px rgba(0, 243, 255, 0.2)',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px'
+              gap: '8px',
+              textTransform: 'uppercase',
+              letterSpacing: '1px'
             }}
           >
             নতুন প্রজেক্ট

@@ -1,6 +1,6 @@
 package com.supremeai.service;
 
-import com.supremeai.provider.AIProvider;
+import com.supremeai.model.APIProvider;
 import com.supremeai.provider.AIProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +23,9 @@ public class ContextualAIRankingService {
 
     @Autowired
     private AIProviderFactory providerFactory;
+
+    @Autowired(required = false)
+    private ProviderMetadataService providerMetadataService;
 
     // Task types for categorization
     public enum TaskType {
@@ -149,9 +152,28 @@ public class ContextualAIRankingService {
 
     /**
      * Get default score for providers with no history.
+     * Uses provider metadata from Firestore if available, falls back to known defaults.
      */
     private double getDefaultScore(String provider, TaskType taskType) {
-        // Some providers are known to be better at certain tasks
+        // Try to get from provider metadata first
+        if (providerMetadataService != null) {
+            APIProvider meta = providerMetadataService.getMetadata(provider);
+            if (meta != null && meta.getModels() != null && !meta.getModels().isEmpty()) {
+                String model = meta.getModels().get(0).toLowerCase();
+                if (model.contains("gpt-4") || model.contains("gpt-4-turbo") || model.contains("o1")) {
+                    if (taskType == TaskType.CODE_GENERATION || taskType == TaskType.DEBUGGING) {
+                        return 0.85;
+                    }
+                }
+                if (model.contains("claude") || model.contains("sonnet") || model.contains("opus")) {
+                    if (taskType == TaskType.CODE_REVIEW || taskType == TaskType.DOCUMENTATION) {
+                        return 0.88;
+                    }
+                }
+            }
+        }
+
+        // Known defaults for popular models
         Map<String, Map<TaskType, Double>> defaultScores = new HashMap<>();
 
         // Example: GPT-4 is generally good at code

@@ -25,7 +25,7 @@ public class CouncilVotingSystem {
     /**
      * Conducts a vote among multiple AI models to approve a risky action.
      */
-    public boolean conductVote(String changeType, String codeSnippet, List<AIProviderType> councilMembers) {
+    public boolean conductVote(String changeType, String codeSnippet, List<String> councilMembers) {
 
         log.info("\n[Council Voting] Initiating vote for major change: {}", changeType);
 
@@ -37,8 +37,8 @@ public class CouncilVotingSystem {
         int rejectCount = 0;
         
         // 2. Ask each AI model on the council
-        for (AIProviderType member : councilMembers) {
-            log.debug(" -> Asking {}...", member.name());
+        for (String member : councilMembers) {
+            log.debug(" -> Asking {}...", member);
 
             // Simulate calling the AI API with the context and targeted question
             boolean voteApprove = simulateAIVote(member, topic);
@@ -61,12 +61,12 @@ public class CouncilVotingSystem {
         return finalDecision;
     }
 
-    private boolean simulateAIVote(AIProviderType member, VotingTopic topic) {
+    private boolean simulateAIVote(String member, VotingTopic topic) {
         // In reality, this would send `topic.getContext() + "\n" + topic.getQuestionToAsk()` to the AI via API
         // If the AI response contains "looks safe" or "approve", return true. Else false.
         
         // Simulating a scenario where Claude is strict on Security
-        if (topic.getCategory().equals("SECURITY") && member.name().contains("CLAUDE")) {
+        if (topic.getCategory().equals("SECURITY") && member.toUpperCase().contains("CLAUDE")) {
              return Math.random() > 0.4; // 60% chance to approve
         }
         

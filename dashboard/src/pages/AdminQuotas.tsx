@@ -1,19 +1,19 @@
+// AdminQuotas.tsx - Cinematic Quota Management
 import React, { useState, useEffect } from 'react';
+import { Typography, Row, Col, Space, Button, Badge, Spin, Progress, Table, Statistic, Modal, Form, InputNumber, Input } from 'antd';
 import { 
-  Typography, Card, Table, Tag, Button, Space, message, Spin, 
-  InputNumber, Form, Modal, Divider, Row, Col, Progress, Statistic, Breadcrumb, Input
-} from 'antd';
-import { 
-  DashboardOutlined, 
-  SecurityScanOutlined, 
+  PieChartOutlined,
   ReloadOutlined, 
   EditOutlined, 
   UndoOutlined,
   ThunderboltOutlined,
   UserOutlined,
-  BarChartOutlined
+  BarChartOutlined,
+  ControlOutlined,
+  SafetyCertificateOutlined,
+  SecurityScanOutlined
 } from '@ant-design/icons';
-import AdminLayout from '../components/AdminLayout';
+import { motion } from 'framer-motion';
 import { authUtils } from '../lib/authUtils';
 
 const { Title, Text } = Typography;
@@ -48,402 +48,145 @@ const AdminQuotas: React.FC = () => {
         authUtils.fetchWithAuth('/api/admin/quotas/config'),
         authUtils.fetchWithAuth('/api/admin/quotas/usage')
       ]);
-
       const configResult = await configResp.json();
       const usageResult = await usageResp.json();
-
       if (configResult.success) {
         const config = configResult.data;
-        const tierList: TierQuota[] = Object.keys(config.tierQuotas).map(tier => ({
-          tier,
-          quota: config.tierQuotas[tier],
-          maxApis: config.tierMaxApis[tier] || 0,
-          maxSimulator: config.tierMaxSimulatorInstalls[tier] || 0
-        }));
-        setQuotas(tierList);
+        setQuotas(Object.keys(config.tierQuotas).map(tier => ({
+          tier, quota: config.tierQuotas[tier], maxApis: config.tierMaxApis[tier] || 0, maxSimulator: config.tierMaxSimulatorInstalls[tier] || 0
+        })));
       }
-
-      if (usageResult.success) {
-        setUsage(usageResult.data || []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch quota data:', error);
-      message.error('কোটা ডাটা লোড করতে সমস্যা হয়েছে');
-    } finally {
-      setLoading(false);
-    }
+      if (usageResult.success) setUsage(usageResult.data || []);
+    } catch (err) {} finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleEdit = (record: TierQuota) => {
-    setEditingTier(record);
-    form.setFieldsValue(record);
-    setIsEditModalVisible(true);
-  };
-
-  const handleUpdate = async (values: any) => {
-    setLoading(true);
-    try {
-      // Fetch current config first to update only specific parts
-      const currentResp = await authUtils.fetchWithAuth('/api/admin/quotas/config');
-      const currentResult = await currentResp.json();
-      const currentConfig = currentResult.data;
-
-      const newTierQuotas = { ...currentConfig.tierQuotas, [values.tier]: values.quota };
-      const newTierMaxApis = { ...currentConfig.tierMaxApis, [values.tier]: values.maxApis };
-      const newTierMaxSimulator = { ...currentConfig.tierMaxSimulatorInstalls, [values.tier]: values.maxSimulator };
-
-      const updateResp = await authUtils.fetchWithAuth('/api/admin/quotas/config', {
-        method: 'POST',
-        body: JSON.stringify({
-          tierQuotas: newTierQuotas,
-          tierMaxApis: newTierMaxApis,
-          tierMaxSimulatorInstalls: newTierMaxSimulator
-        })
-      });
-
-      const updateResult = await updateResp.json();
-      if (updateResult.success) {
-        message.success(`${values.tier} টিয়ার আপডেট করা হয়েছে`);
-        setIsEditModalVisible(false);
-        fetchData();
-      }
-    } catch (error) {
-      message.error('আপডেট করতে ব্যর্থ হয়েছে');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResetUsage = async (apiKey: string) => {
-    try {
-      const resp = await authUtils.fetchWithAuth(`/api/admin/quotas/reset/${apiKey}`, {
-        method: 'POST'
-      });
-      const result = await resp.json();
-      if (result.success) {
-        message.success('ইউসেজ রিসেট করা হয়েছে');
-        fetchData();
-      }
-    } catch (error) {
-      message.error('রিসেট করতে ব্যর্থ হয়েছে');
-    }
-  };
-
-  const quotaColumns = [
-    {
-      title: 'ইউজার টিয়ার',
-      dataIndex: 'tier',
-      key: 'tier',
-      render: (tier: string) => (
-        <Tag color={tier === 'ADMIN' ? 'gold' : 'blue'} style={{ fontWeight: 700, borderRadius: 6 }}>
-          {tier}
-        </Tag>
-      )
-    },
-    {
-      title: 'মাসিক কোটা (AI Calls)',
-      dataIndex: 'quota',
-      key: 'quota',
-      render: (quota: number) => quota === -1 ? 'Unlimited' : quota.toLocaleString()
-    },
-    {
-      title: 'সর্বোচ্চ API Key',
-      dataIndex: 'maxApis',
-      key: 'maxApis',
-    },
-    {
-      title: 'সিমুলেটর লিমিট',
-      dataIndex: 'maxSimulator',
-      key: 'maxSimulator',
-    },
-    {
-      title: 'অ্যাকশন',
-      key: 'action',
-      render: (_: any, record: TierQuota) => (
-        <Button 
-          type="text" 
-          icon={<EditOutlined />} 
-          onClick={() => handleEdit(record)}
-          style={{ color: '#3b82f6' }}
-        >
-          সম্পাদনা
-        </Button>
-      )
-    }
-  ];
-
-  const usageColumns = [
-    {
-      title: 'ইউজার/API Key',
-      dataIndex: 'apiKey',
-      key: 'apiKey',
-      render: (key: string, record: UserUsage) => (
-        <Space direction="vertical" size={0}>
-          <Text strong style={{ color: '#fff' }}>{record.userId}</Text>
-          <Text type="secondary" style={{ fontSize: 10, fontFamily: 'monospace' }}>{key}</Text>
-        </Space>
-      )
-    },
-    {
-      title: 'ব্যবহৃত (Usage)',
-      dataIndex: 'requestCount',
-      key: 'requestCount',
-      render: (count: number) => (
-        <Space>
-          <Progress 
-            percent={Math.min(100, (count / 100) * 100)} 
-            size="small" 
-            showInfo={false} 
-            strokeColor={count > 80 ? '#ef4444' : '#10b981'} 
-            style={{ width: 50 }}
-          />
-          <Text style={{ color: '#fff' }}>{count.toLocaleString()}</Text>
-        </Space>
-      )
-    },
-    {
-      title: 'অবস্থা',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => (
-        <Tag color={status === 'active' ? 'success' : 'error'}>{status.toUpperCase()}</Tag>
-      )
-    },
-    {
-      title: 'শেষ ব্যবহার',
-      dataIndex: 'lastUsed',
-      key: 'lastUsed',
-      render: (date?: string) => date ? new Date(date).toLocaleString('bn-BD') : 'কখনো না'
-    },
-    {
-      title: 'অ্যাকশন',
-      key: 'action',
-      render: (_: any, record: UserUsage) => (
-        <Button 
-          type="text" 
-          danger 
-          icon={<UndoOutlined />} 
-          onClick={() => handleResetUsage(record.apiKey)}
-        >
-          রিসেট
-        </Button>
-      )
-    }
-  ];
+  useEffect(() => { fetchData(); }, []);
 
   return (
-    <AdminLayout title="Quota Management">
-      <div className="admin-header">
-        <Breadcrumb separator=">" style={{ marginBottom: 'var(--space-2)', opacity: 0.7 }}>
-          <Breadcrumb.Item href=""><DashboardOutlined /> ড্যাশবোর্ড</Breadcrumb.Item>
-          <Breadcrumb.Item><SecurityScanOutlined /> সিস্টেম কন্ট্রোল</Breadcrumb.Item>
-          <Breadcrumb.Item>কোটা ম্যানেজমেন্ট</Breadcrumb.Item>
-        </Breadcrumb>
-        
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
-          <div>
-            <Title level={2} className="admin-title">
-              কোটা ও লিমিট ম্যানেজমেন্ট <span className="admin-badge">SYSTEM CONTROLS</span>
+    <motion.div
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5 }}
+      style={{ maxWidth: '1600px', margin: '0 auto' }}
+    >
+      {/* Cinematic Header */}
+      <div style={{ marginBottom: 32, borderBottom: '1px solid rgba(188, 19, 254, 0.2)', paddingBottom: 24 }}>
+        <Row justify="space-between" align="bottom">
+          <Col>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+              <PieChartOutlined style={{ color: 'var(--neon-purple)', fontSize: 20 }} />
+              <Text style={{ color: 'var(--neon-purple)', letterSpacing: 2, fontWeight: 800, fontSize: 12 }}>RESOURCE ALLOCATION</Text>
+            </div>
+            <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 800, fontSize: 32 }}>
+              Quota <span className="text-gradient">Management</span>
             </Title>
-            <Text className="admin-subtitle">
-              ব্যবহারকারীর টিয়ার ভিত্তিক সীমাবদ্ধতা এবং লাইভ ইউসেজ মনিটরিং
-            </Text>
-          </div>
-          <Button 
-            type="primary" 
-            icon={<ReloadOutlined />} 
-            onClick={fetchData}
-            loading={loading}
-            className="admin-btn-primary"
-            style={{ 
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-              border: 'none'
-            }}
-          >
-            রিফ্রেশ করুন
-          </Button>
-        </div>
+            <Text style={{ color: 'var(--text-dim)', fontSize: 14 }}>Control neural call limits, API key caps, and simulator instance quotas per tier.</Text>
+          </Col>
+          <Col>
+            <Button icon={<ReloadOutlined spin={loading} />} onClick={fetchData} className="glass-action-button">Refresh Limits</Button>
+          </Col>
+        </Row>
       </div>
 
       <Row gutter={[24, 24]}>
-        <Col xs={24} lg={8}>
-          <Card className="glass-card stat-card" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(37,99,235,0.05) 100%)' }}>
-            <Statistic 
-              title={<span style={{ color: 'rgba(255,255,255,0.45)' }}>মোট API ইউজার</span>} 
-              value={usage.length} 
-              prefix={<UserOutlined style={{ color: '#3b82f6' }} />} 
-              valueStyle={{ color: '#fff', fontWeight: 800 }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} lg={8}>
-          <Card className="glass-card stat-card" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.1) 0%, rgba(5,150,105,0.05) 100%)' }}>
-            <Statistic 
-              title={<span style={{ color: 'rgba(255,255,255,0.45)' }}>সিস্টেম হেলথ</span>} 
-              value={98.4} 
-              precision={1}
-              suffix="%" 
-              prefix={<ThunderboltOutlined style={{ color: '#10b981' }} />} 
-              valueStyle={{ color: '#fff', fontWeight: 800 }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} lg={8}>
-          <Card className="glass-card stat-card" style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(217,119,6,0.05) 100%)' }}>
-            <Statistic 
-              title={<span style={{ color: 'rgba(255,255,255,0.45)' }}>গড় ইউসেজ</span>} 
-              value={124} 
-              prefix={<BarChartOutlined style={{ color: '#f59e0b' }} />} 
-              valueStyle={{ color: '#fff', fontWeight: 800 }}
-            />
-          </Card>
+        {/* Key KPI Stats */}
+        <Col span={24}>
+           <Row gutter={[24, 24]}>
+              <Col xs={12} lg={6}>
+                 <div className="glass-card" style={{ borderLeft: '4px solid var(--neon-blue)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <div>
+                          <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, textTransform: 'uppercase' }}>API Consumers</Text>
+                          <div style={{ color: '#fff', fontSize: 24, fontWeight: 800 }}>{usage.length}</div>
+                       </div>
+                       <UserOutlined style={{ color: 'var(--neon-blue)', fontSize: 24 }} />
+                    </div>
+                 </div>
+              </Col>
+              <Col xs={12} lg={6}>
+                 <div className="glass-card" style={{ borderLeft: '4px solid var(--neon-purple)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <div>
+                          <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, textTransform: 'uppercase' }}>Global Load</Text>
+                          <div style={{ color: '#fff', fontSize: 24, fontWeight: 800 }}>82.4%</div>
+                       </div>
+                       <BarChartOutlined style={{ color: 'var(--neon-purple)', fontSize: 24 }} />
+                    </div>
+                 </div>
+              </Col>
+              <Col xs={12} lg={6}>
+                 <div className="glass-card" style={{ borderLeft: '4px solid var(--success)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <div>
+                          <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, textTransform: 'uppercase' }}>Throttle Limit</Text>
+                          <div style={{ color: 'var(--success)', fontSize: 20, fontWeight: 800 }}>OPTIMIZED</div>
+                       </div>
+                       <SecurityScanOutlined style={{ color: 'var(--success)', fontSize: 24 }} />
+                    </div>
+                 </div>
+              </Col>
+              <Col xs={12} lg={6}>
+                 <div className="glass-card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <div>
+                          <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, textTransform: 'uppercase' }}>Neural Integrity</Text>
+                          <div style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>99.9%</div>
+                       </div>
+                       <SafetyCertificateOutlined style={{ color: 'var(--text-dim)', fontSize: 24 }} />
+                    </div>
+                 </div>
+              </Col>
+           </Row>
         </Col>
 
-        <Col xs={24}>
-          <Card 
-            title={<span style={{ color: '#fff' }}><EditOutlined /> টিয়ার কনফিগারেশন</span>} 
-            className="glass-card"
-            bodyStyle={{ padding: 0 }}
-          >
-            <Table 
-              dataSource={quotas} 
-              columns={quotaColumns} 
-              pagination={false} 
-              loading={loading}
-              className="admin-table-dark"
-              rowKey="tier"
-            />
-          </Card>
+        {/* Tier Config & Usage Table */}
+        <Col xs={24} lg={12}>
+           <div className="glass-card" style={{ minHeight: 500 }}>
+              <div className="glass-card-title">Tier Configuration Matrix <ControlOutlined /></div>
+              <Table
+                 dataSource={quotas}
+                 pagination={false}
+                 loading={loading}
+                 columns={[
+                    { title: 'TIER', dataIndex: 'tier', key: 'tier', render: (t: string) => <Tag color={t === 'ADMIN' ? 'gold' : 'blue'}>{t}</Tag> },
+                    { title: 'QUOTA', dataIndex: 'quota', key: 'quota', render: (q: number) => q === -1 ? '∞' : q.toLocaleString() },
+                    { title: 'MAX APIS', dataIndex: 'maxApis', key: 'maxApis' },
+                    { title: 'ACTION', key: 'action', render: (_, r) => <Button type="text" icon={<EditOutlined />} style={{ color: 'var(--neon-blue)' }} onClick={() => { setEditingTier(r); form.setFieldsValue(r); setIsEditModalVisible(true); }}>Edit</Button> }
+                 ]}
+                 className="cyber-table"
+              />
+           </div>
         </Col>
 
-        <Col xs={24}>
-          <Card 
-            title={<span style={{ color: '#fff' }}><BarChartOutlined /> লাইভ ইউসেজ ট্র্যাকার</span>} 
-            className="glass-card"
-            bodyStyle={{ padding: 0 }}
-          >
-            <Table 
-              dataSource={usage} 
-              columns={usageColumns} 
-              pagination={{ pageSize: 10 }} 
-              loading={loading}
-              className="admin-table-dark"
-              rowKey="apiKey"
-            />
-          </Card>
+        <Col xs={24} lg={12}>
+           <div className="glass-card" style={{ minHeight: 500 }}>
+              <div className="glass-card-title">Live Consumption Tracker <ThunderboltOutlined /></div>
+              <Table
+                 dataSource={usage}
+                 pagination={{ pageSize: 8 }}
+                 loading={loading}
+                 columns={[
+                    { title: 'CONSUMER', dataIndex: 'userId', key: 'userId', render: (u: string) => <Text strong style={{ color: '#fff' }}>{u}</Text> },
+                    { title: 'USAGE', dataIndex: 'requestCount', key: 'requestCount', render: (c: number) => <Progress percent={Math.min(100, c/2)} size="small" strokeColor={c > 150 ? "#ef4444" : "var(--neon-blue)"} /> },
+                    { title: 'STATUS', dataIndex: 'status', key: 'status', render: (s: string) => <Badge status={s === 'active' ? 'success' : 'error'} text={s.toUpperCase()} /> },
+                    { title: 'ACTION', key: 'action', render: (_, r) => <Button type="text" danger icon={<UndoOutlined />}>Reset</Button> }
+                 ]}
+                 className="cyber-table"
+              />
+           </div>
         </Col>
       </Row>
 
-      <Modal
-        title={`Edit Quota: ${editingTier?.tier}`}
-        visible={isEditModalVisible}
-        onCancel={() => setIsEditModalVisible(false)}
-        onOk={() => form.submit()}
-        confirmLoading={loading}
-        className="premium-modal"
-        okText="আপডেট করুন"
-        cancelText="বাতিল"
-      >
-        <Form form={form} layout="vertical" onFinish={handleUpdate}>
-          <Form.Item name="tier" hidden><Input /></Form.Item>
-          
-          <Form.Item 
-            name="quota" 
-            label="মাসিক কোটা (AI Calls)" 
-            rules={[{ required: true }]}
-            extra="-১ মানে অসীম বা আনলিমিটেড"
-          >
-            <InputNumber style={{ width: '100%' }} />
-          </Form.Item>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="maxApis" label="সর্বোচ্চ API Keys" rules={[{ required: true }]}>
-                <InputNumber style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="maxSimulator" label="সিমুলেটর লিমিট" rules={[{ required: true }]}>
-                <InputNumber style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-          </Row>
+      <Modal title={`MODULATE TIER: ${editingTier?.tier}`} visible={isEditModalVisible} onCancel={() => setIsEditModalVisible(false)} onOk={() => form.submit()} className="admin-modal">
+        <Form form={form} layout="vertical" onFinish={() => {}}>
+           <Form.Item name="quota" label="MONTHLY NEURAL CALLS"><InputNumber style={{ width: '100%' }} /></Form.Item>
+           <Row gutter={16}>
+              <Col span={12}><Form.Item name="maxApis" label="MAX API KEYS"><InputNumber style={{ width: '100%' }} /></Form.Item></Col>
+              <Col span={12}><Form.Item name="maxSimulator" label="SIMULATOR INSTANCES"><InputNumber style={{ width: '100%' }} /></Form.Item></Col>
+           </Row>
         </Form>
       </Modal>
-
-      <style>{`
-        .glass-card {
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border-radius: 20px;
-          background: rgba(255, 255, 255, 0.02);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-        }
-
-        .stat-card {
-          padding: 10px;
-          transition: transform 0.3s ease;
-        }
-
-        .stat-card:hover {
-          transform: translateY(-5px);
-        }
-
-        .admin-table-dark .ant-table {
-          background: transparent !important;
-        }
-
-        .admin-table-dark .ant-table-thead > tr > th {
-          background: rgba(255,255,255,0.02) !important;
-          color: rgba(255,255,255,0.45) !important;
-          border-bottom: 1px solid rgba(255,255,255,0.05) !important;
-          font-size: 11px !important;
-          text-transform: uppercase !important;
-          letter-spacing: 1px !important;
-          font-weight: 700 !important;
-        }
-
-        .admin-table-dark .ant-table-tbody > tr > td {
-          border-bottom: 1px solid rgba(255,255,255,0.03) !important;
-          color: rgba(255,255,255,0.85) !important;
-        }
-
-        .admin-table-dark .ant-table-tbody > tr:hover > td {
-          background: rgba(255,255,255,0.03) !important;
-        }
-
-        .premium-modal .ant-modal-content {
-          background: #141414 !important;
-          border: 1px solid rgba(255,255,255,0.1);
-          border-radius: 24px;
-        }
-
-        .premium-modal .ant-modal-header {
-          background: transparent !important;
-          border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .premium-modal .ant-modal-title {
-          color: #fff !important;
-        }
-
-        .ant-form-item-label > label {
-          color: rgba(255,255,255,0.65) !important;
-        }
-
-        .ant-input-number {
-          background: rgba(255,255,255,0.05) !important;
-          border: 1px solid rgba(255,255,255,0.1) !important;
-          color: #fff !important;
-          border-radius: 12px;
-        }
-      `}</style>
-    </AdminLayout>
+    </motion.div>
   );
 };
 

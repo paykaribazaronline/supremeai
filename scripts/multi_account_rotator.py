@@ -149,57 +149,18 @@ class MultiAccountRotator:
             self._create_default_config()
 
     def _create_default_config(self):
-        """Create default configuration"""
-        # Google AI Studio
-        google_provider = Provider(
-            name="google_ai_studio",
-            base_url="https://generativelanguage.googleapis.com",
-            models=["gemini-2.0-flash-exp", "gemini-1.5-pro"],
-            rate_limit_rpm=15,
-            rate_limit_tpm=1000000,
-            status=ProviderStatus.ACTIVE,
-            cost_per_token=0.0001
+        """Create a blank configuration skeleton — fill providers via rotation_config.json."""
+        logger.warning(
+            "[ROTATOR] No rotation_config.json found. "
+            "Admin must populate providers and routing via scripts/rotation_config.json. "
+            "Creating a blank config file as a template."
         )
-
-        # Groq
-        groq_provider = Provider(
-            name="groq",
-            base_url="https://api.groq.com",
-            models=["llama3-70b-8192", "mixtral-8x7b-32768"],
-            rate_limit_rpm=60,
-            rate_limit_tpm=1000000,
-            status=ProviderStatus.ACTIVE,
-            cost_per_token=0.0002
-        )
-
-        # DeepSeek
-        deepseek_provider = Provider(
-            name="deepseek",
-            base_url="https://api.deepseek.com",
-            models=["deepseek-coder", "deepseek-chat"],
-            rate_limit_rpm=100,
-            rate_limit_tpm=5000000,
-            status=ProviderStatus.ACTIVE,
-            cost_per_token=0.00005
-        )
-
-        self.providers = {
-            "google_ai_studio": google_provider,
-            "groq": groq_provider,
-            "deepseek": deepseek_provider
+        skeleton = {
+            "providers": [],
+            "task_preferences": {}
         }
-
-        # Set task preferences
-        self.task_preferences = {
-            "coding": ["deepseek", "groq", "google_ai_studio"],
-            "chat": ["groq", "google_ai_studio", "deepseek"],
-            "reasoning": ["deepseek", "groq", "google_ai_studio"],
-            "debugging": ["deepseek", "google_ai_studio", "groq"],
-            "research": ["google_ai_studio", "groq", "deepseek"],
-            "creative": ["groq", "google_ai_studio", "deepseek"]
-        }
-
-        self.save_config()
+        with open(self.config_file, 'w') as f:
+            json.dump(skeleton, f, indent=2)
 
     def _load_providers_from_config(self, config: dict):
         """Load providers from configuration dict"""

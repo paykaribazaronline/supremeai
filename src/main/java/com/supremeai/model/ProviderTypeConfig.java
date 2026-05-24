@@ -25,9 +25,11 @@ public class ProviderTypeConfig {
     private List<String> supportedModels;
     private List<String> capabilities;
     private List<String> defaultRoles;
+    private List<String> keywords;
     private Map<String, Object> extraConfig;
     private boolean enabled;
     private int priority;
+    private double costPer1kTokens;
 
     public ProviderTypeConfig() {}
 
@@ -55,6 +57,9 @@ public class ProviderTypeConfig {
     public List<String> getDefaultRoles() { return defaultRoles; }
     public void setDefaultRoles(List<String> defaultRoles) { this.defaultRoles = defaultRoles; }
 
+    public List<String> getKeywords() { return keywords; }
+    public void setKeywords(List<String> keywords) { this.keywords = keywords; }
+
     public Map<String, Object> getExtraConfig() { return extraConfig; }
     public void setExtraConfig(Map<String, Object> extraConfig) { this.extraConfig = extraConfig; }
 
@@ -63,4 +68,7 @@ public class ProviderTypeConfig {
 
     public int getPriority() { return priority; }
     public void setPriority(int priority) { this.priority = priority; }
+
+    public double getCostPer1kTokens() { return costPer1kTokens; }
+    public void setCostPer1kTokens(double costPer1kTokens) { this.costPer1kTokens = costPer1kTokens; }
 }

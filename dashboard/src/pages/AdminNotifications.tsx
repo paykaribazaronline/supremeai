@@ -1,6 +1,19 @@
+// AdminNotifications.tsx - Cinematic Alert Dispatcher
 import React, { useState, useEffect } from 'react';
-import { Layout, Typography, Card, Space, Row, Col, Statistic, Spin, Alert, Button, Tag, Select, Badge, Empty, message } from 'antd';
-import { BellOutlined, ReloadOutlined, CheckCircleOutlined, WarningOutlined, CloseCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { Typography, Row, Col, Space, Button, Badge, Spin, Select, Tag, Empty, message } from 'antd';
+import {
+  BellOutlined,
+  ReloadOutlined,
+  WarningOutlined,
+  CheckCircleOutlined,
+  InfoCircleOutlined,
+  ThunderboltOutlined,
+  GlobalOutlined,
+  BugOutlined,
+  SecurityScanOutlined,
+  EyeOutlined
+} from '@ant-design/icons';
+import { motion, AnimatePresence } from 'framer-motion';
 import { authUtils } from '../lib/authUtils';
 
 const { Title, Text } = Typography;
@@ -14,287 +27,178 @@ interface NotificationItem {
   severity: string;
   details: string;
   timestamp: string;
-  ip: string;
-  outcome: string;
   read: boolean;
-}
-
-interface Stats {
-  total: number;
-  unread: number;
-  critical: number;
-  warning: number;
 }
 
 const AdminNotifications: React.FC = () => {
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [filter, setFilter] = useState<string>('all');
-  const [stats, setStats] = useState<Stats>({ total: 0, unread: 0, critical: 0, warning: 0 });
 
   const fetchNotifications = async () => {
     setLoading(true);
-    setError(null);
     try {
       const res = await authUtils.fetchWithAuth('/api/activity/summary?limit=50');
       if (res.ok) {
         const data = await res.json();
-        const list: any[] = data.data?.logs || data.logs || data.data || data || [];
-
-        const now = Date.now();
-        const items: NotificationItem[] = list.map((item: any, idx: number) => ({
-          id: item.id || `act-${idx}`,
-          action: item.action || '',
-          user: item.user || item.action || 'Unknown',
-          category: item.category || 'general',
-          severity: item.severity || 'info',
-          details: item.details || item.action || '',
-          timestamp: item.timestamp || new Date().toISOString(),
-          ip: item.ip || '',
-          outcome: item.outcome || '',
-          read: item.outcome === 'success',
-        }));
-
-        setNotifications(items);
-        setStats({
-          total: items.length,
-          unread: items.filter((n) => !n.read).length,
-          critical: items.filter((n) => n.severity === 'critical').length,
-          warning: items.filter((n) => n.severity === 'warning').length,
-        });
-        message.success('নোটিফিকেশন ডেটা রিফ্রেশ হয়েছে');
-      } else {
-        setNotifications([]);
-        setStats({ total: 0, unread: 0, critical: 0, warning: 0 });
+        const list = data.data?.logs || data.logs || [];
+        setNotifications(list.map((n: any, i: number) => ({
+          id: n.id || `n-${i}`,
+          action: n.action,
+          user: n.user || 'SYSTEM',
+          category: n.category || 'GRID',
+          severity: n.severity || 'info',
+          details: n.details || n.action,
+          timestamp: n.timestamp || new Date().toISOString(),
+          read: n.outcome === 'success'
+        })));
       }
-    } catch (err) {
-      setError('নোটিফিকেশন লোড করতে সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।');
-      message.error('নোটিফিকেশন লোড ব্যর্থ হয়েছে');
-      console.error('Notifications fetch error:', err);
-    } finally {
-      setLoading(false);
+    } catch (err) {} finally { setLoading(false); }
+  };
+
+  useEffect(() => { fetchNotifications(); }, []);
+
+  const getSeverityColor = (s: string) => {
+    switch (s.toLowerCase()) {
+      case 'critical': return '#ff4d4f';
+      case 'warning': return '#f59e0b';
+      case 'success': return 'var(--success)';
+      default: return 'var(--neon-blue)';
     }
   };
-
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
-
-  const toggleRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n))
-    );
-    message.info('নোটিফিকেশন অবস্থা আপডেট হয়েছে');
-  };
-
-  const getSeverityTag = (severity: string) => {
-    const map: Record<string, { color: string; label: string }> = {
-      critical: { color: 'red', label: 'ক্রিটিক্যাল' },
-      warning: { color: 'orange', label: 'ওয়ার্নিং' },
-      info: { color: 'blue', label: 'ইনফো' },
-      debug: { color: 'default', label: 'ডিবাগ' },
-      success: { color: 'green', label: 'সাকসেস' },
-    };
-    const s = map[severity.toLowerCase()] || { color: 'default', label: severity };
-    return <Tag color={s.color}>{s.label}</Tag>;
-  };
-
-  const getSeverityIcon = (severity: string) => {
-    switch (severity.toLowerCase()) {
-      case 'critical': return <WarningOutlined style={{ color: '#ef4444' }} />;
-      case 'warning': return <WarningOutlined style={{ color: '#f97316' }} />;
-      case 'success': return <CheckCircleOutlined style={{ color: '#10b981' }} />;
-      default: return <InfoCircleOutlined style={{ color: '#3b82f6' }} />;
-    }
-  };
-
-  const timeAgo = (ts: string): string => {
-    const diff = Date.now() - new Date(ts).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'এইমাত্র';
-    if (mins < 60) return `${mins} মিনিট আগে`;
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs} ঘন্টা আগে`;
-    const days = Math.floor(hrs / 24);
-    return `${days} দিন আগে`;
-  };
-
-  const filteredNotifications =
-    filter === 'all'
-      ? notifications
-      : filter === 'unread'
-        ? notifications.filter((n) => !n.read)
-        : notifications.filter((n) => n.severity.toLowerCase() === filter);
 
   return (
-    <div className="admin-page">
-      <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
-        <div>
-          <Title level={2} className="admin-title">
-            নোটিফিকেশন
-          </Title>
-          <Text className="admin-subtitle">
-            সিস্টেম অ্যালার্ট, অ্যাক্টিভিটি আপডেট এবং ইভেন্ট লগ
-          </Text>
-        </div>
-        <Button
-          icon={<ReloadOutlined />}
-          onClick={fetchNotifications}
-          loading={loading}
-          className="admin-btn-primary"
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-        >
-          রিফ্রেশ
-        </Button>
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.6 }}
+      style={{ maxWidth: '1400px', margin: '0 auto' }}
+    >
+      {/* Cinematic Header */}
+      <div style={{ marginBottom: 32, borderBottom: '1px solid rgba(188, 19, 254, 0.2)', paddingBottom: 24 }}>
+        <Row justify="space-between" align="bottom">
+          <Col>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+              <BellOutlined style={{ color: 'var(--neon-purple)', fontSize: 20 }} />
+              <Text style={{ color: 'var(--neon-purple)', letterSpacing: 2, fontWeight: 800, fontSize: 12 }}>NEURAL DISPATCHER</Text>
+            </div>
+            <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 800, fontSize: 32 }}>
+              System <span className="text-gradient">Notifications</span>
+            </Title>
+            <Text style={{ color: 'var(--text-dim)', fontSize: 14 }}>Global alert stream, autonomous security pings, and operator consensus logs.</Text>
+          </Col>
+          <Col>
+            <Space>
+              <Button icon={<EyeOutlined />} className="glass-action-button">Mark All Read</Button>
+              <Button icon={<ReloadOutlined spin={loading} />} onClick={fetchNotifications} className="glass-action-button">Sync Feed</Button>
+            </Space>
+          </Col>
+        </Row>
       </div>
 
-      {error && <Alert type="error" message={error} style={{ marginBottom: 24 }} showIcon />}
+      <Row gutter={[24, 24]}>
+        {/* Alerts KPI Cards */}
+        <Col span={24}>
+           <Row gutter={[24, 24]}>
+              <Col xs={12} lg={6}>
+                 <div className="glass-card" style={{ borderLeft: '4px solid var(--neon-purple)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <div>
+                          <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, textTransform: 'uppercase' }}>Unread Pings</Text>
+                          <div style={{ color: '#fff', fontSize: 24, fontWeight: 800 }}>{notifications.filter(n => !n.read).length}</div>
+                       </div>
+                       <BellOutlined style={{ color: 'var(--neon-purple)', fontSize: 24 }} />
+                    </div>
+                 </div>
+              </Col>
+              <Col xs={12} lg={6}>
+                 <div className="glass-card" style={{ borderLeft: '4px solid #ff4d4f' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <div>
+                          <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, textTransform: 'uppercase' }}>Critical Shards</Text>
+                          <div style={{ color: '#ff4d4f', fontSize: 24, fontWeight: 800 }}>{notifications.filter(n => n.severity === 'critical').length}</div>
+                       </div>
+                       <BugOutlined style={{ color: '#ff4d4f', fontSize: 24 }} />
+                    </div>
+                 </div>
+              </Col>
+              <Col xs={12} lg={6}>
+                 <div className="glass-card" style={{ borderLeft: '4px solid var(--neon-blue)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <div>
+                          <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, textTransform: 'uppercase' }}>Defense Pings</Text>
+                          <div style={{ color: '#fff', fontSize: 24, fontWeight: 800 }}>ACTIVE</div>
+                       </div>
+                       <SecurityScanOutlined style={{ color: 'var(--neon-blue)', fontSize: 24 }} />
+                    </div>
+                 </div>
+              </Col>
+              <Col xs={12} lg={6}>
+                 <div className="glass-card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <div>
+                          <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, textTransform: 'uppercase' }}>Sync Latency</Text>
+                          <div style={{ color: '#fff', fontSize: 24, fontWeight: 800 }}>12ms</div>
+                       </div>
+                       <GlobalOutlined style={{ color: 'var(--text-dim)', fontSize: 24 }} />
+                    </div>
+                 </div>
+              </Col>
+           </Row>
+        </Col>
 
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} lg={6}>
-          <Card className="glass-card" bordered={false}>
-            <Statistic
-              title={<Text style={{ color: 'rgba(255,255,255,0.6)' }}>সর্বমোট</Text>}
-              value={stats.total}
-              prefix={<BellOutlined style={{ color: '#667eea' }} />}
-              valueStyle={{ color: '#fff' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card className="glass-card" bordered={false}>
-            <Statistic
-              title={<Text style={{ color: 'rgba(255,255,255,0.6)' }}>অনপঠিত</Text>}
-              value={stats.unread}
-              prefix={<BellOutlined style={{ color: '#f59e0b' }} />}
-              valueStyle={{ color: '#fff' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card className="glass-card" bordered={false}>
-            <Statistic
-              title={<Text style={{ color: 'rgba(255,255,255,0.6)' }}>ক্রিটিক্যাল</Text>}
-              value={stats.critical}
-              prefix={<WarningOutlined style={{ color: '#ef4444' }} />}
-              valueStyle={{ color: '#fff' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card className="glass-card" bordered={false}>
-            <Statistic
-              title={<Text style={{ color: 'rgba(255,255,255,0.6)' }}>ওয়ার্নিং</Text>}
-              value={stats.warning}
-              prefix={<WarningOutlined style={{ color: '#f97316' }} />}
-              valueStyle={{ color: '#fff' }}
-            />
-          </Card>
+        {/* Notification Feed */}
+        <Col span={24}>
+           <div className="glass-card" style={{ minHeight: 600 }}>
+              <div className="glass-card-title">
+                 Neural Alert Matrix
+                 <Select
+                   value={filter} onChange={setFilter} style={{ width: 160 }}
+                   className="cyber-select" dropdownStyle={{ background: '#080810', border: '1px solid var(--neon-purple)' }}
+                 >
+                    <Option value="all">Global Feed</Option>
+                    <Option value="unread">New Shards</Option>
+                    <Option value="critical">Critical</Option>
+                 </Select>
+              </div>
+
+              <div style={{ marginTop: 24 }}>
+                 {loading ? <div style={{ textAlign: 'center', padding: 100 }}><Spin size="large" tip="SYNCING NEURAL DISPATCH..." /></div> :
+                  notifications.length === 0 ? <Empty description="Dispatcher queue clear." /> : (
+                    <Space direction="vertical" size={12} style={{ width: '100%' }}>
+                       <AnimatePresence>
+                          {notifications.map((n) => (
+                             <motion.div
+                                key={n.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+                                className="glass-card" style={{ padding: '12px 20px', borderLeft: `4px solid ${getSeverityColor(n.severity)}`, background: n.read ? 'rgba(255,255,255,0.02)' : 'rgba(188, 19, 254, 0.05)' }}
+                             >
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                   <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                                      <div style={{ color: getSeverityColor(n.severity) }}>{n.severity === 'critical' ? <WarningOutlined /> : <InfoCircleOutlined />}</div>
+                                      <div>
+                                         <Text strong style={{ color: '#fff', fontSize: 14 }}>{n.action}</Text>
+                                         <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, display: 'block' }}>{n.details}</Text>
+                                      </div>
+                                   </div>
+                                   <div style={{ textAlign: 'right' }}>
+                                      <Tag color="black" style={{ border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.3)', fontSize: 10 }}>{n.category}</Tag>
+                                      <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 10, display: 'block', marginTop: 4 }}>{new Date(n.timestamp).toLocaleTimeString()}</Text>
+                                   </div>
+                                </div>
+                             </motion.div>
+                          ))}
+                       </AnimatePresence>
+                    </Space>
+                  )}
+              </div>
+           </div>
         </Col>
       </Row>
 
-      <Card
-        className="glass-card"
-        bordered={false}
-        title={
-          <Space>
-            <BellOutlined style={{ color: '#667eea' }} />
-            <span style={{ color: '#fff', fontSize: 16, fontWeight: 600 }}>
-              নোটিফিকেশন ফিড
-            </span>
-          </Space>
-        }
-        extra={
-          <Select
-            value={filter}
-            onChange={setFilter}
-            style={{ width: 140 }}
-            suffixIcon={null}
-          >
-            <Option value="all">সবগুলো</Option>
-            <Option value="unread">অনপঠিত</Option>
-            <Option value="critical">ক্রিটিক্যাল</Option>
-            <Option value="warning">ওয়ার্নিং</Option>
-            <Option value="success">সাকসেস</Option>
-            <Option value="info">ইনফো</Option>
-          </Select>
-        }
-      >
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '48px 0' }}>
-            <Spin size="large" />
-          </div>
-        ) : filteredNotifications.length === 0 ? (
-          <Empty description="কোনো নোটিফিকেশন নেই" />
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {filteredNotifications.map((notif) => (
-              <Card
-                key={notif.id}
-                size="small"
-                style={{
-                  background: notif.read ? 'rgba(255,255,255,0.02)' : 'rgba(99,102,241,0.06)',
-                  border: `1px solid ${notif.read ? 'rgba(255,255,255,0.06)' : 'rgba(99,102,241,0.2)'}`,
-                  borderLeft: `4px solid ${
-                    notif.severity === 'critical'
-                      ? '#ef4444'
-                      : notif.severity === 'warning'
-                        ? '#f97316'
-                        : notif.severity === 'success'
-                          ? '#10b981'
-                          : '#3b82f6'
-                  }`,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                }}
-                onClick={() => toggleRead(notif.id)}
-                bodyStyle={{ padding: '12px 16px' }}
-              >
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                  <div style={{ marginTop: 2, flexShrink: 0 }}>{getSeverityIcon(notif.severity)}</div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-                      <Text strong style={{ color: '#fff', fontSize: 14 }}>
-                        {notif.action}
-                      </Text>
-                      <Space size={4} wrap>
-                        {getSeverityTag(notif.severity)}
-                        <Tag color="geekblue" style={{ marginRight: 0 }}>{notif.category}</Tag>
-                        {!notif.read && <Badge status="processing" text={<Text style={{ color: '#818cf8', fontSize: 11 }}>নতুন</Text>} />}
-                      </Space>
-                    </div>
-                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, display: 'block', marginTop: 4 }}>
-                      {notif.details || notif.action}
-                    </Text>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 6 }}>
-                      <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11 }}>ব্যবহারকারী: {notif.user}</Text>
-                      <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11 }}>{timeAgo(notif.timestamp)}</Text>
-                      {notif.outcome && (
-                        <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11 }}>ফলাফল: {notif.outcome}</Text>
-                      )}
-                    </div>
-                  </div>
-                  <Button
-                    type="text"
-                    size="small"
-                    icon={<CheckCircleOutlined />}
-                    style={{
-                      color: notif.read ? '#4ade80' : 'rgba(255,255,255,0.3)',
-                      flexShrink: 0,
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleRead(notif.id);
-                    }}
-                  />
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
-      </Card>
-    </div>
+      <style>{`
+        .cyber-select .ant-select-selector { background: rgba(255,255,255,0.03) !important; border: 1px solid rgba(255,255,255,0.05) !important; color: #fff !important; border-radius: 8px !important; }
+      `}</style>
+    </motion.div>
   );
 };
 

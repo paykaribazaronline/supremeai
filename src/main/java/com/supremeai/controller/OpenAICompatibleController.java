@@ -2,6 +2,7 @@ package com.supremeai.controller;
 
 import com.supremeai.provider.AIProvider;
 import com.supremeai.service.SystemAutoDetectService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,9 @@ import java.util.*;
  *   "messages": [{"role": "user", "content": "Your prompt"}]
  * }
  *
+ * Authentication: Requires X-Authorized-Key header when SUPREMEAI_API_KEY env var is set.
+ * Rate limiting is applied via RateLimiterFilter for all callers.
+ *
  * Response format: standard OpenAI chat completion response.
  */
 @RestController
@@ -37,10 +41,36 @@ public class OpenAICompatibleController {
     private SystemAutoDetectService autoDetectService;
 
     /**
+     * Validates the X-Authorized-Key header for the OpenAI-compatible endpoint.
+     * Returns null if access is granted, or an error response body if access is denied.
+     */
+    private ResponseEntity<Map<String, Object>> checkExternalApiKey(HttpServletRequest request) {
+        String expectedKey = System.getenv("SUPREMEAI_API_KEY");
+        if (expectedKey != null && !expectedKey.isBlank()) {
+            String providedKey = request.getHeader("X-Authorized-Key");
+            if (!expectedKey.equals(providedKey)) {
+                logger.warn("Unauthorized /api/v1/chat/completions — missing or invalid X-Authorized-Key from IP: {}",
+                        request.getRemoteAddr());
+                return ResponseEntity.status(401).body(Map.of(
+                        "error", "UNAUTHORIZED",
+                        "message", "Missing or invalid X-Authorized-Key header. Set SUPREMEAI_API_KEY to enable this endpoint."
+                ));
+            }
+        }
+        return null;
+    }
+
+    /**
       * Handles chat completion requests with auto-detected model.
+      * Requires X-Authorized-Key header when SUPREMEAI_API_KEY is configured.
       */
      @PostMapping("/chat/completions")
-     public ResponseEntity<Map<String, Object>> chatCompletions(@RequestBody Map<String, Object> body) {
+     public ResponseEntity<Map<String, Object>> chatCompletions(HttpServletRequest request,
+             @RequestBody Map<String, Object> body) {
+         // Gate: X-Authorized-Key must match SUPREMEAI_API_KEY (or env is unset / OPEN_CHAT_COMPLETIONS=true)
+         ResponseEntity<Map<String, Object>> authFail = checkExternalApiKey(request);
+         if (authFail != null) return authFail;
+
          // Extract messages list
          Object messagesObj = body.get("messages");
          if (messagesObj == null) {

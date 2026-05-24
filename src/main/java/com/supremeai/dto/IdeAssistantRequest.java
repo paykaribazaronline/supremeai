@@ -8,7 +8,7 @@ public class IdeAssistantRequest {
     
     private String context;
     
-    private String provider = "gemini";
+    private String provider = "";
 
     public IdeAssistantRequest() {
     }

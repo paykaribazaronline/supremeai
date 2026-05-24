@@ -1,5 +1,6 @@
 package com.supremeai.service;
 
+import com.supremeai.learning.service.EnhancedContentSanitizerService;
 import com.supremeai.model.ConsensusVote;
 import com.supremeai.model.ConsensusResult;
 import com.supremeai.model.ProviderVote;
@@ -10,8 +11,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -37,6 +41,9 @@ public class EnhancedMultiAIConsensusService {
     @Autowired
     private AIReasoningService aiReasoningService;
 
+    @Autowired
+    private EnhancedContentSanitizerService contentSanitizer;
+
     private final ExecutorService executor;
     private final List<ConsensusVote> history = new CopyOnWriteArrayList<>();
 
@@ -53,83 +60,111 @@ public class EnhancedMultiAIConsensusService {
 
     /**
      * Run iterative discussion among multiple AIs and reach consensus.
+     * Refactored to be fully reactive to avoid blocking the Netty event loop.
      */
-    public EnhancedConsensusResult discussAndVote(String question, List<String> providerNames, int maxRounds) {
-        maxRounds = Math.min(maxRounds, MAX_DISCUSSION_ROUNDS);
-        List<ProviderVote> currentVotes = new ArrayList<>();
-
-        // Round 1: Initial responses
+    public Mono<EnhancedConsensusResult> discussAndVote(String question, List<String> providerNames, int maxRounds) {
+        int finalMaxRounds = Math.min(maxRounds, MAX_DISCUSSION_ROUNDS);
+        
         log.info("Starting consensus discussion - Round 1 with {} providers", providerNames.size());
-        currentVotes = queryProviders(question, providerNames, null, 1);
+        
+        return queryProvidersReactive(question, providerNames, null, 1)
+            .flatMap(initialVotes -> {
+                if (initialVotes.size() < MIN_PROVIDERS_FOR_CONSENSUS) {
+                    return Mono.just(new EnhancedConsensusResult(
+                        question,
+                        "Error: Not enough providers responded for consensus (need at least " + MIN_PROVIDERS_FOR_CONSENSUS + ")",
+                        initialVotes,
+                        0.0,
+                        "ERROR",
+                        0,
+                        Map.of("error", "Not enough providers responded")
+                    ));
+                }
 
-        if (currentVotes.size() < MIN_PROVIDERS_FOR_CONSENSUS) {
-            return createFailureResult(question, currentVotes, "Not enough providers responded");
-        }
+                ConsensusResult initialConsensus = calculateWeightedConsensus(question, initialVotes);
 
-        // Check initial consensus
-        ConsensusResult initialConsensus = calculateWeightedConsensus(question, currentVotes);
+                if ("CONSENSUS_STRONG".equals(initialConsensus.getStrength())) {
+                    return Mono.just(new EnhancedConsensusResult(
+                            question,
+                            initialConsensus.getConsensusAnswer(),
+                            initialConsensus.getVotes(),
+                            initialConsensus.getAverageConfidence(),
+                            initialConsensus.getStrength(),
+                            1,
+                            Map.of("initial_consensus", true)
+                    ));
+                }
 
-        // If strong consensus, return early
-        if ("CONSENSUS_STRONG".equals(initialConsensus.getStrength())) {
-            return new EnhancedConsensusResult(
-                    question,
-                    initialConsensus.getConsensusAnswer(),
-                    initialConsensus.getVotes(),
-                    initialConsensus.getAverageConfidence(),
-                    initialConsensus.getStrength(),
-                    1, // rounds completed
-                    Map.of("initial_consensus", true)
-            );
-        }
+                return runDiscussionRounds(question, providerNames, initialVotes, 2, finalMaxRounds);
+            });
+    }
 
-        // Iterative discussion rounds
-        Map<String, Object> metadata = new HashMap<>();
-        int completedRounds = 1;
-
-        for (int round = 2; round <= maxRounds; round++) {
-            log.info("Discussion Round {}", round);
-
-            // Prepare context from previous round
-            String discussionContext = buildDiscussionContext(question, currentVotes, round);
-
-            // Query providers again with discussion context
-            List<ProviderVote> newVotes = queryProvidersWithContext(
-                question, providerNames, discussionContext, round
-            );
-
-            // Merge votes (keep best response from each provider)
-            currentVotes = mergeVotes(currentVotes, newVotes);
-
-            // Re-check consensus
-            ConsensusResult consensus = calculateWeightedConsensus(question, currentVotes);
-
-            completedRounds = round;
-
-            if ("CONSENSUS_STRONG".equals(consensus.getStrength())) {
-                metadata.put("achieved_strong_consensus", true);
-                metadata.put("rounds_to_consensus", round);
-                break;
+    private Mono<EnhancedConsensusResult> runDiscussionRounds(String question, List<String> providerNames, 
+                                                             List<ProviderVote> currentVotes, int currentRound, int maxRounds) {
+        if (currentRound > maxRounds) {
+            ConsensusResult finalConsensus = calculateWeightedConsensus(question, currentVotes);
+            
+            // If still split after rounds, trigger Multi-Agent Debate (MAD)
+            if ("CONSENSUS_SPLIT".equals(finalConsensus.getStrength())) {
+                return triggerDebate(question, currentVotes, providerNames)
+                    .map(debatedResult -> finalizeConsensusResult(question, debatedResult.votes, currentRound - 1, debatedResult.metadata));
             }
-
-            // Check if answers are converging
-            if (isConverging(currentVotes, newVotes)) {
-                metadata.put("converging", true);
-            }
+            
+            return Mono.just(finalizeConsensusResult(question, currentVotes, currentRound - 1, new HashMap<>()));
         }
 
-        // Final consensus calculation
+        log.info("Discussion Round {}", currentRound);
+        String discussionContext = buildDiscussionContext(question, currentVotes, currentRound);
+
+        // Optimize cost: only re-query providers that disagree with the current leading consensus
+        ConsensusResult currentConsensus = calculateWeightedConsensus(question, currentVotes);
+        String currentBestAnswer = currentConsensus.getConsensusAnswer();
+        
+        List<String> disagreeingProviders = currentVotes.stream()
+            .filter(v -> !normalizeResponse(v.getResponse()).equals(normalizeResponse(currentBestAnswer)))
+            .map(ProviderVote::getProviderName)
+            .collect(Collectors.toList());
+            
+        // If everyone agrees or no one disagreed, we shouldn't be here (handled by strength check)
+        List<String> providersToQuery = disagreeingProviders.isEmpty() ? providerNames : disagreeingProviders;
+        log.info("Cost optimization: querying only {} disagreeing providers instead of all {}", providersToQuery.size(), providerNames.size());
+
+        return queryProvidersReactive(question, providersToQuery, discussionContext, currentRound)
+            .flatMap(newVotes -> {
+                List<ProviderVote> mergedVotes = mergeVotes(currentVotes, newVotes);
+                ConsensusResult consensus = calculateWeightedConsensus(question, mergedVotes);
+
+                if ("CONSENSUS_STRONG".equals(consensus.getStrength())) {
+                    Map<String, Object> metadata = new HashMap<>();
+                    metadata.put("achieved_strong_consensus", true);
+                    metadata.put("rounds_to_consensus", currentRound);
+                    return Mono.just(new EnhancedConsensusResult(
+                        question,
+                        consensus.getConsensusAnswer(),
+                        consensus.getVotes(),
+                        consensus.getConfidence(),
+                        consensus.getStrength(),
+                        currentRound,
+                        metadata
+                    ));
+                }
+
+                return runDiscussionRounds(question, providerNames, mergedVotes, currentRound + 1, maxRounds);
+            });
+    }
+
+    private EnhancedConsensusResult finalizeConsensusResult(String question, List<ProviderVote> currentVotes, 
+                                                            int completedRounds, Map<String, Object> metadata) {
         ConsensusResult finalConsensus = calculateWeightedConsensus(question, currentVotes);
 
         aiReasoningService.logReasoning(
             "CONSENSUS_" + System.currentTimeMillis(),
             "Final Consensus Reached",
-            String.format("Strength: %s, Confidence: %.2f%%, Rounds: %d. Answer: %s", 
-                finalConsensus.getStrength(), finalConsensus.getConfidence(), completedRounds, 
-                finalConsensus.getConsensusAnswer().substring(0, Math.min(100, finalConsensus.getConsensusAnswer().length()))),
+            String.format("Strength: %s, Confidence: %.2f%%, Rounds: %d.", 
+                finalConsensus.getStrength(), finalConsensus.getConfidence(), completedRounds),
             "EnhancedMultiAIConsensusService"
         );
 
-        // Save to history
         saveVoteToHistory(question, currentVotes, finalConsensus.getConsensusAnswer(),
             finalConsensus.getConfidence());
 
@@ -145,84 +180,44 @@ public class EnhancedMultiAIConsensusService {
     }
 
     /**
-     * Create a failure result.
+     * Query all providers in parallel reactively.
      */
-    private EnhancedConsensusResult createFailureResult(String question, List<ProviderVote> votes, String error) {
-        return new EnhancedConsensusResult(
-            question,
-            error,
-            votes,
-            0.0,
-            "ERROR",
-            1,
-            Map.of("error", error)
-        );
-    }
+    private Mono<List<ProviderVote>> queryProvidersReactive(String question, List<String> providerNames,
+                                                           String context, int round) {
+        return Flux.fromIterable(providerNames)
+            .filter(providerName -> !selfHealingService.isProviderQuarantined(providerName))
+            .flatMap(providerName -> {
+                return Mono.fromCallable(() -> providerFactory.getProvider(providerName))
+                    .flatMap(provider -> {
+                        String prompt;
+                        if (context != null && round > 1) {
+                            // Fix: Sanitize context to prevent prompt injection
+                            String sanitizedContext = contentSanitizer.maskPII(context);
+                            prompt = String.format(
+                                "Original question: %s\n\nDiscussion context (Round %d):\n%s\n\nProvide your refined answer based on above context:",
+                                question, round - 1, sanitizedContext
+                            );
+                        } else {
+                            prompt = question;
+                        }
 
-    /**
-     * Query all providers in parallel.
-     */
-    private List<ProviderVote> queryProviders(String question, List<String> providerNames,
-                                            String context, int round) {
-        List<Future<ProviderVote>> futures = providerNames.stream()
-            .map(providerName -> executor.submit(() -> {
-                try {
-                    AIProvider provider = providerFactory.getProvider(providerName);
-
-                    String prompt;
-                    if (context != null && round > 1) {
-                        prompt = String.format(
-                            "Original question: %s\n\nDiscussion context (Round %d):\n%s\n\nProvide your refined answer:",
-                            question, round - 1, context
-                        );
-                    } else {
-                        prompt = question;
-                    }
-
-                    String response = resolveResponse(selfHealingService.executeWithRetry(
-                        () -> provider.generate(prompt),
-                        2, 250L
-                    ));
-
-                    // Get weighted confidence based on provider's past performance
-                    double confidence = calculateProviderWeight(providerName);
-                    long latency = System.currentTimeMillis(); // Simplified
-
-                    return new ProviderVote(
-                        providerName,
-                        response,
-                        confidence,
-                        System.currentTimeMillis()
-                    );
-                } catch (Exception e) {
-                    log.warn("Provider {} failed in round {}: {}", providerName, round, e.getMessage());
-                    return null;
-                }
-            }))
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
-
-        List<ProviderVote> votes = new ArrayList<>();
-        for (Future<ProviderVote> future : futures) {
-            try {
-                ProviderVote vote = future.get(TIMEOUT_PER_ROUND_MS, TimeUnit.MILLISECONDS);
-                if (vote != null) {
-                    votes.add(vote);
-                }
-            } catch (Exception e) {
-                log.debug("Provider future timeout or error", e);
-            }
-        }
-
-        return votes;
-    }
-
-    /**
-     * Query providers with discussion context.
-     */
-    private List<ProviderVote> queryProvidersWithContext(String question, List<String> providerNames,
-                                                        String context, int round) {
-        return queryProviders(question, providerNames, context, round);
+                        long startTime = System.currentTimeMillis();
+                        return selfHealingService.executeWithRetry(() -> provider.generate(prompt), 2, 250L)
+                            .timeout(Duration.ofMillis(TIMEOUT_PER_ROUND_MS))
+                            .map(response -> new ProviderVote(
+                                providerName,
+                                response,
+                                calculateProviderWeight(providerName),
+                                System.currentTimeMillis()
+                            ))
+                            .onErrorResume(e -> {
+                                log.warn("Provider {} failed in round {}: {}", providerName, round, e.getMessage());
+                                return Mono.empty();
+                            });
+                    })
+                    .subscribeOn(Schedulers.boundedElastic());
+            })
+            .collectList();
     }
 
     /**
@@ -291,10 +286,6 @@ public class EnhancedMultiAIConsensusService {
         return calculateProviderWeight(providerName);
     }
 
-    private String resolveResponse(Mono<String> responseMono) {
-        return java.util.Objects.requireNonNullElse(responseMono.block(), "");
-    }
-
     /**
      * Build discussion context from previous round.
      */
@@ -304,16 +295,26 @@ public class EnhancedMultiAIConsensusService {
         // Add summary of previous round
         context.append("Previous round (").append(round - 1).append(") responses:\n");
 
-        // Group similar responses
+        // Group similar responses — null-safe: null/blank responses are grouped under ""
         Map<String, List<ProviderVote>> grouped = votes.stream()
-            .collect(Collectors.groupingBy(v -> normalizeResponse(v.getResponse())));
+            .collect(Collectors.groupingBy(v -> {
+                String r = v.getResponse();
+                return (r == null || r.isBlank()) ? "" : normalizeResponse(r);
+            }));
 
         int groupNum = 1;
         for (Map.Entry<String, List<ProviderVote>> entry : grouped.entrySet()) {
             context.append("\nGroup ").append(groupNum++).append(" (")
                    .append(entry.getValue().size()).append(" providers):\n");
-            context.append(entry.getValue().get(0).getResponse().substring(0,
-                Math.min(200, entry.getValue().get(0).getResponse().length())))
+
+            // Null-safe: use first non-null response, or placeholder if all are null
+            String representative = entry.getValue().stream()
+                    .map(ProviderVote::getResponse)
+                    .filter(r -> r != null && !r.isBlank())
+                    .findFirst()
+                    .orElse("[no content]");
+            int truncateLen = Math.min(200, representative.length());
+            context.append(representative, 0, truncateLen)
                    .append("...\n");
 
             // Add provider names
@@ -395,7 +396,84 @@ public class EnhancedMultiAIConsensusService {
     }
 
     /**
-     * Get discussion history.
+     * Trigger Multi-Agent Debate (MAD) to resolve a split consensus.
+     * Selects a "Judge" AI to evaluate conflicting responses.
+     */
+    private Mono<EnhancedConsensusResult> triggerDebate(String question, List<ProviderVote> votes, List<String> allProviders) {
+        log.info("🚀 Triggering Multi-Agent Debate (MAD) to resolve split consensus...");
+
+        // 1. Identify top 2 conflicting groups
+        Map<String, WeightedVoteGroup> groups = new LinkedHashMap<>();
+        for (ProviderVote vote : votes) {
+            groups.computeIfAbsent(normalizeResponse(vote.getResponse()), k -> new WeightedVoteGroup())
+                .addVote(vote, getProviderWeight(vote.getProviderName()));
+        }
+
+        List<WeightedVoteGroup> sortedGroups = groups.values().stream()
+            .sorted((g1, g2) -> Double.compare(g2.totalWeight, g1.totalWeight))
+            .limit(2)
+            .collect(Collectors.toList());
+
+        if (sortedGroups.size() < 2) {
+            return Mono.just(new EnhancedConsensusResult(question, votes.get(0).getResponse(), votes, 0.0, "SPLIT", 0, Map.of()));
+        }
+
+        // 2. Select a Judge using ranking-based selection — pick the highest-ranked
+        // provider from allProviders that is NOT already in the top 2 conflicting groups.
+        // Falls back to the first available provider if ranking data is unavailable.
+        Set<String> conflictingProviders = sortedGroups.stream()
+                .flatMap(g -> g.votes.stream().map(ProviderVote::getProviderName))
+                .collect(java.util.stream.Collectors.toSet());
+
+        String judgeName = allProviders.stream()
+                .filter(p -> !conflictingProviders.contains(p))
+                .max(Comparator.comparingDouble(p -> {
+                    AIRankingService.ProviderRanking ranking = aiRankingService.getRankingForProvider(p);
+                    return ranking.getSuccessRate();
+                }))
+                .orElse(allProviders.get(0)); // Fallback: first provider if no non-conflicting option
+        
+        String optionA = sortedGroups.get(0).getRepresentativeResponse();
+        String optionB = sortedGroups.get(1).getRepresentativeResponse();
+
+        String debatePrompt = String.format(
+            "Original Question: %s\n\n" +
+            "Two different solutions have been proposed by other AI agents:\n\n" +
+            "OPTION A:\n%s\n\n" +
+            "OPTION B:\n%s\n\n" +
+            "As the Supreme Judge, evaluate both options for accuracy, performance, and security. " +
+            "Choose the best one or provide an even better integrated solution. " +
+            "Start your response with 'JUDGMENT:' followed by your reasoning and final code.",
+            question, optionA, optionB
+        );
+
+        return Mono.fromCallable(() -> providerFactory.getProvider(judgeName))
+            .flatMap(judge -> judge.generate(debatePrompt))
+            .map(judgment -> {
+                log.info("⚖️ Judge {} has delivered a verdict.", judgeName);
+                
+                // Add the judge's verdict as a high-confidence vote
+                ProviderVote judgeVote = new ProviderVote(
+                    judgeName + " (JUDGE)",
+                    judgment,
+                    1.0, // High confidence for the verdict
+                    System.currentTimeMillis()
+                );
+                
+                List<ProviderVote> newVotes = new ArrayList<>(votes);
+                newVotes.add(judgeVote);
+                
+                Map<String, Object> metadata = new HashMap<>();
+                metadata.put("mad_resolved", true);
+                metadata.put("judge", judgeName);
+                
+                return new EnhancedConsensusResult(question, judgment, newVotes, 0.9, "DEBATED", 0, metadata);
+            })
+            .subscribeOn(Schedulers.boundedElastic());
+    }
+
+    /**
+     * Get recent discussion history.
      */
     public List<ConsensusVote> getHistory(int limit) {
         return history.stream()

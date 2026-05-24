@@ -43,7 +43,9 @@ public class ExternalServiceResilienceConfig {
     }
 
     /**
-     * Get or create circuit breaker for a provider
+     * Get or create a circuit breaker for a provider by name at runtime.
+     * Provider names are resolved from Firestore via the ProviderTypeRegistry —
+     * no provider brand name is hardcoded here.
      */
     @Bean
     public Function<String, CircuitBreaker> circuitBreakerProvider(CircuitBreakerRegistry registry) {
@@ -51,37 +53,5 @@ public class ExternalServiceResilienceConfig {
             log.info("Creating circuit breaker for provider: {}", name);
             return registry.circuitBreaker(name);
         });
-    }
-
-    /**
-     * OpenAI circuit breaker with specific configuration
-     */
-    @Bean(name = "openaiCircuitBreaker")
-    public CircuitBreaker openaiCircuitBreaker(CircuitBreakerRegistry registry) {
-        return registry.circuitBreaker("openai");
-    }
-
-    /**
-     * Groq circuit breaker - faster timeouts
-     */
-    @Bean(name = "groqCircuitBreaker")
-    public CircuitBreaker groqCircuitBreaker(CircuitBreakerRegistry registry) {
-        return registry.circuitBreaker("groq");
-    }
-
-    /**
-     * Local/Ollama circuit breaker
-     */
-    @Bean(name = "localCircuitBreaker")
-    public CircuitBreaker localCircuitBreaker(CircuitBreakerRegistry registry) {
-        return registry.circuitBreaker("local");
-    }
-
-    /**
-     * Anthropic circuit breaker
-     */
-    @Bean(name = "anthropicCircuitBreaker")
-    public CircuitBreaker anthropicCircuitBreaker(CircuitBreakerRegistry registry) {
-        return registry.circuitBreaker("anthropic");
     }
 }

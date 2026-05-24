@@ -27,7 +27,7 @@ public class ProviderMetadataService {
     @Autowired
     private ProviderRepository providerRepository;
 
-    @Autowired
+    @Autowired(required = false)
     private Firestore firestore;
 
     private final Map<String, APIProvider> metadataCache = new ConcurrentHashMap<>();
@@ -37,6 +37,10 @@ public class ProviderMetadataService {
     @PostConstruct
     public void init() {
         logger.info("Initializing ProviderMetadataService with real-time listener...");
+        if (firestore == null) {
+            logger.warn("Firestore is null (emulator not running or not configured) - ProviderMetadataService will use defaults");
+            return;
+        }
         try {
             this.listenerRegistration = firestore.collection("api_providers")
                     .addSnapshotListener(listenerExecutor, (snapshot, error) -> {

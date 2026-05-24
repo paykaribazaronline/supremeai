@@ -68,11 +68,11 @@ public class ProviderRoleSuggestionService {
             log.error("[RoleSuggestion] Failed to setup listener", e);
         }
 
-        roleKeywordsCache.put("coding", List.of("coder", "code", "deepseek", "llama-3-70b", "gpt-4"));
-        roleKeywordsCache.put("security", List.of("audit", "exploit", "security", "defense", "hacking"));
-        roleKeywordsCache.put("reasoning", List.of("o1", "pro", "large", "opus", "r1"));
-        roleKeywordsCache.put("fast_chat", List.of("flash", "mini", "haiku", "8b", "turbo"));
-        roleKeywordsCache.put("multimodal", List.of("vision", "audio", "omni", "gpt-4o", "gemini"));
+        roleKeywordsCache.put("coding", List.of("coder", "code", "codegen", "extension", "functions"));
+        roleKeywordsCache.put("security", List.of("audit", "exploit", "security", "defense", "hacking", "penetration", "cve", "vulnerability"));
+        roleKeywordsCache.put("reasoning", List.of("pro", "reasoning", "think", "complex", "logic", "arithmetic", "plan"));
+        roleKeywordsCache.put("fast_chat", List.of("flash", "mini", "light", "fast", "optimized", "compact"));
+        roleKeywordsCache.put("multimodal", List.of("vision", "audio", "omni", "picture", "image", "multimodal", "speech"));
     }
 
     @PreDestroy

@@ -372,12 +372,92 @@ public class QualityScoringService {
     }
 
     // Stub methods for automated test execution
-    private boolean testSyntaxValidation(Map<String, Object> config) { return true; }
-    private boolean testAuthentication(Map<String, Object> config) { return true; }
-    private boolean testEndpointConnectivity(Map<String, Object> config) { return true; }
-    private boolean testResponseParsing(Map<String, Object> config) { return true; }
-    private boolean testErrorHandling(Map<String, Object> config) { return true; }
-    private boolean testRateLimiting(Map<String, Object> config) { return true; }
+    private boolean testSyntaxValidation(Map<String, Object> config) {
+        if (config == null || config.isEmpty()) {
+            logger.warn("[QUALITY] Syntax validation failed: config is null or empty");
+            return false;
+        }
+        // Verify connector has a non-empty identifier
+        Object id = config.get("apiId");
+        if (id == null || id.toString().isBlank()) {
+            logger.warn("[QUALITY] Syntax validation failed: apiId missing or blank");
+            return false;
+        }
+        // Verify at least one defined section exists
+        boolean hasAnySection = config.containsKey("endpoints")
+                || config.containsKey("connectorConfig")
+                || config.containsKey("requestFormat")
+                || config.containsKey("schema");
+        if (!hasAnySection) {
+            logger.warn("[QUALITY] Syntax validation failed: no known config section found");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean testAuthentication(Map<String, Object> config) {
+        if (config == null || config.isEmpty()) return false;
+        String authType = (String) config.getOrDefault("authType", "");
+        Object authConfig = config.get("authConfig");
+        if (authType.isBlank()) {
+            logger.warn("[QUALITY] Authentication test failed: authType not specified");
+            return false;
+        }
+        if (authConfig == null || (!(authConfig instanceof Map<?,?>)
+                && !(authConfig instanceof String))) {
+            logger.warn("[QUALITY] Authentication test failed: authConfig missing or wrong type");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean testEndpointConnectivity(Map<String, Object> config) {
+        if (config == null) return false;
+        Object endpoints = config.get("endpoints");
+        if (!(endpoints instanceof List<?>) || ((List<?>) endpoints).isEmpty()) {
+            logger.warn("[QUALITY] Endpoint connectivity test failed: endpoints missing or empty list");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean testResponseParsing(Map<String, Object> config) {
+        if (config == null) return false;
+        String responseFormat = (String) config.getOrDefault("responseFormat",
+                config.get("responseType") != null ? config.get("responseType").toString() : "");
+        if (responseFormat.isBlank()) {
+            logger.warn("[QUALITY] Response parsing test failed: responseFormat not specified");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean testErrorHandling(Map<String, Object> config) {
+        if (config == null) return false;
+        boolean hasErrorFlag = Boolean.TRUE.equals(config.get("errorHandling"));
+        boolean hasRetryPolicy = config.containsKey("retryPolicy")
+                && config.get("retryPolicy") != null;
+        if (!hasErrorFlag && !hasRetryPolicy) {
+            logger.warn("[QUALITY] Error handling test failed: "
+                    + "neither errorHandling=true nor retryPolicy configured");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean testRateLimiting(Map<String, Object> config) {
+        if (config == null) return false;
+        boolean explicitRateLimit = Boolean.TRUE.equals(config.get("rateLimited"));
+        Object limitMs = config.get("rateLimitMs");
+        boolean hasRateLimitMs = limitMs instanceof Number
+                && ((Number) limitMs).intValue() > 0;
+        if (!explicitRateLimit && !hasRateLimitMs) {
+            logger.warn("[QUALITY] Rate limiting test failed: "
+                    + "rateLimited not true and rateLimitMs not set");
+            return false;
+        }
+        return true;
+    }
 
     private void updateReputationBasedOnTests(String apiId, boolean passed) {
         // Placeholder - in production would update contributor reputation

@@ -1,0 +1,6 @@
+{
+  "_comment": "VM model assignments for supremeai_mcp_server.py. No model name is hardcoded in Python.",
+  "coding": "qwen2.5-coder:7b",
+  "general": "llama3.1:8b",
+  "reasoning": "stepfun"
+}

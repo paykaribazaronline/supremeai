@@ -1,17 +1,26 @@
 package com.supremeai.controller;
 
+import com.supremeai.model.APIProvider;
+import com.supremeai.service.ProviderMetadataService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/api/providers")
 public class ProvidersSuggestionController {
 
+    @Autowired
+    private ProviderMetadataService providerMetadataService;
+
     /**
      * Model suggestion DTO returned to the frontend.
+     * All data comes from Firestore api_providers at runtime — no hardcoded defaults.
      */
     public static class ModelSuggestion {
         private String id;
@@ -31,42 +40,60 @@ public class ProvidersSuggestionController {
         }
 
         public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
         public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
         public String getProvider() { return provider; }
+        public void setProvider(String provider) { this.provider = provider; }
         public String getModel() { return model; }
+        public void setModel(String model) { this.model = model; }
         public String getEndpoint() { return endpoint; }
+        public void setEndpoint(String endpoint) { this.endpoint = endpoint; }
     }
 
-    private static final List<ModelSuggestion> COMMON_PROVIDERS = List.of(
-        new ModelSuggestion("openai", "OpenAI GPT-4o", "openai", "gpt-4o", "https://api.openai.com/v1/chat/completions"),
-        new ModelSuggestion("openai-mini", "OpenAI GPT-4o Mini", "openai", "gpt-4o-mini", "https://api.openai.com/v1/chat/completions"),
-        new ModelSuggestion("anthropic", "Anthropic Claude 3.5 Sonnet", "anthropic", "claude-3-5-sonnet-20240620", "https://api.anthropic.com/v1/messages"),
-        new ModelSuggestion("anthropic-opus", "Anthropic Claude 3 Opus", "anthropic", "claude-3-opus-20240229", "https://api.anthropic.com/v1/messages"),
-        new ModelSuggestion("groq", "Groq Llama 3 70B", "groq", "llama3-70b-8192", "https://api.groq.com/openai/v1/chat/completions"),
-        new ModelSuggestion("groq-mixtral", "Groq Mixtral 8x7B", "groq", "mixtral-8x7b-32768", "https://api.groq.com/openai/v1/chat/completions"),
-        new ModelSuggestion("gemini", "Google Gemini 1.5 Pro", "google", "gemini-1.5-pro", "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent"),
-        new ModelSuggestion("gemini-flash", "Google Gemini 1.5 Flash", "google", "gemini-1.5-flash", "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"),
-        new ModelSuggestion("cohere", "Cohere Command R+", "cohere", "command-r-plus", "https://api.cohere.ai/v1/chat"),
-        new ModelSuggestion("together", "Together Llama 3 70B", "together", "meta-llama/Meta-Llama-3-70B-Instruct-Turbo", "https://api.together.xyz/v1/chat/completions"),
-        new ModelSuggestion("deepseek", "DeepSeek V3", "deepseek", "deepseek-chat", "https://api.deepseek.com/chat/completions"),
-        new ModelSuggestion("openrouter", "OpenRouter GPT-4o", "openrouter", "openai/gpt-4o", "https://openrouter.ai/api/v1/chat/completions")
-    );
+    /**
+     * Convert an APIProvider from Firestore cache into a ModelSuggestion.
+     * No values are hardcoded — every field comes from the live metadata record.
+     */
+    private ModelSuggestion toSuggestion(APIProvider p) {
+        String model = null;
+        if (p.getModels() != null && !p.getModels().isEmpty()) {
+            model = p.getModels().get(0);
+        } else if (p.getModelName() != null && !p.getModelName().isBlank()) {
+            model = p.getModelName();
+        }
+        return new ModelSuggestion(
+            p.getId(),
+            p.getName() != null && !p.getName().isBlank() ? p.getName() : p.getId(),
+            p.getType(),
+            model,
+            p.getBaseUrl()
+        );
+    }
+
+    private List<ModelSuggestion> allSuggestions() {
+        Map<String, APIProvider> cache = providerMetadataService.getAllMetadata();
+        return cache.values().stream()
+                .filter(p -> p.getName() != null || p.getId() != null)
+                .map(this::toSuggestion)
+                .collect(Collectors.toList());
+    }
 
     @GetMapping("/suggest")
     public ResponseEntity<List<ModelSuggestion>> suggest(@RequestParam String q) {
         String query = q.toLowerCase();
-        List<ModelSuggestion> matches = COMMON_PROVIDERS.stream()
-            .filter(s -> 
-                s.getName().toLowerCase().contains(query) ||
-                s.getProvider().toLowerCase().contains(query) ||
-                s.getModel().toLowerCase().contains(query)
+        List<ModelSuggestion> matches = allSuggestions().stream()
+            .filter(s ->
+                (s.getName() != null && s.getName().toLowerCase().contains(query)) ||
+                (s.getProvider() != null && s.getProvider().toLowerCase().contains(query)) ||
+                (s.getModel() != null && s.getModel().toLowerCase().contains(query))
             )
-            .collect(java.util.stream.Collectors.toList());
+            .collect(Collectors.toList());
         return ResponseEntity.ok(matches);
     }
 
     @GetMapping("/templates")
     public ResponseEntity<List<ModelSuggestion>> allTemplates() {
-        return ResponseEntity.ok(COMMON_PROVIDERS);
+        return ResponseEntity.ok(allSuggestions());
     }
 }

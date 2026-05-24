@@ -20,6 +20,7 @@ import com.supremeai.util.FallbackConstants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import java.util.*;
@@ -78,6 +79,27 @@ public class MultiAIVotingService {
 
     // Dynamic model selection (no hardcoded limit)
     private static final int DEFAULT_MAX_VOTING_PROVIDERS = 10;
+
+    /**
+     * Playwright browser automation server URL (e.g. http://localhost:3001).
+     * Set via application property: supremeai.browser.automation-url
+     */
+    @Value("${supremeai.browser.automation-url:http://localhost:3001}")
+    private String playwrightAutomationUrl;
+
+    /**
+     * Maximum autonomous research steps per Solo Mode session.
+     * Set via application property: supremeai.solo.max-steps
+     */
+    @Value("${supremeai.solo.max-steps:5}")
+    private int soloMaxSteps;
+
+    /**
+     * Per-step timeout in milliseconds for Solo Mode Playwright research.
+     * Set via application property: supremeai.solo.step-timeout-ms
+     */
+    @Value("${supremeai.solo.step-timeout-ms:30000}")
+    private long soloStepTimeoutMs;
 
     public static final String[] ALL_PROVIDERS = {};
 
@@ -437,8 +459,142 @@ public class MultiAIVotingService {
                 });
     }
 
+    /**
+     * Solo Mode deep research using the Playwright browser automation server.
+     *
+     * <p>This method augments the existing {@link ActiveInternetScraper} results with
+     * full-page content extracted by a real Chromium browser. It works in two phases:
+     * <ol>
+     *   <li><b>Search</b> — uses DuckDuckGo HTML search to discover relevant URLs.</li>
+     *   <li><b>Deep-scrape</b> — navigates each discovered URL via Playwright, extracts
+     *       the full text content, and returns it as {@link ScrapedIssue} objects.</li>
+     * </ol>
+     *
+     * <p>The method is fully reactive, bounded by {@link #soloMaxSteps} and
+     * {@link #soloStepTimeoutMs}, and never throws — failures are caught and logged
+     * so Solo Mode always produces a response.
+     */
+    private Mono<List<ScrapedIssue>> playwrightResearch(String prompt, List<String> keywords) {
+        if (playwrightAutomationUrl == null || playwrightAutomationUrl.isBlank()) {
+            logger.debug("Playwright automation URL not configured — skipping deep research");
+            return Mono.just(List.of());
+        }
+
+        String query = (keywords != null && !keywords.isEmpty())
+                ? String.join(" ", keywords)
+                : prompt;
+
+        // Phase 1: Discover URLs via DuckDuckGo HTML search
+        String searchUrl = "https://html.duckduckgo.com/html/?q="
+                + java.net.URLEncoder.encode(query, java.nio.charset.StandardCharsets.UTF_8);
+
+        logger.info("[Solo Mode] Phase 1 — Playwright deep research for query: {}", query);
+
+        return webClientBuilder.build().get()
+                .uri(searchUrl)
+                .retrieve()
+                .bodyToMono(String.class)
+                .timeout(java.time.Duration.ofMillis(soloStepTimeoutMs))
+                .map(searchHtml -> extractUrlsFromDdg(searchHtml))
+                .flatMapMany(Flux::fromIterable)
+                .take(soloMaxSteps)
+                // Phase 2: Deep-scrape each URL via Playwright server
+                .flatMap(url -> deepScrapeUrl(url, prompt)
+                        .onErrorResume(e -> {
+                            logger.warn("[Solo Mode] Deep-scrape failed for {}: {}", url, e.getMessage());
+                            return Mono.empty();
+                        }))
+                .collectList()
+                .doOnSuccess(results -> logger.info(
+                        "[Solo Mode] Playwright deep research complete — {} pages extracted", results.size()))
+                .doOnError(e -> logger.warn("[Solo Mode] Playwright research failed: {}", e.getMessage()))
+                .onErrorResume(e -> Mono.just(List.of()));
+    }
+
+    /**
+     * Extracts result URLs from DuckDuckGo HTML search results.
+     * DDG wraps links in <a class="result__a" href="..."> elements.
+     */
+    private List<String> extractUrlsFromDdg(String html) {
+        List<String> urls = new ArrayList<>();
+        if (html == null || html.isBlank()) return urls;
+
+        String lower = html.toLowerCase();
+        int idx = 0;
+        while (urls.size() < soloMaxSteps) {
+            int aTag = lower.indexOf("class=\"result__a\"", idx);
+            if (aTag == -1) break;
+            int hrefStart = lower.indexOf("href=\"", aTag);
+            if (hrefStart == -1) break;
+            hrefStart += 6;
+            int hrefEnd = lower.indexOf('"', hrefStart);
+            if (hrefEnd == -1) break;
+            String url = html.substring(hrefStart, hrefEnd);
+            // DDG wraps external URLs in /l/?uddg=...
+            if (url.startsWith("/l/")) {
+                int uddgIdx = url.indexOf("uddg=");
+                if (uddgIdx != -1) {
+                    url = java.net.URLDecoder.decode(
+                            url.substring(uddgIdx + 5), java.nio.charset.StandardCharsets.UTF_8);
+                }
+            }
+            if (url.startsWith("http") && !url.contains("duckduckgo.com")) {
+                urls.add(url);
+            }
+            idx = hrefEnd;
+        }
+        return urls;
+    }
+
+    /**
+     * Navigates to a URL via the Playwright server and extracts the full page text.
+     * Returns a {@link ScrapedIssue} with the page title as the issue title and the
+     * extracted text as the solution.
+     */
+    private Mono<ScrapedIssue> deepScrapeUrl(String url, String prompt) {
+        return webClientBuilder.build().post()
+                .uri(playwrightAutomationUrl + "/navigate")
+                .bodyValue(Map.of("url", url))
+                .retrieve()
+                .bodyToMono(Void.class)
+                .timeout(java.time.Duration.ofMillis(soloStepTimeoutMs))
+                .then(Mono.delay(java.time.Duration.ofMillis(2000)))
+                .then(webClientBuilder.build().get()
+                        .uri(playwrightAutomationUrl + "/extract-text")
+                        .retrieve()
+                        .bodyToMono(Map.class)
+                        .timeout(java.time.Duration.ofMillis(soloStepTimeoutMs))
+                        .map(body -> {
+                            String text = body != null && body.get("text") != null
+                                    ? body.get("text").toString().trim()
+                                    : "";
+                            String title = url.replaceFirst("https?://", "")
+                                    .replaceFirst("/$", "")
+                                    .replaceFirst("www\\.", "");
+                            if (text.length() > 3000) {
+                                text = text.substring(0, 3000) + "...";
+                            }
+                            ScrapedIssue issue = new ScrapedIssue(
+                                    "Deep Research: " + title, text, "Playwright Browser");
+                            issue.setSourceAuthority(0.85);
+                            issue.setRawConfidence(0.80);
+                            return issue;
+                        }));
+    }
+
     private VotingResult executeSoloFallback(String prompt, List<ScrapedIssue> issues, long startTime) {
-        String synthesizedResponse = synthesizeSoloResponse(prompt, issues);
+        // Augment scraper issues with Playwright deep-research results
+        List<ScrapedIssue> allIssues = new ArrayList<>(issues);
+        playwrightResearch(prompt, extractKeywords(prompt))
+                .subscribe(playwrightIssues -> {
+                    if (playwrightIssues != null && !playwrightIssues.isEmpty()) {
+                        allIssues.addAll(playwrightIssues);
+                        logger.info("[Solo Mode] Merged {} Playwright deep-research issues with {} scraper issues",
+                                playwrightIssues.size(), issues.size());
+                    }
+                }, err -> logger.warn("[Solo Mode] Playwright research error (non-fatal): {}", err.getMessage()));
+
+        String synthesizedResponse = synthesizeSoloResponse(prompt, allIssues);
         enhancedLearningService.learnFromNLPInteraction(prompt, synthesizedResponse, "browser_autonomous_crawler", 0.85,
                 Map.of("mode", "browser_only")).subscribe();
         long duration = System.currentTimeMillis() - startTime;
@@ -730,7 +886,7 @@ public class MultiAIVotingService {
      * Replaces CouncilVotingSystem.conductVote
      */
     public Mono<Boolean> conductApprovalVote(String changeType, String codeSnippet,
-            List<AIProviderType> councilMembers) {
+            List<String> councilMembers) {
         logger.info("[Approval Voting] Initiating vote for major change: {}", changeType);
 
         VotingTopic topic = topicGenerator.generateTopicForMajorChange(changeType, codeSnippet);
@@ -989,9 +1145,9 @@ public class MultiAIVotingService {
         return new VotingResult(prompt, bestResponse, votes, avgConfidence, verdict, duration);
     }
 
-    private boolean simulateAIVote(AIProviderType member, VotingTopic topic) {
+    private boolean simulateAIVote(String member, VotingTopic topic) {
         // Simulate based on topic category and member
-        if (topic.getCategory().equals("SECURITY") && member.name().contains("CLAUDE")) {
+        if (topic.getCategory().equals("SECURITY") && member.toUpperCase().contains("CLAUDE")) {
             return Math.random() > 0.4;
         }
         return Math.random() > 0.2;
@@ -1375,13 +1531,16 @@ public class MultiAIVotingService {
         logger.info("Initiating Meta-Synthesis because consensus is weak/none. Verdict: {}",
                 initialResult.getVerdict());
 
-        // Choose primary orchestrator (gemini preferred, then openai, or any available)
-        String orchestratorName = "gemini";
-        if (!isModelAvailable(orchestratorName)) {
-            orchestratorName = "openai";
-            if (!isModelAvailable(orchestratorName)) {
-                return Mono.just(initialResult);
-            }
+        // Choose primary orchestrator from the first available active provider at runtime.
+        // Never hardcode a specific provider brand or model ID as the orchestrator.
+        String orchestratorName = providerRepository
+                .findByStatus("active")
+                .map(com.supremeai.model.APIProvider::getName)
+                .defaultIfEmpty("")
+                .next()
+                .block(java.time.Duration.ofSeconds(3));
+        if (orchestratorName == null || orchestratorName.isBlank() || !isModelAvailable(orchestratorName)) {
+            return Mono.just(initialResult);
         }
 
         final String finalOrchestrator = orchestratorName;
