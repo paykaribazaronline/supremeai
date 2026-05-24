@@ -48,7 +48,7 @@ class CreateMovieMovieInsert {
     return json;
   }
 
-  const CreateMovieMovieInsert({
+  CreateMovieMovieInsert({
     required this.id,
   });
 }
@@ -82,7 +82,7 @@ class CreateMovieData {
     return json;
   }
 
-  const CreateMovieData({
+  CreateMovieData({
     required this.movie_insert,
   });
 }
@@ -125,7 +125,7 @@ class CreateMovieVariables {
     return json;
   }
 
-  const CreateMovieVariables({
+  CreateMovieVariables({
     required this.title,
     required this.genre,
     required this.imageUrl,

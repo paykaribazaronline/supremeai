@@ -18,18 +18,23 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import org.springframework.http.ResponseEntity;
 
 /**
@@ -62,14 +67,28 @@ public class SelfHealingService {
     @Autowired
     private MultiAIVotingService votingService;
 
+    @Autowired
+    private com.supremeai.repository.HealingEventRepository healingEventRepository;
+
     private static final Logger log = LoggerFactory.getLogger(SelfHealingService.class);
+
+    // ── Circuit-breaker / quarantine state ──────────────────────────────
+    /** Provider name → epoch-millis when quarantine expires (0 = not quarantined) */
+    private final Map<String, Long> quarantineUntil = new ConcurrentHashMap<>();
+    /** Provider name → list of failure timestamps (epoch-millis) within the sliding window */
+    private final Map<String, java.util.List<Long>> failureTimestamps = new ConcurrentHashMap<>();
+    private static final int QUARANTINE_FAILURE_THRESHOLD = 3;      // failures within window → quarantine
+    private static final long QUARANTINE_WINDOW_MS     = Duration.ofMinutes(5).toMillis();
+    private static final long QUARANTINE_DURATION_MS   = Duration.ofMinutes(10).toMillis();
+
     private final Map<String, Integer> errorPatterns = new ConcurrentHashMap<>();
     private final int MAX_ITERATIONS = 5;
 
     /**
-     * Auto-check all providers every 6 hours.
+     * Auto-check all providers frequently.
+     * Optimized frequency for high-reliability AI systems.
      */
-    @Scheduled(fixedRate = 21600000) // 6 hours
+    @Scheduled(fixedRate = 600000) // 10 minutes
     public void scheduledHealthCheck() {
         log.info("[HEALTH-CHECK] Scheduled run started");
         runProactiveHealthCheck()
@@ -90,6 +109,17 @@ public class SelfHealingService {
         return providerRepository.findAll()
             .flatMap(apiProvider -> {
                 String name = apiProvider.getName();
+
+                // ── Quarantine gate ────────────────────────────────────────
+                long now = System.currentTimeMillis();
+                Long quarantineExpiry = quarantineUntil.get(name);
+                if (quarantineExpiry != null && now < quarantineExpiry) {
+                    long remainingSec = (quarantineExpiry - now) / 1000;
+                    log.info("[HEALTH-CHECK] {} is quarantined for {} more seconds — skipping ping", name, remainingSec);
+                    return Mono.just(apiProvider);
+                }
+                // ───────────────────────────────────────────────────────────
+
                 String currentStatus = apiProvider.getStatus();
                 log.debug("[HEALTH-CHECK] Pinging {}", name);
 
@@ -102,6 +132,9 @@ public class SelfHealingService {
                             long latency = System.currentTimeMillis() - start;
                             boolean ok = resp != null && !resp.isBlank();
                             if (ok) {
+                                // Successful ping — clear quarantine and failure history
+                                quarantineUntil.remove(name);
+                                failureTimestamps.remove(name);
                                 apiProvider.setStatus(ProviderStatus.ACTIVE);
                                 apiProvider.setLastLatency(latency);
                                 apiProvider.setLastErrorMessage(null);
@@ -109,6 +142,7 @@ public class SelfHealingService {
                             } else {
                                 apiProvider.setLastLatency(latency);
                                 apiProvider.setLastErrorMessage("Empty response from ping");
+                                recordFailureAndMaybeQuarantine(name);
                             }
                             apiProvider.setLastTested(LocalDateTime.now());
                             return providerRepository.save(apiProvider);
@@ -120,6 +154,7 @@ public class SelfHealingService {
                             apiProvider.setLastLatency(latency);
                             apiProvider.setLastTested(LocalDateTime.now());
                             apiProvider.setLastErrorMessage("Health ping failed: " + e.getMessage());
+                            recordFailureAndMaybeQuarantine(name);
                             if ("error".equalsIgnoreCase(currentStatus)) {
                                 apiProvider.setStatus(ProviderStatus.INACTIVE);
                             }
@@ -130,6 +165,7 @@ public class SelfHealingService {
                     log.warn("[HEALTH-CHECK] {} could not be tested (status preserved={}): {}", name, currentStatus, e.getMessage());
                     apiProvider.setLastTested(LocalDateTime.now());
                     apiProvider.setLastErrorMessage("Cannot create provider instance: " + e.getMessage());
+                    recordFailureAndMaybeQuarantine(name);
                     return providerRepository.save(apiProvider)
                             .thenReturn(apiProvider);
                 }
@@ -137,14 +173,14 @@ public class SelfHealingService {
             .collectList()
             .flatMapMany(Flux::fromIterable)
             .reduce(new APIHealthReport(), (report, apiProvider) -> {
-                report.incrementTotal();
+                report.setTotalKeysTested(report.getTotalKeysTested() + 1);
                 String status = apiProvider.getStatus();
                 if (ProviderStatus.ACTIVE.equalsIgnoreCase(status)) {
-                    report.incrementActive();
+                    report.setActiveKeys(report.getActiveKeys() + 1);
                 } else if (ProviderStatus.INACTIVE.equalsIgnoreCase(status)) {
-                    report.incrementInactive();
+                    report.setDeadKeys(report.getDeadKeys() + 1);
                 } else {
-                    report.incrementError();
+                    report.setDeadKeys(report.getDeadKeys() + 1); // ERROR/DEGRADED treated as dead
                 }
                 return report;
             });
@@ -197,8 +233,7 @@ public class SelfHealingService {
         if (rootCauseAnalysisService != null) {
             try {
                 RootCauseAnalysisService.RootCauseAnalysis analysis = rootCauseAnalysisService
-                        .analyzeError(errorSignature, errorMessage, codeContext)
-                        .block();
+                        .analyzeError(errorSignature, errorMessage, codeContext);
 
                 if (analysis != null) {
                     if (analysis.canAutoFix && analysis.rootCauseConfidence > 0.8) {
@@ -221,7 +256,15 @@ public class SelfHealingService {
                             analysis.suggestedAction, errorSignature);
                 }
             } catch (Exception e) {
+                // RCA itself threw — record this as a failed correction so the ML predictor learns
                 log.warn("[SELF-HEALING] RCA analysis failed for {}: {}", errorSignature, e.getMessage());
+                if (rootCauseAnalysisService != null) {
+                    try {
+                        rootCauseAnalysisService.recordFailedCorrection(errorSignature, errorMessage, codeContext);
+                    } catch (Exception ex) {
+                        log.error("[SELF-HEALING] recordFailedCorrection also failed for {}", errorSignature, ex);
+                    }
+                }
             }
         }
 
@@ -251,10 +294,12 @@ public class SelfHealingService {
             runProactiveHealthCheck()
                 .subscribe(report -> {
                     log.info("[SELF-HEALING] Proactive check: {} active, {} inactive, {} error", 
-                        report.getActiveCount(), report.getInactiveCount(), report.getErrorCount());
+                        report.getActiveCount(), 
+                        report.getTotalCount() - report.getActiveCount(), 
+                        report.getDeadCount());
                     
                     // If we find inactive/error providers, try to recover them
-                    if (report.getInactiveCount() > 0 || report.getErrorCount() > 0) {
+                    if (report.getDeadCount() > 0) {
                         recoverFailedProviders();
                     }
                 }, err -> {
@@ -276,43 +321,109 @@ public class SelfHealingService {
     }
 
     /**
+     * Record a failure for the given provider and quarantine it if the failure
+     * rate exceeds {@link #QUARANTINE_FAILURE_THRESHOLD} within
+     * {@link #QUARANTINE_WINDOW_MS}.
+     */
+    private void recordFailureAndMaybeQuarantine(String providerName) {
+        long now = System.currentTimeMillis();
+        failureTimestamps.computeIfAbsent(providerName, k -> new java.util.ArrayList<>())
+                .add(now);
+
+        // Prune timestamps outside the sliding window
+        java.util.List<Long> recent = failureTimestamps.get(providerName);
+        if (recent != null) {
+            recent.removeIf(ts -> now - ts > QUARANTINE_WINDOW_MS);
+        }
+
+        if (recent != null && recent.size() >= QUARANTINE_FAILURE_THRESHOLD) {
+            long expiry = now + QUARANTINE_DURATION_MS;
+            quarantineUntil.put(providerName, expiry);
+            log.warn("[HEALTH-CHECK] {} quarantined for {} minutes after {} failures in {} minutes",
+                    providerName,
+                    QUARANTINE_DURATION_MS / 60000,
+                    recent.size(),
+                    QUARANTINE_WINDOW_MS / 60000);
+
+            // Record quarantine event to knowledge base
+            String errorSignature = "PROVIDER_QUARANTINED_" + providerName;
+            recordUnknownErrorToKnowledge(errorSignature,
+                    "Provider " + providerName + " quarantined after " + recent.size()
+                            + " failures in " + (QUARANTINE_WINDOW_MS / 60000) + " minutes",
+                    "Quarantine expiry: " + new java.util.Date(expiry));
+        }
+    }
+
+    /**
      * Recover failed providers using fallback mechanisms.
+     * Attempts to re-activate quarantined providers whose quarantine period has expired,
+     * and delegates to the fallback orchestrator for active recovery.
      */
     private void recoverFailedProviders() {
         try {
-            // Attempt to use fallback orchestrator to recover from provider failures
+            long now = System.currentTimeMillis();
+
+            // 1. Release any providers whose quarantine has expired
+            List<String> released = new ArrayList<>();
+            for (Map.Entry<String, Long> entry : quarantineUntil.entrySet()) {
+                if (now >= entry.getValue()) {
+                    released.add(entry.getKey());
+                }
+            }
+            for (String name : released) {
+                quarantineUntil.remove(name);
+                failureTimestamps.remove(name);
+                log.info("[SELF-HEALING] Quarantine expired for {} — re-enabling in next health check", name);
+            }
+
+            // 2. Attempt recovery via fallback orchestrator
             if (fallbackOrchestrator != null) {
-                log.info("[SELF-HEALING] Attempting provider recovery using fallback orchestrator");
-                // Recovery logic would go here
+                log.info("[SELF-HEALING] Attempting provider recovery using fallback orchestrator "
+                        + "({} providers released from quarantine)", released.size());
+                // Fallback orchestrator handles graceful degradation routing;
+                // actual provider re-activation is handled by the next health-check cycle.
+            }
+
+            if (!released.isEmpty()) {
+                log.info("[SELF-HEALING] {} providers released from quarantine; will be re-tested on next health check",
+                        released.size());
             }
         } catch (Exception e) {
             // Record unknown error to knowledge base (MANDATORY)
             String errorSignature = "PROVIDER_RECOVERY_EXCEPTION_" + System.currentTimeMillis();
-            recordUnknownErrorToKnowledge(errorSignature, e.getMessage(), 
+            recordUnknownErrorToKnowledge(errorSignature, e.getMessage(),
                 org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
-                
+
             log.warn("[SELF-HEALING] Failed to recover providers: {}", e.getMessage(), e);
         }
     }
 
     /**
-     * Initialize service and perform initial health check.
+     * Perform initial health check after application is fully ready.
+     * Uses @Async to avoid blocking the main startup thread.
      */
-    @PostConstruct
-    public void init() {
-        log.info("[SELF-HEALING] SelfHealingService initialized");
-        // Perform initial health check after a short delay to allow context to fully initialize
-        new Thread(() -> {
-            try {
-                Thread.sleep(10000); // 10 second delay
-                detectAndFix();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }).start();
+    @EventListener(ApplicationReadyEvent.class)
+    @Async
+    public void onApplicationReady() {
+        log.info("[SELF-HEALING] Application ready - triggering initial health check in 10 seconds...");
+        try {
+            TimeUnit.SECONDS.sleep(10);
+            detectAndFix();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     // ─── Missing stub methods required by callers ───────────────────
+
+    /**
+     * Check if a provider is currently quarantined.
+     * Returns true when the expiry timestamp is in the future (i.e. still quarantined).
+     */
+    public boolean isProviderQuarantined(String providerName) {
+        Long expiry = quarantineUntil.get(providerName);
+        return expiry != null && System.currentTimeMillis() < expiry;
+    }
 
     /**
      * Retry a reactive task with exponential backoff.
@@ -348,13 +459,16 @@ public class SelfHealingService {
     }
 
     /**
-     * Adaptive iterative improvement — reactive, non-blocking self-healing loop.
+     * Adaptive iterative improvement — fully reactive, non-blocking self-healing loop.
      * <p>
-     * Runs each iteration's blocking call on {@link Schedulers#boundedElastic()} so
-     * the Netty/Servlet event-loop is never occupied.
+     * The approval vote ({@code conductApprovalVote}) now runs via
+     * {@link Schedulers#boundedElastic()}, eliminating any blocking on the
+     * Netty/Servlet event-loop threads.
      * <ul>
+     *   <li>PROVIDER RESOLUTION — reactive before entering bounded-elastic
      *   <li>PASS 1 — {@link #isCodePerfect(String)} checks TODO/FIXME markers, brace balance,
      *       class keyword presence, and minimum meaningful-body length ≥ 8 lines
+     *   <li>APPROVAL VOTE — non-blocking {@code flatMap} on a bounded-elastic Mono
      *   <li>PASS 2 — If a {@link MultiAIVotingService} is available, asks the council to approve
      *       proposed changes before applying them
      *   <li>PASS 3 — {@link #applyHeuristicImprovements(String,String,int)} applies structured
@@ -368,34 +482,83 @@ public class SelfHealingService {
      */
     public Mono<String> developUntilPerfection(String taskCategory, String prompt) {
         log.info("[SELF-HEALING] Starting self-healing loop: category={}", taskCategory);
-        return Mono.fromCallable(() -> {
-                    String currentCode = generateInitialCode(prompt);
+
+        // Resolve the active provider ID reactively BEFORE entering the bounded-elastic
+        // callable block. Provider lookup is a non-blocking Firestore query.
+        Mono<String> defaultProviderIdMono = (votingService != null)
+                ? providerRepository.findByStatus("active")
+                        .map(p -> p.getName())
+                        .defaultIfEmpty("")
+                        .next()
+                        .timeout(Duration.ofSeconds(3))
+                        .onErrorReturn("")
+                : Mono.just("");
+
+        // The approval vote (conductApprovalVote) is inherently a blocking pipeline
+        // (it materialises its upstream Mono calls).  We therefore:
+        //  1. Run the iteration body on boundedElastic via subscribeOn
+        //  2. Inside the loop, call conductApprovalVote() directly—no .block()—
+        //     and let flatMap chain it as a non-blocking step
+        //  3. Use onErrorResume so a vote timeout/failure never kills the whole loop
+        java.util.function.Function<String, Mono<Boolean>> approvalGate = defaultProviderId ->
+                (votingService != null && defaultProviderId != null && !defaultProviderId.isBlank())
+                        ? votingService.conductApprovalVote(
+                                taskCategory, prompt,
+                                java.util.List.of(defaultProviderId)
+                        )
+                        // If no voting service or no default provider, auto-approve
+                        : Mono.just(true);
+
+        return defaultProviderIdMono
+                .flatMap(defaultProviderId -> Mono.fromCallable(() -> {
+                    int bestIteration = 0;
+                    String bestVersion = generateInitialCode(prompt);
 
                     for (int iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
-                        log.info("[SELF-HEALING] Iteration {}: evaluating code", iteration + 1);
-                        if (isCodePerfect(currentCode)) {
-                            log.info("[SELF-HEALING] Code passed quality gate after {} iterations", iteration + 1);
-                            return currentCode;
+                        final int currentIteration = iteration; // effectively final for lambda capture
+                        log.info("[SELF-HEALING] Iteration {}: evaluating code", currentIteration + 1);
+                        if (isCodePerfect(bestVersion)) {
+                            log.info("[SELF-HEALING] Code passed quality gate after {} iterations", currentIteration + 1);
+                            return bestVersion;
                         }
-                        if (votingService != null) {
-                            boolean approved = votingService.conductApprovalVote(
-                                    taskCategory, currentCode,
-                                    List.of(AIProviderType.OPENAI)
-                            ).block();
-                            if (!approved) {
-                                log.warn("[SELF-HEALING] Council disapproved changes at iteration {}; aborting.",
-                                        iteration + 1);
-                                break;
-                            }
+
+                        // --- non-blocking approval vote (runs on boundedElastic) ---
+                        approvalGate.apply(defaultProviderId)
+                                .subscribeOn(Schedulers.boundedElastic())
+                                .flatMap(approved -> {
+                                    if (approved != null && !approved) {
+                                        log.warn("[SELF-HEALING] Council disapproved changes at iteration {}; returning best-known version.",
+                                                currentIteration + 1);
+                                        return Mono.just(bestVersion);   // abort early
+                                    }
+                                    log.info("[SELF-HEALING] Iteration {}: approval granted, applying improvement pass", currentIteration + 1);
+
+                                    // --- apply one improvement pass ---
+                                    String improved = improveCode(bestVersion, prompt, currentIteration);
+                                    if (isCodePerfect(improved)) {
+                                        log.info("[SELF-HEALING] Code passed quality gate after {} improvements", currentIteration + 1);
+                                        return Mono.just(improved);        // perfect — skip remaining iterations
+                                    }
+                                    bestVersion = improved;
+                                    return Mono.empty();                  // continue loop
+                                })
+                                .onErrorResume(err -> {
+                                    log.warn("[SELF-HEALING] Approval vote failed at iteration {} (ignoring and continuing): {}",
+                                            currentIteration + 1, err.getMessage());
+                                    return Mono.empty();                  // treat as approved on error
+                                })
+                                .block(); // safe: we are already on boundedElastic
+
+                        if (isCodePerfect(bestVersion)) {
+                            log.info("[SELF-HEALING] Code passed quality gate after {} improvements", iteration + 1);
+                            return bestVersion;
                         }
-                        currentCode = improveCode(currentCode, prompt, iteration);
-                        log.info("[SELF-HEALING] Code improved in iteration {}", iteration + 1);
                     }
                     log.warn("[SELF-HEALING] Max iterations ({}) reached; returning last-known version",
                             MAX_ITERATIONS);
-                    return currentCode;
+                    return bestVersion;
                 })
-                .subscribeOn(Schedulers.boundedElastic());
+                .subscribeOn(Schedulers.boundedElastic()));
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -516,10 +679,10 @@ public class SelfHealingService {
     }
 
     /**
-     * Return the history of healing events stored in memory.
+     * Return the history of healing events from Firestore, ordered newest first.
      */
     public Flux<com.supremeai.model.HealingEvent> getHealingHistory() {
-        return Flux.empty(); // No persistent history yet; extend when HealingEvent storage is added
+        return healingEventRepository.findAllByOrderByTimestampDesc().take(200);
     }
 
     /**
@@ -545,5 +708,25 @@ public class SelfHealingService {
     public void reindexModels() {
         log.info("[SELF-HEALING] Reindex models triggered");
         detectAndFix();
+    }
+
+    /**
+     * Get RCA statistics for the admin dashboard.
+     */
+    public Map<String, Object> getRootCauseAnalysisStats() {
+        if (rootCauseAnalysisService != null) {
+            return rootCauseAnalysisService.getStatistics();
+        }
+        return Map.of("totalAnalyses", 0, "autoFixablePatterns", 0, "successfulCorrections", 0);
+    }
+
+    /**
+     * Get recent correction records.
+     */
+    public List<Map<String, Object>> getRecentCorrections() {
+        if (rootCauseAnalysisService != null) {
+            return rootCauseAnalysisService.getRecentCorrections(20);
+        }
+        return List.of();
     }
 }

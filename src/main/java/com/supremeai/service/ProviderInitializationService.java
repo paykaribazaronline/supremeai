@@ -37,21 +37,22 @@ public class ProviderInitializationService {
     @Value("${ai.providers.ollama.endpoint:http://localhost:11434}")
     private String ollamaEndpoint;
 
+    /**
+     * Infer a provider type category from the provider name.
+     * Uses dynamic registry as authoritative source — returns "generic" typeId
+     * that maps to entry in {@code provider_types} Firestore collection.
+     */
     private String determineType(String name) {
-        if (name == null) return "GENERIC";
+        if (name == null) return "generic";
         String n = name.toUpperCase();
-        if (n.contains("GEMINI")) return "GOOGLE";
-        if (n.contains("OPENAI") || n.contains("GPT")) return "OPENAI";
-        if (n.contains("ANTHROPIC") || n.contains("CLAUDE")) return "ANTHROPIC";
-        if (n.contains("GROQ")) return "GROQ";
-        if (n.contains("DEEPSEEK")) return "DEEPSEEK";
-        if (n.contains("MISTRAL")) return "MISTRAL";
-        if (n.contains("KIMI")) return "KIMI";
-        if (n.contains("STEPFUN") || n.contains("STEP")) return "STEPFUN";
-        if (n.contains("CODEGEEX")) return "CODEGEEX";
-        if (n.contains("HUGGINGFACE")) return "HUGGINGFACE";
-        if (n.contains("OLLAMA")) return "LOCAL";
-        return "GENERIC";
+        if (n.contains("GEMINI") || n.contains("GOOGLE"))   return "google";
+        if (n.contains("OPENAI") || n.contains("GPT"))          return "openai";
+        if (n.contains("ANTHROPIC") || n.contains("CLAUDE"))    return "anthropic";
+        if (n.contains("GROQ"))                                  return "groq";
+        if (n.contains("DEEPSEEK"))                              return "deepseek";
+        if (n.contains("MISTRAL"))                               return "mistral";
+        if (n.contains("OLLAMA") || n.contains("LOCAL"))         return "ollama";
+        return "generic";
     }
 
     /**

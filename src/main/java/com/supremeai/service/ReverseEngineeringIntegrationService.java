@@ -61,30 +61,39 @@ public class ReverseEngineeringIntegrationService {
                     logger.warn("[ReverseEngIntegration] Job {} is in status {}, cannot integrate yet", jobId, job.getStatus());
                     return Mono.empty();
                 }
+                
+                Mono<ReverseEngineeringJob> jobMono;
+                if (job.getStartedAt() == null) {
+                    job.setStartedAt(new Date());
+                    jobMono = jobRepository.save(job);
+                } else {
+                    jobMono = Mono.just(job);
+                }
 
-                // Build requirements from discovered APIs
-                String requirements = buildRequirementsFromJob(job);
-                Map<String, Object> apis = job.getDiscoveredApis();
+                return jobMono.flatMap(savedJob -> {
+                    // Build requirements from discovered APIs
+                    String requirements = buildRequirementsFromJob(savedJob);
+                    Map<String, Object> apis = savedJob.getDiscoveredApis();
 
-                // Prepare entities from API endpoints
-                List<EntityDefinition> entities = extractEntitiesFromApis(apis);
+                    // Prepare entities from API endpoints
+                    List<EntityDefinition> entities = extractEntitiesFromApis(apis);
 
-                // Trigger code generation with AI
-                // Note: CodeGenerationService.generateAppWithAI is currently synchronous, wrapping in Mono.fromCallable or defer if needed
-                return Mono.fromCallable(() -> codeGenerationService.generateAppWithAI(
-                    "API Integration: " + job.getWebsiteUrl(),
-                    requirements,
-                    entities,
-                    "PostgreSQL",
-                    "JWT"
-                )).flatMap(result -> {
-                    String appId = (String) result.get("appId");
-                    job.setGeneratedAppId(appId);
-                    job.setStatus("INTEGRATED");
-                    job.setUpdatedAt(new Date());
-                    
-                    return jobRepository.save(job)
-                        .doOnNext(savedJob -> logger.info("[ReverseEngIntegration] Successfully integrated job {} into app {}", jobId, appId));
+                    // Trigger code generation with AI
+                    return Mono.fromCallable(() -> codeGenerationService.generateAppWithAI(
+                        "API Integration: " + savedJob.getWebsiteUrl(),
+                        requirements,
+                        entities,
+                        "PostgreSQL",
+                        "JWT"
+                    )).flatMap(result -> {
+                        String appId = (String) result.get("appId");
+                        savedJob.setGeneratedAppId(appId);
+                        savedJob.setStatus("INTEGRATED");
+                        savedJob.setUpdatedAt(new Date());
+                        
+                        return jobRepository.save(savedJob)
+                            .doOnNext(sj -> logger.info("[ReverseEngIntegration] Successfully integrated job {} into app {}", jobId, appId));
+                    });
                 });
             });
     }
@@ -140,6 +149,7 @@ public class ReverseEngineeringIntegrationService {
         job.setCustomInstructions(customInstructions);
         job.setStatus("PENDING");
         job.setCreatedAt(new Date());
+        job.setStartedAt(null);
         
         return jobRepository.save(job)
             .doOnNext(saved -> {

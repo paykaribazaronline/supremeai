@@ -14,7 +14,8 @@ SupremeAI Studio is an enterprise-grade multi-agent platform designed for automa
 
 ## 🚀 Quick Start
 1. **Infrastructure**: Follow [GOOGLE_ACQUISITION_PLAN.md](GOOGLE_ACQUISITION_PLAN.md) for GKE setup.
-2. **Backend**: `./gradlew bootRun` (Requires Java 21 & Virtual Threads).
+2. **JDK 21**: Install via SDKMAN: `curl -s "https://get.sdkman.io" | bash && source "$HOME/.sdkman/bin/sdkman-init.sh" && sdk install java 21.0.5-tem`
+3. **Backend**: `./gradlew bootRun` (Requires Java 21 & Virtual Threads).
 3. **Studio**: `cd dashboard && npm run dev` (Available at http://localhost:5173).
 4. **Secrets**: Ensure `SUPREMEAI_API_KEY` is set in Secret Manager.
 

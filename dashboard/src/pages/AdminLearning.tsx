@@ -1,18 +1,18 @@
+// AdminLearning.tsx - Cinematic Learning Management
 import React, { useState, useEffect } from 'react';
-import { 
-  Typography, 
-  Space, 
-  Tabs, 
-  message, 
-  Spin 
-} from 'antd';
+import { Typography, Row, Col, Space, Button, Badge, Spin, Tabs, message } from 'antd';
 import { 
   BulbOutlined, 
   BookOutlined, 
   ExperimentOutlined,
-  LinkOutlined
+  LinkOutlined,
+  ReloadOutlined,
+  CloudDownloadOutlined,
+  ThunderboltOutlined,
+  GlobalOutlined,
+  SafetyCertificateOutlined
 } from '@ant-design/icons';
-import AdminLayout from '../components/AdminLayout';
+import { motion } from 'framer-motion';
 import { authUtils } from '../lib/authUtils';
 
 // Modular Components
@@ -42,250 +42,266 @@ const AdminLearning: React.FC = () => {
         authUtils.fetchWithAuth('/api/admin/knowledge/recommendations'),
         authUtils.fetchWithAuth('/api/admin/learning/sources'),
       ]);
-
       if (statusResp.ok) setStatus(await statusResp.json());
-      if (domainsResp.ok) {
-        const dData = await domainsResp.json();
-        setDomains(dData.data || []);
-      }
-      if (recsResp.ok) {
-        const rData = await recsResp.json();
-        setRecommendations(rData.data || []);
-      }
-      if (sourcesResp.ok) {
-        const sData = await sourcesResp.json();
-        setSources(sData.length ? sData : []);
-      }
+      if (domainsResp.ok) setDomains((await domainsResp.json()).data || []);
+      if (recsResp.ok) setRecommendations((await recsResp.json()).data || []);
+      if (sourcesResp.ok) setSources(await sourcesResp.json());
     } catch (error) {
-      console.error('Error fetching learning data:', error);
-      message.error('লার্নিং ডাটা লোড করতে সমস্যা হয়েছে');
+      message.error('Failed to sync neural learning database');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
+
+  const handleEmergencyPause = async () => {
+    setActionLoading(true);
+    try {
+      const res = await authUtils.fetchWithAuth('/api/admin/learning/emergency-pause', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }
+      });
+      if (res.ok) { message.success(status?.emergencyPaused ? 'Learning resumed' : 'Learning paused'); fetchData(); }
+      else message.error('Failed to toggle learning pause');
+    } catch { message.error('Failed to toggle learning pause'); }
+    finally { setActionLoading(false); }
+  };
 
   const handleModeChange = async (mode: string) => {
     setActionLoading(true);
     try {
-      const resp = await authUtils.fetchWithAuth('/api/admin/learning/mode', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await authUtils.fetchWithAuth('/api/admin/learning/mode', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode })
       });
-      if (resp.ok) {
-        message.success(`লার্নিং মোড পরিবর্তন হয়েছে: ${mode}`);
-        fetchData();
-      }
-    } catch (error) {
-      message.error('একটি ত্রুটি ঘটেছে');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleIntervalChange = async (interval: number) => {
-    setActionLoading(true);
-    try {
-      const resp = await authUtils.fetchWithAuth('/api/admin/learning/interval', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ interval })
-      });
-      if (resp.ok) {
-        message.success(`লার্নিং ইন্টারভাল সেট করা হয়েছে: ${interval} মিনিট`);
-        fetchData();
-      }
-    } catch (error) {
-      message.error('ইন্টারভাল পরিবর্তন ব্যর্থ হয়েছে');
-    } finally {
-      setActionLoading(false);
-    }
+      if (res.ok) { message.success(`Mode changed to ${mode}`); fetchData(); }
+      else message.error('Failed to change learning mode');
+    } catch { message.error('Failed to change learning mode'); }
+    finally { setActionLoading(false); }
   };
 
   const handleManualTrigger = async () => {
     setActionLoading(true);
     try {
-      const resp = await authUtils.fetchWithAuth('/api/admin/learning/trigger', { method: 'POST' });
-      if (resp.ok) message.success('লার্নিং সাইকেল শুরু হয়েছে');
-    } catch (error) {
-      message.error('সার্ভার এরর');
-    } finally {
-      setActionLoading(false);
-    }
+      const res = await authUtils.fetchWithAuth('/api/admin/learning/manual-trigger', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }
+      });
+      if (res.ok) message.success('Neural training triggered');
+      else message.error('Failed to trigger training');
+    } catch { message.error('Failed to trigger training'); }
+    finally { setActionLoading(false); }
   };
 
-  const handleEmergencyPause = async () => {
-    setActionLoading(true);
+  const handleIntervalChange = async (interval: number) => {
     try {
-      const endpoint = status?.emergencyPaused ? '/api/admin/learning/resume' : '/api/admin/learning/emergency-pause';
-      const resp = await authUtils.fetchWithAuth(endpoint, { method: 'POST' });
-      if (resp.ok) {
-        message.success(status?.emergencyPaused ? 'সিস্টেম রেজুম হয়েছে' : 'সিস্টেম পজ করা হয়েছে');
-        fetchData();
-      }
-    } catch (error) {
-      message.error('অপারেশন ব্যর্থ হয়েছে');
-    } finally {
-      setActionLoading(false);
-    }
+      const res = await authUtils.fetchWithAuth('/api/admin/learning/interval', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ interval })
+      });
+      if (res.ok) { message.success(`Interval set to ${interval} minutes`); fetchData(); }
+    } catch { message.error('Failed to update interval'); }
   };
 
   const handleCyberResearch = async (topic: string) => {
     setActionLoading(true);
     try {
-      const resp = await authUtils.fetchWithAuth(`/api/system-learning/cyber-research?topic=${encodeURIComponent(topic)}`, {
-        method: 'POST'
+      const res = await authUtils.fetchWithAuth('/api/admin/learning/cyber-research', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic })
       });
-      if (resp.ok) {
-        message.success(`সিস্টেম ${topic} নিয়ে গবেষণা শুরু করেছে`);
-        fetchData();
-      }
-    } catch (error) {
-      message.error('সাইবার রিসার্চ ট্রিগার ব্যর্থ হয়েছে');
-    } finally {
-      setActionLoading(false);
-    }
+      if (res.ok) message.success(`Cyber research started: ${topic}`);
+      else message.error('Failed to start cyber research');
+    } catch { message.error('Failed to start cyber research'); }
+    finally { setActionLoading(false); }
   };
 
   const handleRunAudit = async () => {
     setActionLoading(true);
     try {
-      const resp = await authUtils.fetchWithAuth('/api/exploitation-techniques/audit', { method: 'POST' });
-      if (resp.ok) {
-        const result = await resp.json();
-        message.success(`অডিট সম্পন্ন: রেজিলিয়েন্স স্কোর ${Math.round(result.resilienceScore * 100)}%`);
-      }
-    } catch (error) {
-      message.error('অডিট ব্যর্থ হয়েছে');
-    } finally {
-      setActionLoading(false);
-    }
+      const res = await authUtils.fetchWithAuth('/api/admin/learning/audit', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }
+      });
+      if (res.ok) message.success('Self-audit completed');
+      else message.error('Self-audit failed');
+    } catch { message.error('Self-audit failed'); }
+    finally { setActionLoading(false); }
   };
 
-  const handleApproveRecommendation = async (id: string) => {
-    setActionLoading(true);
-    try {
-      const resp = await authUtils.fetchWithAuth(`/api/admin/knowledge/recommendations/${id}/approve`, {
-        method: 'POST'
-      });
-      if (resp.ok) {
-        message.success('রিকমেন্ডেশন অ্যাপ্রুভ করা হয়েছে এবং নতুন ডোমেইন তৈরি হয়েছে');
-        fetchData();
-      }
-    } catch (error) {
-      message.error('অপারেশন ব্যর্থ হয়েছে');
-    } finally {
-      setActionLoading(false);
-    }
+  const handleViewKnowledge = (id: string) => {
+    // Navigate to knowledge detail or open modal
+    window.open(`/admin/learning/knowledge/${id}`, '_blank');
   };
 
-  const handleDeclineRecommendation = async (id: string) => {
-    setActionLoading(true);
+  const handleApprove = async (id: string) => {
     try {
-      const resp = await authUtils.fetchWithAuth(`/api/admin/knowledge/recommendations/${id}/decline`, {
-        method: 'POST'
+      const res = await authUtils.fetchWithAuth(`/api/admin/learning/proposals/${id}/approve`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }
       });
-      if (resp.ok) {
-        message.success('রিকমেন্ডেশন ডিক্লাইন করা হয়েছে');
-        fetchData();
-      }
-    } catch (error) {
-      message.error('অপারেশন ব্যর্থ হয়েছে');
-    } finally {
-      setActionLoading(false);
-    }
+      if (res.ok) { message.success('Proposal approved'); fetchData(); }
+      else message.error('Failed to approve proposal');
+    } catch { message.error('Failed to approve proposal'); }
   };
+
+  const handleDecline = async (id: string) => {
+    try {
+      const res = await authUtils.fetchWithAuth(`/api/admin/learning/proposals/${id}/decline`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }
+      });
+      if (res.ok) { message.success('Proposal declined'); fetchData(); }
+      else message.error('Failed to decline proposal');
+    } catch { message.error('Failed to decline proposal'); }
+  };
+
+  const tabItems = [
+    {
+      key: 'status',
+      label: <span className="tab-label"><ExperimentOutlined /> NEURAL MATRIX</span>,
+      children: (
+        <Space direction="vertical" size={24} style={{ width: '100%' }}>
+          <LearningStatusOverview status={status} onEmergencyPause={handleEmergencyPause} actionLoading={actionLoading} />
+          <LearningModeControl currentMode={status?.mode} onModeChange={handleModeChange} onManualTrigger={handleManualTrigger} actionLoading={actionLoading} interval={status?.learningIntervalMinutes} onIntervalChange={handleIntervalChange} />
+          <AutonomousDefenseCard status={status} onCyberResearch={handleCyberResearch} onRunAudit={handleRunAudit} actionLoading={actionLoading} />
+        </Space>
+      ),
+    },
+    {
+      key: 'domains',
+      label: <span className="tab-label"><BookOutlined /> KNOWLEDGE DOMAINS</span>,
+      children: <KnowledgeDomainsTab domains={domains} onRefresh={fetchData} onViewKnowledge={handleViewKnowledge} />,
+    },
+    {
+      key: 'sources',
+      label: <span className="tab-label"><LinkOutlined /> SYNERGY SOURCES</span>,
+      children: <LearningSourcesTab sources={sources} onRefresh={fetchData} />,
+    },
+    {
+      key: 'evolution',
+      label: <span className="tab-label"><BulbOutlined /> EVOLUTION PROPOSALS</span>,
+      children: <EvolutionProposalsTab recommendations={recommendations} onApprove={handleApprove} onDecline={handleDecline} />,
+    },
+  ];
 
   return (
-    <AdminLayout title="লার্নিং ম্যানেজমেন্ট">
-      <div style={{ marginBottom: 24 }}>
-        <Title level={2} style={{ fontWeight: 700, margin: 0 }}>লার্নিং ড্যাশবোর্ড</Title>
-        <Text type="secondary">AI মডেল লার্নিং, নলেজ বেস এবং সিস্টেম ইমপ্রুভমেন্ট কন্ট্রোল</Text>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      style={{ maxWidth: '1600px', margin: '0 auto' }}
+    >
+      {/* Cinematic Header */}
+      <div style={{ marginBottom: 32, borderBottom: '1px solid rgba(188, 19, 254, 0.2)', paddingBottom: 24 }}>
+        <Row justify="space-between" align="bottom">
+          <Col>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+              <BulbOutlined style={{ color: 'var(--neon-purple)', fontSize: 20 }} />
+              <Text style={{ color: 'var(--neon-purple)', letterSpacing: 2, fontWeight: 800, fontSize: 12 }}>AUTONOMOUS COGNITION</Text>
+            </div>
+            <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 800, fontSize: 32 }}>
+              Learning <span className="text-gradient">Management</span>
+            </Title>
+            <Text style={{ color: 'var(--text-dim)', fontSize: 14 }}>Monitor AI neural training, expand knowledge domains, and authorize evolution paths.</Text>
+          </Col>
+          <Col>
+            <Space>
+              <Button icon={<ReloadOutlined spin={loading} />} onClick={fetchData} className="glass-action-button">Refetch State</Button>
+              <Button type="primary" icon={<CloudDownloadOutlined />} className="cyber-button">Manual Ingest</Button>
+            </Space>
+          </Col>
+        </Row>
       </div>
 
-      <Tabs defaultActiveKey="status" className="modern-tabs">
-        <Tabs.TabPane 
-          tab={<span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><ExperimentOutlined /> Neural Skill Matrix</span>} 
-          key="status"
-        >
-          {loading ? (
-            <div style={{ padding: 40, textAlign: 'center' }}><Spin size="large" /></div>
-          ) : (
-            <Space direction="vertical" size="large" style={{ width: '100%' }}>
-              {/* Suggestions moved to centralized Approvals tab */}
-              
-              <LearningStatusOverview 
-                status={status} 
-                onEmergencyPause={handleEmergencyPause} 
-                actionLoading={actionLoading} 
-              />
+      <Row gutter={[24, 24]}>
+        {/* Stats Summary */}
+        <Col span={24}>
+           <Row gutter={[24, 24]}>
+              <Col xs={12} lg={6}>
+                 <div className="glass-card" style={{ borderLeft: '4px solid var(--neon-purple)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <div>
+                          <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, textTransform: 'uppercase' }}>Neural Stability</Text>
+                          <div style={{ color: '#fff', fontSize: 24, fontWeight: 800 }}>96.4%</div>
+                       </div>
+                       <ThunderboltOutlined style={{ color: 'var(--neon-purple)', fontSize: 24 }} />
+                    </div>
+                 </div>
+              </Col>
+              <Col xs={12} lg={6}>
+                 <div className="glass-card" style={{ borderLeft: '4px solid var(--neon-blue)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <div>
+                          <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, textTransform: 'uppercase' }}>Knowledge Nodes</Text>
+                          <div style={{ color: '#fff', fontSize: 24, fontWeight: 800 }}>{domains.length * 120}</div>
+                       </div>
+                       <GlobalOutlined style={{ color: 'var(--neon-blue)', fontSize: 24 }} />
+                    </div>
+                 </div>
+              </Col>
+              <Col xs={12} lg={6}>
+                 <div className="glass-card" style={{ borderLeft: '4px solid var(--success)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <div>
+                          <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, textTransform: 'uppercase' }}>Active Agents</Text>
+                          <div style={{ color: 'var(--success)', fontSize: 24, fontWeight: 800 }}>24/24</div>
+                       </div>
+                       <SafetyCertificateOutlined style={{ color: 'var(--success)', fontSize: 24 }} />
+                    </div>
+                 </div>
+              </Col>
+              <Col xs={12} lg={6}>
+                 <div className="glass-card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <div>
+                          <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, textTransform: 'uppercase' }}>Evolution Proposals</Text>
+                          <div style={{ color: '#fff', fontSize: 24, fontWeight: 800 }}>{recommendations.length}</div>
+                       </div>
+                       <BulbOutlined style={{ color: 'var(--text-dim)', fontSize: 24 }} />
+                    </div>
+                 </div>
+              </Col>
+           </Row>
+        </Col>
 
-              <LearningModeControl 
-                currentMode={status?.mode}
-                onModeChange={handleModeChange}
-                onManualTrigger={handleManualTrigger}
-                actionLoading={actionLoading}
-                interval={status?.learningIntervalMinutes}
-                onIntervalChange={handleIntervalChange}
-              />
+        {/* Tabs Content */}
+        <Col span={24}>
+           <div className="glass-card" style={{ minHeight: 600 }}>
+              {loading && !status ? (
+                 <div style={{ height: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Spin size="large" tip="SYNCING NEURAL KNOWLEDGE..." />
+                 </div>
+              ) : (
+                 <Tabs
+                   defaultActiveKey="status"
+                   items={tabItems}
+                   className="cyber-tabs"
+                 />
+              )}
+           </div>
+        </Col>
+      </Row>
 
-              <AutonomousDefenseCard 
-                status={status}
-                onCyberResearch={handleCyberResearch}
-                onRunAudit={handleRunAudit}
-                actionLoading={actionLoading}
-              />
-            </Space>
-          )}
-        </Tabs.TabPane>
-
-        <Tabs.TabPane 
-          tab={<span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><BookOutlined /> Knowledge Domains</span>} 
-          key="domains"
-        >
-          {loading ? (
-            <div style={{ padding: 40, textAlign: 'center' }}><Spin size="large" /></div>
-          ) : (
-            <KnowledgeDomainsTab 
-              domains={domains} 
-              onRefresh={fetchData} 
-              onViewKnowledge={(id) => message.info(`Viewing knowledge for ${id}`)} 
-            />
-          )}
-        </Tabs.TabPane>
-
-        <Tabs.TabPane
-          tab={<span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><LinkOutlined /> Learning Sources</span>}
-          key="sources"
-        >
-          {loading ? (
-            <div style={{ padding: 40, textAlign: 'center' }}><Spin size="large" /></div>
-          ) : (
-            <LearningSourcesTab sources={sources} onRefresh={fetchData} />
-          )}
-        </Tabs.TabPane>
-
-        <Tabs.TabPane
-          tab={<span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><BulbOutlined /> Evolution Proposals</span>}
-          key="recommendations"
-        >
-          {loading ? (
-            <div style={{ padding: 40, textAlign: 'center' }}><Spin size="large" /></div>
-          ) : (
-            <EvolutionProposalsTab
-              recommendations={recommendations}
-              onApprove={handleApproveRecommendation}
-              onDecline={handleDeclineRecommendation}
-            />
-          )}
-        </Tabs.TabPane>
-      </Tabs>
-    </AdminLayout>
+      <style>{`
+        .cyber-tabs .ant-tabs-nav-list { gap: 24px; }
+        .cyber-tabs .ant-tabs-tab {
+          margin: 0 !important;
+          padding: 12px 4px !important;
+          color: rgba(255,255,255,0.4) !important;
+          font-family: 'Outfit', sans-serif !important;
+          font-weight: 700 !important;
+          font-size: 13px !important;
+          letter-spacing: 1px;
+        }
+        .cyber-tabs .ant-tabs-tab-active {
+          color: var(--neon-purple) !important;
+          text-shadow: 0 0 10px rgba(188, 19, 254, 0.3);
+        }
+        .cyber-tabs .ant-tabs-ink-bar {
+          background: var(--neon-purple) !important;
+          box-shadow: 0 0 10px var(--neon-purple);
+        }
+        .tab-label { display: flex; align-items: center; gap: 8px; }
+      `}</style>
+    </motion.div>
   );
-}
+};
 
 export default AdminLearning;

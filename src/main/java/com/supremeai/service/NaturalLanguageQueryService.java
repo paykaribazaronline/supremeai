@@ -3,16 +3,18 @@ package com.supremeai.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.supremeai.model.SystemLearning;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
+import com.supremeai.repository.SystemLearningRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * NaturalLanguageQueryService - S3 Enhancement
@@ -27,8 +29,8 @@ public class NaturalLanguageQueryService {
     @Autowired
     private AIProviderFactory providerFactory;
 
-    @Value("${supremeai.active.providers:groq,openai,anthropic,ollama}")
-    private String activeProviders;
+    @Autowired
+    private SystemLearningRepository learningRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -81,44 +83,46 @@ public class NaturalLanguageQueryService {
 
     /**
      * Build natural language prompt for AI providers.
-     * This creates a more conversational, context-aware prompt.
+     * This creates a more conversational, context-aware prompt with Project DNA enrichment.
      */
-    public String buildNaturalPrompt(String userQuery, String context, String taskType) {
+    public Mono<String> buildNaturalPrompt(String userQuery, String context, String taskType) {
         String humanized = humanizeQuery(userQuery);
 
-        Map<String, Object> promptContext = new LinkedHashMap<>();
-        promptContext.put("userRequest", humanized);
-        promptContext.put("context", context != null ? context : "general software development");
-        promptContext.put("taskType", taskType != null ? taskType : "code generation");
-        promptContext.put("tone", "helpful, conversational, and detailed");
-        promptContext.put("constraints", List.of(
-            "Be specific and actionable",
-            "Provide code examples where appropriate",
-            "Explain your reasoning"
-        ));
+        return learningRepository.findById("PROJECT_DNA_SNAPSHOT")
+            .map(SystemLearning::getContent)
+            .defaultIfEmpty("General software project")
+            .map(dnaContext -> {
+                Map<String, Object> promptContext = new LinkedHashMap<>();
+                promptContext.put("userRequest", humanized);
+                promptContext.put("context", context != null ? context : "general software development");
+                promptContext.put("dna", dnaContext);
+                promptContext.put("taskType", taskType != null ? taskType : "code generation");
 
-        // Build natural language prompt
-        return String.format("""
-            As an experienced software developer, I'd like your help with the following request:
+                return String.format("""
+                    As an experienced software developer, I'd like your help with the following request:
 
-            **What I need:** %s
+                    **What I need:** %s
 
-            **Context:** This is for %s.
+                    **Project DNA (Local Context):** %s
 
-            **Task type:** %s
+                    **Context:** This is for %s.
 
-            Please provide a thorough response that:
-            - Addresses my request directly
-            - Includes practical code examples
-            - Explains the "why" behind your recommendations
-            - Uses clear, conversational language
+                    **Task type:** %s
 
-            If you need any clarification, please ask specific questions.
-            """,
-            humanized,
-            promptContext.get("context"),
-            promptContext.get("taskType")
-        );
+                    Please provide a thorough response that:
+                    - Addresses my request directly
+                    - Includes practical code examples following the project's architectural patterns
+                    - Explains the "why" behind your recommendations
+                    - Uses clear, conversational language
+
+                    If you need any clarification, please ask specific questions.
+                    """,
+                    humanized,
+                    promptContext.get("dna"),
+                    promptContext.get("context"),
+                    promptContext.get("taskType")
+                );
+            });
     }
 
     /**

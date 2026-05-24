@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
@@ -22,22 +21,46 @@ import java.util.stream.Collectors;
 public class AutonomousVotingService {
 
     private static final Logger logger = LoggerFactory.getLogger(AutonomousVotingService.class);
-    @Value("${supremeai.active.providers:groq,openai,anthropic,ollama}")
-    private String activeProviders;
-    
-    private final java.util.concurrent.ExecutorService executor;
-    
+    private final java.util.concurrent.Executor executor;
+
     @Autowired
     private AIProviderFactory providerFactory;
 
-    public AutonomousVotingService(@Qualifier("votingTaskExecutor") ThreadPoolTaskExecutor votingTaskExecutor) {
-        this.executor = votingTaskExecutor.getThreadPoolExecutor();
+    @Autowired
+    private com.supremeai.repository.ProviderRepository providerRepository;
+
+    @Autowired
+    public AutonomousVotingService(@Qualifier("votingTaskExecutor") java.util.concurrent.Executor votingTaskExecutor) {
+        this.executor = votingTaskExecutor;
+    }
+
+    /**
+     * Resolve active providers at call time from the database — no hardcoded defaults.
+     * Falls back to Firestore/DB query if no config property is set.
+     */
+    private List<String> resolveActiveProviders() {
+        try {
+            List<com.supremeai.model.APIProvider> active = providerRepository.findByStatus("active")
+                    .collectList()
+                    .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                    .block(java.time.Duration.ofSeconds(3));
+            if (active != null && !active.isEmpty()) {
+                return active.stream()
+                        .map(p -> p.getName() != null && !p.getName().isBlank() ? p.getName() : p.getId())
+                        .filter(java.util.Objects::nonNull)
+                        .toList();
+            }
+        } catch (Exception e) {
+            logger.warn("[DynamicProviders] DB query for active providers failed: {}", e.getMessage());
+        }
+        logger.warn("[DynamicProviders] No active providers found in DB — solo mode active, returning empty list");
+        return List.of();
     }
 
     public VotingDecision conductVote(String question, String context) {
         logger.info("Starting autonomous voting for question: {}", question);
-        
-        List<String> providerList = Arrays.asList(activeProviders.split(","));
+
+        List<String> providerList = resolveActiveProviders();
         List<CompletableFuture<ProviderVote>> futures = new ArrayList<>();
         
         for (String providerName : providerList) {

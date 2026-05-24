@@ -15,8 +15,8 @@ public class ParallelCodeAnalyzer {
     private static final Logger log = LoggerFactory.getLogger(ParallelCodeAnalyzer.class);
     private final ExecutorService analysisPool;
 
-    public ParallelCodeAnalyzer(@Qualifier("analysisTaskExecutor") ThreadPoolTaskExecutor analysisTaskExecutor) {
-        this.analysisPool = analysisTaskExecutor.getThreadPoolExecutor();
+    public ParallelCodeAnalyzer(@Qualifier("analysisTaskExecutor") ExecutorService analysisTaskExecutor) {
+        this.analysisPool = analysisTaskExecutor;
     }
 
     /**

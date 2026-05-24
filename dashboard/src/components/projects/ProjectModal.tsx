@@ -35,12 +35,13 @@ const ProjectModal: React.FC<ProjectModalProps> = ({
 
   return (
     <Modal
-      title={editingProject ? 'Edit Project' : 'Create New Project'}
+      title={<span className="glow-text-cyan" style={{ fontSize: '18px', textTransform: 'uppercase', letterSpacing: '1px' }}>{editingProject ? 'EDIT PROJECT' : 'CREATE NEW PROJECT'}</span>}
       open={visible}
       onCancel={onCancel}
       footer={null}
       width={500}
       destroyOnClose
+      className="cyber-modal"
     >
       <Form form={form} layout="vertical" onFinish={handleFinish}>
         <Form.Item 
@@ -68,9 +69,9 @@ const ProjectModal: React.FC<ProjectModalProps> = ({
         
         <Form.Item style={{ marginTop: 24, marginBottom: 0, textAlign: 'right' }}>
           <Space>
-            <Button onClick={onCancel}>Cancel</Button>
-            <Button type="primary" htmlType="submit">
-              {editingProject ? 'Update Project' : 'Create Project'}
+            <Button onClick={onCancel} style={{ background: 'transparent', color: 'var(--text-dim)', border: '1px solid rgba(255,255,255,0.1)' }}>Cancel</Button>
+            <Button type="primary" htmlType="submit" className="cyber-button" style={{ background: 'transparent', color: 'var(--neon-blue)', border: '1px solid var(--neon-blue)', boxShadow: '0 0 10px rgba(0, 243, 255, 0.2)' }}>
+              {editingProject ? 'UPDATE PROJECT' : 'CREATE PROJECT'}
             </Button>
           </Space>
         </Form.Item>

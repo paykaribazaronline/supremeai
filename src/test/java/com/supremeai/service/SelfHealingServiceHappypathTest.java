@@ -250,4 +250,51 @@ class SelfHealingServiceHappypathTest {
         assert resp != null : "Must return a response even with null UserContext";
         assert resp.isSuccess() : "Auto-fixable edge case should still succeed";
     }
+
+    /**
+     * GIVEN RCA service is null (all external providers down / solo mode)
+     * WHEN SelfHealingService.analyzeError() is called
+     * THEN SHS records unknown error to GKB and returns non-success response without throwing.
+     * This codifies the rule: "no RCA → no crash → knowledge artifact always created first".
+     */
+    @Test
+    void soloMode_nullRca_recordsUnknownErrorAndReturnsNonSuccess() {
+        inject(shs, "rootCauseAnalysisService", null);
+
+        SupremeAIResponse resp = shs.analyzeError(
+                "Connection refused", new java.net.ConnectException("No AI available"), ctx(""));
+
+        assert resp != null : "response must not be null in solo mode";
+        assert !resp.isSuccess() : "Expected non-success when RCA is null (solo mode fallback)";
+        assert resp.getMessage() != null
+                : "Non-success response must carry an explainer message";
+        verify(globalKnowledgeBase).recordSuccessWithPermission(
+                anyString(), anyString(), anyString(), anyLong(), anyDouble());
+        verify(learningOrchestrator, atLeastOnce()).logUnknownError(anyString(), anyString());
+    }
+
+    /**
+     * GIVEN ProviderRepository has zero active entries
+     * WHEN a new AIFallbackOrchestrator is constructed and init() completes
+     * THEN getSoloMode() returns true — solo mode is automatically detected and flagged.
+     */
+    @Test
+    void soloMode_noActiveProviders_setsSoloFlag() {
+        when(providerRepository.findByStatus("active")).thenReturn(reactor.core.publisher.Flux.empty());
+        when(providerRepository.findAll()).thenReturn(reactor.core.publisher.Flux.empty());
+
+        AIFallbackOrchestrator orchestrator = new AIFallbackOrchestrator(
+                mock(com.supremeai.cost.QuotaManager.class),
+                mock(GlobalKnowledgeBase.class),
+                mock(com.supremeai.learning.immunity.CodeImmunitySystem.class),
+                mock(com.supremeai.intelligence.profiling.AIProfiler.class),
+                mock(com.supremeai.resilience.RetryableAIExecutor.class),
+                mock(com.supremeai.security.ApiKeyRotationService.class),
+                mock(AIProviderFactory.class),
+                mock(RequestHedgingService.class),
+                providerRepository
+        );
+        assert orchestrator.getSoloMode()
+                : "Expected soloMode=true when providerRepository returns no active providers";
+    }
 }

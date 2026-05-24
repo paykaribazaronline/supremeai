@@ -8,6 +8,7 @@ import com.supremeai.repository.KnowledgeDomainRepository;
 import com.supremeai.repository.KnowledgeRecommendationRepository;
 import com.supremeai.repository.SystemLearningRepository;
 import com.supremeai.learning.active.ActiveInternetScraper;
+import com.supremeai.fallback.AIFallbackOrchestrator;
 import com.supremeai.controller.WebSocketController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -42,6 +44,9 @@ public class KnowledgeService {
     @Autowired
     private WebSocketController webSocketController;
 
+    @Autowired
+    private AIFallbackOrchestrator fallbackOrchestrator;
+
     /**
      * Register a new knowledge domain for learning
      */
@@ -62,8 +67,19 @@ public class KnowledgeService {
                 });
     }
 
+    private static final int MAX_SCRAPE_STEPS = 100;          // hard cap on items scraped per job
+    private static final Duration SCRAPE_TIMEOUT = Duration.ofMinutes(15); // overall job timeout
+
     /**
-     * Process learning job - actual web search and extraction
+     * Process learning job - actual web search and extraction.
+     * <p>
+     * Protected by two guards:
+     * <ol>
+     *   <li>{@code MAX_SCRAPE_STEPS} — caps the number of scraped items processed to prevent
+     *       unbounded Firestore writes and memory growth.</li>
+     *   <li>{@code SCRAPE_TIMEOUT} — aborts the entire job after 15 minutes so a stuck scraper
+     *       does not hold a bounded-elastic thread indefinitely.</li>
+     * </ol>
      */
     public Mono<Map<String, Object>> processLearningJob(String domainId) {
         return domainRepository.findById(domainId)
@@ -74,6 +90,8 @@ public class KnowledgeService {
                     return scraper.scrapeKnowledge(domain.getName(), domain.getKeywords())
                             .subscribeOn(Schedulers.boundedElastic())
                             .index() // Add index to track progress
+                            .take(MAX_SCRAPE_STEPS) // ── Step limit guard ──────────────────
+                            .timeout(SCRAPE_TIMEOUT) // ── Overall timeout guard ───────────
                             .flatMap(tuple -> {
                                 long index = tuple.getT1();
                                 var scrapedIssue = tuple.getT2();
@@ -152,6 +170,33 @@ public class KnowledgeService {
                 .then()
                 .doOnSuccess(v -> logger.info("[KNOWLEDGE] Successfully purged web-scraped entries from Firestore"))
                 .doOnError(e -> logger.error("[KNOWLEDGE] Failed to purge web-scraped entries: {}", e.getMessage()));
+    }
+
+    /**
+     * LLM-as-a-Judge: Evaluates the faithfulness of a scraped fact against system
+     * standards.
+     * Uses MultiAIVotingService (via orchestrator) to rank quality.
+     */
+    public Mono<Double> evaluateFactFaithfulness(String topic, String content) {
+        String evalPrompt = String.format(
+                "You are a Quality Assurance Judge for SupremeAI. Evaluate the following scraped content for 'Faithfulness' and 'Factuality'.\n"
+                        +
+                        "Topic: %s\nContent: %s\n\n" +
+                        "Respond ONLY with a numeric score between 0.0 and 1.0 representing the confidence in its truthfulness.",
+                topic, content);
+
+        return fallbackOrchestrator.executeWithSupremeIntelligence(
+                "KNOWLEDGE_EVALUATOR",
+                "faithfulness_check",
+                evalPrompt,
+                "system_judge")
+                .map(response -> {
+                    try {
+                        return Double.parseDouble(response.trim().replaceAll("[^0-9.]", ""));
+                    } catch (Exception e) {
+                        return 0.5; // Neutral fallback
+                    }
+                });
     }
 
     /**
