@@ -1,7 +1,8 @@
 package com.supremeai.intelligence;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -11,18 +12,13 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class ParallelCodeAnalyzerTest {
 
-    private ThreadPoolTaskExecutor createTaskExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(4);
-        executor.setMaxPoolSize(8);
-        executor.setQueueCapacity(2000);
-        executor.initialize();
-        return executor;
+    private ExecutorService createTaskExecutor() {
+        return Executors.newFixedThreadPool(8);
     }
 
     @Test
     void testAnalyzeMassiveCode_smallInput() throws Exception {
-        ThreadPoolTaskExecutor executor = createTaskExecutor();
+        ExecutorService executor = createTaskExecutor();
         ParallelCodeAnalyzer analyzer = new ParallelCodeAnalyzer(executor);
 
         String smallCode = "public class Test {}";
@@ -36,7 +32,7 @@ class ParallelCodeAnalyzerTest {
 
     @Test
     void testAnalyzeMassiveCode_mediumInput() throws Exception {
-        ThreadPoolTaskExecutor executor = createTaskExecutor();
+        ExecutorService executor = createTaskExecutor();
         ParallelCodeAnalyzer analyzer = new ParallelCodeAnalyzer(executor);
 
         StringBuilder mediumCode = new StringBuilder();
@@ -52,7 +48,7 @@ class ParallelCodeAnalyzerTest {
 
     @Test
     void testAnalyzeMassiveCode_detectsHardcodedSecrets() throws Exception {
-        ThreadPoolTaskExecutor executor = createTaskExecutor();
+        ExecutorService executor = createTaskExecutor();
         ParallelCodeAnalyzer analyzer = new ParallelCodeAnalyzer(executor);
 
         String codeWithSecret = "public class Config {\n" +
@@ -67,12 +63,12 @@ class ParallelCodeAnalyzerTest {
 
     @Test
     void testAnalyzeMassiveCode_detectsSelectStar() throws Exception {
-        ThreadPoolTaskExecutor executor = createTaskExecutor();
+        ExecutorService executor = createTaskExecutor();
         ParallelCodeAnalyzer analyzer = new ParallelCodeAnalyzer(executor);
 
         String codeWithSelectStar = "public class Repository {\n" +
-                                    "    String query = \"SELECT * FROM users\";\n" +
-                                    "}";
+                                     "    String query = \"SELECT * FROM users\";\n" +
+                                     "}";
 
         AnalysisResult result = analyzer.analyzeMassiveCode(codeWithSelectStar);
 
@@ -81,7 +77,7 @@ class ParallelCodeAnalyzerTest {
 
     @Test
     void testAnalyzeMassiveCode_multipleIssues() throws Exception {
-        ThreadPoolTaskExecutor executor = createTaskExecutor();
+        ExecutorService executor = createTaskExecutor();
         ParallelCodeAnalyzer analyzer = new ParallelCodeAnalyzer(executor);
 
         String code = "public class BadCode {\n" +
@@ -97,7 +93,7 @@ class ParallelCodeAnalyzerTest {
 
     @Test
     void testAnalyzeMassiveCode_noIssues() throws Exception {
-        ThreadPoolTaskExecutor executor = createTaskExecutor();
+        ExecutorService executor = createTaskExecutor();
         ParallelCodeAnalyzer analyzer = new ParallelCodeAnalyzer(executor);
 
         String cleanCode = "public class CleanCode {\n" +
@@ -114,7 +110,7 @@ class ParallelCodeAnalyzerTest {
 
     @Test
     void testAnalyzeMassiveCode_largeInput() throws Exception {
-        ThreadPoolTaskExecutor executor = createTaskExecutor();
+        ExecutorService executor = createTaskExecutor();
         ParallelCodeAnalyzer analyzer = new ParallelCodeAnalyzer(executor);
 
         StringBuilder largeCode = new StringBuilder();
@@ -130,7 +126,7 @@ class ParallelCodeAnalyzerTest {
 
     @Test
     void testAnalyzeMassiveCode_chunkingByClass() throws Exception {
-        ThreadPoolTaskExecutor executor = createTaskExecutor();
+        ExecutorService executor = createTaskExecutor();
         ParallelCodeAnalyzer analyzer = new ParallelCodeAnalyzer(executor);
 
         String multiClassCode = 
@@ -146,7 +142,7 @@ class ParallelCodeAnalyzerTest {
 
     @Test
     void testAnalyzeMassiveCode_performanceImprovementOverSingleThreaded() throws Exception {
-        ThreadPoolTaskExecutor executor = createTaskExecutor();
+        ExecutorService executor = createTaskExecutor();
         ParallelCodeAnalyzer analyzer = new ParallelCodeAnalyzer(executor);
 
         StringBuilder largeCode = new StringBuilder();
@@ -165,7 +161,7 @@ class ParallelCodeAnalyzerTest {
 
     @Test
     void testAnalyzeMassiveCode_timeoutHandling() throws Exception {
-        ThreadPoolTaskExecutor executor = createTaskExecutor();
+        ExecutorService executor = createTaskExecutor();
         ParallelCodeAnalyzer analyzer = new ParallelCodeAnalyzer(executor);
 
         // The code analyzer has a 5 second timeout per chunk
@@ -179,7 +175,7 @@ class ParallelCodeAnalyzerTest {
 
     @Test
     void testAnalyzeMassiveCode_emptyInput() throws Exception {
-        ThreadPoolTaskExecutor executor = createTaskExecutor();
+        ExecutorService executor = createTaskExecutor();
         ParallelCodeAnalyzer analyzer = new ParallelCodeAnalyzer(executor);
 
         AnalysisResult result = analyzer.analyzeMassiveCode("");
@@ -190,7 +186,7 @@ class ParallelCodeAnalyzerTest {
 
     @Test
     void testAnalyzeMassiveCode_resultToString() throws Exception {
-        ThreadPoolTaskExecutor executor = createTaskExecutor();
+        ExecutorService executor = createTaskExecutor();
         ParallelCodeAnalyzer analyzer = new ParallelCodeAnalyzer(executor);
 
         String code = "public class Test { String pwd = \"secret\"; }";
@@ -205,7 +201,7 @@ class ParallelCodeAnalyzerTest {
 
     @Test
     void testAnalyzeMassiveCode_correctlyCountsLines() throws Exception {
-        ThreadPoolTaskExecutor executor = createTaskExecutor();
+        ExecutorService executor = createTaskExecutor();
         ParallelCodeAnalyzer analyzer = new ParallelCodeAnalyzer(executor);
 
         String codeWithExactLines = "line1\nline2\nline3\nline4\nline5";
@@ -216,7 +212,7 @@ class ParallelCodeAnalyzerTest {
 
     @Test
     void testAnalyzeMassiveCode_capitalizationInSecretDetection() throws Exception {
-        ThreadPoolTaskExecutor executor = createTaskExecutor();
+        ExecutorService executor = createTaskExecutor();
         ParallelCodeAnalyzer analyzer = new ParallelCodeAnalyzer(executor);
 
         String code = "String PASSWORD = \"secret\";";
@@ -227,7 +223,7 @@ class ParallelCodeAnalyzerTest {
 
     @Test
     void testChunkCode_function() throws Exception {
-        ThreadPoolTaskExecutor executor = createTaskExecutor();
+        ExecutorService executor = createTaskExecutor();
         ParallelCodeAnalyzer analyzer = new ParallelCodeAnalyzer(executor);
 
         // Using reflection to access private chunkCode method
@@ -242,7 +238,7 @@ class ParallelCodeAnalyzerTest {
 
     @Test
     void testAnalyzeMassiveCode_nullInput() {
-        ThreadPoolTaskExecutor executor = createTaskExecutor();
+        ExecutorService executor = createTaskExecutor();
         ParallelCodeAnalyzer analyzer = new ParallelCodeAnalyzer(executor);
         AnalysisResult result = analyzer.analyzeMassiveCode(null);
         assertNotNull(result);

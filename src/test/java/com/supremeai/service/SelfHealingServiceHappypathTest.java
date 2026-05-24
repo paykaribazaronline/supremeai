@@ -46,14 +46,12 @@ class SelfHealingServiceHappypathTest {
 
     SelfHealingService shs;
 
-    // ─── RCA stub factories ────────────────────────────────────────────────
-
     /**
      * Stub RCA: returns canAutoFix=true, confidence=0.93.
      * recordSuccessfulCorrection() returns Mono.empty() (no private-field access).
      */
     private static RootCauseAnalysisService autoFixRca() {
-        return new RootCauseAnalysisService() {
+        return new RootCauseAnalysisService(null) {
             @Override
             public RootCauseAnalysis analyzeError(String errorSignature, String errorMessage,
                                                         String codeContext) {
@@ -76,10 +74,10 @@ class SelfHealingServiceHappypathTest {
     }
 
     /**
-     * Stub RCA: returns canAutoFix=false, confidence=0.60 (>0.5 → review path).
+     * Stub RCA: returns canAutoFix=false, confidence=0.60 (> 0.5 → review path).
      */
     private static RootCauseAnalysisService reviewRca() {
-        return new RootCauseAnalysisService() {
+        return new RootCauseAnalysisService(null) {
             @Override
             public RootCauseAnalysis analyzeError(String errorSignature, String errorMessage,
                                                         String codeContext) {
@@ -99,7 +97,7 @@ class SelfHealingServiceHappypathTest {
      * Stub RCA: always throws — simulates provider outage.
      */
     private static RootCauseAnalysisService throwingRca() {
-        return new RootCauseAnalysisService() {
+        return new RootCauseAnalysisService(null) {
             @Override
             public RootCauseAnalysis analyzeError(String errorSignature, String errorMessage,
                                                         String codeContext) {
@@ -110,7 +108,7 @@ class SelfHealingServiceHappypathTest {
 
     /** Stub RCA: returns null analysis. */
     private static RootCauseAnalysisService nullMonoRca() {
-        return new RootCauseAnalysisService() {
+        return new RootCauseAnalysisService(null) {
             @Override
             public RootCauseAnalysis analyzeError(String errorSignature, String errorMessage,
                                                         String codeContext) {
@@ -208,7 +206,7 @@ class SelfHealingServiceHappypathTest {
     void rcaThrows_recordsFailureOnMlPredictor() {
         java.util.concurrent.atomic.AtomicInteger recordFailedCalls = new java.util.concurrent.atomic.AtomicInteger(0);
 
-        RootCauseAnalysisService trackingRca = new RootCauseAnalysisService() {
+        RootCauseAnalysisService trackingRca = new RootCauseAnalysisService(null) {
             @Override
             public RootCauseAnalysis analyzeError(String errorSignature, String errorMessage,
                                                         String codeContext) {
@@ -292,7 +290,8 @@ class SelfHealingServiceHappypathTest {
                 mock(com.supremeai.security.ApiKeyRotationService.class),
                 mock(AIProviderFactory.class),
                 mock(RequestHedgingService.class),
-                providerRepository
+                providerRepository,
+                "airllm-sidecar"
         );
         assert orchestrator.getSoloMode()
                 : "Expected soloMode=true when providerRepository returns no active providers";

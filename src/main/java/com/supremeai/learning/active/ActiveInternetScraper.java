@@ -32,6 +32,7 @@ public class ActiveInternetScraper {
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
     private final EnhancedContentSanitizerService sanitizer;
+    private final QueryClassifier queryClassifier;
 
     @Value("${learning.scraper.wikipedia.limit:5}")
     private int wikiLimit;
@@ -39,10 +40,11 @@ public class ActiveInternetScraper {
     @Value("${learning.scraper.stackoverflow.limit:3}")
     private int soLimit;
 
-    public ActiveInternetScraper(WebClient.Builder webClientBuilder, EnhancedContentSanitizerService sanitizer) {
+    public ActiveInternetScraper(WebClient.Builder webClientBuilder, EnhancedContentSanitizerService sanitizer, QueryClassifier queryClassifier) {
         this.webClient = webClientBuilder.build();
         this.objectMapper = new ObjectMapper();
         this.sanitizer = sanitizer;
+        this.queryClassifier = queryClassifier;
     }
 
     /**
@@ -52,12 +54,26 @@ public class ActiveInternetScraper {
         log.info("[Active Learning] Starting targeted scrape for domain: {} with keywords: {}", domainName, keywords);
         
         List<Flux<ScrapedIssue>> sources = new ArrayList<>();
+        QueryClassifier.QueryClassification classification = queryClassifier.classify(domainName, keywords);
         
-        // Wikipedia Targeted Search
+        // General Search
         sources.add(scrapeWikipediaTargeted(domainName, keywords));
         
-        // StackOverflow Targeted Search
-        sources.add(scrapeStackOverflowTargeted(domainName, keywords));
+        // Code Search
+        if (classification.isCodeRelated()) {
+            sources.add(scrapeStackOverflowTargeted(domainName, keywords));
+            sources.add(scrapeGitHubIssuesTargeted(domainName, keywords));
+        }
+        
+        // Web Dev Search
+        if (classification.isWebDevRelated()) {
+            sources.add(scrapeMDNTargeted(domainName, keywords));
+        }
+        
+        // Research Search
+        if (classification.isResearchRelated()) {
+            sources.add(scrapeArxivTargeted(domainName, keywords));
+        }
         
         return Flux.merge(sources);
     }
@@ -182,6 +198,127 @@ public class ActiveInternetScraper {
                     }
                 })
                 .onErrorResume(e -> Flux.empty());
+    }
+
+    private Flux<ScrapedIssue> scrapeGitHubIssuesTargeted(String domainName, List<String> keywords) {
+        String query = domainName + " " + String.join(" ", keywords);
+        String url = String.format(
+            "https://api.github.com/search/issues?q=%s&per_page=3",
+            URLEncoder.encode(query, StandardCharsets.UTF_8)
+        );
+
+        return webClient.get()
+                .uri(url)
+                .header("Accept", "application/vnd.github.v3+json")
+                .retrieve()
+                .bodyToMono(String.class)
+                .flatMapMany(response -> {
+                    try {
+                        JsonNode root = objectMapper.readTree(response);
+                        JsonNode items = root.path("items");
+                        List<ScrapedIssue> issues = new ArrayList<>();
+                        if (items.isArray()) {
+                            for (JsonNode issueNode : items) {
+                                String title = issueNode.path("title").textValue();
+                                String htmlUrl = issueNode.path("html_url").textValue();
+                                String body = issueNode.path("body").textValue();
+                                if (body == null) body = "";
+                                body = body.replaceAll("<[^>]*>", "").substring(0, Math.min(500, body.length()));
+                                
+                                ScrapedIssue issue = new ScrapedIssue(title, "GitHub Issue: " + body + "\nSource: " + htmlUrl, "GitHub");
+                                issue.setSourceAuthority(0.85); // High authority for code issues
+                                issue.setRawConfidence(0.75 + (new Random().nextDouble() * 0.15));
+                                issues.add(issue);
+                            }
+                        }
+                        return Flux.fromIterable(issues);
+                    } catch (Exception e) {
+                        return Flux.empty();
+                    }
+                })
+                .onErrorResume(e -> Flux.empty());
+    }
+
+    private Flux<ScrapedIssue> scrapeMDNTargeted(String domainName, List<String> keywords) {
+        String query = domainName + " " + String.join(" ", keywords);
+        String url = String.format(
+            "https://developer.mozilla.org/api/v1/search?q=%s&size=3",
+            URLEncoder.encode(query, StandardCharsets.UTF_8)
+        );
+
+        return webClient.get()
+                .uri(url)
+                .retrieve()
+                .bodyToMono(String.class)
+                .flatMapMany(response -> {
+                    try {
+                        JsonNode root = objectMapper.readTree(response);
+                        JsonNode documents = root.path("documents");
+                        List<ScrapedIssue> issues = new ArrayList<>();
+                        if (documents.isArray()) {
+                            for (JsonNode doc : documents) {
+                                String title = doc.path("title").textValue();
+                                String summary = doc.path("summary").textValue();
+                                String mdnUrl = "https://developer.mozilla.org" + doc.path("mdn_url").textValue();
+                                
+                                ScrapedIssue issue = new ScrapedIssue(title, "MDN Docs: " + summary + "\nSource: " + mdnUrl, "MDN");
+                                issue.setSourceAuthority(0.95); // Very high authority for web docs
+                                issue.setRawConfidence(0.9 + (new Random().nextDouble() * 0.1));
+                                issues.add(issue);
+                            }
+                        }
+                        return Flux.fromIterable(issues);
+                    } catch (Exception e) {
+                        return Flux.empty();
+                    }
+                })
+                .onErrorResume(e -> Flux.empty());
+    }
+
+    private Flux<ScrapedIssue> scrapeArxivTargeted(String domainName, List<String> keywords) {
+        String query = domainName + " " + String.join(" ", keywords);
+        String url = String.format(
+            "http://export.arxiv.org/api/query?search_query=all:%s&max_results=3",
+            URLEncoder.encode(query, StandardCharsets.UTF_8)
+        );
+
+        return webClient.get()
+                .uri(url)
+                .retrieve()
+                .bodyToMono(String.class)
+                .flatMapMany(response -> {
+                    // Quick and dirty XML parsing for Arxiv
+                    try {
+                        List<ScrapedIssue> issues = new ArrayList<>();
+                        String[] entries = response.split("<entry>");
+                        for (int i = 1; i < entries.length; i++) {
+                            String entry = entries[i];
+                            String title = extractXmlTag(entry, "title");
+                            String summary = extractXmlTag(entry, "summary");
+                            String id = extractXmlTag(entry, "id");
+                            
+                            ScrapedIssue issue = new ScrapedIssue(title, "arXiv Abstract: " + summary + "\nSource: " + id, "arXiv");
+                            issue.setSourceAuthority(0.9); // High authority for research
+                            issue.setRawConfidence(0.8 + (new Random().nextDouble() * 0.1));
+                            issues.add(issue);
+                        }
+                        return Flux.fromIterable(issues);
+                    } catch (Exception e) {
+                        return Flux.empty();
+                    }
+                })
+                .onErrorResume(e -> Flux.empty());
+    }
+
+    private String extractXmlTag(String xml, String tag) {
+        String startTag = "<" + tag + ">";
+        String endTag = "</" + tag + ">";
+        int start = xml.indexOf(startTag);
+        int end = xml.indexOf(endTag);
+        if (start != -1 && end != -1) {
+            return xml.substring(start + startTag.length(), end).trim().replaceAll("\n", " ");
+        }
+        return "";
     }
 
     /**
