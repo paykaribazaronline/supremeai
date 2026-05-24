@@ -4,6 +4,7 @@ import com.supremeai.fallback.AIFallbackOrchestrator;
 import com.supremeai.service.SelfHealingService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import reactor.core.publisher.Mono;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -19,11 +20,11 @@ class InfiniteAutoHealerTest {
         SelfHealingService selfHealing = mock(SelfHealingService.class);
 
         when(selfHealing.developUntilPerfection(anyString(), anyString()))
-            .thenReturn("SUCCESS");
+            .thenReturn(Mono.just("SUCCESS"));
 
         InfiniteAutoHealer healer = new InfiniteAutoHealer(selfHealing);
 
-        String result = healer.developUntilPerfection("CATEGORY", "Task");
+        String result = healer.developUntilPerfection("CATEGORY", "Task").block();
         assertEquals("SUCCESS", result);
         verify(selfHealing).developUntilPerfection("CATEGORY", "Task");
     }

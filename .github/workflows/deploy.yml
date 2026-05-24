@@ -1,0 +1,56 @@
+name: Zero-Downtime Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Deploy to Cloud Run (Zero-Downtime)
+        run: |
+          # Deploy new revision but don't route traffic yet
+          gcloud run deploy supremeai-backend \
+            --source . \
+            --region us-central1 \
+            --no-traffic \
+            --tag new-revision
+
+          # Run health checks on the new revision URL
+          NEW_URL=$(gcloud run services describe supremeai-backend --region us-central1 --format="value(status.url)")
+          curl -f -s $NEW_URL/actuator/health || exit 1
+
+          # Shift traffic to 10% on new revision
+          gcloud run services update-traffic supremeai-backend \
+            --region us-central1 \
+            --update-tags new-revision=10
+
+          # Wait and observe
+          sleep 30
+
+          # Shift to 100%
+          gcloud run services update-traffic supremeai-backend \
+            --region us-central1 \
+            --to-latest
