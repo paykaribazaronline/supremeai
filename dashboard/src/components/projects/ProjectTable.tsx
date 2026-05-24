@@ -45,11 +45,12 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       key: 'status',
       render: (status: string) => {
         let color = 'default';
-        if (status === 'ACTIVE') color = 'green';
-        else if (status === 'PAUSED') color = 'orange';
-        else if (status === 'COMPLETED') color = 'blue';
-        else if (status === 'FAILED') color = 'red';
-        return <Tag color={color}>{status}</Tag>;
+        let borderColor = 'transparent';
+        if (status === 'ACTIVE') { color = '#00f3ff'; borderColor = 'rgba(0, 243, 255, 0.5)'; }
+        else if (status === 'PAUSED') { color = '#faad14'; borderColor = 'rgba(250, 173, 20, 0.5)'; }
+        else if (status === 'COMPLETED') { color = '#8b5cf6'; borderColor = 'rgba(139, 92, 246, 0.5)'; }
+        else if (status === 'FAILED') { color = '#ff4d4f'; borderColor = 'rgba(255, 77, 79, 0.5)'; }
+        return <Tag style={{ background: 'rgba(0,0,0,0.4)', color, borderColor, textShadow: `0 0 5px ${color}`, padding: '0 8px', borderRadius: '4px' }}>{status}</Tag>;
       },
     },
     {
@@ -67,6 +68,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
             size="small" 
             icon={<EditOutlined />} 
             onClick={() => onEdit(record)}
+            style={{ background: 'transparent', color: 'var(--neon-blue)', borderColor: 'var(--neon-blue)' }}
           >
             Edit
           </Button>
@@ -75,6 +77,8 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
             value={record.status}
             style={{ width: 110 }}
             onChange={(val) => onUpdateStatus(record.id, val)}
+            className="premium-select"
+            dropdownClassName="premium-dropdown"
           >
             <Option value="ACTIVE">Active</Option>
             <Option value="PAUSED">Paused</Option>
@@ -86,6 +90,7 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
             danger 
             icon={<DeleteOutlined />} 
             onClick={() => onDelete(record.id)}
+            style={{ background: 'transparent', color: 'var(--neon-red)', borderColor: 'var(--neon-red)' }}
           >
             Delete
           </Button>
@@ -102,7 +107,9 @@ const ProjectTable: React.FC<ProjectTableProps> = ({
       loading={loading}
       pagination={{ pageSize: 10, showSizeChanger: true }}
       scroll={{ x: 1000 }}
-      className="custom-table"
+      className="custom-table cyber-table"
+      rowClassName={() => 'cyber-table-row'}
+      style={{ background: 'transparent' }}
     />
   );
 };

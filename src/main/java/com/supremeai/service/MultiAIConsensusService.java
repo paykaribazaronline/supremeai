@@ -66,6 +66,7 @@ public class MultiAIConsensusService {
         long startTime = System.currentTimeMillis();
 
         return Flux.fromIterable(providerNames)
+            .filter(providerName -> !selfHealingService.isProviderQuarantined(providerName))
             .flatMap(providerName -> {
                 AIProvider provider = providerFactory.getProvider(providerName);
                 long pStart = System.currentTimeMillis();

@@ -6,8 +6,8 @@ class ListMoviesVariablesBuilder {
   ListMoviesVariablesBuilder(this._dataConnect, );
   Deserializer<ListMoviesData> dataDeserializer = (dynamic json)  => ListMoviesData.fromJson(jsonDecode(json));
   
-  Future<QueryResult<ListMoviesData, void>> execute() {
-    return ref().execute();
+  Future<QueryResult<ListMoviesData, void>> execute({QueryFetchPolicy fetchPolicy = QueryFetchPolicy.preferCache}) {
+    return ref().execute(fetchPolicy: fetchPolicy);
   }
 
   QueryRef<ListMoviesData, void> ref() {
@@ -59,7 +59,7 @@ class ListMoviesMovies {
     return json;
   }
 
-  const ListMoviesMovies({
+  ListMoviesMovies({
     required this.id,
     required this.title,
     required this.imageUrl,
@@ -98,7 +98,7 @@ class ListMoviesData {
     return json;
   }
 
-  const ListMoviesData({
+  ListMoviesData({
     required this.movies,
   });
 }

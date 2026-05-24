@@ -13,6 +13,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Date;
 
 /**
  * SystemConfigSeeder — seeds default system configuration into Firestore on first startup.
@@ -41,14 +42,48 @@ public class SystemConfigSeeder {
                     log.info("[CONFIG_SEED] No global_settings found — seeding default system config...");
                     return systemConfigRepository.save(buildDefaultConfig());
                 } else {
-                    log.info("[CONFIG_SEED] global_settings already exists — skipping seed");
-                    return Mono.empty();
+                    log.info("[CONFIG_SEED] global_settings already exists — ensuring Telegram config is updated from environment...");
+                    return systemConfigRepository.findById("global_settings")
+                        .flatMap(config -> {
+                            boolean updated = false;
+                            Map<String, Object> tgConfig = config.getTelegramConfig();
+                            if (tgConfig == null || tgConfig.isEmpty() || !Boolean.TRUE.equals(tgConfig.get("enabled"))) {
+                                String telegramBotToken = System.getenv().getOrDefault("TELEGRAM_BOT_TOKEN", System.getenv().getOrDefault("TG_BOT_TOKEN", ""));
+                                if (!telegramBotToken.isEmpty()) {
+                                    log.info("[CONFIG_SEED] Found Telegram token in environment — updating existing config");
+                                    config.setTelegramConfig(buildTelegramConfig());
+                                    updated = true;
+                                }
+                            }
+                            return updated ? systemConfigRepository.save(config) : Mono.just(config);
+                        });
                 }
             })
             .subscribe(
                 config -> log.info("[CONFIG_SEED] Default system config sync complete"),
                 error -> log.error("[CONFIG_SEED] Failed to seed system config: {}", error.getMessage())
             );
+    }
+
+    private Map<String, Object> buildTelegramConfig() {
+        String telegramEnabled = System.getenv().getOrDefault("TELEGRAM_ENABLED", "true");
+        String telegramApiId = System.getenv().getOrDefault("TELEGRAM_API_ID", System.getenv().getOrDefault("TG_APP_ID", ""));
+        String telegramApiHash = System.getenv().getOrDefault("TELEGRAM_API_HASH", System.getenv().getOrDefault("TG_APP_HASH", ""));
+        String telegramBotToken = System.getenv().getOrDefault("TELEGRAM_BOT_TOKEN", System.getenv().getOrDefault("TG_BOT_TOKEN", ""));
+        String telegramChannelId = System.getenv().getOrDefault("TELEGRAM_CHANNEL_ID", System.getenv().getOrDefault("TG_CHANNEL_ID", ""));
+        String teldriveUrl = System.getenv().getOrDefault("TELDRIVE_URL", "https://teldrive-lhlwyikwlq-uc.a.run.app");
+
+        return Map.of(
+            "enabled", "true".equalsIgnoreCase(telegramEnabled),
+            "teldriveUrl", teldriveUrl,
+            "apiId", telegramApiId,
+            "apiHash", telegramApiHash,
+            "botToken", telegramBotToken,
+            "channelId", telegramChannelId,
+            "status", "CONNECTED",
+            "storageUsed", "0 B",
+            "lastSync", ""
+        );
     }
 
     private SystemConfig buildDefaultConfig() {
@@ -89,28 +124,7 @@ public class SystemConfigSeeder {
             "deploy", "ask"
         ));
 
-        String telegramEnabled = System.getenv().getOrDefault("TELEGRAM_ENABLED", "false");
-        String telegramApiId = System.getenv().getOrDefault("TELEGRAM_API_ID", "");
-        String telegramApiHash = System.getenv().getOrDefault("TELEGRAM_API_HASH", "");
-        String telegramBotToken = System.getenv().getOrDefault("TELEGRAM_BOT_TOKEN", "");
-        String telegramChannelId = System.getenv().getOrDefault("TELEGRAM_CHANNEL_ID", "");
-        String teldriveUrl = System.getenv().getOrDefault("TELDRIVE_URL", "https://teldrive-lhlwyikwlq-uc.a.run.app");
-
-        if ("true".equalsIgnoreCase(telegramEnabled) && !telegramBotToken.isEmpty()) {
-            config.setTelegramConfig(Map.of(
-                "enabled", true,
-                "teldriveUrl", teldriveUrl,
-                "apiId", telegramApiId,
-                "apiHash", telegramApiHash,
-                "botToken", telegramBotToken,
-                "channelId", telegramChannelId,
-                "status", "CONNECTED",
-                "storageUsed", "0 B",
-                "lastSync", ""
-            ));
-        } else {
-            config.setTelegramConfig(Map.of("enabled", false));
-        }
+        config.setTelegramConfig(buildTelegramConfig());
 
         String supabaseUrl = System.getenv().getOrDefault("SUPABASE_DB_URL", "");
         String supabaseKey = System.getenv().getOrDefault("SUPABASE_API_KEY", "");

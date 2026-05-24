@@ -34,8 +34,8 @@ public class SystemConfig {
     private Map<String, Object> uiMetadata = new HashMap<>();
 
     // General AI Settings
-    private String activeModel = "gpt-4o";
-    private String smallModel = "google/gemini-1.5-flash";
+    private String activeModel = "default";   // resolved from provider registry at runtime
+    private String smallModel = "default";    // resolved from provider registry at runtime
     private Long version = 1L;
     private boolean maintenanceMode = false;
     private boolean emergencyStop = false;

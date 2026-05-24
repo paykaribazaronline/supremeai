@@ -60,50 +60,69 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   }, []);
 
   return (
-     <Sider
-       collapsible
-       collapsed={collapsed}
-       onCollapse={setCollapsed}
-       onMouseEnter={handleMouseEnter}
-       onMouseLeave={handleMouseLeave}
-       theme="dark"
-       className="glass-panel responsive-sidebar"
-       width={260}
-       collapsedWidth={0}
-       style={{
-         top: '8px',
-         left: '8px',
-         bottom: '8px',
-         borderRadius: 'var(--radius-lg)',
-         border: '1px solid rgba(255,255,255,0.05)',
-         background: 'rgba(0,0,0,0.6)',
-         zIndex: 10
-       }}
-     >
+       <Sider
+         collapsible
+         collapsed={collapsed}
+         onCollapse={setCollapsed}
+         onMouseEnter={handleMouseEnter}
+         onMouseLeave={handleMouseLeave}
+         theme="dark"
+         className="glass-panel responsive-sidebar"
+         width={260}
+         collapsedWidth={0}
+         style={{
+           position: 'fixed',
+           top: '8px',
+           left: '8px',
+           bottom: '8px',
+           borderRadius: 'var(--radius-lg)',
+           border: '1px solid rgba(255,255,255,0.05)',
+           background: 'rgba(0,0,0,0.6)',
+           zIndex: 10
+         }}
+       >
        <div style={{
-         height: 'var(--header-height)',
+         height: 'var(--header-height, 80px)',
          display: 'flex',
          alignItems: 'center',
          justifyContent: 'center',
          padding: '0 var(--space-3)',
-         borderBottom: '1px solid rgba(255,255,255,0.05)'
+         borderBottom: '1px solid rgba(255,255,255,0.05)',
+         background: 'rgba(0,0,0,0.4)',
        }}>
          <motion.div
-           initial={{ scale: 0.8, opacity: 0 }}
-           animate={{ scale: 1, opacity: 1 }}
+           initial={{ opacity: 0 }}
+           animate={{ opacity: 1 }}
            style={{
-             background: 'linear-gradient(135deg, var(--neon-blue), var(--neon-purple))',
-             padding: 'var(--space-2) var(--space-3)',
-             borderRadius: 'var(--radius-md)',
-             boxShadow: '0 0 clamp(12px, 2vw, 24px) rgba(0, 243, 255, 0.4)',
-             color: '#000',
-             fontWeight: 900,
-             fontSize: collapsed ? 'var(--text-sm)' : 'var(--text-lg)',
-             letterSpacing: 'clamp(1px, 0.3vw, 3px)',
-             fontFamily: 'JetBrains Mono, monospace'
+             display: 'flex',
+             alignItems: 'center',
+             gap: '12px'
            }}
          >
-           {collapsed ? 'S' : 'SUPREME'}
+           <div style={{
+             width: '32px',
+             height: '32px',
+             borderRadius: '8px',
+             background: 'rgba(0, 243, 255, 0.1)',
+             border: '1px solid var(--neon-blue)',
+             display: 'flex',
+             alignItems: 'center',
+             justifyContent: 'center',
+             boxShadow: '0 0 10px rgba(0, 243, 255, 0.4)'
+           }}>
+             <span style={{ color: 'var(--neon-blue)', fontWeight: 'bold' }}>N</span>
+           </div>
+           {!collapsed && (
+             <span style={{
+               color: 'var(--neon-blue)',
+               fontWeight: 800,
+               fontSize: '18px',
+               letterSpacing: '3px',
+               fontFamily: "'Outfit', sans-serif"
+             }}>
+               NEUROLYNX
+             </span>
+           )}
          </motion.div>
        </div>
        

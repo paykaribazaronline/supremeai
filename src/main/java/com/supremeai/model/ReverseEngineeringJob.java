@@ -34,6 +34,8 @@ public class ReverseEngineeringJob {
 
     private String generatedAppId; // linked generated app
 
+    private Date startedAt; // when processing started
+
     @ServerTimestamp
     private Date createdAt;
 
@@ -86,4 +88,7 @@ public class ReverseEngineeringJob {
 
     public Date getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Date updatedAt) { this.updatedAt = updatedAt; }
+
+    public Date getStartedAt() { return startedAt; }
+    public void setStartedAt(Date startedAt) { this.startedAt = startedAt; }
 }

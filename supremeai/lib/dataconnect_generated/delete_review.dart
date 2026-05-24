@@ -50,7 +50,7 @@ class DeleteReviewReviewDelete {
     return json;
   }
 
-  const DeleteReviewReviewDelete({
+  DeleteReviewReviewDelete({
     required this.userId,
     required this.movieId,
   });
@@ -87,7 +87,7 @@ class DeleteReviewData {
     return json;
   }
 
-  const DeleteReviewData({
+  DeleteReviewData({
     this.review_delete,
   });
 }
@@ -122,7 +122,7 @@ class DeleteReviewVariables {
     return json;
   }
 
-  const DeleteReviewVariables({
+  DeleteReviewVariables({
     required this.movieId,
   });
 }

@@ -1,8 +1,12 @@
 package com.supremeai.model;
 
+import com.google.cloud.firestore.annotation.DocumentId;
+import com.google.cloud.spring.data.firestore.Document;
 import java.time.LocalDateTime;
 
+@Document(collectionName = "reasoning_logs")
 public class ReasoningLog {
+    @DocumentId
     private String id;
     private String taskId;
     private String decision;

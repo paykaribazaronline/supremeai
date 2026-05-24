@@ -1,6 +1,7 @@
 package com.supremeai.provider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.supremeai.service.ProviderMetadataService;
 import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,12 +40,21 @@ public abstract class AbstractHttpProvider implements AIProvider {
             .retryOnConnectionFailure(true)
             .build();
 
+    /**
+     * Sets the provider metadata service after construction.
+     * Used by AIProviderFactory instead of reflection-based field injection.
+     * Spring @Autowired on the class field still works for Spring-managed subclasses.
+     */
+    public void setProviderMetadataService(ProviderMetadataService providerMetadataService) {
+        this.providerMetadataService = providerMetadataService;
+    }
+
     // SECURITY FIX: ObjectMapper is now provided via constructor injection
     // This ensures proper initialization and testability
     protected final ObjectMapper objectMapper;
 
     @Autowired
-    protected com.supremeai.service.ProviderMetadataService providerMetadataService;
+    protected ProviderMetadataService providerMetadataService;
 
     protected final String apiKey;
     protected final String baseUrl;

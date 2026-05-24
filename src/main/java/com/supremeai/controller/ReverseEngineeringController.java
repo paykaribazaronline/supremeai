@@ -76,7 +76,7 @@ public class ReverseEngineeringController {
                         m.put("url", job.getWebsiteUrl());
                         m.put("status", job.getStatus());
                         m.put("submittedAt", job.getCreatedAt());
-                        m.put("startedAt", job.getCreatedAt()); // TODO: add startedAt field
+                        m.put("startedAt", job.getStartedAt() != null ? job.getStartedAt() : job.getCreatedAt());
                         m.put("completedAt", job.getUpdatedAt());
                         m.put("error", job.getErrorMessage());
                         

@@ -1,8 +1,8 @@
 part of 'generated.dart';
 
 class SearchMovieVariablesBuilder {
-  final Optional<String> _titleInput = Optional.optional(nativeFromJson, nativeToJson);
-  final Optional<String> _genre = Optional.optional(nativeFromJson, nativeToJson);
+  Optional<String> _titleInput = Optional.optional(nativeFromJson, nativeToJson);
+  Optional<String> _genre = Optional.optional(nativeFromJson, nativeToJson);
 
   final FirebaseDataConnect _dataConnect;
   SearchMovieVariablesBuilder titleInput(String? t) {
@@ -17,8 +17,8 @@ class SearchMovieVariablesBuilder {
   SearchMovieVariablesBuilder(this._dataConnect, );
   Deserializer<SearchMovieData> dataDeserializer = (dynamic json)  => SearchMovieData.fromJson(jsonDecode(json));
   Serializer<SearchMovieVariables> varsSerializer = (SearchMovieVariables vars) => jsonEncode(vars.toJson());
-  Future<QueryResult<SearchMovieData, SearchMovieVariables>> execute() {
-    return ref().execute();
+  Future<QueryResult<SearchMovieData, SearchMovieVariables>> execute({QueryFetchPolicy fetchPolicy = QueryFetchPolicy.preferCache}) {
+    return ref().execute(fetchPolicy: fetchPolicy);
   }
 
   QueryRef<SearchMovieData, SearchMovieVariables> ref() {
@@ -70,7 +70,7 @@ class SearchMovieMovies {
     return json;
   }
 
-  const SearchMovieMovies({
+  SearchMovieMovies({
     required this.id,
     required this.title,
     this.genre,
@@ -109,7 +109,7 @@ class SearchMovieData {
     return json;
   }
 
-  const SearchMovieData({
+  SearchMovieData({
     required this.movies,
   });
 }
@@ -159,7 +159,7 @@ class SearchMovieVariables {
     return json;
   }
 
-  const SearchMovieVariables({
+  SearchMovieVariables({
     required this.titleInput,
     required this.genre,
   });

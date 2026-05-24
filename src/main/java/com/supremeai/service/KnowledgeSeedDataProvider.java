@@ -22,7 +22,10 @@ public class KnowledgeSeedDataProvider {
                 seedFrontendErrorPatterns(),
                 seedJvmAndGcPatterns(),
                 seedDatabaseErrorPatterns(),
-                seedCloudAndDeploymentErrors()
+                seedCloudAndDeploymentErrors(),
+                seedAiProviderManagement(),
+                seedUserAndPermissionManagement(),
+                seedLocalAiModelSetup()
         );
     }
 
@@ -220,26 +223,7 @@ public class KnowledgeSeedDataProvider {
         ));
     }
 
-    private SystemLearning makeLearning(String id, String title, String category,
-            String content, List<String> tags, boolean isCritical, double confidence) {
-        SystemLearning learning = new SystemLearning();
-        learning.setId(id);
-        learning.setTitle(title);
-        learning.setCategory(category);
-        learning.setContent(content);
-        learning.setTags(tags);
-        learning.setCritical(isCritical);
-        learning.setConfidence(confidence);
-        learning.setVersion(1L);
-        learning.setCreatedAt(LocalDateTime.now());
-        learning.setUpdatedAt(LocalDateTime.now());
-        return learning;
-    }
 
-    private SystemLearning makeErrorSolution(String id, String title, String content,
-            List<String> tags) {
-        return makeLearning(id, title, "error-solutions", content, tags, true, 0.90);
-    }
 
     // ─── Additional Core Knowledge Seeders ─────────────────────────────────────
 
@@ -1020,6 +1004,66 @@ public class KnowledgeSeedDataProvider {
                         + "  4. Skip tests in CI if needed: ./gradlew build -x test\n"
                         + "  5. Run deploy.sh locally first to validate steps",
                     List.of("ci-cd", "makefile", "gradle", "build", "github-actions"))
+        ));
+    }
+
+    private Flux<SystemLearning> seedAiProviderManagement() {
+        return Flux.fromIterable(List.of(
+            makeLearning("pm-quarantine-01", "Provider Quarantine Recovery", "ai-provider-management",
+                "[LOCAL-SEED]\n1. Check why provider was quarantined in logs.\n2. Navigate to Admin Dashboard -> AI Providers.\n3. Click 'Release' on the quarantined provider to resume traffic.",
+                List.of("provider", "quarantine", "recovery"), false, 0.95),
+            makeLearning("pm-config-01", "Add New Provider Config", "ai-provider-management",
+                "[LOCAL-SEED]\n1. Add document to Firestore 'api_providers' collection.\n2. Required fields: name, endpoint, type, isActive (bool), priority (int).\n3. Keys should be stored in Secret Manager, not plaintext.",
+                List.of("provider", "config", "firestore"), false, 0.95),
+            makeLearning("pm-rotation-01", "Provider Priority Rotation", "ai-provider-management",
+                "[LOCAL-SEED]\n1. Lower priority number = higher precedence.\n2. To rotate, set failing provider priority to 999.\n3. Set backup provider priority to 1.\n4. System auto-routes within 30s.",
+                List.of("provider", "priority", "rotation"), false, 0.95),
+            makeLearning("pm-circuit-01", "Circuit Breaker Override", "ai-provider-management",
+                "[LOCAL-SEED]\n1. Circuit breakers open after 3 consecutive failures.\n2. To force reset, restart the JVM or use the /api/admin/providers/{id}/release endpoint.\n3. Verify health endpoint before resetting.",
+                List.of("provider", "circuit-breaker", "reset"), false, 0.95),
+            makeLearning("pm-ratelimit-01", "Token Usage Limit Recovery", "ai-provider-management",
+                "[LOCAL-SEED]\n1. 429 Too Many Requests indicates quota exceeded.\n2. System automatically applies exponential backoff.\n3. To resolve permanently, request quota increase from provider or rotate to backup.",
+                List.of("provider", "rate-limit", "quota"), false, 0.95)
+        ));
+    }
+
+    private Flux<SystemLearning> seedUserAndPermissionManagement() {
+        return Flux.fromIterable(List.of(
+            makeLearning("um-admin-01", "Admin Role Assignment", "user-management",
+                "[LOCAL-SEED]\n1. Open Firestore console.\n2. Navigate to 'users' collection.\n3. Find target user document.\n4. Update field 'tier' to 'ADMIN'.\n5. User must re-login to obtain updated JWT claims.",
+                List.of("user", "admin", "role", "permission"), false, 0.95),
+            makeLearning("um-revoke-01", "API Key Revocation", "user-management",
+                "[LOCAL-SEED]\n1. Navigate to 'user_api_keys' collection.\n2. Delete or set 'isActive' = false for the compromised key.\n3. Changes take effect immediately due to live Firestore rules.",
+                List.of("user", "api-key", "revoke", "security"), true, 0.95),
+            makeLearning("um-ratelimit-01", "User Rate Limit Adjustment", "user-management",
+                "[LOCAL-SEED]\n1. Open user document in Firestore.\n2. Add/update 'customRateLimit' object.\n3. Set 'requestsPerMinute' to desired integer.\n4. Takes precedence over global defaults.",
+                List.of("user", "rate-limit", "quota"), false, 0.95),
+            makeLearning("um-jwt-01", "JWT Token Invalidation", "user-management",
+                "[LOCAL-SEED]\n1. To invalidate all tokens, rotate JWT_SECRET in environment.\n2. To invalidate single user, change their 'tokenVersion' in Firestore.\n3. All existing tokens will fail signature or version check.",
+                List.of("user", "jwt", "invalidate", "security"), true, 0.95),
+            makeLearning("um-rbac-01", "RBAC Policy Update", "user-management",
+                "[LOCAL-SEED]\n1. Edit firestore.rules file.\n2. Use isAdmin() or isOwner() helper functions.\n3. Run 'firebase deploy --only firestore:rules' to apply.\n4. Default deny all.",
+                List.of("user", "rbac", "firestore", "rules"), false, 0.95)
+        ));
+    }
+
+    private Flux<SystemLearning> seedLocalAiModelSetup() {
+        return Flux.fromIterable(List.of(
+            makeLearning("lm-ollama-01", "Local Ollama Integration", "local-ai-setup",
+                "[LOCAL-SEED]\n1. Install Ollama and run 'ollama serve'.\n2. Pull model: 'ollama run llama3'.\n3. Add provider in SupremeAI: endpoint 'http://localhost:11434/v1', type 'ollama', model 'llama3'.\n4. Enable Solo Mode.",
+                List.of("local-ai", "ollama", "integration"), false, 0.95),
+            makeLearning("lm-llamacpp-01", "Llama.cpp Fallback Setup", "local-ai-setup",
+                "[LOCAL-SEED]\n1. Run Llama.cpp server: './server -m model.gguf -c 2048'.\n2. Add provider config in SupremeAI pointing to Llama.cpp host/port.\n3. Use 'openai' provider type as Llama.cpp is API-compatible.",
+                List.of("local-ai", "llamacpp", "fallback"), false, 0.95),
+            makeLearning("lm-gguf-01", "GGUF Model Loading", "local-ai-setup",
+                "[LOCAL-SEED]\n1. Download GGUF files from HuggingFace.\n2. Place in designated models/ directory.\n3. Ensure sufficient RAM/VRAM before starting the inference server.\n4. Recommended: Quantized Q4_K_M for 8GB RAM.",
+                List.of("local-ai", "gguf", "model-loading"), false, 0.95),
+            makeLearning("lm-vram-01", "VRAM Exhaustion Recovery", "local-ai-setup",
+                "[LOCAL-SEED]\n1. If local inference crashes with CUDA Out of Memory.\n2. Restart inference engine with smaller context window (e.g., -c 1024).\n3. Or offload fewer layers to GPU (e.g., -ngl 20).",
+                List.of("local-ai", "vram", "oom", "recovery"), false, 0.95),
+            makeLearning("lm-timeout-01", "Local Model Timeout Tuning", "local-ai-setup",
+                "[LOCAL-SEED]\n1. Local models are slower than cloud APIs.\n2. Increase read timeout in provider config to 120s or 300s.\n3. Monitor inference speed (tokens/sec) to set appropriate SLAs.",
+                List.of("local-ai", "timeout", "tuning"), false, 0.95)
         ));
     }
 }

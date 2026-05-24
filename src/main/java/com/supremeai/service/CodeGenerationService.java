@@ -39,7 +39,7 @@ public class CodeGenerationService {
      * Generate a simple skeleton application based on flat spec (legacy).
      */
     public Map<String, Object> generate(Map<String, Object> spec) {
-        return generateFromContext(Collections.emptyMap());
+        return generateFromContext(new HashMap<>());
     }
 
     /**

@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.supremeai.service.AdminDashboardFacadeService;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +48,7 @@ public class SupremeLearningOrchestrator {
     private static final Logger log = LoggerFactory.getLogger(SupremeLearningOrchestrator.class);
     private final ObjectMapper objectMapper = new ObjectMapper();
     private JsonNode rootNode;
+    private final AdminDashboardFacadeService adminDashboardFacade;
 
     private static final String KNOWLEDGE_FILE_PATH = "src/main/resources/core_knowledge.json";
 
@@ -60,6 +63,11 @@ public class SupremeLearningOrchestrator {
     private static final int    CORRECTION_TRIGGER_COUNT  = 3;
     private static final double LOW_SUCCESS_RATE_THRESHOLD = 0.50;
     private static final int    MIN_SOLUTIONS_FOR_GAP    = 1;
+
+    @Autowired
+    public SupremeLearningOrchestrator(AdminDashboardFacadeService adminDashboardFacade) {
+        this.adminDashboardFacade = adminDashboardFacade;
+    }
 
     @PostConstruct
     public void init() {
@@ -110,7 +118,7 @@ public class SupremeLearningOrchestrator {
     public Map<String, String> identifyBestHub(String query) {
         log.debug("[SYSTEM_LEARNING] Phase 2: Vector-based intent classification for: {}", truncate(query));
 
-        String hub = "Language & Marketing Hub (Llama-3.1 / Qwen)"; // Default
+        String hub = "default-hub"; // Default; resolved from intent taxonomy by similarity below
         String cluster = "general";
 
         JsonNode taxonomy = rootNode.path("intent_taxonomy");
@@ -410,7 +418,11 @@ public class SupremeLearningOrchestrator {
      */
     private void proposeLogicRefinement(String intent, String recommendedHub) {
         log.info("[SYSTEM_LEARNING] Suggestion: Map '{}' to '{}' in core_knowledge.json", intent, recommendedHub);
-        // TODO Phase 2.5: Push to AdminDashboardFacadeService for dashboard notification
+        if (adminDashboardFacade != null) {
+            adminDashboardFacade.pushSuggestion("LOGIC_REFINEMENT", 
+                "Map '" + intent + "' to '" + recommendedHub + "' in core_knowledge.json", 
+                recommendedHub, 0.85);
+        }
     }
 
     // ══════════════════════════════════════════════════════════════════════════

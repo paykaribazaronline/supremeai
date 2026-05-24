@@ -93,9 +93,24 @@ public class TelegramStorageService {
     }
 
     /**
+     * Check if Telegram storage is enabled.
+     */
+    public boolean isEnabled() {
+        SystemConfig config = configService.getConfig();
+        if (config == null || config.getTelegramConfig() == null) return false;
+        Object enabled = config.getTelegramConfig().get("enabled");
+        return enabled != null && (boolean) enabled;
+    }
+
+    /**
      * Upload a physical file to Telegram via Teldrive.
      */
     public Mono<String> uploadFile(File file, String remotePath) {
+        if (!isEnabled()) {
+            logger.warn("[TELEGRAM] Upload skipped: Telegram storage is disabled in global settings");
+            return Mono.error(new RuntimeException("Telegram storage is disabled"));
+        }
+        
         Map<String, Object> teldriveSettings = getTeldriveSettings();
         if (teldriveSettings == null) return Mono.error(new RuntimeException("Settings not found"));
         
@@ -105,9 +120,11 @@ public class TelegramStorageService {
         String channelId = telegram != null ? (String) telegram.getOrDefault("channelId", "") : "";
 
         if (token.isEmpty()) {
+            logger.error("[TELEGRAM] Cannot upload: botToken is empty in Firestore config");
             return Mono.error(new RuntimeException("Telegram token is missing"));
         }
 
+        logger.info("[TELEGRAM] Attempting upload to: {} (Channel: {})", url, channelId);
         logger.info("[TELEGRAM] Uploading file: {} ({} bytes) to path: {}", file.getName(), file.length(), remotePath);
 
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
@@ -141,6 +158,11 @@ public class TelegramStorageService {
      * Upload raw data (e.g. JSON archives) to Telegram via Teldrive.
      */
     public Mono<String> uploadData(byte[] data, String fileName, String remotePath) {
+        if (!isEnabled()) {
+            logger.warn("[TELEGRAM] Data upload skipped: Telegram storage is disabled in global settings");
+            return Mono.error(new RuntimeException("Telegram storage is disabled"));
+        }
+
         Map<String, Object> teldriveSettings = getTeldriveSettings();
         if (teldriveSettings == null) return Mono.error(new RuntimeException("Settings not found"));
         

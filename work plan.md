@@ -2,7 +2,7 @@
 
 **T condición by:** admin (per rule: "admin share his plan with you and you will check code and give step plan")  
 **Date:** 2026-05-19  
-**Completed:** 2026-05-20  
+**Completed:** 2026-05-24  
 **Scope:** Self-healing feedback loop between `RootCauseAnalysisService` and `SelfHealingService`
 
 ---
@@ -88,4 +88,17 @@ SelfHealingService ── calls ──▶ RootCauseAnalysisService.analyzeError(
 > All 4 gaps described in the original plan have been resolved.  
 > The only remaining item — `refreshPatternsFromKnowledgeBase` hot-refresh on new success — is a soft-opt (the 1-hour schedule is intentional for production stability).  
 > All 3 SelfHealingService + RCA test suites pass: **BUILD SUCCESSFUL**.
+
+---
+
+## 🌐 Admin URL Configuration
+
+**Single Admin URL:** `/admin`
+
+- Firebase Hosting config (`firebase.json`) redirects `/` → `/admin/`
+- All admin routes are under `/admin/**`
+- Public endpoints remain at `/api/**`
+- WebSocket endpoint at `/ws/**`
+
+**Security:** Admin routes require `ROLE_ADMIN` authentication (configured in `SecurityConfig.java`)
 

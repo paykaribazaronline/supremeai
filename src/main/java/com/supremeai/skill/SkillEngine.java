@@ -1,7 +1,7 @@
 package com.supremeai.skill;
 
 import org.springframework.stereotype.Component;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.util.*;
 import java.nio.file.*;
 

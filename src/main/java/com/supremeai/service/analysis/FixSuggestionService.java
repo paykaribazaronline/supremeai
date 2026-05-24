@@ -84,16 +84,16 @@ public class FixSuggestionService {
                 String prompt = template.render(context);
                 log.debug("Sending fix prompt for finding {} in file {}", finding.getId(), finding.getFile());
 
-                AIProvider provider = null;
+                String response;
                 try {
-                    provider = providerFactory.getProvider("openai");
-                } catch (Exception ignored) {}
-                if (provider == null) {
-                    provider = providerFactory.getDefaultProvider();
+                    AIProvider provider = providerFactory.getDefaultProvider();
+                    response = provider.generate(prompt)
+                        .subscribeOn(Schedulers.boundedElastic())
+                        .block(java.time.Duration.ofSeconds(30));
+                } catch (Exception e) {
+                    log.warn("LLM call failed for finding {}: {}", finding.getId(), e.getMessage());
+                    response = "Error: " + e.getMessage();
                 }
-                String response = provider.generate(prompt)
-                    .subscribeOn(Schedulers.boundedElastic())
-                    .block(java.time.Duration.ofSeconds(30));
 
                 if (response == null || response.isEmpty() || response.startsWith("Failed") || response.startsWith("Error")) {
                     log.warn("LLM returned error for finding {}: {}", finding.getId(), response);
@@ -116,7 +116,7 @@ public class FixSuggestionService {
                     .createdAt(Instant.now().toString())
                     .build();
 
-            } catch (Exception e) {
+                    } catch (Exception e) {
                 log.error("Error generating fix for finding {}: {}", finding.getId(), e.getMessage());
                 return null;
             }

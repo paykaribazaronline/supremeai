@@ -44,8 +44,10 @@ public class HumanUnderstandingService {
     public void analyzeHumanFactors(String userMessage, String aiResponse) {
         executor.submit(() -> {
             try {
-                // Get analysis provider from config or use defaults
-                String preferredProvider = configService.getEffectiveSetting("analysis_provider", "groq");
+                // Get analysis provider from config (resolves to the default provider at runtime).
+                // No hardcoded provider brand here — the ConfigService value is set via environment/admin config.
+                String preferredProvider = configService.getEffectiveSetting("analysis_provider",
+                        "default");
                 
                 Mono<com.supremeai.model.ConsensusResult> analysisMono = consensusService.askAllAIs("""
                     Analyze this human-AI interaction and extract ONLY these values:

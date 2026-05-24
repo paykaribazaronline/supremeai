@@ -30,12 +30,29 @@ class SupremeAIMCP:
         self.rotator = get_rotator()
         self.vm_host = "34.122.30.166"  # GCloud VM IP
         self.vm_port = 11434
-        self.vm_models = {
-            "qwen2.5-coder:7b": {"role": "coding", "context": 32768},
-            "llama3.1:8b": {"role": "general", "context": 8192},
-            "stepfun": {"role": "reasoning", "context": 262144}
-        }
+        # Load VM model assignments from external config file.
+        # Format (vm_models_config.json):
+        #   { "coding": "model-name:tag", "general": "model-name:tag", "reasoning": "model-name:tag" }
+        self.vm_models = self._load_vm_model_config()
         self.knowledge_base = self._load_knowledge_base()
+
+    def _load_vm_model_config(self) -> dict:
+        """Load VM model assignments from external config file. No model hardcoded in Python."""
+        candidates = [
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "vm_models_config.json"),
+            os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "vm_models_config.json"),
+        ]
+        for path in candidates:
+            if os.path.exists(path):
+                try:
+                    with open(path, "r") as f:
+                        cfg = json.load(f)
+                    logger.info(f"[MCP] VM model config loaded from {path}")
+                    return cfg
+                except (json.JSONDecodeError, IOError) as e:
+                    logger.warning(f"[MCP] Could not load VM config from {path}: {e}")
+        logger.warning("[MCP] No vm_models_config.json found — VM model routing unavailable")
+        return {}
 
     def _load_knowledge_base(self) -> dict:
         """Load or create knowledge base"""
@@ -180,13 +197,18 @@ class SupremeAIMCP:
         return None
 
     def _select_vm_model(self, intent: dict) -> str:
-        """Select best VM model for the task"""
-        if intent["task_type"] == TaskType.CODING:
-            return "qwen2.5-coder:7b"
-        elif intent["requires_reasoning"]:
-            return "stepfun"  # Best reasoning model
-        else:
-            return "llama3.1:8b"  # General purpose
+        """Select the best VM model for the task using config-driven category mapping."""
+        # Map task-type to the config key that stores the model name
+        task_key = {
+            TaskType.CODING: "coding",
+            TaskType.REASONING: "reasoning",
+        }.get(intent["task_type"], "general")
+        model = self.vm_models.get(task_key)
+        if model:
+            return model
+        # Fallback: any available model
+        all_models = list(self.vm_models.values())
+        return all_models[0] if all_models else "default-model"
 
     async def _execute_system_ai(self, user_input: str, intent: dict) -> dict:
         """Execute using system AI (fallback)"""
@@ -200,27 +222,27 @@ class SupremeAIMCP:
         }
 
     def _select_best_result(self, results: List[dict], intent: dict) -> dict:
-        """Select the best result from multiple attempts"""
+        """Select the best result from multiple attempts (no hardcoded provider names)."""
         if len(results) == 1:
             return results[0]
 
-        # Score results based on various factors
         scored_results = []
         for result in results:
             score = 0
+            provider = result.get("provider", "unknown")
 
-            # Prefer results from preferred providers
-            if intent["task_type"] == TaskType.CODING and result.get("provider") == "deepseek":
+            # Prefer VM model for coding (config-driven, not brand-hardcoded)
+            if intent["task_type"] == TaskType.CODING and provider == "vm_model":
                 score += 20
-            elif intent["requires_reasoning"] and result.get("provider") == "vm_model":
+            # Prefer VM model / reasoning-capable result for reasoning tasks
+            elif intent["requires_reasoning"] and (provider == "vm_model"):
                 score += 15
 
-            # Prefer higher confidence
+            # Always prefer higher confidence
             score += result.get("confidence", 0.5) * 10
 
             scored_results.append((score, result))
 
-        # Return highest scoring result
         scored_results.sort(reverse=True)
         return scored_results[0][1]
 

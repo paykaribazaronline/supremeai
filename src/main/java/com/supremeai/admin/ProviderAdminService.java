@@ -2,11 +2,13 @@ package com.supremeai.admin;
 
 import com.supremeai.model.APIProvider;
 import com.supremeai.model.ActivityLog;
+import com.supremeai.model.ProviderTypeConfig;
 import com.supremeai.repository.ProviderRepository;
 import com.supremeai.repository.ActivityLogRepository;
 import com.supremeai.service.AIProviderDiscoveryService;
 import com.supremeai.service.AdminProviderValidationService;
 import com.supremeai.service.ProviderRoleSuggestionService;
+import com.supremeai.service.ProviderTypeRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,18 +33,21 @@ public class ProviderAdminService {
     private final AIProviderDiscoveryService discoveryService;
     private final ProviderRoleSuggestionService roleSuggestionService;
     private final AdminProviderValidationService adminProviderValidationService;
+    private final ProviderTypeRegistry providerTypeRegistry;
 
     @Autowired
     public ProviderAdminService(ProviderRepository providerRepository,
                                 ActivityLogRepository activityLogRepository,
                                 AIProviderDiscoveryService discoveryService,
                                 ProviderRoleSuggestionService roleSuggestionService,
-                                AdminProviderValidationService adminProviderValidationService) {
+                                AdminProviderValidationService adminProviderValidationService,
+                                ProviderTypeRegistry providerTypeRegistry) {
         this.providerRepository = providerRepository;
         this.activityLogRepository = activityLogRepository;
         this.discoveryService = discoveryService;
         this.roleSuggestionService = roleSuggestionService;
         this.adminProviderValidationService = adminProviderValidationService;
+        this.providerTypeRegistry = providerTypeRegistry;
     }
 
     public Flux<APIProvider> getAllProviders() {
@@ -327,31 +332,60 @@ public class ProviderAdminService {
                 .then();
     }
 
+    /**
+     * Infer a provider type category from the provider name.
+     * This is a lightweight heuristic used only during sanitization of existing records
+     * that are missing a typeId. The authoritative source for provider type config is
+     * the Firestore {@code provider_types} collection accessed via {@link ProviderTypeRegistry}.
+     */
     private String determineTypeFromName(String name) {
+        if (name == null || name.isBlank()) return CATEGORY_GENERIC;
         String n = name.toUpperCase();
-        if (n.contains("GEMINI")) return "GOOGLE";
-        if (n.contains("OPENAI") || n.contains("GPT")) return "OPENAI";
-        if (n.contains("ANTHROPIC") || n.contains("CLAUDE")) return "ANTHROPIC";
-        if (n.contains("GROQ")) return "GROQ";
-        if (n.contains("DEEPSEEK")) return "DEEPSEEK";
-        if (n.contains("MISTRAL")) return "MISTRAL";
-        if (n.contains("OLLAMA")) return "LOCAL";
-        return "GENERIC";
+
+        // 1. Dynamic Match: Search all registered provider types for keyword matches
+        Map<String, ProviderTypeConfig> allTypes = providerTypeRegistry.getAllTypes();
+        for (ProviderTypeConfig config : allTypes.values()) {
+            if (config.getKeywords() != null) {
+                for (String keyword : config.getKeywords()) {
+                    if (n.contains(keyword.toUpperCase())) {
+                        return config.getTypeId();
+                    }
+                }
+            }
+            // Also check if the Type ID or Display Name is contained in the input name
+            if (n.contains(config.getTypeId().toUpperCase()) ||
+                (config.getDisplayName() != null && n.contains(config.getDisplayName().toUpperCase()))) {
+                return config.getTypeId();
+            }
+        }
+
+        // 2. Legacy Fallback (for core types if keywords are not yet seeded in Firestore)
+        if (n.contains("GOOGLE") || n.contains("GEMINI") || n.contains("VERTEX"))  return CATEGORY_GOOGLE;
+        if (n.contains("OPENAI") || n.contains("GPT"))                             return "openai";
+        if (n.contains("ANTHROPIC") || n.contains("CLAUDE"))                       return "anthropic";
+        if (n.contains("GROQ"))                                                     return "groq";
+        if (n.contains("DEEPSEEK"))                                                 return "deepseek";
+        if (n.contains("MISTRAL"))                                                  return "mistral";
+        if (n.contains("OLLAMA") || n.contains("LOCAL"))                            return CATEGORY_OLLAMA;
+
+        return CATEGORY_GENERIC;
     }
 
+    /**
+     * Resolve the default model for a provider type from the dynamic registry.
+     * Never returns a hardcoded brand/model ID — falls back to {@code unknown-model}
+     * if the type has no entry in {@code provider_types}.
+     */
     private String determineDefaultModel(String type) {
         if (type == null) return "unknown-model";
-        return switch (type.toUpperCase()) {
-            case "GOOGLE" -> "gemini-1.5-flash";
-            case "OPENAI" -> "gpt-4o-mini";
-            case "ANTHROPIC" -> "claude-3-haiku";
-            case "GROQ" -> "llama3-8b-8192";
-            case "DEEPSEEK" -> "deepseek-chat";
-            case "MISTRAL" -> "mistral-tiny";
-            case "LOCAL" -> "phi3";
-            default -> "generic-model";
-        };
+        ProviderTypeConfig config = providerTypeRegistry.getTypeConfig(type);
+        return (config != null && config.getDefaultModel() != null)
+                ? config.getDefaultModel() : "unknown-model";
     }
+
+    private static final String CATEGORY_GOOGLE = "google";
+    private static final String CATEGORY_OLLAMA = "ollama";
+    private static final String CATEGORY_GENERIC = "generic";
 
     /**
      * Detect the correct deploymentSource for a provider based on type, account email, and base URL.

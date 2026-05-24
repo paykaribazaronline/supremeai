@@ -6,8 +6,8 @@ class ListUsersVariablesBuilder {
   ListUsersVariablesBuilder(this._dataConnect, );
   Deserializer<ListUsersData> dataDeserializer = (dynamic json)  => ListUsersData.fromJson(jsonDecode(json));
   
-  Future<QueryResult<ListUsersData, void>> execute() {
-    return ref().execute();
+  Future<QueryResult<ListUsersData, void>> execute({QueryFetchPolicy fetchPolicy = QueryFetchPolicy.preferCache}) {
+    return ref().execute(fetchPolicy: fetchPolicy);
   }
 
   QueryRef<ListUsersData, void> ref() {
@@ -49,7 +49,7 @@ class ListUsersUsers {
     return json;
   }
 
-  const ListUsersUsers({
+  ListUsersUsers({
     required this.id,
     required this.username,
   });
@@ -86,7 +86,7 @@ class ListUsersData {
     return json;
   }
 
-  const ListUsersData({
+  ListUsersData({
     required this.users,
   });
 }

@@ -110,10 +110,13 @@ export default function ModernAdminDashboard() {
     }
 
     return (
-      <div style={{ height: 'calc(100vh - 100px)', padding: '20px', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ height: 'calc(100vh - 80px)', padding: '24px', overflowY: 'auto', overflowX: 'hidden' }}>
         <Suspense fallback={
           <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Spin size="large" tip="লোড হচ্ছে..." />
+            <div className="loading-fallback" style={{ background: 'transparent', position: 'relative' }}>
+               <Spin size="large" />
+               <div className="loading-text">SYNCING NEURAL LINK...</div>
+            </div>
           </div>
         }>
           {(() => {
@@ -144,7 +147,9 @@ export default function ModernAdminDashboard() {
               case 'backup': return <AdminBackup />;
               case 'ocr': return <AdminOCR />;
               case 'approvals': return <AdminApprovals />;
-              
+              case 'infrastructure': return <AdminInfrastructure />;
+              case 'code-analysis': return <AdminCodeAnalysis analysisProgress={null} />;
+
               case 'settings': return isAdmin ? 
                 <AdminSettings darkMode={darkMode} setDarkMode={setDarkMode} chatFont={chatFont} setChatFont={setChatFont} /> : 
                 <UserSettings darkMode={darkMode} setDarkMode={setDarkMode} chatFont={chatFont} setChatFont={setChatFont} />;

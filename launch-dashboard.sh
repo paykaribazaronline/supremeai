@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # =============================================================================
 #  launch-dashboard.sh — Serve the pre-built public/admin/ dashboard instantly
-#  No build, no GCP, no Docker — just open http://localhost:3000/admin
+#  No build, no GCP, no Docker — just open http://localhost:3001/admin
 # =============================================================================
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ADMIN_DIR="$SCRIPT_DIR/public/admin"
-PORT="${PORT:-3000}"
+PORT="${PORT:-3001}"
 
 if [[ ! -d "$ADMIN_DIR" ]]; then
   echo "✖ public/admin/ folder not found. Are you in the SupremeAI repo root?"

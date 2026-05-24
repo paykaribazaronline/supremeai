@@ -37,7 +37,7 @@ public class ResilienceController {
 
     @PostMapping("/test-retry")
     public ResponseEntity<Map<String, Object>> testRetry(@RequestBody Map<String, String> request) {
-        String provider = request.getOrDefault("provider", "groq");
+        String provider = request.getOrDefault("provider", "default");
         try {
             String result = retryableAIExecutor.execute(provider, provider, () -> "Resilience test passed for " + provider);
             return ResponseEntity.ok(Map.of("status", "success", "result", result));

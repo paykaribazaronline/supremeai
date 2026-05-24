@@ -452,4 +452,4 @@ graph TD
     *   `AdminPerformance.tsx:443,498,543` — System Resources, Self-Healing & Provider Rankings all got `cyan-bordered-panel`
 *   [x] প্রতি ২৫টি ট্যাবের মধ্যে সঠিক রাউটিং এবং বাটন ক্লিকে ফিডব্যাক সিস্টেম চালু করা।
     *   All 25 keys present in `ModernAdminDashboard.tsx:120-150` switch-case route block; `glass-card`/`cyber-button` already applied throughout.
-*   [ ] `index.css` এ উল্লিখিত গ্লাস ও নিয়ন বাটন সিএসএস প্রোপার্টিগুলো যুক্ত করা।
+*   [x] `index.css` এ উল্লিখিত গ্লাস ও নিয়ন বাটন সিএসএস প্রোপার্টিগুলো যুক্ত করা।

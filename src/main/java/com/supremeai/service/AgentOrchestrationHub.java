@@ -59,7 +59,7 @@ public class AgentOrchestrationHub {
 
         // Delegate to CodeGenerationService; run on boundedElastic to avoid blocking the Netty event loop
         return Mono.fromCallable(() -> {
-                Map<String, Object> context = new HashMap<>();
+                Map<String, String> context = new HashMap<>();
                 context.put("architecture", (String) input.getOrDefault("architecture", "monolith"));
                 context.put("database", (String) input.getOrDefault("database", "PostgreSQL"));
                 context.put("apiStyle", (String) input.getOrDefault("apiStyle", "REST"));

@@ -107,50 +107,54 @@ public class VisionService {
     }
 
     /**
-     * Try external vision APIs (OpenAI, Gemini) as fallback.
+     * Try external vision APIs as fallback.
+     * Model names must come from config (application.yml) — no hardcoded fallback to an invalid model name.
      */
     private Mono<VisionAnalysisResult> tryExternalVisionApis(String base64Image, AnalysisType analysisType) {
         String prompt = buildPrompt(analysisType);
 
-        // Get dynamic model names from config
-        String openAiModel = configService.getSetting("vision_openai_model", "gpt-4o-mini");
-        String geminiModel = configService.getSetting("vision_gemini_model", "gemini-1.5-flash");
+        String openAiModel = configService.getSetting("vision_openai_model", null);
+        String geminiModel = configService.getSetting("vision_gemini_model", null);
 
-        // Try OpenAI Vision first, then Gemini, then fallback
-        if (openAiKey != null && !openAiKey.isEmpty()) {
+        // Try external vision APIs — model names must be configured; skip if absent
+        if (openAiKey != null && !openAiKey.isEmpty() && openAiModel != null) {
             return callOpenAiVision(base64Image, prompt, openAiModel)
                 .onErrorResume(e -> {
                     log.warn("[VISION] OpenAI vision failed: {}, trying Gemini", e.getMessage());
-                    return callGeminiVision(base64Image, prompt, geminiModel);
+                    if (geminiModel != null) {
+                        return callGeminiVision(base64Image, prompt, geminiModel);
+                    }
+                    log.warn("[VISION] Gemini model also not configured");
+                    if (isMockAllowed()) return Mono.just(mockAnalysis(analysisType));
+                    return Mono.error(new RuntimeException("Vision API execution failed: " + e.getMessage(), e));
                 })
                 .onErrorResume(e -> {
                     if (isMockAllowed()) {
                         log.warn("[VISION] Gemini vision failed: {}, using mock", e.getMessage());
                         return Mono.just(mockAnalysis(analysisType));
-                    } else {
-                        log.error("[VISION] Vision APIs failed and mock is not allowed", e);
-                        return Mono.error(new RuntimeException("Vision API execution failed: " + e.getMessage(), e));
                     }
+                    log.error("[VISION] Vision APIs failed and mock is not allowed", e);
+                    return Mono.error(new RuntimeException("Vision API execution failed: " + e.getMessage(), e));
                 });
-        } else if (geminiKey != null && !geminiKey.isEmpty()) {
+        } else if (geminiKey != null && !geminiKey.isEmpty() && geminiModel != null) {
             return callGeminiVision(base64Image, prompt, geminiModel)
                 .onErrorResume(e -> {
                     if (isMockAllowed()) {
                         log.warn("[VISION] Gemini vision failed: {}, using mock", e.getMessage());
                         return Mono.just(mockAnalysis(analysisType));
-                    } else {
-                        log.error("[VISION] Gemini vision failed and mock is not allowed", e);
-                        return Mono.error(new RuntimeException("Vision API execution failed: " + e.getMessage(), e));
                     }
+                    log.error("[VISION] Gemini vision failed and mock is not allowed", e);
+                    return Mono.error(new RuntimeException("Vision API execution failed: " + e.getMessage(), e));
                 });
         } else {
             if (isMockAllowed()) {
-                log.warn("[VISION] No vision API key configured — returning structured mock");
+                log.warn("[VISION] No vision API key or model configured — returning structured mock");
                 return Mono.just(mockAnalysis(analysisType));
-            } else {
-                log.error("[VISION] No API key configured and mock fallback is disabled");
-                return Mono.error(new IllegalStateException("No vision API key configured (OpenAI or Gemini) and mock fallback is disabled."));
             }
+            log.error("[VISION] No vision API key/model configured and mock fallback is disabled");
+            return Mono.error(new RuntimeException(
+                "Vision API execution failed: no configured model. "
+                + "Set vision_openai_model or vision_gemini_model in application.yml."));
         }
     }
 

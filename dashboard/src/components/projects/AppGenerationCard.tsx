@@ -31,19 +31,19 @@ const AppGenerationCard: React.FC<AppGenerationCardProps> = ({
 
   return (
     <Card 
-      title={<><RocketOutlined style={{ marginRight: 8, color: '#1890ff' }} /> Generate New App</>} 
-      style={{ marginTop: 24 }}
+      title={<><RocketOutlined style={{ marginRight: 8, color: 'var(--neon-blue)', textShadow: '0 0 10px var(--neon-blue)' }} /> <span className="glow-text-cyan" style={{ fontSize: '18px', textTransform: 'uppercase', letterSpacing: '1px' }}>NEURAL APP GENERATOR</span></>} 
+      style={{ marginTop: 24, border: '1px solid rgba(0, 243, 255, 0.2)' }}
       className="glass-card"
     >
       <Row gutter={24}>
         <Col xs={24} lg={12}>
-          <Title level={4}>App Requirements</Title>
-          <Paragraph type="secondary">
-            Describe the app you want to generate. SupremeAI will analyze your requirements and create a robust application structure.
+          <Title level={4} style={{ color: 'var(--neon-blue)' }}>System Requirements</Title>
+          <Paragraph style={{ color: 'var(--text-dim)' }}>
+            Define the architecture parameters. SupremeAI will synthesize a robust application structure.
           </Paragraph>
           <Form layout="vertical" onFinish={onGenerate}>
-            <div style={{ marginBottom: 20, textAlign: 'center', padding: '10px', background: 'rgba(24, 144, 255, 0.05)', borderRadius: '8px' }}>
-              <Text strong style={{ marginRight: 15 }}>Experience Level:</Text>
+            <div style={{ marginBottom: 20, textAlign: 'center', padding: '10px', background: 'rgba(0, 243, 255, 0.05)', borderRadius: '8px', border: '1px solid rgba(0, 243, 255, 0.1)' }}>
+              <Text strong style={{ marginRight: 15, color: 'var(--text-main)' }}>Orchestration Level:</Text>
               <Select 
                 value={experienceLevel} 
                 style={{ width: 200 }} 
@@ -117,21 +117,23 @@ const AppGenerationCard: React.FC<AppGenerationCardProps> = ({
                   loading={generationStatus === 'generating'}
                   size="large"
                   block
-                  className="pulse-button"
-                  style={{ height: '50px', fontSize: '18px' }}
+                  className="cyber-button pulse-button"
+                  style={{ height: '50px', fontSize: '18px', background: 'transparent', color: 'var(--neon-blue)', border: '1px solid var(--neon-blue)', boxShadow: '0 0 15px rgba(0, 243, 255, 0.3)', textTransform: 'uppercase', letterSpacing: '1px' }}
                 >
-                  {generationStatus === 'generating' ? 'Orchestrating AI Agents...' : 'Build My App Now'}
+                  {generationStatus === 'generating' ? 'Synthesizing Architecture...' : 'Initialize Pipeline'}
                 </Button>
                 
                 <Button 
                   icon={<CloudServerOutlined />}
                   onClick={onGetAdvice}
                   block
+                  className="cyber-button"
                   style={{ 
-                    background: 'rgba(24, 144, 255, 0.1)', 
-                    borderColor: 'rgba(24, 144, 255, 0.5)',
-                    color: '#1890ff',
-                    height: '40px'
+                    background: 'rgba(139, 92, 246, 0.1)', 
+                    borderColor: 'rgba(139, 92, 246, 0.5)',
+                    color: 'var(--neon-purple)',
+                    height: '40px',
+                    boxShadow: '0 0 10px rgba(139, 92, 246, 0.2)'
                   }}
                 >
                   Infrastructure Concierge (AI Audit)
@@ -143,8 +145,8 @@ const AppGenerationCard: React.FC<AppGenerationCardProps> = ({
         
         <Col xs={24} lg={12}>
           {generationStatus !== 'idle' ? (
-            <div style={{ padding: '10px', background: 'rgba(0,0,0,0.1)', borderRadius: '12px', minHeight: '300px' }}>
-              <Title level={4}>Generation Pipeline</Title>
+            <div style={{ padding: '20px', background: 'rgba(0,0,0,0.4)', borderRadius: '12px', minHeight: '300px', border: '1px solid rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(10px)' }}>
+              <Title level={4} style={{ color: 'var(--neon-purple)' }}>Synthesis Pipeline</Title>
               
               <Steps
                 current={generationStep}
@@ -160,16 +162,17 @@ const AppGenerationCard: React.FC<AppGenerationCardProps> = ({
               
               <div style={{ marginTop: 32 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <span>Overall Completion</span>
-                  <span>{generationProgress}%</span>
+                  <span style={{ color: 'var(--text-dim)' }}>Overall Synthesis</span>
+                  <span className="glow-text-cyan">{generationProgress}%</span>
                 </div>
                 <Progress 
                   percent={generationProgress} 
                   status={generationStatus === 'error' ? 'exception' : 'active'}
                   strokeColor={{
-                    '0%': '#1890ff',
-                    '100%': '#52c41a',
+                    '0%': 'var(--neon-blue)',
+                    '100%': 'var(--neon-purple)',
                   }}
+                  trailColor="rgba(255, 255, 255, 0.05)"
                   showInfo={false}
                 />
               </div>
@@ -208,7 +211,8 @@ const AppGenerationCard: React.FC<AppGenerationCardProps> = ({
                       block 
                       icon={<CloudServerOutlined />} 
                       onClick={onGetAdvice}
-                      style={{ background: 'rgba(24, 144, 255, 0.1)', color: '#1890ff' }}
+                      className="cyber-button"
+                      style={{ background: 'rgba(0, 243, 255, 0.1)', color: 'var(--neon-blue)', borderColor: 'rgba(0, 243, 255, 0.3)' }}
                     >
                       View Optimized Hosting Plan
                     </Button>
@@ -222,15 +226,15 @@ const AppGenerationCard: React.FC<AppGenerationCardProps> = ({
                   description="An error occurred during the generation process. Please check logs and try again."
                   type="error"
                   showIcon
-                  style={{ marginTop: 24, border: '1px solid #ff4d4f' }}
+                  style={{ marginTop: 24, border: '1px solid var(--neon-red)', background: 'rgba(255, 77, 79, 0.1)' }}
                 />
               )}
             </div>
           ) : (
-            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.05)', borderRadius: '12px', padding: '40px' }}>
+            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', padding: '40px', border: '1px dashed rgba(255,255,255,0.1)' }}>
               <div style={{ textAlign: 'center' }}>
-                <RocketOutlined style={{ fontSize: '48px', color: '#1890ff', opacity: 0.5, marginBottom: '16px' }} />
-                <Paragraph type="secondary">
+                <RocketOutlined style={{ fontSize: '48px', color: 'var(--neon-blue)', opacity: 0.5, marginBottom: '16px', filter: 'drop-shadow(0 0 10px var(--neon-blue))' }} />
+                <Paragraph style={{ color: 'var(--text-dim)' }}>
                   Configure your requirements on the left to start the automated application generation pipeline.
                 </Paragraph>
               </div>

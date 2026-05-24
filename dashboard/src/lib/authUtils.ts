@@ -87,6 +87,23 @@ function emulatorStub(url: string, fullUrl: string): Response {
     return jsonOk({ roles: ['user', 'admin'] });
   }
 
+  // ── Provider CRUD ────────────────────────────────────────────────────────
+  if (url === '/api/admin/providers') {
+    return jsonOk({ id: 'emulator-provider-' + Date.now(), name: 'New Provider', status: 'active' });
+  }
+
+  if (url.match(/^\/api\/admin\/providers\/[^/]+$/) && !url.endsWith('/toggle') && !url.endsWith('/delete') && !url.endsWith('/roles')) {
+    return jsonOk({ id: url.split('/').pop(), ok: true });
+  }
+
+  if (url.match(/^\/api\/admin\/providers\/[^/]+\/toggle$/)) {
+    return jsonOk({ ok: true });
+  }
+
+  if (url.match(/^\/api\/admin\/providers\/[^/]+\/delete$/)) {
+    return jsonOk({ ok: true });
+  }
+
   // ── User management ────────────────────────────────────────────────────
   if (url === '/api/admin/users/configured') {
     return jsonOk([]);
@@ -397,6 +414,24 @@ function emulatorStub(url: string, fullUrl: string): Response {
     return jsonOk([]);
   }
 
+
+  // Projects PUT
+  if (url.match(/^\/api\/projects\/[^\/]+$/) && !url.endsWith('/toggle') && !url.endsWith('/delete')) {
+    return jsonOk({ id: url.split('/').pop(), ok: true });
+  }
+  // Rules
+  if (url.match(/^\/api\/admin\/rules\/[^\/]+\/toggle$/)) { return jsonOk({ ok: true }); }
+  if (url.match(/^\/api\/admin\/rules\/[^\/]+$/)) { return jsonOk({ id: url.split('/').pop(), ok: true }); }
+  // OCR
+  if (url === '/api/ocr/history') { return jsonOk({ results: [] }); }
+  if (url === '/api/ocr/process') { return jsonOk({ confidence: 95, text: 'Emulated OCR result', id: 'ocr-' + Date.now() }); }
+  if (url.match(/^\/api\/ocr\/history\/[^\/]+$/)) { return jsonOk({ ok: true }); }
+  if (url.match(/^\/api\/ocr\/history\/[^\/]+\/export/)) { return new Response(JSON.stringify({ success: true, data: { text: 'Emulated OCR export' } }), { status: 200, headers: { 'Content-Type': 'application/json' } }); }
+  // Browser
+  if (url === '/api/browser/tasks') { return jsonOk({ tasks: [] }); }
+  if (url.match(/^\/api\/browser\/tasks\/[^\/]+\/(start|pause|stop)$/)) { return jsonOk({ ok: true }); }
+  if (url.match(/^\/api\/browser\/tasks\/[^\/]+\/findings$/)) { return jsonOk({ findings: [] }); }
+  if (url.match(/^\/api\/browser\/tasks\/[^\/]+$/)) { return jsonOk({ ok: true }); }
   // ── Chat ────────────────────────────────────────────────────────────────
   if (url === '/chat/send' || url === '/api/chat/send') {
     return jsonOk({ success: true, message: 'Received in emulator', agent_name: 'Emulator', confidence: 1.0, intent: 'NORMAL' });

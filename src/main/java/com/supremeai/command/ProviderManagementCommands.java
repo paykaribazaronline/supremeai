@@ -50,8 +50,10 @@ public class ProviderManagementCommands {
 
             @Override
             public CommandResult execute(Map<String, Object> params, CommandContext context) {
+                // Return an empty 'providers' array here — the caller should resolve
+                // the authoritative provider list from the provider registry / Firestore.
                 Map<String, Object> data = new HashMap<>();
-                data.put("providers", new String[]{"groq", "openai", "anthropic"});
+                data.put("providers", new String[0]);
                 return CommandResult.success("list-providers", data);
             }
 

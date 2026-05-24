@@ -4,6 +4,7 @@ import com.supremeai.service.SelfHealingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 /**
  * The Infinite Auto-Healing Loop!
@@ -23,7 +24,7 @@ public class InfiniteAutoHealer {
     /**
      * This method now delegates to the unified SelfHealingService.
      */
-    public String developUntilPerfection(String taskCategory, String userPrompt) {
+    public Mono<String> developUntilPerfection(String taskCategory, String userPrompt) {
         log.info("[Infinite Auto-Healer] Delegating to unified SelfHealingService");
         return selfHealingService.developUntilPerfection(taskCategory, userPrompt);
     }

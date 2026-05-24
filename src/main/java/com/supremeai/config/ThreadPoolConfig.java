@@ -7,16 +7,24 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * Thread pool configuration.
+ * Optimized for Java 21 Virtual Threads to ensure maximum concurrency and zero bottleneck.
+ */
 @Configuration
 public class ThreadPoolConfig {
+    
     @Bean(destroyMethod = "shutdown")
+    @Qualifier("aiProviderExecutor")
     public ExecutorService aiProviderExecutor() {
-        return Executors.newFixedThreadPool(10);
+        // High-concurrency executor for AI provider requests
+        return Executors.newVirtualThreadPerTaskExecutor();
     }
 
     @Bean(destroyMethod = "shutdown")
     @Qualifier("consensusTaskExecutor")
     public ExecutorService consensusTaskExecutor() {
-        return Executors.newFixedThreadPool(5);
+        // High-concurrency executor for multi-agent coordination
+        return Executors.newVirtualThreadPerTaskExecutor();
     }
 }

@@ -523,6 +523,7 @@ public class BrowserService {
                                     "Response Format: Exactly one line like 'ACTION:VALUE:REASONING'";
 
                                 return visionService.analyzeImage(base64, com.supremeai.service.VisionService.AnalysisType.GENERAL)
+                                    .timeout(java.time.Duration.ofSeconds(30))
                                     .flatMap(analysis -> {
                                         String response = analysis.getSummary().trim();
                                         if (response.contains("\n")) {
@@ -590,39 +591,25 @@ public class BrowserService {
     private Mono<String> getCredentialContext(String url) {
         if (url == null) return Mono.just("");
         String host = url.contains("://") ? url.split("/")[2] : url;
-        
+
         return credentialRepository.findAll()
             .filter(c -> host.contains(c.getWebsite()) || url.contains(c.getWebsite()))
             .collectList()
             .map(list -> {
                 if (list.isEmpty()) return "";
                 StoredCredential c = list.get(0);
-                
+
+                // SECURITY: Never include decrypted passwords or tokens in context strings
+                // that may be sent to AI providers or logged. Credentials are injected
+                // directly into the Playwright browser layer, not into AI prompts.
                 StringBuilder context = new StringBuilder("SECURITY CONTEXT: You have valid credentials for this domain.\n");
                 context.append("- Username: ").append(c.getUsername()).append("\n");
-                
-                if (c.getPassword() != null && !c.getPassword().isEmpty()) {
-                    try {
-                        String decryptedPass = encryptionService.decrypt(c.getPassword());
-                        context.append("- Password: ").append(decryptedPass).append("\n");
-                    } catch (Exception e) {
-                        context.append("- Password: [ENCRYPTION_ERROR]\n");
-                    }
-                }
-                
-                if (c.getToken() != null && !c.getToken().isEmpty()) {
-                    try {
-                        String decryptedToken = encryptionService.decrypt(c.getToken());
-                        context.append("- Access Token/Token: ").append(decryptedToken).append("\n");
-                    } catch (Exception e) {
-                        context.append("- Access Token: [ENCRYPTION_ERROR]\n");
-                    }
-                }
-                
+                context.append("- Password: [REDACTED — injected directly into browser automation layer]\n");
+                context.append("- Access Token: [REDACTED — injected directly into browser automation layer]\n");
                 context.append("- Target Selectors: User(").append(c.getSelectorUsername() != null ? c.getSelectorUsername() : "autodetect")
                        .append("), Pass(").append(c.getSelectorPassword() != null ? c.getSelectorPassword() : "autodetect").append(")\n");
-                context.append("If you encounter a login wall, use these credentials to proceed.");
-                
+                context.append("If you encounter a login wall, the automation layer will inject credentials automatically.");
+
                 return context.toString();
             });
     }

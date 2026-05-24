@@ -31,6 +31,9 @@ public class SecurityConfig {
     @Autowired
     private AuthenticationFilter authenticationFilter;
     
+    @Autowired
+    private SecurityHeadersFilter securityHeadersFilter;
+
     @Value("${cors.allowed-origins:}")
     private String allowedOriginsCsv;
 
@@ -63,12 +66,12 @@ public class SecurityConfig {
                          "object-src 'none'"
                      )
                  )
-                .httpStrictTransportSecurity(hsts -> hsts
-                    .maxAgeInSeconds(31536000) // 1 year
-                    .includeSubDomains(true)
-                )
-                .xssProtection(xss -> xss.disable()) // Modern browsers use CSP instead
-                .frameOptions(frame -> frame.deny())
+                 .httpStrictTransportSecurity(hsts -> hsts
+                     .maxAgeInSeconds(31536000) // 1 year
+                     .includeSubDomains(true)
+                 )
+                 .xssProtection(xss -> xss.disable()) // Modern browsers use CSP instead
+                 .frameOptions(frame -> frame.deny())
             )
             .authorizeHttpRequests(auth -> auth
                 // 1. Static resources
@@ -96,18 +99,19 @@ public class SecurityConfig {
                      "/api/auth/register",
                      "/api/auth/forgot-password",
                      "/api/auth/validate-token",
-                     "/api/health",
-                     "/api/status",
-                     "/api/config/firebase",
-                     "/api/config/public",
-                     "/public/**",
-                     "/telemetry/**",
-                     "/__/firebase/**",
-                     "/ws/**",
-                     "/error",
-                     "/api/v1/chat/completions",
-                     "/api/ext/**",
-                     "/admin",
+                      "/api/health",
+                      "/api/health/solo-mode",
+                      "/api/status",
+                      "/api/config/firebase",
+                      "/api/config/public",
+                      "/public/**",
+                      "/telemetry/**",
+                      "/__/firebase/**",
+                      "/ws/**",
+                      "/error",
+                      // /api/v1/chat/completions — gated by ExternalToolsAuthFilter (X-Authorized-Key)
+                      "/api/v1/chat/completions",
+                      "/admin",
                      "/admin/index.html"
                  ).permitAll()
 
@@ -129,8 +133,8 @@ public class SecurityConfig {
                  .requestMatchers("/api/workflows/**").hasRole("ADMIN")
                  .requestMatchers("/api/ext/**").hasRole("ADMIN")
 
-                // 4. Authenticated users — everything else requires login
-                .anyRequest().authenticated())
+                 // 4. Authenticated users — everything else requires login
+                 .anyRequest().authenticated())
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((req, res, ex2) -> {
                     res.setStatus(401);
@@ -143,7 +147,8 @@ public class SecurityConfig {
                     res.getWriter().write("{\"error\":\"Forbidden\",\"message\":\"Access denied\"}");
                 }))
              .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-             .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
+             .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class)
+             .addFilterAfter(securityHeadersFilter, UsernamePasswordAuthenticationFilter.class);
          
          return http.build();
      }

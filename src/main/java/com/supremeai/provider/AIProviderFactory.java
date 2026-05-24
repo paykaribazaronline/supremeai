@@ -53,14 +53,8 @@ public class AIProviderFactory {
     private final Map<String, Boolean> providerHealthCache = new ConcurrentHashMap<>();
 
     private void injectMetadataService(AIProvider provider) {
-        if (provider instanceof AbstractHttpProvider) {
-            try {
-                java.lang.reflect.Field field = AbstractHttpProvider.class.getDeclaredField("providerMetadataService");
-                field.setAccessible(true);
-                field.set(provider, this.providerMetadataService);
-            } catch (Exception e) {
-                logger.warn("Could not inject providerMetadataService into provider: {}", e.getMessage());
-            }
+        if (provider instanceof AbstractHttpProvider httpProvider) {
+            httpProvider.setProviderMetadataService(this.providerMetadataService);
         }
     }
 
@@ -141,7 +135,13 @@ public class AIProviderFactory {
         logger.info("[Factory] TypeConfig found for '{}': {}", normalizedName, typeConfig != null ? "YES (baseUrl=" + typeConfig.getDefaultBaseUrl() + ")" : "NO");
         if (typeConfig != null && typeConfig.getDefaultBaseUrl() != null && !typeConfig.getDefaultBaseUrl().isBlank()) {
             String key = resolveKey(overrideApiKey, null, normalizedName);
-            String defaultModel = typeConfig.getDefaultModel() != null ? typeConfig.getDefaultModel() : "default";
+            String defaultModel = typeConfig.getDefaultModel();
+            if (defaultModel == null || defaultModel.isBlank()) {
+                throw new IllegalStateException(
+                    "No default model configured for provider type '" + normalizedName + "'. "
+                    + "Register a defaultModel in provider_types."
+                );
+            }
             logger.info("[Cloud-Only] Resolving provider '{}' from provider_types: baseUrl={}, model={}",
                     normalizedName, typeConfig.getDefaultBaseUrl(), defaultModel);
             SupremeCloudProvider provider = new SupremeCloudProvider(key, normalizedName, defaultModel, typeConfig.getDefaultBaseUrl());
@@ -173,10 +173,14 @@ public class AIProviderFactory {
             return metadata.getModelName();
         }
         ProviderTypeConfig typeConfig = providerTypeRegistry != null ? providerTypeRegistry.getTypeConfig(metadata.getType()) : null;
-        if (typeConfig != null && typeConfig.getDefaultModel() != null) {
+        if (typeConfig != null && typeConfig.getDefaultModel() != null && !typeConfig.getDefaultModel().isBlank()) {
             return typeConfig.getDefaultModel();
         }
-        return "default";
+        // No model configured in Firestore api_providers or provider_types — fail explicit, not silent
+        throw new IllegalStateException(
+            "No model configured for provider '" + metadata.getName() + "'. "
+            + "Set 'modelName' or 'models' in the Firestore api_providers document, "
+            + "or register a defaultModel in provider_types for type='" + metadata.getType() + "'.");
     }
 
     public AIProvider getEnforcedProvider(String name) {

@@ -27,14 +27,47 @@ public class RateLimiterFilter extends OncePerRequestFilter {
     private final RateLimitProperties rateLimitProperties;
     private final RateLimiter rateLimiter;
 
+    // Custom header for OpenAI-compatible external tool access
+    private static final String API_KEY_HEADER = "X-Authorized-Key";
+    private static final String CHAT_COMPLETIONS_PATH = "/api/v1/chat/completions";
+
     public RateLimiterFilter(RateLimitProperties rateLimitProperties, RateLimiter rateLimiter) {
         this.rateLimitProperties = rateLimitProperties;
         this.rateLimiter = rateLimiter;
     }
 
+    /**
+     * Validates the X-Authorized-Key header for OpenAI-compatible chat completions endpoint.
+     * This gates access to /api/v1/chat/completions without requiring end-user Firebase auth,
+     * while still enforcing that callers present a known API key.
+     */
+    private boolean isApiKeyAuthorized(HttpServletRequest request) {
+        // Only apply API key gate to the OpenAI-compatible endpoint
+        if (!CHAT_COMPLETIONS_PATH.equals(request.getRequestURI())) {
+            return true;
+        }
+        String expectedKey = System.getenv("SUPREMEAI_API_KEY");
+        String providedKey = request.getHeader(API_KEY_HEADER);
+        if (expectedKey == null || expectedKey.isBlank()) {
+            // Key not configured — allow only if the feature flag explicitly enables open chat access
+            return "true".equalsIgnoreCase(System.getenv("OPEN_CHAT_COMPLETIONS"));
+        }
+        return expectedKey.equals(providedKey);
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+
+        // API key gate for OpenAI-compatible endpoint
+        if (!isApiKeyAuthorized(request)) {
+            response.setStatus(401);
+            response.setContentType("application/json");
+            response.getWriter().write(
+                "{\"error\":\"Unauthorized\",\"message\":\"Missing or invalid X-Authorized-Key header. Set SUPREMEAI_API_KEY env var to enable this endpoint.\"}"
+            );
+            return;
+        }
 
         if (!rateLimitProperties.isEnabled()) {
             filterChain.doFilter(request, response);

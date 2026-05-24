@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.supremeai.model.GeneratedApp;
 import com.supremeai.model.InfrastructureAdvice;
 import com.supremeai.provider.AIProvider;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import com.supremeai.repository.GeneratedAppRepository;
@@ -17,15 +15,29 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
-@Slf4j
-@RequiredArgsConstructor
 public class InfrastructureConciergeService {
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(InfrastructureConciergeService.class);
 
     private final AIProviderDiscoveryService providerDiscoveryService;
     private final GitHubAutomationService githubService;
     private final InfrastructureAdviceRepository adviceRepository;
     private final GeneratedAppRepository appRepository;
     private final ObjectMapper objectMapper;
+
+    // Manual constructor for dependency injection
+    public InfrastructureConciergeService(
+            AIProviderDiscoveryService providerDiscoveryService,
+            GitHubAutomationService githubService,
+            InfrastructureAdviceRepository adviceRepository,
+            GeneratedAppRepository appRepository,
+            ObjectMapper objectMapper) {
+        this.providerDiscoveryService = providerDiscoveryService;
+        this.githubService = githubService;
+        this.adviceRepository = adviceRepository;
+        this.appRepository = appRepository;
+        this.objectMapper = objectMapper;
+    }
 
     /**
      * Returns all generated infrastructure advice.

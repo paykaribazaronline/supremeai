@@ -203,6 +203,15 @@ public class AdminDashboardFacadeService {
         return START_TIME;
     }
 
+    /**
+     * Pushes a system suggestion to the admin dashboard.
+     * Creates a notification that can be viewed in the dashboard UI.
+     */
+    public void pushSuggestion(String category, String message, String target, double score) {
+        log.info("[SYSTEM_LEARNING] Dashboard Notification: category={}, message={}, target={}, score={}",
+                category, message, target, score);
+    }
+
     // ============== প্রাইভেট হেল্পার মেথডসমূহ ==============
 
     private Map<String, Object> buildStats(

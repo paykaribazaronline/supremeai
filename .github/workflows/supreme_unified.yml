@@ -106,9 +106,12 @@ jobs:
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}
       - uses: google-github-actions/setup-gcloud@v2
-      - name: Build & Push & Deploy
+      - name: Build, Push & Deploy
         run: |
-          gcloud builds submit --tag us-central1-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/supremeai-repo/backend .
+          gcloud builds submit \
+            --tag us-central1-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/supremeai-repo/backend \
+            --project=${{ env.GCP_PROJECT_ID }} \
+            .
           gcloud beta run deploy supremeai-backend \
             --image us-central1-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/supremeai-repo/backend \
             --region ${{ env.GCP_REGION }} \
@@ -117,8 +120,7 @@ jobs:
             --memory 4Gi \
             --cpu 2 \
             --set-env-vars="SPRING_PROFILES_ACTIVE=cloud,FIREBASE_PROJECT_ID=${{ env.GCP_PROJECT_ID }}" \
-            --update-secrets "JWT_SECRET=jwt-secret:latest,FIREBASE_SERVICE_ACCOUNT_JSON=firebase-service-account-json:latest" \
-            --quiet
+            --update-secrets "JWT_SECRET=jwt-secret:latest,FIREBASE_SERVICE_ACCOUNT_JSON=firebase-service-account-json:latest"
 
   frontend-build:
     name: Frontend Build
@@ -164,22 +166,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: web-builds
-      - name: Google Auth
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}
+      - name: Stage for Firebase Hosting
+        run: |
+          mkdir -p public/admin public/mobile
+
+          # Dashboard — prefer local artifacts, fall back to non-local path
+          DASHBOARD_SRC=""
+          if [ -d "dashboard/dist" ]; then
+            DASHBOARD_SRC="dashboard/dist"
+          elif [ -d "dist" ]; then
+            DASHBOARD_SRC="dist"
+          else
+            echo "::error::Dashboard build output not found (expected dashboard/dist or dist)."
+            exit 1
+          fi
+          cp -r "$DASHBOARD_SRC"/* public/admin/
+
+          # Mobile web — prefer local artifacts, fall back to non-local path
+          MOBILE_SRC=""
+          if [ -d "supremeai/build/web" ]; then
+            MOBILE_SRC="supremeai/build/web"
+          elif [ -d "build/web" ]; then
+            MOBILE_SRC="build/web"
+          else
+            echo "::error::Mobile build output not found (expected supremeai/build/web or build/web)."
+            exit 1
+          fi
+          cp -r "$MOBILE_SRC"/* public/mobile/
+
+      - name: Install Firebase Tools
+        run: npm install -g firebase-tools
+
       - name: Deploy Firebase Hosting
         run: |
-          mkdir -p public/admin
-          mkdir -p public/mobile
-          cp -r dashboard/dist/* public/admin/ || cp -r dist/* public/admin/
-          cp -r supremeai/build/web/* public/mobile/ || cp -r build/web/* public/mobile/
-          npm install -g firebase-tools
-          firebase deploy --project ${{ env.GCP_PROJECT_ID }} --only hosting --non-interactive
+          firebase deploy \
+            --project ${{ env.GCP_PROJECT_ID }} \
+            --only hosting \
+            --non-interactive
 
   health-check:
     name: Health Check

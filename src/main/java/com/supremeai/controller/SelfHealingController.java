@@ -125,27 +125,24 @@ public class SelfHealingController {
     }
 
     @PostMapping("/detect")
-    public ResponseEntity<Map<String, Object>> detectAndFix(@RequestBody Map<String, String> request) {
+    public Mono<ResponseEntity<Map<String, Object>>> detectAndFix(@RequestBody Map<String, String> request) {
         String error = request.get("error");
         if (error == null || error.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Missing 'error' field"));
+            return Mono.just(ResponseEntity.badRequest().body(Map.of("error", "Missing 'error' field")));
         }
-        return ResponseEntity.ok(selfHealingService.detectAndFix(error));
+        return selfHealingService.detectAndFix(error);
     }
 
     @PostMapping("/develop")
-    public ResponseEntity<Map<String, String>> developUntilPerfection(@RequestBody Map<String, String> request) {
+    public Mono<ResponseEntity<Map<String, String>>> developUntilPerfection(@RequestBody Map<String, String> request) {
         String taskCategory = request.getOrDefault("taskCategory", "general");
         String prompt = request.get("prompt");
         if (prompt == null || prompt.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Missing 'prompt' field"));
+            return Mono.just(ResponseEntity.badRequest().body(Map.of("error", "Missing 'prompt' field")));
         }
-        try {
-            String result = selfHealingService.developUntilPerfection(taskCategory, prompt);
-            return ResponseEntity.ok(Map.of("status", "success", "code", result));
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("status", "failed", "error", e.getMessage()));
-        }
+        return selfHealingService.developUntilPerfection(taskCategory, prompt)
+                .map(result -> ResponseEntity.ok(Map.of("status", "success", "code", result)))
+                .onErrorResume(e -> Mono.just(ResponseEntity.status(500).body(Map.of("status", "failed", "error", e.getMessage()))));
     }
 
     @GetMapping("/history")

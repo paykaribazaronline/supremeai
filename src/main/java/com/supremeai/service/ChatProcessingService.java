@@ -36,6 +36,8 @@ public class ChatProcessingService {
     private final CyberSecuritySkillService cyberSecuritySkillService;
     private final EnhancedLearningService enhancedLearningService;
     private final KnowledgeService knowledgeService;
+    private final ContextSummarizerService summarizerService;
+    private final NaturalLanguageQueryService naturalLanguageQueryService;
 
     // In-memory pending confirmations (like Flask)
     private final Map<String, PendingItem> pendingConfirmations = new ConcurrentHashMap<>();
@@ -53,7 +55,9 @@ public class ChatProcessingService {
             AdminProviderValidationService validationService,
             CyberSecuritySkillService cyberSecuritySkillService,
             EnhancedLearningService enhancedLearningService,
-            KnowledgeService knowledgeService) {
+            KnowledgeService knowledgeService,
+            ContextSummarizerService summarizerService,
+            NaturalLanguageQueryService naturalLanguageQueryService) {
         this.chatClassifier = chatClassifier;
         this.chatRuleRepository = chatRuleRepository;
         this.chatPlanRepository = chatPlanRepository;
@@ -68,6 +72,8 @@ public class ChatProcessingService {
         this.cyberSecuritySkillService = cyberSecuritySkillService;
         this.enhancedLearningService = enhancedLearningService;
         this.knowledgeService = knowledgeService;
+        this.summarizerService = summarizerService;
+        this.naturalLanguageQueryService = naturalLanguageQueryService;
     }
 
     public Mono<Map<String, Object>> processMessage(String userId, String message, boolean isAdmin) {
@@ -123,29 +129,22 @@ public class ChatProcessingService {
                     return chatHistoryRepository.findByUserIdOrderByTimestampAsc(userId)
                             .collectList()
                             .flatMap(history -> {
-                                StringBuilder promptBuilder = new StringBuilder();
-                                promptBuilder.append(
-                                        "You are SupremeAI, a highly intelligent coding and development assistant. Maintain a friendly and helpful tone.\n");
-                                promptBuilder.append(
-                                        "Below is the conversation history. Respond appropriately to the last user message considering the context:\n\n");
-
+                                StringBuilder historyBuilder = new StringBuilder();
                                 int startIdx = Math.max(0, history.size() - 5);
                                 for (int i = startIdx; i < history.size(); i++) {
                                     ChatMessage pastMsg = history.get(i);
                                     String role = pastMsg.getRole() != null ? pastMsg.getRole()
                                             : (pastMsg.isAdmin() ? "admin" : "user");
-                                    promptBuilder.append(role.toUpperCase()).append(": ").append(pastMsg.getContent())
+                                    historyBuilder.append(role.toUpperCase()).append(": ").append(pastMsg.getContent())
                                             .append("\n");
                                 }
-
-                                if (history.isEmpty()
-                                        || !history.get(history.size() - 1).getContent().equals(message)) {
-                                    promptBuilder.append("USER: ").append(message).append("\n");
-                                }
-
-                                promptBuilder.append("AI: ");
-                                String contextualPrompt = promptBuilder.toString();
-
+                                
+                                return summarizerService.summarizeContext(historyBuilder.toString());
+                            })
+                            .flatMap(processedHistory -> {
+                                return naturalLanguageQueryService.buildNaturalPrompt(message, processedHistory, "casual_chat");
+                            })
+                            .flatMap(contextualPrompt -> {
                                 return fallbackOrchestrator.executeWithSupremeIntelligence(
                                         "chat", "casual_chat", contextualPrompt, userId);
                             })
@@ -313,7 +312,7 @@ public class ChatProcessingService {
 
                     String name = String.valueOf(fields.getOrDefault("name", action.getContent()));
                     String type = String.valueOf(fields.getOrDefault("type",
-                            fields.getOrDefault("provider", "openai")));
+                            fields.getOrDefault("provider", "unknown")));
                     String apiKey = String.valueOf(fields.getOrDefault("apiKey", ""));
 
                     APIProvider provider = new APIProvider(

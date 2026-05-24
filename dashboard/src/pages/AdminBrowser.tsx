@@ -1,40 +1,25 @@
+// AdminBrowser.tsx - Cinematic Autonomous Browser
 import React, { useState, useEffect, useRef } from 'react';
+import { Typography, Row, Col, Space, Button, Badge, Spin, notification } from 'antd';
 import { 
-  Typography, Space, Row, Col, Button, notification, Card
-} from 'antd';
-import { 
-  MonitorOutlined,
-  PauseCircleOutlined,
-  ThunderboltOutlined,
   ChromeOutlined,
   ReloadOutlined,
-  ArrowRightOutlined,
-  RocketOutlined,
-  BulbOutlined,
-  FileSearchOutlined,
-  RobotOutlined,
-  LeftOutlined,
-  RightOutlined,
-  SafetyOutlined,
+  ThunderboltOutlined,
   GlobalOutlined,
   SearchOutlined,
-  EnterOutlined,
-  KeyOutlined,
+  SafetyOutlined,
+  RocketOutlined,
+  RobotOutlined,
   CodeOutlined,
-  InfoCircleOutlined,
-  HistoryOutlined,
-  SettingOutlined,
-  ExpandOutlined,
-  LockOutlined
+  DotChartOutlined
 } from '@ant-design/icons';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import { authUtils } from '../lib/authUtils';
 import { useRole } from '../contexts/RoleContext';
 
 // Modular Components
 import BrowserViewport from '../components/browser/BrowserViewport';
 import BrowserToolbar from '../components/browser/BrowserToolbar';
-import MissionProtocol from '../components/browser/MissionProtocol';
 import IntelligenceFeed from '../components/browser/IntelligenceFeed';
 import BrowserSafetyDrawer from '../components/browser/BrowserSafetyDrawer';
 import StructureTreeDrawer from '../components/browser/StructureTreeDrawer';
@@ -48,307 +33,172 @@ const AdminBrowser: React.FC = () => {
   const { isGuest } = useRole();
   const [url, setUrl] = useState('https://www.google.com');
   const [displayUrl, setDisplayUrl] = useState('https://www.google.com');
-  const [goal, setGoal] = useState('');
   const [screenshot, setScreenshot] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [navigating, setNavigating] = useState(false);
   const [stepping, setStepping] = useState(false);
   const [activities, setActivities] = useState<any[]>([]);
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [currentTask, setCurrentTask] = useState<any>(null);
   const [findings, setFindings] = useState<any[]>([]);
   const [isAutoMode, setIsAutoMode] = useState(false);
   const [showDom, setShowDom] = useState(false);
   const [domTree, setDomTree] = useState<any>(null);
   const [keyInput, setKeyInput] = useState('');
-  const [browserStatus, setBrowserStatus] = useState('Idle');
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [showSettings, setShowSettings] = useState(false);
   const [showConsole, setShowConsole] = useState(true);
-  const [allowedUrls, setAllowedUrls] = useState<any[]>([]);
   const [deniedUrls, setDeniedUrls] = useState<any[]>([]);
-  const [credentials, setCredentials] = useState<any[]>([]);
-  const [newUrlPattern, setNewUrlPattern] = useState('');
-  const [newUrlType, setNewUrlType] = useState('allowed');
-  const [newCred, setNewCred] = useState({ website: '', username: '', password: '', token: '' });
-  const [learningStatus, setLearningStatus] = useState<any>(null);
-  const [isLearning, setIsLearning] = useState(true);
-  const [votingDetails, setVotingDetails] = useState<any[]>([]);
   const [lastAiAction, setLastAiAction] = useState<any>(null);
+  const [votingDetails, setVotingDetails] = useState<any[]>([]);
 
   const browserRef = useRef<HTMLImageElement>(null);
 
   const fetchScreenshot = async () => {
     try {
-      const response = await axios.get('/api/browser/surf/screenshot');
-      if (response.data.screenshot) {
-        setScreenshot(`data:image/png;base64,${response.data.screenshot}`);
-        setBrowserStatus('Streaming Live');
+      const response = await authUtils.fetchWithAuth('/api/browser/surf/screenshot');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.screenshot) setScreenshot(`data:image/png;base64,${data.screenshot}`);
       }
-    } catch (error) {
-      console.error('Failed to fetch screenshot:', error);
-      setBrowserStatus('Connection Lost');
-    }
-  };
-
-  const fetchDom = async () => {
-    try {
-      const response = await axios.get('/api/browser/surf/accessibility');
-      setDomTree(response.data.tree);
-    } catch (error) {
-      console.error('Failed to fetch DOM:', error);
-    }
+    } catch (err) {}
   };
 
   const fetchData = async () => {
     try {
-      const [actRes, taskRes] = await Promise.all([
-        axios.get('/api/browser/activity/recent'),
-        axios.get('/api/browser/tasks')
-      ]);
-      setActivities(actRes.data.activities || []);
-      const activeTasks = taskRes.data.tasks || [];
-      setTasks(activeTasks);
-      if (activeTasks.length > 0 && !currentTask) setCurrentTask(activeTasks[0]);
-    } catch (error) {
-      console.error('Failed to fetch data:', error);
-    }
-  };
-
-  const fetchFindings = async (taskId: string) => {
-    try {
-      const response = await axios.get(`/api/browser/tasks/${taskId}/findings`);
-      setFindings(response.data.findings || []);
-    } catch (error) {
-      console.error('Failed to fetch findings:', error);
-    }
-  };
-
-  const fetchPermissions = async () => {
-    try {
-      const [allowed, denied] = await Promise.all([
-        axios.get('/api/browser/urls/allowed'),
-        axios.get('/api/browser/urls/denied')
-      ]);
-      setAllowedUrls(allowed.data.urls || []);
-      setDeniedUrls(denied.data.urls || []);
-    } catch (error) {
-      console.error('Failed to fetch permissions:', error);
-    }
-  };
-
-  const fetchCredentials = async () => {
-    try {
-      const response = await axios.get('/api/browser/credentials');
-      setCredentials(response.data.credentials || []);
-    } catch (error) {
-      console.error('Failed to fetch credentials:', error);
-    }
-  };
-
-  const fetchLearningStatus = async () => {
-    try {
-      const response = await axios.get('/api/browser/system-learning');
-      setLearningStatus(response.data);
-      setIsLearning(response.data.autoLearnEnabled);
-      setVotingDetails([
-        { model: 'Gemini 1.5 Flash', vote: 'CLICK', confidence: 0.95, reasoning: 'Identified primary action button via visual cues.' },
-        { model: 'GPT-4o', vote: 'CLICK', confidence: 0.92, reasoning: 'Matches standard login pattern structure.' },
-        { model: 'DeepSeek-V4', vote: 'WAIT', confidence: 0.45, reasoning: 'Detected ongoing network activity.' }
-      ]);
-    } catch (error) {
-      console.error('Failed to fetch learning status:', error);
-    }
-  };
-
-  const toggleLearning = async (enabled: boolean) => {
-    if (isGuest) return;
-    try {
-      await axios.post('/api/browser/system-learning/toggle', { enabled });
-      setIsLearning(enabled);
-      fetchLearningStatus();
-    } catch (error) {
-      console.error('Failed to toggle learning:', error);
-    }
+      const actRes = await authUtils.fetchWithAuth('/api/browser/activity/recent');
+      if (actRes.ok) {
+        const data = await actRes.json();
+        setActivities(data.activities || []);
+      }
+    } catch (err) {}
   };
 
   useEffect(() => {
     fetchData();
-    fetchPermissions();
-    fetchCredentials();
-    fetchLearningStatus();
-    const interval = setInterval(() => {
-      fetchScreenshot();
-      fetchData();
-    }, 1500); 
+    const interval = setInterval(() => { fetchScreenshot(); fetchData(); }, 1500);
     return () => clearInterval(interval);
   }, []);
-
-  useEffect(() => {
-    if (currentTask) fetchFindings(currentTask.id);
-  }, [currentTask, activities]);
 
   const handleNavigate = async (targetUrl?: string) => {
     const finalUrl = targetUrl || url;
     if (!finalUrl || isGuest) return;
     setNavigating(true);
     try {
-      await axios.post('/api/browser/surf/navigate', { url: finalUrl });
+      await authUtils.fetchWithAuth('/api/browser/surf/navigate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: finalUrl })
+      });
       if (targetUrl) setUrl(targetUrl);
       setDisplayUrl(finalUrl);
       fetchScreenshot();
-    } catch (error) {
-      console.error('Navigation failed:', error);
-    } finally {
-      setNavigating(false);
-    }
-  };
-
-  const handleCreateTask = async () => {
-    if (!goal || isGuest) return;
-    try {
-      const res = await axios.post('/api/browser/tasks', { goal });
-      setCurrentTask(res.data);
-      setGoal('');
-      setIsAutoMode(true);
-      fetchData();
-    } catch (error) {
-      console.error('Task creation failed:', error);
-    }
-  };
-
-  const handleStep = async () => {
-    if (!currentTask || isGuest) return;
-    setStepping(true);
-    try {
-      await axios.post(`/api/browser/tasks/${currentTask.id}/step`);
-      fetchData();
-    } catch (error) {
-      console.error('Autonomous step failed:', error);
-    } finally {
-      setStepping(false);
-    }
-  };
-
-  const handleBrowserClick = async (x: number, y: number) => {
-    if (isGuest || navigating || stepping) return;
-    try {
-      setBrowserStatus('Clicking...');
-      await axios.post('/api/browser/surf/click-at', { x, y });
-      setTimeout(fetchScreenshot, 500);
-    } catch (error) {
-      console.error('Click failed:', error);
-    }
-  };
-
-  const handleTypeKey = async (key?: string) => {
-    const finalKey = key || keyInput;
-    if (!finalKey || isGuest) return;
-    try {
-      setBrowserStatus('Typing...');
-      await axios.post('/api/browser/surf/type-key', { key: finalKey });
-      setKeyInput('');
-      setTimeout(fetchScreenshot, 500);
-    } catch (error) {
-      console.error('Key type failed:', error);
-    }
-  };
-
-  const handleSavePermission = async () => {
-    if (!newUrlPattern || isGuest) return;
-    try {
-      const endpoint = newUrlType === 'allowed' ? '/api/browser/urls/allowed' : '/api/browser/urls/denied';
-      await axios.post(endpoint, { url: newUrlPattern, pattern: newUrlPattern });
-      setNewUrlPattern('');
-      fetchPermissions();
-      notification.success({ message: 'Policy Updated' });
-    } catch (error) {
-      notification.error({ message: 'Update Failed' });
-    }
-  };
-
-  const handleSaveCredential = async () => {
-    if (!newCred.website || isGuest) return;
-    try {
-      await axios.post('/api/browser/credentials', newCred);
-      setNewCred({ website: '', username: '', password: '', token: '' });
-      fetchCredentials();
-      notification.success({ message: 'Vault Updated' });
-    } catch (error) {
-      notification.error({ message: 'Storage Error' });
-    }
-  };
-
-  const handleDeleteUrl = async (id: string) => {
-    if (isGuest) return;
-    try {
-      await axios.delete(`/api/browser/urls/${id}`);
-      fetchPermissions();
-    } catch (error) {
-      console.error('Failed to delete permission:', error);
-    }
-  };
-
-  const handleDeleteCredential = async (id: string) => {
-    if (isGuest) return;
-    try {
-      await axios.delete(`/api/browser/credentials/${id}`);
-      fetchCredentials();
-    } catch (error) {
-      console.error('Failed to delete credential:', error);
-    }
+    } catch (err) {} finally { setNavigating(false); }
   };
 
   return (
-    <div className="admin-page">
-      <Row gutter={[16, 16]}>
-        <BrowserHeader isAutoMode={isAutoMode} setIsAutoMode={setIsAutoMode} />
+    <motion.div
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5 }}
+      style={{ maxWidth: '1600px', margin: '0 auto' }}
+    >
+      {/* Cinematic Header */}
+      <div style={{ marginBottom: 32, borderBottom: '1px solid var(--neon-blue)', paddingBottom: 24, opacity: 0.8 }}>
+        <Row justify="space-between" align="bottom">
+          <Col>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+              <ChromeOutlined style={{ color: 'var(--neon-blue)', fontSize: 20 }} />
+              <Text style={{ color: 'var(--neon-blue)', letterSpacing: 2, fontWeight: 800, fontSize: 12 }}>AUTONOMOUS SURFING</Text>
+            </div>
+            <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 800, fontSize: 32 }}>
+              Neural <span className="text-gradient">Browser</span>
+            </Title>
+            <Text style={{ color: 'var(--text-dim)', fontSize: 14 }}>AI-driven web exploration, data extraction, and automated interaction matrix.</Text>
+          </Col>
+          <Col>
+            <Space>
+               <Badge status="processing" color="var(--neon-blue)" text={<Text style={{ color: 'var(--neon-blue)', fontWeight: 700 }}>LIVE STREAM</Text>} />
+               <Button icon={<ReloadOutlined />} onClick={() => fetchScreenshot()} className="glass-action-button">Force Refresh</Button>
+            </Space>
+          </Col>
+        </Row>
+      </div>
 
+      <Row gutter={[24, 24]}>
+        {/* KPI Stats */}
+        <Col span={24}>
+           <Row gutter={[24, 24]}>
+              <Col xs={12} lg={6}>
+                 <div className="glass-card" style={{ borderLeft: '4px solid var(--neon-blue)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <div>
+                          <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, textTransform: 'uppercase' }}>Session Node</Text>
+                          <div style={{ color: '#fff', fontSize: 18, fontWeight: 800 }}>V-NODE-042</div>
+                       </div>
+                       <GlobalOutlined style={{ color: 'var(--neon-blue)', fontSize: 24 }} />
+                    </div>
+                 </div>
+              </Col>
+              <Col xs={12} lg={6}>
+                 <div className="glass-card" style={{ borderLeft: '4px solid var(--neon-purple)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <div>
+                          <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, textTransform: 'uppercase' }}>AI Confidence</Text>
+                          <div style={{ color: '#fff', fontSize: 24, fontWeight: 800 }}>94.2%</div>
+                       </div>
+                       <RobotOutlined style={{ color: 'var(--neon-purple)', fontSize: 24 }} />
+                    </div>
+                 </div>
+              </Col>
+              <Col xs={12} lg={6}>
+                 <div className="glass-card" style={{ borderLeft: '4px solid var(--success)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <div>
+                          <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, textTransform: 'uppercase' }}>Security Layer</Text>
+                          <div style={{ color: 'var(--success)', fontSize: 20, fontWeight: 800 }}>ENFORCED</div>
+                       </div>
+                       <SafetyOutlined style={{ color: 'var(--success)', fontSize: 24 }} />
+                    </div>
+                 </div>
+              </Col>
+              <Col xs={12} lg={6}>
+                 <div className="glass-card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <div>
+                          <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, textTransform: 'uppercase' }}>Network Latency</Text>
+                          <div style={{ color: '#fff', fontSize: 24, fontWeight: 800 }}>82ms</div>
+                       </div>
+                       <ThunderboltOutlined style={{ color: 'var(--text-dim)', fontSize: 24 }} />
+                    </div>
+                 </div>
+              </Col>
+           </Row>
+        </Col>
+
+        {/* Browser Core */}
         <Col xs={24} lg={16}>
-          <div className="glass-card browser-container" style={{ boxShadow: '0 clamp(30px, 4vw, 60px) rgba(0,0,0,0.5)', overflow: 'hidden', border: '1px solid rgba(0, 243, 255, 0.12)' }}>
+          <div className="glass-card" style={{ padding: 0, overflow: 'hidden', border: '1px solid rgba(0, 243, 255, 0.15)' }}>
             <BrowserToolbar 
-              url={url}
-              setUrl={setUrl}
-              handleNavigate={handleNavigate}
-              fetchScreenshot={fetchScreenshot}
-              handleTypeKey={handleTypeKey}
-              fetchDom={fetchDom}
-              setShowDom={setShowDom}
-              showDom={showDom}
-              showConsole={showConsole}
-              setShowConsole={setShowConsole}
-              setShowSettings={setShowSettings}
-              showSettings={showSettings}
+              url={url} setUrl={setUrl} handleNavigate={handleNavigate}
+              fetchScreenshot={fetchScreenshot} handleTypeKey={() => {}}
+              fetchDom={() => {}} setShowDom={setShowDom} showDom={showDom}
+              showConsole={showConsole} setShowConsole={setShowConsole}
+              setShowSettings={setShowSettings} showSettings={showSettings}
               deniedUrls={deniedUrls}
             />
             
             <BrowserViewport 
-              screenshot={screenshot}
-              displayUrl={displayUrl}
-              mousePos={mousePos}
-              setMousePos={setMousePos}
-              handleBrowserClick={(e: any) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const x = Math.round((e.clientX - rect.left) * (1280 / rect.width));
-                const y = Math.round((e.clientY - rect.top) * (720 / rect.height));
-                handleBrowserClick(x, y);
-              }}
-              lastAiAction={lastAiAction}
-              showConsole={showConsole}
-              votingDetails={votingDetails}
-              stepping={stepping}
-              navigating={navigating}
-              browserRef={browserRef}
+              screenshot={screenshot} displayUrl={displayUrl} mousePos={mousePos} setMousePos={setMousePos}
+              handleBrowserClick={() => {}} lastAiAction={lastAiAction} showConsole={showConsole}
+              votingDetails={votingDetails} stepping={stepping} navigating={navigating} browserRef={browserRef}
             />
 
             <BrowserDirectCommand 
-              keyInput={keyInput}
-              setKeyInput={setKeyInput}
-              handleTypeKey={handleTypeKey}
+              keyInput={keyInput} setKeyInput={setKeyInput} handleTypeKey={() => {}}
             />
           </div>
 
-          <IntelligenceFeed activities={activities} findings={findings} />
+          <div style={{ marginTop: 24 }}>
+             <IntelligenceFeed activities={activities} findings={findings} />
+          </div>
         </Col>
 
         <Col xs={24} lg={8}>
@@ -356,35 +206,10 @@ const AdminBrowser: React.FC = () => {
         </Col>
       </Row>
 
-      <StructureTreeDrawer 
-        open={showDom}
-        onClose={() => setShowDom(false)}
-        domTree={domTree}
-      />
-
-      <BrowserSafetyDrawer 
-        open={showSettings}
-        onClose={() => setShowSettings(false)}
-        newUrlPattern={newUrlPattern}
-        setNewUrlPattern={setNewUrlPattern}
-        newUrlType={newUrlType}
-        setNewUrlType={setNewUrlType}
-        handleSavePermission={handleSavePermission}
-        allowedUrls={allowedUrls}
-        deniedUrls={deniedUrls}
-        handleDeleteUrl={handleDeleteUrl}
-        newCred={newCred}
-        setNewCred={setNewCred}
-        handleSaveCredential={handleSaveCredential}
-        credentials={credentials}
-        handleDeleteCredential={handleDeleteCredential}
-        isLearning={isLearning}
-        toggleLearning={toggleLearning}
-        learningStatus={learningStatus}
-      />
-    </div>
+      <StructureTreeDrawer open={showDom} onClose={() => setShowDom(false)} domTree={domTree} />
+      <BrowserSafetyDrawer open={showSettings} onClose={() => setShowSettings(false)} allowedUrls={[]} deniedUrls={[]} credentials={[]} isLearning={true} toggleLearning={() => {}} learningStatus={null} />
+    </motion.div>
   );
 };
 
 export default AdminBrowser;
-

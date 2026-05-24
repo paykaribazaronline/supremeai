@@ -310,5 +310,50 @@
     "task": "p2p knowledge sync bandwidth throttle compression large payload chunked transfer ttl loop prevent",
     "solution": "[SupremeAI Core — P2P Sync: Bandwidth & Large Payload Management]\n\nWhen syncing large knowledge bases over LAN/WAN or handling mid-sync peer drop:\n\nCOMPRESSION:\n  * Reduce payload by 4x using zstd compression (default if payload > 4 MB)\n  * Chunk large payloads: 4 MB per chunk (configurable in supremeai.p2p.chunk-size)\n\nTHROTTLE BY NETWORK TYPE:\n  LAN (same subnet):  max throughput 110 Mb/s\n  WAN (across ISP):   max throughput 25 Mb/s\n  Cellular/WiFi:      max throughput 5 Mb/s\n\nCHUNKED TRANSFER (for large payloads > chunk-size):\n  1. Split payload into sequentially numbered chunks\n  2. Push each chunk to queue with TTL (= max retries per peer)\n  3. Acknowledge: partial sync resumes from acknowledgment point on peer reconnect\n  4. Re-sync: if peer dies mid-sync, remaining peers supply missing chunks\n\nTTL & LOOP PREVENTION:\n  * Decrement TTL on each forward; drop if TTL == 0\n  * Drop if content SHA-256 hash already in local cache\n  * No knowledge is lost until ALL peers acknowledge receipt of all chunks",
     "category": "P2P_SYNC"
+  },
+  {
+    "task": "self healing rca loop integration spring boot error analysis",
+    "solution": "[SupremeAI Core — Self-Healing RCA Loop Integration]\n\n1. Architecture: SelfHealingService.analyzeError() calls RootCauseAnalysisService.analyzeError()\n2. Flow: Error → RCA analysis → confidence check → auto-fix (>0.8) or review (>0.5) or unknown\n3. Success path: recordSuccessfulCorrection() → GKB.recordSuccessWithPermission() async\n4. Failure path: recordFailedCorrection() → failurePredictor.recordFailure() for ML learning\n5. Unknown error: GKB record + SupremeLearningOrchestrator.logUnknownError()\n6. Implementation: SelfHealingService.java lines 223-225 (RCA catch), line 411 (Schedulers.boundedElastic)\n7. Quality check: isCodePerfect() 4-layer validation (TODO markers, brace balance, class keyword, ≥8 lines)\n8. Code improvement: improveCode() 4-pass heuristic (TODO replacement, logging injection, REFACTOR tracking, brace enforcement)",
+    "category": "RESILIENCE"
+  },
+  {
+    "task": "securityconfig permitall bypass spring security admin endpoints",
+    "solution": "[SupremeAI Core — Security Fix: permitAll() Bypass Resolution]\n\n1. Problem: SecurityConfig had .permitAll() for admin endpoints exposing them publicly\n2. Fix: Changed to .hasRole(\"ADMIN\") for all sensitive endpoints\n3. Affected patterns:\n   - /api/admin/** → hasRole(\"ADMIN\")\n   - /api/self-healing/** → hasRole(\"ADMIN\")\n   - /api/healing/** → hasRole(\"ADMIN\")\n   - /api/debug/** → hasRole(\"ADMIN\")\n   - /api/security/** → hasRole(\"ADMIN\")\n   - /api/workflows/** → hasRole(\"ADMIN\")\n4. Static resources, login, and health endpoints remain permitAll()\n5. CSRF: Only /api/auth/** and /ws/** are exempt\n6. Verify: curl -v http://localhost:8080/api/admin/providers should return 401/403 without admin token",
+    "category": "SECURITY"
+  },
+  {
+    "task": "firestore rules isserviceaccount bypass security vulnerability",
+    "solution": "[SupremeAI Core — Firestore Rules Security Fix]\n\n1. Problem: isServiceAccount() function returned true for any unauthenticated request\n2. Fix: Completely removed isServiceAccount() function\n3. New rules structure:\n   - isAuthenticated() = request.auth != null\n   - isAdmin() = authenticated + (token.admin OR user.tier == 'ADMIN')\n   - isOwner(userId) = authenticated + uid match\n4. Admin collections (system_configs, api_providers, vpn_connections, etc.) → isAdmin()\n5. User collections → isOwner() or isAuthenticated()\n6. Catch-all: allow read, write: if false (deny by default)\n7. Verify: unauthenticated request to any collection should be denied",
+    "category": "SECURITY"
+  },
+  {
+    "task": "cors wildcard origin fallback security risk",
+    "solution": "[SupremeAI Core — CORS Security Fix]\n\n1. Problem: CORS origins = * fallback allowed any domain\n2. Fix: Explicit origin list in SecurityConfig.java lines 169-174:\n   - http://localhost:5173 (Vite dev)\n   - http://localhost:3000 (React dev)\n   - https://supremeai-a.web.app (Production)\n3. Configuration in application.properties: cors.allowed-origins=${CORS_ALLOWED_ORIGINS:}\n4. credentials: setAllowCredentials(true) with specific origins (spec-compliant)\n5. Header whitelist: X-Firebase-Id-Token, X-CSRF-TOKEN\n6. Verify: curl -H 'Origin: http://evil.com' http://localhost:8080/api/health should not include Access-Control-Allow-Origin",
+    "category": "SECURITY"
+  },
+  {
+    "task": "scraping engine scrapeEngine ts implementation complete",
+    "solution": "[SupremeAI Core — Scraping Engine Implementation (v4)]\n\n1. File: functions/src/scrapeEngine.ts - 541 lines, 23KB\n2. 9-step pipeline:\n   a. Firestore policy fetch (getGlobalPolicy, getPolicy)\n   b. Intent classification (classifyIntent)\n   c. Domain allow-list enforcement (isDomainAllowed)\n   d. Cached answer lookup (findCachedAnswer)\n   e. Playwright call integration (callPlaywright)\n   f. Page extraction (extractFromPage)\n   g. History + event logging (writeHistory, logEvent)\n   h. Merge strategy (scraped + generated response)\n   i. /health HTTP endpoint\n3. Firestore collections: scrapeHistory, scrapePolicies, scrapePresets, scrapeAllowedDomains, scrapeEvent\n4. Verify: curl http://localhost:5001/health should return 200",
+    "category": "RESILIENCE"
+  },
+  {
+    "task": "test infrastructure fix 58 plus test failures emulator",
+    "solution": "[SupremeAI Core — Test Infrastructure Fix]\n\n1. Problem: 58+ tests failing due to emulator context crash\n2. Solution:\n   - TestFirebaseConfig.java (47 lines): @TestConfiguration, Mock GoogleCredentials, @DynamicPropertySource for emulator\n   - BaseFirestoreTest.java (40 lines): BeforeAllCallback + AfterAllCallback, emulator detection, graceful fallback\n3. Zero Hardcoding Policy: credentials from environment, not hardcoded\n4. Verify: ./gradlew test should show 1605/1605 tests passing\n5. Run: ./gradlew clean build -x test for compile verification",
+    "category": "OPERATIONAL_DIAG"
+  },
+  {
+    "task": "cloud run iam internal services security",
+    "solution": "[SupremeAI Core — Cloud Run IAM Security Fix]\n\n1. Problem: Internal services deployed with --allow-unauthenticated\n2. Fix in deploy.sh:\n   - Backend: --allow-unauthenticated (protected by Spring Security)\n   - Reverse Engineering: --no-allow-unauthenticated\n   - Simulator Runtime: --no-allow-unauthenticated\n3. Services now require authentication via IAM\n4. Backend protected by Spring Security authentication/authorization\n5. Verify: curl https://SERVICE_URL/ should return 401 without authentication",
+    "category": "SECURITY"
+  },
+  {
+    "task": "netty thread block block reactor schedulers fix",
+    "solution": "[SupremeAI Core — Netty Thread Block Fix]\n\n1. Problem: SelfHealingService used .block() on Netty event loop\n2. Fix: Changed to .subscribeOn(Schedulers.boundedElastic()) at line 411\n3. Import: reactor.core.scheduler.Schedulers (line 24)\n4. Non-blocking async execution for GKB recording\n5. Verify: compilation succeeds, no blocking on event loop",
+    "category": "RESILIENCE"
+  },
+  {
+    "task": "dashboard build pipeline order fix",
+    "solution": "[SupremeAI Core — Dashboard Build Pipeline Fix]\n\n1. Problem: Dashboard copy happened before JAR build, causing stale resources\n2. Fix in deploy.sh:\n   Step 1: Build dashboard → save to $DASHBOARD_DIST variable\n   Step 2: ./gradlew clean build -x test → JAR creation\n   Step 3: cp $DASHBOARD_DIST → public/admin/ and static/ (AFTER build)\n3. Admin panel accessible at /admin URL with redirect from /\n4. Verify: successful deployment shows admin panel with latest features",
+    "category": "OPERATIONAL_DIAG"
   }
 ]

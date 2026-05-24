@@ -419,16 +419,16 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
     };
 
     return (
-        <div className="flex flex-1 h-full bg-[#050505]/40 text-white overflow-hidden border border-white/5 rounded-2xl shadow-2xl backdrop-blur-xl">
+        <div className="flex flex-1 h-full glass-panel text-white overflow-hidden rounded-2xl">
             {/* Left Sidebar: Sessions */}
-            <div className="w-64 bg-white/[0.03] border-r border-white/10 flex flex-col">
+            <div className="w-64 bg-[#020205]/60 border-r border-white/10 flex flex-col backdrop-blur-xl">
                 <div className="p-4 border-b border-white/10">
                     <Button 
                         type="primary" 
                         icon={<PlusOutlined />} 
                         block 
                         onClick={createNewSession}
-                        className="bg-emerald-600/90 hover:bg-emerald-500 border-none h-11 font-black uppercase tracking-widest flex items-center justify-center gap-2 rounded-xl transition-all hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]"
+                        className="bg-cyan-500/90 hover:bg-cyan-400 border-none h-11 font-black uppercase tracking-widest flex items-center justify-center gap-2 rounded-xl transition-all hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]"
                     >
                         New Neural Session
                     </Button>
@@ -440,12 +440,12 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                             onClick={() => setActiveSessionId(s.id)}
                             className={`group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-200 ${
                                 activeSessionId === s.id 
-                                ? 'bg-gradient-to-r from-emerald-500/20 to-transparent border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]' 
+                                ? 'bg-gradient-to-r from-cyan-400/20 to-transparent border border-cyan-400/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]' 
                                 : 'hover:bg-white/5 border border-transparent opacity-60 hover:opacity-100'
                             }`}
                         >
                             <div className="flex items-center gap-3 overflow-hidden flex-1">
-                                <div className={`w-2 h-2 rounded-full transition-all ${activeSessionId === s.id ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-white/10'}`} />
+                                <div className={`w-2 h-2 rounded-full transition-all ${activeSessionId === s.id ? 'bg-cyan-400 shadow-[0_0_8px_#00f3ff]' : 'bg-white/10'}`} />
                                 <span className={`text-[12px] truncate font-bold uppercase tracking-tight ${activeSessionId === s.id ? 'text-white' : 'text-white/40'}`}>{s.name}</span>
                             </div>
                             <div className={`flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity`}>
@@ -472,19 +472,19 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                 {/* Header */}
                 <div className="px-6 py-4 bg-white/[0.01] border-b border-white/10 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-emerald-500/20 rounded-lg">
-                            <RobotOutlined className="text-emerald-500 text-lg" />
+                        <div className="p-2 bg-cyan-400/20 rounded-lg">
+                            <RobotOutlined className="text-cyan-400 text-lg" />
                         </div>
                         <div>
                             <h3 className="text-sm font-bold text-white mb-0">{activeSession?.name || 'Neural Chat'}</h3>
-                            <span className="text-[10px] text-emerald-500/80 uppercase tracking-widest font-bold">SupremeAI Neural Core</span>
+                            <span className="text-[10px] text-cyan-400/80 uppercase tracking-widest font-bold">SupremeAI Neural Core</span>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
                         <select
                             value={selectedAgent}
                             onChange={(e) => setSelectedAgent(e.target.value)}
-                            className="bg-black/60 border border-white/10 text-[11px] px-4 py-2 rounded-lg text-white/80 outline-none hover:border-emerald-500/50 transition-all focus:ring-1 focus:ring-emerald-500/30"
+                            className="bg-black/60 border border-white/10 text-[11px] px-4 py-2 rounded-lg text-white/80 outline-none hover:border-cyan-400/50 transition-all focus:ring-1 focus:ring-cyan-400/30"
                         >
                             <option value="all">Dynamic Routing (All)</option>
                             {agents.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
@@ -498,8 +498,8 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                         {messages.length === 0 ? (
                             <div className="h-[60vh] flex flex-col items-center justify-center text-white/20">
                                 <div className="w-20 h-20 bg-white/[0.02] rounded-3xl flex items-center justify-center mb-6 border border-white/5 shadow-2xl relative overflow-hidden group">
-                                    <div className="absolute inset-0 bg-emerald-500/5 animate-pulse" />
-                                    <MessageOutlined className="text-4xl text-emerald-500/40 relative z-10 group-hover:scale-110 transition-transform" />
+                                    <div className="absolute inset-0 bg-cyan-400/5 animate-pulse" />
+                                    <MessageOutlined className="text-4xl text-cyan-400/40 relative z-10 group-hover:scale-110 transition-transform" />
                                 </div>
                                 <span className="text-[10px] font-black tracking-[0.4em] uppercase opacity-40 animate-pulse">Neural Synchronization Initiated</span>
                             </div>
@@ -513,14 +513,14 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                                             </span>
                                             {msg.sender === 'ai' && (
                                                 <div className="flex items-center gap-1">
-                                                    <div className="w-1 h-1 rounded-full bg-emerald-500" />
-                                                    <span className="text-[8px] text-emerald-500/60 font-bold">{msg.confidence}% CONFIDENCE</span>
+                                                    <div className="w-1 h-1 rounded-full bg-cyan-400" />
+                                                    <span className="text-[8px] text-cyan-400/60 font-bold">{msg.confidence}% CONFIDENCE</span>
                                                 </div>
                                             )}
                                         </div>
-                                        <div className={`px-6 py-5 rounded-2xl text-[14px] leading-relaxed shadow-2xl transition-all hover:shadow-emerald-900/5 ${
+                                        <div className={`px-6 py-5 rounded-2xl text-[14px] leading-relaxed shadow-2xl transition-all hover:shadow-cyan-900/5 ${
                                             msg.sender === 'user'
-                                            ? 'bg-gradient-to-br from-emerald-600/20 to-emerald-900/5 border border-emerald-500/20 text-white rounded-tr-none'
+                                            ? 'bg-gradient-to-br from-cyan-500/20 to-cyan-900/5 border border-cyan-400/20 text-white rounded-tr-none'
                                             : 'bg-white/[0.03] border border-white/10 text-white/90 rounded-tl-none backdrop-blur-xl'
                                         }`}>
                                             {msg.image && (
@@ -554,14 +554,14 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                                             <div className="flex gap-4 mt-3 px-1">
                                                 <button
                                                     onClick={() => { navigator.clipboard.writeText(msg.content); message.success('Encrypted Data Copied'); }}
-                                                    className="text-[9px] text-white/20 hover:text-emerald-400 transition-all flex items-center gap-1.5 uppercase font-black tracking-wider border-none bg-transparent cursor-pointer"
+                                                    className="text-[9px] text-white/20 hover:text-cyan-300 transition-all flex items-center gap-1.5 uppercase font-black tracking-wider border-none bg-transparent cursor-pointer"
                                                 >
                                                     <CopyOutlined className="text-xs" /> Copy
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={() => playVoice(msg.content)}
-                                                    className="text-[9px] text-white/20 hover:text-emerald-400 transition-all flex items-center gap-1.5 uppercase font-black tracking-wider border-none bg-transparent cursor-pointer"
+                                                    className="text-[9px] text-white/20 hover:text-cyan-300 transition-all flex items-center gap-1.5 uppercase font-black tracking-wider border-none bg-transparent cursor-pointer"
                                                 >
                                                     <AudioOutlined className="text-xs" /> শুনুন (Listen)
                                                 </button>
@@ -587,58 +587,68 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                                     </div>
                                     <div className="flex flex-col">
                                         <span className="text-xs font-bold text-white/80">{attachedImageName || 'ছবি.png'}</span>
-                                        <span className="text-[10px] text-emerald-500/80 uppercase tracking-widest font-black">IMAGE READY TO ATTACH</span>
+                                        <span className="text-[10px] text-cyan-400/80 uppercase tracking-widest font-black">IMAGE READY</span>
                                     </div>
                                 </div>
-                                <Button 
-                                    type="text" 
-                                    icon={<CloseCircleOutlined className="text-white/40 hover:text-red-500 text-lg transition-colors" />} 
-                                    onClick={removeAttachedImage}
-                                    className="hover:bg-white/5 border-none flex items-center justify-center"
-                                />
+                                <button
+                                    type="button"
+                                    onClick={() => { setAttachedImage(null); setAttachedImageName(''); }}
+                                    className="p-2 text-white/40 hover:text-red-500 hover:bg-white/5 rounded-lg transition-all border-none bg-transparent cursor-pointer"
+                                >
+                                    <DeleteOutlined />
+                                </button>
                             </div>
                         )}
-                        <form onSubmit={handleSendMessage} className="relative group">
-                            <Input
-                                placeholder={isRecording ? "ভয়েস সনাক্ত করা হচ্ছে... কথা বলুন..." : "Neural Input Channel [Type your command]..."}
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                disabled={loading}
-                                className={`h-16 bg-white/[0.02] border-white/10 text-white placeholder:text-white/10 rounded-2xl px-6 pr-44 focus:bg-white/[0.05] focus:border-emerald-500/40 transition-all shadow-2xl backdrop-blur-sm ${isRecording ? 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : ''}`}
-                                prefix={
-                                    <div className="flex items-center gap-2 mr-3 border-r border-white/10 pr-3">
-                                        <input 
-                                            type="file" 
-                                            id="chat-image-upload" 
-                                            accept="image/*" 
-                                            onChange={handleImageUpload} 
-                                            className="hidden" 
-                                        />
-                                        <Tooltip title="ছবি সংযুক্ত করুন">
-                                            <button
-                                                type="button"
-                                                onClick={() => document.getElementById('chat-image-upload')?.click()}
-                                                className="p-2 hover:bg-white/5 text-white/40 hover:text-emerald-400 rounded-lg transition-all flex items-center justify-center border-none bg-transparent cursor-pointer"
-                                            >
-                                                <PictureOutlined className="text-lg" />
-                                            </button>
-                                        </Tooltip>
-                                        <Tooltip title={isRecording ? "রেকর্ডিং বন্ধ করুন" : "ভয়েস ইনপুট"}>
-                                            <button
-                                                type="button"
-                                                onClick={toggleRecording}
-                                                className={`p-2 rounded-lg transition-all flex items-center justify-center border-none cursor-pointer ${
-                                                    isRecording 
-                                                    ? 'bg-red-500/20 text-red-500 animate-pulse hover:bg-red-500/30' 
-                                                    : 'bg-transparent text-white/40 hover:text-emerald-400 hover:bg-white/5'
-                                                }`}
-                                            >
-                                                {isRecording ? <LoadingOutlined className="text-lg" /> : <AudioOutlined className="text-lg" />}
-                                            </button>
-                                        </Tooltip>
-                                    </div>
-                                }
-                            />
+                        <form onSubmit={handleSendMessage} className="relative group flex gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setSessions(prev => prev.map(s => s.id === activeSessionId ? { ...s, messages: [] } : s))}
+                                className="h-16 px-5 flex items-center justify-center bg-[#8b5cf6]/20 hover:bg-[#8b5cf6]/30 text-[#8b5cf6] border border-[#8b5cf6]/30 rounded-2xl font-bold transition-all shadow-[0_0_15px_rgba(139,92,246,0.15)] hover:shadow-[0_0_25px_rgba(139,92,246,0.3)] cursor-pointer"
+                                title="Reset Context"
+                            >
+                                <ThunderboltOutlined className="text-xl" />
+                            </button>
+                            <div className="relative flex-1">
+                                <Input
+                                    placeholder={isRecording ? "ভয়েস সনাক্ত করা হচ্ছে... কথা বলুন..." : "Neural Input Channel [Type your command]..."}
+                                    value={input}
+                                    onChange={(e) => setInput(e.target.value)}
+                                    disabled={loading}
+                                    className={`h-16 bg-[#020205]/60 border border-[#00f3ff]/20 text-white placeholder:text-[#00f3ff]/30 rounded-2xl px-6 pr-44 focus:bg-[#020205]/80 focus:border-[#00f3ff]/60 transition-all shadow-2xl backdrop-blur-md font-mono ${isRecording ? 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)]' : 'hover:border-[#00f3ff]/40 shadow-[0_0_15px_rgba(0,243,255,0.05)]'}`}
+                                    prefix={
+                                        <div className="flex items-center gap-2 mr-3 border-r border-[#00f3ff]/20 pr-3">
+                                            <input 
+                                                type="file" 
+                                                id="chat-image-upload" 
+                                                accept="image/*" 
+                                                onChange={handleImageUpload} 
+                                                className="hidden" 
+                                            />
+                                            <Tooltip title="ছবি সংযুক্ত করুন">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => document.getElementById('chat-image-upload')?.click()}
+                                                    className="p-2 hover:bg-[#00f3ff]/10 text-[#00f3ff]/60 hover:text-[#00f3ff] rounded-lg transition-all flex items-center justify-center border-none bg-transparent cursor-pointer"
+                                                >
+                                                    <PictureOutlined className="text-lg" />
+                                                </button>
+                                            </Tooltip>
+                                            <Tooltip title={isRecording ? "রেকর্ডিং বন্ধ করুন" : "ভয়েস ইনপুট"}>
+                                                <button
+                                                    type="button"
+                                                    onClick={toggleRecording}
+                                                    className={`p-2 rounded-lg transition-all flex items-center justify-center border-none cursor-pointer ${
+                                                        isRecording 
+                                                        ? 'bg-red-500/20 text-red-500 animate-pulse hover:bg-red-500/30' 
+                                                        : 'bg-transparent text-[#00f3ff]/60 hover:text-[#00f3ff] hover:bg-[#00f3ff]/10'
+                                                    }`}
+                                                >
+                                                    {isRecording ? <LoadingOutlined className="text-lg" /> : <AudioOutlined className="text-lg" />}
+                                                </button>
+                                            </Tooltip>
+                                        </div>
+                                    }
+                                />
                             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-3">
                                 <AISuggestionInformer 
                                     context="admin_chat" 
@@ -647,16 +657,17 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                                 <button
                                     type="submit"
                                     disabled={loading || (!input.trim() && !attachedImage)}
-                                    className="h-12 px-8 bg-emerald-600 hover:bg-emerald-500 disabled:bg-white/5 text-white rounded-xl font-black uppercase tracking-widest transition-all disabled:cursor-not-allowed flex items-center gap-2 shadow-[0_0_20px_rgba(5,150,105,0.3)] hover:shadow-[0_0_30px_rgba(5,150,105,0.5)] border-none"
+                                    className="h-12 px-8 bg-cyan-500 hover:bg-cyan-400 disabled:bg-white/5 text-white rounded-xl font-black uppercase tracking-widest transition-all disabled:cursor-not-allowed flex items-center gap-2 shadow-[0_0_20px_rgba(5,150,105,0.3)] hover:shadow-[0_0_30px_rgba(5,150,105,0.5)] border-none"
                                 >
                                     {loading ? <ThunderboltOutlined spin className="text-lg" /> : <SendOutlined className="text-lg" />}
                                     <span className="hidden sm:inline">{loading ? 'PROCESSING' : 'EXECUTE'}</span>
                                 </button>
                             </div>
+                        </div>
                         </form>
                         <div className="flex items-center justify-between mt-4 px-2">
                             <div className="flex items-center gap-2">
-                                <div className="w-1 h-1 rounded-full bg-emerald-500 animate-ping" />
+                                <div className="w-1 h-1 rounded-full bg-cyan-400 animate-ping" />
                                 <span className="text-[8px] text-white/20 font-black tracking-[0.3em] uppercase">Security Level: High</span>
                             </div>
                             <p className="text-[9px] text-white/10 font-black tracking-[0.2em] uppercase m-0">
@@ -671,7 +682,7 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
             <div className="w-80 bg-white/[0.01] border-l border-white/10 hidden xl:flex flex-col">
                 <div className="p-6">
                     <div className="flex items-center gap-3 mb-8">
-                        <DatabaseOutlined className="text-emerald-500" />
+                        <DatabaseOutlined className="text-cyan-400" />
                         <h4 className="text-xs font-black text-white uppercase tracking-[0.2em] mb-0">System Context</h4>
                     </div>
                     
@@ -679,7 +690,7 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                         <div className="mb-8">
                             <div className="flex items-center justify-between mb-4">
                                 <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Active Rules</span>
-                                <Badge count={knowledge.rules.length} style={{ backgroundColor: '#10b981', fontSize: '9px', fontWeight: 'bold' }} />
+                                <Badge count={knowledge.rules.length} style={{ backgroundColor: '#00f3ff', fontSize: '9px', fontWeight: 'bold' }} />
                             </div>
                             <div className="space-y-3">
                                 {knowledge.rules.map((r, i) => (
@@ -715,7 +726,7 @@ const ChatWithAI: React.FC<ChatWithAIProps> = ({ chatFont = 'font-mono' }) => {
                     <Input 
                         value={newName} 
                         onChange={(e) => setNewName(e.target.value)}
-                        className="bg-white/[0.05] border-white/10 text-white h-12 rounded-xl focus:border-emerald-500/50"
+                        className="bg-white/[0.05] border-white/10 text-white h-12 rounded-xl focus:border-cyan-400/50"
                         placeholder="Enter a descriptive name..."
                         onPressEnter={saveNewName}
                         autoFocus

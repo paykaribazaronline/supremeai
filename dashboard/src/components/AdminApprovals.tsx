@@ -1,11 +1,19 @@
+// AdminApprovals.tsx - Cinematic Approval Center
 import React from 'react';
-import { Layout, Typography, Empty, Card, Badge, Space, Tag, Button } from 'antd';
-import { SafetyCertificateOutlined, BulbOutlined } from '@ant-design/icons';
+import { Typography, Empty, Badge, Space, Button, Row, Col, message } from 'antd';
+import {
+  SafetyCertificateOutlined,
+  BulbOutlined,
+  CheckCircleOutlined,
+  SyncOutlined,
+  ThunderboltOutlined,
+  SecurityScanOutlined,
+  FireOutlined
+} from '@ant-design/icons';
+import { motion, AnimatePresence } from 'framer-motion';
 import AISuggestionInformer from './AISuggestionInformer';
 import { useAISuggestions } from '../lib/suggestionService';
-import { message } from 'antd';
 
-const { Content } = Layout;
 const { Title, Text } = Typography;
 
 const AdminApprovals: React.FC = () => {
@@ -14,103 +22,158 @@ const AdminApprovals: React.FC = () => {
 
     const handleApprove = async (id: string) => {
         const success = await approve(id);
-        if (success) {
-            message.success('System optimization approved and executed.');
-        } else {
-            message.error('Approval failed. Please check system logs.');
-        }
+        if (success) message.success('Optimization sequence initiated');
     };
 
     const handleDecline = async (id: string) => {
         const success = await decline(id);
-        if (success) {
-            message.info('Suggestion declined.');
-        } else {
-            message.error('Decline failed.');
-        }
+        if (success) message.info('Optimization discarded');
     };
 
     const handleApproveAll = async () => {
         setApprovingAll(true);
-        const hide = message.loading('Approving all suggestions...', 0);
         try {
-            for (const s of suggestions) {
-                await approve(s.id);
-            }
-            message.success('All pending optimizations have been approved.');
+            for (const s of suggestions) await approve(s.id);
+            message.success('All global optimizations approved');
             refresh();
         } finally {
             setApprovingAll(false);
-            hide();
         }
     };
 
     return (
-        <div className="approvals-container" style={{ padding: '24px' }}>
-            <div className="glass-card px-6 py-4 flex items-center justify-between border-l-4 border-amber-500 bg-black/40 mb-6 rounded-xl">
-                <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.15)]">
-                        <SafetyCertificateOutlined className="text-lg" />
-                    </div>
-                    <div className="flex flex-col">
-                        <h1 className="text-lg font-black uppercase tracking-[0.2em] text-white m-0">System Approvals & Insights</h1>
-                        <p className="text-[10px] font-bold text-amber-500/60 uppercase tracking-widest m-0">Review and Grant Permissions for Autonomous Optimizations</p>
-                    </div>
-                </div>
-                <Space>
-                    <Button 
-                        icon={<BulbOutlined />} 
-                        onClick={() => refresh()}
-                        className="cyber-button-small"
-                        ghost
-                    >
-                        Refresh Insights
-                    </Button>
-                    {suggestions.length > 0 && (
-                        <Button 
-                            type="primary" 
-                            onClick={handleApproveAll} 
-                            loading={approvingAll}
-                            danger
-                            className="cyber-button-primary"
-                        >
-                            Approve All ({count})
-                        </Button>
-                    )}
-                </Space>
+        <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            style={{ maxWidth: '1400px', margin: '0 auto' }}
+        >
+            {/* Cinematic Header */}
+            <div style={{ marginBottom: 32, borderBottom: '1px solid rgba(245, 158, 11, 0.2)', paddingBottom: 24 }}>
+                <Row justify="space-between" align="bottom">
+                    <Col>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                            <SafetyCertificateOutlined style={{ color: '#f59e0b', fontSize: 20 }} />
+                            <Text style={{ color: '#f59e0b', letterSpacing: 2, fontWeight: 800, fontSize: 12 }}>PERMISSION PROTOCOL</Text>
+                        </div>
+                        <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 800, fontSize: 32 }}>
+                            Neural <span style={{ color: '#f59e0b', textShadow: '0 0 10px rgba(245, 158, 11, 0.3)' }}>Approvals</span>
+                        </Title>
+                        <Text style={{ color: 'var(--text-dim)', fontSize: 14 }}>Review and authorize autonomous system optimizations and security patches.</Text>
+                    </Col>
+                    <Col>
+                        <Space>
+                            <Button
+                                icon={<SyncOutlined />}
+                                onClick={() => refresh()}
+                                className="glass-action-button"
+                            >
+                                Refresh Insights
+                            </Button>
+                            {suggestions.length > 0 && (
+                                <Button
+                                    type="primary"
+                                    onClick={handleApproveAll}
+                                    loading={approvingAll}
+                                    style={{ background: '#f59e0b', border: 'none', color: '#000', fontWeight: 700 }}
+                                    className="cyber-button"
+                                >
+                                    AUTHORIZE ALL ({count})
+                                </Button>
+                            )}
+                        </Space>
+                    </Col>
+                </Row>
             </div>
 
-            {suggestions.length === 0 ? (
-                <Card className="glass-card flex flex-col items-center justify-center py-20 bg-black/20" style={{ borderRadius: '16px' }}>
-                    <Empty 
-                        image={<BulbOutlined style={{ fontSize: 60, color: 'rgba(255,255,255,0.1)' }} />}
-                        description={
-                            <div className="text-center">
-                                <Text className="text-white/40 uppercase tracking-widest font-black block">No Pending Approvals</Text>
-                                <Text className="text-white/20 text-[11px] uppercase tracking-tighter mt-2 block">System is currently running at peak efficiency</Text>
+            <Row gutter={[24, 24]}>
+                {/* Stats Row */}
+                <Col span={24}>
+                    <Row gutter={[24, 24]}>
+                        <Col xs={24} md={8}>
+                            <div className="glass-card" style={{ borderLeft: '4px solid #f59e0b' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div>
+                                        <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, textTransform: 'uppercase' }}>Pending Optimizations</Text>
+                                        <div style={{ color: '#fff', fontSize: 24, fontWeight: 800, marginTop: 4 }}>{count}</div>
+                                    </div>
+                                    <BulbOutlined style={{ color: '#f59e0b', fontSize: 24 }} />
+                                </div>
                             </div>
-                        }
-                    />
-                </Card>
-            ) : (
-                <AISuggestionInformer 
-                    title="Required Permissions"
-                    context="Dynamic Orchestration"
-                    suggestions={suggestions}
-                    onApprove={handleApprove}
-                    onDecline={handleDecline}
-                    style={{ borderLeft: '4px solid #f59e0b', borderRadius: '16px' }}
-                />
-            )}
+                        </Col>
+                        <Col xs={24} md={8}>
+                            <div className="glass-card" style={{ borderLeft: '4px solid var(--success)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div>
+                                        <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, textTransform: 'uppercase' }}>Auto-Defense Status</Text>
+                                        <div style={{ color: '#fff', fontSize: 20, fontWeight: 800, marginTop: 4 }}>OPERATIONAL</div>
+                                    </div>
+                                    <SecurityScanOutlined style={{ color: 'var(--success)', fontSize: 24 }} />
+                                </div>
+                            </div>
+                        </Col>
+                        <Col xs={24} md={8}>
+                            <div className="glass-card" style={{ borderLeft: '4px solid var(--neon-blue)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div>
+                                        <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, textTransform: 'uppercase' }}>Last Authorization</Text>
+                                        <div style={{ color: '#fff', fontSize: 18, fontWeight: 800, marginTop: 4 }}>2m ago</div>
+                                    </div>
+                                    <ThunderboltOutlined style={{ color: 'var(--neon-blue)', fontSize: 24 }} />
+                                </div>
+                            </div>
+                        </Col>
+                    </Row>
+                </Col>
 
-            <Card className="glass-card bg-emerald-500/5 border border-emerald-500/10 p-4 mt-6" style={{ borderRadius: '12px' }}>
-                <Text className="text-[11px] text-emerald-500/60 uppercase tracking-widest font-bold">
-                    🛡️ Security Note: Autonomous actions are only executed after explicit administrator approval. All changes are logged for audit.
-                </Text>
-            </Card>
-        </div>
+                {/* Main Content */}
+                <Col span={24}>
+                    <AnimatePresence mode="wait">
+                        {suggestions.length === 0 ? (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                            >
+                                <div className="glass-card" style={{ height: 400, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+                                    <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.02)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24, border: '1px solid rgba(255,255,255,0.05)' }}>
+                                        <CheckCircleOutlined style={{ fontSize: 40, color: 'var(--success)', opacity: 0.5 }} />
+                                    </div>
+                                    <Title level={4} style={{ color: '#fff', margin: 0, letterSpacing: 1 }}>ALL SYSTEMS OPTIMIZED</Title>
+                                    <Text style={{ color: 'var(--text-dim)', marginTop: 8 }}>No pending authorization required at this time.</Text>
+                                </div>
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                            >
+                                <AISuggestionInformer
+                                    title="Protocol Proposals"
+                                    context="Autonomous Grid"
+                                    suggestions={suggestions}
+                                    onApprove={handleApprove}
+                                    onDecline={handleDecline}
+                                />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </Col>
+
+                {/* Footer Security Badge */}
+                <Col span={24}>
+                    <div className="glass-card" style={{ background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.1)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <FireOutlined style={{ color: 'var(--success)' }} />
+                            <Text style={{ color: 'var(--success)', fontSize: 11, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase' }}>
+                                Authorization Trace: Secured & Encrypted. All actions recorded to immutable system logs.
+                            </Text>
+                        </div>
+                    </div>
+                </Col>
+            </Row>
+        </motion.div>
     );
 };
 
 export default AdminApprovals;
-

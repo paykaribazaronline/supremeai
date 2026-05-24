@@ -158,24 +158,30 @@ public class ChatController {
                         .filter(name -> !name.isEmpty())
                         .collectList()
                         .flatMap(activeProviders -> {
-                            List<String> listToUse = activeProviders.isEmpty() ? 
-                                java.util.Arrays.asList("gemini", "qwen-coder", "llama-3-1", "deepseek-pro") : activeProviders;
-                            return consensusService.askConsensus(message, listToUse, 10000L);
-                        })
-                        .map(res -> {
-                            if (res != null) {
-                                return ResponseEntity.ok((Object) Map.of(
-                                    "message", res.getConsensusAnswer(),
-                                    "confidence", res.getAverageConfidence(),
-                                    "fallback", true,
-                                    "circuitBreakerState", circuitState.name()
-                                ));
+                            if (activeProviders.isEmpty()) {
+                                logger.warn("[CIRCUIT-FALLBACK] No active providers available for consensus");
+                                return Mono.just(ResponseEntity.status(503).body((Object) Map.of(
+                                    "error", "AI services temporarily unavailable — no active providers configured",
+                                    "circuitBreakerState", circuitState.name(),
+                                    "retryAfter", 60
+                                )));
                             }
-                            return ResponseEntity.status(503).body((Object) Map.of(
-                                "error", "AI services temporarily unavailable",
-                                "circuitBreakerState", circuitState.name(),
-                                "retryAfter", 60
-                            ));
+                            return consensusService.askConsensus(message, activeProviders, 10000L)
+                                .map(res -> {
+                                    if (res != null) {
+                                        return ResponseEntity.ok((Object) Map.of(
+                                            "message", res.getConsensusAnswer(),
+                                            "confidence", res.getAverageConfidence(),
+                                            "fallback", true,
+                                            "circuitBreakerState", circuitState.name()
+                                        ));
+                                    }
+                                    return ResponseEntity.status(503).body((Object) Map.of(
+                                        "error", "AI services temporarily unavailable",
+                                        "circuitBreakerState", circuitState.name(),
+                                        "retryAfter", 60
+                                    ));
+                                });
                         })
                         .onErrorResume(ex -> {
                             logger.error("Fallback consensus also failed", ex);
