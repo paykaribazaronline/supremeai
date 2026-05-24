@@ -30,6 +30,9 @@ public class AgentOrchestrationHub {
     @org.springframework.beans.factory.annotation.Autowired
     private SimulatorService simulatorService;
 
+    @Autowired
+    private com.supremeai.agentorchestration.CrossAgentVectorMemory crossAgentMemory;
+
     /**
      * Executes a specific agent with given inputs.
      * Routes to the appropriate service based on agent name.
@@ -37,10 +40,23 @@ public class AgentOrchestrationHub {
     public Mono<Map<String, Object>> executeAgent(String agentName, Map<String, Object> input) {
         logger.info("[AgentHub] Executing agent: {} with input: {}", agentName, input);
         
+        String sessionId = (String) input.getOrDefault("sessionId", "default-session");
+        String taskType = (String) input.getOrDefault("taskType", "general");
+        
+        // Retrieve shared context
+        String sharedContext = crossAgentMemory.retrieveRelevantContext(sessionId, agentName, taskType);
+        if (!sharedContext.isEmpty()) {
+            logger.info("Retrieved shared context from CrossAgentVectorMemory for {}", agentName);
+            input.put("sharedAgentContext", sharedContext);
+        }
+        
         return switch (agentName) {
-            case "ReverseEngineeringAgent" -> executeReverseEngineering(input);
-            case "CodeGenerationAgent" -> executeCodeGeneration(input);
-            case "SimulatorAgent" -> executeSimulator(input);
+            case "ReverseEngineeringAgent" -> executeReverseEngineering(input)
+                .doOnSuccess(res -> crossAgentMemory.storeContext(sessionId, agentName, res.toString(), taskType));
+            case "CodeGenerationAgent" -> executeCodeGeneration(input)
+                .doOnSuccess(res -> crossAgentMemory.storeContext(sessionId, agentName, res.toString(), taskType));
+            case "SimulatorAgent" -> executeSimulator(input)
+                .doOnSuccess(res -> crossAgentMemory.storeContext(sessionId, agentName, res.toString(), taskType));
             default -> Mono.error(new RuntimeException("Unknown agent: " + agentName));
         };
     }

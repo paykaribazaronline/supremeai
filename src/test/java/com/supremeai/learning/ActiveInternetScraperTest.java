@@ -2,6 +2,7 @@ package com.supremeai.learning;
 
 import com.supremeai.learning.service.EnhancedContentSanitizerService;
 import com.supremeai.learning.active.ActiveInternetScraper;
+import com.supremeai.learning.active.QueryClassifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -25,6 +26,9 @@ class ActiveInternetScraperTest {
     private EnhancedContentSanitizerService mockSanitizer;
 
     @Mock
+    private QueryClassifier mockQueryClassifier;
+
+    @Mock
     private WebClient mockWebClient;
 
     private ActiveInternetScraper scraper;
@@ -33,7 +37,7 @@ class ActiveInternetScraperTest {
     void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
         when(mockWebClientBuilder.build()).thenReturn(mockWebClient);
-        scraper = new ActiveInternetScraper(mockWebClientBuilder, mockSanitizer);
+        scraper = new ActiveInternetScraper(mockWebClientBuilder, mockSanitizer, mockQueryClassifier);
     }
 
     @Test

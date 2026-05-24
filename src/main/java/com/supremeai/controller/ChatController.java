@@ -21,6 +21,7 @@ import com.supremeai.repository.ChatHistoryRepository;
 import com.supremeai.repository.ProviderRepository;
 import com.supremeai.model.ChatMessage;
 import java.time.LocalDateTime;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -55,6 +56,9 @@ public class ChatController {
 
     @Autowired
     private ProviderRepository providerRepository;
+
+    @Autowired
+    private com.supremeai.service.ContextSummarizerService summarizerService;
 
     private final CircuitBreaker aiCircuitBreaker;
     private final Retry aiRetry;
@@ -277,10 +281,59 @@ public class ChatController {
         return processChatWithHistory(request);
     }
 
-    @PostMapping("/stream")
+    @PostMapping(value = "/stream", produces = org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE)
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'AGENT_MANAGER', 'GUEST')")
-    public Mono<ResponseEntity<Object>> handleChatStream(@Valid @RequestBody ChatRequest request) {
-        return processChatWithHistory(request);
+    public Flux<String> handleChatStream(@Valid @RequestBody ChatRequest request) {
+        String sessionId = request.getSessionId();
+        if (sessionId == null || sessionId.trim().isEmpty()) {
+            sessionId = "default-session";
+        }
+        
+        String finalSessionId = sessionId;
+        String userMessage = request.getMessage();
+
+        ChatMessage userMsg = new ChatMessage();
+        userMsg.setId(java.util.UUID.randomUUID().toString());
+        userMsg.setUserId(finalSessionId);
+        userMsg.setContent(userMessage);
+        userMsg.setRole("user");
+        userMsg.setTimestamp(LocalDateTime.now());
+
+        return chatHistoryRepository.save(userMsg)
+            .thenMany(chatHistoryRepository.findByUserIdOrderByTimestampAsc(finalSessionId))
+            .collectList()
+            .flatMapMany(history -> {
+                StringBuilder fullHistoryBuilder = new StringBuilder();
+                for (ChatMessage pastMsg : history) {
+                    String role = pastMsg.getRole() != null ? pastMsg.getRole() : (pastMsg.isAdmin() ? "admin" : "user");
+                    fullHistoryBuilder.append(role.toUpperCase()).append(": ").append(pastMsg.getContent()).append("\n");
+                }
+                
+                if (history.isEmpty() || !history.get(history.size() - 1).getContent().equals(userMessage)) {
+                    fullHistoryBuilder.append("USER: ").append(userMessage).append("\n");
+                }
+
+                return summarizerService.summarizeContext(fullHistoryBuilder.toString())
+                    .flatMapMany(summarizedHistory -> {
+                        String contextualPrompt = "You are SupremeAI, a highly intelligent coding and development assistant. Maintain a friendly and helpful tone.\n" +
+                            "Below is the conversation context:\n\n" +
+                            summarizedHistory + "\n\nAI: ";
+
+                        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                        return votingService.streamVotes(contextualPrompt, null, 15000L)
+                            .map(vote -> {
+                                try {
+                                    Map<String, Object> data = new HashMap<>();
+                                    data.put("provider", vote.getProviderName());
+                                    data.put("response", vote.getResponse());
+                                    data.put("confidence", vote.getConfidence());
+                                    return mapper.writeValueAsString(data);
+                                } catch (Exception e) {
+                                    return "{\"error\":\"Serialization failed\"}";
+                                }
+                            });
+                    });
+            });
     }
 
     private Mono<ResponseEntity<Object>> processChatWithHistory(ChatRequest request) {
@@ -303,23 +356,22 @@ public class ChatController {
             .thenMany(chatHistoryRepository.findByUserIdOrderByTimestampAsc(finalSessionId))
             .collectList()
             .flatMap(history -> {
-                StringBuilder promptBuilder = new StringBuilder();
-                promptBuilder.append("You are SupremeAI, a highly intelligent coding and development assistant. Maintain a friendly and helpful tone.\n");
-                promptBuilder.append("Below is the conversation history. Respond appropriately to the last user message considering the context:\n\n");
-
-                int startIdx = Math.max(0, history.size() - 6);
-                for (int i = startIdx; i < history.size(); i++) {
-                    ChatMessage pastMsg = history.get(i);
+                StringBuilder fullHistoryBuilder = new StringBuilder();
+                for (ChatMessage pastMsg : history) {
                     String role = pastMsg.getRole() != null ? pastMsg.getRole() : (pastMsg.isAdmin() ? "admin" : "user");
-                    promptBuilder.append(role.toUpperCase()).append(": ").append(pastMsg.getContent()).append("\n");
+                    fullHistoryBuilder.append(role.toUpperCase()).append(": ").append(pastMsg.getContent()).append("\n");
                 }
-
+                
                 if (history.isEmpty() || !history.get(history.size() - 1).getContent().equals(userMessage)) {
-                    promptBuilder.append("USER: ").append(userMessage).append("\n");
+                    fullHistoryBuilder.append("USER: ").append(userMessage).append("\n");
                 }
 
-                promptBuilder.append("AI: ");
-                String contextualPrompt = promptBuilder.toString();
+                return summarizerService.summarizeContext(fullHistoryBuilder.toString());
+            })
+            .flatMap(summarizedHistory -> {
+                String contextualPrompt = "You are SupremeAI, a highly intelligent coding and development assistant. Maintain a friendly and helpful tone.\n" +
+                    "Below is the conversation context:\n\n" +
+                    summarizedHistory + "\n\nAI: ";
 
                 return votingService.executeEnsembleVoting(contextualPrompt, null, 15000L)
                     .flatMap(votingResult -> {

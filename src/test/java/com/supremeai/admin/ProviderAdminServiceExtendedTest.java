@@ -8,6 +8,7 @@ import com.supremeai.repository.ActivityLogRepository;
 import com.supremeai.service.AIProviderDiscoveryService;
 import com.supremeai.service.AdminProviderValidationService;
 import com.supremeai.service.ProviderRoleSuggestionService;
+import com.supremeai.service.ProviderTypeRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,6 +47,9 @@ class ProviderAdminServiceExtendedTest {
     @Mock
     private AdminProviderValidationService adminProviderValidationService;
 
+    @Mock
+    private ProviderTypeRegistry providerTypeRegistry;
+
     private ProviderAdminService providerAdminService;
 
     private APIProvider testProvider;
@@ -54,7 +58,7 @@ class ProviderAdminServiceExtendedTest {
     void setUp() {
         providerAdminService = new ProviderAdminService(
                 providerRepository, activityLogRepository, discoveryService,
-                roleSuggestionService, adminProviderValidationService
+                roleSuggestionService, adminProviderValidationService, providerTypeRegistry
         );
 
         testProvider = new APIProvider("prov-1", "Test Provider", "gemini", "active");

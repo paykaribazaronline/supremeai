@@ -1,10 +1,11 @@
 package com.supremeai.config;
 
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.FirestoreOptions;
 
 /**
  * Test-only Firestore/v3 configuration.
@@ -13,12 +14,6 @@ import org.springframework.context.annotation.Primary;
  * FirestoreOptions points to the emulator.  When the env var is absent the
  * bean is created with production defaults so tests that do not touch Firestore
  * are unaffected.</p>
- *
- * <ul>
- *   <li>Primary Firestore bean intended for test/injection override.</li>
- *   <li>Emulator properties: settings that make the spring-cloud-gcp auto-config
- *       connect to the local emulator when it is present.</li>
- * </ul>
  */
 @Configuration
 @TestPropertySource(properties = {
@@ -30,8 +25,7 @@ public class TestFirestoreConfig {
 
     @Bean
     @Primary
-    public org.springframework.cloud.gcp.data.firestore.FirestoreTemplate firestoreTemplate(
-            com.google.cloud.firestore.Firestore firestore) {
-        return new org.springframework.cloud.gcp.data.firestore.FirestoreTemplate(firestore);
+    public Firestore firestore() {
+        return FirestoreOptions.getDefaultInstance().getService();
     }
 }

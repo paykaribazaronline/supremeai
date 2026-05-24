@@ -45,10 +45,13 @@ public class ProjectDNAHarvesterService {
             // 1. Analyze Tech Stack from build.gradle.kts
             dna.put("stack", analyzeTechStack());
             
-            // 2. Analyze Architecture from Directory Structure
+            // 2. Analyze Additional Config Files (CD-03)
+            dna.put("frameworks", analyzeOtherConfigs());
+            
+            // 3. Analyze Architecture from Directory Structure
             dna.put("architecture", analyzeArchitecture());
             
-            // 3. Extract Main Package
+            // 4. Extract Main Package
             dna.put("main_package", "com.supremeai");
             
             return dna;
@@ -82,6 +85,50 @@ public class ProjectDNAHarvesterService {
         return stack;
     }
 
+    private Map<String, Object> analyzeOtherConfigs() {
+        Map<String, Object> frameworks = new HashMap<>();
+        try {
+            // Check for Node.js / Frontend frameworks
+            Path packageJson = Paths.get(PROJECT_ROOT, "package.json");
+            if (Files.exists(packageJson)) {
+                String content = Files.readString(packageJson).toLowerCase();
+                List<String> jsDeps = new ArrayList<>();
+                if (content.contains("\"react\"")) jsDeps.add("React");
+                if (content.contains("\"next\"")) jsDeps.add("Next.js");
+                if (content.contains("\"vue\"")) jsDeps.add("Vue.js");
+                if (content.contains("\"@angular/core\"")) jsDeps.add("Angular");
+                if (content.contains("\"tailwindcss\"")) jsDeps.add("TailwindCSS");
+                frameworks.put("frontend_dependencies", jsDeps);
+            }
+
+            // Check for Docker
+            Path dockerCompose = Paths.get(PROJECT_ROOT, "docker-compose.yml");
+            if (Files.exists(dockerCompose)) {
+                String content = Files.readString(dockerCompose).toLowerCase();
+                List<String> services = new ArrayList<>();
+                if (content.contains("postgres")) services.add("PostgreSQL (Docker)");
+                if (content.contains("redis")) services.add("Redis (Docker)");
+                if (content.contains("mongo")) services.add("MongoDB (Docker)");
+                frameworks.put("docker_services", services);
+            }
+
+            // Check for Python
+            Path reqTxt = Paths.get(PROJECT_ROOT, "requirements.txt");
+            if (Files.exists(reqTxt)) {
+                String content = Files.readString(reqTxt).toLowerCase();
+                List<String> pyDeps = new ArrayList<>();
+                if (content.contains("django")) pyDeps.add("Django");
+                if (content.contains("flask")) pyDeps.add("Flask");
+                if (content.contains("fastapi")) pyDeps.add("FastAPI");
+                frameworks.put("python_dependencies", pyDeps);
+            }
+
+        } catch (Exception e) {
+            log.warn("Failed to analyze other config files: {}", e.getMessage());
+        }
+        return frameworks;
+    }
+
     private Map<String, Object> analyzeArchitecture() {
         Map<String, Object> arch = new HashMap<>();
         try {
@@ -111,6 +158,7 @@ public class ProjectDNAHarvesterService {
         
         StringBuilder solutions = new StringBuilder();
         solutions.append("Tech Stack: ").append(dna.get("stack")).append("\n");
+        solutions.append("Frameworks/Configs: ").append(dna.get("frameworks")).append("\n");
         solutions.append("Architecture: ").append(dna.get("architecture")).append("\n");
         solutions.append("Main Package: ").append(dna.get("main_package"));
         

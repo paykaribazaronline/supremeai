@@ -67,4 +67,12 @@ public class FirebaseRealtimeService {
             });
         });
     }
+
+    /**
+     * Save data to a specific path in Realtime Database.
+     * Alias for setData for compatibility.
+     */
+    public Mono<Void> saveData(String path, Map<String, Object> data) {
+        return setData(path, data);
+    }
 }

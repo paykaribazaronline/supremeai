@@ -510,53 +510,56 @@ public class SelfHealingService {
                         : Mono.just(true);
 
         return defaultProviderIdMono
-                .flatMap(defaultProviderId -> Mono.fromCallable(() -> {
-                    int bestIteration = 0;
-                    String bestVersion = generateInitialCode(prompt);
+.flatMap(defaultProviderId -> Mono.fromCallable(() -> {
+                     int bestIteration = 0;
+                     var bestVersionRef = new java.util.concurrent.atomic.AtomicReference<>(generateInitialCode(prompt));
 
-                    for (int iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
-                        final int currentIteration = iteration; // effectively final for lambda capture
-                        log.info("[SELF-HEALING] Iteration {}: evaluating code", currentIteration + 1);
-                        if (isCodePerfect(bestVersion)) {
-                            log.info("[SELF-HEALING] Code passed quality gate after {} iterations", currentIteration + 1);
-                            return bestVersion;
-                        }
+                     for (int iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
+                         final int currentIteration = iteration; // effectively final for lambda capture
+                         final String bestVersion = bestVersionRef.get();
+                         log.info("[SELF-HEALING] Iteration {}: evaluating code", currentIteration + 1);
+                         if (isCodePerfect(bestVersion)) {
+                             log.info("[SELF-HEALING] Code passed quality gate after {} iterations", currentIteration + 1);
+                             return bestVersion;
+                         }
 
-                        // --- non-blocking approval vote (runs on boundedElastic) ---
-                        approvalGate.apply(defaultProviderId)
-                                .subscribeOn(Schedulers.boundedElastic())
-                                .flatMap(approved -> {
-                                    if (approved != null && !approved) {
-                                        log.warn("[SELF-HEALING] Council disapproved changes at iteration {}; returning best-known version.",
-                                                currentIteration + 1);
-                                        return Mono.just(bestVersion);   // abort early
-                                    }
-                                    log.info("[SELF-HEALING] Iteration {}: approval granted, applying improvement pass", currentIteration + 1);
+                         // --- non-blocking approval vote (runs on boundedElastic) ---
+                         approvalGate.apply(defaultProviderId)
+                                 .subscribeOn(Schedulers.boundedElastic())
+                                 .flatMap(approved -> {
+                                     final String currentBest = bestVersionRef.get();
+                                     if (approved != null && !approved) {
+                                         log.warn("[SELF-HEALING] Council disapproved changes at iteration {}; returning best-known version.",
+                                                 currentIteration + 1);
+                                         return Mono.just(currentBest);   // abort early
+                                     }
+                                     log.info("[SELF-HEALING] Iteration {}: approval granted, applying improvement pass", currentIteration + 1);
 
-                                    // --- apply one improvement pass ---
-                                    String improved = improveCode(bestVersion, prompt, currentIteration);
-                                    if (isCodePerfect(improved)) {
-                                        log.info("[SELF-HEALING] Code passed quality gate after {} improvements", currentIteration + 1);
-                                        return Mono.just(improved);        // perfect — skip remaining iterations
-                                    }
-                                    bestVersion = improved;
-                                    return Mono.empty();                  // continue loop
-                                })
+                                     // --- apply one improvement pass ---
+                                     String improved = improveCode(currentBest, prompt, currentIteration);
+                                     if (isCodePerfect(improved)) {
+                                         log.info("[SELF-HEALING] Code passed quality gate after {} improvements", currentIteration + 1);
+                                         bestVersionRef.set(improved);
+                                         return Mono.just(improved);        // perfect — skip remaining iterations
+                                     }
+                                     bestVersionRef.set(improved);
+                                     return Mono.empty();                  // continue loop
+                                 })
                                 .onErrorResume(err -> {
                                     log.warn("[SELF-HEALING] Approval vote failed at iteration {} (ignoring and continuing): {}",
                                             currentIteration + 1, err.getMessage());
                                     return Mono.empty();                  // treat as approved on error
                                 })
-                                .block(); // safe: we are already on boundedElastic
+.block(); // safe: we are already on boundedElastic
 
-                        if (isCodePerfect(bestVersion)) {
-                            log.info("[SELF-HEALING] Code passed quality gate after {} improvements", iteration + 1);
-                            return bestVersion;
-                        }
-                    }
-                    log.warn("[SELF-HEALING] Max iterations ({}) reached; returning last-known version",
-                            MAX_ITERATIONS);
-                    return bestVersion;
+                         if (isCodePerfect(bestVersionRef.get())) {
+                             log.info("[SELF-HEALING] Code passed quality gate after {} improvements", iteration + 1);
+                             return bestVersionRef.get();
+                         }
+                     }
+                     log.warn("[SELF-HEALING] Max iterations ({}) reached; returning last-known version",
+                             MAX_ITERATIONS);
+                     return bestVersionRef.get();
                 })
                 .subscribeOn(Schedulers.boundedElastic()));
     }

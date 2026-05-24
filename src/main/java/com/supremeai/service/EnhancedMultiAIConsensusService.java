@@ -418,6 +418,23 @@ public class EnhancedMultiAIConsensusService {
             return Mono.just(new EnhancedConsensusResult(question, votes.get(0).getResponse(), votes, 0.0, "SPLIT", 0, Map.of()));
         }
 
+        // AI-06: Add confidence threshold: if both sides >0.85 confidence, skip debate to save cost
+        double confA = sortedGroups.get(0).votes.stream().mapToDouble(ProviderVote::getConfidence).average().orElse(0.0);
+        double confB = sortedGroups.get(1).votes.stream().mapToDouble(ProviderVote::getConfidence).average().orElse(0.0);
+        
+        if (confA > 0.85 && confB > 0.85) {
+            log.info("Both conflicting groups have high confidence (>0.85). Skipping debate to save cost.");
+            return Mono.just(new EnhancedConsensusResult(
+                question, 
+                sortedGroups.get(0).getRepresentativeResponse(), 
+                votes, 
+                Math.max(confA, confB), 
+                "SPLIT_SKIPPED", 
+                0, 
+                Map.of("skipped_debate", true, "reason", "cost_saving_high_confidence")
+            ));
+        }
+
         // 2. Select a Judge using ranking-based selection — pick the highest-ranked
         // provider from allProviders that is NOT already in the top 2 conflicting groups.
         // Falls back to the first available provider if ranking data is unavailable.
@@ -429,9 +446,9 @@ public class EnhancedMultiAIConsensusService {
                 .filter(p -> !conflictingProviders.contains(p))
                 .max(Comparator.comparingDouble(p -> {
                     AIRankingService.ProviderRanking ranking = aiRankingService.getRankingForProvider(p);
-                    return ranking.getSuccessRate();
+                    return ranking != null ? ranking.getSuccessRate() : 0.5;
                 }))
-                .orElse(allProviders.get(0)); // Fallback: first provider if no non-conflicting option
+                .orElse(allProviders.isEmpty() ? "default" : allProviders.get(0));
         
         String optionA = sortedGroups.get(0).getRepresentativeResponse();
         String optionB = sortedGroups.get(1).getRepresentativeResponse();

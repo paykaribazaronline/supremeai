@@ -199,7 +199,7 @@ public class MultiAIVotingService {
                                                         "Complex query and multiple models available ({}). Executing multi-model voting panel flow.",
                                                         availableCount);
                                                 return executeMultiModelVotingFlow(prompt, activeModels, config, issues,
-                                                        startTime, timeoutMs);
+                                                        startTime, timeoutMs, taskType);
                                             }
                                         });
                             });
@@ -334,7 +334,7 @@ public class MultiAIVotingService {
 
     private Mono<VotingResult> executeMultiModelVotingFlow(
             String prompt, List<String> activeModels, Map<String, Object> helperConfig,
-            List<ScrapedIssue> issues, long startTime, long timeoutMs) {
+            List<ScrapedIssue> issues, long startTime, long timeoutMs, String taskType) {
 
         int n = activeModels.size();
         List<String> votingPanel = new ArrayList<>(activeModels);
@@ -368,24 +368,42 @@ public class MultiAIVotingService {
                         return Mono.just(executeSoloFallback(prompt, issues, startTime));
                     }
 
-                    long duration = System.currentTimeMillis() - startTime;
+                    return firebaseRealtimeService.getData("config/task_weights")
+                        .onErrorReturn(Map.of())
+                        .flatMap(weightsConfig -> {
+                            long duration = System.currentTimeMillis() - startTime;
 
-                    Map<String, List<ProviderVote>> groups = groupBySimilarity(votes);
-                    List<ProviderVote> winningGroup = groups.values().stream()
-                            .max(Comparator.comparingInt(List::size))
-                            .orElse(List.of(votes.get(0)));
+                            Map<String, List<ProviderVote>> groups = groupBySimilarity(votes);
+                            
+                            // Determine weights for this taskType
+                            Map<String, Double> modelWeights = new HashMap<>();
+                            String actualTaskType = taskType != null ? taskType : detectDomain(prompt);
+                            Object taskWeightConfig = weightsConfig.get(actualTaskType);
+                            if (taskWeightConfig instanceof Map) {
+                                @SuppressWarnings("unchecked")
+                                Map<String, Object> wMap = (Map<String, Object>) taskWeightConfig;
+                                for (Map.Entry<String, Object> e : wMap.entrySet()) {
+                                    modelWeights.put(e.getKey(), Double.parseDouble(String.valueOf(e.getValue())));
+                                }
+                            }
+                            
+                            List<ProviderVote> winningGroup = groups.values().stream()
+                                    .max(Comparator.comparingDouble(group -> group.stream()
+                                            .mapToDouble(v -> modelWeights.getOrDefault(v.getProviderName(), 1.0))
+                                            .sum()))
+                                    .orElse(List.of(votes.get(0)));
 
-                    String bestResponse = winningGroup.get(0).getResponse();
-                    double avgConfidence = votes.stream()
-                            .mapToDouble(ProviderVote::getConfidence)
-                            .average()
-                            .orElse(0.5);
+                            String bestResponse = winningGroup.get(0).getResponse();
+                            double avgConfidence = votes.stream()
+                                    .mapToDouble(ProviderVote::getConfidence)
+                                    .average()
+                                    .orElse(0.5);
 
-                    enhancedLearningService.learnFromNLPInteraction(prompt, bestResponse, "multi_model_voting",
-                            avgConfidence, Map.of("voters", votingPanel.toString())).subscribe();
+                            enhancedLearningService.learnFromNLPInteraction(prompt, bestResponse, "multi_model_voting_weighted",
+                                    avgConfidence, Map.of("voters", votingPanel.toString(), "taskType", actualTaskType)).subscribe();
 
-                    return Mono.just(new VotingResult(prompt, bestResponse, votes, avgConfidence, "CONSENSUS_RESOLVED",
-                            duration));
+                            return Mono.just(new VotingResult(prompt, bestResponse, votes, avgConfidence, "CONSENSUS_RESOLVED", duration));
+                        });
                 });
     }
 
@@ -397,6 +415,52 @@ public class MultiAIVotingService {
         } else {
             return queryModel(modelName, prompt, timeoutMs);
         }
+    }
+
+    public Flux<ProviderVote> streamVotes(
+            String prompt,
+            List<String> selectedModels,
+            long timeoutMs
+    ) {
+        List<String> keywords = extractKeywords(prompt);
+        String detectedDomain = detectDomain(prompt);
+
+        return activeInternetScraper.scrapeKnowledge(detectedDomain, keywords)
+                .collectList()
+                .flatMapMany(issues -> {
+                    return firebaseRealtimeService.getData("config/neural_helper")
+                            .onErrorResume(e -> Mono.empty())
+                            .flatMapMany(config -> {
+                                return providerRepository.findAll()
+                                        .filter(p -> "active".equalsIgnoreCase(p.getStatus())
+                                                && p.isCanParticipateInVoting())
+                                        .map(p -> p.getName())
+                                        .collectList()
+                                        .flatMapMany(dbModels -> {
+                                            List<String> activeModels = new ArrayList<>(dbModels);
+                                            boolean helperEnabled = config != null && Boolean.parseBoolean(String.valueOf(config.getOrDefault("enabled", "false")));
+                                            if (helperEnabled && !activeModels.contains("cloud_helper")) {
+                                                activeModels.add("cloud_helper");
+                                            }
+
+                                            int n = activeModels.size();
+                                            if (n % 2 == 0) {
+                                                activeModels.add("autonomous_browser");
+                                            }
+
+                                            return Flux.fromIterable(activeModels)
+                                                    .flatMap(modelName -> {
+                                                        if ("autonomous_browser".equalsIgnoreCase(modelName)) {
+                                                            String synthesized = synthesizeSoloResponse(prompt, issues);
+                                                            return Mono.just(new ProviderVote("autonomous_browser", synthesized, 0.85, System.currentTimeMillis()));
+                                                        } else {
+                                                            return queryModelOrHelper(modelName, prompt, config, issues, timeoutMs)
+                                                                    .onErrorResume(e -> Mono.empty());
+                                                        }
+                                                    });
+                                        });
+                            });
+                });
     }
 
     private Mono<ProviderVote> queryCloudHelper(

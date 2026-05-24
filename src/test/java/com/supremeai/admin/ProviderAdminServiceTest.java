@@ -7,6 +7,7 @@ import com.supremeai.repository.ActivityLogRepository;
 import com.supremeai.service.AIProviderDiscoveryService;
 import com.supremeai.service.AdminProviderValidationService;
 import com.supremeai.service.ProviderRoleSuggestionService;
+import com.supremeai.service.ProviderTypeRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +37,8 @@ public class ProviderAdminServiceTest {
     private ProviderRoleSuggestionService roleSuggestionService;
     @Mock
     private AdminProviderValidationService adminProviderValidationService;
+    @Mock
+    private ProviderTypeRegistry providerTypeRegistry;
 
     private ProviderAdminService providerAdminService;
 
@@ -46,7 +49,8 @@ public class ProviderAdminServiceTest {
                 activityLogRepository,
                 discoveryService,
                 roleSuggestionService,
-                adminProviderValidationService
+                adminProviderValidationService,
+                providerTypeRegistry
         );
     }
 

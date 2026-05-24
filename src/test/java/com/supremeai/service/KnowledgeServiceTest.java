@@ -63,10 +63,9 @@ public class KnowledgeServiceTest {
   when(domainRepository.findById("domain-1")).thenReturn(Mono.just(domain1));
   when(domainRepository.findById("domain-2")).thenReturn(Mono.just(domain2));
 
-  ActiveInternetScraper.ScrapedIssue issue = mock(ActiveInternetScraper.ScrapedIssue.class);
-  when(issue.getTitle()).thenReturn("Sample Title");
-  when(issue.getAuthority()).thenReturn(mock(ActiveInternetScraper.AuthorityWeight.class));
-  when(issue.getAuthority().getWeight()).thenReturn(0.9);
+ActiveInternetScraper.ScrapedIssue issue = mock(ActiveInternetScraper.ScrapedIssue.class);
+    when(issue.getTitle()).thenReturn("Sample Title");
+    when(issue.getAuthority()).thenReturn(new ActiveInternetScraper.ScrapedIssue.AuthorityWrapper(0.9));
 
   when(scraper.scrapeKnowledge(anyString(), anyList())).thenReturn(Flux.just(issue));
   when(learningRepository.save(any(SystemLearning.class))).thenReturn(Mono.just(new SystemLearning()));

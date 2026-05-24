@@ -29,23 +29,23 @@
 
 ### 🔴 BLOCKER — Build Must Pass First (48h deadline)
 
-- [ ] B-01: **[CRITICAL]** Fix `KnowledgeSeedDataProvider.java` — duplicate method definitions (`makeLearning` + `makeErrorSolution`) → rename/merge duplicates
-- [ ] B-02: **[CRITICAL]** Fix `DynamicInstructionService.java` — `SystemInstruction.getApplicableTaskTypes()` + `getContent()` missing → add methods to model or fix service
-- [ ] B-03: **[CRITICAL]** Fix `ApiResponse.java` — missing `@Builder` on class → add Lombok `@Builder` or manual builder
-- [ ] B-04: **[CRITICAL]** Fix `InfiniteAutoHealer.java:28` — `Mono<String>` returned where `String` expected → subscribe/block correctly or change return type
-- [ ] B-05: **[CRITICAL]** Fix `SelfHealingService.java` — `APIHealthReport` missing `incrementTotal/Active/Inactive/Error()` → add methods to model
-- [ ] B-06: **[CRITICAL]** Fix `SelfHealingService.java:201` — `.block()` called on `RootCauseAnalysis` (not a Mono) → fix type mismatch
-- [ ] B-07: **[CRITICAL]** Fix `SelfHealingService.java:383` — `AIProviderType` import missing → add correct import
-- [ ] B-08: **[CRITICAL]** Fix `SelfHealingService.java:398` — `Schedulers` import missing → add `reactor.core.scheduler.Schedulers` import
-- [ ] B-09: **[CRITICAL]** Fix `BrowserService.java` — `BrowserTask` model missing setters/getters (setId, setGoal, setStatus, getLastUrl, etc.) → add `@Data` Lombok or manual accessors
-- [ ] B-10: **[CRITICAL]** Fix `AgentOrchestrationHub.java:69` — `Map<String,Object>` cannot convert to `Map<String,String>` → fix type or cast
-- [ ] B-11: **[CRITICAL]** Fix `SelfHealingController.java` — `detectAndFix()` returns `Mono<ResponseEntity>` not `Map` → unwrap correctly; `getRootCauseAnalysisStats()` + `getRecentCorrections()` missing from service → add stubs
-- [ ] B-12: Run `./gradlew build -x test` — confirm **0 compilation errors**
+- [x] B-01: **[CRITICAL]** Fix `KnowledgeSeedDataProvider.java` — duplicate method definitions (`makeLearning` + `makeErrorSolution`) → rename/merge duplicates
+- [x] B-02: **[CRITICAL]** Fix `DynamicInstructionService.java` — `SystemInstruction.getApplicableTaskTypes()` + `getContent()` missing → add methods to model or fix service
+- [x] B-03: **[CRITICAL]** Fix `ApiResponse.java` — missing `@Builder` on class → add Lombok `@Builder` or manual builder
+- [x] B-04: **[CRITICAL]** Fix `InfiniteAutoHealer.java:28` — `Mono<String>` returned where `String` expected → subscribe/block correctly or change return type
+- [x] B-05: **[CRITICAL]** Fix `SelfHealingService.java` — `APIHealthReport` missing `incrementTotal/Active/Inactive/Error()` → add methods to model
+- [x] B-06: **[CRITICAL]** Fix `SelfHealingService.java:201` — `.block()` called on `RootCauseAnalysis` (not a Mono) → fix type mismatch
+- [x] B-07: **[CRITICAL]** Fix `SelfHealingService.java:383` — `AIProviderType` import missing → add correct import
+- [x] B-08: **[CRITICAL]** Fix `SelfHealingService.java:398` — `Schedulers` import missing → add `reactor.core.scheduler.Schedulers` import
+- [x] B-09: **[CRITICAL]** Fix `BrowserService.java` — `BrowserTask` model missing setters/getters (setId, setGoal, setStatus, getLastUrl, etc.) → add `@Data` Lombok or manual accessors
+- [x] B-10: **[CRITICAL]** Fix `AgentOrchestrationHub.java:69` — `Map<String,Object>` cannot convert to `Map<String,String>` → fix type or cast
+- [x] B-11: **[CRITICAL]** Fix `SelfHealingController.java` — `detectAndFix()` returns `Mono<ResponseEntity>` not `Map` → unwrap correctly; `getRootCauseAnalysisStats()` + `getRecentCorrections()` missing from service → add stubs
+- [x] B-12: Run `./gradlew build -x test` — confirm **0 compilation errors**
 - [ ] B-13: Run `./gradlew test` — confirm **0 test failures** (target ≥ 40% coverage)
 
 ### 🔴 Security — Must Fix Before Any Public User
 
-- [ ] S-01: **[CRITICAL]** `BrowserService.getCredentialContext()` — decrypted password/token appended to AI prompt → replace with `[REDACTED]` marker; inject via Playwright directly
+- [x] S-01: **[CRITICAL]** `BrowserService.getCredentialContext()` — decrypted password/token appended to AI prompt → replace with `[REDACTED]` marker; inject via Playwright directly
 - [ ] S-02: Audit all `@RestController` DTOs — add `@Valid` + `@NotBlank`/`@NotNull` annotations where missing
 - [ ] S-03: Verify GCP Secret Manager is the **only** credential source in production (no env var fallback with real values)
 - [ ] S-04: Add GCP Billing Alerts at $10 / $50 / $100 thresholds
@@ -99,43 +99,43 @@
 
 ### 🔴 Intelligence Upgrade
 
-- [ ] AI-01: **Context Window Compression** — summarize conversation history when >4,000 tokens using fastest available model (Gemini Flash or equivalent). Target: 60% cost reduction on long conversations
-- [ ] AI-02: **Streaming Responses** — return partial consensus results as each provider responds (Server-Sent Events); don't wait for all providers to finish
-- [ ] AI-03: **Weighted Consensus by Task Type** — code tasks → weight GPT-class models higher; creative → Claude-class; math → reasoning-specialist models. Config stored in Firestore, zero hardcode
-- [ ] AI-04: **Search Intelligence Engine** — `QueryClassifier` + `SearchEngineRegistry` with multi-source routing: StackOverflow, GitHub Issues, MDN, arXiv, Wikipedia. Solo Mode uses this before any AI API call
-- [ ] AI-05: **Cross-Agent Vector Memory** — shared context store between Code Agent, Security Agent, Deploy Agent without re-prompting. Eliminate redundant context rebuilding
-- [ ] AI-06: **Multi-Agent Debate Enhancement** — MAD judge selection fully dynamic; add confidence threshold: if both sides >0.85 confidence, skip debate to save cost
+- [x] AI-01: **Context Window Compression** — summarize conversation history when >4,000 tokens using fastest available model (Gemini Flash or equivalent). Target: 60% cost reduction on long conversations
+- [x] AI-02: **Streaming Responses** — return partial consensus results as each provider responds (Server-Sent Events); don't wait for all providers to finish
+- [x] AI-03: **Weighted Consensus by Task Type** — code tasks → weight GPT-class models higher; creative → Claude-class; math → reasoning-specialist models. Config stored in Firestore, zero hardcode
+- [x] AI-04: **Search Intelligence Engine** — `QueryClassifier` + `SearchEngineRegistry` with multi-source routing: StackOverflow, GitHub Issues, MDN, arXiv, Wikipedia. Solo Mode uses this before any AI API call
+- [x] AI-05: **Cross-Agent Vector Memory** — shared context store between Code Agent, Security Agent, Deploy Agent without re-prompting. Eliminate redundant context rebuilding
+- [x] AI-06: **Multi-Agent Debate Enhancement** — MAD judge selection fully dynamic; add confidence threshold: if both sides >0.85 confidence, skip debate to save cost
 
 ### 🟡 Benchmark & Validation Suite
 
-- [ ] BV-01: Build **AI Validation Harness** — automated weekly test suite running standard prompts against all active providers + SupremeAI consensus; store results in Firestore `benchmark_results`
-- [ ] BV-02: Implement **SWE-bench style test set** — 50+ real coding tasks with known correct outputs; measure SupremeAI pass rate vs single-model baselines
-- [ ] BV-03: **Self-Ranking Dashboard** — display SupremeAI accuracy vs each provider on last 100 real queries; update in real-time
-- [ ] BV-04: **Provider Tournament Mode** — monthly automated head-to-head provider comparison; auto-demote consistently underperforming providers
-- [ ] BV-05: Publish benchmark results endpoint (`GET /api/benchmarks/public`) for transparent AI quality reporting
+- [x] BV-01: Build **AI Validation Harness** — automated weekly test suite running standard prompts against all active providers + SupremeAI consensus; store results in Firestore `benchmark_results`
+- [x] BV-02: Implement **SWE-bench style test set** — 50+ real coding tasks with known correct outputs; measure SupremeAI pass rate vs single-model baselines
+- [x] BV-03: **Self-Ranking Dashboard** — display SupremeAI accuracy vs each provider on last 100 real queries; update in real-time
+- [x] BV-04: **Provider Tournament Mode** — monthly automated head-to-head provider comparison; auto-demote consistently underperforming providers
+- [x] BV-05: Publish benchmark results endpoint (`GET /api/benchmarks/public`) for transparent AI quality reporting
 
 ### 🟡 Solo Mode — Full Intelligence (No External AI Required)
 
-- [ ] SL-01: **Local AI Model Auto-Download** — if all external providers fail, auto-pull smallest viable GGUF model (e.g., Phi-3-mini) via AirLLM sidecar
-- [ ] SL-02: **P2P Knowledge Sync** — SupremeAI instances can share learned knowledge entries via signed Firestore writes (no central coordination server needed)
-- [ ] SL-03: **Offline Knowledge Distillation** — periodic job compresses Firestore `system_learning` into updated `core_knowledge.json` offline snapshot
-- [ ] SL-04: **Emergency Code Generation** — template-based code scaffolding that works with zero AI (pattern matching against `autonomous_seed_knowledge.json`)
+- [x] SL-01: **Local AI Model Auto-Download** — if all external providers fail, auto-pull smallest viable GGUF model (e.g., Phi-3-mini) via AirLLM sidecar
+- [x] SL-02: **P2P Knowledge Sync** — SupremeAI instances can share learned knowledge entries via signed Firestore writes (no central coordination server needed)
+- [x] SL-03: **Offline Knowledge Distillation** — periodic job compresses Firestore `system_learning` into updated `core_knowledge.json` offline snapshot
+- [x] SL-04: **Emergency Code Generation** — template-based code scaffolding that works with zero AI (pattern matching against `autonomous_seed_knowledge.json`)
 
 ### 🟡 Competitive Differentiators
 
 - [ ] CD-01: **IDE Extensions** — VS Code extension (`supremeai-vscode-extension/`) + IntelliJ plugin (`supremeai-intellij-plugin/`) — complete REST API integration, streaming autocomplete
 - [ ] CD-02: **Mobile App** — Flutter app (`supremeai/`) — consensus chat, provider status, knowledge explorer, push notifications
-- [ ] CD-03: **ProjectDNA Harvester Enhancement** — expand beyond `build.gradle.kts` to scan all config files, detect frameworks, auto-tag project context in every prompt
-- [ ] CD-04: **Cost Transparency Report** — per-user, per-session cost breakdown; export as CSV/PDF; zero manual effort
-- [ ] CD-05: **One-Click Deploy** — from admin dashboard, deploy any generated project to Cloud Run / Firebase Hosting with a single button
+- [x] CD-03: **ProjectDNA Harvester Enhancement** — expand beyond `build.gradle.kts` to scan all config files, detect frameworks, auto-tag project context in every prompt
+- [x] CD-04: **Cost Transparency Report** — per-user, per-session cost breakdown; export as CSV/PDF; zero manual effort
+- [x] CD-05: **One-Click Deploy** — from admin dashboard, deploy any generated project to Cloud Run / Firebase Hosting with a single button
 
 ### 🟢 Zero Maintenance Architecture
 
-- [ ] ZM-01: **Auto-Provider Discovery** — background job scans OpenRouter/HuggingFace for new free/cheap models weekly; auto-registers in Firestore if passing quality threshold
-- [ ] ZM-02: **Self-Updating Knowledge** — `SelfHealingService` failures automatically generate new `core_knowledge.json` entries; no manual curation needed
-- [ ] ZM-03: **Dependency CVE Auto-Scan** — weekly GitHub Action running `./gradlew dependencyCheckAnalyze`; auto-creates PR if critical CVE found
-- [ ] ZM-04: **Database Schema Auto-Migration** — Firestore collection schema changes detected and applied automatically via `@PostConstruct` migration service
-- [ ] ZM-05: **Zero-Downtime Deploy** — Cloud Run traffic splitting: 10% → new revision → health check → 100%. Rollback auto-trigger if error rate >1%
+- [x] ZM-01: **Auto-Provider Discovery** — background job scans OpenRouter/HuggingFace for new free/cheap models weekly; auto-registers in Firestore if passing quality threshold
+- [x] ZM-02: **Self-Updating Knowledge** — `SelfHealingService` failures automatically generate new `core_knowledge.json` entries; no manual curation needed
+- [x] ZM-03: **Dependency CVE Auto-Scan** — weekly GitHub Action running `./gradlew dependencyCheckAnalyze`; auto-creates PR if critical CVE found
+- [x] ZM-04: **Database Schema Auto-Migration** — Firestore collection schema changes detected and applied automatically via `@PostConstruct` migration service
+- [x] ZM-05: **Zero-Downtime Deploy** — Cloud Run traffic splitting: 10% → new revision → health check → 100%. Rollback auto-trigger if error rate >1%
 
 ---
 
