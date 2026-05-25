@@ -13,7 +13,7 @@ import com.supremeai.repository.ProviderRepository;
 import com.supremeai.repository.APIHealthReportRepository;
 import com.supremeai.provider.AIProviderFactory;
 import com.supremeai.provider.AIProvider;
-import com.supremeai.service.AIFallbackOrchestrator;
+import com.supremeai.fallback.AIFallbackOrchestrator;
 import com.supremeai.service.MultiAIVotingService;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;

@@ -51,9 +51,9 @@ public class SoloModeManagerService {
     @Autowired
     private org.springframework.web.reactive.function.client.WebClient.Builder webClientBuilder;
 
-    // SL-01: Local AI Model Auto-Download Tracker
-    private boolean isLocalModelDownloading = false;
-    private boolean isLocalModelAvailable = false;
+    // SL-01: Local AI Model Auto-Download Tracker (Atomic for thread safety and preventing thread leak)
+    private final java.util.concurrent.atomic.AtomicBoolean isLocalModelDownloading = new java.util.concurrent.atomic.AtomicBoolean(false);
+    private final java.util.concurrent.atomic.AtomicBoolean isLocalModelAvailable = new java.util.concurrent.atomic.AtomicBoolean(false);
 
     public Mono<Boolean> checkAirLLMHealth() {
         return webClientBuilder.build().get()
@@ -72,32 +72,33 @@ public class SoloModeManagerService {
         return checkAirLLMHealth()
                 .flatMap(isHealthy -> {
                     if (isHealthy) {
-                        isLocalModelAvailable = true;
-                        isLocalModelDownloading = false;
+                        isLocalModelAvailable.set(true);
+                        isLocalModelDownloading.set(false);
                         return callAirLLMSidecar(prompt);
                     }
 
-                    if (!isLocalModelDownloading) {
+                    if (isLocalModelDownloading.compareAndSet(false, true)) {
                         log.warn("All external providers failed. Initiating auto-download of {} GGUF fallback model via AirLLM sidecar at {}.", 
                                 fallbackModelName, airllmHealthcheckUrl);
-                        isLocalModelDownloading = true;
 
-                        // Periodically check health every 1 second, up to 10 times
-                        return reactor.core.publisher.Flux.interval(java.time.Duration.ofSeconds(1))
+                        return reactor.core.publisher.Flux.interval(java.time.Duration.ofSeconds(1), java.time.Duration.ofSeconds(1))
                                 .take(10)
                                 .flatMap(i -> checkAirLLMHealth())
                                 .filter(h -> h)
-                                .next() // get the first true value, if any
+                                .next()
                                 .flatMap(h -> {
                                     log.info("{} successfully downloaded and loaded into memory via AirLLM sidecar.", fallbackModelName);
-                                    isLocalModelDownloading = false;
-                                    isLocalModelAvailable = true;
+                                    isLocalModelDownloading.set(false);
+                                    isLocalModelAvailable.set(true);
                                     return callAirLLMSidecar(prompt);
                                 })
                                 .switchIfEmpty(Mono.defer(() -> {
                                     log.warn("AirLLM sidecar at {} is still initializing or downloading the model.", airllmHealthcheckUrl);
                                     return Mono.just("System is currently downloading and loading the offline fallback model (" + fallbackModelName + "). Please wait...");
-                                }));
+                                }))
+                                .doFinally(signalType -> {
+                                    isLocalModelDownloading.set(false);
+                                });
                     } else {
                         return Mono.just("System is currently downloading the offline fallback model (" + fallbackModelName + "). Please wait...");
                     }
@@ -212,11 +213,12 @@ public class SoloModeManagerService {
     /**
      * SL-02: Step Limit Guard
      * Checks if autonomous step execution should be allowed based on step count and timeout.
+     * Uses AtomicLong for thread-safe stepStartTime to prevent race conditions.
      */
     private static final int MAX_STEPS = 15;
     private static final long TIMEOUT_MINUTES = 5;
     private final java.util.concurrent.atomic.AtomicInteger stepCounter = new java.util.concurrent.atomic.AtomicInteger(0);
-    private volatile long stepStartTime = 0;
+    private final java.util.concurrent.atomic.AtomicLong stepStartTime = new java.util.concurrent.atomic.AtomicLong(0);
 
     public boolean canExecuteAutonomousStep() {
         if (stepCounter.get() >= MAX_STEPS) {
@@ -224,8 +226,9 @@ public class SoloModeManagerService {
             return false;
         }
         
-        if (stepStartTime > 0 && 
-            (System.currentTimeMillis() - stepStartTime) > (TIMEOUT_MINUTES * 60 * 1000)) {
+        long startTime = stepStartTime.get();
+        if (startTime > 0 && 
+            (System.currentTimeMillis() - startTime) > (TIMEOUT_MINUTES * 60 * 1000)) {
             log.warn("Timeout reached ({} min) for this session", TIMEOUT_MINUTES);
             return false;
         }
@@ -235,12 +238,16 @@ public class SoloModeManagerService {
 
     public void incrementStepCounter() {
         stepCounter.incrementAndGet();
-        stepStartTime = System.currentTimeMillis();
+        stepStartTime.set(System.currentTimeMillis());
     }
 
     public void resetStepCounter() {
         stepCounter.set(0);
-        stepStartTime = 0;
+        stepStartTime.set(0);
+    }
+
+    public long getStepCounterForTest() {
+        return stepCounter.get();
     }
 
     /**
