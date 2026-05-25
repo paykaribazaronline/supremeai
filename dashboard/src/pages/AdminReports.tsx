@@ -11,7 +11,8 @@ import {
   AuditOutlined,
   FileTextOutlined,
   GlobalOutlined,
-  ThunderboltOutlined
+  ThunderboltOutlined,
+  DatabaseOutlined
 } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import { authUtils } from '../lib/authUtils';

@@ -167,27 +167,28 @@ const LoginPage: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        style={{ width: '100%', maxWidth: '420px', zIndex: 10 }}
+        style={{ width: '100%', maxWidth: '440px', zIndex: 10 }}
       >
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2 }}
+            className="glass-card"
             style={{
-              background: 'linear-gradient(135deg, var(--neon-blue), var(--neon-purple))',
-              padding: '20px',
-              borderRadius: '16px',
-              boxShadow: '0 0 40px rgba(0, 243, 255, 0.3)',
+              padding: '24px',
+              borderRadius: '20px',
+              border: '1px solid rgba(0, 243, 255, 0.25)',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 243, 255, 0.1)',
               marginBottom: '24px'
             }}
           >
-            <RobotOutlined style={{ fontSize: '48px', color: '#000', marginBottom: '16px' }} />
-            <Title level={2} style={{ color: '#000', margin: 0, fontWeight: 900 }}>
-              SUPREME AI
+            <RobotOutlined className="pulsing" style={{ fontSize: '56px', color: 'var(--neon-blue)', filter: 'drop-shadow(0 0 12px var(--neon-blue))', marginBottom: '16px' }} />
+            <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 900, fontSize: '32px', letterSpacing: '2px' }}>
+              SUPREME <span className="text-gradient">AI</span>
             </Title>
-            <Text style={{ color: '#000', fontSize: '14px', opacity: 0.8 }}>
+            <Text style={{ color: 'var(--text-dim)', fontSize: '13px', letterSpacing: '1px', textTransform: 'uppercase', display: 'block', marginTop: '6px' }}>
               কমান্ড সেন্টার অথেন্টিকেশন
             </Text>
           </motion.div>
@@ -202,13 +203,13 @@ const LoginPage: React.FC = () => {
           <Card
             className="glass-panel"
             style={{
-              background: 'rgba(8, 8, 16, 0.95)',
-              border: '1px solid rgba(0, 243, 255, 0.3)',
+              background: 'rgba(8, 8, 16, 0.85)',
+              border: '1px solid rgba(0, 243, 255, 0.2)',
               borderRadius: '20px',
               boxShadow: `
-                0 20px 40px rgba(0, 0, 0, 0.5),
-                0 0 60px rgba(0, 243, 255, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1)
+                0 30px 60px rgba(0, 0, 0, 0.8),
+                0 0 50px rgba(0, 243, 255, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05)
               `,
               overflow: 'hidden',
               position: 'relative'
@@ -218,15 +219,14 @@ const LoginPage: React.FC = () => {
             <div style={{
               position: 'absolute',
               top: 0, left: 0, right: 0, height: '2px',
-              background: 'linear-gradient(90deg, var(--neon-blue), var(--neon-purple))',
-              animation: 'scanline 8s linear infinite'
+              background: 'linear-gradient(90deg, var(--neon-blue), var(--neon-purple))'
             }} />
 
             <div style={{ padding: '24px' }}>
               {/* Title */}
-              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                <Text style={{ color: 'var(--text-dim)', fontSize: '14px' }}>
-                  সিস্টেম অ্যাক্সেস 위해 লগইন করুন
+              <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+                <Text style={{ color: 'var(--text-dim)', fontSize: '13px', letterSpacing: '0.5px' }}>
+                  সিস্টেম অ্যাক্সেস করতে লগইন করুন
                 </Text>
               </div>
 
@@ -245,15 +245,16 @@ const LoginPage: React.FC = () => {
                   ]}
                 >
                   <Input
-                    prefix={<MailOutlined style={{ color: 'var(--neon-blue)' }} />}
+                    prefix={<MailOutlined style={{ color: 'var(--neon-blue)', marginRight: '8px' }} />}
                     placeholder="ইমেইল অ্যাড্রেস"
                     autoComplete="email"
+                    className="cyber-input-field"
                     style={{
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: 'var(--text-main)',
+                      background: 'rgba(0, 0, 0, 0.4)',
+                      border: '1px solid rgba(0, 243, 255, 0.15)',
+                      color: '#fff',
                       borderRadius: '8px',
-                      height: '48px'
+                      height: '50px'
                     }}
                   />
                 </Form.Item>
@@ -263,56 +264,63 @@ const LoginPage: React.FC = () => {
                   rules={[{ required: true, message: 'পাসওয়ার্ড প্রয়োজন!' }]}
                 >
                   <Input.Password
-                    prefix={<LockOutlined style={{ color: 'var(--neon-blue)' }} />}
+                    prefix={<LockOutlined style={{ color: 'var(--neon-blue)', marginRight: '8px' }} />}
                     placeholder="পাসওয়ার্ড"
                     autoComplete="current-password"
+                    className="cyber-input-field"
                     style={{
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: 'var(--text-main)',
+                      background: 'rgba(0, 0, 0, 0.4)',
+                      border: '1px solid rgba(0, 243, 255, 0.15)',
+                      color: '#fff',
                       borderRadius: '8px',
-                      height: '48px'
+                      height: '50px'
                     }}
                   />
                 </Form.Item>
 
                 {/* Primary Action Buttons */}
-                <Space direction="vertical" style={{ width: '100%', gap: '12px' }}>
-                  <Button
-                    type="default"
-                    onClick={handleGuestLogin}
-                    loading={loading}
-                    icon={<RobotOutlined />}
-                    style={{
-                      flex: 1,
-                      background: 'rgba(0, 243, 255, 0.1)',
-                      border: '1px solid rgba(0, 243, 255, 0.3)',
-                      color: 'var(--neon-blue)',
-                      height: '48px',
-                      fontWeight: 600,
-                      borderRadius: '8px'
-                    }}
-                  >
-                    Continue as Guest
-                  </Button>
-
+                <Space direction="vertical" style={{ width: '100%', gap: '14px', marginTop: '8px' }}>
                   <Button
                     type="primary"
                     htmlType="submit"
                     loading={loading}
                     icon={<LoginOutlined />}
+                    className="cyber-button"
                     style={{
+                      width: '100%',
                       background: 'linear-gradient(135deg, var(--neon-blue), var(--neon-purple))',
                       border: 'none',
-                      height: '48px',
-                      fontWeight: 700,
-                      fontSize: '16px',
+                      height: '50px',
+                      fontWeight: 800,
+                      fontSize: '15px',
                       borderRadius: '8px',
-                      boxShadow: '0 4px 15px rgba(0, 243, 255, 0.3)'
+                      letterSpacing: '1px',
+                      textTransform: 'uppercase',
+                      color: '#000',
+                      boxShadow: '0 8px 24px rgba(0, 243, 255, 0.35)'
                     }}
                     block
                   >
                     Login
+                  </Button>
+
+                  <Button
+                    type="default"
+                    onClick={handleGuestLogin}
+                    loading={loading}
+                    icon={<RobotOutlined />}
+                    className="glass-action-button"
+                    style={{
+                      width: '100%',
+                      height: '50px',
+                      fontWeight: 700,
+                      borderRadius: '8px',
+                      border: '1px solid rgba(0, 243, 255, 0.35)',
+                      color: 'var(--neon-blue)',
+                      background: 'rgba(0, 243, 255, 0.06)'
+                    }}
+                  >
+                    Continue as Guest
                   </Button>
                 </Space>
               </Form>
@@ -516,6 +524,31 @@ const LoginPage: React.FC = () => {
             SupremeAI Command Center v4.2.0
           </Text>
         </motion.div>
+        <style>{`
+          .cyber-input-field {
+            background: rgba(8, 8, 16, 0.6) !important;
+            border: 1px solid rgba(0, 243, 255, 0.15) !important;
+            color: #fff !important;
+            border-radius: 8px !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+          }
+          .cyber-input-field:hover {
+            border-color: rgba(0, 243, 255, 0.45) !important;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.15) !important;
+          }
+          .cyber-input-field-focused, .cyber-input-field:focus, .cyber-input-field:focus-within {
+            border-color: var(--neon-blue) !important;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.45), inset 0 2px 4px rgba(0,0,0,0.6) !important;
+            background: rgba(0, 0, 0, 0.6) !important;
+          }
+          .cyber-input-field input {
+            color: #fff !important;
+            background: transparent !important;
+          }
+          .cyber-input-field input::placeholder {
+            color: rgba(255, 255, 255, 0.35) !important;
+          }
+        `}</style>
       </motion.div>
     </div>
   );

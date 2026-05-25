@@ -1,6 +1,6 @@
 // AdminQuotas.tsx - Cinematic Quota Management
 import React, { useState, useEffect } from 'react';
-import { Typography, Row, Col, Space, Button, Badge, Spin, Progress, Table, Statistic, Modal, Form, InputNumber, Input } from 'antd';
+import { Typography, Row, Col, Space, Button, Badge, Spin, Progress, Table, Statistic, Modal, Form, InputNumber, Input, Tag } from 'antd';
 import { 
   PieChartOutlined,
   ReloadOutlined, 

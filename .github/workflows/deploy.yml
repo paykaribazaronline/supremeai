@@ -1,0 +1,129 @@
+name: Zero-Downtime Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  SERVICE_NAME: supremeai-backend
+  REGION: us-central1
+  WIF_PROVIDER: projects/123456789/locations/global/workloadIdentityPools/github-pool/providers/github-provider # UPDATE THIS
+  WIF_SERVICE_ACCOUNT: github-actions-sa@your-project.iam.gserviceaccount.com # UPDATE THIS
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.WIF_SERVICE_ACCOUNT }}
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build with Gradle
+        run: |
+          chmod +x gradlew
+          ./gradlew clean build --no-daemon
+
+      - name: Prepare Jar for Docker
+        run: cp build/libs/*-SNAPSHOT.jar app.jar || cp build/libs/*[0-9].jar app.jar
+
+      - name: Get GCP Project ID
+        id: projectid
+        run: echo "PROJECT_ID=$(gcloud config get-value project)" >> $GITHUB_OUTPUT
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for GCP
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
+
+      - name: Deploy to Cloud Run (Zero-Downtime)
+        run: |
+          set -euo pipefail
+          IMAGE_URL="us-central1-docker.pkg.dev/${{ steps.projectid.outputs.PROJECT_ID }}/cloud-run-source-deploy/$SERVICE_NAME:${{ github.sha }}"
+
+          # Build and Push Image (Much faster than --source)
+          docker build -t $IMAGE_URL .
+          docker push $IMAGE_URL
+
+          # Capture current stable revision
+          CURRENT_REVISION=$(gcloud run services describe $SERVICE_NAME --region $REGION --format="value(status.traffic[0].revisionName)" || echo "")
+          echo "Current stable revision is $CURRENT_REVISION"
+
+          # Deploy new revision using the pushed image
+          gcloud run deploy $SERVICE_NAME \
+            --image $IMAGE_URL \
+            --region $REGION \
+            --no-traffic \
+            --tag new-revision \
+            --set-env-vars="LANGCHAIN_TRACING_V2=true,LANGCHAIN_ENDPOINT=https://api.smith.langchain.com,LANGCHAIN_API_KEY=${{ secrets.LANGCHAIN_API_KEY }},LANGCHAIN_PROJECT=supremeai-prod"
+
+          # Capture the exact new revision name
+          NEW_REV_NAME=$(gcloud run revisions list --service $SERVICE_NAME --region $REGION --filter="tag=new-revision" --format="value(name)" --limit=1)
+
+          # Run health checks on the new tagged revision URL
+          NEW_URL=$(gcloud run services describe $SERVICE_NAME --region $REGION --format="value(status.traffic.filtered(tag=new-revision).url)")
+          echo "New Revision URL is $NEW_URL"
+          
+          # Robust Health Check with retries
+          echo "Checking health of new revision..."
+          HEALTH_PASSED=false
+          for i in {1..12}; do
+            if curl -f -s "$NEW_URL/actuator/health"; then
+              HEALTH_PASSED=true
+              break
+            fi
+            echo "Waiting for health check... ($((i*5))s)"
+            sleep 5
+          done
+
+          if [ "$HEALTH_PASSED" = false ]; then
+            echo "Health check failed after multiple attempts. Aborting..."
+            exit 1
+          fi
+
+          # Shift traffic to 10% on new revision (Canary)
+          if [ -n "$CURRENT_REVISION" ]; then
+            gcloud run services update-traffic $SERVICE_NAME \
+              --region $REGION \
+              --to-revisions=$NEW_REV_NAME=10,$CURRENT_REVISION=90
+          else
+            gcloud run services update-traffic $SERVICE_NAME --region $REGION --to-revisions=$NEW_REV_NAME=100
+          fi
+
+          # Wait and observe
+          sleep 30
+
+          # Final verification during canary
+          if ! curl -f -s "$NEW_URL/actuator/health"; then
+            echo "Health check failed during canary. Rolling back to $CURRENT_REVISION..."
+            if [[ -z "$CURRENT_REVISION" ]]; then
+              echo "No previous revision found. Manual intervention required."
+            else
+              gcloud run services update-traffic $SERVICE_NAME --region $REGION --to-revisions=$CURRENT_REVISION=100
+            fi
+            exit 1
+          fi
+
+          # Promote new revision to 100%
+          gcloud run services update-traffic $SERVICE_NAME \
+            --region $REGION \
+            --to-revisions=$NEW_REV_NAME=100

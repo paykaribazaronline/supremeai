@@ -207,7 +207,26 @@ const AdminBrowser: React.FC = () => {
       </Row>
 
       <StructureTreeDrawer open={showDom} onClose={() => setShowDom(false)} domTree={domTree} />
-      <BrowserSafetyDrawer open={showSettings} onClose={() => setShowSettings(false)} allowedUrls={[]} deniedUrls={[]} credentials={[]} isLearning={true} toggleLearning={() => {}} learningStatus={null} />
+      <BrowserSafetyDrawer 
+        open={showSettings} 
+        onClose={() => setShowSettings(false)} 
+        allowedUrls={[]} 
+        deniedUrls={[]} 
+        credentials={[]} 
+        isLearning={true} 
+        toggleLearning={() => {}} 
+        learningStatus={null}
+        newUrlPattern=""
+        setNewUrlPattern={() => {}}
+        newUrlType="allowed"
+        setNewUrlType={() => {}}
+        handleSavePermission={() => {}}
+        newCred={{ website: '', username: '', password: '', token: '' }}
+        setNewCred={() => {}}
+        handleSaveCredential={() => {}}
+        handleDeleteUrl={() => {}}
+        handleDeleteCredential={() => {}}
+      />
     </motion.div>
   );
 };

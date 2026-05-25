@@ -8,7 +8,7 @@ import {
   SyncOutlined,
   DeleteOutlined,
   DotChartOutlined,
-  PulseOutlined,
+  BulbOutlined,
   BugOutlined,
   DashboardOutlined
 } from '@ant-design/icons';

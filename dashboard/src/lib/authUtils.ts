@@ -225,10 +225,17 @@ function emulatorStub(url: string, fullUrl: string): Response {
     return jsonOk({
       isRunning: true,
       mode: 'AUTO',
+      modeDescription: 'Continuous autonomous intelligence optimization cycle active.',
+      emergencyPaused: false,
       lastTrigger: new Date().toISOString(),
       intervalMinutes: 30,
       priority: 'HIGH',
-      confidence: 0.9
+      confidence: 0.9,
+      quota: {
+        totalUsage: 420,
+        dailyLimit: 1000,
+        percentageUsed: 42
+      }
     });
   }
 
@@ -258,19 +265,58 @@ function emulatorStub(url: string, fullUrl: string): Response {
   }
 
   if (url === '/api/admin/knowledge/domains' || url.startsWith('/api/admin/knowledge/domains?')) {
-    return jsonOk([]);
+    return jsonOk([
+      {
+        id: 'domain-ai-safety',
+        name: 'AI Alignment & Safety',
+        keywords: ['alignment', 'safety', 'rlhf', 'constitutional-ai'],
+        status: 'SUCCESS',
+        knowledgeCount: 342
+      },
+      {
+        id: 'domain-devops',
+        name: 'DevOps & Git Automation',
+        keywords: ['github-actions', 'ci-cd', 'docker', 'terraform'],
+        status: 'LEARNING',
+        knowledgeCount: 185
+      },
+      {
+        id: 'domain-cyber',
+        name: 'Cybersecurity & Self-Healing',
+        keywords: ['exploit-analysis', 'zero-day', 'firewall', 'intrusion-detection'],
+        status: 'SUCCESS',
+        knowledgeCount: 298
+      }
+    ]);
   }
 
   if (url === '/api/admin/knowledge/recommendations') {
-    return jsonOk([]);
+    return jsonOk([
+      {
+        id: 'rec-git-rotate',
+        title: 'Implement Multi-Repo Git Rotation Policy',
+        description: 'Auto-rotate SSH deploy keys and Git credentials every 24 hours to prevent unauthorized repository access.',
+        confidence: 0.95,
+        suggestedKeywords: ['git', 'rotation', 'security'],
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 'rec-self-heal-api',
+        title: 'Synthesize Intelligent Fallback API Routing',
+        description: 'Dynamically reroute traffic from unresponsive AI endpoints to healthier models to ensure zero service disruption.',
+        confidence: 0.89,
+        suggestedKeywords: ['api-router', 'resilience', 'fallback'],
+        createdAt: new Date(Date.now() - 3600000).toISOString()
+      }
+    ]);
   }
 
   if (url === '/api/admin/knowledge/snapshot') {
     return jsonOk({
-      totalKnowledgeNodes: 0,
-      topLearningDomains: [],
-      lastDiscoveryTime: null,
-      discoveryEfficiency: 'n/a'
+      totalKnowledgeNodes: 825,
+      topLearningDomains: ['AI Alignment & Safety', 'Cybersecurity & Self-Healing'],
+      lastDiscoveryTime: new Date().toISOString(),
+      discoveryEfficiency: '98.6%'
     });
   }
 
@@ -279,7 +325,7 @@ function emulatorStub(url: string, fullUrl: string): Response {
   }
 
   if (url.startsWith('/api/admin/knowledge/domains/') && url.endsWith('/process')) {
-    return jsonOk({ factsDiscovered: 0 });
+    return jsonOk({ factsDiscovered: 12 });
   }
 
   if (url.match(/^\/api\/admin\/knowledge\/recommendations\/[^/]+\/approve/)) {
@@ -296,7 +342,34 @@ function emulatorStub(url: string, fullUrl: string): Response {
 
   // ── Learning sources ───────────────────────────────────────────────────
   if (url === '/api/admin/learning/sources') {
-    return jsonOk([]);
+    return jsonOk([
+      {
+        id: 'source-wiki',
+        domain: 'Wikipedia AI Portal',
+        url: 'https://en.wikipedia.org/wiki/Artificial_intelligence',
+        enabled: true,
+        manualFocus: 'ai_research',
+        detectedFocus: 'General AI Concepts',
+        priority: 8,
+        successCount: 45,
+        failureCount: 0,
+        lastScrapedAt: new Date(Date.now() - 86400000).toISOString(),
+        notes: 'Highly trusted encyclopedia entries for foundational training.'
+      },
+      {
+        id: 'source-hacker',
+        domain: 'Hacker News Security',
+        url: 'https://news.ycombinator.com/security',
+        enabled: true,
+        manualFocus: 'security',
+        detectedFocus: 'Vulnerability Telemetry',
+        priority: 7,
+        successCount: 32,
+        failureCount: 1,
+        lastScrapedAt: new Date(Date.now() - 3600000).toISOString(),
+        notes: 'Real-time exploit and infrastructure security news feed.'
+      }
+    ]);
   }
 
   if (url === '/api/admin/learning/sources/detect-focus') {
@@ -433,9 +506,7 @@ function emulatorStub(url: string, fullUrl: string): Response {
   if (url.match(/^\/api\/browser\/tasks\/[^\/]+\/findings$/)) { return jsonOk({ findings: [] }); }
   if (url.match(/^\/api\/browser\/tasks\/[^\/]+$/)) { return jsonOk({ ok: true }); }
   // ── Chat ────────────────────────────────────────────────────────────────
-  if (url === '/chat/send' || url === '/api/chat/send') {
-    return jsonOk({ success: true, message: 'Received in emulator', agent_name: 'Emulator', confidence: 1.0, intent: 'NORMAL' });
-  }
+  // Chat routing naturally passes to the backend express server api-router.js
 
   // ── Fallback: return 200 emulator payload ───────────────────────────────
   return new Response(body({ emulator: true, url }), {

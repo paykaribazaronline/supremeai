@@ -136,7 +136,7 @@ export default function AdminSystemAlerts() {
                         <Text style={{ color: 'rgba(255,255,255,0.7)' }}>{alert.message}</Text>
                         <div style={{ marginTop: 4 }}>
                           <Text style={{ color: 'var(--text-dim)', fontSize: 11 }}>{alert.source}</Text>
-                          <Text style={{ color: 'var(--text-dim)', fontSize: 11, margin: '0 8px'}>•</Text>
+                          <Text style={{ color: 'var(--text-dim)', fontSize: 11, margin: '0 8px' }}>•</Text>
                           <Text style={{ color: 'var(--text-dim)', fontSize: 11 }}>
                             {new Date(alert.timestamp).toLocaleString()}
                           </Text>
