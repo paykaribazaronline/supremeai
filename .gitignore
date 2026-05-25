@@ -196,6 +196,7 @@ gradle_home/
 reports/
 scratch/
 public/admin/assets/
+public/
 backend_log.txt
 
 # Local gcloud config

@@ -16,6 +16,7 @@ interface ProjectActionToolbarProps {
   setSortBy: (field: ProjectSortField | null) => void;
   sortOrder: 'ascend' | 'descend';
   setSortOrder: (order: 'ascend' | 'descend') => void;
+  minimal?: boolean;
 }
 
 const ProjectActionToolbar: React.FC<ProjectActionToolbarProps> = ({

@@ -1,6 +1,6 @@
 // AdminSettings.tsx - Cinematic System Configuration
 import React, { useState, useEffect } from 'react';
-import { Tabs, Button, message, Spin, Alert, Typography, Row, Col, Space } from 'antd';
+import { Tabs, Button, message, Spin, Alert, Typography, Row, Col, Space, Progress } from 'antd';
 import {
   SettingOutlined,
   ApiOutlined,
