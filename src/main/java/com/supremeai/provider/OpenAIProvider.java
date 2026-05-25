@@ -1,7 +1,10 @@
 package com.supremeai.provider;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
+import com.supremeai.service.ProviderModelRegistry;
+import com.supremeai.service.ProviderTierService;
 import java.util.List;
 import java.util.Map;
 
@@ -11,6 +14,12 @@ import java.util.Map;
  */
 @Component
 public class OpenAIProvider extends AbstractHttpProvider {
+
+    @Autowired(required = false)
+    private ProviderModelRegistry providerModelRegistry;
+
+    @Autowired(required = false)
+    private ProviderTierService providerTierService;
     private static final String API_URL = "https://api.openai.com/v1/chat/completions";
     private static final String DEFAULT_MODEL = "gpt-3.5-turbo";
     private static final List<String> SUPPORTED_MODELS = List.of(
@@ -41,9 +50,11 @@ public class OpenAIProvider extends AbstractHttpProvider {
         if (providerMetadataService != null) {
             return super.getCapabilities();
         }
+        List<String> models = providerModelRegistry != null ? 
+                providerModelRegistry.getSupportedModels("openai") : SUPPORTED_MODELS;
         return Map.of(
             "name", "OpenAI",
-            "models", SUPPORTED_MODELS,
+            "models", models,
             "type", "remote",
             "url", baseUrl
         );
@@ -75,8 +86,18 @@ public class OpenAIProvider extends AbstractHttpProvider {
         if (dataUrl != null) {
             // Force multimodal model if image is present
             String model = getModel();
-            if (model.startsWith("gpt-3.5")) {
-                model = "gpt-4-turbo"; // upgrade to multimodal model
+            String tier = providerTierService != null ? providerTierService.getTierForModel(model) : "basic";
+            if (!"premium".equals(tier)) {
+                // Dynamic model upgrade: search for a premium model in our registry
+                List<String> registeredModels = providerModelRegistry != null ? 
+                        providerModelRegistry.getSupportedModels("openai") : SUPPORTED_MODELS;
+                model = registeredModels.stream()
+                        .filter(m -> {
+                            String t = providerTierService != null ? providerTierService.getTierForModel(m) : "basic";
+                            return "premium".equals(t);
+                        })
+                        .findFirst()
+                        .orElse("gpt-4-turbo"); // Default fallback multimodal model
             }
             return Map.of(
                     "messages", List.of(Map.of(

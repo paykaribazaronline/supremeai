@@ -11,6 +11,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import com.supremeai.model.*;
@@ -78,7 +79,7 @@ public class AdminProviderValidationService {
                                                 .onErrorReturn(false)
                                                 .block();
 
-                                        provider.setLastValidated(new Date());
+                                        provider.setLastValidated(java.time.LocalDateTime.now());
 
                                          if (valid) {
                                              provider.setConsecutiveErrorDays(0);
@@ -96,13 +97,13 @@ public class AdminProviderValidationService {
                                             int currentStreak = provider.getConsecutiveErrorDays() != null ? provider.getConsecutiveErrorDays() : 0;
                                             int newStreak = currentStreak + 1;
                                             provider.setConsecutiveErrorDays(newStreak);
-                                            provider.setLastErrorDate(new Date());
+                                            provider.setLastErrorDate(java.time.LocalDateTime.now());
 
                                             String deadReason = null;
                                             if (newStreak >= ERROR_THRESHOLD) {
                                                 // Quarantine as dead
                                                 provider.setStatus("dead");
-                                                provider.setDeadAt(new Date());
+                                                provider.setDeadAt(java.time.LocalDateTime.now());
                                                 deadReason = "Quarantined after " + newStreak + " consecutive validation failures";
                                                 provider.setDeadReason(deadReason);
                                                 log.error("Provider '{}' ({}) quarantined as DEAD. Reason: {}",
@@ -221,7 +222,7 @@ public class AdminProviderValidationService {
                                                 .validateKey(provider.getType(), provider.getApiKey())
                                                 .onErrorReturn(false).block();
 
-                                        provider.setLastValidated(new Date());
+                                        provider.setLastValidated(java.time.LocalDateTime.now());
 
                                         if (valid) {
                                             provider.setConsecutiveErrorDays(0);
@@ -234,10 +235,10 @@ public class AdminProviderValidationService {
                                             int streak = provider.getConsecutiveErrorDays() != null
                                                     ? provider.getConsecutiveErrorDays() : 0;
                                             provider.setConsecutiveErrorDays(streak + 1);
-                                            provider.setLastErrorDate(new Date());
+                                            provider.setLastErrorDate(java.time.LocalDateTime.now());
                                             if (streak + 1 >= ERROR_THRESHOLD) {
                                                 provider.setStatus("dead");
-                                                provider.setDeadAt(new Date());
+                                                provider.setDeadAt(java.time.LocalDateTime.now());
                                                 provider.setDeadReason(
                                                         "Quarantined after " + (streak + 1)
                                                                 + " consecutive validation failures");

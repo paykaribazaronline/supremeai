@@ -27,6 +27,9 @@ public class ContextualAIRankingService {
     @Autowired(required = false)
     private ProviderMetadataService providerMetadataService;
 
+    @Autowired
+    private ProviderTierService providerTierService;
+
     // Task types for categorization
     public enum TaskType {
         CODE_GENERATION,
@@ -160,12 +163,11 @@ public class ContextualAIRankingService {
             APIProvider meta = providerMetadataService.getMetadata(provider);
             if (meta != null && meta.getModels() != null && !meta.getModels().isEmpty()) {
                 String model = meta.getModels().get(0).toLowerCase();
-                if (model.contains("gpt-4") || model.contains("gpt-4-turbo") || model.contains("o1")) {
+                String tier = providerTierService.getTierForModel(model);
+                if ("premium".equals(tier)) {
                     if (taskType == TaskType.CODE_GENERATION || taskType == TaskType.DEBUGGING) {
                         return 0.85;
                     }
-                }
-                if (model.contains("claude") || model.contains("sonnet") || model.contains("opus")) {
                     if (taskType == TaskType.CODE_REVIEW || taskType == TaskType.DOCUMENTATION) {
                         return 0.88;
                     }

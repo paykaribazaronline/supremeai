@@ -6,6 +6,8 @@ import com.supremeai.repository.ProviderRepository;
 import com.supremeai.repository.TaskProviderAssignmentRepository;
 import com.supremeai.service.AutomaticTaskAssigner;
 import com.supremeai.service.ProviderCapabilityAnalyzer;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,7 +87,7 @@ public class TaskAssignmentController {
     @PostMapping("/{taskType}/assign")
     public Mono<ResponseEntity<Map<String, Object>>> assignProviders(
             @PathVariable String taskType,
-            @RequestBody AssignmentRequest request) {
+            @Valid @RequestBody AssignmentRequest request) {
 
         return assignmentRepo.findByTaskType(taskType)
             .flatMap(existing -> {
@@ -217,7 +219,9 @@ public class TaskAssignmentController {
 
     /** Request DTO */
     public static class AssignmentRequest {
+        @NotEmpty(message = "Provider IDs list cannot be empty")
         private List<String> providerIds;
+
         private Integer minProviders;
         private Integer maxProviders;
         private String votingStrategy;

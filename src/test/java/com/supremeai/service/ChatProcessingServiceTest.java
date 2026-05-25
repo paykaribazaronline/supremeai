@@ -46,6 +46,12 @@ class ChatProcessingServiceTest {
     private CyberSecuritySkillService cyberSecuritySkillService;
     @Mock
     private EnhancedLearningService enhancedLearningService;
+    @Mock
+    private KnowledgeService knowledgeService;
+    @Mock
+    private com.supremeai.service.ContextSummarizerService summarizerService;
+    @Mock
+    private com.supremeai.service.NaturalLanguageQueryService naturalLanguageQueryService;
 
     @InjectMocks
     private ChatProcessingService chatProcessingService;
@@ -56,6 +62,9 @@ class ChatProcessingServiceTest {
         when(chatHistoryRepository.save(any())).thenReturn(Mono.just(new ChatMessage()));
         when(chatHistoryRepository.findByUserIdOrderByTimestampAsc(anyString())).thenReturn(Flux.empty());
         when(enhancedLearningService.learnFromInteraction(anyString(), anyString(), anyString())).thenReturn(Mono.empty());
+        when(summarizerService.summarizeContext(anyString())).thenReturn(Mono.just("mocked_history"));
+        when(naturalLanguageQueryService.buildNaturalPrompt(anyString(), anyString(), anyString()))
+            .thenReturn(Mono.just("mocked_prompt"));
     }
 
     @Test

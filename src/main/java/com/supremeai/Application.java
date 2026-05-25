@@ -19,10 +19,16 @@ public class Application {
                 Environment env = event.getEnvironment();
                 String jwtSecret = env.getProperty("jwt.secret", "");
                 String profile = env.getActiveProfiles().length > 0 ? env.getActiveProfiles()[0] : "default";
-                if (jwtSecret.startsWith("supremeai-test") && !"local".equals(profile) && !"test".equals(profile) && !"sandbox".equals(profile)) {
-                    System.err.println("[SECURITY] FATAL: JWT_SECRET is using the default test secret value in profile '" + profile + "'. Refusing to start.");
-                    System.err.println("[SECURITY] Set JWT_SECRET environment variable to a secure HS256 key before starting the application.");
-                    System.exit(1);
+                boolean isTestOrLocal = "local".equals(profile) || "test".equals(profile) || "sandbox".equals(profile);
+                if (!isTestOrLocal) {
+                    if (jwtSecret.isBlank() || 
+                        jwtSecret.startsWith("supremeai-test") || 
+                        jwtSecret.contains("test-secret-key") || 
+                        jwtSecret.length() < 32) {
+                        System.err.println("[SECURITY] FATAL: Weak, blank, or test JWT_SECRET detected in production environment (profile: '" + profile + "').");
+                        System.err.println("[SECURITY] A production JWT secret must be at least 32 characters (256 bits) long and must not use test placeholders.");
+                        System.exit(1);
+                    }
                 }
             }
         );

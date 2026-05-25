@@ -5,6 +5,7 @@ import com.supremeai.service.FirebaseRealtimeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -12,7 +13,12 @@ import reactor.core.publisher.Mono;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+
+import com.supremeai.provider.AIProvider;
+import com.supremeai.provider.AIProviderFactory;
+import com.supremeai.repository.ProviderRepository;
 
 /**
  * Manages Solo Mode Intelligence Features (SL-01 to SL-04)
@@ -27,32 +33,93 @@ public class SoloModeManagerService {
     @Autowired
     private FirebaseRealtimeService firebaseRealtimeService;
 
+    @Autowired
+    private ProviderRepository providerRepository;
+
+    @Autowired
+    private AIProviderFactory providerFactory;
+
+    @Value("${solo.fallback.model:phi-3-mini}")
+    private String fallbackModelName;
+
+    @Value("${supremeai.solo-mode.fallback-provider:airllm-sidecar}")
+    private String fallbackProviderId;
+
+    @Value("${airllm.healthcheck-url:${AIRLLM_HEALTHCHECK_URL:http://localhost:8081/health}}")
+    private String airllmHealthcheckUrl;
+
+    @Autowired
+    private org.springframework.web.reactive.function.client.WebClient.Builder webClientBuilder;
+
     // SL-01: Local AI Model Auto-Download Tracker
     private boolean isLocalModelDownloading = false;
     private boolean isLocalModelAvailable = false;
+
+    public Mono<Boolean> checkAirLLMHealth() {
+        return webClientBuilder.build().get()
+                .uri(airllmHealthcheckUrl)
+                .retrieve()
+                .toBodilessEntity()
+                .map(response -> response.getStatusCode().is2xxSuccessful())
+                .onErrorReturn(false);
+    }
 
     /**
      * SL-01: Local AI Model Auto-Download
      * Triggered if all external providers fail. Auto-pulls the smallest viable GGUF model (e.g., Phi-3-mini).
      */
     public Mono<String> triggerLocalModelFallback(String prompt) {
-        if (!isLocalModelAvailable) {
-            if (!isLocalModelDownloading) {
-                log.warn("All external providers failed. Initiating auto-download of Phi-3-mini GGUF fallback model via AirLLM sidecar.");
-                isLocalModelDownloading = true;
-                // Simulated download delay
-                return Mono.delay(java.time.Duration.ofSeconds(10))
-                        .map(v -> {
-                            log.info("Phi-3-mini successfully downloaded and loaded into memory.");
-                            isLocalModelDownloading = false;
-                            isLocalModelAvailable = true;
-                            return "[Local Fallback Phi-3] Based on my internal weights, here is an offline analysis of: " + prompt;
-                        });
-            } else {
-                return Mono.just("System is currently downloading the offline fallback model (Phi-3-mini). Please wait...");
-            }
-        }
-        return Mono.just("[Local Fallback Phi-3] Processing offline... Result for: " + prompt);
+        return checkAirLLMHealth()
+                .flatMap(isHealthy -> {
+                    if (isHealthy) {
+                        isLocalModelAvailable = true;
+                        isLocalModelDownloading = false;
+                        return callAirLLMSidecar(prompt);
+                    }
+
+                    if (!isLocalModelDownloading) {
+                        log.warn("All external providers failed. Initiating auto-download of {} GGUF fallback model via AirLLM sidecar at {}.", 
+                                fallbackModelName, airllmHealthcheckUrl);
+                        isLocalModelDownloading = true;
+
+                        // Periodically check health every 1 second, up to 10 times
+                        return reactor.core.publisher.Flux.interval(java.time.Duration.ofSeconds(1))
+                                .take(10)
+                                .flatMap(i -> checkAirLLMHealth())
+                                .filter(h -> h)
+                                .next() // get the first true value, if any
+                                .flatMap(h -> {
+                                    log.info("{} successfully downloaded and loaded into memory via AirLLM sidecar.", fallbackModelName);
+                                    isLocalModelDownloading = false;
+                                    isLocalModelAvailable = true;
+                                    return callAirLLMSidecar(prompt);
+                                })
+                                .switchIfEmpty(Mono.defer(() -> {
+                                    log.warn("AirLLM sidecar at {} is still initializing or downloading the model.", airllmHealthcheckUrl);
+                                    return Mono.just("System is currently downloading and loading the offline fallback model (" + fallbackModelName + "). Please wait...");
+                                }));
+                    } else {
+                        return Mono.just("System is currently downloading the offline fallback model (" + fallbackModelName + "). Please wait...");
+                    }
+                });
+    }
+
+    private Mono<String> callAirLLMSidecar(String prompt) {
+        log.info("[SoloMode] Calling AirLLM sidecar for fallback model: {} with prompt: {}", fallbackModelName, prompt);
+        return providerRepository.findById(fallbackProviderId)
+                .switchIfEmpty(providerRepository.findById(fallbackProviderId.toLowerCase()))
+                .flatMap(airllmConfig -> {
+                    log.info("[SoloMode] Found fallback provider: baseUrl={}, model={}", airllmConfig.getBaseUrl(), airllmConfig.getModelName());
+                    AIProvider provider = providerFactory.createProviderFromConfig(airllmConfig);
+                    if (provider == null) {
+                        return Mono.error(new RuntimeException("Could not construct provider for " + fallbackProviderId));
+                    }
+                    return provider.generate(prompt);
+                })
+                .onErrorResume(e -> {
+                    log.error("[SoloMode] Error communicating with AirLLM sidecar: {}", e.getMessage());
+                    return Mono.just("[Local Fallback " + fallbackModelName + "] (Offline Mode Fallback response) Result for: " + prompt);
+                });
     }
 
     /**
@@ -140,5 +207,88 @@ public class SoloModeManagerService {
         }
         
         return code.toString();
+    }
+
+    /**
+     * SL-02: Step Limit Guard
+     * Checks if autonomous step execution should be allowed based on step count and timeout.
+     */
+    private static final int MAX_STEPS = 15;
+    private static final long TIMEOUT_MINUTES = 5;
+    private final java.util.concurrent.atomic.AtomicInteger stepCounter = new java.util.concurrent.atomic.AtomicInteger(0);
+    private volatile long stepStartTime = 0;
+
+    public boolean canExecuteAutonomousStep() {
+        if (stepCounter.get() >= MAX_STEPS) {
+            log.warn("Step limit reached ({}) for this session", MAX_STEPS);
+            return false;
+        }
+        
+        if (stepStartTime > 0 && 
+            (System.currentTimeMillis() - stepStartTime) > (TIMEOUT_MINUTES * 60 * 1000)) {
+            log.warn("Timeout reached ({} min) for this session", TIMEOUT_MINUTES);
+            return false;
+        }
+        
+        return true;
+    }
+
+    public void incrementStepCounter() {
+        stepCounter.incrementAndGet();
+        stepStartTime = System.currentTimeMillis();
+    }
+
+    public void resetStepCounter() {
+        stepCounter.set(0);
+        stepStartTime = 0;
+    }
+
+    /**
+     * SL-03: Provider Recovery
+     * Attempts to recover failed providers by checking their health status.
+     */
+    public Mono<List<String>> recoverFailedProviders() {
+        log.info("Attempting to recover failed providers...");
+        return providerRepository.findAll()
+                .filter(p -> p.getStatus() != null && "QUARANTINED".equalsIgnoreCase(p.getStatus()))
+                .flatMap(provider -> 
+                    providerFactory.checkProviderHealth(provider)
+                            .flatMap(isHealthy -> {
+                                if (Boolean.TRUE.equals(isHealthy)) {
+                                    log.info("Provider {} recovered, reactivating", provider.getId());
+                                    provider.setStatus("ACTIVE");
+                                    return providerRepository.save(provider)
+                                            .thenReturn(provider.getId());
+                                }
+                                return Mono.just("");
+                            })
+                            .onErrorResume(e -> {
+                                log.error("Error during health check recovery for provider {}: {}", provider.getId(), e.getMessage());
+                                return Mono.just("");
+                            })
+                )
+                .filter(id -> id != null && !id.isEmpty())
+                .collectList()
+                .doOnNext(recovered -> log.info("Recovered {} providers: {}", recovered.size(), recovered));
+    }
+
+    /**
+     * SL-04: Vision Service Graceful Degradation
+     * Returns text-only fallback when VisionService is unavailable.
+     */
+    public Mono<String> getVisionFallback(String prompt, byte[] imageData) {
+        log.info("VisionService unavailable, using text-only fallback for prompt");
+        return Mono.fromCallable(() -> {
+            StringBuilder fallback = new StringBuilder();
+            fallback.append("[VISION_FALLBACK] ");
+            
+            if (imageData != null && imageData.length > 0) {
+                fallback.append("Image analysis skipped (VisionService unavailable). ");
+                fallback.append("Image size: ").append(imageData.length).append(" bytes. ");
+            }
+            
+            fallback.append("Prompt analysis: ").append(prompt);
+            return fallback.toString();
+        });
     }
 }

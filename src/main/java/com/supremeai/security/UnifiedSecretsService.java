@@ -40,7 +40,14 @@ public class UnifiedSecretsService {
     @Value("${secrets.cache.ttl.minutes:30}")
     private int cacheTtlMinutes;
 
+    @Value("${spring.profiles.active:local}")
+    private String activeProfile;
+
     private final Map<String, CacheEntry> secretCache = new ConcurrentHashMap<>();
+
+    public boolean isProduction() {
+        return "prod".equals(activeProfile) || activeProfile.contains("prod");
+    }
 
     /**
      * Retrieve a secret value with automatic fallback between providers.
@@ -113,6 +120,11 @@ public class UnifiedSecretsService {
      * Try to retrieve secret from environment variables.
      */
     private Mono<String> tryEnvironmentVariable(String secretKey) {
+        if (isProduction()) {
+            log.error("CRITICAL SECURITY AUDIT FAILURE: Env var fallback for secret key '{}' is BLOCKED in production!", secretKey);
+            return Mono.empty();
+        }
+
         String envValue = System.getenv(secretKey.toUpperCase().replace(".", "_").replace("-", "_"));
         if (envValue != null && !envValue.isEmpty()) {
             log.debug("Retrieved secret from environment variable for key: {}", secretKey);

@@ -75,24 +75,26 @@ public class AIProviderFactory {
         if (metadata == null) {
             logger.info("[Factory] Provider '{}' not found in cache. Attempting DB query fallback...", normalizedName);
             try {
-                APIProvider dbProvider = providerRepository.findById(name)
-                        .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
-                        .block(java.time.Duration.ofSeconds(2));
+                Mono<APIProvider> mono1 = providerRepository != null ? providerRepository.findById(name) : null;
+                APIProvider dbProvider = mono1 != null
+                        ? mono1.subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic()).block(java.time.Duration.ofSeconds(2))
+                        : null;
                 if (dbProvider != null) {
                     metadata = dbProvider;
                     logger.info("[Factory] Fallback found provider by ID '{}' in DB", name);
                 } else {
-                    dbProvider = providerRepository.findById(normalizedName)
-                            .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
-                            .block(java.time.Duration.ofSeconds(2));
+                    Mono<APIProvider> mono2 = providerRepository != null ? providerRepository.findById(normalizedName) : null;
+                    dbProvider = mono2 != null
+                            ? mono2.subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic()).block(java.time.Duration.ofSeconds(2))
+                            : null;
                     if (dbProvider != null) {
                         metadata = dbProvider;
                         logger.info("[Factory] Fallback found provider by normalized ID '{}' in DB", normalizedName);
                     } else {
-                        List<APIProvider> allDb = providerRepository.findAll()
-                                .collectList()
-                                .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
-                                .block(java.time.Duration.ofSeconds(3));
+                        Flux<APIProvider> fluxAll = providerRepository != null ? providerRepository.findAll() : null;
+                        List<APIProvider> allDb = fluxAll != null
+                                ? fluxAll.collectList().subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic()).block(java.time.Duration.ofSeconds(3))
+                                : null;
                         if (allDb != null) {
                             for (APIProvider p : allDb) {
                                 if (p.getName() != null && p.getName().toLowerCase().trim().equals(normalizedName)) {
@@ -415,5 +417,16 @@ public class AIProviderFactory {
 
         logger.error("Cannot create provider {}: no baseUrl configured in Firestore", name);
         return null;
+    }
+
+    /**
+     * Checks the health of a provider configuration reactively on elastic scheduler.
+     */
+    public Mono<Boolean> checkProviderHealth(APIProvider config) {
+        return Mono.fromCallable(() -> {
+            AIProvider provider = createProviderFromConfig(config);
+            if (provider == null) return false;
+            return isProviderHealthy_offElastic(provider);
+        }).subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic());
     }
 }

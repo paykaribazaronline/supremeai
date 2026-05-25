@@ -22,8 +22,11 @@ spring:
   # Enable Firestore for testing
   cloud:
     gcp:
+      project-id: supremeai-a
       firestore:
         enabled: true
+        project-id: supremeai-a
+        host: localhost:8081
 
   # Redis configuration for testing
   redis:
@@ -36,8 +39,6 @@ firebase:
   enabled: true
   project-id: supremeai-a
   database-url: https://supremeai-a-default-rtdb.asia-southeast1.firebasedatabase.app/
-  credentials:
-    path: classpath:firebase-service-account.json
 
 # Security configuration for testing
 security:

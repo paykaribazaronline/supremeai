@@ -278,7 +278,6 @@ class SelfHealingServiceHappypathTest {
      */
     @Test
     void soloMode_noActiveProviders_setsSoloFlag() {
-        when(providerRepository.findByStatus("active")).thenReturn(reactor.core.publisher.Flux.empty());
         when(providerRepository.findAll()).thenReturn(reactor.core.publisher.Flux.empty());
 
         AIFallbackOrchestrator orchestrator = new AIFallbackOrchestrator(
@@ -293,6 +292,7 @@ class SelfHealingServiceHappypathTest {
                 providerRepository,
                 "airllm-sidecar"
         );
+        orchestrator.init();
         assert orchestrator.getSoloMode()
                 : "Expected soloMode=true when providerRepository returns no active providers";
     }

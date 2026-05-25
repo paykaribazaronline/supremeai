@@ -144,43 +144,66 @@ public class AIFallbackOrchestrator {
     public Mono<String> executeWithSupremeIntelligence(String taskCategory, String errorSignature, String prompt, String userId) {
         return knowledgeBase.findKnownSolution(errorSignature)
             .switchIfEmpty(Mono.defer(() -> {
-                String expertProviderId = aiProfiler.getBestAIForTask(taskCategory);
+                log.info("[Solo-First] System running in default Solo-First mode. Preparing local model fallback...");
+                
+                // 1. Prepare default Solo Mode execution
+                Mono<String> soloExecution = tryPrivateCloudFailover(taskCategory, prompt);
 
+                // 2. Fetch active cloud providers to see if we can take help from them
                 return providerRepository.findByStatus("active")
-                    .filter(p -> {
-                        // Allow all active AI models in all work as requested by the user
-                        return true;
-                    })
-                    .sort(Comparator.comparingInt(com.supremeai.model.APIProvider::getPriority))
+                    .filter(p -> !fallbackProviderName.equalsIgnoreCase(p.getName()) && !fallbackProviderName.equalsIgnoreCase(p.getType()))
                     .collectList()
                     .onErrorResume(e -> {
-                        log.error("Failed to load dynamic providers: {}", e.getMessage());
+                        log.warn("[Solo-First] Failed to load dynamic providers: {}. Operating purely offline.", e.getMessage());
                         return Mono.just(new ArrayList<com.supremeai.model.APIProvider>());
                     })
-                    .flatMap(dbProviders -> {
-                        List<com.supremeai.model.APIProvider> dynamicChain = new ArrayList<>();
-
-                        // Add expert provider first
-                        if (expertProviderId != null) {
-                            dbProviders.stream()
-                                .filter(p -> p.getName().equalsIgnoreCase(expertProviderId))
-                                .findFirst()
-                                .ifPresent(dynamicChain::add);
+                    .flatMap(activeCloudProviders -> {
+                        if (activeCloudProviders.isEmpty()) {
+                            log.info("[Solo-First] No active cloud AI models configured. Relying purely on local Solo Mode.");
+                            return soloExecution;
                         }
 
-                        // Add others in priority order
-                        for (com.supremeai.model.APIProvider p : dbProviders) {
-                            if (expertProviderId == null || !p.getName().equalsIgnoreCase(expertProviderId)) {
-                                dynamicChain.add(p);
-                            }
+                        log.info("[Solo-First] Active cloud models found. Checking connection and taking help opportunistically...");
+                        
+                        String expertProviderId = aiProfiler.getBestAIForTask(taskCategory);
+                        com.supremeai.model.APIProvider cloudProvider = activeCloudProviders.stream()
+                            .filter(p -> p.getName().equalsIgnoreCase(expertProviderId))
+                            .findFirst()
+                            .orElse(activeCloudProviders.get(0));
+
+                        AIProvider aiProvider = providerFactory.createProviderFromConfig(cloudProvider);
+                        if (aiProvider == null) {
+                            return soloExecution;
                         }
 
-                        // LATENCY OPTIMIZATION: If task is high priority (chat/code), use hedging for the top 2
-                        if (taskCategory.equals("chat") || taskCategory.equals("code_generation")) {
-                            return executeWithHedging(dynamicChain, taskCategory, errorSignature, prompt, userId);
+                        String serviceName = cloudProvider.getType() != null ? cloudProvider.getType() : cloudProvider.getName();
+                        CircuitBreaker cb = getOrCreateCircuitBreaker(cloudProvider.getName().toLowerCase());
+
+                        if (!isServiceQuotaAvailable(serviceName) || cb.getState() == CircuitBreaker.State.OPEN) {
+                            log.info("[Solo-First] Cloud provider {} quota exhausted or circuit open. Bypassing cloud assist.", cloudProvider.getName());
+                            return soloExecution;
                         }
 
-                        return tryNextProvider(dynamicChain, 0, taskCategory, errorSignature, prompt, userId);
+                        // Tight 8-second timeout: if connection is slow, missing, or drops, we fall back to local model immediately.
+                        return generateForProvider(cloudProvider.getName(), serviceName, cb, aiProvider, prompt)
+                            .timeout(Duration.ofSeconds(8))
+                            .flatMap(cloudCode -> {
+                                boolean infected = immunitySystem.isCodeInfected(cloudCode);
+                                if (infected) {
+                                    return Mono.error(new RuntimeException("Cloud code infected"));
+                                }
+                                log.info("[Solo-First] Cloud assistant successfully provided help!");
+                                return Mono.just(cloudCode);
+                            })
+                            .onErrorResume(err -> {
+                                log.warn("[Solo-First] Cloud connection not available or timeout: {}. Continuing purely with Solo Mode.", err.getMessage());
+                                return Mono.empty();
+                            })
+                            .switchIfEmpty(soloExecution);
+                    })
+                    .onErrorResume(e -> {
+                        log.warn("[Solo-First] General error in Solo-First pipeline: {}. Running purely offline.", e.getMessage());
+                        return soloExecution;
                     });
             }));
     }
@@ -238,24 +261,28 @@ public class AIFallbackOrchestrator {
                 long timeTaken = System.currentTimeMillis() - startTime;
                 recordUsage(serviceName);
 
-                boolean infected = immunitySystem.isCodeInfected(generatedCode);
-                if (infected) {
-                    log.error("-> [Orchestrator] AI generated toxic/broken code! Rejecting...");
-                    aiProfiler.recordPerformance(taskCategory, providerId, false, timeTaken);
-                    return tryNextProvider(chain, index + 1, taskCategory, errorSignature, prompt, userId);
-                }
-
-                return knowledgeBase.recordSuccessWithPermission(errorSignature, generatedCode, providerId, timeTaken, 0.95)
-                        .then(Mono.fromRunnable(() -> aiProfiler.recordPerformance(taskCategory, providerId, true, timeTaken)))
-                        .then(Mono.defer(() -> {
-                            if (enhancedLearningService != null) {
-                                Map<String, Object> requestMeta = new HashMap<>();
-                                requestMeta.put("taskCategory", taskCategory);
-                                requestMeta.put("errorSignature", errorSignature);
-                                enhancedLearningService.learnFromAPIUsage("generateCode", providerId, timeTaken, true, requestMeta).subscribe();
-                            }
+                return coReasonWithLocalModel(taskCategory, prompt, generatedCode)
+                    .flatMap(optimizedCode -> {
+                        boolean infected = immunitySystem.isCodeInfected(optimizedCode);
+                        if (infected) {
+                            log.error("-> [Orchestrator] Optimized code is toxic! Falling back to original...");
                             return Mono.just(generatedCode);
-                        }));
+                        }
+                        return Mono.just(optimizedCode);
+                    })
+                    .flatMap(finalCode -> {
+                        return knowledgeBase.recordSuccessWithPermission(errorSignature, finalCode, providerId, timeTaken, 0.95)
+                                .then(Mono.fromRunnable(() -> aiProfiler.recordPerformance(taskCategory, providerId, true, timeTaken)))
+                                .then(Mono.defer(() -> {
+                                    if (enhancedLearningService != null) {
+                                        Map<String, Object> requestMeta = new HashMap<>();
+                                        requestMeta.put("taskCategory", taskCategory);
+                                        requestMeta.put("errorSignature", errorSignature);
+                                        enhancedLearningService.learnFromAPIUsage("generateCode", providerId, timeTaken, true, requestMeta).subscribe();
+                                    }
+                                    return Mono.just(finalCode);
+                                }));
+                    });
             })
             .onErrorResume(e -> {
                 long timeTaken = System.currentTimeMillis() - startTime;
@@ -297,11 +324,15 @@ public class AIFallbackOrchestrator {
                 }
             }
             if (airllmConfig == null) {
-                throw new RuntimeException(
-                    "Solo Mode: " + fallbackProviderName + " not configured in Firestore api_providers. "
-                    + "Add a provider entry with id=" + fallbackProviderName + " to enable local model fallback.");
+                log.warn("[SoloMode] Fallback provider '{}' not found in DB or DB offline. Scaffolding default in-memory config for local sidecar on port 8081...", fallbackProviderName);
+                airllmConfig = new com.supremeai.model.APIProvider();
+                airllmConfig.setName(fallbackProviderName);
+                airllmConfig.setBaseUrl("http://localhost:8081");
+                airllmConfig.setType("airllm-sidecar");
+                airllmConfig.setStatus("active");
+                airllmConfig.setModelName("airllm-sidecar");
             }
-            log.info("[SoloMode] Using fallback provider from DB: baseUrl={}, type={}",
+            log.info("[SoloMode] Using fallback provider: baseUrl={}, type={}",
                     airllmConfig.getBaseUrl(), airllmConfig.getType());
             return providerFactory.createProviderFromConfig(airllmConfig);
         })
@@ -335,6 +366,58 @@ public class AIFallbackOrchestrator {
             status.put(providerId, providerStatus);
         });
         return status;
+    }
+
+    /**
+     * Live Co-Reasoning Layer: The local AirLLM sidecar acts as an active
+     * quality auditor, code optimiser, and local reasoning co-pilot.
+     * It runs alongside active cloud providers to polish and verify their outputs.
+     */
+    private Mono<String> coReasonWithLocalModel(String taskCategory, String prompt, String originalOutput) {
+        // Only run co-reasoning for code and complex logic tasks to save latency
+        if (!"code_generation".equalsIgnoreCase(taskCategory) && !"error_fixing".equalsIgnoreCase(taskCategory)) {
+            return Mono.just(originalOutput);
+        }
+
+        log.info("[Live Co-Reasoning] Invoking local GGUF model to audit and optimize cloud AI response...");
+
+        String auditPrompt = "You are SupremeAI Co-Pilot (Live local intelligence layer).\n" +
+                "Audit the following generated code based on the user prompt.\n" +
+                "Fix any obvious syntax errors, optimize it, and output ONLY the clean, ready-to-run updated code without markdown wrapper formatting.\n\n" +
+                "User prompt: " + prompt + "\n\n" +
+                "Original Code:\n" + originalOutput;
+
+        return Mono.fromCallable(() -> {
+            // Re-use our safe local failover provider creator
+            com.supremeai.model.APIProvider airllmConfig = null;
+            try {
+                airllmConfig = providerRepository.findById(fallbackProviderName)
+                        .switchIfEmpty(providerRepository.findById(fallbackProviderName.toLowerCase()))
+                        .block(java.time.Duration.ofSeconds(1));
+            } catch (Exception e) {}
+            if (airllmConfig == null) {
+                airllmConfig = new com.supremeai.model.APIProvider();
+                airllmConfig.setName(fallbackProviderName);
+                airllmConfig.setBaseUrl("http://localhost:8081");
+                airllmConfig.setType("airllm-sidecar");
+                airllmConfig.setStatus("active");
+                airllmConfig.setModelName("airllm-sidecar");
+            }
+            return providerFactory.createProviderFromConfig(airllmConfig);
+        })
+        .flatMap(provider -> provider.generate(auditPrompt))
+        .timeout(Duration.ofSeconds(15)) // Strict 15s timeout to avoid dragging cloud response times
+        .onErrorResume(e -> {
+            log.warn("[Live Co-Reasoning] Local co-reasoning timed out or failed; returning original cloud response: {}", e.getMessage());
+            return Mono.just(originalOutput);
+        })
+        .map(optimized -> {
+            if (optimized == null || optimized.isBlank() || optimized.contains("Offline Mode Fallback response") || optimized.contains("System is currently downloading")) {
+                return originalOutput; // Fallback to original if sidecar returned a template stub
+            }
+            log.info("[Live Co-Reasoning] Cloud response successfully optimized and polished by local model!");
+            return optimized;
+        });
     }
 
     /**
