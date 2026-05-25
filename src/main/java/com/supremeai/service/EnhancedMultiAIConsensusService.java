@@ -1,6 +1,7 @@
 package com.supremeai.service;
 
 import com.supremeai.learning.service.EnhancedContentSanitizerService;
+import com.supremeai.service.SelfHealingService;
 import com.supremeai.model.ConsensusVote;
 import com.supremeai.model.ConsensusResult;
 import com.supremeai.model.ProviderVote;

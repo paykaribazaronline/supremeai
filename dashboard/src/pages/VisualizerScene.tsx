@@ -1,48 +1,9 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Stars, PerspectiveCamera } from '@react-three/drei';
-import { CoreEngine } from './components/CoreEngine';
+import React, { useState, useEffect, Suspense } from 'react';
+import { Canvas, PerspectiveCamera, OrbitControls, Stars } from '@react-three/fiber';
+import { CoreEngine } from '../components/CoreEngine';
 import { Cpu, Shield, Zap, Terminal as TerminalIcon, Globe } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Spin } from 'antd';
-import FeedbackSystem from './components/FeedbackSystem';
-import ErrorBoundary from './components/ErrorBoundary';
-
-// Lazy load pages for performance optimization
-const ModernAdminDashboard = lazy(() => import('./pages/ModernAdminDashboard'));
-const LoginPage = lazy(() => import('./pages/LoginPage'));
-const AdminRouteLayout = lazy(() => import('./components/AdminRouteLayout'));
-
-// Lazy load admin pages
-const DashboardHome = lazy(() => import('./components/dashboard/DashboardHome'));
-const ChatWithAI = lazy(() => import('./components/ChatWithAI'));
-const AdminProjects = lazy(() => import('./pages/AdminProjects'));
-const AdminProviders = lazy(() => import('./pages/AdminProviders'));
-const AdminUsers = lazy(() => import('./pages/AdminUsers'));
-const AdminMonitoring = lazy(() => import('./pages/AdminMonitoring'));
-const AdminLearning = lazy(() => import('./pages/AdminLearning'));
-const AdminSecurity = lazy(() => import('./pages/AdminSecurity'));
-const AdminSystemWorkRules = lazy(() => import('./components/AdminSystemWorkRules'));
-const AdminAnalytics = lazy(() => import('./pages/AdminAnalytics'));
-const AdminVPN = lazy(() => import('./pages/AdminVPN'));
-const AdminBrowser = lazy(() => import('./pages/AdminBrowser'));
-const AutoBrowser = lazy(() => import('./pages/AutoBrowser'));
-const AdminQuotas = lazy(() => import('./pages/AdminQuotas'));
-const AdminNotifications = lazy(() => import('./pages/AdminNotifications'));
-const AdminPerformance = lazy(() => import('./pages/AdminPerformance'));
-const AdminBackup = lazy(() => import('./pages/AdminBackup'));
-const AdminOCR = lazy(() => import('./pages/AdminOCR'));
-const AdminReverseEngineer = lazy(() => import('./pages/AdminReverseEngineer'));
-const AdminReports = lazy(() => import('./pages/AdminReports'));
-const AdminApprovals = lazy(() => import('./components/AdminApprovals'));
-const AdminInfrastructure = lazy(() => import('./pages/AdminInfrastructure'));
-const AdminCodeAnalysis = lazy(() => import('./pages/AdminCodeAnalysis'));
-const AdminSettings = lazy(() => import('./pages/AdminSettings'));
-const UserSettings = lazy(() => import('./components/UserSettings'));
-const AdminLogs = lazy(() => import('./pages/AdminLogs'));
-const AdminSimulator = lazy(() => import('./pages/AdminSimulator'));
-const AdminRules = lazy(() => import('./pages/AdminRules'));
 
 interface ModelStatus {
   id: string;
@@ -66,7 +27,7 @@ const LoadingFallback = () => (
   </div>
 );
 
-const MainVisualizer = () => {
+export default function MainVisualizer() {
   const [models, setModels] = useState<ModelStatus[]>(models_list);
   const [activeModel, setActiveModel] = useState<string | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
@@ -108,7 +69,6 @@ const MainVisualizer = () => {
       <div className="bg-grid"></div>
       <div className="scanline"></div>
 
-      {/* 3D Visualizer */}
       <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }}>
         <Canvas shadows dpr={[1, 2]} onError={(e) => console.error("Canvas Error:", e)}>
           <Suspense fallback={null}>
@@ -122,7 +82,6 @@ const MainVisualizer = () => {
         </Canvas>
       </div>
 
-      {/* UI Overlay */}
       <header className="header-overlay">
         <div className="header-panel">
           <div className="pulsing status-indicator"></div>
@@ -132,7 +91,6 @@ const MainVisualizer = () => {
         </div>
       </header>
 
-      {/* Model Cards */}
       <main className="model-cards-container">
         {models.map((model) => (
           <motion.div
@@ -166,7 +124,6 @@ const MainVisualizer = () => {
         ))}
       </main>
 
-      {/* Terminal / Logs */}
       <aside className="terminal-panel">
         <div className="glass-panel terminal-panel-content">
           <div className="terminal-panel-header">
@@ -188,7 +145,6 @@ const MainVisualizer = () => {
         </div>
       </aside>
 
-      {/* Global Status HUD */}
       <div className="hud-metrics">
         <HUDMetric icon={<Shield size={18} />} label="Security" value="MIL-SPEC" color="var(--neon-blue)" />
         <HUDMetric icon={<Zap size={18} />} label="Response" value="ULTRALOW" color="var(--neon-purple)" />
@@ -207,58 +163,3 @@ const HUDMetric = ({ icon, label, value, color }: { icon: any, label: string, va
     </div>
   </div>
 );
-
-function App() {
-  return (
-    <ErrorBoundary>
-      <BrowserRouter>
-        <FeedbackSystem />
-        <Suspense fallback={<LoadingFallback />}>
-          <Routes>
-            {/* Authentication */}
-            <Route path="/login" element={<LoginPage />} />
-            
-            {/* Admin routes under single URL path */}
-            <Route path="/admin" element={<AdminRouteLayout />}>
-              <Route index element={<Navigate to="/admin/dashboard" replace />} />
-              <Route path="dashboard" element={<DashboardHome isAdmin={true} setActiveKey={() => {}} />} />
-              <Route path="ai" element={<ChatWithAI chatFont="font-mono" />} />
-              <Route path="projects" element={<AdminProjects />} />
-              <Route path="providers" element={<AdminProviders />} />
-              <Route path="users" element={<AdminUsers />} />
-              <Route path="monitoring" element={<AdminMonitoring />} />
-              <Route path="learning" element={<AdminLearning />} />
-              <Route path="security" element={<AdminSecurity />} />
-              <Route path="work-rules" element={<AdminSystemWorkRules />} />
-              <Route path="rules" element={<AdminRules />} />
-              <Route path="analytics" element={<AdminAnalytics />} />
-              <Route path="logs" element={<AdminLogs />} />
-              <Route path="vpn" element={<AdminVPN />} />
-              <Route path="browser" element={<AdminBrowser />} />
-              <Route path="auto-browser" element={<AutoBrowser />} />
-              <Route path="quotas" element={<AdminQuotas />} />
-              <Route path="simulator" element={<AdminSimulator />} />
-              <Route path="reverse-engineering" element={<AdminReverseEngineer />} />
-              <Route path="notifications" element={<AdminNotifications />} />
-              <Route path="reports" element={<AdminReports />} />
-              <Route path="performance" element={<AdminPerformance />} />
-              <Route path="backup" element={<AdminBackup />} />
-              <Route path="ocr" element={<AdminOCR />} />
-              <Route path="infrastructure" element={<AdminInfrastructure />} />
-              <Route path="code-analysis" element={<AdminCodeAnalysis analysisProgress={null} />} />
-              <Route path="settings" element={<AdminSettings darkMode={true} setDarkMode={() => {}} chatFont="font-mono" setChatFont={() => {}} />} />
-            </Route>
-            
-            {/* Legacy routes redirect to admin */}
-            <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
-            <Route path="/visualizer" element={<MainVisualizer />} />
-            {/* Catch-all */}
-            <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
-    </ErrorBoundary>
-  );
-}
-
-export default App;
