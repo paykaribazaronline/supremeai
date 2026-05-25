@@ -15,7 +15,7 @@ import com.supremeai.repository.ProviderRepository;
 import com.supremeai.repository.TaskProviderAssignmentRepository;
 import com.supremeai.service.EnhancedLearningService;
 import com.supremeai.service.FirebaseRealtimeService;
-import com.supremeai.service.SoloModeManagerService;
+import com.supremeai.service.solomode.SoloModeManagerService;
 import com.supremeai.util.FallbackConstants;
 import com.supremeai.service.SelfHealingService;
 import org.slf4j.Logger;
