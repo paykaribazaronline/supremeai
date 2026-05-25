@@ -102,7 +102,7 @@ public class RootCauseAnalysisService {
      * Record a failed correction attempt so the ML failure predictor learns from the miss.
      * Called by SelfHealingService when an auto-fix suggestion dissolves into an error.
      */
-    void recordFailedCorrection(String errorSignature, String errorMessage, String codeContext) {
+    public void recordFailedCorrection(String errorSignature, String errorMessage, String codeContext) {
         Map<EnhancedRandomForestPredictor.FeatureType, Double> features = extractErrorFeatures(errorMessage, codeContext);
         failurePredictor.recordFailure(errorSignature, features, true);
         log.info("Recorded failed correction for fingerprint={} — ML predictor updated", errorSignature);

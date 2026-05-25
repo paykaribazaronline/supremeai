@@ -1,6 +1,6 @@
 package com.supremeai.controller;
 
-import com.supremeai.fallback.AIFallbackOrchestrator;
+import com.supremeai.service.AIFallbackOrchestrator;
 import com.supremeai.resilience.RetryableAIExecutor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
