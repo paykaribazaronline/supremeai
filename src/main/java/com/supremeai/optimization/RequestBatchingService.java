@@ -47,8 +47,8 @@ public class RequestBatchingService {
         return t;
     });
 
-    public RequestBatchingService(@Qualifier("batchTaskExecutor") ThreadPoolTaskExecutor batchTaskExecutor) {
-        this.executor = batchTaskExecutor.getThreadPoolExecutor();
+    public RequestBatchingService(@Qualifier("batchTaskExecutor") ExecutorService batchTaskExecutor) {
+        this.executor = batchTaskExecutor;
     }
 
     @PostConstruct

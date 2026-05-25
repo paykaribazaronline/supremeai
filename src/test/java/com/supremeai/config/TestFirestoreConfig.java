@@ -18,14 +18,21 @@ import com.google.cloud.firestore.FirestoreOptions;
 @Configuration
 @TestPropertySource(properties = {
         "spring.cloud.gcp.firestore.emulator.enabled=true",
-        "spring.cloud.gcp.firestore.emulator.host=${FIRESTORE_EMULATOR_HOST:localhost:8080}",
-        "spring.cloud.gcp.firestore.project-id=supremeai-test"
+        "spring.cloud.gcp.firestore.emulator.host=${FIRESTORE_EMULATOR_HOST:localhost:8081}",
+        "spring.cloud.gcp.firestore.host=localhost:8081",
+        "spring.cloud.gcp.firestore.project-id=supremeai-a",
+        "spring.cloud.gcp.project-id=supremeai-a"
 })
 public class TestFirestoreConfig {
 
     @Bean
     @Primary
     public Firestore firestore() {
-        return FirestoreOptions.getDefaultInstance().getService();
+        return FirestoreOptions.newBuilder()
+                .setProjectId("supremeai-a")
+                .setEmulatorHost("localhost:8081")
+                .setCredentials(com.google.cloud.NoCredentials.getInstance())
+                .build()
+                .getService();
     }
 }

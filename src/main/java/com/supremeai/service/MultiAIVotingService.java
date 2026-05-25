@@ -3,31 +3,44 @@ package com.supremeai.service;
 import com.supremeai.agentorchestration.VotingDecision;
 import com.supremeai.intelligence.voting.VotingTopic;
 import com.supremeai.intelligence.voting.VotingTopicGenerator;
+import com.supremeai.learning.active.ActiveInternetScraper;
+import com.supremeai.learning.active.ActiveInternetScraper.ScrapedIssue;
 import com.supremeai.model.ConsensusResult;
 import com.supremeai.model.ConsensusVote;
 import com.supremeai.model.ProviderVote;
 import com.supremeai.provider.AIProvider;
 import com.supremeai.provider.AIProviderFactory;
 import com.supremeai.provider.AIProviderType;
+import com.supremeai.repository.ProviderRepository;
+import com.supremeai.repository.TaskProviderAssignmentRepository;
+import com.supremeai.service.EnhancedLearningService;
+import com.supremeai.service.FirebaseRealtimeService;
+import com.supremeai.service.solomode.SoloModeManagerService;
+import com.supremeai.util.FallbackConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.supremeai.service.FirebaseRealtimeService;
-import com.supremeai.learning.active.ActiveInternetScraper;
-import com.supremeai.learning.active.ActiveInternetScraper.ScrapedIssue;
-import com.supremeai.service.EnhancedLearningService;
-import com.supremeai.util.FallbackConstants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import java.util.*;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
-import com.supremeai.repository.TaskProviderAssignmentRepository;
 
 /**
  * Unified Multi-AI Voting Service
@@ -49,7 +62,7 @@ public class MultiAIVotingService {
     private EnhancedLearningService enhancedLearningService;
 
     @Autowired
-    private org.springframework.web.reactive.function.client.WebClient.Builder webClientBuilder;
+    private WebClient.Builder webClientBuilder;
 
     // Dependencies from original services
     @Autowired
@@ -61,7 +74,7 @@ public class MultiAIVotingService {
     @Autowired
     private VotingTopicGenerator topicGenerator;
 
-    @org.springframework.context.annotation.Lazy
+    @Lazy
     @Autowired(required = false)
     private SelfHealingService selfHealingService;
 
@@ -72,10 +85,14 @@ public class MultiAIVotingService {
     private KnowledgeFeedbackService feedbackService;
 
     @Autowired
-    private com.supremeai.repository.ProviderRepository providerRepository;
+    private ProviderRepository providerRepository;
 
     @Autowired
     private TaskProviderAssignmentRepository taskAssignmentRepo;
+
+    @Autowired
+    @Lazy
+    private SoloModeManagerService soloModeManagerService;
 
     // Dynamic model selection (no hardcoded limit)
     private static final int DEFAULT_MAX_VOTING_PROVIDERS = 10;
@@ -187,7 +204,7 @@ public class MultiAIVotingService {
                                             if (availableCount == 0) {
                                                 logger.info(
                                                         "Complex query but 0 models available. Operating in autonomous Solo-Mode.");
-                                                return Mono.just(executeSoloFallback(prompt, issues, startTime));
+                                                return executeSoloFallback(prompt, issues, startTime);
                                             } else if (availableCount == 1) {
                                                 logger.info(
                                                         "Complex query and 1 model available ({}). Executing Single-Model double-pass Resilient Flow.",
@@ -328,7 +345,7 @@ public class MultiAIVotingService {
                 .onErrorResume(e -> {
                     logger.warn("Initial query to single model failed, falling back to Solo internet response: {}",
                             e.getMessage());
-                    return Mono.just(executeSoloFallback(prompt, issues, startTime));
+                    return executeSoloFallback(prompt, issues, startTime);
                 });
     }
 
@@ -365,7 +382,7 @@ public class MultiAIVotingService {
                 .flatMap(votes -> {
                     if (votes.isEmpty()) {
                         logger.warn("All voting panel members failed. Falling back to Solo-Mode.");
-                        return Mono.just(executeSoloFallback(prompt, issues, startTime));
+                        return executeSoloFallback(prompt, issues, startTime);
                     }
 
                     return firebaseRealtimeService.getData("config/task_weights")
@@ -646,25 +663,57 @@ public class MultiAIVotingService {
                         }));
     }
 
-    private VotingResult executeSoloFallback(String prompt, List<ScrapedIssue> issues, long startTime) {
-        // Augment scraper issues with Playwright deep-research results
-        List<ScrapedIssue> allIssues = new ArrayList<>(issues);
-        playwrightResearch(prompt, extractKeywords(prompt))
-                .subscribe(playwrightIssues -> {
+    private Mono<VotingResult> executeSoloFallback(String prompt, List<ScrapedIssue> issues, long startTime) {
+        return playwrightResearch(prompt, extractKeywords(prompt))
+                .flatMap(playwrightIssues -> {
+                    List<ScrapedIssue> allIssues = new ArrayList<>(issues);
                     if (playwrightIssues != null && !playwrightIssues.isEmpty()) {
                         allIssues.addAll(playwrightIssues);
                         logger.info("[Solo Mode] Merged {} Playwright deep-research issues with {} scraper issues",
                                 playwrightIssues.size(), issues.size());
                     }
-                }, err -> logger.warn("[Solo Mode] Playwright research error (non-fatal): {}", err.getMessage()));
 
-        String synthesizedResponse = synthesizeSoloResponse(prompt, allIssues);
-        enhancedLearningService.learnFromNLPInteraction(prompt, synthesizedResponse, "browser_autonomous_crawler", 0.85,
-                Map.of("mode", "browser_only")).subscribe();
-        long duration = System.currentTimeMillis() - startTime;
-        ProviderVote vote = new ProviderVote("autonomous_browser", synthesizedResponse, 0.85,
-                System.currentTimeMillis());
-        return new VotingResult(prompt, synthesizedResponse, List.of(vote), 0.85, "SOLO_MODE", duration);
+                    // Build a detailed high-intelligence prompt for the sidecar
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("You are SupremeAI operating in autonomous Solo-Mode.\n");
+                    sb.append("Answer the user query with high human-level intelligence, deep reasoning, and clear executable steps.\n\n");
+                    sb.append("User query: ").append(prompt).append("\n\n");
+                    if (!allIssues.isEmpty()) {
+                        sb.append("Here are some relevant facts scraped from the web to help you form a factual response:\n");
+                        for (ScrapedIssue issue : allIssues) {
+                            sb.append("- ").append(issue.getTitle()).append(": ").append(issue.getSolution()).append("\n");
+                        }
+                        sb.append("\n");
+                    }
+                    sb.append("Synthesize a comprehensive, authoritative response in Bengali (বাংলা). Do not mention that you are a GGUF or a small model.");
+
+                    String localPrompt = sb.toString();
+
+                    return soloModeManagerService.triggerLocalModelFallback(localPrompt)
+                            .onErrorResume(e -> {
+                                logger.warn("[Solo Mode] Local model synthesis failed, falling back to template-based response: {}", e.getMessage());
+                                return Mono.just("");
+                            })
+                            .map(synthesized -> {
+                                String finalResponse;
+                                if (synthesized == null || synthesized.isBlank() || synthesized.contains("Offline Mode Fallback response") || synthesized.contains("System is currently downloading")) {
+                                    // Local model returned fallback stub, use our dynamic rule-based synthesis
+                                    finalResponse = synthesizeSoloResponse(prompt, allIssues);
+                                } else {
+                                    // Prepend the header to keep UI premium and clear
+                                    finalResponse = "🤖 **SupremeAI স্বায়ত্তশাসিত সোলো-মোড সক্রিয় (Autonomous Solo-Mode - Dynamic local model)**\n\n" 
+                                            + synthesized 
+                                            + "\n\n---\n*💡 সুপ্রিমএআই ব্রাউজার অটোমেশন এবং সেলফ-লার্নিং সক্রিয় রেখেছে এবং এই চ্যাট থেকে প্রাপ্ত নতুন জ্ঞান ভবিষ্যতের জন্য ডাটাবেসে সংরক্ষণ করা হয়েছে।*";
+                                }
+
+                                enhancedLearningService.learnFromNLPInteraction(prompt, finalResponse, "browser_autonomous_crawler", 0.85,
+                                        Map.of("mode", "browser_only")).subscribe();
+                                long duration = System.currentTimeMillis() - startTime;
+                                ProviderVote vote = new ProviderVote("autonomous_browser", finalResponse, 0.85,
+                                        System.currentTimeMillis());
+                                return new VotingResult(prompt, finalResponse, List.of(vote), 0.85, "SOLO_MODE", duration);
+                            });
+                });
     }
 
     private String synthesizeSoloResponse(String prompt, List<ScrapedIssue> issues) {

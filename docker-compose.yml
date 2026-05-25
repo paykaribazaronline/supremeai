@@ -30,6 +30,8 @@ services:
     volumes:
       - ./service-account.json:/service-account.json:ro
     restart: unless-stopped
+    cpus: "2.0"
+    mem_limit: 2g
     depends_on:
       - redis
 
@@ -51,6 +53,8 @@ services:
     environment:
       - VITE_API_URL=${VITE_API_URL:-http://localhost:8080}
     restart: unless-stopped
+    cpus: "0.5"
+    mem_limit: 512m
     depends_on:
       - supremeai
 
@@ -68,6 +72,8 @@ services:
     volumes:
       - redis_data:/data
     restart: unless-stopped
+    cpus: "0.5"
+    mem_limit: 256m
 
   airllm:
     image: ${AIRLLM_IMAGE:-gcr.io/supremeai-a/airllm-sidecar:latest}
@@ -89,6 +95,8 @@ services:
       - CONTINUOUS_BATCHING=true
       - PORT=8081
     restart: unless-stopped
+    cpus: "4.0"
+    mem_limit: 8g
 
   teldrive:
     build:
@@ -109,6 +117,8 @@ services:
       - TG_APP_HASH=${TG_APP_HASH}
       - TG_BOT_TOKEN=${TG_BOT_TOKEN}
     restart: unless-stopped
+    cpus: "1.0"
+    mem_limit: 1g
 
   reverse-engineering:
     build:
@@ -128,6 +138,8 @@ services:
     volumes:
       - ./service-account.json:/etc/secrets/firebase-service-account.json:ro
     restart: unless-stopped
+    cpus: "1.0"
+    mem_limit: 1g
 
 volumes:
   redis_data:

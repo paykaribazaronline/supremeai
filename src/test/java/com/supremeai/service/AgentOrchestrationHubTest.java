@@ -28,8 +28,16 @@ class AgentOrchestrationHubTest {
     @Mock
     private SimulatorService simulatorService;
 
+    @Mock
+    private com.supremeai.agentorchestration.CrossAgentVectorMemory crossAgentMemory;
+
     @InjectMocks
     private AgentOrchestrationHub hub;
+
+    @BeforeEach
+    void setUp() {
+        org.mockito.Mockito.lenient().when(crossAgentMemory.retrieveRelevantContext(anyString(), anyString(), anyString())).thenReturn("");
+    }
 
     @Test
     void hub_shouldBeInstantiable() {

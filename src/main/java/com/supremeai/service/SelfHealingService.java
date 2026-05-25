@@ -70,6 +70,9 @@ public class SelfHealingService {
     @Autowired
     private com.supremeai.repository.HealingEventRepository healingEventRepository;
 
+    @Autowired(required = false)
+    private AIReasoningService reasoningService;
+
     private static final Logger log = LoggerFactory.getLogger(SelfHealingService.class);
 
     // ── Circuit-breaker / quarantine state ──────────────────────────────
@@ -79,7 +82,7 @@ public class SelfHealingService {
     private final Map<String, java.util.List<Long>> failureTimestamps = new ConcurrentHashMap<>();
     private static final int QUARANTINE_FAILURE_THRESHOLD = 3;      // failures within window → quarantine
     private static final long QUARANTINE_WINDOW_MS     = Duration.ofMinutes(5).toMillis();
-    private static final long QUARANTINE_DURATION_MS   = Duration.ofMinutes(10).toMillis();
+    private static final long QUARANTINE_DURATION_MS   = Duration.ofMinutes(5).toMillis();
 
     private final Map<String, Integer> errorPatterns = new ConcurrentHashMap<>();
     private final int MAX_ITERATIONS = 5;
@@ -373,23 +376,57 @@ public class SelfHealingService {
             for (String name : released) {
                 quarantineUntil.remove(name);
                 failureTimestamps.remove(name);
-                log.info("[SELF-HEALING] Quarantine expired for {} — re-enabling in next health check", name);
+                log.info("[SELF-HEALING] Quarantine expired for {} — attempting recovery ping", name);
             }
 
-            // 2. Attempt recovery via fallback orchestrator
-            if (fallbackOrchestrator != null) {
-                log.info("[SELF-HEALING] Attempting provider recovery using fallback orchestrator "
-                        + "({} providers released from quarantine)", released.size());
-                // Fallback orchestrator handles graceful degradation routing;
-                // actual provider re-activation is handled by the next health-check cycle.
-            }
-
+            // 2. Actively re-ping released providers to verify they're back online
             if (!released.isEmpty()) {
-                log.info("[SELF-HEALING] {} providers released from quarantine; will be re-tested on next health check",
-                        released.size());
+                providerRepository.findAll()
+                    .filter(p -> released.contains(p.getName()))
+                    .flatMap(apiProvider -> {
+                        String name = apiProvider.getName();
+                        try {
+                            AIProvider aiProvider = providerFactory.getProvider(name);
+                            return aiProvider.generate("ping")
+                                .timeout(Duration.ofSeconds(8))
+                                .flatMap(resp -> {
+                                    boolean ok = resp != null && !resp.isBlank();
+                                    if (ok) {
+                                        apiProvider.setStatus(ProviderStatus.ACTIVE);
+                                        apiProvider.setLastErrorMessage(null);
+                                        apiProvider.setLastTested(LocalDateTime.now());
+                                        log.info("[SELF-HEALING] ✅ Provider {} recovered successfully", name);
+                                    } else {
+                                        apiProvider.setLastErrorMessage("Recovery ping returned empty");
+                                        apiProvider.setLastTested(LocalDateTime.now());
+                                        log.warn("[SELF-HEALING] Provider {} recovery ping returned empty", name);
+                                    }
+                                    return providerRepository.save(apiProvider);
+                                })
+                                .onErrorResume(e -> {
+                                    apiProvider.setLastErrorMessage("Recovery ping failed: " + e.getMessage());
+                                    apiProvider.setLastTested(LocalDateTime.now());
+                                    log.warn("[SELF-HEALING] Provider {} recovery ping failed: {}", name, e.getMessage());
+                                    return providerRepository.save(apiProvider);
+                                });
+                        } catch (Exception e) {
+                            log.warn("[SELF-HEALING] Cannot create provider instance for {}: {}", name, e.getMessage());
+                            return Mono.empty();
+                        }
+                    })
+                    .subscribe(
+                        p -> {},
+                        err -> log.error("[SELF-HEALING] Recovery pipeline error: {}", err.getMessage())
+                    );
+
+                log.info("[SELF-HEALING] Recovery initiated for {} providers", released.size());
+            }
+
+            // 3. Delegate to fallback orchestrator for routing adjustments
+            if (fallbackOrchestrator != null && !released.isEmpty()) {
+                log.info("[SELF-HEALING] Notifying fallback orchestrator of {} recovered providers", released.size());
             }
         } catch (Exception e) {
-            // Record unknown error to knowledge base (MANDATORY)
             String errorSignature = "PROVIDER_RECOVERY_EXCEPTION_" + System.currentTimeMillis();
             recordUnknownErrorToKnowledge(errorSignature, e.getMessage(),
                 org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
@@ -429,11 +466,20 @@ public class SelfHealingService {
      * Retry a reactive task with exponential backoff.
      */
     public <T> Mono<T> executeWithRetry(java.util.function.Supplier<Mono<T>> task, int maxAttempts, long initialBackoffMs) {
-        return Mono.fromCallable(task::get)
-            .flatMap(monoSelf -> monoSelf)
+        return Mono.defer(task)
             .retryWhen(
-                reactor.util.retry.Retry.fixedDelay(maxAttempts, java.time.Duration.ofMillis(initialBackoffMs))
-            );
+                reactor.util.retry.Retry.fixedDelay(Math.max(0, maxAttempts - 1), java.time.Duration.ofMillis(initialBackoffMs))
+            )
+            .doOnError(err -> {
+                if (reasoningService != null) {
+                    reasoningService.logReasoning(
+                        UUID.randomUUID().toString(),
+                        "Execution Attempt Failed",
+                        err.getMessage(),
+                        "SelfHealingService"
+                    );
+                }
+            });
     }
 
     /**
@@ -441,7 +487,42 @@ public class SelfHealingService {
      */
     public void handleWorkflowFailure(String repo, String workflowId, String reason) {
         log.info("[HEALTH-CHECK] GitHub workflow failure: repo={}, workflowId={}, reason={}", repo, workflowId, reason);
+        if (reasoningService != null) {
+            String displayReason = reason;
+            if (reason != null && reason.length() > 100) {
+                displayReason = reason.substring(0, 100) + "...";
+            }
+            reasoningService.logReasoning(
+                workflowId,
+                "Self-Healing Triggered",
+                displayReason,
+                "SupremeAI-SelfHealer"
+            );
+        }
         detectAndFix();
+    }
+
+    /**
+     * Helper to analyze error message category.
+     */
+    private String analyzeError(String errorMsg) {
+        if (errorMsg == null) {
+            return "UNKNOWN";
+        }
+        String upper = errorMsg.toUpperCase();
+        if (upper.contains("DEPENDENCY") || upper.contains("RESOLUTION FAILED")) {
+            return "CHECK_DEPENDENCIES";
+        }
+        if (upper.contains("TEST") || upper.contains("ASSERTION")) {
+            return "FIX_TESTS";
+        }
+        if (upper.contains("UNAUTHORIZED") || upper.contains("401") || upper.contains("AUTH")) {
+            return "CHECK_AUTH_TOKENS";
+        }
+        if (upper.contains("QUOTA") || upper.contains("429") || upper.contains("LIMIT")) {
+            return "ROTATE_API_KEYS";
+        }
+        return "GENERAL_SYSTEM_CHECK";
     }
 
     /**

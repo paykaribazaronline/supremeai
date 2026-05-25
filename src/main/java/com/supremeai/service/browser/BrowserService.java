@@ -480,20 +480,32 @@ public class BrowserService {
      */
     public Mono<Void> executeAutonomousStep(String taskId) {
         return ruleService.getRuleByKey("BROWSER_MAX_STEPS")
+            .onErrorResume(e -> Mono.just(new com.supremeai.model.SystemWorkRule("BROWSER_MAX_STEPS", "AUTOMATION", "Max steps", "15")))
             .flatMap(maxStepsRule -> {
-                int maxSteps = Integer.parseInt(maxStepsRule.getValue());
-                return taskRepository.findById(taskId)
-                    .flatMap(task -> {
-                        if (pagesVisited >= maxSteps) {
-                            logger.warn("Browser task {} exceeded BROWSER_MAX_STEPS ({})", taskId, maxSteps);
-                            task.setStatus("error");
-                            task.setErrorMessage("Maximum automation steps reached.");
-                            return taskRepository.save(task).then(Mono.empty());
-                        }
-                        return Mono.zip(
-                                getScreenshot(),
-                                getAccessibilityTree(),
-                                getCredentialContext(task.getLastUrl()))
+                int maxSteps = Math.min(15, Integer.parseInt(maxStepsRule.getValue()));
+                return ruleService.getRuleByKey("BROWSER_TIMEOUT_MINUTES")
+                    .onErrorResume(e -> Mono.just(new com.supremeai.model.SystemWorkRule("BROWSER_TIMEOUT_MINUTES", "AUTOMATION", "Timeout in minutes", "5")))
+                    .flatMap(timeoutRule -> {
+                        int timeoutMinutes = Integer.parseInt(timeoutRule.getValue());
+                        return taskRepository.findById(taskId)
+                            .flatMap(task -> {
+                                if (pagesVisited >= maxSteps) {
+                                    logger.warn("Browser task {} exceeded max steps ({})", taskId, maxSteps);
+                                    task.setStatus("error");
+                                    task.setErrorMessage("Maximum automation steps reached.");
+                                    return taskRepository.save(task).then(Mono.empty());
+                                }
+                                if (task.getStartedAt() != null && 
+                                    java.time.Duration.between(task.getStartedAt(), LocalDateTime.now()).toMinutes() >= timeoutMinutes) {
+                                    logger.warn("Browser task {} timed out (duration > {} minutes)", taskId, timeoutMinutes);
+                                    task.setStatus("error");
+                                    task.setErrorMessage("Automation task execution timed out.");
+                                    return taskRepository.save(task).then(Mono.empty());
+                                }
+                                return Mono.zip(
+                                        getScreenshot(),
+                                        getAccessibilityTree(),
+                                        getCredentialContext(task.getLastUrl()))
                             .flatMap(tuple -> {
                                 String base64 = tuple.getT1();
                                 Map<String, Object> accessibilityTree = tuple.getT2();
@@ -586,6 +598,7 @@ public class BrowserService {
                             });
                     });
             });
+        });
     }
 
     private Mono<String> getCredentialContext(String url) {

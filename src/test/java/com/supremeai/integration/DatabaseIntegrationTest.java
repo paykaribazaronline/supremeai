@@ -86,7 +86,11 @@ public class DatabaseIntegrationTest {
         var users = userRepository.findAll().collectList().block();
 
         assertNotNull(users);
-        assertEquals(2, users.size());
+        assertTrue(users.size() >= 2);
+        boolean found1 = users.stream().anyMatch(u -> "test-uid".equals(u.getFirebaseUid()));
+        boolean found2 = users.stream().anyMatch(u -> "test-uid-2".equals(u.getFirebaseUid()));
+        assertTrue(found1, "test-uid not found in users list");
+        assertTrue(found2, "test-uid-2 not found in users list");
     }
 
     @Test

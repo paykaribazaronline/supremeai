@@ -18,8 +18,11 @@ import static org.junit.jupiter.api.Assertions.*;
  * Uses MockMvc to test the full request-response cycle against the real server context.
  * addFilters=false is used to bypass web security in isolated integration tests.
  */
+import org.springframework.test.context.ActiveProfiles;
+
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
+@ActiveProfiles("test")
 public class RestAPIIntegrationTest {
 
     @Autowired

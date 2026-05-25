@@ -4,12 +4,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.CustomConversions;
+import org.springframework.data.convert.CustomConversions.StoreConversions;
 import com.google.cloud.Timestamp;
 import java.util.List;
 import java.util.ArrayList;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+
+import org.springframework.data.convert.CustomConversions;
+import org.springframework.data.convert.CustomConversions.StoreConversions;
 
 @Configuration
 public class FirestoreConverterConfig {
@@ -19,7 +23,7 @@ public class FirestoreConverterConfig {
         List<Converter<?, ?>> converters = new ArrayList<>();
         converters.add(new LocalDateTimeToTimestampConverter());
         converters.add(new TimestampToLocalDateTimeConverter());
-        return new CustomConversions(CustomConversions.StoreConversions.NONE, converters);
+        return new CustomConversions(StoreConversions.NONE, converters);
     }
 
     static class LocalDateTimeToTimestampConverter implements Converter<LocalDateTime, Timestamp> {

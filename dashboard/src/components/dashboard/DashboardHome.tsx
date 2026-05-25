@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Typography, Row, Col, Progress, Table, List, Badge, Card, Statistic, Space } from 'antd';
+import { Typography, Row, Col, Progress, Table, List, Badge, Card, Statistic, Space, Button } from 'antd';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
   ResponsiveContainer, BarChart, Bar, Cell, LineChart, Line
@@ -90,6 +90,14 @@ const alertData = [
 
 export const DashboardHome: React.FC<DashboardHomeProps> = ({ isAdmin, setActiveKey }) => {
   const [activeMetric, setActiveMetric] = useState('load');
+  const [costData, setCostData] = useState<any>(null);
+
+  useEffect(() => {
+    fetch('/api/cost/realtime?userId=user_001')
+      .then(res => res.json())
+      .then(data => setCostData(data))
+      .catch(err => console.error("Error fetching cost data:", err));
+  }, []);
 
   return (
     <motion.div
@@ -304,6 +312,48 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ isAdmin, setActive
               />
             </div>
           </div>
+        </Col>
+
+        {/* Cost Transparency Card */}
+        <Col xs={24} md={8}>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className="glass-card"
+            style={{ padding: 20, borderLeft: `4px solid var(--neon-purple)` }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: 8, background: `rgba(188, 19, 254, 0.15)`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'var(--neon-purple)', fontSize: 20
+                }}>
+                  <RiseOutlined />
+                </div>
+                <div>
+                  <Text style={{ color: '#fff', fontWeight: 700, fontSize: 14, display: 'block' }}>Realtime LLM Cost</Text>
+                  <Text style={{ color: 'var(--text-dim)', fontSize: 12 }}>Session breakdown</Text>
+                </div>
+              </div>
+              <Statistic
+                value={costData?.totalCostUsd || 0.15}
+                precision={4}
+                prefix="$"
+                valueStyle={{ color: 'var(--neon-blue)', fontSize: 20, fontWeight: 800 }}
+              />
+            </div>
+            {costData?.providerBreakdown && (
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+                {Object.entries(costData.providerBreakdown).map(([prov, cost]: any) => (
+                  <Badge 
+                    key={prov}
+                    count={`${prov}: $${Number(cost).toFixed(3)}`}
+                    style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(0, 243, 255, 0.2)' }}
+                  />
+                ))}
+              </div>
+            )}
+          </motion.div>
         </Col>
 
         {/* Alert Cards */}

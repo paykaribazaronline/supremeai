@@ -198,6 +198,11 @@ import static org.mockito.Mockito.*;
                 new AutonomousQuestioningEngine.ValidationResult();
         validationResult.setComplete(true);
 
+        com.supremeai.model.APIProvider provider = new com.supremeai.model.APIProvider();
+        provider.setName("openai");
+        provider.setStatus("active");
+        when(providerRepository.findByStatus("active")).thenReturn(Flux.just(provider));
+
         when(questioningEngine.validateAndQuestion(anyString(), any()))
                 .thenReturn(Mono.just(validationResult));
         when(votingService.executeEnsembleVoting(anyString(), any(), anyLong()))
@@ -224,6 +229,11 @@ import static org.mockito.Mockito.*;
         AutonomousQuestioningEngine.ValidationResult validationResult =
                 new AutonomousQuestioningEngine.ValidationResult();
         validationResult.setComplete(true);
+
+        com.supremeai.model.APIProvider provider = new com.supremeai.model.APIProvider();
+        provider.setName("openai");
+        provider.setStatus("active");
+        when(providerRepository.findByStatus("active")).thenReturn(Flux.just(provider));
 
         when(questioningEngine.validateAndQuestion(anyString(), any()))
                 .thenReturn(Mono.just(validationResult));

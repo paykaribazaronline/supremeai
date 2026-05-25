@@ -28,7 +28,14 @@ public class SecretManagerService {
     @Value("${secret.manager.enabled:false}")
     private boolean enabled;
 
+    @Value("${spring.profiles.active:local}")
+    private String activeProfile;
+
     private SecretManagerServiceClient client;
+
+    public boolean isProduction() {
+        return "prod".equals(activeProfile) || activeProfile.contains("prod");
+    }
 
     @PostConstruct
     public void init() {
@@ -55,11 +62,16 @@ public class SecretManagerService {
                 AccessSecretVersionResponse response = client.accessSecretVersion(secretVersionName);
                 return response.getPayload().getData().toStringUtf8();
             } catch (Exception e) {
-                log.warn("Could not retrieve secret {} from Secret Manager: {}. Falling back to ENV.", secretId, e.getMessage());
+                log.warn("Could not retrieve secret {} from Secret Manager: {}.", secretId, e.getMessage());
             }
         }
 
-        // Fallback to environment variable (standard Java way)
+        // Fallback to environment variable (standard Java way) - BLOCKED in production!
+        if (isProduction()) {
+            log.error("CRITICAL SECURITY AUDIT FAILURE: Env var fallback for secret '{}' is BLOCKED in production!", secretId);
+            return null;
+        }
+
         String envValue = System.getenv(secretId.toUpperCase().replace("-", "_"));
         if (envValue != null) {
             return envValue;

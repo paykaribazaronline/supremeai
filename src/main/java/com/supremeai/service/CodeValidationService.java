@@ -2,33 +2,25 @@ package com.supremeai.service;
 
 import org.springframework.stereotype.Service;
 
+import javax.tools.*;
 import java.io.IOException;
+import java.io.StringWriter;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
+import java.util.*;
 
-/**
- * CodeValidationService - Basic compilation/validation for generated code.
- * Taste phase: writes files to temp directory and runs basic syntax checks.
- * Sprint 2 P0: minimal implementation (placeholder for full validation).
- */
 @Service
 public class CodeValidationService {
 
-    /**
-     * Validate generated code files by checking for required content.
-     * In taste phase, just verifies required files exist and are non-empty.
-     *
-     * @param files map of filename → file content
-     * @return validation result map with "valid", "errors", "warnings"
-     */
-    public Map<String, Object> validate(Map<String, String> files) {
-        java.util.LinkedHashMap<String, Object> result = new java.util.LinkedHashMap<>();
-        java.util.List<String> errors = new java.util.ArrayList<>();
-        java.util.List<String> warnings = new java.util.ArrayList<>();
+    private final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
-        // Check required files
+    public Map<String, Object> validate(Map<String, String> files) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        List<String> errors = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+
         String[] requiredFiles = {
             "build.gradle.kts",
             "src/main/java/com/example/generated/GeneratedAppApplication.java"
@@ -40,7 +32,6 @@ public class CodeValidationService {
             }
         }
 
-        // Basic content checks
         if (files.containsKey("build.gradle.kts")) {
             String content = files.get("build.gradle.kts");
             if (!content.contains("plugins")) {
@@ -61,8 +52,7 @@ public class CodeValidationService {
             }
         }
 
-        boolean valid = errors.isEmpty();
-        result.put("valid", valid);
+        result.put("valid", errors.isEmpty());
         result.put("errors", errors);
         result.put("warnings", warnings);
         result.put("fileCount", files.size());
@@ -70,11 +60,78 @@ public class CodeValidationService {
         return result;
     }
 
-    /**
-     * Write generated files to disk for manual inspection (taste phase).
-     * Returns directory path where files were written.
-     * Uses NIO Files API with explicit UTF-8 encoding — no platform charset corruption.
-     */
+    public Map<String, Object> validateWithCompilation(Map<String, String> files, String appName) {
+        Map<String, Object> result = validate(files);
+        List<String> compilationErrors = new ArrayList<>();
+
+        try {
+            String tempDir = writeToTempDirectory(files, appName + "-compile");
+            Path tempPath = Path.of(tempDir);
+
+            List<JavaFileObject> compilationUnits = new ArrayList<>();
+            for (Map.Entry<String, String> entry : files.entrySet()) {
+                if (entry.getKey().endsWith(".java")) {
+                    compilationUnits.add(new SimpleJavaFileObject(
+                        URI.create("string:///" + entry.getKey().replace(".java", "")),
+                        JavaFileObject.Kind.SOURCE) {
+                        @Override
+                        public CharSequence getCharContent(boolean ignoreEncodingErrors) {
+                            return entry.getValue();
+                        }
+                    });
+                }
+            }
+
+            StringWriter compilerOutput = new StringWriter();
+            DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
+
+            JavaCompiler.CompilationTask task = compiler.getTask(
+                compilerOutput,
+                null,
+                diagnostics,
+                getCompilationOptions(),
+                null,
+                compilationUnits
+            );
+
+            Boolean compiled = task.call();
+            result.put("compilationSuccess", compiled);
+
+            for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
+                compilationErrors.add(String.format(
+                    "%s:%d - %s",
+                    diagnostic.getKind(),
+                    diagnostic.getLineNumber(),
+                    diagnostic.getMessage(Locale.ENGLISH)
+                ));
+            }
+
+            if (!compiled) {
+                result.put("compilationErrors", compilationErrors);
+                ((List<String>) result.get("errors")).addAll(compilationErrors);
+            }
+
+        } catch (IOException e) {
+            compilationErrors.add("Compilation setup failed: " + e.getMessage());
+            result.put("compilationErrors", compilationErrors);
+        }
+
+        result.put("valid", ((List<String>) result.get("errors")).isEmpty());
+        return result;
+    }
+
+    private List<String> getCompilationOptions() {
+        List<String> options = new ArrayList<>();
+        options.add("-classpath");
+        options.add(System.getProperty("java.class.path"));
+        options.add("-source");
+        options.add("21");
+        options.add("-target");
+        options.add("21");
+        options.add("-Xlint:unchecked");
+        return options;
+    }
+
     public String writeToTempDirectory(Map<String, String> files, String appName) throws IOException {
         Path baseDir = Path.of(System.getProperty("java.io.tmpdir"),
                 "supremeai-" + appName + "-" + System.currentTimeMillis());
@@ -87,5 +144,57 @@ public class CodeValidationService {
         }
 
         return baseDir.toAbsolutePath().toString();
+    }
+
+    public Map<String, Object> validateGradleSyntax(String gradleContent) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        List<String> errors = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+
+        if (!gradleContent.contains("plugins")) {
+            errors.add("Missing 'plugins' block - Gradle syntax error");
+        }
+        if (!gradleContent.contains("dependencies")) {
+            warnings.add("Missing 'dependencies' block - may cause build failures");
+        }
+
+        if (gradleContent.contains("dependencies") && !gradleContent.contains(")")) {
+            errors.add("Unclosed parentheses in dependencies block");
+        }
+
+        result.put("valid", errors.isEmpty());
+        result.put("errors", errors);
+        result.put("warnings", warnings);
+        return result;
+    }
+
+    public Map<String, Object> validateJavaSyntax(String javaContent, String className) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        List<String> errors = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+
+        if (javaContent == null || javaContent.isBlank()) {
+            errors.add("Empty Java file");
+            result.put("valid", false);
+            result.put("errors", errors);
+            result.put("warnings", warnings);
+            return result;
+        }
+
+        int openBraces = (int) javaContent.chars().filter(ch -> ch == '{').count();
+        int closeBraces = (int) javaContent.chars().filter(ch -> ch == '}').count();
+
+        if (openBraces != closeBraces) {
+            errors.add("Mismatched braces: " + openBraces + " opening, " + closeBraces + " closing");
+        }
+
+        if (!javaContent.contains("public class " + className) && !javaContent.contains("class " + className)) {
+            warnings.add("Class name '" + className + "' may not match file name");
+        }
+
+        result.put("valid", errors.isEmpty());
+        result.put("errors", errors);
+        result.put("warnings", warnings);
+        return result;
     }
 }

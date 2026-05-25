@@ -3,6 +3,8 @@ package com.supremeai.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 
 import java.net.URI;
 import java.util.Map;
@@ -23,9 +25,9 @@ public class ApiTestingController {
     );
 
     @PostMapping("/endpoint")
-    public ResponseEntity<ApiTestResult> testEndpoint(@RequestBody ApiTestRequest request) {
+    public ResponseEntity<ApiTestResult> testEndpoint(@Valid @RequestBody ApiTestRequest request) {
         long startTime = System.currentTimeMillis();
-
+        
         try {
             if (!isUrlAllowed(request.getUrl())) {
                 return ResponseEntity.ok(ApiTestResult.builder()
@@ -82,8 +84,12 @@ public class ApiTestingController {
     }
 
     public static class ApiTestRequest {
+        @NotBlank(message = "URL is required")
         private String url;
+
+        @NotBlank(message = "HTTP Method is required")
         private String method;
+
         private String body;
         private Map<String, String> headers;
 
