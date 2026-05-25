@@ -25,6 +25,7 @@ public class UserCreateDTO {
     @Size(min = 2, max = 100, message = "Display name must be between 2 and 100 characters")
     private String displayName;
 
+    @Pattern(regexp = "^(FREE|PRO|ENTERPRISE)$", message = "Tier must be FREE, PRO, or ENTERPRISE")
     private String tier = "FREE";
 
     public UserCreateDTO() {

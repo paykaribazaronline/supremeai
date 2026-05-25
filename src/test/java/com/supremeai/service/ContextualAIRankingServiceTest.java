@@ -21,6 +21,9 @@ public class ContextualAIRankingServiceTest {
     @Mock
     private AIProviderFactory providerFactory;
 
+    @Mock
+    private ProviderTierService providerTierService;
+
     @InjectMocks
     private ContextualAIRankingService contextualRankingService;
 

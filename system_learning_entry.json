@@ -1,0 +1,27 @@
+{
+  "id": "rl-$(date +%s | tail -c 8)",
+  "topic": "Java date migration LocalDateTime Firestore benchmark configurable model",
+  "category": "ERROR_SOLVING",
+  "content": "Learning from Java date/time migration from java.util.Date to LocalDateTime, implementing dynamic benchmark data loading from Firestore, and making AI model name configurable in SoloModeManagerService. The solution involved updating service and model classes to use Java 8+ time API, creating Firestore entities and repositories for benchmark data, and using Spring @Value annotation for configurable fallback model with default value.",
+  "learningType": "PATTERN",
+  "confidenceScore": 0.96,
+  "permanent": true,
+  "tags": ["java8", "localdatetime", "firestore", "benchmark", "configurable", "offline"],
+  "resolution": "Replace java.util.Date with java.time.LocalDateTime in service and model classes. Use LocalDateTime.now() for timestamps and convert between LocalDateTime and Date for Firestore compatibility. Create BenchmarkResult entity and BenchmarkResultRepository to fetch live data from Firestore collection 'benchmark_results'. Update BenchmarkController to query the repository instead of returning hardcoded values. In SoloModeManagerService, use @Value(\"${solo.fallback.model:phi-3-mini}\") to make the fallback model configurable via application.properties with a default value.",
+  "solutions": [
+    "Replace java.util.Date with java.time.LocalDateTime in service and model classes",
+    "Use LocalDateTime.now() for timestamps and convert between LocalDateTime and Date for Firestore compatibility",
+    "Create BenchmarkResult entity and BenchmarkResultRepository to fetch live data from Firestore collection 'benchmark_results'",
+    "Update BenchmarkController to query the repository instead of returning hardcoded values",
+    "In SoloModeManagerService, use @Value(\"${solo.fallback.model:phi-3-mini}\") to make the fallback model configurable via application.properties with a default value",
+    "Ensure build passes with ./gradlew build -x test"
+  ],
+  "severity": "MEDIUM",
+  "timesApplied": 0,
+  "errorCount": 0,
+  "relatedProvider": "N/A",
+  "learnedFrom": "USER_CORRECTION",
+  "version": 1,
+  "critical": false,
+  "obsolete": false
+}

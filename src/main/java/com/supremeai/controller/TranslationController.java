@@ -4,6 +4,7 @@ import com.supremeai.dto.LanguagePreference;
 import com.supremeai.dto.TranslationRequest;
 import com.supremeai.dto.TranslationResponse;
 import com.supremeai.service.TranslationService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +21,7 @@ public class TranslationController {
      * টেক্সট অনুবাদ করে
      */
     @PostMapping("/translate")
-    public Mono<ResponseEntity<TranslationResponse>> translate(@RequestBody TranslationRequest request) {
+    public Mono<ResponseEntity<TranslationResponse>> translate(@Valid @RequestBody TranslationRequest request) {
         return translationService.translate(request.getText(), request.getFromLanguage(), request.getToLanguage())
                 .map(translatedText -> ResponseEntity.ok(new TranslationResponse(translatedText, true)))
                 .onErrorReturn(ResponseEntity.badRequest().build());
@@ -30,7 +31,7 @@ public class TranslationController {
      * টেক্সট ইংরেজি থেকে নির্দিষ্ট ভাষায় অনুবাদ করে
      */
     @PostMapping("/translate-from-english")
-    public Mono<ResponseEntity<TranslationResponse>> translateFromEnglish(@RequestBody TranslationRequest request) {
+    public Mono<ResponseEntity<TranslationResponse>> translateFromEnglish(@Valid @RequestBody TranslationRequest request) {
         return translationService.translateFromEnglish(request.getText(), request.getToLanguage())
                 .map(translatedText -> ResponseEntity.ok(new TranslationResponse(translatedText, true)))
                 .onErrorReturn(ResponseEntity.badRequest().build());
@@ -40,7 +41,7 @@ public class TranslationController {
      * টেক্সট নির্দিষ্ট ভাষা থেকে ইংরেজিতে অনুবাদ করে
      */
     @PostMapping("/translate-to-english")
-    public Mono<ResponseEntity<TranslationResponse>> translateToEnglish(@RequestBody TranslationRequest request) {
+    public Mono<ResponseEntity<TranslationResponse>> translateToEnglish(@Valid @RequestBody TranslationRequest request) {
         return translationService.translateToEnglish(request.getText(), request.getFromLanguage())
                 .map(translatedText -> ResponseEntity.ok(new TranslationResponse(translatedText, true)))
                 .onErrorReturn(ResponseEntity.badRequest().build());

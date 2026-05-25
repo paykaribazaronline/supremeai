@@ -42,7 +42,9 @@ public class RootCauseAnalysisService {
 
     @Autowired
     public RootCauseAnalysisService(RootCausePatternProvider rootCausePatternProvider) {
-        this.rootCausePatterns.putAll(rootCausePatternProvider.providePatterns());
+        if (rootCausePatternProvider != null) {
+            this.rootCausePatterns.putAll(rootCausePatternProvider.providePatterns());
+        }
     }
 
     /**

@@ -293,7 +293,21 @@ public class EnhancedSelfLearningRouter {
             reward += 0.1;
         }
 
+        // MoE (Mixture of Experts) Bonus: highly prioritize MoE models for better reasoning & efficiency
+        if (isMoeModel(providerId)) {
+            reward += 0.3; 
+        }
+
         return reward;
+    }
+
+    private boolean isMoeModel(String providerId) {
+        String lower = providerId.toLowerCase();
+        return lower.contains("mixtral") || 
+               lower.contains("deepseek") || 
+               lower.contains("grok") || 
+               lower.contains("dbrx") ||
+               lower.contains("moe");
     }
 
     private boolean isFreeTierProvider(String providerId) {

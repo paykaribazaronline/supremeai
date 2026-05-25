@@ -3,7 +3,7 @@ package com.supremeai.model;
 import com.google.cloud.firestore.annotation.DocumentId;
 import com.google.cloud.spring.data.firestore.Document;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Document(collectionName = "api_providers")
@@ -71,7 +71,7 @@ public class APIProvider {
     private java.util.Map<String, Object> config = new java.util.HashMap<>();
 
     public APIProvider() {
-        this.addedAt = new Date();
+        this.addedAt = LocalDateTime.now();
     }
 
     public APIProvider(String id, String name, String type, String status) {
@@ -79,7 +79,7 @@ public class APIProvider {
         this.name = name;
         this.type = type;
         this.status = status;
-        this.lastCheck = new Date();
+        this.lastCheck = LocalDateTime.now();
     }
 
     // Getters and Setters
@@ -110,8 +110,8 @@ public class APIProvider {
     public void setUsageLimit(Double usageLimit) { this.usageLimit = usageLimit; }
     public Double getCurrentUsage() { return currentUsage; }
     public void setCurrentUsage(Double currentUsage) { this.currentUsage = currentUsage; }
-    public Date getLastCheck() { return convertToDate(lastCheck); }
-    public void setLastCheck(Object lastCheck) { this.lastCheck = lastCheck; }
+    public LocalDateTime getLastCheck() { return convertToLocalDateTime(lastCheck); }
+    public void setLastCheck(LocalDateTime lastCheck) { this.lastCheck = lastCheck; }
 
     public java.util.List<String> getModels() { return models; }
     public void setModels(java.util.List<String> models) { this.models = models; }
@@ -146,11 +146,11 @@ public class APIProvider {
     public Integer getConsecutiveErrorDays() { return consecutiveErrorDays; }
     public void setConsecutiveErrorDays(Integer consecutiveErrorDays) { this.consecutiveErrorDays = consecutiveErrorDays; }
 
-    public Date getLastValidated() { return convertToDate(lastValidated); }
-    public void setLastValidated(Object lastValidated) { this.lastValidated = lastValidated; }
+    public LocalDateTime getLastValidated() { return convertToLocalDateTime(lastValidated); }
+    public void setLastValidated(LocalDateTime lastValidated) { this.lastValidated = lastValidated; }
 
-    public Date getLastErrorDate() { return convertToDate(lastErrorDate); }
-    public void setLastErrorDate(Object lastErrorDate) { this.lastErrorDate = lastErrorDate; }
+    public LocalDateTime getLastErrorDate() { return convertToLocalDateTime(lastErrorDate); }
+    public void setLastErrorDate(LocalDateTime lastErrorDate) { this.lastErrorDate = lastErrorDate; }
 
     public String getDeadReason() { return deadReason; }
     public void setDeadReason(String deadReason) { this.deadReason = deadReason; }
@@ -158,14 +158,14 @@ public class APIProvider {
     public java.util.List<String> getAssignedRoles() { return assignedRoles; }
     public void setAssignedRoles(java.util.List<String> assignedRoles) { this.assignedRoles = assignedRoles; }
 
-    public Date getDeadAt() { return convertToDate(deadAt); }
-    public void setDeadAt(Object deadAt) { this.deadAt = deadAt; }
+    public LocalDateTime getDeadAt() { return convertToLocalDateTime(deadAt); }
+    public void setDeadAt(LocalDateTime deadAt) { this.deadAt = deadAt; }
 
     public java.util.Map<String, Double> getCapabilityScores() { return capabilityScores; }
     public void setCapabilityScores(java.util.Map<String, Double> capabilityScores) { this.capabilityScores = capabilityScores; }
 
-    public java.util.Date getLastBenchmarkedAt() { return convertToDate(lastBenchmarkedAt); }
-    public void setLastBenchmarkedAt(Object lastBenchmarkedAt) { this.lastBenchmarkedAt = lastBenchmarkedAt; }
+    public LocalDateTime getLastBenchmarkedAt() { return convertToLocalDateTime(lastBenchmarkedAt); }
+    public void setLastBenchmarkedAt(LocalDateTime lastBenchmarkedAt) { this.lastBenchmarkedAt = lastBenchmarkedAt; }
 
     public Integer getBenchmarkCount() { return benchmarkCount; }
     public void setBenchmarkCount(Integer benchmarkCount) { this.benchmarkCount = benchmarkCount; }
@@ -176,11 +176,11 @@ public class APIProvider {
     public String getLastErrorMessage() { return lastErrorMessage; }
     public void setLastErrorMessage(String lastErrorMessage) { this.lastErrorMessage = lastErrorMessage; }
 
-    public Date getLastTested() { return convertToDate(lastTested); }
-    public void setLastTested(Object lastTested) { this.lastTested = lastTested; }
+    public LocalDateTime getLastTested() { return convertToLocalDateTime(lastTested); }
+    public void setLastTested(LocalDateTime lastTested) { this.lastTested = lastTested; }
 
-    public Date getAddedAt() { return convertToDate(addedAt); }
-    public void setAddedAt(Object addedAt) { this.addedAt = addedAt; }
+    public LocalDateTime getAddedAt() { return convertToLocalDateTime(addedAt); }
+    public void setAddedAt(LocalDateTime addedAt) { this.addedAt = addedAt; }
 
     public String getHints() { return hints; }
     public void setHints(String hints) { this.hints = hints; }
@@ -201,28 +201,26 @@ public class APIProvider {
     }
 
     public void setValidated(boolean validated) {
-        this.lastValidated = validated ? new java.util.Date() : null;
+        this.lastValidated = validated ? LocalDateTime.now() : null;
     }
 
-    private java.util.Date convertToDate(Object obj) {
+    private LocalDateTime convertToLocalDateTime(Object obj) {
         if (obj == null) return null;
-        if (obj instanceof java.util.Date) return (java.util.Date) obj;
-        if (obj instanceof com.google.cloud.Timestamp) return ((com.google.cloud.Timestamp) obj).toDate();
-        if (obj instanceof Long) return new java.util.Date((Long) obj);
+        if (obj instanceof LocalDateTime) return (LocalDateTime) obj;
+        if (obj instanceof java.util.Date) return ((java.util.Date) obj).toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
+        if (obj instanceof com.google.cloud.Timestamp) {
+            com.google.cloud.Timestamp t = (com.google.cloud.Timestamp) obj;
+            return LocalDateTime.ofInstant(t.toDate().toInstant(), java.time.ZoneId.systemDefault());
+        }
+        if (obj instanceof Long) return LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli((Long) obj), java.time.ZoneId.systemDefault());
         if (obj instanceof String) {
             try {
-                return java.util.Date.from(java.time.Instant.parse((String) obj));
+                return LocalDateTime.from(java.time.OffsetDateTime.parse((String) obj));
             } catch (Exception e) {
                 try {
-                    java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-                    return sdf.parse((String) obj);
+                    return LocalDateTime.parse((String) obj);
                 } catch (Exception ex) {
-                    try {
-                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-                        return sdf.parse((String) obj);
-                    } catch (Exception ex2) {
-                        return null;
-                    }
+                    return null;
                 }
             }
         }
@@ -234,7 +232,7 @@ public class APIProvider {
                 if (seconds instanceof Number) {
                     long sec = ((Number) seconds).longValue();
                     int nan = (nanos instanceof Number) ? ((Number) nanos).intValue() : 0;
-                    return com.google.cloud.Timestamp.ofTimeSecondsAndNanos(sec, nan).toDate();
+                    return LocalDateTime.ofInstant(com.google.cloud.Timestamp.ofTimeSecondsAndNanos(sec, nan).toDate().toInstant(), java.time.ZoneId.systemDefault());
                 }
             } catch (Exception e) {}
         }

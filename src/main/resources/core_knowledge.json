@@ -355,5 +355,170 @@
     "task": "dashboard build pipeline order fix",
     "solution": "[SupremeAI Core — Dashboard Build Pipeline Fix]\n\n1. Problem: Dashboard copy happened before JAR build, causing stale resources\n2. Fix in deploy.sh:\n   Step 1: Build dashboard → save to $DASHBOARD_DIST variable\n   Step 2: ./gradlew clean build -x test → JAR creation\n   Step 3: cp $DASHBOARD_DIST → public/admin/ and static/ (AFTER build)\n3. Admin panel accessible at /admin URL with redirect from /\n4. Verify: successful deployment shows admin panel with latest features",
     "category": "OPERATIONAL_DIAG"
+  },
+  {
+    "task": "add new ai provider custom api endpoint registry register add provider manual",
+    "solution": "To add a new AI provider, navigate to Admin Panel > AI Providers > Add Provider. Fill in name, type (e.g., OPENAI_COMPAT, ANTHROPIC, GEMINI), base URL, and API key. The system will save this in Firestore 'api_providers' and automatically test connectivity.",
+    "category": "AI_PROVIDER_MGMT"
+  },
+  {
+    "task": "rotate api keys credentials vault rotation revoke key safe rotation security settings",
+    "solution": "Rotate credentials periodically by generating a new key, updating the active provider config in Admin Panel > Settings > API Keys, verifying health, and then deprecating the old key. Never expose raw keys in logs or files.",
+    "category": "AI_PROVIDER_MGMT"
+  },
+  {
+    "task": "quarantine provider cooldown circuit breaker reset manual quarantine quarantine release active",
+    "solution": "Providers showing consecutive failures are quarantined automatically. To manually quarantine, go to AI Providers > Select Provider > Quarantine. To release, select Release or POST /api/admin/providers/{id}/release. Cooldown lasts 10 minutes.",
+    "category": "AI_PROVIDER_MGMT"
+  },
+  {
+    "task": "provider cost limit throttle consumption daily quota alert budget threshold limit",
+    "solution": "Configure daily cost limits for each provider in Firestore configurations. If a provider's cost exceeds the limit, it is automatically throttled (status=throttled), and request routing falls back to the next cheapest provider.",
+    "category": "AI_PROVIDER_MGMT"
+  },
+  {
+    "task": "provider discovery discovery service register automatically auto find scan cheap free models",
+    "solution": "The AutoProviderDiscoveryService runs every 24 hours. It queries OpenRouter/HuggingFace API, filters models with benchmark scores > 0.7, and automatically registers them in the Firestore api_providers collection to keep endpoints fresh without manual code updates.",
+    "category": "AI_PROVIDER_MGMT"
+  },
+  {
+    "task": "assign role user permission authorization level security admin developer viewer user role",
+    "solution": "Update user permissions by going to Admin Panel > Users, select the user, and assign roles: ADMIN (full access), DEVELOPER (healing, metrics, code access), VIEWER (read-only), or TESTER (trigger workflows).",
+    "category": "USER_PERM_MGMT"
+  },
+  {
+    "task": "create admin account seed bootstrap admin default login credentials admin username password",
+    "solution": "During the initial cold-start, the system seeds a default admin account from the environment variables ADMIN_USERNAME and ADMIN_PASSWORD. If these are empty, default credentials are safe-seeded and printed to the startup console.",
+    "category": "USER_PERM_MGMT"
+  },
+  {
+    "task": "disable suspended user account lock unauthorized access revoke session toggle active",
+    "solution": "To suspend a user, toggle isActive=false in their user document via the Admin Panel or Firestore. Once deactivated, the user's active JWT is revoked, and all future authenticated requests are blocked.",
+    "category": "USER_PERM_MGMT"
+  },
+  {
+    "task": "jwt token secret signature mismatch verification failed token expired auth validation",
+    "solution": "If JWT verification fails (signature mismatch or expiration), check that the JWT_SECRET is consistent across system instances and check that the client's system clock is synchronized. Expiration defaults to 24 hours.",
+    "category": "USER_PERM_MGMT"
+  },
+  {
+    "task": "rbac role based access control webflux spring security rules enforcement scope role",
+    "solution": "Access control is enforced at the WebFlux filter layer. The security config checks for scopes on JWT claims (e.g., .hasAuthority('SCOPE_ROLE_ADMIN') or .hasAuthority('SCOPE_ROLE_DEVELOPER')) before forwarding requests to sensitive controllers.",
+    "category": "USER_PERM_MGMT"
+  },
+  {
+    "task": "zero ai offline operations offline query core seed resilience offline mode total resilience",
+    "solution": "When all external AI helper connections are down, the system enters TIER 3 (Emergency Offline Mode). In this tier, queries are routed exclusively to core_knowledge.json and local seed stores, bypassing network calls.",
+    "category": "ZERO_AI_OFFLINE"
+  },
+  {
+    "task": "offline fallback path complete blackout resilience sequence layer caffeine cache",
+    "solution": "The system resilience sequence when offline: 1. In-memory Caffeine cache (TTL 5m) -> 2. Firestore Solution Memory (if cached) -> 3. Local core_knowledge.json (this seed) -> 4. Static emergency fallback prompt response.",
+    "category": "ZERO_AI_OFFLINE"
+  },
+  {
+    "task": "local knowledge indexing search offline keyword match scoring jaccard similarity",
+    "solution": "Offline queries are matched against core_knowledge.json tasks using tokenized Jaccard similarity and keyword matching. The solution with the highest similarity score above the gate (0.55) is chosen.",
+    "category": "ZERO_AI_OFFLINE"
+  },
+  {
+    "task": "cache hits local cache offline caffeine instant lookup sub millisecond",
+    "solution": "Caffeine cache is enabled for offline operations. Duplicate tasks bypass all lookup routines, yielding instant (sub-millisecond) response times, and are logged under activity logs as isCacheHit=true.",
+    "category": "ZERO_AI_OFFLINE"
+  },
+  {
+    "task": "unsupported query in offline mode zero ai limit grace fallback local knowledge",
+    "solution": "If a query has no matching keywords or solutions in the local seed, the system gracefully responds with: '[OFFLINE] This feature is currently limited to local knowledge. Full AI features will resume when online connectivity is restored.'",
+    "category": "ZERO_AI_OFFLINE"
+  },
+  {
+    "task": "airllm sidecar setup configure endpoint local server docker run launch start airllm",
+    "solution": "To set up the AirLLM sidecar for solo offline intelligence: 1. Deploy the AirLLM Docker container using: docker run -d --name airllm -p 8085:8085 airllm/runtime:latest. 2. Configure AIRLLM_ENDPOINT=http://localhost:8085.",
+    "category": "AIRLLM_SETUP"
+  },
+  {
+    "task": "airllm hardware requirements memory gpu cuda vram requirements metal apple silicon",
+    "solution": "AirLLM requires at least 16 GB of RAM for 7B models. When using a GPU, ensure CUDA 11.8+ is installed with at least 8 GB of VRAM for 4-bit quantized GGUF/AWQ models. On Apple Silicon, Metal acceleration is auto-detected.",
+    "category": "AIRLLM_SETUP"
+  },
+  {
+    "task": "airllm fallback offline code generation emergency fallback model solo mode manager",
+    "solution": "If cloud AI goes dark, the SoloModeManagerService routes execution-tier prompts to the local AirLLM endpoint. If AirLLM is also down, the system gracefully degrades to DOM text-only mode and local knowledge templates.",
+    "category": "AIRLLM_SETUP"
+  },
+  {
+    "task": "airllm model loading memory compression quantization options gguf awq",
+    "solution": "AirLLM loads large models dynamically. Ensure you run with --quantize 4bit to reduce RAM usage from 14 GB to 4.5 GB. Use Q4_K_M or Q5_K_M GGUF formats to balance inference speed and accuracy on consumer hardware.",
+    "category": "AIRLLM_SETUP"
+  },
+  {
+    "task": "airllm troubleshooting connections timeout container crash loop docker logs bound",
+    "solution": "If AirLLM container crashes: 1. Check docker logs airllm. 2. Verify port 8085 is not bound by another service. 3. Ensure --gpus all flag is passed if using NVIDIA. 4. If connection timeouts occur, increase solo.fallback.timeout to 30s.",
+    "category": "AIRLLM_SETUP"
+  },
+  {
+    "task": "p2p sync multi instance lan multicast peer discovery auto discovery mdns enable",
+    "solution": "P2P Sync allows LAN instances of SupremeAI to discover each other automatically via mDNS/multicast when offline. Ensure supremeai.p2p.enabled=true and supremeai.p2p.multicast-group=239.255.42.99 are configured.",
+    "category": "P2P_SYNC"
+  },
+  {
+    "task": "p2p conflict resolution duplicate keys different solutions merge strategy tied score",
+    "solution": "When P2P peers exchange divergent solutions for the same task, the conflict is resolved by: 1. Keeping the solution with the highest confidence score. 2. Merging provenances. 3. If tied, keeping the user-verified version.",
+    "category": "P2P_SYNC"
+  },
+  {
+    "task": "p2p sync bandwidth throttle network type compression zstd cellular wifi wan lan",
+    "solution": "P2P sync throttles bandwidth based on network interfaces: 110 Mb/s for LAN, 25 Mb/s for WAN, and 5 Mb/s for cellular. Payloads over 4 MB are compressed using zstd and divided into 4 MB chunks.",
+    "category": "P2P_SYNC"
+  },
+  {
+    "task": "p2p sync complete peer disconnect chunked transfer queue resume chunk queue",
+    "solution": "If a peer disconnects during knowledge sync, the transfer pauses. On reconnect, sync resumes from the last acknowledged chunk index using the retry-queue, preventing duplicate network overhead.",
+    "category": "P2P_SYNC"
+  },
+  {
+    "task": "p2p sync cloud reconnect upload firestore system_learning sync pull gkb",
+    "solution": "Upon reconnecting to the cloud, any knowledge acquired offline via P2P is uploaded to the Firestore system_learning collection with the tag learnedFrom=P2P_SYNC. All peers then pull the normalized GKB.",
+    "category": "P2P_SYNC"
+  },
+  {
+    "task": "error analysis deep analysis find error root cause debug investigate java spring boot compilation failure",
+    "solution": "Deep Error Analysis — 5-Layer Framework:\n\nLAYER 1 — SURFACE SCAN (30 seconds):\n  * Read the FIRST error line only — ignore cascading errors below it\n  * Command: ./gradlew build 2>&1 | grep 'error:' | head -5\n  * Pattern: [file]:[line]: error: [message]\n  * Rule: Fix the TOP error first — cascading errors vanish automatically\n\nLAYER 2 — SYMPTOM CLASSIFICATION:\n  * Type mismatch       → check model field type vs setter type\n  * Cannot find symbol  → missing import or typo in class/method name\n  * Incompatible types  → Date vs LocalDateTime, String vs Mono<String>\n  * NullPointerException → missing @Autowired, null bean, wrong profile\n  * No qualifying bean  → missing @Component or ambiguous @Bean\n  * Method not found    → API changed, wrong version, wrong class imported\n\nLAYER 3 — ORIGIN TRACING:\n  * Find the EXACT file + line: grep -n 'error' build_errors.txt\n  * Count how many errors in ONE file first — fix that file completely\n  * Check the model class the service depends on — field type must match\n  * Check imports at top: java.util.Date vs java.time.LocalDateTime\n\nLAYER 4 — PATTERN MATCHING (most common in SupremeAI):\n  * 'Date cannot be converted to LocalDateTime' → new Date() → LocalDateTime.now()\n  * 'method before(Date) not found in LocalDateTime' → .isBefore(LocalDateTime)\n  * 'method getTime() not found' → .toEpochSecond(ZoneOffset.UTC)*1000\n  * 'toInstant() cannot be applied without ZoneOffset' → .toInstant(ZoneOffset.UTC)\n  * 'Mono<String> returned where String expected' → wrap in Mono.just()\n\nLAYER 5 — VERIFY FIX:\n  * After each fix: ./gradlew compileJava 2>&1 | grep 'error:' | wc -l\n  * Count MUST decrease — if not, you fixed the wrong thing\n  * Target: 0 errors before moving to next task"
+  },
+  {
+    "task": "java compilation error how to read gradle build output stack trace error format understand",
+    "solution": "Reading Java/Gradle Build Errors Correctly:\n\nSTEP 1 — Run clean build and capture:\n  ./gradlew compileJava 2>&1 | tee /tmp/errors.txt\n  Count: grep 'error:' /tmp/errors.txt | wc -l\n\nSTEP 2 — Group by file (fix highest-count file first):\n  grep '^/' /tmp/errors.txt | cut -d: -f1 | sort | uniq -c | sort -rn\n\nSTEP 3 — Read one error block fully:\n  Line 1: [FilePath]:[LineNumber]: error: [description]\n  Line 2: the ACTUAL problematic code snippet\n  Line 3: ^ pointer showing exact column\n\nSTEP 4 — Understand 'Note:' lines (NOT errors — ignore until errors fixed):\n  'Note: uses deprecated API' — warning only, not a blocker\n  'Note: uses unchecked operations' — warning only\n\nSTEP 5 — Common Gradle output signals:\n  'BUILD FAILED' + 'Compilation failed' → Java compile errors first\n  'BUILD FAILED' + 'Test failed' → logic errors in tests\n  ':compileJava FAILED' → fix Java source before anything else\n  ':generateEffectiveLombokConfig UP-TO-DATE' → Lombok OK, not the problem\n\nSTEP 6 — After fix, verify:\n  ./gradlew compileJava --rerun-tasks 2>&1 | tail -5\n  Should show: 'BUILD SUCCESSFUL in Xs'"
+  },
+  {
+    "task": "null pointer exception npe debug find cause spring boot reactive webflux mono flux null bean missing",
+    "solution": "NullPointerException Deep Analysis:\n\nPHASE 1 — Locate exact NPE:\n  * Stack trace: read line 1 after 'java.lang.NullPointerException'\n  * Find YOUR code line (com.supremeai.*) not framework lines\n  * Example: at com.supremeai.service.SomeService.doWork(SomeService.java:42)\n\nPHASE 2 — Identify null source (5 most common):\n  1. @Autowired field is null → class not in Spring context (@Service missing)\n  2. Reactive chain: .flatMap(x -> x.getSomething().doWork()) — getSomething() returned null\n  3. Firestore returned null document → switchIfEmpty() not handled\n  4. Config @Value not injected → property not in application.yml\n  5. Method returned null where Mono/Flux expected → use Mono.empty()\n\nPHASE 3 — Reactive NPE (WebFlux specific):\n  * Never call .block() in reactive chain → deadlock + NPE\n  * Mono.just(null) throws NPE → use Mono.justOrEmpty(value)\n  * .map() on empty Mono → use .flatMap() + .switchIfEmpty()\n\nPHASE 4 — Fix pattern:\n  Bad:  provider.getModel().toUpperCase()\n  Good: Optional.ofNullable(provider.getModel()).map(String::toUpperCase).orElse(\"unknown\")\n\n  Bad:  return service.getData();  // service could be null\n  Good: if (service == null) return Mono.empty();\n\nPHASE 5 — Prevention:\n  * @Autowired(required=false) + null check for all optional services\n  * Use Objects.requireNonNull() at method entry for required args\n  * Add null guard before every .get(), .size(), .contains() call\n  * SupremeAI rule: all AI provider injections use required=false → Solo Mode safe"
+  },
+  {
+    "task": "type mismatch incompatible types date localdatetime string mono flux java type conversion fix",
+    "solution": "Type Mismatch — Complete Fix Reference:\n\nCASE 1: Date vs LocalDateTime\n  Error: 'incompatible types: Date cannot be converted to LocalDateTime'\n  Fix:   new java.util.Date()  →  LocalDateTime.now()\n  Fix:   new Date()            →  LocalDateTime.now()\n  Fix:   .before(date)         →  .isBefore(localDateTime)\n  Fix:   .after(date)          →  .isAfter(localDateTime)\n  Fix:   .getTime()            →  .toEpochSecond(ZoneOffset.UTC) * 1000L\n  Fix:   .toInstant()          →  .toInstant(ZoneOffset.UTC)\n  Import: java.time.LocalDateTime, java.time.ZoneOffset\n\nCASE 2: String vs Mono<String>\n  Error: 'incompatible types: String cannot be converted to Mono<String>'\n  Fix:   return \"text\"  →  return Mono.just(\"text\")\n  Fix:   return null    →  return Mono.empty()\n  Rule:  Reactive methods MUST always return Mono/Flux — never raw types\n\nCASE 3: Map type mismatch\n  Error: 'Map<String,Object> cannot be converted to Map<String,String>'\n  Fix:   Use Map<String, Object> consistently throughout the chain\n\nCASE 4: Void vs Mono<Void>\n  Fix:   return Mono.empty()  (not return; or return null)\n\nCASE 5: List type mismatch\n  Fix:   .stream().map(Converter::convert).collect(Collectors.toList())"
+  },
+  {
+    "task": "find hardcoded values grep audit codebase check hardcode model name provider ai url secret config zero hardcode",
+    "solution": "Zero Hardcode Audit — How to Find All Hardcoded Values:\n\nSTEP 1 — Find hardcoded AI model names:\n  grep -rn 'gpt-4\\|gpt-3\\.5\\|claude\\|phi-3\\|llama\\|mistral' src/main/java --include='*.java'\n  | grep -v '//' | grep -v '@Value' | grep -v 'test'\n\nSTEP 2 — Find hardcoded URLs:\n  grep -rn 'http://' src/main/java --include='*.java'\n  | grep -v '@Value\\|log\\|test\\|//.*http'\n\nSTEP 3 — Find hardcoded secrets/keys:\n  grep -rn '= \"sk-\\|= \"Bearer \\|password = \"\\|secret = \"' src/main/java --include='*.java'\n\nSTEP 4 — Classify each finding:\n  CRITICAL: In production service, affects AI routing → fix immediately\n  HIGH:     In controller or config class → move to @Value or Firestore\n  LOW:      In test class → wrap in @Profile('test') block\n  IGNORE:   In comments, static final constants with doc → document only\n\nSTEP 5 — Fix pattern:\n  Before: private String model = \"gpt-4\";\n  After:  @Value(\"${ai.default.model}\") private String model;\n\n  Before: if (model.contains(\"gpt-4\")) { score = 0.9; }\n  After:  double score = providerTierService.getDefaultScore(model);\n\nSTEP 6 — Verify zero hardcode:\n  git diff HEAD -- src/main/java | grep '^+' | grep '\"gpt-4\"\\|\"claude\"\\|\"phi-3\"'\n  Should return ZERO lines when complete"
+  },
+  {
+    "task": "test failure integration test unit test spring boot debug fix assert error expected actual mismatch",
+    "solution": "Test Failure Deep Analysis:\n\nSTEP 1 — Read the failure message carefully:\n  ./gradlew test 2>&1 | grep -A 10 'FAILED\\|AssertionError\\|Expected'\n  Format: Expected: [value]  but was: [value]\n\nSTEP 2 — Classify test failure type:\n  AssertionError          → wrong logic, check actual vs expected\n  NullPointerException    → missing mock, missing @MockBean\n  WebApplicationException → HTTP status mismatch, check security config\n  DataAccessException     → Firestore/DB emulator not running\n  JsonProcessingException → DTO field mismatch, check @JsonProperty\n\nSTEP 3 — Run single test for fast feedback:\n  ./gradlew test --tests 'com.supremeai.integration.SystemLearningIntegrationTest'\n  ./gradlew test -i --tests '...' for verbose output\n\nSTEP 4 — Check test isolation:\n  * @BeforeEach must clean repos: repo.deleteAll().block()\n  * Do not share state between @Test methods\n  * Reactive repos: always .block() in test setup\n\nSTEP 5 — Firebase Emulator test fix:\n  * FIRESTORE_EMULATOR_HOST=localhost:8081 must be set\n  * firebase emulators:start --only firestore must be running\n  * TestFirestoreConfig returns null (non-fatal) if emulator absent\n\nSTEP 6 — Coverage check:\n  ./gradlew jacocoTestReport\n  build/reports/jacoco/test/html/index.html — open in browser\n  Target: 40% line coverage minimum for Phase 1"
+  },
+  {
+    "task": "performance slow response high latency timeout api call external provider debug monitor supremeai",
+    "solution": "Performance Error Analysis:\n\nLAYER 1 — Identify slow component:\n  grep 'took [0-9][0-9][0-9][0-9]ms\\|timeout\\|SLOW' logs/app.log\n  curl localhost:8080/actuator/metrics/http.server.requests\n\nLAYER 2 — Common slow patterns in SupremeAI:\n  1. .block() in reactive chain → deadlock → infinite wait\n  2. No cache for repeated questions → unnecessary API calls every time\n  3. Providers called sequentially not parallel → 3x slower\n  4. Firestore query without index → full collection scan\n  5. No connection pool limit → thread exhaustion under load\n\nLAYER 3 — Fix sequential to parallel:\n  Bad:  for(provider : providers) { result = provider.call(); }\n  Good: Flux.fromIterable(providers).flatMap(p -> p.call()).collectList()\n\nLAYER 4 — Timeout hierarchy:\n  HTTP client: 30s (AbstractHttpProvider)\n  Circuit breaker: 3 failures → 5 min quarantine\n  Consensus: all providers must respond within 60s\n  WebSocket: ping every 30s\n\nLAYER 5 — Monitoring commands:\n  curl localhost:8080/actuator/health\n  curl localhost:8080/api/health/solo-mode\n  curl localhost:8080/api/cost/realtime"
+  },
+  {
+    "task": "dependency injection spring boot bean not found no qualifying bean autowired failed missing component",
+    "solution": "Spring Bean Injection Error Analysis:\n\nERROR: 'No qualifying bean of type X found'\nERROR: 'Field X required a bean of type Y that could not be found'\n\nSTEP 1 — Check if the class has Spring annotation:\n  @Service / @Component / @Repository / @Controller → required\n  @Configuration + @Bean method → for manual bean creation\n  Missing annotation = Spring ignores the class entirely\n\nSTEP 2 — Check component scan scope:\n  Application.java must have @SpringBootApplication\n  Auto-scan covers: com.supremeai.* and all subpackages\n  If class in different root package → add @ComponentScan explicitly\n\nSTEP 3 — Check profile mismatch:\n  @Profile('prod') bean won't exist in 'test' profile and vice versa\n  Fix: @Autowired(required=false) for optional dependencies\n\nSTEP 4 — Circular dependency detection:\n  A needs B, B needs A → 'The dependencies form a cycle'\n  Fix: @Lazy on one injection point\n  Fix: extract shared logic to a third class C\n\nSTEP 5 — Reactive repository rules:\n  Must be an INTERFACE (not a class)\n  Must extend ReactiveCrudRepository or ReactiveFirestoreRepository\n  Spring Data creates implementation automatically\n\nSTEP 6 — SupremeAI Solo Mode pattern:\n  All external AI providers: @Autowired(required=false)\n  Always null-check before use: if (provider != null) { ... }\n  This ensures system works even if a provider bean is missing"
+  },
+  {
+    "task": "git diff check what changed recent update status compare code before after find new issues",
+    "solution": "Git-Based Change Analysis for SupremeAI:\n\nQUICK STATUS:\n  git status                     → see all modified files\n  git diff HEAD --stat           → summary of changes\n  git diff HEAD --name-only      → filenames only\n  git log --oneline -10          → last 10 commits\n\nDEEP CHANGE REVIEW:\n  git diff HEAD -- [file]        → full diff for one file\n  git diff HEAD -- src/main/java → all Java changes\n  git diff HEAD -- src/test      → all test changes\n\nFIND REMAINING ISSUES:\n  git diff HEAD | grep '^+' | grep -v '^+++' | grep 'new Date\\|new java.util.Date'\n  → Shows lines ADDING old Date usage — should be zero\n\n  git diff HEAD | grep '^-' | grep 'LocalDateTime.now'\n  → Shows LocalDateTime lines being REMOVED — should be zero\n\nVERIFY ZERO HARDCODE AFTER FIX:\n  git diff HEAD -- src/main/java | grep '^+' | grep 'gpt-4\\|phi-3\\|claude'\n  → Should return ZERO lines\n\nUPDATE samter_todos.md AFTER REVIEW:\n  1. Mark completed items as [x]\n  2. Add any new issues found as new TODO entries\n  3. Update the Progress table counts\n  4. Update the Scorecard scores"
+  },
+  {
+    "task": "security vulnerability audit check firestore rules jwt auth spring security weak point exploit",
+    "solution": "Security Deep Audit Checklist:\n\nLAYER 1 — JWT Security:\n  * Secret must NOT be 'test-secret' or default value in production\n  * Application.java startup check: refuses known weak secrets\n  * Token expiry: 24h max, refresh token pattern for long sessions\n  * Command: grep -rn 'jwt.secret\\|JWT_SECRET' src/ .env\n\nLAYER 2 — DTO Input Validation:\n  * Every @RestController method accepting @RequestBody must have @Valid\n  * Every DTO field: @NotBlank (strings), @NotNull (objects), @Min/@Max (numbers)\n  * Missing @Valid = anyone can send null/empty values → NPE in service\n  * Audit: grep -rL '@Valid' src/main/java/com/supremeai/controller/\n\nLAYER 3 — Firestore Security Rules:\n  * No collection should be open to public read/write\n  * Pattern: allow read, write: if request.auth != null && request.auth.token.role == 'ADMIN'\n  * Test rules: firebase emulators:start → run rule tests\n\nLAYER 4 — Credentials in Code:\n  * grep -rn 'apiKey =\\|password =\\|secret =' src/main/java | grep '= \"'\n  * All credentials must come from GCP Secret Manager or @Value from env\n  * .env file must be in .gitignore — verify: git check-ignore -v .env\n\nLAYER 5 — GCP Billing Protection:\n  * Set budget alerts: $10 warning, $50 alert, $100 hard stop\n  * Enable GCP quotas for each API to prevent runaway costs\n  * Zero Maintenance rule: billing alert triggers auto-notification"
   }
 ]

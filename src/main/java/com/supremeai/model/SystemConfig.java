@@ -41,7 +41,7 @@ public class SystemConfig {
     private boolean emergencyStop = false;
     private boolean apiAccessLock = false;
     private String apiRotationStrategy = "quota-based";
-    private boolean autoExecApprovalRequired = true;
+    private Object autoExecApprovalRequired = true;
     private boolean fullAuthority = false;
     private String shareMode = "manual";
     private boolean enableExternalDirectory = false;
@@ -186,8 +186,15 @@ public class SystemConfig {
     public String getApiRotationStrategy() { return apiRotationStrategy; }
     public void setApiRotationStrategy(String apiRotationStrategy) { this.apiRotationStrategy = apiRotationStrategy; }
 
-    public boolean isAutoExecApprovalRequired() { return autoExecApprovalRequired; }
-    public void setAutoExecApprovalRequired(boolean autoExecApprovalRequired) { this.autoExecApprovalRequired = autoExecApprovalRequired; }
+    public boolean isAutoExecApprovalRequired() { 
+        if (autoExecApprovalRequired instanceof Boolean) {
+            return (Boolean) autoExecApprovalRequired;
+        } else if (autoExecApprovalRequired instanceof String) {
+            return Boolean.parseBoolean((String) autoExecApprovalRequired);
+        }
+        return false;
+    }
+    public void setAutoExecApprovalRequired(Object autoExecApprovalRequired) { this.autoExecApprovalRequired = autoExecApprovalRequired; }
 
     public boolean isFullAuthority() { return fullAuthority; }
     public void setFullAuthority(boolean fullAuthority) { this.fullAuthority = fullAuthority; }

@@ -1,5 +1,6 @@
 package com.supremeai.controller;
 
+import com.supremeai.dto.valid.UserCreateDTO;
 import com.supremeai.model.User;
 import com.supremeai.model.UserTier;
 import com.supremeai.service.UserAccountService;
@@ -8,14 +9,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.core.context.SecurityContext;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
 
+import jakarta.validation.Valid;
 import java.util.*;
 
 /**
@@ -31,6 +33,7 @@ import java.util.*;
  */
 @RestController
 @RequestMapping("/api/accounts")
+@Validated
 public class UserAccountController {
 
     @Autowired
@@ -42,28 +45,11 @@ public class UserAccountController {
      */
     @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
-    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> createAccount(@RequestBody Map<String, String> body) {
-        String email = body.get("email");
-        String password = body.get("password");
-        String displayName = body.get("displayName");
-        String tierStr = body.getOrDefault("tier", "FREE");
-
-        if (email == null || password == null) {
-            return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("email and password are required")));
-        }
-
-        if (password.length() < 8) {
-            return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("Password must be at least 8 characters")));
-        }
-        if (!password.matches(".*[A-Z].*")) {
-            return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("Password must contain at least one uppercase letter")));
-        }
-        if (!password.matches(".*[a-z].*")) {
-            return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("Password must contain at least one lowercase letter")));
-        }
-        if (!password.matches(".*\\d.*")) {
-            return Mono.just(ResponseEntity.badRequest().body(ApiResponse.error("Password must contain at least one digit")));
-        }
+    public Mono<ResponseEntity<ApiResponse<Map<String, Object>>>> createAccount(@Valid @RequestBody UserCreateDTO body) {
+        String email = body.getEmail();
+        String password = body.getPassword();
+        String displayName = body.getDisplayName();
+        String tierStr = body.getTier();
 
         try {
             UserTier tier = UserTier.valueOf(tierStr.toUpperCase());

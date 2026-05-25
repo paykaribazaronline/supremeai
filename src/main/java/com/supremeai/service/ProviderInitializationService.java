@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Date;
 import java.util.Map;
 
 /**
@@ -39,19 +38,31 @@ public class ProviderInitializationService {
 
     /**
      * Infer a provider type category from the provider name.
-     * Uses dynamic registry as authoritative source — returns "generic" typeId
-     * that maps to entry in {@code provider_types} Firestore collection.
+     * Uses dynamic registry as authoritative source — matches against {@code keywords}
+     * list in each {@code provider_types} Firestore document.
+     * Falls back to "generic" only if no keyword match is found.
      */
     private String determineType(String name) {
         if (name == null) return "generic";
-        String n = name.toUpperCase();
-        if (n.contains("GEMINI") || n.contains("GOOGLE"))   return "google";
-        if (n.contains("OPENAI") || n.contains("GPT"))          return "openai";
-        if (n.contains("ANTHROPIC") || n.contains("CLAUDE"))    return "anthropic";
-        if (n.contains("GROQ"))                                  return "groq";
-        if (n.contains("DEEPSEEK"))                              return "deepseek";
-        if (n.contains("MISTRAL"))                               return "mistral";
-        if (n.contains("OLLAMA") || n.contains("LOCAL"))         return "ollama";
+        String upper = name.toUpperCase();
+
+        // Dynamic matching: iterate all registered types and check their keywords
+        for (var entry : providerTypeRegistry.getAllTypes().entrySet()) {
+            com.supremeai.model.ProviderTypeConfig config = entry.getValue();
+            if (config.getKeywords() != null) {
+                for (String keyword : config.getKeywords()) {
+                    if (keyword != null && upper.contains(keyword.toUpperCase())) {
+                        return entry.getKey(); // typeId
+                    }
+                }
+            }
+            // Also match against displayName as fallback
+            if (config.getDisplayName() != null && upper.contains(config.getDisplayName().toUpperCase())) {
+                return entry.getKey();
+            }
+        }
+
+        log.debug("[STARTUP] No dynamic type match for '{}' — defaulting to 'generic'", name);
         return "generic";
     }
 
@@ -135,7 +146,7 @@ public class ProviderInitializationService {
                     .switchIfEmpty(Mono.just(new APIProvider(name.toLowerCase(), name, determineType(name), "ACTIVE")))
                     .flatMap(provider -> {
                         provider.setApiKey(key);
-                        provider.setLastCheck(new Date());
+                        provider.setLastCheck(java.time.LocalDateTime.now());
 
                         // Backfill deploymentSource for existing providers
                         if (provider.getDeploymentSource() == null || provider.getDeploymentSource().isBlank()) {

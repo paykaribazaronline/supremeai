@@ -11,8 +11,7 @@ import jakarta.validation.constraints.NotBlank;
 
 @Document(collectionName = "system_learning")
 public class SystemLearning {
-    // Firestore document id - do NOT use @DocumentId if 'id' field exists in document data
-    // Use document name as id instead
+    @DocumentId
     private String id;
 
     @NotBlank(message = "Topic is required and cannot be blank")
@@ -26,7 +25,7 @@ public class SystemLearning {
     private List<String> sources;
     private Double confidenceScore;
     private Map<String, Object> metadata;
-    private LocalDateTime learnedAt;
+    private Object learnedAt;
     private boolean permanent;
 
     // New fields for enhanced learning
@@ -76,8 +75,8 @@ public class SystemLearning {
     public void setConfidenceScore(Double confidenceScore) { this.confidenceScore = confidenceScore; }
     public Map<String, Object> getMetadata() { return metadata; }
     public void setMetadata(Map<String, Object> metadata) { this.metadata = metadata; }
-    public LocalDateTime getLearnedAt() { return learnedAt; }
-    public void setLearnedAt(LocalDateTime learnedAt) { this.learnedAt = learnedAt; }
+    public LocalDateTime getLearnedAt() { return convertToLocalDateTime(learnedAt); }
+    public void setLearnedAt(Object learnedAt) { this.learnedAt = learnedAt; }
     public boolean isPermanent() { return permanent; }
     public void setPermanent(boolean permanent) { this.permanent = permanent; }
 
@@ -138,10 +137,10 @@ public class SystemLearning {
     private String title;
     private Double confidence;
     private Long version;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Object createdAt;
+    private Object updatedAt;
     private String learnedFrom;
-    private LocalDateTime lastUsed;
+    private Object lastUsed;
     private Long useCount;
     private Long successCount;
     private Long failureCount;
@@ -155,14 +154,14 @@ public class SystemLearning {
     public void setConfidence(Double confidence) { this.confidence = confidence; }
     public Long getVersion() { return version; }
     public void setVersion(Long version) { this.version = version; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public LocalDateTime getCreatedAt() { return convertToLocalDateTime(createdAt); }
+    public void setCreatedAt(Object createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return convertToLocalDateTime(updatedAt); }
+    public void setUpdatedAt(Object updatedAt) { this.updatedAt = updatedAt; }
     public String getLearnedFrom() { return learnedFrom; }
     public void setLearnedFrom(String learnedFrom) { this.learnedFrom = learnedFrom; }
-    public LocalDateTime getLastUsed() { return lastUsed; }
-    public void setLastUsed(LocalDateTime lastUsed) { this.lastUsed = lastUsed; }
+    public LocalDateTime getLastUsed() { return convertToLocalDateTime(lastUsed); }
+    public void setLastUsed(Object lastUsed) { this.lastUsed = lastUsed; }
     public Long getUseCount() { return useCount; }
     public void setUseCount(Long useCount) { this.useCount = useCount; }
     public Long getSuccessCount() { return successCount; }
@@ -175,5 +174,24 @@ public class SystemLearning {
     public void setObsolete(Boolean obsolete) { this.obsolete = obsolete; }
     public Boolean getCritical() { return critical; }
     public void setCritical(Boolean critical) { this.critical = critical; }
+
+    private LocalDateTime convertToLocalDateTime(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof LocalDateTime) return (LocalDateTime) obj;
+        if (obj instanceof java.util.Date) return ((java.util.Date) obj).toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
+        if (obj instanceof com.google.cloud.Timestamp) {
+            com.google.cloud.Timestamp t = (com.google.cloud.Timestamp) obj;
+            return LocalDateTime.ofInstant(t.toDate().toInstant(), java.time.ZoneId.systemDefault());
+        }
+        if (obj instanceof Long) return LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli((Long) obj), java.time.ZoneId.systemDefault());
+        if (obj instanceof String) {
+            try {
+                return LocalDateTime.parse((String) obj);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        return null;
+    }
 }
 

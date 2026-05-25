@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -61,10 +61,10 @@ public class ProviderAdminService {
                         return Mono.error(new IllegalArgumentException("Invalid API key or provider unreachable"));
                     }
                     // Set to ACTIVE if validation passes (for real API keys)
-                    provider.setStatus("active");
-                    provider.setConsecutiveErrorDays(0);
-                    provider.setLastValidated(new Date());
-                    log.info("[PROVIDER] Added provider {} with status ACTIVE (validation passed)", provider.getName());
+provider.setStatus("active");
+                     provider.setConsecutiveErrorDays(0);
+                     provider.setLastValidated(LocalDateTime.now());
+                     log.info("[PROVIDER] Added provider {} with status ACTIVE (validation passed)", provider.getName());
                     return saveProviderWithLog(provider, adminUserId, "ADD_PROVIDER", "Added provider: " + provider.getName() + " [Status: ACTIVE]");
                 });
     }
@@ -85,9 +85,9 @@ public class ProviderAdminService {
                                     if (!valid) {
                                         return Mono.error(new IllegalArgumentException("Invalid API key or provider unreachable"));
                                     }
-                                    provider.setConsecutiveErrorDays(0);
-                                    provider.setLastValidated(new Date());
-                                    if ("dead".equals(existing.getStatus()) || "error".equals(existing.getStatus()) || "rotating".equals(existing.getStatus())) {
+provider.setConsecutiveErrorDays(0);
+                                     provider.setLastValidated(LocalDateTime.now());
+                                     if ("dead".equals(existing.getStatus()) || "error".equals(existing.getStatus()) || "rotating".equals(existing.getStatus())) {
                                         provider.setStatus("active");
                                         provider.setDeadReason(null);
                                         provider.setDeadAt(null);
@@ -96,10 +96,10 @@ public class ProviderAdminService {
                                     return saveProviderWithLog(provider, adminUserId, "UPDATE_PROVIDER", "Updated provider with new key: " + provider.getName());
                                 });
                     } else {
-                        if ("inactive".equals(existing.getStatus()) && "active".equals(provider.getStatus())) {
-                            provider.setConsecutiveErrorDays(0);
-                            provider.setLastValidated(new Date());
-                        }
+if ("inactive".equals(existing.getStatus()) && "active".equals(provider.getStatus())) {
+                             provider.setConsecutiveErrorDays(0);
+                             provider.setLastValidated(LocalDateTime.now());
+                         }
                         return saveProviderWithLog(provider, adminUserId, "UPDATE_PROVIDER", "Updated provider: " + provider.getName());
                     }
                 });
@@ -113,11 +113,11 @@ public class ProviderAdminService {
                     }
                     provider.setStatus("active");
                     provider.setConsecutiveErrorDays(0);
-                    provider.setDeadReason(null);
-                    provider.setDeadAt(null);
-                    provider.setLastErrorDate(null);
-                    provider.setLastValidated(new Date());
-                    return saveProviderWithLog(provider, adminUserId, "REVIVE_PROVIDER", "Revived provider: " + provider.getName());
+provider.setDeadReason(null);
+                     provider.setDeadAt(null);
+                     provider.setLastErrorDate(null);
+                     provider.setLastValidated(LocalDateTime.now());
+                     return saveProviderWithLog(provider, adminUserId, "REVIVE_PROVIDER", "Revived provider: " + provider.getName());
                 });
     }
 
@@ -155,12 +155,12 @@ public class ProviderAdminService {
                         log.info("[PROVIDER] Provider {} already active", provider.getName());
                         return Mono.just(provider);
                     }
-                    provider.setStatus("active");
-                    provider.setConsecutiveErrorDays(0);
-                    provider.setLastValidated(new Date());
-                    provider.setLastErrorDate(null);
-                    provider.setLastErrorMessage(null);
-                    log.info("[PROVIDER] Activated provider {} (admin triggered)", provider.getName());
+provider.setStatus("active");
+                     provider.setConsecutiveErrorDays(0);
+                     provider.setLastValidated(LocalDateTime.now());
+                     provider.setLastErrorDate(null);
+                     provider.setLastErrorMessage(null);
+                     log.info("[PROVIDER] Activated provider {} (admin triggered)", provider.getName());
                     return saveProviderWithLog(provider, adminUserId, "ACTIVATE_PROVIDER", 
                         "Manually activated provider: " + provider.getName());
                 })

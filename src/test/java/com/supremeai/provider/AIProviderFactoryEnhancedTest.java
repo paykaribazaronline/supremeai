@@ -20,6 +20,7 @@ class AIProviderFactoryEnhancedTest {
     private ContextualAIRankingService mockRankingService;
     private com.supremeai.repository.ProviderRepository mockRepository;
     private com.supremeai.service.ProviderMetadataService mockMetadataService;
+    private com.supremeai.service.ProviderTypeRegistry mockTypeRegistry;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -55,42 +56,14 @@ class AIProviderFactoryEnhancedTest {
         when(mockRepository.findByStatus(anyString())).thenReturn(reactor.core.publisher.Flux.fromIterable(providers));
 
         mockMetadataService = Mockito.mock(com.supremeai.service.ProviderMetadataService.class);
-        com.supremeai.service.ProviderTypeRegistry mockTypeRegistry = Mockito.mock(com.supremeai.service.ProviderTypeRegistry.class);
-        
-        List<String> validNames = List.of(
-            "gpt4", "claude", "gemini", "deepseek",
-            "gcp_llama", "gcp_phi",
-            "hf_codellama", "hf_phi_vision", "hf_e5_large",
-            "render_tinyllama", "render_phi2", "render_qwen",
-            "openai", "anthropic", "groq", "huggingface", "kimi", "mistral", "stepfun", "codegeex4",
-            "codegeex", "gcp_qwen", "gcp_nomic", "hf_deepseek", "hf_mistral", "hf_llama", "hf_phi", "render_phi3"
-        );
-
-        when(mockMetadataService.getMetadata(anyString())).thenAnswer(inv -> {
-            Object arg = inv.getArguments()[0];
-            String name = arg == null ? "" : arg.toString().toLowerCase();
-            if (!validNames.contains(name)) {
-                return null;
-            }
-            com.supremeai.model.APIProvider p = new com.supremeai.model.APIProvider();
-            p.setName(name);
-            p.setId(name);
-            p.setType(name);
-            p.setStatus("ACTIVE");
-            p.setBaseUrl("https://api." + name + ".com");
-            return p;
-        });
-        
         when(mockMetadataService.getDefaultModel(anyString(), anyString()))
-            .thenAnswer(inv -> inv.getArgument(1));
-            
-        Map<String, com.supremeai.model.APIProvider> metaMap = new java.util.HashMap<>();
-        for (com.supremeai.model.APIProvider p : providers) {
-            metaMap.put(p.getName(), p);
-        }
-        when(mockMetadataService.getAllMetadata()).thenReturn(metaMap);
-        
-        when(mockTypeRegistry.getTypeConfig(anyString())).thenReturn(null);
+            .thenAnswer(invocation -> invocation.getArgument(1));
+        mockTypeRegistry = Mockito.mock(com.supremeai.service.ProviderTypeRegistry.class);
+
+        com.supremeai.model.ProviderTypeConfig mockTypeConfig = Mockito.mock(com.supremeai.model.ProviderTypeConfig.class);
+        when(mockTypeConfig.getDefaultBaseUrl()).thenReturn("https://api.openai.com/v1");
+        when(mockTypeConfig.getDefaultModel()).thenReturn("gpt-4");
+        when(mockTypeRegistry.getTypeConfig(anyString())).thenReturn(mockTypeConfig);
 
         setField(factory, "aiProviderService", mockService);
         setField(factory, "contextualRankingService", mockRankingService);
@@ -205,6 +178,7 @@ class AIProviderFactoryEnhancedTest {
     void getProvider_ollama_shouldThrowWhenNotAvailable() {
         when(mockMetadataService.getAllMetadata()).thenReturn(java.util.Map.of());
         when(mockRepository.findByStatus(anyString())).thenReturn(reactor.core.publisher.Flux.empty());
+        when(mockTypeRegistry.getTypeConfig(eq("ollama"))).thenReturn(null);
         assertThrows(IllegalArgumentException.class, () -> factory.getProvider("ollama"));
     }
 
@@ -239,6 +213,7 @@ class AIProviderFactoryEnhancedTest {
     void getProvider_unknownProvider_shouldThrow() {
         when(mockMetadataService.getAllMetadata()).thenReturn(java.util.Map.of());
         when(mockRepository.findByStatus(anyString())).thenReturn(reactor.core.publisher.Flux.empty());
+        when(mockTypeRegistry.getTypeConfig(eq("unknown-ai"))).thenReturn(null);
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> factory.getProvider("unknown-ai"));
         assertTrue(ex.getMessage().contains("Unknown AI provider"));

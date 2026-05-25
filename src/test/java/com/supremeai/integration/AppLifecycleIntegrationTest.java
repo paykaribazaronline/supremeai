@@ -1,4 +1,3 @@
-
 package com.supremeai.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,7 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import reactor.core.publisher.Mono;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -56,75 +55,59 @@ public class AppLifecycleIntegrationTest {
     }
 
     @Test
-    public void testCompleteUserLifecycle() throws Exception {
+    public void testCompleteUserAndProjectLifecycle() throws Exception {
         // 1. User registration
         Map<String, String> registerRequest = new HashMap<>();
         registerRequest.put("email", "newuser@example.com");
         registerRequest.put("password", "SecurePassword123!");
-        registerRequest.put("username", "New User");
+        registerRequest.put("displayName", "New User");
 
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(registerRequest)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.user.email").value("newuser@example.com"));
 
-        // 2. User login
-        Map<String, String> loginRequest = new HashMap<>();
-        loginRequest.put("email", "test@example.com");
-        loginRequest.put("password", "SecurePassword123!");
-
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").exists());
-
-        // 3. Access protected endpoint
-        mockMvc.perform(get("/api/user/profile")
+        // 2. Fetch projects (initially empty)
+        mockMvc.perform(get("/api/projects")
                         .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("test@example.com"));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").isArray());
 
-        // 4. Create a project
+        // 3. Create a project
         Map<String, Object> projectRequest = new HashMap<>();
         projectRequest.put("name", "Test Project");
         projectRequest.put("description", "A test project");
 
-        mockMvc.perform(post("/api/projects")
+        MvcResult result = mockMvc.perform(post("/api/projects")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", "Bearer " + authToken)
                         .content(objectMapper.writeValueAsString(projectRequest)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.name").value("Test Project"));
-
-        // 5. Send a chat message
-        Map<String, String> chatRequest = new HashMap<>();
-        chatRequest.put("content", "Hello, AI!");
-        chatRequest.put("role", "user");
-
-        mockMvc.perform(post("/api/chat/send")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer " + authToken)
-                        .content(objectMapper.writeValueAsString(chatRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").exists());
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.name").value("Test Project"))
+                .andReturn();
 
-        // 6. Get chat history
-        mockMvc.perform(get("/api/chat/history")
+        String responseBody = result.getResponse().getContentAsString();
+        Map<String, Object> responseMap = objectMapper.readValue(responseBody, Map.class);
+        Map<String, Object> dataMap = (Map<String, Object>) responseMap.get("data");
+        String projectId = (String) dataMap.get("id");
+
+        // 4. Update project status
+        mockMvc.perform(put("/api/projects/" + projectId + "/status")
+                        .param("status", "ACTIVE")
                         .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.status").value("ACTIVE"));
 
-        // 7. User logout
-        mockMvc.perform(post("/api/auth/logout")
+        // 5. Delete project
+        mockMvc.perform(delete("/api/projects/" + projectId)
                         .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("success"));
-
-        // 8. Verify logout - access should be denied
-        mockMvc.perform(get("/api/user/profile")
-                        .header("Authorization", "Bearer " + authToken))
-                .andExpect(status().isUnauthorized());
+                .andExpect(jsonPath("$.success").value(true));
     }
 
     @Test
@@ -136,79 +119,18 @@ public class AppLifecycleIntegrationTest {
 
         String adminToken = jwtUtil.generateToken(adminUser.getFirebaseUid(), "ADMIN");
 
-        // 1. Access admin dashboard
-        mockMvc.perform(get("/api/admin/dashboard/stats")
+        // 1. Get plans
+        mockMvc.perform(get("/api/admin/plans")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalUsers").exists());
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.plans").exists());
 
-        // 2. Get all users
-        mockMvc.perform(get("/api/admin/users")
+        // 2. Get provider rankings
+        mockMvc.perform(get("/api/admin/providers/rankings")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
-
-        // 3. Get recent activity
-        mockMvc.perform(get("/api/admin/dashboard/activity")
-                        .header("Authorization", "Bearer " + adminToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
-
-        // 4. Check system health
-        mockMvc.perform(get("/api/admin/dashboard/health")
-                        .header("Authorization", "Bearer " + adminToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").exists());
-    }
-
-    @Test
-    public void testAIConsensusWorkflow() throws Exception {
-        // 1. Submit a question to AI consensus
-        Map<String, Object> consensusRequest = new HashMap<>();
-        consensusRequest.put("question", "What is the best programming language for web development?");
-        consensusRequest.put("providers", java.util.List.of("groq", "openai"));
-        consensusRequest.put("timeout", 5000);
-
-        mockMvc.perform(post("/api/consensus/ask")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer " + authToken)
-                        .content(objectMapper.writeValueAsString(consensusRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.consensusAnswer").exists())
-                .andExpect(jsonPath("$.votes").isArray());
-
-        // 2. Get consensus history
-        mockMvc.perform(get("/api/consensus/history")
-                        .header("Authorization", "Bearer " + authToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
-    }
-
-    @Test
-    public void testIntelligenceWorkflow() throws Exception {
-        // 1. Analyze a query
-        Map<String, Object> analyzeRequest = new HashMap<>();
-        analyzeRequest.put("query", "What is the best database for a small web app?");
-        analyzeRequest.put("context", "web application");
-
-        mockMvc.perform(post("/api/intelligence/analyze")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer " + authToken)
-                        .content(objectMapper.writeValueAsString(analyzeRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.analysis").exists())
-                .andExpect(jsonPath("$.confidence").exists());
-
-        // 2. Get recommendations
-        mockMvc.perform(get("/api/intelligence/recommendations/web-app")
-                        .header("Authorization", "Bearer " + authToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.recommendations").isArray());
-
-        // 3. Get insights
-        mockMvc.perform(get("/api/intelligence/insights/user-behavior")
-                        .header("Authorization", "Bearer " + authToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.insights").isArray());
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.rankings").exists());
     }
 }

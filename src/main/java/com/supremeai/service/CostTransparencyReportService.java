@@ -2,7 +2,10 @@ package com.supremeai.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+import jakarta.annotation.PostConstruct;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
@@ -17,14 +20,28 @@ public class CostTransparencyReportService {
 
     private static final Logger log = LoggerFactory.getLogger(CostTransparencyReportService.class);
 
+    @Autowired(required = false)
+    private Environment environment;
+
     // Simulated usage data. In production, this would be fetched from Firestore usage_logs.
     private final List<UsageLog> usageLogs = new ArrayList<>();
 
     public CostTransparencyReportService() {
-        // Mock data
-        usageLogs.add(new UsageLog("user_001", "session_abc", "gpt-4", 1500, 500, 0.06));
-        usageLogs.add(new UsageLog("user_001", "session_abc", "claude-3-opus", 2000, 800, 0.075));
-        usageLogs.add(new UsageLog("user_002", "session_xyz", "gemini-1.5-pro", 1000, 300, 0.015));
+        // Production constructor is empty to prevent hardcoded mock logs
+    }
+
+    @PostConstruct
+    public void init() {
+        if (environment != null && Arrays.asList(environment.getActiveProfiles()).contains("test")) {
+            // Mock data only loaded for test environment
+            usageLogs.add(new UsageLog("user_001", "session_abc", "gpt-4", 1500, 500, 0.06));
+            usageLogs.add(new UsageLog("user_001", "session_abc", "claude-3-opus", 2000, 800, 0.075));
+            usageLogs.add(new UsageLog("user_002", "session_xyz", "gemini-1.5-pro", 1000, 300, 0.015));
+        }
+    }
+
+    public void addUsageLogForTesting(String userId, String sessionId, String provider, int promptTokens, int completionTokens, double cost) {
+        usageLogs.add(new UsageLog(userId, sessionId, provider, promptTokens, completionTokens, cost));
     }
 
     public Mono<Map<String, Object>> generateCostReport(String userId) {

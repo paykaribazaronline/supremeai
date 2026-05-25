@@ -30,7 +30,7 @@ public class SecurityConfigTest {
         mockMvc.perform(get("/api/auth/register"))
                 .andExpect(status().isMethodNotAllowed()); // POST endpoint
 
-        mockMvc.perform(get("/api/chat/test"))
+        mockMvc.perform(get("/public/test-nonexistent"))
                 .andExpect(status().isNotFound()); // Endpoint might not exist, but should not be 401/403
     }
 

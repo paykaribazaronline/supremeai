@@ -40,22 +40,27 @@ class AIProviderFactoryTest {
         
         APIProvider groqMeta = new APIProvider("groq", "groq", "groq", "active");
         groqMeta.setBaseUrl("https://api.groq.com");
+        groqMeta.setModelName("llama3-8b");
         when(mockMetadataService.getMetadata("groq")).thenReturn(groqMeta);
         
         APIProvider openaiMeta = new APIProvider("openai", "openai", "openai", "active");
         openaiMeta.setBaseUrl("https://api.openai.com");
+        openaiMeta.setModelName("gpt-4");
         when(mockMetadataService.getMetadata("openai")).thenReturn(openaiMeta);
         
         APIProvider anthropicMeta = new APIProvider("anthropic", "anthropic", "anthropic", "active");
         anthropicMeta.setBaseUrl("https://api.anthropic.com");
+        anthropicMeta.setModelName("claude-3-opus");
         when(mockMetadataService.getMetadata("anthropic")).thenReturn(anthropicMeta);
         
         APIProvider geminiMeta = new APIProvider("gemini", "gemini", "gemini", "active");
         geminiMeta.setBaseUrl("https://api.gemini.com");
+        geminiMeta.setModelName("gemini-1.5-pro");
         when(mockMetadataService.getMetadata("gemini")).thenReturn(geminiMeta);
         
         APIProvider huggingfaceMeta = new APIProvider("huggingface", "huggingface", "huggingface", "active");
         huggingfaceMeta.setBaseUrl("https://api.huggingface.com");
+        huggingfaceMeta.setModelName("llama3");
         when(mockMetadataService.getMetadata("huggingface")).thenReturn(huggingfaceMeta);
         when(mockMetadataService.getDefaultModel(anyString(), anyString()))
             .thenAnswer(invocation -> invocation.getArgument(1));

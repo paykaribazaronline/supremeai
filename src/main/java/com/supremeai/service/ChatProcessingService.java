@@ -322,7 +322,7 @@ public class ChatProcessingService {
                             "active");
                     provider.setApiKey(apiKey);
                     provider.setDescription("Added via SupremeAI Chat");
-                    provider.setAddedAt(new Date());
+                    provider.setAddedAt(java.time.LocalDateTime.now());
 
                     aiProviderService.saveProvider(provider);
                     log.info("[ADD_API] Provider '{}' (type={}) saved successfully", name, type);
